@@ -48,18 +48,20 @@ class MainWindow(QMainWindow):
 								triggered=self.save)
 								
 		self.exportAct = QAction(QIcon(":/images/file_export.png"),
-								"&Export as *.bib", self,
+								"Ex&port last as *.bib", self,
+								shortcut="Ctrl+P",
 								statusTip="Export last query as *.bib",
 								triggered=self.export)
 								
 		self.exportSelAct = QAction(QIcon(":/images/file_export.png"),
 								"Export se&lection as *.bib", self,
+								shortcut="Ctrl+L",
 								statusTip="Export current selection as *.bib",
 								triggered=self.exportSelection)
 								
 		self.exportAllAct = QAction(QIcon(":/images/file_export.png"),
 								"Export &all as *.bib", self,
-								shortcut="Ctrl+E",
+								shortcut="Ctrl+A",
 								statusTip="Export complete bibliography as *.bib",
 								triggered=self.exportAll)
 
@@ -163,6 +165,7 @@ class MainWindow(QMainWindow):
 		
 	def export(self):
 		#dialog to ask fname
+		fname="temp.bib"
 		bibexport.exportLast(fname)
 		self.StatusBarMessage("Last fetched entries exported into %s"%fname)
 	
@@ -174,6 +177,7 @@ class MainWindow(QMainWindow):
 	
 	def exportAll(self):
 		#dialog to ask fname
+		fname="all.bib"
 		bibexport.exportAll(fname)
 		self.StatusBarMessage("All entries saved into %s"%fname)
 	
@@ -191,12 +195,18 @@ class MainWindow(QMainWindow):
 	
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
-		abc=webInt.webInterf()
-		abc.loadInterfaces()
-		#print abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
-		print pyBiblioDB.extractEntryByBibkey("Gariazzo:2015rra")
-		print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
-		
+		#abc=webInt.webInterf()
+		#abc.loadInterfaces()
+		#try:
+			#tmp=abc.webSearch["inspire"].retrieveUrlFirst("Gariazzo:2015rra")
+		#tmp=abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
+		#data=pyBiblioDB.prepareInsertEntry(tmp)
+		#pyBiblioDB.insertEntry(data)
+		#except:
+			#print "errors occurred"
+		#print pyBiblioDB.extractEntryByBibkey("1507.08204")
+		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
+		#print len(pyBiblioDB.extractEntries())
 		self.StatusBarMessage("biblio done")
 
 	

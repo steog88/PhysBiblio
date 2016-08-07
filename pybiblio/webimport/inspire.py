@@ -6,7 +6,8 @@ from pybiblio.webimport.webInterf import *
 class webSearch(webInterf):
 	def __init__(self):
 		webInterf.__init__(self)
-		self.name="INSPIRE fetcher"
+		self.name="inspire"
+		self.description="INSPIRE fetcher"
 		self.url="http://inspirehep.net/search"
 		self.urlArgs={
 			"action_search":"Search",
@@ -18,10 +19,9 @@ class webSearch(webInterf):
 			"of":"hx"}
 		
 	def retrieveUrlFirst(self,string):
-		print "[inspire] search "+string+':'
 		self.urlArgs["p"]=string
 		url=self.createUrl()
-		print url
+		print "[inspire] search %s -> %s"%(string, url)
 		text=self.textFromUrl(url)
 		try:
 			i1=text.find("<pre>")
@@ -32,13 +32,13 @@ class webSearch(webInterf):
 				bibtex=""
 			return bibtex
 		except:
+			print "[inspire] -> ERROR: impossible to get results"
 			return ""
 		
 	def retrieveUrlAll(self,string):
-		print "[inspire] search "+string+':'
 		self.urlArgs["p"]=string
 		url=self.createUrl()
-		print url
+		print "[inspire] search %s -> %s"%(string,url)
 		text=self.textFromUrl(url)
 		try:
 			i1=text.find("<pre>")
@@ -49,4 +49,5 @@ class webSearch(webInterf):
 				bibtex=""
 			return bibtex.replace("<pre>","").replace("</pre>","")
 		except:
+			print "[inspire] -> ERROR: impossible to get results"
 			return ""

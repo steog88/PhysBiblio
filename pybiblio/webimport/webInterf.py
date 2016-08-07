@@ -14,6 +14,7 @@ class webInterf():
 	def __init__(self):
 		self.url=None
 		self.urlArgs=None
+		self.urlTimeout=5
 		#save the names of the available web search interfaces
 		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch={}
@@ -23,15 +24,15 @@ class webInterf():
 		
 	def textFromUrl(self,url):
 		try:
-			response = urllib2.urlopen(url)
+			response = urllib2.urlopen(url, timeout=self.urlTimeout)
 		except:
-			print "---error in retriving data from url"
+			print "[%s] -> error in retriving data from url"%self.name
 			return None
 		data = response.read()
 		try:
 			text = data.decode('utf-8')
 		except:
-			print "---bad codification, utf-8 decode failed"
+			print "[%s] -> bad codification, utf-8 decode failed"%self.name
 			return None
 		return text
 	
@@ -58,8 +59,7 @@ class webInterf():
 		for t in texs:
 			with open(texsFolder+t) as r:
 				keyscont += r.read()
-		cite=re.compile('\\\\cite(p|t)?\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}',re.MULTILINE)	#find \cite{...}
-		unw3=re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,',re.MULTILINE)		#remove Abstract field
+		cite=re.compile('\\\\cite?\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}',re.MULTILINE)	#find \cite{...}
 		bibel=re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,',re.MULTILINE|re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
 		bibty=re.compile('@[a-zA-Z]*\{',re.MULTILINE|re.DOTALL)	#find the @Article(or other) entry for the key "m"
 
@@ -74,7 +74,7 @@ class webInterf():
 			for e in a:
 				if e not in strs:
 					strs.append(e)
-		print "keys found: %d"%len(strs)
+		print "[%s] keys found: %d"%(self.name,len(strs))
 		missing=[]				
 		notfound=""
 		keychange=""
@@ -85,17 +85,19 @@ class webInterf():
 				if not len(tmp)>0:
 					missing.append(s)
 				else:
-					keychange+= "-->     WARNING! %s may have a new key? %s\n"%{m,tmp['bibkey']}
-		print "missing: %d"%len(missing)
+					keychange+= "[%s] -- warning: %s may have a new key? %s\n"%(self.name,m,tmp['bibkey'])
+		print "[%s] missing: %d"%(self.name,len(missing))
 		for m in missing:
 			new=self.retrieveUrlFirst(m)
 			if len(new)>0:
+				data=pyBiblioDB.prepareInsertEntry(new)
+				pyBiblioDB.insertEntry(data)
 				#autoImport()
-				pass
+				#pass
 			else:
-				notfound+="-- warning: entry not found for %s\n"%m
+				notfound+="[%s] -- warning: entry not found for %s\n"%(self.name,m)
 				warnings+=1
 		print notfound
 		print keychange
-		print "-->     %d warning(s) occurred!"%warnings
+		print "[%s] -- %d warning(s) occurred!"%(self.name,warnings)
 		

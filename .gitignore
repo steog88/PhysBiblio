@@ -3,3 +3,6 @@
 *.pdf
 *.geany
 0*.sh
+notes.py
+*tmp*
+*.bib

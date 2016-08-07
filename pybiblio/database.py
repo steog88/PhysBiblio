@@ -1,5 +1,11 @@
 import sqlite3
-import os
+import os,re
+import bibtexparser
+
+try:
+    from pybiblio.gui.MainWindow import *
+except ImportError:
+    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 class pybiblioDB():
 	"""
@@ -17,6 +23,8 @@ class pybiblioDB():
 			["arxiv","text",""],
 			["ads","text",""],
 			["scholar","text",""],
+			["doi","text",""],
+			["isbn","text",""],
 			["year","int",""],
 			["link","text",""],
 			["comments","text",""],
@@ -108,11 +116,16 @@ class pybiblioDB():
 			else:
 				self.conn.execute(query)
 		except Exception, err:
-			print 'ERROR:', err
+			print '[connExec] ERROR:', err
 			self.conn.rollback()
+			return False
 		else:
-			mainWin.setWindowTitle("PyBiblio*")
+			try:
+				mainWin.setWindowTitle("PyBiblio*")
+			except:
+				pass
 			#self.commit()
+			return True
 	def cursExec(self,query,data=None):
 		try:
 			if data:
@@ -120,7 +133,10 @@ class pybiblioDB():
 			else:
 				self.curs.execute(query)
 		except Exception, err:
-			print 'ERROR:', err
+			print '[cursExec] ERROR:', err
+			return False
+		else:
+			return True
 
 	def createTables(self):
 		for q in self.tableFields.keys():
@@ -134,16 +150,18 @@ class pybiblioDB():
 				command+=" ".join(el)
 			command+=");"
 			print command+"\n"
-			self.connExec(command)
+			if not self.connExec(command):
+				print "[DB] error: create %s failed"%q
 		command="""
 		INSERT into categories (idCat, name, description, parentCat, ord)
 			values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0)
 			"""
 		print command+"\n"
-		self.connExec(command)
+		if not self.connExec(command):
+			print "[DB] error: insert main category failed"
 
 	def insertCat(self,data):
-		self.connExec("""
+		return self.connExec("""
 				INSERT into categories (name, description, parentCat, comments, ord)
 					values (:name,:description,:parentCat,:comments,:ord)
 				""",data)
@@ -170,7 +188,7 @@ class pybiblioDB():
 		return self.curs.fetchall()
 
 	#for the entries
-	def extractEntries(self,params=None,connection="and ",operator="="):
+	def extractEntries(self,params=None,connection="and ",operator="=",save=True):
 		query="""
 		select * from entries
 		"""
@@ -188,14 +206,18 @@ class pybiblioDB():
 			try:
 				self.cursExec(query,vals)
 			except:
-				print "query failed: %s"%query
+				print "[DB] query failed: %s"%query
 				print vals
 		else:
 			try:
 				self.cursExec(query)
 			except:
-				print "query failed: %s"%query
-		return self.curs.fetchall()
+				print "[DB] query failed: %s"%query
+		if save:
+			self.lastFetchedEntries=self.curs.fetchall()
+			return self.lastFetchedEntries
+		else:
+			return self.curs.fetchall()
 	def extractEntryByBibkey(self,bibkey):
 		return self.extractEntries(params={"bibkey":bibkey})
 	def extractEntryByKeyword(self,key):
@@ -203,6 +225,92 @@ class pybiblioDB():
 			params={"bibkey":"%%%s%%"%key,"old_keys":"%%%s%%"%key,"bibtex":"%%%s%%"%key},
 			connection="or ",
 			operator=" like ")
+	def insertEntry(self,data):
+		return self.connExec("INSERT into entries ("+
+					", ".join(self.tableCols["entries"])+") values (:"+
+					", :".join(self.tableCols["entries"])+")\n",
+					data)
+	def prepareInsertEntry(self,
+			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
+			year=None,link=None,comments=None,old_keys=None,crossref=None,
+			exp_paper=None,lecture=None,phd_thesis=None,review=None,proceeding=None,book=None,
+			marks=None):
+		data={}
+		data["bibtex"]=bibtex
+		element=bibtexparser.loads(bibtex).entries[0]
+		data["bibkey"]=bibkey if bibkey else element["ID"]	
+		data["inspire"]=inspire if inspire else None
+		if arxiv:
+			data["arxiv"]=arxiv
+		else:
+			if "arxiv" in element.keys():
+				data["arxiv"]=element["arxiv"]
+			else:
+				data["arxiv"]=None
+		data["ads"]=ads if ads else None
+		data["scholar"]=scholar if scholar else None
+		if doi:
+			data["doi"]=doi
+		else:
+			if "doi" in element.keys():
+				data["doi"]=element["doi"]
+			else:
+				data["doi"]=None
+		if isbn:
+			data["isbn"]=isbn
+		else:
+			if "isbn" in element.keys():
+				data["isbn"]=element["isbn"]
+			else:
+				data["isbn"]=None
+		if year:
+			data["year"]=year
+		else:
+			if "year" in element.keys():
+				data["year"]=element["year"]
+			else:
+				if "arxiv" in data.keys():
+					identif=re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
+					try:
+						for t in identif.finditer(data["arxiv"]):
+							if len(t.group())>0:
+								e=t.group()
+								a=e[0:2]
+								if int(a) > 80:
+									data["year"]="19"+a
+								else:
+									data["year"]="20"+a
+					except:
+						print "[DB] -> Error in converting year"
+						data["year"]=None
+				else:
+					data["year"]=None
+		if link:
+			data["link"]=link
+		else:
+			if arxiv in data.keys():
+				data["link"]= "http://arxiv.org/abs/"+data["arxiv"]
+			elif doi in data.keys():
+				data["link"]= "http://www.doi.org/"+data["doi"]
+			else:
+				data["link"]=None
+		data["comments"]=comments if comments else None
+		data["old_keys"]=old_keys if old_keys else None
+		if crossref:
+			data["crossref"]=crossref
+		else:
+			if crossref in element.keys():
+				data["crossref"]=element["crossref"]
+			else:
+				data["crossref"]=None
+		data["exp_paper"]=1 if exp_paper else 0
+		data["lecture"]=1 if lecture else 0
+		data["phd_thesis"]=1 if phd_thesis else 0
+		data["review"]=1 if review else 0
+		data["proceeding"]=1 if proceeding else 0
+		data["book"]=1 if book else 0
+		data["marks"]=marks if marks else None
+		return data
 
 pyBiblioDB=pybiblioDB()
 

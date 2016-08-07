@@ -9,7 +9,8 @@ from pybiblio.webimport.webInterf import *
 class webSearch(webInterf):
 	def __init__(self):
 		webInterf.__init__(self)
-		self.name="arXiv fetcher"
+		self.name="arXiv"
+		self.description="arXiv fetcher"
 		self.url="http://export.arxiv.org/api/query"
 		self.urlArgs={
 			"start":"0"}
@@ -23,10 +24,9 @@ class webSearch(webInterf):
 		if additionalArgs:
 			for k,v in additionalArgs.iteritems():
 				self.urlArgs[k]=v
-		print "[arxiv] search "+searchType+":"+string+':'
 		self.urlArgs["search_query"]=searchType+":"+string
 		url=self.createUrl()
-		print url
+		print "[arxiv] search %s:%s -> %s"%(searchType, string, url)
 		text=self.textFromUrl(url)
 		try:
 			data=feedparser.parse(text)
@@ -46,18 +46,30 @@ class webSearch(webInterf):
 				try:
 					tmp["doi"]=entry['arxiv_doi']
 				except KeyError,e:
-					print "KeyError: ",e
+					print "[arXiv] -> KeyError: ",e
 					pass
 				tmp["abstract"]=entry['summary']
 				tmp["authors"]=" and ".join([ au["name"] for au in entry['authors']])
 				tmp["primaryclass"]=entry['arxiv_primary_category']['term']
+				identif=re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
+				try:
+					for t in identif.finditer(tmp["arxiv"]):
+						if len(t.group())>0:
+							e=t.group()
+							a=e[0:2]
+							if int(a) > 80:
+								tmp["year"]="19"+a
+							else:
+								tmp["year"]="20"+a
+				except:
+					print "[DB] -> Error in converting year"
 				db.entries.append(tmp)
 			writer = BibTexWriter()
 			writer.indent = ' '
 			writer.comma_first = False
 			return writer.write(db)
 		except:
-			print "error!"
+			print "[arXiv] -> ERROR: impossible to get results"
 			return ""
 
 
