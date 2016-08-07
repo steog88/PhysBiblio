@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>images/application_exit.png</file>
+        <file>images/file_add.png</file>
         <file>images/file_export.png</file>
         <file>images/file_save.png</file>
         <file>images/help_about.png</file>

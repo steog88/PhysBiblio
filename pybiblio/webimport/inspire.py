@@ -6,6 +6,7 @@ from pybiblio.webimport.webInterf import *
 class webSearch(webInterf):
 	def __init__(self):
 		webInterf.__init__(self)
+		self.name="INSPIRE fetcher"
 		self.url="http://inspirehep.net/search"
 		self.urlArgs={
 			"action_search":"Search",

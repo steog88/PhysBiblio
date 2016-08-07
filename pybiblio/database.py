@@ -170,11 +170,39 @@ class pybiblioDB():
 		return self.curs.fetchall()
 
 	#for the entries
-	def extractEntries(self):
-		self.cursExec("""
+	def extractEntries(self,params=None,connection="and ",operator="="):
+		query="""
 		select * from entries
-		""")
+		"""
+		if params and len(params)>0:
+			query+=" where "
+			first=True
+			vals=()
+			for k,v in params.iteritems():
+				if first:
+					first=False
+				else:
+					query+=connection
+				query+=k+operator+"? "
+				vals+=(v,)
+			try:
+				self.cursExec(query,vals)
+			except:
+				print "query failed: %s"%query
+				print vals
+		else:
+			try:
+				self.cursExec(query)
+			except:
+				print "query failed: %s"%query
 		return self.curs.fetchall()
+	def extractEntryByBibkey(self,bibkey):
+		return self.extractEntries(params={"bibkey":bibkey})
+	def extractEntryByKeyword(self,key):
+		return self.extractEntries(
+			params={"bibkey":"%%%s%%"%key,"old_keys":"%%%s%%"%key,"bibtex":"%%%s%%"%key},
+			connection="or ",
+			operator=" like ")
 
 pyBiblioDB=pybiblioDB()
-pyBiblioDB.extractParentcat(1)
+

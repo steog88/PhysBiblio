@@ -2,7 +2,11 @@ import sys,re,os
 from urllib2 import Request
 import urllib2
 import pkgutil
-import pybiblio.webimport as wi
+try:
+	import pybiblio.webimport as wi
+	from pybiblio.database import *
+except ImportError:
+	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces=[name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
@@ -21,16 +25,20 @@ class webInterf():
 		try:
 			response = urllib2.urlopen(url)
 		except:
-			print "error in retriving data from url"
+			print "---error in retriving data from url"
 			return None
 		data = response.read()
 		try:
 			text = data.decode('utf-8')
 		except:
-			print "bad codification, utf-8 decode failed"
+			print "---bad codification, utf-8 decode failed"
 			return None
-			
 		return text
+	
+	def retrieveUrlFirst(self,search):
+		return None
+	def retrieveUrlAll(self,search):
+		return None
 	
 	def loadInterfaces(self):
 		for q in self.interfaces:
@@ -39,4 +47,55 @@ class webInterf():
 				self.webSearch[q] = getattr(_temp,"webSearch")()
 			except:
 				print "pybiblio.webimport.%s import error"%q
+		
+	def loadBibtexsForTex(self,texsFolder):
+		d=os.listdir(texsFolder)
+		texs=[]
+		for e in d:
+			if e.find('.tex')>0 and e.find('.bac')<0 and e.find('~')<0:
+				texs.append(e)
+		keyscont=""
+		for t in texs:
+			with open(texsFolder+t) as r:
+				keyscont += r.read()
+		cite=re.compile('\\\\cite(p|t)?\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}',re.MULTILINE)	#find \cite{...}
+		unw3=re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,',re.MULTILINE)		#remove Abstract field
+		bibel=re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,',re.MULTILINE|re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
+		bibty=re.compile('@[a-zA-Z]*\{',re.MULTILINE|re.DOTALL)	#find the @Article(or other) entry for the key "m"
+
+		citaz=[m for m in cite.finditer(keyscont)]
+		strs=[]
+		for c in citaz:
+			b=c.group().replace(r'\cite{','')
+			d=b.replace(' ','')
+			b=d.replace('\n','')
+			d=b.replace(r'}','')
+			a=d.split(',')
+			for e in a:
+				if e not in strs:
+					strs.append(e)
+		print "keys found: %d"%len(strs)
+		missing=[]				
+		notfound=""
+		keychange=""
+		warnings=0
+		for s in strs:
+			if not len(pyBiblioDB.extractEntryByBibkey(s))>0:
+				tmp=pyBiblioDB.extractEntryByKeyword(s)
+				if not len(tmp)>0:
+					missing.append(s)
+				else:
+					keychange+= "-->     WARNING! %s may have a new key? %s\n"%{m,tmp['bibkey']}
+		print "missing: %d"%len(missing)
+		for m in missing:
+			new=self.retrieveUrlFirst(m)
+			if len(new)>0:
+				#autoImport()
+				pass
+			else:
+				notfound+="-- warning: entry not found for %s\n"%m
+				warnings+=1
+		print notfound
+		print keychange
+		print "-->     %d warning(s) occurred!"%warnings
 		

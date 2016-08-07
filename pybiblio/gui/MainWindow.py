@@ -190,11 +190,14 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("tags triggered")
 	
 	def biblio(self):
+		self.StatusBarMessage("biblio triggered")
 		abc=webInt.webInterf()
 		abc.loadInterfaces()
-		print abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
+		#print abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
+		print pyBiblioDB.extractEntryByBibkey("Gariazzo:2015rra")
+		print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
 		
-		self.StatusBarMessage("biblio triggered")
+		self.StatusBarMessage("biblio done")
 
 	
 if __name__=='__main__':
