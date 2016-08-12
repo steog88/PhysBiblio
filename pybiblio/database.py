@@ -3,7 +3,8 @@ import os,re
 import bibtexparser
 
 try:
-    from pybiblio.gui.MainWindow import *
+	from pybiblio.gui.MainWindow import *
+	from pybiblio.config import pbConfig
 except ImportError:
     print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
@@ -11,7 +12,7 @@ class pybiblioDB():
 	"""
 	Contains most of the DB functions
 	"""
-	def __init__(self,dbname='data/pybiblio.db'):
+	def __init__(self,dbname=pbConfig.params['mainDatabaseName']):
 		"""
 		Initialize DB class
 		"""
@@ -45,12 +46,6 @@ class pybiblioDB():
 			["parentCat","int","default 0"],
 			["comments","text","default ''"],
 			["ord","int","default 0"]];
-		self.tableFields["tags"]=[
-			["idTag","integer","primary key"],
-			["name","text","not null"],
-			["description","text","not null"],
-			["comments","text",""],
-			["ord","int","default 0"]];
 		self.tableFields["experiments"]=[
 			["idExp","integer","primary key"],
 			["name","text","not null"],
@@ -65,18 +60,10 @@ class pybiblioDB():
 			["idExC","integer","primary key"],
 			["idExp","int","not null"],
 			["idCat","int","not null"]];
-		self.tableFields["expTags"]=[
-			["idExT","integer","primary key"],
-			["idExp","int","not null"],
-			["idTag","int","not null"]];
 		self.tableFields["entryCats"]=[
 			["idEnC","integer","primary key"],
 			["bibkey","text","not null"],
 			["idCat","int","not null"]];
-		self.tableFields["entryTags"]=[
-			["idEnT","integer","primary key"],
-			["bibkey","text","not null"],
-			["idTag","int","not null"]];
 		self.tableFields["entryExps"]=[
 			["idEnEx","integer","primary key"],
 			["bibkey","text","not null"],
@@ -154,11 +141,12 @@ class pybiblioDB():
 				print "[DB] error: create %s failed"%q
 		command="""
 		INSERT into categories (idCat, name, description, parentCat, ord)
-			values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0)
+			values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
+			(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
 			"""
 		print command+"\n"
 		if not self.connExec(command):
-			print "[DB] error: insert main category failed"
+			print "[DB] error: insert main categories failed"
 
 	def insertCat(self,data):
 		return self.connExec("""
@@ -169,6 +157,11 @@ class pybiblioDB():
 		self.cursExec("""
 		select * from categories
 		""")
+		return self.curs.fetchall()
+	def extractCatByName(self,name):
+		self.cursExec("""
+		select * from categories where name=?
+		""",(name,))
 		return self.curs.fetchall()
 	def extractSubcats(self,parent):
 		self.cursExec("""
@@ -186,6 +179,27 @@ class pybiblioDB():
 		where cats1.idCat=?
 		""",(child,))
 		return self.curs.fetchall()
+	def deleteCat(self,idCat,name=None):
+		if idCat<2 and name:
+			result=self.extractCatByName(name)
+			idCat=result[0]["idCat"]
+		if idCat<2:
+			print "[DB] Error: should not delete the category with id: %d%s.)"%(idCat, " (name: %s)"%name if name else "")
+			return false
+		print "[DB] using idCat=%d"%idCat
+		self.cursExec("""
+		delete from categories where idCat=?
+		""",(idCat,))
+		self.cursExec("""
+		delete from expCats where idCat=?
+		""",(idCat,))
+		self.cursExec("""
+		delete from entryCats where idCat=?
+		""",(idCat,))
+		print "[DB] looking for child categories"
+		for row in self.extractSubcats(idCat):
+			self.deleteCat(row["idCat"])
+		
 
 	#for the entries
 	def extractEntries(self,params=None,connection="and ",operator="=",save=True):

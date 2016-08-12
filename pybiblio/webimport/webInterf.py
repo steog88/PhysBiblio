@@ -5,6 +5,7 @@ import pkgutil
 try:
 	import pybiblio.webimport as wi
 	from pybiblio.database import *
+	from pybiblio.config import pbConfig
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 pkgpath = os.path.dirname(wi.__file__)
@@ -14,7 +15,7 @@ class webInterf():
 	def __init__(self):
 		self.url=None
 		self.urlArgs=None
-		self.urlTimeout=5
+		self.urlTimeout=pbConfig.params["timeoutWebSearch"]
 		#save the names of the available web search interfaces
 		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch={}

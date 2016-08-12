@@ -6,3 +6,6 @@
 notes.py
 *tmp*
 *.bib
+*.db
+*.cfg
+

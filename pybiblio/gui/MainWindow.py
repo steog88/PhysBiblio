@@ -9,6 +9,7 @@ try:
 	from pybiblio.database import *
 	import pybiblio.export as bibexport
 	import pybiblio.webimport.webInterf as webInt
+	from pybiblio.config import pbConfig
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -80,12 +81,7 @@ class MainWindow(QMainWindow):
 								shortcut="Ctrl+E",
 								statusTip="Manage Experiments",
 								triggered=self.experiments)
-
-		self.TagAct = QAction("&Tags", self,
-								shortcut="Ctrl+T",
-								statusTip="Manage tags",
-								triggered=self.tags)
-
+								
 		self.biblioAct = QAction("&Bibliography", self,
 								shortcut="Ctrl+B",
 								statusTip="Manage bibliography",
@@ -113,7 +109,6 @@ class MainWindow(QMainWindow):
 		self.dataMenu = self.menuBar().addMenu("&Contents")
 		self.dataMenu.addAction(self.CatAct)
 		self.dataMenu.addAction(self.ExpAct)
-		self.dataMenu.addAction(self.TagAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.biblioAct)
 
@@ -182,16 +177,12 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("All entries saved into %s"%fname)
 	
 	def categories(self):
-		rows=pyBiblioDB.extractParentcat(1)
+		rows=pyBiblioDB.extractCatByName("Tags")
 		self.StatusBarMessage("categories triggered")
-		#self.appLabel.setText(rows[0]['name'])
-		#self.appLabel.show()
+		print rows[0]['name']
 	
 	def experiments(self):
 		self.StatusBarMessage("experiments triggered")
-	
-	def tags(self):
-		self.StatusBarMessage("tags triggered")
 	
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
