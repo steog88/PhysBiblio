@@ -16,7 +16,8 @@ class webSearch(webInterf):
 			"rm":"",
 			"rg":"1000",
 			"sc":"0",
-			"of":"hx"}
+			"of":"hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
+			}
 		
 	def retrieveUrlFirst(self,string):
 		self.urlArgs["p"]=string
