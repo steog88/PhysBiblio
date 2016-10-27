@@ -1,7 +1,7 @@
 
 config_defaults={
 	"configMainFile":'data/params.cfg',
-	"timeoutWebSearch":5,
+	"timeoutWebSearch":10.,
 	"mainDatabaseName":'data/pybiblio.db',
 	"pdfFolder":'data/pdf/',
 }
