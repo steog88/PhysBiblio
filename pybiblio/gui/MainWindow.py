@@ -191,13 +191,26 @@ class MainWindow(QMainWindow):
 		#try:
 			#tmp=abc.webSearch["inspire"].retrieveUrlFirst("Gariazzo:2015rra")
 		#tmp=abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
-		#data=pyBiblioDB.prepareInsertEntry(tmp)
-		#pyBiblioDB.insertEntry(data)
-		#except:
-			#print "errors occurred"
-		#print pyBiblioDB.extractEntryByBibkey("1507.08204")
+		#data=pyBiblioDB.prepareInsertEntry("""@Article{Gariazzo:prova,
+  #author        = {Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y. F. and Zavanin, E. M.},
+  #title         = {{Light sterile neutrinos}},
+  #journal       = {J. Phys.},
+  #primaryclass  = {hep-ph},
+  #year          = {2016},
+  #slaccitation  = {%%CITATION = ARXIV:1507.08204;%%},
+  #timestamp     = {2015.07.30},
+#}""")
+		##pyBiblioDB.insertEntry(data)
+		##except:
+			##print "errors occurred"
+		p1=pyBiblioDB.extractEntryByBibkey("Gariazzo:2015rra")
+		p2=pyBiblioDB.extractEntryByBibkey("Gariazzo:prova")
+		print p2
+		u=pyBiblioDB.prepareUpdateEntry(p2[0]["bibtex"],p1[0]["bibtex"])
+		data=pyBiblioDB.prepareInsertEntry(u)
+		pyBiblioDB.updateEntry(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
-		#print len(pyBiblioDB.extractEntries())
+		print pyBiblioDB.extractEntryByBibkey("Gariazzo:prova")
 		self.StatusBarMessage("biblio done")
 
 	

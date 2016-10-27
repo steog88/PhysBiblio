@@ -1,5 +1,5 @@
 import sqlite3
-import os,re
+import os,re, traceback
 import bibtexparser
 
 try:
@@ -104,6 +104,7 @@ class pybiblioDB():
 				self.conn.execute(query)
 		except Exception, err:
 			print '[connExec] ERROR:', err
+			print traceback.format_exc()
 			self.conn.rollback()
 			return False
 		else:
@@ -244,6 +245,15 @@ class pybiblioDB():
 					", ".join(self.tableCols["entries"])+") values (:"+
 					", :".join(self.tableCols["entries"])+")\n",
 					data)
+	def updateEntry(self,data, oldkey):
+		data["bibkey"]=oldkey
+		print "-----\n",data,"\n------\n"
+		query= "replace into entries ("+\
+					", ".join(data.keys())+") values (:"+\
+					", :".join(data.keys())+")\n"
+		return self.connExec(query, data)
+	def toDict(self, entryFromDB):
+		return self.prepareInsertEntry(entryFromDB[0]["bibtex"])
 	def prepareInsertEntry(self,
 			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
 			year=None,link=None,comments=None,old_keys=None,crossref=None,
@@ -325,6 +335,23 @@ class pybiblioDB():
 		data["book"]=1 if book else 0
 		data["marks"]=marks if marks else None
 		return data
+		
+	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
+		elementOld=bibtexparser.loads(bibtexOld).entries[0]
+		elementNew=bibtexparser.loads(bibtexNew).entries[0]
+		db=bibtexparser.bibdatabase.BibDatabase()
+		db.entries=[]
+		keep=elementOld
+		for k in elementNew.keys():
+			if k not in elementOld.keys():
+				keep[k]=elementNew[k]
+			elif elementNew[k] and elementNew[k] != elementOld[k] and k!="bibtex" and k!="ID":
+				keep[k] = elementNew[k]
+		db.entries.append(keep)
+		writer = bibtexparser.bwriter.BibTexWriter()
+		writer.indent = ' '
+		writer.comma_first = False
+		return writer.write(db)
 
 pyBiblioDB=pybiblioDB()
 
