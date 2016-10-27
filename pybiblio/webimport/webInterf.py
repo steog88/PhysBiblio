@@ -15,7 +15,7 @@ class webInterf():
 	def __init__(self):
 		self.url=None
 		self.urlArgs=None
-		self.urlTimeout=pbConfig.params["timeoutWebSearch"]
+		self.urlTimeout=float(pbConfig.params["timeoutWebSearch"])
 		#save the names of the available web search interfaces
 		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch={}
