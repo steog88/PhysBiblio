@@ -203,6 +203,7 @@ class MainWindow(QMainWindow):
 		##pyBiblioDB.insertEntry(data)
 		##except:
 			##print "errors occurred"
+		pyBiblioDB.entryUpdateInspireID("Gariazzo:2015rra")
 		data=pyBiblioDB.prepareUpdateEntriesByKey("Gariazzo:prova", "Gariazzo:2015rra")
 		pyBiblioDB.updateEntry(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")

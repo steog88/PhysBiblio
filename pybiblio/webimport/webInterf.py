@@ -19,7 +19,7 @@ class webInterf():
 		#save the names of the available web search interfaces
 		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch={}
-		self.loadInterfaces()
+		self.loaded=False
 		
 	def createUrl(self):
 		return self.url+"?"+"&".join([a+"="+b for a,b in self.urlArgs.iteritems()])
@@ -44,12 +44,15 @@ class webInterf():
 		return None
 	
 	def loadInterfaces(self):
+		if self.loaded:
+			return
 		for q in self.interfaces:
 			try:
 				_temp=__import__("pybiblio.webimport."+q, globals(), locals(), ["webSearch"], -1)
 				self.webSearch[q] = getattr(_temp,"webSearch")()
 			except:
 				print "pybiblio.webimport.%s import error"%q
+		self.loaded=True
 	
 	def retrieveUrlFirstFrom(self, search, method):
 		getattr(self.webSearch[method],retrieveUrlFirst)(search)
@@ -110,3 +113,4 @@ class webInterf():
 		print "[%s] -- %d warning(s) occurred!"%(self.name,warnings)
 		
 pyBiblioWeb=webInterf()
+pyBiblioWeb.loadInterfaces()

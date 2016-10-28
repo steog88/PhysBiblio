@@ -10,6 +10,7 @@ class webSearch(webInterf):
 		self.name="inspire"
 		self.description="INSPIRE fetcher"
 		self.url="http://inspirehep.net/search"
+		self.urlRecord="http://inspirehep.net/record/"
 		self.urlArgs={
 			"action_search":"Search",
 			"sf":"",
@@ -19,6 +20,16 @@ class webSearch(webInterf):
 			"sc":"0",
 			"of":"hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
 			}
+		self.urlRecordExt={
+			"bibtex": "/export/hx",
+		}
+		
+	def urlOfRecord(self, inspireID, extension=None):
+		if extension and extension in self.urlRecordExt.keys():
+			ext = self.urlRecordExt[extension]
+		else:
+			ext = ""
+		return self.urlRecord + inspireID + ext
 		
 	def retrieveUrlFirst(self,string):
 		self.urlArgs["p"]=string
@@ -62,11 +73,12 @@ class webSearch(webInterf):
 		print "[inspire] search ID of %s -> %s"%(string, url)
 		text=self.textFromUrl(url)
 		try:
-			searchID=re.compile('class="titlelink" href="http://inspirehep.net/record/([0-9]*)">', re.MULTILINE|re.DOTALL)
+			searchID=re.compile('titlelink(.*)?http://inspirehep.net/record/([0-9]*)?">', re.MULTILINE|re.DOTALL)
 			for q in searchID.finditer(text):
 				if len(q.group())>0:
-					inspireID=q.group()
+					inspireID=q.group(2)
 					break
+			print "[inspire] found: %s"%inspireID
 			return inspireID
 		except:
 			print "[inspire] -> ERROR: impossible to get results"

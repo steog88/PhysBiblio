@@ -3,17 +3,19 @@ import os,re, traceback
 import bibtexparser
 import pybiblio.webimport.webInterf as webInt
 
+try:
+	from pybiblio.gui.MainWindow import *
+	from pybiblio.config import pbConfig
+	import pybiblio.parse_accents as parse_accents
+	from pybiblio.webimport.webInterf import pyBiblioWeb
+except ImportError:
+    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+
 encoding_default='iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
 parser.encoding=encoding_default
 parser.customization = parse_accents.parse_accents_record
 parser.alt_dict = {}
-
-try:
-	from pybiblio.gui.MainWindow import *
-	from pybiblio.config import pbConfig
-except ImportError:
-    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 class pybiblioDB():
 	"""
@@ -347,9 +349,11 @@ class pybiblioDB():
 		print "[DB] using key=%s"%key
 		self.cursExec("""
 		delete from entries where bibkey=?
-		""",(key,))self.cursExec("""
+		""",(key,))
+		self.cursExec("""
 		delete from entryCats where bibkey=?
-		""",(key,))self.cursExec("""
+		""",(key,))
+		self.cursExec("""
 		delete from entryExps where bibkey=?
 		""",(key,))
 
@@ -521,7 +525,7 @@ class pybiblioDB():
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
 			return self.connExec(query, {"inspire":newid, "bibkey":key})
-		else
+		else:
 			return False
 	
 	def entryUpdateField(self, key, field, value):
