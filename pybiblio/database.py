@@ -210,6 +210,18 @@ class pybiblioDB():
 		
 
 	#for the entries
+	#delete
+	def deleteEntry(self,key):
+		print "[DB] using key=%s"%key
+		self.cursExec("""
+		delete from entries where bibkey=?
+		""",(key,))self.cursExec("""
+		delete from entryCats where bibkey=?
+		""",(key,))self.cursExec("""
+		delete from entryExps where bibkey=?
+		""",(key,))
+
+	#extraction
 	def extractEntries(self,params=None,connection="and ",operator="=",save=True):
 		query="""
 		select * from entries
@@ -247,6 +259,8 @@ class pybiblioDB():
 			params={"bibkey":"%%%s%%"%key,"old_keys":"%%%s%%"%key,"bibtex":"%%%s%%"%key},
 			connection="or ",
 			operator=" like ")
+			
+	#insertion and update
 	def insertEntry(self,data):
 		return self.connExec("INSERT into entries ("+
 					", ".join(self.tableCols["entries"])+") values (:"+
@@ -371,7 +385,7 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def updateInspireID(self, entry):
+	def entryUpdateInspireID(self, entry):
 		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(entry)
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
