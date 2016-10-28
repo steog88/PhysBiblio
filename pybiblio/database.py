@@ -2,6 +2,12 @@ import sqlite3
 import os,re, traceback
 import bibtexparser
 
+encoding_default='iso-8859-15'
+parser = bibtexparser.bparser.BibTexParser()
+parser.encoding=encoding_default
+parser.customization = parse_accents.parse_accents_record
+parser.alt_dict = {}
+
 try:
 	from pybiblio.gui.MainWindow import *
 	from pybiblio.config import pbConfig

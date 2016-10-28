@@ -5,6 +5,7 @@ import feedparser
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from pybiblio.webimport.webInterf import *
+from pybiblio.parse_accents import *
 
 class webSearch(webInterf):
 	def __init__(self):
@@ -27,7 +28,7 @@ class webSearch(webInterf):
 		self.urlArgs["search_query"]=searchType+":"+string
 		url=self.createUrl()
 		print "[arxiv] search %s:%s -> %s"%(searchType, string, url)
-		text=self.textFromUrl(url)
+		text=parse_accents_str(self.textFromUrl(url))
 		try:
 			data=feedparser.parse(text)
 			db=BibDatabase()
