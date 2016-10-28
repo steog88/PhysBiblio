@@ -209,6 +209,34 @@ class pybiblioDB():
 		for row in self.extractSubcats(idCat):
 			self.deleteCat(row["idCat"])
 			
+	#functions for categories
+	def insertExp(self,data):
+		return self.connExec("""
+				INSERT into experiments (name, comments, homepage, inspire, project, future, expired, website)
+					values (:name, :comments, :homepage, :inspire, :project, :future, :expired, :website)
+				""",data)
+	def extractExps(self):
+		self.cursExec("""
+		select * from experiments
+		""")
+		return self.curs.fetchall()
+	def extractExpByName(self,name):
+		self.cursExec("""
+		select * from experiments where name=?
+		""",(name,))
+		return self.curs.fetchall()
+	def deleteExp(self,idExp,name=None):
+		print "[DB] using idExp=%d"%idExp
+		self.cursExec("""
+		delete from experiments where idExp=?
+		""",(idExp,))
+		self.cursExec("""
+		delete from expCats where idExp=?
+		""",(idExp,))
+		self.cursExec("""
+		delete from entryExps where idExp=?
+		""",(idExp,))
+
 	#functions for entryCat
 	def findEntryCat(self, idCat, key):
 		return self.connExec("""
