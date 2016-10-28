@@ -264,6 +264,8 @@ class pybiblioDB():
 			operator=" like ")
 	def getEntryField(self, key, field):
 		return self.extractEntryByBibkey(key)[0][field]
+	def dbEntryToDataDict(self, key):
+		return self.prepareInsertEntry(self.getEntryField(key,"bibtex"))
 			
 	#insertion and update
 	def insertEntry(self,data):
@@ -278,8 +280,6 @@ class pybiblioDB():
 					", ".join(data.keys())+") values (:"+\
 					", :".join(data.keys())+")\n"
 		return self.connExec(query, data)
-	def toDict(self, entryFromDB):
-		return self.prepareInsertEntry(entryFromDB[0]["bibtex"])
 	def prepareInsertEntry(self,
 			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
 			year=None,link=None,comments=None,old_keys=None,crossref=None,
@@ -387,12 +387,20 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def entryUpdateInspireID(self, entry):
-		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(entry)
+	def entryUpdateInspireID(self, key):
+		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(key)
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
-			return self.connExec(query, {"inspire":newid, "bibkey":entry})
+			return self.connExec(query, {"inspire":newid, "bibkey":key})
 		else
+			return False
+	
+	def entryUpdateField(self, key, field, value):
+		if field in self.tableCols["entries"] and field is not "bibkey" \
+				and value is not "" and value is not None:
+			query= "update entries set %s=:field where bibkey=:bibkey\n"%field
+			return self.connExec(query, {"field":value, "bibkey":key})
+		else:
 			return False
 
 pyBiblioDB=pybiblioDB()
