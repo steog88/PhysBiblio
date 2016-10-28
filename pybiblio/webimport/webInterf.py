@@ -50,6 +50,12 @@ class webInterf():
 				self.webSearch[q] = getattr(_temp,"webSearch")()
 			except:
 				print "pybiblio.webimport.%s import error"%q
+	
+	def retrieveUrlFirstFrom(self, search, method):
+		getattr(self.webSearch[method],retrieveUrlFirst)(search)
+		
+	def retrieveUrlAllFrom(self, search, method):
+		getattr(self.webSearch[method],retrieveUrlAll)(search)
 		
 	def loadBibtexsForTex(self,texsFolder):
 		d=os.listdir(texsFolder)
