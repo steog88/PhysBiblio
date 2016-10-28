@@ -343,6 +343,17 @@ class pybiblioDB():
 		data["marks"]=marks if marks else None
 		return data
 		
+	def prepareUpdateEntriesByKey(self, key_old, key_new):
+		new=pyBiblioDB.extractEntryByBibkey(key_new)
+		old=pyBiblioDB.extractEntryByBibkey(key_old)
+		u=pyBiblioDB.prepareUpdateEntry(old[0]["bibtex"],new[0]["bibtex"])
+		return pyBiblioDB.prepareInsertEntry(u)
+	
+	def prepareUpdateEntryByBibtex(self, key_old, bibtex_new):
+		entry=pyBiblioDB.extractEntryByBibkey(key_old)
+		u=pyBiblioDB.prepareUpdateEntry(entry[0]["bibtex"],bibtex_new)
+		return pyBiblioDB.prepareInsertEntry(u)
+		
 	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
 		elementOld=bibtexparser.loads(bibtexOld).entries[0]
 		elementNew=bibtexparser.loads(bibtexNew).entries[0]
