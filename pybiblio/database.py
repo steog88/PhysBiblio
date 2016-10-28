@@ -1,6 +1,7 @@
 import sqlite3
 import os,re, traceback
 import bibtexparser
+import pybiblio.webimport.webInterf as webInt
 
 encoding_default='iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
@@ -358,6 +359,14 @@ class pybiblioDB():
 		writer.indent = ' '
 		writer.comma_first = False
 		return writer.write(db)
+		
+	def updateInspireID(self, entry):
+		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(entry)
+		if newid is not "":
+			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
+			return self.connExec(query, {"inspire":newid, "bibkey":entry})
+		else
+			return False
 
 pyBiblioDB=pybiblioDB()
 
