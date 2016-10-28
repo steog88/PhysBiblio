@@ -211,6 +211,9 @@ class pybiblioDB():
 
 	#for the entries
 	#delete
+	def deleteEntries(self, key_list):
+		for k in key_list:
+			self.deleteEntry(k)
 	def deleteEntry(self,key):
 		print "[DB] using key=%s"%key
 		self.cursExec("""
@@ -259,6 +262,8 @@ class pybiblioDB():
 			params={"bibkey":"%%%s%%"%key,"old_keys":"%%%s%%"%key,"bibtex":"%%%s%%"%key},
 			connection="or ",
 			operator=" like ")
+	def getEntryField(self, key, field):
+		return self.extractEntryByBibkey(key)[0][field]
 			
 	#insertion and update
 	def insertEntry(self,data):
@@ -358,14 +363,11 @@ class pybiblioDB():
 		return data
 		
 	def prepareUpdateEntriesByKey(self, key_old, key_new):
-		new=pyBiblioDB.extractEntryByBibkey(key_new)
-		old=pyBiblioDB.extractEntryByBibkey(key_old)
-		u=pyBiblioDB.prepareUpdateEntry(old[0]["bibtex"],new[0]["bibtex"])
+		u=pyBiblioDB.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"), self.getEntryField(key_new,"bibtex"))
 		return pyBiblioDB.prepareInsertEntry(u)
 	
 	def prepareUpdateEntryByBibtex(self, key_old, bibtex_new):
-		entry=pyBiblioDB.extractEntryByBibkey(key_old)
-		u=pyBiblioDB.prepareUpdateEntry(entry[0]["bibtex"],bibtex_new)
+		u=pyBiblioDB.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"),bibtex_new)
 		return pyBiblioDB.prepareInsertEntry(u)
 		
 	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
