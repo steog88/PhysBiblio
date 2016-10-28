@@ -19,6 +19,7 @@ class webInterf():
 		#save the names of the available web search interfaces
 		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch={}
+		self.loadInterfaces()
 		
 	def createUrl(self):
 		return self.url+"?"+"&".join([a+"="+b for a,b in self.urlArgs.iteritems()])
@@ -102,3 +103,4 @@ class webInterf():
 		print keychange
 		print "[%s] -- %d warning(s) occurred!"%(self.name,warnings)
 		
+pyBiblioWeb=webInterf()
