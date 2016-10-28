@@ -156,6 +156,7 @@ class pybiblioDB():
 		if not self.connExec(command):
 			print "[DB] error: insert main categories failed"
 
+	#functions for categories
 	def insertCat(self,data):
 		return self.connExec("""
 				INSERT into categories (name, description, parentCat, comments, ord)
@@ -207,8 +208,70 @@ class pybiblioDB():
 		print "[DB] looking for child categories"
 		for row in self.extractSubcats(idCat):
 			self.deleteCat(row["idCat"])
-		
-
+			
+	#functions for entryCat
+	def findEntryCat(self, idCat, key):
+		return self.connExec("""
+				select * from entryCats where bibkey=:bibkey and idCat=:idCat
+				""",
+				{"bibkey": key, "idCat": idCat)
+	def assignEntryCat(self, idCat, key):
+		if len(self.findEntryCat(idCat, key))==0:
+			return self.connExec("""
+					INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
+					""",
+					{"bibkey": key, "idCat": idCat)
+		else:
+			print "[DB] entryCat already present"
+			return False
+	def deleteEntryCat(self, idCat, key):
+		return self.connExec("""
+				delete from entryCats where bibkey=:bibkey and idCat=:idCat
+				""",
+				{"bibkey": key, "idCat": idCat)
+			
+	#functions for expCats
+	def findExpCat(self, idCat, idExp):
+		return self.connExec("""
+				select * from expCats where idExp=:idExp and idCat=:idCat
+				""",
+				{"idExp": idExp, "idCat": idCat)
+	def assignExpCat(self, idCat, idExp):
+		if len(self.findExpCat(idCat, idExp))==0:
+			return self.connExec("""
+					INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
+					""",
+					{"idExp": idExp, "idCat": idCat)
+		else:
+			print "[DB] expCat already present"
+			return False
+	def deleteExpCat(self, idCat, idExp):
+		return self.connExec("""
+				delete from expCats where idExp=:idExp and idCat=:idCat
+				""",
+				{"idExp": idExp, "idCat": idCat)
+	
+	#functions for expCats
+	def findEntryExp(self, key, idExp):
+		return self.connExec("""
+				select * from entryExps where idExp=:idExp and bibkey=:bibkey
+				""",
+				{"idExp": idExp, "bibkey": key)
+	def assignEntryExp(self, key, idExp):
+		if len(self.findEntryExp(key, idExp))==0:
+			return self.connExec("""
+					INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
+					""",
+					{"idExp": idExp, "bibkey": key)
+		else:
+			print "[DB] entryExp already present"
+			return False
+	def deleteEntryExp(self, key, idExp):
+		return self.connExec("""
+				delete from entryExps where idExp=:idExp and bibkey=:bibkey
+				""",
+				{"idExp": idExp, "bibkey": key)
+	
 	#for the entries
 	#delete
 	def deleteEntries(self, key_list):
