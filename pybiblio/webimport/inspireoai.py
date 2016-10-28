@@ -100,6 +100,7 @@ class webSearch(webInterf):
 	def retrieveOAIUpdates(self, date1, date2):
 		recs = self.oai.listRecords(metadataPrefix='marcxml',from_=date1,until=date2,set="INSPIRE:HEP")
 		nhand=0
+		print "\n[inspireoai] STARTING OAI harvester --- "+time.strftime("%c")+"\n\n"
 		foundObjects=[]
 		for count, rec in enumerate(recs):
 			id = rec[0].identifier()
@@ -144,6 +145,6 @@ class webSearch(webInterf):
 				print count, id
 				print e
 				print traceback.format_exc()
-		print "Processed %d elements"%count
-
-		print "\nEND --- "+time.strftime("%c")+"\n\n"
+		print "[inspireoai] Processed %d elements"%count
+		print "[inspireoai] END --- "+time.strftime("%c")+"\n\n"
+		return foundObjects
