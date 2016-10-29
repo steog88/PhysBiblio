@@ -85,6 +85,13 @@ class webSearch(webInterf):
 			"of":"hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
 			}
 		self.oai = Client(self.url, registry)
+		self.correspondences=[
+			["id","inspire"],
+			["year","year"],
+			["arxiv","arxiv"],
+			["oldkeys","old_keys"],
+			["firstdate","insertdate"]
+		]
 		
 	def retrieveUrlFirst(self,string):
 		print "[inspireoai] -> ERROR: inspireoai cannot search strings in the DB"
@@ -93,9 +100,44 @@ class webSearch(webInterf):
 	def retrieveUrlAll(self,string):
 		print "[inspireoai] -> ERROR: inspireoai cannot search strings in the DB"
 		return ""
+		
+	def readRecord(self, record):
+		tmpDict={}
+		record.to_unicode = True
+		record.force_utf8 = True
+		arxiv=""
+		tmpDict["oldkeys"]=[]
+		for q in record.get_fields('035'):
+			if q["9"] == "arXiv":
+				tmp=q["a"]
+				if tmp is not None:
+					arxiv = tmp.replace("oai:arXiv.org:","")
+				else:
+					arxiv=""
+				tmpDict["arxiv"]=arxiv
+			if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
+				if q["a"]:
+					tmpDict["bibkey"]=q["a"]
+				elif q["z"]:
+					tmpDict["oldkeys"].append(q["z"])
+		tmpDict["journal"],tmpDict["volume"],tmpDict["year"],tmpDict["pages"],m,x,t=get_journal_ref_xml(record)
+		firstdate=record["269"]
+		if firstdate is not None:
+			firstdate=firstdate["c"]
+		else:
+			firstdate=record["961"]
+			if firstdate is not None:
+				firstdate=firstdate["x"]
+		tmpDict["firstdate"]=firstdate
+		return tmpDict
 	
 	def retrieveOAIData(self,inspireID):
-		pass
+		recs = self.oai.getRecord(metadataPrefix='marcxml',identifier="oai:inspirehep.net:"+inspireID)
+		nhand=0
+		print "\n[inspireoai] reading data --- "+time.strftime("%c")+"\n"
+		res = self.readRecord(recs[1])
+		print "[inspireoai] done."
+		return res
 		
 	def retrieveOAIUpdates(self, date1, date2):
 		recs = self.oai.listRecords(metadataPrefix='marcxml',from_=date1,until=date2,set="INSPIRE:HEP")
@@ -110,36 +152,9 @@ class webSearch(webInterf):
 			if not record:
 				continue
 			try:
-				tmpDict={}
-				record.to_unicode = True
-				record.force_utf8 = True
-				arxiv=""
-				oldkeys=[]
+				tmpDict=self.readRecord(record)
 				id_=id.replace("oai:inspirehep.net:","")
 				tmpDict["id"]=id_
-				tmpDict["oldkeys"]=[]
-				for q in record.get_fields('035'):
-					if q["9"] == "arXiv":
-						tmp=q["a"]
-						if tmp is not None:
-							arxiv = tmp.replace("oai:arXiv.org:","")
-						else:
-							arxiv=""
-						tmpDict["arxiv"]=arxiv
-					if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
-						if q["a"]:
-							tmpDict["bibkey"]=q["a"]
-						elif q["z"]:
-							tmpDict["oldkeys"].append(q["z"])
-				tmpDict["journal"],tmpDict["volume"],tmpDict["year"],tmpDict["pages"],m,x,t=get_journal_ref_xml(record)
-				firstdate=record["269"]
-				if firstdate is not None:
-					firstdate=firstdate["c"]
-				else:
-					firstdate=record["961"]
-					if firstdate is not None:
-						firstdate=firstdate["x"]
-				tmpDict["firstdate"]=firstdate
 				foundObjects.append(tmpDict)
 			except Exception, e:
 				print count, id

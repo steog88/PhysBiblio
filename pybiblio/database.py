@@ -548,6 +548,16 @@ class pybiblioDB():
 		date2=datetime.datetime(int(yrst), int(monst), int(dayst))
 		entries=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
 		for e in entries:
-			print e["id"]
+			try:
+				key=e["bibkey"]
+				print key
+				old=self.extractEntryByBibkey(key)
+				if len(old)>0:
+					for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+						if e[o] != old[0][d]:
+							self.entryUpdateField(key, d, e[o])
+			except:
+				print "[database][inspireoai] something missing in entry %s"%e["id"]
+		print "[database] inspire OAI harvesting done!"
 
 pyBiblioDB=pybiblioDB()
