@@ -147,13 +147,17 @@ class webSearch(webInterf):
 		return tmpDict
 	
 	def retrieveOAIData(self,inspireID):
-		recs = self.oai.getRecord(metadataPrefix='marcxml',identifier="oai:inspirehep.net:"+inspireID)
+		record = self.oai.getRecord(metadataPrefix='marcxml',identifier="oai:inspirehep.net:"+inspireID)
 		nhand=0
 		print "\n[inspireoai] reading data --- "+time.strftime("%c")+"\n"
-		res = self.readRecord(recs[1])
-		res["id"]=inspireID
-		print "[inspireoai] done."
-		return res
+		try:
+			res = self.readRecord(record[1])
+			res["id"]=inspireID
+			print "[inspireoai] done."
+			return res
+		except Exception:
+			print "[inspireoai] ERROR: impossible to read marcxml for entry %s"%inspireID
+			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):
 		recs = self.oai.listRecords(metadataPrefix='marcxml',from_=date1,until=date2,set="INSPIRE:HEP")
