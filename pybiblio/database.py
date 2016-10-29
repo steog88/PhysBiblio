@@ -1,5 +1,5 @@
 import sqlite3
-import os,re, traceback
+import os, re, traceback, datetime
 import bibtexparser
 import pybiblio.webimport.webInterf as webInt
 
@@ -535,6 +535,19 @@ class pybiblioDB():
 			return self.connExec(query, {"field":value, "bibkey":key})
 		else:
 			return False
+			
+	def getUpdateInfoFromOAI(self, date1=None, date2=None):
+		if date1 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date1):
+			date1 = (datetime.date.today()-datetime.timedelta(1)).strftime("%Y-%m-%d")
+		if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
+			date2 = datetime.date.today().strftime("%Y-%m-%d")
+		yren,monen,dayen=date1.split('-')
+		yrst,monst,dayst=date2.split('-')
+		print "[database] calling Inspire OAI harvester between dates %s and %s"%(date1, date2)
+		date1=datetime.datetime(int(yren), int(monen), int(dayen))
+		date2=datetime.datetime(int(yrst), int(monst), int(dayst))
+		entries=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+		for e in entries:
+			print e["id"]
 
 pyBiblioDB=pybiblioDB()
-

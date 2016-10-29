@@ -110,14 +110,14 @@ class webSearch(webInterf):
 			if not record:
 				continue
 			try:
-				tmp={}
+				tmpDict={}
 				record.to_unicode = True
 				record.force_utf8 = True
 				arxiv=""
 				oldkeys=[]
 				id_=id.replace("oai:inspirehep.net:","")
-				tmp["id"]=id_
-				tmp["oldkeys"]=[]
+				tmpDict["id"]=id_
+				tmpDict["oldkeys"]=[]
 				for q in record.get_fields('035'):
 					if q["9"] == "arXiv":
 						tmp=q["a"]
@@ -125,13 +125,13 @@ class webSearch(webInterf):
 							arxiv = tmp.replace("oai:arXiv.org:","")
 						else:
 							arxiv=""
-						tmp["arxiv"]=arxiv
+						tmpDict["arxiv"]=arxiv
 					if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
 						if q["a"]:
-							tmp["bibkey"]=q["a"]
+							tmpDict["bibkey"]=q["a"]
 						elif q["z"]:
-							tmp["oldkeys"].append(q["z"])
-				tmp["journal"],tmp["volume"],tmp["year"],tmp["pages"],m,x,t=get_journal_ref_xml(record)
+							tmpDict["oldkeys"].append(q["z"])
+				tmpDict["journal"],tmpDict["volume"],tmpDict["year"],tmpDict["pages"],m,x,t=get_journal_ref_xml(record)
 				firstdate=record["269"]
 				if firstdate is not None:
 					firstdate=firstdate["c"]
@@ -139,8 +139,8 @@ class webSearch(webInterf):
 					firstdate=record["961"]
 					if firstdate is not None:
 						firstdate=firstdate["x"]
-				tmp["firstdate"]=firstdate
-				foundObjects.append(tmp)
+				tmpDict["firstdate"]=firstdate
+				foundObjects.append(tmpDict)
 			except Exception, e:
 				print count, id
 				print e
