@@ -208,8 +208,8 @@ class MainWindow(QMainWindow):
 		#pyBiblioDB.updateEntry(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
 		#print pyBiblioDB.extractEntryByBibkey("Gariazzo:prova")
-		pyBiblioDB.getUpdateInfoFromOAI()
-		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
+		#pyBiblioDB.getUpdateInfoFromOAI()
+		pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
 		self.StatusBarMessage("biblio done")
 
 	

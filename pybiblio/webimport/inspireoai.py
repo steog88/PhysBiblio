@@ -90,7 +90,10 @@ class webSearch(webInterf):
 			["year","year"],
 			["arxiv","arxiv"],
 			["oldkeys","old_keys"],
-			["firstdate","insertdate"]
+			["firstdate","insertdate"],
+			["doi","doi"],
+			["ads","ads"],
+			["isbn","isbn"],
 		]
 		
 	def retrieveUrlFirst(self,string):
@@ -107,6 +110,9 @@ class webSearch(webInterf):
 		record.force_utf8 = True
 		arxiv=""
 		tmpDict["oldkeys"]=[]
+		for q in record.get_fields('024'):
+			if q["2"] == "DOI":
+				tmpDict["doi"] = q["a"]
 		for q in record.get_fields('035'):
 			if q["9"] == "arXiv":
 				tmp=q["a"]
@@ -120,6 +126,9 @@ class webSearch(webInterf):
 					tmpDict["bibkey"]=q["a"]
 				elif q["z"]:
 					tmpDict["oldkeys"].append(q["z"])
+			if q["9"] == "ADS":
+				if q["a"] is not None:
+					tmpDict["ads"]=q["a"]
 		tmpDict["journal"],tmpDict["volume"],tmpDict["year"],tmpDict["pages"],m,x,t=get_journal_ref_xml(record)
 		firstdate=record["269"]
 		if firstdate is not None:
@@ -128,6 +137,12 @@ class webSearch(webInterf):
 			firstdate=record["961"]
 			if firstdate is not None:
 				firstdate=firstdate["x"]
+		if record["260"] is not None:
+			tmpDict["pubdate"]=record["260"]["c"]
+		if record["020"] is not None:
+			tmpDict["isbn"]=record["020"]["a"]
+		if record["260"] is not None:
+			tmpDict["pubdate"]=record["260"]["c"]
 		tmpDict["firstdate"]=firstdate
 		return tmpDict
 	
@@ -136,6 +151,7 @@ class webSearch(webInterf):
 		nhand=0
 		print "\n[inspireoai] reading data --- "+time.strftime("%c")+"\n"
 		res = self.readRecord(recs[1])
+		res["id"]=inspireID
 		print "[inspireoai] done."
 		return res
 		
