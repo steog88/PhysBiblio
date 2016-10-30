@@ -90,7 +90,8 @@ class webSearch(webInterf):
 			["year","year"],
 			["arxiv","arxiv"],
 			["oldkeys","old_keys"],
-			["firstdate","insertdate"],
+			["firstdate","firstdate"],
+			["pubdate","pubdate"],
 			["doi","doi"],
 			["ads","ads"],
 			["isbn","isbn"],
@@ -109,41 +110,71 @@ class webSearch(webInterf):
 		record.to_unicode = True
 		record.force_utf8 = True
 		arxiv=""
-		tmpDict["oldkeys"]=[]
-		for q in record.get_fields('024'):
-			if q["2"] == "DOI":
-				tmpDict["doi"] = q["a"]
-		for q in record.get_fields('035'):
-			if q["9"] == "arXiv":
-				tmp=q["a"]
-				if tmp is not None:
-					arxiv = tmp.replace("oai:arXiv.org:","")
-				else:
-					arxiv=""
-				tmpDict["arxiv"]=arxiv
-			if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
-				if q["a"]:
-					tmpDict["bibkey"]=q["a"]
-				elif q["z"]:
-					tmpDict["oldkeys"].append(q["z"])
-			if q["9"] == "ADS":
-				if q["a"] is not None:
-					tmpDict["ads"]=q["a"]
-		tmpDict["journal"],tmpDict["volume"],tmpDict["year"],tmpDict["pages"],m,x,t=get_journal_ref_xml(record)
-		firstdate=record["269"]
-		if firstdate is not None:
-			firstdate=firstdate["c"]
-		else:
-			firstdate=record["961"]
+		tmpOld=[]
+		try:
+			tmpDict["doi"] = None
+			for q in record.get_fields('024'):
+				if q["2"] == "DOI":
+					tmpDict["doi"] = q["a"]
+		except:
+			pass
+		try:
+			tmpDict["arxiv"] = None
+			tmpDict["bibkey"]= None
+			tmpDict["ads"]   = None
+			for q in record.get_fields('035'):
+				if q["9"] == "arXiv":
+					tmp=q["a"]
+					if tmp is not None:
+						arxiv = tmp.replace("oai:arXiv.org:","")
+					else:
+						arxiv=""
+					tmpDict["arxiv"]=arxiv
+				if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
+					if q["a"]:
+						tmpDict["bibkey"]=q["a"]
+					elif q["z"]:
+						tmpOld.append(q["z"])
+				if q["9"] == "ADS":
+					if q["a"] is not None:
+						tmpDict["ads"]=q["a"]
+		except:
+			pass
+		try:
+			j,v,y,p,m,x,t=get_journal_ref_xml(record)
+			tmpDict["journal"] = j[0]
+			tmpDict["volume"]  = v[0]
+			tmpDict["year"]    = y[0]
+			tmpDict["pages"]   = p[0]
+		except:
+			tmpDict["journal"] = None
+			tmpDict["volume"]  = None
+			tmpDict["year"]    = None
+			tmpDict["pages"]   = None
+		try:
+			firstdate=record["269"]
 			if firstdate is not None:
-				firstdate=firstdate["x"]
-		if record["260"] is not None:
+				firstdate=firstdate["c"]
+			else:
+				firstdate=record["961"]
+				if firstdate is not None:
+					firstdate=firstdate["x"]
+			tmpDict["firstdate"] = firstdate
+		except:
+			tmpDict["firstdate"] = None
+		try:
 			tmpDict["pubdate"]=record["260"]["c"]
-		if record["020"] is not None:
+		except:
+			tmpDict["pubdate"]=None
+		try:
 			tmpDict["isbn"]=record["020"]["a"]
-		if record["260"] is not None:
+		except:
+			tmpDict["isbn"]=None
+		try:
 			tmpDict["pubdate"]=record["260"]["c"]
-		tmpDict["firstdate"]=firstdate
+		except:
+			tmpDict["pubdate"]=None
+		tmpDict["oldkeys"]=",".join(tmpOld)
 		return tmpDict
 	
 	def retrieveOAIData(self,inspireID):
