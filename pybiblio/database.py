@@ -41,6 +41,8 @@ class pybiblioDB():
 			["old_keys","text",""],
 			["crossref","text",""],
 			["bibtex","text","not null"],
+			["firstdate","text","not null"],
+			["pubdate","text",""],
 			["exp_paper",	"int","default 0"],
 			["lecture",		"int","default 0"],
 			["phd_thesis",	"int","default 0"],
@@ -358,10 +360,11 @@ class pybiblioDB():
 		""",(key,))
 
 	#extraction
-	def extractEntries(self,params=None,connection="and ",operator="=",save=True):
+	def extractEntries(self,params=None,connection="and ",operator="=",save=True, orderBy=None, orderType="ASC"):
 		query="""
 		select * from entries
 		"""
+		query += " order by "+orderBy+" "+orderType if orderBy else ""
 		if params and len(params)>0:
 			query+=" where "
 			first=True
@@ -417,7 +420,7 @@ class pybiblioDB():
 			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
 			year=None,link=None,comments=None,old_keys=None,crossref=None,
 			exp_paper=None,lecture=None,phd_thesis=None,review=None,proceeding=None,book=None,
-			marks=None):
+			marks=None, firstdate=None, pubdate=None):
 		data={}
 		data["bibtex"]=bibtex
 		element=bibtexparser.loads(bibtex).entries[0]
@@ -493,6 +496,8 @@ class pybiblioDB():
 		data["proceeding"]=1 if proceeding else 0
 		data["book"]=1 if book else 0
 		data["marks"]=marks if marks else None
+		data["firstdate"]=firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
+		data["pubdate"]=pubdate if pubdate else ""
 		return data
 		
 	def prepareUpdateEntriesByKey(self, key_old, key_new):
@@ -524,19 +529,20 @@ class pybiblioDB():
 		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(key)
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
-			return self.connExec(query, {"inspire":newid, "bibkey":key})
+			if self.connExec(query, {"inspire":newid, "bibkey":key}):
+				return newid
 		else:
 			return False
 	
 	def entryUpdateField(self, key, field, value):
 		if field in self.tableCols["entries"] and field is not "bibkey" \
 				and value is not "" and value is not None:
-			query= "update entries set %s=:field where bibkey=:bibkey\n"%field
+			query= "update entries set "+field+"=:field where bibkey=:bibkey\n"
 			return self.connExec(query, {"field":value, "bibkey":key})
 		else:
 			return False
 			
-	def getUpdateInfoFromOAI(self, date1=None, date2=None):
+	def getUpdateInfoDaysFromOAI(self, date1=None, date2=None):
 		if date1 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date1):
 			date1 = (datetime.date.today()-datetime.timedelta(1)).strftime("%Y-%m-%d")
 		if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
@@ -560,4 +566,47 @@ class pybiblioDB():
 				print "[database][inspireoai] something missing in entry %s"%e["id"]
 		print "[database] inspire OAI harvesting done!"
 
+	def getUpdateInfoEntryFromOAI(self, inspireID):
+		result=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID)
+		try:
+			key=result["bibkey"]
+			print key
+			old=self.extractEntryByBibkey(key)
+			if len(old)>0:
+				for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+					try:
+						if result[o] != old[0][d]:
+							self.entryUpdateField(key, d, result[o])
+					except:
+						print "[database][inspireoai] key error: (%s, %s)"%(o,d)
+			print "[database] inspire OAI info for %s saved!"%inspireID
+		except:
+			print "[database][inspireoai] something missing in entry %s"%result["id"]
+			print traceback.format_exc()
+		
+	def loadAndInsertEntries(self, entry):
+		if entry is not None and not type(entry) is list:
+			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
+			data=self.prepareInsertEntry(e)
+			if self.insertEntry(data):
+				eid = self.entryUpdateInspireID(entry)
+				self.getUpdateInfoEntryFromOAI(eid)
+				return True
+			else:
+				print "[database] loadAndInsertEntries(%s) failed"%entry
+				return False
+		elif entry is not None and type(entry) is list:
+			for e in entry:
+				self.loadAndInsertEntries(e)
+		else:
+			print "[database] ERROR: invalid arguments to loadAndInsertEntries"
+			return False
+			
+	def printAllBibkeys(self):
+		entries = self.extractEntries(orderBy="firstdate")
+		for e in entries:
+			print e["bibtex"]
+			print "\n"
+		print "[database] %d elements found"%len(entries)
+		
 pyBiblioDB=pybiblioDB()

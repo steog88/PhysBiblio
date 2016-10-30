@@ -144,6 +144,7 @@ class MainWindow(QMainWindow):
 		self.setStatusBar(self.myStatusBar)
 		
 	def StatusBarMessage(self,message="abc",time=0):
+		print "[StatusBar] %s"%message
 		self.myStatusBar.showMessage(message, time)
 		
 	#def setStatusButton(self):
@@ -177,9 +178,9 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("All entries saved into %s"%fname)
 	
 	def categories(self):
-		rows=pyBiblioDB.extractCatByName("Tags")
+		#rows=pyBiblioDB.extractCatByName("Tags")
 		self.StatusBarMessage("categories triggered")
-		print rows[0]['name']
+		#print rows[0]['name']
 	
 	def experiments(self):
 		self.StatusBarMessage("experiments triggered")
@@ -209,7 +210,9 @@ class MainWindow(QMainWindow):
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
 		#print pyBiblioDB.extractEntryByBibkey("Gariazzo:prova")
 		#pyBiblioDB.getUpdateInfoFromOAI()
-		pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
+		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
+		#pyBiblioDB.loadAndInsertEntries(["DiValentino:2015zta","Cadavid:2015iya"])
+		pyBiblioDB.printAllBibkeys()
 		self.StatusBarMessage("biblio done")
 
 	
