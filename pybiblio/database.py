@@ -416,13 +416,20 @@ class pybiblioDB():
 					", ".join(data.keys())+") values (:"+\
 					", :".join(data.keys())+")\n"
 		return self.connExec(query, data)
+	def rmBibtexComments(self, bibtex):
+		output=""
+		for l in bibtex.splitlines():
+			lx=l.strip()
+			if len(lx)>0 and lx[0]!="%":
+				output+=l+"\n"
+		return output.strip()
 	def prepareInsertEntry(self,
 			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
 			year=None,link=None,comments=None,old_keys=None,crossref=None,
 			exp_paper=None,lecture=None,phd_thesis=None,review=None,proceeding=None,book=None,
 			marks=None, firstdate=None, pubdate=None):
 		data={}
-		data["bibtex"]=bibtex
+		data["bibtex"]=self.rmBibtexComments(bibtex.strip())
 		element=bibtexparser.loads(bibtex).entries[0]
 		data["bibkey"]=bibkey if bibkey else element["ID"]	
 		data["inspire"]=inspire if inspire else None
@@ -525,7 +532,7 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def entryUpdateInspireID(self, key):
+	def updateEntryInspireID(self, key):
 		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(key)
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
@@ -534,7 +541,7 @@ class pybiblioDB():
 		else:
 			return False
 	
-	def entryUpdateField(self, key, field, value):
+	def updateEntryField(self, key, field, value):
 		if field in self.tableCols["entries"] and field is not "bibkey" \
 				and value is not "" and value is not None:
 			query= "update entries set "+field+"=:field where bibkey=:bibkey\n"
@@ -561,7 +568,7 @@ class pybiblioDB():
 				if len(old)>0:
 					for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
-							self.entryUpdateField(key, d, e[o])
+							self.updateEntryField(key, d, e[o])
 			except:
 				print "[database][inspireoai] something missing in entry %s"%e["id"]
 		print "[database] inspire OAI harvesting done!"
@@ -576,7 +583,7 @@ class pybiblioDB():
 				for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if result[o] != old[0][d]:
-							self.entryUpdateField(key, d, result[o])
+							self.updateEntryField(key, d, result[o])
 					except:
 						print "[database][inspireoai] key error: (%s, %s)"%(o,d)
 			print "[database] inspire OAI info for %s saved!"%inspireID
@@ -589,7 +596,7 @@ class pybiblioDB():
 			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
 			data=self.prepareInsertEntry(e)
 			if self.insertEntry(data):
-				eid = self.entryUpdateInspireID(entry)
+				eid = self.updateEntryInspireID(entry)
 				self.getUpdateInfoEntryFromOAI(eid)
 				return True
 			else:

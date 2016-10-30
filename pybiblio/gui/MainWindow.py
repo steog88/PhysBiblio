@@ -204,7 +204,7 @@ class MainWindow(QMainWindow):
 		##pyBiblioDB.insertEntry(data)
 		##except:
 			##print "errors occurred"
-		#pyBiblioDB.entryUpdateInspireID("Gariazzo:2015rra")
+		#pyBiblioDB.updateEntryInspireID("Gariazzo:2015rra")
 		#data=pyBiblioDB.prepareUpdateEntriesByKey("Gariazzo:prova", "Gariazzo:2015rra")
 		#pyBiblioDB.updateEntry(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
@@ -212,7 +212,11 @@ class MainWindow(QMainWindow):
 		#pyBiblioDB.getUpdateInfoFromOAI()
 		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
 		#pyBiblioDB.loadAndInsertEntries(["DiValentino:2015zta","Cadavid:2015iya"])
-		pyBiblioDB.printAllBibkeys()
+		#pyBiblioDB.printAllBibkeys()
+		#entries = pyBiblioDB.extractEntries(orderBy="firstdate")
+		#for e in entries:
+			#b=pyBiblioDB.rmBibtexComments(e["bibtex"])
+			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
 		self.StatusBarMessage("biblio done")
 
 	
