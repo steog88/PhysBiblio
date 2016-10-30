@@ -1,3 +1,4 @@
+import sys
 
 config_defaults={
 	"configMainFile":'data/params.cfg',
@@ -10,6 +11,8 @@ class ConfigVars():
 	def __init__(self):
 		self.params=config_defaults
 		self.configMainFile=self.params["configMainFile"]
+		if len(sys.argv)>1:
+			self.configMainFile = sys.argv[1]
 		
 		self.readConfigFile()
 	
