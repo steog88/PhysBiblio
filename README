@@ -1,0 +1,12 @@
+dependencies (ubuntu):
+* python-pyside
+* pyoai
+* bibtexparser
+* feedparser
+* pymarc
+
+sudo apt install python-pyside pip
+sudo pip install git+http://github.com/infrae/pyoai
+sudo pip install bibtexparser
+sudo pip install feedparser
+sudo pip install pymarc
