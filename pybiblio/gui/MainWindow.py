@@ -225,6 +225,7 @@ class MainWindow(QMainWindow):
 			#b=pyBiblioDB.rmBibtexComments(e["bibtex"])
 			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
 		pyBiblioDB.printCatHier()
+
 		self.StatusBarMessage("biblio done")
 
 	def cli(self):

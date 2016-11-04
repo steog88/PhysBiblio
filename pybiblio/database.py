@@ -163,7 +163,14 @@ class pybiblioDB():
 
 	#functions for categories
 	def insertCat(self,data):
-		return self.connExec("""
+		self.cursExec("""
+			select * from categories where name=? and parentCat=?
+			""",(data["name"],data["parentCat"]))
+		if self.curs.fetchall():
+			print "An entry with the same name is already present in the same category!"
+			return False
+		else:
+			return self.connExec("""
 				INSERT into categories (name, description, parentCat, comments, ord)
 					values (:name,:description,:parentCat,:comments,:ord)
 				""",data)
@@ -197,8 +204,10 @@ class pybiblioDB():
 					if len(new.keys())>0:
 						catsHier[l0][l1][l2]=new
 		return catsHier
-	def printCatHier(self, startFrom=0, sp="   ", withDesc=False):
+	def printCatHier(self, startFrom=0, sp="     ", withDesc=False, depth=4):
 		cats=self.extractCats()
+		if depth<2 or depth>4:
+			print "[database] invalid depth in printCatHier (use between 2 and 4)"
 		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom)
 		def catString(idCat):
 			cat=cats[idCat]
@@ -206,14 +215,22 @@ class pybiblioDB():
 				return '%4d: %s - %s'%(cat['idCat'], cat['name'], cat['description'])
 			else:
 				return '%4d: %s'%(cat['idCat'], cat['name'])
-		for l0 in catsHier.keys():
+		def alphabetical(listId):
+			listIn=[ cats[i] for i in listId ]
+			decorated = [(x["name"], x) for x in listIn]
+			decorated.sort()
+			return [x[1]["idCat"] for x in decorated]
+		for l0 in alphabetical(catsHier.keys()):
 			print catString(l0)
-			for l1 in catsHier[l0].keys():
-				print sp+catString(l1)
-				for l2 in catsHier[l0][l1].keys():
-					print sp+sp+catString(l2)
-					for l3 in catsHier[l0][l1][l2].keys():
-						print sp+sp+sp+catString(l3)
+			if depth>1:
+				for l1 in alphabetical(catsHier[l0].keys()):
+					print sp+catString(l1)
+					if depth>2:
+						for l2 in alphabetical(catsHier[l0][l1].keys()):
+							print sp+sp+catString(l2)
+							if depth>3:
+								for l3 in alphabetical(catsHier[l0][l1][l2].keys()):
+									print sp+sp+sp+catString(l3)
 	def extractCatByName(self,name):
 		self.cursExec("""
 		select * from categories where name=?
@@ -291,19 +308,33 @@ class pybiblioDB():
 				""",
 				{"bibkey": key, "idCat": idCat})
 	def assignEntryCat(self, idCat, key):
-		if len(self.findEntryCat(idCat, key))==0:
+		if type(idCat) is list:
+			for q in idCat:
+				self.assignEntryCat(q,key)
+		elif type(key) is list:
+			for q in key:
+				self.assignEntryCat(idCat,q)
+		else:
+			if len(self.findEntryCat(idCat, key))==0:
+				return self.connExec("""
+						INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
+						""",
+						{"bibkey": key, "idCat": idCat})
+			else:
+				print "[DB] entryCat already present"
+				return False
+	def deleteEntryCat(self, idCat, key):
+		if type(idCat) is list:
+			for q in idCat:
+				self.deleteEntryCat(q,key)
+		elif type(key) is list:
+			for q in key:
+				self.deleteEntryCat(idCat,q)
+		else:
 			return self.connExec("""
-					INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
+					delete from entryCats where bibkey=:bibkey and idCat=:idCat
 					""",
 					{"bibkey": key, "idCat": idCat})
-		else:
-			print "[DB] entryCat already present"
-			return False
-	def deleteEntryCat(self, idCat, key):
-		return self.connExec("""
-				delete from entryCats where bibkey=:bibkey and idCat=:idCat
-				""",
-				{"bibkey": key, "idCat": idCat})
 			
 	#functions for expCats
 	def findExpCat(self, idCat, idExp):
@@ -312,19 +343,33 @@ class pybiblioDB():
 				""",
 				{"idExp": idExp, "idCat": idCat})
 	def assignExpCat(self, idCat, idExp):
-		if len(self.findExpCat(idCat, idExp))==0:
+		if type(idCat) is list:
+			for q in idCat:
+				self.assignExpCat(q,idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.assignExpCat(idCat,q)
+		else:
+			if len(self.findExpCat(idCat, idExp))==0:
+				return self.connExec("""
+						INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
+						""",
+						{"idExp": idExp, "idCat": idCat})
+			else:
+				print "[DB] expCat already present"
+				return False
+	def deleteExpCat(self, idCat, idExp):
+		if type(idCat) is list:
+			for q in idCat:
+				self.deleteExpCat(q,idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.deleteExpCat(idCat,q)
+		else:
 			return self.connExec("""
-					INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
+					delete from expCats where idExp=:idExp and idCat=:idCat
 					""",
 					{"idExp": idExp, "idCat": idCat})
-		else:
-			print "[DB] expCat already present"
-			return False
-	def deleteExpCat(self, idCat, idExp):
-		return self.connExec("""
-				delete from expCats where idExp=:idExp and idCat=:idCat
-				""",
-				{"idExp": idExp, "idCat": idCat})
 	
 	#functions for expCats
 	def findEntryExp(self, key, idExp):
@@ -333,19 +378,33 @@ class pybiblioDB():
 				""",
 				{"idExp": idExp, "bibkey": key})
 	def assignEntryExp(self, key, idExp):
-		if len(self.findEntryExp(key, idExp))==0:
+		if type(key) is list:
+			for q in key:
+				self.assignEntryExp(q,idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.assignEntryExp(key,q)
+		else:
+			if len(self.findEntryExp(key, idExp))==0:
+				return self.connExec("""
+						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
+						""",
+						{"idExp": idExp, "bibkey": key})
+			else:
+				print "[DB] entryExp already present"
+				return False
+	def deleteEntryExp(self, key, idExp):
+		if type(key) is list:
+			for q in key:
+				self.deleteEntryExp(q,idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.deleteEntryExp(key,q)
+		else:
 			return self.connExec("""
-					INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
+					delete from entryExps where idExp=:idExp and bibkey=:bibkey
 					""",
 					{"idExp": idExp, "bibkey": key})
-		else:
-			print "[DB] entryExp already present"
-			return False
-	def deleteEntryExp(self, key, idExp):
-		return self.connExec("""
-				delete from entryExps where idExp=:idExp and bibkey=:bibkey
-				""",
-				{"idExp": idExp, "bibkey": key})
 	
 	#various filtering
 	def findExpsByCat(self, idCat):
