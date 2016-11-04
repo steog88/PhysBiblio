@@ -159,6 +159,7 @@ class pybiblioDB():
 		print command+"\n"
 		if not self.connExec(command):
 			print "[DB] error: insert main categories failed"
+		self.commit()
 
 	#functions for categories
 	def insertCat(self,data):
@@ -171,6 +172,48 @@ class pybiblioDB():
 		select * from categories
 		""")
 		return self.curs.fetchall()
+	def extractCatsHierarchy(self, cats=None, startFrom=0):
+		if cats is None:
+			cats=self.extractCats()
+		def addSubCats(idC):
+			tmp={}
+			for c in [ a for a in cats if a["parentCat"]==idC and a["idCat"] != 0 ]:
+				tmp[c["idCat"]]={}
+			return tmp
+		catsHier={}
+		new=addSubCats(startFrom)
+		catsHier[startFrom]=new
+		if len(new.keys())==0:
+			return catsHier
+		for l0 in catsHier.keys():
+			for l1 in catsHier[l0].keys():
+				new=addSubCats(l1)
+				if len(new.keys())>0:
+					catsHier[l0][l1]=new
+		for l0 in catsHier.keys():
+			for l1 in catsHier[l0].keys():
+				for l2 in catsHier[l0][l1].keys():
+					new=addSubCats(l2)
+					if len(new.keys())>0:
+						catsHier[l0][l1][l2]=new
+		return catsHier
+	def printCatHier(self, startFrom=0, sp="   ", withDesc=False):
+		cats=self.extractCats()
+		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom)
+		def catString(idCat):
+			cat=cats[idCat]
+			if withDesc:
+				return '%4d: %s - %s'%(cat['idCat'], cat['name'], cat['description'])
+			else:
+				return '%4d: %s'%(cat['idCat'], cat['name'])
+		for l0 in catsHier.keys():
+			print catString(l0)
+			for l1 in catsHier[l0].keys():
+				print sp+catString(l1)
+				for l2 in catsHier[l0][l1].keys():
+					print sp+sp+catString(l2)
+					for l3 in catsHier[l0][l1][l2].keys():
+						print sp+sp+sp+catString(l3)
 	def extractCatByName(self,name):
 		self.cursExec("""
 		select * from categories where name=?
