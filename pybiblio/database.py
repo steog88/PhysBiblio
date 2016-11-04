@@ -303,10 +303,11 @@ class pybiblioDB():
 
 	#functions for entryCat
 	def findEntryCat(self, idCat, key):
-		return self.connExec("""
+		self.cursExec("""
 				select * from entryCats where bibkey=:bibkey and idCat=:idCat
 				""",
 				{"bibkey": key, "idCat": idCat})
+		return self.curs.fetchall()
 	def assignEntryCat(self, idCat, key):
 		if type(idCat) is list:
 			for q in idCat:
@@ -338,10 +339,11 @@ class pybiblioDB():
 			
 	#functions for expCats
 	def findExpCat(self, idCat, idExp):
-		return self.connExec("""
+		self.cursExec("""
 				select * from expCats where idExp=:idExp and idCat=:idCat
 				""",
 				{"idExp": idExp, "idCat": idCat})
+		return self.curs.fetchall()
 	def assignExpCat(self, idCat, idExp):
 		if type(idCat) is list:
 			for q in idCat:
@@ -373,10 +375,11 @@ class pybiblioDB():
 	
 	#functions for expCats
 	def findEntryExp(self, key, idExp):
-		return self.connExec("""
+		self.cursExec("""
 				select * from entryExps where idExp=:idExp and bibkey=:bibkey
 				""",
 				{"idExp": idExp, "bibkey": key})
+		return self.curs.fetchall()
 	def assignEntryExp(self, key, idExp):
 		if type(key) is list:
 			for q in key:
@@ -408,41 +411,47 @@ class pybiblioDB():
 	
 	#various filtering
 	def findExpsByCat(self, idCat):
-		return self.connExec("""
+		self.cursExec("""
 				select * from experiments
 				join expCats on experiments.idExp=expCats.idExp
 				where expCats.idCat=?
 				""", (idCat,))
+		return self.curs.fetchall()
 	def findEntriesByCat(self, idCat):
-		return self.connExec("""
+		self.cursExec("""
 				select * from entries
 				join entryCats on entries.bibkey=entryCats.bibkey
 				where entryCats.idCat=?
 				""", (idCat,))
+		return self.curs.fetchall()
 	def findEntriesByExp(self, idExp):
-		return self.connExec("""
+		self.cursExec("""
 				select * from entries
 				join entries.bibkey=entryExps.bibkey
 				where entryExps.idExp=?
 				""", (idExp,))
+		return self.curs.fetchall()
 	def findCatsForExp(self, idExp):
-		return self.connExec("""
+		self.cursExec("""
 				select * from categories
 				join categories.idCat=expCats.idCat
 				where expCats.idExp=?
 				""", (idExp,))
+		return self.curs.fetchall()
 	def findCatsForEntry(self, key):
-		return self.connExec("""
+		self.cursExec("""
 				select * from categories
 				join categories.idCat=entryCats.idCat
 				where entryCats.bibkey=?
 				""", (key,))
+		return self.curs.fetchall()
 	def findExpsForEntry(self, key):
-		return self.connExec("""
+		self.cursExec("""
 				select * from experiments
 				join experiments.idExp=entryExps.idExp
 				where entryExps.bibkey=?
 				""", (key,))
+		return self.curs.fetchall()
 	
 	#for the entries
 	#delete
@@ -711,11 +720,17 @@ class pybiblioDB():
 			print "[database] ERROR: invalid arguments to loadAndInsertEntries"
 			return False
 			
+	def printAllBibtexs(self):
+		entries = self.extractEntries(orderBy="firstdate")
+		for i,e in enumerate(entries):
+			print i,e["bibtex"]
+			print "\n"
+		print "[database] %d elements found"%len(entries)
+			
 	def printAllBibkeys(self):
 		entries = self.extractEntries(orderBy="firstdate")
-		for e in entries:
-			print e["bibtex"]
-			print "\n"
+		for i,e in enumerate(entries):
+			print i,e["bibkey"]
 		print "[database] %d elements found"%len(entries)
 		
 pyBiblioDB=pybiblioDB()
