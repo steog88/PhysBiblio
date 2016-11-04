@@ -87,6 +87,11 @@ class MainWindow(QMainWindow):
 								statusTip="Manage bibliography",
 								triggered=self.biblio)
 
+		self.cliAct = QAction("&CLI", self,
+								shortcut="Ctrl+T",
+								statusTip="CommandLine Interface",
+								triggered=self.cli)
+
 		self.aboutAct = QAction(QIcon(":/images/help_about.png"),
 								"&About", self,
 								statusTip="Show About box",
@@ -111,6 +116,8 @@ class MainWindow(QMainWindow):
 		self.dataMenu.addAction(self.ExpAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.biblioAct)
+		self.dataMenu.addSeparator()
+		self.dataMenu.addAction(self.cliAct)
 
 		#self.menuBar().addSeparator()
 		#self.optionMenu = self.menuBar().addMenu("&Options")
@@ -219,6 +226,22 @@ class MainWindow(QMainWindow):
 			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
 		self.StatusBarMessage("biblio done")
 
+	def cli(self):
+		self.StatusBarMessage("Activating CLI!")
+		print("[CLI] Activating CommandLineInterface")
+		print("Write a command and press Enter (leave empty and press Enter to exit):")
+		line=raw_input()
+		while line:
+			try:
+				exec(line)
+			except:
+				print traceback.format_exc()
+			print("Write a command and press Enter (leave empty and press Enter to exit):")
+			line=raw_input()
+		print("[CLI] CommandLineInterface closed.")
+			
+		
+	
 	
 if __name__=='__main__':
 	try:
