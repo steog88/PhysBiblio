@@ -224,6 +224,7 @@ class MainWindow(QMainWindow):
 		#for e in entries:
 			#b=pyBiblioDB.rmBibtexComments(e["bibtex"])
 			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
+		pyBiblioDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
 		pyBiblioDB.printCatHier()
 
 		self.StatusBarMessage("biblio done")
