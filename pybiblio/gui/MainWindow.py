@@ -224,8 +224,17 @@ class MainWindow(QMainWindow):
 		#for e in entries:
 			#b=pyBiblioDB.rmBibtexComments(e["bibtex"])
 			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
-		pyBiblioDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
-		pyBiblioDB.printCatHier()
+		#pyBiblioDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
+		
+		#pyBiblioDB.assignEntryCat([58,64,65],"Ade:2015xua")
+		#pyBiblioDB.assignEntryExp("Ade:2015xua",1)
+		#print pyBiblioDB.findCatsForEntry("Ade:2015xua")
+		
+		#pyBiblioDB.insertExp({"name":"IceCube", "comments":"", "homepage":"http://icecube.wisc.edu/", "inspire":"http://inspirehep.net/record/1108514"})
+		#pyBiblioDB.assignExpCat([58,64,65,66],6)
+		
+		#pyBiblioDB.printExps()
+		#pyBiblioDB.printCatHier()
 
 		self.StatusBarMessage("biblio done")
 

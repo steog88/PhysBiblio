@@ -32,7 +32,7 @@ class webSearch(webInterf):
 		return self.urlRecord + inspireID + ext
 		
 	def retrieveUrlFirst(self,string):
-		self.urlArgs["p"]=string
+		self.urlArgs["p"]="\""+string+"\""
 		url=self.createUrl()
 		print "[inspire] search %s -> %s"%(string, url)
 		text=self.textFromUrl(url)
@@ -49,7 +49,7 @@ class webSearch(webInterf):
 			return ""
 		
 	def retrieveUrlAll(self,string):
-		self.urlArgs["p"]=string
+		self.urlArgs["p"]="\""+string+"\""
 		url=self.createUrl()
 		print "[inspire] search %s -> %s"%(string,url)
 		text=self.textFromUrl(url)
@@ -66,7 +66,7 @@ class webSearch(webInterf):
 			return ""
 	
 	def retrieveInspireID(self,string):
-		self.urlArgs["p"]=string
+		self.urlArgs["p"]="\""+string+"\""
 		self.urlArgs["of"]="hb" #not bibtex but standard
 		url=self.createUrl()
 		self.urlArgs["of"]="hx" #restore

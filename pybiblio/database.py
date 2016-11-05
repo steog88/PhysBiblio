@@ -62,11 +62,7 @@ class pybiblioDB():
 			["name","text","not null"],
 			["comments","text","not null"],
 			["homepage","text",""],
-			["inspire","text",""],
-			["project",		"int","default 0"],
-			["future",		"int","default 0"],
-			["expired",		"int","default 0"],
-			["website","text",""]];
+			["inspire","text",""]];
 		self.tableFields["expCats"]=[
 			["idExC","integer","primary key"],
 			["idExp","int","not null"],
@@ -276,8 +272,8 @@ class pybiblioDB():
 	#functions for categories
 	def insertExp(self,data):
 		return self.connExec("""
-				INSERT into experiments (name, comments, homepage, inspire, project, future, expired, website)
-					values (:name, :comments, :homepage, :inspire, :project, :future, :expired, :website)
+				INSERT into experiments (name, comments, homepage, inspire)
+					values (:name, :comments, :homepage, :inspire)
 				""",data)
 	def extractExps(self):
 		self.cursExec("""
@@ -300,6 +296,11 @@ class pybiblioDB():
 		self.cursExec("""
 		delete from entryExps where idExp=?
 		""",(idExp,))
+	def printExps(self,exps=None):
+		if exps is None:
+			exps=self.extractExps()
+		for q in exps:
+			print "%3d: %-20s [%-40s] [%s]"%(q["idExp"],q["name"],q["homepage"],q["inspire"])
 
 	#functions for entryCat
 	def findEntryCat(self, idCat, key):
@@ -322,7 +323,7 @@ class pybiblioDB():
 						""",
 						{"bibkey": key, "idCat": idCat})
 			else:
-				print "[DB] entryCat already present"
+				print "[DB] entryCat already present:",idCat, key
 				return False
 	def deleteEntryCat(self, idCat, key):
 		if type(idCat) is list:
@@ -358,7 +359,7 @@ class pybiblioDB():
 						""",
 						{"idExp": idExp, "idCat": idCat})
 			else:
-				print "[DB] expCat already present"
+				print "[DB] expCat already present", idCat, idExp
 				return False
 	def deleteExpCat(self, idCat, idExp):
 		if type(idCat) is list:
@@ -389,12 +390,14 @@ class pybiblioDB():
 				self.assignEntryExp(key,q)
 		else:
 			if len(self.findEntryExp(key, idExp))==0:
-				return self.connExec("""
+				if self.connExec("""
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
-						{"idExp": idExp, "bibkey": key})
+						{"idExp": idExp, "bibkey": key}):
+					for c in self.findCatsForExp(idExp):
+						self.assignEntryCat(c["idCat"],key)
 			else:
-				print "[DB] entryExp already present"
+				print "[DB] entryExp already present", idExp, key
 				return False
 	def deleteEntryExp(self, key, idExp):
 		if type(key) is list:
@@ -427,28 +430,28 @@ class pybiblioDB():
 	def findEntriesByExp(self, idExp):
 		self.cursExec("""
 				select * from entries
-				join entries.bibkey=entryExps.bibkey
+				join entryExps on entries.bibkey=entryExps.bibkey
 				where entryExps.idExp=?
 				""", (idExp,))
 		return self.curs.fetchall()
 	def findCatsForExp(self, idExp):
 		self.cursExec("""
 				select * from categories
-				join categories.idCat=expCats.idCat
+				join expCats on categories.idCat=expCats.idCat
 				where expCats.idExp=?
 				""", (idExp,))
 		return self.curs.fetchall()
 	def findCatsForEntry(self, key):
 		self.cursExec("""
 				select * from categories
-				join categories.idCat=entryCats.idCat
+				join entryCats on categories.idCat=entryCats.idCat
 				where entryCats.bibkey=?
 				""", (key,))
 		return self.curs.fetchall()
 	def findExpsForEntry(self, key):
 		self.cursExec("""
 				select * from experiments
-				join experiments.idExp=entryExps.idExp
+				join entryExps on experiments.idExp=entryExps.idExp
 				where entryExps.bibkey=?
 				""", (key,))
 		return self.curs.fetchall()
@@ -643,8 +646,10 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def updateEntryInspireID(self, key):
-		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(key)
+	def updateEntryInspireID(self, string, key=None):
+		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(string)
+		if key is None:
+			key=string
 		if newid is not "":
 			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
 			if self.connExec(query, {"inspire":newid, "bibkey":key}):
@@ -706,8 +711,9 @@ class pybiblioDB():
 		if entry is not None and not type(entry) is list:
 			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
 			data=self.prepareInsertEntry(e)
+			key=data["bibkey"]
 			if self.insertEntry(data):
-				eid = self.updateEntryInspireID(entry)
+				eid = self.updateEntryInspireID(entry,key)
 				self.getUpdateInfoEntryFromOAI(eid)
 				return True
 			else:
