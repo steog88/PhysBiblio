@@ -9,6 +9,7 @@ try:
 	from pybiblio.database import *
 	import pybiblio.export as bibexport
 	import pybiblio.webimport.webInterf as webInt
+	from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
@@ -240,17 +241,7 @@ class MainWindow(QMainWindow):
 
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
-		print("[CLI] Activating CommandLineInterface")
-		print("Write a command and press Enter (leave empty and press Enter to exit):")
-		line=raw_input()
-		while line:
-			try:
-				exec(line)
-			except:
-				print traceback.format_exc()
-			print("Write a command and press Enter (leave empty and press Enter to exit):")
-			line=raw_input()
-		print("[CLI] CommandLineInterface closed.")
+		pyBiblioCLI()
 			
 		
 	

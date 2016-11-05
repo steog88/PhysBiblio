@@ -4,7 +4,6 @@ import bibtexparser
 import pybiblio.webimport.webInterf as webInt
 
 try:
-	from pybiblio.gui.MainWindow import *
 	from pybiblio.config import pbConfig
 	import pybiblio.parse_accents as parse_accents
 	from pybiblio.webimport.webInterf import pyBiblioWeb
@@ -709,6 +708,9 @@ class pybiblioDB():
 		
 	def loadAndInsertEntries(self, entry):
 		if entry is not None and not type(entry) is list:
+			if self.extractEntryByBibkey(entry):
+				print "[database] Already existing: %s"%entry
+				return False
 			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
 			data=self.prepareInsertEntry(e)
 			key=data["bibkey"]
