@@ -1,4 +1,6 @@
 import sys, traceback
+import readline # optional, will allow Up/Down/History in the console
+import code
 
 try:
 	import pybiblio.export as bibexport
@@ -11,13 +13,9 @@ except ImportError:
 
 def cli():
 	print("[CLI] Activating CommandLineInterface")
-	print("Write a command and press Enter (leave empty and press Enter to exit):")
-	line=raw_input()
-	while line:
-		try:
-			exec(line)
-		except:
-			print traceback.format_exc()
-		print("Write a command and press Enter (leave empty and press Enter to exit):")
-		line=raw_input()
+	print("Write a command and press Enter (leave empty and press Enter to exit):")	
+	vars = globals().copy()
+	vars.update(locals())
+	shell = code.InteractiveConsole(vars)
+	shell.interact()
 	print("[CLI] CommandLineInterface closed.")
