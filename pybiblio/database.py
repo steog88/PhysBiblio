@@ -101,6 +101,7 @@ class pybiblioDB():
 
 	def commit(self):
 		self.conn.commit()
+		print "[database] saved."
 		
 	def connExec(self,query,data=None):
 		try:
@@ -727,6 +728,37 @@ class pybiblioDB():
 		else:
 			print "[database] ERROR: invalid arguments to loadAndInsertEntries"
 			return False
+
+	def setReview(self,key):
+		if type(key) is list:
+			for q in key:
+				self.setReview(q)
+		else:
+			return self.updateEntryField(key,"review",1)
+	def setProceeding(self,key):
+		if type(key) is list:
+			for q in key:
+				self.setProceeding(q)
+		else:
+			return self.updateEntryField(key,"proceeding",1)
+	def setBook(self,key):
+		if type(key) is list:
+			for q in key:
+				self.setBook(q)
+		else:
+			return self.updateEntryField(key,"book",1)
+	def setLecture(self,key):
+		if type(key) is list:
+			for q in key:
+				self.setLecture(q)
+		else:
+			return self.updateEntryField(key,"lecture",1)
+	def setPhdThesis(self,key):
+		if type(key) is list:
+			for q in key:
+				self.setPhdThesis(q)
+		else:
+			return self.updateEntryField(key,"phd_thesis",1)
 			
 	def printAllBibtexs(self):
 		entries = self.extractEntries(orderBy="firstdate")
