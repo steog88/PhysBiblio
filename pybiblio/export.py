@@ -5,9 +5,9 @@ except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 def exportLast(fname):
-	if pyBiblioDB.lastFetchedEntries:
+	if pBDB.lastFetchedEntries:
 		txt=""
-		for q in pyBiblioDB.lastFetchedEntries:
+		for q in pBDB.lastFetchedEntries:
 			txt+=q["bibtex"]+"\n"
 		
 		try:
@@ -20,7 +20,7 @@ def exportLast(fname):
 			os.rename(readfilebib+backupextension+".old", readfilebib+backupextension)
 
 def exportAll(fname):
-	rows=pyBiblioDB.extractEntries(save=False)
+	rows=pBDB.extractEntries(save=False)
 	if len(rows)>0:
 		txt=""
 		for q in rows:

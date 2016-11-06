@@ -91,8 +91,8 @@ class webInterf():
 		keychange=""
 		warnings=0
 		for s in strs:
-			if not len(pyBiblioDB.extractEntryByBibkey(s))>0:
-				tmp=pyBiblioDB.extractEntryByKeyword(s)
+			if not len(pBDB.extractEntryByBibkey(s))>0:
+				tmp=pBDB.extractEntryByKeyword(s)
 				if not len(tmp)>0:
 					missing.append(s)
 				else:
@@ -101,8 +101,8 @@ class webInterf():
 		for m in missing:
 			new=self.retrieveUrlFirst(m)
 			if len(new)>0:
-				data=pyBiblioDB.prepareInsertEntry(new)
-				pyBiblioDB.insertEntry(data)
+				data=pBDB.prepareInsertEntry(new)
+				pBDB.insertEntry(data)
 				#autoImport()
 				#pass
 			else:

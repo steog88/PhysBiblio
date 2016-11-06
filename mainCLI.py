@@ -8,6 +8,7 @@ try:
 except:
     print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
     raise
-    
-pyBiblioCLI()
+
+if __name__ == '__main__':
+	pyBiblioCLI()
 

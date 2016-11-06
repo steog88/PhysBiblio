@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
 		#self.StatusButton.clicked.connect(self.StatusBarMessage)
 	
 	def save(self):
-		pyBiblioDB.commit()
+		pBDB.commit()
 		self.setWindowTitle("PyBiblio")
 		self.StatusBarMessage("Changes saved")
 		
@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("All entries saved into %s"%fname)
 	
 	def categories(self):
-		#rows=pyBiblioDB.extractCatByName("Tags")
+		#rows=pBDB.extractCatByName("Tags")
 		self.StatusBarMessage("categories triggered")
 		#print rows[0]['name']
 	
@@ -200,7 +200,7 @@ class MainWindow(QMainWindow):
 		#try:
 			#tmp=abc.webSearch["inspire"].retrieveUrlFirst("Gariazzo:2015rra")
 		#tmp=abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
-		#data=pyBiblioDB.prepareInsertEntry("""@Article{Gariazzo:prova,
+		#data=pBDB.prepareInsertEntry("""@Article{Gariazzo:prova,
   #author        = {Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y. F. and Zavanin, E. M.},
   #title         = {{Light sterile neutrinos}},
   #journal       = {J. Phys.},
@@ -209,33 +209,33 @@ class MainWindow(QMainWindow):
   #slaccitation  = {%%CITATION = ARXIV:1507.08204;%%},
   #timestamp     = {2015.07.30},
 #}""")
-		##pyBiblioDB.insertEntry(data)
+		##pBDB.insertEntry(data)
 		##except:
 			##print "errors occurred"
-		#pyBiblioDB.updateEntryInspireID("Gariazzo:2015rra")
-		#data=pyBiblioDB.prepareUpdateEntriesByKey("Gariazzo:prova", "Gariazzo:2015rra")
-		#pyBiblioDB.updateEntry(data, "Gariazzo:prova")
+		#pBDB.updateEntryInspireID("Gariazzo:2015rra")
+		#data=pBDB.prepareUpdateEntriesByKey("Gariazzo:prova", "Gariazzo:2015rra")
+		#pBDB.updateEntry(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
-		#print pyBiblioDB.extractEntryByBibkey("Gariazzo:prova")
-		#pyBiblioDB.getUpdateInfoFromOAI()
+		#print pBDB.extractEntryByBibkey("Gariazzo:prova")
+		#pBDB.getUpdateInfoFromOAI()
 		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
-		#pyBiblioDB.loadAndInsertEntries(["DiValentino:2015zta","Cadavid:2015iya"])
-		#pyBiblioDB.printAllBibkeys()
-		#entries = pyBiblioDB.extractEntries(orderBy="firstdate")
+		#pBDB.loadAndInsertEntries(["DiValentino:2015zta","Cadavid:2015iya"])
+		#pBDB.printAllBibkeys()
+		#entries = pBDB.extractEntries(orderBy="firstdate")
 		#for e in entries:
-			#b=pyBiblioDB.rmBibtexComments(e["bibtex"])
-			#print pyBiblioDB.updateEntryField(e["bibkey"], "bibtex", b)
-		#pyBiblioDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
+			#b=pBDB.rmBibtexComments(e["bibtex"])
+			#print pBDB.updateEntryField(e["bibkey"], "bibtex", b)
+		#pBDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
 		
-		#pyBiblioDB.assignEntryCat([58,64,65],"Ade:2015xua")
-		#pyBiblioDB.assignEntryExp("Ade:2015xua",1)
-		#print pyBiblioDB.findCatsForEntry("Ade:2015xua")
+		#pBDB.assignEntryCat([58,64,65],"Ade:2015xua")
+		#pBDB.assignEntryExp("Ade:2015xua",1)
+		#print pBDB.findCatsForEntry("Ade:2015xua")
 		
-		#pyBiblioDB.insertExp({"name":"IceCube", "comments":"", "homepage":"http://icecube.wisc.edu/", "inspire":"http://inspirehep.net/record/1108514"})
-		#pyBiblioDB.assignExpCat([58,64,65,66],6)
+		#pBDB.insertExp({"name":"IceCube", "comments":"", "homepage":"http://icecube.wisc.edu/", "inspire":"http://inspirehep.net/record/1108514"})
+		#pBDB.assignExpCat([58,64,65,66],6)
 		
-		#pyBiblioDB.printExps()
-		#pyBiblioDB.printCatHier()
+		#pBDB.printExps()
+		#pBDB.printCatHier()
 
 		self.StatusBarMessage("biblio done")
 

@@ -4,7 +4,7 @@ try:
 	import pybiblio.export as bibexport
 	import pybiblio.webimport.webInterf as webInt
 	from pybiblio.config import pbConfig
-	from pybiblio.database import pyBiblioDB
+	from pybiblio.database import pBDB
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
 	print traceback.format_exc()

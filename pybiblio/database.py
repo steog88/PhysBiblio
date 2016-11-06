@@ -621,12 +621,12 @@ class pybiblioDB():
 		return data
 		
 	def prepareUpdateEntriesByKey(self, key_old, key_new):
-		u=pyBiblioDB.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"), self.getEntryField(key_new,"bibtex"))
-		return pyBiblioDB.prepareInsertEntry(u)
+		u=self.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"), self.getEntryField(key_new,"bibtex"))
+		return self.prepareInsertEntry(u)
 	
 	def prepareUpdateEntryByBibtex(self, key_old, bibtex_new):
-		u=pyBiblioDB.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"),bibtex_new)
-		return pyBiblioDB.prepareInsertEntry(u)
+		u=self.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"),bibtex_new)
+		return self.prepareInsertEntry(u)
 		
 	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
 		elementOld=bibtexparser.loads(bibtexOld).entries[0]
@@ -741,4 +741,4 @@ class pybiblioDB():
 			print i,e["bibkey"]
 		print "[database] %d elements found"%len(entries)
 		
-pyBiblioDB=pybiblioDB()
+pBDB=pybiblioDB()

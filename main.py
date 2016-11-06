@@ -24,7 +24,7 @@ try:
 except NameError:
 	print("NameError:",sys.exc_info()[1])
 except SystemExit:
-	pyBiblioDB.closeDB()
+	pBDB.closeDB()
 	print("closing window...")
 except Exception:
 	print(sys.exc_info()[1])
