@@ -1,10 +1,11 @@
 import sys
 
 config_defaults={
-	"configMainFile":'data/params.cfg',
-	"timeoutWebSearch":10.,
-	"mainDatabaseName":'data/pybiblio.db',
-	"pdfFolder":'data/pdf/',
+	"configMainFile":   'data/params.cfg',
+	"timeoutWebSearch": 10.,
+	"mainDatabaseName": 'data/pybiblio.db',
+	"pdfFolder":        'data/pdf/',
+	"pdfApplication":   'okular',
 }
 		
 class ConfigVars():
@@ -24,10 +25,10 @@ class ConfigVars():
 				k,v=l.replace("\n","").split(" = ")
 				self.params[k]=v
 		except IOError:
-			print "[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile
+			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
 		except:
-			print "[config] ERROR: reading %s file failed."%self.configMainFile
+			print("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
 		txt=""
@@ -37,7 +38,7 @@ class ConfigVars():
 			with open(self.configMainFile,"w") as w:
 				w.write(txt)
 		except e:
-			print "[config] ERROR in saving config file!"
-			print e
+			print("[config] ERROR in saving config file!")
+			print(e)
 
 pbConfig=ConfigVars()
