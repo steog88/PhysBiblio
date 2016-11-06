@@ -1,6 +1,7 @@
 import sys, shutil, urllib2
 import os.path as osp
 import os
+import subprocess
 
 try:
 	from pybiblio.config import pbConfig
@@ -16,6 +17,7 @@ class localPDF():
 		else:
 			self.pdfDir = osp.join(osp.split(osp.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
 		self.badFNameCharacters = r'\/:*?"<>|'
+		self.pdfApp = pbConfig.params["pdfApplication"]
 		
 	def badFName(self, value):
 		new=""
@@ -43,8 +45,14 @@ class localPDF():
 		if not osp.exists(directory):
 			os.makedirs(directory)
 		
-	def copyNewFile(self, key, ftype, origFile):
-		newFile = self.getFilePath(key, ftype)
+	def copyNewFile(self, key, origFile, ftype = None, customName = None):
+		if customName is not None:
+			newFile = customName
+		elif ftype is not None:
+			newFile = self.getFilePath(key, ftype)
+		else:
+			print("[localPDF] ERROR: you should supply a ftype ('doi' or 'arxiv') or a customName!")
+			return
 		try:
 			shutil.copy2(origFile, newFile)
 			print("[localPDF] %s copied to %s"%(origFile, newFile))
@@ -67,8 +75,29 @@ class localPDF():
 		except:
 			print("[localPDF] Impossible to download the arXiv PDF for '%s'"%key)
 	
-	def openFile(self, key, ftype):
-		pass
+	def openFile(self, key, arg = None, fileType = None, fileNum = None, fileName = None):
+		try:
+			if arg == "arxiv" or arg == "doi":
+				fileType = arg
+			elif float(arg).is_integer():
+				fileNum = int(arg)
+		except:
+			if arg is not None:
+				fileName = arg
+		try:
+			if fileType is not None:
+				fName = self.getFilePath(key, fileType)
+			elif fileNum is not None:
+				fName = self.getExisting(key, True)[fileNum]
+			elif fileName is not None:
+				fName = osp.join(self.getFileDir(key), fileName)
+			else:
+				print("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
+				return
+			print("[localPDF] opening '%s'..."%fName)
+			subprocess.Popen([self.pdfApp, fName], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+		except:
+			print("[localPDF] opening PDF for '%s' failed!"%key)
 	
 	def removeFile(self, key, ftype):
 		fname = self.getFilePath(key, ftype)
@@ -77,5 +106,17 @@ class localPDF():
 			print("[localPDF] file %s removed"%fname)
 		except OSError:
 			print("[localPDF] ERROR: impossible to remove file: %s"%fname)
+			
+	def getExisting(self, key, fullPath = False):
+		fileDir = self.getFileDir(key)
+		if fullPath:
+			return [ osp.join(fileDir, e) for e in os.listdir(fileDir) ]
+		else:
+			return os.listdir(fileDir)
+		
+	def printExisting(self, key, fullPath = False):
+		print("[localPDF] Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
+		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
+			print("%2d: %s"%(i,e))
 
 pBPDF = localPDF()
