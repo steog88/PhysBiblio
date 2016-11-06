@@ -516,6 +516,12 @@ class pybiblioDB():
 		return self.extractEntryByBibkey(key)[0][field]
 	def dbEntryToDataDict(self, key):
 		return self.prepareInsertEntry(self.getEntryField(key,"bibtex"))
+	def getDoiUrl(self, key):
+		url = "http://dx.doi.org/" + self.getEntryField(key, "doi")
+		return url
+	def getArxivUrl(self, key, urlType = "abs"):
+		url = "http://arxiv.org/"+ urlType + "/" + self.getEntryField(key, "arxiv")
+		return url
 			
 	#insertion and update
 	def insertEntry(self,data):
