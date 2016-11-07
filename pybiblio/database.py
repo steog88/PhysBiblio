@@ -717,13 +717,19 @@ class pybiblioDB():
 			if self.extractEntryByBibkey(entry):
 				print("[database] Already existing: %s"%entry)
 				return False
-			e = pyBiblioWeb.webSearch[method].retrieveUrlFirst(entry)
+			if method == "bibtex":
+				e = entry
+			else:
+				e = pyBiblioWeb.webSearch[method].retrieveUrlFirst(entry)
 			data = self.prepareInsertEntry(e)
 			key = data["bibkey"]
 			if imposeKey is not None:
 				data["bibkey"] = imposeKey
 				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
 				key = imposeKey
+			if key.strip() == "":
+				print("[database] ERROR: impossible to insert an entry with empty bibkey!")
+				return False
 			print("[database] entry will have key '%s'"%key)
 			try:
 				self.insertEntry(data)
@@ -734,6 +740,8 @@ class pybiblioDB():
 				if method == "inspire":
 					eid = self.updateEntryInspireID(entry, key)
 					self.getUpdateInfoEntryFromOAI(eid)
+				elif method == "isbn":
+					self.setBook(key)
 				return True
 			except:
 				print("[database] loadAndInsertEntries(%s) failed in completing info"%entry)
