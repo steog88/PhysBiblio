@@ -175,58 +175,68 @@ class pybiblioDB():
 		select * from categories
 		""")
 		return self.curs.fetchall()
-	def extractCatsHierarchy(self, cats=None, startFrom=0):
+	def extractCatsHierarchy(self, cats = None, startFrom = 0):
 		if cats is None:
-			cats=self.extractCats()
+			cats = self.extractCats()
 		def addSubCats(idC):
-			tmp={}
-			for c in [ a for a in cats if a["parentCat"]==idC and a["idCat"] != 0 ]:
-				tmp[c["idCat"]]={}
+			tmp = {}
+			for c in [ a for a in cats if a["parentCat"] == idC and a["idCat"] != 0 ]:
+				tmp[c["idCat"]] = {}
 			return tmp
-		catsHier={}
-		new=addSubCats(startFrom)
-		catsHier[startFrom]=new
-		if len(new.keys())==0:
+		catsHier = {}
+		new = addSubCats(startFrom)
+		catsHier[startFrom] = new
+		if len(new.keys()) == 0:
 			return catsHier
 		for l0 in catsHier.keys():
 			for l1 in catsHier[l0].keys():
-				new=addSubCats(l1)
-				if len(new.keys())>0:
-					catsHier[l0][l1]=new
+				new = addSubCats(l1)
+				if len(new.keys()) > 0:
+					catsHier[l0][l1] = new
 		for l0 in catsHier.keys():
 			for l1 in catsHier[l0].keys():
 				for l2 in catsHier[l0][l1].keys():
-					new=addSubCats(l2)
-					if len(new.keys())>0:
-						catsHier[l0][l1][l2]=new
+					new = addSubCats(l2)
+					if len(new.keys()) > 0:
+						catsHier[l0][l1][l2] = new
+		for l0 in catsHier.keys():
+			for l1 in catsHier[l0].keys():
+				for l2 in catsHier[l0][l1].keys():
+					for l3 in catsHier[l0][l1][l2].keys():
+						new = addSubCats(l3)
+						if len(new.keys()) > 0:
+							catsHier[l0][l1][l2][l3] = new
 		return catsHier
-	def printCatHier(self, startFrom=0, sp="     ", withDesc=False, depth=4):
-		cats=self.extractCats()
-		if depth<2 or depth>4:
-			print "[database] invalid depth in printCatHier (use between 2 and 4)"
+	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5):
+		cats = self.extractCats()
+		if depth < 2 or depth > 4:
+			print("[database] invalid depth in printCatHier (use between 2 and 5)")
 		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom)
 		def catString(idCat):
-			cat=cats[idCat]
+			cat = cats[idCat]
 			if withDesc:
 				return '%4d: %s - %s'%(cat['idCat'], cat['name'], cat['description'])
 			else:
 				return '%4d: %s'%(cat['idCat'], cat['name'])
 		def alphabetical(listId):
-			listIn=[ cats[i] for i in listId ]
-			decorated = [(x["name"], x) for x in listIn]
+			listIn = [ cats[i] for i in listId ]
+			decorated = [ (x["name"], x) for x in listIn ]
 			decorated.sort()
-			return [x[1]["idCat"] for x in decorated]
+			return [ x[1]["idCat"] for x in decorated ]
 		for l0 in alphabetical(catsHier.keys()):
-			print catString(l0)
-			if depth>1:
+			print(catString(l0))
+			if depth > 1:
 				for l1 in alphabetical(catsHier[l0].keys()):
-					print sp+catString(l1)
-					if depth>2:
+					print(sp + catString(l1))
+					if depth > 2:
 						for l2 in alphabetical(catsHier[l0][l1].keys()):
-							print sp+sp+catString(l2)
-							if depth>3:
+							print(2*sp + catString(l2))
+							if depth > 3:
 								for l3 in alphabetical(catsHier[l0][l1][l2].keys()):
-									print sp+sp+sp+catString(l3)
+									print(3*sp + catString(l3))
+									if depth > 4:
+										for l4 in alphabetical(catsHier[l0][l1][l2][l3].keys()):
+											print(4*sp + catString(l4))
 	def extractCatByName(self,name):
 		self.cursExec("""
 		select * from categories where name=?
@@ -309,6 +319,11 @@ class pybiblioDB():
 				""",
 				{"bibkey": key, "idCat": idCat})
 		return self.curs.fetchall()
+	def extractEntryCat(self):
+		self.cursExec("""
+				select * from entryCats
+				""")
+		return self.curs.fetchall()
 	def assignEntryCat(self, idCat, key):
 		if type(idCat) is list:
 			for q in idCat:
@@ -345,6 +360,11 @@ class pybiblioDB():
 				""",
 				{"idExp": idExp, "idCat": idCat})
 		return self.curs.fetchall()
+	def extractExpCat(self):
+		self.cursExec("""
+				select * from expCats
+				""")
+		return self.curs.fetchall()
 	def assignExpCat(self, idCat, idExp):
 		if type(idCat) is list:
 			for q in idCat:
@@ -380,6 +400,11 @@ class pybiblioDB():
 				select * from entryExps where idExp=:idExp and bibkey=:bibkey
 				""",
 				{"idExp": idExp, "bibkey": key})
+		return self.curs.fetchall()
+	def extractEntryExp(self):
+		self.cursExec("""
+				select * from entryExps
+				""")
 		return self.curs.fetchall()
 	def assignEntryExp(self, key, idExp):
 		if type(key) is list:
@@ -797,4 +822,19 @@ class pybiblioDB():
 			print i,e["bibkey"]
 		print "[database] %d elements found"%len(entries)
 		
+	#utilities
+	def cleanSpareEntries(self):
+		def deletePresent(ix1, ix2, join, func):
+			for e in join:
+				if e[0] not in ix1 or e[1] not in ix2:
+					print("[database] cleaning (%s, %s)"%(e[0], e[1]))
+					func(e[0], e[1])
+		bibkeys = [ e["bibkey"] for e in self.extractEntries() ]
+		idCats = [ e["idCat"] for e in self.extractCats() ]
+		idExps = [ e["idExp"] for e in self.extractExps() ]
+		
+		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in self.extractEntryExp()], self.deleteEntryExp)
+		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in self.extractEntryCat()], self.deleteEntryCat)
+		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in self.extractExpCat()],   self.deleteExpCat)
+			
 pBDB=pybiblioDB()
