@@ -699,7 +699,6 @@ class pybiblioDB():
 		result=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID)
 		try:
 			key=result["bibkey"]
-			print key
 			old=self.extractEntryByBibkey(key)
 			if len(old)>0:
 				for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
@@ -716,11 +715,12 @@ class pybiblioDB():
 	def loadAndInsertEntries(self, entry):
 		if entry is not None and not type(entry) is list:
 			if self.extractEntryByBibkey(entry):
-				print "[database] Already existing: %s"%entry
+				print("[database] Already existing: %s"%entry)
 				return False
 			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
 			data=self.prepareInsertEntry(e)
 			key=data["bibkey"]
+			print("[database] entry will have key '%s'"%key)
 			if self.insertEntry(data):
 				eid = self.updateEntryInspireID(entry,key)
 				self.getUpdateInfoEntryFromOAI(eid)
