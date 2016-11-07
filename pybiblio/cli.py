@@ -8,6 +8,7 @@ try:
 	from pybiblio.config import pbConfig
 	from pybiblio.database import pBDB
 	from pybiblio.pdf import pBPDF
+	from pybiblio.webimport.webInterf import pyBiblioWeb
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
 	print traceback.format_exc()
