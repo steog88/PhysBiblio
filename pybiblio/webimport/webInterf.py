@@ -24,9 +24,13 @@ class webInterf():
 	def createUrl(self):
 		return self.url+"?"+"&".join([a+"="+b for a,b in self.urlArgs.iteritems()])
 		
-	def textFromUrl(self,url):
+	def textFromUrl(self,url, headers = None):
 		try:
-			response = urllib2.urlopen(url, timeout=self.urlTimeout)
+			if headers is not None:
+				req = urllib2.Request(url, headers = headers)
+			else:
+				req = urllib2.Request(url)
+			response = urllib2.urlopen(req, timeout = self.urlTimeout)
 		except:
 			print "[%s] -> error in retriving data from url"%self.name
 			return None

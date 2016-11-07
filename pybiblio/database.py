@@ -712,27 +712,32 @@ class pybiblioDB():
 			print "[database][inspireoai] something missing in entry %s"%result["id"]
 			print traceback.format_exc()
 		
-	def loadAndInsertEntries(self, entry):
+	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None):
 		if entry is not None and not type(entry) is list:
 			if self.extractEntryByBibkey(entry):
 				print("[database] Already existing: %s"%entry)
 				return False
-			e = pyBiblioWeb.webSearch["inspire"].retrieveUrlFirst(entry)
-			data=self.prepareInsertEntry(e)
-			key=data["bibkey"]
+			e = pyBiblioWeb.webSearch[method].retrieveUrlFirst(entry)
+			data = self.prepareInsertEntry(e)
+			if imposeKey is None:
+				key = data["bibkey"]
+			else:
+				data["bibkey"] = imposeKey
+				key = imposeKey
 			print("[database] entry will have key '%s'"%key)
 			if self.insertEntry(data):
-				eid = self.updateEntryInspireID(entry,key)
-				self.getUpdateInfoEntryFromOAI(eid)
+				if method == "inspire":
+					eid = self.updateEntryInspireID(entry, key)
+					self.getUpdateInfoEntryFromOAI(eid)
 				return True
 			else:
-				print "[database] loadAndInsertEntries(%s) failed"%entry
+				print("[database] loadAndInsertEntries(%s) failed"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
 			for e in entry:
 				self.loadAndInsertEntries(e)
 		else:
-			print "[database] ERROR: invalid arguments to loadAndInsertEntries"
+			print("[database] ERROR: invalid arguments to loadAndInsertEntries")
 			return False
 
 	def setReview(self,key):

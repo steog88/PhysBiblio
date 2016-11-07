@@ -7,7 +7,7 @@ from pybiblio.parse_accents import *
 class webSearch(webInterf):
 	def __init__(self):
 		webInterf.__init__(self)
-		self.name="doi"
+		self.name="doi2bib"
 		self.description="Doi2Bib fetcher"
 		self.url="http://www.doi2bib.org/#/doi/"
 		
