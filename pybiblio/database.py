@@ -719,19 +719,24 @@ class pybiblioDB():
 				return False
 			e = pyBiblioWeb.webSearch[method].retrieveUrlFirst(entry)
 			data = self.prepareInsertEntry(e)
-			if imposeKey is None:
-				key = data["bibkey"]
-			else:
+			key = data["bibkey"]
+			if imposeKey is not None:
 				data["bibkey"] = imposeKey
+				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
 				key = imposeKey
 			print("[database] entry will have key '%s'"%key)
-			if self.insertEntry(data):
+			try:
+				self.insertEntry(data)
+			except:
+				print("[database] loadAndInsertEntries(%s) failed in inserting entry"%entry)
+				return False
+			try:
 				if method == "inspire":
 					eid = self.updateEntryInspireID(entry, key)
 					self.getUpdateInfoEntryFromOAI(eid)
 				return True
-			else:
-				print("[database] loadAndInsertEntries(%s) failed"%entry)
+			except:
+				print("[database] loadAndInsertEntries(%s) failed in completing info"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
 			for e in entry:
