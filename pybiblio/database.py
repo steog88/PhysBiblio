@@ -573,10 +573,14 @@ class pybiblioDB():
 			year=None,link=None,comments=None,old_keys=None,crossref=None,
 			exp_paper=None,lecture=None,phd_thesis=None,review=None,proceeding=None,book=None,
 			marks=None, firstdate=None, pubdate=None):
-		data={}
-		data["bibtex"]=self.rmBibtexComments(bibtex.strip())
-		element=bibtexparser.loads(bibtex).entries[0]
-		data["bibkey"]=bibkey if bibkey else element["ID"]	
+		data = {}
+		try:
+			element = bibtexparser.loads(bibtex).entries[0]
+			data["bibkey"] = bibkey if bibkey else element["ID"]	
+		except:
+			print("[database] ERROR: impossible to parse bibtex!")
+			return data
+		data["bibtex"] = self.rmBibtexComments(bibtex.strip())
 		data["inspire"]=inspire if inspire else None
 		if arxiv:
 			data["arxiv"]=arxiv
@@ -755,7 +759,7 @@ class pybiblioDB():
 			if key.strip() == "":
 				print("[database] ERROR: impossible to insert an entry with empty bibkey!")
 				return False
-			print("[database] entry will have key '%s'"%key)
+			print("[database] entry will have key\n'%s'"%key)
 			try:
 				self.insertEntry(data)
 			except:
