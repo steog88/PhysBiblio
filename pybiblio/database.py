@@ -101,7 +101,7 @@ class pybiblioDB():
 
 	def commit(self):
 		self.conn.commit()
-		print "[database] saved."
+		print "[DB] saved."
 		
 	def connExec(self,query,data=None):
 		try:
@@ -210,7 +210,7 @@ class pybiblioDB():
 	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5):
 		cats = self.extractCats()
 		if depth < 2 or depth > 4:
-			print("[database] invalid depth in printCatHier (use between 2 and 5)")
+			print("[DB] invalid depth in printCatHier (use between 2 and 5)")
 		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom)
 		def catString(idCat):
 			cat = cats[idCat]
@@ -486,8 +486,8 @@ class pybiblioDB():
 	def deleteEntries(self, key_list):
 		for k in key_list:
 			self.deleteEntry(k)
-	def deleteEntry(self,key):
-		print "[DB] using key=%s"%key
+	def deleteEntry(self, key):
+		print "[DB] delete entry, using key = '%s'"%key
 		self.cursExec("""
 		delete from entries where bibkey=?
 		""",(key,))
@@ -578,7 +578,7 @@ class pybiblioDB():
 			element = bibtexparser.loads(bibtex).entries[0]
 			data["bibkey"] = bibkey if bibkey else element["ID"]	
 		except:
-			print("[database] ERROR: impossible to parse bibtex!")
+			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
 		data["bibtex"] = self.rmBibtexComments(bibtex.strip())
@@ -708,7 +708,7 @@ class pybiblioDB():
 			date2 = datetime.date.today().strftime("%Y-%m-%d")
 		yren,monen,dayen=date1.split('-')
 		yrst,monst,dayst=date2.split('-')
-		print "[database] calling Inspire OAI harvester between dates %s and %s"%(date1, date2)
+		print "[DB] calling Inspire OAI harvester between dates %s and %s"%(date1, date2)
 		date1=datetime.datetime(int(yren), int(monen), int(dayen))
 		date2=datetime.datetime(int(yrst), int(monst), int(dayst))
 		entries=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
@@ -722,8 +722,8 @@ class pybiblioDB():
 						if e[o] != old[0][d]:
 							self.updateEntryField(key, d, e[o])
 			except:
-				print "[database][inspireoai] something missing in entry %s"%e["id"]
-		print "[database] inspire OAI harvesting done!"
+				print "[DB][inspireoai] something missing in entry %s"%e["id"]
+		print "[DB] inspire OAI harvesting done!"
 
 	def getUpdateInfoEntryFromOAI(self, inspireID):
 		result=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID)
@@ -736,16 +736,16 @@ class pybiblioDB():
 						if result[o] != old[0][d]:
 							self.updateEntryField(key, d, result[o])
 					except:
-						print "[database][inspireoai] key error: (%s, %s)"%(o,d)
-			print "[database] inspire OAI info for %s saved!"%inspireID
+						print "[DB][inspireoai] key error: (%s, %s)"%(o,d)
+			print "[DB] inspire OAI info for %s saved!"%inspireID
 		except:
-			print "[database][inspireoai] something missing in entry %s"%result["id"]
+			print "[DB][inspireoai] something missing in entry %s"%result["id"]
 			print traceback.format_exc()
 		
 	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None):
 		if entry is not None and not type(entry) is list:
 			if self.extractEntryByBibkey(entry):
-				print("[database] Already existing: %s"%entry)
+				print("[DB] Already existing: %s"%entry)
 				return False
 			if method == "bibtex":
 				e = entry
@@ -758,13 +758,13 @@ class pybiblioDB():
 				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
 				key = imposeKey
 			if key.strip() == "":
-				print("[database] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
+				print("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
-			print("[database] entry will have key\n'%s'"%key)
+			print("[DB] entry will have key\n'%s'"%key)
 			try:
 				self.insertEntry(data)
 			except:
-				print("[database] loadAndInsertEntries(%s) failed in inserting entry\n"%entry)
+				print("[DB] loadAndInsertEntries(%s) failed in inserting entry\n"%entry)
 				return False
 			try:
 				if method == "inspire":
@@ -772,19 +772,19 @@ class pybiblioDB():
 					self.getUpdateInfoEntryFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
-				print("[database] element successfully inserted.\n")
+				print("[DB] element successfully inserted.\n")
 				return True
 			except:
-				print("[database] loadAndInsertEntries(%s) failed in completing info\n"%entry)
+				print("[DB] loadAndInsertEntries(%s) failed in completing info\n"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
 			failed = []
 			for e in entry:
 				if not self.loadAndInsertEntries(e):
 					failed.append(e)
-			print("[database] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
+			print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 		else:
-			print("[database] ERROR: invalid arguments to loadAndInsertEntries!")
+			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
 
 	def setReview(self,key):
@@ -823,20 +823,20 @@ class pybiblioDB():
 		for i,e in enumerate(entries):
 			print i,e["bibtex"]
 			print "\n"
-		print "[database] %d elements found"%len(entries)
+		print "[DB] %d elements found"%len(entries)
 			
 	def printAllBibkeys(self):
 		entries = self.extractEntries(orderBy="firstdate")
 		for i,e in enumerate(entries):
 			print i,e["bibkey"]
-		print "[database] %d elements found"%len(entries)
+		print "[DB] %d elements found"%len(entries)
 		
 	#utilities
 	def cleanSpareEntries(self):
 		def deletePresent(ix1, ix2, join, func):
 			for e in join:
 				if e[0] not in ix1 or e[1] not in ix2:
-					print("[database] cleaning (%s, %s)"%(e[0], e[1]))
+					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 		bibkeys = [ e["bibkey"] for e in self.extractEntries() ]
 		idCats = [ e["idCat"] for e in self.extractCats() ]
