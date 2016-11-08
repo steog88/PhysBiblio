@@ -499,48 +499,61 @@ class pybiblioDB():
 		""",(key,))
 
 	#extraction
-	def extractEntries(self,params=None,connection="and ",operator="=",save=True, orderBy=None, orderType="ASC"):
-		query="""
+	def extractEntries(self, params = None, connection = "and ", operator = "=",
+			save = True, orderBy = None, orderType = "ASC"):
+		query = """
 		select * from entries
 		"""
-		query += " order by "+orderBy+" "+orderType if orderBy else ""
-		if params and len(params)>0:
-			query+=" where "
-			first=True
-			vals=()
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		if params and len(params) > 0:
+			query += " where "
+			first = True
+			vals = ()
 			for k,v in params.iteritems():
 				if first:
-					first=False
+					first = False
 				else:
-					query+=connection
-				query+=k+operator+"? "
-				vals+=(v,)
+					query += connection
+				query += k + operator + "? "
+				vals += (v,)
 			try:
-				self.cursExec(query,vals)
+				self.cursExec(query, vals)
 			except:
-				print "[DB] query failed: %s"%query
-				print vals
+				print("[DB] query failed: %s"%query)
+				print(vals)
 		else:
 			try:
 				self.cursExec(query)
 			except:
-				print "[DB] query failed: %s"%query
+				print("[DB] query failed: %s"%query)
+		fetched_in = self.curs.fetchall()
+		#help(fetched_in[0])
+		fetched_out = []
+		for el in fetched_in:
+			tmp = {}
+			for k in el.keys():
+				tmp[k] = el[k]
+			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			fetched_out.append(tmp)
 		if save:
-			self.lastFetchedEntries=self.curs.fetchall()
-			return self.lastFetchedEntries
-		else:
-			return self.curs.fetchall()
-	def extractEntryByBibkey(self,bibkey):
-		return self.extractEntries(params={"bibkey":bibkey})
-	def extractEntryByKeyword(self,key):
+			self.lastFetchedEntries = fetched_out
+		return fetched_out
+
+	def extractEntryByBibkey(self, bibkey):
+		return self.extractEntries(params = {"bibkey": bibkey})
+	def extractEntryByKeyword(self, key):
 		return self.extractEntries(
-			params={"bibkey":"%%%s%%"%key,"old_keys":"%%%s%%"%key,"bibtex":"%%%s%%"%key},
-			connection="or ",
-			operator=" like ")
+			params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
+			connection = "or ",
+			operator = " like ")
+	def extractEntryByBibtexSearch(self, string):
+		return self.extractEntries(
+			params = {"bibtex":"%%%s%%"%string},
+			operator = " like ")
 	def getEntryField(self, key, field):
 		return self.extractEntryByBibkey(key)[0][field]
 	def dbEntryToDataDict(self, key):
-		return self.prepareInsertEntry(self.getEntryField(key,"bibtex"))
+		return self.prepareInsertEntry(self.getEntryField(key, "bibtex"))
 	def getDoiUrl(self, key):
 		url = "http://dx.doi.org/" + self.getEntryField(key, "doi")
 		return url
@@ -549,30 +562,30 @@ class pybiblioDB():
 		return url
 			
 	#insertion and update
-	def insertEntry(self,data):
-		return self.connExec("INSERT into entries ("+
-					", ".join(self.tableCols["entries"])+") values (:"+
-					", :".join(self.tableCols["entries"])+")\n",
+	def insertEntry(self, data):
+		return self.connExec("INSERT into entries (" +
+					", ".join(self.tableCols["entries"]) + ") values (:" +
+					", :".join(self.tableCols["entries"]) + ")\n",
 					data)
-	def updateEntry(self,data, oldkey):
-		data["bibkey"]=oldkey
-		print "-----\n",data,"\n------\n"
-		query= "replace into entries ("+\
-					", ".join(data.keys())+") values (:"+\
-					", :".join(data.keys())+")\n"
+	def updateEntry(self, data, oldkey):
+		data["bibkey"] = oldkey
+		print "-----\n", data, "\n------\n"
+		query = "replace into entries (" +\
+					", ".join(data.keys()) + ") values (:" + \
+					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
 	def rmBibtexComments(self, bibtex):
-		output=""
+		output = ""
 		for l in bibtex.splitlines():
-			lx=l.strip()
-			if len(lx)>0 and lx[0]!="%":
-				output+=l+"\n"
+			lx = l.strip()
+			if len(lx) > 0 and lx[0] != "%":
+				output += l + "\n"
 		return output.strip()
 	def prepareInsertEntry(self,
-			bibtex,bibkey=None,inspire=None,arxiv=None,ads=None,scholar=None,doi=None,isbn=None,
-			year=None,link=None,comments=None,old_keys=None,crossref=None,
-			exp_paper=None,lecture=None,phd_thesis=None,review=None,proceeding=None,book=None,
-			marks=None, firstdate=None, pubdate=None):
+			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
+			year = None, link = None, comments = None, old_keys = None, crossref = None,
+			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
+			marks = None, firstdate = None, pubdate = None):
 		data = {}
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
@@ -581,88 +594,85 @@ class pybiblioDB():
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
-		data["bibtex"] = self.rmBibtexComments(bibtex.strip())
-		data["inspire"]=inspire if inspire else None
+		data["bibtex"]  = self.rmBibtexComments(bibtex.strip())
+		data["inspire"] = inspire if inspire else None
 		if arxiv:
-			data["arxiv"]=arxiv
+			data["arxiv"] = arxiv
 		else:
-			if "arxiv" in element.keys():
-				data["arxiv"]=element["arxiv"]
-			else:
-				data["arxiv"]=None
-		data["ads"]=ads if ads else None
-		data["scholar"]=scholar if scholar else None
+			try:
+				data["arxiv"] = element["arxiv"]
+			except:
+				data["arxiv"] = None
+		data["ads"] = ads if ads else None
+		data["scholar"] = scholar if scholar else None
 		if doi:
-			data["doi"]=doi
+			data["doi"] = doi
 		else:
-			if "doi" in element.keys():
-				data["doi"]=element["doi"]
-			else:
-				data["doi"]=None
+			try:
+				data["doi"] = element["doi"]
+			except:
+				data["doi"] = None
 		if isbn:
-			data["isbn"]=isbn
+			data["isbn"] = isbn
 		else:
-			if "isbn" in element.keys():
-				data["isbn"]=element["isbn"]
-			else:
-				data["isbn"]=None
+			try:
+				data["isbn"] = element["isbn"]
+			except:
+				data["isbn"] = None
 		if year:
-			data["year"]=year
+			data["year"] = year
 		else:
-			if "year" in element.keys():
-				data["year"]=element["year"]
-			else:
-				if "arxiv" in data.keys():
-					identif=re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
-					try:
-						for t in identif.finditer(data["arxiv"]):
-							if len(t.group())>0:
-								e=t.group()
-								a=e[0:2]
-								if int(a) > 80:
-									data["year"]="19"+a
-								else:
-									data["year"]="20"+a
-					except:
-						print "[DB] -> Error in converting year"
-						data["year"]=None
-				else:
+			try:
+				data["year"] = element["year"]
+			except:
+				try:
+					identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
+					for t in identif.finditer(data["arxiv"]):
+						if len(t.group()) > 0:
+							e = t.group()
+							a = e[0:2]
+							if int(a) > 80:
+								data["year"] = "19"+a
+							else:
+								data["year"] = "20"+a
+				except:
 					data["year"]=None
 		if link:
-			data["link"]=link
+			data["link"] = link
 		else:
-			if arxiv in data.keys():
-				data["link"]= "http://arxiv.org/abs/"+data["arxiv"]
-			elif doi in data.keys():
-				data["link"]= "http://www.doi.org/"+data["doi"]
-			else:
-				data["link"]=None
-		data["comments"]=comments if comments else None
-		data["old_keys"]=old_keys if old_keys else None
+			try:
+				data["link"] = "http://arxiv.org/abs/" + data["arxiv"]
+			except:
+				try:
+					data["link"] = "http://www.doi.org/" + data["doi"]
+				except:
+					data["link"] = None
+		data["comments"] = comments if comments else None
+		data["old_keys"] = old_keys if old_keys else None
 		if crossref:
-			data["crossref"]=crossref
+			data["crossref"] = crossref
 		else:
-			if crossref in element.keys():
-				data["crossref"]=element["crossref"]
-			else:
-				data["crossref"]=None
-		data["exp_paper"]=1 if exp_paper else 0
-		data["lecture"]=1 if lecture else 0
-		data["phd_thesis"]=1 if phd_thesis else 0
-		data["review"]=1 if review else 0
-		data["proceeding"]=1 if proceeding else 0
-		data["book"]=1 if book else 0
-		data["marks"]=marks if marks else None
-		data["firstdate"]=firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
-		data["pubdate"]=pubdate if pubdate else ""
+			try:
+				data["crossref"] = element["crossref"]
+			except:
+				data["crossref"] = None
+		data["exp_paper"] = 1 if exp_paper else 0
+		data["lecture"] = 1 if lecture else 0
+		data["phd_thesis"] = 1 if phd_thesis else 0
+		data["review"] = 1 if review else 0
+		data["proceeding"] = 1 if proceeding else 0
+		data["book"] = 1 if book else 0
+		data["marks"] = marks if marks else None
+		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
+		data["pubdate"] = pubdate if pubdate else ""
 		return data
 		
 	def prepareUpdateEntriesByKey(self, key_old, key_new):
-		u=self.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"), self.getEntryField(key_new,"bibtex"))
+		u = self.prepareUpdateEntry(self.getEntryField(key_old, "bibtex"), self.getEntryField(key_new, "bibtex"))
 		return self.prepareInsertEntry(u)
 	
 	def prepareUpdateEntryByBibtex(self, key_old, bibtex_new):
-		u=self.prepareUpdateEntry(self.getEntryField(key_old,"bibtex"),bibtex_new)
+		u = self.prepareUpdateEntry(self.getEntryField(key_old, "bibtex"), bibtex_new)
 		return self.prepareInsertEntry(u)
 		
 	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
@@ -701,46 +711,61 @@ class pybiblioDB():
 		else:
 			return False
 			
-	def getUpdateInfoDaysFromOAI(self, date1=None, date2=None):
+	def getUpdateInfoDaysFromOAI(self, date1 = None, date2 = None):
 		if date1 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date1):
-			date1 = (datetime.date.today()-datetime.timedelta(1)).strftime("%Y-%m-%d")
+			date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
 		if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
 			date2 = datetime.date.today().strftime("%Y-%m-%d")
-		yren,monen,dayen=date1.split('-')
-		yrst,monst,dayst=date2.split('-')
-		print "[DB] calling Inspire OAI harvester between dates %s and %s"%(date1, date2)
-		date1=datetime.datetime(int(yren), int(monen), int(dayen))
-		date2=datetime.datetime(int(yrst), int(monst), int(dayst))
-		entries=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+		yren, monen, dayen = date1.split('-')
+		yrst, monst, dayst = date2.split('-')
+		print("[DB] calling Inspire OAI harvester between dates %s and %s"%(date1, date2))
+		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
+		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
+		entries = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
 		for e in entries:
 			try:
-				key=e["bibkey"]
+				key = e["bibkey"]
 				print key
-				old=self.extractEntryByBibkey(key)
-				if len(old)>0:
-					for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+				old = self.extractEntryByBibkey(key)
+				if len(old) > 0:
+					for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
 							self.updateEntryField(key, d, e[o])
 			except:
-				print "[DB][inspireoai] something missing in entry %s"%e["id"]
-		print "[DB] inspire OAI harvesting done!"
+				print("[DB][oai] something missing in entry %s"%e["id"])
+		print("[DB] inspire OAI harvesting done!")
 
-	def getUpdateInfoEntryFromOAI(self, inspireID):
-		result=pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID)
+	def getUpdateInfoEntryFromOAI(self, inspireID, verbose = 0):
+		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, verbose = verbose)
 		try:
-			key=result["bibkey"]
-			old=self.extractEntryByBibkey(key)
-			if len(old)>0:
-				for [o,d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+			key = result["bibkey"]
+			old = self.extractEntryByBibkey(key)
+			if len(old) > 0:
+				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if result[o] != old[0][d]:
 							self.updateEntryField(key, d, result[o])
 					except:
-						print "[DB][inspireoai] key error: (%s, %s)"%(o,d)
-			print "[DB] inspire OAI info for %s saved!"%inspireID
+						print("[DB][oai] key error: (%s, %s)"%(o,d))
+			print("[DB] inspire OAI info for %s saved."%inspireID)
 		except:
-			print "[DB][inspireoai] something missing in entry %s"%result["id"]
+			print("[DB][oai] something missing in entry %s"%result["id"])
 			print traceback.format_exc()
+	
+	def searchOAIUpdates(self):
+		entries = self.extractEntries()
+		num = 0
+		for e in entries:
+			if ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
+				and e["proceeding"] == 0 \
+				and e["book"] == 0 \
+				and e["lecture"] == 0 \
+				and e["phd_thesis"] == 0 \
+				and e["inspire"] is not None:
+					num += 1
+					print("\n[DB] looking for update: '%s'"%e["bibkey"])
+					self.getUpdateInfoEntryFromOAI(e["inspire"], verbose = 0)
+		print("\n[DB] %d entries processed"%num)
 		
 	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None):
 		if entry is not None and not type(entry) is list:
@@ -787,49 +812,58 @@ class pybiblioDB():
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
 
-	def setReview(self,key):
+	def setReview(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setReview(q)
 		else:
-			return self.updateEntryField(key,"review",1)
-	def setProceeding(self,key):
+			return self.updateEntryField(key, "review", 1)
+	def setProceeding(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setProceeding(q)
 		else:
-			return self.updateEntryField(key,"proceeding",1)
-	def setBook(self,key):
+			return self.updateEntryField(key, "proceeding", 1)
+	def setBook(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setBook(q)
 		else:
-			return self.updateEntryField(key,"book",1)
-	def setLecture(self,key):
+			return self.updateEntryField(key, "book", 1)
+	def setLecture(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setLecture(q)
 		else:
-			return self.updateEntryField(key,"lecture",1)
-	def setPhdThesis(self,key):
+			return self.updateEntryField(key, "lecture", 1)
+	def setPhdThesis(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setPhdThesis(q)
 		else:
-			return self.updateEntryField(key,"phd_thesis",1)
+			return self.updateEntryField(key, "phd_thesis", 1)
 			
 	def printAllBibtexs(self):
-		entries = self.extractEntries(orderBy="firstdate")
-		for i,e in enumerate(entries):
-			print i,e["bibtex"]
-			print "\n"
-		print "[DB] %d elements found"%len(entries)
+		entries = self.extractEntries(orderBy = "firstdate")
+		for i, e in enumerate(entries):
+			print("%4d %s"%(i, e["bibtex"]))
+			print("\n")
+		print("[DB] %d elements found"%len(entries))
 			
 	def printAllBibkeys(self):
-		entries = self.extractEntries(orderBy="firstdate")
-		for i,e in enumerate(entries):
-			print i,e["bibkey"]
-		print "[DB] %d elements found"%len(entries)
+		entries = self.extractEntries(orderBy = "firstdate")
+		for i, e in enumerate(entries):
+			print("%4d %s"%(i, e["bibkey"]))
+		print("[DB] %d elements found"%len(entries))
+			
+	def printAllEntriesInfo(self, orderBy = "firstdate"):
+		entries = self.extractEntries(orderBy = orderBy)
+		for i, e in enumerate(entries):
+			if e["book"] == 1:
+				print("[%4d - %-11s] %-30s %-20s"%(i, e["firstdate"], e["bibkey"], e["isbn"]))
+			else:
+				print("[%4d - %-11s] %-30s %-20s %-20s"%(i, e["firstdate"], e["bibkey"], e["arxiv"], e["doi"]))
+		print("[DB] %d elements found"%len(entries))
 		
 	#utilities
 	def cleanSpareEntries(self):

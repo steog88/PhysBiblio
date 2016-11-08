@@ -88,11 +88,11 @@ class webSearch(webInterf):
 		]
 		
 	def retrieveUrlFirst(self,string):
-		print("[inspireoai] -> ERROR: inspireoai cannot search strings in the DB")
+		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def retrieveUrlAll(self,string):
-		print("[inspireoai] -> ERROR: inspireoai cannot search strings in the DB")
+		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record):
@@ -167,28 +167,30 @@ class webSearch(webInterf):
 		tmpDict["oldkeys"] = ",".join(tmpOld)
 		return tmpDict
 	
-	def retrieveOAIData(self,inspireID):
+	def retrieveOAIData(self, inspireID, verbose = 0):
 		record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
 		nhand = 0
-		print("[inspireoai] reading data --- " + time.strftime("%c"))
+		if verbose > 0:
+			print("[oai] reading data --- " + time.strftime("%c"))
 		try:
 			res = self.readRecord(record[1])
 			res["id"] = inspireID
-			print("[inspireoai] done.")
+			if verbose > 0:
+				print("[oai] done.")
 			return res
 		except Exception:
-			print("[inspireoai] ERROR: impossible to read marcxml for entry %s"%inspireID)
+			print("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID)
 			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml', from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
-		print("\n[inspireoai] STARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
+		print("\n[oai] STARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
 		foundObjects = []
 		for count, rec in enumerate(recs):
 			id = rec[0].identifier()
 			if count % 500 == 0:
-				print("[inspireoai] Processed %d elements"%count)
+				print("[oai] Processed %d elements"%count)
 			record = rec[1] # Get pyMARC representation
 			if not record:
 				continue
@@ -201,6 +203,6 @@ class webSearch(webInterf):
 				print count, id
 				print e
 				print traceback.format_exc()
-		print("[inspireoai] Processed %d elements"%count)
-		print("[inspireoai] END --- " + time.strftime("%c") + "\n\n")
+		print("[oai] Processed %d elements"%count)
+		print("[oai] END --- " + time.strftime("%c") + "\n\n")
 		return foundObjects
