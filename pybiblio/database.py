@@ -579,6 +579,7 @@ class pybiblioDB():
 			data["bibkey"] = bibkey if bibkey else element["ID"]	
 		except:
 			print("[database] ERROR: impossible to parse bibtex!")
+			data["bibkey"] = ""
 			return data
 		data["bibtex"] = self.rmBibtexComments(bibtex.strip())
 		data["inspire"]=inspire if inspire else None
@@ -757,13 +758,13 @@ class pybiblioDB():
 				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
 				key = imposeKey
 			if key.strip() == "":
-				print("[database] ERROR: impossible to insert an entry with empty bibkey!")
+				print("[database] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
 			print("[database] entry will have key\n'%s'"%key)
 			try:
 				self.insertEntry(data)
 			except:
-				print("[database] loadAndInsertEntries(%s) failed in inserting entry"%entry)
+				print("[database] loadAndInsertEntries(%s) failed in inserting entry\n"%entry)
 				return False
 			try:
 				if method == "inspire":
@@ -771,15 +772,19 @@ class pybiblioDB():
 					self.getUpdateInfoEntryFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
+				print("[database] element successfully inserted.\n")
 				return True
 			except:
-				print("[database] loadAndInsertEntries(%s) failed in completing info"%entry)
+				print("[database] loadAndInsertEntries(%s) failed in completing info\n"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
+			failed = []
 			for e in entry:
-				self.loadAndInsertEntries(e)
+				if not self.loadAndInsertEntries(e):
+					failed.append(e)
+			print("[database] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 		else:
-			print("[database] ERROR: invalid arguments to loadAndInsertEntries")
+			print("[database] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
 
 	def setReview(self,key):
