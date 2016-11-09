@@ -7,6 +7,7 @@ try:
 	from pybiblio.config import pbConfig
 	import pybiblio.parse_accents as parse_accents
 	from pybiblio.webimport.webInterf import pyBiblioWeb
+	import pybiblio.tablesDef
 except ImportError:
     print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
@@ -20,81 +21,33 @@ class pybiblioDB():
 	"""
 	Contains most of the DB functions
 	"""
-	def __init__(self,dbname=pbConfig.params['mainDatabaseName']):
+	def __init__(self, dbname=pbConfig.params['mainDatabaseName']):
 		"""
 		Initialize DB class
 		"""
 		#structure of the tables
-		self.tableFields={}
-		self.tableFields["entries"]=[
-			["bibkey","text","primary key not null"],
-			["inspire","text",""],
-			["arxiv","text",""],
-			["ads","text",""],
-			["scholar","text",""],
-			["doi","text",""],
-			["isbn","text",""],
-			["year","int",""],
-			["link","text",""],
-			["comments","text",""],
-			["old_keys","text",""],
-			["crossref","text",""],
-			["bibtex","text","not null"],
-			["firstdate","text","not null"],
-			["pubdate","text",""],
-			["exp_paper",	"int","default 0"],
-			["lecture",		"int","default 0"],
-			["phd_thesis",	"int","default 0"],
-			["review",		"int","default 0"],
-			["proceeding",	"int","default 0"],
-			["book",		"int","default 0"],
-			["marks","text",""]];
-		self.tableFields["categories"]=[
-			["idCat","integer","primary key"],
-			["name","text","not null"],
-			["description","text","not null"],
-			["parentCat","int","default 0"],
-			["comments","text","default ''"],
-			["ord","int","default 0"]];
-		self.tableFields["experiments"]=[
-			["idExp","integer","primary key"],
-			["name","text","not null"],
-			["comments","text","not null"],
-			["homepage","text",""],
-			["inspire","text",""]];
-		self.tableFields["expCats"]=[
-			["idExC","integer","primary key"],
-			["idExp","int","not null"],
-			["idCat","int","not null"]];
-		self.tableFields["entryCats"]=[
-			["idEnC","integer","primary key"],
-			["bibkey","text","not null"],
-			["idCat","int","not null"]];
-		self.tableFields["entryExps"]=[
-			["idEnEx","integer","primary key"],
-			["bibkey","text","not null"],
-			["idExp","int","not null"]];
+		self.tableFields = pybiblio.tablesDef.tableFields
 		#names of the columns
-		self.tableCols={}
+		self.tableCols = {}
 		for q in self.tableFields.keys():
-			self.tableCols[q]=[ a[0] for a in self.tableFields[q]]
+			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
 		
-		self.conn=None
-		self.curs=None
-		self.dbname=dbname
+		self.conn = None
+		self.curs = None
+		self.dbname = dbname
 		self.openDB()
 		
-		self.lastFetchedEntries=None
+		self.lastFetchedEntries = None
 
 	#open DB
 	def openDB(self):
 		db_is_new = not os.path.exists(self.dbname)
-		self.conn=sqlite3.connect(self.dbname)
+		self.conn = sqlite3.connect(self.dbname)
 		self.conn.row_factory = sqlite3.Row
 		if db_is_new:
 			print "-------New database. Creating tables!\n\n"
 			self.createTables()
-		self.curs=self.conn.cursor()
+		self.curs = self.conn.cursor()
 
 	def closeDB(self):
 		self.conn.close()
@@ -170,6 +123,21 @@ class pybiblioDB():
 				INSERT into categories (name, description, parentCat, comments, ord)
 					values (:name,:description,:parentCat,:comments,:ord)
 				""",data)
+	def updateCat(self, data, idCat):
+		data["idCat"] = idCat
+		print "-----\n", data, "\n------\n"
+		query = "replace into categories (" +\
+					", ".join(data.keys()) + ") values (:" + \
+					", :".join(data.keys()) + ")\n"
+		return self.connExec(query, data)
+	def updateCatField(self, idCat, field, value):
+		print("[DB] updating '%s' for entry '%s'"%(field, key))
+		if field in self.tableCols["categories"] and field is not "idCat" \
+				and value is not "" and value is not None:
+			query = "update categories set " + field + "=:field where idCat=:idCat\n"
+			return self.connExec(query, {"field": value, "idCat": idCat})
+		else:
+			return False
 	def extractCats(self):
 		self.cursExec("""
 		select * from categories
@@ -285,6 +253,21 @@ class pybiblioDB():
 				INSERT into experiments (name, comments, homepage, inspire)
 					values (:name, :comments, :homepage, :inspire)
 				""",data)
+	def updateExp(self, data, idExp):
+		data["idExp"] = idExp
+		print "-----\n", data, "\n------\n"
+		query = "replace into experiments (" +\
+					", ".join(data.keys()) + ") values (:" + \
+					", :".join(data.keys()) + ")\n"
+		return self.connExec(query, data)
+	def updateExpField(self, idExp, field, value):
+		print("[DB] updating '%s' for entry '%s'"%(field, key))
+		if field in self.tableCols["experiments"] and field is not "idExp" \
+				and value is not "" and value is not None:
+			query = "update experiments set " + field + "=:field where idExp=:idExp\n"
+			return self.connExec(query, {"field": value, "idExp": idExp})
+		else:
+			return False
 	def extractExps(self):
 		self.cursExec("""
 		select * from experiments
@@ -703,12 +686,25 @@ class pybiblioDB():
 		else:
 			return False
 	
-	def updateEntryField(self, key, field, value):
-		if field in self.tableCols["entries"] and field is not "bibkey" \
+	def updateEntryField(self, key, field, value, verbose = 1):
+		if verbose > 0:
+			print("[DB] updating '%s' for entry '%s'"%(field, key))
+		if field in self.tableCols["entries"] and field != "bibkey" \
 				and value is not "" and value is not None:
-			query= "update entries set "+field+"=:field where bibkey=:bibkey\n"
-			return self.connExec(query, {"field":value, "bibkey":key})
+			query= "update entries set " + field + "=:field where bibkey=:bibkey\n"
+			return self.connExec(query, {"field": value, "bibkey": key})
 		else:
+			return False
+	
+	def updateEntryBibkey(self, oldKey, newKey):
+		print("[DB] updating bibkey into '%s' for entry '%s'"%(oldKey, newKey))
+		try:
+			query= "update entries set bibkey=:new where bibkey=:old\n"
+			query= "update entries set bibkey=:new where bibkey=:old\n"
+			query= "update entries set bibkey=:new where bibkey=:old\n"
+			return self.connExec(query, {"new": newKey, "old": oldKey})
+			return self.connExec(query, {"new": newKey, "old": oldKey})
+		except:
 			return False
 			
 	def getUpdateInfoDaysFromOAI(self, date1 = None, date2 = None):
@@ -730,7 +726,7 @@ class pybiblioDB():
 				if len(old) > 0:
 					for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
-							self.updateEntryField(key, d, e[o])
+							self.updateEntryField(key, d, e[o], 0)
 			except:
 				print("[DB][oai] something missing in entry %s"%e["id"])
 		print("[DB] inspire OAI harvesting done!")
@@ -744,7 +740,7 @@ class pybiblioDB():
 				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if result[o] != old[0][d]:
-							self.updateEntryField(key, d, result[o])
+							self.updateEntryField(key, d, result[o], 0)
 					except:
 						print("[DB][oai] key error: (%s, %s)"%(o,d))
 			print("[DB] inspire OAI info for %s saved."%inspireID)
@@ -818,31 +814,31 @@ class pybiblioDB():
 			for q in key:
 				self.setReview(q)
 		else:
-			return self.updateEntryField(key, "review", 1)
+			return self.updateEntryField(key, "review", 1, 0)
 	def setProceeding(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setProceeding(q)
 		else:
-			return self.updateEntryField(key, "proceeding", 1)
+			return self.updateEntryField(key, "proceeding", 1, 0)
 	def setBook(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setBook(q)
 		else:
-			return self.updateEntryField(key, "book", 1)
+			return self.updateEntryField(key, "book", 1, 0)
 	def setLecture(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setLecture(q)
 		else:
-			return self.updateEntryField(key, "lecture", 1)
+			return self.updateEntryField(key, "lecture", 1, 0)
 	def setPhdThesis(self, key):
 		if type(key) is list:
 			for q in key:
 				self.setPhdThesis(q)
 		else:
-			return self.updateEntryField(key, "phd_thesis", 1)
+			return self.updateEntryField(key, "phd_thesis", 1, 0)
 			
 	def printAllBibtexs(self):
 		entries = self.extractEntries(orderBy = "firstdate")
@@ -860,10 +856,26 @@ class pybiblioDB():
 	def printAllEntriesInfo(self, orderBy = "firstdate"):
 		entries = self.extractEntries(orderBy = orderBy)
 		for i, e in enumerate(entries):
+			orderDate = "[%4d - %-11s]"%(i, e["firstdate"])
+			bibKeyStr = "%-30s "%e["bibkey"]
+			typeStr = ""
+			moreStr = "%-20s %-20s"%(
+				e["arxiv"] if e["arxiv"] is not None else "-",
+				e["doi"] if e["doi"] is not None else "-"
+				)
 			if e["book"] == 1:
-				print("[%4d - %-11s] %-30s %-20s"%(i, e["firstdate"], e["bibkey"], e["isbn"]))
-			else:
-				print("[%4d - %-11s] %-30s %-20s %-20s"%(i, e["firstdate"], e["bibkey"], e["arxiv"], e["doi"]))
+				typeStr = "(book)"
+				moreStr = "%-20s"%e["isbn"]
+			elif e["review"] == 1:
+				typeStr = "(rev)"
+			elif e["lecture"] == 1:
+				typeStr = "(lect)"
+			elif e["phd_thesis"] == 1:
+				typeStr = "(PhDTh)"
+				moreStr = "%-20s"%(e["arxiv"] if e["arxiv"] is not None else "-")
+			elif e["proceeding"] == 1:
+				typeStr = "(proc)"
+			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
 		print("[DB] %d elements found"%len(entries))
 		
 	#utilities
