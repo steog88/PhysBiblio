@@ -40,12 +40,14 @@ class localPDF():
 			fname = self.badFName(fname)
 			return osp.join(self.getFileDir(key), fname + '.pdf')
 		
-	def createFolder(self, key):
+	def createFolder(self, key, noCheck = False):
 		directory = self.getFileDir(key)
-		if not osp.exists(directory):
+		if noCheck or not osp.exists(directory):
 			os.makedirs(directory)
 		
 	def copyNewFile(self, key, origFile, ftype = None, customName = None):
+		if not osp.exists(self.getFileDir(key)):
+			self.createFolder(key, True)
 		if customName is not None:
 			newFile = customName
 		elif ftype is not None:

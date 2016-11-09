@@ -807,7 +807,8 @@ class pybiblioDB():
 			for e in entry:
 				if not self.loadAndInsertEntries(e):
 					failed.append(e)
-			print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
+			if len(failed) > 0:
+				print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 		else:
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
