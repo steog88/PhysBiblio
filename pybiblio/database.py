@@ -38,6 +38,7 @@ class pybiblioDB():
 		self.openDB()
 		
 		self.lastFetchedEntries = None
+		self.catsHier = None
 
 	#open DB
 	def openDB(self):
@@ -143,7 +144,9 @@ class pybiblioDB():
 		select * from categories
 		""")
 		return self.curs.fetchall()
-	def extractCatsHierarchy(self, cats = None, startFrom = 0):
+	def extractCatsHierarchy(self, cats = None, startFrom = 0, replace = False):
+		if self.catsHier is not None and not replace:
+			return self.catsHier
 		if cats is None:
 			cats = self.extractCats()
 		def addSubCats(idC):
@@ -174,6 +177,7 @@ class pybiblioDB():
 						new = addSubCats(l3)
 						if len(new.keys()) > 0:
 							catsHier[l0][l1][l2][l3] = new
+		self.catsHier = catsHier
 		return catsHier
 	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5):
 		cats = self.extractCats()
@@ -278,6 +282,87 @@ class pybiblioDB():
 		select * from experiments where name=?
 		""",(name,))
 		return self.curs.fetchall()
+	def printExpInCats(self, startFrom = 0, sp = 5*" ", withDesc = False):
+		cats = self.extractCats()
+		exps = self.extractExps()
+		catsHier = self.extractCatsHierarchy(cats, startFrom = startFrom)
+		showCat = {}
+		for c in cats:
+			showCat[c["idCat"]] = False
+		def catString(idCat):
+			cat = cats[idCat]
+			if withDesc:
+				return '%4d: %s - %s'%(cat['idCat'], cat['name'], cat['description'])
+			else:
+				return '%4d: %s'%(cat['idCat'], cat['name'])
+		def expString(idExp):
+			exp = [ e for e in exps if e["idExp"] == idExp ][0]
+			if withDesc:
+				return sp + '-> %s (%d) - %s'%(exp['name'], exp['idExp'], exp['comments'])
+			else:
+				return sp + '-> %s (%d)'%(exp['name'], exp['idExp'])
+		def alphabetical(listId):
+			listIn = [ cats[i] for i in listId ]
+			decorated = [ (x["name"], x) for x in listIn ]
+			decorated.sort()
+			return [ x[1]["idCat"] for x in decorated ]
+		def alphabetExp(listId):
+			listIn = [ e for e in exps if e["idExp"] in listId ]
+			decorated = [ (x["name"], x) for x in listIn ]
+			decorated.sort()
+			return [ x[1]["idExp"] for x in decorated ]
+		expCats = {}
+		for (a, idE, idC) in self.extractExpCat():
+			if idC not in expCats.keys():
+				expCats[idC] = []
+				showCat[idC] = True
+			expCats[idC].append(idE)
+		def printExpCats(ix, lev):
+			try:
+				for e in alphabetExp(expCats[ix]):
+					print(lev*sp + expString(e))
+			except:
+				pass
+		for l0 in alphabetical(catsHier.keys()):
+			for l1 in alphabetical(catsHier[l0].keys()):
+				if showCat[l1]:
+					showCat[l0] = True
+				for l2 in alphabetical(catsHier[l0][l1].keys()):
+					if showCat[l2]:
+						showCat[l0] = True
+						showCat[l1] = True
+					for l3 in alphabetical(catsHier[l0][l1][l2].keys()):
+						if showCat[l3]:
+							showCat[l0] = True
+							showCat[l1] = True
+							showCat[l2] = True
+						for l4 in alphabetical(catsHier[l0][l1][l2][l3].keys()):
+							if showCat[l4]:
+								showCat[l0] = True
+								showCat[l1] = True
+								showCat[l2] = True
+								showCat[l2] = True
+		for l0 in alphabetical(catsHier.keys()):
+			if showCat[l0]:
+				print(catString(l0))
+				printExpCats(l0, 1)
+			for l1 in alphabetical(catsHier[l0].keys()):
+				if showCat[l1]:
+					print(sp + catString(l1))
+					printExpCats(l1, 2)
+				for l2 in alphabetical(catsHier[l0][l1].keys()):
+					if showCat[l2]:
+						print(2*sp + catString(l2))
+						printExpCats(l2, 3)
+					for l3 in alphabetical(catsHier[l0][l1][l2].keys()):
+						if showCat[l3]:
+							print(3*sp + catString(l3))
+							printExpCats(l3, 4)
+						for l4 in alphabetical(catsHier[l0][l1][l2][l3].keys()):
+							if showCat[l4]:
+								print(4*sp + catString(l4))
+								printExpCats(l4, 5)
+
 	def deleteExp(self,idExp,name=None):
 		print "[DB] using idExp=%d"%idExp
 		self.cursExec("""
