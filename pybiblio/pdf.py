@@ -111,14 +111,25 @@ class localPDF():
 			
 	def getExisting(self, key, fullPath = False):
 		fileDir = self.getFileDir(key)
-		if fullPath:
-			return [ osp.join(fileDir, e) for e in os.listdir(fileDir) ]
-		else:
-			return os.listdir(fileDir)
-		
+		try:
+			if fullPath:
+				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) ]
+			else:
+				return os.listdir(fileDir)
+		except:
+			return []
+			
 	def printExisting(self, key, fullPath = False):
 		print("[localPDF] Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
 			print("%2d: %s"%(i,e))
+	
+	def printAllExisting(self, entries = None, fullPath = False):
+		if entries is None:
+			entries = pBDB.extractEntries(orderBy = "firstdate")
+		for e in entries:
+			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
+			if len(exist) > 0:
+				print("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
 pBPDF = localPDF()

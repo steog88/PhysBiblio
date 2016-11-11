@@ -926,21 +926,24 @@ class pybiblioDB():
 		else:
 			return self.updateEntryField(key, "phd_thesis", 1, 0)
 			
-	def printAllBibtexs(self):
-		entries = self.extractEntries(orderBy = "firstdate")
+	def printAllBibtexs(self, entries = None):
+		if entries is None:
+			entries = self.extractEntries(orderBy = "firstdate")
 		for i, e in enumerate(entries):
 			print("%4d %s"%(i, e["bibtex"]))
 			print("\n")
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllBibkeys(self):
-		entries = self.extractEntries(orderBy = "firstdate")
+	def printAllBibkeys(self, entries = None):
+		if entries is None:
+			entries = self.extractEntries(orderBy = "firstdate")
 		for i, e in enumerate(entries):
 			print("%4d %s"%(i, e["bibkey"]))
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllEntriesInfo(self, orderBy = "firstdate"):
-		entries = self.extractEntries(orderBy = orderBy)
+	def printAllEntriesInfo(self, entries = None, orderBy = "firstdate"):
+		if entries is None:
+			entries = self.extractEntries(orderBy = orderBy)
 		for i, e in enumerate(entries):
 			orderDate = "[%4d - %-11s]"%(i, e["firstdate"])
 			bibKeyStr = "%-30s "%e["bibkey"]

@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
 		#pBDB.assignEntryExp("Ade:2015xua",1)
 		#print pBDB.findCatsForEntry("Ade:2015xua")
 		
-		#pBDB.insertExp({"name":"Euclid", "comments":"", "homepage":"http://www.euclid-ec.org/", "inspire":"http://inspirehep.net/record/1337945"})
+		#pBDB.insertExp({"name":"T2K", "comments":"", "homepage":"http://www.t2k.org/", "inspire":"http://inspirehep.net/record/1108444"})
 		#pBDB.assignExpCat([58,64,65,66],6)
 		
 		#pBDB.printExps()
