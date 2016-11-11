@@ -225,13 +225,13 @@ class MainWindow(QMainWindow):
 		#for e in entries:
 			#b=pBDB.rmBibtexComments(e["bibtex"])
 			#print pBDB.updateEntryField(e["bibkey"], "bibtex", b)
-		#pBDB.insertCat({"name":"nonGaussianities","description":"","parentCat":57,"comments":"","ord":1})
+		#pBDB.insertCat({"name":"Really???","description":"","parentCat":0,"comments":"","ord":1})
 		
 		#pBDB.assignEntryCat([58,64,65],"Ade:2015xua")
 		#pBDB.assignEntryExp("Ade:2015xua",1)
 		#print pBDB.findCatsForEntry("Ade:2015xua")
 		
-		#pBDB.insertExp({"name":"IceCube", "comments":"", "homepage":"http://icecube.wisc.edu/", "inspire":"http://inspirehep.net/record/1108514"})
+		#pBDB.insertExp({"name":"Euclid", "comments":"", "homepage":"http://www.euclid-ec.org/", "inspire":"http://inspirehep.net/record/1337945"})
 		#pBDB.assignExpCat([58,64,65,66],6)
 		
 		#pBDB.printExps()

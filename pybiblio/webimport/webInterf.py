@@ -31,10 +31,10 @@ class webInterf():
 			else:
 				req = urllib2.Request(url)
 			response = urllib2.urlopen(req, timeout = self.urlTimeout)
+			data = response.read()
 		except:
 			print "[%s] -> error in retriving data from url"%self.name
 			return None
-		data = response.read()
 		try:
 			text = data.decode('utf-8')
 		except:

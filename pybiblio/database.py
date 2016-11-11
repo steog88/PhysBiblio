@@ -179,12 +179,12 @@ class pybiblioDB():
 							catsHier[l0][l1][l2][l3] = new
 		self.catsHier = catsHier
 		return catsHier
-	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5):
+	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5, replace = False):
 		cats = self.extractCats()
 		if depth < 2 or depth > 5:
 			print("[DB] invalid depth in printCatHier (use between 2 and 5)")
 			depth = 5
-		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom)
+		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom, replace = replace)
 		def catString(idCat):
 			cat = cats[idCat]
 			if withDesc:
