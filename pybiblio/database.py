@@ -654,10 +654,12 @@ class pybiblioDB():
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
-			marks = None, firstdate = None, pubdate = None):
+			marks = None, firstdate = None, pubdate = None, number = None):
 		data = {}
+		if number is None:
+			number = 0
 		try:
-			element = bibtexparser.loads(bibtex).entries[0]
+			element = bibtexparser.loads(bibtex).entries[number]
 			data["bibkey"] = bibkey if bibkey else element["ID"]	
 		except:
 			print("[DB] ERROR: impossible to parse bibtex!")
@@ -761,13 +763,13 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def updateEntryInspireID(self, string, key=None):
-		newid=pyBiblioWeb.webSearch["inspire"].retrieveInspireID(string)
+	def updateEntryInspireID(self, string, key = None, number = None):
+		newid = pyBiblioWeb.webSearch["inspire"].retrieveInspireID(string, number = number)
 		if key is None:
-			key=string
+			key = string
 		if newid is not "":
-			query= "update entries set inspire=:inspire where bibkey=:bibkey\n"
-			if self.connExec(query, {"inspire":newid, "bibkey":key}):
+			query = "update entries set inspire=:inspire where bibkey=:bibkey\n"
+			if self.connExec(query, {"inspire": newid, "bibkey": key}):
 				return newid
 		else:
 			return False
@@ -849,7 +851,8 @@ class pybiblioDB():
 					self.getUpdateInfoEntryFromOAI(e["inspire"], verbose = 0)
 		print("\n[DB] %d entries processed"%num)
 		
-	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None):
+	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None, number = None):
+		requireAll = False
 		if entry is not None and not type(entry) is list:
 			if self.extractEntryByBibkey(entry):
 				print("[DB] Already existing: %s\n"%entry)
@@ -857,8 +860,18 @@ class pybiblioDB():
 			if method == "bibtex":
 				e = entry
 			else:
-				e = pyBiblioWeb.webSearch[method].retrieveUrlFirst(entry)
-			data = self.prepareInsertEntry(e)
+				e = pyBiblioWeb.webSearch[method].retrieveUrlAll(entry)
+				if e.count('@') > 1:
+					if number is not None:
+						requireAll = True
+					else:
+						print e
+						print "[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n"
+						return False
+			if requireAll:
+				data = self.prepareInsertEntry(e, number = number)
+			else:
+				data = self.prepareInsertEntry(e)
 			key = data["bibkey"]
 			if imposeKey is not None:
 				data["bibkey"] = imposeKey
@@ -875,7 +888,10 @@ class pybiblioDB():
 				return False
 			try:
 				if method == "inspire":
-					eid = self.updateEntryInspireID(entry, key)
+					if not requireAll:
+						eid = self.updateEntryInspireID(entry, key)
+					else:
+						eid = self.updateEntryInspireID(entry, key, number = number)
 					self.getUpdateInfoEntryFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
