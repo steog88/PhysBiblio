@@ -673,7 +673,10 @@ class pybiblioDB():
 			try:
 				data["arxiv"] = element["arxiv"]
 			except:
-				data["arxiv"] = None
+				try:
+					data["arxiv"] = element["eprint"]
+				except:
+					data["arxiv"] = None
 		data["ads"] = ads if ads else None
 		data["scholar"] = scholar if scholar else None
 		if doi:
@@ -827,6 +830,8 @@ class pybiblioDB():
 			if len(old) > 0:
 				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
+						if verbose > 0:
+							print d, result[o], old[0][d]
 						if result[o] != old[0][d]:
 							self.updateEntryField(key, d, result[o], 0)
 					except:
@@ -835,6 +840,15 @@ class pybiblioDB():
 		except:
 			print("[DB][oai] something missing in entry %s"%result["id"])
 			print traceback.format_exc()
+	
+	def updateEntryFromOAI(self, entry, verbose = 0):
+		if type(entry) is list:
+			for e in entry:
+				self.updateEntryFromOAI(e, verbose = verbose)
+		elif entry.isdigit():
+			return self.getUpdateInfoEntryFromOAI(entry, verbose = verbose)
+		else:
+			return self.getUpdateInfoEntryFromOAI(self.getEntryField(entry, "inspire"), verbose = verbose)
 	
 	def searchOAIUpdates(self):
 		entries = self.extractEntries()

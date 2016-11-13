@@ -121,10 +121,10 @@ class webSearch(webInterf):
 						arxiv = ""
 					tmpDict["arxiv"]=arxiv
 				if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
-					if q["a"]:
-						tmpDict["bibkey"] = q["a"]
-					elif q["z"]:
-						tmpOld.append(q["z"])
+					if q["z"]:
+						tmpDict["bibkey"] = q["z"]
+					elif q["a"]:
+						tmpOld.append(q["a"])
 				if q["9"] == "ADS":
 					if q["a"] is not None:
 						tmpDict["ads"] = q["a"]
