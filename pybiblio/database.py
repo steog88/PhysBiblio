@@ -266,7 +266,7 @@ class pybiblioDB():
 					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
 	def updateExpField(self, idExp, field, value):
-		print("[DB] updating '%s' for entry '%s'"%(field, key))
+		print("[DB] updating '%s' for entry '%s'"%(field, idExp))
 		if field in self.tableCols["experiments"] and field is not "idExp" \
 				and value is not "" and value is not None:
 			query = "update experiments set " + field + "=:field where idExp=:idExp\n"
