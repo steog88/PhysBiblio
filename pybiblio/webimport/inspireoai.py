@@ -130,6 +130,9 @@ class webSearch(webInterf):
 						tmpDict["ads"] = q["a"]
 		except:
 			pass
+		if tmpDict["bibkey"] is None and len(tmpOld) > 0:
+			tmpDict["bibkey"] = tmpOld[0]
+			tmpOld = []
 		try:
 			j, v, y, p, m, x, t = get_journal_ref_xml(record)
 			tmpDict["journal"] = j[0]

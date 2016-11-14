@@ -824,9 +824,13 @@ class pybiblioDB():
 
 	def getUpdateInfoEntryFromOAI(self, inspireID, verbose = 0):
 		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, verbose = verbose)
+		if verbose > 1:
+			print result
 		try:
 			key = result["bibkey"]
 			old = self.extractEntryByBibkey(key)
+			if verbose > 1:
+				print key, old
 			if len(old) > 0:
 				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
@@ -848,7 +852,12 @@ class pybiblioDB():
 		elif entry.isdigit():
 			return self.getUpdateInfoEntryFromOAI(entry, verbose = verbose)
 		else:
-			return self.getUpdateInfoEntryFromOAI(self.getEntryField(entry, "inspire"), verbose = verbose)
+			inspireID = self.getEntryField(entry, "inspire")
+			if inspireID is not None:
+				return self.getUpdateInfoEntryFromOAI(inspireID, verbose = verbose)
+			else:
+				inspireID = self.updateEntryInspireID(entry, entry)
+				return self.getUpdateInfoEntryFromOAI(inspireID, verbose = verbose)
 	
 	def searchOAIUpdates(self):
 		entries = self.extractEntries()
