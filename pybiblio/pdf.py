@@ -20,7 +20,7 @@ class localPDF():
 		self.pdfApp = pbConfig.params["pdfApplication"]
 		
 	def badFName(self, value):
-		new=""
+		new = ""
 		for i in value:
 			if i not in self.badFNameCharacters:
 				new += i
@@ -49,7 +49,7 @@ class localPDF():
 		if not osp.exists(self.getFileDir(key)):
 			self.createFolder(key, True)
 		if customName is not None:
-			newFile = customName
+			newFile = osp.join(self.getFileDir(key), customName)
 		elif ftype is not None:
 			newFile = self.getFilePath(key, ftype)
 		else:
@@ -97,7 +97,7 @@ class localPDF():
 				print("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
 				return
 			print("[localPDF] opening '%s'..."%fName)
-			subprocess.Popen([self.pdfApp, fName], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
 			print("[localPDF] opening PDF for '%s' failed!"%key)
 	
@@ -122,7 +122,7 @@ class localPDF():
 	def printExisting(self, key, fullPath = False):
 		print("[localPDF] Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
-			print("%2d: %s"%(i,e))
+			print("%2d: %s"%(i, e))
 	
 	def printAllExisting(self, entries = None, fullPath = False):
 		if entries is None:
