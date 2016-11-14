@@ -1,4 +1,4 @@
-import os, sys, numpy, codecs
+import os, sys, numpy, codecs, re
 try:
 	from pybiblio.database import *
 except ImportError:
@@ -6,31 +6,153 @@ except ImportError:
 
 def exportLast(fname):
 	if pBDB.lastFetchedEntries:
-		txt=""
+		txt = ""
 		for q in pBDB.lastFetchedEntries:
-			txt+=q["bibtex"]+"\n"
+			txt += q["bibtex"] + "\n"
 		
 		try:
-			with codecs.open(fname, 'w','utf-8') as bibfile:
+			with codecs.open(fname, 'w', 'utf-8') as bibfile:
 				bibfile.write(txt)
 		except Exception, e:
-			print e
-			print traceback.format_exc()
-			sys.stderr.write("error: "+readfilebib)
-			os.rename(readfilebib+backupextension+".old", readfilebib+backupextension)
+			print(e)
+			print(traceback.format_exc())
+			sys.stderr.write("error: " + readfilebib)
+			os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+	else:
+		print("[export] No last selection to export!")
 
 def exportAll(fname):
-	rows=pBDB.extractEntries(save=False)
-	if len(rows)>0:
-		txt=""
+	rows = pBDB.extractEntries(save = False)
+	if len(rows) > 0:
+		txt = ""
 		for q in rows:
-			txt+=q["bibtex"]+"\n"
+			txt += q["bibtex"] + "\n"
 		
 		try:
-			with codecs.open(fname, 'w','utf-8') as bibfile:
+			with codecs.open(fname, 'w', 'utf-8') as bibfile:
 				bibfile.write(txt)
 		except Exception, e:
-			print e
-			print traceback.format_exc()
-			sys.stderr.write("error: "+readfilebib)
-			os.rename(readfilebib+backupextension+".old", readfilebib+backupextension)
+			print(e)
+			print(traceback.format_exc())
+			sys.stderr.write("error: " + readfilebib)
+			os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+	else:
+		print("[export] No elements to export!")
+
+def exportForTexFile(texFile, outFName, overwrite = True):
+	"""
+	export only the bibtexs required to compile a tex
+	"""
+	print("[export] reading keys from '%s'"%texFile)
+	print("[export] saving in '%s'"%outFName)
+	
+	if overwrite:
+		with open(outFName, "w") as o:
+			o.write("%file written by PyBiblio\n")
+
+	allBibEntries = pBDB.extractEntries()
+	allbib = [ e["bibkey"] for e in allBibEntries ]
+		
+	cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
+	unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
+	unw2 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?[\n ]*\}')	#remove unwanted fields
+	unw3 = re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,', re.MULTILINE)		#remove Abstract field
+	bibel = re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,', re.MULTILINE | re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
+	bibty = re.compile('@[a-zA-Z]*\{', re.MULTILINE | re.DOTALL)	#find the @Article(or other) entry for the key "m"
+	
+	unexpected = []
+	def saveEntryOutBib(a):
+		bib = '@' + a.replace('@', '')
+		for u in unw1.finditer(bib):
+			bib = bib.replace(u.group(), '')
+		for u in unw2.finditer(bib):
+			bib = bib.replace(u.group(), '')
+		for u in unw3.finditer(bib):
+			bib = bib.replace(u.group(), '')
+		bibf = '\n'.join([line for line in bib.split('\n') if line.strip() ])
+		try:
+			with open(outFName, "a") as o:
+				o.write(bibf + "\n")
+				print("[export] %s inserted in output file"%m)
+		except:
+			print("[export] ERROR: impossible to write file '%s'"%outFName)
+	
+	keyscont=""
+	with open(texFile) as r:
+		keyscont += r.read()
+
+	citaz = [ m for m in cite.finditer(keyscont) ]
+
+	requiredBibkeys = []
+	for c in citaz:
+		b = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '')
+		d = b.replace(' ', '')
+		b = d.replace('\n', '')
+		d = b.replace(r'}', '')
+		a = d.split(',')
+		for e in a:
+			if e not in requiredBibkeys:
+				requiredBibkeys.append(e)
+	print("[export] %d keys found"%len(requiredBibkeys))
+
+	missing = []
+	retrieved = []
+	newKeys = {}
+	notFound = []
+	warnings = 0
+	for s in requiredBibkeys:
+		if s not in allbib:
+			missing.append(s)
+
+	for m in requiredBibkeys:
+		if m in missing:
+			print("[export] key '%s' missing, trying to import it from Web"%m)
+			newWeb = pBDB.loadAndInsertEntries(m, returnBibtex = True)
+			newCheck = pBDB.extractEntryByBibkey(m)
+			
+			if len(newCheck) > 0:
+				retrieved.append(m)	
+				try:
+					saveEntryOutBib(pBDB.getEntryField(m, "bibtex"))
+				except:
+					unexpected.append(m)
+					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
+			else:
+				if newWeb and not newWeb.find(m) > 0:
+					warnings += 1
+					t = [ j.group() for j in bibel.finditer(newWeb) ]
+					t1 = []
+					for s in t:
+						for u in bibty.finditer(s):
+							s = s.replace(u.group(), '')
+						s = s.replace(',', '')
+						t1.append(s)
+					newKeys[m] = t1
+				else:
+					notFound.append(m)
+					warnings += 1
+			print("\n")
+		else:
+			try:
+				saveEntryOutBib(pBDB.getEntryField(m, "bibtex"))
+			except:
+				unexpected.append(m)
+				print("[export] unexpected error in extracting entry '%s' to the output file"%m)
+			
+	print("\n[export] RESUME")
+	print("[export] %d keys found in .tex file"%len(requiredBibkeys))
+	if len(missing) > 0:
+		print("\n[export] %d required entries were missing in database"%len(missing))
+	if len(retrieved) > 0:
+		print("\n[export] retrieved %d new entries:"%len(retrieved))
+		print(" - ".join(retrieved))
+	if len(notFound) > 0:
+		print("\n[export] impossible to find %d entries:"%len(notFound))
+		print(" - ".join(notFound))
+	if len(unexpected) > 0:
+		print("\n[export] unexpected errors for %d entries:"%len(unexpected))
+		print(" - ".join(unexpected))
+	if len(newKeys.keys()) > 0:
+		print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
+		print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.iteritems() ] ) )
+	print("[export] -->     " + str(warnings) + " warning(s) occurred!")

@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-15 -*-
 #import codecs
 
-accents_changed=[]
+accents_changed = []
 ################################################################
 # LaTeX accents replacement
 unicode_to_latex = {
@@ -198,16 +198,16 @@ translation_table = dict([(ord(k), unicode(v)) for k, v in unicode_to_latex.item
 
 def parse_accents_str(string):
 	if string is not None and string is not "":
-		string=string.translate(translation_table)
+		string = string.translate(translation_table)
 	return string
 
 def parse_accents_record(record):
 	for val in record:
-		if val is not "ID" and len(record[val].strip())>0:
+		if val is not "ID" and len(record[val].strip()) > 0:
 			tmp = parse_accents_str(record[val])
-			if tmp!=record[val]:
-				print "    -> Converting bad characters in entry %s: "%record["ID"]
-				print "         -- ",tmp.encode("utf-8")
+			if tmp != record[val]:
+				print("    -> Converting bad characters in entry %s: "%record["ID"])
+				print("         -- "+tmp.encode("utf-8"))
 				accents_changed.append(record["ID"])
-			record[val]=tmp
+			record[val] = tmp
 	return record

@@ -865,7 +865,7 @@ class pybiblioDB():
 					self.getUpdateInfoEntryFromOAI(e["inspire"], verbose = 0)
 		print("\n[DB] %d entries processed"%num)
 		
-	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None, number = None):
+	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False):
 		requireAll = False
 		if entry is not None and not type(entry) is list:
 			if self.extractEntryByBibkey(entry):
@@ -879,8 +879,8 @@ class pybiblioDB():
 					if number is not None:
 						requireAll = True
 					else:
-						print e
-						print "[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n"
+						print(e)
+						print("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n")
 						return False
 			if requireAll:
 				data = self.prepareInsertEntry(e, number = number)
@@ -910,7 +910,10 @@ class pybiblioDB():
 				elif method == "isbn":
 					self.setBook(key)
 				print("[DB] element successfully inserted.\n")
-				return True
+				if returnBibtex:
+					return e
+				else:
+					return True
 			except:
 				print("[DB] loadAndInsertEntries(%s) failed in completing info\n"%entry)
 				return False
