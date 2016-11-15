@@ -8,69 +8,72 @@ from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
 
 class webSearch(webInterf):
+	"""arxiv.org search"""
 	def __init__(self):
+		"""constants"""
 		webInterf.__init__(self)
-		self.name="arXiv"
-		self.description="arXiv fetcher"
-		self.url="http://export.arxiv.org/api/query"
-		self.urlArgs={
+		self.name = "arXiv"
+		self.description = "arXiv fetcher"
+		self.url = "http://export.arxiv.org/api/query"
+		self.urlArgs = {
 			"start":"0"}
 		
-	def retrieveUrlFirst(self,string,searchType="all"):
-		return self.arxivRetriever(string,searchType,additionalArgs={"max_results":"1"})
-	def retrieveUrlAll(self,string,searchType="all"):
-		return self.arxivRetriever(string,searchType)
+	def retrieveUrlFirst(self, string, searchType = "all"):
+		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"})
+	def retrieveUrlAll(self, string, searchType = "all"):
+		return self.arxivRetriever(string, searchType)
 
-	def arxivRetriever(self,string,searchType="all",additionalArgs=None):
+	def arxivRetriever(self, string, searchType = "all", additionalArgs = None):
+		"""reads the feed content into a dictionary, used to return a bibtex"""
 		if additionalArgs:
-			for k,v in additionalArgs.iteritems():
-				self.urlArgs[k]=v
-		self.urlArgs["search_query"]=searchType+":"+string
-		url=self.createUrl()
-		print "[arxiv] search %s:%s -> %s"%(searchType, string, url)
-		text=parse_accents_str(self.textFromUrl(url))
+			for k, v in additionalArgs.iteritems():
+				self.urlArgs[k] = v
+		self.urlArgs["search_query"] = searchType + ":" + string
+		url = self.createUrl()
+		print("[arxiv] search %s:%s -> %s"%(searchType, string, url))
+		text = parse_accents_str(self.textFromUrl(url))
 		try:
-			data=feedparser.parse(text)
-			db=BibDatabase()
-			db.entries=[]
+			data = feedparser.parse(text)
+			db = BibDatabase()
+			db.entries = []
 			for entry in data['entries']:
-				tmp={}
-				idArx=entry['id'].replace("http://arxiv.org/abs/","")
-				pos=idArx.find("v")
-				if pos>=0:
-					idArx=idArx[0:pos]
-				tmp["ENTRYTYPE"]="article"
-				tmp["ID"]=idArx
-				tmp["archiveprefix"]="arXiv"
-				tmp["title"]=entry['title']
-				tmp["arxiv"]=idArx
+				tmp = {}
+				idArx = entry['id'].replace("http://arxiv.org/abs/", "")
+				pos = idArx.find("v")
+				if pos >= 0:
+					idArx = idArx[0:pos]
+				tmp["ENTRYTYPE"] = "article"
+				tmp["ID"] = idArx
+				tmp["archiveprefix"] = "arXiv"
+				tmp["title"] = entry['title']
+				tmp["arxiv"] = idArx
 				try:
-					tmp["doi"]=entry['arxiv_doi']
-				except KeyError,e:
-					print "[arXiv] -> KeyError: ",e
+					tmp["doi"] = entry['arxiv_doi']
+				except KeyError, e:
+					print("[arXiv] -> KeyError: ", e)
 					pass
-				tmp["abstract"]=entry['summary']
-				tmp["authors"]=" and ".join([ au["name"] for au in entry['authors']])
-				tmp["primaryclass"]=entry['arxiv_primary_category']['term']
-				identif=re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
+				tmp["abstract"] = entry['summary']
+				tmp["authors"] = " and ".join([ au["name"] for au in entry['authors']])
+				tmp["primaryclass"] = entry['arxiv_primary_category']['term']
+				identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
 				try:
 					for t in identif.finditer(tmp["arxiv"]):
-						if len(t.group())>0:
-							e=t.group()
-							a=e[0:2]
+						if len(t.group()) > 0:
+							e = t.group()
+							a = e[0:2]
 							if int(a) > 80:
-								tmp["year"]="19"+a
+								tmp["year"] = "19" + a
 							else:
-								tmp["year"]="20"+a
+								tmp["year"] = "20" + a
 				except:
-					print "[DB] -> Error in converting year"
+					print("[DB] -> Error in converting year")
 				db.entries.append(tmp)
 			writer = BibTexWriter()
 			writer.indent = ' '
 			writer.comma_first = False
 			return writer.write(db)
 		except:
-			print "[arXiv] -> ERROR: impossible to get results"
+			print("[arXiv] -> ERROR: impossible to get results")
 			return ""
 
 

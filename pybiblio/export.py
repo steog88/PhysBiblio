@@ -1,10 +1,11 @@
 import os, sys, numpy, codecs, re
 try:
-	from pybiblio.database import *
+	from pybiblio.database import pBDB
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 def exportLast(fname):
+	"""export the last selection of entries into a .bib file"""
 	if pBDB.lastFetchedEntries:
 		txt = ""
 		for q in pBDB.lastFetchedEntries:
@@ -22,6 +23,7 @@ def exportLast(fname):
 		print("[export] No last selection to export!")
 
 def exportAll(fname):
+	"""export all the entries in the database in a .bib file"""
 	rows = pBDB.extractEntries(save = False)
 	if len(rows) > 0:
 		txt = ""
@@ -39,17 +41,26 @@ def exportAll(fname):
 	else:
 		print("[export] No elements to export!")
 
-def exportForTexFile(texFile, outFName, overwrite = True):
+def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	"""
-	export only the bibtexs required to compile a tex
+	export only the bibtexs required to compile a given .tex file (or a list of).
+	If missing, it tries to download them
 	"""
 	print("[export] reading keys from '%s'"%texFile)
 	print("[export] saving in '%s'"%outFName)
+	if autosave:
+		print("[export] I will automatically save the changes at the end!")
 	
 	if overwrite:
 		with open(outFName, "w") as o:
 			o.write("%file written by PyBiblio\n")
 
+	if type(texFile) is list:
+		for t in texFile:
+			self.exportForTexFile(t, outFName, overwrite = False, autosave = autosave)
+		print("[export] done for all the texFiles. See previous errors (if any)")
+		return True
+		
 	allBibEntries = pBDB.extractEntries()
 	allbib = [ e["bibkey"] for e in allBibEntries ]
 		
@@ -138,7 +149,9 @@ def exportForTexFile(texFile, outFName, overwrite = True):
 			except:
 				unexpected.append(m)
 				print("[export] unexpected error in extracting entry '%s' to the output file"%m)
-			
+	
+	if autosave:
+		pBDB.commit()
 	print("\n[export] RESUME")
 	print("[export] %d keys found in .tex file"%len(requiredBibkeys))
 	if len(missing) > 0:

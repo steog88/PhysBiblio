@@ -1,3 +1,4 @@
+"""definitions of the tables for the database"""
 tableFields = {}
 tableFields["entries"] = [
 	["bibkey", "text", "primary key not null"],

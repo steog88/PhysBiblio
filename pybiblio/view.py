@@ -9,7 +9,9 @@ except ImportError:
 	print traceback.format_exc()
 	
 class viewEntry():
+	"""Contains methods to print or open a web link to the entry"""
 	def __init__(self):
+		"""init link base names and application name"""
 		self.webApp = pbConfig.params["webApplication"]
 		self.arxivUrl = pbConfig.arxivUrl
 		self.doiUrl = pbConfig.doiUrl
@@ -17,6 +19,7 @@ class viewEntry():
 		self.inspireSearch = pbConfig.inspireSearchBase + "p=find+"
 		
 	def printLink(self, key, arg = "arxiv", fileArg = None):
+		"""uses database information to compute and print the web link, or the pdf module to open a pdf"""
 		arxiv = pBDB.getEntryField(key, "arxiv")
 		doi = pBDB.getEntryField(key, "doi")
 		inspire = pBDB.getEntryField(key, "inspire")
@@ -38,16 +41,17 @@ class viewEntry():
 
 		return link
 		
-	def openLink(self, key, arg = "arxiv", fileArg = None, printOnly = False):
+	def openLink(self, key, arg = "arxiv", fileArg = None):
+		"""uses the printLink method to compute the web link and opens it"""
 		link = self.printLink(key, arg = arg, fileArg = fileArg)
 		
-		if link and printOnly:
-			print("[viewEntry] entry '%s' can be opened at '%s'"%(key, link))
-		elif link:
+		if link:
 			try:
 				print("[viewEntry] opening '%s'..."%link)
 				subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 			except:
 				print("[viewEntry] opening link for '%s' failed!"%key)
+		else:
+			print("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
 
 pBView = viewEntry()

@@ -10,7 +10,9 @@ config_defaults = {
 }
 		
 class ConfigVars():
+	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
+		"""initialize variables and read the external file"""
 		self.params = config_defaults
 		self.configMainFile = self.params["configMainFile"]
 		if len(sys.argv) > 1:
@@ -24,6 +26,7 @@ class ConfigVars():
 		self.inspireSearchBase = "http://inspirehep.net/search"
 	
 	def readConfigFile(self):
+		"""read all the configuration from an external file"""
 		try:
 			with open(self.configMainFile) as r:
 				txt = r.readlines()
@@ -37,6 +40,7 @@ class ConfigVars():
 			print("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
+		"""write the current configuration in a file"""
 		txt = ""
 		for k, v in self.params.items():
 			txt += "%s = %s\n"%(k, v)

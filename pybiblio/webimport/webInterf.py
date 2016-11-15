@@ -9,22 +9,26 @@ try:
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 pkgpath = os.path.dirname(wi.__file__)
-webInterfaces=[name for _, name, _ in pkgutil.iter_modules([pkgpath])]
+webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
 class webInterf():
+	"""this is the main class for the web search methods"""
 	def __init__(self):
-		self.url=None
-		self.urlArgs=None
-		self.urlTimeout=float(pbConfig.params["timeoutWebSearch"])
+		"""initializes the class variables"""
+		self.url = None
+		self.urlArgs = None
+		self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
 		#save the names of the available web search interfaces
-		self.interfaces=[a for a in webInterfaces if a != "webInterf" ]
-		self.webSearch={}
-		self.loaded=False
+		self.interfaces = [a for a in webInterfaces if a != "webInterf" ]
+		self.webSearch = {}
+		self.loaded = False
 		
 	def createUrl(self):
-		return self.url+"?"+"&".join([a+"="+b for a,b in self.urlArgs.iteritems()])
+		"""joins the arguments of the GET query to get the full url"""
+		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.iteritems()])
 		
 	def textFromUrl(self,url, headers = None):
+		"""use urllib to get the html content of the given url"""
 		try:
 			if headers is not None:
 				req = urllib2.Request(url, headers = headers)
@@ -33,88 +37,41 @@ class webInterf():
 			response = urllib2.urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
 		except:
-			print "[%s] -> error in retriving data from url"%self.name
+			print("[%s] -> error in retriving data from url"%self.name)
 			return None
 		try:
 			text = data.decode('utf-8')
 		except:
-			print "[%s] -> bad codification, utf-8 decode failed"%self.name
+			print("[%s] -> bad codification, utf-8 decode failed"%self.name)
 			return None
 		return text
 	
-	def retrieveUrlFirst(self,search):
+	def retrieveUrlFirst(self, search):
+		"""retrieves the first bibtexs that the search gives"""
 		return None
-	def retrieveUrlAll(self,search):
+	def retrieveUrlAll(self, search):
+		"""retrieves all the bibtexs that the search gives"""
 		return None
 	
 	def loadInterfaces(self):
+		"""load the codes that will interface with the main websites to search bibtex info into a dictionary of classes"""
 		if self.loaded:
 			return
 		for q in self.interfaces:
 			try:
-				_temp=__import__("pybiblio.webimport."+q, globals(), locals(), ["webSearch"], -1)
+				_temp = __import__("pybiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
 				self.webSearch[q] = getattr(_temp,"webSearch")()
 			except:
-				print "pybiblio.webimport.%s import error"%q
-		self.loaded=True
+				print("pybiblio.webimport.%s import error"%q)
+		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):
-		getattr(self.webSearch[method],retrieveUrlFirst)(search)
+		"""will call subclass method"""
+		getattr(self.webSearch[method], retrieveUrlFirst)(search)
 		
 	def retrieveUrlAllFrom(self, search, method):
-		getattr(self.webSearch[method],retrieveUrlAll)(search)
-		
-	def loadBibtexsForTex(self,texsFolder):
-		d=os.listdir(texsFolder)
-		texs=[]
-		for e in d:
-			if e.find('.tex')>0 and e.find('.bac')<0 and e.find('~')<0:
-				texs.append(e)
-		keyscont=""
-		for t in texs:
-			with open(texsFolder+t) as r:
-				keyscont += r.read()
-		cite=re.compile('\\\\cite?\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}',re.MULTILINE)	#find \cite{...}
-		bibel=re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,',re.MULTILINE|re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
-		bibty=re.compile('@[a-zA-Z]*\{',re.MULTILINE|re.DOTALL)	#find the @Article(or other) entry for the key "m"
+		"""will call subclass method"""
+		getattr(self.webSearch[method], retrieveUrlAll)(search)
 
-		citaz=[m for m in cite.finditer(keyscont)]
-		strs=[]
-		for c in citaz:
-			b=c.group().replace(r'\cite{','')
-			d=b.replace(' ','')
-			b=d.replace('\n','')
-			d=b.replace(r'}','')
-			a=d.split(',')
-			for e in a:
-				if e not in strs:
-					strs.append(e)
-		print "[%s] keys found: %d"%(self.name,len(strs))
-		missing=[]				
-		notfound=""
-		keychange=""
-		warnings=0
-		for s in strs:
-			if not len(pBDB.extractEntryByBibkey(s))>0:
-				tmp=pBDB.extractEntryByKeyword(s)
-				if not len(tmp)>0:
-					missing.append(s)
-				else:
-					keychange+= "[%s] -- warning: %s may have a new key? %s\n"%(self.name,m,tmp['bibkey'])
-		print "[%s] missing: %d"%(self.name,len(missing))
-		for m in missing:
-			new=self.retrieveUrlFirst(m)
-			if len(new)>0:
-				data=pBDB.prepareInsertEntry(new)
-				pBDB.insertEntry(data)
-				#autoImport()
-				#pass
-			else:
-				notfound+="[%s] -- warning: entry not found for %s\n"%(self.name,m)
-				warnings+=1
-		print notfound
-		print keychange
-		print "[%s] -- %d warning(s) occurred!"%(self.name,warnings)
-		
 pyBiblioWeb=webInterf()
 pyBiblioWeb.loadInterfaces()

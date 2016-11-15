@@ -15,6 +15,7 @@ except ImportError:
 	print traceback.format_exc()
 
 def cli():
+	"""open a command line interface"""
 	vars = globals().copy()
 	vars.update(locals())
 	shell = code.InteractiveConsole(vars)

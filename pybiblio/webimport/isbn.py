@@ -5,7 +5,9 @@ from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
 
 class webSearch(webInterf):
+	"""isbn method"""
 	def __init__(self):
+		"""configuration"""
 		webInterf.__init__(self)
 		self.name = "isbn"
 		self.description = "ISBN to bibtex"
@@ -13,6 +15,7 @@ class webSearch(webInterf):
 		self.urlArgs = {}
 		
 	def retrieveUrlFirst(self,string):
+		"""get first (and only) bibtex for a given isbn"""
 		self.urlArgs["isbn"] = string
 		url = self.createUrl()
 		print("[isbn] search %s -> %s"%(string, url))
@@ -24,5 +27,6 @@ class webSearch(webInterf):
 			return ""
 		
 	def retrieveUrlAll(self,string):
+		"""get first (and only) bibtex for a given isbn (redirect)"""
 		return self.retrieveUrlFirst(string)
 

@@ -69,7 +69,9 @@ registry = metadata.MetadataRegistry()
 registry.registerReader('marcxml', marcxml_reader)
 
 class webSearch(webInterf):
+	"""inspire OAI methods"""
 	def __init__(self):
+		"""configuration"""
 		webInterf.__init__(self)
 		self.name = "inspireoai"
 		self.description = "INSPIRE OAI interface"
@@ -88,14 +90,17 @@ class webSearch(webInterf):
 		]
 		
 	def retrieveUrlFirst(self,string):
+		"""not possible to search a single string"""
 		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def retrieveUrlAll(self,string):
+		"""not possible to search a single string"""
 		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record):
+		"""read the content of a record marcxml"""
 		tmpDict = {}
 		record.to_unicode = True
 		record.force_utf8 = True
@@ -171,6 +176,7 @@ class webSearch(webInterf):
 		return tmpDict
 	
 	def retrieveOAIData(self, inspireID, verbose = 0):
+		"""get the marcxml for a given record"""
 		record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
 		nhand = 0
 		if verbose > 0:
@@ -186,6 +192,7 @@ class webSearch(webInterf):
 			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):
+		"""get all the updates and new occurrences between two dates"""
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml', from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
 		print("\n[oai] STARTING OAI harvester --- " + time.strftime("%c") + "\n\n")

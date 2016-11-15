@@ -6,7 +6,9 @@ from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
 
 class webSearch(webInterf):
+	"""inspire methods"""
 	def __init__(self):
+		"""configurations"""
 		webInterf.__init__(self)
 		self.name = "inspire"
 		self.description = "INSPIRE fetcher"
@@ -26,6 +28,7 @@ class webSearch(webInterf):
 		}
 		
 	def urlOfRecord(self, inspireID, extension = None):
+		"""get url for a given record"""
 		if extension and extension in self.urlRecordExt.keys():
 			ext = self.urlRecordExt[extension]
 		else:
@@ -33,6 +36,7 @@ class webSearch(webInterf):
 		return self.urlRecord + inspireID + ext
 		
 	def retrieveUrlFirst(self, string):
+		"""retrieve the first entry from a html page"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
 		print "[inspire] search %s -> %s"%(string, url)
@@ -50,6 +54,7 @@ class webSearch(webInterf):
 			return ""
 		
 	def retrieveUrlAll(self, string):
+		"""retrieve all the entries from a html page"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
 		print "[inspire] search %s -> %s"%(string, url)
@@ -67,6 +72,7 @@ class webSearch(webInterf):
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
+		"""read the inspire ID of a given entry from the html page"""
 		i = 0
 		self.urlArgs["p"] = "\"" + string + "\""
 		self.urlArgs["of"] = "hb" #not bibtex but standard
