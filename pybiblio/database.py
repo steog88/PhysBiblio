@@ -508,25 +508,30 @@ class pybiblioDB():
 	
 	#various filtering
 	def findExpsByCat(self, idCat):
-		self.cursExec("""
+		query = """
 				select * from experiments
 				join expCats on experiments.idExp=expCats.idExp
 				where expCats.idCat=?
-				""", (idCat,))
+				"""
+		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
-	def findEntriesByCat(self, idCat):
-		self.cursExec("""
+	def findEntriesByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+		query = """
 				select * from entries
 				join entryCats on entries.bibkey=entryCats.bibkey
 				where entryCats.idCat=?
-				""", (idCat,))
+				"""
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
-	def findEntriesByExp(self, idExp):
-		self.cursExec("""
+	def findEntriesByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+		query = """
 				select * from entries
 				join entryExps on entries.bibkey=entryExps.bibkey
 				where entryExps.idExp=?
-				""", (idExp,))
+				"""
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		self.cursExec(query, (idExp,))
 		return self.curs.fetchall()
 	def findCatsForExp(self, idExp):
 		self.cursExec("""
@@ -620,7 +625,11 @@ class pybiblioDB():
 			params = {"bibtex":"%%%s%%"%string},
 			operator = " like ")
 	def getEntryField(self, key, field):
-		return self.extractEntryByBibkey(key)[0][field]
+		try:
+			return self.extractEntryByBibkey(key)[0][field]
+		except:
+			print("[DB] ERROR in getEntryField('%s', '%s')"%(key, field))
+			return False
 	def dbEntryToDataDict(self, key):
 		return self.prepareInsertEntry(self.getEntryField(key, "bibtex"))
 	def getDoiUrl(self, key):

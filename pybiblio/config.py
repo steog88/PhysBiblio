@@ -6,6 +6,7 @@ config_defaults = {
 	"mainDatabaseName": 'data/pybiblio.db',
 	"pdfFolder":        'data/pdf/',
 	"pdfApplication":   'okular',
+	"webApplication":   'google-chrome',
 }
 		
 class ConfigVars():
@@ -16,6 +17,11 @@ class ConfigVars():
 			self.configMainFile = sys.argv[1]
 		
 		self.readConfigFile()
+
+		self.arxivUrl = "http://arxiv.org/abs/"
+		self.doiUrl = "http://dx.doi.org/"
+		self.inspireRecord = "http://inspirehep.net/record/"
+		self.inspireSearchBase = "https://inspirehep.net/search"
 	
 	def readConfigFile(self):
 		try:

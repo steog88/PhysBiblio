@@ -1,6 +1,7 @@
 import sys,re,os
 from urllib2 import Request
 import urllib2
+from pybiblio.config import pbConfig
 from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
 
@@ -9,8 +10,8 @@ class webSearch(webInterf):
 		webInterf.__init__(self)
 		self.name = "inspire"
 		self.description = "INSPIRE fetcher"
-		self.url = "http://inspirehep.net/search"
-		self.urlRecord = "http://inspirehep.net/record/"
+		self.url = pbConfig.inspireSearchBase
+		self.urlRecord = pbConfig.inspireRecord
 		self.urlArgs = {
 			"action_search": "Search",
 			"sf": "",
