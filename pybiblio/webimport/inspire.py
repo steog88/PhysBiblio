@@ -75,11 +75,11 @@ class webSearch(webInterf):
 		print "[inspire] search ID of %s -> %s"%(string, url)
 		text = self.textFromUrl(url)
 		try:
-			searchID = re.compile('titlelink(.*)?http://inspirehep.net/record/([0-9]*)?">')
+			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
 			for q in searchID.finditer(text):
 				if len(q.group()) > 0:
 					if number is None or i == number:
-						inspireID = q.group(2)
+						inspireID = q.group(3)
 						break
 					else:
 						i += 1

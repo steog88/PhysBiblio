@@ -21,7 +21,7 @@ class ConfigVars():
 		self.arxivUrl = "http://arxiv.org/abs/"
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
-		self.inspireSearchBase = "https://inspirehep.net/search"
+		self.inspireSearchBase = "http://inspirehep.net/search"
 	
 	def readConfigFile(self):
 		try:
