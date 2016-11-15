@@ -16,7 +16,7 @@ class viewEntry():
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "p=find+"
 		
-	def openLink(self, key, arg = "arxiv", fileArg = None, printOnly = False):
+	def printLink(self, key, arg = "arxiv", fileArg = None):
 		arxiv = pBDB.getEntryField(key, "arxiv")
 		doi = pBDB.getEntryField(key, "doi")
 		inspire = pBDB.getEntryField(key, "inspire")
@@ -35,10 +35,15 @@ class viewEntry():
 		else:
 			print("[viewEntry] ERROR: invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
 			return False
+
+		return link
 		
-		if printOnly:
+	def openLink(self, key, arg = "arxiv", fileArg = None, printOnly = False):
+		link = self.printLink(key, arg = arg, fileArg = fileArg)
+		
+		if link and printOnly:
 			print("[viewEntry] entry '%s' can be opened at '%s'"%(key, link))
-		else:
+		elif link:
 			try:
 				print("[viewEntry] opening '%s'..."%link)
 				subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
