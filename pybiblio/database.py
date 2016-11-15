@@ -877,9 +877,13 @@ class pybiblioDB():
 	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False):
 		requireAll = False
 		if entry is not None and not type(entry) is list:
-			if self.extractEntryByBibkey(entry):
+			existing = self.extractEntryByBibkey(entry)
+			if existing:
 				print("[DB] Already existing: %s\n"%entry)
-				return False
+				if returnBibtex:
+					return existing
+				else:
+					return True
 			if method == "bibtex":
 				e = entry
 			else:
@@ -937,36 +941,36 @@ class pybiblioDB():
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
 
-	def setReview(self, key):
+	def setBook(self, key, value = 1):
 		if type(key) is list:
 			for q in key:
-				self.setReview(q)
+				self.setBook(q, value)
 		else:
-			return self.updateEntryField(key, "review", 1, 0)
-	def setProceeding(self, key):
+			return self.updateEntryField(key, "book", value, 0)
+	def setLecture(self, key, value = 1):
 		if type(key) is list:
 			for q in key:
-				self.setProceeding(q)
+				self.setLecture(q, value)
 		else:
-			return self.updateEntryField(key, "proceeding", 1, 0)
-	def setBook(self, key):
+			return self.updateEntryField(key, "lecture", value, 0)
+	def setPhdThesis(self, key, value = 1):
 		if type(key) is list:
 			for q in key:
-				self.setBook(q)
+				self.setPhdThesis(q, value)
 		else:
-			return self.updateEntryField(key, "book", 1, 0)
-	def setLecture(self, key):
+			return self.updateEntryField(key, "phd_thesis", value, 0)
+	def setProceeding(self, key, value = 1):
 		if type(key) is list:
 			for q in key:
-				self.setLecture(q)
+				self.setProceeding(q, value)
 		else:
-			return self.updateEntryField(key, "lecture", 1, 0)
-	def setPhdThesis(self, key):
+			return self.updateEntryField(key, "proceeding", value, 0)
+	def setReview(self, key, value = 1):
 		if type(key) is list:
 			for q in key:
-				self.setPhdThesis(q)
+				self.setReview(q, value)
 		else:
-			return self.updateEntryField(key, "phd_thesis", 1, 0)
+			return self.updateEntryField(key, "review", value, 0)
 			
 	def printAllBibtexs(self, entries = None):
 		if entries is None:
