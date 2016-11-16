@@ -6,9 +6,9 @@ except ImportError:
 
 def exportLast(fname):
 	"""export the last selection of entries into a .bib file"""
-	if pBDB.lastFetchedEntries:
+	if pBDB.bibs.lastFetched:
 		txt = ""
-		for q in pBDB.lastFetchedEntries:
+		for q in pBDB.bibs.lastFetched:
 			txt += q["bibtex"] + "\n"
 		
 		try:
@@ -24,7 +24,7 @@ def exportLast(fname):
 
 def exportAll(fname):
 	"""export all the entries in the database in a .bib file"""
-	rows = pBDB.extractEntries(save = False)
+	rows = pBDB.bibs.getAll(save = False)
 	if len(rows) > 0:
 		txt = ""
 		for q in rows:
@@ -61,7 +61,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 		print("[export] done for all the texFiles. See previous errors (if any)")
 		return True
 		
-	allBibEntries = pBDB.extractEntries()
+	allBibEntries = pBDB.bibs.getAll()
 	allbib = [ e["bibkey"] for e in allBibEntries ]
 		
 	cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
@@ -118,13 +118,13 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	for m in requiredBibkeys:
 		if m in missing:
 			print("[export] key '%s' missing, trying to import it from Web"%m)
-			newWeb = pBDB.loadAndInsertEntries(m, returnBibtex = True)
-			newCheck = pBDB.extractEntryByBibkey(m)
+			newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
+			newCheck = pBDB.bibs.getByBibkey(m)
 			
 			if len(newCheck) > 0:
 				retrieved.append(m)	
 				try:
-					saveEntryOutBib(pBDB.getEntryField(m, "bibtex"))
+					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 				except:
 					unexpected.append(m)
 					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
@@ -145,7 +145,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 			print("\n")
 		else:
 			try:
-				saveEntryOutBib(pBDB.getEntryField(m, "bibtex"))
+				saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 			except:
 				unexpected.append(m)
 				print("[export] unexpected error in extracting entry '%s' to the output file"%m)

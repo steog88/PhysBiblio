@@ -20,7 +20,7 @@ class ConfigVars():
 		
 		self.readConfigFile()
 
-		self.arxivUrl = "http://arxiv.org/abs/"
+		self.arxivUrl = "http://arxiv.org/"
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"

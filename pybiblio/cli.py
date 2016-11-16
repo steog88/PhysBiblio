@@ -12,7 +12,7 @@ try:
 	from pybiblio.webimport.webInterf import pyBiblioWeb
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
-	print traceback.format_exc()
+	print(traceback.format_exc())
 
 def cli():
 	"""open a command line interface"""

@@ -39,7 +39,7 @@ class webSearch(webInterf):
 		"""retrieve the first entry from a html page"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
-		print "[inspire] search %s -> %s"%(string, url)
+		print("[inspire] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -50,14 +50,14 @@ class webSearch(webInterf):
 				bibtex = ""
 			return parse_accents_str(bibtex)
 		except:
-			print "[inspire] -> ERROR: impossible to get results"
+			print("[inspire] -> ERROR: impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self, string):
 		"""retrieve all the entries from a html page"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
-		print "[inspire] search %s -> %s"%(string, url)
+		print("[inspire] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -68,7 +68,7 @@ class webSearch(webInterf):
 				bibtex = ""
 			return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
 		except:
-			print "[inspire] -> ERROR: impossible to get results"
+			print("[inspire] -> ERROR: impossible to get results")
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
@@ -78,7 +78,7 @@ class webSearch(webInterf):
 		self.urlArgs["of"] = "hb" #not bibtex but standard
 		url = self.createUrl()
 		self.urlArgs["of"] = "hx" #restore
-		print "[inspire] search ID of %s -> %s"%(string, url)
+		print("[inspire] search ID of %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
@@ -89,8 +89,8 @@ class webSearch(webInterf):
 						break
 					else:
 						i += 1
-			print "[inspire] found: %s"%inspireID
+			print("[inspire] found: %s"%inspireID)
 			return inspireID
 		except:
-			print "[inspire] -> ERROR: impossible to get results"
+			print("[inspire] -> ERROR: impossible to get results")
 			return ""

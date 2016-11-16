@@ -6,22 +6,23 @@ import pybiblio.webimport.webInterf as webInt
 try:
 	from pybiblio.config import pbConfig
 	import pybiblio.parse_accents as parse_accents
+	import pybiblio.firstOpen as pbfo
 	from pybiblio.webimport.webInterf import pyBiblioWeb
 	import pybiblio.tablesDef
 except ImportError:
     print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
-encoding_default='iso-8859-15'
+encoding_default = 'iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
-parser.encoding=encoding_default
+parser.encoding = encoding_default
 parser.customization = parse_accents.parse_accents_record
 parser.alt_dict = {}
 
 class pybiblioDB():
 	"""
-	Contains most of the DB functions
+	Contains most of the basic DB functions
 	"""
-	def __init__(self, dbname=pbConfig.params['mainDatabaseName']):
+	def __init__(self, dbname = pbConfig.params['mainDatabaseName']):
 		"""
 		Initialize DB class
 		"""
@@ -35,37 +36,40 @@ class pybiblioDB():
 		self.conn = None
 		self.curs = None
 		self.dbname = dbname
+		db_is_new = not os.path.exists(self.dbname)
+		if db_is_new:
+			print("-------New database. Creating tables!\n\n")
+			pbfo.createTables(self)
 		self.openDB()
 		
-		self.lastFetchedEntries = None
+		self.lastFetched = None
 		self.catsHier = None
 
-	#open DB
 	def openDB(self):
-		db_is_new = not os.path.exists(self.dbname)
+		"""open the database"""
 		self.conn = sqlite3.connect(self.dbname)
 		self.conn.row_factory = sqlite3.Row
-		if db_is_new:
-			print "-------New database. Creating tables!\n\n"
-			self.createTables()
 		self.curs = self.conn.cursor()
 
 	def closeDB(self):
+		"""close the database"""
 		self.conn.close()
 
 	def commit(self):
+		"""commit the changes"""
 		self.conn.commit()
-		print "[DB] saved."
+		print("[DB] saved.")
 		
 	def connExec(self,query,data=None):
+		"""execute connection"""
 		try:
 			if data:
 				self.conn.execute(query,data)
 			else:
 				self.conn.execute(query)
 		except Exception, err:
-			print '[connExec] ERROR:', err
-			print traceback.format_exc()
+			print('[connExec] ERROR: %s'%err)
+			print(traceback.format_exc())
 			self.conn.rollback()
 			return False
 		else:
@@ -73,65 +77,89 @@ class pybiblioDB():
 				mainWin.setWindowTitle("PyBiblio*")
 			except:
 				pass
-			#self.commit()
 			return True
+
 	def cursExec(self,query,data=None):
+		"""execute cursor"""
 		try:
 			if data:
 				self.curs.execute(query,data)
 			else:
 				self.curs.execute(query)
 		except Exception, err:
-			print '[cursExec] ERROR:', err
+			print('[cursExec] ERROR: %s'%err)
 			return False
 		else:
 			return True
 
-	def createTables(self):
-		for q in self.tableFields.keys():
-			command="CREATE TABLE "+q+" (\n"
-			first=True
-			for el in self.tableFields[q]:
-				if first:
-					first=False
-				else:
-					command+=",\n"
-				command+=" ".join(el)
-			command+=");"
-			print command+"\n"
-			if not self.connExec(command):
-				print "[DB] error: create %s failed"%q
-		command="""
-		INSERT into categories (idCat, name, description, parentCat, ord)
-			values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
-			(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
-			"""
-		print command+"\n"
-		if not self.connExec(command):
-			print "[DB] error: insert main categories failed"
-		self.commit()
+pBDB=pybiblioDB()
 
-	#functions for categories
-	def insertCat(self,data):
+class pybiblioDBSub():
+	"""
+	Uses pybiblioDB instance 'pBDB' to act on the database.
+	All the subcategories of pybiblioDB are defined starting from this one.
+	"""
+	def __init__(self):
+		"""
+		Initialize DB class
+		"""
+		#structure of the tables
+		self.tableFields = pybiblio.tablesDef.tableFields
+		#names of the columns
+		self.tableCols = {}
+		for q in self.tableFields.keys():
+			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
+
+		self.conn = pBDB.conn
+		self.curs = pBDB.curs
+		self.dbname = pBDB.dbname
+
+		self.lastFetched = None
+		self.catsHier = None
+
+	def closeDB(self):
+		"""close the database"""
+		pBDB.closeDB()
+
+	def commit(self):
+		"""commit the changes"""
+		pBDB.commit()
+
+	def connExec(self,query,data=None):
+		"""execute connection"""
+		pBDB.connExec(query, data = data)
+
+	def cursExec(self,query,data=None):
+		"""execute cursor"""
+		pBDB.cursExec(query, data = data)
+
+class categories(pybiblioDBSub):
+	"""functions for categories"""
+	def insert(self, data):
+		"""new category"""
 		self.cursExec("""
 			select * from categories where name=? and parentCat=?
-			""",(data["name"],data["parentCat"]))
+			""", (data["name"], data["parentCat"]))
 		if self.curs.fetchall():
-			print "An entry with the same name is already present in the same category!"
+			print("An entry with the same name is already present in the same category!")
 			return False
 		else:
 			return self.connExec("""
 				INSERT into categories (name, description, parentCat, comments, ord)
-					values (:name,:description,:parentCat,:comments,:ord)
-				""",data)
-	def updateCat(self, data, idCat):
+					values (:name, :description, :parentCat, :comments, :ord)
+				""", data)
+
+	def update(self, data, idCat):
+		"""update"""
 		data["idCat"] = idCat
-		print "-----\n", data, "\n------\n"
+		print("-----\n", data, "\n------\n")
 		query = "replace into categories (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
-	def updateCatField(self, idCat, field, value):
+
+	def updateField(self, idCat, field, value):
+		"""update only a field"""
 		print("[DB] updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["categories"] and field is not "idCat" \
 				and value is not "" and value is not None:
@@ -139,16 +167,46 @@ class pybiblioDB():
 			return self.connExec(query, {"field": value, "idCat": idCat})
 		else:
 			return False
-	def extractCats(self):
+
+	def getAll(self):
+		"""get all the categories"""
 		self.cursExec("""
 		select * from categories
 		""")
 		return self.curs.fetchall()
-	def extractCatsHierarchy(self, cats = None, startFrom = 0, replace = False):
+
+	def getByName(self,name):
+		self.cursExec("""
+		select * from categories where name=?
+		""", (name,))
+		return self.curs.fetchall()
+
+	def getChild(self, parent):
+		"""get subdirectories of a given one"""
+		self.cursExec("""
+		select cats1.*
+		from categories as cats
+		join categories as cats1 on cats.idCat=cats1.parentCat
+		where cats.idCat=?
+		""", (parent, ))
+		return self.curs.fetchall()
+
+	def getParent(self, child):
+		"""get parent directory of a given one"""
+		self.cursExec("""
+		select cats.*
+		from categories as cats
+		join categories as cats1 on cats.idCat=cats1.parentCat
+		where cats1.idCat=?
+		""", (child, ))
+		return self.curs.fetchall()
+
+	def getHier(self, cats = None, startFrom = 0, replace = False):
+		"""get categories and subcategories in a tree-like structure"""
 		if self.catsHier is not None and not replace:
 			return self.catsHier
 		if cats is None:
-			cats = self.extractCats()
+			cats = self.getAll()
 		def addSubCats(idC):
 			tmp = {}
 			for c in [ a for a in cats if a["parentCat"] == idC and a["idCat"] != 0 ]:
@@ -179,12 +237,14 @@ class pybiblioDB():
 							catsHier[l0][l1][l2][l3] = new
 		self.catsHier = catsHier
 		return catsHier
-	def printCatHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5, replace = False):
-		cats = self.extractCats()
+
+	def printHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5, replace = False):
+		"""print categories and subcategories in a tree-like form"""
+		cats = self.getAll()
 		if depth < 2 or depth > 5:
 			print("[DB] invalid depth in printCatHier (use between 2 and 5)")
 			depth = 5
-		catsHier = self.extractCatsHierarchy(cats, startFrom=startFrom, replace = replace)
+		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
 		def catString(idCat):
 			cat = cats[idCat]
 			if withDesc:
@@ -210,62 +270,228 @@ class pybiblioDB():
 									if depth > 4:
 										for l4 in alphabetical(catsHier[l0][l1][l2][l3].keys()):
 											print(4*sp + catString(l4))
-	def extractCatByName(self,name):
+
+	def delete(self, idCat, name = None):
+		"""delete a category, its subcategories and all their connections"""
+		if type(idCat) is list:
+			for c in idCat:
+				self.delete(c)
+		else:
+			if idCat < 2 and name:
+				result = self.extractCatByName(name)
+				idCat = result[0]["idCat"]
+			if idCat < 2:
+				print("[DB] Error: should not delete the category with id: %d%s.)"%(idCat, " (name: %s)"%name if name else ""))
+				return false
+			print("[DB] using idCat=%d"%idCat)
+			self.cursExec("""
+			delete from categories where idCat=?
+			""", (idCat, ))
+			self.cursExec("""
+			delete from expCats where idCat=?
+			""", (idCat, ))
+			self.cursExec("""
+			delete from entryCats where idCat=?
+			""", (idCat, ))
+			print("[DB] looking for child categories")
+			for row in self.extractSubcats(idCat):
+				self.deleteCat(row["idCat"])
+
+	def findCatsForEntry(self, key):
+		"""find all the categories for a given entry"""
 		self.cursExec("""
-		select * from categories where name=?
-		""",(name,))
+				select * from categories
+				join entryCats on categories.idCat=entryCats.idCat
+				where entryCats.bibkey=?
+				""", (key,))
 		return self.curs.fetchall()
-	def extractSubcats(self,parent):
+
+	def findCatsForExp(self, idExp):
+		"""find all the categories for a given experiment"""
 		self.cursExec("""
-		select cats1.*
-		from categories as cats
-		join categories as cats1 on cats.idCat=cats1.parentCat
-		where cats.idCat=?
-		""",(parent,))
+				select * from categories
+				join expCats on categories.idCat=expCats.idCat
+				where expCats.idExp=?
+				""", (idExp,))
 		return self.curs.fetchall()
-	def extractParentcat(self,child):
+
+pBDB.cats = categories()
+
+class catsEntries(pybiblioDBSub):
+	"""functions for connecting categories and entries"""
+	def getOne(self, idCat, key):
+		"""fine connection"""
 		self.cursExec("""
-		select cats.*
-		from categories as cats
-		join categories as cats1 on cats.idCat=cats1.parentCat
-		where cats1.idCat=?
-		""",(child,))
+				select * from entryCats where bibkey=:bibkey and idCat=:idCat
+				""",
+				{"bibkey": key, "idCat": idCat})
 		return self.curs.fetchall()
-	def deleteCat(self,idCat,name=None):
-		if idCat<2 and name:
-			result=self.extractCatByName(name)
-			idCat=result[0]["idCat"]
-		if idCat<2:
-			print "[DB] Error: should not delete the category with id: %d%s.)"%(idCat, " (name: %s)"%name if name else "")
-			return false
-		print "[DB] using idCat=%d"%idCat
+
+	def getAll(self):
+		"""get all the connections"""
 		self.cursExec("""
-		delete from categories where idCat=?
-		""",(idCat,))
+				select * from entryCats
+				""")
+		return self.curs.fetchall()
+
+	def insert(self, idCat, key):
+		"""create a new connection"""
+		if type(idCat) is list:
+			for q in idCat:
+				self.insert(q, key)
+		elif type(key) is list:
+			for q in key:
+				self.insert(idCat, q)
+		else:
+			if len(self.getOne(idCat, key))==0:
+				return self.connExec("""
+						INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
+						""",
+						{"bibkey": key, "idCat": idCat})
+			else:
+				print("[DB] entryCat already present: (%d, %s)"%(idCat, key))
+				return False
+
+	def delete(self, idCat, key):
+		"""delete connection"""
+		if type(idCat) is list:
+			for q in idCat:
+				self.delete(q, key)
+		elif type(key) is list:
+			for q in key:
+				self.delete(idCat, q)
+		else:
+			return self.connExec("""
+					delete from entryCats where bibkey=:bibkey and idCat=:idCat
+					""",
+					{"bibkey": key, "idCat": idCat})
+
+pBDB.catBib = catsEntries()
+
+class catsExps(pybiblioDBSub):
+	"""functions for connecting categories and entries"""
+	def getOne(self, idCat, idExp):
+		"""get one connection"""
 		self.cursExec("""
-		delete from expCats where idCat=?
-		""",(idCat,))
+				select * from expCats where idExp=:idExp and idCat=:idCat
+				""",
+				{"idExp": idExp, "idCat": idCat})
+		return self.curs.fetchall()
+
+	def getAll(self):
+		"""find all the connections"""
 		self.cursExec("""
-		delete from entryCats where idCat=?
-		""",(idCat,))
-		print "[DB] looking for child categories"
-		for row in self.extractSubcats(idCat):
-			self.deleteCat(row["idCat"])
-			
-	#functions for categories
-	def insertExp(self,data):
+				select * from expCats
+				""")
+		return self.curs.fetchall()
+
+	def insert(self, idCat, idExp):
+		"""insert a new connection"""
+		if type(idCat) is list:
+			for q in idCat:
+				self.insert(q, idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.insert(idCat, q)
+		else:
+			if len(self.getOne(idCat, idExp))==0:
+				return self.connExec("""
+						INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
+						""",
+						{"idExp": idExp, "idCat": idCat})
+			else:
+				print("[DB] expCat already present: (%d, %d)"%(idCat, idExp))
+				return False
+
+	def delete(self, idCat, idExp):
+		"""delete one connection"""
+		if type(idCat) is list:
+			for q in idCat:
+				self.delete(q, idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.delete(idCat, q)
+		else:
+			return self.connExec("""
+					delete from expCats where idExp=:idExp and idCat=:idCat
+					""",
+					{"idExp": idExp, "idCat": idCat})
+
+pBDB.catExp = catsExps()
+
+class entryExps(pybiblioDBSub):
+	"""functions for connecting entries and experiments"""
+	def getOne(self, key, idExp):
+		"""find one connection"""
+		self.cursExec("""
+				select * from entryExps where idExp=:idExp and bibkey=:bibkey
+				""",
+				{"idExp": idExp, "bibkey": key})
+		return self.curs.fetchall()
+
+	def getAll(self):
+		"""find all the connections"""
+		self.cursExec("""
+				select * from entryExps
+				""")
+		return self.curs.fetchall()
+
+	def insert(self, key, idExp):
+		"""insert a new connection"""
+		if type(key) is list:
+			for q in key:
+				self.insert(q, idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.insert(key, q)
+		else:
+			if len(self.getOne(key, idExp))==0:
+				if self.connExec("""
+						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
+						""",
+						{"idExp": idExp, "bibkey": key}):
+					for c in self.cats.findCatsForExp(idExp):
+						self.catBib.insert(c["idCat"],key)
+			else:
+				print("[DB] entryExp already present: (%s, %d)"%(idExp, key))
+				return False
+
+	def delete(self, key, idExp):
+		"""delete one connection"""
+		if type(key) is list:
+			for q in key:
+				self.delete(q, idExp)
+		elif type(idExp) is list:
+			for q in idExp:
+				self.delete(key, q)
+		else:
+			return self.connExec("""
+					delete from entryExps where idExp=:idExp and bibkey=:bibkey
+					""",
+					{"idExp": idExp, "bibkey": key})
+
+pBDB.bibExp = entryExps()
+
+class experiments(pybiblioDBSub):
+	"""functions for experiments"""
+	def insert(self,data):
+		"""insert a new experiment"""
 		return self.connExec("""
 				INSERT into experiments (name, comments, homepage, inspire)
 					values (:name, :comments, :homepage, :inspire)
-				""",data)
-	def updateExp(self, data, idExp):
+				""", data)
+
+	def update(self, data, idExp):
+		"""update an existing experiment"""
 		data["idExp"] = idExp
-		print "-----\n", data, "\n------\n"
+		print("-----\n", data, "\n------\n")
 		query = "replace into experiments (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
-	def updateExpField(self, idExp, field, value):
+
+	def updateField(self, idExp, field, value):
+		"""update a field"""
 		print("[DB] updating '%s' for entry '%s'"%(field, idExp))
 		if field in self.tableCols["experiments"] and field is not "idExp" \
 				and value is not "" and value is not None:
@@ -273,24 +499,31 @@ class pybiblioDB():
 			return self.connExec(query, {"field": value, "idExp": idExp})
 		else:
 			return False
-	def extractExps(self):
+
+	def getAll(self):
+		"""get all the experiments from the DB"""
 		self.cursExec("""
-		select * from experiments
-		""")
+			select * from experiments
+			""")
 		return self.curs.fetchall()
-	def extractExpByName(self,name):
+
+	def getByName(self, name):
+		"""get experiments matching a name"""
 		self.cursExec("""
-		select * from experiments where name=?
-		""",(name,))
+			select * from experiments where name=?
+			""", (name, ))
 		return self.curs.fetchall()
-	def printExpInCats(self, startFrom = 0, sp = 5*" ", withDesc = False):
-		cats = self.extractCats()
-		exps = self.extractExps()
-		catsHier = self.extractCatsHierarchy(cats, startFrom = startFrom)
+
+	def printInCats(self, startFrom = 0, sp = 5 * " ", withDesc = False):
+		"""prints the experiments under the corresponding categories"""
+		cats = pBDB.cats.getAll()
+		exps = self.getAll()
+		catsHier = pBDB.cats.getHier(cats, startFrom = startFrom)
 		showCat = {}
 		for c in cats:
 			showCat[c["idCat"]] = False
 		def catString(idCat):
+			"""a format for printing the category"""
 			cat = cats[idCat]
 			if withDesc:
 				return '%4d: %s - %s'%(cat['idCat'], cat['name'], cat['description'])
@@ -313,7 +546,7 @@ class pybiblioDB():
 			decorated.sort()
 			return [ x[1]["idExp"] for x in decorated ]
 		expCats = {}
-		for (a, idE, idC) in self.extractExpCat():
+		for (a, idE, idC) in pBDB.catExp.getAll():
 			if idC not in expCats.keys():
 				expCats[idC] = []
 				showCat[idC] = True
@@ -321,7 +554,7 @@ class pybiblioDB():
 		def printExpCats(ix, lev):
 			try:
 				for e in alphabetExp(expCats[ix]):
-					print(lev*sp + expString(e))
+					print(lev * sp + expString(e))
 			except:
 				pass
 		for l0 in alphabetical(catsHier.keys()):
@@ -364,150 +597,36 @@ class pybiblioDB():
 								print(4*sp + catString(l4))
 								printExpCats(l4, 5)
 
-	def deleteExp(self,idExp,name=None):
-		print "[DB] using idExp=%d"%idExp
-		self.cursExec("""
-		delete from experiments where idExp=?
-		""",(idExp,))
-		self.cursExec("""
-		delete from expCats where idExp=?
-		""",(idExp,))
-		self.cursExec("""
-		delete from entryExps where idExp=?
-		""",(idExp,))
-	def printExps(self,exps=None):
-		if exps is None:
-			exps=self.extractExps()
-		for q in exps:
-			print "%3d: %-20s [%-40s] [%s]"%(q["idExp"],q["name"],q["homepage"],q["inspire"])
+	def delete(self, idExp, name = None):
+		"""delete an experiment and its connections"""
+		if type(idExp) is list:
+			for e in idExp:
+				self.delete(e)
+		else:
+			print("[DB] using idExp=%d"%idExp)
+			self.cursExec("""
+			delete from experiments where idExp=?
+			""", (idExp, ))
+			self.cursExec("""
+			delete from expCats where idExp=?
+			""", (idExp, ))
+			self.cursExec("""
+			delete from entryExps where idExp=?
+			""", (idExp, ))
 
-	#functions for entryCat
-	def findEntryCat(self, idCat, key):
-		self.cursExec("""
-				select * from entryCats where bibkey=:bibkey and idCat=:idCat
-				""",
-				{"bibkey": key, "idCat": idCat})
-		return self.curs.fetchall()
-	def extractEntryCat(self):
-		self.cursExec("""
-				select * from entryCats
-				""")
-		return self.curs.fetchall()
-	def assignEntryCat(self, idCat, key):
-		if type(idCat) is list:
-			for q in idCat:
-				self.assignEntryCat(q,key)
-		elif type(key) is list:
-			for q in key:
-				self.assignEntryCat(idCat,q)
-		else:
-			if len(self.findEntryCat(idCat, key))==0:
-				return self.connExec("""
-						INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
-						""",
-						{"bibkey": key, "idCat": idCat})
-			else:
-				print "[DB] entryCat already present:",idCat, key
-				return False
-	def deleteEntryCat(self, idCat, key):
-		if type(idCat) is list:
-			for q in idCat:
-				self.deleteEntryCat(q,key)
-		elif type(key) is list:
-			for q in key:
-				self.deleteEntryCat(idCat,q)
-		else:
-			return self.connExec("""
-					delete from entryCats where bibkey=:bibkey and idCat=:idCat
-					""",
-					{"bibkey": key, "idCat": idCat})
-			
-	#functions for expCats
-	def findExpCat(self, idCat, idExp):
-		self.cursExec("""
-				select * from expCats where idExp=:idExp and idCat=:idCat
-				""",
-				{"idExp": idExp, "idCat": idCat})
-		return self.curs.fetchall()
-	def extractExpCat(self):
-		self.cursExec("""
-				select * from expCats
-				""")
-		return self.curs.fetchall()
-	def assignExpCat(self, idCat, idExp):
-		if type(idCat) is list:
-			for q in idCat:
-				self.assignExpCat(q,idExp)
-		elif type(idExp) is list:
-			for q in idExp:
-				self.assignExpCat(idCat,q)
-		else:
-			if len(self.findExpCat(idCat, idExp))==0:
-				return self.connExec("""
-						INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
-						""",
-						{"idExp": idExp, "idCat": idCat})
-			else:
-				print "[DB] expCat already present", idCat, idExp
-				return False
-	def deleteExpCat(self, idCat, idExp):
-		if type(idCat) is list:
-			for q in idCat:
-				self.deleteExpCat(q,idExp)
-		elif type(idExp) is list:
-			for q in idExp:
-				self.deleteExpCat(idCat,q)
-		else:
-			return self.connExec("""
-					delete from expCats where idExp=:idExp and idCat=:idCat
-					""",
-					{"idExp": idExp, "idCat": idCat})
-	
-	#functions for expCats
-	def findEntryExp(self, key, idExp):
-		self.cursExec("""
-				select * from entryExps where idExp=:idExp and bibkey=:bibkey
-				""",
-				{"idExp": idExp, "bibkey": key})
-		return self.curs.fetchall()
-	def extractEntryExp(self):
-		self.cursExec("""
-				select * from entryExps
-				""")
-		return self.curs.fetchall()
-	def assignEntryExp(self, key, idExp):
-		if type(key) is list:
-			for q in key:
-				self.assignEntryExp(q,idExp)
-		elif type(idExp) is list:
-			for q in idExp:
-				self.assignEntryExp(key,q)
-		else:
-			if len(self.findEntryExp(key, idExp))==0:
-				if self.connExec("""
-						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
-						""",
-						{"idExp": idExp, "bibkey": key}):
-					for c in self.findCatsForExp(idExp):
-						self.assignEntryCat(c["idCat"],key)
-			else:
-				print "[DB] entryExp already present", idExp, key
-				return False
-	def deleteEntryExp(self, key, idExp):
-		if type(key) is list:
-			for q in key:
-				self.deleteEntryExp(q,idExp)
-		elif type(idExp) is list:
-			for q in idExp:
-				self.deleteEntryExp(key,q)
-		else:
-			return self.connExec("""
-					delete from entryExps where idExp=:idExp and bibkey=:bibkey
-					""",
-					{"idExp": idExp, "bibkey": key})
-	
-	#various filtering
+	def to_str(self, q):
+		"""convert the experiment row in a string"""
+		return "%3d: %-20s [%-40s] [%s]"%(q["idExp"], q["name"], q["homepage"], q["inspire"])
+
+	def printAll(self, exps = None):
+		"""print all the experiments"""
+		if exps is None:
+			exps = self.getAll()
+		for q in exps:
+			print(self.to_str(q))
+
 	def findExpsByCat(self, idCat):
+		"""find all the experiments under a given category"""
 		query = """
 				select * from experiments
 				join expCats on experiments.idExp=expCats.idExp
@@ -515,66 +634,40 @@ class pybiblioDB():
 				"""
 		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
-	def findEntriesByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
-		query = """
-				select * from entries
-				join entryCats on entries.bibkey=entryCats.bibkey
-				where entryCats.idCat=?
-				"""
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
-		self.cursExec(query, (idCat,))
-		return self.curs.fetchall()
-	def findEntriesByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
-		query = """
-				select * from entries
-				join entryExps on entries.bibkey=entryExps.bibkey
-				where entryExps.idExp=?
-				"""
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
-		self.cursExec(query, (idExp,))
-		return self.curs.fetchall()
-	def findCatsForExp(self, idExp):
-		self.cursExec("""
-				select * from categories
-				join expCats on categories.idCat=expCats.idCat
-				where expCats.idExp=?
-				""", (idExp,))
-		return self.curs.fetchall()
-	def findCatsForEntry(self, key):
-		self.cursExec("""
-				select * from categories
-				join entryCats on categories.idCat=entryCats.idCat
-				where entryCats.bibkey=?
-				""", (key,))
-		return self.curs.fetchall()
+
 	def findExpsForEntry(self, key):
+		"""find all the experiments for a given entry"""
 		self.cursExec("""
 				select * from experiments
 				join entryExps on experiments.idExp=entryExps.idExp
 				where entryExps.bibkey=?
-				""", (key,))
+				""", (key, ))
 		return self.curs.fetchall()
-	
-	#for the entries
-	#delete
-	def deleteEntries(self, key_list):
-		for k in key_list:
-			self.deleteEntry(k)
-	def deleteEntry(self, key):
-		print "[DB] delete entry, using key = '%s'"%key
-		self.cursExec("""
-		delete from entries where bibkey=?
-		""",(key,))
-		self.cursExec("""
-		delete from entryCats where bibkey=?
-		""",(key,))
-		self.cursExec("""
-		delete from entryExps where bibkey=?
-		""",(key,))
 
-	#extraction
-	def extractEntries(self, params = None, connection = "and ", operator = "=",
+pBDB.exps = experiments()
+
+class entries(pybiblioDBSub):
+	"""functions for the entries"""
+	def delete(self, key):
+		"""delete an entry and its connections"""
+		if type(key) is list:
+			for k in key:
+				self.delete(k)
+		else:
+			print("[DB] delete entry, using key = '%s'"%key)
+			self.cursExec("""
+			delete from entries where bibkey=?
+			""", (key,))
+			self.cursExec("""
+			delete from entryCats where bibkey=?
+			""", (key,))
+			self.cursExec("""
+			delete from entryExps where bibkey=?
+			""", (key,))
+
+	def getAll(self, params = None, connection = "and ", operator = "=",
 			save = True, orderBy = None, orderType = "ASC"):
+		"""get entries from the database"""
 		query = """
 		select * from entries
 		"""
@@ -583,7 +676,7 @@ class pybiblioDB():
 			query += " where "
 			first = True
 			vals = ()
-			for k,v in params.iteritems():
+			for k, v in params.iteritems():
 				if first:
 					first = False
 				else:
@@ -601,7 +694,6 @@ class pybiblioDB():
 			except:
 				print("[DB] query failed: %s"%query)
 		fetched_in = self.curs.fetchall()
-		#help(fetched_in[0])
 		fetched_out = []
 		for el in fetched_in:
 			tmp = {}
@@ -610,60 +702,79 @@ class pybiblioDB():
 			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
 			fetched_out.append(tmp)
 		if save:
-			self.lastFetchedEntries = fetched_out
+			self.lastFetched = fetched_out
 		return fetched_out
 
-	def extractEntryByBibkey(self, bibkey):
-		return self.extractEntries(params = {"bibkey": bibkey})
-	def extractEntryByKeyword(self, key):
-		return self.extractEntries(
+	def getByBibkey(self, bibkey):
+		"""shortcut for selecting entries by their bibtek key"""
+		return self.getAll(params = {"bibkey": bibkey})
+
+	def getByKey(self, key):
+		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
+		return self.getAll(
 			params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
 			connection = "or ",
 			operator = " like ")
-	def extractEntryByBibtexSearch(self, string):
-		return self.extractEntries(
+
+	def getByBibtex(self, string):
+		"""shortcut for selecting entries with a search in the bibtex field"""
+		return self.getAll(
 			params = {"bibtex":"%%%s%%"%string},
 			operator = " like ")
-	def getEntryField(self, key, field):
+
+	def getField(self, key, field):
+		"""extract the content of one field from a entry in the database, searched by bibtex key"""
 		try:
-			return self.extractEntryByBibkey(key)[0][field]
+			return self.getByBibkey(key)[0][field]
 		except:
 			print("[DB] ERROR in getEntryField('%s', '%s')"%(key, field))
 			return False
-	def dbEntryToDataDict(self, key):
-		return self.prepareInsertEntry(self.getEntryField(key, "bibtex"))
+
+	def toDataDict(self, key):
+		"""convert the entry bibtex into a dictionary"""
+		return self.prepareInsertEntry(self.getField(key, "bibtex"))
+
 	def getDoiUrl(self, key):
-		url = "http://dx.doi.org/" + self.getEntryField(key, "doi")
+		"""get doi url"""
+		url = pbConfig.doiUrl + self.getField(key, "doi")
 		return url
+
 	def getArxivUrl(self, key, urlType = "abs"):
-		url = "http://arxiv.org/"+ urlType + "/" + self.getEntryField(key, "arxiv")
+		"""get doi url"""
+		url = pbConfig.arxivUrl + urlType + "/" + self.getField(key, "arxiv")
 		return url
 			
-	#insertion and update
-	def insertEntry(self, data):
+	def insert(self, data):
+		"""insert entry"""
 		return self.connExec("INSERT into entries (" +
 					", ".join(self.tableCols["entries"]) + ") values (:" +
 					", :".join(self.tableCols["entries"]) + ")\n",
 					data)
-	def updateEntry(self, data, oldkey):
+
+	def update(self, data, oldkey):
+		"""update entry"""
 		data["bibkey"] = oldkey
-		print "-----\n", data, "\n------\n"
+		print("-----\n", data, "\n------\n")
 		query = "replace into entries (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
+
 	def rmBibtexComments(self, bibtex):
+		"""remove comments and empty lines from bibtex"""
 		output = ""
 		for l in bibtex.splitlines():
 			lx = l.strip()
 			if len(lx) > 0 and lx[0] != "%":
 				output += l + "\n"
 		return output.strip()
-	def prepareInsertEntry(self,
+
+	def prepareInsert(self,
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
 			marks = None, firstdate = None, pubdate = None, number = None):
+		"""convert a bibtex into a dictionary, eventually using also additional info"""
 		data = {}
 		if number is None:
 			number = 0
@@ -724,10 +835,10 @@ class pybiblioDB():
 			data["link"] = link
 		else:
 			try:
-				data["link"] = "http://arxiv.org/abs/" + data["arxiv"]
+				data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
 			except:
 				try:
-					data["link"] = "http://www.doi.org/" + data["doi"]
+					data["link"] = pbConfig.doiUrl + data["doi"]
 				except:
 					data["link"] = None
 		data["comments"] = comments if comments else None
@@ -750,24 +861,27 @@ class pybiblioDB():
 		data["pubdate"] = pubdate if pubdate else ""
 		return data
 		
-	def prepareUpdateEntriesByKey(self, key_old, key_new):
-		u = self.prepareUpdateEntry(self.getEntryField(key_old, "bibtex"), self.getEntryField(key_new, "bibtex"))
-		return self.prepareInsertEntry(u)
+	def prepareUpdateByKey(self, key_old, key_new):
+		"""get an entry bibtex and prepare an update using the new bibtex from another database entry"""
+		u = self.prepareUpdate(self.getField(key_old, "bibtex"), self.getField(key_new, "bibtex"))
+		return self.prepareInsert(u)
 	
-	def prepareUpdateEntryByBibtex(self, key_old, bibtex_new):
-		u = self.prepareUpdateEntry(self.getEntryField(key_old, "bibtex"), bibtex_new)
-		return self.prepareInsertEntry(u)
+	def prepareUpdateByBibtex(self, key_old, bibtex_new):
+		"""get an entry bibtex and prepare an update using the new given bibtex"""
+		u = self.prepareUpdate(self.getEntryField(key_old, "bibtex"), bibtex_new)
+		return self.prepareInsert(u)
 		
-	def prepareUpdateEntry(self, bibtexOld, bibtexNew):
-		elementOld=bibtexparser.loads(bibtexOld).entries[0]
-		elementNew=bibtexparser.loads(bibtexNew).entries[0]
-		db=bibtexparser.bibdatabase.BibDatabase()
-		db.entries=[]
-		keep=elementOld
+	def prepareUpdate(self, bibtexOld, bibtexNew):
+		"""prepare the update of an entry, comparing two bibtexs"""
+		elementOld = bibtexparser.loads(bibtexOld).entries[0]
+		elementNew = bibtexparser.loads(bibtexNew).entries[0]
+		db = bibtexparser.bibdatabase.BibDatabase()
+		db.entries = []
+		keep = elementOld
 		for k in elementNew.keys():
 			if k not in elementOld.keys():
-				keep[k]=elementNew[k]
-			elif elementNew[k] and elementNew[k] != elementOld[k] and k!="bibtex" and k!="ID":
+				keep[k] = elementNew[k]
+			elif elementNew[k] and elementNew[k] != elementOld[k] and k != "bibtex" and k != "ID":
 				keep[k] = elementNew[k]
 		db.entries.append(keep)
 		writer = bibtexparser.bwriter.BibTexWriter()
@@ -775,7 +889,8 @@ class pybiblioDB():
 		writer.comma_first = False
 		return writer.write(db)
 		
-	def updateEntryInspireID(self, string, key = None, number = None):
+	def updateInspireID(self, string, key = None, number = None):
+		"""use inspire websearch module to get and update the inspireID"""
 		newid = pyBiblioWeb.webSearch["inspire"].retrieveInspireID(string, number = number)
 		if key is None:
 			key = string
@@ -786,28 +901,30 @@ class pybiblioDB():
 		else:
 			return False
 	
-	def updateEntryField(self, key, field, value, verbose = 1):
+	def updateField(self, key, field, value, verbose = 1):
+		"""update a single field of an entry"""
 		if verbose > 0:
 			print("[DB] updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["entries"] and field != "bibkey" \
 				and value is not "" and value is not None:
-			query= "update entries set " + field + "=:field where bibkey=:bibkey\n"
+			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
 			return self.connExec(query, {"field": value, "bibkey": key})
 		else:
+			if verbose > 1:
+				print("[DB] non-existing field or unappropriated value: (%s, %s, %s)"%(key, field, value))
 			return False
 	
-	def updateEntryBibkey(self, oldKey, newKey):
+	def updateBibkey(self, oldKey, newKey):
+		"""update the bibkey of an entry"""
 		print("[DB] updating bibkey into '%s' for entry '%s'"%(oldKey, newKey))
 		try:
-			query= "update entries set bibkey=:new where bibkey=:old\n"
-			query= "update entries set bibkey=:new where bibkey=:old\n"
-			query= "update entries set bibkey=:new where bibkey=:old\n"
-			return self.connExec(query, {"new": newKey, "old": oldKey})
+			query = "update entries set bibkey=:new where bibkey=:old\n"
 			return self.connExec(query, {"new": newKey, "old": oldKey})
 		except:
 			return False
 			
-	def getUpdateInfoDaysFromOAI(self, date1 = None, date2 = None):
+	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
+		"""use inspire OAI webinterface to get updated entries between two dates"""
 		if date1 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date1):
 			date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
 		if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
@@ -821,7 +938,7 @@ class pybiblioDB():
 		for e in entries:
 			try:
 				key = e["bibkey"]
-				print key
+				print(key)
 				old = self.extractEntryByBibkey(key)
 				if len(old) > 0:
 					for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
@@ -831,44 +948,49 @@ class pybiblioDB():
 				print("[DB][oai] something missing in entry %s"%e["id"])
 		print("[DB] inspire OAI harvesting done!")
 
-	def getUpdateInfoEntryFromOAI(self, inspireID, verbose = 0):
+	def updateInfoFromOAI(self, inspireID, verbose = 0):
+		"""use inspire OAI to retrieve the info for a single entry"""
+		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
+			inspireID = self.getField(inspireID, "inspire")
 		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, verbose = verbose)
 		if verbose > 1:
-			print result
+			print(result)
 		try:
 			key = result["bibkey"]
-			old = self.extractEntryByBibkey(key)
+			old = self.getByBibkey(key)
 			if verbose > 1:
-				print key, old
+				print("%s, %s"%(key, old))
 			if len(old) > 0:
 				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if verbose > 0:
-							print d, result[o], old[0][d]
+							print("%s = %s (%s)"%(d, result[o], old[0][d]))
 						if result[o] != old[0][d]:
-							self.updateEntryField(key, d, result[o], 0)
+							self.updateField(key, d, result[o], 0)
 					except:
 						print("[DB][oai] key error: (%s, %s)"%(o,d))
 			print("[DB] inspire OAI info for %s saved."%inspireID)
 		except:
 			print("[DB][oai] something missing in entry %s"%result["id"])
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
-	def updateEntryFromOAI(self, entry, verbose = 0):
+	def updateFromOAI(self, entry, verbose = 0):
+		"""update entry from inspire OAI. If inspireID is missing, look for it"""
 		if type(entry) is list:
 			for e in entry:
-				self.updateEntryFromOAI(e, verbose = verbose)
+				self.updateFromOAI(e, verbose = verbose)
 		elif entry.isdigit():
-			return self.getUpdateInfoEntryFromOAI(entry, verbose = verbose)
+			return self.updateInfoFromOAI(entry, verbose = verbose)
 		else:
-			inspireID = self.getEntryField(entry, "inspire")
+			inspireID = self.getField(entry, "inspire")
 			if inspireID is not None:
-				return self.getUpdateInfoEntryFromOAI(inspireID, verbose = verbose)
+				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 			else:
-				inspireID = self.updateEntryInspireID(entry, entry)
-				return self.getUpdateInfoEntryFromOAI(inspireID, verbose = verbose)
+				inspireID = self.updateInspireID(entry, entry)
+				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 	
 	def searchOAIUpdates(self):
+		"""select unpublished papers and look for updates using inspireOAI"""
 		entries = self.extractEntries()
 		num = 0
 		for e in entries:
@@ -880,13 +1002,14 @@ class pybiblioDB():
 				and e["inspire"] is not None:
 					num += 1
 					print("\n[DB] looking for update: '%s'"%e["bibkey"])
-					self.getUpdateInfoEntryFromOAI(e["inspire"], verbose = 0)
+					self.updateInfoFromOAI(e["inspire"], verbose = 0)
 		print("\n[DB] %d entries processed"%num)
 		
-	def loadAndInsertEntries(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False):
+	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False):
+		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
 		requireAll = False
 		if entry is not None and not type(entry) is list:
-			existing = self.extractEntryByBibkey(entry)
+			existing = self.getByBibkey(entry)
 			if existing:
 				print("[DB] Already existing: %s\n"%entry)
 				if returnBibtex:
@@ -905,9 +1028,9 @@ class pybiblioDB():
 						print("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n")
 						return False
 			if requireAll:
-				data = self.prepareInsertEntry(e, number = number)
+				data = self.prepareInsert(e, number = number)
 			else:
-				data = self.prepareInsertEntry(e)
+				data = self.prepareInsert(e)
 			key = data["bibkey"]
 			if imposeKey is not None:
 				data["bibkey"] = imposeKey
@@ -918,17 +1041,17 @@ class pybiblioDB():
 				return False
 			print("[DB] entry will have key\n'%s'"%key)
 			try:
-				self.insertEntry(data)
+				self.insert(data)
 			except:
-				print("[DB] loadAndInsertEntries(%s) failed in inserting entry\n"%entry)
+				print("[DB] loadAndInsert(%s) failed in inserting entry\n"%entry)
 				return False
 			try:
 				if method == "inspire":
 					if not requireAll:
-						eid = self.updateEntryInspireID(entry, key)
+						eid = self.updateInspireID(entry, key)
 					else:
-						eid = self.updateEntryInspireID(entry, key, number = number)
-					self.getUpdateInfoEntryFromOAI(eid)
+						eid = self.updateInspireID(entry, key, number = number)
+					self.updateInfoFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
 				print("[DB] element successfully inserted.\n")
@@ -942,7 +1065,7 @@ class pybiblioDB():
 		elif entry is not None and type(entry) is list:
 			failed = []
 			for e in entry:
-				if not self.loadAndInsertEntries(e):
+				if not self.loadAndInsert(e):
 					failed.append(e)
 			if len(failed) > 0:
 				print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
@@ -951,54 +1074,65 @@ class pybiblioDB():
 			return False
 
 	def setBook(self, key, value = 1):
+		"""set (or unset) an entry as a book"""
 		if type(key) is list:
 			for q in key:
 				self.setBook(q, value)
 		else:
-			return self.updateEntryField(key, "book", value, 0)
+			return self.updateField(key, "book", value, 0)
+
 	def setLecture(self, key, value = 1):
+		"""set (or unset) an entry as a lecture"""
 		if type(key) is list:
 			for q in key:
 				self.setLecture(q, value)
 		else:
-			return self.updateEntryField(key, "lecture", value, 0)
+			return self.updateField(key, "lecture", value, 0)
+
 	def setPhdThesis(self, key, value = 1):
+		"""set (or unset) an entry as a PhD thesis"""
 		if type(key) is list:
 			for q in key:
 				self.setPhdThesis(q, value)
 		else:
-			return self.updateEntryField(key, "phd_thesis", value, 0)
+			return self.updateField(key, "phd_thesis", value, 0)
+
 	def setProceeding(self, key, value = 1):
+		"""set (or unset) an entry as a proceeding"""
 		if type(key) is list:
 			for q in key:
 				self.setProceeding(q, value)
 		else:
-			return self.updateEntryField(key, "proceeding", value, 0)
+			return self.updateField(key, "proceeding", value, 0)
+
 	def setReview(self, key, value = 1):
+		"""set (or unset) an entry as a review"""
 		if type(key) is list:
 			for q in key:
 				self.setReview(q, value)
 		else:
-			return self.updateEntryField(key, "review", value, 0)
+			return self.updateField(key, "review", value, 0)
 			
 	def printAllBibtexs(self, entries = None):
+		"""print the bibtex codes for all the entries (or for a given subset)"""
 		if entries is None:
-			entries = self.extractEntries(orderBy = "firstdate")
+			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
-			print("%4d %s"%(i, e["bibtex"]))
-			print("\n")
+			print("%4d - %s\n"%(i, e["bibtex"]))
 		print("[DB] %d elements found"%len(entries))
 			
 	def printAllBibkeys(self, entries = None):
+		"""print the bibtex keys for all the entries (or for a given subset)"""
 		if entries is None:
-			entries = self.extractEntries(orderBy = "firstdate")
+			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
 			print("%4d %s"%(i, e["bibkey"]))
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllEntriesInfo(self, entries = None, orderBy = "firstdate"):
+	def printAllInfo(self, entries = None, orderBy = "firstdate"):
+		"""print the short info for all the entries (or for a given subset)"""
 		if entries is None:
-			entries = self.extractEntries(orderBy = orderBy)
+			entries = self.getAll(orderBy = orderBy)
 		for i, e in enumerate(entries):
 			orderDate = "[%4d - %-11s]"%(i, e["firstdate"])
 			bibKeyStr = "%-30s "%e["bibkey"]
@@ -1021,20 +1155,47 @@ class pybiblioDB():
 				typeStr = "(proc)"
 			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
 		print("[DB] %d elements found"%len(entries))
-		
-	#utilities
+
+	def findEntriesByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+		"""find all the entries in a given category"""
+		query = """
+				select * from entries
+				join entryCats on entries.bibkey=entryCats.bibkey
+				where entryCats.idCat=?
+				"""
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		self.cursExec(query, (idCat,))
+		return self.curs.fetchall()
+
+	def findEntriesByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+		"""find all the entries for a given experiment"""
+		query = """
+				select * from entries
+				join entryExps on entries.bibkey=entryExps.bibkey
+				where entryExps.idExp=?
+				"""
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		self.cursExec(query, (idExp,))
+		return self.curs.fetchall()
+
+pBDB.bibs = entries()
+
+class utilities(pybiblioDBSub):
+	"""various useful functions"""
 	def cleanSpareEntries(self):
+		"""finds and deletes connections where one of the parts is missing"""
 		def deletePresent(ix1, ix2, join, func):
 			for e in join:
 				if e[0] not in ix1 or e[1] not in ix2:
 					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
-		bibkeys = [ e["bibkey"] for e in self.extractEntries() ]
-		idCats = [ e["idCat"] for e in self.extractCats() ]
-		idExps = [ e["idExp"] for e in self.extractExps() ]
+
+		bibkeys = [ e["bibkey"] for e in pBDB.bibs.getAll() ]
+		idCats  = [ e["idCat"]  for e in pBDB.cats.getAll() ]
+		idExps  = [ e["idExp"]  for e in pBDB.exps.getAll() ]
 		
-		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in self.extractEntryExp()], self.deleteEntryExp)
-		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in self.extractEntryCat()], self.deleteEntryCat)
-		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in self.extractExpCat()],   self.deleteExpCat)
-			
-pBDB=pybiblioDB()
+		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in pBDB.bibExp.getAll()], pBDB.bibExp.delete)
+		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in pBDB.catBib.getAll()], pBDB.catBib.delete)
+		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in pBDB.catExp.getAll()], pBDB.catExp.delete)
+
+pBDB.utils = utilities()

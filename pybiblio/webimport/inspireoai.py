@@ -210,9 +210,9 @@ class webSearch(webInterf):
 				tmpDict["id"] = id_
 				foundObjects.append(tmpDict)
 			except Exception, e:
-				print count, id
-				print e
-				print traceback.format_exc()
+				print(count, id)
+				print(e)
+				print(traceback.format_exc())
 		print("[oai] Processed %d elements"%count)
 		print("[oai] END --- " + time.strftime("%c") + "\n\n")
 		return foundObjects

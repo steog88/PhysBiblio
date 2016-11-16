@@ -8,7 +8,7 @@ try:
 	from pybiblio.database import pBDB
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
-	print traceback.format_exc()
+	print(traceback.format_exc())
 	
 class localPDF():
 	"""manages the pdf and the material of the various entries"""
@@ -37,7 +37,7 @@ class localPDF():
 		
 	def getFilePath(self, key, ftype):
 		"""obtain the file path for a given file type (arxiv, doi, ...) of a given entry"""
-		fname = pBDB.getEntryField(key, ftype)
+		fname = pBDB.bibs.getField(key, ftype)
 		if fname is None:
 			print("[localPDF] impossible to get the type '%s' filename for entry %s"%(ftype, key))
 			return ""
@@ -76,7 +76,7 @@ class localPDF():
 			return
 		try:
 			self.createFolder(key)
-			url = pBDB.getArxivUrl(key, 'pdf')
+			url = pBDB.bibs.getArxivUrl(key, 'pdf')
 			print("[localPDF] Downloading arXiv PDF from %s"%url)
 			response = urllib2.urlopen(url)
 			with open(fname, 'wb') as newF:
@@ -139,7 +139,7 @@ class localPDF():
 	def printAllExisting(self, entries = None, fullPath = False):
 		"""list all the existing files for all the entries in the database"""
 		if entries is None:
-			entries = pBDB.extractEntries(orderBy = "firstdate")
+			entries = pBDB.bibs.getAll(orderBy = "firstdate")
 		for e in entries:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
 			if len(exist) > 0:

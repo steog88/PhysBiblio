@@ -6,27 +6,26 @@ try:
 	from pybiblio.pdf import pBPDF
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
-	print traceback.format_exc()
+	print(traceback.format_exc())
 	
 class viewEntry():
 	"""Contains methods to print or open a web link to the entry"""
 	def __init__(self):
 		"""init link base names and application name"""
 		self.webApp = pbConfig.params["webApplication"]
-		self.arxivUrl = pbConfig.arxivUrl
-		self.doiUrl = pbConfig.doiUrl
+
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "p=find+"
 		
 	def printLink(self, key, arg = "arxiv", fileArg = None):
 		"""uses database information to compute and print the web link, or the pdf module to open a pdf"""
-		arxiv = pBDB.getEntryField(key, "arxiv")
-		doi = pBDB.getEntryField(key, "doi")
-		inspire = pBDB.getEntryField(key, "inspire")
+		arxiv = pBDB.bibs.getField(key, "arxiv")
+		doi = pBDB.bibs.getField(key, "doi")
+		inspire = pBDB.bibs.getField(key, "inspire")
 		if arg is "arxiv" and arxiv:
-			link = self.arxivUrl + arxiv
+			link = pBDB.bibs.arxivUrl(key, "abs")
 		elif arg is "doi" and doi:
-			link = self.doiUrl + doi
+			link = pBDB.bibs.doiUrl(key)
 		elif arg is "inspire" and inspire:
 			link = self.inspireRecord + inspire
 		elif arg is "inspire" and arxiv:
