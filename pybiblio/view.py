@@ -23,9 +23,9 @@ class viewEntry():
 		doi = pBDB.bibs.getField(key, "doi")
 		inspire = pBDB.bibs.getField(key, "inspire")
 		if arg is "arxiv" and arxiv:
-			link = pBDB.bibs.arxivUrl(key, "abs")
+			link = pBDB.bibs.getArxivUrl(key, "abs")
 		elif arg is "doi" and doi:
-			link = pBDB.bibs.doiUrl(key)
+			link = pBDB.bibs.getDoiUrl(key)
 		elif arg is "inspire" and inspire:
 			link = self.inspireRecord + inspire
 		elif arg is "inspire" and arxiv:

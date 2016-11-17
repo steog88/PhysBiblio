@@ -1,6 +1,7 @@
 import sqlite3
 import os, re, traceback, datetime
 import bibtexparser
+import ast
 import pybiblio.webimport.webInterf as webInt
 
 try:
@@ -127,11 +128,11 @@ class pybiblioDBSub():
 
 	def connExec(self,query,data=None):
 		"""execute connection"""
-		pBDB.connExec(query, data = data)
+		return pBDB.connExec(query, data = data)
 
 	def cursExec(self,query,data=None):
 		"""execute cursor"""
-		pBDB.cursExec(query, data = data)
+		return pBDB.cursExec(query, data = data)
 
 class categories(pybiblioDBSub):
 	"""functions for categories"""
@@ -366,6 +367,20 @@ class catsEntries(pybiblioDBSub):
 					""",
 					{"bibkey": key, "idCat": idCat})
 
+	def askCats(self, keys):
+		"""loop over given keys and ask for the cats to be saved"""
+		for k in keys:
+			string = raw_input("categories for '%s': "%k)
+			cats = ast.literal_eval(string)
+			self.insert(cats, k)
+
+	def askKeys(self, cats):
+		"""loop over given cats and ask for the entries to be saved"""
+		for c in cats:
+			string = raw_input("entries for '%d': "%c)
+			keys = ast.literal_eval(string)
+			self.insert(c, keys)
+
 pBDB.catBib = catsEntries()
 
 class catsExps(pybiblioDBSub):
@@ -417,6 +432,20 @@ class catsExps(pybiblioDBSub):
 					""",
 					{"idExp": idExp, "idCat": idCat})
 
+	def askCats(self, exps):
+		"""loop over given exps and ask for the cats to be saved"""
+		for e in exps:
+			string = raw_input("categories for '%d': "%e)
+			cats = ast.literal_eval(string)
+			self.insert(cats, e)
+
+	def askExps(self, cats):
+		"""loop over given cats and ask for the experiments to be saved"""
+		for c in cats:
+			string = raw_input("entries for '%d': "%c)
+			exps = ast.literal_eval(string)
+			self.insert(c, exps)
+
 pBDB.catExp = catsExps()
 
 class entryExps(pybiblioDBSub):
@@ -450,10 +479,10 @@ class entryExps(pybiblioDBSub):
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
 						{"idExp": idExp, "bibkey": key}):
-					for c in self.cats.findCatsForExp(idExp):
-						self.catBib.insert(c["idCat"],key)
+					for c in pBDB.cats.findCatsForExp(idExp):
+						pBDB.catBib.insert(c["idCat"],key)
 			else:
-				print("[DB] entryExp already present: (%s, %d)"%(idExp, key))
+				print("[DB] entryExp already present: (%d, %s)"%(idExp, key))
 				return False
 
 	def delete(self, key, idExp):
@@ -469,6 +498,20 @@ class entryExps(pybiblioDBSub):
 					delete from entryExps where idExp=:idExp and bibkey=:bibkey
 					""",
 					{"idExp": idExp, "bibkey": key})
+
+	def askExps(self, keys):
+		"""loop over given keys and ask for the exps to be saved"""
+		for k in keys:
+			string = raw_input("experiments for '%s': "%k)
+			exps = ast.literal_eval(string)
+			self.insert(k, exps)
+
+	def askKeys(self, exps):
+		"""loop over given exps and ask for the entries to be saved"""
+		for e in exps:
+			string = raw_input("entries for '%d': "%e)
+			keys = ast.literal_eval(string)
+			self.insert(keys, e)
 
 pBDB.bibExp = entryExps()
 
