@@ -42,15 +42,18 @@ class viewEntry():
 		
 	def openLink(self, key, arg = "arxiv", fileArg = None):
 		"""uses the printLink method to compute the web link and opens it"""
-		link = self.printLink(key, arg = arg, fileArg = fileArg)
-		
-		if link:
-			try:
-				print("[viewEntry] opening '%s'..."%link)
-				subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
-			except:
-				print("[viewEntry] opening link for '%s' failed!"%key)
+		if type(key) is list:
+			for k in key:
+				self.openLink(k, arg, fileArg)
 		else:
-			print("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
+			link = self.printLink(key, arg = arg, fileArg = fileArg)
+			if link:
+				try:
+					print("[viewEntry] opening '%s'..."%link)
+					subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+				except:
+					print("[viewEntry] opening link for '%s' failed!"%key)
+			else:
+				print("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
 
 pBView = viewEntry()
