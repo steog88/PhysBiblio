@@ -712,30 +712,40 @@ class entries(pybiblioDBSub):
 			delete from entryExps where bibkey=?
 			""", (key,))
 
-	def fetchAll(self, params = None, connection = "and ", operator = "=",
+	def fetchAll(self, params = None, connection = "and", operator = "=",
 			orderBy = "firstdate", orderType = "ASC"):
 		"""save entries fetched from the database"""
 		query = """
 		select * from entries
 		"""
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		if params and len(params) > 0:
 			query += " where "
 			first = True
 			vals = ()
 			for k, v in params.iteritems():
-				if first:
-					first = False
+				if type(v) is list:
+					for v1 in v:
+						if first:
+							first = False
+						else:
+							query += " %s "%connection
+						query += k + operator + " ? "
+						vals += (v1,)
 				else:
-					query += connection
-				query += k + operator + "? "
-				vals += (v,)
+					if first:
+						first = False
+					else:
+						query += " %s "%connection
+					query += k + operator + "? "
+					vals += (v,)
+			query += " order by " + orderBy + " " + orderType if orderBy else ""
 			try:
 				self.cursExec(query, vals)
 			except:
 				print("[DB] query failed: %s"%query)
 				print(vals)
 		else:
+			query += " order by " + orderBy + " " + orderType if orderBy else ""
 			try:
 				self.cursExec(query)
 			except:
