@@ -691,6 +691,10 @@ pBDB.exps = experiments()
 
 class entries(pybiblioDBSub):
 	"""functions for the entries"""
+	def __init__(self): #need to create lastFetched
+		pybiblioDBSub.__init__(self)
+		self.lastFetched = None
+
 	def delete(self, key):
 		"""delete an entry and its connections"""
 		if type(key) is list:
@@ -708,9 +712,9 @@ class entries(pybiblioDBSub):
 			delete from entryExps where bibkey=?
 			""", (key,))
 
-	def getAll(self, params = None, connection = "and ", operator = "=",
-			save = True, orderBy = None, orderType = "ASC"):
-		"""get entries from the database"""
+	def fetchAll(self, params = None, connection = "and ", operator = "=",
+			orderBy = "firstdate", orderType = "ASC"):
+		"""save entries fetched from the database"""
 		query = """
 		select * from entries
 		"""
@@ -744,26 +748,41 @@ class entries(pybiblioDBSub):
 				tmp[k] = el[k]
 			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
 			fetched_out.append(tmp)
-		if save:
-			self.lastFetched = fetched_out
-		return fetched_out
+		self.lastFetched = fetched_out
+		return self
+	
+	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC"):
+		"""get entries from the database"""
+		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType).lastFetched
 
+	def fetchByBibkey(self, bibkey):
+		"""shortcut for selecting entries by their bibtek key"""
+		return self.fetchAll(params = {"bibkey": bibkey})
+		
 	def getByBibkey(self, bibkey):
 		"""shortcut for selecting entries by their bibtek key"""
-		return self.getAll(params = {"bibkey": bibkey})
+		return self.fetchByBibkey(bibkey).lastFetched
 
-	def getByKey(self, key):
+	def fetchByKey(self, key):
 		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
-		return self.getAll(
+		return self.fetchAll(
 			params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
 			connection = "or ",
 			operator = " like ")
 
-	def getByBibtex(self, string):
+	def getByKey(self, key):
+		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
+		return self.fetchByKey(key).lastFetched
+
+	def fetchByBibtex(self, string):
 		"""shortcut for selecting entries with a search in the bibtex field"""
-		return self.getAll(
+		return self.fetchAll(
 			params = {"bibtex":"%%%s%%"%string},
 			operator = " like ")
+
+	def getByBibtex(self, string):
+		"""shortcut for selecting entries with a search in the bibtex field"""
+		return self.fetchByBibtex(key).lastFetched
 
 	def getField(self, key, field):
 		"""extract the content of one field from a entry in the database, searched by bibtex key"""
@@ -1156,25 +1175,37 @@ class entries(pybiblioDBSub):
 		else:
 			return self.updateField(key, "review", value, 0)
 			
-	def printAllBibtexs(self, entries = None):
+	def printAllBibtexs(self, entriesIn = None):
 		"""print the bibtex codes for all the entries (or for a given subset)"""
-		if entries is None:
+		if entriesIn is not None:
+			entries = entriesIn
+		elif self.lastFetched is not None:
+			entries = self.lastFetched
+		else:
 			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
 			print("%4d - %s\n"%(i, e["bibtex"]))
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllBibkeys(self, entries = None):
+	def printAllBibkeys(self, entriesIn = None):
 		"""print the bibtex keys for all the entries (or for a given subset)"""
-		if entries is None:
+		if entriesIn is not None:
+			entries = entriesIn
+		elif self.lastFetched is not None:
+			entries = self.lastFetched
+		else:
 			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
 			print("%4d %s"%(i, e["bibkey"]))
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllInfo(self, entries = None, orderBy = "firstdate"):
+	def printAllInfo(self, entriesIn = None, orderBy = "firstdate"):
 		"""print the short info for all the entries (or for a given subset)"""
-		if entries is None:
+		if entriesIn is not None:
+			entries = entriesIn
+		elif self.lastFetched is not None:
+			entries = self.lastFetched
+		else:
 			entries = self.getAll(orderBy = orderBy)
 		for i, e in enumerate(entries):
 			orderDate = "[%4d - %-11s]"%(i, e["firstdate"])
