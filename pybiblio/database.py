@@ -298,7 +298,7 @@ class categories(pybiblioDBSub):
 			for row in self.extractSubcats(idCat):
 				self.deleteCat(row["idCat"])
 
-	def findCatsForEntry(self, key):
+	def findByEntry(self, key):
 		"""find all the categories for a given entry"""
 		self.cursExec("""
 				select * from categories
@@ -307,7 +307,7 @@ class categories(pybiblioDBSub):
 				""", (key,))
 		return self.curs.fetchall()
 
-	def findCatsForExp(self, idExp):
+	def findByExp(self, idExp):
 		"""find all the categories for a given experiment"""
 		self.cursExec("""
 				select * from categories
@@ -668,7 +668,7 @@ class experiments(pybiblioDBSub):
 		for q in exps:
 			print(self.to_str(q))
 
-	def findExpsByCat(self, idCat):
+	def findByCat(self, idCat):
 		"""find all the experiments under a given category"""
 		query = """
 				select * from experiments
@@ -678,7 +678,7 @@ class experiments(pybiblioDBSub):
 		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
 
-	def findExpsForEntry(self, key):
+	def findByEntry(self, key):
 		"""find all the experiments for a given entry"""
 		self.cursExec("""
 				select * from experiments
@@ -1240,7 +1240,7 @@ class entries(pybiblioDBSub):
 			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
 		print("[DB] %d elements found"%len(entries))
 
-	def findEntriesByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+	def findByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""find all the entries in a given category"""
 		query = """
 				select * from entries
@@ -1251,7 +1251,7 @@ class entries(pybiblioDBSub):
 		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
 
-	def findEntriesByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+	def findByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""find all the entries for a given experiment"""
 		query = """
 				select * from entries
