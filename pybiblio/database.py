@@ -373,8 +373,11 @@ class catsEntries(pybiblioDBSub):
 			keys = [keys]
 		for k in keys:
 			string = raw_input("categories for '%s': "%k)
-			cats = ast.literal_eval(string)
-			self.insert(cats, k)
+			try:
+				cats = ast.literal_eval(string.strip())
+				self.insert(cats, k)
+			except:
+				print("[DB] something failed in reading your input")
 
 	def askKeys(self, cats):
 		"""loop over given cats and ask for the entries to be saved"""
@@ -382,8 +385,11 @@ class catsEntries(pybiblioDBSub):
 			cats = [cats]
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
-			keys = ast.literal_eval(string)
-			self.insert(c, keys)
+			try:
+				keys = ast.literal_eval(string.strip())
+				self.insert(c, keys)
+			except:
+				print("[DB] something failed in reading your input")
 
 pBDB.catBib = catsEntries()
 
@@ -442,8 +448,11 @@ class catsExps(pybiblioDBSub):
 			exps = [exps]
 		for e in exps:
 			string = raw_input("categories for '%d': "%e)
-			cats = ast.literal_eval(string)
-			self.insert(cats, e)
+			try:
+				cats = ast.literal_eval(string.strip())
+				self.insert(cats, e)
+			except:
+				print("[DB] something failed in reading your input")
 
 	def askExps(self, cats):
 		"""loop over given cats and ask for the experiments to be saved"""
@@ -451,8 +460,11 @@ class catsExps(pybiblioDBSub):
 			cats = [cats]
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
-			exps = ast.literal_eval(string)
-			self.insert(c, exps)
+			try:
+				exps = ast.literal_eval(string.strip())
+				self.insert(c, exps)
+			except:
+				print("[DB] something failed in reading your input")
 
 pBDB.catExp = catsExps()
 
@@ -513,8 +525,11 @@ class entryExps(pybiblioDBSub):
 			keys = [keys]
 		for k in keys:
 			string = raw_input("experiments for '%s': "%k)
-			exps = ast.literal_eval(string)
-			self.insert(k, exps)
+			try:
+				exps = ast.literal_eval(string.strip())
+				self.insert(k, exps)
+			except:
+				print("[DB] something failed in reading your input")
 
 	def askKeys(self, exps):
 		"""loop over given exps and ask for the entries to be saved"""
@@ -522,8 +537,11 @@ class entryExps(pybiblioDBSub):
 			exps = [exps]
 		for e in exps:
 			string = raw_input("entries for '%d': "%e)
-			keys = ast.literal_eval(string)
-			self.insert(keys, e)
+			try:
+				keys = ast.literal_eval(string.strip())
+				self.insert(keys, e)
+			except:
+				print("[DB] something failed in reading your input")
 
 pBDB.bibExp = entryExps()
 
@@ -555,11 +573,12 @@ class experiments(pybiblioDBSub):
 		else:
 			return False
 
-	def getAll(self):
+	def getAll(self, orderBy = "name", order = "ASC"):
 		"""get all the experiments from the DB"""
 		self.cursExec("""
 			select * from experiments
-			""")
+			order by %s %s
+			"""%(orderBy, order))
 		return self.curs.fetchall()
 
 	def getByName(self, name):
@@ -673,10 +692,10 @@ class experiments(pybiblioDBSub):
 		"""convert the experiment row in a string"""
 		return "%3d: %-20s [%-40s] [%s]"%(q["idExp"], q["name"], q["homepage"], q["inspire"])
 
-	def printAll(self, exps = None):
+	def printAll(self, exps = None, orderBy = "name", order = "ASC"):
 		"""print all the experiments"""
 		if exps is None:
-			exps = self.getAll()
+			exps = self.getAll(orderBy = orderBy, order = order)
 		for q in exps:
 			print(self.to_str(q))
 
@@ -779,7 +798,11 @@ class entries(pybiblioDBSub):
 
 	def fetchByBibkey(self, bibkey):
 		"""shortcut for selecting entries by their bibtek key"""
-		return self.fetchAll(params = {"bibkey": bibkey})
+		if type(bibkey) is list:
+			return self.fetchAll(params = {"bibkey": bibkey},
+				connection = "or ")
+		else:
+			return self.fetchAll(params = {"bibkey": bibkey})
 		
 	def getByBibkey(self, bibkey):
 		"""shortcut for selecting entries by their bibtek key"""
@@ -787,10 +810,17 @@ class entries(pybiblioDBSub):
 
 	def fetchByKey(self, key):
 		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
-		return self.fetchAll(
-			params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
-			connection = "or ",
-			operator = " like ")
+		if type(key) is list:
+			strings = ["%%%s%%"%q for q in key]
+			return self.fetchAll(
+				params = {"bibkey": strings, "old_keys": strings, "bibtex": strings},
+				connection = "or ",
+				operator = " like ")
+		else:
+			return self.fetchAll(
+				params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
+				connection = "or ",
+				operator = " like ")
 
 	def getByKey(self, key):
 		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
