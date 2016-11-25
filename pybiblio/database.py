@@ -369,6 +369,8 @@ class catsEntries(pybiblioDBSub):
 
 	def askCats(self, keys):
 		"""loop over given keys and ask for the cats to be saved"""
+		if type(keys) is not list:
+			keys = [keys]
 		for k in keys:
 			string = raw_input("categories for '%s': "%k)
 			cats = ast.literal_eval(string)
@@ -376,6 +378,8 @@ class catsEntries(pybiblioDBSub):
 
 	def askKeys(self, cats):
 		"""loop over given cats and ask for the entries to be saved"""
+		if type(cats) is not list:
+			cats = [cats]
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
 			keys = ast.literal_eval(string)
@@ -434,6 +438,8 @@ class catsExps(pybiblioDBSub):
 
 	def askCats(self, exps):
 		"""loop over given exps and ask for the cats to be saved"""
+		if type(exps) is not list:
+			exps = [exps]
 		for e in exps:
 			string = raw_input("categories for '%d': "%e)
 			cats = ast.literal_eval(string)
@@ -441,6 +447,8 @@ class catsExps(pybiblioDBSub):
 
 	def askExps(self, cats):
 		"""loop over given cats and ask for the experiments to be saved"""
+		if type(cats) is not list:
+			cats = [cats]
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
 			exps = ast.literal_eval(string)
@@ -479,7 +487,7 @@ class entryExps(pybiblioDBSub):
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
 						{"idExp": idExp, "bibkey": key}):
-					for c in pBDB.cats.findCatsForExp(idExp):
+					for c in pBDB.cats.findByExp(idExp):
 						pBDB.catBib.insert(c["idCat"],key)
 			else:
 				print("[DB] entryExp already present: (%d, %s)"%(idExp, key))
@@ -501,6 +509,8 @@ class entryExps(pybiblioDBSub):
 
 	def askExps(self, keys):
 		"""loop over given keys and ask for the exps to be saved"""
+		if type(keys) is not list:
+			keys = [keys]
 		for k in keys:
 			string = raw_input("experiments for '%s': "%k)
 			exps = ast.literal_eval(string)
@@ -508,6 +518,8 @@ class entryExps(pybiblioDBSub):
 
 	def askKeys(self, exps):
 		"""loop over given exps and ask for the entries to be saved"""
+		if type(exps) is not list:
+			exps = [exps]
 		for e in exps:
 			string = raw_input("entries for '%d': "%e)
 			keys = ast.literal_eval(string)
@@ -786,13 +798,19 @@ class entries(pybiblioDBSub):
 
 	def fetchByBibtex(self, string):
 		"""shortcut for selecting entries with a search in the bibtex field"""
-		return self.fetchAll(
-			params = {"bibtex":"%%%s%%"%string},
-			operator = " like ")
+		if type(string) is list:
+			return self.fetchAll(
+				params = {"bibtex":["%%%s%%"%q for q in string]},
+				connection = "or",
+				operator = " like ")
+		else:
+			return self.fetchAll(
+				params = {"bibtex":"%%%s%%"%string},
+				operator = " like ")
 
 	def getByBibtex(self, string):
 		"""shortcut for selecting entries with a search in the bibtex field"""
-		return self.fetchByBibtex(key).lastFetched
+		return self.fetchByBibtex(string).lastFetched
 
 	def getField(self, key, field):
 		"""extract the content of one field from a entry in the database, searched by bibtex key"""
