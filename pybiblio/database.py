@@ -298,7 +298,7 @@ class categories(pybiblioDBSub):
 			for row in self.extractSubcats(idCat):
 				self.deleteCat(row["idCat"])
 
-	def findByEntry(self, key):
+	def getByEntry(self, key):
 		"""find all the categories for a given entry"""
 		self.cursExec("""
 				select * from categories
@@ -307,7 +307,7 @@ class categories(pybiblioDBSub):
 				""", (key,))
 		return self.curs.fetchall()
 
-	def findByExp(self, idExp):
+	def getByExp(self, idExp):
 		"""find all the categories for a given experiment"""
 		self.cursExec("""
 				select * from categories
@@ -499,7 +499,7 @@ class entryExps(pybiblioDBSub):
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
 						{"idExp": idExp, "bibkey": key}):
-					for c in pBDB.cats.findByExp(idExp):
+					for c in pBDB.cats.getByExp(idExp):
 						pBDB.catBib.insert(c["idCat"],key)
 			else:
 				print("[DB] entryExp already present: (%d, %s)"%(idExp, key))
@@ -699,7 +699,7 @@ class experiments(pybiblioDBSub):
 		for q in exps:
 			print(self.to_str(q))
 
-	def findByCat(self, idCat):
+	def getByCat(self, idCat):
 		"""find all the experiments under a given category"""
 		query = """
 				select * from experiments
@@ -709,7 +709,7 @@ class experiments(pybiblioDBSub):
 		self.cursExec(query, (idCat,))
 		return self.curs.fetchall()
 
-	def findByEntry(self, key):
+	def getByEntry(self, key):
 		"""find all the experiments for a given entry"""
 		self.cursExec("""
 				select * from experiments
@@ -889,6 +889,20 @@ class entries(pybiblioDBSub):
 				output += l + "\n"
 		return output.strip()
 
+	def rmBibtexACapo(self, bibtex):
+		"""remove returns from bibtex"""
+		output = ""
+		db = bibtexparser.bibdatabase.BibDatabase()
+		#db.entries = []
+		tmp = {}
+		for k,v in bibtexparser.loads(bibtex).entries[0].items():
+			tmp[k] = v.replace("\n", " ")
+		db.entries = [tmp]
+		writer = bibtexparser.bwriter.BibTexWriter()
+		writer.indent = ' '
+		writer.comma_first = False
+		return writer.write(db)
+
 	def prepareInsert(self,
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
@@ -905,7 +919,7 @@ class entries(pybiblioDBSub):
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
-		data["bibtex"]  = self.rmBibtexComments(bibtex.strip())
+		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(bibtex.strip()))
 		data["inspire"] = inspire if inspire else None
 		if arxiv:
 			data["arxiv"] = arxiv
@@ -1257,7 +1271,7 @@ class entries(pybiblioDBSub):
 			print("%4d %s"%(i, e["bibkey"]))
 		print("[DB] %d elements found"%len(entries))
 			
-	def printAllInfo(self, entriesIn = None, orderBy = "firstdate"):
+	def printAllInfo(self, entriesIn = None, orderBy = "firstdate", addFields = None):
 		"""print the short info for all the entries (or for a given subset)"""
 		if entriesIn is not None:
 			entries = entriesIn
@@ -1286,9 +1300,24 @@ class entries(pybiblioDBSub):
 			elif e["proceeding"] == 1:
 				typeStr = "(proc)"
 			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
+			if addFields is not None:
+				try:
+					if type(addFields) is list:
+						for f in addFields:
+							try:
+								print("   %s: %s"%(f, e[f]))
+							except:
+								print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
+					else:
+						try:
+							print("   %s: %s"%(addFields, e[addFields]))
+						except:
+							print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
+				except:
+					pass
 		print("[DB] %d elements found"%len(entries))
 
-	def findByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+	def fetchByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""find all the entries in a given category"""
 		query = """
 				select * from entries
@@ -1297,9 +1326,13 @@ class entries(pybiblioDBSub):
 				"""
 		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		self.cursExec(query, (idCat,))
-		return self.curs.fetchall()
+		self.lastFetched = self.curs.fetchall()
+		return self
 
-	def findByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+	def getByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+		return self.fetchByCat(idCat, orderBy = orderBy, orderType = orderType).lastFetched
+
+	def fetchByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""find all the entries for a given experiment"""
 		query = """
 				select * from entries
@@ -1308,7 +1341,11 @@ class entries(pybiblioDBSub):
 				"""
 		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		self.cursExec(query, (idExp,))
-		return self.curs.fetchall()
+		self.lastFetched = self.curs.fetchall()
+		return self
+
+	def getByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+		return self.fetchByExp(idExp, orderBy = orderBy, orderType = orderType).lastFetched
 
 pBDB.bibs = entries()
 
