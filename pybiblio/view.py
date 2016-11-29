@@ -15,7 +15,7 @@ class viewEntry():
 		self.webApp = pbConfig.params["webApplication"]
 
 		self.inspireRecord = pbConfig.inspireRecord
-		self.inspireSearch = pbConfig.inspireSearchBase + "p=find+"
+		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 		
 	def printLink(self, key, arg = "arxiv", fileArg = None):
 		"""uses database information to compute and print the web link, or the pdf module to open a pdf"""

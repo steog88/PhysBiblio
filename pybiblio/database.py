@@ -1307,7 +1307,7 @@ class entries(pybiblioDBSub):
 							try:
 								print("   %s: %s"%(f, e[f]))
 							except:
-								print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
+								print("   %s: %s"%(f, e["bibtexDict"][f]))
 					else:
 						try:
 							print("   %s: %s"%(addFields, e[addFields]))
@@ -1326,7 +1326,15 @@ class entries(pybiblioDBSub):
 				"""
 		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		self.cursExec(query, (idCat,))
-		self.lastFetched = self.curs.fetchall()
+		fetched_in = self.curs.fetchall()
+		fetched_out = []
+		for el in fetched_in:
+			tmp = {}
+			for k in el.keys():
+				tmp[k] = el[k]
+			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			fetched_out.append(tmp)
+		self.lastFetched = fetched_out
 		return self
 
 	def getByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
@@ -1341,7 +1349,15 @@ class entries(pybiblioDBSub):
 				"""
 		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		self.cursExec(query, (idExp,))
-		self.lastFetched = self.curs.fetchall()
+		fetched_in = self.curs.fetchall()
+		fetched_out = []
+		for el in fetched_in:
+			tmp = {}
+			for k in el.keys():
+				tmp[k] = el[k]
+			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			fetched_out.append(tmp)
+		self.lastFetched = fetched_out
 		return self
 
 	def getByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
