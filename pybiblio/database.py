@@ -60,6 +60,11 @@ class pybiblioDB():
 		"""commit the changes"""
 		self.conn.commit()
 		print("[DB] saved.")
+
+	def undo(self):
+		"""undo the uncommitted changes"""
+		self.conn.rollback()
+		print("[DB] rolled back to last commit.")
 		
 	def connExec(self,query,data=None):
 		"""execute connection"""
