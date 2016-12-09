@@ -200,7 +200,7 @@ class MainWindow(QMainWindow):
 		#try:
 			#tmp=abc.webSearch["inspire"].retrieveUrlFirst("Gariazzo:2015rra")
 		#tmp=abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
-		#data=pBDB.prepareInsertEntry("""@Article{Gariazzo:prova,
+		#data=pBDB.bibs.prepareInsert("""@Article{Gariazzo:prova,
   #author        = {Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y. F. and Zavanin, E. M.},
   #title         = {{Light sterile neutrinos}},
   #journal       = {J. Phys.},
@@ -209,33 +209,33 @@ class MainWindow(QMainWindow):
   #slaccitation  = {%%CITATION = ARXIV:1507.08204;%%},
   #timestamp     = {2015.07.30},
 #}""")
-		##pBDB.insertEntry(data)
+		##pBDB.bibs.insert(data)
 		##except:
 			##print "errors occurred"
-		#pBDB.updateEntryInspireID("Gariazzo:2015rra")
-		#data=pBDB.prepareUpdateEntriesByKey("Gariazzo:prova", "Gariazzo:2015rra")
-		#pBDB.updateEntry(data, "Gariazzo:prova")
+		#pBDB.bibs.updateInspireID("Gariazzo:2015rra")
+		#data=pBDB.bibs.prepareUpdateByKey("Gariazzo:prova", "Gariazzo:2015rra")
+		#pBDB.bibs.update(data, "Gariazzo:prova")
 		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
-		#print pBDB.extractEntryByBibkey("Gariazzo:prova")
-		#pBDB.getUpdateInfoFromOAI()
+		#print pBDB.bibs.getByBibkey("Gariazzo:prova")
+		#pBDB.bibs.getUpdateInfoFromOAI()
 		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
-		#pBDB.loadAndInsertEntries(["DiValentino:2015zta","Cadavid:2015iya"])
-		#pBDB.printAllBibkeys()
-		#entries = pBDB.extractEntries(orderBy="firstdate")
+		#pBDB.bibs.loadAndInsert(["DiValentino:2015zta","Cadavid:2015iya"])
+		#pBDB.bibs.printAllBibkeys()
+		#entries = pBDB.bibs.getAll(orderBy="firstdate")
 		#for e in entries:
-			#b=pBDB.rmBibtexComments(e["bibtex"])
-			#print pBDB.updateEntryField(e["bibkey"], "bibtex", b)
-		#pBDB.insertCat({"name":"Really???","description":"","parentCat":0,"comments":"","ord":1})
+			#b=pBDB.bibs.rmBibtexComments(e["bibtex"])
+			#print pBDB.bibs.updateField(e["bibkey"], "bibtex", b)
+		#pBDB.cats.insert({"name":"Really???","description":"","parentCat":0,"comments":"","ord":1})
 		
-		#pBDB.assignEntryCat([58,64,65],"Ade:2015xua")
-		#pBDB.assignEntryExp("Ade:2015xua",1)
-		#print pBDB.findCatsForEntry("Ade:2015xua")
+		#pBDB.catBib.insert([58,64,65],"Ade:2015xua")
+		#pBDB.bibExp.insert("Ade:2015xua",1)
+		#print pBDB.cats.findByEntry("Ade:2015xua")
 		
-		#pBDB.insertExp({"name":"T2K", "comments":"", "homepage":"http://www.t2k.org/", "inspire":"http://inspirehep.net/record/1108444"})
+		#pBDB.exps.insert({"name":"DAMA", "comments":"", "homepage":"http://people.roma2.infn.it/~dama/web/home.html", "inspire":"1401121"})
 		#pBDB.assignExpCat([58,64,65,66],6)
 		
-		#pBDB.printExps()
-		#pBDB.printCatHier()
+		#pBDB.exps.printAll()
+		#pBDB.cats.printHier()
 
 		self.StatusBarMessage("biblio done")
 

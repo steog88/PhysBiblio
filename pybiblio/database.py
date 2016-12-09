@@ -730,6 +730,7 @@ class entries(pybiblioDBSub):
 	def __init__(self): #need to create lastFetched
 		pybiblioDBSub.__init__(self)
 		self.lastFetched = None
+		self.lastInserted = []
 
 	def delete(self, key):
 		"""delete an entry and its connections"""
@@ -1144,9 +1145,11 @@ class entries(pybiblioDBSub):
 					self.updateInfoFromOAI(e["inspire"], verbose = 0)
 		print("\n[DB] %d entries processed"%num)
 		
-	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False):
+	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
 		requireAll = False
+		if not childProcess:
+			self.lastInserted = []
 		if entry is not None and not type(entry) is list:
 			existing = self.getByBibkey(entry)
 			if existing:
@@ -1194,6 +1197,7 @@ class entries(pybiblioDBSub):
 				elif method == "isbn":
 					self.setBook(key)
 				print("[DB] element successfully inserted.\n")
+				self.lastInserted.append(key)
 				if returnBibtex:
 					return e
 				else:
@@ -1204,8 +1208,10 @@ class entries(pybiblioDBSub):
 		elif entry is not None and type(entry) is list:
 			failed = []
 			for e in entry:
-				if not self.loadAndInsert(e):
+				if not self.loadAndInsert(e, childProcess = True):
 					failed.append(e)
+			if len(self.lastInserted) > 0:
+				print("[DB] imported entries:\n%s"%", ".join(self.lastInserted))
 			if len(failed) > 0:
 				print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 		else:
