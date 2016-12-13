@@ -24,7 +24,7 @@ def exportLast(fname):
 
 def exportAll(fname):
 	"""export all the entries in the database in a .bib file"""
-	rows = pBDB.bibs.getAll(save = False)
+	rows = pBDB.bibs.getAll()
 	if len(rows) > 0:
 		txt = ""
 		for q in rows:

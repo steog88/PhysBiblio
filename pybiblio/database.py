@@ -10,6 +10,7 @@ try:
 	import pybiblio.firstOpen as pbfo
 	from pybiblio.webimport.webInterf import pyBiblioWeb
 	import pybiblio.tablesDef
+	from pybiblio.parse_accents import *
 except ImportError:
     print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
@@ -899,7 +900,6 @@ class entries(pybiblioDBSub):
 		"""remove returns from bibtex"""
 		output = ""
 		db = bibtexparser.bibdatabase.BibDatabase()
-		#db.entries = []
 		tmp = {}
 		for k,v in bibtexparser.loads(bibtex).entries[0].items():
 			tmp[k] = v.replace("\n", " ")
@@ -1048,6 +1048,8 @@ class entries(pybiblioDBSub):
 		if field in self.tableCols["entries"] and field != "bibkey" \
 				and value is not "" and value is not None:
 			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
+			if verbose > 1:
+				print query, field, value
 			return self.connExec(query, {"field": value, "bibkey": key})
 		else:
 			if verbose > 1:
@@ -1217,6 +1219,11 @@ class entries(pybiblioDBSub):
 		else:
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
+			
+	def loadAndInsertWithCats(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
+		"""load the entries, then ask for their categories"""
+		self.loadAndInsert(entry, method = method, imposeKey = imposeKey, number = number, returnBibtex = returnBibtex, childProcess = childProcess)
+		pBDB.catBib.askCats(self.lastInserted)
 
 	def setBook(self, key, value = 1):
 		"""set (or unset) an entry as a book"""
@@ -1393,5 +1400,15 @@ class utilities(pybiblioDBSub):
 		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in pBDB.bibExp.getAll()], pBDB.bibExp.delete)
 		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in pBDB.catBib.getAll()], pBDB.catBib.delete)
 		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in pBDB.catExp.getAll()], pBDB.catExp.delete)
+	
+	def cleanBibtexs(self, verbose = 0):
+		"""remove newlines, non-standard characters and comments from the bibtex of all the entries"""
+		b = pBDB.bibs
+		for e in b.getAll():
+			t = e["bibtex"]
+			t = b.rmBibtexComments(t)
+			t = parse_accents_str(t)
+			t = b.rmBibtexACapo(t)
+			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
 
 pBDB.utils = utilities()
