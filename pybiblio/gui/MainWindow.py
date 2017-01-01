@@ -12,6 +12,9 @@ try:
 	from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
+	from pybiblio.gui.BibWindows import *
+	from pybiblio.gui.CatWindows import *
+	from pybiblio.gui.ExpWindows import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -239,6 +242,8 @@ class MainWindow(QMainWindow):
 	
 	def experiments(self):
 		self.StatusBarMessage("experiments triggered")
+		expListWin = ExpListWindow(self)
+		expListWin.show()
 	
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
