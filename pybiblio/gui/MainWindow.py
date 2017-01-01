@@ -95,6 +95,11 @@ class MainWindow(QMainWindow):
 								statusTip="CommandLine Interface",
 								triggered=self.cli)
 
+		self.configAct = QAction(
+								"&Settings", self,
+								statusTip="Save the settings",
+								triggered=self.config)
+
 		self.aboutAct = QAction(QIcon(":/images/help_about.png"),
 								"&About", self,
 								statusTip="Show About box",
@@ -112,11 +117,13 @@ class MainWindow(QMainWindow):
 		"""
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.saveAct)
-		self.separatorAct = self.fileMenu.addSeparator()
+		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exportAct)
 		self.fileMenu.addAction(self.exportSelAct)
 		self.fileMenu.addAction(self.exportAllAct)
-		self.separatorAct = self.fileMenu.addSeparator()
+		self.fileMenu.addSeparator()
+		self.fileMenu.addAction(self.configAct)
+		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
 
 		self.menuBar().addSeparator()
@@ -149,7 +156,19 @@ class MainWindow(QMainWindow):
 		pass
 
 	
-	
+	def config(self):
+		cfgWin = configWindow(self)
+		cfgWin.exec_()
+		if cfgWin.result:
+			for q in cfgWin.textValues:
+				s = "%s"%q[1].text()
+				if pbConfig.params[q[0]] != s:
+					pbConfig.params[q[0]] = s
+			pbConfig.saveConfigFile()
+			pbConfig.readConfigFile()
+			self.StatusBarMessage("Configuration saved")
+		else:
+			self.StatusBarMessage("Changes discarded")
 	
 	def showAbout(self):
 		"""
@@ -271,8 +290,7 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Activating CLI!")
 		pyBiblioCLI()
 			
-		
-	
+
 	
 if __name__=='__main__':
 	try:

@@ -5,14 +5,14 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
 
-#try:
+try:
 	#from pybiblio.database import *
 	#import pybiblio.export as bibexport
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
-	#from pybiblio.config import pbConfig
-#except ImportError:
-	#print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	from pybiblio.config import pbConfig
+except ImportError:
+	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
 	import pybiblio.gui.Resources_pyside
 except ImportError:
@@ -40,8 +40,53 @@ def infoMessage(message, title = ""):
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""
-	def __init__(self):
-		pass
-	
-	
-	
+	def __init__(self, parent = None):
+		super(configWindow, self).__init__(parent)
+		self.textValues = []
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result	= True
+		self.close()
+
+	def initUI(self):
+		self.setWindowTitle('Configuration')
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		i = 0
+		for k in pbConfig.params.keys():
+			i += 1
+			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
+			grid.addWidget(QLabel(k), i*2-1, 0)
+			grid.addWidget(QLabel("(%s)"%pbConfig.descriptions[k]), i*2-1, 1)
+			self.textValues.append([k,QLineEdit(val)])
+			grid.addWidget(self.textValues[i-1][1], i*2, 0, 1, 2)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		#width = self.acceptButton.fontMetrics().boundingRect('OK').width() + 7
+		#self.acceptButton.setMaximumWidth(width)
+		grid.addWidget(self.acceptButton, i*2+1, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		#width = self.cancelButton.fontMetrics().boundingRect('Cancel').width() + 7
+		#self.cancelButton.setMaximumWidth(width)
+		grid.addWidget(self.cancelButton, i*2+1, 1)
+
+		self.setGeometry(100,100,400, 50*i)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
