@@ -7,6 +7,7 @@ config_defaults = {
 	"pdfFolder":        'data/pdf/',
 	"pdfApplication":   'okular',
 	"webApplication":   'google-chrome',
+	"askBeforeExit":	True
 }
 		
 class ConfigVars():
