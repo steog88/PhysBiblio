@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
 		self.setMinimumWidth(600)
 		self.myStatusBar = QStatusBar()
 		self.createActions()
-		self.createMenus()
+		self.createMenusAndToolBar()
 		self.createLayout()
 		self.setIcon()
 		self.CreateStatusBar()
@@ -75,7 +75,6 @@ class MainWindow(QMainWindow):
 								shortcut="Ctrl+Q",
 								statusTip="Exit application",
 								triggered=self.close)
-
 		self.CatAct = QAction("&Categories", self,
 								shortcut="Ctrl+C",
 								statusTip="Manage Categories",
@@ -107,7 +106,7 @@ class MainWindow(QMainWindow):
 		else:
 			event.accept()
 
-	def createMenus(self):
+	def createMenusAndToolBar(self):
 		"""
 		Create Qt menus.
 		"""
@@ -138,7 +137,14 @@ class MainWindow(QMainWindow):
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.aboutAct)
-	
+		
+		self.mainToolBar = self.addToolBar('Toolbar')
+		self.mainToolBar.addAction(self.saveAct)
+		self.mainToolBar.addAction(self.exportAct)
+		self.mainToolBar.addAction(self.exportAllAct)
+		self.mainToolBar.addAction(self.exitAct)
+		
+        
 	def createLayout(self):
 		pass
 
