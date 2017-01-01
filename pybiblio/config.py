@@ -9,12 +9,26 @@ config_defaults = {
 	"webApplication":   'google-chrome',
 	"askBeforeExit":	False
 }
+config_descriptions = {
+	"configMainFile":   'Name of the configuration file',
+	"timeoutWebSearch": 'Timeout for the web queries',
+	"mainDatabaseName": 'Name of the database file',
+	"pdfFolder":        'Folder where to save the PDF files',
+	"pdfApplication":   'Application for opening PDF files',
+	"webApplication":   'Web browser',
+	"askBeforeExit":	'Confirm before exiting',
+}
+config_special = {
+	"timeoutWebSearch": 'float',
+	"askBeforeExit":	'boolean',
+}
 		
 class ConfigVars():
 	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
 		"""initialize variables and read the external file"""
 		self.params = config_defaults
+		self.descriptions = config_descriptions
 		self.configMainFile = self.params["configMainFile"]
 		if len(sys.argv) > 1:
 			self.configMainFile = sys.argv[1]
@@ -33,7 +47,20 @@ class ConfigVars():
 				txt = r.readlines()
 			for l in txt:
 				k, v = l.replace("\n", "").split(" = ")
-				self.params[k] = v
+				try:
+					if config_special[k] == 'float':
+						self.params[k] = float(v)
+					elif config_special[k] == 'boolean':
+						if v.lower() in ('true','1','yes','on'):
+							self.params[k] = True
+						elif v.lower() in ('false','0','no','off'):
+							self.params[k] = False
+						else:
+							raise ValueError
+					else:
+						self.params[k] = float(v)
+				except:
+					self.params[k] = v
 		except IOError:
 			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
