@@ -11,6 +11,7 @@ try:
 	import pybiblio.webimport.webInterf as webInt
 	from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
+	from pybiblio.gui.DialogWindows import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -21,8 +22,10 @@ except ImportError:
 class MainWindow(QMainWindow):
 	def __init__(self):
 		QMainWindow.__init__(self)
+		availableWidth		= QDesktopWidget().availableGeometry().width()
+		availableHeight		= QDesktopWidget().availableGeometry().height() 
 		self.setWindowTitle('PyBiblio')
-		self.setGeometry(0,0,600,400)#x,y of topleft corner, width, height
+		self.setGeometry(0, 0, availableWidth, availableHeight)#x,y of topleft corner, width, height
 		self.setMinimumHeight(400)
 		self.setMinimumWidth(600)
 		self.myStatusBar = QStatusBar()
@@ -98,6 +101,12 @@ class MainWindow(QMainWindow):
 								statusTip="Show About box",
 								triggered=self.showAbout)
 
+	def closeEvent(self, event):
+		if pbConfig.params["askBeforeExit"] and not askYesNo("Do you really want to exit?"):
+			event.ignore()
+		else:
+			event.accept()
+
 	def createMenus(self):
 		"""
 		Create Qt menus.
@@ -163,25 +172,38 @@ class MainWindow(QMainWindow):
 		#self.StatusButton.clicked.connect(self.StatusBarMessage)
 	
 	def save(self):
-		pBDB.commit()
-		self.setWindowTitle("PyBiblio")
-		self.StatusBarMessage("Changes saved")
+		if askYesNo("Do you really want to save?"):
+			pBDB.commit()
+			self.setWindowTitle("PyBiblio")
+			self.StatusBarMessage("Changes saved")
+		else:
+			self.StatusBarMessage("Nothing saved")
 		
 	def export(self):
-		#dialog to ask fname
-		fname="temp.bib"
+		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		if filename != "":
+			fname = filename
+		else:
+			fname = "temp.bib"
 		bibexport.exportLast(fname)
 		self.StatusBarMessage("Last fetched entries exported into %s"%fname)
 	
 	def exportSelection(self):
-		#dialog to ask fname
+		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		if filename != "":
+			fname = filename
+		else:
+			fname = "temp.bib"
 		#retrieve selection
-		bibexport.exportSelected(fname,rows)
+		bibexport.exportSelected(fname, rows)
 		self.StatusBarMessage("Current selection exported into %s"%fname)
 	
 	def exportAll(self):
-		#dialog to ask fname
-		fname="all.bib"
+		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		if filename != "":
+			fname = filename
+		else:
+			fname = "all.bib"
 		bibexport.exportAll(fname)
 		self.StatusBarMessage("All entries saved into %s"%fname)
 	
