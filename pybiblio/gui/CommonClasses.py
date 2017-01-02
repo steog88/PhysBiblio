@@ -2,7 +2,6 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import signal
 
 try:
 	import pybiblio.gui.Resources_pyside

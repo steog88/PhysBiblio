@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import signal
+import subprocess
 
 try:
 	from pybiblio.database import *
@@ -104,6 +103,7 @@ class ExpListWindow(objListWindow):
 						if exps[i][pBDB.tableCols["experiments"][j]] != "" else "") )
 				else:
 					item = QTableWidgetItem(str(exps[i][pBDB.tableCols["experiments"][j]]))
+				item.setFlags(Qt.ItemIsEnabled)
 				self.tablewidget.setItem(i, j, item)
 			self.addEditDeleteCells(i, self.colcnt)
 
@@ -120,7 +120,13 @@ class ExpListWindow(objListWindow):
 	def cellDoubleClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
 		if self.colContents[col] == "inspire" or self.colContents[col] == "homepage":
-			print "will open '%s' "%idExp
+			link = self.tablewidget.item(row, col).text()
+			print "will open '%s' "%link
+			try:
+				print("[GUI] opening '%s'..."%link)
+				subprocess.Popen([pbConfig.params["webApplication"], link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+			except:
+				print("[GUI] opening link '%s' failed!"%link)
 
 class editExp(editObjectWindow):
 	"""create a window for editing or creating an experiment"""

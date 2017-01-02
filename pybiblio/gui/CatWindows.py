@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import signal
+import subprocess
 
 try:
 	#from pybiblio.database import *
