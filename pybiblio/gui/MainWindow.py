@@ -244,6 +244,7 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("experiments triggered")
 		expListWin = ExpListWindow(self)
 		expListWin.show()
+		#window.cellClicked.connect(window.slotItemClicked)
 	
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
