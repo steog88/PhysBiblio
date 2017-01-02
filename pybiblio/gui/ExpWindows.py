@@ -12,6 +12,7 @@ try:
 	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
+	from pybiblio.gui.CommonClasses import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -19,12 +20,9 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
-class ExpListWindow(QDialog):
+class ExpListWindow(objListWindow):
 	"""create a window for printing the list of experiments"""
 	def __init__(self, parent = None):
-		super(ExpListWindow, self).__init__(parent)
-		self.setWindowTitle('List of experiments')
-		self.parent = parent
 
 		#table dimensions
 		self.colcnt = len(pBDB.tableCols["experiments"])
@@ -33,10 +31,10 @@ class ExpListWindow(QDialog):
 			self.colContents.append(pBDB.tableCols["experiments"][j])
 		self.colContents.append("modify")
 		self.colContents.append("delete")
-		self.tableWidth = None
 
-		self.currLayout = QHBoxLayout()
-		self.setLayout(self.currLayout)
+		super(ExpListWindow, self).__init__(parent)
+		self.parent = parent
+		self.setWindowTitle('List of experiments')
 
 		self.createTable()
 
@@ -45,13 +43,7 @@ class ExpListWindow(QDialog):
 		rowcnt = len(exps)
 
 		#table settings and header
-		self.tablewidget = QTableWidget(rowcnt, self.colcnt+2)
-		vheader = QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setVerticalHeader(vheader)
-		hheader = QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setHorizontalHeader(hheader)
+		self.setTableSize(rowcnt, self.colcnt+2)
 		self.tablewidget.setHorizontalHeaderLabels(pBDB.tableCols["experiments"]+["Modify","Delete"])
 
 		#table content
@@ -64,30 +56,9 @@ class ExpListWindow(QDialog):
 				else:
 					item = QTableWidgetItem(str(exps[i][pBDB.tableCols["experiments"][j]]))
 				self.tablewidget.setItem(i, j, item)
-			pic = QPixmap(":/images/edit.png")
-			img = QLabel(self)
-			img.setPixmap(pic)
-			self.tablewidget.setCellWidget(i, self.colcnt, img)
-			pic = QPixmap(":/images/delete.png")
-			img = QLabel(self)
-			img.setPixmap(pic)
-			self.tablewidget.setCellWidget(i, self.colcnt+1, img)
+			self.addEditDeleteCells(i, self.colcnt)
 
-		self.tablewidget.resizeColumnsToContents()
-
-		vwidth = self.tablewidget.verticalHeader().width()
-		hwidth = self.tablewidget.horizontalHeader().length()
-		swidth = self.tablewidget.style().pixelMetric(QStyle.PM_ScrollBarExtent)
-		fwidth = self.tablewidget.frameWidth() * 2
-
-		if self.tableWidth is None:
-			self.tableWidth = hwidth + swidth + fwidth + 40
-		self.tablewidget.setFixedWidth(self.tableWidth)
-
-		self.tablewidget.cellClicked.connect(self.cellClick)
-		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
-
-		self.currLayout.addWidget(self.tablewidget)
+		self.finalizeTable()
 
 	def cellClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
@@ -142,69 +113,43 @@ class ExpListWindow(QDialog):
 		except:
 			pass
 
-	def recreateTable(self):
-		o = self.layout().takeAt(0)
-		o.widget().deleteLater()
-		self.createTable()
-
-class editExp(QDialog):
+class editExp(editObjectWindow):
 	"""create a window for editing or creating an experiment"""
 	def __init__(self, parent = None, exp = None):
 		super(editExp, self).__init__(parent)
-		self.textValues = {}
 		if exp is None:
 			self.data = {}
 			for k in pBDB.tableCols["experiments"]:
 				self.data[k] = ""
 		else:
 			self.data = exp
-		self.initUI()
+		self.createForm()
 
-	def onCancel(self):
-		self.result	= False
-		self.close()
-
-	def onOk(self):
-		self.result	= True
-		self.close()
-
-	def initUI(self):
+	def createForm(self):
 		self.setWindowTitle('Edit experiment')
-
-		grid = QGridLayout()
-		grid.setSpacing(1)
 
 		i = 0
 		for k in pBDB.tableCols["experiments"]:
 			val = self.data[k]
 			if k != "idExp" or (k == "idExp" and self.data[k] != ""):
 				i += 1
-				grid.addWidget(QLabel(k), i*2-1, 0)
-				grid.addWidget(QLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
+				self.currGrid.addWidget(QLabel(k), i*2-1, 0)
+				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "idExp":
 					self.textValues[k].setEnabled(False)
-				grid.addWidget(self.textValues[k], i*2, 0, 1, 2)
+				self.currGrid.addWidget(self.textValues[k], i*2, 0, 1, 2)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		#width = self.acceptButton.fontMetrics().boundingRect('OK').width() + 7
-		#self.acceptButton.setMaximumWidth(width)
-		grid.addWidget(self.acceptButton, i*2+1, 0)
+		self.currGrid.addWidget(self.acceptButton, i*2+1, 0)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		#width = self.cancelButton.fontMetrics().boundingRect('Cancel').width() + 7
-		#self.cancelButton.setMaximumWidth(width)
-		grid.addWidget(self.cancelButton, i*2+1, 1)
+		self.currGrid.addWidget(self.cancelButton, i*2+1, 1)
 
 		self.setGeometry(100,100,400, 50*i)
-		self.setLayout(grid)
-
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
+		self.centerWindow()
