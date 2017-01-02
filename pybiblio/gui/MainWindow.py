@@ -253,22 +253,7 @@ class MainWindow(QMainWindow):
 		#window.cellClicked.connect(window.slotItemClicked)
 	
 	def newExperiment(self):
-		newExpWin = editExp(self)
-		newExpWin.exec_()
-		data = {}
-		if newExpWin.result:
-			for k, v in newExpWin.textValues.items():
-				s = "%s"%v.text()
-				data[k] = s
-			print data
-			if "idExp" in data.keys():
-				print("Updating experiment %s"%data["idExp"])
-				pBDB.exps.update(data, data["idExp"])
-			else:
-				pBDB.exps.insert(data)
-			self.StatusBarMessage("Experiment saved")
-		else:
-			self.StatusBarMessage("No modifications to experiments")
+		editExperiment(self, self)
 
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")

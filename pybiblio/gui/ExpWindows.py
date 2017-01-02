@@ -20,6 +20,55 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
+def editExperiment(parent, statusBarObject, editIdExp = None):
+	if editIdExp is not None:
+		edit = pBDB.exps.getDictByID(editIdExp)
+	else:
+		edit = None
+	newExpWin = editExp(parent, exp = edit)
+	newExpWin.exec_()
+	data = {}
+	if newExpWin.result:
+		for k, v in newExpWin.textValues.items():
+			s = "%s"%v.text()
+			data[k] = s
+		if data["name"].strip() != "":
+			if "idExp" in data.keys():
+				print("[GUI] Updating experiment %s..."%data["idExp"])
+				pBDB.exps.update(data, data["idExp"])
+			else:
+				pBDB.exps.insert(data)
+			message = "Experiment saved"
+			statusBarObject.setWindowTitle("PyBiblio*")
+			try:
+				parent.recreateTable()
+			except:
+				pass
+		else:
+			message = "ERROR: empty experiment name"
+	else:
+		message = "No modifications to experiments"
+	try:
+		statusBarObject.StatusBarMessage(message)
+	except:
+		pass
+
+def deleteExperiment(parent, statusBarObject, idExp, name):
+	if askYesNo("Do you really want to delete this experiment (ID = '%s', name = '%s')?"%(idExp, name)):
+		pBDB.exps.delete(int(idExp))
+		statusBarObject.setWindowTitle("PyBiblio*")
+		message = "Experiment deleted"
+		try:
+			parent.recreateTable()
+		except:
+			pass
+	else:
+		message = "Nothing changed"
+	try:
+		statusBarObject.StatusBarMessage(message)
+	except:
+		pass
+
 class ExpListWindow(objListWindow):
 	"""create a window for printing the list of experiments"""
 	def __init__(self, parent = None):
@@ -63,55 +112,15 @@ class ExpListWindow(objListWindow):
 	def cellClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
 		if self.colContents[col] == "modify":
-			self.editExperiment(idExp)
+			editExperiment(self, self.parent, idExp)
 		elif self.colContents[col] == "delete":
 			name = self.tablewidget.item(row, 1).text()
-			self.deleteExperiment(idExp, name)
+			deleteExperiment(self, self.parent, idExp, name)
 
 	def cellDoubleClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
 		if self.colContents[col] == "inspire" or self.colContents[col] == "homepage":
 			print "will open '%s' "%idExp
-
-	def editExperiment(self, editIdExp = None):
-		if editIdExp is not None:
-			edit = pBDB.exps.getDictByID(editIdExp)
-		else:
-			edit = None
-		newExpWin = editExp(self, exp = edit)
-		newExpWin.exec_()
-		data = {}
-		if newExpWin.result:
-			for k, v in newExpWin.textValues.items():
-				s = "%s"%v.text()
-				data[k] = s
-			print data
-			if "idExp" in data.keys():
-				print("Updating experiment %s"%data["idExp"])
-				pBDB.exps.update(data, data["idExp"])
-			else:
-				pBDB.exps.insert(data)
-			message = "Experiment saved"
-			self.recreateTable()
-		else:
-			message = "No modifications to experiments"
-		try:
-			self.parent.StatusBarMessage(message)
-		except:
-			pass
-
-	def deleteExperiment(self, idExp, name):
-		if askYesNo("Do you really want to delete this experiment (ID = '%s', name = '%s')?"%(idExp, name)):
-			pBDB.exps.delete(int(idExp))
-			self.parent.setWindowTitle("PyBiblio*")
-			message = "Experiment deleted"
-			self.recreateTable()
-		else:
-			message = "Nothing changed"
-		try:
-			self.parent.StatusBarMessage(message)
-		except:
-			pass
 
 class editExp(editObjectWindow):
 	"""create a window for editing or creating an experiment"""

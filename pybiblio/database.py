@@ -160,7 +160,7 @@ class categories(pybiblioDBSub):
 	def update(self, data, idCat):
 		"""update"""
 		data["idCat"] = idCat
-		print("-----\n", data, "\n------\n")
+		print(data)
 		query = "replace into categories (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
@@ -564,7 +564,7 @@ class experiments(pybiblioDBSub):
 	def update(self, data, idExp):
 		"""update an existing experiment"""
 		data["idExp"] = idExp
-		print("-----\n", data, "\n------\n")
+		print(data)
 		query = "replace into experiments (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
@@ -904,7 +904,7 @@ class entries(pybiblioDBSub):
 	def update(self, data, oldkey):
 		"""update entry"""
 		data["bibkey"] = oldkey
-		print("-----\n", data, "\n------\n")
+		print(data)
 		query = "replace into entries (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
