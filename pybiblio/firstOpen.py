@@ -7,10 +7,10 @@ except ImportError:
 
 #write here the functions to define the user settings and create the database and config file. 
 
-db_is_new = not os.path.exists(pbConfig.params['mainDatabaseName'])
-if db_is_new:
-	print("-------New database. Creating tables!\n\n")
-	createTables(pBDB)
+#db_is_new = not os.path.exists(pbConfig.params['mainDatabaseName'])
+#if db_is_new:
+	#print("-------New database. Creating tables!\n\n")
+	#createTables(pBDB)
 
 def createTables(database):
 	"""create tables: useful only at first use"""

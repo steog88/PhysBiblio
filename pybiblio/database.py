@@ -30,6 +30,7 @@ class pybiblioDB():
 		"""
 		#structure of the tables
 		self.tableFields = pybiblio.tablesDef.tableFields
+		self.descriptions = pybiblio.tablesDef.fieldsDescriptions
 		#names of the columns
 		self.tableCols = {}
 		for q in self.tableFields.keys():
@@ -39,10 +40,10 @@ class pybiblioDB():
 		self.curs = None
 		self.dbname = dbname
 		db_is_new = not os.path.exists(self.dbname)
+		self.openDB()
 		if db_is_new:
 			print("-------New database. Creating tables!\n\n")
 			pbfo.createTables(self)
-		self.openDB()
 		
 		self.lastFetched = None
 		self.catsHier = None
@@ -578,6 +579,28 @@ class experiments(pybiblioDBSub):
 			return self.connExec(query, {"field": value, "idExp": idExp})
 		else:
 			return False
+
+	def getByID(self, idExp):
+		"""get experiments matching the idExp"""
+		self.cursExec("""
+			select * from experiments where idExp=?
+			""", (idExp, ))
+		return self.curs.fetchall()
+
+	def getDictByID(self, idExp):
+		"""get experiments matching the idExp, return a dictionary"""
+		self.cursExec("""
+			select * from experiments where idExp=?
+			""", (idExp, ))
+		try:
+			entry = self.curs.fetchall()[0]
+			expDict = {}
+			for i,k in enumerate(self.tableCols["experiments"]):
+				expDict[k] = entry[i]
+		except:
+			print("[DB] Error in extracting experiment by idExp")
+			expDict = None
+		return expDict
 
 	def getAll(self, orderBy = "name", order = "ASC"):
 		"""get all the experiments from the DB"""

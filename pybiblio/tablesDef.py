@@ -1,5 +1,6 @@
 """definitions of the tables for the database"""
 tableFields = {}
+fieldsDescriptions = {}
 tableFields["entries"] = [
 	["bibkey", "text", "primary key not null"],
 	["inspire", "text", ""],
@@ -48,3 +49,10 @@ tableFields["entryExps"] = [
 	["idEnEx", "integer", "primary key"],
 	["bibkey", "text", "not null"],
 	["idExp", "int", "not null"]];
+
+fieldsDescriptions["experiments"] = {
+	"idExp": "unique ID that identifies the experiment",
+	"name": "Name of the experiment",
+	"comments": "Description or comments",
+	"homepage": "web link to the experiment homepage",
+	"inspire": "the Inspire ID of the experiment record"}
