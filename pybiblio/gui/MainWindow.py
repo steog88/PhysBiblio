@@ -85,8 +85,12 @@ class MainWindow(QMainWindow):
 
 		self.ExpAct = QAction("&Experiments", self,
 								shortcut="Ctrl+E",
-								statusTip="Manage Experiments",
-								triggered=self.experiments)
+								statusTip="List of Experiments",
+								triggered=self.experimentList)
+
+		self.newExpAct = QAction("&New Experiment", self,
+								statusTip="New Experiment",
+								triggered=self.newExperiment)
 								
 		self.biblioAct = QAction("&Bibliography", self,
 								shortcut="Ctrl+B",
@@ -132,7 +136,9 @@ class MainWindow(QMainWindow):
 		self.menuBar().addSeparator()
 		self.dataMenu = self.menuBar().addMenu("&Contents")
 		self.dataMenu.addAction(self.CatAct)
+		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.ExpAct)
+		self.dataMenu.addAction(self.newExpAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.biblioAct)
 		self.dataMenu.addSeparator()
@@ -240,12 +246,30 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("categories triggered")
 		#print rows[0]['name']
 	
-	def experiments(self):
+	def experimentList(self):
 		self.StatusBarMessage("experiments triggered")
 		expListWin = ExpListWindow(self)
 		expListWin.show()
 		#window.cellClicked.connect(window.slotItemClicked)
 	
+	def newExperiment(self):
+		newExpWin = editExp(self)
+		newExpWin.exec_()
+		data = {}
+		if newExpWin.result:
+			for k, v in newExpWin.textValues.items():
+				s = "%s"%v.text()
+				data[k] = s
+			print data
+			if "idExp" in data.keys():
+				print("Updating experiment %s"%data["idExp"])
+				pBDB.exps.update(data, data["idExp"])
+			else:
+				pBDB.exps.insert(data)
+			self.StatusBarMessage("Experiment saved")
+		else:
+			self.StatusBarMessage("No modifications to experiments")
+
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
 		#abc=webInt.webInterf()
