@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
 		self.myStatusBar = QStatusBar()
 		self.createActions()
 		self.createMenusAndToolBar()
-		self.createLayout()
+		self.createMainLayout()
 		self.setIcon()
 		self.CreateStatusBar()
 
@@ -49,35 +49,36 @@ class MainWindow(QMainWindow):
 		"""
 		Create Qt actions used in GUI.
 		"""
-		self.saveAct = QAction(QIcon(":/images/file_save.png"),
+		self.saveAct = QAction(QIcon(":/images/file-save.png"),
 								"&Save database", self,
 								shortcut="Ctrl+S",
 								statusTip="Save the modifications",
 								triggered=self.save)
 								
-		self.exportAct = QAction(QIcon(":/images/file_export.png"),
+		self.exportAct = QAction(QIcon(":/images/export.png"),
 								"Ex&port last as *.bib", self,
 								shortcut="Ctrl+P",
 								statusTip="Export last query as *.bib",
 								triggered=self.export)
 								
-		self.exportSelAct = QAction(QIcon(":/images/file_export.png"),
+		self.exportSelAct = QAction(QIcon(":/images/export.png"),
 								"Export se&lection as *.bib", self,
 								shortcut="Ctrl+L",
 								statusTip="Export current selection as *.bib",
 								triggered=self.exportSelection)
 								
-		self.exportAllAct = QAction(QIcon(":/images/file_export.png"),
+		self.exportAllAct = QAction(QIcon(":/images/export-table.png"),
 								"Export &all as *.bib", self,
 								shortcut="Ctrl+A",
 								statusTip="Export complete bibliography as *.bib",
 								triggered=self.exportAll)
 
-		self.exitAct = QAction(QIcon(":/images/application_exit.png"),
+		self.exitAct = QAction(QIcon(":/images/application-exit.png"),
 								"E&xit", self,
 								shortcut="Ctrl+Q",
 								statusTip="Exit application",
 								triggered=self.close)
+
 		self.CatAct = QAction("&Categories", self,
 								shortcut="Ctrl+C",
 								statusTip="Manage Categories",
@@ -97,17 +98,29 @@ class MainWindow(QMainWindow):
 								statusTip="Manage bibliography",
 								triggered=self.biblio)
 
-		self.cliAct = QAction("&CLI", self,
+		self.newBibAct = QAction(QIcon(":/images/file-add.png"),
+								"New &Bib item", self,
+								statusTip="New bibliographic item",
+								triggered=self.newBibtex)
+
+		self.cliAct = QAction(QIcon(":/images/terminal.png"),
+								"&CLI", self,
 								shortcut="Ctrl+T",
 								statusTip="CommandLine Interface",
 								triggered=self.cli)
 
-		self.configAct = QAction(
-								"&Settings", self,
+		self.configAct = QAction(QIcon(":/images/settings.png"),
+								"Settin&gs", self,
 								statusTip="Save the settings",
 								triggered=self.config)
 
-		self.aboutAct = QAction(QIcon(":/images/help_about.png"),
+		self.reloadAct = QAction(QIcon(":/images/refresh.png"),
+								"&Reload", self,
+								shortcut="Ctrl+R",
+								statusTip="Reload the list of bibtex entries",
+								triggered=self.reloadMainContent)
+
+		self.aboutAct = QAction(QIcon(":/images/help-about.png"),
 								"&About", self,
 								statusTip="Show About box",
 								triggered=self.showAbout)
@@ -141,6 +154,8 @@ class MainWindow(QMainWindow):
 		self.dataMenu.addAction(self.newExpAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.biblioAct)
+		self.dataMenu.addAction(self.newBibAct)
+		self.dataMenu.addAction(self.reloadAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.cliAct)
 
@@ -156,14 +171,65 @@ class MainWindow(QMainWindow):
 		
 		self.mainToolBar = self.addToolBar('Toolbar')
 		self.mainToolBar.addAction(self.saveAct)
+		self.mainToolBar.addSeparator()
+		self.mainToolBar.addAction(self.newBibAct)
 		self.mainToolBar.addAction(self.exportAct)
 		self.mainToolBar.addAction(self.exportAllAct)
+		self.mainToolBar.addSeparator()
+		self.mainToolBar.addAction(self.reloadAct)
+		self.mainToolBar.addAction(self.cliAct)
+		self.mainToolBar.addSeparator()
+		self.mainToolBar.addAction(self.configAct)
+		self.mainToolBar.addAction(self.aboutAct)
+		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.exitAct)
 		
         
-	def createLayout(self):
-		pass
+	def createMainLayout(self):
+		#will contain the list of bibtex entries
+		self.top = bibtexList(self)
+		self.top.setFrameShape(QFrame.StyledPanel)
 
+		#will contain the bibtex code:
+		self.bottomLeft = bibtexWindow(self)
+		self.bottomLeft.setFrameShape(QFrame.StyledPanel)
+
+		#will contain other info on the bibtex entry:
+		self.bottomRight = bibtexInfo(self)
+		self.bottomRight.setFrameShape(QFrame.StyledPanel)
+
+		splitter = QSplitter(Qt.Vertical)
+		splitter.addWidget(self.top)
+		splitterBottom = QSplitter(Qt.Horizontal)
+		splitterBottom.addWidget(self.bottomLeft)
+		splitterBottom.addWidget(self.bottomRight)
+		splitter.addWidget(splitterBottom)
+		splitter.setStretchFactor(0,3)
+		splitter.setStretchFactor(1,1)
+
+		availableWidth		= QDesktopWidget().availableGeometry().width()
+		availableHeight		= QDesktopWidget().availableGeometry().height()
+		#splitterBottom.setMinimumHeight(0.2*availableHeight)
+		#splitterBottom.setMaximumHeight(0.4*availableHeight)
+		#splitter.setMinimumHeight(0.8*availableHeight)
+		#splitter.setMaximumHeight(0.8*availableHeight)
+		splitter.setGeometry(0, 0, availableWidth, availableHeight)
+
+		self.setCentralWidget(splitter)
+		#self.setLayout(hbox)
+		#QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+
+		#self.setWindowTitle('QtGui.QSplitter')
+		#self.show()
+
+	def reloadMainContent(self):
+		"""delete previous table widget and create a new one"""
+		#o = self.layout().takeAt(0)
+		#o.widget().deleteLater()
+		#self.createMainLayout()
+		self.StatusBarMessage("Reloading main table...")
+		self.top = bibtexList(self)
+		self.top.setFrameShape(QFrame.StyledPanel)
 	
 	def config(self):
 		cfgWin = configWindow(self)
@@ -251,9 +317,12 @@ class MainWindow(QMainWindow):
 		expListWin = ExpListWindow(self)
 		expListWin.show()
 		#window.cellClicked.connect(window.slotItemClicked)
-	
+
 	def newExperiment(self):
 		editExperiment(self, self)
+
+	def newBibtex(self):
+		editBibtexEntry(self, self)
 
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")
@@ -303,6 +372,7 @@ class MainWindow(QMainWindow):
 
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
+		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
 		pyBiblioCLI()
 			
 
