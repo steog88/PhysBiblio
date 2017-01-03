@@ -1,41 +1,62 @@
 import sys, ast
 
-config_defaults = {
-	"configMainFile":   'data/params.cfg',
-	"timeoutWebSearch": 10.,
-	"mainDatabaseName": 'data/pybiblio.db',
-	"pdfFolder":        'data/pdf/',
-	"pdfApplication":   'okular',
-	"webApplication":   'google-chrome',
-	"askBeforeExit":	False,
-	"maxAuthorNames":	3,
-	"bibListFontSize":	8,
-	"bibtexListColumns":["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire", "link"]
-}
-config_descriptions = {
-	"configMainFile":   'Name of the configuration file',
-	"timeoutWebSearch": 'Timeout for the web queries',
-	"mainDatabaseName": 'Name of the database file',
-	"pdfFolder":        'Folder where to save the PDF files',
-	"pdfApplication":   'Application for opening PDF files',
-	"webApplication":   'Web browser',
-	"askBeforeExit":	'Confirm before exiting',
-	"maxAuthorNames":	'Max number of authors to be displayed in the main list',
-	"bibListFontSize":	'Font size in the list of bibtex entries and companion boxes',
-	"bibtexListColumns":'The columns to be shown in the entries list',
-}
-config_special = {
-	"timeoutWebSearch": 'float',
-	"bibListFontSize":	'float',
-	"maxAuthorNames":	'float',
-	"askBeforeExit":	'boolean',
-	"bibtexListColumns":'list'
-}
+configuration_params = [
+{"name": "configMainFile",
+	"default": 'data/params.cfg',
+	"description": 'Name of the configuration file',
+	"special": None},
+{"name": "mainDatabaseName",
+	"default": 'data/pybiblio.db',
+	"description": 'Name of the database file',
+	"special": None},
+{"name": "pdfFolder",
+	"default": 'data/pdf/',
+	"description": 'Folder where to save the PDF files',
+	"special": None},
+{"name": "pdfApplication",
+	"default": 'okular',
+	"description": 'Application for opening PDF files',
+	"special": None},
+{"name": "webApplication",
+	"default": 'google-chrome',
+	"description": 'Web browser',
+	"special": None},
+{"name": "timeoutWebSearch",
+	"default": 10.,
+	"description": 'Timeout for the web queries',
+	"special": 'float'},
+{"name": "askBeforeExit",
+	"default": False,
+	"description": 'Confirm before exiting',
+	"special": 'boolean'},
+{"name": "maxAuthorNames",
+	"default": 3,
+	"description": 'Max number of authors to be displayed in the main list',
+	"special": 'float'},
+{"name": "bibListFontSize",
+	"default": 9,
+	"description": 'Font size in the list of bibtex entries and companion boxes',
+	"special": 'float'},
+{"name": "bibtexListColumns",
+	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire", "link"],
+	"description": 'The columns to be shown in the entries list',
+	"special": 'list'}
+]
+
+config_paramOrder = [ p["name"] for p in configuration_params ]
+config_defaults = {}
+config_descriptions = {}
+config_special = {}
+for p in configuration_params:
+	config_defaults[p["name"]] = p["default"]
+	config_descriptions[p["name"]] = p["description"]
+	config_special[p["name"]] = p["special"]
 		
 class ConfigVars():
 	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
 		"""initialize variables and read the external file"""
+		self.paramOrder = config_paramOrder
 		self.params = {}
 		for k, v in config_defaults.items():
 			self.params[k] = v
@@ -85,8 +106,8 @@ class ConfigVars():
 	def saveConfigFile(self):
 		"""write the current configuration in a file"""
 		txt = ""
-		for k, v in self.params.items():
-			current = "%s = %s\n"%(k, v)
+		for k in self.paramOrder:
+			current = "%s = %s\n"%(k, self.params[k])
 			if current != "%s = %s\n"%(k, config_defaults[k]):
 				txt += current
 		try:

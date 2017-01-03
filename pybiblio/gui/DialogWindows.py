@@ -59,20 +59,20 @@ class configWindow(QDialog):
 		grid.setSpacing(1)
 
 		i = 0
-		for k in pbConfig.params.keys():
+		for k in pbConfig.paramOrder:
 			i += 1
 			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
-			grid.addWidget(QLabel(k), i*2-1, 0)
-			grid.addWidget(QLabel("(%s)"%pbConfig.descriptions[k]), i*2-1, 1)
-			self.textValues.append([k,QLineEdit(val)])
-			grid.addWidget(self.textValues[i-1][1], i*2, 0, 1, 2)
+			grid.addWidget(QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)), i-1, 0, 1, 2)
+			#grid.addWidget(QLabel("(%s)"%pbConfig.descriptions[k]), i-1, 1)
+			self.textValues.append([k, QLineEdit(val)])
+			grid.addWidget(self.textValues[i-1][1], i-1, 2, 1, 2)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
 		#width = self.acceptButton.fontMetrics().boundingRect('OK').width() + 7
 		#self.acceptButton.setMaximumWidth(width)
-		grid.addWidget(self.acceptButton, i*2+1, 0)
+		grid.addWidget(self.acceptButton, i, 0)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
@@ -80,9 +80,9 @@ class configWindow(QDialog):
 		self.cancelButton.setAutoDefault(True)
 		#width = self.cancelButton.fontMetrics().boundingRect('Cancel').width() + 7
 		#self.cancelButton.setMaximumWidth(width)
-		grid.addWidget(self.cancelButton, i*2+1, 1)
+		grid.addWidget(self.cancelButton, i, 1)
 
-		self.setGeometry(100,100,400, 50*i)
+		self.setGeometry(100,100,1000, 30*i)
 		self.setLayout(grid)
 
 		qr = self.frameGeometry()
