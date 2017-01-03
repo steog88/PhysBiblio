@@ -27,4 +27,4 @@ except SystemExit:
 	pBDB.closeDB()
 	print("closing window...")
 except Exception:
-	print(sys.exc_info()[1])
+	print(traceback.format_exc())

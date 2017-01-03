@@ -51,12 +51,12 @@ tableFields["entryExps"] = [
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {
 	"bibkey":	"Unique bibtex key that identifies the bibliographic element",
-	"inspire":	"Inspire ID of the record (if any)",
-	"arxiv":	"arXiv ID of the record (if any)",
-	"ads":		"NASA ADS ID of the record (if any)",
-	"scholar":	"Google Scholar ID of the record (if any)",
-	"doi":		"DOI of the record (if any)",
-	"isbn":		"ISBN code of the record (if any)",
+	"inspire":	"Inspire ID of the record",
+	"arxiv":	"arXiv ID of the record",
+	"ads":		"NASA ADS ID of the record",
+	"scholar":	"Google Scholar ID of the record",
+	"doi":		"DOI of the record",
+	"isbn":		"ISBN code of the record",
 	"year":		"Year of publication",
 	"link":		"Web link to article or additional material",
 	"comments":	"Comments",

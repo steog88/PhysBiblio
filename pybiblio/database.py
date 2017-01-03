@@ -818,6 +818,17 @@ class entries(pybiblioDBSub):
 			for k in el.keys():
 				tmp[k] = el[k]
 			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			try:
+				tmp["title"] = tmp["bibtexDict"]["title"]
+			except KeyError:
+				tmp["title"] = ""
+			try:
+				author = tmp["bibtexDict"]["author"]
+				if author.count("and") > pbConfig.params["maxAuthorNames"] - 1:
+					author = author[:author.index("and")] + "et al."
+				tmp["author"] = author
+			except KeyError:
+				tmp["author"] = ""
 			fetched_out.append(tmp)
 		self.lastFetched = fetched_out
 		return self
