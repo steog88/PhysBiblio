@@ -27,16 +27,17 @@ class objListWindow(QDialog):
 		hheader.setResizeMode(QHeaderView.Interactive)
 		self.tablewidget.setHorizontalHeader(hheader)
 
-	def addEditDeleteCells(self, row, col):
-		"""create icons for edit and delete"""
-		pic = QPixmap(":/images/edit.png")
+	def addImageCell(self, row, col, imagePath):
+		"""create a cell containing an image"""
+		pic = QPixmap(imagePath).scaledToHeight(self.tablewidget.rowHeight(row)*0.8)
 		img = QLabel(self)
 		img.setPixmap(pic)
 		self.tablewidget.setCellWidget(row, col, img)
-		pic = QPixmap(":/images/delete.png")
-		img = QLabel(self)
-		img.setPixmap(pic)
-		self.tablewidget.setCellWidget(row, col + 1, img)
+
+	def addEditDeleteCells(self, row, col):
+		"""create icons for edit and delete"""
+		self.addImageCell(row, col, ":/images/edit.png")
+		self.addImageCell(row, col + 1, ":/images/delete.png")
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
