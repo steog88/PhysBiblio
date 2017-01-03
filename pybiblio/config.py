@@ -1,4 +1,4 @@
-import sys
+import sys, ast
 
 config_defaults = {
 	"configMainFile":   'data/params.cfg',
@@ -7,7 +7,10 @@ config_defaults = {
 	"pdfFolder":        'data/pdf/',
 	"pdfApplication":   'okular',
 	"webApplication":   'google-chrome',
-	"askBeforeExit":	False
+	"askBeforeExit":	False,
+	"maxAuthorNames":	3,
+	"bibListFontSize":	8,
+	"bibtexListColumns":["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire", "link"]
 }
 config_descriptions = {
 	"configMainFile":   'Name of the configuration file',
@@ -17,17 +20,25 @@ config_descriptions = {
 	"pdfApplication":   'Application for opening PDF files',
 	"webApplication":   'Web browser',
 	"askBeforeExit":	'Confirm before exiting',
+	"maxAuthorNames":	'Max number of authors to be displayed in the main list',
+	"bibListFontSize":	'Font size in the list of bibtex entries and companion boxes',
+	"bibtexListColumns":'The columns to be shown in the entries list',
 }
 config_special = {
 	"timeoutWebSearch": 'float',
+	"bibListFontSize":	'float',
+	"maxAuthorNames":	'float',
 	"askBeforeExit":	'boolean',
+	"bibtexListColumns":'list'
 }
 		
 class ConfigVars():
 	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
 		"""initialize variables and read the external file"""
-		self.params = config_defaults
+		self.params = {}
+		for k, v in config_defaults.items():
+			self.params[k] = v
 		self.descriptions = config_descriptions
 		self.configMainFile = self.params["configMainFile"]
 		if len(sys.argv) > 1:
@@ -42,6 +53,8 @@ class ConfigVars():
 	
 	def readConfigFile(self):
 		"""read all the configuration from an external file"""
+		for k, v in config_defaults.items():
+			self.params[k] = v
 		try:
 			with open(self.configMainFile) as r:
 				txt = r.readlines()
@@ -57,25 +70,29 @@ class ConfigVars():
 							self.params[k] = False
 						else:
 							raise ValueError
+					elif config_special[k] == 'list':
+						self.params[k] = ast.literal_eval(v.strip())
 					else:
-						self.params[k] = float(v)
-				except:
+						self.params[k] = v
+				except Exception:
 					self.params[k] = v
 		except IOError:
 			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
-		except:
+		except Exception:
 			print("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
 		"""write the current configuration in a file"""
 		txt = ""
 		for k, v in self.params.items():
-			txt += "%s = %s\n"%(k, v)
+			current = "%s = %s\n"%(k, v)
+			if current != "%s = %s\n"%(k, config_defaults[k]):
+				txt += current
 		try:
 			with open(self.configMainFile, "w") as w:
 				w.write(txt)
-		except e:
+		except IOError:
 			print("[config] ERROR in saving config file!")
 			print(e)
 
