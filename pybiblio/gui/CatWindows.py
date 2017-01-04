@@ -89,7 +89,7 @@ class catsWindowList(QDialog):
 		self.tree.setHeaderHidden(True)
 		#self.tree.setHorizontalHeaderLabels(["Categories"])
 
-		#folderTree.itemClicked.connect( lambda : printer( folderTree.currentItem() ) )
+		self.tree.clicked.connect(self.askAndPerformAction)
 
 	def _populateTree(self, children, parent):
 		for child in cats_alphabetical(self.cats, children):
@@ -97,6 +97,25 @@ class catsWindowList(QDialog):
 			parent.appendRow(child_item)
 			self._populateTree(children[child], child_item)
 
+	def askAndPerformAction(self, index):
+		item = self.tree.selectedIndexes()[0]
+		idCat, name = item.model().itemFromIndex(index).text().split(": ")
+		ask = askCatAction(self, int(idCat), name)
+		ask.exec_()
+		if ask.result == "modify":
+			print "will modify"
+		elif ask.result == "delete":
+			print "will delete"
+		elif ask.result == False:
+			print "will do nothing"
+		else:
+			print "invalid action"
+
+class askCatAction(askAction):
+	def __init__(self, parent = None, idCat = -1, name = ""):
+		super(askCatAction, self).__init__(parent)
+		self.message = "What to do with this category (%d - %s)?"%(idCat, name)
+		self.initUI()
 
 class editCat(editObjectWindow):
 	"""create a window for editing or creating a category"""

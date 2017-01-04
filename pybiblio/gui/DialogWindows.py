@@ -89,3 +89,56 @@ class configWindow(QDialog):
 		cp = QDesktopWidget().availableGeometry().center()
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
+
+class askAction(QDialog):
+	"""create a window for asking an action: modify, delete, view...?"""
+	def __init__(self, parent = None):
+		super(askAction, self).__init__(parent)
+		self.message = None
+		self.possibleActions = [
+			["Modify", self.onModify],
+			["Delete", self.onDelete]
+			]
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onModify(self):
+		self.result = "modify"
+		self.close()
+
+	def onDelete(self):
+		self.result = "delete"
+		self.close()
+
+	def initUI(self):
+		self.setWindowTitle('Select action')
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		i = 0
+		if self.message is not None:
+			grid.addWidget(QLabel("%s"%self.message), 0, 0)
+			i += 1
+
+		for act in self.possibleActions:
+			i += 1
+			button = QPushButton(act[0], self)
+			button.clicked.connect(act[1])
+			grid.addWidget(button, i, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		grid.addWidget(self.cancelButton, i+1, 0)
+
+		self.setGeometry(100,100,300, 30*i)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
