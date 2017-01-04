@@ -1,5 +1,4 @@
-import sys,re,os
-from urllib2 import Request
+import sys, re, os
 import urllib2
 import pkgutil
 try:
@@ -19,7 +18,7 @@ class webInterf():
 		self.urlArgs = None
 		self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
 		#save the names of the available web search interfaces
-		self.interfaces = [a for a in webInterfaces if a != "webInterf" ]
+		self.interfaces = [ a for a in webInterfaces if a != "webInterf" ]
 		self.webSearch = {}
 		self.loaded = False
 		
@@ -27,7 +26,7 @@ class webInterf():
 		"""joins the arguments of the GET query to get the full url"""
 		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.iteritems()])
 		
-	def textFromUrl(self,url, headers = None):
+	def textFromUrl(self, url, headers = None):
 		"""use urllib to get the html content of the given url"""
 		try:
 			if headers is not None:
@@ -36,7 +35,7 @@ class webInterf():
 				req = urllib2.Request(url)
 			response = urllib2.urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
-		except:
+		except urllib2.URLError:
 			print("[%s] -> error in retriving data from url"%self.name)
 			return None
 		try:
@@ -60,7 +59,7 @@ class webInterf():
 		for q in self.interfaces:
 			try:
 				_temp = __import__("pybiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
-				self.webSearch[q] = getattr(_temp,"webSearch")()
+				self.webSearch[q] = getattr(_temp, "webSearch")()
 			except:
 				print("pybiblio.webimport.%s import error"%q)
 		self.loaded = True
@@ -73,5 +72,5 @@ class webInterf():
 		"""will call subclass method"""
 		getattr(self.webSearch[method], retrieveUrlAll)(search)
 
-pyBiblioWeb=webInterf()
+pyBiblioWeb = webInterf()
 pyBiblioWeb.loadInterfaces()

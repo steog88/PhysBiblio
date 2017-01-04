@@ -119,6 +119,5 @@ class ConfigVars():
 				w.write(txt)
 		except IOError:
 			print("[config] ERROR in saving config file!")
-			print(e)
 
 pbConfig = ConfigVars()
