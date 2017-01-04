@@ -218,40 +218,19 @@ class categories(pybiblioDBSub):
 		def addSubCats(idC):
 			tmp = {}
 			for c in [ a for a in cats if a["parentCat"] == idC and a["idCat"] != 0 ]:
-				tmp[c["idCat"]] = {}
+				tmp[c["idCat"]] = addSubCats(c["idCat"])
 			return tmp
 		catsHier = {}
-		new = addSubCats(startFrom)
-		catsHier[startFrom] = new
-		if len(new.keys()) == 0:
-			return catsHier
-		for l0 in catsHier.keys():
-			for l1 in catsHier[l0].keys():
-				new = addSubCats(l1)
-				if len(new.keys()) > 0:
-					catsHier[l0][l1] = new
-		for l0 in catsHier.keys():
-			for l1 in catsHier[l0].keys():
-				for l2 in catsHier[l0][l1].keys():
-					new = addSubCats(l2)
-					if len(new.keys()) > 0:
-						catsHier[l0][l1][l2] = new
-		for l0 in catsHier.keys():
-			for l1 in catsHier[l0].keys():
-				for l2 in catsHier[l0][l1].keys():
-					for l3 in catsHier[l0][l1][l2].keys():
-						new = addSubCats(l3)
-						if len(new.keys()) > 0:
-							catsHier[l0][l1][l2][l3] = new
+		catsHier[startFrom] = addSubCats(startFrom)
 		self.catsHier = catsHier
 		return catsHier
 
-	def printHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 5, replace = False):
+	def printHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 10, replace = False):
 		"""print categories and subcategories in a tree-like form"""
 		cats = self.getAll()
-		if depth < 2 or depth > 5:
-			print("[DB] invalid depth in printCatHier (use between 2 and 5)")
-			depth = 5
+		if depth < 2:
+			print("[DB] invalid depth in printCatHier (must be greater than 2)")
+			depth = 10
 		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
 		def catString(idCat):
 			cat = cats[idCat]
@@ -264,20 +243,12 @@ class categories(pybiblioDBSub):
 			decorated = [ (x["name"], x) for x in listIn ]
 			decorated.sort()
 			return [ x[1]["idCat"] for x in decorated ]
-		for l0 in alphabetical(catsHier.keys()):
-			print(catString(l0))
-			if depth > 1:
-				for l1 in alphabetical(catsHier[l0].keys()):
-					print(sp + catString(l1))
-					if depth > 2:
-						for l2 in alphabetical(catsHier[l0][l1].keys()):
-							print(2*sp + catString(l2))
-							if depth > 3:
-								for l3 in alphabetical(catsHier[l0][l1][l2].keys()):
-									print(3*sp + catString(l3))
-									if depth > 4:
-										for l4 in alphabetical(catsHier[l0][l1][l2][l3].keys()):
-											print(4*sp + catString(l4))
+		def printSubGroup(tree, indent = "", startDepth = 0):
+			if startDepth <= depth:
+				for l in alphabetical(tree.keys()):
+					print(indent + catString(l))
+					printSubGroup(tree[l], (startDepth + 1) * sp, startDepth + 1)
+		printSubGroup(catsHier)
 
 	def delete(self, idCat, name = None):
 		"""delete a category, its subcategories and all their connections"""
