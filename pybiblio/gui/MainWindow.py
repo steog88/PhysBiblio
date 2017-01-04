@@ -310,7 +310,8 @@ class MainWindow(QMainWindow):
 	def categories(self):
 		#rows=pBDB.extractCatByName("Tags")
 		self.StatusBarMessage("categories triggered")
-		#print rows[0]['name']
+		catListWin = catsWindowList(self)
+		catListWin.show()
 	
 	def experimentList(self):
 		self.StatusBarMessage("experiments triggered")

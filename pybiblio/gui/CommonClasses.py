@@ -52,6 +52,8 @@ class objListWindow(QDialog):
 			self.tableWidth = hwidth + swidth + fwidth + 40
 		self.tablewidget.setFixedWidth(self.tableWidth)
 
+		self.setMinimumHeight(300)
+
 		self.tablewidget.cellClicked.connect(self.cellClick)
 		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
 

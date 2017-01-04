@@ -190,6 +190,7 @@ class bibtexList(QFrame):
 			#deleteExperiment(self, self.parent, bibkey)
 
 	def cellDoubleClick(self, row, col):
+		#use to open a pdf (if existing) or the web link when double click!
 		pass
 
 	def setTableSize(self, rows, cols):
@@ -218,6 +219,7 @@ class bibtexList(QFrame):
 
 	def recreateTable(self):
 		"""delete previous table widget and create a new one"""
+		self.bibs = pBDB.bibs.getAll()
 		o = self.layout().takeAt(0)
 		o.widget().deleteLater()
 		self.createTable()
