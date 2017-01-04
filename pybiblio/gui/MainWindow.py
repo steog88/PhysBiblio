@@ -84,6 +84,10 @@ class MainWindow(QMainWindow):
 								statusTip="Manage Categories",
 								triggered=self.categories)
 
+		self.newCatAct = QAction("Ne&w Category", self,
+								statusTip="New Category",
+								triggered=self.newCategory)
+
 		self.ExpAct = QAction("&Experiments", self,
 								shortcut="Ctrl+E",
 								statusTip="List of Experiments",
@@ -93,13 +97,13 @@ class MainWindow(QMainWindow):
 								statusTip="New Experiment",
 								triggered=self.newExperiment)
 								
-		self.biblioAct = QAction("&Bibliography", self,
-								shortcut="Ctrl+B",
+		self.biblioAct = QAction("Bibliogra&phy", self,
 								statusTip="Manage bibliography",
 								triggered=self.biblio)
 
 		self.newBibAct = QAction(QIcon(":/images/file-add.png"),
 								"New &Bib item", self,
+								shortcut="Ctrl+N",
 								statusTip="New bibliographic item",
 								triggered=self.newBibtex)
 
@@ -149,6 +153,7 @@ class MainWindow(QMainWindow):
 		self.menuBar().addSeparator()
 		self.dataMenu = self.menuBar().addMenu("&Contents")
 		self.dataMenu.addAction(self.CatAct)
+		self.dataMenu.addAction(self.newCatAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.ExpAct)
 		self.dataMenu.addAction(self.newExpAct)
@@ -260,17 +265,10 @@ class MainWindow(QMainWindow):
 		self.myStatusBar.showMessage('Ready', 0)
 		self.setStatusBar(self.myStatusBar)
 		
-	def StatusBarMessage(self,message="abc",time=0):
+	def StatusBarMessage(self, message = "abc", time = 0):
 		print("[StatusBar] %s"%message)
 		self.myStatusBar.showMessage(message, time)
-		
-	#def setStatusButton(self):
-		#""" Function to set About Button
-		#"""
-		#self.StatusButton = QPushButton("Try", self)
-		#self.StatusButton.move(0, 0)
-		#self.StatusButton.clicked.connect(self.StatusBarMessage)
-	
+
 	def save(self):
 		if askYesNo("Do you really want to save?"):
 			pBDB.commit()
@@ -312,6 +310,9 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("categories triggered")
 		catListWin = catsWindowList(self)
 		catListWin.show()
+
+	def newCategory(self):
+		editCategory(self, self)
 	
 	def experimentList(self):
 		self.StatusBarMessage("experiments triggered")

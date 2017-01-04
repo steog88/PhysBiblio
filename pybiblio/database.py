@@ -1404,6 +1404,6 @@ def catString(cats, idCat, withDesc = False):
 
 def cats_alphabetical(cats, listId):
 	listIn = [ cats[i] for i in listId ]
-	decorated = [ (x["name"], x) for x in listIn ]
+	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]
