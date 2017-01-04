@@ -183,6 +183,28 @@ class categories(pybiblioDBSub):
 		""")
 		return self.curs.fetchall()
 
+	def getByID(self, idCat):
+		"""get category matching the idCat"""
+		self.cursExec("""
+			select * from categories where idCat=?
+			""", (idCat, ))
+		return self.curs.fetchall()
+
+	def getDictByID(self, idCat):
+		"""get category matching the idCat, return a dictionary"""
+		self.cursExec("""
+			select * from categories where idCat=?
+			""", (idCat, ))
+		try:
+			entry = self.curs.fetchall()[0]
+			catDict = {}
+			for i,k in enumerate(self.tableCols["categories"]):
+				catDict[k] = entry[i]
+		except:
+			print("[DB] Error in extracting category by idCat")
+			catDict = None
+		return catDict
+
 	def getByName(self,name):
 		self.cursExec("""
 		select * from categories where name=?
@@ -209,7 +231,7 @@ class categories(pybiblioDBSub):
 		""", (child, ))
 		return self.curs.fetchall()
 
-	def getHier(self, cats = None, startFrom = 0, replace = False):
+	def getHier(self, cats = None, startFrom = 0, replace = True):
 		"""get categories and subcategories in a tree-like structure"""
 		if self.catsHier is not None and not replace:
 			return self.catsHier
@@ -234,8 +256,8 @@ class categories(pybiblioDBSub):
 		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
 		def printSubGroup(tree, indent = "", startDepth = 0):
 			if startDepth <= depth:
-				for l in cats_alphabetical(cats, tree.keys()):
-					print(indent + catString(cats, l))
+				for l in cats_alphabetical(tree.keys()):
+					print(indent + catString(l))
 					printSubGroup(tree[l], (startDepth + 1) * sp, startDepth + 1)
 		printSubGroup(catsHier)
 
@@ -262,7 +284,7 @@ class categories(pybiblioDBSub):
 			delete from entryCats where idCat=?
 			""", (idCat, ))
 			print("[DB] looking for child categories")
-			for row in self.extractSubcats(idCat):
+			for row in self.getChild(idCat):
 				self.deleteCat(row["idCat"])
 
 	def getByEntry(self, key):
@@ -608,44 +630,44 @@ class experiments(pybiblioDBSub):
 					print(lev * sp + expString(e))
 			except:
 				pass
-		for l0 in cats_alphabetical(cats, catsHier.keys()):
-			for l1 in cats_alphabetical(cats, catsHier[l0].keys()):
+		for l0 in cats_alphabetical(catsHier.keys()):
+			for l1 in cats_alphabetical(catsHier[l0].keys()):
 				if showCat[l1]:
 					showCat[l0] = True
-				for l2 in cats_alphabetical(cats, catsHier[l0][l1].keys()):
+				for l2 in cats_alphabetical(catsHier[l0][l1].keys()):
 					if showCat[l2]:
 						showCat[l0] = True
 						showCat[l1] = True
-					for l3 in cats_alphabetical(cats, catsHier[l0][l1][l2].keys()):
+					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys()):
 						if showCat[l3]:
 							showCat[l0] = True
 							showCat[l1] = True
 							showCat[l2] = True
-						for l4 in cats_alphabetical(cats, catsHier[l0][l1][l2][l3].keys()):
+						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys()):
 							if showCat[l4]:
 								showCat[l0] = True
 								showCat[l1] = True
 								showCat[l2] = True
 								showCat[l2] = True
-		for l0 in cats_alphabetical(cats, catsHier.keys()):
+		for l0 in cats_alphabetical(catsHier.keys()):
 			if showCat[l0]:
-				print(catString(cats, l0))
+				print(catString(l0))
 				printExpCats(l0, 1)
-			for l1 in cats_alphabetical(cats, catsHier[l0].keys()):
+			for l1 in cats_alphabetical(catsHier[l0].keys()):
 				if showCat[l1]:
-					print(sp + catString(cats, l1))
+					print(sp + catString(l1))
 					printExpCats(l1, 2)
-				for l2 in cats_alphabetical(cats, catsHier[l0][l1].keys()):
+				for l2 in cats_alphabetical(catsHier[l0][l1].keys()):
 					if showCat[l2]:
-						print(2*sp + catString(cats, l2))
+						print(2*sp + catString(l2))
 						printExpCats(l2, 3)
-					for l3 in cats_alphabetical(cats, catsHier[l0][l1][l2].keys()):
+					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys()):
 						if showCat[l3]:
-							print(3*sp + catString(cats, l3))
+							print(3*sp + catString(l3))
 							printExpCats(l3, 4)
-						for l4 in cats_alphabetical(cats, catsHier[l0][l1][l2][l3].keys()):
+						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys()):
 							if showCat[l4]:
-								print(4*sp + catString(cats, l4))
+								print(4*sp + catString(l4))
 								printExpCats(l4, 5)
 
 	def delete(self, idExp, name = None):
@@ -1395,15 +1417,15 @@ class utilities(pybiblioDBSub):
 
 pBDB.utils = utilities()
 
-def catString(cats, idCat, withDesc = False):
-	cat = cats[idCat]
+def catString(idCat, withDesc = False):
+	cat = pBDB.cats.getByID(idCat)[0]
 	if withDesc:
 		return '%4d: %s - <i>%s</i>'%(cat['idCat'], cat['name'], cat['description'])
 	else:
 		return '%4d: %s'%(cat['idCat'], cat['name'])
 
-def cats_alphabetical(cats, listId):
-	listIn = [ cats[i] for i in listId ]
+def cats_alphabetical(listId):
+	listIn = [ pBDB.cats.getByID(i)[0] for i in listId ]
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]

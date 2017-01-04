@@ -16,12 +16,12 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
-def editCategory(parent, statusBarObject, editIdCat = None):
+def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 	if editIdCat is not None:
 		edit = pBDB.cats.getDictByID(editIdCat)
 	else:
 		edit = None
-	newCatWin = editCat(parent, cat = edit)
+	newCatWin = editCat(parent, cat = edit, useParent = useParent)
 	newCatWin.exec_()
 	data = {}
 	if newCatWin.result:
@@ -51,13 +51,13 @@ def editCategory(parent, statusBarObject, editIdCat = None):
 
 def deleteCategory(parent, statusBarObject, idCat, name):
 	if askYesNo("Do you really want to delete this category (ID = '%s', name = '%s')?"%(idCat, name)):
-		pBDB.exps.delete(int(idCat))
+		pBDB.cats.delete(int(idCat))
 		statusBarObject.setWindowTitle("PyBiblio*")
 		message = "Category deleted"
-		try:
-			parent.recreateTable()
-		except:
-			pass
+		#try:
+		parent.recreateTable()
+		#except:
+			#pass
 	else:
 		message = "Nothing changed"
 	try:
@@ -69,16 +69,18 @@ class catsWindowList(QDialog):
 	def __init__(self, parent = None):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
-
-		tree = pBDB.cats.getHier()
-		self.cats = pBDB.cats.getAll()
+		self.currLayout = QHBoxLayout(self)
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
 
+		self.fillTree()
+
+	def fillTree(self):
+		tree = pBDB.cats.getHier()
+
 		self.tree = QTreeView(self)
-		layout = QHBoxLayout(self)
-		layout.addWidget(self.tree)
+		self.currLayout.addWidget(self.tree)
 
 		root_model = QStandardItemModel()
 		self.tree.setModel(root_model)
@@ -92,34 +94,48 @@ class catsWindowList(QDialog):
 		self.tree.clicked.connect(self.askAndPerformAction)
 
 	def _populateTree(self, children, parent):
-		for child in cats_alphabetical(self.cats, children):
-			child_item = QStandardItem(catString(self.cats, child))
+		for child in cats_alphabetical(children):
+			child_item = QStandardItem(catString(child))
 			parent.appendRow(child_item)
 			self._populateTree(children[child], child_item)
 
 	def askAndPerformAction(self, index):
 		item = self.tree.selectedIndexes()[0]
 		idCat, name = item.model().itemFromIndex(index).text().split(": ")
+		idCat = idCat.strip()
 		ask = askCatAction(self, int(idCat), name)
 		ask.exec_()
 		if ask.result == "modify":
-			print "will modify"
+			editCategory(self, self.parent, idCat)
 		elif ask.result == "delete":
-			print "will delete"
+			deleteCategory(self, self.parent, idCat, name)
+		elif ask.result == "subcat":
+			editCategory(self, self.parent, useParent = idCat)
 		elif ask.result == False:
-			print "will do nothing"
+			self.parent.StatusBarMessage("Action cancelled")
 		else:
-			print "invalid action"
+			self.parent.StatusBarMessage("Invalid action")
+
+	def recreateTable(self):
+		"""delete previous table widget and create a new one"""
+		o = self.layout().takeAt(0)
+		o.widget().deleteLater()
+		self.fillTree()
 
 class askCatAction(askAction):
 	def __init__(self, parent = None, idCat = -1, name = ""):
 		super(askCatAction, self).__init__(parent)
 		self.message = "What to do with this category (%d - %s)?"%(idCat, name)
+		self.possibleActions.append(["Add subcategory", self.onSubCat])
 		self.initUI()
+
+	def onSubCat(self):
+		self.result	= "subcat"
+		self.close()
 
 class editCat(editObjectWindow):
 	"""create a window for editing or creating a category"""
-	def __init__(self, parent = None, cat = None):
+	def __init__(self, parent = None, cat = None, useParent = None):
 		super(editCat, self).__init__(parent)
 		if cat is None:
 			self.data = {}
@@ -127,6 +143,8 @@ class editCat(editObjectWindow):
 				self.data[k] = ""
 		else:
 			self.data = cat
+		if useParent is not None:
+			self.data["parentCat"] = useParent
 		self.createForm()
 
 	def createForm(self):
