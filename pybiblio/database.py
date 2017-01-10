@@ -1119,6 +1119,8 @@ class entries(pybiblioDBSub):
 		except:
 			print("[DB][oai] something missing in entry %s"%result["id"])
 			print(traceback.format_exc())
+			return False
+		return True
 	
 	def updateFromOAI(self, entry, verbose = 0):
 		"""update entry from inspire OAI. If inspireID is missing, look for it"""
@@ -1137,8 +1139,9 @@ class entries(pybiblioDBSub):
 	
 	def searchOAIUpdates(self):
 		"""select unpublished papers and look for updates using inspireOAI"""
-		entries = self.extractEntries()
+		entries = self.getAll()
 		num = 0
+		err = 0
 		for e in entries:
 			if ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
 				and e["proceeding"] == 0 \
@@ -1148,8 +1151,10 @@ class entries(pybiblioDBSub):
 				and e["inspire"] is not None:
 					num += 1
 					print("\n[DB] looking for update: '%s'"%e["bibkey"])
-					self.updateInfoFromOAI(e["inspire"], verbose = 0)
+					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
+						err += 1
 		print("\n[DB] %d entries processed"%num)
+		print("\n[DB] %d errors occurred"%err)
 		
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
