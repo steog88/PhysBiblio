@@ -86,6 +86,10 @@ class ExpListWindow(objListWindow):
 
 		self.createTable()
 
+	def keyPressEvent(self, e):		
+		if e.key() == Qt.Key_Escape:
+			self.close()
+
 	def createTable(self):
 		exps = pBDB.exps.getAll()
 		rowcnt = len(exps)

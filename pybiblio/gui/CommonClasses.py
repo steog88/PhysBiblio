@@ -72,6 +72,10 @@ class editObjectWindow(QDialog):
 		self.textValues = {}
 		self.initUI()
 
+	def keyPressEvent(self, e):		
+		if e.key() == Qt.Key_Escape:
+			self.onCancel()
+
 	def onCancel(self):
 		self.result	= False
 		self.close()

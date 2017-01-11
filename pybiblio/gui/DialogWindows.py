@@ -100,6 +100,10 @@ class askAction(QDialog):
 			["Delete", self.onDelete]
 			]
 
+	def keyPressEvent(self, e):		
+		if e.key() == Qt.Key_Escape:
+			self.close()
+
 	def onCancel(self):
 		self.result	= False
 		self.close()

@@ -76,6 +76,10 @@ class catsWindowList(QDialog):
 
 		self.fillTree()
 
+	def keyPressEvent(self, e):		
+		if e.key() == Qt.Key_Escape:
+			self.close()
+
 	def fillTree(self):
 		tree = pBDB.cats.getHier()
 
