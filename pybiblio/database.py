@@ -1142,6 +1142,7 @@ class entries(pybiblioDBSub):
 		entries = self.getAll()
 		num = 0
 		err = 0
+		changed = []
 		for e in entries:
 			if ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
 				and e["proceeding"] == 0 \
@@ -1153,8 +1154,12 @@ class entries(pybiblioDBSub):
 					print("\n[DB] looking for update: '%s'"%e["bibkey"])
 					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
 						err += 1
+					elif e != self.getByBibkey(e["bibkey"])[0]:
+						print("[DB] -- element changed!")
+						changed.append(e["bibkey"])
 		print("\n[DB] %d entries processed"%num)
 		print("\n[DB] %d errors occurred"%err)
+		print("\n[DB] %d entries changed"%len(changed))
 		
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
