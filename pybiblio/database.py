@@ -929,7 +929,11 @@ class entries(pybiblioDBSub):
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
-		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(bibtex.strip()))
+		db = bibtexparser.bibdatabase.BibDatabase()
+		db.entries = []
+		db.entries.append(element)
+		writer = bibtexparser.bwriter.BibTexWriter()
+		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(writer.write(db).strip()))
 		data["inspire"] = inspire if inspire else None
 		if arxiv:
 			data["arxiv"] = arxiv

@@ -73,6 +73,12 @@ class MainWindow(QMainWindow):
 								statusTip="Export complete bibliography as *.bib",
 								triggered=self.exportAll)
 
+		self.exportFileAct = QAction(#QIcon(":/images/export-table.png"),
+								"Export for a *.&tex", self,
+								#shortcut="Ctrl+A",
+								statusTip="Export as *.bib the bibliography needed to compile a .tex file",
+								triggered=self.exportFile)
+
 		self.exitAct = QAction(QIcon(":/images/application-exit.png"),
 								"E&xit", self,
 								shortcut="Ctrl+Q",
@@ -144,6 +150,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exportAct)
 		self.fileMenu.addAction(self.exportSelAct)
+		self.fileMenu.addAction(self.exportFileAct)
 		self.fileMenu.addAction(self.exportAllAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.configAct)
@@ -296,6 +303,21 @@ class MainWindow(QMainWindow):
 		bibexport.exportSelected(fname, rows)
 		self.StatusBarMessage("Current selection exported into %s"%fname)
 	
+	def exportFile(self):
+		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter output filename")
+		if filename != "":
+			outFName = filename
+		else:
+			outFName = "bibtex.bib"
+
+		filename = askFileName(message = "Which is the *.tex file you want to compile?", title = "Enter *.tex filename")
+		if filename != "":
+			texFile = filename
+			bibexport.exportForTexFile(texFile, outFName)
+			self.StatusBarMessage("All entries saved into %s"%outFName)
+		else:
+			self.StatusBarMessage("Error: empty input filename!")
+
 	def exportAll(self):
 		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
 		if filename != "":
