@@ -1170,16 +1170,18 @@ class entries(pybiblioDBSub):
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
 		requireAll = False
+		def printExisting(entry, existing):
+			print("[DB] Already existing: %s\n"%entry)
+			if returnBibtex:
+				return existing
+			else:
+				return True
 		if not childProcess:
 			self.lastInserted = []
 		if entry is not None and not type(entry) is list:
 			existing = self.getByBibkey(entry)
 			if existing:
-				print("[DB] Already existing: %s\n"%entry)
-				if returnBibtex:
-					return existing
-				else:
-					return True
+				return printExisting(entry, existing)
 			if method == "bibtex":
 				e = entry
 			else:
@@ -1203,6 +1205,9 @@ class entries(pybiblioDBSub):
 			if key.strip() == "":
 				print("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
+			existing = self.getByBibkey(key)
+			if existing:
+				return printExisting(key, existing)
 			print("[DB] entry will have key\n'%s'"%key)
 			try:
 				self.insert(data)
