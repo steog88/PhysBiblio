@@ -1156,7 +1156,7 @@ class entries(pybiblioDBSub):
 				and e["phd_thesis"] == 0 \
 				and e["inspire"] is not None:
 					num += 1
-					print("\n[DB] %4d/%4d (%5.2f%%) - looking for update: '%s'"%(ix, tot, 100.*ix/tot, e["bibkey"]))
+					print("\n[DB] %4d/%4d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
 						err += 1
 					elif e != self.getByBibkey(e["bibkey"])[0]:
