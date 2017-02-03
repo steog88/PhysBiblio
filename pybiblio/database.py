@@ -1173,7 +1173,7 @@ class entries(pybiblioDBSub):
 		def printExisting(entry, existing):
 			print("[DB] Already existing: %s\n"%entry)
 			if returnBibtex:
-				return existing
+				return existing[0]["bibtex"]
 			else:
 				return True
 		if not childProcess:

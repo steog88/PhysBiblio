@@ -64,7 +64,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	allBibEntries = pBDB.bibs.getAll()
 	allbib = [ e["bibkey"] for e in allBibEntries ]
 		
-	cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z]*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
+	cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 	unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
 	unw2 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?[\n ]*\}')	#remove unwanted fields
 	unw3 = re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,', re.MULTILINE)		#remove Abstract field
@@ -112,7 +112,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	notFound = []
 	warnings = 0
 	for s in requiredBibkeys:
-		if s not in allbib:
+		if s not in allbib and s.strip() != "":
 			missing.append(s)
 
 	for m in requiredBibkeys:
@@ -120,7 +120,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 			print("[export] key '%s' missing, trying to import it from Web"%m)
 			newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
 			newCheck = pBDB.bibs.getByBibkey(m)
-			
+
 			if len(newCheck) > 0:
 				retrieved.append(m)	
 				try:
