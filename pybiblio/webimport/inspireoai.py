@@ -11,6 +11,7 @@ sys.setdefaultencoding('utf-8')
 import datetime, traceback
 
 from oaipmh.client import Client
+from oaipmh.error import ErrorBase
 from oaipmh.metadata import MetadataRegistry
 from lxml import etree
 
@@ -177,7 +178,11 @@ class webSearch(webInterf):
 	
 	def retrieveOAIData(self, inspireID, verbose = 0):
 		"""get the marcxml for a given record"""
-		record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
+		try:
+			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
+		except ErrorBase:
+			print("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID)
+			return False
 		nhand = 0
 		if verbose > 0:
 			print("[oai] reading data --- " + time.strftime("%c"))
