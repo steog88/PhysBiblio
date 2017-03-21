@@ -110,6 +110,13 @@ class localPDF():
 		except:
 			print("[localPDF] opening PDF for '%s' failed!"%key)
 	
+	def checkFile(self, key, fileType):
+		"""check if a file of a given type exists (arxiv, doi, ...)"""
+		if fileType is None:
+			print("[localPDF] ERROR: invalid argument to checkFile!")
+			return
+		return os.path.isfile(self.getFilePath(key, fileType))
+
 	def removeFile(self, key, ftype):
 		"""delete a file"""
 		fname = self.getFilePath(key, ftype)

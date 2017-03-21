@@ -42,7 +42,7 @@ configuration_params = [
 	"description": 'Font size in the list of bibtex entries and companion boxes',
 	"special": 'float'},
 {"name": "bibtexListColumns",
-	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire", "link"],
+	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
 	"description": 'The columns to be shown in the entries list',
 	"special": 'list'}
 ]

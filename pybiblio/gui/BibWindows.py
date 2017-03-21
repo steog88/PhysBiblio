@@ -12,6 +12,8 @@ try:
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
+	from pybiblio.pdf import pBPDF
+	from pybiblio.view import pBView
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -129,6 +131,7 @@ class bibtexList(QFrame):
 		self.colContents = []
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
+		self.colContents.append("pdf")
 		self.colContents.append("modify")
 		self.colContents.append("delete")
 
@@ -150,7 +153,7 @@ class bibtexList(QFrame):
 		rowcnt = len(self.bibs)
 
 		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt+2)
+		self.setTableSize(rowcnt, self.colcnt+3)
 		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["Modify", "Delete"])
 
 		#table content
@@ -163,7 +166,8 @@ class bibtexList(QFrame):
 				item = QTableWidgetItem(string)
 				item.setFlags(Qt.ItemIsEnabled)
 				self.tablewidget.setItem(i, j, item)
-			self.addEditDeleteCells(i, self.colcnt)
+			self.addPdfCell(i, self.colcnt, self.bibs[i]["bibkey"])
+			self.addEditDeleteCells(i, self.colcnt+1)
 
 		self.finalizeTable()
 
@@ -173,6 +177,15 @@ class bibtexList(QFrame):
 		img = QLabel(self)
 		img.setPixmap(pic)
 		self.tablewidget.setCellWidget(row, col, img)
+
+	def addPdfCell(self, row, col, key):
+		"""create icons for edit and delete"""
+		if len(pBPDF.getExisting(key))>0:
+			self.addImageCell(row, col, ":/images/application-pdf.png")
+		else:
+			item = QTableWidgetItem("no PDF")
+			item.setFlags(Qt.ItemIsEnabled)
+			self.tablewidget.setItem(row, col, item)
 
 	def addEditDeleteCells(self, row, col):
 		"""create icons for edit and delete"""
@@ -190,8 +203,39 @@ class bibtexList(QFrame):
 			#deleteExperiment(self, self.parent, bibkey)
 
 	def cellDoubleClick(self, row, col):
-		#use to open a pdf (if existing) or the web link when double click!
-		pass
+		bibkey = self.tablewidget.item(row, 0).text()
+		entry = pBDB.bibs.getByBibkey(bibkey)[0]
+		self.parent.bottomLeft.text.setText(entry["bibtex"])
+		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
+		if self.colContents[col] == "doi" and entry["doi"] is not None and entry["doi"] != "":
+			pBView.openLink(bibkey,"doi")
+		elif self.colContents[col] == "arxiv" and entry["arxiv"] is not None and entry["arxiv"] != "":
+			pBView.openLink(bibkey,"arxiv")
+		elif self.colContents[col] == "pdf":
+			ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
+			ask.exec_()
+			if ask.result == "openArxiv":
+				self.parent.StatusBarMessage("opening arxiv PDF...")
+				pBPDF.openFile(bibkey, "arxiv")
+			elif ask.result == "openDoi":
+				self.parent.StatusBarMessage("opening doi PDF...")
+				pBPDF.openFile(bibkey, "doi")
+			elif ask.result == "downloadArxiv":
+				self.parent.StatusBarMessage("downloading PDF from arxiv...")
+				pBPDF.downloadArxiv(bibkey)
+				self.parent.StatusBarMessage("...done!")
+			elif ask.result == "delArxiv":
+				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
+					self.parent.StatusBarMessage("deleting arxiv PDF file...")
+					pBPDF.removeFile(bibkey, "arxiv")
+			elif ask.result == "delDoi":
+				if askYesNo("Do you really want to delete the DOI PDF file for entry %s?"%bibkey):
+					self.parent.StatusBarMessage("deleting DOI PDF file...")
+					pBPDF.removeFile(bibkey, "doi")
+			elif ask.result == "addDoi":
+				print "NYI"
+			elif ask.result == False:
+				self.parent.StatusBarMessage("Nothing to do...")
 
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""
@@ -264,3 +308,44 @@ class editBibtexEntry(editObjectWindow):
 
 		#self.setGeometry(100,100,400, 50*i)
 		#self.centerWindow()
+
+class askPdfAction(askAction):
+	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
+		super(askPdfAction, self).__init__(parent)
+		self.message = "What to do with the PDF of this entry (%s)?"%(key)
+		self.possibleActions = []
+		if pBPDF.checkFile(key, "arxiv"):
+			self.possibleActions.append(["Open arxiv PDF", self.onOpenArxiv])
+			self.possibleActions.append(["Delete arxiv PDF", self.onDelArxiv])
+		elif arxiv is not None and arxiv != "":
+			self.possibleActions.append(["Download arxiv", self.onDownloadArxiv])
+		if pBPDF.checkFile(key, "doi"):
+			self.possibleActions.append(["Open DOI PDF", self.onOpenDoi])
+			self.possibleActions.append(["Delete DOI PDF", self.onDelDoi])
+		elif doi is not None and doi != "":
+			self.possibleActions.append(["Assign DOI PDF", self.onAddDoi])
+		self.initUI()
+
+	def onOpenArxiv(self):
+		self.result	= "openArxiv"
+		self.close()
+
+	def onDelArxiv(self):
+		self.result	= "delArxiv"
+		self.close()
+
+	def onOpenDoi(self):
+		self.result	= "openDoi"
+		self.close()
+
+	def onDelDoi(self):
+		self.result	= "delDoi"
+		self.close()
+
+	def onDownloadArxiv(self):
+		self.result	= "downloadArxiv"
+		self.close()
+
+	def onAddDoi(self):
+		self.result	= "addDoi"
+		self.close()

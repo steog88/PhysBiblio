@@ -272,7 +272,7 @@ class MainWindow(QMainWindow):
 		self.myStatusBar.showMessage('Ready', 0)
 		self.setStatusBar(self.myStatusBar)
 		
-	def StatusBarMessage(self, message = "abc", time = 0):
+	def StatusBarMessage(self, message = "abc", time = 2000):
 		print("[StatusBar] %s"%message)
 		self.myStatusBar.showMessage(message, time)
 
