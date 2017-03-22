@@ -24,15 +24,9 @@ def askYesNo(message, title = ""):
 	if reply == QMessageBox.No:
 		return False
 
-def askFileName(message = "Filename to use:", title = "Enter filename"):
-	reply = QInputDialog.getText(None, title, message)
-	if reply[1]:
-		# user clicked OK
-		replyText = reply[0]
-	else:
-		# user clicked Cancel
-		replyText = reply[0] # which will be "" if they clicked Cancel 
-	return replyText
+def askFileName(parent = None, title = "Filename to use:", message = "Enter filename"):
+	reply = QFileDialog.getOpenFileName(parent, title, message)
+	return reply[0]
 
 def infoMessage(message, title = ""):
 	reply = QMessageBox.information(None, title, message)

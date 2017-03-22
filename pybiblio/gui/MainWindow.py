@@ -285,47 +285,41 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Nothing saved")
 		
 	def export(self):
-		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
 		if filename != "":
-			fname = filename
+			bibexport.exportLast(filename)
+			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
 		else:
-			fname = "temp.bib"
-		bibexport.exportLast(fname)
-		self.StatusBarMessage("Last fetched entries exported into %s"%fname)
+			self.StatusBarMessage("Empty filename given!")
 	
 	def exportSelection(self):
-		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
 		if filename != "":
-			fname = filename
+			bibexport.exportSelected(filename)
+			self.StatusBarMessage("Current selection exported into %s"%filename)
 		else:
-			fname = "temp.bib"
-		#retrieve selection
-		bibexport.exportSelected(fname, rows)
-		self.StatusBarMessage("Current selection exported into %s"%fname)
+			self.StatusBarMessage("Empty filename given!")
 	
 	def exportFile(self):
-		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter output filename")
-		if filename != "":
-			outFName = filename
+		outFName = askFileName(self, title = "Where do you want to export the entries?", message = "Enter output filename")
+		if outFName != "":
+			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", message = "Enter *.tex filename")
+			if texFile != "":
+				bibexport.exportForTexFile(texFile, outFName)
+				self.StatusBarMessage("All entries saved into %s"%outFName)
+			else:
+				self.StatusBarMessage("Empty input filename!")
 		else:
-			outFName = "bibtex.bib"
+			self.StatusBarMessage("Empty output filename!")
 
-		filename = askFileName(message = "Which is the *.tex file you want to compile?", title = "Enter *.tex filename")
-		if filename != "":
-			texFile = filename
-			bibexport.exportForTexFile(texFile, outFName)
-			self.StatusBarMessage("All entries saved into %s"%outFName)
-		else:
-			self.StatusBarMessage("Error: empty input filename!")
 
 	def exportAll(self):
-		filename = askFileName(message = "Where do you want to export the entries?", title = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
 		if filename != "":
-			fname = filename
+			bibexport.exportAll(filename)
+			self.StatusBarMessage("All entries saved into %s"%filename)
 		else:
-			fname = "all.bib"
-		bibexport.exportAll(fname)
-		self.StatusBarMessage("All entries saved into %s"%fname)
+			self.StatusBarMessage("Empty output filename!")
 	
 	def categories(self):
 		#rows=pBDB.extractCatByName("Tags")

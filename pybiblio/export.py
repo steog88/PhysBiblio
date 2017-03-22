@@ -41,6 +41,9 @@ def exportAll(fname):
 	else:
 		print("[export] No elements to export!")
 
+def exportSelected(fname):
+	print("NYI")
+
 def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	"""
 	export only the bibtexs required to compile a given .tex file (or a list of).
