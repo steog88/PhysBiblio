@@ -363,7 +363,7 @@ class catsEntries(pybiblioDBSub):
 		for k in keys:
 			string = raw_input("categories for '%s': "%k)
 			try:
-				cats = ast.literal_eval(string.strip())
+				cats = ast.literal_eval("["+string.strip()+"]")
 				self.insert(cats, k)
 			except:
 				print("[DB] something failed in reading your input")
@@ -375,7 +375,7 @@ class catsEntries(pybiblioDBSub):
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
 			try:
-				keys = ast.literal_eval(string.strip())
+				keys = ast.literal_eval("["+string.strip()+"]")
 				self.insert(c, keys)
 			except:
 				print("[DB] something failed in reading your input")
@@ -438,7 +438,7 @@ class catsExps(pybiblioDBSub):
 		for e in exps:
 			string = raw_input("categories for '%d': "%e)
 			try:
-				cats = ast.literal_eval(string.strip())
+				cats = ast.literal_eval("["+string.strip()+"]")
 				self.insert(cats, e)
 			except:
 				print("[DB] something failed in reading your input")
@@ -450,7 +450,7 @@ class catsExps(pybiblioDBSub):
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
 			try:
-				exps = ast.literal_eval(string.strip())
+				exps = ast.literal_eval("["+string.strip()+"]")
 				self.insert(c, exps)
 			except:
 				print("[DB] something failed in reading your input")
@@ -515,7 +515,7 @@ class entryExps(pybiblioDBSub):
 		for k in keys:
 			string = raw_input("experiments for '%s': "%k)
 			try:
-				exps = ast.literal_eval(string.strip())
+				exps = ast.literal_eval("["+string.strip()+"]")
 				self.insert(k, exps)
 			except:
 				print("[DB] something failed in reading your input")
@@ -527,7 +527,7 @@ class entryExps(pybiblioDBSub):
 		for e in exps:
 			string = raw_input("entries for '%d': "%e)
 			try:
-				keys = ast.literal_eval(string.strip())
+				keys = ast.literal_eval("["+string.strip()+"]")
 				self.insert(keys, e)
 			except:
 				print("[DB] something failed in reading your input")
