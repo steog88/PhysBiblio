@@ -50,7 +50,7 @@ class pybiblioDB():
 
 	def openDB(self):
 		"""open the database"""
-		self.conn = sqlite3.connect(self.dbname)
+		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
 
