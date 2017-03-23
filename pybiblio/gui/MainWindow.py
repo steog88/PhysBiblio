@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+from Queue import Queue
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
@@ -15,6 +16,7 @@ try:
 	from pybiblio.gui.BibWindows import *
 	from pybiblio.gui.CatWindows import *
 	from pybiblio.gui.ExpWindows import *
+	from pybiblio.gui.ThreadElements import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -113,6 +115,11 @@ class MainWindow(QMainWindow):
 								statusTip="New bibliographic item",
 								triggered=self.newBibtex)
 
+		self.updateAllBibtexsAct = QAction("&Update bibtexs", self,
+								shortcut="Ctrl+U",
+								statusTip="Update all the journal info of bibtexs",
+								triggered=self.updateAllBibtexs)
+
 		self.cliAct = QAction(QIcon(":/images/terminal.png"),
 								"&CLI", self,
 								shortcut="Ctrl+T",
@@ -167,6 +174,7 @@ class MainWindow(QMainWindow):
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.biblioAct)
 		self.dataMenu.addAction(self.newBibAct)
+		self.dataMenu.addAction(self.updateAllBibtexsAct)
 		self.dataMenu.addAction(self.reloadAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.cliAct)
@@ -242,6 +250,7 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Reloading main table...")
 		self.top = bibtexList(self)
 		self.top.setFrameShape(QFrame.StyledPanel)
+		self.done()
 	
 	def config(self):
 		cfgWin = configWindow(self)
@@ -392,9 +401,19 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Activating CLI!")
 		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
 		pyBiblioCLI()
-			
 
-	
+	def updateAllBibtexs(self):
+		self.StatusBarMessage("Starting update of all bibtexs...")
+		app = printText()
+		app.show()
+		queue = Queue()
+		self.updateOAI_thr = thread_updateAllBibtexs(queue, app)
+		self.connect(self.updateOAI_thr, SIGNAL("finished()"), self.done)
+		self.updateOAI_thr.start()
+
+	def done(self):
+		self.StatusBarMessage("...done!")
+
 if __name__=='__main__':
 	try:
 		myApp=QApplication(sys.argv)

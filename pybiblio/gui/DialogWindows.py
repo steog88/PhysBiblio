@@ -140,3 +140,60 @@ class askAction(QDialog):
 		cp = QDesktopWidget().availableGeometry().center()
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
+
+
+class printText(QDialog):
+	"""create a window for printing text of command line output"""
+	def __init__(self, parent = None, title = ""):
+		super(printText, self).__init__(parent)
+		self.message = None
+		if title != "":
+			self.title = title
+		else:
+			self.title = "Redirect print"
+		self.initUI()
+
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Escape:
+			self.terminate()
+
+	def terminate(self):
+		pass
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def initUI(self):
+		self.setWindowTitle(self.title)
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		i = 0
+		if self.message is not None:
+			grid.addWidget(QLabel("%s"%self.message), 0, 0)
+			i += 1
+
+		#main text
+		self.textEdit = QTextEdit()
+		grid.addWidget(self.textEdit)
+
+		# cancel button...should learn how to connect it with a thread kill
+		#self.cancelButton = QPushButton('Cancel', self)
+		#self.cancelButton.clicked.connect(self.onCancel)
+		#self.cancelButton.setAutoDefault(True)
+		#grid.addWidget(self.cancelButton, i+1, 0)
+
+		self.setGeometry(100,100,600, 600)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+	def append_text(self,text):
+		self.textEdit.moveCursor(QTextCursor.End)
+		self.textEdit.insertPlainText( text )
+	

@@ -94,3 +94,33 @@ class editObjectWindow(QDialog):
 		cp = QDesktopWidget().availableGeometry().center()
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
+
+class MyThread(QThread):
+	def __init__(self):
+		QThread.__init__(self)
+
+	def __del__(self):
+		self.wait()
+
+	def run(self):
+		# your logic here
+		pass
+
+class WriteStream(QObject):
+    def __init__(self,queue):
+        self.queue = queue
+
+    def write(self, text):
+        self.queue.put(text)
+
+class MyReceiver(QObject):
+    mysignal = Signal(str)
+
+    def __init__(self,queue,*args,**kwargs):
+        QObject.__init__(self,*args,**kwargs)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            text = self.queue.get()
+            self.mysignal.emit(text)

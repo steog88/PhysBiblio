@@ -14,6 +14,7 @@ try:
 	from pybiblio.gui.CommonClasses import *
 	from pybiblio.pdf import pBPDF
 	from pybiblio.view import pBView
+	from pybiblio.gui.ThreadElements import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -222,8 +223,9 @@ class bibtexList(QFrame):
 				pBPDF.openFile(bibkey, "doi")
 			elif ask.result == "downloadArxiv":
 				self.parent.StatusBarMessage("downloading PDF from arxiv...")
-				pBPDF.downloadArxiv(bibkey)
-				self.parent.StatusBarMessage("...done!")
+				self.downArxiv_thr = thread_downloadArxiv(bibkey)
+				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.parent.done)
+				self.downArxiv_thr.start()
 			elif ask.result == "delArxiv":
 				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting arxiv PDF file...")
