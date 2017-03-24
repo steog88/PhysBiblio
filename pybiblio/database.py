@@ -1119,7 +1119,8 @@ class entries(pybiblioDBSub):
 							self.updateField(key, d, result[o], 0)
 					except:
 						print("[DB][oai] key error: (%s, %s)"%(o,d))
-			print("[DB] inspire OAI info for %s saved."%inspireID)
+			if verbose > 0:
+				print("[DB] inspire OAI info for %s saved."%inspireID)
 		except:
 			print("[DB][oai] something missing in entry %s"%result["id"])
 			print(traceback.format_exc())
@@ -1154,6 +1155,7 @@ class entries(pybiblioDBSub):
 				and e["book"] == 0 \
 				and e["lecture"] == 0 \
 				and e["phd_thesis"] == 0 \
+				and e["toBeUpdated"] == 0 \
 				and e["inspire"] is not None:
 					num += 1
 					print("\n[DB] %4d/%4d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
@@ -1289,6 +1291,14 @@ class entries(pybiblioDBSub):
 				self.setReview(q, value)
 		else:
 			return self.updateField(key, "review", value, 0)
+
+	def setNoUpdate(self, key, value = 1):
+		"""set (or unset) an entry as a review"""
+		if type(key) is list:
+			for q in key:
+				self.setNoUpdate(q, value)
+		else:
+			return self.updateField(key, "toBeUpdated", value, 0)
 			
 	def printAllBibtexs(self, entriesIn = None):
 		"""print the bibtex codes for all the entries (or for a given subset)"""
