@@ -15,12 +15,12 @@ class webSearch(webInterf):
 		self.url = pbConfig.inspireSearchBase
 		self.urlRecord = pbConfig.inspireRecord
 		self.urlArgs = {
-			"action_search": "Search",
-			"sf": "",
-			"so": "d",
-			"rm": "",
-			"rg": "1000",
+			#"action_search": "Search",
+			"sf": "year",
+			"so": "a",
+			"rg": "250",
 			"sc": "0",
+			"eb": "B",
 			"of": "hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
 			}
 		self.urlRecordExt = {
