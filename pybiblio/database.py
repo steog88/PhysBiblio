@@ -1149,9 +1149,11 @@ class entries(pybiblioDBSub):
 		err = 0
 		changed = []
 		tot = len(entries)
+		self.runningOAIUpdates = True
 		print("[DB] searchOAIUpdates will process %d total entries"%tot)
 		for ix,e in enumerate(entries):
-			if ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
+			if self.runningOAIUpdates \
+				and ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
 				and e["proceeding"] == 0 \
 				and e["book"] == 0 \
 				and e["lecture"] == 0 \

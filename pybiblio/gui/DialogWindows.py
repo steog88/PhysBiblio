@@ -144,6 +144,8 @@ class askAction(QDialog):
 
 class printText(QDialog):
 	"""create a window for printing text of command line output"""
+	stopped = Signal()
+
 	def __init__(self, parent = None, title = "", progressBar = True):
 		super(printText, self).__init__(parent)
 		self.message = None
@@ -152,18 +154,15 @@ class printText(QDialog):
 		else:
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
+		self._want_to_close = False
 		self.initUI()
 
-	def keyPressEvent(self, e):
-		if e.key() == Qt.Key_Escape:
-			self.terminate()
-
-	def terminate(self):
-		pass
-
-	def onCancel(self):
-		self.result	= False
-		self.close()
+	def closeEvent(self, evnt):
+		if self._want_to_close:
+			super(printText, self).closeEvent(evnt)
+		else:
+			evnt.ignore()
+			#self.setWindowState(QtCore.Qt.WindowMinimized)
 
 	def initUI(self):
 		self.setWindowTitle(self.title)
@@ -185,10 +184,14 @@ class printText(QDialog):
 			grid.addWidget(self.progressBar)
 
 		# cancel button...should learn how to connect it with a thread kill
-		self.cancelButton = QPushButton('Cancel', self)
-		self.cancelButton.clicked.connect(self.terminate)
+		self.cancelButton = QPushButton('Stop', self)
+		self.cancelButton.clicked.connect(self.stopExec)
 		self.cancelButton.setAutoDefault(True)
 		grid.addWidget(self.cancelButton)
+		self.closeButton = QPushButton('Close', self)
+		self.closeButton.clicked.connect(self.reject)
+		self.closeButton.setDisabled(True)
+		grid.addWidget(self.closeButton)
 
 		self.setGeometry(100,100,600, 600)
 		self.setLayout(grid)
@@ -216,3 +219,11 @@ class printText(QDialog):
 	def progressBarMax(self, maximum):
 		if self.setProgressBar:
 			self.progressBar.setMaximum(maximum)
+
+	def stopExec(self):
+		self.cancelButton.setDisabled(True)
+		self.stopped.emit()
+
+	def enableClose(self):
+		self._want_to_close = True
+		self.closeButton.setEnabled(True)

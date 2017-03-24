@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys, time
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
@@ -19,25 +19,33 @@ except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 class thread_updateAllBibtexs(MyThread):
-	def __init__(self, queue, app):
-		super(thread_updateAllBibtexs, self).__init__()
+	def __init__(self, queue, app, thr, parent = None):
+		super(thread_updateAllBibtexs, self).__init__(parent)
+		self.parent = parent
 		self.queue = queue
+		self.thr = thr
 		self.app = app
 
 	def run(self):
-		sys.stdout = WriteStream(self.queue)
-		thread = QThread()
 		my_receiver = MyReceiver(self.queue)
 		my_receiver.mysignal.connect(self.app.append_text)
-		my_receiver.moveToThread(thread)
-		thread.started.connect(my_receiver.run)
-		thread.start()
+		my_receiver.moveToThread(self.thr)
+		self.thr.started.connect(my_receiver.run)
+		self.connect(my_receiver, SIGNAL("finished()"), my_receiver.deleteLater)
+		self.connect(my_receiver, SIGNAL("finished()"), self.thr.terminate)
+		self.connect(self.thr, SIGNAL("finished()"), self.thr.deleteLater)
+		self.thr.start()
 		pBDB.bibs.searchOAIUpdates()
-		sys.stdout = sys.__stdout__
-		
+		time.sleep(1)
+		my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.runningOAIUpdates = False
+
 class thread_downloadArxiv(MyThread):
-	def __init__(self, bibkey):
-		super(thread_downloadArxiv, self).__init__()
+	def __init__(self, bibkey, parent = None):
+		super(thread_downloadArxiv, self).__init__(parent)
 		self.bibkey = bibkey
 
 	def run(self):

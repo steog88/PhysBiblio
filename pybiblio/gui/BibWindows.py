@@ -223,7 +223,7 @@ class bibtexList(QFrame):
 				pBPDF.openFile(bibkey, "doi")
 			elif ask.result == "downloadArxiv":
 				self.parent.StatusBarMessage("downloading PDF from arxiv...")
-				self.downArxiv_thr = thread_downloadArxiv(bibkey)
+				self.downArxiv_thr = thread_downloadArxiv(bibkey, self)
 				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.parent.done)
 				self.downArxiv_thr.start()
 			elif ask.result == "delArxiv":

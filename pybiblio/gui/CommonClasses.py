@@ -96,15 +96,13 @@ class editObjectWindow(QDialog):
 		self.move(qr.topLeft())
 
 class MyThread(QThread):
-	def __init__(self):
-		QThread.__init__(self)
-
-	def __del__(self):
-		self.wait()
+	def __init__(self,  parent = None):
+		QThread.__init__(self, parent)
 
 	def run(self):
-		# your logic here
 		pass
+
+	finished = Signal()
 
 class WriteStream(QObject):
     def __init__(self,queue):
@@ -114,13 +112,16 @@ class WriteStream(QObject):
         self.queue.put(text)
 
 class MyReceiver(QObject):
-    mysignal = Signal(str)
+	mysignal = Signal(str)
+	finished = Signal()
 
-    def __init__(self,queue,*args,**kwargs):
-        QObject.__init__(self,*args,**kwargs)
-        self.queue = queue
+	def __init__(self,queue,*args,**kwargs):
+		QObject.__init__(self,*args,**kwargs)
+		self.queue = queue
+		self.running = True
 
-    def run(self):
-        while True:
-            text = self.queue.get()
-            self.mysignal.emit(text)
+	def run(self):
+		while self.running:
+			text = self.queue.get()
+			self.mysignal.emit(text)
+		self.finished.emit()

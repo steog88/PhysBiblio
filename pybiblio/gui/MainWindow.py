@@ -406,11 +406,19 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Starting update of all bibtexs...")
 		app = printText()
 		app.progressBarMin(0)
-		app.show()
 		queue = Queue()
-		self.updateOAI_thr = thread_updateAllBibtexs(queue, app)
-		self.connect(self.updateOAI_thr, SIGNAL("finished()"), self.done)
-		self.updateOAI_thr.start()
+		thr = MyThread(self)
+		updateOAI_thr = thread_updateAllBibtexs(queue, app, thr, self)
+		self.connect(updateOAI_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(updateOAI_thr, SIGNAL("finished()"), updateOAI_thr.deleteLater)
+		self.connect(thr, SIGNAL("finished()"), thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), updateOAI_thr.setStopFlag)
+		sys.stdout = WriteStream(queue)
+		updateOAI_thr.start()
+		app.exec_()
+		sys.stdout = sys.__stdout__
+		thr.terminate()
+		self.done()
 
 	def done(self):
 		self.StatusBarMessage("...done!")
