@@ -144,13 +144,14 @@ class askAction(QDialog):
 
 class printText(QDialog):
 	"""create a window for printing text of command line output"""
-	def __init__(self, parent = None, title = ""):
+	def __init__(self, parent = None, title = "", progressBar = True):
 		super(printText, self).__init__(parent)
 		self.message = None
 		if title != "":
 			self.title = title
 		else:
 			self.title = "Redirect print"
+		self.setProgressBar = progressBar
 		self.initUI()
 
 	def keyPressEvent(self, e):
@@ -179,11 +180,15 @@ class printText(QDialog):
 		self.textEdit = QTextEdit()
 		grid.addWidget(self.textEdit)
 
+		if self.setProgressBar:
+			self.progressBar = QProgressBar(self)
+			grid.addWidget(self.progressBar)
+
 		# cancel button...should learn how to connect it with a thread kill
-		#self.cancelButton = QPushButton('Cancel', self)
-		#self.cancelButton.clicked.connect(self.onCancel)
-		#self.cancelButton.setAutoDefault(True)
-		#grid.addWidget(self.cancelButton, i+1, 0)
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.terminate)
+		self.cancelButton.setAutoDefault(True)
+		grid.addWidget(self.cancelButton)
 
 		self.setGeometry(100,100,600, 600)
 		self.setLayout(grid)
@@ -194,6 +199,20 @@ class printText(QDialog):
 		self.move(qr.topLeft())
 
 	def append_text(self,text):
+		if self.setProgressBar:
+			if "[DB] searchOAIUpdates will process " in text:
+				tot = [int(s) for s in text.split() if s.isdigit()][0]
+				self.progressBarMax(tot)
+			elif "%) - looking for update: " in text:
+				curr = [int(s) for s in text.split() if s.isdigit()][0]
+				self.progressBar.setValue(curr)
 		self.textEdit.moveCursor(QTextCursor.End)
 		self.textEdit.insertPlainText( text )
-	
+
+	def progressBarMin(self, minimum):
+		if self.setProgressBar:
+			self.progressBar.setMinimum(minimum)
+
+	def progressBarMax(self, maximum):
+		if self.setProgressBar:
+			self.progressBar.setMaximum(maximum)

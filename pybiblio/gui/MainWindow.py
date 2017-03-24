@@ -405,6 +405,7 @@ class MainWindow(QMainWindow):
 	def updateAllBibtexs(self):
 		self.StatusBarMessage("Starting update of all bibtexs...")
 		app = printText()
+		app.progressBarMin(0)
 		app.show()
 		queue = Queue()
 		self.updateOAI_thr = thread_updateAllBibtexs(queue, app)

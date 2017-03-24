@@ -1149,6 +1149,7 @@ class entries(pybiblioDBSub):
 		err = 0
 		changed = []
 		tot = len(entries)
+		print("[DB] searchOAIUpdates will process %d total entries"%tot)
 		for ix,e in enumerate(entries):
 			if ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
 				and e["proceeding"] == 0 \
@@ -1158,7 +1159,7 @@ class entries(pybiblioDBSub):
 				and e["toBeUpdated"] == 0 \
 				and e["inspire"] is not None:
 					num += 1
-					print("\n[DB] %4d/%4d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+					print("\n[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
 						err += 1
 					elif e != self.getByBibkey(e["bibkey"])[0]:
