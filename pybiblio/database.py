@@ -6,6 +6,7 @@ import pybiblio.webimport.webInterf as webInt
 
 try:
 	from pybiblio.config import pbConfig
+	from pybiblio.errors import ErrorManager
 	import pybiblio.parse_accents as parse_accents
 	import pybiblio.firstOpen as pbfo
 	from pybiblio.webimport.webInterf import pyBiblioWeb
@@ -1142,9 +1143,13 @@ class entries(pybiblioDBSub):
 				inspireID = self.updateInspireID(entry, entry)
 				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 	
-	def searchOAIUpdates(self):
+	def searchOAIUpdates(self, startFrom = 0):
 		"""select unpublished papers and look for updates using inspireOAI"""
-		entries = self.getAll()
+		try:
+			entries = self.getAll()[startFrom:]
+		except TypeError:
+			ErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
+			return 0, 0, []
 		num = 0
 		err = 0
 		changed = []

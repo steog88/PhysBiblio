@@ -7,12 +7,15 @@ except ImportError:
 
 class ErrorManager():
 	def __init__(self, message, trcbk = None):
-		pass
-		
+		message += "\n"
+		sys.stderr.write(message)
+		if trcbk is not None:
+			sys.stderr.write(trcbk.format_exc())
+
 		try:
 			with open(pbConfig.params["logFile"], "a") as w:
 				w.write(message)
 				if trcbk is not None:
 					w.write(trcbk.format_exc())
 		except IOError:
-			print("[errorlog] ERROR in saving log file!")
+			sys.stderr.write("[errorlog] ERROR in saving log file!")
