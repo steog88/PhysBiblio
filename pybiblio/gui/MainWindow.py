@@ -244,12 +244,8 @@ class MainWindow(QMainWindow):
 
 	def reloadMainContent(self):
 		"""delete previous table widget and create a new one"""
-		#o = self.layout().takeAt(0)
-		#o.widget().deleteLater()
-		#self.createMainLayout()
 		self.StatusBarMessage("Reloading main table...")
-		self.top = bibtexList(self)
-		self.top.setFrameShape(QFrame.StyledPanel)
+		self.top.recreateTable()
 		self.done()
 	
 	def config(self):

@@ -155,22 +155,47 @@ class bibtexList(QFrame):
 
 		#table settings and header
 		self.setTableSize(rowcnt, self.colcnt+3)
-		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["Modify", "Delete"])
+		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["PDF", "Modify", "Delete"])
 
 		#table content
 		for i in range(rowcnt):
-			for j in range(self.colcnt):
-				if self.bibs[i][self.columns[j]] is not None:
-					string = str(self.bibs[i][self.columns[j]])
-				else:
-					string = ""
-				item = QTableWidgetItem(string)
-				item.setFlags(Qt.ItemIsEnabled)
-				self.tablewidget.setItem(i, j, item)
-			self.addPdfCell(i, self.colcnt, self.bibs[i]["bibkey"])
-			self.addEditDeleteCells(i, self.colcnt+1)
+			self.loadRow(i)
 
 		self.finalizeTable()
+
+	def refillTable(self, bibs = None):
+		self.tablewidget.clearContents()
+		if bibs is None:
+			self.bibs = pBDB.bibs.getAll()
+		else:
+			self.bibs = bibs
+		rowcnt = len(self.bibs)
+
+		#table settings and header
+		if self.rows > rowcnt:
+			for i in range(rowcnt, self.rows+1):
+				self.tablewidget.removeRow(i)
+		elif self.rows < rowcnt:
+			for i in range(self.rows, rowcnt+1):
+				self.tablewidget.insertRow(q)
+
+		#table content
+		for i in range(rowcnt):
+			self.loadRow(i)
+
+		self.finalizeTable()
+	
+	def loadRow(self, r):
+		for j in range(self.colcnt):
+			if self.bibs[r][self.columns[j]] is not None:
+				string = str(self.bibs[r][self.columns[j]])
+			else:
+				string = ""
+			item = QTableWidgetItem(string)
+			item.setFlags(Qt.ItemIsEnabled)
+			self.tablewidget.setItem(r, j, item)
+		self.addPdfCell(r, self.colcnt, self.bibs[r]["bibkey"])
+		self.addEditDeleteCells(r, self.colcnt+1)
 
 	def addImageCell(self, row, col, imagePath):
 		"""create a cell containing an image"""
@@ -223,7 +248,7 @@ class bibtexList(QFrame):
 				pBPDF.openFile(bibkey, "doi")
 			elif ask.result == "downloadArxiv":
 				self.parent.StatusBarMessage("downloading PDF from arxiv...")
-				self.downArxiv_thr = thread_downloadArxiv(bibkey, self)
+				self.downArxiv_thr = thread_downloadArxiv(bibkey)
 				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.parent.done)
 				self.downArxiv_thr.start()
 			elif ask.result == "delArxiv":
@@ -241,6 +266,8 @@ class bibtexList(QFrame):
 
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""
+		self.rows = rows
+		self.cols = cols
 		self.tablewidget = QTableWidget(rows, cols)
 		vheader = QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.Interactive)
@@ -263,9 +290,12 @@ class bibtexList(QFrame):
 
 		self.currLayout.addWidget(self.tablewidget)
 
-	def recreateTable(self):
+	def recreateTable(self, bibs = None):
 		"""delete previous table widget and create a new one"""
-		self.bibs = pBDB.bibs.getAll()
+		if bibs is not None:
+			self.bibs = bibs
+		else:
+			self.bibs = pBDB.bibs.getAll()
 		o = self.layout().takeAt(0)
 		o.widget().deleteLater()
 		self.createTable()

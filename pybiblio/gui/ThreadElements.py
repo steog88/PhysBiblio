@@ -44,8 +44,8 @@ class thread_updateAllBibtexs(MyThread):
 		pBDB.bibs.runningOAIUpdates = False
 
 class thread_downloadArxiv(MyThread):
-	def __init__(self, bibkey, parent = None):
-		super(thread_downloadArxiv, self).__init__(parent)
+	def __init__(self, bibkey):
+		super(thread_downloadArxiv, self).__init__()
 		self.bibkey = bibkey
 
 	def run(self):
