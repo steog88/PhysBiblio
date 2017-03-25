@@ -9,6 +9,7 @@ try:
 	from pybiblio.database import pBDB
 	from pybiblio.pdf import pBPDF
 	from pybiblio.view import pBView
+	from pybiblio.inspireStats import pBStats
 	from pybiblio.webimport.webInterf import pyBiblioWeb
 except ImportError:
 	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
