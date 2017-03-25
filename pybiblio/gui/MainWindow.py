@@ -420,17 +420,20 @@ class MainWindow(QMainWindow):
 		app = printText()
 		app.progressBarMin(0)
 		queue = Queue()
-		thr = MyThread(self)
-		updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, app, thr, self)
-		self.connect(updateOAI_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(updateOAI_thr, SIGNAL("finished()"), updateOAI_thr.deleteLater)
-		self.connect(thr, SIGNAL("finished()"), thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), updateOAI_thr.setStopFlag)
+		self.my_receiver = MyReceiver(queue, self)
+		self.my_receiver.mysignal.connect(app.append_text)
+		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.my_receiver, self)
+
+		self.connect(self.my_receiver, SIGNAL("finished()"), self.my_receiver.deleteLater)
+		self.connect(self.updateOAI_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.updateOAI_thr, SIGNAL("finished()"), self.updateOAI_thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), self.updateOAI_thr.setStopFlag)
+
 		sys.stdout = WriteStream(queue)
-		updateOAI_thr.start()
+		self.updateOAI_thr.start()
 		app.exec_()
+		print("Closing...")
 		sys.stdout = sys.__stdout__
-		thr.terminate()
 		self.done()
 
 	def done(self):
@@ -445,6 +448,6 @@ if __name__=='__main__':
 	except NameError:
 		print("NameError:",sys.exc_info()[1])
 	except SystemExit:
-		print("closing window...")
+		print("Closing main window...")
 	except Exception:
 		print(sys.exc_info()[1])

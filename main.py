@@ -25,6 +25,6 @@ except NameError:
 	print("NameError:",sys.exc_info()[1])
 except SystemExit:
 	pBDB.closeDB()
-	print("closing window...")
+	print("Closing main window...")
 except Exception:
 	print(traceback.format_exc())

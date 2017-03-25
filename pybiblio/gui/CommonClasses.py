@@ -111,14 +111,15 @@ class WriteStream(QObject):
     def write(self, text):
         self.queue.put(text)
 
-class MyReceiver(QObject):
+class MyReceiver(MyThread):
 	mysignal = Signal(str)
 	finished = Signal()
 
-	def __init__(self,queue,*args,**kwargs):
-		QObject.__init__(self,*args,**kwargs)
+	def __init__(self, queue, parent = None, *args, **kwargs):
+		super(MyReceiver, self).__init__(parent, *args, **kwargs)
 		self.queue = queue
 		self.running = True
+		self.parent = parent
 
 	def run(self):
 		while self.running:
