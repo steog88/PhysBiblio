@@ -28,6 +28,10 @@ def askFileName(parent = None, title = "Filename to use:", message = "Enter file
 	reply = QFileDialog.getOpenFileName(parent, title, message)
 	return reply[0]
 
+def askGenericText(message, title, parent = None):
+	reply = QInputDialog.getText(parent, title, message)
+	return reply[0]
+
 def infoMessage(message, title = ""):
 	reply = QMessageBox.information(None, title, message)
 

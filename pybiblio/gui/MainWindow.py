@@ -120,6 +120,11 @@ class MainWindow(QMainWindow):
 								statusTip="Update all the journal info of bibtexs",
 								triggered=self.updateAllBibtexs)
 
+		self.updateAllBibtexsAskAct = QAction("&Update bibtexs (from ...)", self,
+								shortcut="Ctrl+Shift+U",
+								statusTip="Update all the journal info of bibtexs, starting from a given one",
+								triggered=self.updateAllBibtexsAsk)
+
 		self.cliAct = QAction(QIcon(":/images/terminal.png"),
 								"&CLI", self,
 								shortcut="Ctrl+T",
@@ -175,6 +180,7 @@ class MainWindow(QMainWindow):
 		self.dataMenu.addAction(self.biblioAct)
 		self.dataMenu.addAction(self.newBibAct)
 		self.dataMenu.addAction(self.updateAllBibtexsAct)
+		self.dataMenu.addAction(self.updateAllBibtexsAskAct)
 		self.dataMenu.addAction(self.reloadAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.cliAct)
@@ -398,13 +404,24 @@ class MainWindow(QMainWindow):
 		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
 		pyBiblioCLI()
 
-	def updateAllBibtexs(self):
+	def updateAllBibtexsAsk(self):
+		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the updates:", "Where do you want to start searchOAIUpdates from?", self)
+		if text.isdigit():
+			startFrom = int(text)
+		else:
+			if askYesNo("The text you inserted is not an integer. I will start from 0.\nDo you want to continue?", "Invalid entry"):
+				startFrom = 0
+			else:
+				return False
+		self.updateAllBibtexs(startFrom)
+
+	def updateAllBibtexs(self, startFrom = 0):
 		self.StatusBarMessage("Starting update of all bibtexs...")
 		app = printText()
 		app.progressBarMin(0)
 		queue = Queue()
 		thr = MyThread(self)
-		updateOAI_thr = thread_updateAllBibtexs(queue, app, thr, self)
+		updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, app, thr, self)
 		self.connect(updateOAI_thr, SIGNAL("finished()"), app.enableClose)
 		self.connect(updateOAI_thr, SIGNAL("finished()"), updateOAI_thr.deleteLater)
 		self.connect(thr, SIGNAL("finished()"), thr.deleteLater)
