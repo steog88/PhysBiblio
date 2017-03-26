@@ -27,6 +27,12 @@ class inspireStatsLoader():
 		self.authorPlotInfo = None
 		self.paperPlotInfo = None
 
+	def changeBackend(self, wantBackend):
+		if wantBackend != matplotlib.get_backend():
+			matplotlib.use(wantBackend,warn=False, force=True)
+			from matplotlib import pyplot as plt
+			print("[inspireStats] changed backend to %s"%matplotlib.get_backend())
+
 	def JsonFromUrl(self, url):
 		def getSeries(url):
 			response = urlopen(url, timeout = self.timeout)
@@ -55,12 +61,16 @@ class inspireStatsLoader():
 		allCitations = []
 		tot = len(recid_authorPapers)
 		print("[inspireStats] authorStats will process %d total papers to retrieve citations"%tot)
+		self.runningAuthorStats = True
 		for i, p in enumerate(recid_authorPapers):
+			if not self.runningAuthorStats:
+				print("[inspireStats] received 'stop' signal. Interrupting download of information. Processing and exiting...")
+				break
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
 			authorPapersList[1].append(i + 1)
-			print("\n[inspireStats] %5d / %d (%5.2f%%) - looking for update: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
+			print("\n[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p, verbose = 0)
 			allInfo[p]["infoDict"] = paperInfo["aI"]
 			allInfo[p]["citingPapersList"] = paperInfo["citList"]

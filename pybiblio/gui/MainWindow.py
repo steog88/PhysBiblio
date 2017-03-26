@@ -7,6 +7,7 @@ from PySide.QtGui  import *
 import signal
 
 try:
+	from pybiblio.errors import ErrorManager
 	from pybiblio.database import *
 	import pybiblio.export as bibexport
 	import pybiblio.webimport.webInterf as webInt
@@ -39,6 +40,7 @@ class MainWindow(QMainWindow):
 		self.createMainLayout()
 		self.setIcon()
 		self.CreateStatusBar()
+		self.lastAuthorStats = None
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -120,10 +122,15 @@ class MainWindow(QMainWindow):
 								statusTip="Update all the journal info of bibtexs",
 								triggered=self.updateAllBibtexs)
 
-		self.updateAllBibtexsAskAct = QAction("&Update bibtexs (from ...)", self,
+		self.updateAllBibtexsAskAct = QAction("Update bibtexs (&from ...)", self,
 								shortcut="Ctrl+Shift+U",
 								statusTip="Update all the journal info of bibtexs, starting from a given one",
 								triggered=self.updateAllBibtexsAsk)
+
+		self.authorStatsAct = QAction("&AuthorStats", self,
+								shortcut="Ctrl+Shift+A",
+								statusTip="Search publication and citation stats of an author from INSPIRES",
+								triggered=self.authorStats)
 
 		self.cliAct = QAction(QIcon(":/images/terminal.png"),
 								"&CLI", self,
@@ -182,6 +189,8 @@ class MainWindow(QMainWindow):
 		self.dataMenu.addAction(self.updateAllBibtexsAct)
 		self.dataMenu.addAction(self.updateAllBibtexsAskAct)
 		self.dataMenu.addAction(self.reloadAct)
+		self.dataMenu.addSeparator()
+		self.dataMenu.addAction(self.authorStatsAct)
 		self.dataMenu.addSeparator()
 		self.dataMenu.addAction(self.cliAct)
 
@@ -420,11 +429,11 @@ class MainWindow(QMainWindow):
 		app = printText()
 		app.progressBarMin(0)
 		queue = Queue()
-		self.my_receiver = MyReceiver(queue, self)
-		self.my_receiver.mysignal.connect(app.append_text)
-		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.my_receiver, self)
+		self.uOAIReceiver = MyReceiver(queue, self)
+		self.uOAIReceiver.mysignal.connect(app.append_text)
+		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self)
 
-		self.connect(self.my_receiver, SIGNAL("finished()"), self.my_receiver.deleteLater)
+		self.connect(self.uOAIReceiver, SIGNAL("finished()"), self.uOAIReceiver.deleteLater)
 		self.connect(self.updateOAI_thr, SIGNAL("finished()"), app.enableClose)
 		self.connect(self.updateOAI_thr, SIGNAL("finished()"), self.updateOAI_thr.deleteLater)
 		self.connect(app, SIGNAL("stopped()"), self.updateOAI_thr.setStopFlag)
@@ -434,6 +443,39 @@ class MainWindow(QMainWindow):
 		app.exec_()
 		print("Closing...")
 		sys.stdout = sys.__stdout__
+		self.done()
+
+	def authorStats(self):
+		text = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
+		if text is "":
+			ErrorManager("[authorStats] empty name inserted! cannot proceed.")
+			return False
+		if askYesNo("Do you want to save the plots for the computed stats?"):
+			savePath = askDirName(self, "Where do you want to save the plots of the stats?")
+		else:
+			savePath = ""
+		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
+		app = printText(totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
+		app.progressBarMin(0)
+		queue = Queue()
+		self.aSReceiver = MyReceiver(queue, self)
+		self.aSReceiver.mysignal.connect(app.append_text)
+		self.authorStats_thr = thread_authorStats(text, queue, self.aSReceiver, self)
+
+		self.connect(self.aSReceiver, SIGNAL("finished()"), self.aSReceiver.deleteLater)
+		self.connect(self.authorStats_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.authorStats_thr, SIGNAL("finished()"), self.authorStats_thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), self.authorStats_thr.setStopFlag)
+
+		sys.stdout = WriteStream(queue)
+		self.authorStats_thr.start()
+		app.exec_()
+		print("Closing...")
+		sys.stdout = sys.__stdout__
+		if savePath != "":
+			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
+		else:
+			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True)
 		self.done()
 
 	def done(self):

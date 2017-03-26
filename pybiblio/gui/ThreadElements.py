@@ -7,6 +7,7 @@ from PySide.QtGui  import *
 try:
 	from pybiblio.database import *
 	from pybiblio.pdf import pBPDF
+	from pybiblio.inspireStats import pBStats
 	#import pybiblio.export as bibexport
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
@@ -43,3 +44,21 @@ class thread_downloadArxiv(MyThread):
 
 	def run(self):
 		pBPDF.downloadArxiv(self.bibkey)
+
+class thread_authorStats(MyThread):
+	def __init__(self, name, queue, myrec, parent = None):
+		super(thread_authorStats, self).__init__(parent)
+		self.parent = parent
+		self.authorName = name
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		self.parent.lastAuthorStats = pBStats.authorStats(self.authorName)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBStats.runningAuthorStats = False

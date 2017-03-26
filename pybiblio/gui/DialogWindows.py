@@ -28,6 +28,10 @@ def askFileName(parent = None, title = "Filename to use:", message = "Enter file
 	reply = QFileDialog.getOpenFileName(parent, title, message)
 	return reply[0]
 
+def askDirName(parent = None, title = "Directory to use:", message = "Select directory"):
+	reply = QFileDialog.getExistingDirectory(parent, title, message, options=QFileDialog.ShowDirsOnly)
+	return reply
+
 def askGenericText(message, title, parent = None):
 	reply = QInputDialog.getText(parent, title, message)
 	return reply[0]
@@ -150,7 +154,7 @@ class printText(QDialog):
 	"""create a window for printing text of command line output"""
 	stopped = Signal()
 
-	def __init__(self, parent = None, title = "", progressBar = True):
+	def __init__(self, parent = None, title = "", progressBar = True, totStr = "[DB] searchOAIUpdates will process ", progrStr = "%) - looking for update: "):
 		super(printText, self).__init__(parent)
 		self.message = None
 		if title != "":
@@ -159,6 +163,8 @@ class printText(QDialog):
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
 		self._want_to_close = False
+		self.totString = totStr
+		self.progressString = progrStr
 		self.initUI()
 
 	def closeEvent(self, evnt):
@@ -207,10 +213,10 @@ class printText(QDialog):
 
 	def append_text(self,text):
 		if self.setProgressBar:
-			if "[DB] searchOAIUpdates will process " in text:
+			if self. totString in text:
 				tot = [int(s) for s in text.split() if s.isdigit()][0]
 				self.progressBarMax(tot)
-			elif "%) - looking for update: " in text:
+			elif self.progressString in text:
 				curr = [int(s) for s in text.split() if s.isdigit()][0]
 				self.progressBar.setValue(curr)
 		self.textEdit.moveCursor(QTextCursor.End)
