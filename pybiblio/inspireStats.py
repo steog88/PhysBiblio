@@ -1,4 +1,5 @@
 import os, sys, numpy, codecs, re
+import os.path as osp
 import json
 from urllib2 import Request, urlopen
 import dateutil, datetime
@@ -52,16 +53,20 @@ class inspireStatsLoader():
 		allInfo = {}
 		authorPapersList = [[],[]]
 		allCitations = []
+		tot = len(recid_authorPapers)
+		print("[inspireStats] authorStats will process %d total papers to retrieve citations"%tot)
 		for i, p in enumerate(recid_authorPapers):
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
 			authorPapersList[1].append(i + 1)
-			paperInfo = self.paperStats(p)
+			print("\n[inspireStats] %5d / %d (%5.2f%%) - looking for update: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
+			paperInfo = self.paperStats(p, verbose = 0)
 			allInfo[p]["infoDict"] = paperInfo["aI"]
 			allInfo[p]["citingPapersList"] = paperInfo["citList"]
 			for c,v in allInfo[p]["infoDict"].items():
 				allCitations.append(v["date"])
+		print("[inspireStats] saving citation counts...")
 		allCitList = [[],[]]
 		meanCitList = [[],[]]
 		currPaper = 0
@@ -73,10 +78,14 @@ class inspireStatsLoader():
 			meanCitList[0].append(d)
 			meanCitList[1].append((i+1.)/authorPapersList[1][currPaper])
 		self.authorPlotInfo = { "name": authorName, "aI": allInfo, "paLi": authorPapersList, "allLi": allCitList,  "meanLi": meanCitList }
+		if plot:
+			self.authorPlotInfo["figs"] = self.plotStats(author = True)
+		print("[inspireStats] stats for author '%s' completed!"%authorName)
 		return self.authorPlotInfo
 
-	def paperStats(self, paperID, plot = False):
-		print("[inspireStats] stats for paper '%s'"%paperID)
+	def paperStats(self, paperID, plot = False, verbose = 1):
+		if verbose > 0:
+			print("[inspireStats] stats for paper '%s'"%paperID)
 		url = pbConfig.inspireSearchBase + "?p=refersto:recid:" + paperID + self.paperStatsOpts
 		data = self.JsonFromUrl(url)
 		recid_citingPapers = [ a["recid"] for a in data ]
@@ -88,20 +97,24 @@ class inspireStatsLoader():
 			citingPapersList[0].append(allInfo[p]["date"])
 			citingPapersList[1].append(i+1)
 		self.paperPlotInfo = { "id": paperID, "aI": allInfo, "citList": citingPapersList }
+		if plot:
+			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
 		return self.paperPlotInfo
 	
 	def plotStats(self, paper = False, author = False, show = False, save = False, path = "."):
 		if paper and self.paperPlotInfo is not None:
 			if len(self.paperPlotInfo["citList"][0]) > 0:
 				print("[inspireStats] plotting for paper '%s'..."%self.paperPlotInfo["id"])
+				fig, ax = plt.subplots()
 				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1])
 				if save:
-					pdf = PdfPages('%s/%s.pdf'%(path, self.paperPlotInfo["id"]))
+					pdf = PdfPages(osp.join(path, self.paperPlotInfo["id"]+'.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				return fig
 		elif author and self.authorPlotInfo is not None:
 			print("[inspireStats] plotting for author '%s'..."%self.authorPlotInfo["name"])
 			try:
@@ -115,18 +128,19 @@ class inspireStatsLoader():
 					ErrorManager("[inspireStats] no publications for this author?")
 					return False
 				
-			
+			figs = []
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Paper number")
 				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1])
 				if save:
-					pdf = PdfPages('%s/%s_papers.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_papers.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
 			
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
@@ -137,12 +151,13 @@ class inspireStatsLoader():
 				plt.xlim([ymin, ymax])
 				plt.xticks(range(ymin,ymax+1))
 				if save:
-					pdf = PdfPages('%s/%s_yearPapers.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_yearPapers.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
 			
 			if len(self.authorPlotInfo["aI"].keys()) > 0:
 				fig, ax = plt.subplots()
@@ -153,24 +168,26 @@ class inspireStatsLoader():
 					except:
 						pass
 				if save:
-					pdf = PdfPages('%s/%s_paperCit.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
 			
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
 				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1])
 				if save:
-					pdf = PdfPages('%s/%s_allCit.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_allCit.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
 			
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
@@ -181,12 +198,13 @@ class inspireStatsLoader():
 				plt.xlim([ymin, ymax])
 				plt.xticks(range(ymin,ymax+1))
 				if save:
-					pdf = PdfPages('%s/%s_yearCit.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_yearCit.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
 			
 			if len(self.authorPlotInfo["meanLi"][0]) > 0:
 				fig, ax = plt.subplots()
@@ -195,13 +213,16 @@ class inspireStatsLoader():
 				for q in self.authorPlotInfo["paLi"][0]:
 					plt.axvline(datetime.datetime(int(q.strftime("%Y")), int(q.strftime("%m")), int(q.strftime("%d"))), color = 'k', ls = '--')
 				if save:
-					pdf = PdfPages('%s/%s_meanCit.pdf'%(path, self.authorPlotInfo["name"]))
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_meanCit.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:
 					plt.show()
 				plt.close()
+				figs.append(fig)
+			return figs
 		else:
 			print("[inspireStats] nothing to plot...")
+			return False
 
 pBStats = inspireStatsLoader()
