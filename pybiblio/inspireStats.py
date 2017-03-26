@@ -5,6 +5,7 @@ from urllib2 import Request, urlopen
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4'] = 'PySide'
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 try:
@@ -169,23 +170,6 @@ class inspireStatsLoader():
 				plt.close()
 				figs.append(fig)
 			
-			if len(self.authorPlotInfo["aI"].keys()) > 0:
-				fig, ax = plt.subplots()
-				plt.title("Citations for each paper")
-				for i,p in enumerate(self.authorPlotInfo["aI"].keys()):
-					try:
-						plt.plot(self.authorPlotInfo["aI"][p]["citingPapersList"][0],self.authorPlotInfo["aI"][p]["citingPapersList"][1])
-					except:
-						pass
-				if save:
-					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
-					pdf.savefig()
-					pdf.close()
-				if show:
-					plt.show()
-				plt.close()
-				figs.append(fig)
-			
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
@@ -224,6 +208,23 @@ class inspireStatsLoader():
 					plt.axvline(datetime.datetime(int(q.strftime("%Y")), int(q.strftime("%m")), int(q.strftime("%d"))), color = 'k', ls = '--')
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_meanCit.pdf'))
+					pdf.savefig()
+					pdf.close()
+				if show:
+					plt.show()
+				plt.close()
+				figs.append(fig)
+			
+			if len(self.authorPlotInfo["aI"].keys()) > 0:
+				fig, ax = plt.subplots()
+				plt.title("Citations for each paper")
+				for i,p in enumerate(self.authorPlotInfo["aI"].keys()):
+					try:
+						plt.plot(self.authorPlotInfo["aI"][p]["citingPapersList"][0],self.authorPlotInfo["aI"][p]["citingPapersList"][1])
+					except:
+						pass
+				if save:
+					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
 					pdf.savefig()
 					pdf.close()
 				if show:

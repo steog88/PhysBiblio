@@ -69,6 +69,7 @@ class catsWindowList(QDialog):
 	def __init__(self, parent = None):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
+		self.setWindowTitle("Categories")
 		self.currLayout = QHBoxLayout(self)
 
 		self.setMinimumWidth(400)

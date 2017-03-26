@@ -18,6 +18,7 @@ try:
 	from pybiblio.gui.CatWindows import *
 	from pybiblio.gui.ExpWindows import *
 	from pybiblio.gui.ThreadElements import *
+	from pybiblio.gui.inspireStatsGUI import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -446,21 +447,17 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def authorStats(self):
-		text = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
-		if text is "":
+		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
+		if authorName is "":
 			ErrorManager("[authorStats] empty name inserted! cannot proceed.")
 			return False
-		if askYesNo("Do you want to save the plots for the computed stats?"):
-			savePath = askDirName(self, "Where do you want to save the plots of the stats?")
-		else:
-			savePath = ""
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 		app = printText(totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
 		app.progressBarMin(0)
 		queue = Queue()
 		self.aSReceiver = MyReceiver(queue, self)
 		self.aSReceiver.mysignal.connect(app.append_text)
-		self.authorStats_thr = thread_authorStats(text, queue, self.aSReceiver, self)
+		self.authorStats_thr = thread_authorStats(authorName, queue, self.aSReceiver, self)
 
 		self.connect(self.aSReceiver, SIGNAL("finished()"), self.aSReceiver.deleteLater)
 		self.connect(self.authorStats_thr, SIGNAL("finished()"), app.enableClose)
@@ -472,10 +469,16 @@ class MainWindow(QMainWindow):
 		app.exec_()
 		print("Closing...")
 		sys.stdout = sys.__stdout__
+		if askYesNo("Do you want to save the plots for the computed stats?\nThey will be displayed in a new window in any case."):
+			savePath = askDirName(self, "Where do you want to save the plots of the stats?")
+		else:
+			savePath = ""
 		if savePath != "":
 			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
 		else:
 			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True)
+		aSP = authorStatsPlots(self.lastAuthorStats["figs"], title = "Statistics for %s"%authorName, parent = self)
+		aSP.show()
 		self.done()
 
 	def done(self):
