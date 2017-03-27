@@ -7,7 +7,7 @@ from PySide.QtGui  import *
 import signal
 
 try:
-	from pybiblio.errors import ErrorManager
+	from pybiblio.errors import pBErrorManager
 	from pybiblio.database import *
 	import pybiblio.export as bibexport
 	import pybiblio.webimport.webInterf as webInt
@@ -427,7 +427,7 @@ class MainWindow(QMainWindow):
 
 	def updateAllBibtexs(self, startFrom = 0):
 		self.StatusBarMessage("Starting update of all bibtexs...")
-		app = printText()
+		app = printText(title = "Update All Bibtexs")
 		app.progressBarMin(0)
 		queue = Queue()
 		self.uOAIReceiver = MyReceiver(queue, self)
@@ -449,10 +449,10 @@ class MainWindow(QMainWindow):
 	def authorStats(self):
 		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
 		if authorName is "":
-			ErrorManager("[authorStats] empty name inserted! cannot proceed.")
+			pBErrorManager("[authorStats] empty name inserted! cannot proceed.")
 			return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
-		app = printText(totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
+		app = printText(title = "Author Stats", totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
 		app.progressBarMin(0)
 		queue = Queue()
 		self.aSReceiver = MyReceiver(queue, self)
@@ -472,14 +472,7 @@ class MainWindow(QMainWindow):
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
 			return False
 		sys.stdout = sys.__stdout__
-		if askYesNo("Do you want to save the plots for the computed stats?\nThey will be displayed in a new window in any case."):
-			savePath = askDirName(self, "Where do you want to save the plots of the stats?")
-		else:
-			savePath = ""
-		if savePath != "":
-			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
-		else:
-			self.lastAuthorStats["figs"] = pBStats.plotStats(author = True)
+		self.lastAuthorStats["figs"] = pBStats.plotStats(author = True)
 		aSP = authorStatsPlots(self.lastAuthorStats["figs"], title = "Statistics for %s"%authorName, parent = self)
 		aSP.show()
 		self.done()

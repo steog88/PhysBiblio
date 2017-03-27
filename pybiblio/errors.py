@@ -5,7 +5,7 @@ try:
 except ImportError:
     print("Cannot load pybiblio.config module: check your PYTHONPATH!")
 
-class ErrorManager():
+class pBErrorManager():
 	def __init__(self, message, trcbk = None):
 		message += "\n"
 		sys.stderr.write(message)

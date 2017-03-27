@@ -4,7 +4,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess, traceback
 try:
-	import pybiblio.errors as pBDBErrors
+	import pybiblio.errors as pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())

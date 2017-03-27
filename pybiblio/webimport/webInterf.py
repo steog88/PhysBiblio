@@ -2,7 +2,7 @@ import sys, re, os
 import urllib2
 import pkgutil, traceback
 try:
-	import pybiblio.errors as pBDBErrors
+	import pybiblio.errors as pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -11,7 +11,7 @@ try:
 	from pybiblio.database import *
 	from pybiblio.config import pbConfig
 except ImportError:
-	pBDBErrors("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
+	pBErrorManager("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
@@ -41,12 +41,12 @@ class webInterf():
 			response = urllib2.urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
 		except urllib2.URLError:
-			pBDBErrors("[%s] -> error in retriving data from url"%self.name)
+			pBErrorManager("[%s] -> error in retriving data from url"%self.name)
 			return None
 		try:
 			text = data.decode('utf-8')
 		except:
-			pBDBErrors("[%s] -> bad codification, utf-8 decode failed"%self.name)
+			pBErrorManager("[%s] -> bad codification, utf-8 decode failed"%self.name)
 			return None
 		return text
 	
@@ -66,7 +66,7 @@ class webInterf():
 				_temp = __import__("pybiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
 				self.webSearch[q] = getattr(_temp, "webSearch")()
 			except:
-				pBDBErrors("pybiblio.webimport.%s import error"%q)
+				pBErrorManager("pybiblio.webimport.%s import error"%q)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):

@@ -17,7 +17,7 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
-def askYesNo(message, title = ""):
+def askYesNo(message, title = "Question"):
 	reply = QMessageBox.question(None, title, message, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 	if reply == QMessageBox.Yes:
 		return True
@@ -36,7 +36,7 @@ def askGenericText(message, title, parent = None):
 	reply = QInputDialog.getText(parent, title, message)
 	return reply[0]
 
-def infoMessage(message, title = ""):
+def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
 
 class configWindow(QDialog):

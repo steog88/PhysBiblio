@@ -3,7 +3,7 @@
 #import urllib2
 import traceback
 try:
-	import pybiblio.errors as pBDBErrors
+	import pybiblio.errors as pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -29,7 +29,7 @@ class webSearch(webInterf):
 		try:
 			return parse_accents_str(text[:])
 		except:
-			pBDBErrors("[isbn] -> ERROR: impossible to get results")
+			pBErrorManager("[isbn] -> ERROR: impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self,string):

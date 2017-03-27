@@ -14,7 +14,7 @@ try:
 	from pybiblio.database import pBDB
 	from pybiblio.pdf import pBPDF
 	from pybiblio.view import pBView
-	from pybiblio.errors import ErrorManager
+	from pybiblio.errors import pBErrorManager
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
@@ -73,13 +73,15 @@ class inspireStatsLoader():
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
-			authorPapersList[1].append(i + 1)
 			print("\n[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p, verbose = 0)
 			allInfo[p]["infoDict"] = paperInfo["aI"]
 			allInfo[p]["citingPapersList"] = paperInfo["citList"]
 			for c,v in allInfo[p]["infoDict"].items():
 				allCitations.append(v["date"])
+		for i,p in enumerate(sorted(authorPapersList[0])):
+			authorPapersList[0][i] = p
+			authorPapersList[1].append(i + 1)
 		print("[inspireStats] saving citation counts...")
 		allCitList = [[],[]]
 		meanCitList = [[],[]]
@@ -109,6 +111,8 @@ class inspireStatsLoader():
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			citingPapersList[0].append(allInfo[p]["date"])
+		for i,p in enumerate(sorted(citingPapersList[0])):
+			citingPapersList[0][i] = p
 			citingPapersList[1].append(i+1)
 		self.paperPlotInfo = { "id": paperID, "aI": allInfo, "citList": citingPapersList }
 		if plot:
@@ -140,7 +144,7 @@ class inspireStatsLoader():
 					ymin = int(self.authorPlotInfo["paLi"][0][0].strftime("%Y"))-2
 					ymax = int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y"))+2
 				except:
-					ErrorManager("[inspireStats] no publications for this author?")
+					pBErrorManager("[inspireStats] no publications for this author?")
 					return False
 			figs = []
 			if len(self.authorPlotInfo["paLi"][0]) > 0:

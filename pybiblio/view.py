@@ -1,6 +1,6 @@
 import subprocess, traceback
 try:
-	import pybiblio.errors as pBDBErrors
+	import pybiblio.errors as pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -10,7 +10,7 @@ try:
 	from pybiblio.database import pBDB
 	from pybiblio.pdf import pBPDF
 except ImportError:
-	pBDBErrors("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
+	pBErrorManager("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
 	
 class viewEntry():
 	"""Contains methods to print or open a web link to the entry"""
@@ -39,7 +39,7 @@ class viewEntry():
 		elif arg is "file":
 			pBPDF.openFile(key, fileArg)
 		else:
-			pBDBErrors("[viewEntry] ERROR: invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
+			pBErrorManager("[viewEntry] ERROR: invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
 			return False
 
 		return link
@@ -56,8 +56,8 @@ class viewEntry():
 					print("[viewEntry] opening '%s'..."%link)
 					subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 				except OSError:
-					pBDBErrors("[viewEntry] opening link for '%s' failed!"%key)
+					pBErrorManager("[viewEntry] opening link for '%s' failed!"%key)
 			else:
-				pBDBErrors("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
+				pBErrorManager("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
 
 pBView = viewEntry()

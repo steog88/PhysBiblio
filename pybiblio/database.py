@@ -6,7 +6,7 @@ import pybiblio.webimport.webInterf as webInt
 
 try:
 	from pybiblio.config import pbConfig
-	from pybiblio.errors import ErrorManager
+	from pybiblio.errors import pBErrorManager
 	import pybiblio.parse_accents as parse_accents
 	import pybiblio.firstOpen as pbfo
 	from pybiblio.webimport.webInterf import pyBiblioWeb
@@ -1148,7 +1148,7 @@ class entries(pybiblioDBSub):
 		try:
 			entries = self.getAll()[startFrom:]
 		except TypeError:
-			ErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
+			pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
 			return 0, 0, []
 		num = 0
 		err = 0

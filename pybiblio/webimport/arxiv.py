@@ -3,7 +3,7 @@ from urllib2 import Request
 import urllib2
 import feedparser, traceback
 try:
-	import pybiblio.errors as pBDBErrors
+	import pybiblio.errors as pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -78,7 +78,7 @@ class webSearch(webInterf):
 			writer.comma_first = False
 			return writer.write(db)
 		except:
-			pBDBErrors("[arXiv] -> ERROR: impossible to get results", traceback)
+			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
 			return ""
 
 
