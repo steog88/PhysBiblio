@@ -26,7 +26,7 @@ configuration_params = [
 	"description": 'Web browser',
 	"special": None},
 {"name": "timeoutWebSearch",
-	"default": 10.,
+	"default": 20.,
 	"description": 'Timeout for the web queries',
 	"special": 'float'},
 {"name": "askBeforeExit",

@@ -468,6 +468,9 @@ class MainWindow(QMainWindow):
 		self.authorStats_thr.start()
 		app.exec_()
 		print("Closing...")
+		if self.lastAuthorStats is None:
+			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
+			return False
 		sys.stdout = sys.__stdout__
 		if askYesNo("Do you want to save the plots for the computed stats?\nThey will be displayed in a new window in any case."):
 			savePath = askDirName(self, "Where do you want to save the plots of the stats?")

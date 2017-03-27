@@ -1,4 +1,4 @@
-import os, sys, numpy, codecs, re
+import os, sys, numpy, codecs, re, time
 import os.path as osp
 import json
 from urllib2 import Request, urlopen
@@ -67,6 +67,8 @@ class inspireStatsLoader():
 			if not self.runningAuthorStats:
 				print("[inspireStats] received 'stop' signal. Interrupting download of information. Processing and exiting...")
 				break
+			if tot > 20:
+				time.sleep(1)
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
