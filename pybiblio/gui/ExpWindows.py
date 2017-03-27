@@ -2,7 +2,12 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import subprocess
+import subprocess, traceback
+try:
+	import pybiblio.errors as pBDBErrors
+except ImportError:
+	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 
 try:
 	from pybiblio.database import *

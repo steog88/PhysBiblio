@@ -1,7 +1,12 @@
 import sys,re,os
 from urllib2 import Request
 import urllib2
-import feedparser
+import feedparser, traceback
+try:
+	import pybiblio.errors as pBDBErrors
+except ImportError:
+	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from pybiblio.webimport.webInterf import *
@@ -73,7 +78,7 @@ class webSearch(webInterf):
 			writer.comma_first = False
 			return writer.write(db)
 		except:
-			print("[arXiv] -> ERROR: impossible to get results")
+			pBDBErrors("[arXiv] -> ERROR: impossible to get results", traceback)
 			return ""
 
 

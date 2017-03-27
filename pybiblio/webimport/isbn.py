@@ -1,6 +1,12 @@
 #import sys,re,os
 #from urllib2 import Request
 #import urllib2
+import traceback
+try:
+	import pybiblio.errors as pBDBErrors
+except ImportError:
+	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
 
@@ -23,7 +29,7 @@ class webSearch(webInterf):
 		try:
 			return parse_accents_str(text[:])
 		except:
-			print("[isbn] -> ERROR: impossible to get results")
+			pBDBErrors("[isbn] -> ERROR: impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self,string):

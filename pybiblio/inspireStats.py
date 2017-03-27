@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4'] = 'PySide'
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
 try:
 	from pybiblio.config import pbConfig
@@ -114,12 +115,13 @@ class inspireStatsLoader():
 			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
 		return self.paperPlotInfo
 	
-	def plotStats(self, paper = False, author = False, show = False, save = False, path = "."):
+	def plotStats(self, paper = False, author = False, show = False, save = False, path = ".", markPapers = False):
 		if paper and self.paperPlotInfo is not None:
 			if len(self.paperPlotInfo["citList"][0]) > 0:
 				print("[inspireStats] plotting for paper '%s'..."%self.paperPlotInfo["id"])
 				fig, ax = plt.subplots()
 				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1])
+				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.paperPlotInfo["id"]+'.pdf'))
 					pdf.savefig()
@@ -140,12 +142,12 @@ class inspireStatsLoader():
 				except:
 					ErrorManager("[inspireStats] no publications for this author?")
 					return False
-				
 			figs = []
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Paper number")
 				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1])
+				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_papers.pdf'))
 					pdf.savefig()
@@ -162,7 +164,6 @@ class inspireStatsLoader():
 					bins=range(ymin,  ymax))
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
-				plt.xticks(range(ymin,ymax+1))
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_yearPapers.pdf'))
 					pdf.savefig()
@@ -176,6 +177,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
 				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1])
+				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_allCit.pdf'))
 					pdf.savefig()
@@ -192,7 +194,6 @@ class inspireStatsLoader():
 					bins=range(ymin,  ymax))
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
-				plt.xticks(range(ymin,ymax+1))
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_yearCit.pdf'))
 					pdf.savefig()
@@ -206,8 +207,10 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Mean citations")
 				plt.plot(self.authorPlotInfo["meanLi"][0], self.authorPlotInfo["meanLi"][1])
-				for q in self.authorPlotInfo["paLi"][0]:
-					plt.axvline(datetime.datetime(int(q.strftime("%Y")), int(q.strftime("%m")), int(q.strftime("%d"))), color = 'k', ls = '--')
+				fig.autofmt_xdate()
+				if markPapers:
+					for q in self.authorPlotInfo["paLi"][0]:
+						plt.axvline(datetime.datetime(int(q.strftime("%Y")), int(q.strftime("%m")), int(q.strftime("%d"))), color = 'k', ls = '--')
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_meanCit.pdf'))
 					pdf.savefig()
@@ -225,6 +228,7 @@ class inspireStatsLoader():
 						plt.plot(self.authorPlotInfo["aI"][p]["citingPapersList"][0],self.authorPlotInfo["aI"][p]["citingPapersList"][1])
 					except:
 						pass
+				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
 					pdf.savefig()

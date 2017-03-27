@@ -1,9 +1,14 @@
-import os
+import os, traceback
+try:
+	import pybiblio.errors as pBDBErrors
+except ImportError:
+	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 try:
 	from pybiblio.config import pbConfig
 	import pybiblio.tablesDef
 except ImportError:
-    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+    pBDBErrors("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
 
 #write here the functions to define the user settings and create the database and config file. 
 
@@ -26,7 +31,7 @@ def createTables(database):
 		command+=");"
 		print(command+"\n")
 		if not database.connExec(command):
-			print("[DB] error: create %s failed"%q)
+			pBDBErrors("[DB] error: create %s failed"%q)
 	command="""
 	INSERT into categories (idCat, name, description, parentCat, ord)
 		values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
@@ -34,6 +39,6 @@ def createTables(database):
 		"""
 	print(command+"\n")
 	if not database.connExec(command):
-		print("[DB] error: insert main categories failed")
+		pBDBErrors("[DB] error: insert main categories failed")
 	database.commit()
 		
