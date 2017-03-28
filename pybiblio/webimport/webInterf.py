@@ -43,6 +43,9 @@ class webInterf():
 		except urllib2.URLError:
 			pBErrorManager("[%s] -> error in retriving data from url"%self.name)
 			return None
+		except timeout:
+			pBErrorManager("[%s] -> timed out"%self.name)
+			return None
 		try:
 			text = data.decode('utf-8')
 		except:

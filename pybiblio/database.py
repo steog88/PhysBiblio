@@ -918,7 +918,7 @@ class entries(pybiblioDBSub):
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
-			marks = None, firstdate = None, pubdate = None, number = None):
+			marks = None, firstdate = None, pubdate = None, tBU = None, number = None):
 		"""convert a bibtex into a dictionary, eventually using also additional info"""
 		data = {}
 		if number is None:
@@ -1005,6 +1005,7 @@ class entries(pybiblioDBSub):
 		data["review"] = 1 if review else 0
 		data["proceeding"] = 1 if proceeding else 0
 		data["book"] = 1 if book else 0
+		data["toBeUpdated"] = 1 if tBU else 0
 		data["marks"] = marks if marks else None
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
 		data["pubdate"] = pubdate if pubdate else ""
