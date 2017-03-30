@@ -260,7 +260,10 @@ class bibtexList(QFrame):
 					self.parent.StatusBarMessage("deleting DOI PDF file...")
 					pBPDF.removeFile(bibkey, "doi")
 			elif ask.result == "addDoi":
-				print "NYI"
+				newpdf = askFileName(self, "Where is the published PDF located?", "Select file")
+				if newpdf != "" and os.path.isfile(newpdf):
+					if pBPDF.copyNewFile(bibkey, newpdf, "doi"):
+						infoMessage("PDF successfully copied!")
 			elif ask.result == False:
 				self.parent.StatusBarMessage("Nothing to do...")
 

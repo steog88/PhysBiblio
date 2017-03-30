@@ -61,12 +61,14 @@ class localPDF():
 			newFile = self.getFilePath(key, ftype)
 		else:
 			print("[localPDF] ERROR: you should supply a ftype ('doi' or 'arxiv') or a customName!")
-			return
+			return False
 		try:
 			shutil.copy2(origFile, newFile)
 			print("[localPDF] %s copied to %s"%(origFile, newFile))
+			return True
 		except:
 			print("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, newFile))
+			return False
 		
 	def downloadArxiv(self, key, force = False):
 		"""download the arxiv file for a given entry"""
