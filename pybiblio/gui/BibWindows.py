@@ -45,46 +45,54 @@ def writeBibtexInfo(entry):
 			pass
 	return infoText
 
-def editExperiment(parent, statusBarObject, editIdExp = None):
-	#if editIdExp is not None:
-		#edit = pBDB.exps.getDictByID(editIdExp)
-	#else:
-		#edit = None
-	#newExpWin = editExp(parent, exp = edit)
-	#newExpWin.exec_()
-	#data = {}
-	#if newExpWin.result:
-		#for k, v in newExpWin.textValues.items():
-			#s = "%s"%v.text()
-			#data[k] = s
-		#if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
-			#if "bibkey" in data.keys():
-				#print("[GUI] Updating experiment %s..."%data["bibkey"])
-				#pBDB.exps.update(data, data["idExp"])
-			#else:
-				#pBDB.exps.insert(data)
-			#message = "Experiment saved"
-			#statusBarObject.setWindowTitle("PyBiblio*")
-			#try:
-				#parent.recreateTable()
-			#except:
-				#pass
-		#else:
-			#message = "ERROR: empty experiment name"
-	#else:
-		#message = "No modifications to bibtex entry"
-	#try:
-		#statusBarObject.StatusBarMessage(message)
-	#except:
+def editBibtex(parent, statusBarObject, editKey = None):
+	if editKey is not None:
+		edit = pBDB.bibs.getByKey(editKey)[0]
+	else:
+		edit = None
+	newBibWin = editBibtexEntry(parent, bib = edit)
+	newBibWin.exec_()
+	data = {}
+	if newBibWin.result is True:
+		for k, v in newBibWin.textValues.items():
+			try:
+				s = "%s"%v.text()
+			except AttributeError:
+				s = "%s"%v.toPlainText()
+			data[k] = s
+		for k, v in newBibWin.checkValues.items():
+			if v.isChecked():
+				data[k] = 1
+			else:
+				data[k] = 0
+		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
+			if "bibkey" in data.keys():
+				print("[GUI] Updating bibtex %s..."%data["bibkey"])
+				pBDB.bibs.update(data, data["bibkey"])
+			else:
+				pBDB.bibs.insert(data)
+			message = "Bibtex entry saved"
+			statusBarObject.setWindowTitle("PyBiblio*")
+			try:
+				parent.top.recreateTable()
+			except:
+				pass
+		else:
+			infoMessage("ERROR: empty bibtex and/or bibkey!")
+	else:
+		message = "No modifications to bibtex entry"
+	try:
+		statusBarObject.StatusBarMessage(message)
+	except:
 		pass
 
 def deleteBibtex(parent, statusBarObject, bibkey):
 	if askYesNo("Do you really want to delete this bibtex entry (bibkey = '%s')?"%(bibkey)):
-		pBDB.exps.delete(bibkey)
+		pBDB.bibs.delete(bibkey)
 		statusBarObject.setWindowTitle("PyBiblio*")
 		message = "Bibtex entry deleted"
 		try:
-			parent.recreateTable()
+			parent.top.recreateTable()
 		except:
 			pass
 	else:
@@ -223,10 +231,10 @@ class bibtexList(QFrame):
 		entry = pBDB.bibs.getByBibkey(bibkey)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
-		#if self.colContents[col] == "modify":
-			#editExperiment(self, self.parent, bibkey)
-		#elif self.colContents[col] == "delete":
-			#deleteExperiment(self, self.parent, bibkey)
+		if self.colContents[col] == "modify":
+			editBibtex(self.parent, self.parent, bibkey)
+		elif self.colContents[col] == "delete":
+			deleteBibtex(self.parent, self.parent, bibkey)
 
 	def cellDoubleClick(self, row, col):
 		bibkey = self.tablewidget.item(row, 0).text()
@@ -304,45 +312,71 @@ class bibtexList(QFrame):
 		self.createTable()
 
 class editBibtexEntry(editObjectWindow):
-	"""create a window for editing or creating an experiment"""
-	def __init__(self, parent = None, exp = None):
+	"""create a window for editing or creating a bibtex entry"""
+	def __init__(self, parent = None, bib = None):
 		super(editBibtexEntry, self).__init__(parent)
-		#if exp is None:
-			#self.data = {}
-			#for k in pBDB.tableCols["experiments"]:
-				#self.data[k] = ""
-		#else:
-			#self.data = exp
-		#self.createForm()
+		self.bibtexEditLines = 8
+		if bib is None:
+			self.data = {}
+			for k in pBDB.tableCols["entries"]:
+				self.data[k] = ""
+		else:
+			self.data = bib
+		self.checkValues = {}
+		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "toBeUpdated"]
+		self.createForm()
 
-	#def createForm(self):
-		#self.setWindowTitle('Edit experiment')
+	def createForm(self):
+		self.setWindowTitle('Edit bibtex entry')
 
-		#i = 0
-		#for k in pBDB.tableCols["experiments"]:
-			#val = self.data[k]
-			#if k != "idExp" or (k == "idExp" and self.data[k] != ""):
-				#i += 1
-				#self.currGrid.addWidget(QLabel(k), i*2-1, 0)
-				#self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
-				#self.textValues[k] = QLineEdit(str(val))
-				#if k == "idExp":
-					#self.textValues[k].setEnabled(False)
-				#self.currGrid.addWidget(self.textValues[k], i*2, 0, 1, 2)
+		i = 0
+		for k in pBDB.tableCols["entries"]:
+			val = self.data[k]
+			if k != "bibtex" and k not in self.checkboxes:
+				i += 1
+				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
+				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
+				self.textValues[k] = QLineEdit(str(val))
+				if k == "bibkey" and val != "":
+					self.textValues[k].setEnabled(False)
+				self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
 
-		## OK button
-		#self.acceptButton = QPushButton('OK', self)
-		#self.acceptButton.clicked.connect(self.onOk)
-		#self.currGrid.addWidget(self.acceptButton, i*2+1, 0)
+		#bibtex text editor
+		i += 1 + i%2
+		k = "bibtex"
+		self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
+		self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
+		self.textValues[k] = QPlainTextEdit(self.data[k])
+		self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, 0, self.bibtexEditLines, 2)
 
-		## cancel button
-		#self.cancelButton = QPushButton('Cancel', self)
-		#self.cancelButton.clicked.connect(self.onCancel)
-		#self.cancelButton.setAutoDefault(True)
-		#self.currGrid.addWidget(self.cancelButton, i*2+1, 1)
+		j = 0
+		for k in pBDB.tableCols["entries"]:
+			val = self.data[k]
+			if k in self.checkboxes:
+				j += 2
+				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
+				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
+				self.checkValues[k] = QCheckBox("", self)
+				if val == 1:
+					self.checkValues[k].toggle()
+				self.currGrid.addWidget(self.checkValues[k], int((i+1-(i+i)%2)/2)*2 + j - 2, 3)
+		
+		self.currGrid.addWidget(self.textValues["bibtex"], int((i+1-(i+i)%2)/2)*2, 0, j, 2)
 
-		#self.setGeometry(100,100,400, 50*i)
-		#self.centerWindow()
+		# OK button
+		i += j
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.currGrid.addWidget(self.acceptButton, i*2+1, 0,1,2)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.currGrid.addWidget(self.cancelButton, i*2+1, 2,1,2)
+
+		self.setGeometry(100,100,400, 25*i)
+		self.centerWindow()
 
 class askPdfAction(askAction):
 	def __init__(self, parent = None, key = "", arxiv = None, doi = None):

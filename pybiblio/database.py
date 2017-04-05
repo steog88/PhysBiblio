@@ -788,7 +788,10 @@ class entries(pybiblioDBSub):
 			tmp = {}
 			for k in el.keys():
 				tmp[k] = el[k]
-			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			try:
+				tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			except IndexError:
+				tmp["bibtexDict"] = {}
 			try:
 				tmp["title"] = tmp["bibtexDict"]["title"]
 			except KeyError:
@@ -886,7 +889,6 @@ class entries(pybiblioDBSub):
 	def update(self, data, oldkey):
 		"""update entry"""
 		data["bibkey"] = oldkey
-		print(data)
 		query = "replace into entries (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
