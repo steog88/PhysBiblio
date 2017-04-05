@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
 								triggered=self.categories)
 
 		self.newCatAct = QAction("Ne&w Category", self,
+								shortcut="Ctrl+Shift+C",
 								statusTip="New Category",
 								triggered=self.newCategory)
 
@@ -105,13 +106,10 @@ class MainWindow(QMainWindow):
 								triggered=self.experimentList)
 
 		self.newExpAct = QAction("&New Experiment", self,
+								shortcut="Ctrl+Shift+E",
 								statusTip="New Experiment",
 								triggered=self.newExperiment)
 								
-		self.biblioAct = QAction("Bibliogra&phy", self,
-								statusTip="Manage bibliography",
-								triggered=self.biblio)
-
 		self.newBibAct = QAction(QIcon(":/images/file-add.png"),
 								"New &Bib item", self,
 								shortcut="Ctrl+N",
@@ -177,26 +175,27 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
 
-		self.menuBar().addSeparator()
-		self.dataMenu = self.menuBar().addMenu("&Contents")
-		self.dataMenu.addAction(self.CatAct)
-		self.dataMenu.addAction(self.newCatAct)
-		self.dataMenu.addSeparator()
-		self.dataMenu.addAction(self.ExpAct)
-		self.dataMenu.addAction(self.newExpAct)
-		self.dataMenu.addSeparator()
-		self.dataMenu.addAction(self.biblioAct)
-		self.dataMenu.addAction(self.newBibAct)
-		self.dataMenu.addAction(self.updateAllBibtexsAct)
-		self.dataMenu.addAction(self.updateAllBibtexsAskAct)
-		self.dataMenu.addAction(self.reloadAct)
-		self.dataMenu.addSeparator()
-		self.dataMenu.addAction(self.authorStatsAct)
-		self.dataMenu.addSeparator()
-		self.dataMenu.addAction(self.cliAct)
+		self.bibMenu = self.menuBar().addMenu("&Bibliography")
+		self.bibMenu.addAction(self.newBibAct)
+		self.bibMenu.addAction(self.updateAllBibtexsAct)
+		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
+		self.bibMenu.addAction(self.reloadAct)
 
-		#self.menuBar().addSeparator()
-		#self.optionMenu = self.menuBar().addMenu("&Options")
+		self.menuBar().addSeparator()
+		self.catMenu = self.menuBar().addMenu("&Categories")
+		self.catMenu.addAction(self.CatAct)
+		self.catMenu.addAction(self.newCatAct)
+		
+		self.menuBar().addSeparator()
+		self.expMenu = self.menuBar().addMenu("&Experiments")
+		self.expMenu.addAction(self.ExpAct)
+		self.expMenu.addAction(self.newExpAct)
+		
+		self.menuBar().addSeparator()
+		self.toolMenu = self.menuBar().addMenu("&Tools")
+		self.toolMenu.addAction(self.authorStatsAct)
+		self.toolMenu.addSeparator()
+		self.toolMenu.addAction(self.cliAct)
 		#self.optionMenu.addAction(self.optionsAct)
 		#self.optionMenu.addAction(self.plotOptionsAct)
 		#self.optionMenu.addAction(self.configOptionsAct)
@@ -401,12 +400,7 @@ class MainWindow(QMainWindow):
 		#pBDB.bibExp.insert("Ade:2015xua",1)
 		#print pBDB.cats.findByEntry("Ade:2015xua")
 		
-		#pBDB.exps.insert({"name":"DAMA", "comments":"", "homepage":"http://people.roma2.infn.it/~dama/web/home.html", "inspire":"1401121"})
 		#pBDB.assignExpCat([58,64,65,66],6)
-		
-		#pBDB.exps.printAll()
-		#pBDB.cats.printHier()
-
 		self.StatusBarMessage("biblio done")
 
 	def cli(self):
