@@ -361,7 +361,7 @@ class MainWindow(QMainWindow):
 		editExperiment(self, self)
 
 	def newBibtex(self):
-		editBibtexEntry(self, self)
+		editBibtex(self, self)
 
 	def biblio(self):
 		self.StatusBarMessage("biblio triggered")

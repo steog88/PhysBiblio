@@ -72,7 +72,7 @@ fieldsDescriptions["entries"] = {
 	"review":	 "(T/F) The entry is a review",
 	"proceeding":"(T/F) The entry is a proceeding",
 	"book":		 "(T/F) The entry is a book",
-	"update":	 "(T/F) The entry has been created/modified by the user and/or should not be updated",
+	"toBeUpdated":"(T/F) The entry has been created/modified by the user and/or should not be updated",
 	"marks":	 "Assign a mark to the record (not yet implemented)"}
 fieldsDescriptions["categories"] = {
 	"idCat": 		"Unique ID that identifies the category",
