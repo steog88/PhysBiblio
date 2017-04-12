@@ -257,16 +257,18 @@ class bibtexList(QFrame):
 			elif ask.result == "downloadArxiv":
 				self.parent.StatusBarMessage("downloading PDF from arxiv...")
 				self.downArxiv_thr = thread_downloadArxiv(bibkey)
-				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.parent.done)
+				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.downloadArxivDone)
 				self.downArxiv_thr.start()
 			elif ask.result == "delArxiv":
 				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting arxiv PDF file...")
 					pBPDF.removeFile(bibkey, "arxiv")
+					self.parent.reloadMainContent()
 			elif ask.result == "delDoi":
 				if askYesNo("Do you really want to delete the DOI PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting DOI PDF file...")
 					pBPDF.removeFile(bibkey, "doi")
+					self.parent.reloadMainContent()
 			elif ask.result == "addDoi":
 				newpdf = askFileName(self, "Where is the published PDF located?", "Select file")
 				if newpdf != "" and os.path.isfile(newpdf):
@@ -274,6 +276,11 @@ class bibtexList(QFrame):
 						infoMessage("PDF successfully copied!")
 			elif ask.result == False:
 				self.parent.StatusBarMessage("Nothing to do...")
+
+	def downloadArxivDone(self):
+		self.parent.sendMessage("Arxiv download completed!")
+		self.parent.done()
+		self.parent.reloadMainContent()
 
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""

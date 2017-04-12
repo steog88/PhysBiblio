@@ -3,7 +3,7 @@ from urllib2 import Request
 import urllib2
 import feedparser, traceback
 try:
-	import pybiblio.errors as pBErrorManager
+	from pybiblio.errors import pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())

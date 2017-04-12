@@ -1247,9 +1247,25 @@ class entries(pybiblioDBSub):
 				return False
 		elif entry is not None and type(entry) is list:
 			failed = []
+			def returnListIfSub(a, out):
+				if type(a) is list:
+					for el in a:
+						out = returnListIfSub(el, out)
+					return out
+				else:
+					out += [a]
+					return out
+			entry = returnListIfSub(entry, [])
+			self.runningLoadAndInsert = True
+			tot = len(entry)
+			print("[DB] loadAndInsert will process %d total entries"%tot)
+			ix = 0
 			for e in entry:
-				if not self.loadAndInsert(e, childProcess = True):
-					failed.append(e)
+				if self.runningLoadAndInsert:
+					print("\n[DB] %5d / %d (%5.2f%%) - looking for string: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e))
+					if not self.loadAndInsert(e, childProcess = True):
+						failed.append(e)
+					ix += 1
 			if len(self.lastInserted) > 0:
 				print("[DB] imported entries:\n%s"%", ".join(self.lastInserted))
 			if len(failed) > 0:

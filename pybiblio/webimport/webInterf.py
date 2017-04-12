@@ -2,7 +2,7 @@ import sys, re, os
 import urllib2
 import pkgutil, traceback
 try:
-	import pybiblio.errors as pBErrorManager
+	from pybiblio.errors import pBErrorManager
 except ImportError:
 	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -43,9 +43,9 @@ class webInterf():
 		except urllib2.URLError:
 			pBErrorManager("[%s] -> error in retriving data from url"%self.name)
 			return None
-		except timeout:
-			pBErrorManager("[%s] -> timed out"%self.name)
-			return None
+		#except timeout:
+			#pBErrorManager("[%s] -> timed out"%self.name)
+			#return None
 		try:
 			text = data.decode('utf-8')
 		except:

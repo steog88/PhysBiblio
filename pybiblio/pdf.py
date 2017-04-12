@@ -37,6 +37,9 @@ class localPDF():
 		
 	def getFilePath(self, key, ftype):
 		"""obtain the file path for a given file type (arxiv, doi, ...) of a given entry"""
+		if ftype not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+			print("[localPDF] required field does not exist or is not valid")
+			return ""
 		fname = pBDB.bibs.getField(key, ftype)
 		if fname is None:
 			print("[localPDF] impossible to get the type '%s' filename for entry %s"%(ftype, key))

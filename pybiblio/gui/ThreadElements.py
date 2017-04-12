@@ -12,7 +12,7 @@ try:
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
 	#from pybiblio.config import pbConfig
-	#from pybiblio.gui.DialogWindows import *
+	from pybiblio.gui.DialogWindows import *
 	#from pybiblio.gui.BibWindows import *
 	#from pybiblio.gui.CatWindows import *
 	from pybiblio.gui.CommonClasses import *
@@ -62,3 +62,25 @@ class thread_authorStats(MyThread):
 
 	def setStopFlag(self):
 		pBStats.runningAuthorStats = False
+
+class thread_loadAndInsert(MyThread):
+	def __init__(self, content, queue, myrec, parent = None):
+		super(thread_loadAndInsert, self).__init__(parent)
+		self.parent = parent
+		self.queue = queue
+		self.content = content
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		loadAndInsert = pBDB.bibs.loadAndInsert(self.content)
+		if not loadAndInsert:
+			self.parent.loadedAndInserted = []
+		else:
+			self.parent.loadedAndInserted = pBDB.bibs.lastInserted
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.runningLoadAndInsert = False

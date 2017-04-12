@@ -5,6 +5,7 @@ from Queue import Queue
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
+import ast
 
 try:
 	from pybiblio.errors import pBErrorManager
@@ -116,6 +117,11 @@ class MainWindow(QMainWindow):
 								statusTip="New bibliographic item",
 								triggered=self.newBibtex)
 
+		self.inspireLoadAndInsertAct = QAction("&Load from Inspires", self,
+								shortcut="Ctrl+I",
+								statusTip="Use Inspires to load and insert bibtex entries",
+								triggered=self.inspireLoadAndInsert)
+
 		self.updateAllBibtexsAct = QAction("&Update bibtexs", self,
 								shortcut="Ctrl+U",
 								statusTip="Update all the journal info of bibtexs",
@@ -177,6 +183,7 @@ class MainWindow(QMainWindow):
 
 		self.bibMenu = self.menuBar().addMenu("&Bibliography")
 		self.bibMenu.addAction(self.newBibAct)
+		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
 		self.bibMenu.addAction(self.reloadAct)
@@ -470,6 +477,39 @@ class MainWindow(QMainWindow):
 		aSP = authorStatsPlots(self.lastAuthorStats["figs"], title = "Statistics for %s"%authorName, parent = self)
 		aSP.show()
 		self.done()
+
+	def inspireLoadAndInsert(self):
+		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
+		if queryStr is "":
+			pBErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
+			return False
+		self.loadedAndInserted = []
+		self.StatusBarMessage("Starting import from INSPIRE...")
+		app = printText(title = "Import from Inspire", totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ")
+		app.progressBarMin(0)
+		queue = Queue()
+		self.iLAIReceiver = MyReceiver(queue, self)
+		self.iLAIReceiver.mysignal.connect(app.append_text)
+		self.inspireLoadAndInsert_thr = thread_loadAndInsert(ast.literal_eval("["+queryStr.strip()+"]"), queue, self.iLAIReceiver, self)
+
+		self.connect(self.iLAIReceiver, SIGNAL("finished()"), self.iLAIReceiver.deleteLater)
+		self.connect(self.inspireLoadAndInsert_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.inspireLoadAndInsert_thr, SIGNAL("finished()"), self.inspireLoadAndInsert_thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), self.inspireLoadAndInsert_thr.setStopFlag)
+
+		sys.stdout = WriteStream(queue)
+		self.inspireLoadAndInsert_thr.start()
+		app.exec_()
+		print("Closing...")
+		if self.loadedAndInserted is []:
+			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
+			return False
+		sys.stdout = sys.__stdout__
+		self.reloadMainContent()
+		self.done()
+
+	def sendMessage(self, message):
+		infoMessage(message)
 
 	def done(self):
 		self.StatusBarMessage("...done!")
