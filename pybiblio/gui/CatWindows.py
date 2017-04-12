@@ -66,16 +66,53 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 		pass
 
 class catsWindowList(QDialog):
-	def __init__(self, parent = None):
+	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle("Categories")
-		self.currLayout = QHBoxLayout(self)
+		self.currLayout = QVBoxLayout(self)
+		self.askCats = askCats
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
 
+		if self.askCats:
+			if askForBib is not None:
+				bibitem = pBDB.bibs.getByBibkey(askForBib)[0]
+				try:
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(askForBib, bibitem["author"], bibitem["title"]))
+				except:
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(askForBib))
+				self.currLayout.addWidget(bibtext)
+			elif askForExp is not None:
+				pass
+			else:
+				pBErrorManager("[askCats] asking categories for what? no Bib or Exp specified!")
+				return
+			self.marked = []
+			self.parent.selectedCats = []
+
 		self.fillTree()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.parent.selectedCats = []
+
+		def getChecked(root):
+			child_count = root.rowCount()
+			for i in range(child_count):
+				item = root.child(i)
+				if item.checkState():
+					idCat, name = item.text().split(": ")
+					self.parent.selectedCats.append(int(idCat))
+				getChecked(item)
+
+		getChecked(self.tree.model().invisibleRootItem())
+		self.result	= True
+		self.close()
 
 	def keyPressEvent(self, e):		
 		if e.key() == Qt.Key_Escape:
@@ -92,15 +129,25 @@ class catsWindowList(QDialog):
 		self._populateTree(tree, root_model.invisibleRootItem())
 		self.tree.expandAll()
 
-		#hheader = QHeaderView(Qt.Orientation.Horizontal)
 		self.tree.setHeaderHidden(True)
-		#self.tree.setHorizontalHeaderLabels(["Categories"])
+		self.tree.doubleClicked.connect(self.askAndPerformAction)
+		
+		if self.askCats:
+			self.acceptButton = QPushButton('OK', self)
+			self.acceptButton.clicked.connect(self.onOk)
+			self.currLayout.addWidget(self.acceptButton)
 
-		self.tree.clicked.connect(self.askAndPerformAction)
+			# cancel button
+			self.cancelButton = QPushButton('Cancel', self)
+			self.cancelButton.clicked.connect(self.onCancel)
+			self.cancelButton.setAutoDefault(True)
+			self.currLayout.addWidget(self.cancelButton)
 
 	def _populateTree(self, children, parent):
 		for child in cats_alphabetical(children):
 			child_item = QStandardItem(catString(child))
+			if self.askCats:
+				child_item.setCheckable(True)
 			parent.appendRow(child_item)
 			self._populateTree(children[child], child_item)
 

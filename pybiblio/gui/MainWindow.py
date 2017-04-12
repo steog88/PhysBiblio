@@ -118,9 +118,14 @@ class MainWindow(QMainWindow):
 								triggered=self.newBibtex)
 
 		self.inspireLoadAndInsertAct = QAction("&Load from Inspires", self,
-								shortcut="Ctrl+I",
+								shortcut="Ctrl+Shift+I",
 								statusTip="Use Inspires to load and insert bibtex entries",
 								triggered=self.inspireLoadAndInsert)
+
+		self.inspireLoadAndInsertWithCatsAct = QAction("&Load from Inspires (ask categories)", self,
+								shortcut="Ctrl+I",
+								statusTip="Use Inspires to load and insert bibtex entries, then ask the categories for each",
+								triggered=self.inspireLoadAndInsertWithCats)
 
 		self.updateAllBibtexsAct = QAction("&Update bibtexs", self,
 								shortcut="Ctrl+U",
@@ -183,6 +188,7 @@ class MainWindow(QMainWindow):
 
 		self.bibMenu = self.menuBar().addMenu("&Bibliography")
 		self.bibMenu.addAction(self.newBibAct)
+		self.bibMenu.addAction(self.inspireLoadAndInsertWithCatsAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
@@ -478,7 +484,7 @@ class MainWindow(QMainWindow):
 		aSP.show()
 		self.done()
 
-	def inspireLoadAndInsert(self):
+	def inspireLoadAndInsert(self, doReload = True):
 		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
 		if queryStr is "":
 			pBErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
@@ -505,8 +511,20 @@ class MainWindow(QMainWindow):
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
 			return False
 		sys.stdout = sys.__stdout__
+		if doReload:
+			self.reloadMainContent()
+
+	def inspireLoadAndInsertWithCats(self):
+		self.inspireLoadAndInsert(doReload = False)
+		if len(self.loadedAndInserted) > 0:
+			for entry in self.loadedAndInserted:
+				selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
+				selectCats.exec_()
+				if selectCats.result:
+					cats = self.selectedCats
+					pBDB.catBib.insert(cats, entry)
+					self.StatusBarMessage("categories for '%s' successfully inserted"%entry)
 		self.reloadMainContent()
-		self.done()
 
 	def sendMessage(self, message):
 		infoMessage(message)

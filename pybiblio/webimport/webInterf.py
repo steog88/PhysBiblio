@@ -1,5 +1,6 @@
 import sys, re, os
 import urllib2
+import socket
 import pkgutil, traceback
 try:
 	from pybiblio.errors import pBErrorManager
@@ -41,11 +42,11 @@ class webInterf():
 			response = urllib2.urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
 		except urllib2.URLError:
-			pBErrorManager("[%s] -> error in retriving data from url"%self.name)
+			pBErrorManager("[%s] -> error in retrieving data from url"%self.name)
 			return None
-		#except timeout:
-			#pBErrorManager("[%s] -> timed out"%self.name)
-			#return None
+		except socket.timeout:
+			pBErrorManager("[%s] -> timed out"%self.name)
+			return None
 		try:
 			text = data.decode('utf-8')
 		except:

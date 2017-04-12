@@ -74,7 +74,7 @@ class thread_loadAndInsert(MyThread):
 	def run(self):
 		self.my_receiver.start()
 		loadAndInsert = pBDB.bibs.loadAndInsert(self.content)
-		if not loadAndInsert:
+		if loadAndInsert is False:
 			self.parent.loadedAndInserted = []
 		else:
 			self.parent.loadedAndInserted = pBDB.bibs.lastInserted
