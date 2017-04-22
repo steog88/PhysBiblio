@@ -1261,6 +1261,8 @@ class entries(pybiblioDBSub):
 			print("[DB] loadAndInsert will process %d total entries"%tot)
 			ix = 0
 			for e in entry:
+				if type(e) is float:
+					e = str(e)
 				if self.runningLoadAndInsert:
 					print("\n[DB] %5d / %d (%5.2f%%) - looking for string: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e))
 					if not self.loadAndInsert(e, childProcess = True):

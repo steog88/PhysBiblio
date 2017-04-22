@@ -98,7 +98,7 @@ class catsWindowList(QDialog):
 		self.result	= False
 		self.close()
 
-	def onOk(self):
+	def onOk(self, exps = False):
 		self.parent.selectedCats = []
 
 		def getChecked(root):
@@ -111,10 +111,16 @@ class catsWindowList(QDialog):
 				getChecked(item)
 
 		getChecked(self.tree.model().invisibleRootItem())
-		self.result	= True
+		if exps:
+			self.result	= "Exps"
+		else:
+			self.result	= "Ok"
 		self.close()
+	
+	def onAskExps(self):
+		self.onOk(exps = True)
 
-	def keyPressEvent(self, e):		
+	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
@@ -136,6 +142,10 @@ class catsWindowList(QDialog):
 			self.acceptButton = QPushButton('OK', self)
 			self.acceptButton.clicked.connect(self.onOk)
 			self.currLayout.addWidget(self.acceptButton)
+			
+			self.expsButton = QPushButton('Ask experiments', self)
+			self.expsButton.clicked.connect(self.onAskExps)
+			self.currLayout.addWidget(self.expsButton)
 
 			# cancel button
 			self.cancelButton = QPushButton('Cancel', self)

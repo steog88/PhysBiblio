@@ -14,7 +14,7 @@ class objListWindow(QDialog):
 		"""init using parent class and create common definitions"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
-		self.currLayout = QHBoxLayout()
+		self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
 	def setTableSize(self, rows, cols):

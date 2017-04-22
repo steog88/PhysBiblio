@@ -365,7 +365,7 @@ class MainWindow(QMainWindow):
 	
 	def experimentList(self):
 		self.StatusBarMessage("experiments triggered")
-		expListWin = ExpListWindow(self)
+		expListWin = ExpWindowList(self)
 		expListWin.show()
 		#window.cellClicked.connect(window.slotItemClicked)
 
@@ -520,10 +520,18 @@ class MainWindow(QMainWindow):
 			for entry in self.loadedAndInserted:
 				selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
 				selectCats.exec_()
-				if selectCats.result:
+				if selectCats.result in ["Ok", "Exps"]:
 					cats = self.selectedCats
 					pBDB.catBib.insert(cats, entry)
 					self.StatusBarMessage("categories for '%s' successfully inserted"%entry)
+				if selectCats.result == "Exps":
+					selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry)
+					selectExps.exec_()
+					if selectExps.result == "Ok":
+						exps = self.selectedExps
+						pBDB.bibExp.insert(entry, exps)
+						self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
+					
 		self.reloadMainContent()
 
 	def sendMessage(self, message):

@@ -73,9 +73,9 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 	except:
 		pass
 
-class ExpListWindow(objListWindow):
+class ExpWindowList(objListWindow):
 	"""create a window for printing the list of experiments"""
-	def __init__(self, parent = None):
+	def __init__(self, parent = None, askExps = False, askForBib = None, askForCat = None):
 
 		#table dimensions
 		self.colcnt = len(pBDB.tableCols["experiments"])
@@ -84,12 +84,45 @@ class ExpListWindow(objListWindow):
 			self.colContents.append(pBDB.tableCols["experiments"][j])
 		self.colContents.append("modify")
 		self.colContents.append("delete")
+		self.askExps = askExps
 
-		super(ExpListWindow, self).__init__(parent)
+		super(ExpWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle('List of experiments')
 
+		if self.askExps:
+			if askForBib is not None:
+				bibitem = pBDB.bibs.getByBibkey(askForBib)[0]
+				try:
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(askForBib, bibitem["author"], bibitem["title"]))
+				except:
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(askForBib))
+				self.currLayout.addWidget(bibtext)
+			elif askForCat is not None:
+				pass
+			else:
+				pBErrorManager("[askCats] asking categories for what? no Bib or Cat specified!")
+				return
+			self.marked = []
+			self.parent.selectedCats = []
+			
 		self.createTable()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.parent.selectedExps = []
+
+		for i in range(self.tablewidget.rowCount()):
+			item = self.tablewidget.item(i, 0)
+			if item.checkState():
+				idExp = item.text()
+				self.parent.selectedExps.append(int(idExp))
+			
+		self.result	= "Ok"
+		self.close()
 
 	def keyPressEvent(self, e):		
 		if e.key() == Qt.Key_Escape:
@@ -112,11 +145,26 @@ class ExpListWindow(objListWindow):
 						if exps[i][pBDB.tableCols["experiments"][j]] != "" else "") )
 				else:
 					item = QTableWidgetItem(str(exps[i][pBDB.tableCols["experiments"][j]]))
-				item.setFlags(Qt.ItemIsEnabled)
+				if j==0 and self.askExps:
+					item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+					item.setCheckState(Qt.Unchecked)
+				else:
+					item.setFlags(Qt.ItemIsEnabled)
 				self.tablewidget.setItem(i, j, item)
 			self.addEditDeleteCells(i, self.colcnt)
 
 		self.finalizeTable()
+
+		if self.askExps:
+			self.acceptButton = QPushButton('OK', self)
+			self.acceptButton.clicked.connect(self.onOk)
+			self.currLayout.addWidget(self.acceptButton)
+			
+			# cancel button
+			self.cancelButton = QPushButton('Cancel', self)
+			self.cancelButton.clicked.connect(self.onCancel)
+			self.cancelButton.setAutoDefault(True)
+			self.currLayout.addWidget(self.cancelButton)
 
 	def cellClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()

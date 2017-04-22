@@ -158,7 +158,7 @@ class bibtexList(QFrame):
 
 	def createTable(self):
 		if self.bibs is None:
-			self.bibs = pBDB.bibs.getAll()
+			self.bibs = pBDB.bibs.getAll(orderType = "DESC")
 		rowcnt = len(self.bibs)
 
 		#table settings and header
@@ -313,7 +313,7 @@ class bibtexList(QFrame):
 		if bibs is not None:
 			self.bibs = bibs
 		else:
-			self.bibs = pBDB.bibs.getAll()
+			self.bibs = pBDB.bibs.getAll(orderType = "DESC")
 		o = self.layout().takeAt(0)
 		o.widget().deleteLater()
 		self.createTable()
@@ -338,7 +338,7 @@ class editBibtexEntry(editObjectWindow):
 
 		i = 0
 		for k in pBDB.tableCols["entries"]:
-			val = self.data[k]
+			val = self.data[k] if self.data[k] is not None else ""
 			if k != "bibtex" and k not in self.checkboxes:
 				i += 1
 				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
