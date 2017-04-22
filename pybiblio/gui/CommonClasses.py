@@ -61,8 +61,10 @@ class objListWindow(QDialog):
 
 	def recreateTable(self):
 		"""delete previous table widget and create a new one"""
-		o = self.layout().takeAt(0)
-		o.widget().deleteLater()
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
 		self.createTable()
 
 class editObjectWindow(QDialog):

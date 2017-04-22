@@ -72,27 +72,30 @@ class catsWindowList(QDialog):
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
 		self.askCats = askCats
+		self.askForBib = askForBib
+		self.askForExp = askForExp
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
 
+		self.fillTree()
+
+	def populateAskCat(self):
 		if self.askCats:
-			if askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(askForBib)[0]
+			if self.askForBib is not None:
+				bibitem = pBDB.bibs.getByBibkey(self.askForBib)[0]
 				try:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(askForBib, bibitem["author"], bibitem["title"]))
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
 				except:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(askForBib))
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
-			elif askForExp is not None:
+			elif self.askForExp is not None:
 				pass
 			else:
 				pBErrorManager("[askCats] asking categories for what? no Bib or Exp specified!")
 				return
 			self.marked = []
 			self.parent.selectedCats = []
-
-		self.fillTree()
 
 	def onCancel(self):
 		self.result	= False
@@ -116,15 +119,21 @@ class catsWindowList(QDialog):
 		else:
 			self.result	= "Ok"
 		self.close()
-	
+
 	def onAskExps(self):
 		self.onOk(exps = True)
+
+	def onNewCat(self):
+		editCategory(self.parent, self.parent)
+		self.recreateTable()
 
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
 	def fillTree(self):
+		self.populateAskCat()
+
 		tree = pBDB.cats.getHier()
 
 		self.tree = QTreeView(self)
@@ -137,6 +146,10 @@ class catsWindowList(QDialog):
 
 		self.tree.setHeaderHidden(True)
 		self.tree.doubleClicked.connect(self.askAndPerformAction)
+
+		self.newCatButton = QPushButton('Add new category', self)
+		self.newCatButton.clicked.connect(self.onNewCat)
+		self.currLayout.addWidget(self.newCatButton)
 		
 		if self.askCats:
 			self.acceptButton = QPushButton('OK', self)
@@ -180,8 +193,10 @@ class catsWindowList(QDialog):
 
 	def recreateTable(self):
 		"""delete previous table widget and create a new one"""
-		o = self.layout().takeAt(0)
-		o.widget().deleteLater()
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
 		self.fillTree()
 
 class askCatAction(askAction):

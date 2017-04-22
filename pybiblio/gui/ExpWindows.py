@@ -85,28 +85,31 @@ class ExpWindowList(objListWindow):
 		self.colContents.append("modify")
 		self.colContents.append("delete")
 		self.askExps = askExps
+		self.askForBib = askForBib
+		self.askForCat = askForCat
 
 		super(ExpWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle('List of experiments')
 
+		self.createTable()
+
+	def populateAskExp(self):
 		if self.askExps:
-			if askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(askForBib)[0]
+			if self.askForBib is not None:
+				bibitem = pBDB.bibs.getByBibkey(self.askForBib)[0]
 				try:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(askForBib, bibitem["author"], bibitem["title"]))
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
 				except:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(askForBib))
+					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
-			elif askForCat is not None:
+			elif self.askForCat is not None:
 				pass
 			else:
 				pBErrorManager("[askCats] asking categories for what? no Bib or Cat specified!")
 				return
 			self.marked = []
-			self.parent.selectedCats = []
-			
-		self.createTable()
+			self.parent.selectedExps = []
 
 	def onCancel(self):
 		self.result	= False
@@ -124,11 +127,17 @@ class ExpWindowList(objListWindow):
 		self.result	= "Ok"
 		self.close()
 
+	def onNewExp(self):
+		editExperiment(self.parent, self.parent)
+		self.recreateTable()
+
 	def keyPressEvent(self, e):		
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
 	def createTable(self):
+		self.populateAskExp()
+
 		exps = pBDB.exps.getAll()
 		rowcnt = len(exps)
 
@@ -154,6 +163,10 @@ class ExpWindowList(objListWindow):
 			self.addEditDeleteCells(i, self.colcnt)
 
 		self.finalizeTable()
+
+		self.addExpButton = QPushButton('Add new experiment', self)
+		self.addExpButton.clicked.connect(self.onNewExp)
+		self.currLayout.addWidget(self.addExpButton)
 
 		if self.askExps:
 			self.acceptButton = QPushButton('OK', self)
