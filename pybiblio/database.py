@@ -744,45 +744,7 @@ class entries(pybiblioDBSub):
 			delete from entryExps where bibkey=?
 			""", (key,))
 
-	def fetchAll(self, params = None, connection = "and", operator = "=",
-			orderBy = "firstdate", orderType = "ASC"):
-		"""save entries fetched from the database"""
-		query = """
-		select * from entries
-		"""
-		if params and len(params) > 0:
-			query += " where "
-			first = True
-			vals = ()
-			for k, v in params.iteritems():
-				if type(v) is list:
-					for v1 in v:
-						if first:
-							first = False
-						else:
-							query += " %s "%connection
-						query += k + operator + " ? "
-						vals += (v1,)
-				else:
-					if first:
-						first = False
-					else:
-						query += " %s "%connection
-					query += k + operator + "? "
-					vals += (v,)
-			query += " order by " + orderBy + " " + orderType if orderBy else ""
-			try:
-				self.cursExec(query, vals)
-			except:
-				print("[DB] query failed: %s"%query)
-				print(vals)
-		else:
-			query += " order by " + orderBy + " " + orderType if orderBy else ""
-			try:
-				self.cursExec(query)
-			except:
-				print("[DB] query failed: %s"%query)
-		fetched_in = self.curs.fetchall()
+	def completeFetched(self, fetched_in):
 		fetched_out = []
 		for el in fetched_in:
 			tmp = {}
@@ -804,12 +766,93 @@ class entries(pybiblioDBSub):
 			except KeyError:
 				tmp["author"] = ""
 			fetched_out.append(tmp)
-		self.lastFetched = fetched_out
+		return fetched_out
+
+	def fetchFromDict(self, queryDict = {}, connection = "and",
+			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+		first = True
+		vals = ()
+		if "cats" not in queryDict.keys() and "exps" not in queryDict.keys():
+			query = """select * from entries """
+		else:
+			print "NYI search by cats or exps"
+			return self
+		for k in queryDict.keys():
+			if first:
+				query += " where "
+			else:
+				query += " %s "%connection
+			if "bibtex" in k:
+				query += " bibtex %s ?"%(queryDict[k]["operator"])
+				vals += ("%%%s%%"%queryDict[k]["str"], )
+			if "bibkey" in k:
+				query += " bibkey %s ?"%(queryDict[k]["operator"])
+				vals += ("%%%s%%"%queryDict[k]["str"], )
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		if limitTo is not None:
+			query += " LIMIT %s"%(str(limitTo))
+		if limitOffset is not None:
+			query += " OFFSET %s"%(str(limitOffset))
+		self.lastQuery = query
+		print("[DB] using query:\n%s"%query)
+		print(vals)
+		try:
+			if len(vals) > 0:
+				self.cursExec(query, vals)
+			else:
+				self.cursExec(query)
+		except:
+			print("[DB] query failed: %s"%query)
+			print(vals)
+		fetched_in = self.curs.fetchall()
+		self.lastFetched = self.completeFetched(fetched_in)
+		return self
+
+	def fetchAll(self, params = None, connection = "and", operator = "=",
+			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+		"""save entries fetched from the database"""
+		query = """select * from entries """
+		vals = ()
+		if params and len(params) > 0:
+			query += " where "
+			first = True
+			for k, v in params.iteritems():
+				if type(v) is list:
+					for v1 in v:
+						if first:
+							first = False
+						else:
+							query += " %s "%connection
+						query += k + operator + " ? "
+						vals += (v1,)
+				else:
+					if first:
+						first = False
+					else:
+						query += " %s "%connection
+					query += k + operator + "? "
+					vals += (v,)
+		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		if limitTo is not None:
+			query += " LIMIT %s"%(str(limitTo))
+		if limitOffset is not None:
+			query += " OFFSET %s"%(str(limitOffset))
+		self.lastQuery = query
+		try:
+			if len(vals) > 0:
+				self.cursExec(query, vals)
+			else:
+				self.cursExec(query)
+		except:
+			print("[DB] query failed: %s"%query)
+			print(vals)
+		fetched_in = self.curs.fetchall()
+		self.lastFetched = self.completeFetched(fetched_in)
 		return self
 	
-	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC"):
+	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
 		"""get entries from the database"""
-		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType).lastFetched
+		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset).lastFetched
 
 	def fetchByBibkey(self, bibkey):
 		"""shortcut for selecting entries by their bibtek key"""
