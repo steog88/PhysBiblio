@@ -110,7 +110,13 @@ class MainWindow(QMainWindow):
 								shortcut="Ctrl+Shift+E",
 								statusTip="New Experiment",
 								triggered=self.newExperiment)
-								
+
+		self.searchBibAct = QAction(QIcon(":/images/find.png"),
+								"&Find Bibtex entries", self,
+								shortcut="Ctrl+F",
+								statusTip="Open the search dialog to filter the bibtex list",
+								triggered=self.searchBiblio)
+
 		self.newBibAct = QAction(QIcon(":/images/file-add.png"),
 								"New &Bib item", self,
 								shortcut="Ctrl+N",
@@ -190,8 +196,11 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.newBibAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertWithCatsAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
+		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
+		self.bibMenu.addSeparator()
+		self.bibMenu.addAction(self.searchBibAct)
 		self.bibMenu.addAction(self.reloadAct)
 
 		self.menuBar().addSeparator()
@@ -221,6 +230,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addAction(self.saveAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.newBibAct)
+		self.mainToolBar.addAction(self.searchBibAct)
 		self.mainToolBar.addAction(self.exportAct)
 		self.mainToolBar.addAction(self.exportAllAct)
 		self.mainToolBar.addSeparator()
@@ -270,10 +280,10 @@ class MainWindow(QMainWindow):
 		#self.setWindowTitle('QtGui.QSplitter')
 		#self.show()
 
-	def reloadMainContent(self):
+	def reloadMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one"""
 		self.StatusBarMessage("Reloading main table...")
-		self.top.recreateTable()
+		self.top.recreateTable(bibs)
 		self.done()
 	
 	def config(self):
@@ -345,7 +355,6 @@ class MainWindow(QMainWindow):
 		else:
 			self.StatusBarMessage("Empty output filename!")
 
-
 	def exportAll(self):
 		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
 		if filename != "":
@@ -375,46 +384,16 @@ class MainWindow(QMainWindow):
 	def newBibtex(self):
 		editBibtex(self, self)
 
-	def biblio(self):
-		self.StatusBarMessage("biblio triggered")
-		#abc=webInt.webInterf()
-		#abc.loadInterfaces()
-		#try:
-			#tmp=abc.webSearch["inspire"].retrieveUrlFirst("Gariazzo:2015rra")
-		#tmp=abc.webSearch["arxiv"].retrieveUrlFirst("1507.08204")
-		#data=pBDB.bibs.prepareInsert("""@Article{Gariazzo:prova,
-  #author        = {Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y. F. and Zavanin, E. M.},
-  #title         = {{Light sterile neutrinos}},
-  #journal       = {J. Phys.},
-  #primaryclass  = {hep-ph},
-  #year          = {2016},
-  #slaccitation  = {%%CITATION = ARXIV:1507.08204;%%},
-  #timestamp     = {2015.07.30},
-#}""")
-		##pBDB.bibs.insert(data)
-		##except:
-			##print "errors occurred"
-		#pBDB.bibs.updateInspireID("Gariazzo:2015rra")
-		#data=pBDB.bibs.prepareUpdateByKey("Gariazzo:prova", "Gariazzo:2015rra")
-		#pBDB.bibs.update(data, "Gariazzo:prova")
-		#print abc.webSearch["inspire"].loadBibtexsForTex("/home/steog88/Dottorato/Latex/Articoli/1607_feature/")
-		#print pBDB.bibs.getByBibkey("Gariazzo:prova")
-		#pBDB.bibs.getUpdateInfoFromOAI()
-		#pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1385583")
-		#pBDB.bibs.loadAndInsert(["DiValentino:2015zta","Cadavid:2015iya"])
-		#pBDB.bibs.printAllBibkeys()
-		#entries = pBDB.bibs.getAll(orderBy="firstdate")
-		#for e in entries:
-			#b=pBDB.bibs.rmBibtexComments(e["bibtex"])
-			#print pBDB.bibs.updateField(e["bibkey"], "bibtex", b)
-		#pBDB.cats.insert({"name":"Really???","description":"","parentCat":0,"comments":"","ord":1})
-		
-		#pBDB.catBib.insert([58,64,65],"Ade:2015xua")
-		#pBDB.bibExp.insert("Ade:2015xua",1)
-		#print pBDB.cats.findByEntry("Ade:2015xua")
-		
-		#pBDB.assignExpCat([58,64,65,66],6)
-		self.StatusBarMessage("biblio done")
+	def searchBiblio(self):
+		newSearchWin = searchBibsWindow(self)
+		newSearchWin.exec_()
+		searchDict = {}
+		if newSearchWin.result:
+			for k, v in newSearchWin.textValues.items():
+				s = "%s"%v.text()
+				if s.strip() != "":
+					searchDict[k] = {"str": s, "operator": "like"}
+		self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
 
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
@@ -531,7 +510,6 @@ class MainWindow(QMainWindow):
 						exps = self.selectedExps
 						pBDB.bibExp.insert(entry, exps)
 						self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
-					
 		self.reloadMainContent()
 
 	def sendMessage(self, message):

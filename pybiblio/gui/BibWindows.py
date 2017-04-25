@@ -147,7 +147,7 @@ class bibtexList(QFrame):
 		super(bibtexList, self).__init__(parent)
 		self.parent = parent
 
-		self.currLayout = QHBoxLayout()
+		self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
 		if bibs is not None:
@@ -158,8 +158,10 @@ class bibtexList(QFrame):
 
 	def createTable(self):
 		if self.bibs is None:
-			self.bibs = pBDB.bibs.getAll(orderType = "DESC")
+			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
 		rowcnt = len(self.bibs)
+
+		self.currLayout.addWidget(QLabel("Last query to bibtex database: \t\t%s"%pBDB.bibs.lastQuery))
 
 		#table settings and header
 		self.setTableSize(rowcnt, self.colcnt+3)
@@ -313,9 +315,11 @@ class bibtexList(QFrame):
 		if bibs is not None:
 			self.bibs = bibs
 		else:
-			self.bibs = pBDB.bibs.getAll(orderType = "DESC")
-		o = self.layout().takeAt(0)
-		o.widget().deleteLater()
+			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
 		self.createTable()
 
 class editBibtexEntry(editObjectWindow):
@@ -425,3 +429,48 @@ class askPdfAction(askAction):
 	def onAddDoi(self):
 		self.result	= "addDoi"
 		self.close()
+
+class searchBibsWindow(editObjectWindow):
+	"""create a window for editing or creating a bibtex entry"""
+	def __init__(self, parent = None, bib = None):
+		super(searchBibsWindow, self).__init__(parent)
+		self.prevValues = {}
+		self.textValues = {}
+		self.inputs = [
+			["bibkey", "Search in the bibtex key only:", "text"],
+			["bibtex", "Search in the bibtex text:", "text"],
+		]
+
+		self.createForm()
+
+	def createForm(self):
+		self.setWindowTitle('Search bibtex entries')
+
+		for i, [k, d, t] in enumerate(self.inputs):
+			try:
+				p = self.prevValues[k]
+			except KeyError:
+				p = ""
+			if t == "text":
+				self.currGrid.addWidget(QLabel(d), i, 0)
+				self.textValues[k] = QLineEdit(p)
+				self.currGrid.addWidget(self.textValues[k], i, 1)
+			#elif t == "radio":
+				#pass
+			#elif t == "check":
+				#pass
+
+		# OK button
+		i = len(self.inputs)
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.currGrid.addWidget(self.acceptButton, i, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.currGrid.addWidget(self.cancelButton, i,1)
+
+		self.setGeometry(100,100,400, 25*i)
+		self.centerWindow()
