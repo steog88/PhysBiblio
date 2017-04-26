@@ -768,27 +768,59 @@ class entries(pybiblioDBSub):
 			fetched_out.append(tmp)
 		return fetched_out
 
-	def fetchFromDict(self, queryDict = {}, connection = "and",
+	def fetchFromDict(self, queryDict = {}, catExpOperator = "and", defaultConnection = "and",
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
 		first = True
 		vals = ()
-		if "cats" not in queryDict.keys() and "exps" not in queryDict.keys():
-			query = """select * from entries """
-		else:
-			print "NYI search by cats or exps"
-			return self
+		query = """select * from entries """
+		prependTab = ""
+		jC,wC,vC,jE,wE,vE = ["","","","","",""]
+		def catExpStrings(tp, tabName, fieldName):
+			joinStr = ""
+			whereStr = ""
+			if type(queryDict[tp]["id"]) is list:
+				if queryDict[tp]["operator"] == "or":
+					joinStr += " left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
+					whereStr += "(%s)"%queryDict[tp]["operator"].join(
+						[" %s.%s=? "%(tabName,fieldName) for q in queryDict[tp]["id"]])
+					valsTmp = tuple(queryDict[tp]["id"])
+				elif queryDict[tp]["operator"] == "and":
+					joinStr += " ".join(
+						[" left join %s %s%d on entries.bibkey=%s%d.bibkey"%(tabName,tabName,iC,tabName,iC) for iC,q in enumerate(queryDict[tp]["id"])])
+					whereStr += "(" + " and ".join(
+						["%s%d.%s=?"%(tabName, iC, fieldName) for iC,q in enumerate(queryDict[tp]["id"])]) + ")"
+					valsTmp = tuple(queryDict[tp]["id"])
+				else:
+					pBErrorManager("[DB] invalid operator for joining cats!")
+					return self
+			else:
+				joinStr += "left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
+				whereStr += "%s.%s=? "%(tabName, fieldName)
+				valsTmp = (str(queryDict["cats"]["id"]),)
+			return joinStr, whereStr, valsTmp
+		if "cats" in queryDict.keys():
+			jC,wC,vC = catExpStrings("cats", "entryCats", "idCat")
+			del queryDict["cats"]
+		if "exps" in queryDict.keys():
+			jE,wE,vE = catExpStrings("exps", "entryExps", "idExp")
+			del queryDict["exps"]
+		if jC != "" or jE != "":
+			prependTab = "entries."
+			query += jC + jE + " where " + catExpOperator.join([wC, wE])
+			vals += vC + vE
+			first = False
 		for k in queryDict.keys():
 			if first:
 				query += " where "
 			else:
-				query += " %s "%connection
+				query += " %s "%queryDict[k]["connection"] if "connection" in queryDict[k].keys() else defaultConnection
 			if "bibtex" in k:
-				query += " bibtex %s ?"%(queryDict[k]["operator"])
+				query += " %sbibtex %s ?"%(prependTab, queryDict[k]["operator"])
 				vals += ("%%%s%%"%queryDict[k]["str"], )
 			if "bibkey" in k:
-				query += " bibkey %s ?"%(queryDict[k]["operator"])
+				query += " %sbibkey %s ?"%(prependTab, queryDict[k]["operator"])
 				vals += ("%%%s%%"%queryDict[k]["str"], )
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
+		query += " order by " + prependTab + orderBy + " " + orderType if orderBy else ""
 		if limitTo is not None:
 			query += " LIMIT %s"%(str(limitTo))
 		if limitOffset is not None:
