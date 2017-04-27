@@ -4,9 +4,17 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
+	from pybiblio.errors import pBErrorManager
 	import pybiblio.gui.Resources_pyside
+	from pybiblio.gui.DialogWindows import *
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
+
+class pBGUIErrorManager():
+	def __init__(self, message, trcbk = None):
+		message += "\n"
+		infoMessage(message)
+		pBErrorManager(message, trcbk)
 
 class objListWindow(QDialog):
 	"""create a window for printing the list of experiments"""

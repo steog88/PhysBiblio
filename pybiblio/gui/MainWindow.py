@@ -435,7 +435,7 @@ class MainWindow(QMainWindow):
 	def authorStats(self):
 		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
 		if authorName is "":
-			pBErrorManager("[authorStats] empty name inserted! cannot proceed.")
+			pBGUIErrorManager("[authorStats] empty name inserted! cannot proceed.")
 			return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 		app = printText(title = "Author Stats", totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
@@ -466,7 +466,7 @@ class MainWindow(QMainWindow):
 	def inspireLoadAndInsert(self, doReload = True):
 		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
 		if queryStr is "":
-			pBErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
+			pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
 			return False
 		self.loadedAndInserted = []
 		self.StatusBarMessage("Starting import from INSPIRE...")
@@ -475,7 +475,13 @@ class MainWindow(QMainWindow):
 		queue = Queue()
 		self.iLAIReceiver = MyReceiver(queue, self)
 		self.iLAIReceiver.mysignal.connect(app.append_text)
-		self.inspireLoadAndInsert_thr = thread_loadAndInsert(ast.literal_eval("["+queryStr.strip()+"]"), queue, self.iLAIReceiver, self)
+		if "," in queryStr:
+			try:
+				queryStr = ast.literal_eval("["+queryStr.strip()+"]")
+			except SyntaxError:
+				pBGUIErrorManager("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?")
+				return False
+		self.inspireLoadAndInsert_thr = thread_loadAndInsert(queryStr, queue, self.iLAIReceiver, self)
 
 		self.connect(self.iLAIReceiver, SIGNAL("finished()"), self.iLAIReceiver.deleteLater)
 		self.connect(self.inspireLoadAndInsert_thr, SIGNAL("finished()"), app.enableClose)
