@@ -43,6 +43,10 @@ def writeBibtexInfo(entry):
 			infoText += "%s: <u>%s</u><br/>"%(pBDB.descriptions["entries"][k], entry[k]) if entry[k] is not None else ""
 		except KeyError:
 			pass
+	cats = pBDB.cats.getByEntry(entry["bibkey"])
+	infoText += "<br/>Categories: <i>%s</i>"%(", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None")
+	exps = pBDB.exps.getByEntry(entry["bibkey"])
+	infoText += "<br/>Experiments: <i>%s</i>"%(", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
 	return infoText
 
 def editBibtex(parent, statusBarObject, editKey = None):
@@ -265,12 +269,12 @@ class bibtexList(QFrame):
 				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting arxiv PDF file...")
 					pBPDF.removeFile(bibkey, "arxiv")
-					self.parent.reloadMainContent()
+					self.parent.reloadMainContent(pBDB.bibs.lastFetched)
 			elif ask.result == "delDoi":
 				if askYesNo("Do you really want to delete the DOI PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting DOI PDF file...")
 					pBPDF.removeFile(bibkey, "doi")
-					self.parent.reloadMainContent()
+					self.parent.reloadMainContent(pBDB.bibs.lastFetched)
 			elif ask.result == "addDoi":
 				newpdf = askFileName(self, "Where is the published PDF located?", "Select file")
 				if newpdf != "" and os.path.isfile(newpdf):
@@ -282,7 +286,7 @@ class bibtexList(QFrame):
 	def downloadArxivDone(self):
 		self.parent.sendMessage("Arxiv download completed!")
 		self.parent.done()
-		self.parent.reloadMainContent()
+		self.parent.reloadMainContent(pBDB.bibs.lastFetched)
 
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""
@@ -458,6 +462,8 @@ class searchBibsWindow(editObjectWindow):
 			#elif t == "radio":
 				#pass
 			#elif t == "check":
+				#pass
+			#elif t == "select":
 				#pass
 
 		# OK button
