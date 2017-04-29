@@ -75,7 +75,7 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 
 class ExpWindowList(objListWindow):
 	"""create a window for printing the list of experiments"""
-	def __init__(self, parent = None, askExps = False, askForBib = None, askForCat = None):
+	def __init__(self, parent = None, askExps = False, askForBib = None, askForCat = None, previous = []):
 
 		#table dimensions
 		self.colcnt = len(pBDB.tableCols["experiments"])
@@ -87,6 +87,7 @@ class ExpWindowList(objListWindow):
 		self.askExps = askExps
 		self.askForBib = askForBib
 		self.askForCat = askForCat
+		self.previous = previous
 
 		super(ExpWindowList, self).__init__(parent)
 		self.parent = parent
@@ -105,9 +106,6 @@ class ExpWindowList(objListWindow):
 				self.currLayout.addWidget(bibtext)
 			elif self.askForCat is not None:
 				pass
-			else:
-				pBErrorManager("[askCats] asking categories for what? no Bib or Cat specified!")
-				return
 			self.marked = []
 			self.parent.selectedExps = []
 
@@ -156,7 +154,10 @@ class ExpWindowList(objListWindow):
 					item = QTableWidgetItem(str(exps[i][pBDB.tableCols["experiments"][j]]))
 				if j==0 and self.askExps:
 					item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-					item.setCheckState(Qt.Unchecked)
+					if exps[i]["idExp"] in self.previous:
+						item.setCheckState(Qt.Checked)
+					else:
+						item.setCheckState(Qt.Unchecked)
 				else:
 					item.setFlags(Qt.ItemIsEnabled)
 				self.tablewidget.setItem(i, j, item)

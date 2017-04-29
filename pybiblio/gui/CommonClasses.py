@@ -136,3 +136,18 @@ class MyReceiver(MyThread):
 			text = self.queue.get()
 			self.mysignal.emit(text)
 		self.finished.emit()
+
+class MyComboBox(QComboBox):
+	def __init__(self, parent, fields, current = None):
+		super(MyComboBox, self).__init__(parent)
+		for f in fields:
+			self.addItem(f)
+		if current is not None:
+			try:
+				self.setCurrentIndex(fields.index(current))
+			except ValueError:
+				pass
+
+class MyAndOrCombo(MyComboBox):
+	def __init__(self, parent, current = None):
+		super(MyAndOrCombo, self).__init__(parent, ["AND", "OR"], current = current)

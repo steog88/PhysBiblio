@@ -66,7 +66,7 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 		pass
 
 class catsWindowList(QDialog):
-	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None):
+	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = []):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle("Categories")
@@ -74,6 +74,8 @@ class catsWindowList(QDialog):
 		self.askCats = askCats
 		self.askForBib = askForBib
 		self.askForExp = askForExp
+		self.expButton = expButton
+		self.previous = previous
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
@@ -92,8 +94,8 @@ class catsWindowList(QDialog):
 			elif self.askForExp is not None:
 				pass
 			else:
-				pBErrorManager("[askCats] asking categories for what? no Bib or Exp specified!")
-				return
+				comment = QLabel("Select the desired categories:")
+				self.currLayout.addWidget(comment)
 			self.marked = []
 			self.parent.selectedCats = []
 
@@ -156,9 +158,10 @@ class catsWindowList(QDialog):
 			self.acceptButton.clicked.connect(self.onOk)
 			self.currLayout.addWidget(self.acceptButton)
 			
-			self.expsButton = QPushButton('Ask experiments', self)
-			self.expsButton.clicked.connect(self.onAskExps)
-			self.currLayout.addWidget(self.expsButton)
+			if self.expButton:
+				self.expsButton = QPushButton('Ask experiments', self)
+				self.expsButton.clicked.connect(self.onAskExps)
+				self.currLayout.addWidget(self.expsButton)
 
 			# cancel button
 			self.cancelButton = QPushButton('Cancel', self)
@@ -171,6 +174,8 @@ class catsWindowList(QDialog):
 			child_item = QStandardItem(catString(child))
 			if self.askCats:
 				child_item.setCheckable(True)
+				if child in self.previous:
+					child_item.setCheckState(Qt.Checked)
 			parent.appendRow(child_item)
 			self._populateTree(children[child], child_item)
 

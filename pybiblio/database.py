@@ -770,11 +770,23 @@ class entries(pybiblioDBSub):
 
 	def fetchFromDict(self, queryDict = {}, catExpOperator = "and", defaultConnection = "and",
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+		def getQueryStr(di):
+			return "%%%s%%"%di["str"] if di["operator"] == "like" else di["str"]
+		matchKeysStrings = {
+			"bibkey": "bibkey",
+			"key": "bibkey",
+			"bibtex": "bibtex",
+			"arxiv": "arxiv",
+			"doi": "doi",
+		}
 		first = True
 		vals = ()
 		query = """select * from entries """
 		prependTab = ""
 		jC,wC,vC,jE,wE,vE = ["","","","","",""]
+		if "catExpOperator" in queryDict.keys():
+			catExpOperator = queryDict["catExpOperator"]
+			del queryDict["catExpOperator"]
 		def catExpStrings(tp, tabName, fieldName):
 			joinStr = ""
 			whereStr = ""
@@ -812,14 +824,13 @@ class entries(pybiblioDBSub):
 		for k in queryDict.keys():
 			if first:
 				query += " where "
+				first = False
 			else:
 				query += " %s "%queryDict[k]["connection"] if "connection" in queryDict[k].keys() else defaultConnection
-			if "bibtex" in k:
-				query += " %sbibtex %s ?"%(prependTab, queryDict[k]["operator"])
-				vals += ("%%%s%%"%queryDict[k]["str"], )
-			if "bibkey" in k:
-				query += " %sbibkey %s ?"%(prependTab, queryDict[k]["operator"])
-				vals += ("%%%s%%"%queryDict[k]["str"], )
+			for m, s in matchKeysStrings.items():
+				if m in k:
+					query += " %s%s %s ?"%(prependTab, s, queryDict[k]["operator"])
+					vals += (getQueryStr(queryDict[k]), )
 		query += " order by " + prependTab + orderBy + " " + orderType if orderBy else ""
 		if limitTo is not None:
 			query += " LIMIT %s"%(str(limitTo))

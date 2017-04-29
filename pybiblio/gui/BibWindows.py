@@ -15,6 +15,8 @@ try:
 	from pybiblio.pdf import pBPDF
 	from pybiblio.view import pBView
 	from pybiblio.gui.ThreadElements import *
+	from pybiblio.gui.CatWindows import *
+	from pybiblio.gui.ExpWindows import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -341,6 +343,17 @@ class editBibtexEntry(editObjectWindow):
 		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "toBeUpdated"]
 		self.createForm()
 
+	def onOk(self):
+		print self.textValues["bibtex"]
+		if self.textValues["bibtex"].toPlainText() == "":
+			pBGUIErrorManager("Invalid form contents: empty bibtex!")
+			return False
+		elif self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
+			pBGUIErrorManager("Invalid form contents: bibtex key will be taken from bibtex!")
+			return False
+		self.result	= True
+		self.close()
+
 	def createForm(self):
 		self.setWindowTitle('Edit bibtex entry')
 
@@ -438,45 +451,112 @@ class searchBibsWindow(editObjectWindow):
 	"""create a window for editing or creating a bibtex entry"""
 	def __init__(self, parent = None, bib = None):
 		super(searchBibsWindow, self).__init__(parent)
-		self.prevValues = {}
-		self.textValues = {}
-		self.inputs = [
-			["bibkey", "Search in the bibtex key only:", "text"],
-			["bibtex", "Search in the bibtex text:", "text"],
-		]
+		self.textValues = []
+		self.values = {}
+		self.values["cats"] = []
+		self.values["exps"] = []
+		self.values["catsOperator"] = "AND"
+		self.values["expsOperator"] = "AND"
+		self.values["catExpOperator"] = "AND"
+		self.numberOfRows = 1
+		self.createForm()
 
+	def onAskCats(self):
+		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
+		selectCats.exec_()
+		if selectCats.result == "Ok":
+			self.values["cats"] = self.selectedCats
+
+	def onAskExps(self):
+		selectExps = ExpWindowList(parent = self, askExps = True, previous = self.values["exps"])
+		selectExps.exec_()
+		if selectExps.result == "Ok":
+			self.values["exps"] = self.selectedExps
+
+	def onComboCatsChange(self, text):
+		self.values["catsOperator"] = text
+
+	def onComboExpsChange(self, text):
+		self.values["expsOperator"] = text
+
+	def onComboCEChange(self, text):
+		self.values["CatExpOperator"] = text
+
+	def onAddField(self):
+		self.numberOfRows = self.numberOfRows + 1
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
 		self.createForm()
 
 	def createForm(self):
 		self.setWindowTitle('Search bibtex entries')
 
-		for i, [k, d, t] in enumerate(self.inputs):
+		self.currGrid.addWidget(QLabel("Filter by categories, using the following operator:"), 0, 0, 1, 2)
+		self.catsButton = QPushButton('Categories', self)
+		self.catsButton.clicked.connect(self.onAskCats)
+		self.currGrid.addWidget(self.catsButton, 0, 2)
+		self.comboCats = MyAndOrCombo(self)
+		self.comboCats.activated[str].connect(self.onComboCatsChange)
+		self.currGrid.addWidget(self.comboCats, 0, 3)
+
+		self.currGrid.addWidget(QLabel("Filter by experiments, using the following operator:"), 1, 0, 1, 2)
+		self.expsButton = QPushButton('Experiments', self)
+		self.expsButton.clicked.connect(self.onAskExps)
+		self.currGrid.addWidget(self.expsButton, 1, 2)
+		self.comboExps = MyAndOrCombo(self)
+		self.comboExps.activated[str].connect(self.onComboExpsChange)
+		self.currGrid.addWidget(self.comboExps, 1, 3)
+
+		self.currGrid.addWidget(QLabel("If using both categories and experiments, which operator between them?"), 2, 0, 1, 3)
+		self.comboCE = MyAndOrCombo(self)
+		self.comboCE.activated[str].connect(self.onComboCEChange)
+		self.currGrid.addWidget(self.comboCE, 2, 3)
+
+		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 3, 0, 1, 3)
+		firstFields = 4
+
+		for i in range(self.numberOfRows):
 			try:
-				p = self.prevValues[k]
-			except KeyError:
-				p = ""
-			if t == "text":
-				self.currGrid.addWidget(QLabel(d), i, 0)
-				self.textValues[k] = QLineEdit(p)
-				self.currGrid.addWidget(self.textValues[k], i, 1)
-			#elif t == "radio":
-				#pass
-			#elif t == "check":
-				#pass
-			#elif t == "select":
-				#pass
+				previous = {
+					"logical": "%s"%self.textValues[i]["logical"].currentText(),
+					"field": "%s"%self.textValues[i]["field"].currentText(),
+					"operator": "%s"%self.textValues[i]["operator"].currentText(),
+					"content": "%s"%self.textValues[i]["content"].text()
+				}
+			except IndexError:
+				previous = {"logical": None, "field": None, "operator": None, "content": ""}
+				self.textValues.append({})
+
+			self.textValues[i]["logical"] = MyAndOrCombo(self, current = previous["logical"])
+			self.currGrid.addWidget(self.textValues[i]["logical"], i + firstFields, 0)
+
+			self.textValues[i]["field"] = MyComboBox(self, ["key", "bibtex", "arxiv", "doi"], current = previous["field"])
+			self.currGrid.addWidget(self.textValues[i]["field"], i + firstFields, 1)
+
+			self.textValues[i]["operator"] = MyComboBox(self, ["contains", "exact match"], current = previous["operator"])
+			self.currGrid.addWidget(self.textValues[i]["operator"], i + firstFields, 2)
+
+			self.textValues[i]["content"] = QLineEdit(previous["content"])
+			self.currGrid.addWidget(self.textValues[i]["content"], i + firstFields, 3)
+
+		i = self.numberOfRows + firstFields + 1
+		self.currGrid.addWidget(QLabel("Click here if you want more fields:"), i-1, 0, 1, 3)
+		self.addFieldButton = QPushButton("Add another field line", self)
+		self.addFieldButton.clicked.connect(self.onAddField)
+		self.currGrid.addWidget(self.addFieldButton, i-1, 3)
 
 		# OK button
-		i = len(self.inputs)
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i, 0)
+		self.currGrid.addWidget(self.acceptButton, i, 1)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i,1)
+		self.currGrid.addWidget(self.cancelButton, i, 2)
 
 		self.setGeometry(100,100,400, 25*i)
 		self.centerWindow()

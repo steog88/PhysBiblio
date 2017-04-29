@@ -389,11 +389,25 @@ class MainWindow(QMainWindow):
 		newSearchWin.exec_()
 		searchDict = {}
 		if newSearchWin.result:
-			for k, v in newSearchWin.textValues.items():
-				s = "%s"%v.text()
+			searchDict["catExpOperator"] = newSearchWin.values["catExpOperator"]
+			if len(newSearchWin.values["cats"]) > 0:
+				searchDict["cats"] = {
+					"id": newSearchWin.values["cats"],
+					"operator": newSearchWin.values["catsOperator"],
+				}
+			if len(newSearchWin.values["exps"]) > 0:
+				searchDict["exps"] = {
+					"id": newSearchWin.values["exps"],
+					"operator": newSearchWin.values["expsOperator"],
+				}
+			for i, dic in enumerate(newSearchWin.textValues):
+				k="%s%d"%(dic["field"].currentText(), i)
+				s = "%s"%dic["content"].text()
+				op = "like" if "%s"%dic["operator"].currentText() == "contains" else "="
+				print k, s, dic
 				if s.strip() != "":
-					searchDict[k] = {"str": s, "operator": "like"}
-		self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+					searchDict[k] = {"str": s, "operator": op, "connection": dic["logical"].currentText()}
+			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
 
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
