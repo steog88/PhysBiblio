@@ -772,13 +772,6 @@ class entries(pybiblioDBSub):
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
 		def getQueryStr(di):
 			return "%%%s%%"%di["str"] if di["operator"] == "like" else di["str"]
-		matchKeysStrings = {
-			"bibkey": "bibkey",
-			"key": "bibkey",
-			"bibtex": "bibtex",
-			"arxiv": "arxiv",
-			"doi": "doi",
-		}
 		first = True
 		vals = ()
 		query = """select * from entries """
@@ -790,6 +783,7 @@ class entries(pybiblioDBSub):
 		def catExpStrings(tp, tabName, fieldName):
 			joinStr = ""
 			whereStr = ""
+			valsTmp = tuple()
 			if type(queryDict[tp]["id"]) is list:
 				if queryDict[tp]["operator"] == "or":
 					joinStr += " left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
@@ -804,21 +798,30 @@ class entries(pybiblioDBSub):
 					valsTmp = tuple(queryDict[tp]["id"])
 				else:
 					pBErrorManager("[DB] invalid operator for joining cats!")
-					return self
+					return joinStr, whereStr, valsTmp
 			else:
 				joinStr += "left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
 				whereStr += "%s.%s=? "%(tabName, fieldName)
-				valsTmp = (str(queryDict["cats"]["id"]),)
+				valsTmp = tuple(str(queryDict["cats"]["id"]))
 			return joinStr, whereStr, valsTmp
 		if "cats" in queryDict.keys():
 			jC,wC,vC = catExpStrings("cats", "entryCats", "idCat")
 			del queryDict["cats"]
+		else:
+			jC, wC, vC = "", "", tuple()
 		if "exps" in queryDict.keys():
 			jE,wE,vE = catExpStrings("exps", "entryExps", "idExp")
 			del queryDict["exps"]
+		else:
+			jE, wE, vE = "", "", tuple()
 		if jC != "" or jE != "":
 			prependTab = "entries."
-			query += jC + jE + " where " + catExpOperator.join([wC, wE])
+			toJoin = []
+			if wC != "":
+				toJoin.append(wC)
+			if wE != "":
+				toJoin.append(wE)
+			query += jC + jE + " where " + " %s "%(catExpOperator).join(toJoin)
 			vals += vC + vE
 			first = False
 		for k in queryDict.keys():
@@ -827,16 +830,17 @@ class entries(pybiblioDBSub):
 				first = False
 			else:
 				query += " %s "%queryDict[k]["connection"] if "connection" in queryDict[k].keys() else defaultConnection
-			for m, s in matchKeysStrings.items():
-				if m in k:
-					query += " %s%s %s ?"%(prependTab, s, queryDict[k]["operator"])
-					vals += (getQueryStr(queryDict[k]), )
+			s = k.split("#")[0]
+			if s in self.tableCols["entries"]:
+				query += " %s%s %s ?"%(prependTab, s, queryDict[k]["operator"])
+				vals += (getQueryStr(queryDict[k]), )
 		query += " order by " + prependTab + orderBy + " " + orderType if orderBy else ""
 		if limitTo is not None:
 			query += " LIMIT %s"%(str(limitTo))
 		if limitOffset is not None:
 			query += " OFFSET %s"%(str(limitOffset))
 		self.lastQuery = query
+		self.lastVals  = vals
 		print("[DB] using query:\n%s"%query)
 		print(vals)
 		try:
@@ -881,6 +885,7 @@ class entries(pybiblioDBSub):
 		if limitOffset is not None:
 			query += " OFFSET %s"%(str(limitOffset))
 		self.lastQuery = query
+		self.lastVals  = vals
 		try:
 			if len(vals) > 0:
 				self.cursExec(query, vals)

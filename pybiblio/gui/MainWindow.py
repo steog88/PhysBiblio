@@ -388,23 +388,22 @@ class MainWindow(QMainWindow):
 		newSearchWin = searchBibsWindow(self)
 		newSearchWin.exec_()
 		searchDict = {}
-		if newSearchWin.result:
+		if newSearchWin.result is True:
 			searchDict["catExpOperator"] = newSearchWin.values["catExpOperator"]
 			if len(newSearchWin.values["cats"]) > 0:
 				searchDict["cats"] = {
 					"id": newSearchWin.values["cats"],
-					"operator": newSearchWin.values["catsOperator"],
+					"operator": newSearchWin.values["catsOperator"].lower(),
 				}
 			if len(newSearchWin.values["exps"]) > 0:
 				searchDict["exps"] = {
 					"id": newSearchWin.values["exps"],
-					"operator": newSearchWin.values["expsOperator"],
+					"operator": newSearchWin.values["expsOperator"].lower(),
 				}
 			for i, dic in enumerate(newSearchWin.textValues):
-				k="%s%d"%(dic["field"].currentText(), i)
+				k="%s#%d"%(dic["field"].currentText(), i)
 				s = "%s"%dic["content"].text()
 				op = "like" if "%s"%dic["operator"].currentText() == "contains" else "="
-				print k, s, dic
 				if s.strip() != "":
 					searchDict[k] = {"str": s, "operator": op, "connection": dic["logical"].currentText()}
 			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)

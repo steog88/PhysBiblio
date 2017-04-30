@@ -26,7 +26,13 @@ def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 	data = {}
 	if newCatWin.result:
 		for k, v in newCatWin.textValues.items():
-			s = "%s"%v.text()
+			if k == "parentCat":
+				try:
+					s = str(newCatWin.selectedCats[0])
+				except IndexError:
+					s = "0"
+			else:
+				s = "%s"%v.text()
 			data[k] = s
 		if data["name"].strip() != "":
 			if "idCat" in data.keys():
@@ -66,7 +72,7 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 		pass
 
 class catsWindowList(QDialog):
-	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = []):
+	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = [], single = False):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle("Categories")
@@ -76,6 +82,7 @@ class catsWindowList(QDialog):
 		self.askForExp = askForExp
 		self.expButton = expButton
 		self.previous = previous
+		self.single = single
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
@@ -94,7 +101,10 @@ class catsWindowList(QDialog):
 			elif self.askForExp is not None:
 				pass
 			else:
-				comment = QLabel("Select the desired categories:")
+				if self.single:
+					comment = QLabel("Select the desired category (only the first one will be considered):")
+				else:
+					comment = QLabel("Select the desired categories:")
 				self.currLayout.addWidget(comment)
 			self.marked = []
 			self.parent.selectedCats = []
@@ -227,7 +237,18 @@ class editCat(editObjectWindow):
 			self.data = cat
 		if useParent is not None:
 			self.data["parentCat"] = useParent
+		self.selectedCats = [0]
 		self.createForm()
+
+	def onAskParent(self):
+		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, single = True, previous = self.selectedCats)
+		selectCats.exec_()
+		if selectCats.result == "Ok":
+			try:
+				val = self.selectedCats[0]
+				self.textValues["parentCat"].setText("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]))
+			except IndexError:
+				self.textValues["parentCat"].setText("Select parent")
 
 	def createForm(self):
 		self.setWindowTitle('Edit category')
@@ -239,7 +260,15 @@ class editCat(editObjectWindow):
 				i += 1
 				self.currGrid.addWidget(QLabel(pBDB.descriptions["categories"][k]), i*2-1, 0)
 				self.currGrid.addWidget(QLabel("(%s)"%k), i*2-1, 1)
-				self.textValues[k] = QLineEdit(str(val))
+				if k == "parentCat":
+					try:
+						val = self.selectedCats[0]
+						self.textValues[k] = QPushButton("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]), self)
+					except IndexError:
+						self.textValues[k] = QPushButton("Select parent", self)
+					self.textValues[k].clicked.connect(self.onAskParent)
+				else:
+					self.textValues[k] = QLineEdit(str(val))
 				if k == "idCat":
 					self.textValues[k].setEnabled(False)
 				self.currGrid.addWidget(self.textValues[k], i*2, 0, 1, 2)

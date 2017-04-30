@@ -167,7 +167,10 @@ class bibtexList(QFrame):
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
 		rowcnt = len(self.bibs)
 
-		self.currLayout.addWidget(QLabel("Last query to bibtex database: \t\t%s"%pBDB.bibs.lastQuery))
+		commentStr = "Last query to bibtex database: \t%s\t\t"%(pBDB.bibs.lastQuery)
+		if len(pBDB.bibs.lastVals)>0 :
+			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
+		self.currLayout.addWidget(QLabel(commentStr))
 
 		#table settings and header
 		self.setTableSize(rowcnt, self.colcnt+3)
@@ -452,6 +455,7 @@ class searchBibsWindow(editObjectWindow):
 	def __init__(self, parent = None, bib = None):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
+		self.result = False
 		self.values = {}
 		self.values["cats"] = []
 		self.values["exps"] = []
@@ -460,6 +464,9 @@ class searchBibsWindow(editObjectWindow):
 		self.values["catExpOperator"] = "AND"
 		self.numberOfRows = 1
 		self.createForm()
+		#self.setGeometry(100,100,400, 25*i)
+		self.centerWindow()
+
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
@@ -532,7 +539,7 @@ class searchBibsWindow(editObjectWindow):
 			self.textValues[i]["logical"] = MyAndOrCombo(self, current = previous["logical"])
 			self.currGrid.addWidget(self.textValues[i]["logical"], i + firstFields, 0)
 
-			self.textValues[i]["field"] = MyComboBox(self, ["key", "bibtex", "arxiv", "doi"], current = previous["field"])
+			self.textValues[i]["field"] = MyComboBox(self, ["bibtex", "bibkey", "arxiv", "doi", "year", "firstdate", "pubdate", "comment"], current = previous["field"])
 			self.currGrid.addWidget(self.textValues[i]["field"], i + firstFields, 1)
 
 			self.textValues[i]["operator"] = MyComboBox(self, ["contains", "exact match"], current = previous["operator"])
@@ -557,6 +564,3 @@ class searchBibsWindow(editObjectWindow):
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
 		self.currGrid.addWidget(self.cancelButton, i, 2)
-
-		self.setGeometry(100,100,400, 25*i)
-		self.centerWindow()
