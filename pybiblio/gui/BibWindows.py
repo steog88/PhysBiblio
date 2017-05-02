@@ -347,11 +347,10 @@ class editBibtexEntry(editObjectWindow):
 		self.createForm()
 
 	def onOk(self):
-		print self.textValues["bibtex"]
 		if self.textValues["bibtex"].toPlainText() == "":
 			pBGUIErrorManager("Invalid form contents: empty bibtex!")
 			return False
-		elif self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
+		elif not self.textValues["bibkey"].isReadOnly() and self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
 			pBGUIErrorManager("Invalid form contents: bibtex key will be taken from bibtex!")
 			return False
 		self.result	= True
@@ -369,7 +368,7 @@ class editBibtexEntry(editObjectWindow):
 				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "bibkey" and val != "":
-					self.textValues[k].setEnabled(False)
+					self.textValues[k].setReadOnly(True)
 				self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
 
 		#bibtex text editor
