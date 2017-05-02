@@ -768,8 +768,23 @@ class entries(pybiblioDBSub):
 			fetched_out.append(tmp)
 		return fetched_out
 
+	def fetchFromLast(self):
+		"""fetch entries using the last query"""
+		try:
+			if len(self.lastVals) > 0:
+				self.cursExec(self.lastQuery, self.lastVals)
+			else:
+				self.cursExec(self.lastQuery)
+		except:
+			print("[DB] query failed: %s"%self.lastQuery)
+			print(self.lastVals)
+		fetched_in = self.curs.fetchall()
+		self.lastFetched = self.completeFetched(fetched_in)
+		return self
+
 	def fetchFromDict(self, queryDict = {}, catExpOperator = "and", defaultConnection = "and",
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+		"""fetch entries reading the information from a dictionary. can be used for complex queries"""
 		def getQueryStr(di):
 			return "%%%s%%"%di["str"] if di["operator"] == "like" else di["str"]
 		first = True
