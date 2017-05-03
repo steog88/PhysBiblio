@@ -22,7 +22,7 @@ tableFields["entries"] = [
 	["review",		"int", "default 0"],
 	["proceeding",	"int", "default 0"],
 	["book",		"int", "default 0"],
-	["toBeUpdated",	"int", "default 0"],
+	["noUpdate",	"int", "default 0"],
 	["marks", 		"text", ""]];
 tableFields["categories"] = [
 	["idCat", 		"integer", "primary key"],
@@ -72,7 +72,7 @@ fieldsDescriptions["entries"] = {
 	"review":	 "(T/F) The entry is a review",
 	"proceeding":"(T/F) The entry is a proceeding",
 	"book":		 "(T/F) The entry is a book",
-	"toBeUpdated":"(T/F) The entry has been created/modified by the user and/or should not be updated",
+	"noUpdate":  "(T/F) The entry has been created/modified by the user and/or should not be updated",
 	"marks":	 "Assign a mark to the record (not yet implemented)"}
 fieldsDescriptions["categories"] = {
 	"idCat": 		"Unique ID that identifies the category",

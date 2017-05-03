@@ -71,6 +71,8 @@ def editBibtex(parent, statusBarObject, editKey = None):
 				data[k] = 1
 			else:
 				data[k] = 0
+		if data["bibkey"].strip() == "" and data["bibtex"].strip() != "":
+			data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 			if "bibkey" in data.keys():
 				print("[GUI] Updating bibtex %s..."%data["bibkey"])
@@ -343,7 +345,7 @@ class editBibtexEntry(editObjectWindow):
 		else:
 			self.data = bib
 		self.checkValues = {}
-		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "toBeUpdated"]
+		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
 		self.createForm()
 
 	def onOk(self):

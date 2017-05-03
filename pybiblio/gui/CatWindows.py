@@ -126,6 +126,8 @@ class catsWindowList(QDialog):
 				getChecked(item)
 
 		getChecked(self.tree.model().invisibleRootItem())
+		if self.single and len(self.parent.selectedCats) > 1 and self.parent.selectedCats[0] == 0:
+			self.parent.selectedCats.pop(0)
 		if exps:
 			self.result	= "Exps"
 		else:
