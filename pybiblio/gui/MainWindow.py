@@ -159,9 +159,15 @@ class MainWindow(QMainWindow):
 								statusTip="Save the settings",
 								triggered=self.config)
 
-		self.reloadAct = QAction(QIcon(":/images/refresh.png"),
-								"&Reload", self,
+		self.refreshAct = QAction(QIcon(":/images/refresh2.png"),
+								"&Refresh current entries list", self,
 								shortcut="Ctrl+R",
+								statusTip="Refresh the current list of entries",
+								triggered=self.refreshMainContent)
+
+		self.reloadAct = QAction(QIcon(":/images/refresh.png"),
+								"&Reload (reset) main table", self,
+								shortcut="Ctrl+Shift+R",
 								statusTip="Reload the list of bibtex entries",
 								triggered=self.reloadMainContent)
 
@@ -201,6 +207,7 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.searchBibAct)
+		self.bibMenu.addAction(self.refreshAct)
 		self.bibMenu.addAction(self.reloadAct)
 
 		self.menuBar().addSeparator()
@@ -234,6 +241,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addAction(self.exportAct)
 		self.mainToolBar.addAction(self.exportAllAct)
 		self.mainToolBar.addSeparator()
+		self.mainToolBar.addAction(self.refreshAct)
 		self.mainToolBar.addAction(self.reloadAct)
 		self.mainToolBar.addAction(self.cliAct)
 		self.mainToolBar.addSeparator()
@@ -279,6 +287,12 @@ class MainWindow(QMainWindow):
 
 		#self.setWindowTitle('QtGui.QSplitter')
 		#self.show()
+
+	def refreshMainContent(self, bibs = None):
+		"""delete previous table widget and create a new one, using last used query"""
+		self.StatusBarMessage("Reloading main table...")
+		self.top.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
+		self.done()
 
 	def reloadMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one"""
@@ -478,8 +492,8 @@ class MainWindow(QMainWindow):
 
 	def inspireLoadAndInsert(self, doReload = True):
 		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
-		if queryStr is "":
-			pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
+		if queryStr == "":
+			#pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
 			return False
 		self.loadedAndInserted = []
 		self.StatusBarMessage("Starting import from INSPIRE...")
@@ -511,10 +525,10 @@ class MainWindow(QMainWindow):
 		sys.stdout = sys.__stdout__
 		if doReload:
 			self.reloadMainContent()
+		return True
 
 	def inspireLoadAndInsertWithCats(self):
-		self.inspireLoadAndInsert(doReload = False)
-		if len(self.loadedAndInserted) > 0:
+		if self.inspireLoadAndInsert(doReload = False) and len(self.loadedAndInserted) > 0:
 			for entry in self.loadedAndInserted:
 				selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
 				selectCats.exec_()
@@ -529,7 +543,7 @@ class MainWindow(QMainWindow):
 						exps = self.selectedExps
 						pBDB.bibExp.insert(entry, exps)
 						self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
-		self.reloadMainContent()
+			self.reloadMainContent()
 
 	def sendMessage(self, message):
 		infoMessage(message)

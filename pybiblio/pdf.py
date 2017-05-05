@@ -151,7 +151,7 @@ class localPDF():
 	def printAllExisting(self, entries = None, fullPath = False):
 		"""list all the existing files for all the entries in the database"""
 		if entries is None:
-			entries = pBDB.bibs.getAll(orderBy = "firstdate")
+			entries = pBDB.bibs.getAll(orderBy = "firstdate", saveQuery = False)
 		for e in entries:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
 			if len(exist) > 0:

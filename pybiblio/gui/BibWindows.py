@@ -53,7 +53,7 @@ def writeBibtexInfo(entry):
 
 def editBibtex(parent, statusBarObject, editKey = None):
 	if editKey is not None:
-		edit = pBDB.bibs.getByKey(editKey)[0]
+		edit = pBDB.bibs.getByKey(editKey, saveQuery = False)[0]
 	else:
 		edit = None
 	newBibWin = editBibtexEntry(parent, bib = edit)
@@ -75,7 +75,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 			if "bibkey" in data.keys():
-				print("[GUI] Updating bibtex %s..."%data["bibkey"])
+				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:
 				pBDB.bibs.insert(data)
@@ -241,7 +241,7 @@ class bibtexList(QFrame):
 
 	def cellClick(self, row, col):
 		bibkey = self.tablewidget.item(row, 0).text()
-		entry = pBDB.bibs.getByBibkey(bibkey)[0]
+		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "modify":
@@ -251,7 +251,7 @@ class bibtexList(QFrame):
 
 	def cellDoubleClick(self, row, col):
 		bibkey = self.tablewidget.item(row, 0).text()
-		entry = pBDB.bibs.getByBibkey(bibkey)[0]
+		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "doi" and entry["doi"] is not None and entry["doi"] != "":
@@ -276,12 +276,12 @@ class bibtexList(QFrame):
 				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting arxiv PDF file...")
 					pBPDF.removeFile(bibkey, "arxiv")
-					self.parent.reloadMainContent(pBDB.bibs.lastFetched)
+					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 			elif ask.result == "delDoi":
 				if askYesNo("Do you really want to delete the DOI PDF file for entry %s?"%bibkey):
 					self.parent.StatusBarMessage("deleting DOI PDF file...")
 					pBPDF.removeFile(bibkey, "doi")
-					self.parent.reloadMainContent(pBDB.bibs.lastFetched)
+					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 			elif ask.result == "addDoi":
 				newpdf = askFileName(self, "Where is the published PDF located?", "Select file")
 				if newpdf != "" and os.path.isfile(newpdf):
@@ -293,7 +293,7 @@ class bibtexList(QFrame):
 	def downloadArxivDone(self):
 		self.parent.sendMessage("Arxiv download completed!")
 		self.parent.done()
-		self.parent.reloadMainContent(pBDB.bibs.lastFetched)
+		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""
@@ -466,8 +466,7 @@ class searchBibsWindow(editObjectWindow):
 		self.numberOfRows = 1
 		self.createForm()
 		#self.setGeometry(100,100,400, 25*i)
-		self.centerWindow()
-
+		#self.centerWindow()
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
@@ -497,6 +496,19 @@ class searchBibsWindow(editObjectWindow):
 			if o is None: break
 			o.widget().deleteLater()
 		self.createForm()
+
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Escape:
+			self.onCancel()
+
+	def eventFilter(self, widget, event):
+		if (event.type() == QEvent.KeyPress and
+				widget in [a["content"] for a in self.textValues]):
+			key = event.key()
+			if key == Qt.Key_Return or key == Qt.Key_Enter:
+				self.acceptButton.setFocus()
+				return True
+		return QWidget.eventFilter(self, widget, event)
 
 	def createForm(self):
 		self.setWindowTitle('Search bibtex entries')
@@ -548,6 +560,9 @@ class searchBibsWindow(editObjectWindow):
 
 			self.textValues[i]["content"] = QLineEdit(previous["content"])
 			self.currGrid.addWidget(self.textValues[i]["content"], i + firstFields, 3)
+			self.textValues[i]["content"].installEventFilter(self)
+
+		self.textValues[-1]["content"].setFocus()
 
 		i = self.numberOfRows + firstFields + 1
 		self.currGrid.addWidget(QLabel("Click here if you want more fields:"), i-1, 0, 1, 3)

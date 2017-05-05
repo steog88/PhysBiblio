@@ -92,7 +92,7 @@ class catsWindowList(QDialog):
 	def populateAskCat(self):
 		if self.askCats:
 			if self.askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(self.askForBib)[0]
+				bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery = False)[0]
 				try:
 					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
 				except:

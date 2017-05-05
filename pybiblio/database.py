@@ -724,7 +724,7 @@ class entries(pybiblioDBSub):
 	"""functions for the entries"""
 	def __init__(self): #need to create lastFetched
 		pybiblioDBSub.__init__(self)
-		self.lastFetched = None
+		self.lastFetched = "select * from entries limit 10"
 		self.lastInserted = []
 
 	def delete(self, key):
@@ -783,7 +783,7 @@ class entries(pybiblioDBSub):
 		return self
 
 	def fetchFromDict(self, queryDict = {}, catExpOperator = "and", defaultConnection = "and",
-			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
 		"""fetch entries reading the information from a dictionary. can be used for complex queries"""
 		def getQueryStr(di):
 			return "%%%s%%"%di["str"] if di["operator"] == "like" else di["str"]
@@ -854,8 +854,9 @@ class entries(pybiblioDBSub):
 			query += " LIMIT %s"%(str(limitTo))
 		if limitOffset is not None:
 			query += " OFFSET %s"%(str(limitOffset))
-		self.lastQuery = query
-		self.lastVals  = vals
+		if saveQuery:
+			self.lastQuery = query
+			self.lastVals  = vals
 		print("[DB] using query:\n%s"%query)
 		print(vals)
 		try:
@@ -871,7 +872,7 @@ class entries(pybiblioDBSub):
 		return self
 
 	def fetchAll(self, params = None, connection = "and", operator = "=",
-			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
 		"""save entries fetched from the database"""
 		query = """select * from entries """
 		vals = ()
@@ -899,8 +900,9 @@ class entries(pybiblioDBSub):
 			query += " LIMIT %s"%(str(limitTo))
 		if limitOffset is not None:
 			query += " OFFSET %s"%(str(limitOffset))
-		self.lastQuery = query
-		self.lastVals  = vals
+		if saveQuery:
+			self.lastQuery = query
+			self.lastVals  = vals
 		try:
 			if len(vals) > 0:
 				self.cursExec(query, vals)
@@ -913,60 +915,64 @@ class entries(pybiblioDBSub):
 		self.lastFetched = self.completeFetched(fetched_in)
 		return self
 	
-	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None):
+	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
 		"""get entries from the database"""
-		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset).lastFetched
+		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset, saveQuery = saveQuery).lastFetched
 
-	def fetchByBibkey(self, bibkey):
+	def fetchByBibkey(self, bibkey, saveQuery = True):
 		"""shortcut for selecting entries by their bibtek key"""
 		if type(bibkey) is list:
 			return self.fetchAll(params = {"bibkey": bibkey},
-				connection = "or ")
+				connection = "or ", saveQuery = saveQuery)
 		else:
-			return self.fetchAll(params = {"bibkey": bibkey})
+			return self.fetchAll(params = {"bibkey": bibkey}, saveQuery = saveQuery)
 		
-	def getByBibkey(self, bibkey):
+	def getByBibkey(self, bibkey, saveQuery = True):
 		"""shortcut for selecting entries by their bibtek key"""
-		return self.fetchByBibkey(bibkey).lastFetched
+		return self.fetchByBibkey(bibkey, saveQuery = saveQuery).lastFetched
 
-	def fetchByKey(self, key):
+	def fetchByKey(self, key, saveQuery = True):
 		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
 		if type(key) is list:
 			strings = ["%%%s%%"%q for q in key]
 			return self.fetchAll(
 				params = {"bibkey": strings, "old_keys": strings, "bibtex": strings},
 				connection = "or ",
-				operator = " like ")
+				operator = " like ",
+				saveQuery = saveQuery)
 		else:
 			return self.fetchAll(
 				params = {"bibkey": "%%%s%%"%key, "old_keys": "%%%s%%"%key, "bibtex": "%%%s%%"%key},
 				connection = "or ",
-				operator = " like ")
+				operator = " like ",
+				saveQuery = saveQuery)
 
-	def getByKey(self, key):
+	def getByKey(self, key, saveQuery = True):
 		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
-		return self.fetchByKey(key).lastFetched
+		return self.fetchByKey(key, saveQuery = saveQuery).lastFetched
 
-	def fetchByBibtex(self, string):
+	def fetchByBibtex(self, string, saveQuery = True):
 		"""shortcut for selecting entries with a search in the bibtex field"""
 		if type(string) is list:
 			return self.fetchAll(
 				params = {"bibtex":["%%%s%%"%q for q in string]},
 				connection = "or",
-				operator = " like ")
+				operator = " like ",
+				saveQuery = saveQuery)
 		else:
 			return self.fetchAll(
 				params = {"bibtex":"%%%s%%"%string},
-				operator = " like ")
+				operator = " like ",
+				saveQuery = saveQuery)
 
-	def getByBibtex(self, string):
+	def getByBibtex(self, string, saveQuery = True):
 		"""shortcut for selecting entries with a search in the bibtex field"""
-		return self.fetchByBibtex(string).lastFetched
+		return self.fetchByBibtex(string, saveQuery = saveQuery).lastFetched
 
 	def getField(self, key, field):
 		"""extract the content of one field from a entry in the database, searched by bibtex key"""
 		try:
-			return self.getByBibkey(key)[0][field]
+			return self.getByBibkey(key, saveQuery = False)[0][field]
 		except:
 			print("[DB] ERROR in getEntryField('%s', '%s')"%(key, field))
 			return False
@@ -1563,7 +1569,7 @@ class utilities(pybiblioDBSub):
 					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 
-		bibkeys = [ e["bibkey"] for e in pBDB.bibs.getAll() ]
+		bibkeys = [ e["bibkey"] for e in pBDB.bibs.getAll(saveQuery = False) ]
 		idCats  = [ e["idCat"]  for e in pBDB.cats.getAll() ]
 		idExps  = [ e["idExp"]  for e in pBDB.exps.getAll() ]
 		

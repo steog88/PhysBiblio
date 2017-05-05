@@ -24,7 +24,7 @@ def exportLast(fname):
 
 def exportAll(fname):
 	"""export all the entries in the database in a .bib file"""
-	rows = pBDB.bibs.getAll()
+	rows = pBDB.bibs.getAll(saveQuery = False)
 	if len(rows) > 0:
 		txt = ""
 		for q in rows:
@@ -64,7 +64,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 		print("[export] done for all the texFiles. See previous errors (if any)")
 		return True
 		
-	allBibEntries = pBDB.bibs.getAll()
+	allBibEntries = pBDB.bibs.getAll(saveQuery = False)
 	allbib = [ e["bibkey"] for e in allBibEntries ]
 		
 	cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
@@ -122,12 +122,12 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 		if m in missing:
 			print("[export] key '%s' missing, trying to import it from Web"%m)
 			newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
-			newCheck = pBDB.bibs.getByBibkey(m)
+			newCheck = pBDB.bibs.getByBibkey(m, saveQuery = False)
 
 			if len(newCheck) > 0:
 				retrieved.append(m)	
 				try:
-					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
+					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex", saveQuery = False))
 				except:
 					unexpected.append(m)
 					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
@@ -148,7 +148,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 			print("\n")
 		else:
 			try:
-				saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
+				saveEntryOutBib(pBDB.bibs.getField(m, "bibtex", saveQuery = False))
 			except:
 				unexpected.append(m)
 				print("[export] unexpected error in extracting entry '%s' to the output file"%m)
