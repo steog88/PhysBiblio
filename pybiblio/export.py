@@ -127,7 +127,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 			if len(newCheck) > 0:
 				retrieved.append(m)	
 				try:
-					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex", saveQuery = False))
+					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 				except:
 					unexpected.append(m)
 					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
@@ -148,7 +148,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 			print("\n")
 		else:
 			try:
-				saveEntryOutBib(pBDB.bibs.getField(m, "bibtex", saveQuery = False))
+				saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 			except:
 				unexpected.append(m)
 				print("[export] unexpected error in extracting entry '%s' to the output file"%m)

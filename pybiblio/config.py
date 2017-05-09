@@ -69,9 +69,24 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.descriptions = config_descriptions
-		self.configMainFile = self.params["configMainFile"]
-		if len(sys.argv) > 1:
-			self.configMainFile = sys.argv[1]
+		self.configProfilesFile = "data/profiles.dat"
+		try:
+			with open(self.configProfilesFile) as r:
+				txtarr = r.readlines()
+			txt = "".join(txtarr)
+			profiles = ast.literal_eval(txt)
+			self.defaultProfile = profiles[0]
+			print "[config] starting with configuration in '%s'"%self.defaultProfile
+		except (IOError, ValueError) as e:
+			print e
+			self.defaultProfile = self.params["configMainFile"]
+			with open(self.configProfilesFile, 'w') as w:
+				w.write("['%s']\n"%(self.defaultProfile))
+		#except ...:
+			#...
+		self.configMainFile = self.defaultProfile
+		#if len(sys.argv) > 1:
+			#self.configMainFile = sys.argv[1]
 		
 		self.readConfigFile()
 

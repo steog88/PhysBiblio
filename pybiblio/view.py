@@ -23,9 +23,9 @@ class viewEntry():
 		
 	def printLink(self, key, arg = "arxiv", fileArg = None):
 		"""uses database information to compute and print the web link, or the pdf module to open a pdf"""
-		arxiv = pBDB.bibs.getField(key, "arxiv", saveQuery = False)
-		doi = pBDB.bibs.getField(key, "doi", saveQuery = False)
-		inspire = pBDB.bibs.getField(key, "inspire", saveQuery = False)
+		arxiv = pBDB.bibs.getField(key, "arxiv")
+		doi = pBDB.bibs.getField(key, "doi")
+		inspire = pBDB.bibs.getField(key, "inspire")
 		if arg is "arxiv" and arxiv:
 			link = pBDB.bibs.getArxivUrl(key, "abs")
 		elif arg is "doi" and doi:
