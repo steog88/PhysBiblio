@@ -508,6 +508,8 @@ class MainWindow(QMainWindow):
 			except SyntaxError:
 				pBGUIErrorManager("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?")
 				return False
+		print("[inspireLoadAndInsert] searching:")
+		print(queryStr)
 		self.inspireLoadAndInsert_thr = thread_loadAndInsert(queryStr, queue, self.iLAIReceiver, self)
 
 		self.connect(self.iLAIReceiver, SIGNAL("finished()"), self.iLAIReceiver.deleteLater)
