@@ -258,6 +258,8 @@ class bibtexList(QFrame):
 			pBView.openLink(bibkey,"doi")
 		elif self.colContents[col] == "arxiv" and entry["arxiv"] is not None and entry["arxiv"] != "":
 			pBView.openLink(bibkey,"arxiv")
+		elif self.colContents[col] == "inspire" and entry["inspire"] is not None and entry["inspire"] != "":
+			pBView.openLink(bibkey,"inspire")
 		elif self.colContents[col] == "pdf":
 			ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
 			ask.exec_()
