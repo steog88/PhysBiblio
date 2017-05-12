@@ -26,6 +26,17 @@ except ImportError:
 
 def writeBibtexInfo(entry):
 	infoText = ""
+	if entry["review"] == 1:
+		infoText += "(Review) "
+	if entry["proceeding"] == 1:
+		infoText += "(Proceeding) "
+	if entry["book"] == 1:
+		infoText += "(Book) "
+	if entry["phd_thesis"] == 1:
+		infoText += "(PhD thesis) "
+	if entry["lecture"] == 1:
+		infoText += "(Lecture) "
+		
 	infoText += "<u>%s</u>  (use with '<u>\cite{%s}</u>')<br/>"%(entry["bibkey"], entry["bibkey"])
 	try:
 		infoText += "<b>%s</b><br/>%s<br/>"%(entry["bibtexDict"]["author"], entry["bibtexDict"]["title"])
