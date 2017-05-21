@@ -74,19 +74,17 @@ class ConfigVars():
 			with open(self.configProfilesFile) as r:
 				txtarr = r.readlines()
 			txt = "".join(txtarr)
-			profiles = ast.literal_eval(txt)
-			self.defaultProfile = profiles[0]
-			print "[config] starting with configuration in '%s'"%self.defaultProfile
+			self.profiles = ast.literal_eval(txt)
 		except (IOError, ValueError) as e:
 			print e
-			self.defaultProfile = self.params["configMainFile"]
+			self.profiles = [self.params["configMainFile"]]
 			with open(self.configProfilesFile, 'w') as w:
-				w.write("['%s']\n"%(self.defaultProfile))
+				w.write("['%s']\n"%(self.profiles[0]))
 		#except ...:
 			#...
+		self.defaultProfile = self.profiles[0]
+		print "[config] starting with configuration in '%s'"%self.defaultProfile
 		self.configMainFile = self.defaultProfile
-		#if len(sys.argv) > 1:
-			#self.configMainFile = sys.argv[1]
 		
 		self.readConfigFile()
 
@@ -95,6 +93,14 @@ class ConfigVars():
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
 	
+	def reInit(self, newProfile):
+		for k, v in config_defaults.items():
+			self.params[k] = v
+		self.defaultProfile = newProfile
+		print "[config] starting with configuration in '%s'"%self.defaultProfile
+		self.configMainFile = self.defaultProfile
+		self.readConfigFile()
+		
 	def readConfigFile(self):
 		"""read all the configuration from an external file"""
 		for k, v in config_defaults.items():

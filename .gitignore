@@ -9,3 +9,4 @@ notes.py
 *.db
 *.cfg
 *.log
+profiles.dat

@@ -18,8 +18,9 @@ try:
 	from pybiblio.gui.BibWindows import *
 	from pybiblio.gui.CatWindows import *
 	from pybiblio.gui.ExpWindows import *
-	from pybiblio.gui.ThreadElements import *
 	from pybiblio.gui.inspireStatsGUI import *
+	from pybiblio.gui.ProfilesManager import *
+	from pybiblio.gui.ThreadElements import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -55,6 +56,12 @@ class MainWindow(QMainWindow):
 		"""
 		Create Qt actions used in GUI.
 		"""
+		self.profilesAct = QAction(QIcon(":/images/profiles.png"),
+								"&Profiles", self,
+								shortcut="Ctrl+P",
+								statusTip="Manage profiles",
+								triggered=self.manageProfiles)
+
 		self.saveAct = QAction(QIcon(":/images/file-save.png"),
 								"&Save database", self,
 								shortcut="Ctrl+S",
@@ -63,7 +70,7 @@ class MainWindow(QMainWindow):
 								
 		self.exportAct = QAction(QIcon(":/images/export.png"),
 								"Ex&port last as *.bib", self,
-								shortcut="Ctrl+P",
+								#shortcut="Ctrl+P",
 								statusTip="Export last query as *.bib",
 								triggered=self.export)
 								
@@ -199,6 +206,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportFileAct)
 		self.fileMenu.addAction(self.exportAllAct)
 		self.fileMenu.addSeparator()
+		self.fileMenu.addAction(self.profilesAct)
 		self.fileMenu.addAction(self.configAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
@@ -304,6 +312,10 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Reloading main table...")
 		self.top.recreateTable(bibs)
 		self.done()
+
+	def manageProfiles(self):
+		profilesWin = selectProfiles(self)
+		profilesWin.exec_()
 	
 	def config(self):
 		cfgWin = configWindow(self)

@@ -3,6 +3,7 @@ import os, re, traceback, datetime
 import bibtexparser
 import ast
 import pybiblio.webimport.webInterf as webInt
+import time
 
 try:
 	from pybiblio.config import pbConfig
@@ -52,10 +53,12 @@ class pybiblioDB():
 
 	def reOpenDB(self, newDB = None):
 		if newDB is not None:
-			self.conn = None
-			self.curs = None
+			self.closeDB()
+			del self.conn
+			del self.curs
 			self.dbname = newDB
 			db_is_new = not os.path.exists(self.dbname)
+			#time.sleep(2)
 			self.openDB()
 			if db_is_new:
 				print("-------New database. Creating tables!\n\n")
@@ -63,6 +66,7 @@ class pybiblioDB():
 
 			self.lastFetched = None
 			self.catsHier = None
+			self.loadSubClasses()
 
 	def checkUncommitted(self):
 		#return self.conn.in_transaction() #works only with sqlite > 3.2...
@@ -70,12 +74,14 @@ class pybiblioDB():
 
 	def openDB(self):
 		"""open the database"""
+		print("[DB] Opening database: %s"%self.dbname)
 		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
 
 	def closeDB(self):
 		"""close the database"""
+		print("[DB] Closing database...")
 		self.conn.close()
 
 	def commit(self):
@@ -117,6 +123,25 @@ class pybiblioDB():
 			return False
 		else:
 			return True
+	
+	def loadSubClasses(self):
+		try:
+			del self.bibs
+			del self.cats
+			del self.exps
+			del self.bibExp
+			del self.catBib
+			del self.catExp
+			del self.utils
+		except:
+			pass
+		self.utils = utilities()
+		self.bibs = entries()
+		self.cats = categories()
+		self.exps = experiments()
+		self.bibExp = entryExps()
+		self.catBib = catsEntries()
+		self.catExp = catsExps()
 
 pBDB=pybiblioDB()
 
