@@ -24,19 +24,20 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
+convertType = {
+	"review":  "Review",
+	"proceeding":  "Proceeding",
+	"book": "Book",
+	"phd_thesis": "PhD thesis",
+	"lecture": "Lecture",
+	"exp_paper": "Experimental paper",
+}
+
 def writeBibtexInfo(entry):
 	infoText = ""
-	if entry["review"] == 1:
-		infoText += "(Review) "
-	if entry["proceeding"] == 1:
-		infoText += "(Proceeding) "
-	if entry["book"] == 1:
-		infoText += "(Book) "
-	if entry["phd_thesis"] == 1:
-		infoText += "(PhD thesis) "
-	if entry["lecture"] == 1:
-		infoText += "(Lecture) "
-		
+	for t in convertType.keys():
+		if entry[t] == 1:
+			infoText += "(%s) "%convertType[t]
 	infoText += "<u>%s</u>  (use with '<u>\cite{%s}</u>')<br/>"%(entry["bibkey"], entry["bibkey"])
 	try:
 		infoText += "<b>%s</b><br/>%s<br/>"%(entry["bibtexDict"]["author"], entry["bibtexDict"]["title"])
@@ -159,9 +160,7 @@ class bibtexList(QFrame):
 		self.colContents = []
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
-		self.colContents.append("pdf")
-		self.colContents.append("modify")
-		self.colContents.append("delete")
+		self.colContents += ["type","pdf","modify","delete"]
 
 		super(bibtexList, self).__init__(parent)
 		self.parent = parent
@@ -186,8 +185,8 @@ class bibtexList(QFrame):
 		self.currLayout.addWidget(QLabel(commentStr))
 
 		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt+3)
-		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["PDF", "Modify", "Delete"])
+		self.setTableSize(rowcnt, self.colcnt+4)
+		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["Type", "PDF", "Modify", "Delete"])
 
 		#table content
 		for i in range(rowcnt):
@@ -226,8 +225,9 @@ class bibtexList(QFrame):
 			item = QTableWidgetItem(string)
 			item.setFlags(Qt.ItemIsEnabled)
 			self.tablewidget.setItem(r, j, item)
-		self.addPdfCell(r, self.colcnt, self.bibs[r]["bibkey"])
-		self.addEditDeleteCells(r, self.colcnt+1)
+		self.addTypeCell(r, self.colcnt, self.bibs[r])
+		self.addPdfCell(r, self.colcnt+1, self.bibs[r]["bibkey"])
+		self.addEditDeleteCells(r, self.colcnt+2)
 
 	def addImageCell(self, row, col, imagePath):
 		"""create a cell containing an image"""
@@ -236,8 +236,20 @@ class bibtexList(QFrame):
 		img.setPixmap(pic)
 		self.tablewidget.setCellWidget(row, col, img)
 
+	def addTypeCell(self, row, col, data):
+		someType = False
+		string = ""
+		for t in convertType.keys():
+			if data[t] == 1:
+				if someType:
+					string += ", "
+				string += convertType[t]
+		item = QTableWidgetItem(string)
+		item.setFlags(Qt.ItemIsEnabled)
+		self.tablewidget.setItem(row, col, item)
+
 	def addPdfCell(self, row, col, key):
-		"""create icons for edit and delete"""
+		"""create cell for PDF file"""
 		if len(pBPDF.getExisting(key))>0:
 			self.addImageCell(row, col, ":/images/application-pdf.png")
 		else:
