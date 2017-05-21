@@ -177,7 +177,12 @@ class MainWindow(QMainWindow):
 								triggered=self.showAbout)
 
 	def closeEvent(self, event):
-		if pbConfig.params["askBeforeExit"] and not askYesNo("Do you really want to exit?"):
+		if pBDB.checkUncommitted():
+			if askYesNo("There may be unsaved changes to the database.\nDo you really want to exit?"):
+				event.accept()
+			else:
+				event.ignore()
+		elif pbConfig.params["askBeforeExit"] and not askYesNo("Do you really want to exit?"):
 			event.ignore()
 		else:
 			event.accept()

@@ -37,6 +37,7 @@ class pybiblioDB():
 		for q in self.tableFields.keys():
 			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
 		
+		self.dbChanged = False
 		self.conn = None
 		self.curs = None
 		self.dbname = dbname
@@ -48,6 +49,24 @@ class pybiblioDB():
 		
 		self.lastFetched = None
 		self.catsHier = None
+
+	def reOpenDB(self, newDB = None):
+		if newDB is not None:
+			self.conn = None
+			self.curs = None
+			self.dbname = newDB
+			db_is_new = not os.path.exists(self.dbname)
+			self.openDB()
+			if db_is_new:
+				print("-------New database. Creating tables!\n\n")
+				pbfo.createTables(self)
+
+			self.lastFetched = None
+			self.catsHier = None
+
+	def checkUncommitted(self):
+		#return self.conn.in_transaction() #works only with sqlite > 3.2...
+		return self.dbChanged
 
 	def openDB(self):
 		"""open the database"""
@@ -62,6 +81,7 @@ class pybiblioDB():
 	def commit(self):
 		"""commit the changes"""
 		self.conn.commit()
+		self.dbChanged = False
 		print("[DB] saved.")
 
 	def undo(self):
@@ -82,10 +102,7 @@ class pybiblioDB():
 			self.conn.rollback()
 			return False
 		else:
-			try:
-				mainWin.setWindowTitle("PyBiblio*")
-			except:
-				pass
+			self.dbChanged = True
 			return True
 
 	def cursExec(self,query,data=None):
