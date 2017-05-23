@@ -1300,13 +1300,14 @@ class entries(pybiblioDBSub):
 				inspireID = self.updateInspireID(entry, entry)
 				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 	
-	def searchOAIUpdates(self, startFrom = 0):
+	def searchOAIUpdates(self, startFrom = 0, entries = None):
 		"""select unpublished papers and look for updates using inspireOAI"""
-		try:
-			entries = self.getAll()[startFrom:]
-		except TypeError:
-			pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
-			return 0, 0, []
+		if entries is None:
+			try:
+				entries = self.getAll()[startFrom:]
+			except TypeError:
+				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
+				return 0, 0, []
 		num = 0
 		err = 0
 		changed = []

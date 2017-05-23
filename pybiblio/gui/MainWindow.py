@@ -455,14 +455,14 @@ class MainWindow(QMainWindow):
 				return False
 		self.updateAllBibtexs(startFrom)
 
-	def updateAllBibtexs(self, startFrom = 0):
-		self.StatusBarMessage("Starting update of all bibtexs...")
-		app = printText(title = "Update All Bibtexs")
+	def updateAllBibtexs(self, startFrom = 0, useEntries = None):
+		self.StatusBarMessage("Starting update of bibtexs...")
+		app = printText(title = "Update Bibtexs")
 		app.progressBarMin(0)
 		queue = Queue()
 		self.uOAIReceiver = MyReceiver(queue, self)
 		self.uOAIReceiver.mysignal.connect(app.append_text)
-		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self)
+		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self, useEntries)
 
 		self.connect(self.uOAIReceiver, SIGNAL("finished()"), self.uOAIReceiver.deleteLater)
 		self.connect(self.updateOAI_thr, SIGNAL("finished()"), app.enableClose)

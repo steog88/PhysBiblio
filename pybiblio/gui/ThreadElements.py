@@ -20,16 +20,17 @@ except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 class thread_updateAllBibtexs(MyThread):
-	def __init__(self, startFrom, queue, myrec, parent = None):
+	def __init__(self, startFrom, queue, myrec, parent = None, useEntries = None):
 		super(thread_updateAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
 		self.queue = queue
 		self.my_receiver = myrec
+		self.useEntries = useEntries
 
 	def run(self):
 		self.my_receiver.start()
-		pBDB.bibs.searchOAIUpdates(self.startFrom)
+		pBDB.bibs.searchOAIUpdates(self.startFrom, entries = self.useEntries)
 		time.sleep(0.1)
 		self.my_receiver.running = False
 		self.finished.emit()

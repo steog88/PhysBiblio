@@ -262,7 +262,70 @@ class bibtexList(QFrame):
 		self.addImageCell(row, col, ":/images/edit.png")
 		self.addImageCell(row, col + 1, ":/images/delete.png")
 
+	def contextMenuEvent(self, event):
+		row = self.tablewidget.rowAt(event.pos().y())
+		col = self.tablewidget.columnAt(event.pos().x())
+		if row < 2:
+			return
+		else:
+			row -= 2
+		bibkey = self.tablewidget.item(row, 0).text()
+		menu = QMenu()
+		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
+		menu.addSeparator()
+		delAction = menu.addAction("Delete")
+		modAction = menu.addAction("Modify")
+		menu.addSeparator()
+		catAction = menu.addAction("Manage categories")
+		expAction = menu.addAction("Manage experiments")
+		menu.addSeparator()
+		opArxAct = menu.addAction("Open into arXiv")
+		opDoiAct = menu.addAction("Open DOI link")
+		opInsAct = menu.addAction("Open into InspireHEP")
+		menu.addSeparator()
+		updAction = menu.addAction("Update (search Inspire)")
+		action = menu.exec_(self.mapToGlobal(event.pos()))
+		if action == delAction:
+			deleteBibtex(self.parent, self.parent, bibkey)
+		elif action == modAction:
+			editBibtex(self.parent, self.parent, bibkey)
+		elif action == catAction:
+			previous = [a[0] for a in pBDB.cats.getByEntry(bibkey)]
+			selectCats = catsWindowList(parent = self.parent, askCats = True, askForBib = bibkey, expButton = False, previous = previous)
+			selectCats.exec_()
+			if selectCats.result == "Ok":
+				cats = self.parent.selectedCats
+				for p in previous:
+					if p not in cats:
+						pBDB.catBib.delete(p, bibkey)
+				for c in cats:
+					if c not in previous:
+						pBDB.catBib.insert(c, bibkey)
+				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%bibkey)
+		elif action == expAction:
+			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
+			selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry, previous = previous)
+			selectExps.exec_()
+			if selectExps.result == "Ok":
+				exps = self.parent.selectedExps
+				for p in previous:
+					if p not in exps:
+						pBDB.bibExp.delete(bibkey, p)
+				for e in exps:
+					if e not in previous:
+						pBDB.bibExp.insert(bibkey, e)
+				self.parent.StatusBarMessage("experiments for '%s' successfully inserted"%bibkey)
+		elif action == opArxAct:
+			pBView.openLink(bibkey, "arxiv")
+		elif action == opDoiAct:
+			pBView.openLink(bibkey, "doi")
+		elif action == opInsAct:
+			pBView.openLink(bibkey, "inspire")
+		elif action == updAction:
+			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
+
 	def cellClick(self, row, col):
+		self.tablewidget.selectRow(row)
 		bibkey = self.tablewidget.item(row, 0).text()
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
@@ -273,16 +336,17 @@ class bibtexList(QFrame):
 			deleteBibtex(self.parent, self.parent, bibkey)
 
 	def cellDoubleClick(self, row, col):
+		self.tablewidget.selectRow(row)
 		bibkey = self.tablewidget.item(row, 0).text()
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "doi" and entry["doi"] is not None and entry["doi"] != "":
-			pBView.openLink(bibkey,"doi")
+			pBView.openLink(bibkey, "doi")
 		elif self.colContents[col] == "arxiv" and entry["arxiv"] is not None and entry["arxiv"] != "":
-			pBView.openLink(bibkey,"arxiv")
+			pBView.openLink(bibkey, "arxiv")
 		elif self.colContents[col] == "inspire" and entry["inspire"] is not None and entry["inspire"] != "":
-			pBView.openLink(bibkey,"inspire")
+			pBView.openLink(bibkey, "inspire")
 		elif self.colContents[col] == "pdf":
 			ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
 			ask.exec_()
