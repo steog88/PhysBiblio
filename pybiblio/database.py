@@ -1265,7 +1265,7 @@ class entries(pybiblioDBSub):
 			print(result)
 		try:
 			key = result["bibkey"]
-			old = self.getByBibkey(key)
+			old = self.getByBibkey(key, saveQuery = False)
 			if verbose > 1:
 				print("%s, %s"%(key, old))
 			if len(old) > 0:
@@ -1304,7 +1304,7 @@ class entries(pybiblioDBSub):
 		"""select unpublished papers and look for updates using inspireOAI"""
 		if entries is None:
 			try:
-				entries = self.getAll()[startFrom:]
+				entries = self.getAll(saveQuery = False)[startFrom:]
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
 				return 0, 0, []
@@ -1327,7 +1327,7 @@ class entries(pybiblioDBSub):
 					print("\n[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
 						err += 1
-					elif e != self.getByBibkey(e["bibkey"])[0]:
+					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
 						print("[DB] -- element changed!")
 						changed.append(e["bibkey"])
 		print("\n[DB] %d entries processed"%num)
@@ -1347,7 +1347,7 @@ class entries(pybiblioDBSub):
 		if not childProcess:
 			self.lastInserted = []
 		if entry is not None and not type(entry) is list:
-			existing = self.getByBibkey(entry)
+			existing = self.getByBibkey(entry, saveQuery = False)
 			if existing:
 				return printExisting(entry, existing)
 			if method == "bibtex":
@@ -1373,7 +1373,7 @@ class entries(pybiblioDBSub):
 			if key.strip() == "":
 				print("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
-			existing = self.getByBibkey(key)
+			existing = self.getByBibkey(key, saveQuery = False)
 			if existing:
 				return printExisting(key, existing)
 			print("[DB] entry will have key\n'%s'"%key)
