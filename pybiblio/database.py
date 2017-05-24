@@ -1594,6 +1594,40 @@ class entries(pybiblioDBSub):
 	def getByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
 		return self.fetchByExp(idExp, orderBy = orderBy, orderType = orderType).lastFetched
 
+	def cleanBibtexs(self, startFrom = 0, entries = None):
+		"""clean and reformat the bibtexs"""
+		if entries is None:
+			try:
+				entries = self.getAll(saveQuery = False)[startFrom:]
+			except TypeError:
+				pBErrorManager("[DB] invalid startFrom in cleanBibtexs", traceback)
+				return 0, 0, []
+		num = 0
+		err = 0
+		changed = []
+		tot = len(entries)
+		self.runningCleanBibtexs = True
+		print("[DB] cleanBibtexs will process %d total entries"%tot)
+		db = bibtexparser.bibdatabase.BibDatabase()
+		for ix,e in enumerate(entries):
+			if self.runningCleanBibtexs:
+				num += 1
+				print("\n[DB] %5d / %d (%5.2f%%) - cleaning: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				try:
+					element = bibtexparser.loads(e["bibtex"]).entries[0]
+					db.entries = []
+					db.entries.append(element)
+					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+					if e["bibtex"] != newbibtex and self.updateField(e["bibkey"], "bibtex", newbibtex):
+						print("[DB] -- element changed!")
+						changed.append(e["bibkey"])
+				except ValueError:
+					err += 1
+		print("\n[DB] %d entries processed"%num)
+		print("\n[DB] %d errors occurred"%err)
+		print("\n[DB] %d entries changed"%len(changed))
+		return num, err, changed
+
 pBDB.bibs = entries()
 
 class utilities(pybiblioDBSub):

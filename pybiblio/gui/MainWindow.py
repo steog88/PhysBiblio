@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
 								
 		self.exportSelAct = QAction(QIcon(":/images/export.png"),
 								"Export se&lection as *.bib", self,
-								shortcut="Ctrl+L",
+								#shortcut="Ctrl+L",
 								statusTip="Export current selection as *.bib",
 								triggered=self.exportSelection)
 								
@@ -150,6 +150,16 @@ class MainWindow(QMainWindow):
 								statusTip="Update all the journal info of bibtexs, starting from a given one",
 								triggered=self.updateAllBibtexsAsk)
 
+		self.cleanAllBibtexsAct = QAction("&Clean bibtexs", self,
+								shortcut="Ctrl+L",
+								statusTip="Clean all the bibtexs",
+								triggered=self.cleanAllBibtexs)
+
+		self.cleanAllBibtexsAskAct = QAction("C&lean bibtexs (from ...)", self,
+								shortcut="Ctrl+Shift+L",
+								statusTip="Clean all the bibtexs, starting from a given one",
+								triggered=self.cleanAllBibtexsAsk)
+
 		self.authorStatsAct = QAction("&AuthorStats", self,
 								shortcut="Ctrl+Shift+A",
 								statusTip="Search publication and citation stats of an author from INSPIRES",
@@ -215,6 +225,9 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.newBibAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertWithCatsAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
+		self.bibMenu.addSeparator()
+		self.bibMenu.addAction(self.cleanAllBibtexsAct)
+		self.bibMenu.addAction(self.cleanAllBibtexsAskAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
@@ -563,6 +576,38 @@ class MainWindow(QMainWindow):
 						pBDB.bibExp.insert(entry, exps)
 						self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
 			self.reloadMainContent()
+
+	def cleanAllBibtexsAsk(self):
+		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the cleaning:", "Where do you want to start cleanBibtexs from?", self)
+		if text.isdigit():
+			startFrom = int(text)
+		else:
+			if askYesNo("The text you inserted is not an integer. I will start from 0.\nDo you want to continue?", "Invalid entry"):
+				startFrom = 0
+			else:
+				return False
+		self.cleanAllBibtexs(startFrom)
+
+	def cleanAllBibtexs(self, startFrom = 0, useEntries = None):
+		self.StatusBarMessage("Starting cleaning of bibtexs...")
+		app = printText(title = "Clean Bibtexs", totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ")
+		app.progressBarMin(0)
+		queue = Queue()
+		self.cleanReceiver = MyReceiver(queue, self)
+		self.cleanReceiver.mysignal.connect(app.append_text)
+		self.cleanBibtexs_thr = thread_cleanAllBibtexs(startFrom, queue, self.cleanReceiver, self, useEntries)
+
+		self.connect(self.cleanReceiver, SIGNAL("finished()"), self.cleanReceiver.deleteLater)
+		self.connect(self.cleanBibtexs_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.cleanBibtexs_thr, SIGNAL("finished()"), self.cleanBibtexs_thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), self.cleanBibtexs_thr.setStopFlag)
+
+		sys.stdout = WriteStream(queue)
+		self.cleanBibtexs_thr.start()
+		app.exec_()
+		print("Closing...")
+		sys.stdout = sys.__stdout__
+		self.done()
 
 	def sendMessage(self, message):
 		infoMessage(message)

@@ -85,3 +85,22 @@ class thread_loadAndInsert(MyThread):
 
 	def setStopFlag(self):
 		pBDB.bibs.runningLoadAndInsert = False
+
+class thread_cleanAllBibtexs(MyThread):
+	def __init__(self, startFrom, queue, myrec, parent = None, useEntries = None):
+		super(thread_cleanAllBibtexs, self).__init__(parent)
+		self.parent = parent
+		self.startFrom = startFrom
+		self.queue = queue
+		self.my_receiver = myrec
+		self.useEntries = useEntries
+
+	def run(self):
+		self.my_receiver.start()
+		pBDB.bibs.cleanBibtexs(self.startFrom, entries = self.useEntries)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.runningCleanBibtexs = False

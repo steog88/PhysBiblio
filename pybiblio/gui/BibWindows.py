@@ -269,6 +269,7 @@ class bibtexList(QFrame):
 		menu.addSeparator()
 		delAction = menu.addAction("Delete")
 		modAction = menu.addAction("Modify")
+		cleAction = menu.addAction("Clean")
 		menu.addSeparator()
 		catAction = menu.addAction("Manage categories")
 		expAction = menu.addAction("Manage experiments")
@@ -315,6 +316,8 @@ class bibtexList(QFrame):
 			pBView.openLink(bibkey, "doi")
 		elif action == opInsAct:
 			pBView.openLink(bibkey, "inspire")
+		elif action == cleAction:
+			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
 
