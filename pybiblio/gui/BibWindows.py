@@ -262,13 +262,7 @@ class bibtexList(QFrame):
 		self.addImageCell(row, col, ":/images/edit.png")
 		self.addImageCell(row, col + 1, ":/images/delete.png")
 
-	def contextMenuEvent(self, event):
-		row = self.tablewidget.rowAt(event.pos().y())
-		col = self.tablewidget.columnAt(event.pos().x())
-		if row < 2:
-			return
-		else:
-			row -= 2
+	def triggeredContextMenuEvent(self, row, col, event):
 		bibkey = self.tablewidget.item(row, 0).text()
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
@@ -284,7 +278,7 @@ class bibtexList(QFrame):
 		opInsAct = menu.addAction("Open into InspireHEP")
 		menu.addSeparator()
 		updAction = menu.addAction("Update (search Inspire)")
-		action = menu.exec_(self.mapToGlobal(event.pos()))
+		action = menu.exec_(event.globalPos())
 		if action == delAction:
 			deleteBibtex(self.parent, self.parent, bibkey)
 		elif action == modAction:
@@ -388,7 +382,7 @@ class bibtexList(QFrame):
 		"""set number of rows and columns"""
 		self.rows = rows
 		self.cols = cols
-		self.tablewidget = QTableWidget(rows, cols)
+		self.tablewidget = MyTableWidget(rows, cols, self)
 		vheader = QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.Interactive)
 		self.tablewidget.setVerticalHeader(vheader)

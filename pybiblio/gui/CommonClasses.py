@@ -151,3 +151,11 @@ class MyComboBox(QComboBox):
 class MyAndOrCombo(MyComboBox):
 	def __init__(self, parent, current = None):
 		super(MyAndOrCombo, self).__init__(parent, ["AND", "OR"], current = current)
+
+class MyTableWidget(QTableWidget):
+	def __init__(self, rows, cols, parent):
+		super(MyTableWidget, self).__init__(rows, cols, parent)
+		self.parent = parent
+
+	def contextMenuEvent(self, event):
+		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
