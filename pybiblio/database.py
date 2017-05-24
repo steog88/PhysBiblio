@@ -7,6 +7,7 @@ import time
 
 try:
 	from pybiblio.config import pbConfig
+	from pybiblio.bibtexwriter import pbWriter
 	from pybiblio.errors import pBErrorManager
 	import pybiblio.parse_accents as parse_accents
 	import pybiblio.firstOpen as pbfo
@@ -1065,10 +1066,7 @@ class entries(pybiblioDBSub):
 		for k,v in bibtexparser.loads(bibtex).entries[0].items():
 			tmp[k] = v.replace("\n", " ")
 		db.entries = [tmp]
-		writer = bibtexparser.bwriter.BibTexWriter()
-		writer.indent = ' '
-		writer.comma_first = False
-		return writer.write(db)
+		return pbWriter.write(db)
 
 	def prepareInsert(self,
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
@@ -1089,8 +1087,7 @@ class entries(pybiblioDBSub):
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
 		db.entries.append(element)
-		writer = bibtexparser.bwriter.BibTexWriter()
-		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(writer.write(db).strip()))
+		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 		data["inspire"] = inspire if inspire else None
 		if arxiv:
 			data["arxiv"] = arxiv
@@ -1190,10 +1187,7 @@ class entries(pybiblioDBSub):
 			elif elementNew[k] and elementNew[k] != elementOld[k] and k != "bibtex" and k != "ID":
 				keep[k] = elementNew[k]
 		db.entries.append(keep)
-		writer = bibtexparser.bwriter.BibTexWriter()
-		writer.indent = ' '
-		writer.comma_first = False
-		return writer.write(db)
+		return pbWriter.write(db)
 		
 	def updateInspireID(self, string, key = None, number = None):
 		"""use inspire websearch module to get and update the inspireID"""

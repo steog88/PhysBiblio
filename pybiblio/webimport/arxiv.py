@@ -11,6 +11,7 @@ from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
+from pybiblio.bibtexwriter import pbWriter
 
 class webSearch(webInterf):
 	"""arxiv.org search"""
@@ -73,10 +74,7 @@ class webSearch(webInterf):
 				except:
 					print("[DB] -> Error in converting year")
 				db.entries.append(tmp)
-			writer = BibTexWriter()
-			writer.indent = ' '
-			writer.comma_first = False
-			return writer.write(db)
+			return pbWriter.write(db)
 		except:
 			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
 			return ""
