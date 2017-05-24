@@ -25,9 +25,12 @@ class objListWindow(QDialog):
 		self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
+	def triggeredContextMenuEvent(self, row, col, event):
+		pass
+
 	def setTableSize(self, rows, cols):
 		"""set number of rows and columns"""
-		self.tablewidget = QTableWidget(rows, cols)
+		self.tablewidget = MyTableWidget(rows, cols, self)
 		vheader = QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.Interactive)
 		self.tablewidget.setVerticalHeader(vheader)
@@ -60,7 +63,7 @@ class objListWindow(QDialog):
 			self.tableWidth = hwidth + swidth + fwidth + 40
 		self.tablewidget.setFixedWidth(self.tableWidth)
 
-		self.setMinimumHeight(300)
+		self.setMinimumHeight(600)
 
 		self.tablewidget.cellClicked.connect(self.cellClick)
 		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
