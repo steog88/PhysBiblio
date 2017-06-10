@@ -372,7 +372,7 @@ class bibtexList(QFrame):
 					pBPDF.removeFile(bibkey, "doi")
 					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 			elif ask.result == "addDoi":
-				newpdf = askFileName(self, "Where is the published PDF located?", "Select file")
+				newpdf = askFileName(self, "Where is the published PDF located?", filter = "PDF (*.pdf)")
 				if newpdf != "" and os.path.isfile(newpdf):
 					if pBPDF.copyNewFile(bibkey, newpdf, "doi"):
 						infoMessage("PDF successfully copied!")

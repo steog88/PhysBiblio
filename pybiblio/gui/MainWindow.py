@@ -372,7 +372,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Nothing saved")
 		
 	def export(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportLast(filename)
 			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
@@ -380,7 +380,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty filename given!")
 	
 	def exportSelection(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportSelected(filename)
 			self.StatusBarMessage("Current selection exported into %s"%filename)
@@ -388,9 +388,9 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty filename given!")
 	
 	def exportFile(self):
-		outFName = askSaveFileName(self, title = "Where do you want to export the entries?", message = "Bibtex (*.bib)")
+		outFName = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if outFName != "":
-			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", message = "Latex (*.tex)")
+			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", filter = "Latex (*.tex)")
 			if texFile != "":
 				app = printText(title = "Exporting...")
 				app.progressBarMin(0)
@@ -416,7 +416,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty output filename!")
 
 	def exportAll(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", message = "Enter filename")
+		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportAll(filename)
 			self.StatusBarMessage("All entries saved into %s"%filename)
