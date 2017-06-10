@@ -44,7 +44,7 @@ def exportAll(fname):
 def exportSelected(fname):
 	print("NYI")
 
-def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
+def exportForTexFile(texFile, outFName, overwrite = False, autosave = True):
 	"""
 	export only the bibtexs required to compile a given .tex file (or a list of).
 	If missing, it tries to download them
@@ -58,6 +58,8 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 		with open(outFName, "w") as o:
 			o.write("%file written by PyBiblio\n")
 
+	existingBib = open(outFName, "r").read()
+	
 	if type(texFile) is list:
 		for t in texFile:
 			self.exportForTexFile(t, outFName, overwrite = False, autosave = autosave)
@@ -95,7 +97,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 	with open(texFile) as r:
 		keyscont += r.read()
 
-	citaz = [ m for m in cite.finditer(keyscont) ]
+	citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
 
 	requiredBibkeys = []
 	for c in citaz:
@@ -105,7 +107,7 @@ def exportForTexFile(texFile, outFName, overwrite = True, autosave = True):
 		d = b.replace(r'}', '')
 		a = d.split(',')
 		for e in a:
-			if e not in requiredBibkeys:
+			if e not in requiredBibkeys and e not in existingBib and e.strip() != "":
 				requiredBibkeys.append(e)
 	print("[export] %d keys found"%len(requiredBibkeys))
 

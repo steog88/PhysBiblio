@@ -8,7 +8,7 @@ try:
 	from pybiblio.database import *
 	from pybiblio.pdf import pBPDF
 	from pybiblio.inspireStats import pBStats
-	#import pybiblio.export as bibexport
+	import pybiblio.export as bibexport
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
 	#from pybiblio.config import pbConfig
@@ -104,3 +104,23 @@ class thread_cleanAllBibtexs(MyThread):
 
 	def setStopFlag(self):
 		pBDB.bibs.runningCleanBibtexs = False
+
+class thread_exportTexBib(MyThread):
+	def __init__(self, texFile, outFName, queue, myrec, parent = None):
+		super(thread_exportTexBib, self).__init__(parent)
+		self.parent = parent
+		self.texFile = texFile
+		self.outFName = outFName
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		bibexport.exportForTexFile(self.texFile, self.outFName)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pass
+		#runningExportForTexFile = False

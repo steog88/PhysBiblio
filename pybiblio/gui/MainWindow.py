@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
 
 		self.exportFileAct = QAction(#QIcon(":/images/export-table.png"),
 								"Export for a *.&tex", self,
-								#shortcut="Ctrl+A",
+								shortcut="Ctrl+X",
 								statusTip="Export as *.bib the bibliography needed to compile a .tex file",
 								triggered=self.exportFile)
 
@@ -388,11 +388,27 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty filename given!")
 	
 	def exportFile(self):
-		outFName = askFileName(self, title = "Where do you want to export the entries?", message = "Enter output filename")
+		outFName = askSaveFileName(self, title = "Where do you want to export the entries?", message = "Bibtex (*.bib)")
 		if outFName != "":
-			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", message = "Enter *.tex filename")
+			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", message = "Latex (*.tex)")
 			if texFile != "":
-				bibexport.exportForTexFile(texFile, outFName)
+				app = printText(title = "Exporting...")
+				app.progressBarMin(0)
+				queue = Queue()
+				self.exportTexBibReceiver = MyReceiver(queue, self)
+				self.exportTexBibReceiver.mysignal.connect(app.append_text)
+				self.exportTexBib_thr = thread_exportTexBib(texFile, outFName, queue, self.exportTexBibReceiver, self)
+
+				self.connect(self.exportTexBibReceiver, SIGNAL("finished()"), self.exportTexBibReceiver.deleteLater)
+				self.connect(self.exportTexBib_thr, SIGNAL("finished()"), app.enableClose)
+				self.connect(self.exportTexBib_thr, SIGNAL("finished()"), self.exportTexBib_thr.deleteLater)
+				self.connect(app, SIGNAL("stopped()"), self.exportTexBib_thr.setStopFlag)
+
+				sys.stdout = WriteStream(queue)
+				self.exportTexBib_thr.start()
+				app.exec_()
+				print("Closing...")
+				sys.stdout = sys.__stdout__
 				self.StatusBarMessage("All entries saved into %s"%outFName)
 			else:
 				self.StatusBarMessage("Empty input filename!")

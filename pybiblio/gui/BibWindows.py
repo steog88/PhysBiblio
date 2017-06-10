@@ -263,7 +263,10 @@ class bibtexList(QFrame):
 		self.addImageCell(row, col + 1, ":/images/delete.png")
 
 	def triggeredContextMenuEvent(self, row, col, event):
-		bibkey = self.tablewidget.item(row, 0).text()
+		try:
+			bibkey = self.tablewidget.item(row, 0).text()
+		except AttributeError:
+			return
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
 		menu.addSeparator()
@@ -299,7 +302,7 @@ class bibtexList(QFrame):
 				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%bibkey)
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
-			selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry, previous = previous)
+			selectExps = ExpWindowList(parent = self, askExps = True, askForBib = bibkey, previous = previous)
 			selectExps.exec_()
 			if selectExps.result == "Ok":
 				exps = self.parent.selectedExps

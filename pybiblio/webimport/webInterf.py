@@ -9,7 +9,7 @@ except ImportError:
 	print(traceback.format_exc())
 try:
 	import pybiblio.webimport as wi
-	from pybiblio.database import *
+	#from pybiblio.database import *
 	from pybiblio.config import pbConfig
 except ImportError:
 	pBErrorManager("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)

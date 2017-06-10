@@ -24,12 +24,16 @@ def askYesNo(message, title = "Question"):
 	if reply == QMessageBox.No:
 		return False
 
-def askFileName(parent = None, title = "Filename to use:", message = "Enter filename"):
-	reply = QFileDialog.getOpenFileName(parent, title, message)
+def askFileName(parent = None, title = "Filename to use:", message = ""):
+	reply = QFileDialog.getOpenFileName(parent, title, "", message)
 	return reply[0]
 
-def askDirName(parent = None, title = "Directory to use:", message = "Select directory"):
-	reply = QFileDialog.getExistingDirectory(parent, title, message, options=QFileDialog.ShowDirsOnly)
+def askSaveFileName(parent = None, title = "Filename to use:", message = ""):
+	reply = QFileDialog.getSaveFileName(parent, title, "", message, options = QFileDialog.DontConfirmOverwrite)
+	return reply[0]
+
+def askDirName(parent = None, title = "Directory to use:", message = ""):
+	reply = QFileDialog.getExistingDirectory(parent, title, "", message, options=QFileDialog.ShowDirsOnly)
 	return reply
 
 def askGenericText(message, title, parent = None):
