@@ -158,9 +158,10 @@ class bibtexList(QFrame):
 		self.columns = pbConfig.params["bibtexListColumns"]
 		self.colcnt = len(self.columns)
 		self.colContents = []
+		self.additionalCols = ["Type", "PDF"]
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
-		self.colContents += ["type","pdf","modify","delete"]
+		self.colContents += [a.lower() for a in self.additionalCols]
 
 		super(bibtexList, self).__init__(parent)
 		self.parent = parent
@@ -185,8 +186,8 @@ class bibtexList(QFrame):
 		self.currLayout.addWidget(QLabel(commentStr))
 
 		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt+4)
-		self.tablewidget.setHorizontalHeaderLabels(self.columns + ["Type", "PDF", "Modify", "Delete"])
+		self.setTableSize(rowcnt, self.colcnt + len(self.additionalCols))
+		self.tablewidget.setHorizontalHeaderLabels(self.columns + self.additionalCols)
 
 		#table content
 		for i in range(rowcnt):
@@ -227,7 +228,6 @@ class bibtexList(QFrame):
 			self.tablewidget.setItem(r, j, item)
 		self.addTypeCell(r, self.colcnt, self.bibs[r])
 		self.addPdfCell(r, self.colcnt+1, self.bibs[r]["bibkey"])
-		self.addEditDeleteCells(r, self.colcnt+2)
 
 	def addImageCell(self, row, col, imagePath):
 		"""create a cell containing an image"""
@@ -256,11 +256,6 @@ class bibtexList(QFrame):
 			item = QTableWidgetItem("no PDF")
 			item.setFlags(Qt.ItemIsEnabled)
 			self.tablewidget.setItem(row, col, item)
-
-	def addEditDeleteCells(self, row, col):
-		"""create icons for edit and delete"""
-		self.addImageCell(row, col, ":/images/edit.png")
-		self.addImageCell(row, col + 1, ":/images/delete.png")
 
 	def triggeredContextMenuEvent(self, row, col, event):
 		try:
