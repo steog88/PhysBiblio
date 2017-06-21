@@ -1250,11 +1250,11 @@ class entries(pybiblioDBSub):
 				print("[DB][oai] something missing in entry %s"%e["id"])
 		print("[DB] inspire OAI harvesting done!")
 
-	def updateInfoFromOAI(self, inspireID, verbose = 0):
+	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0):
 		"""use inspire OAI to retrieve the info for a single entry"""
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
 			inspireID = self.getField(inspireID, "inspire")
-		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, verbose = verbose)
+		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
 		if verbose > 1:
 			print(result)
 		try:
@@ -1268,7 +1268,10 @@ class entries(pybiblioDBSub):
 						if verbose > 0:
 							print("%s = %s (%s)"%(d, result[o], old[0][d]))
 						if result[o] != old[0][d]:
-							self.updateField(key, d, result[o], 0)
+							if o == "bibtex" and result[o] is not None:
+								self.updateField(key, d, self.rmBibtexComments(self.rmBibtexACapo(result[o].strip())), verbose = 0)
+							else:
+								self.updateField(key, d, result[o], verbose = 0)
 					except:
 						print("[DB][oai] key error: (%s, %s)"%(o,d))
 			if verbose > 0:
@@ -1294,7 +1297,7 @@ class entries(pybiblioDBSub):
 				inspireID = self.updateInspireID(entry, entry)
 				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 	
-	def searchOAIUpdates(self, startFrom = 0, entries = None):
+	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
 		"""select unpublished papers and look for updates using inspireOAI"""
 		if entries is None:
 			try:
@@ -1310,16 +1313,16 @@ class entries(pybiblioDBSub):
 		print("[DB] searchOAIUpdates will process %d total entries"%tot)
 		for ix,e in enumerate(entries):
 			if self.runningOAIUpdates \
-				and ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) \
 				and e["proceeding"] == 0 \
 				and e["book"] == 0 \
 				and e["lecture"] == 0 \
 				and e["phd_thesis"] == 0 \
 				and e["noUpdate"] == 0 \
-				and e["inspire"] is not None:
+				and e["inspire"] is not None \
+				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
 					print("\n[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
-					if not self.updateInfoFromOAI(e["inspire"], verbose = 0):
+					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
 						err += 1
 					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
 						print("[DB] -- element changed!")

@@ -145,9 +145,9 @@ class MainWindow(QMainWindow):
 								statusTip="Update all the journal info of bibtexs",
 								triggered=self.updateAllBibtexs)
 
-		self.updateAllBibtexsAskAct = QAction("Update bibtexs (&from ...)", self,
+		self.updateAllBibtexsAskAct = QAction("Update bibtexs (&personalized)", self,
 								shortcut="Ctrl+Shift+U",
-								statusTip="Update all the journal info of bibtexs, starting from a given one",
+								statusTip="Update all the journal info of bibtexs, but with non-standard options (start from, force, ...)",
 								triggered=self.updateAllBibtexsAsk)
 
 		self.cleanAllBibtexsAct = QAction("&Clean bibtexs", self,
@@ -372,7 +372,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Nothing saved")
 		
 	def export(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
+		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportLast(filename)
 			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
@@ -380,7 +380,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty filename given!")
 	
 	def exportSelection(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
+		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportSelected(filename)
 			self.StatusBarMessage("Current selection exported into %s"%filename)
@@ -416,7 +416,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty output filename!")
 
 	def exportAll(self):
-		filename = askFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
+		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			bibexport.exportAll(filename)
 			self.StatusBarMessage("All entries saved into %s"%filename)
@@ -424,7 +424,6 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty output filename!")
 	
 	def categories(self):
-		#rows=pBDB.extractCatByName("Tags")
 		self.StatusBarMessage("categories triggered")
 		catListWin = catsWindowList(self)
 		catListWin.show()
@@ -436,7 +435,6 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("experiments triggered")
 		expListWin = ExpWindowList(self)
 		expListWin.show()
-		#window.cellClicked.connect(window.slotItemClicked)
 
 	def newExperiment(self):
 		editExperiment(self, self)
@@ -474,6 +472,7 @@ class MainWindow(QMainWindow):
 		pyBiblioCLI()
 
 	def updateAllBibtexsAsk(self):
+		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")
 		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the updates:", "Where do you want to start searchOAIUpdates from?", self)
 		if text.isdigit():
 			startFrom = int(text)
@@ -482,16 +481,16 @@ class MainWindow(QMainWindow):
 				startFrom = 0
 			else:
 				return False
-		self.updateAllBibtexs(startFrom)
+		self.updateAllBibtexs(startFrom, force = force)
 
-	def updateAllBibtexs(self, startFrom = 0, useEntries = None):
+	def updateAllBibtexs(self, startFrom = 0, useEntries = None, force = False):
 		self.StatusBarMessage("Starting update of bibtexs...")
 		app = printText(title = "Update Bibtexs")
 		app.progressBarMin(0)
 		queue = Queue()
 		self.uOAIReceiver = MyReceiver(queue, self)
 		self.uOAIReceiver.mysignal.connect(app.append_text)
-		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self, useEntries)
+		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self, useEntries, force = force)
 
 		self.connect(self.uOAIReceiver, SIGNAL("finished()"), self.uOAIReceiver.deleteLater)
 		self.connect(self.updateOAI_thr, SIGNAL("finished()"), app.enableClose)

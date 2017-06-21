@@ -322,7 +322,7 @@ class bibtexList(QFrame):
 		elif action == cleAction:
 			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
 		elif action == updAction:
-			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
+			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
 
 	def cellClick(self, row, col):
 		self.tablewidget.selectRow(row)

@@ -3,6 +3,9 @@ from urllib2 import Request
 import urllib2
 from pybiblio.webimport.webInterf import *
 from pybiblio.parse_accents import *
+from bibtexparser.bibdatabase import BibDatabase
+import bibtexparser
+from pybiblio.bibtexwriter import pbWriter
 
 import codecs
 reload(sys)
@@ -88,6 +91,7 @@ class webSearch(webInterf):
 			["doi", "doi"],
 			["ads", "ads"],
 			["isbn", "isbn"],
+			["bibtex", "bibtex"],
 		]
 		
 	def retrieveUrlFirst(self,string):
@@ -176,7 +180,7 @@ class webSearch(webInterf):
 		tmpDict["oldkeys"] = ",".join(tmpOld)
 		return tmpDict
 	
-	def retrieveOAIData(self, inspireID, verbose = 0):
+	def retrieveOAIData(self, inspireID, bibtex = None, verbose = 0):
 		"""get the marcxml for a given record"""
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
@@ -189,11 +193,25 @@ class webSearch(webInterf):
 		try:
 			res = self.readRecord(record[1])
 			res["id"] = inspireID
+			if bibtex is not None and res["pages"] is not None:
+				element = bibtexparser.loads(bibtex).entries[0]
+				element["journal"] = res["journal"]
+				element["volume"] = res["volume"]
+				element["year"] = res["year"]
+				element["pages"] = res["pages"]
+				element["doi"] = res["doi"]
+				db = BibDatabase()
+				db.entries = []
+				db.entries.append(element)
+				res["bibtex"] = pbWriter.write(db)
+			else:
+				res["bibtex"] = None
 			if verbose > 0:
 				print("[oai] done.")
 			return res
 		except Exception:
 			print("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID)
+			print(traceback.format_exc())
 			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):
