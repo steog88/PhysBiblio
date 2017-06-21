@@ -1016,8 +1016,8 @@ class entries(pybiblioDBSub):
 		"""extract the content of one field from a entry in the database, searched by bibtex key"""
 		try:
 			return self.getByBibkey(key, saveQuery = False)[0][field]
-		except:
-			print("[DB] ERROR in getEntryField('%s', '%s')"%(key, field))
+		except IndexError:
+			print("[DB] ERROR in getEntryField('%s', '%s'): no element found?"%(key, field))
 			return False
 
 	def toDataDict(self, key):
@@ -1254,6 +1254,11 @@ class entries(pybiblioDBSub):
 		"""use inspire OAI to retrieve the info for a single entry"""
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
 			inspireID = self.getField(inspireID, "inspire")
+			try:
+				inspireID.isdigit()
+			except AttributeError:
+				print("[DB] wrong value/format in inspireID: ", inspireID)
+				return False
 		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
 		if verbose > 1:
 			print(result)
@@ -1319,6 +1324,7 @@ class entries(pybiblioDBSub):
 				and e["phd_thesis"] == 0 \
 				and e["noUpdate"] == 0 \
 				and e["inspire"] is not None \
+				and e["inspire"] != "" \
 				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
 					print("\n[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))

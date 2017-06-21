@@ -195,7 +195,7 @@ class webSearch(webInterf):
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				element = bibtexparser.loads(bibtex).entries[0]
-				element["journal"] = res["journal"]
+				element["journal"] = res["journal"].replace(".", ". ")
 				element["volume"] = res["volume"]
 				element["year"] = res["year"]
 				element["pages"] = res["pages"]
