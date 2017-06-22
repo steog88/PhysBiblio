@@ -195,11 +195,13 @@ class webSearch(webInterf):
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				element = bibtexparser.loads(bibtex).entries[0]
-				element["journal"] = res["journal"].replace(".", ". ")
-				element["volume"] = res["volume"]
-				element["year"] = res["year"]
-				element["pages"] = res["pages"]
-				element["doi"] = res["doi"]
+				try:
+					res["journal"] = res["journal"].replace(".", ". ")
+				except AttributeError:
+					print("[DB] 'journal' from OAI is not a string (?)")
+				for k in ["doi", "volume", "pages", "year", "journal"]:
+					if res[k] != "" and res[k] is not None:
+						element[k] = res[k]
 				db = BibDatabase()
 				db.entries = []
 				db.entries.append(element)
