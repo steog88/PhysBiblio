@@ -1327,12 +1327,13 @@ class entries(pybiblioDBSub):
 				and e["inspire"] != "" \
 				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
-					print("\n[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
 						err += 1
 					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
 						print("[DB] -- element changed!")
 						changed.append(e["bibkey"])
+					print("")
 		print("\n[DB] %d entries processed"%num)
 		print("\n[DB] %d errors occurred"%err)
 		print("\n[DB] %d entries changed"%len(changed))
@@ -1422,7 +1423,7 @@ class entries(pybiblioDBSub):
 				if type(e) is float:
 					e = str(e)
 				if self.runningLoadAndInsert:
-					print("\n[DB] %5d / %d (%5.2f%%) - looking for string: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e))
+					print("[DB] %5d / %d (%5.2f%%) - looking for string: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e))
 					if not self.loadAndInsert(e, childProcess = True):
 						failed.append(e)
 					ix += 1
@@ -1621,7 +1622,7 @@ class entries(pybiblioDBSub):
 		for ix,e in enumerate(entries):
 			if self.runningCleanBibtexs:
 				num += 1
-				print("\n[DB] %5d / %d (%5.2f%%) - cleaning: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				print("[DB] %5d / %d (%5.2f%%) - cleaning: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 				try:
 					element = bibtexparser.loads(e["bibtex"]).entries[0]
 					db.entries = []

@@ -73,7 +73,7 @@ class inspireStatsLoader():
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
-			print("\n[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
+			print("[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p, verbose = 0)
 			allInfo[p]["infoDict"] = paperInfo["aI"]
 			allInfo[p]["citingPapersList"] = paperInfo["citList"]

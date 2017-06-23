@@ -217,7 +217,7 @@ class printText(QDialog):
 
 	def append_text(self,text):
 		if self.setProgressBar:
-			if self. totString in text:
+			if self.totString in text:
 				tot = [int(s) for s in text.split() if s.isdigit()][0]
 				self.progressBarMax(tot)
 			elif self.progressString in text:

@@ -474,9 +474,9 @@ class MainWindow(QMainWindow):
 	def updateAllBibtexsAsk(self):
 		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")
 		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the updates:", "Where do you want to start searchOAIUpdates from?", self)
-		if text.isdigit():
+		try:
 			startFrom = int(text)
-		else:
+		except ValueError:
 			if askYesNo("The text you inserted is not an integer. I will start from 0.\nDo you want to continue?", "Invalid entry"):
 				startFrom = 0
 			else:
@@ -594,9 +594,9 @@ class MainWindow(QMainWindow):
 
 	def cleanAllBibtexsAsk(self):
 		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the cleaning:", "Where do you want to start cleanBibtexs from?", self)
-		if text.isdigit():
+		try:
 			startFrom = int(text)
-		else:
+		except ValueError:
 			if askYesNo("The text you inserted is not an integer. I will start from 0.\nDo you want to continue?", "Invalid entry"):
 				startFrom = 0
 			else:

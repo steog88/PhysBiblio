@@ -22,6 +22,7 @@ from cStringIO import StringIO
 from lxml.etree import tostring
 from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
+import httplib
 
 def safe_list_get(l, idx, default=""):
 	"""
@@ -184,7 +185,7 @@ class webSearch(webInterf):
 		"""get the marcxml for a given record"""
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
-		except ErrorBase:
+		except ErrorBase, httplib.IncompleteRead:
 			print("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID)
 			return False
 		nhand = 0
