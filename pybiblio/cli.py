@@ -3,7 +3,7 @@ import readline # optional, will allow Up/Down/History in the console
 import code
 
 try:
-	import pybiblio.export as bibexport
+	from pybiblio.export import pBExport
 	import pybiblio.webimport.webInterf as webInt
 	from pybiblio.config import pbConfig
 	from pybiblio.database import pBDB

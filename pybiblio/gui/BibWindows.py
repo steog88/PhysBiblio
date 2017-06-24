@@ -6,7 +6,7 @@ import subprocess
 
 try:
 	from pybiblio.database import pBDB
-	#import pybiblio.export as bibexport
+	#from pybiblio.export import pBExport
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig

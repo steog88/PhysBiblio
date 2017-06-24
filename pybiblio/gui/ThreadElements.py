@@ -8,7 +8,7 @@ try:
 	from pybiblio.database import *
 	from pybiblio.pdf import pBPDF
 	from pybiblio.inspireStats import pBStats
-	import pybiblio.export as bibexport
+	from pybiblio.export import pBExport
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
 	#from pybiblio.config import pbConfig
@@ -117,11 +117,10 @@ class thread_exportTexBib(MyThread):
 
 	def run(self):
 		self.my_receiver.start()
-		bibexport.exportForTexFile(self.texFile, self.outFName)
+		pBExport.exportForTexFile(self.texFile, self.outFName)
 		time.sleep(0.1)
 		self.my_receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
-		pass
-		#runningExportForTexFile = False
+		pBExport.exportForTexFlag = False

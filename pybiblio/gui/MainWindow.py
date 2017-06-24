@@ -10,7 +10,7 @@ import ast
 try:
 	from pybiblio.errors import pBErrorManager
 	from pybiblio.database import *
-	import pybiblio.export as bibexport
+	from pybiblio.export import pBExport
 	import pybiblio.webimport.webInterf as webInt
 	from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
@@ -374,7 +374,7 @@ class MainWindow(QMainWindow):
 	def export(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
-			bibexport.exportLast(filename)
+			pBExport.exportLast(filename)
 			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty filename given!")
@@ -382,7 +382,7 @@ class MainWindow(QMainWindow):
 	def exportSelection(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
-			bibexport.exportSelected(filename)
+			pBExport.exportSelected(filename)
 			self.StatusBarMessage("Current selection exported into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty filename given!")
@@ -418,7 +418,7 @@ class MainWindow(QMainWindow):
 	def exportAll(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
-			bibexport.exportAll(filename)
+			pBExport.exportAll(filename)
 			self.StatusBarMessage("All entries saved into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty output filename!")
