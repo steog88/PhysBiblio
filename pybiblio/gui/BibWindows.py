@@ -94,7 +94,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			message = "Bibtex entry saved"
 			statusBarObject.setWindowTitle("PyBiblio*")
 			try:
-				parent.top.recreateTable()
+				parent.top.recreateTable(parent.top.bibs)
 			except:
 				pass
 		else:
