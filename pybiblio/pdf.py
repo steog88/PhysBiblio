@@ -122,9 +122,10 @@ class localPDF():
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))
 
-	def removeFile(self, key, ftype):
+	def removeFile(self, key, ftype, fname = None):
 		"""delete a file"""
-		fname = self.getFilePath(key, ftype)
+		if fname is None:
+			fname = self.getFilePath(key, ftype)
 		try:
 			os.remove(fname)
 			print("[localPDF] file %s removed"%fname)

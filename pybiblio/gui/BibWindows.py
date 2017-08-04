@@ -258,6 +258,15 @@ class bibtexList(QFrame):
 			self.tablewidget.setItem(row, col, item)
 
 	def triggeredContextMenuEvent(self, row, col, event):
+		def deletePdfFile(bibkey, ftype, fdesc, custom = None):
+			if askYesNo("Do you really want to delete the %s file for entry %s?"%(fdesc, bibkey)):
+				self.parent.StatusBarMessage("deleting %s file..."%fdesc)
+				if custom is not None:
+					pBPDF.removeFile(bibkey, "", fname = custom)
+				else:
+					pBPDF.removeFile(bibkey, ftype)
+				self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+		
 		try:
 			bibkey = self.tablewidget.item(row, 0).text()
 		except AttributeError:
@@ -269,6 +278,38 @@ class bibtexList(QFrame):
 		modAction = menu.addAction("Modify")
 		cleAction = menu.addAction("Clean")
 		menu.addSeparator()
+
+		pdfMenu = menu.addMenu("PDF")
+		arxiv = pBDB.bibs.getField(bibkey, "arxiv")
+		doi = pBDB.bibs.getField(bibkey, "doi")
+		files = pBPDF.getExisting(bibkey, fullPath = True)
+		arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
+		pdfDir = pBPDF.getFileDir(bibkey)
+		pdfActs={}
+		pdfActs["addPdf"] = pdfMenu.addAction("Add generic PDF")
+		pdfMenu.addSeparator()
+		if arxivFile in files:
+			files.remove(arxivFile)
+			pdfActs["openArx"] = pdfMenu.addAction("Open arXiv PDF")
+			pdfActs["delArx"] = pdfMenu.addAction("Delete arXiv PDF")
+		elif arxiv is not None and arxiv != "":
+			pdfActs["downArx"] = pdfMenu.addAction("Download arXiv PDF")
+		pdfMenu.addSeparator()
+		doiFile = pBPDF.getFilePath(bibkey, "doi")
+		if doiFile in files:
+			files.remove(doiFile)
+			pdfActs["openDoi"] = pdfMenu.addAction("Open DOI PDF")
+			pdfActs["delDoi"] = pdfMenu.addAction("Delete DOI PDF")
+		elif doi is not None and doi != "":
+			pdfActs["addDoi"] = pdfMenu.addAction("Assign DOI PDF")
+		pdfMenu.addSeparator()
+		pdfActs["openOtherPDF"] = [None for i in xrange(len(files))]
+		pdfActs["delOtherPDF"] = [None for i in xrange(len(files))]
+		for i,f in enumerate(files):
+			pdfActs["openOtherPDF"][i] = pdfMenu.addAction("Open %s"%f.replace(pdfDir+"/", ""))
+			pdfActs["delOtherPDF"][i] = pdfMenu.addAction("Delete %s"%f.replace(pdfDir+"/", ""))
+		
+		menu.addSeparator()
 		catAction = menu.addAction("Manage categories")
 		expAction = menu.addAction("Manage experiments")
 		menu.addSeparator()
@@ -277,6 +318,8 @@ class bibtexList(QFrame):
 		opInsAct = menu.addAction("Open into InspireHEP")
 		menu.addSeparator()
 		updAction = menu.addAction("Update (search Inspire)")
+		menu.addSeparator()
+		
 		action = menu.exec_(event.globalPos())
 		if action == delAction:
 			deleteBibtex(self.parent, self.parent, bibkey)
@@ -318,6 +361,44 @@ class bibtexList(QFrame):
 			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
+		#actions for PDF
+		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
+			self.parent.StatusBarMessage("opening arxiv PDF...")
+			pBPDF.openFile(bibkey, "arxiv")
+		elif "openDoi" in pdfActs.keys() and action == pdfActs["openDoi"]:
+			self.parent.StatusBarMessage("opening doi PDF...")
+			pBPDF.openFile(bibkey, "doi")
+		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
+			self.parent.StatusBarMessage("downloading PDF from arxiv...")
+			self.downArxiv_thr = thread_downloadArxiv(bibkey)
+			self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.downloadArxivDone)
+			self.downArxiv_thr.start()
+		elif "delArx" in pdfActs.keys() and action == pdfActs["delArx"]:
+			deletePdfFile(bibkey, "arxiv", "arxiv PDF")
+		elif "delDoi" in pdfActs.keys() and action == pdfActs["delDoi"]:
+			deletePdfFile(bibkey, "doi", "DOI PDF")
+		elif "addDoi" in pdfActs.keys() and action == pdfActs["addDoi"]:
+			newpdf = askFileName(self, "Where is the published PDF located?", filter = "PDF (*.pdf)")
+			if newpdf != "" and os.path.isfile(newpdf):
+				if pBPDF.copyNewFile(bibkey, newpdf, "doi"):
+					infoMessage("PDF successfully copied!")
+		elif "addPdf" in pdfActs.keys() and action == pdfActs["addPdf"]:
+			newPdf = askFileName(self, "Where is the published PDF located?", filter = "PDF (*.pdf)")
+			newName = newPdf.split("/")[-1]
+			if newPdf != "" and os.path.isfile(newPdf):
+				if pBPDF.copyNewFile(bibkey, newPdf, customName = newName):
+					infoMessage("PDF successfully copied!")
+		#warning: this elif must be the last one!
+		elif len(pdfActs["openOtherPDF"]) > 0:
+			for i, act in enumerate(pdfActs["openOtherPDF"]):
+				if action == act:
+					fn = files[i].replace(pdfDir+"/", "")
+					self.parent.StatusBarMessage("opening %s..."%fn)
+					pBPDF.openFile(bibkey, fileName = fn)
+			for i, act in enumerate(pdfActs["delOtherPDF"]):
+				if action == act:
+					fn = files[i].replace(pdfDir+"/", "")
+					deletePdfFile(bibkey, fn, fn, custom = files[i])
 
 	def cellClick(self, row, col):
 		self.tablewidget.selectRow(row)
@@ -343,39 +424,22 @@ class bibtexList(QFrame):
 		elif self.colContents[col] == "inspire" and entry["inspire"] is not None and entry["inspire"] != "":
 			pBView.openLink(bibkey, "inspire")
 		elif self.colContents[col] == "pdf":
-			ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
-			ask.exec_()
-			if ask.result == "openArxiv":
-				self.parent.StatusBarMessage("opening arxiv PDF...")
-				pBPDF.openFile(bibkey, "arxiv")
-			elif ask.result == "openDoi":
-				self.parent.StatusBarMessage("opening doi PDF...")
-				pBPDF.openFile(bibkey, "doi")
-			elif ask.result == "downloadArxiv":
-				self.parent.StatusBarMessage("downloading PDF from arxiv...")
-				self.downArxiv_thr = thread_downloadArxiv(bibkey)
-				self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.downloadArxivDone)
-				self.downArxiv_thr.start()
-			elif ask.result == "delArxiv":
-				if askYesNo("Do you really want to delete the arxiv PDF file for entry %s?"%bibkey):
-					self.parent.StatusBarMessage("deleting arxiv PDF file...")
-					pBPDF.removeFile(bibkey, "arxiv")
-					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
-			elif ask.result == "delDoi":
-				if askYesNo("Do you really want to delete the DOI PDF file for entry %s?"%bibkey):
-					self.parent.StatusBarMessage("deleting DOI PDF file...")
-					pBPDF.removeFile(bibkey, "doi")
-					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
-			elif ask.result == "addDoi":
-				newpdf = askFileName(self, "Where is the published PDF located?", filter = "PDF (*.pdf)")
-				if newpdf != "" and os.path.isfile(newpdf):
-					if pBPDF.copyNewFile(bibkey, newpdf, "doi"):
-						infoMessage("PDF successfully copied!")
-			elif ask.result == False:
-				self.parent.StatusBarMessage("Nothing to do...")
+			pdfFiles = pBPDF.getExisting(bibkey)
+			if len(pdfFiles) == 1:
+				self.parent.StatusBarMessage("opening PDF...")
+				pBPDF.openFile(bibkey, fileName = pdfFiles[0])
+			elif len(pdfFiles) > 1:
+				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
+				ask.exec_()
+				if ask.result == "openArxiv":
+					self.parent.StatusBarMessage("opening arxiv PDF...")
+					pBPDF.openFile(bibkey, "arxiv")
+				elif ask.result == "openDoi":
+					self.parent.StatusBarMessage("opening doi PDF...")
+					pBPDF.openFile(bibkey, "doi")
 
 	def downloadArxivDone(self):
-		self.parent.sendMessage("Arxiv download completed!")
+		self.parent.sendMessage("Arxiv download execution completed! Please check that it worked...")
 		self.parent.done()
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
@@ -497,42 +561,21 @@ class editBibtexEntry(editObjectWindow):
 class askPdfAction(askAction):
 	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
 		super(askPdfAction, self).__init__(parent)
-		self.message = "What to do with the PDF of this entry (%s)?"%(key)
+		self.message = "What PDF of this entry (%s) do you want to open?"%(key)
 		self.possibleActions = []
-		if pBPDF.checkFile(key, "arxiv"):
+		files = pBPDF.getExisting(key, fullPath = True)
+		if pBPDF.getFilePath(key, "arxiv") in files:
 			self.possibleActions.append(["Open arxiv PDF", self.onOpenArxiv])
-			self.possibleActions.append(["Delete arxiv PDF", self.onDelArxiv])
-		elif arxiv is not None and arxiv != "":
-			self.possibleActions.append(["Download arxiv", self.onDownloadArxiv])
-		if pBPDF.checkFile(key, "doi"):
+		if pBPDF.getFilePath(key, "doi") in files:
 			self.possibleActions.append(["Open DOI PDF", self.onOpenDoi])
-			self.possibleActions.append(["Delete DOI PDF", self.onDelDoi])
-		elif doi is not None and doi != "":
-			self.possibleActions.append(["Assign DOI PDF", self.onAddDoi])
 		self.initUI()
 
 	def onOpenArxiv(self):
 		self.result	= "openArxiv"
 		self.close()
 
-	def onDelArxiv(self):
-		self.result	= "delArxiv"
-		self.close()
-
 	def onOpenDoi(self):
 		self.result	= "openDoi"
-		self.close()
-
-	def onDelDoi(self):
-		self.result	= "delDoi"
-		self.close()
-
-	def onDownloadArxiv(self):
-		self.result	= "downloadArxiv"
-		self.close()
-
-	def onAddDoi(self):
-		self.result	= "addDoi"
 		self.close()
 
 class searchBibsWindow(editObjectWindow):
