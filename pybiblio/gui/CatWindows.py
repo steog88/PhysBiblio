@@ -159,7 +159,7 @@ class catsWindowList(QDialog):
 		self.tree.expandAll()
 
 		self.tree.setHeaderHidden(True)
-		self.tree.doubleClicked.connect(self.askAndPerformAction)
+		#self.tree.doubleClicked.connect(self.askAndPerformAction)
 
 		self.newCatButton = QPushButton('Add new category', self)
 		self.newCatButton.clicked.connect(self.onNewCat)
@@ -191,22 +191,43 @@ class catsWindowList(QDialog):
 			parent.appendRow(child_item)
 			self._populateTree(children[child], child_item)
 
-	def askAndPerformAction(self, index):
+	def contextMenuEvent(self, event):
 		item = self.tree.selectedIndexes()[0]
-		idCat, name = item.model().itemFromIndex(index).text().split(": ")
+		idCat, catName = item.model().itemFromIndex(item).text().split(": ")
 		idCat = idCat.strip()
-		ask = askCatAction(self, int(idCat), name)
-		ask.exec_()
-		if ask.result == "modify":
+		
+		menu = QMenu()
+		titAct = menu.addAction("--Category: %s--"%catName).setDisabled(True)
+		menu.addSeparator()
+		modAction = menu.addAction("Modify")
+		delAction = menu.addAction("Delete")
+		menu.addSeparator()
+		subAction = menu.addAction("Add subcategory")
+
+		action = menu.exec_(event.globalPos())
+		if action == modAction:
 			editCategory(self, self.parent, idCat)
-		elif ask.result == "delete":
-			deleteCategory(self, self.parent, idCat, name)
-		elif ask.result == "subcat":
+		elif action == delAction:
+			deleteCategory(self, self.parent, idCat, catName)
+		elif action == subAction:
 			editCategory(self, self.parent, useParent = idCat)
-		elif ask.result == False:
-			self.parent.StatusBarMessage("Action cancelled")
-		else:
-			self.parent.StatusBarMessage("Invalid action")
+		
+	#def askAndPerformAction(self, index):
+		#item = self.tree.selectedIndexes()[0]
+		#idCat, name = item.model().itemFromIndex(index).text().split(": ")
+		#idCat = idCat.strip()
+		#ask = askCatAction(self, int(idCat), name)
+		#ask.exec_()
+		#if ask.result == "modify":
+			#editCategory(self, self.parent, idCat)
+		#elif ask.result == "delete":
+			#deleteCategory(self, self.parent, idCat, name)
+		#elif ask.result == "subcat":
+			#editCategory(self, self.parent, useParent = idCat)
+		#elif ask.result == False:
+			#self.parent.StatusBarMessage("Action cancelled")
+		#else:
+			#self.parent.StatusBarMessage("Invalid action")
 
 	def recreateTable(self):
 		"""delete previous table widget and create a new one"""
@@ -239,7 +260,14 @@ class editCat(editObjectWindow):
 			self.data = cat
 		if useParent is not None:
 			self.data["parentCat"] = useParent
-		self.selectedCats = [0]
+			self.selectedCats = [useParent]
+		elif cat is not None:
+			try:
+				self.selectedCats = [pBDB.cats.getParent(cat["idCat"])[0][0]]
+			except IndexError:
+				self.selectedCats = [0]
+		else:
+			self.selectedCats = [0]
 		self.createForm()
 
 	def onAskParent(self):
@@ -265,6 +293,7 @@ class editCat(editObjectWindow):
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]
+						print self.selectedCats
 						self.textValues[k] = QPushButton("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]), self)
 					except IndexError:
 						self.textValues[k] = QPushButton("Select parent", self)
