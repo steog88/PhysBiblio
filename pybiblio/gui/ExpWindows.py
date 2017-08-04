@@ -17,6 +17,7 @@ try:
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
+	from pybiblio.gui.CatWindows import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -82,8 +83,6 @@ class ExpWindowList(objListWindow):
 		self.colContents = []
 		for j in range(self.colcnt):
 			self.colContents.append(pBDB.tableCols["experiments"][j])
-		self.colContents.append("modify")
-		self.colContents.append("delete")
 		self.askExps = askExps
 		self.askForBib = askForBib
 		self.askForCat = askForCat
@@ -140,8 +139,8 @@ class ExpWindowList(objListWindow):
 		rowcnt = len(exps)
 
 		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt+2)
-		self.tablewidget.setHorizontalHeaderLabels(pBDB.tableCols["experiments"]+["Modify","Delete"])
+		self.setTableSize(rowcnt, self.colcnt)
+		self.tablewidget.setHorizontalHeaderLabels(pBDB.tableCols["experiments"])
 
 		#table content
 		for i in range(rowcnt):
@@ -161,7 +160,6 @@ class ExpWindowList(objListWindow):
 				else:
 					item.setFlags(Qt.ItemIsEnabled)
 				self.tablewidget.setItem(i, j, item)
-			self.addEditDeleteCells(i, self.colcnt)
 
 		self.finalizeTable()
 
@@ -180,13 +178,42 @@ class ExpWindowList(objListWindow):
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
 
+	def triggeredContextMenuEvent(self, row, col, event):
+		try:
+			idExp = self.tablewidget.item(row, 0).text()
+			expName = self.tablewidget.item(row, 1).text()
+		except AttributeError:
+			return
+		menu = QMenu()
+		titAct = menu.addAction("--Experiment: %s--"%expName).setDisabled(True)
+		menu.addSeparator()
+		modAction = menu.addAction("Modify")
+		delAction = menu.addAction("Delete")
+		menu.addSeparator()
+		catAction = menu.addAction("Categories")
+		action = menu.exec_(event.globalPos())
+		
+		if action == modAction:
+			editExperiment(self, self.parent, idExp)
+		elif action == delAction:
+			deleteExperiment(self, self.parent, idExp, expName)
+		elif action == catAction:
+			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
+			selectCats = catsWindowList(parent = self.parent, askCats = True, askForExp = idExp, expButton = False, previous = previous)
+			selectCats.exec_()
+			if selectCats.result == "Ok":
+				cats = self.parent.selectedCats
+				for p in previous:
+					if p not in cats:
+						pBDB.catExp.delete(p, idExp)
+				for c in cats:
+					if c not in previous:
+						pBDB.catExp.insert(c, idExp)
+				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%expName)
+				
 	def cellClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
-		if self.colContents[col] == "modify":
-			editExperiment(self, self.parent, idExp)
-		elif self.colContents[col] == "delete":
-			name = self.tablewidget.item(row, 1).text()
-			deleteExperiment(self, self.parent, idExp, name)
+		#if self.colContents[col] == "columnname":
 
 	def cellDoubleClick(self, row, col):
 		idExp = self.tablewidget.item(row, 0).text()
