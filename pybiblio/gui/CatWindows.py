@@ -293,7 +293,6 @@ class editCat(editObjectWindow):
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]
-						print self.selectedCats
 						self.textValues[k] = QPushButton("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]), self)
 					except IndexError:
 						self.textValues[k] = QPushButton("Select parent", self)

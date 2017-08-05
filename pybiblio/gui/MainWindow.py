@@ -62,6 +62,12 @@ class MainWindow(QMainWindow):
 								statusTip="Manage profiles",
 								triggered=self.manageProfiles)
 
+		self.editProfilesAct = QAction(
+								"&Edit profiles", self,
+								shortcut="Ctrl+Alt+P",
+								statusTip="Edit profiles",
+								triggered=self.editProfiles)
+
 		self.saveAct = QAction(QIcon(":/images/file-save.png"),
 								"&Save database", self,
 								shortcut="Ctrl+S",
@@ -217,6 +223,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportAllAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.profilesAct)
+		self.fileMenu.addAction(self.editProfilesAct)
 		self.fileMenu.addAction(self.configAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
@@ -329,7 +336,10 @@ class MainWindow(QMainWindow):
 	def manageProfiles(self):
 		profilesWin = selectProfiles(self)
 		profilesWin.exec_()
-	
+
+	def editProfiles(self):
+		editProf(self, self)
+
 	def config(self):
 		cfgWin = configWindow(self)
 		cfgWin.exec_()
