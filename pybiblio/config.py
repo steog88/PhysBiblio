@@ -97,12 +97,14 @@ class ConfigVars():
 		with open(self.configProfilesFile, 'w') as w:
 			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
 
-	def reInit(self, newProfile):
+	def reInit(self, newShort, newProfile):
+		self.defProf = newShort
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
 		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
 		self.configMainFile = self.defaultProfile["f"]
+		self.params = {}
 		self.readConfigFile()
 		
 	def readConfigFile(self):

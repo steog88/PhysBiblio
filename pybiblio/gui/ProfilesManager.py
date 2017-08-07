@@ -9,6 +9,8 @@ try:
 	from pybiblio.database import *
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
+	from pybiblio.pdf import pBPDF
+	from pybiblio.view import pBView
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
@@ -61,8 +63,19 @@ class selectProfiles(QDialog):
 		prof, desc = self.combo.currentText().split(" -- ")
 		newProfile = pbConfig.profiles[prof]
 		if newProfile != pbConfig.defaultProfile:
-			pbConfig.reInit(newProfile)
+			print("[config] Changing profile...")
+			pbConfig.reInit(prof, newProfile)
 			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+
+		self.parent.StatusBarMessage("Reloading configuration...")
+		pBPDF.pdfApp = pbConfig.params["pdfApplication"]
+		if pbConfig.params["pdfFolder"][0] == "/":
+			pBPDF.pdfDir = pbConfig.params["pdfFolder"]
+		else:
+			pBPDF.pdfDir = os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
+		pBView.webApp = pbConfig.params["webApplication"]
+		self.parent.top.columns = pbConfig.params["bibtexListColumns"]
+		self.parent.top.colcnt = len(self.parent.top.columns)
 		self.parent.reloadMainContent()
 		self.close()
 
@@ -79,8 +92,8 @@ class selectProfiles(QDialog):
 
 		grid.addWidget(QLabel("Available profiles: "), i, 0)
 		self.combo = MyComboBox(self,
-			["%s -- %s"%(p,pbConfig.profiles[p]["d"]) for p in pbConfig.profiles.keys()],
-			current = pbConfig.configMainFile)
+			["%s -- %s"%(p, pbConfig.profiles[p]["d"]) for p in pbConfig.profiles.keys()],
+			current = "%s -- %s"%(pbConfig.defProf, pbConfig.defaultProfile["d"]))
 		grid.addWidget(self.combo, i, 1)
 		i += 1
 

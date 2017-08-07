@@ -334,6 +334,7 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def manageProfiles(self):
+		"""change profile"""
 		profilesWin = selectProfiles(self)
 		profilesWin.exec_()
 
