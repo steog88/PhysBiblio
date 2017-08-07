@@ -317,6 +317,7 @@ class bibtexList(QFrame):
 		opDoiAct = menu.addAction("Open DOI link")
 		opInsAct = menu.addAction("Open into InspireHEP")
 		menu.addSeparator()
+		insAction = menu.addAction("Complete info (from Inspire)")
 		updAction = menu.addAction("Update (search Inspire)")
 		menu.addSeparator()
 		
@@ -359,6 +360,8 @@ class bibtexList(QFrame):
 			pBView.openLink(bibkey, "inspire")
 		elif action == cleAction:
 			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
+		elif action == insAction:
+			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
 		#actions for PDF

@@ -514,6 +514,27 @@ class MainWindow(QMainWindow):
 		sys.stdout = sys.__stdout__
 		self.done()
 
+	def updateInspireInfo(self, bibkey):
+		self.StatusBarMessage("Starting generic info update from Inspire...")
+		app = printText(title = "Update Info")
+		app.progressBarMin(0)
+		queue = Queue()
+		self.uIIReceiver = MyReceiver(queue, self)
+		self.uIIReceiver.mysignal.connect(app.append_text)
+		self.updateII_thr = thread_updateInspireInfo(bibkey, queue, self.uIIReceiver, self)
+
+		self.connect(self.uIIReceiver, SIGNAL("finished()"), self.uIIReceiver.deleteLater)
+		self.connect(self.updateII_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.updateII_thr, SIGNAL("finished()"), self.updateII_thr.deleteLater)
+		self.connect(app, SIGNAL("stopped()"), self.updateII_thr.setStopFlag)
+
+		sys.stdout = WriteStream(queue)
+		self.updateII_thr.start()
+		app.exec_()
+		print("Closing...")
+		sys.stdout = sys.__stdout__
+		self.done()
+
 	def authorStats(self):
 		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
 		if authorName is "":

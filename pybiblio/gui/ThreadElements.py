@@ -39,6 +39,25 @@ class thread_updateAllBibtexs(MyThread):
 	def setStopFlag(self):
 		pBDB.bibs.runningOAIUpdates = False
 
+class thread_updateInspireInfo(MyThread):
+	def __init__(self, bibkey, queue, myrec, parent = None):
+		super(thread_updateInspireInfo, self).__init__(parent)
+		self.parent = parent
+		self.bibkey = bibkey
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		eid = pBDB.bibs.updateInspireID(self.bibkey)
+		pBDB.bibs.updateInfoFromOAI(eid, verbose = 1)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pass
+
 class thread_downloadArxiv(MyThread):
 	def __init__(self, bibkey):
 		super(thread_downloadArxiv, self).__init__()
