@@ -341,7 +341,7 @@ class bibtexList(QFrame):
 				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%bibkey)
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
-			selectExps = ExpWindowList(parent = self, askExps = True, askForBib = bibkey, previous = previous)
+			selectExps = ExpWindowList(parent = self.parent, askExps = True, askForBib = bibkey, previous = previous)
 			selectExps.exec_()
 			if selectExps.result == "Ok":
 				exps = self.parent.selectedExps
@@ -605,7 +605,7 @@ class searchBibsWindow(editObjectWindow):
 			self.values["cats"] = self.selectedCats
 
 	def onAskExps(self):
-		selectExps = ExpWindowList(parent = self, askExps = True, previous = self.values["exps"])
+		selectExps = ExpWindowList(parent = self.parent, askExps = True, previous = self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
 			self.values["exps"] = self.selectedExps
