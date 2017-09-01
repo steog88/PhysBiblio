@@ -643,6 +643,14 @@ class experiments(pybiblioDBSub):
 			""", (name, ))
 		return self.curs.fetchall()
 
+	def filterAll(self, string):
+		"""get experiments matching a string"""
+		string = "%" + string + "%"
+		self.cursExec("""
+			select * from experiments where name LIKE ? OR comments LIKE ? OR homepage LIKE ? OR inspire LIKE ?
+			""", (string, string, string, string))
+		return self.curs.fetchall()
+
 	def printInCats(self, startFrom = 0, sp = 5 * " ", withDesc = False):
 		"""prints the experiments under the corresponding categories"""
 		cats = pBDB.cats.getAll()

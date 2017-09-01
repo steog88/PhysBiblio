@@ -70,18 +70,23 @@ class objListWindow(QDialog):
 
 		self.currLayout.addWidget(self.tablewidget)
 
-	def recreateTable(self):
-		"""delete previous table widget and create a new one"""
+	def cleanLayout(self):
+		"""delete previous table widget"""
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
 			o.widget().deleteLater()
+
+	def recreateTable(self):
+		"""delete previous table widget and create a new one"""
+		self.cleanLayout()
 		self.createTable()
 
 class editObjectWindow(QDialog):
 	"""create a window for editing or creating an experiment"""
 	def __init__(self, parent = None):
 		super(editObjectWindow, self).__init__(parent)
+		self.parent = parent
 		self.textValues = {}
 		self.initUI()
 
