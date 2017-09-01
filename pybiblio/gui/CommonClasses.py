@@ -22,6 +22,7 @@ class objListWindow(QDialog):
 		"""init using parent class and create common definitions"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
+		self.proxyModel = None
 		self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
@@ -65,8 +66,8 @@ class objListWindow(QDialog):
 
 		self.setMinimumHeight(600)
 
-		self.tablewidget.cellClicked.connect(self.cellClick)
-		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
+		self.tablewidget.clicked.connect(self.cellClick)
+		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
 
 		self.currLayout.addWidget(self.tablewidget)
 
@@ -163,6 +164,14 @@ class MyAndOrCombo(MyComboBox):
 class MyTableWidget(QTableWidget):
 	def __init__(self, rows, cols, parent):
 		super(MyTableWidget, self).__init__(rows, cols, parent)
+		self.parent = parent
+
+	def contextMenuEvent(self, event):
+		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+
+class MyTableView(QTableView):
+	def __init__(self, parent):
+		super(MyTableView, self).__init__(parent)
 		self.parent = parent
 
 	def contextMenuEvent(self, event):
