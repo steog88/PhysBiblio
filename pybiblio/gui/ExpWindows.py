@@ -85,7 +85,10 @@ class MyExpTableModel(QAbstractTableModel):
 		return len(self.exps)
 
 	def columnCount(self, parent):
-		return len(self.exps[0])
+		try:
+			return len(self.exps[0])
+		except IndexError:
+			return 0
 
 	def data(self, index, role):
 		if not index.isValid():
@@ -124,14 +127,6 @@ class ExpWindowList(objListWindow):
 		super(ExpWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle('List of experiments')
-
-		self.filterInput = QLineEdit("",  self)
-		self.filterInput.setPlaceholderText("Filter experiment by name")
-		self.filterInput.textChanged.connect(self.changeFilter)
-		self.currLayout.addWidget(self.filterInput)
-		self.filterInput.setFocus()
-
-		self.exps = pBDB.exps.getAll()
 
 		self.createTable()
 
@@ -179,6 +174,14 @@ class ExpWindowList(objListWindow):
 	def createTable(self):
 		self.populateAskExp()
 
+		self.filterInput = QLineEdit("",  self)
+		self.filterInput.setPlaceholderText("Filter experiment by name")
+		self.filterInput.textChanged.connect(self.changeFilter)
+		self.currLayout.addWidget(self.filterInput)
+		self.filterInput.setFocus()
+
+		self.exps = pBDB.exps.getAll()
+
 		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"])
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.table_model)
@@ -187,9 +190,8 @@ class ExpWindowList(objListWindow):
 		self.tablewidget = MyTableView(self)
 		self.tablewidget.setModel(self.proxyModel)
 		self.tablewidget.setSortingEnabled(True)
+		self.tablewidget.setColumnHidden(0, True)
 		self.proxyModel.sort(1, Qt.AscendingOrder)
-		#if self.askExps:
-			#self.proxyModel.flags(Qt.ItemIsSelectable)
 		self.currLayout.addWidget(self.tablewidget)
 
 		self.finalizeTable()
@@ -209,12 +211,12 @@ class ExpWindowList(objListWindow):
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
 
-        #selection = self.table.selectionModel()
-        #selection.selectionChanged.connect(self.handleSelectionChanged)
+		self.selExp = self.tablewidget.selectionModel()
+		self.selExp.selectionChanged.connect(self.handleSelectionChanged)
 
-    #def handleSelectionChanged(self, selected, deselected):
-        #for index in self.table.selectionModel().selectedRows():
-            #print('Row %d is selected' % index.row())
+	def handleSelectionChanged(self, selected, deselected):
+		for index in self.selExp.selectedRows():
+			print('Row %d is selected' % index.row())
 
 	def triggeredContextMenuEvent(self, row, col, event):
 		index = self.tablewidget.model().index(row, col)
