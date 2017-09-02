@@ -76,15 +76,24 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 		pass
 
 class MyExpTableModel(QAbstractTableModel):
-	def __init__(self, parent, exp_list, header, *args):
+	def __init__(self, parent, exp_list, header, previous = [], *args):
 		QAbstractTableModel.__init__(self, parent, *args)
 		self.exps = exp_list
 		self.header = header
+		self.parent = parent
+		self.selectedExps = [ False for e in self.exps ]
+		self.rowsToId = [ a[0] for a in self.exps ]
+		for prevIx in previous:
+			try:
+				pr = self.rowsToId.index(prevIx)
+				self.selectedExps[pr] = True
+			except IndexError:
+				pBErrorManager("[Exps] Invalid idExp in previous selection: %s"%prevIx)
 
-	def rowCount(self, parent):
+	def rowCount(self, parent = None):
 		return len(self.exps)
 
-	def columnCount(self, parent):
+	def columnCount(self, parent = None):
 		try:
 			return len(self.exps[0])
 		except IndexError:
@@ -93,14 +102,46 @@ class MyExpTableModel(QAbstractTableModel):
 	def data(self, index, role):
 		if not index.isValid():
 			return None
-		elif role != Qt.DisplayRole:
+		row = index.row()
+		column = index.column()
+		try:
+			value = self.exps[row][column]
+		except IndexError:
 			return None
-		return self.exps[index.row()][index.column()]
 
+		if role == Qt.CheckStateRole and self.parent.askExps and column == 0:
+			if self.selectedExps[row] == False:
+				return Qt.Unchecked
+			else:
+				return Qt.Checked
+		if role == Qt.EditRole:
+			return value
+		if role == Qt.DisplayRole:
+			return value
+		return None
+
+	def flags(self, index):
+		if not index.isValid():
+			return None
+		if index.column() == 0 and self.parent.askExps:
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		else:
+			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		
 	def headerData(self, col, orientation, role):
 		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
 			return self.header[col]
 		return None
+
+	def setData(self, index, value, role):
+		if role == Qt.CheckStateRole and index.column() == 0:
+			if value == Qt.Checked:
+				self.selectedExps[index.row()] = 1
+			else:
+				self.selectedExps[index.row()] = 0
+
+		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		return True
 
 	def sort(self, col = 1, order = Qt.AscendingOrder):
 		"""sort table by given column number col"""
@@ -151,12 +192,11 @@ class ExpWindowList(objListWindow):
 	def onOk(self):
 		self.parent.selectedExps = []
 
-		for i in range(self.tablewidget.rowCount()):
-			item = self.tablewidget.item(i, 0)
-			if item.checkState():
-				idExp = item.text()
+		for i in range(self.table_model.rowCount()):
+			if self.table_model.selectedExps[i]:
+				idExp = self.table_model.exps[i][0]
 				self.parent.selectedExps.append(int(idExp))
-			
+
 		self.result	= "Ok"
 		self.close()
 
@@ -182,7 +222,7 @@ class ExpWindowList(objListWindow):
 
 		self.exps = pBDB.exps.getAll()
 
-		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"])
+		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], previous = self.previous)
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.table_model)
 		self.proxyModel.setFilterKeyColumn(-1)
@@ -190,7 +230,6 @@ class ExpWindowList(objListWindow):
 		self.tablewidget = MyTableView(self)
 		self.tablewidget.setModel(self.proxyModel)
 		self.tablewidget.setSortingEnabled(True)
-		self.tablewidget.setColumnHidden(0, True)
 		self.proxyModel.sort(1, Qt.AscendingOrder)
 		self.currLayout.addWidget(self.tablewidget)
 
@@ -210,13 +249,6 @@ class ExpWindowList(objListWindow):
 			self.cancelButton.clicked.connect(self.onCancel)
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
-
-		self.selExp = self.tablewidget.selectionModel()
-		self.selExp.selectionChanged.connect(self.handleSelectionChanged)
-
-	def handleSelectionChanged(self, selected, deselected):
-		for index in self.selExp.selectedRows():
-			print('Row %d is selected' % index.row())
 
 	def triggeredContextMenuEvent(self, row, col, event):
 		index = self.tablewidget.model().index(row, col)

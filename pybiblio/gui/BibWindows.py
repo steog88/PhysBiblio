@@ -224,7 +224,7 @@ class bibtexList(QFrame):
 			else:
 				string = ""
 			item = QTableWidgetItem(string)
-			item.setFlags(Qt.ItemIsEnabled)
+			item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			self.tablewidget.setItem(r, j, item)
 		self.addTypeCell(r, self.colcnt, self.bibs[r])
 		self.addPdfCell(r, self.colcnt+1, self.bibs[r]["bibkey"])
@@ -245,7 +245,7 @@ class bibtexList(QFrame):
 					string += ", "
 				string += convertType[t]
 		item = QTableWidgetItem(string)
-		item.setFlags(Qt.ItemIsEnabled)
+		item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 		self.tablewidget.setItem(row, col, item)
 
 	def addPdfCell(self, row, col, key):
@@ -254,7 +254,7 @@ class bibtexList(QFrame):
 			self.addImageCell(row, col, ":/images/application-pdf.png")
 		else:
 			item = QTableWidgetItem("no PDF")
-			item.setFlags(Qt.ItemIsEnabled)
+			item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			self.tablewidget.setItem(row, col, item)
 
 	def triggeredContextMenuEvent(self, row, col, event):
@@ -608,7 +608,7 @@ class searchBibsWindow(editObjectWindow):
 		selectExps = ExpWindowList(parent = self.parent, askExps = True, previous = self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
-			self.values["exps"] = self.selectedExps
+			self.values["exps"] = self.parent.selectedExps
 
 	def onComboCatsChange(self, text):
 		self.values["catsOperator"] = text
