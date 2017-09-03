@@ -60,16 +60,81 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 		pBDB.cats.delete(int(idCat))
 		statusBarObject.setWindowTitle("PyBiblio*")
 		message = "Category deleted"
-		#try:
 		parent.recreateTable()
-		#except:
-			#pass
 	else:
 		message = "Nothing changed"
 	try:
 		statusBarObject.StatusBarMessage(message)
 	except:
 		pass
+
+class CatsModel(TreeModel):
+	def __init__(self, cats, rootElements, parent = None, previous = []):
+		self.cats = cats
+		self.rootElements = rootElements
+		TreeModel.__init__(self)
+		self.parentObj = parent
+		self.selectedCats = {}
+		for cat in self.cats:
+			self.selectedCats[cat["idCat"]] = False
+		for prevIx in previous:
+			try:
+				self.selectedCats[prevIx] = True
+			except IndexError:
+				pBErrorManager("[Exps] Invalid idCat in previous selection: %s"%prevIx)
+
+	def _getRootNodes(self):
+		return [NamedNode(elem, None, index)
+			for index, elem in enumerate(self.rootElements)]
+
+	def columnCount(self, parent):
+		return 1
+
+	def data(self, index, role):
+		if not index.isValid():
+			return None
+		row = index.row()
+		column = index.column()
+		value = index.internalPointer().ref.text
+		idCat = index.internalPointer().ref.idCat
+		if role == Qt.DisplayRole and index.column() == 0:
+			return value
+
+		if role == Qt.CheckStateRole and self.parentObj.askCats and column == 0:
+			if self.selectedCats[idCat] == False:
+				return Qt.Unchecked
+			else:
+				return Qt.Checked
+		if role == Qt.EditRole:
+			return value
+		if role == Qt.DisplayRole:
+			return value
+		return None
+
+	def flags(self, index):
+		if not index.isValid():
+			return None
+		if index.column() == 0 and self.parentObj.askCats:
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		else:
+			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+	def headerData(self, section, orientation, role):
+		if orientation == Qt.Horizontal and role == Qt.DisplayRole \
+			and section == 0:
+			return 'Name'
+		return None
+
+	def setData(self, index, value, role):
+		idCat = index.internalPointer().ref.idCat
+		if role == Qt.CheckStateRole and index.column() == 0:
+			if value == Qt.Checked:
+				self.selectedCats[idCat] = True
+			else:
+				self.selectedCats[idCat] = False
+		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		return True
+
 
 class catsWindowList(QDialog):
 	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = [], single = False):
@@ -114,18 +179,8 @@ class catsWindowList(QDialog):
 		self.close()
 
 	def onOk(self, exps = False):
-		self.parent.selectedCats = []
+		self.parent.selectedCats = [idC for idC in self.root_model.selectedCats.keys() if self.root_model.selectedCats[idC] == True]
 
-		def getChecked(root):
-			child_count = root.rowCount()
-			for i in range(child_count):
-				item = root.child(i)
-				if item.checkState():
-					idCat, name = item.text().split(": ")
-					self.parent.selectedCats.append(int(idCat))
-				getChecked(item)
-
-		getChecked(self.tree.model().invisibleRootItem())
 		if self.single and len(self.parent.selectedCats) > 1 and self.parent.selectedCats[0] == 0:
 			self.parent.selectedCats.pop(0)
 		if exps:
@@ -133,6 +188,9 @@ class catsWindowList(QDialog):
 		else:
 			self.result	= "Ok"
 		self.close()
+
+	def changeFilter(self, string):
+		self.proxyModel.setFilterRegExp(str(string))
 
 	def onAskExps(self):
 		self.onOk(exps = True)
@@ -148,14 +206,25 @@ class catsWindowList(QDialog):
 	def fillTree(self):
 		self.populateAskCat()
 
-		tree = pBDB.cats.getHier()
+		catsTree = pBDB.cats.getHier()
+
+		self.filterInput = QLineEdit("",  self)
+		self.filterInput.setPlaceholderText("Filter cateogries")
+		self.filterInput.textChanged.connect(self.changeFilter)
+		self.currLayout.addWidget(self.filterInput)
+		self.filterInput.setFocus()
 
 		self.tree = QTreeView(self)
 		self.currLayout.addWidget(self.tree)
 
-		root_model = QStandardItemModel()
-		self.tree.setModel(root_model)
-		self._populateTree(tree, root_model.invisibleRootItem())
+		catsNamedTree = self._populateTree(catsTree[0], 0)
+
+		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous)
+		self.proxyModel = QSortFilterProxyModel(self)
+		self.proxyModel.setSourceModel(self.root_model)
+		self.proxyModel.setFilterKeyColumn(-1)
+		self.tree.setModel(self.proxyModel)
+
 		self.tree.expandAll()
 
 		self.tree.setHeaderHidden(True)
@@ -181,19 +250,18 @@ class catsWindowList(QDialog):
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
 
-	def _populateTree(self, children, parent):
+	def _populateTree(self, children, idCat):
+		name = pBDB.cats.getByID(idCat)[0]["name"]
+		children_list = []
 		for child in cats_alphabetical(children):
-			child_item = QStandardItem(catString(child))
-			if self.askCats:
-				child_item.setCheckable(True)
-				if child in self.previous:
-					child_item.setCheckState(Qt.Checked)
-			parent.appendRow(child_item)
-			self._populateTree(children[child], child_item)
+			child_item = self._populateTree(children[child], child)
+			children_list.append(child_item)
+		return NamedElement(idCat, name, children_list)
 
 	def contextMenuEvent(self, event):
-		item = self.tree.selectedIndexes()[0]
-		idCat, catName = item.model().itemFromIndex(item).text().split(": ")
+		index = self.tree.selectedIndexes()[0]
+		row = index.row()
+		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
 		idCat = idCat.strip()
 		
 		menu = QMenu()
@@ -213,8 +281,8 @@ class catsWindowList(QDialog):
 			editCategory(self, self.parent, useParent = idCat)
 		
 	#def askAndPerformAction(self, index):
-		#item = self.tree.selectedIndexes()[0]
-		#idCat, name = item.model().itemFromIndex(index).text().split(": ")
+		#row = index.row()
+		#idCat, name = self.proxyModel.sibling(row, 0, index).data().split(": ")
 		#idCat = idCat.strip()
 		#ask = askCatAction(self, int(idCat), name)
 		#ask.exec_()
@@ -229,12 +297,16 @@ class catsWindowList(QDialog):
 		#else:
 			#self.parent.StatusBarMessage("Invalid action")
 
-	def recreateTable(self):
-		"""delete previous table widget and create a new one"""
+	def cleanLayout(self):
+		"""delete previous widgets"""
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
 			o.widget().deleteLater()
+
+	def recreateTable(self):
+		"""delete previous widgets and create new ones"""
+		self.cleanLayout()
 		self.fillTree()
 
 class askCatAction(askAction):

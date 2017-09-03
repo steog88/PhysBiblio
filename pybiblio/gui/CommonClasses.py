@@ -7,6 +7,7 @@ try:
 	from pybiblio.errors import pBErrorManager
 	import pybiblio.gui.Resources_pyside
 	from pybiblio.gui.DialogWindows import *
+	from pybiblio.database import catString
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -176,3 +177,61 @@ class MyTableView(QTableView):
 
 	def contextMenuEvent(self, event):
 		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+
+class TreeNode(object):
+	def __init__(self, parent, row):
+		self.parent = parent
+		self.row = row
+		self.subnodes = self._getChildren()
+
+	def _getChildren(self):
+		raise NotImplementedError()
+
+class TreeModel(QAbstractItemModel):
+	def __init__(self):
+		QAbstractItemModel.__init__(self)
+		self.rootNodes = self._getRootNodes()
+
+	def _getRootNodes(self):
+		raise NotImplementedError()
+
+	def index(self, row, column, parent):
+		if not parent.isValid():
+			return self.createIndex(row, column, self.rootNodes[row])
+		parentNode = parent.internalPointer()
+		return self.createIndex(row, column, parentNode.subnodes[row])
+
+	def parent(self, index):
+		if not index.isValid():
+			return QModelIndex()
+		node = index.internalPointer()
+		if node.parent is None:
+			return QModelIndex()
+		else:
+			return self.createIndex(node.parent.row, 0, node.parent)
+
+	def reset(self):
+		self.rootNodes = self._getRootNodes()
+		QAbstractItemModel.reset(self)
+
+	def rowCount(self, parent):
+		if not parent.isValid():
+			return len(self.rootNodes)
+		node = parent.internalPointer()
+		return len(node.subnodes)
+
+class NamedElement(object): # your internal structure
+	def __init__(self, idCat, name, subelements):
+		self.idCat = idCat
+		self.name = name
+		self.text = catString(idCat)
+		self.subelements = subelements
+
+class NamedNode(TreeNode):
+	def __init__(self, ref, parent, row):
+		self.ref = ref
+		TreeNode.__init__(self, parent, row)
+
+	def _getChildren(self):
+		return [NamedNode(elem, self, index)
+			for index, elem in enumerate(self.ref.subelements)]
