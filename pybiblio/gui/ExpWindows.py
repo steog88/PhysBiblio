@@ -81,12 +81,12 @@ class MyExpTableModel(QAbstractTableModel):
 		self.exps = exp_list
 		self.header = header
 		self.parent = parent
-		self.selectedExps = [ False for e in self.exps ]
-		self.rowsToId = [ a[0] for a in self.exps ]
+		self.selectedExps = {}
+		for exp in self.exps:
+			self.selectedExps[exp["idExp"]] = False
 		for prevIx in previous:
 			try:
-				pr = self.rowsToId.index(prevIx)
-				self.selectedExps[pr] = True
+				self.selectedExps[prevIx] = True
 			except IndexError:
 				pBErrorManager("[Exps] Invalid idExp in previous selection: %s"%prevIx)
 
@@ -110,7 +110,7 @@ class MyExpTableModel(QAbstractTableModel):
 			return None
 
 		if role == Qt.CheckStateRole and self.parent.askExps and column == 0:
-			if self.selectedExps[row] == False:
+			if self.selectedExps[self.exps[row][0]] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
@@ -136,9 +136,9 @@ class MyExpTableModel(QAbstractTableModel):
 	def setData(self, index, value, role):
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedExps[index.row()] = 1
+				self.selectedExps[self.exps[index.row()][0]] = True
 			else:
-				self.selectedExps[index.row()] = 0
+				self.selectedExps[self.exps[index.row()][0]] = False
 
 		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
 		return True
@@ -190,12 +190,7 @@ class ExpWindowList(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = []
-
-		for i in range(self.table_model.rowCount()):
-			if self.table_model.selectedExps[i]:
-				idExp = self.table_model.exps[i][0]
-				self.parent.selectedExps.append(int(idExp))
+		self.parent.selectedExps = [idE for idE in self.table_model.selectedExps.keys() if self.table_model.selectedExps[idE] == True]
 
 		self.result	= "Ok"
 		self.close()
@@ -215,7 +210,7 @@ class ExpWindowList(objListWindow):
 		self.populateAskExp()
 
 		self.filterInput = QLineEdit("",  self)
-		self.filterInput.setPlaceholderText("Filter experiment by name")
+		self.filterInput.setPlaceholderText("Filter experiment")
 		self.filterInput.textChanged.connect(self.changeFilter)
 		self.currLayout.addWidget(self.filterInput)
 		self.filterInput.setFocus()
