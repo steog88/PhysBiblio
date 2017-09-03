@@ -175,6 +175,14 @@ class bibtexList(QFrame):
 			self.bibs = None
 		self.createTable()
 
+	def reloadColumnContents(self):
+		self.columns = pbConfig.params["bibtexListColumns"]
+		self.colcnt = len(self.columns)
+		self.colContents = []
+		for j in range(self.colcnt):
+			self.colContents.append(self.columns[j])
+		self.colContents += [a.lower() for a in self.additionalCols]
+
 	def createTable(self):
 		if self.bibs is None:
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
