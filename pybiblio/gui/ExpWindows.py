@@ -220,6 +220,8 @@ class ExpWindowList(objListWindow):
 		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], previous = self.previous)
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.table_model)
+		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setFilterKeyColumn(-1)
 
 		self.tablewidget = MyTableView(self)

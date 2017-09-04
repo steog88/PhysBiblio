@@ -222,6 +222,8 @@ class catsWindowList(QDialog):
 		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous)
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
+		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setFilterKeyColumn(-1)
 		self.tree.setModel(self.proxyModel)
 
