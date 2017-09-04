@@ -191,6 +191,7 @@ class catsWindowList(QDialog):
 
 	def changeFilter(self, string):
 		self.proxyModel.setFilterRegExp(str(string))
+		self.tree.expandAll()
 
 	def onAskExps(self):
 		self.onOk(exps = True)
@@ -220,7 +221,7 @@ class catsWindowList(QDialog):
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
 		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous)
-		self.proxyModel = QSortFilterProxyModel(self)
+		self.proxyModel = LeafFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
