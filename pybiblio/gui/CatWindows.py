@@ -81,7 +81,7 @@ class CatsModel(TreeModel):
 			try:
 				self.selectedCats[prevIx] = True
 			except IndexError:
-				pBErrorManager("[Exps] Invalid idCat in previous selection: %s"%prevIx)
+				pBErrorManager("[Cats] Invalid idCat in previous selection: %s"%prevIx)
 
 	def _getRootNodes(self):
 		return [NamedNode(elem, None, index)
@@ -282,23 +282,6 @@ class catsWindowList(QDialog):
 			deleteCategory(self, self.parent, idCat, catName)
 		elif action == subAction:
 			editCategory(self, self.parent, useParent = idCat)
-		
-	#def askAndPerformAction(self, index):
-		#row = index.row()
-		#idCat, name = self.proxyModel.sibling(row, 0, index).data().split(": ")
-		#idCat = idCat.strip()
-		#ask = askCatAction(self, int(idCat), name)
-		#ask.exec_()
-		#if ask.result == "modify":
-			#editCategory(self, self.parent, idCat)
-		#elif ask.result == "delete":
-			#deleteCategory(self, self.parent, idCat, name)
-		#elif ask.result == "subcat":
-			#editCategory(self, self.parent, useParent = idCat)
-		#elif ask.result == False:
-			#self.parent.StatusBarMessage("Action cancelled")
-		#else:
-			#self.parent.StatusBarMessage("Invalid action")
 
 	def cleanLayout(self):
 		"""delete previous widgets"""
@@ -311,17 +294,6 @@ class catsWindowList(QDialog):
 		"""delete previous widgets and create new ones"""
 		self.cleanLayout()
 		self.fillTree()
-
-class askCatAction(askAction):
-	def __init__(self, parent = None, idCat = -1, name = ""):
-		super(askCatAction, self).__init__(parent)
-		self.message = "What to do with this category (%d - %s)?"%(idCat, name)
-		self.possibleActions.append(["Add subcategory", self.onSubCat])
-		self.initUI()
-
-	def onSubCat(self):
-		self.result	= "subcat"
-		self.close()
 
 class editCat(editObjectWindow):
 	"""create a window for editing or creating a category"""
