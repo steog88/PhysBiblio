@@ -12,9 +12,6 @@ except ImportError:
 
 try:
 	from pybiblio.database import *
-	#from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *

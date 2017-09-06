@@ -6,9 +6,6 @@ import subprocess
 
 try:
 	from pybiblio.database import pBDB
-	#from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
@@ -156,9 +153,9 @@ class MyBibTableModel(MyTableModel):
 	def __init__(self, parent, bib_list, header, stdCols = [], addCols = [], askBibs = False, previous = [], *args):
 		self.typeClass = "Bibs"
 		self.dataList = bib_list
-		MyTableModel.__init__(self, parent, header, askBibs, previous, *args)
+		MyTableModel.__init__(self, parent, header + ["bibtex"], askBibs, previous, *args)
 		self.stdCols = stdCols
-		self.addCols = addCols
+		self.addCols = addCols + ["bibtex"]
 		self.lenStdCols = len(stdCols)
 		self.prepareSelected()
 
@@ -196,6 +193,8 @@ class MyBibTableModel(MyTableModel):
 					value = self.addTypeCell(self.dataList[row])
 				elif self.addCols[column - self.lenStdCols] == "PDF":
 					img, value = self.addPdfCell(self.dataList[row]["bibkey"])
+				else:
+					value = self.dataList[row]["bibtex"]
 		except IndexError:
 			return None
 
@@ -265,6 +264,7 @@ class bibtexList(QFrame, objListWindow):
 			self.columns, self.additionalCols,
 			previous = self.previous)
 		self.setProxyStuff("Filter bibliography", self.columns.index("firstdate"), Qt.DescendingOrder)
+		self.tablewidget.hideColumn(len(self.columns) + len(self.additionalCols))
 
 		self.finalizeTable()
 
@@ -600,8 +600,6 @@ class searchBibsWindow(editObjectWindow):
 		self.values["catExpOperator"] = "AND"
 		self.numberOfRows = 1
 		self.createForm()
-		#self.setGeometry(100,100,400, 25*i)
-		#self.centerWindow()
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
