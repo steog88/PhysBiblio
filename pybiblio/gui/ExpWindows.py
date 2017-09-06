@@ -75,29 +75,15 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 	except:
 		pass
 
-class MyExpTableModel(QAbstractTableModel):
-	def __init__(self, parent, exp_list, header, previous = [], *args):
-		QAbstractTableModel.__init__(self, parent, *args)
-		self.exps = exp_list
-		self.header = header
-		self.parent = parent
-		self.selectedExps = {}
-		for exp in self.exps:
-			self.selectedExps[exp["idExp"]] = False
-		for prevIx in previous:
-			try:
-				self.selectedExps[prevIx] = True
-			except IndexError:
-				pBErrorManager("[Exps] Invalid idExp in previous selection: %s"%prevIx)
+class MyExpTableModel(MyTableModel):
+	def __init__(self, parent, exp_list, header, askExps = False, previous = [], *args):
+		self.typeClass = "Exps"
+		self.dataList = exp_list
+		MyTableModel.__init__(self, parent, header, askExps, previous, *args)
+		self.prepareSelected()
 
-	def rowCount(self, parent = None):
-		return len(self.exps)
-
-	def columnCount(self, parent = None):
-		try:
-			return len(self.exps[0])
-		except IndexError:
-			return 0
+	def getIdentifier(self, element):
+		return element["idExp"]
 
 	def data(self, index, role):
 		if not index.isValid():
@@ -105,12 +91,12 @@ class MyExpTableModel(QAbstractTableModel):
 		row = index.row()
 		column = index.column()
 		try:
-			value = self.exps[row][column]
+			value = self.dataList[row][column]
 		except IndexError:
 			return None
 
-		if role == Qt.CheckStateRole and self.parent.askExps and column == 0:
-			if self.selectedExps[self.exps[row][0]] == False:
+		if role == Qt.CheckStateRole and self.ask and column == 0:
+			if self.selectedElements[self.dataList[row][0]] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
@@ -120,36 +106,15 @@ class MyExpTableModel(QAbstractTableModel):
 			return value
 		return None
 
-	def flags(self, index):
-		if not index.isValid():
-			return None
-		if index.column() == 0 and self.parent.askExps:
-			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
-		else:
-			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-		
-	def headerData(self, col, orientation, role):
-		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-			return self.header[col]
-		return None
-
 	def setData(self, index, value, role):
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedExps[self.exps[index.row()][0]] = True
+				self.selectedElements[self.dataList[index.row()][0]] = True
 			else:
-				self.selectedExps[self.exps[index.row()][0]] = False
+				self.selectedElements[self.dataList[index.row()][0]] = False
 
 		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
 		return True
-
-	def sort(self, col = 1, order = Qt.AscendingOrder):
-		"""sort table by given column number col"""
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
-		self.exps = sorted(self.exps, key=operator.itemgetter(col) )
-		if order == Qt.DescendingOrder:
-			self.exps.reverse()
-		self.emit(SIGNAL("layoutChanged()"))
 
 class ExpWindowList(objListWindow):
 	"""create a window for printing the list of experiments"""
@@ -191,7 +156,6 @@ class ExpWindowList(objListWindow):
 
 	def onOk(self):
 		self.parent.selectedExps = [idE for idE in self.table_model.selectedExps.keys() if self.table_model.selectedExps[idE] == True]
-
 		self.result	= "Ok"
 		self.close()
 
@@ -209,26 +173,10 @@ class ExpWindowList(objListWindow):
 	def createTable(self):
 		self.populateAskExp()
 
-		self.filterInput = QLineEdit("",  self)
-		self.filterInput.setPlaceholderText("Filter experiment")
-		self.filterInput.textChanged.connect(self.changeFilter)
-		self.currLayout.addWidget(self.filterInput)
-		self.filterInput.setFocus()
-
 		self.exps = pBDB.exps.getAll()
 
-		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], previous = self.previous)
-		self.proxyModel = QSortFilterProxyModel(self)
-		self.proxyModel.setSourceModel(self.table_model)
-		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
-		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
-		self.proxyModel.setFilterKeyColumn(-1)
-
-		self.tablewidget = MyTableView(self)
-		self.tablewidget.setModel(self.proxyModel)
-		self.tablewidget.setSortingEnabled(True)
-		self.proxyModel.sort(1, Qt.AscendingOrder)
-		self.currLayout.addWidget(self.tablewidget)
+		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
+		self.setProxyStuff("Filter experiment", 1, Qt.AscendingOrder)
 
 		self.finalizeTable()
 
