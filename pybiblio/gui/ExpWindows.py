@@ -152,7 +152,7 @@ class ExpWindowList(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = [idE for idE in self.table_model.selectedExps.keys() if self.table_model.selectedExps[idE] == True]
+		self.parent.selectedExps = [idE for idE in self.table_model.selectedElements.keys() if self.table_model.selectedElements[idE] == True]
 		self.result	= "Ok"
 		self.close()
 

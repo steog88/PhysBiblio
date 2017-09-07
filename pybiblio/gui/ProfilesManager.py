@@ -74,7 +74,7 @@ class selectProfiles(QDialog):
 		else:
 			pBPDF.pdfDir = os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
 		pBView.webApp = pbConfig.params["webApplication"]
-		self.parent.top.reloadColumnContents()
+		self.parent.bibtexList.reloadColumnContents()
 		self.parent.reloadMainContent()
 		self.close()
 

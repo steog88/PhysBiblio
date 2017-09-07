@@ -91,7 +91,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			message = "Bibtex entry saved"
 			statusBarObject.setWindowTitle("PyBiblio*")
 			try:
-				parent.top.recreateTable(parent.top.bibs)
+				parent.bibtexList.recreateTable(parent.bibtexList.bibs)
 			except:
 				pass
 		else:
@@ -109,7 +109,7 @@ def deleteBibtex(parent, statusBarObject, bibkey):
 		statusBarObject.setWindowTitle("PyBiblio*")
 		message = "Bibtex entry deleted"
 		try:
-			parent.top.recreateTable()
+			parent.bibtexList.recreateTable()
 		except:
 			pass
 	else:
