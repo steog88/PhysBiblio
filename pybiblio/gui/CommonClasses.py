@@ -7,6 +7,7 @@ try:
 	from pybiblio.errors import pBErrorManager
 	import pybiblio.gui.Resources_pyside
 	from pybiblio.gui.DialogWindows import *
+	from pybiblio.database import catString
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -22,33 +23,41 @@ class objListWindow(QDialog):
 		"""init using parent class and create common definitions"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
+		self.proxyModel = None
 		self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
 	def triggeredContextMenuEvent(self, row, col, event):
-		pass
+		raise NotImplementedError()
 
-	def setTableSize(self, rows, cols):
-		"""set number of rows and columns"""
-		self.tablewidget = MyTableWidget(rows, cols, self)
-		vheader = QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setVerticalHeader(vheader)
-		hheader = QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setHorizontalHeader(hheader)
+	def cellClick(self, index):
+		raise NotImplementedError()
 
-	def addImageCell(self, row, col, imagePath):
-		"""create a cell containing an image"""
-		pic = QPixmap(imagePath).scaledToHeight(self.tablewidget.rowHeight(row)*0.8)
-		img = QLabel(self)
-		img.setPixmap(pic)
-		self.tablewidget.setCellWidget(row, col, img)
+	def cellDoubleClick(self, index):
+		raise NotImplementedError()
 
-	def addEditDeleteCells(self, row, col):
-		"""create icons for edit and delete"""
-		self.addImageCell(row, col, ":/images/edit.png")
-		self.addImageCell(row, col + 1, ":/images/delete.png")
+	def changeFilter(self, string):
+		self.proxyModel.setFilterRegExp(str(string))
+
+	def addFilterInput(self, placeholderText):
+		self.filterInput = QLineEdit("",  self)
+		self.filterInput.setPlaceholderText(placeholderText)
+		self.filterInput.textChanged.connect(self.changeFilter)
+		self.currLayout.addWidget(self.filterInput)
+		self.filterInput.setFocus()
+
+	def setProxyStuff(self, sortColumn, sortOrder):
+		self.proxyModel = QSortFilterProxyModel(self)
+		self.proxyModel.setSourceModel(self.table_model)
+		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
+		self.proxyModel.setFilterKeyColumn(-1)
+
+		self.tablewidget = MyTableView(self)
+		self.tablewidget.setModel(self.proxyModel)
+		self.tablewidget.setSortingEnabled(True)
+		self.proxyModel.sort(sortColumn, sortOrder)
+		self.currLayout.addWidget(self.tablewidget)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
@@ -65,8 +74,8 @@ class objListWindow(QDialog):
 
 		self.setMinimumHeight(600)
 
-		self.tablewidget.cellClicked.connect(self.cellClick)
-		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
+		self.tablewidget.clicked.connect(self.cellClick)
+		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
 
 		self.currLayout.addWidget(self.tablewidget)
 
@@ -167,3 +176,203 @@ class MyTableWidget(QTableWidget):
 
 	def contextMenuEvent(self, event):
 		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+
+class MyTableView(QTableView):
+	def __init__(self, parent):
+		super(MyTableView, self).__init__(parent)
+		self.parent = parent
+
+	def contextMenuEvent(self, event):
+		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+
+class MyTableModel(QAbstractTableModel):
+	def __init__(self, parent, header, ask = False,  previous = [], *args):
+		QAbstractTableModel.__init__(self, parent, *args)
+		self.header = header
+		self.parentObj = parent
+		self.previous = previous
+		self.ask = ask
+
+	def changeAsk(self, new = None):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		if new is None:
+			self.ask = not self.ask
+		elif new == True or new == False:
+			self.ask = new
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def getIdentifier(self, element):
+		raise NotImplementedError()
+
+	def prepareSelected(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.selectedElements = {}
+		for bib in self.dataList:
+			self.selectedElements[self.getIdentifier(bib)] = False
+		for prevK in self.previous:
+			try:
+				self.selectedElements[prevK] = True
+			except IndexError:
+				pBErrorManager("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def selectAll(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		for key in self.selectedElements.keys():
+			self.selectedElements[key] = True
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def unselectAll(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		for key in self.selectedElements.keys():
+			self.selectedElements[key] = False
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def addImage(self, imagePath, height):
+		"""create a cell containing an image"""
+		return QPixmap(imagePath).scaledToHeight(height)
+
+	def rowCount(self, parent = None):
+		return len(self.dataList)
+
+	def columnCount(self, parent = None):
+		try:
+			return len(self.header)
+		except IndexError:
+			return 0
+
+	def data(self, index, role):
+		raise NotImplementedError()
+
+	def flags(self, index):
+		if not index.isValid():
+			return None
+		if index.column() == 0 and self.ask:
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		else:
+			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+	def headerData(self, col, orientation, role):
+		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+			return self.header[col]
+		return None
+
+	def setData(self, index, value, role):
+		raise NotImplementedError()
+
+	def sort(self, col = 1, order = Qt.AscendingOrder):
+		"""sort table by given column number col"""
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.dataList = sorted(self.dataList, key=operator.itemgetter(col) )
+		if order == Qt.DescendingOrder:
+			self.dataList.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
+
+#https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
+class TreeNode(object):
+	def __init__(self, parent, row):
+		self.parent = parent
+		self.row = row
+		self.subnodes = self._getChildren()
+
+	def _getChildren(self):
+		raise NotImplementedError()
+
+class TreeModel(QAbstractItemModel):
+	def __init__(self):
+		QAbstractItemModel.__init__(self)
+		self.rootNodes = self._getRootNodes()
+
+	def _getRootNodes(self):
+		raise NotImplementedError()
+
+	def index(self, row, column, parent):
+		if not parent.isValid():
+			return self.createIndex(row, column, self.rootNodes[row])
+		parentNode = parent.internalPointer()
+		return self.createIndex(row, column, parentNode.subnodes[row])
+
+	def parent(self, index):
+		if not index.isValid():
+			return QModelIndex()
+		node = index.internalPointer()
+		if node.parent is None:
+			return QModelIndex()
+		else:
+			return self.createIndex(node.parent.row, 0, node.parent)
+
+	def reset(self):
+		self.rootNodes = self._getRootNodes()
+		QAbstractItemModel.reset(self)
+
+	def rowCount(self, parent):
+		if not parent.isValid():
+			return len(self.rootNodes)
+		node = parent.internalPointer()
+		return len(node.subnodes)
+
+class NamedElement(object): # your internal structure
+	def __init__(self, idCat, name, subelements):
+		self.idCat = idCat
+		self.name = name
+		self.text = catString(idCat)
+		self.subelements = subelements
+
+class NamedNode(TreeNode):
+	def __init__(self, ref, parent, row):
+		self.ref = ref
+		TreeNode.__init__(self, parent, row)
+
+	def _getChildren(self):
+		return [NamedNode(elem, self, index)
+			for index, elem in enumerate(self.ref.subelements)]
+
+#http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
+class LeafFilterProxyModel(QSortFilterProxyModel):
+	''' Class to override the following behaviour:
+			If a parent item doesn't match the filter,
+			none of its children will be shown.
+
+		This Model matches items which are descendants
+		or ascendants of matching items.
+	'''
+
+	def filterAcceptsRow(self, row_num, source_parent):
+		''' Overriding the parent function '''
+
+		# Check if the current row matches
+		if self.filter_accepts_row_itself(row_num, source_parent):
+			return True
+
+		# Traverse up all the way to root and check if any of them match
+		if self.filter_accepts_any_parent(source_parent):
+			return True
+
+		# Finally, check if any of the children match
+		return self.has_accepted_children(row_num, source_parent)
+
+	def filter_accepts_row_itself(self, row_num, parent):
+		return super(LeafFilterProxyModel, self).filterAcceptsRow(row_num, parent)
+
+	def filter_accepts_any_parent(self, parent):
+		''' Traverse to the root node and check if any of the
+			ancestors match the filter
+		'''
+		while parent.isValid():
+			if self.filter_accepts_row_itself(parent.row(), parent.parent()):
+				return True
+			parent = parent.parent()
+		return False
+
+	def has_accepted_children(self, row_num, parent):
+		''' Starting from the current node as root, traverse all
+			the descendants and test if any of the children match
+		'''
+		model = self.sourceModel()
+		source_index = model.index(row_num, 0, parent)
+
+		children_count =  model.rowCount(source_index)
+		for i in xrange(children_count):
+			if self.filterAcceptsRow(i, source_index):
+				return True
+		return False

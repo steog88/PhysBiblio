@@ -6,9 +6,6 @@ import subprocess
 
 try:
 	from pybiblio.database import pBDB
-	#from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
@@ -152,22 +149,120 @@ class bibtexInfo(QFrame):
 
 		self.currLayout.addWidget(self.text)
 
-class bibtexList(QFrame):
-	def __init__(self, parent = None, bibs = None):
+class MyBibTableModel(MyTableModel):
+	def __init__(self, parent, bib_list, header, stdCols = [], addCols = [], askBibs = False, previous = [], *args):
+		self.typeClass = "Bibs"
+		self.dataList = bib_list
+		MyTableModel.__init__(self, parent, header + ["bibtex"], askBibs, previous, *args)
+		self.stdCols = stdCols
+		self.addCols = addCols + ["bibtex"]
+		self.lenStdCols = len(stdCols)
+		self.prepareSelected()
+
+	def getIdentifier(self, element):
+		return element["bibkey"]
+
+	def addTypeCell(self, data):
+		someType = False
+		string = ""
+		for t in convertType.keys():
+			if data[t] == 1:
+				if someType:
+					string += ", "
+				string += convertType[t]
+		return string
+
+	def addPdfCell(self, key):
+		"""create cell for PDF file"""
+		if len(pBPDF.getExisting(key))>0:
+			return True, self.addImage(":/images/application-pdf.png", self.parentObj.tablewidget.rowHeight(0)*0.9)
+		else:
+			return False, "no PDF"
+
+	def data(self, index, role):
+		if not index.isValid():
+			return None
+		img = False
+		row = index.row()
+		column = index.column()
+		try:
+			if column < self.lenStdCols:
+				value = self.dataList[row][self.stdCols[column]]
+			else:
+				if self.addCols[column - self.lenStdCols] == "Type":
+					value = self.addTypeCell(self.dataList[row])
+				elif self.addCols[column - self.lenStdCols] == "PDF":
+					img, value = self.addPdfCell(self.dataList[row]["bibkey"])
+				else:
+					value = self.dataList[row]["bibtex"]
+		except IndexError:
+			return None
+
+		if role == Qt.CheckStateRole and self.ask and column == 0:
+			if self.selectedElements[self.dataList[row]["bibkey"]] == True:
+				return Qt.Checked
+			else:
+				return Qt.Unchecked
+		if role == Qt.EditRole:
+			return value
+		if role == Qt.DecorationRole and img:
+			return value
+		if role == Qt.DisplayRole and not img:
+			return value
+		return None
+
+	def setData(self, index, value, role):
+		if role == Qt.CheckStateRole and index.column() == 0:
+			if value == Qt.Checked:
+				self.selectedElements[self.dataList[index.row()]["bibkey"]] = True
+			else:
+				self.selectedElements[self.dataList[index.row()]["bibkey"]] = False
+
+		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		return True
+
+class bibtexList(QFrame, objListWindow):
+	def __init__(self, parent = None, bibs = None, askBibs = False, previous = []):
 		#table dimensions
 		self.columns = pbConfig.params["bibtexListColumns"]
 		self.colcnt = len(self.columns)
 		self.colContents = []
+		self.previous = previous
+		self.parent = parent
+		self.askBibs = askBibs
 		self.additionalCols = ["Type", "PDF"]
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
 
-		super(bibtexList, self).__init__(parent)
-		self.parent = parent
+		QFrame.__init__(self, parent)
+		objListWindow.__init__(self, parent)
 
-		self.currLayout = QVBoxLayout()
-		self.setLayout(self.currLayout)
+		self.selAct = QAction(QIcon(":/images/edit-node.png"),
+						"&Select entries", self,
+						#shortcut="Ctrl+S",
+						statusTip="Select entries from the list",
+						triggered=self.enableSelection)
+		self.okAct = QAction(QIcon(":/images/dialog-ok-apply.png"),
+						"Selection &completed", self,
+						#shortcut="Ctrl+S",
+						statusTip="Selection of elements completed",
+						triggered=self.onOk)
+		self.clearAct = QAction(QIcon(":/images/edit-clear.png"),
+						"&Clear selection", self,
+						#shortcut="Ctrl+S",
+						statusTip="Discard the current selection and hide checkboxes",
+						triggered=self.clearSelection)
+		self.selAllAct = QAction(QIcon(":/images/edit-select-all.png"),
+						"&Select all", self,
+						#shortcut="Ctrl+S",
+						statusTip="Select all the elements",
+						triggered=self.selectAll)
+		self.unselAllAct = QAction(QIcon(":/images/edit-unselect-all.png"),
+						"&Unselect all", self,
+						#shortcut="Ctrl+S",
+						statusTip="Unselect all the elements",
+						triggered=self.unselectAll)
 
 		if bibs is not None:
 			self.bibs = bibs
@@ -183,6 +278,34 @@ class bibtexList(QFrame):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
 
+	def changeEnableActions(self):
+		status = self.table_model.ask
+		self.clearAct.setEnabled(status)
+		self.selAllAct.setEnabled(status)
+		self.unselAllAct.setEnabled(status)
+		self.okAct.setEnabled(status)
+
+	def enableSelection(self):
+		self.table_model.changeAsk()
+		self.changeEnableActions()
+
+	def clearSelection(self):
+		self.table_model.previous = []
+		self.table_model.prepareSelected()
+		self.table_model.changeAsk(False)
+		self.changeEnableActions()
+
+	def selectAll(self):
+		self.table_model.selectAll()
+
+	def unselectAll(self):
+		self.table_model.unselectAll()
+
+	def onOk(self):
+		self.parent.selectedBibs = [key for key in self.table_model.selectedElements.keys() if self.table_model.selectedElements[key] == True]
+		self.result = "Ok"
+		print self.parent.selectedBibs
+
 	def createTable(self):
 		if self.bibs is None:
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
@@ -193,77 +316,34 @@ class bibtexList(QFrame):
 			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
 		self.currLayout.addWidget(QLabel(commentStr))
 
-		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt + len(self.additionalCols))
-		self.tablewidget.setHorizontalHeaderLabels(self.columns + self.additionalCols)
+		self.selectToolBar = QToolBar('Bibs toolbar')
+		self.selectToolBar.addAction(self.selAct)
+		self.selectToolBar.addAction(self.clearAct)
+		self.selectToolBar.addSeparator()
+		self.selectToolBar.addAction(self.selAllAct)
+		self.selectToolBar.addAction(self.unselAllAct)
+		self.selectToolBar.addAction(self.okAct)
+		self.selectToolBar.addSeparator()
 
-		#table content
-		for i in range(rowcnt):
-			self.loadRow(i)
+		self.filterInput = QLineEdit("",  self)
+		self.filterInput.setPlaceholderText("Filter bibliography")
+		self.filterInput.textChanged.connect(self.changeFilter)
+		self.selectToolBar.addWidget(self.filterInput)
+		self.filterInput.setFocus()
 
-		self.finalizeTable()
+		self.currLayout.addWidget(self.selectToolBar)
 
-	def refillTable(self, bibs = None):
-		self.tablewidget.clearContents()
-		if bibs is None:
-			self.bibs = pBDB.bibs.getAll()
-		else:
-			self.bibs = bibs
-		rowcnt = len(self.bibs)
+		self.table_model = MyBibTableModel(self,
+			self.bibs, self.columns + self.additionalCols,
+			self.columns, self.additionalCols,
+			askBibs = self.askBibs,
+			previous = self.previous)
 
-		#table settings and header
-		if self.rows > rowcnt:
-			for i in range(rowcnt, self.rows+1):
-				self.tablewidget.removeRow(i)
-		elif self.rows < rowcnt:
-			for i in range(self.rows, rowcnt+1):
-				self.tablewidget.insertRow(q)
-
-		#table content
-		for i in range(rowcnt):
-			self.loadRow(i)
+		self.changeEnableActions()
+		self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
+		self.tablewidget.hideColumn(len(self.columns) + len(self.additionalCols))
 
 		self.finalizeTable()
-	
-	def loadRow(self, r):
-		for j in range(self.colcnt):
-			if self.bibs[r][self.columns[j]] is not None:
-				string = str(self.bibs[r][self.columns[j]])
-			else:
-				string = ""
-			item = QTableWidgetItem(string)
-			item.setFlags(Qt.ItemIsEnabled)
-			self.tablewidget.setItem(r, j, item)
-		self.addTypeCell(r, self.colcnt, self.bibs[r])
-		self.addPdfCell(r, self.colcnt+1, self.bibs[r]["bibkey"])
-
-	def addImageCell(self, row, col, imagePath):
-		"""create a cell containing an image"""
-		pic = QPixmap(imagePath).scaledToHeight(self.tablewidget.rowHeight(row)*0.8)
-		img = QLabel(self)
-		img.setPixmap(pic)
-		self.tablewidget.setCellWidget(row, col, img)
-
-	def addTypeCell(self, row, col, data):
-		someType = False
-		string = ""
-		for t in convertType.keys():
-			if data[t] == 1:
-				if someType:
-					string += ", "
-				string += convertType[t]
-		item = QTableWidgetItem(string)
-		item.setFlags(Qt.ItemIsEnabled)
-		self.tablewidget.setItem(row, col, item)
-
-	def addPdfCell(self, row, col, key):
-		"""create cell for PDF file"""
-		if len(pBPDF.getExisting(key))>0:
-			self.addImageCell(row, col, ":/images/application-pdf.png")
-		else:
-			item = QTableWidgetItem("no PDF")
-			item.setFlags(Qt.ItemIsEnabled)
-			self.tablewidget.setItem(row, col, item)
 
 	def triggeredContextMenuEvent(self, row, col, event):
 		def deletePdfFile(bibkey, ftype, fdesc, custom = None):
@@ -274,9 +354,10 @@ class bibtexList(QFrame):
 				else:
 					pBPDF.removeFile(bibkey, ftype)
 				self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
-		
+
+		index = self.tablewidget.model().index(row, col)
 		try:
-			bibkey = self.tablewidget.item(row, 0).text()
+			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
 		except AttributeError:
 			return
 		menu = QMenu()
@@ -411,9 +492,13 @@ class bibtexList(QFrame):
 					fn = files[i].replace(pdfDir+"/", "")
 					deletePdfFile(bibkey, fn, fn, custom = files[i])
 
-	def cellClick(self, row, col):
-		self.tablewidget.selectRow(row)
-		bibkey = self.tablewidget.item(row, 0).text()
+	def cellClick(self, index):
+		row = index.row()
+		col = index.column()
+		try:
+			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
+		except AttributeError:
+			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
@@ -422,9 +507,13 @@ class bibtexList(QFrame):
 		elif self.colContents[col] == "delete":
 			deleteBibtex(self.parent, self.parent, bibkey)
 
-	def cellDoubleClick(self, row, col):
-		self.tablewidget.selectRow(row)
-		bibkey = self.tablewidget.item(row, 0).text()
+	def cellDoubleClick(self, index):
+		row = index.row()
+		col = index.column()
+		try:
+			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
+		except AttributeError:
+			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
@@ -454,18 +543,6 @@ class bibtexList(QFrame):
 		self.parent.done()
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-	def setTableSize(self, rows, cols):
-		"""set number of rows and columns"""
-		self.rows = rows
-		self.cols = cols
-		self.tablewidget = MyTableWidget(rows, cols, self)
-		vheader = QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setVerticalHeader(vheader)
-		hheader = QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Interactive)
-		self.tablewidget.setHorizontalHeader(hheader)
-
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
 		font = QFont()
@@ -475,8 +552,8 @@ class bibtexList(QFrame):
 		self.tablewidget.resizeColumnsToContents()
 		self.tablewidget.resizeRowsToContents()
 
-		self.tablewidget.cellClicked.connect(self.cellClick)
-		self.tablewidget.cellDoubleClicked.connect(self.cellDoubleClick)
+		self.tablewidget.clicked.connect(self.cellClick)
+		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
 
 		self.currLayout.addWidget(self.tablewidget)
 
@@ -486,10 +563,7 @@ class bibtexList(QFrame):
 			self.bibs = bibs
 		else:
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
+		self.cleanLayout()
 		self.createTable()
 
 class editBibtexEntry(editObjectWindow):
@@ -603,8 +677,6 @@ class searchBibsWindow(editObjectWindow):
 		self.values["catExpOperator"] = "AND"
 		self.numberOfRows = 1
 		self.createForm()
-		#self.setGeometry(100,100,400, 25*i)
-		#self.centerWindow()
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
@@ -616,7 +688,7 @@ class searchBibsWindow(editObjectWindow):
 		selectExps = ExpWindowList(parent = self.parent, askExps = True, previous = self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
-			self.values["exps"] = self.selectedExps
+			self.values["exps"] = self.parent.selectedExps
 
 	def onComboCatsChange(self, text):
 		self.values["catsOperator"] = text

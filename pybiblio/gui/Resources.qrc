@@ -4,9 +4,14 @@
         <file>images/application-pdf.png</file>
         <file>images/delete.png</file>
         <file>images/dialog-error.png</file>
+        <file>images/dialog-ok-apply.png</file>
         <file>images/dialog-warning.png</file>
         <file>images/download.png</file>
         <file>images/edit.png</file>
+        <file>images/edit-clear.png</file>
+        <file>images/edit-node.png</file>
+        <file>images/edit-select-all.png</file>
+        <file>images/edit-unselect-all.png</file>
         <file>images/export-table.png</file>
         <file>images/export.png</file>
         <file>images/file-add.png</file>

@@ -286,8 +286,8 @@ class MainWindow(QMainWindow):
         
 	def createMainLayout(self):
 		#will contain the list of bibtex entries
-		self.top = bibtexList(self)
-		self.top.setFrameShape(QFrame.StyledPanel)
+		self.bibtexList = bibtexList(self)
+		self.bibtexList.setFrameShape(QFrame.StyledPanel)
 
 		#will contain the bibtex code:
 		self.bottomLeft = bibtexWindow(self)
@@ -298,7 +298,7 @@ class MainWindow(QMainWindow):
 		self.bottomRight.setFrameShape(QFrame.StyledPanel)
 
 		splitter = QSplitter(Qt.Vertical)
-		splitter.addWidget(self.top)
+		splitter.addWidget(self.bibtexList)
 		splitterBottom = QSplitter(Qt.Horizontal)
 		splitterBottom.addWidget(self.bottomLeft)
 		splitterBottom.addWidget(self.bottomRight)
@@ -324,13 +324,13 @@ class MainWindow(QMainWindow):
 	def refreshMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one, using last used query"""
 		self.StatusBarMessage("Reloading main table...")
-		self.top.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
+		self.bibtexList.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
 		self.done()
 
 	def reloadMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one"""
 		self.StatusBarMessage("Reloading main table...")
-		self.top.recreateTable(bibs)
+		self.bibtexList.recreateTable(bibs)
 		self.done()
 
 	def manageProfiles(self):

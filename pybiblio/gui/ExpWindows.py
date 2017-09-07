@@ -3,6 +3,7 @@ import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess, traceback
+import operator
 try:
 	from pybiblio.errors import pBErrorManager
 except ImportError:
@@ -11,9 +12,6 @@ except ImportError:
 
 try:
 	from pybiblio.database import *
-	#from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
 	from pybiblio.gui.DialogWindows import *
 	from pybiblio.gui.CommonClasses import *
@@ -74,6 +72,47 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 	except:
 		pass
 
+class MyExpTableModel(MyTableModel):
+	def __init__(self, parent, exp_list, header, askExps = False, previous = [], *args):
+		self.typeClass = "Exps"
+		self.dataList = exp_list
+		MyTableModel.__init__(self, parent, header, askExps, previous, *args)
+		self.prepareSelected()
+
+	def getIdentifier(self, element):
+		return element["idExp"]
+
+	def data(self, index, role):
+		if not index.isValid():
+			return None
+		row = index.row()
+		column = index.column()
+		try:
+			value = self.dataList[row][column]
+		except IndexError:
+			return None
+
+		if role == Qt.CheckStateRole and self.ask and column == 0:
+			if self.selectedElements[self.dataList[row][0]] == False:
+				return Qt.Unchecked
+			else:
+				return Qt.Checked
+		if role == Qt.EditRole:
+			return value
+		if role == Qt.DisplayRole:
+			return value
+		return None
+
+	def setData(self, index, value, role):
+		if role == Qt.CheckStateRole and index.column() == 0:
+			if value == Qt.Checked:
+				self.selectedElements[self.dataList[index.row()][0]] = True
+			else:
+				self.selectedElements[self.dataList[index.row()][0]] = False
+
+		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		return True
+
 class ExpWindowList(objListWindow):
 	"""create a window for printing the list of experiments"""
 	def __init__(self, parent = None, askExps = False, askForBib = None, askForCat = None, previous = []):
@@ -113,14 +152,7 @@ class ExpWindowList(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = []
-
-		for i in range(self.tablewidget.rowCount()):
-			item = self.tablewidget.item(i, 0)
-			if item.checkState():
-				idExp = item.text()
-				self.parent.selectedExps.append(int(idExp))
-			
+		self.parent.selectedExps = [idE for idE in self.table_model.selectedExps.keys() if self.table_model.selectedExps[idE] == True]
 		self.result	= "Ok"
 		self.close()
 
@@ -132,34 +164,17 @@ class ExpWindowList(objListWindow):
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
+	def changeFilter(self, string):
+		self.proxyModel.setFilterRegExp(str(string))
+
 	def createTable(self):
 		self.populateAskExp()
 
-		exps = pBDB.exps.getAll()
-		rowcnt = len(exps)
+		self.exps = pBDB.exps.getAll()
 
-		#table settings and header
-		self.setTableSize(rowcnt, self.colcnt)
-		self.tablewidget.setHorizontalHeaderLabels(pBDB.tableCols["experiments"])
-
-		#table content
-		for i in range(rowcnt):
-			for j in range(self.colcnt):
-				if j == self.colcnt-1:
-					item = QTableWidgetItem(
-						("http://inspirehep.net/record/" + str(exps[i][pBDB.tableCols["experiments"][j]]) \
-						if exps[i][pBDB.tableCols["experiments"][j]] != "" else "") )
-				else:
-					item = QTableWidgetItem(str(exps[i][pBDB.tableCols["experiments"][j]]))
-				if j==0 and self.askExps:
-					item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-					if exps[i]["idExp"] in self.previous:
-						item.setCheckState(Qt.Checked)
-					else:
-						item.setCheckState(Qt.Unchecked)
-				else:
-					item.setFlags(Qt.ItemIsEnabled)
-				self.tablewidget.setItem(i, j, item)
+		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
+		self.addFilterInput("Filter experiment")
+		self.setProxyStuff(1, Qt.AscendingOrder)
 
 		self.finalizeTable()
 
@@ -179,9 +194,10 @@ class ExpWindowList(objListWindow):
 			self.currLayout.addWidget(self.cancelButton)
 
 	def triggeredContextMenuEvent(self, row, col, event):
+		index = self.tablewidget.model().index(row, col)
 		try:
-			idExp = self.tablewidget.item(row, 0).text()
-			expName = self.tablewidget.item(row, 1).text()
+			idExp = str(self.proxyModel.sibling(row, 0, index).data())
+			expName = str(self.proxyModel.sibling(row, 1, index).data())
 		except AttributeError:
 			return
 		menu = QMenu()
@@ -192,7 +208,7 @@ class ExpWindowList(objListWindow):
 		menu.addSeparator()
 		catAction = menu.addAction("Categories")
 		action = menu.exec_(event.globalPos())
-		
+
 		if action == modAction:
 			editExperiment(self, self.parent, idExp)
 		elif action == delAction:
@@ -211,14 +227,26 @@ class ExpWindowList(objListWindow):
 						pBDB.catExp.insert(c, idExp)
 				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%expName)
 				
-	def cellClick(self, row, col):
-		idExp = self.tablewidget.item(row, 0).text()
-		#if self.colContents[col] == "columnname":
+	def cellClick(self, index):
+		if index.isValid():
+			row = index.row()
+		else:
+			return
+		idExp = str(self.proxyModel.sibling(row, 0, index).data())
 
-	def cellDoubleClick(self, row, col):
-		idExp = self.tablewidget.item(row, 0).text()
+	def cellDoubleClick(self, index):
+		if index.isValid():
+			row = index.row()
+			col = index.column()
+		else:
+			return
+		idExp = str(self.proxyModel.sibling(row, 0, index).data())
 		if self.colContents[col] == "inspire" or self.colContents[col] == "homepage":
-			link = self.tablewidget.item(row, col).text()
+			link = self.proxyModel.sibling(row, col, index).data()
+			if link == "":
+				return
+			if self.colContents[col] == "inspire":
+				link = "http://inspirehep.net/record/" + link
 			print "will open '%s' "%link
 			try:
 				print("[GUI] opening '%s'..."%link)
