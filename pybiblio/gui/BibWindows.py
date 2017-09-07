@@ -160,7 +160,7 @@ class MyBibTableModel(MyTableModel):
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
-		return element["bibtex"]
+		return element["bibkey"]
 
 	def addTypeCell(self, data):
 		someType = False
@@ -199,7 +199,7 @@ class MyBibTableModel(MyTableModel):
 			return None
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
-			if self.selectedElements[self.dataList[row][0]] == True:
+			if self.selectedElements[self.dataList[row]["bibkey"]] == True:
 				return Qt.Checked
 			else:
 				return Qt.Unchecked
@@ -214,9 +214,9 @@ class MyBibTableModel(MyTableModel):
 	def setData(self, index, value, role):
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedElements[self.dataList[index.row()]["bibtex"]] = True
+				self.selectedElements[self.dataList[index.row()]["bibkey"]] = True
 			else:
-				self.selectedElements[self.dataList[index.row()]["bibtex"]] = False
+				self.selectedElements[self.dataList[index.row()]["bibkey"]] = False
 
 		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
 		return True
@@ -238,16 +238,65 @@ class bibtexList(QFrame, objListWindow):
 		QFrame.__init__(self, parent)
 		objListWindow.__init__(self, parent)
 
+		self.selAct = QAction(QIcon(":/images/edit-node.png"),
+						"&Select entries", self,
+						#shortcut="Ctrl+S",
+						statusTip="Select entries from the list",
+						triggered=self.enableSelection)
+		self.okAct = QAction(QIcon(":/images/dialog-ok-apply.png"),
+						"Selection &completed", self,
+						#shortcut="Ctrl+S",
+						statusTip="Selection of elements completed",
+						triggered=self.onOk)
+		self.clearAct = QAction(QIcon(":/images/edit-clear.png"),
+						"&Clear selection", self,
+						#shortcut="Ctrl+S",
+						statusTip="Discard the current selection and hide checkboxes",
+						triggered=self.clearSelection)
+		self.selAllAct = QAction(QIcon(":/images/edit-select-all.png"),
+						"&Select all", self,
+						#shortcut="Ctrl+S",
+						statusTip="Select all the elements",
+						triggered=self.selectAll)
+		self.unselAllAct = QAction(QIcon(":/images/edit-unselect-all.png"),
+						"&Unselect all", self,
+						#shortcut="Ctrl+S",
+						statusTip="Unselect all the elements",
+						triggered=self.unselectAll)
+
 		if bibs is not None:
 			self.bibs = bibs
 		else:
 			self.bibs = None
 		self.createTable()
 
+	def changeEnableActions(self):
+		status = self.table_model.ask
+		self.clearAct.setEnabled(status)
+		self.selAllAct.setEnabled(status)
+		self.unselAllAct.setEnabled(status)
+		self.okAct.setEnabled(status)
+
+	def enableSelection(self):
+		self.table_model.changeAsk()
+		self.changeEnableActions()
+
+	def clearSelection(self):
+		self.table_model.previous = []
+		self.table_model.prepareSelected()
+		self.table_model.changeAsk(False)
+		self.changeEnableActions()
+
+	def selectAll(self):
+		self.table_model.selectAll()
+
+	def unselectAll(self):
+		self.table_model.unselectAll()
+
 	def onOk(self):
-		self.parent.selectedBibs = [key for key in self.table_model.selectedBibs.keys() if self.table_model.selectedBibs[key] == True]
+		self.parent.selectedBibs = [key for key in self.table_model.selectedElements.keys() if self.table_model.selectedElements[key] == True]
 		self.result = "Ok"
-		self.close()
+		print self.parent.selectedBibs
 
 	def createTable(self):
 		if self.bibs is None:
@@ -259,11 +308,31 @@ class bibtexList(QFrame, objListWindow):
 			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
 		self.currLayout.addWidget(QLabel(commentStr))
 
+		self.selectToolBar = QToolBar('Bibs toolbar')
+		self.selectToolBar.addAction(self.selAct)
+		self.selectToolBar.addAction(self.clearAct)
+		self.selectToolBar.addSeparator()
+		self.selectToolBar.addAction(self.selAllAct)
+		self.selectToolBar.addAction(self.unselAllAct)
+		self.selectToolBar.addAction(self.okAct)
+		self.selectToolBar.addSeparator()
+
+		self.filterInput = QLineEdit("",  self)
+		self.filterInput.setPlaceholderText("Filter bibliography")
+		self.filterInput.textChanged.connect(self.changeFilter)
+		self.selectToolBar.addWidget(self.filterInput)
+		self.filterInput.setFocus()
+
+		self.currLayout.addWidget(self.selectToolBar)
+
 		self.table_model = MyBibTableModel(self,
 			self.bibs, self.columns + self.additionalCols,
 			self.columns, self.additionalCols,
+			askBibs = self.askBibs,
 			previous = self.previous)
-		self.setProxyStuff("Filter bibliography", self.columns.index("firstdate"), Qt.DescendingOrder)
+
+		self.changeEnableActions()
+		self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
 		self.tablewidget.hideColumn(len(self.columns) + len(self.additionalCols))
 
 		self.finalizeTable()

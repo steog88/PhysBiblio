@@ -39,13 +39,14 @@ class objListWindow(QDialog):
 	def changeFilter(self, string):
 		self.proxyModel.setFilterRegExp(str(string))
 
-	def setProxyStuff(self, placeholderText, sortColumn, sortOrder):
+	def addFilterInput(self, placeholderText):
 		self.filterInput = QLineEdit("",  self)
 		self.filterInput.setPlaceholderText(placeholderText)
 		self.filterInput.textChanged.connect(self.changeFilter)
 		self.currLayout.addWidget(self.filterInput)
 		self.filterInput.setFocus()
 
+	def setProxyStuff(self, sortColumn, sortOrder):
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.table_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -192,10 +193,19 @@ class MyTableModel(QAbstractTableModel):
 		self.previous = previous
 		self.ask = ask
 
+	def changeAsk(self, new = None):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		if new is None:
+			self.ask = not self.ask
+		elif new == True or new == False:
+			self.ask = new
+		self.emit(SIGNAL("layoutChanged()"))
+
 	def getIdentifier(self, element):
 		raise NotImplementedError()
 
 	def prepareSelected(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
 		self.selectedElements = {}
 		for bib in self.dataList:
 			self.selectedElements[self.getIdentifier(bib)] = False
@@ -204,6 +214,19 @@ class MyTableModel(QAbstractTableModel):
 				self.selectedElements[prevK] = True
 			except IndexError:
 				pBErrorManager("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def selectAll(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		for key in self.selectedElements.keys():
+			self.selectedElements[key] = True
+		self.emit(SIGNAL("layoutChanged()"))
+
+	def unselectAll(self):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		for key in self.selectedElements.keys():
+			self.selectedElements[key] = False
+		self.emit(SIGNAL("layoutChanged()"))
 
 	def addImage(self, imagePath, height):
 		"""create a cell containing an image"""

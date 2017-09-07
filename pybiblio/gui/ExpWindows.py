@@ -173,7 +173,8 @@ class ExpWindowList(objListWindow):
 		self.exps = pBDB.exps.getAll()
 
 		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
-		self.setProxyStuff("Filter experiment", 1, Qt.AscendingOrder)
+		self.addFilterInput("Filter experiment")
+		self.setProxyStuff(1, Qt.AscendingOrder)
 
 		self.finalizeTable()
 
