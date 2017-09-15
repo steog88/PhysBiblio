@@ -303,8 +303,10 @@ class bibtexList(QFrame, objListWindow):
 
 	def onOk(self):
 		self.parent.selectedBibs = [key for key in self.table_model.selectedElements.keys() if self.table_model.selectedElements[key] == True]
-		self.result = "Ok"
-		print self.parent.selectedBibs
+		ask = askSelBibAction(self.parent, self.parent.selectedBibs)
+		ask.exec_()
+		if ask.result == "done":
+			self.clearSelection()
 
 	def createTable(self):
 		if self.bibs is None:
@@ -661,6 +663,54 @@ class askPdfAction(askAction):
 
 	def onOpenDoi(self):
 		self.result	= "openDoi"
+		self.close()
+
+class askSelBibAction(askAction):
+	def __init__(self, parent = None, keys = ""):
+		super(askSelBibAction, self).__init__(parent)
+		self.keys = keys
+		self.entries = []
+		for k in keys:
+			self.entries.append(pBDB.bibs.getByBibkey(k)[0])
+		self.parent = parent
+		self.message = "What to do with the selected entries?"
+		self.possibleActions = []
+		self.result = "done"
+		self.possibleActions.append(["Clean entries", self.onClean])
+		self.possibleActions.append(["Update entries", self.onUpdate])
+		self.possibleActions.append(["Export entries in a .bib file", self.onExport])
+		self.possibleActions.append(["Select categories", self.onCat])
+		self.possibleActions.append(["Select experiments", self.onExp])
+		self.initUI()
+
+	def onClean(self):
+		self.parent.cleanAllBibtexs(self, useEntries = self.entries)
+		self.close()
+
+	def onUpdate(self):
+		self.parent.updateAllBibtexs(self, useEntries = self.entries)
+		self.close()
+
+	def onExport(self):
+		self.parent.exportSelection(self.entries)
+		self.close()
+
+	def onCat(self):
+		infoMessage("Warning: you can just add categories to the selected entries, not delete!")
+		selectCats = catsWindowList(parent = self.parent, askCats = True, expButton = False, previous = [])
+		selectCats.exec_()
+		if selectCats.result == "Ok":
+			pBDB.catBib.insert(self.parent.selectedCats, self.keys)
+			self.parent.StatusBarMessage("categories successfully inserted")
+		self.close()
+
+	def onExp(self):
+		infoMessage("Warning: you can just add experiments to the selected entries, not delete!")
+		selectExps = ExpWindowList(parent = self.parent, askExps = True, previous = [])
+		selectExps.exec_()
+		if selectExps.result == "Ok":
+			pBDB.bibExp.insert(self.keys, self.parent.selectedExps)
+			self.parent.StatusBarMessage("experiments successfully inserted")
 		self.close()
 
 class searchBibsWindow(editObjectWindow):

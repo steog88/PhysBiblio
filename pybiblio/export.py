@@ -43,8 +43,22 @@ class pbExport():
 		else:
 			print("[export] No elements to export!")
 
-	def exportSelected(self, fname):
-		print("NYI")
+	def exportSelected(self, fname, rows):
+		"""export all the selected entries in the database in a .bib file"""
+		if len(rows) > 0:
+			txt = ""
+			for q in rows:
+				txt += q["bibtex"] + "\n"
+			try:
+				with codecs.open(fname, 'w', 'utf-8') as bibfile:
+					bibfile.write(txt)
+			except Exception, e:
+				print(e)
+				print(traceback.format_exc())
+				sys.stderr.write("error: " + readfilebib)
+				os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+		else:
+			print("[export] No elements to export!")
 
 	def exportForTexFile(self, texFile, outFName, overwrite = False, autosave = True):
 		"""

@@ -80,12 +80,6 @@ class MainWindow(QMainWindow):
 								statusTip="Export last query as *.bib",
 								triggered=self.export)
 								
-		self.exportSelAct = QAction(QIcon(":/images/export.png"),
-								"Export se&lection as *.bib", self,
-								#shortcut="Ctrl+L",
-								statusTip="Export current selection as *.bib",
-								triggered=self.exportSelection)
-								
 		self.exportAllAct = QAction(QIcon(":/images/export-table.png"),
 								"Export &all as *.bib", self,
 								shortcut="Ctrl+A",
@@ -218,7 +212,6 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.saveAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exportAct)
-		self.fileMenu.addAction(self.exportSelAct)
 		self.fileMenu.addAction(self.exportFileAct)
 		self.fileMenu.addAction(self.exportAllAct)
 		self.fileMenu.addSeparator()
@@ -390,10 +383,10 @@ class MainWindow(QMainWindow):
 		else:
 			self.StatusBarMessage("Empty filename given!")
 	
-	def exportSelection(self):
-		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
+	def exportSelection(self, entries):
+		filename = askSaveFileName(self, title = "Where do you want to export the selected entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
-			pBExport.exportSelected(filename)
+			pBExport.exportSelected(filename, entries)
 			self.StatusBarMessage("Current selection exported into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty filename given!")

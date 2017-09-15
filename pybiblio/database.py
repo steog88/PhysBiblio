@@ -1666,7 +1666,7 @@ class utilities(pybiblioDBSub):
 		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in pBDB.catBib.getAll()], pBDB.catBib.delete)
 		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in pBDB.catExp.getAll()], pBDB.catExp.delete)
 	
-	def cleanBibtexs(self, verbose = 0):
+	def cleanAllBibtexs(self, verbose = 0):
 		"""remove newlines, non-standard characters and comments from the bibtex of all the entries"""
 		b = pBDB.bibs
 		for e in b.getAll():
