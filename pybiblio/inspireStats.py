@@ -74,7 +74,7 @@ class inspireStatsLoader():
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			authorPapersList[0].append(allInfo[p]["date"])
 			print("[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
-			paperInfo = self.paperStats(p, verbose = 0)
+			paperInfo = self.paperStats(p, verbose = 0, paperDate = allInfo[p]["date"])
 			allInfo[p]["infoDict"] = paperInfo["aI"]
 			allInfo[p]["citingPapersList"] = paperInfo["citList"]
 			for c,v in allInfo[p]["infoDict"].items():
@@ -99,7 +99,7 @@ class inspireStatsLoader():
 		print("[inspireStats] stats for author '%s' completed!"%authorName)
 		return self.authorPlotInfo
 
-	def paperStats(self, paperID, plot = False, verbose = 1):
+	def paperStats(self, paperID, plot = False, verbose = 1, paperDate = None):
 		if verbose > 0:
 			print("[inspireStats] stats for paper '%s'"%paperID)
 		url = pbConfig.inspireSearchBase + "?p=refersto:recid:" + paperID + self.paperStatsOpts
@@ -107,13 +107,17 @@ class inspireStatsLoader():
 		recid_citingPapers = [ a["recid"] for a in data ]
 		allInfo = {}
 		citingPapersList = [[],[]]
+		if paperDate is not None:
+			citingPapersList[0].append(paperDate)
 		for i,p in enumerate(recid_citingPapers):
 			allInfo[p] = {}
 			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			citingPapersList[0].append(allInfo[p]["date"])
 		for i,p in enumerate(sorted(citingPapersList[0])):
 			citingPapersList[0][i] = p
-			citingPapersList[1].append(i+1)
+			citingPapersList[1].append(i)
+		citingPapersList[0].append(datetime.date.today())
+		citingPapersList[1].append(citingPapersList[1][-1])
 		self.paperPlotInfo = { "id": paperID, "aI": allInfo, "citList": citingPapersList }
 		if plot:
 			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
