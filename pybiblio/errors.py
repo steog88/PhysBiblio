@@ -1,4 +1,4 @@
-import sys, traceback
+import sys, traceback, os
 
 try:
 	from pybiblio.config import pbConfig
@@ -13,7 +13,7 @@ class pBErrorManager():
 			sys.stderr.write(trcbk.format_exc())
 
 		try:
-			with open(pbConfig.params["logFile"], "a") as w:
+			with open(os.join(pbConfig.path, pbConfig.params["logFile"]), "a") as w:
 				w.write(message)
 				if trcbk is not None:
 					w.write(trcbk.format_exc())
