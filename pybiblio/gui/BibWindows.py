@@ -593,6 +593,15 @@ class editBibtexEntry(editObjectWindow):
 		self.result	= True
 		self.close()
 
+	def updateBibkey(self):
+		bibtex = self.textValues["bibtex"].toPlainText()
+		try:
+			element = bibtexparser.loads(bibtex).entries[0]
+			bibkey = element["ID"]
+		except (ValueError, IndexError):
+			bibkey = "not valid bibtex!"
+		self.textValues["bibkey"].setText(bibkey)
+
 	def createForm(self):
 		self.setWindowTitle('Edit bibtex entry')
 
@@ -608,12 +617,15 @@ class editBibtexEntry(editObjectWindow):
 					self.textValues[k].setReadOnly(True)
 				self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
 
+		self.textValues["bibkey"].setReadOnly(True)
+
 		#bibtex text editor
 		i += 1 + i%2
 		k = "bibtex"
 		self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
 		self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
 		self.textValues[k] = QPlainTextEdit(self.data[k])
+		self.textValues["bibtex"].textChanged.connect(self.updateBibkey)
 		self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, 0, self.bibtexEditLines, 2)
 
 		j = 0
