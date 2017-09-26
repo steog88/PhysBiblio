@@ -1049,6 +1049,17 @@ class entries(pybiblioDBSub):
 					", :".join(self.tableCols["entries"]) + ")\n",
 					data)
 
+	def replaceInBibtex(self, old, new):
+		"""replace a string with a new one, in all the bibtex entries of the table"""
+		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
+		self.lastVals  = {"match": "%"+old+"%"}
+		self.cursExec(self.lastQuery, self.lastVals)
+		self.lastFetched = self.completeFetched(self.curs.fetchall())
+		keys = [k["bibkey"] for k in self.lastFetched]
+		print "[DB] Replacing text in entries: ", keys
+		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
+			return keys
+
 	def update(self, data, oldkey):
 		"""update entry"""
 		data["bibkey"] = oldkey

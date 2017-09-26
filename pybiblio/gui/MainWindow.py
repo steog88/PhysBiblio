@@ -124,6 +124,12 @@ class MainWindow(QMainWindow):
 								statusTip="Open the search dialog to filter the bibtex list",
 								triggered=self.searchBiblio)
 
+		self.searchReplaceAct = QAction(QIcon(":/images/edit-find-replace.png"),
+								"&Search and replace bibtexs", self,
+								shortcut="Ctrl+H",
+								statusTip="Open the search&replace dialog",
+								triggered=self.searchAndReplace)
+
 		self.newBibAct = QAction(QIcon(":/images/file-add.png"),
 								"New &Bib item", self,
 								shortcut="Ctrl+N",
@@ -233,6 +239,7 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.searchBibAct)
+		self.bibMenu.addAction(self.searchReplaceAct)
 		self.bibMenu.addAction(self.refreshAct)
 		self.bibMenu.addAction(self.reloadAct)
 
@@ -264,6 +271,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.newBibAct)
 		self.mainToolBar.addAction(self.searchBibAct)
+		self.mainToolBar.addAction(self.searchReplaceAct)
 		self.mainToolBar.addAction(self.exportAct)
 		self.mainToolBar.addAction(self.exportAllAct)
 		self.mainToolBar.addSeparator()
@@ -275,8 +283,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addAction(self.aboutAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.exitAct)
-		
-        
+
 	def createMainLayout(self):
 		#will contain the list of bibtex entries
 		self.bibtexList = bibtexList(self)
@@ -469,6 +476,18 @@ class MainWindow(QMainWindow):
 				if s.strip() != "":
 					searchDict[k] = {"str": s, "operator": op, "connection": dic["logical"].currentText()}
 			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+
+	def searchAndReplace(self):
+		dialog = searchReplaceDialog(self)
+		dialog.exec_()
+		if dialog.result == True:
+			if dialog.searchEdit.text().strip() == "":
+				infoMessage("Empty search string!\nDoing nothing.")
+				return
+			changed = pBDB.bibs.replaceInBibtex(dialog.searchEdit.text(), dialog.replaceEdit.text())
+			if len(changed) > 0:
+				infoMessage("Elements changed:\n%s"%changed)
+			self.reloadMainContent(pBDB.bibs.lastFetched)
 
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
