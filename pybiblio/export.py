@@ -1,15 +1,33 @@
 import os, sys, numpy, codecs, re
+import bibtexparser
+import shutil
 try:
+	from pybiblio.errors import pBErrorManager
 	from pybiblio.database import pBDB
+	from pybiblio.bibtexwriter import pbWriter
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 
 class pbExport():
 	def __init__(self):
 		self.exportForTexFlag = True
+		self.backupextension = ".bck"
+
+	def backupCopy(self, fname):
+		if os.path.isfile(fname):
+			shutil.copy2(fname, fname + self.backupextension)
+
+	def restoreBackupCopy(self, fname):
+		if os.path.isfile(fname + self.backupextension):
+			shutil.copy2(fname + self.backupextension, fname)
+
+	def rmBackupCopy(self, fname):
+		if os.path.isfile(fname + self.backupextension):
+			os.remove(fname + self.backupextension)
 
 	def exportLast(self, fname):
 		"""export the last selection of entries into a .bib file"""
+		self.backupCopy(fname)
 		if pBDB.bibs.lastFetched:
 			txt = ""
 			for q in pBDB.bibs.lastFetched:
@@ -17,16 +35,16 @@ class pbExport():
 			try:
 				with codecs.open(fname, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
-			except Exception, e:
-				print(e)
-				print(traceback.format_exc())
-				sys.stderr.write("error: " + readfilebib)
-				os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+			except Exception:
+				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				self.restoreBackupCopy(fname)
 		else:
 			print("[export] No last selection to export!")
+		self.rmBackupCopy(fname)
 
 	def exportAll(self, fname):
 		"""export all the entries in the database in a .bib file"""
+		self.backupCopy(fname)
 		rows = pBDB.bibs.getAll(saveQuery = False)
 		if len(rows) > 0:
 			txt = ""
@@ -35,16 +53,16 @@ class pbExport():
 			try:
 				with codecs.open(fname, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
-			except Exception, e:
-				print(e)
-				print(traceback.format_exc())
-				sys.stderr.write("error: " + readfilebib)
-				os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+			except Exception:
+				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				self.restoreBackupCopy(fname)
 		else:
 			print("[export] No elements to export!")
+		self.rmBackupCopy(fname)
 
 	def exportSelected(self, fname, rows):
 		"""export all the selected entries in the database in a .bib file"""
+		self.backupCopy(fname)
 		if len(rows) > 0:
 			txt = ""
 			for q in rows:
@@ -52,13 +70,12 @@ class pbExport():
 			try:
 				with codecs.open(fname, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
-			except Exception, e:
-				print(e)
-				print(traceback.format_exc())
-				sys.stderr.write("error: " + readfilebib)
-				os.rename(readfilebib + backupextension + ".old", readfilebib + backupextension)
+			except Exception:
+				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				self.restoreBackupCopy(fname)
 		else:
 			print("[export] No elements to export!")
+		self.rmBackupCopy(fname)
 
 	def exportForTexFile(self, texFile, outFName, overwrite = False, autosave = True):
 		"""
@@ -191,5 +208,35 @@ class pbExport():
 			print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
 			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.iteritems() ] ) )
 		print("[export] -->     " + str(warnings) + " warning(s) occurred!")
+
+	def updateExportedBib(self, fname, overwrite = False):
+		self.backupCopy(fname)
+		bibfile=""
+		with open(fname) as r:
+			bibfile += r.read()
+		try:
+			biblist = bibtexparser.loads(bibfile)
+		except IndexError:
+			pBErrorManager("[export] problems in loading the .bib file!", traceback)
+			return "[export] problems in loading the .bib file!"
+		db = bibtexparser.bibdatabase.BibDatabase()
+		db.entries = []
+		for b in biblist.entries:
+			key = b["ID"]
+			element = pBDB.bibs.getByBibkey(key, saveQuery = False)
+			if len(element)>0:
+				db.entries.append(element[0]["bibtexDict"])
+			else:
+				db.entries.append(b)
+		txt = pbWriter.write(db).strip()
+		try:
+			with codecs.open(fname, 'w', 'utf-8') as outfile:
+				outfile.write(txt)
+		except Exception:
+			pBErrorManager("[export] problems in exporting .bib file!", traceback)
+			self.restoreBackupCopy(fname)
+		if overwrite:
+			self.rmBackupCopy(fname)
+		return True
 
 pBExport = pbExport()

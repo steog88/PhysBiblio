@@ -92,6 +92,12 @@ class MainWindow(QMainWindow):
 								statusTip="Export as *.bib the bibliography needed to compile a .tex file",
 								triggered=self.exportFile)
 
+		self.exportUpdateAct = QAction(#QIcon(":/images/export-table.png"),
+								"Update an existing *.&bib file", self,
+								shortcut="Ctrl+Shift+X",
+								statusTip="Read a *.bib file and update the existing elements inside it",
+								triggered=self.exportUpdate)
+
 		self.exitAct = QAction(QIcon(":/images/application-exit.png"),
 								"E&xit", self,
 								shortcut="Ctrl+Q",
@@ -220,6 +226,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportAct)
 		self.fileMenu.addAction(self.exportFileAct)
 		self.fileMenu.addAction(self.exportAllAct)
+		self.fileMenu.addAction(self.exportUpdateAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.profilesAct)
 		self.fileMenu.addAction(self.editProfilesAct)
@@ -423,6 +430,15 @@ class MainWindow(QMainWindow):
 				self.StatusBarMessage("All entries saved into %s"%outFName)
 			else:
 				self.StatusBarMessage("Empty input filename!")
+		else:
+			self.StatusBarMessage("Empty output filename!")
+
+	def exportUpdate(self):
+		filename = askSaveFileName(self, title = "File to update?", filter = "Bibtex (*.bib)")
+		if filename != "":
+			overwrite = askYesNo("Do you want to overwrite the existing .bib file?", "Overwrite")
+			pBExport.updateExportedBib(filename, overwrite = overwrite)
+			self.StatusBarMessage("File %s updated"%filename)
 		else:
 			self.StatusBarMessage("Empty output filename!")
 

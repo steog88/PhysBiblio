@@ -132,11 +132,14 @@ class MyThread(QThread):
 	finished = Signal()
 
 class WriteStream(QObject):
-    def __init__(self,queue):
-        self.queue = queue
+	"""class used to redirect the stdout prints to a window"""
+	def __init__(self,queue):
+		self.queue = queue
 
-    def write(self, text):
-        self.queue.put(text)
+	def write(self, text):
+		"""output is sent to window but also copied to real stdout"""
+		self.queue.put(text)
+		sys.__stdout__.write(text)
 
 class MyReceiver(MyThread):
 	mysignal = Signal(str)

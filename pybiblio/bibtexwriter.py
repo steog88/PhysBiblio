@@ -10,8 +10,9 @@ pbWriter.display_order=[
 	'author','collaboration','title','publisher','journal','volume','year','pages',
 	'russian',
 	'archiveprefix','primaryclass','eprint','doi',
-	'reportNumber','slaccitation']
+	'reportNumber']
 pbWriter.bracket_fields=['title','www','note','abstract','comment','article','url']
+pbWriter.excluded_fields=["adsnote", "adsurl", "slaccitation"]
 #Necessary to avoid a change of the ordering of the bibtex entries:
 pbWriter.order_entries_by=None
 pbWriter.comma_first = False
@@ -27,8 +28,7 @@ def new_entry_to_bibtex(self, entry):
 	# first those keys which are both in self.display_order and in entry.keys
 	display_order = [i for i in self.display_order if i in entry]
 	# then all the other fields sorted alphabetically
-	more_fields = [i for i in sorted(entry) if i not in self.display_order]
-	display_order += [i for i in sorted(entry) if i not in self.display_order]
+	display_order += [i for i in sorted(entry) if i not in self.display_order and i not in self.excluded_fields]
 
 	# Write field = value lines
 	for field in [i for i in display_order if i not in ['ENTRYTYPE', 'ID']]:
