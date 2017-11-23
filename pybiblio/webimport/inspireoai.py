@@ -6,6 +6,7 @@ from pybiblio.parse_accents import *
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
 from pybiblio.bibtexwriter import pbWriter
+from pybiblio.errors import pBErrorManager
 
 import codecs
 reload(sys)
@@ -97,12 +98,12 @@ class webSearch(webInterf):
 		
 	def retrieveUrlFirst(self,string):
 		"""not possible to search a single string"""
-		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
+		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def retrieveUrlAll(self,string):
 		"""not possible to search a single string"""
-		print("[oai] -> ERROR: inspireoai cannot search strings in the DB")
+		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record):
@@ -186,7 +187,7 @@ class webSearch(webInterf):
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
 		except ErrorBase, httplib.IncompleteRead:
-			print("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID)
+			pBErrorManager("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID, traceback)
 			return False
 		nhand = 0
 		if verbose > 0:
@@ -213,8 +214,7 @@ class webSearch(webInterf):
 				print("[oai] done.")
 			return res
 		except Exception:
-			print("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID)
-			print(traceback.format_exc())
+			pBErrorManager("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID, traceback)
 			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):

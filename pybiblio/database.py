@@ -1394,7 +1394,7 @@ class entries(pybiblioDBSub):
 				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
 				key = imposeKey
 			if key.strip() == "":
-				print("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
+				pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
 			existing = self.getByBibkey(key, saveQuery = False)
 			if existing:
@@ -1403,7 +1403,7 @@ class entries(pybiblioDBSub):
 			try:
 				self.insert(data)
 			except:
-				print("[DB] loadAndInsert(%s) failed in inserting entry\n"%entry)
+				pBErrorManager("[DB] loadAndInsert(%s) failed in inserting entry\n"%entry)
 				return False
 			try:
 				if method == "inspire":
@@ -1421,7 +1421,7 @@ class entries(pybiblioDBSub):
 				else:
 					return True
 			except:
-				print("[DB] loadAndInsertEntries(%s) failed in completing info\n"%entry)
+				pBErrorManager("[DB] loadAndInsertEntries(%s) failed in completing info\n"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
 			failed = []
@@ -1449,7 +1449,7 @@ class entries(pybiblioDBSub):
 			if len(self.lastInserted) > 0:
 				print("[DB] imported entries:\n%s"%", ".join(self.lastInserted))
 			if len(failed) > 0:
-				print("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
+				pBErrorManager("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 		else:
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False

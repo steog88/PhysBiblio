@@ -66,7 +66,7 @@ class ConfigVars():
 		"""initialize variables and read the external file"""
 		self.paramOrder = config_paramOrder
 		self.params = {}
-		self.path = os.path.realpath(__file__).replace("pybiblio/config.py","")
+		self.path = os.path.realpath(__file__).replace("pybiblio/config.pyc","").replace("pybiblio/config.py","")
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.descriptions = config_descriptions
