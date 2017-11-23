@@ -84,6 +84,9 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 			if "bibkey" in data.keys():
+				if editKey is not None and data["bibkey"].strip() != editKey:
+					print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
+					pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:
@@ -91,7 +94,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			message = "Bibtex entry saved"
 			statusBarObject.setWindowTitle("PyBiblio*")
 			try:
-				parent.bibtexList.recreateTable(parent.bibtexList.bibs)
+				parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 			except:
 				pass
 		else:

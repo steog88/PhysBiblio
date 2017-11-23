@@ -152,6 +152,11 @@ class MainWindow(QMainWindow):
 								statusTip="Use Inspires to load and insert bibtex entries, then ask the categories for each",
 								triggered=self.inspireLoadAndInsertWithCats)
 
+		self.advImportAct = QAction("&Advanced Import", self,
+								shortcut="Ctrl+Alt+I",
+								statusTip="Open the advanced import window",
+								triggered=self.advancedImport)
+
 		self.updateAllBibtexsAct = QAction("&Update bibtexs", self,
 								shortcut="Ctrl+U",
 								statusTip="Update all the journal info of bibtexs",
@@ -238,6 +243,7 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.newBibAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertWithCatsAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
+		self.bibMenu.addAction(self.advImportAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.cleanAllBibtexsAct)
 		self.bibMenu.addAction(self.cleanAllBibtexsAskAct)
@@ -634,23 +640,78 @@ class MainWindow(QMainWindow):
 			self.reloadMainContent()
 		return True
 
+	def askCatsForEntries(self, entriesList):
+		for entry in entriesList:
+			selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
+			selectCats.exec_()
+			if selectCats.result in ["Ok", "Exps"]:
+				cats = self.selectedCats
+				pBDB.catBib.insert(cats, entry)
+				self.StatusBarMessage("categories for '%s' successfully inserted"%entry)
+			if selectCats.result == "Exps":
+				selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry)
+				selectExps.exec_()
+				if selectExps.result == "Ok":
+					exps = self.selectedExps
+					pBDB.bibExp.insert(entry, exps)
+					self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
+
 	def inspireLoadAndInsertWithCats(self):
 		if self.inspireLoadAndInsert(doReload = False) and len(self.loadedAndInserted) > 0:
-			for entry in self.loadedAndInserted:
-				selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
-				selectCats.exec_()
-				if selectCats.result in ["Ok", "Exps"]:
-					cats = self.selectedCats
-					pBDB.catBib.insert(cats, entry)
-					self.StatusBarMessage("categories for '%s' successfully inserted"%entry)
-				if selectCats.result == "Exps":
-					selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry)
-					selectExps.exec_()
-					if selectExps.result == "Ok":
-						exps = self.selectedExps
-						pBDB.bibExp.insert(entry, exps)
-						self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
+			self.askCatsForEntries(self.loadedAndInserted)
 			self.reloadMainContent()
+
+	def advancedImport(self):
+		adIm = advImportDialog()
+		adIm.exec_()
+		method = adIm.comboMethod.currentText().lower()
+		string = adIm.searchStr.text().strip()
+		if adIm.result == True and string != "":
+			cont = pyBiblioWeb.webSearch[method].retrieveUrlAll(string)
+			elements = bibtexparser.loads(cont).entries
+			found = {}
+			for el in elements:
+				if el["ID"].strip() == "":
+					pBErrorManager("[advancedImport] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%el["ID"])
+				else:
+					found[el["ID"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["ID"], saveQuery = False) ) > 0}
+			if len(found) == 0:
+				infoMessage("No results obtained.")
+				return False
+
+			selImpo = advImportSelect(found, self)
+			selImpo.exec_()
+			if selImpo.result == True:
+				for ch in selImpo.checkBoxes:
+					if not ch.isChecked():
+						found.pop(ch.text())
+				db = bibtexparser.bibdatabase.BibDatabase()
+				inserted = []
+				for key, el in found.items():
+					db.entries = [el["bibpars"]]
+					entry = pbWriter.write(db)
+					data = pBDB.bibs.prepareInsert(entry)
+					try:
+						pBDB.bibs.insert(data)
+					except:
+						pBErrorManager("[advancedImport] failed in inserting entry %s\n"%key)
+						continue
+					try:
+						if method == "inspire":
+							eid = pBDB.bibs.updateInspireID(key)
+							pBDB.bibs.updateInfoFromOAI(eid)
+						elif method == "isbn":
+							pBDB.bibs.setBook(key)
+						print("[advancedImport] element successfully inserted.\n")
+						inserted.append(key)
+					except:
+						pBErrorManager("[advancedImport] failed in completing info for entry %s\n"%key)
+				self.StatusBarMessage("[advancedImport] entries successfully imported: %s"%inserted)
+				if selImpo.askCats.isChecked():
+					self.askCatsForEntries(inserted)
+			self.reloadMainContent()
+		else:
+			return False
 
 	def cleanAllBibtexsAsk(self):
 		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the cleaning:", "Where do you want to start cleanBibtexs from?", self)

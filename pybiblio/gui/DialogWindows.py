@@ -10,6 +10,7 @@ try:
 	#import pybiblio.webimport.webInterf as webInt
 	#from pybiblio.cli import cli as pyBiblioCLI
 	from pybiblio.config import pbConfig
+	from pybiblio.gui.CommonClasses import *
 except ImportError:
 	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -281,6 +282,140 @@ class searchReplaceDialog(QDialog):
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
 		grid.addWidget(self.cancelButton, 2, 1)
+
+		self.setGeometry(100,100,400, 100)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+class advImportDialog(QDialog):
+	"""create a window for the advanced import"""
+	def __init__(self, parent = None):
+		super(advImportDialog, self).__init__(parent)
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result	= True
+		self.close()
+
+	def initUI(self):
+		self.setWindowTitle('Advanced import')
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		##search
+		grid.addWidget(QLabel("Select method: "), 0, 0)
+		self.comboMethod = MyComboBox(self,
+			["Inspire", "arXiv", "DOI", "ISBN"],
+			current = "Inspire")
+		grid.addWidget(self.comboMethod, 0, 1)
+
+		grid.addWidget(QLabel("Search string: "), 1, 0)
+		self.searchStr = QLineEdit("")
+		grid.addWidget(self.searchStr, 1, 1)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		grid.addWidget(self.acceptButton, 2, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		grid.addWidget(self.cancelButton, 2, 1)
+
+		self.setGeometry(100,100,400, 100)
+		self.setLayout(grid)
+		self.searchStr.setFocus()
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+class advImportSelect(QDialog):
+	"""create a window for the advanced import"""
+	def __init__(self, bibs=[], parent = None):
+		super(advImportSelect, self).__init__(parent)
+		self.bibs = bibs
+		self.oneNew = False
+		self.checkBoxes = []
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result	= True
+		self.close()
+
+	def initUI(self):
+		self.setWindowTitle('Advanced import - results')
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		grid.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:\n"), 0, 0, 1, 2)
+		##search
+		i = 0
+		for bk, elDic in self.bibs.items():
+			el = elDic["bibpars"]
+			if elDic["exist"] is False:
+				self.checkBoxes.append(QCheckBox(bk, self))
+				self.checkBoxes[i].toggle()
+				grid.addWidget(self.checkBoxes[i], i+1, 0)
+				try:
+					title = el["title"]
+				except:
+					title = "Title not found"
+				try:
+					authors = el["author"]
+				except:
+					authors = "Authors not found"
+				try:
+					arxiv = el["arxiv"]
+				except:
+					try:
+						arxiv = el["eprint"]
+					except:
+						arxiv = "arXiv number not found"
+				grid.addWidget(QLabel("%s\n%s\n%s"%(title, authors, arxiv)), i+1, 1)
+				self.oneNew = True
+			else:
+				self.checkBoxes.append(QCheckBox(bk, self))
+				self.checkBoxes[i].setDisabled(True)
+				grid.addWidget(self.checkBoxes[i], i+1, 0)
+				grid.addWidget(QLabel("Already existing"), i+1, 1)
+			i += 1
+
+		i += 2
+		grid.addWidget(QLabel("\n"), i-1, 1)
+		if self.oneNew:
+			grid.addWidget(QLabel("Ask categories at the end?"), i, 1)
+			self.askCats = QCheckBox("", self)
+			self.askCats.toggle()
+			grid.addWidget(self.askCats, i, 0)
+
+			# OK button
+			self.acceptButton = QPushButton('OK', self)
+			self.acceptButton.clicked.connect(self.onOk)
+			grid.addWidget(self.acceptButton, i+1, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		grid.addWidget(self.cancelButton, i+1, 1)
 
 		self.setGeometry(100,100,400, 100)
 		self.setLayout(grid)

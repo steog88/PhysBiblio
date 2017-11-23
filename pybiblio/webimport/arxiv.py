@@ -57,7 +57,6 @@ class webSearch(webInterf):
 					tmp["doi"] = entry['arxiv_doi']
 				except KeyError, e:
 					print("[arXiv] -> KeyError: ", e)
-					pass
 				tmp["abstract"] = entry['summary']
 				tmp["authors"] = " and ".join([ au["name"] for au in entry['authors']])
 				tmp["primaryclass"] = entry['arxiv_primary_category']['term']
