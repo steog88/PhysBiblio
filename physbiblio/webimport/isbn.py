@@ -3,12 +3,12 @@
 #import urllib2
 import traceback
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from pybiblio.webimport.webInterf import *
-from pybiblio.parse_accents import *
+from physbiblio.webimport.webInterf import *
+from physbiblio.parse_accents import *
 
 class webSearch(webInterf):
 	"""isbn method"""

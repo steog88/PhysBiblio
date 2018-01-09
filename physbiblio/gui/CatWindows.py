@@ -5,14 +5,14 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
-	from pybiblio.database import pBDB, cats_alphabetical, catString
-	from pybiblio.config import pbConfig
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.CommonClasses import *
+	from physbiblio.database import pBDB, cats_alphabetical, catString
+	from physbiblio.config import pbConfig
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.CommonClasses import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -41,7 +41,7 @@ def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 			else:
 				pBDB.cats.insert(data)
 			message = "Category saved"
-			statusBarObject.setWindowTitle("PyBiblio*")
+			statusBarObject.setWindowTitle("PhysBiblio*")
 			try:
 				parent.recreateTable()
 			except:
@@ -58,7 +58,7 @@ def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 def deleteCategory(parent, statusBarObject, idCat, name):
 	if askYesNo("Do you really want to delete this category (ID = '%s', name = '%s')?"%(idCat, name)):
 		pBDB.cats.delete(int(idCat))
-		statusBarObject.setWindowTitle("PyBiblio*")
+		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Category deleted"
 		parent.recreateTable()
 	else:

@@ -5,16 +5,16 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
-	#from pybiblio.database import *
-	#from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
-	from pybiblio.config import pbConfig
-	from pybiblio.gui.CommonClasses import *
+	#from physbiblio.database import *
+	#from physbiblio.export import pBExport
+	#import physbiblio.webimport.webInterf as webInt
+	#from physbiblio.cli import cli as physBiblioCLI
+	from physbiblio.config import pbConfig
+	from physbiblio.gui.CommonClasses import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 

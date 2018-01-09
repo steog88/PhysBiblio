@@ -2,11 +2,11 @@ import os, sys, numpy, codecs, re
 import bibtexparser
 import shutil
 try:
-	from pybiblio.errors import pBErrorManager
-	from pybiblio.database import pBDB
-	from pybiblio.bibtexwriter import pbWriter
+	from physbiblio.errors import pBErrorManager
+	from physbiblio.database import pBDB
+	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class pbExport():
 	def __init__(self):
@@ -90,7 +90,7 @@ class pbExport():
 
 		if overwrite:
 			with open(outFName, "w") as o:
-				o.write("%file written by PyBiblio\n")
+				o.write("%file written by PhysBiblio\n")
 
 		existingBib = open(outFName, "r").read()
 

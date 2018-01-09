@@ -1,7 +1,7 @@
 import sys,re,os
 from urllib2 import Request
 import urllib2
-from pybiblio.webimport.webInterf import *
+from physbiblio.webimport.webInterf import *
 
 class webSearch(webInterf):
 	def __init__(self):

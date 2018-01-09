@@ -8,23 +8,23 @@ import signal
 import ast
 
 try:
-	from pybiblio.errors import pBErrorManager
-	from pybiblio.database import *
-	from pybiblio.export import pBExport
-	import pybiblio.webimport.webInterf as webInt
-	from pybiblio.cli import cli as pyBiblioCLI
-	from pybiblio.config import pbConfig
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.BibWindows import *
-	from pybiblio.gui.CatWindows import *
-	from pybiblio.gui.ExpWindows import *
-	from pybiblio.gui.inspireStatsGUI import *
-	from pybiblio.gui.ProfilesManager import *
-	from pybiblio.gui.ThreadElements import *
+	from physbiblio.errors import pBErrorManager
+	from physbiblio.database import *
+	from physbiblio.export import pBExport
+	import physbiblio.webimport.webInterf as webInt
+	from physbiblio.cli import cli as physBiblioCLI
+	from physbiblio.config import pbConfig
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.BibWindows import *
+	from physbiblio.gui.CatWindows import *
+	from physbiblio.gui.ExpWindows import *
+	from physbiblio.gui.inspireStatsGUI import *
+	from physbiblio.gui.ProfilesManager import *
+	from physbiblio.gui.ThreadElements import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
 		QMainWindow.__init__(self)
 		availableWidth		= QDesktopWidget().availableGeometry().width()
 		availableHeight		= QDesktopWidget().availableGeometry().height() 
-		self.setWindowTitle('PyBiblio')
+		self.setWindowTitle('PhysBiblio')
 		self.setGeometry(0, 0, availableWidth, availableHeight)#x,y of topleft corner, width, height
 		self.setMinimumHeight(400)
 		self.setMinimumWidth(600)
@@ -372,8 +372,8 @@ class MainWindow(QMainWindow):
 		"""
 		Function to show About Box
 		"""
-		QMessageBox.about(self, "About PyBiblio",
-			"PyBiblio is a cross-platform tool for managing a LaTeX/BibTeX database. "+
+		QMessageBox.about(self, "About PhysBiblio",
+			"PhysBiblio is a cross-platform tool for managing a LaTeX/BibTeX database. "+
 			"It supports grouping, tagging and various different other functions.")
 
 	def CreateStatusBar(self):
@@ -390,7 +390,7 @@ class MainWindow(QMainWindow):
 	def save(self):
 		if askYesNo("Do you really want to save?"):
 			pBDB.commit()
-			self.setWindowTitle("PyBiblio")
+			self.setWindowTitle("PhysBiblio")
 			self.StatusBarMessage("Changes saved")
 		else:
 			self.StatusBarMessage("Nothing saved")
@@ -514,7 +514,7 @@ class MainWindow(QMainWindow):
 	def cli(self):
 		self.StatusBarMessage("Activating CLI!")
 		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
-		pyBiblioCLI()
+		physBiblioCLI()
 
 	def updateAllBibtexsAsk(self):
 		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")
@@ -667,7 +667,7 @@ class MainWindow(QMainWindow):
 		method = adIm.comboMethod.currentText().lower()
 		string = adIm.searchStr.text().strip()
 		if adIm.result == True and string != "":
-			cont = pyBiblioWeb.webSearch[method].retrieveUrlAll(string)
+			cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
 			elements = bibtexparser.loads(cont).entries
 			found = {}
 			for el in elements:

@@ -4,10 +4,10 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	from pybiblio.errors import pBErrorManager
-	import pybiblio.gui.Resources_pyside
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.database import catString
+	from physbiblio.errors import pBErrorManager
+	import physbiblio.gui.Resources_pyside
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.database import catString
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 

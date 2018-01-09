@@ -5,14 +5,14 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	from pybiblio.config import pbConfig
-	from pybiblio.database import *
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.CommonClasses import *
-	from pybiblio.pdf import pBPDF
-	from pybiblio.view import pBView
+	from physbiblio.config import pbConfig
+	from physbiblio.database import *
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.CommonClasses import *
+	from physbiblio.pdf import pBPDF
+	from physbiblio.view import pBView
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 def editProf(parent, statusBarObject):
 	newProfWin = editProfile(parent)

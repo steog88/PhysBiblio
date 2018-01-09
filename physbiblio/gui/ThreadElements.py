@@ -5,19 +5,19 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	from pybiblio.database import *
-	from pybiblio.pdf import pBPDF
-	from pybiblio.inspireStats import pBStats
-	from pybiblio.export import pBExport
-	#import pybiblio.webimport.webInterf as webInt
-	#from pybiblio.cli import cli as pyBiblioCLI
-	#from pybiblio.config import pbConfig
-	from pybiblio.gui.DialogWindows import *
-	#from pybiblio.gui.BibWindows import *
-	#from pybiblio.gui.CatWindows import *
-	from pybiblio.gui.CommonClasses import *
+	from physbiblio.database import *
+	from physbiblio.pdf import pBPDF
+	from physbiblio.inspireStats import pBStats
+	from physbiblio.export import pBExport
+	#import physbiblio.webimport.webInterf as webInt
+	#from physbiblio.cli import cli as physBiblioCLI
+	#from physbiblio.config import pbConfig
+	from physbiblio.gui.DialogWindows import *
+	#from physbiblio.gui.BibWindows import *
+	#from physbiblio.gui.CatWindows import *
+	from physbiblio.gui.CommonClasses import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class thread_updateAllBibtexs(MyThread):
 	def __init__(self, startFrom, queue, myrec, parent = None, useEntries = None, force = False):

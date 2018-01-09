@@ -3,15 +3,15 @@ from urllib2 import Request
 import urllib2
 import feedparser, traceback
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
-from pybiblio.webimport.webInterf import *
-from pybiblio.parse_accents import *
-from pybiblio.bibtexwriter import pbWriter
+from physbiblio.webimport.webInterf import *
+from physbiblio.parse_accents import *
+from physbiblio.bibtexwriter import pbWriter
 
 class webSearch(webInterf):
 	"""arxiv.org search"""

@@ -3,16 +3,16 @@ import readline # optional, will allow Up/Down/History in the console
 import code
 
 try:
-	from pybiblio.export import pBExport
-	import pybiblio.webimport.webInterf as webInt
-	from pybiblio.config import pbConfig
-	from pybiblio.database import pBDB
-	from pybiblio.pdf import pBPDF
-	from pybiblio.view import pBView
-	from pybiblio.inspireStats import pBStats
-	from pybiblio.webimport.webInterf import pyBiblioWeb
+	from physbiblio.export import pBExport
+	import physbiblio.webimport.webInterf as webInt
+	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
+	from physbiblio.pdf import pBPDF
+	from physbiblio.view import pBView
+	from physbiblio.inspireStats import pBStats
+	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
-	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 
 def cli():

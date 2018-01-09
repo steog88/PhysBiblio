@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
 try:
-	from pybiblio.config import pbConfig
-	from pybiblio.database import pBDB
-	from pybiblio.pdf import pBPDF
-	from pybiblio.view import pBView
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
+	from physbiblio.pdf import pBPDF
+	from physbiblio.view import pBView
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class inspireStatsLoader():
 	def __init__(self):

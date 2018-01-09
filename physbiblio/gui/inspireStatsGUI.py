@@ -9,15 +9,15 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 try:
-	from pybiblio.database import *
-	from pybiblio.config import pbConfig
-	from pybiblio.inspireStats import pBStats
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.CommonClasses import *
+	from physbiblio.database import *
+	from physbiblio.config import pbConfig
+	from physbiblio.inspireStats import pBStats
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.CommonClasses import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 

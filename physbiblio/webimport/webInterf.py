@@ -3,16 +3,16 @@ import urllib2
 import socket
 import pkgutil, traceback
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 try:
-	import pybiblio.webimport as wi
-	#from pybiblio.database import *
-	from pybiblio.config import pbConfig
+	import physbiblio.webimport as wi
+	#from physbiblio.database import *
+	from physbiblio.config import pbConfig
 except ImportError:
-	pBErrorManager("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
+	pBErrorManager("Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
@@ -67,10 +67,10 @@ class webInterf():
 			return
 		for q in self.interfaces:
 			try:
-				_temp = __import__("pybiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
+				_temp = __import__("physbiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
 				self.webSearch[q] = getattr(_temp, "webSearch")()
 			except:
-				pBErrorManager("pybiblio.webimport.%s import error"%q)
+				pBErrorManager("physbiblio.webimport.%s import error"%q)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):
@@ -81,5 +81,5 @@ class webInterf():
 		"""will call subclass method"""
 		getattr(self.webSearch[method], retrieveUrlAll)(search)
 
-pyBiblioWeb = webInterf()
-pyBiblioWeb.loadInterfaces()
+physBiblioWeb = webInterf()
+physBiblioWeb.loadInterfaces()

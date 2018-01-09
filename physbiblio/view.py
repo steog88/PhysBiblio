@@ -1,16 +1,16 @@
 import subprocess, traceback
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 
 try:
-	from pybiblio.config import pbConfig
-	from pybiblio.database import pBDB
-	from pybiblio.pdf import pBPDF
+	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
+	from physbiblio.pdf import pBPDF
 except ImportError:
-	pBErrorManager("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
+	pBErrorManager("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
 	
 class viewEntry():
 	"""Contains methods to print or open a web link to the entry"""

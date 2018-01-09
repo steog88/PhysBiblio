@@ -6,11 +6,11 @@ import logging
 from PySide.QtGui import QApplication
 
 try:
-    from pybiblio.gui.MainWindow import *
-    from pybiblio.database import *
-    from pybiblio.webimport.webInterf import *
+    from physbiblio.gui.MainWindow import *
+    from physbiblio.database import *
+    from physbiblio.webimport.webInterf import *
 except ImportError:
-    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
 
 # GUI application

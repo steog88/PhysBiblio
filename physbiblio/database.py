@@ -2,20 +2,20 @@ import sqlite3
 import os, re, traceback, datetime
 import bibtexparser
 import ast
-import pybiblio.webimport.webInterf as webInt
+import physbiblio.webimport.webInterf as webInt
 import time
 
 try:
-	from pybiblio.config import pbConfig
-	from pybiblio.bibtexwriter import pbWriter
-	from pybiblio.errors import pBErrorManager
-	import pybiblio.parse_accents as parse_accents
-	import pybiblio.firstOpen as pbfo
-	from pybiblio.webimport.webInterf import pyBiblioWeb
-	import pybiblio.tablesDef
-	from pybiblio.parse_accents import *
+	from physbiblio.config import pbConfig
+	from physbiblio.bibtexwriter import pbWriter
+	from physbiblio.errors import pBErrorManager
+	import physbiblio.parse_accents as parse_accents
+	import physbiblio.firstOpen as pbfo
+	from physbiblio.webimport.webInterf import physBiblioWeb
+	import physbiblio.tablesDef
+	from physbiblio.parse_accents import *
 except ImportError:
-    print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 encoding_default = 'iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
@@ -23,7 +23,7 @@ parser.encoding = encoding_default
 parser.customization = parse_accents.parse_accents_record
 parser.alt_dict = {}
 
-class pybiblioDB():
+class physbiblioDB():
 	"""
 	Contains most of the basic DB functions
 	"""
@@ -32,8 +32,8 @@ class pybiblioDB():
 		Initialize DB class
 		"""
 		#structure of the tables
-		self.tableFields = pybiblio.tablesDef.tableFields
-		self.descriptions = pybiblio.tablesDef.fieldsDescriptions
+		self.tableFields = physbiblio.tablesDef.tableFields
+		self.descriptions = physbiblio.tablesDef.fieldsDescriptions
 		#names of the columns
 		self.tableCols = {}
 		for q in self.tableFields.keys():
@@ -144,19 +144,19 @@ class pybiblioDB():
 		self.catBib = catsEntries()
 		self.catExp = catsExps()
 
-pBDB=pybiblioDB()
+pBDB=physbiblioDB()
 
-class pybiblioDBSub():
+class physbiblioDBSub():
 	"""
-	Uses pybiblioDB instance 'pBDB' to act on the database.
-	All the subcategories of pybiblioDB are defined starting from this one.
+	Uses physbiblioDB instance 'pBDB' to act on the database.
+	All the subcategories of physbiblioDB are defined starting from this one.
 	"""
 	def __init__(self):
 		"""
 		Initialize DB class
 		"""
 		#structure of the tables
-		self.tableFields = pybiblio.tablesDef.tableFields
+		self.tableFields = physbiblio.tablesDef.tableFields
 		#names of the columns
 		self.tableCols = {}
 		for q in self.tableFields.keys():
@@ -185,7 +185,7 @@ class pybiblioDBSub():
 		"""execute cursor"""
 		return pBDB.cursExec(query, data = data)
 
-class categories(pybiblioDBSub):
+class categories(physbiblioDBSub):
 	"""functions for categories"""
 	def insert(self, data):
 		"""new category"""
@@ -351,7 +351,7 @@ class categories(pybiblioDBSub):
 
 pBDB.cats = categories()
 
-class catsEntries(pybiblioDBSub):
+class catsEntries(physbiblioDBSub):
 	"""functions for connecting categories and entries"""
 	def getOne(self, idCat, key):
 		"""fine connection"""
@@ -426,7 +426,7 @@ class catsEntries(pybiblioDBSub):
 
 pBDB.catBib = catsEntries()
 
-class catsExps(pybiblioDBSub):
+class catsExps(physbiblioDBSub):
 	"""functions for connecting categories and entries"""
 	def getOne(self, idCat, idExp):
 		"""get one connection"""
@@ -501,7 +501,7 @@ class catsExps(pybiblioDBSub):
 
 pBDB.catExp = catsExps()
 
-class entryExps(pybiblioDBSub):
+class entryExps(physbiblioDBSub):
 	"""functions for connecting entries and experiments"""
 	def getOne(self, key, idExp):
 		"""find one connection"""
@@ -578,7 +578,7 @@ class entryExps(pybiblioDBSub):
 
 pBDB.bibExp = entryExps()
 
-class experiments(pybiblioDBSub):
+class experiments(physbiblioDBSub):
 	"""functions for experiments"""
 	def insert(self,data):
 		"""insert a new experiment"""
@@ -771,10 +771,10 @@ class experiments(pybiblioDBSub):
 
 pBDB.exps = experiments()
 
-class entries(pybiblioDBSub):
+class entries(physbiblioDBSub):
 	"""functions for the entries"""
 	def __init__(self): #need to create lastFetched
-		pybiblioDBSub.__init__(self)
+		physbiblioDBSub.__init__(self)
 		self.lastFetched = "select * from entries limit 10"
 		self.lastInserted = []
 
@@ -1210,7 +1210,7 @@ class entries(pybiblioDBSub):
 		
 	def updateInspireID(self, string, key = None, number = None):
 		"""use inspire websearch module to get and update the inspireID"""
-		newid = pyBiblioWeb.webSearch["inspire"].retrieveInspireID(string, number = number)
+		newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(string, number = number)
 		if key is None:
 			key = string
 		if newid is not "":
@@ -1255,14 +1255,14 @@ class entries(pybiblioDBSub):
 		print("[DB] calling Inspire OAI harvester between dates %s and %s"%(date1, date2))
 		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
 		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
-		entries = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+		entries = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
 		for e in entries:
 			try:
 				key = e["bibkey"]
 				print(key)
 				old = self.extractEntryByBibkey(key)
 				if len(old) > 0:
-					for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
 							self.updateEntryField(key, d, e[o], 0)
 			except:
@@ -1278,7 +1278,7 @@ class entries(pybiblioDBSub):
 			except AttributeError:
 				print("[DB] wrong value/format in inspireID: ", inspireID)
 				return False
-		result = pyBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
+		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
 		if verbose > 1:
 			print(result)
 		try:
@@ -1287,7 +1287,7 @@ class entries(pybiblioDBSub):
 			if verbose > 1:
 				print("%s, %s"%(key, old))
 			if len(old) > 0:
-				for [o, d] in pyBiblioWeb.webSearch["inspireoai"].correspondences:
+				for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if verbose > 0:
 							print("%s = %s (%s)"%(d, result[o], old[0][d]))
@@ -1376,7 +1376,7 @@ class entries(pybiblioDBSub):
 			if method == "bibtex":
 				e = entry
 			else:
-				e = pyBiblioWeb.webSearch[method].retrieveUrlAll(entry)
+				e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
 				if e.count('@') > 1:
 					if number is not None:
 						requireAll = True
@@ -1659,7 +1659,7 @@ class entries(pybiblioDBSub):
 
 pBDB.bibs = entries()
 
-class utilities(pybiblioDBSub):
+class utilities(physbiblioDBSub):
 	"""various useful functions"""
 	def cleanSpareEntries(self):
 		"""finds and deletes connections where one of the parts is missing"""

@@ -1,14 +1,14 @@
 import os, traceback
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 try:
-	from pybiblio.config import pbConfig
-	import pybiblio.tablesDef
+	from physbiblio.config import pbConfig
+	import physbiblio.tablesDef
 except ImportError:
-    pBErrorManager("Could not find pybiblio and its contents: configure your PYTHONPATH!", traceback)
+    pBErrorManager("Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
 
 #write here the functions to define the user settings and create the database and config file. 
 

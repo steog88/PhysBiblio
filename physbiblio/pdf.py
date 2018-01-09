@@ -4,10 +4,10 @@ import os
 import subprocess
 
 try:
-	from pybiblio.config import pbConfig
-	from pybiblio.database import pBDB
+	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
 except ImportError:
-	print("[CLI] Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 	
 class localPDF():

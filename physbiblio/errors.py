@@ -2,9 +2,9 @@ import sys, traceback, os
 import os.path as osp
 
 try:
-	from pybiblio.config import pbConfig
+	from physbiblio.config import pbConfig
 except ImportError:
-    print("Cannot load pybiblio.config module: check your PYTHONPATH!")
+    print("Cannot load physbiblio.config module: check your PYTHONPATH!")
 
 class pBErrorManager():
 	def __init__(self, message, trcbk = None):

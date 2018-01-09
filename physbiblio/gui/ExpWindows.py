@@ -5,21 +5,21 @@ from PySide.QtGui  import *
 import subprocess, traceback
 import operator
 try:
-	from pybiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find pybiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 
 try:
-	from pybiblio.database import *
-	from pybiblio.config import pbConfig
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.CommonClasses import *
-	from pybiblio.gui.CatWindows import *
+	from physbiblio.database import *
+	from physbiblio.config import pbConfig
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.CommonClasses import *
+	from physbiblio.gui.CatWindows import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -42,7 +42,7 @@ def editExperiment(parent, statusBarObject, editIdExp = None):
 			else:
 				pBDB.exps.insert(data)
 			message = "Experiment saved"
-			statusBarObject.setWindowTitle("PyBiblio*")
+			statusBarObject.setWindowTitle("PhysBiblio*")
 			try:
 				parent.recreateTable()
 			except:
@@ -59,7 +59,7 @@ def editExperiment(parent, statusBarObject, editIdExp = None):
 def deleteExperiment(parent, statusBarObject, idExp, name):
 	if askYesNo("Do you really want to delete this experiment (ID = '%s', name = '%s')?"%(idExp, name)):
 		pBDB.exps.delete(int(idExp))
-		statusBarObject.setWindowTitle("PyBiblio*")
+		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Experiment deleted"
 		try:
 			parent.recreateTable()

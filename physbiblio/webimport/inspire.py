@@ -1,9 +1,9 @@
 import sys,re,os
 from urllib2 import Request
 import urllib2
-from pybiblio.config import pbConfig
-from pybiblio.webimport.webInterf import *
-from pybiblio.parse_accents import *
+from physbiblio.config import pbConfig
+from physbiblio.webimport.webInterf import *
+from physbiblio.parse_accents import *
 
 class webSearch(webInterf):
 	"""inspire methods"""

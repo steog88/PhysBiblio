@@ -1,12 +1,12 @@
 import sys, re, os, time
 from urllib2 import Request
 import urllib2
-from pybiblio.webimport.webInterf import *
-from pybiblio.parse_accents import *
+from physbiblio.webimport.webInterf import *
+from physbiblio.parse_accents import *
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from pybiblio.bibtexwriter import pbWriter
-from pybiblio.errors import pBErrorManager
+from physbiblio.bibtexwriter import pbWriter
+from physbiblio.errors import pBErrorManager
 
 import codecs
 reload(sys)

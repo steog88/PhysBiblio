@@ -5,19 +5,19 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
-	from pybiblio.database import pBDB
-	from pybiblio.config import pbConfig
-	from pybiblio.gui.DialogWindows import *
-	from pybiblio.gui.CommonClasses import *
-	from pybiblio.pdf import pBPDF
-	from pybiblio.view import pBView
-	from pybiblio.gui.ThreadElements import *
-	from pybiblio.gui.CatWindows import *
-	from pybiblio.gui.ExpWindows import *
+	from physbiblio.database import pBDB
+	from physbiblio.config import pbConfig
+	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.CommonClasses import *
+	from physbiblio.pdf import pBPDF
+	from physbiblio.view import pBView
+	from physbiblio.gui.ThreadElements import *
+	from physbiblio.gui.CatWindows import *
+	from physbiblio.gui.ExpWindows import *
 except ImportError:
-	print("Could not find pybiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import pybiblio.gui.Resources_pyside
+	import physbiblio.gui.Resources_pyside
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -92,7 +92,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			else:
 				pBDB.bibs.insert(data)
 			message = "Bibtex entry saved"
-			statusBarObject.setWindowTitle("PyBiblio*")
+			statusBarObject.setWindowTitle("PhysBiblio*")
 			try:
 				parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 			except:
@@ -109,7 +109,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 def deleteBibtex(parent, statusBarObject, bibkey):
 	if askYesNo("Do you really want to delete this bibtex entry (bibkey = '%s')?"%(bibkey)):
 		pBDB.bibs.delete(bibkey)
-		statusBarObject.setWindowTitle("PyBiblio*")
+		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Bibtex entry deleted"
 		try:
 			parent.bibtexList.recreateTable()
