@@ -9,7 +9,8 @@ It is written in Python, it uses PySide for the graphical interface and Sqlite f
 
 ### Dependencies
 PhysBiblio depends on several python packages:
-* python-pyside (for the database)
+* sqlite3 (for the database)
+* pyside (for the graphical interface)
 * pyoai	(for massively harvesting the INSPIRE-HEP database)
 * bibtexparser (to manage bibtex entries)
 * feedparser (to deal with arXiv data)
