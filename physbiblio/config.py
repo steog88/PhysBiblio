@@ -95,6 +95,8 @@ class ConfigVars():
 		self.inspireSearchBase = "http://inspirehep.net/search"
 	
 	def writeProfiles(self):
+		if not os.path.exists("data/"):
+			os.makedirs("data/")
 		with open(self.configProfilesFile, 'w') as w:
 			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
 
