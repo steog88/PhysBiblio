@@ -103,7 +103,7 @@ class pbExport():
 		allBibEntries = pBDB.bibs.getAll(saveQuery = False)
 		allbib = [ e["bibkey"] for e in allBibEntries ]
 
-		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
+		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
 		unw2 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?[\n ]*\}')	#remove unwanted fields
 		unw3 = re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,', re.MULTILINE)		#remove Abstract field
@@ -143,7 +143,7 @@ class pbExport():
 			for e in a:
 				if e not in requiredBibkeys and e not in existingBib and e.strip() != "":
 					requiredBibkeys.append(e)
-		print("[export] %d keys found"%len(requiredBibkeys))
+		print("[export] %d new keys found"%len(requiredBibkeys))
 
 		missing = []
 		retrieved = []
@@ -192,7 +192,7 @@ class pbExport():
 		if autosave:
 			pBDB.commit()
 		print("\n[export] RESUME")
-		print("[export] %d keys found in .tex file"%len(requiredBibkeys))
+		print("[export] %d new keys found in .tex file"%len(requiredBibkeys))
 		if len(missing) > 0:
 			print("\n[export] %d required entries were missing in database"%len(missing))
 		if len(retrieved) > 0:
