@@ -6,6 +6,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
 import ast
+import glob
 
 try:
 	from physbiblio.errors import pBErrorManager
@@ -14,6 +15,7 @@ try:
 	import physbiblio.webimport.webInterf as webInt
 	from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
+	from physbiblio.pdf import pBPDF
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *
@@ -210,6 +212,11 @@ class MainWindow(QMainWindow):
 								statusTip="Show About box",
 								triggered=self.showAbout)
 
+		self.dbstatsAct = QAction(QIcon(":/images/stats.png"),
+								"&Database info", self,
+								statusTip="Show some statistics about the current database",
+								triggered=self.showDBStats)
+
 	def closeEvent(self, event):
 		if pBDB.checkUncommitted():
 			if askYesNo("There may be unsaved changes to the database.\nDo you really want to exit?"):
@@ -277,6 +284,7 @@ class MainWindow(QMainWindow):
 
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
+		self.helpMenu.addAction(self.dbstatsAct)
 		self.helpMenu.addAction(self.aboutAct)
 		
 		self.mainToolBar = self.addToolBar('Toolbar')
@@ -293,6 +301,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addAction(self.cliAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.configAct)
+		self.mainToolBar.addAction(self.dbstatsAct)
 		self.mainToolBar.addAction(self.aboutAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.exitAct)
@@ -375,6 +384,18 @@ class MainWindow(QMainWindow):
 		QMessageBox.about(self, "About PhysBiblio",
 			"PhysBiblio is a cross-platform tool for managing a LaTeX/BibTeX database. "+
 			"It supports grouping, tagging and various different other functions.")
+
+	def showDBStats(self):
+		"""
+		Function to show About Box
+		"""
+		dbStats()
+		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
+		QMessageBox.about(self, "PhysBiblio database statistics",
+			"The PhysBiblio database currently contains the following number of records:\n"+
+			"- {bibs} bibtex entries\n- {cats} categories\n- {exps} experiments,\n".format(**pBDB.stats)+
+			"- {catBib} bibtex entries to categories connections\n- {catExp} experiment to categories connections\n- {bibExp} bibtex entries to experiment connections.\n\n".format(**pBDB.stats)+
+			"The number of currently stored PDF files is %d."%onlyfiles)
 
 	def CreateStatusBar(self):
 		"""

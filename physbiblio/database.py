@@ -1701,3 +1701,12 @@ def cats_alphabetical(listId):
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]
+
+def dbStats():
+	pBDB.stats={}
+	pBDB.stats["bibs"] = len(pBDB.bibs.getAll())
+	pBDB.stats["cats"] = len(pBDB.cats.getAll())
+	pBDB.stats["exps"] = len(pBDB.exps.getAll())
+	pBDB.stats["catBib"] = len(pBDB.catBib.getAll())
+	pBDB.stats["catExp"] = len(pBDB.catExp.getAll())
+	pBDB.stats["bibExp"] = len(pBDB.bibExp.getAll())
