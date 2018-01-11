@@ -169,7 +169,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Papers per year")
 				ax.hist([int(q.strftime("%Y")) for q in self.authorPlotInfo["paLi"][0]],
-					bins=range(ymin,  ymax))
+					bins=range(ymin,  ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -199,7 +199,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Citations per year")
 				ax.hist([int(q.strftime("%Y")) for q in self.authorPlotInfo["allLi"][0]],
-					bins=range(ymin,  ymax))
+					bins=range(ymin,  ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:

@@ -21,6 +21,10 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
+def pickEvent(event):
+	ob = event.artist
+	infoMessage("The selected year (%d) has %d counts"%(int(ob._x), int(ob._height)))
+
 class authorStatsPlots(QDialog):
 	def __init__(self, figs, title = None, parent = None):
 		super(authorStatsPlots, self).__init__(parent)
@@ -61,4 +65,5 @@ class authorStatsPlots(QDialog):
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.layout()
+				self.canvas[-1].mpl_connect("pick_event", pickEvent)
 				self.canvas[-1].draw()
