@@ -2,10 +2,13 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
+import numpy as np
 import matplotlib
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4'] = 'PySide'
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 try:
@@ -21,9 +24,14 @@ try:
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
-def pickEvent(event):
-	ob = event.artist
-	infoMessage("The selected year (%d) has %d counts"%(int(ob._x), int(ob._height)))
+figTitles = [
+"Paper number",
+"Papers per year",
+"Total citations",
+"Citations per year",
+"Mean citations",
+"Citations for each paper"
+]
 
 class authorStatsPlots(QDialog):
 	def __init__(self, figs, title = None, parent = None):
@@ -36,14 +44,19 @@ class authorStatsPlots(QDialog):
 		self.setLayout(layout)
 		self.updatePlots(figs)
 		
+		nlines = int(len(figs)/2)
+		self.layout().addWidget(QLabel("Click on the lines to have more information:"), nlines + 1, 0)
+		self.textBox = QLineEdit("")
+		self.textBox.setReadOnly(True)
+		self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)
 		self.saveButton = QPushButton('Save', self)
 		self.saveButton.clicked.connect(self.saveAction)
-		self.layout().addWidget(self.saveButton, int(len(figs)/2)+1, 0)
+		self.layout().addWidget(self.saveButton, nlines + 3, 0)
 
 		self.clButton = QPushButton('Close', self)
 		self.clButton.clicked.connect(self.close)
 		self.clButton.setAutoDefault(True)
-		self.layout().addWidget(self.clButton, int(len(figs)/2)+1, 1)
+		self.layout().addWidget(self.clButton, nlines + 3, 1)
 
 	def saveAction(self):
 		savePath = askDirName(self, "Where do you want to save the plots of the stats?")
@@ -52,6 +65,23 @@ class authorStatsPlots(QDialog):
 			infoMessage("Plots saved.")
 			self.saveButton.setDisabled(True)
 
+	def pickEvent(self,event):
+		ob = event.artist
+		ix = -1
+		for i, f in enumerate(self.figs):
+			if f == ob.figure: ix = i
+		if isinstance(ob, Rectangle):
+			self.textBox.setText("%s in year %d is: %d"%(figTitles[ix], int(ob._x), int(ob._height)))
+		elif isinstance(ob, Line2D):
+			xdata = ob.get_xdata()
+			ydata = ob.get_ydata()
+			ind = event.ind
+			if ix == 4:
+				formatString = "%s in date %s is %f"
+			else:
+				formatString = "%s in date %s is %d"
+			self.textBox.setText(formatString%(figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
+
 	def updatePlots(self, figs):		
 		i = 0
 		while True:
@@ -59,11 +89,12 @@ class authorStatsPlots(QDialog):
 			if item is None: break
 			del item
 		if hasattr(self, "canvas"): del self.canvas
+		self.figs = figs
 		self.canvas = []
 		for i,fig in enumerate(figs):
 			if fig is not None:
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.layout()
-				self.canvas[-1].mpl_connect("pick_event", pickEvent)
+				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
 				self.canvas[-1].draw()

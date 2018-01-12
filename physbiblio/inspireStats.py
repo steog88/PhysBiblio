@@ -128,7 +128,7 @@ class inspireStatsLoader():
 			if len(self.paperPlotInfo["citList"][0]) > 0:
 				print("[inspireStats] plotting for paper '%s'..."%self.paperPlotInfo["id"])
 				fig, ax = plt.subplots()
-				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1])
+				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1], picker=5)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.paperPlotInfo["id"]+'.pdf'))
@@ -154,7 +154,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Paper number")
-				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1])
+				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1], picker=5)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_papers.pdf'))
@@ -184,7 +184,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
-				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1])
+				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1], picker=5)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_allCit.pdf'))
@@ -214,7 +214,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["meanLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Mean citations")
-				plt.plot(self.authorPlotInfo["meanLi"][0], self.authorPlotInfo["meanLi"][1])
+				plt.plot(self.authorPlotInfo["meanLi"][0], self.authorPlotInfo["meanLi"][1], picker=5)
 				fig.autofmt_xdate()
 				if markPapers:
 					for q in self.authorPlotInfo["paLi"][0]:
