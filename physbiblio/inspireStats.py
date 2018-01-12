@@ -53,14 +53,20 @@ class inspireStatsLoader():
 				complete += temp
 				ser += 1
 
-	def authorStats(self, authorName, plot = False):
+	def authorStats(self, authorName, plot = False, reset = True):
+		if reset:
+			self.allInfo = {}
+			self.authorPapersList = [[],[]]
+			self.allCitations = []
+		if type(authorName) is list:
+			for a in authorName:
+				self.authorStats(a, reset = False)
+			self.authorPlotInfo["name"] = authorName
+			return self.authorPlotInfo
 		print("[inspireStats] stats for author '%s'"%authorName)
 		url = pbConfig.inspireSearchBase + "?p=author:" + authorName + self.authorStatsOpts
 		data = self.JsonFromUrl(url)
 		recid_authorPapers = [ "%d"%a["recid"] for a in data ]
-		allInfo = {}
-		authorPapersList = [[],[]]
-		allCitations = []
 		tot = len(recid_authorPapers)
 		print("[inspireStats] authorStats will process %d total papers to retrieve citations"%tot)
 		self.runningAuthorStats = True
@@ -70,30 +76,32 @@ class inspireStatsLoader():
 				break
 			if tot > 20:
 				time.sleep(1)
-			allInfo[p] = {}
-			allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
-			authorPapersList[0].append(allInfo[p]["date"])
+			if p in self.allInfo.keys(): continue
+			self.allInfo[p] = {}
+			self.allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
+			self.authorPapersList[0].append(self.allInfo[p]["date"])
 			print("[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
-			paperInfo = self.paperStats(p, verbose = 0, paperDate = allInfo[p]["date"])
-			allInfo[p]["infoDict"] = paperInfo["aI"]
-			allInfo[p]["citingPapersList"] = paperInfo["citList"]
-			for c,v in allInfo[p]["infoDict"].items():
-				allCitations.append(v["date"])
-		for i,p in enumerate(sorted(authorPapersList[0])):
-			authorPapersList[0][i] = p
-			authorPapersList[1].append(i + 1)
+			paperInfo = self.paperStats(p, verbose = 0, paperDate = self.allInfo[p]["date"])
+			self.allInfo[p]["infoDict"] = paperInfo["aI"]
+			self.allInfo[p]["citingPapersList"] = paperInfo["citList"]
+			for c,v in self.allInfo[p]["infoDict"].items():
+				self.allCitations.append(v["date"])
+		self.authorPapersList[1] = []
+		for i,p in enumerate(sorted(self.authorPapersList[0])):
+			self.authorPapersList[0][i] = p
+			self.authorPapersList[1].append(i + 1)
 		print("[inspireStats] saving citation counts...")
 		allCitList = [[],[]]
 		meanCitList = [[],[]]
 		currPaper = 0
-		for i,d in enumerate(sorted(allCitations)):
-			if currPaper < len(authorPapersList[0])-1 and d >= authorPapersList[0][currPaper+1]:
+		for i,d in enumerate(sorted(self.allCitations)):
+			if currPaper < len(self.authorPapersList[0])-1 and d >= self.authorPapersList[0][currPaper+1]:
 				currPaper += 1
 			allCitList[0].append(d)
 			allCitList[1].append(i+1)
 			meanCitList[0].append(d)
-			meanCitList[1].append((i+1.)/authorPapersList[1][currPaper])
-		self.authorPlotInfo = { "name": authorName, "aI": allInfo, "paLi": authorPapersList, "allLi": allCitList,  "meanLi": meanCitList }
+			meanCitList[1].append((i+1.)/self.authorPapersList[1][currPaper])
+		self.authorPlotInfo = { "name": authorName, "aI": self.allInfo, "paLi": self.authorPapersList, "allLi": allCitList,  "meanLi": meanCitList }
 		if plot:
 			self.authorPlotInfo["figs"] = self.plotStats(author = True)
 		print("[inspireStats] stats for author '%s' completed!"%authorName)

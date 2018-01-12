@@ -11,6 +11,7 @@ try:
 	#from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
+	from physbiblio.errors import pBErrorManager
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -43,6 +44,12 @@ def askGenericText(message, title, parent = None):
 
 def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
+
+class pBGUIErrorManager():
+	def __init__(self, message, trcbk = None):
+		message += "\n"
+		infoMessage(message)
+		pBErrorManager(message, trcbk)
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""

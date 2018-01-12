@@ -4,18 +4,11 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	from physbiblio.errors import pBErrorManager
 	import physbiblio.gui.Resources_pyside
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.database import catString
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
-
-class pBGUIErrorManager():
-	def __init__(self, message, trcbk = None):
-		message += "\n"
-		infoMessage(message)
-		pBErrorManager(message, trcbk)
 
 class objListWindow(QDialog):
 	"""create a window for printing the list of experiments"""

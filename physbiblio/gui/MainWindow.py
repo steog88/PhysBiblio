@@ -596,6 +596,12 @@ class MainWindow(QMainWindow):
 		if authorName is "":
 			pBGUIErrorManager("[authorStats] empty name inserted! cannot proceed.")
 			return False
+		if "[" in authorName:
+			try:
+				authorName = ast.literal_eval(authorName.strip())
+			except SyntaxError:
+				pBGUIErrorManager("[authorStats] cannot recognize the list sintax. Missing quotes in the string?", traceback)
+				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 		app = printText(title = "Author Stats", totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
 		app.progressBarMin(0)
@@ -613,7 +619,7 @@ class MainWindow(QMainWindow):
 		self.authorStats_thr.start()
 		app.exec_()
 		print("Closing...")
-		if self.lastAuthorStats is None:
+		if self.lastAuthorStats is None or len(self.lastAuthorStats["paLi"][0]) == 0:
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
 			return False
 		sys.stdout = sys.__stdout__
