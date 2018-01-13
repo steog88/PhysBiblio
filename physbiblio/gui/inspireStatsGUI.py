@@ -43,9 +43,15 @@ class authorStatsPlots(QDialog):
 		layout.setSpacing(1)
 		self.setLayout(layout)
 		self.updatePlots(figs)
-		
+
 		nlines = int(len(figs)/2)
 		self.layout().addWidget(QLabel("Click on the lines to have more information:"), nlines + 1, 0)
+
+		self.hIndex = QLabel("Author h index: %d"%self.parent.lastAuthorStats["h"])
+		largerFont = QFont("Times", 15, QFont.Bold)
+		self.hIndex.setFont(largerFont)
+		self.layout().addWidget(self.hIndex, nlines + 1, 1)
+
 		self.textBox = QLineEdit("")
 		self.textBox.setReadOnly(True)
 		self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)

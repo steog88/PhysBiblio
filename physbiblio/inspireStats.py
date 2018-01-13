@@ -101,7 +101,12 @@ class inspireStatsLoader():
 			allCitList[1].append(i+1)
 			meanCitList[0].append(d)
 			meanCitList[1].append((i+1.)/self.authorPapersList[1][currPaper])
-		self.authorPlotInfo = { "name": authorName, "aI": self.allInfo, "paLi": self.authorPapersList, "allLi": allCitList,  "meanLi": meanCitList }
+		hind = 0
+		citations = [len(self.allInfo[k]["citingPapersList"][0]) - 2 for k in self.allInfo.keys()]
+		for h in xrange(len(citations)):
+			if len([a for a in citations if a >= h]) >= h:
+				hind = h
+		self.authorPlotInfo = { "name": authorName, "aI": self.allInfo, "paLi": self.authorPapersList, "allLi": allCitList,  "meanLi": meanCitList, "h": hind }
 		if plot:
 			self.authorPlotInfo["figs"] = self.plotStats(author = True)
 		print("[inspireStats] stats for author '%s' completed!"%authorName)
