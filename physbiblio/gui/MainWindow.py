@@ -404,23 +404,50 @@ class MainWindow(QMainWindow):
 			"- {catBib} bibtex entries to categories connections\n- {catExp} experiment to categories connections\n- {bibExp} bibtex entries to experiment connections.\n\n".format(**pBDB.stats)+
 			"The number of currently stored PDF files is %d."%onlyfiles)
 
-	def cleanSpare(self):
-		app = printText(title = "Clean spare entries")
-		queue = Queue()
-		self.cSReceiver = MyReceiver(queue, self)
-		self.cSReceiver.mysignal.connect(app.append_text)
-		self.cS_thr = thread_cleanSpare(queue, self.cSReceiver, self)
+	def _runInThread(self, thread_func, title, *args, **kwargs):
+		def getDelKwargs(key):
+			if key in kwargs.keys():
+				tmp = kwargs.get(key)
+				del kwargs[key]
+				return tmp
+			else:
+				return None
+		totStr = getDelKwargs("totStr")
+		progrStr = getDelKwargs("progrStr")
+		addMessage = getDelKwargs("addMessage")
+		app = printText(title = title, totStr = totStr, progrStr = progrStr)
 
-		self.connect(self.cSReceiver, SIGNAL("finished()"), self.cSReceiver.deleteLater)
-		self.connect(self.cS_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.cS_thr, SIGNAL("finished()"), self.cS_thr.deleteLater)
+		outMessage = getDelKwargs("outMessage")
+		stopFlag = getDelKwargs("stopFlag")
+		minProgress = getDelKwargs("minProgress")
+		if minProgress:
+			app.progressBarMin(minProgress)
+		queue = Queue()
+		rec = MyReceiver(queue, self)
+		rec.mysignal.connect(app.append_text)
+		if addMessage:
+			print addMessage
+		thr = thread_func(queue, rec, *args, parent = self, **kwargs)
+
+		self.connect(rec, SIGNAL("finished()"), rec.deleteLater)
+		self.connect(thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(thr, SIGNAL("finished()"), thr.deleteLater)
+		if stopFlag:
+			self.connect(app, SIGNAL("stopped()"), thr.setStopFlag)
 
 		sys.stdout = WriteStream(queue)
-		self.cS_thr.start()
+		thr.start()
 		app.exec_()
 		print("Closing...")
 		sys.stdout = sys.__stdout__
-		self.done()
+		if outMessage:
+			self.StatusBarMessage(outMessage)
+		else:
+			self.done()
+		return thr, rec
+
+	def cleanSpare(self):
+		self.cS_thr, self.cSReceiver = self._runInThread(thread_cleanSpare, "Clean spare entries")
 
 	def CreateStatusBar(self):
 		"""
@@ -462,24 +489,10 @@ class MainWindow(QMainWindow):
 		if outFName != "":
 			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", filter = "Latex (*.tex)")
 			if texFile != "":
-				app = printText(title = "Exporting...")
-				app.progressBarMin(0)
-				queue = Queue()
-				self.exportTexBibReceiver = MyReceiver(queue, self)
-				self.exportTexBibReceiver.mysignal.connect(app.append_text)
-				self.exportTexBib_thr = thread_exportTexBib(texFile, outFName, queue, self.exportTexBibReceiver, self)
-
-				self.connect(self.exportTexBibReceiver, SIGNAL("finished()"), self.exportTexBibReceiver.deleteLater)
-				self.connect(self.exportTexBib_thr, SIGNAL("finished()"), app.enableClose)
-				self.connect(self.exportTexBib_thr, SIGNAL("finished()"), self.exportTexBib_thr.deleteLater)
-				self.connect(app, SIGNAL("stopped()"), self.exportTexBib_thr.setStopFlag)
-
-				sys.stdout = WriteStream(queue)
-				self.exportTexBib_thr.start()
-				app.exec_()
-				print("Closing...")
-				sys.stdout = sys.__stdout__
-				self.StatusBarMessage("All entries saved into %s"%outFName)
+				self.exportTexBib_thr, self.exportTexBibReceiver = self._runInThread(
+					thread_exportTexBib, "Exporting...",
+					texFile, outFName,
+					minProgress=0,  stopFlag = True, outMessage = "All entries saved into %s"%outFName)
 			else:
 				self.StatusBarMessage("Empty input filename!")
 		else:
@@ -576,45 +589,18 @@ class MainWindow(QMainWindow):
 
 	def updateAllBibtexs(self, startFrom = 0, useEntries = None, force = False):
 		self.StatusBarMessage("Starting update of bibtexs...")
-		app = printText(title = "Update Bibtexs")
-		app.progressBarMin(0)
-		queue = Queue()
-		self.uOAIReceiver = MyReceiver(queue, self)
-		self.uOAIReceiver.mysignal.connect(app.append_text)
-		self.updateOAI_thr = thread_updateAllBibtexs(startFrom, queue, self.uOAIReceiver, self, useEntries, force = force)
-
-		self.connect(self.uOAIReceiver, SIGNAL("finished()"), self.uOAIReceiver.deleteLater)
-		self.connect(self.updateOAI_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.updateOAI_thr, SIGNAL("finished()"), self.updateOAI_thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), self.updateOAI_thr.setStopFlag)
-
-		sys.stdout = WriteStream(queue)
-		self.updateOAI_thr.start()
-		app.exec_()
-		print("Closing...")
-		sys.stdout = sys.__stdout__
-		self.done()
+		self.updateOAI_thr, self.uOAIReceiver = self._runInThread(
+			thread_updateAllBibtexs, "Update Bibtexs",
+			startFrom, useEntries = useEntries, force = force,
+			totStr = "[DB] searchOAIUpdates will process ", progrStr = "%) - looking for update: ",
+			minProgress = 0., stopFlag = True)
 
 	def updateInspireInfo(self, bibkey):
 		self.StatusBarMessage("Starting generic info update from Inspire...")
-		app = printText(title = "Update Info")
-		app.progressBarMin(0)
-		queue = Queue()
-		self.uIIReceiver = MyReceiver(queue, self)
-		self.uIIReceiver.mysignal.connect(app.append_text)
-		self.updateII_thr = thread_updateInspireInfo(bibkey, queue, self.uIIReceiver, self)
-
-		self.connect(self.uIIReceiver, SIGNAL("finished()"), self.uIIReceiver.deleteLater)
-		self.connect(self.updateII_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.updateII_thr, SIGNAL("finished()"), self.updateII_thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), self.updateII_thr.setStopFlag)
-
-		sys.stdout = WriteStream(queue)
-		self.updateII_thr.start()
-		app.exec_()
-		print("Closing...")
-		sys.stdout = sys.__stdout__
-		self.done()
+		self.updateII_thr, self.uIIReceiver = self._runInThread(
+			thread_updateInspireInfo, "Update Info",
+			bibkey,
+			minProgress = 0., stopFlag = True)
 
 	def authorStats(self):
 		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
@@ -628,26 +614,16 @@ class MainWindow(QMainWindow):
 				pBGUIErrorManager("[authorStats] cannot recognize the list sintax. Missing quotes in the string?", traceback)
 				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
-		app = printText(title = "Author Stats", totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ")
-		app.progressBarMin(0)
-		queue = Queue()
-		self.aSReceiver = MyReceiver(queue, self)
-		self.aSReceiver.mysignal.connect(app.append_text)
-		self.authorStats_thr = thread_authorStats(authorName, queue, self.aSReceiver, self)
 
-		self.connect(self.aSReceiver, SIGNAL("finished()"), self.aSReceiver.deleteLater)
-		self.connect(self.authorStats_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.authorStats_thr, SIGNAL("finished()"), self.authorStats_thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), self.authorStats_thr.setStopFlag)
+		self.authorStats_thr, self.aSReceiver = self._runInThread(
+			thread_authorStats, "Author Stats",
+			authorName,
+			totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ",
+			minProgress = 0., stopFlag = True)
 
-		sys.stdout = WriteStream(queue)
-		self.authorStats_thr.start()
-		app.exec_()
-		print("Closing...")
 		if self.lastAuthorStats is None or len(self.lastAuthorStats["paLi"][0]) == 0:
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
 			return False
-		sys.stdout = sys.__stdout__
 		self.lastAuthorStats["figs"] = pBStats.plotStats(author = True)
 		aSP = authorStatsPlots(self.lastAuthorStats["figs"], title = "Statistics for %s"%authorName, parent = self)
 		aSP.show()
@@ -660,34 +636,23 @@ class MainWindow(QMainWindow):
 			return False
 		self.loadedAndInserted = []
 		self.StatusBarMessage("Starting import from INSPIRE...")
-		app = printText(title = "Import from Inspire", totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ")
-		app.progressBarMin(0)
-		queue = Queue()
-		self.iLAIReceiver = MyReceiver(queue, self)
-		self.iLAIReceiver.mysignal.connect(app.append_text)
 		if "," in queryStr:
 			try:
 				queryStr = ast.literal_eval("["+queryStr.strip()+"]")
 			except SyntaxError:
 				pBGUIErrorManager("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?")
 				return False
-		print("[inspireLoadAndInsert] searching:")
-		print(queryStr)
-		self.inspireLoadAndInsert_thr = thread_loadAndInsert(queryStr, queue, self.iLAIReceiver, self)
 
-		self.connect(self.iLAIReceiver, SIGNAL("finished()"), self.iLAIReceiver.deleteLater)
-		self.connect(self.inspireLoadAndInsert_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.inspireLoadAndInsert_thr, SIGNAL("finished()"), self.inspireLoadAndInsert_thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), self.inspireLoadAndInsert_thr.setStopFlag)
+		self.inspireLoadAndInsert_thr, self.iLAIReceiver = self._runInThread(
+			thread_loadAndInsert, "Import from Inspire",
+			queryStr,
+			totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ",
+			minProgress = 0., stopFlag = True,
+			addMessage = "[inspireLoadAndInsert] searching:\n%s"%queryStr)
 
-		sys.stdout = WriteStream(queue)
-		self.inspireLoadAndInsert_thr.start()
-		app.exec_()
-		print("Closing...")
 		if self.loadedAndInserted is []:
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
 			return False
-		sys.stdout = sys.__stdout__
 		if doReload:
 			self.reloadMainContent()
 		return True
@@ -778,24 +743,11 @@ class MainWindow(QMainWindow):
 
 	def cleanAllBibtexs(self, startFrom = 0, useEntries = None):
 		self.StatusBarMessage("Starting cleaning of bibtexs...")
-		app = printText(title = "Clean Bibtexs", totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ")
-		app.progressBarMin(0)
-		queue = Queue()
-		self.cleanReceiver = MyReceiver(queue, self)
-		self.cleanReceiver.mysignal.connect(app.append_text)
-		self.cleanBibtexs_thr = thread_cleanAllBibtexs(startFrom, queue, self.cleanReceiver, self, useEntries)
-
-		self.connect(self.cleanReceiver, SIGNAL("finished()"), self.cleanReceiver.deleteLater)
-		self.connect(self.cleanBibtexs_thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(self.cleanBibtexs_thr, SIGNAL("finished()"), self.cleanBibtexs_thr.deleteLater)
-		self.connect(app, SIGNAL("stopped()"), self.cleanBibtexs_thr.setStopFlag)
-
-		sys.stdout = WriteStream(queue)
-		self.cleanBibtexs_thr.start()
-		app.exec_()
-		print("Closing...")
-		sys.stdout = sys.__stdout__
-		self.done()
+		self.cleanBibtexs_thr, self.cleanReceiver = self._runInThread(
+			thread_cleanAllBibtexs, "Clean Bibtexs",
+			startFrom, useEntries = useEntries,
+			totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ",
+			minProgress = 0., stopFlag = True)
 
 	def sendMessage(self, message):
 		infoMessage(message)

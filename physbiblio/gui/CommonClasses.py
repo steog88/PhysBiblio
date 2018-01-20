@@ -122,6 +122,9 @@ class MyThread(QThread):
 	def run(self):
 		pass
 
+	def setStopFlag(self):
+		pass
+
 	finished = Signal()
 
 class WriteStream(QObject):

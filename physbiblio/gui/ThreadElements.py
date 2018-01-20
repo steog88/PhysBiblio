@@ -20,7 +20,7 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class thread_updateAllBibtexs(MyThread):
-	def __init__(self, startFrom, queue, myrec, parent = None, useEntries = None, force = False):
+	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False):
 		super(thread_updateAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
@@ -40,7 +40,7 @@ class thread_updateAllBibtexs(MyThread):
 		pBDB.bibs.runningOAIUpdates = False
 
 class thread_updateInspireInfo(MyThread):
-	def __init__(self, bibkey, queue, myrec, parent = None):
+	def __init__(self, queue, myrec, bibkey, parent = None):
 		super(thread_updateInspireInfo, self).__init__(parent)
 		self.parent = parent
 		self.bibkey = bibkey
@@ -67,7 +67,7 @@ class thread_downloadArxiv(MyThread):
 		pBPDF.downloadArxiv(self.bibkey)
 
 class thread_authorStats(MyThread):
-	def __init__(self, name, queue, myrec, parent = None):
+	def __init__(self, queue, myrec, name, parent = None):
 		super(thread_authorStats, self).__init__(parent)
 		self.parent = parent
 		self.authorName = name
@@ -85,7 +85,7 @@ class thread_authorStats(MyThread):
 		pBStats.runningAuthorStats = False
 
 class thread_loadAndInsert(MyThread):
-	def __init__(self, content, queue, myrec, parent = None):
+	def __init__(self, queue, myrec, content, parent = None):
 		super(thread_loadAndInsert, self).__init__(parent)
 		self.parent = parent
 		self.queue = queue
@@ -107,7 +107,7 @@ class thread_loadAndInsert(MyThread):
 		pBDB.bibs.runningLoadAndInsert = False
 
 class thread_cleanAllBibtexs(MyThread):
-	def __init__(self, startFrom, queue, myrec, parent = None, useEntries = None):
+	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None):
 		super(thread_cleanAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
@@ -126,7 +126,7 @@ class thread_cleanAllBibtexs(MyThread):
 		pBDB.bibs.runningCleanBibtexs = False
 
 class thread_exportTexBib(MyThread):
-	def __init__(self, texFile, outFName, queue, myrec, parent = None):
+	def __init__(self, queue, myrec, texFile, outFName, parent = None):
 		super(thread_exportTexBib, self).__init__(parent)
 		self.parent = parent
 		self.texFile = texFile

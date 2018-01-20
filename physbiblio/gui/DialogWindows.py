@@ -165,7 +165,7 @@ class printText(QDialog):
 	"""create a window for printing text of command line output"""
 	stopped = Signal()
 
-	def __init__(self, parent = None, title = "", progressBar = True, totStr = "[DB] searchOAIUpdates will process ", progrStr = "%) - looking for update: "):
+	def __init__(self, parent = None, title = "", progressBar = True, totStr = None, progrStr = None):
 		super(printText, self).__init__(parent)
 		self.message = None
 		if title != "":
@@ -174,8 +174,8 @@ class printText(QDialog):
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
 		self._want_to_close = False
-		self.totString = totStr
-		self.progressString = progrStr
+		self.totString = totStr if totStr is not None else "emptyString"
+		self.progressString = progrStr if progrStr is not None else "emptyString"
 		self.initUI()
 
 	def closeEvent(self, evnt):
