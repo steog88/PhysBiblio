@@ -86,6 +86,9 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			if "bibkey" in data.keys():
 				if editKey is not None and data["bibkey"].strip() != editKey:
 					print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
+					if editKey not in data["old_keys"]:
+						data["old_keys"] += " " + editKey
+						data["old_keys"] = data["old_keys"].strip()
 					pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])

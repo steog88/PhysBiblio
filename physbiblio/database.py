@@ -400,6 +400,12 @@ class catsEntries(physbiblioDBSub):
 					""",
 					{"bibkey": key, "idCat": idCat})
 
+	def updateBibkey(self, new, old):
+		"""update if there is a bibkey change"""
+		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
+		query = "update entryCats set bibkey=:new where bibkey=:old\n"
+		return self.connExec(query, {"new": new, "old": old})
+
 	def askCats(self, keys):
 		"""loop over given keys and ask for the cats to be saved"""
 		if type(keys) is not list:
@@ -551,6 +557,12 @@ class entryExps(physbiblioDBSub):
 					delete from entryExps where idExp=:idExp and bibkey=:bibkey
 					""",
 					{"idExp": idExp, "bibkey": key})
+
+	def updateBibkey(self, new, old):
+		"""update if there is a bibkey change"""
+		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
+		query = "update entryExps set bibkey=:new where bibkey=:old\n"
+		return self.connExec(query, {"new": new, "old": old})
 
 	def askExps(self, keys):
 		"""loop over given keys and ask for the exps to be saved"""
@@ -1237,11 +1249,20 @@ class entries(physbiblioDBSub):
 	
 	def updateBibkey(self, oldKey, newKey):
 		"""update the bibkey of an entry"""
-		print("[DB] updating bibkey into '%s' for entry '%s'"%(oldKey, newKey))
+		print("[DB] updating bibkey for entry '%s' into '%s'"%(oldKey, newKey))
 		try:
 			query = "update entries set bibkey=:new where bibkey=:old\n"
-			return self.connExec(query, {"new": newKey, "old": oldKey})
+			if self.connExec(query, {"new": newKey, "old": oldKey}):
+				query = "update entryCats set bibkey=:new where bibkey=:old\n"
+				if self.connExec(query, {"new": newKey, "old": oldKey}):
+					query = "update entryExps set bibkey=:new where bibkey=:old\n"
+					return self.connExec(query, {"new": newKey, "old": oldKey})
+				else:
+					return False
+			else:
+				return False
 		except:
+			print traceback.format_exc()
 			return False
 			
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
