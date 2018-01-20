@@ -143,3 +143,16 @@ class thread_exportTexBib(MyThread):
 
 	def setStopFlag(self):
 		pBExport.exportForTexFlag = False
+
+class thread_cleanSpare(MyThread):
+	def __init__(self, queue, myrec, parent):
+		super(thread_cleanSpare, self).__init__()
+		self.parent = parent
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		pBDB.utils.cleanSpareEntries()
+		self.my_receiver.running = False
+		self.finished.emit()

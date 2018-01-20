@@ -217,6 +217,11 @@ class MainWindow(QMainWindow):
 								statusTip="Show some statistics about the current database",
 								triggered=self.showDBStats)
 
+		self.cleanSpareAct = QAction(
+								"&Clean spare entries", self,
+								statusTip="Remove spare entries from the connection tables.",
+								triggered=self.cleanSpare)
+
 	def closeEvent(self, event):
 		if pBDB.checkUncommitted():
 			if askYesNo("There may be unsaved changes to the database.\nDo you really want to exit?"):
@@ -275,6 +280,8 @@ class MainWindow(QMainWindow):
 		
 		self.menuBar().addSeparator()
 		self.toolMenu = self.menuBar().addMenu("&Tools")
+		self.toolMenu.addAction(self.cleanSpareAct)
+		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 		# self.toolMenu.addSeparator()
 		# self.toolMenu.addAction(self.cliAct)
@@ -396,6 +403,24 @@ class MainWindow(QMainWindow):
 			"- {bibs} bibtex entries\n- {cats} categories\n- {exps} experiments,\n".format(**pBDB.stats)+
 			"- {catBib} bibtex entries to categories connections\n- {catExp} experiment to categories connections\n- {bibExp} bibtex entries to experiment connections.\n\n".format(**pBDB.stats)+
 			"The number of currently stored PDF files is %d."%onlyfiles)
+
+	def cleanSpare(self):
+		app = printText(title = "Clean spare entries")
+		queue = Queue()
+		self.cSReceiver = MyReceiver(queue, self)
+		self.cSReceiver.mysignal.connect(app.append_text)
+		self.cS_thr = thread_cleanSpare(queue, self.cSReceiver, self)
+
+		self.connect(self.cSReceiver, SIGNAL("finished()"), self.cSReceiver.deleteLater)
+		self.connect(self.cS_thr, SIGNAL("finished()"), app.enableClose)
+		self.connect(self.cS_thr, SIGNAL("finished()"), self.cS_thr.deleteLater)
+
+		sys.stdout = WriteStream(queue)
+		self.cS_thr.start()
+		app.exec_()
+		print("Closing...")
+		sys.stdout = sys.__stdout__
+		self.done()
 
 	def CreateStatusBar(self):
 		"""
