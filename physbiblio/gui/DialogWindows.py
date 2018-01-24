@@ -30,6 +30,10 @@ def askFileName(parent = None, title = "Filename to use:", filter = ""):
 	reply = QFileDialog.getOpenFileName(parent, title, "", filter)
 	return reply[0]
 
+def askFileNames(parent = None, title = "Filename to use:", filter = ""):
+	reply = QFileDialog.getOpenFileNames(parent, title, "", filter)
+	return reply[0]
+
 def askSaveFileName(parent = None, title = "Filename to use:", filter = ""):
 	reply = QFileDialog.getSaveFileName(parent, title, "", filter, options = QFileDialog.DontConfirmOverwrite)
 	return reply[0]

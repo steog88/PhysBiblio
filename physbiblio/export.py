@@ -95,6 +95,8 @@ class pbExport():
 		existingBib = open(outFName, "r").read()
 
 		if type(texFile) is list:
+			if len(texFile) == 0:
+				return False
 			for t in texFile:
 				self.exportForTexFile(t, outFName, overwrite = False, autosave = autosave)
 			print("[export] done for all the texFiles. See previous errors (if any)")

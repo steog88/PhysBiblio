@@ -483,18 +483,18 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Current selection exported into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty filename given!")
-	
+
 	def exportFile(self):
 		outFName = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if outFName != "":
-			texFile = askFileName(self, title = "Which is the *.tex file you want to compile?", filter = "Latex (*.tex)")
-			if texFile != "":
+			texFile = askFileNames(self, title = "Which is/are the *.tex file(s) you want to compile?", filter = "Latex (*.tex)")
+			if (type(texFile) is not list and texFile != "") or (type(texFile) is list and len(texFile)>0):
 				self.exportTexBib_thr, self.exportTexBibReceiver = self._runInThread(
 					thread_exportTexBib, "Exporting...",
 					texFile, outFName,
 					minProgress=0,  stopFlag = True, outMessage = "All entries saved into %s"%outFName)
 			else:
-				self.StatusBarMessage("Empty input filename!")
+				self.StatusBarMessage("Empty input filename/folder!")
 		else:
 			self.StatusBarMessage("Empty output filename!")
 
