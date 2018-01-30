@@ -603,15 +603,15 @@ class MainWindow(QMainWindow):
 			minProgress = 0., stopFlag = True)
 
 	def authorStats(self):
-		authorName = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
+		authorName = str(askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self))
 		if authorName is "":
-			pBGUIErrorManager("[authorStats] empty name inserted! cannot proceed.")
+			pBGUIErrorManager("[authorStats] empty name inserted! cannot proceed.", priority = 0)
 			return False
 		if "[" in authorName:
 			try:
 				authorName = ast.literal_eval(authorName.strip())
 			except SyntaxError:
-				pBGUIErrorManager("[authorStats] cannot recognize the list sintax. Missing quotes in the string?", traceback)
+				pBGUIErrorManager("[authorStats] cannot recognize the list sintax. Missing quotes in the string?", traceback, priority = 1)
 				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 
@@ -632,7 +632,7 @@ class MainWindow(QMainWindow):
 	def inspireLoadAndInsert(self, doReload = True):
 		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
 		if queryStr == "":
-			#pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.")
+			pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.", priority = 0)
 			return False
 		self.loadedAndInserted = []
 		self.StatusBarMessage("Starting import from INSPIRE...")
@@ -640,7 +640,7 @@ class MainWindow(QMainWindow):
 			try:
 				queryStr = ast.literal_eval("["+queryStr.strip()+"]")
 			except SyntaxError:
-				pBGUIErrorManager("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?")
+				pBGUIErrorManager("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?", priority = 1)
 				return False
 
 		self.inspireLoadAndInsert_thr, self.iLAIReceiver = self._runInThread(

@@ -591,10 +591,10 @@ class editBibtexEntry(editObjectWindow):
 
 	def onOk(self):
 		if self.textValues["bibtex"].toPlainText() == "":
-			pBGUIErrorManager("Invalid form contents: empty bibtex!")
+			pBGUIErrorManager("Invalid form contents: empty bibtex!", priority = 2)
 			return False
 		elif not self.textValues["bibkey"].isReadOnly() and self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
-			pBGUIErrorManager("Invalid form contents: bibtex key will be taken from bibtex!")
+			pBGUIErrorManager("Invalid form contents: bibtex key will be taken from bibtex!", priority = 1)
 			return False
 		self.result	= True
 		self.close()

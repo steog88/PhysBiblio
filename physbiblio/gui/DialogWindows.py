@@ -3,6 +3,7 @@ import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess
+import traceback
 
 try:
 	#from physbiblio.database import *
@@ -50,10 +51,22 @@ def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
 
 class pBGUIErrorManager():
-	def __init__(self, message, trcbk = None):
+	def __init__(self, message, trcbk = None, priority = 2):
 		message += "\n"
-		infoMessage(message)
-		pBErrorManager(message, trcbk)
+		pBErrorManager(message, trcbk, priority = priority)
+		error = QMessageBox()
+		if priority == 0:
+			error.information(error, unicode("Warning"), unicode(message.replace('\n', '<br>')))
+		elif priority == 1:
+			error.warning(error, unicode("Error"), unicode(message.replace('\n', '<br>')))
+		else:
+			error.critical(error, unicode("Critical error"), unicode(message.replace('\n', '<br>')))
+
+def excepthook(cls, exception, trcbk):
+	text = "".join(traceback.format_exception(cls, exception, trcbk))
+	pBGUIErrorManager(text)
+
+sys.excepthook = excepthook
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""

@@ -7,7 +7,11 @@ except ImportError:
     print("Cannot load physbiblio.config module: check your PYTHONPATH!")
 
 class pBErrorManager():
-	def __init__(self, message, trcbk = None):
+	def __init__(self, message, trcbk = None, priority = 0):
+		if priority > 1:
+			message = "****Critical error****\n" + message
+		if priority > 0:
+			message = "**Error**\n" + message
 		message += "\n"
 		if sys.stdout == sys.__stdout__:
 			sys.stderr.write(message)
