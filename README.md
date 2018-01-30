@@ -34,6 +34,7 @@ In Ubuntu, you may want to create a shortcut to PhysBiblio.
 To do so, you can simply create a new file /your/home/.local/share/applications/PhysBiblio.desktop with the editor of your choice, which must contain the following lines:
 ```
 [Desktop Entry]
+Type=Application
 Exec=/path/to/PhysBiblio/main.py
 Icon=/path/to/PhysBiblio/physbiblio/gui/images/icon.png
 Name=PhysBiblio
