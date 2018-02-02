@@ -363,6 +363,12 @@ class bibtexList(QFrame, objListWindow):
 					pBPDF.removeFile(bibkey, ftype)
 				self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
+		def copyPdfFile(bibkey, ftype, custom = None):
+			pdfName = osp.join(pBPDF.getFileDir(bibkey), custom) if custom is not None else pBPDF.getFilePath(bibkey, ftype)
+			outFolder = askDirName(self, title = "Where do you want to save the PDF %s?"%pdfName)
+			if outFolder.strip() != "":
+				pBPDF.copyToDir(outFolder, bibkey, ftype = ftype, customName = custom)
+
 		index = self.tablewidget.model().index(row, col)
 		try:
 			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
@@ -389,6 +395,7 @@ class bibtexList(QFrame, objListWindow):
 			files.remove(arxivFile)
 			pdfActs["openArx"] = pdfMenu.addAction("Open arXiv PDF")
 			pdfActs["delArx"] = pdfMenu.addAction("Delete arXiv PDF")
+			pdfActs["copyArx"] = pdfMenu.addAction("Copy arXiv PDF")
 		elif arxiv is not None and arxiv != "":
 			pdfActs["downArx"] = pdfMenu.addAction("Download arXiv PDF")
 		pdfMenu.addSeparator()
@@ -397,6 +404,7 @@ class bibtexList(QFrame, objListWindow):
 			files.remove(doiFile)
 			pdfActs["openDoi"] = pdfMenu.addAction("Open DOI PDF")
 			pdfActs["delDoi"] = pdfMenu.addAction("Delete DOI PDF")
+			pdfActs["copyDoi"] = pdfMenu.addAction("Copy DOI PDF")
 		elif doi is not None and doi != "":
 			pdfActs["addDoi"] = pdfMenu.addAction("Assign DOI PDF")
 		pdfMenu.addSeparator()
@@ -405,6 +413,7 @@ class bibtexList(QFrame, objListWindow):
 		for i,f in enumerate(files):
 			pdfActs["openOtherPDF"][i] = pdfMenu.addAction("Open %s"%f.replace(pdfDir+"/", ""))
 			pdfActs["delOtherPDF"][i] = pdfMenu.addAction("Delete %s"%f.replace(pdfDir+"/", ""))
+			pdfActs["copyOtherPDF"][i] = pdfMenu.addAction("Copy %s"%f.replace(pdfDir+"/", ""))
 		
 		menu.addSeparator()
 		catAction = menu.addAction("Manage categories")
@@ -477,6 +486,10 @@ class bibtexList(QFrame, objListWindow):
 			deletePdfFile(bibkey, "arxiv", "arxiv PDF")
 		elif "delDoi" in pdfActs.keys() and action == pdfActs["delDoi"]:
 			deletePdfFile(bibkey, "doi", "DOI PDF")
+		elif "copyArx" in pdfActs.keys() and action == pdfActs["copyArx"]:
+			copyPdfFile(bibkey, "arxiv")
+		elif "copyDoi" in pdfActs.keys() and action == pdfActs["copyDoi"]:
+			copyPdfFile(bibkey, "doi")
 		elif "addDoi" in pdfActs.keys() and action == pdfActs["addDoi"]:
 			newpdf = askFileName(self, "Where is the published PDF located?", filter = "PDF (*.pdf)")
 			if newpdf != "" and os.path.isfile(newpdf):
@@ -499,6 +512,10 @@ class bibtexList(QFrame, objListWindow):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
 					deletePdfFile(bibkey, fn, fn, custom = files[i])
+			for i, act in enumerate(pdfActs["copyOtherPDF"]):
+				if action == act:
+					fn = files[i].replace(pdfDir+"/", "")
+					copyPdfFile(bibkey, fn, custom = files[i])
 
 	def cellClick(self, index):
 		row = index.row()
@@ -697,6 +714,7 @@ class askSelBibAction(askAction):
 		self.possibleActions.append(["Clean entries", self.onClean])
 		self.possibleActions.append(["Update entries", self.onUpdate])
 		self.possibleActions.append(["Export entries in a .bib file", self.onExport])
+		self.possibleActions.append(["Copy all the (existing) PDF", self.copyAllPdf])
 		self.possibleActions.append(["Select categories", self.onCat])
 		self.possibleActions.append(["Select experiments", self.onExp])
 		self.initUI()
@@ -711,6 +729,22 @@ class askSelBibAction(askAction):
 
 	def onExport(self):
 		self.parent.exportSelection(self.entries)
+		self.close()
+
+	def copyAllPdf(self):
+		outFolder = askDirName(self, title = "Where do you want to save the PDF files?")
+		if outFolder.strip() != "":
+			for entryDict in self.entries:
+				entry = entryDict["bibkey"]
+				if pBPDF.checkFile(entry, "doi"):
+					pBPDF.copyToDir(outFolder, entry, ftype = "doi")
+				elif pBPDF.checkFile(entry, "arxiv"):
+					pBPDF.copyToDir(outFolder, entry, ftype = "arxiv")
+				else:
+					existing = pBPDF.getExisting(entry)
+					if len(existing) > 0:
+						for ex in existing:
+							pBPDF.copyToDir(outFolder, entry, "", custom = ex)
 		self.close()
 
 	def onCat(self):

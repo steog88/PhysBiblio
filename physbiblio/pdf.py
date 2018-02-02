@@ -158,4 +158,21 @@ class localPDF():
 			if len(exist) > 0:
 				print("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
+	def copyToDir(self, outFolder, key, ftype = None, customName = None):
+		"""copy a file from the directory corresponding to the given entry to the given directory in the filesystem"""
+		if customName is not None:
+			origFile = osp.join(self.getFileDir(key), customName)
+		elif ftype is not None:
+			origFile = self.getFilePath(key, ftype)
+		else:
+			print("[localPDF] ERROR: you should supply a ftype ('doi' or 'arxiv') or a customName!")
+			return False
+		try:
+			shutil.copy2(origFile, outFolder)
+			print("[localPDF] %s copied to %s"%(origFile, outFolder))
+			return True
+		except:
+			print("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, outFolder))
+			return False
+
 pBPDF = localPDF()
