@@ -13,6 +13,10 @@
         <file>images/edit-node.png</file>
         <file>images/edit-select-all.png</file>
         <file>images/edit-unselect-all.png</file>
+        <file>images/emblem-favorite-symbolic.png</file>
+        <file>images/emblem-important-symbolic.png</file>
+        <file>images/emblem-question.png</file>
+        <file>images/emblem-remove.png</file>
         <file>images/export-table.png</file>
         <file>images/export.png</file>
         <file>images/file-add.png</file>
@@ -26,6 +30,7 @@
         <file>images/settings.png</file>
         <file>images/stats.png</file>
         <file>images/terminal.png</file>
+        <file>images/unread-new.png</file>
         <file>images/view-filter.png</file>
         <file>images/web-search.png</file>
     </qresource>

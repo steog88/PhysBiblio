@@ -231,6 +231,17 @@ class MyTableModel(QAbstractTableModel):
 		"""create a cell containing an image"""
 		return QPixmap(imagePath).scaledToHeight(height)
 
+	def addImages(self, imagePaths, outHeight, height = 48):
+		"""create a cell containing multiple images"""
+		width = len(imagePaths) * height
+		pm = QPixmap(width, height)
+		pm.fill(Qt.transparent)
+		painter = QPainter(pm)
+		for i, img in enumerate(imagePaths):
+			painter.drawPixmap(i * height, 0, QPixmap(img))
+		painter.end()
+		return pm.scaledToHeight(outHeight)
+
 	def rowCount(self, parent = None):
 		return len(self.dataList)
 

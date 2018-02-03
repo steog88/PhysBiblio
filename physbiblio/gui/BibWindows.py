@@ -14,6 +14,7 @@ try:
 	from physbiblio.gui.ThreadElements import *
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.ExpWindows import *
+	from physbiblio.gui.marks import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -80,6 +81,10 @@ def editBibtex(parent, statusBarObject, editKey = None):
 				data[k] = 1
 			else:
 				data[k] = 0
+		data["marks"] = ""
+		for m, ckb in newBibWin.markValues.items():
+			if ckb.isChecked():
+				data["marks"] += "'%s',"%m
 		if data["bibkey"].strip() == "" and data["bibtex"].strip() != "":
 			data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
@@ -164,6 +169,7 @@ class MyBibTableModel(MyTableModel):
 		self.addCols = addCols + ["bibtex"]
 		self.lenStdCols = len(stdCols)
 		self.prepareSelected()
+		self.pixmaps = []
 
 	def getIdentifier(self, element):
 		return element["bibkey"]
@@ -185,6 +191,19 @@ class MyBibTableModel(MyTableModel):
 		else:
 			return False, "no PDF"
 
+	def addMarksCell(self, marks):
+		"""create cell for marks"""
+		if marks is not None:
+			marks = [ k for k in pBMarks.marks.keys() if k in marks ]
+			if len(marks)>1:
+				return True, self.addImages([pBMarks.marks[img]["icon"] for img in marks ], self.parentObj.tablewidget.rowHeight(0)*0.9)
+			elif len(marks)>0:
+				return True, self.addImage(pBMarks.marks[marks[0]]["icon"], self.parentObj.tablewidget.rowHeight(0)*0.9)
+			else:
+				return False, ("", "")
+		else:
+			return False, ("", "")
+
 	def data(self, index, role):
 		if not index.isValid():
 			return None
@@ -192,7 +211,9 @@ class MyBibTableModel(MyTableModel):
 		row = index.row()
 		column = index.column()
 		try:
-			if column < self.lenStdCols:
+			if self.stdCols[column] == "marks":
+				img, value = self.addMarksCell(self.dataList[row]["marks"])
+			elif column < self.lenStdCols:
 				value = self.dataList[row][self.stdCols[column]]
 			else:
 				if self.addCols[column - self.lenStdCols] == "Type":
@@ -603,6 +624,7 @@ class editBibtexEntry(editObjectWindow):
 		else:
 			self.data = bib
 		self.checkValues = {}
+		self.markValues = {}
 		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
 		self.createForm()
 
@@ -631,7 +653,7 @@ class editBibtexEntry(editObjectWindow):
 		i = 0
 		for k in pBDB.tableCols["entries"]:
 			val = self.data[k] if self.data[k] is not None else ""
-			if k != "bibtex" and k not in self.checkboxes:
+			if k != "bibtex" and k != "marks" and k not in self.checkboxes:
 				i += 1
 				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
 				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
@@ -639,6 +661,21 @@ class editBibtexEntry(editObjectWindow):
 				if k == "bibkey" and val != "":
 					self.textValues[k].setReadOnly(True)
 				self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
+			elif k == "marks":
+				i += 1
+				groupBox = QGroupBox(pBDB.descriptions["entries"]["marks"])
+				groupBox.setFlat(True)
+				vbox = QHBoxLayout()
+				for m, cont in pBMarks.marks.items():
+					self.markValues[m] = QCheckBox(cont["desc"])
+					if self.data["marks"] is not None and m in self.data["marks"]:
+						self.markValues[m].setChecked(True)
+					vbox.addWidget(self.markValues[m])
+				vbox.addStretch(1)
+				groupBox.setLayout(vbox)
+				if ((1+i)%2)*2 != 0:
+					i += 1
+				self.currGrid.addWidget(groupBox, int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 4)
 
 		self.textValues["bibkey"].setReadOnly(True)
 
