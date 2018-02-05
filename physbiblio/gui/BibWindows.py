@@ -210,7 +210,7 @@ class MyBibTableModel(MyTableModel):
 		row = index.row()
 		column = index.column()
 		try:
-			if column == self.stdCols.index("marks"):
+			if "marks" in self.stdCols and column == self.stdCols.index("marks"):
 				img, value = self.addMarksCell(self.dataList[row]["marks"])
 			elif column < self.lenStdCols:
 				value = self.dataList[row][self.stdCols[column]]
@@ -222,6 +222,7 @@ class MyBibTableModel(MyTableModel):
 				else:
 					value = self.dataList[row]["bibtex"]
 		except IndexError:
+			pBGUIErrorManager("MyBibTableModel.data(): invalid index", trcbk = traceback)
 			return None
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
@@ -663,16 +664,8 @@ class editBibtexEntry(editObjectWindow):
 				self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
 			elif k == "marks":
 				i += 1
-				groupBox = QGroupBox(pBDB.descriptions["entries"]["marks"])
-				groupBox.setFlat(True)
-				vbox = QHBoxLayout()
-				for m, cont in pBMarks.marks.items():
-					self.markValues[m] = QCheckBox(cont["desc"])
-					if self.data["marks"] is not None and m in self.data["marks"]:
-						self.markValues[m].setChecked(True)
-					vbox.addWidget(self.markValues[m])
-				vbox.addStretch(1)
-				groupBox.setLayout(vbox)
+				groupBox, markValues = pBMarks.getGroupbox(self.data["marks"], description = pBDB.descriptions["entries"]["marks"])
+				self.markValues = markValues
 				if ((1+i)%2)*2 != 0:
 					i += 1
 				self.currGrid.addWidget(groupBox, int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 4)
@@ -699,7 +692,7 @@ class editBibtexEntry(editObjectWindow):
 				if val == 1:
 					self.checkValues[k].toggle()
 				self.currGrid.addWidget(self.checkValues[k], int((i+1-(i+i)%2)/2)*2 + j - 2, 3)
-		
+
 		self.currGrid.addWidget(self.textValues["bibtex"], int((i+1-(i+i)%2)/2)*2, 0, j, 2)
 
 		# OK button
@@ -814,6 +807,8 @@ class searchBibsWindow(editObjectWindow):
 		self.values["catsOperator"] = "AND"
 		self.values["expsOperator"] = "AND"
 		self.values["catExpOperator"] = "AND"
+		self.values["marks"] = []
+		self.values["marksConn"] = "AND"
 		self.numberOfRows = 1
 		self.createForm()
 
@@ -838,8 +833,16 @@ class searchBibsWindow(editObjectWindow):
 	def onComboCEChange(self, text):
 		self.values["CatExpOperator"] = text
 
+	def getMarksValues(self):
+		self.values["marksConn"] = self.marksConn.currentText()
+		self.values["marks"] = []
+		for m in self.markValues.keys():
+			if self.markValues[m].isChecked():
+				self.values["marks"].append(m)
+
 	def onAddField(self):
 		self.numberOfRows = self.numberOfRows + 1
+		self.getMarksValues()
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
@@ -883,8 +886,14 @@ class searchBibsWindow(editObjectWindow):
 		self.comboCE.activated[str].connect(self.onComboCEChange)
 		self.currGrid.addWidget(self.comboCE, 2, 3)
 
-		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 3, 0, 1, 3)
-		firstFields = 4
+		self.marksConn = MyAndOrCombo(self, current = self.values["marksConn"])
+		self.currGrid.addWidget(self.marksConn, 3, 0)
+		groupBox, markValues = pBMarks.getGroupbox(self.values["marks"], description = "Filter by marks", radio = True, addAny = True)
+		self.markValues = markValues
+		self.currGrid.addWidget(groupBox, 3, 1, 1, 3)
+
+		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 4, 0, 1, 3)
+		firstFields = 5
 
 		for i in range(self.numberOfRows):
 			try:
@@ -918,6 +927,21 @@ class searchBibsWindow(editObjectWindow):
 		self.addFieldButton = QPushButton("Add another field line", self)
 		self.addFieldButton.clicked.connect(self.onAddField)
 		self.currGrid.addWidget(self.addFieldButton, i-1, 3)
+
+		#limit to, limit offset
+		i += 1
+		try:
+			lim = self.limitValue.text()
+			offs = self.limitOffs.text()
+		except AttributeError:
+			lim = "50"
+			offs = "0"
+		self.currGrid.addWidget(QLabel("Max number of results:"), i - 1, 0)
+		self.limitValue = QLineEdit(lim)
+		self.currGrid.addWidget(self.limitValue, i - 1, 1)
+		self.currGrid.addWidget(QLabel("Start from:"), i - 1, 2)
+		self.limitOffs = QLineEdit(offs)
+		self.currGrid.addWidget(self.limitOffs, i - 1, 3)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)

@@ -550,13 +550,29 @@ class MainWindow(QMainWindow):
 					"id": newSearchWin.values["exps"],
 					"operator": newSearchWin.values["expsOperator"].lower(),
 				}
+			newSearchWin.getMarksValues()
+			if len(newSearchWin.values["marks"]) > 0:
+				if "any" in newSearchWin.values["marks"]:
+					searchDict["marks"] = {"str": "", "operator": "!=", "connection": newSearchWin.values["marksConn"]}
+				else:
+					searchDict["marks"] = {"str": ", ".join(newSearchWin.values["marks"]), "operator": "like", "connection": newSearchWin.values["marksConn"]}
 			for i, dic in enumerate(newSearchWin.textValues):
 				k="%s#%d"%(dic["field"].currentText(), i)
 				s = "%s"%dic["content"].text()
 				op = "like" if "%s"%dic["operator"].currentText() == "contains" else "="
 				if s.strip() != "":
 					searchDict[k] = {"str": s, "operator": op, "connection": dic["logical"].currentText()}
-			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+			try:
+				lim = int(newSearchWin.limitValue.text())
+			except ValueError:
+				lim = 50
+			try:
+				offs = int(newSearchWin.limitOffs.text())
+			except ValueError:
+				offs = 0
+			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict,
+				limitTo = lim, limitOffset = offs
+				).lastFetched)
 
 	def searchAndReplace(self):
 		dialog = searchReplaceDialog(self)

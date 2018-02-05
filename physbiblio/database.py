@@ -1190,7 +1190,7 @@ class entries(physbiblioDBSub):
 		data["proceeding"] = 1 if proceeding else 0
 		data["book"] = 1 if book else 0
 		data["noUpdate"] = 1 if noUpd else 0
-		data["marks"] = marks if marks else None
+		data["marks"] = marks if marks else ""
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
 		data["pubdate"] = pubdate if pubdate else ""
 		return data

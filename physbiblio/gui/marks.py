@@ -17,4 +17,24 @@ class marks():
 	def newMark(self, key, desc, icon):
 		self.marks[key] = {"desc": desc, "icon": ":/images/%s.png"%icon}
 
+	def getGroupbox(self, marksData, description = "Marks", radio= False, addAny = False):
+		groupBox = QGroupBox(description)
+		markValues = {}
+		groupBox.setFlat(True)
+		vbox = QHBoxLayout()
+		for m, cont in self.marks.items():
+			if radio:
+				markValues[m] = QRadioButton(cont["desc"])
+			else:
+				markValues[m] = QCheckBox(cont["desc"])
+			if marksData is not None and m in marksData:
+				markValues[m].setChecked(True)
+			vbox.addWidget(markValues[m])
+		if addAny:
+			markValues["any"] = QRadioButton("Any")
+			vbox.addWidget(markValues["any"])
+		vbox.addStretch(1)
+		groupBox.setLayout(vbox)
+		return groupBox, markValues
+
 pBMarks = marks()
