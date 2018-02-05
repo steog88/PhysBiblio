@@ -430,6 +430,7 @@ class bibtexList(QFrame, objListWindow):
 		pdfMenu.addSeparator()
 		pdfActs["openOtherPDF"] = [None for i in xrange(len(files))]
 		pdfActs["delOtherPDF"] = [None for i in xrange(len(files))]
+		pdfActs["copyOtherPDF"] = [None for i in xrange(len(files))]
 		for i,f in enumerate(files):
 			pdfActs["openOtherPDF"][i] = pdfMenu.addAction("Open %s"%f.replace(pdfDir+"/", ""))
 			pdfActs["delOtherPDF"][i] = pdfMenu.addAction("Delete %s"%f.replace(pdfDir+"/", ""))
