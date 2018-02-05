@@ -67,14 +67,7 @@ class selectProfiles(QDialog):
 			pbConfig.reInit(prof, newProfile)
 			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
 
-		self.parent.StatusBarMessage("Reloading configuration...")
-		pBPDF.pdfApp = pbConfig.params["pdfApplication"]
-		if pbConfig.params["pdfFolder"][0] == "/":
-			pBPDF.pdfDir = pbConfig.params["pdfFolder"]
-		else:
-			pBPDF.pdfDir = os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
-		pBView.webApp = pbConfig.params["webApplication"]
-		self.parent.bibtexList.reloadColumnContents()
+		self.parent.reloadConfig()
 		self.parent.reloadMainContent()
 		self.close()
 

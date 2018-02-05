@@ -213,7 +213,10 @@ class MyBibTableModel(MyTableModel):
 			if "marks" in self.stdCols and column == self.stdCols.index("marks"):
 				img, value = self.addMarksCell(self.dataList[row]["marks"])
 			elif column < self.lenStdCols:
-				value = self.dataList[row][self.stdCols[column]]
+				try:
+					value = self.dataList[row][self.stdCols[column]]
+				except KeyError:
+					value = ""
 			else:
 				if self.addCols[column - self.lenStdCols] == "Type":
 					value = self.addTypeCell(self.dataList[row])
@@ -543,7 +546,7 @@ class bibtexList(QFrame, objListWindow):
 		row = index.row()
 		col = index.column()
 		try:
-			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
+			bibkey = str(self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data())
 		except AttributeError:
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
@@ -973,7 +976,7 @@ class searchBibsWindow(editObjectWindow):
 			lim = self.limitValue.text()
 			offs = self.limitOffs.text()
 		except AttributeError:
-			lim = "50"
+			lim = str(pbConfig.params["defaultLimitBibtexs"])
 			offs = "0"
 		self.currGrid.addWidget(MyLabelRight("Max number of results:"), i - 1, 0, 1, 2)
 		self.limitValue = QLineEdit(lim)

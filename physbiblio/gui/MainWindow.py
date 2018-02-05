@@ -192,6 +192,7 @@ class MainWindow(QMainWindow):
 
 		self.configAct = QAction(QIcon(":/images/settings.png"),
 								"Settin&gs", self,
+								shortcut="Ctrl+Shift+S",
 								statusTip="Save the settings",
 								triggered=self.config)
 
@@ -380,10 +381,22 @@ class MainWindow(QMainWindow):
 					pbConfig.params[q[0]] = s
 			pbConfig.saveConfigFile()
 			pbConfig.readConfigFile()
+			self.reloadConfig()
+			self.refreshMainContent()
 			self.StatusBarMessage("Configuration saved")
 		else:
 			self.StatusBarMessage("Changes discarded")
-	
+
+	def reloadConfig(self):
+		self.StatusBarMessage("Reloading configuration...")
+		pBPDF.pdfApp = pbConfig.params["pdfApplication"]
+		if pbConfig.params["pdfFolder"][0] == "/":
+			pBPDF.pdfDir = pbConfig.params["pdfFolder"]
+		else:
+			pBPDF.pdfDir = os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
+		pBView.webApp = pbConfig.params["webApplication"]
+		self.bibtexList.reloadColumnContents()
+
 	def showAbout(self):
 		"""
 		Function to show About Box
@@ -579,7 +592,6 @@ class MainWindow(QMainWindow):
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
 				).lastFetched
-			print len(noLim), len(lastFetched)
 			if len(noLim) > len(lastFetched):
 				infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
 					len(lastFetched), len(noLim)))

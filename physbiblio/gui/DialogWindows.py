@@ -13,6 +13,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.errors import pBErrorManager
+	from physbiblio.database import pBDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -68,6 +69,58 @@ def excepthook(cls, exception, trcbk):
 
 sys.excepthook = excepthook
 
+class configEditColumns(QDialog):
+	def __init__(self, parent = None):
+		super(configEditColumns, self).__init__(parent)
+		self.excludeCols = ["crossref", "bibtex", "exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
+		self.moreCols = ["title", "author", "journal", "volume", "pages", "primaryclass", "booktitle", "reportnumber"]
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result = True
+		self.selected = []
+		for row in range(self.listSel.rowCount()):
+			self.selected.append(self.listSel.item(row, 0).text())
+		self.close()
+
+	def initUI(self):
+		self.layout = QGridLayout()
+		self.setLayout(self.layout)
+
+		self.listAll = MyDDTableWidget("Available columns")
+		self.listSel = MyDDTableWidget("Selected columns")
+		self.layout.addWidget(QLabel("Drag and drop items to order visible columns"), 0, 0, 1, 2)
+		self.layout.addWidget(self.listAll, 1, 0)
+		self.layout.addWidget(self.listSel, 1, 1)
+
+		self.allItems = pBDB.descriptions["entries"].keys() + self.moreCols
+		self.selItems = pbConfig.params["bibtexListColumns"]
+		i=0
+		for col in self.allItems:
+			if col not in self.selItems and col not in self.excludeCols:
+				item = QTableWidgetItem(col)
+				self.listAll.insertRow(i)
+				self.listAll.setItem(i, 0, item)
+				i += 1
+		for i, col in enumerate(self.selItems):
+			item = QTableWidgetItem(col)
+			self.listSel.insertRow(i)
+			self.listSel.setItem(i, 0, item)
+
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.layout.addWidget(self.acceptButton, 2, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.layout.addWidget(self.cancelButton, 2, 1)
+
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""
 	def __init__(self, parent = None):
@@ -83,6 +136,14 @@ class configWindow(QDialog):
 		self.result	= True
 		self.close()
 
+	def editColumns(self):
+		ix = pbConfig.paramOrder.index("bibtexListColumns")
+		window = configEditColumns(self)
+		window.exec_()
+		if window.result:
+			columns = window.selected
+			self.textValues[ix][1].setText(str(columns))
+
 	def initUI(self):
 		self.setWindowTitle('Configuration')
 
@@ -95,7 +156,11 @@ class configWindow(QDialog):
 			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
 			grid.addWidget(QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)), i-1, 0, 1, 2)
 			#grid.addWidget(QLabel("(%s)"%pbConfig.descriptions[k]), i-1, 1)
-			self.textValues.append([k, QLineEdit(val)])
+			if k == "bibtexListColumns":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editColumns)
+			else:
+				self.textValues.append([k, QLineEdit(val)])
 			grid.addWidget(self.textValues[i-1][1], i-1, 2, 1, 2)
 
 		# OK button
