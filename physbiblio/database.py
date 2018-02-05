@@ -916,6 +916,8 @@ class entries(physbiblioDBSub):
 		if limitTo is not None:
 			query += " LIMIT %s"%(str(limitTo))
 		if limitOffset is not None:
+			if limitTo is None:
+				query += " LIMIT 100000"
 			query += " OFFSET %s"%(str(limitOffset))
 		if saveQuery:
 			self.lastQuery = query

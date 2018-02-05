@@ -801,6 +801,14 @@ class searchBibsWindow(editObjectWindow):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
+		self.possibleTypes = {
+			"exp_paper": {"desc": "Experimental"},
+			"lecture": {"desc": "Lecture"},
+			"phd_thesis": {"desc": "PhD thesis"},
+			"review": {"desc": "Review"},
+			"proceeding": {"desc": "Proceeding"},
+			"book": {"desc": "Book"}
+			}
 		self.values = {}
 		self.values["cats"] = []
 		self.values["exps"] = []
@@ -809,6 +817,8 @@ class searchBibsWindow(editObjectWindow):
 		self.values["catExpOperator"] = "AND"
 		self.values["marks"] = []
 		self.values["marksConn"] = "AND"
+		self.values["type"] = []
+		self.values["typeConn"] = "AND"
 		self.numberOfRows = 1
 		self.createForm()
 
@@ -840,6 +850,13 @@ class searchBibsWindow(editObjectWindow):
 			if self.markValues[m].isChecked():
 				self.values["marks"].append(m)
 
+	def getTypeValues(self):
+		self.values["typeConn"] = self.typeConn.currentText()
+		self.values["type"] = []
+		for m in self.typeValues.keys():
+			if self.typeValues[m].isChecked():
+				self.values["type"].append(m)
+
 	def onAddField(self):
 		self.numberOfRows = self.numberOfRows + 1
 		self.getMarksValues()
@@ -862,38 +879,58 @@ class searchBibsWindow(editObjectWindow):
 				return True
 		return QWidget.eventFilter(self, widget, event)
 
-	def createForm(self):
+	def createForm(self, spaceRowHeight = 25):
 		self.setWindowTitle('Search bibtex entries')
 
-		self.currGrid.addWidget(QLabel("Filter by categories, using the following operator:"), 0, 0, 1, 2)
+		self.currGrid.addWidget(MyLabelRight("Filter by categories, using the following operator:"), 0, 0, 1, 3)
 		self.catsButton = QPushButton('Categories', self)
 		self.catsButton.clicked.connect(self.onAskCats)
-		self.currGrid.addWidget(self.catsButton, 0, 2)
+		self.currGrid.addWidget(self.catsButton, 0, 3, 1, 2)
 		self.comboCats = MyAndOrCombo(self)
 		self.comboCats.activated[str].connect(self.onComboCatsChange)
-		self.currGrid.addWidget(self.comboCats, 0, 3)
+		self.currGrid.addWidget(self.comboCats, 0, 5)
 
-		self.currGrid.addWidget(QLabel("Filter by experiments, using the following operator:"), 1, 0, 1, 2)
+		self.currGrid.addWidget(MyLabelRight("Filter by experiments, using the following operator:"), 1, 0, 1, 3)
 		self.expsButton = QPushButton('Experiments', self)
 		self.expsButton.clicked.connect(self.onAskExps)
-		self.currGrid.addWidget(self.expsButton, 1, 2)
+		self.currGrid.addWidget(self.expsButton, 1, 3, 1, 2)
 		self.comboExps = MyAndOrCombo(self)
 		self.comboExps.activated[str].connect(self.onComboExpsChange)
-		self.currGrid.addWidget(self.comboExps, 1, 3)
+		self.currGrid.addWidget(self.comboExps, 1, 5)
 
-		self.currGrid.addWidget(QLabel("If using both categories and experiments, which operator between them?"), 2, 0, 1, 3)
+		self.currGrid.addWidget(MyLabelRight("If using both categories and experiments, which operator between them?"), 2, 0, 1, 4)
 		self.comboCE = MyAndOrCombo(self)
 		self.comboCE.activated[str].connect(self.onComboCEChange)
-		self.currGrid.addWidget(self.comboCE, 2, 3)
+		self.currGrid.addWidget(self.comboCE, 2, 5)
+
+		self.currGrid.setRowMinimumHeight(3, spaceRowHeight)
 
 		self.marksConn = MyAndOrCombo(self, current = self.values["marksConn"])
-		self.currGrid.addWidget(self.marksConn, 3, 0)
-		groupBox, markValues = pBMarks.getGroupbox(self.values["marks"], description = "Filter by marks", radio = True, addAny = True)
+		self.currGrid.addWidget(self.marksConn, 4, 0)
+		self.currGrid.addWidget(MyLabelRight("Filter by marks:"), 4, 1)
+		groupBox, markValues = pBMarks.getGroupbox(self.values["marks"], description = "", radio = True, addAny = True)
 		self.markValues = markValues
-		self.currGrid.addWidget(groupBox, 3, 1, 1, 3)
+		self.currGrid.addWidget(groupBox, 4, 2, 1, 5)
 
-		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 4, 0, 1, 3)
-		firstFields = 5
+		self.typeConn = MyAndOrCombo(self, current = self.values["typeConn"])
+		self.currGrid.addWidget(self.typeConn, 5, 0)
+		self.currGrid.addWidget(MyLabelRight("Entry type:"), 5, 1)
+		groupBox = QGroupBox()
+		self.typeValues = {}
+		groupBox.setFlat(True)
+		vbox = QHBoxLayout()
+		for m, cont in self.possibleTypes.items():
+			self.typeValues[m] = QRadioButton(cont["desc"])
+			if m in self.values["type"]:
+				self.typeValues[m].setChecked(True)
+			vbox.addWidget(self.typeValues[m])
+		vbox.addStretch(1)
+		groupBox.setLayout(vbox)
+		self.currGrid.addWidget(groupBox, 5, 2, 1, 5)
+
+		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 7, 0, 1, 7)
+		firstFields = 8
+		self.currGrid.setRowMinimumHeight(6, spaceRowHeight)
 
 		for i in range(self.numberOfRows):
 			try:
@@ -917,39 +954,52 @@ class searchBibsWindow(editObjectWindow):
 			self.currGrid.addWidget(self.textValues[i]["operator"], i + firstFields, 2)
 
 			self.textValues[i]["content"] = QLineEdit(previous["content"])
-			self.currGrid.addWidget(self.textValues[i]["content"], i + firstFields, 3)
+			self.currGrid.addWidget(self.textValues[i]["content"], i + firstFields, 3, 1, 4)
 			self.textValues[i]["content"].installEventFilter(self)
 
 		self.textValues[-1]["content"].setFocus()
 
 		i = self.numberOfRows + firstFields + 1
-		self.currGrid.addWidget(QLabel("Click here if you want more fields:"), i-1, 0, 1, 3)
-		self.addFieldButton = QPushButton("Add another field line", self)
+		self.currGrid.addWidget(MyLabelRight("Click here if you want more fields:"), i-1, 0, 1, 2)
+		self.addFieldButton = QPushButton("Add another line", self)
 		self.addFieldButton.clicked.connect(self.onAddField)
-		self.currGrid.addWidget(self.addFieldButton, i-1, 3)
+		self.currGrid.addWidget(self.addFieldButton, i-1, 2, 1, 2)
+
+		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 
 		#limit to, limit offset
-		i += 1
+		i += 2
 		try:
 			lim = self.limitValue.text()
 			offs = self.limitOffs.text()
 		except AttributeError:
 			lim = "50"
 			offs = "0"
-		self.currGrid.addWidget(QLabel("Max number of results:"), i - 1, 0)
+		self.currGrid.addWidget(MyLabelRight("Max number of results:"), i - 1, 0, 1, 2)
 		self.limitValue = QLineEdit(lim)
-		self.currGrid.addWidget(self.limitValue, i - 1, 1)
-		self.currGrid.addWidget(QLabel("Start from:"), i - 1, 2)
+		self.limitValue.setMaxLength(6)
+		self.limitValue.setFixedWidth(75)
+		self.currGrid.addWidget(self.limitValue, i - 1, 2)
+		self.currGrid.addWidget(MyLabelRight("Start from:"), i - 1, 3, 1, 2)
 		self.limitOffs = QLineEdit(offs)
-		self.currGrid.addWidget(self.limitOffs, i - 1, 3)
+		self.limitOffs.setMaxLength(6)
+		self.limitOffs.setFixedWidth(75)
+		self.currGrid.addWidget(self.limitOffs, i - 1, 5)
+
+		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
+		i += 1
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i, 1)
+		self.currGrid.addWidget(self.acceptButton, i, 2)
+		self.acceptButton.setFixedWidth(80)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i, 2)
+		self.currGrid.addWidget(self.cancelButton, i, 3)
+		self.cancelButton.setFixedWidth(80)
+
+		self.currGrid.setColumnStretch(6, 1)

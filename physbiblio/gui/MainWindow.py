@@ -556,6 +556,11 @@ class MainWindow(QMainWindow):
 					searchDict["marks"] = {"str": "", "operator": "!=", "connection": newSearchWin.values["marksConn"]}
 				else:
 					searchDict["marks"] = {"str": ", ".join(newSearchWin.values["marks"]), "operator": "like", "connection": newSearchWin.values["marksConn"]}
+			newSearchWin.getTypeValues()
+			if len(newSearchWin.values["type"]) > 0:
+				for k in newSearchWin.values["type"]:
+					searchDict[k] = {"str": "1", "operator": "=", "connection": newSearchWin.values["typeConn"]}
+					print searchDict[k]
 			for i, dic in enumerate(newSearchWin.textValues):
 				k="%s#%d"%(dic["field"].currentText(), i)
 				s = "%s"%dic["content"].text()
@@ -570,9 +575,15 @@ class MainWindow(QMainWindow):
 				offs = int(newSearchWin.limitOffs.text())
 			except ValueError:
 				offs = 0
-			self.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict,
+			noLim = pBDB.bibs.fetchFromDict(searchDict, limitOffset = offs).lastFetched
+			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
-				).lastFetched)
+				).lastFetched
+			print len(noLim), len(lastFetched)
+			if len(noLim) > len(lastFetched):
+				infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
+					len(lastFetched), len(noLim)))
+			self.reloadMainContent(lastFetched)
 
 	def searchAndReplace(self):
 		dialog = searchReplaceDialog(self)
