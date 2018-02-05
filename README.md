@@ -81,6 +81,13 @@ A "Download from arXiv" feature is present for all the papers with an arXiv iden
 For the other papers, you can manually assign a PDF that you have separately downloaded and it will be stored in a subfolder.
 You will not need to know where it is saved, because you will access it from the program.
 
+### Marks
+You can mark the entries to be able to easily see if they are good/bad, to notice which ones you need to read or the most interesting ones.
+
+### Search and replace
+Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
+A very preliminary "search and replace" function is also implemented.
+
 ## 3. Data paths
 PhysBiblio saves data, by default, in a `data/` subfolder of its main path.
 

@@ -305,7 +305,7 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.refreshAct)
 		self.mainToolBar.addAction(self.reloadAct)
-		self.mainToolBar.addAction(self.cliAct)
+		# self.mainToolBar.addAction(self.cliAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.configAct)
 		self.mainToolBar.addAction(self.dbstatsAct)
