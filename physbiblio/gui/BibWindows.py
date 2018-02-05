@@ -169,7 +169,6 @@ class MyBibTableModel(MyTableModel):
 		self.addCols = addCols + ["bibtex"]
 		self.lenStdCols = len(stdCols)
 		self.prepareSelected()
-		self.pixmaps = []
 
 	def getIdentifier(self, element):
 		return element["bibkey"]
@@ -211,7 +210,7 @@ class MyBibTableModel(MyTableModel):
 		row = index.row()
 		column = index.column()
 		try:
-			if self.stdCols[column] == "marks":
+			if column == self.stdCols.index("marks"):
 				img, value = self.addMarksCell(self.dataList[row]["marks"])
 			elif column < self.lenStdCols:
 				value = self.dataList[row][self.stdCols[column]]
