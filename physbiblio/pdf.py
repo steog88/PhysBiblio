@@ -18,7 +18,7 @@ class localPDF():
 			self.pdfDir = pbConfig.params["pdfFolder"]
 		else:
 			self.pdfDir = osp.join(osp.split(osp.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
-		self.badFNameCharacters = r'\/:*?"<>|'
+		self.badFNameCharacters = r'\/:*?"<>|' + "'"
 		self.pdfApp = pbConfig.params["pdfApplication"]
 		
 	def badFName(self, value):
@@ -184,5 +184,19 @@ class localPDF():
 		except:
 			print("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, outFolder))
 			return False
+
+	def removeSparePDFFolders(self):
+		keys = [ a["bibkey"] for a in pBDB.bibs.getAll()]
+		folders = os.listdir(self.pdfDir)
+		for k in keys:
+			cleaned = self.badFName(k)
+			if cleaned in folders:
+				del folders[folders.index(cleaned)]
+		if len(folders) > 0:
+			print("[PDF] Spare PDF folders found: %d\n%s\nThey will be removed now."%(len(folders), folders))
+			for f in folders:
+				shutil.rmtree(osp.join(self.pdfDir, f))
+		else:
+			print("[PDF] Nothing found.")
 
 pBPDF = localPDF()
