@@ -111,7 +111,8 @@ class localPDF():
 				print("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
 				return
 			print("[localPDF] opening '%s'..."%fName)
-			subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+			if self.pdfApp != "":
+				subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
 			print("[localPDF] opening PDF for '%s' failed!"%key)
 	
