@@ -53,7 +53,16 @@ class localPDF():
 		directory = self.getFileDir(key)
 		if noCheck or not osp.exists(directory):
 			os.makedirs(directory)
-		
+
+	def renameFolder(self, oldkey, newkey):
+		olddir = self.getFileDir(oldkey)
+		if osp.exists(olddir):
+			newdir = self.getFileDir(newkey)
+			print("[PDF] Renaming %s to %s"%(olddir, newdir))
+			return os.rename(olddir, newdir)
+		else:
+			return False
+
 	def copyNewFile(self, key, origFile, ftype = None, customName = None):
 		"""copy a file in the filesystem into the directory corresponding to the given entry"""
 		if not osp.exists(self.getFileDir(key)):

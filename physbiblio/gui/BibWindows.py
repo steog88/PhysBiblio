@@ -95,6 +95,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 						data["old_keys"] += " " + editKey
 						data["old_keys"] = data["old_keys"].strip()
 					pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
+					pBPDF.renameFolder(editKey, data["bibkey"].strip())
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:
