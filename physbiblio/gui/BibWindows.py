@@ -395,7 +395,7 @@ class bibtexList(QFrame, objListWindow):
 
 		index = self.tablewidget.model().index(row, col)
 		try:
-			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
+			bibkey = str(self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data())
 		except AttributeError:
 			return
 		menu = QMenu()
@@ -561,7 +561,7 @@ class bibtexList(QFrame, objListWindow):
 		row = index.row()
 		col = index.column()
 		try:
-			bibkey = str(self.proxyModel.sibling(row, 0, index).data())
+			bibkey = str(self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data())
 		except AttributeError:
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
