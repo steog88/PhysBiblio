@@ -88,7 +88,7 @@ class authorStatsPlots(QDialog):
 				formatString = "%s in date %s is %d"
 			self.textBox.setText(formatString%(figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
 
-	def updatePlots(self, figs):		
+	def updatePlots(self, figs):
 		i = 0
 		while True:
 			item = self.layout().takeAt(i)
@@ -101,6 +101,62 @@ class authorStatsPlots(QDialog):
 			if fig is not None:
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
-				self.layout()
 				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
 				self.canvas[-1].draw()
+
+class paperStatsPlots(QDialog):
+	def __init__(self, fig, title = None, parent = None):
+		super(paperStatsPlots, self).__init__(parent)
+		if title is not None:
+			self.setWindowTitle(title)
+		self.parent = parent
+		layout = QGridLayout(self)
+		layout.setSpacing(1)
+		self.setLayout(layout)
+		self.updatePlots(fig)
+
+		nlines = 1
+		self.layout().addWidget(QLabel("Click on the line to have more information:"), nlines + 1, 0)
+
+		self.textBox = QLineEdit("")
+		self.textBox.setReadOnly(True)
+		self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)
+		self.saveButton = QPushButton('Save', self)
+		self.saveButton.clicked.connect(self.saveAction)
+		self.layout().addWidget(self.saveButton, nlines + 3, 0)
+
+		self.clButton = QPushButton('Close', self)
+		self.clButton.clicked.connect(self.close)
+		self.clButton.setAutoDefault(True)
+		self.layout().addWidget(self.clButton, nlines + 3, 1)
+
+	def saveAction(self):
+		savePath = askDirName(self, "Where do you want to save the plot of the stats?")
+		if savePath != "":
+			self.parent.lastPaperStats["fig"] = pBStats.plotStats(paper = True, save = True, path = savePath)
+			infoMessage("Plot saved.")
+			self.saveButton.setDisabled(True)
+
+	def pickEvent(self,event):
+		ob = event.artist
+		ix = -1
+		if isinstance(ob, Line2D):
+			xdata = ob.get_xdata()
+			ydata = ob.get_ydata()
+			ind = event.ind
+			formatString = "%s in date %s is %d"
+			self.textBox.setText(formatString%("Citations", np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
+
+	def updatePlots(self, fig):
+		i = 0
+		while True:
+			item = self.layout().takeAt(i)
+			if item is None: break
+			del item
+		if hasattr(self, "canvas"): del self.canvas
+		self.fig = fig
+		if fig is not None:
+			self.canvas = FigureCanvas(fig)
+			self.layout().addWidget(self.canvas, 0, 0, 1, 2)
+			self.canvas.mpl_connect("pick_event", self.pickEvent)
+			self.canvas.draw()

@@ -52,7 +52,7 @@ tableFields["entryExps"] = [
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {
 	"bibkey":	"Unique bibtex key that identifies the bibliographic element",
-	"inspire":	"Inspire ID of the record",
+	"inspire":	"INSPIRE-HEP ID of the record",
 	"arxiv":	"arXiv ID of the record",
 	"ads":		"NASA ADS ID of the record",
 	"scholar":	"Google Scholar ID of the record",
@@ -86,7 +86,7 @@ fieldsDescriptions["experiments"] = {
 	"name": 	"Name of the experiment",
 	"comments": "Description or comments",
 	"homepage": "Web link to the experiment homepage",
-	"inspire": 	"Inspire ID of the experiment record"}
+	"inspire": 	"INSPIRE-HEP ID of the experiment record"}
 fieldsDescriptions["expCats"] = {
 	"idExC": "Unique identifier",
 	"idExp": "Corresponding experiment ID",

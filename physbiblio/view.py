@@ -53,8 +53,8 @@ class viewEntry():
 			link = self.printLink(key, arg = arg, fileArg = fileArg)
 			if link:
 				try:
-					print("[viewEntry] opening '%s'..."%link)
 					if self.webApp != "":
+						print("[viewEntry] opening '%s'..."%link)
 						subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 				except OSError:
 					pBErrorManager("[viewEntry] opening link for '%s' failed!"%key)

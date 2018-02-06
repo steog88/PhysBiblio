@@ -84,6 +84,21 @@ class thread_authorStats(MyThread):
 	def setStopFlag(self):
 		pBStats.runningAuthorStats = False
 
+class thread_paperStats(MyThread):
+	def __init__(self, queue, myrec, inspireId, parent = None):
+		super(thread_paperStats, self).__init__(parent)
+		self.parent = parent
+		self.inspireId = inspireId
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		self.parent.lastPaperStats = pBStats.paperStats(self.inspireId)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
 class thread_loadAndInsert(MyThread):
 	def __init__(self, queue, myrec, content, parent = None):
 		super(thread_loadAndInsert, self).__init__(parent)

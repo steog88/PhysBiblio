@@ -447,10 +447,11 @@ class bibtexList(QFrame, objListWindow):
 		menu.addSeparator()
 		opArxAct = menu.addAction("Open into arXiv")
 		opDoiAct = menu.addAction("Open DOI link")
-		opInsAct = menu.addAction("Open into InspireHEP")
+		opInsAct = menu.addAction("Open into INSPIRE-HEP")
 		menu.addSeparator()
-		insAction = menu.addAction("Complete info (from Inspire)")
-		updAction = menu.addAction("Update (search Inspire)")
+		insAction = menu.addAction("Complete info (from INSPIRE-HEP)")
+		updAction = menu.addAction("Update (search INSPIRE-HEP)")
+		staAction = menu.addAction("Citation statistics (from INSPIRE-HEP)")
 		menu.addSeparator()
 		
 		action = menu.exec_(event.globalPos())
@@ -496,6 +497,8 @@ class bibtexList(QFrame, objListWindow):
 			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
+		elif action == staAction:
+			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")

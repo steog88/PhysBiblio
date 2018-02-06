@@ -1275,7 +1275,7 @@ class entries(physbiblioDBSub):
 			date2 = datetime.date.today().strftime("%Y-%m-%d")
 		yren, monen, dayen = date1.split('-')
 		yrst, monst, dayst = date2.split('-')
-		print("[DB] calling Inspire OAI harvester between dates %s and %s"%(date1, date2))
+		print("[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(date1, date2))
 		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
 		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
 		entries = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)

@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
 		self.setIcon()
 		self.CreateStatusBar()
 		self.lastAuthorStats = None
+		self.lastPaperStats = None
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -144,14 +145,14 @@ class MainWindow(QMainWindow):
 								statusTip="New bibliographic item",
 								triggered=self.newBibtex)
 
-		self.inspireLoadAndInsertAct = QAction("&Load from Inspires", self,
+		self.inspireLoadAndInsertAct = QAction("&Load from INSPIRE-HEP", self,
 								shortcut="Ctrl+Shift+I",
-								statusTip="Use Inspires to load and insert bibtex entries",
+								statusTip="Use INSPIRE-HEP to load and insert bibtex entries",
 								triggered=self.inspireLoadAndInsert)
 
-		self.inspireLoadAndInsertWithCatsAct = QAction("&Load from Inspires (ask categories)", self,
+		self.inspireLoadAndInsertWithCatsAct = QAction("&Load from INSPIRE-HEP (ask categories)", self,
 								shortcut="Ctrl+I",
-								statusTip="Use Inspires to load and insert bibtex entries, then ask the categories for each",
+								statusTip="Use INSPIRE-HEP to load and insert bibtex entries, then ask the categories for each",
 								triggered=self.inspireLoadAndInsertWithCats)
 
 		self.advImportAct = QAction("&Advanced Import", self,
@@ -434,10 +435,11 @@ class MainWindow(QMainWindow):
 		totStr = getDelKwargs("totStr")
 		progrStr = getDelKwargs("progrStr")
 		addMessage = getDelKwargs("addMessage")
-		app = printText(title = title, totStr = totStr, progrStr = progrStr)
+		stopFlag = getDelKwargs("stopFlag")
+		app = printText(title = title, totStr = totStr, progrStr = progrStr,
+			noStopButton = True if stopFlag is False else False)
 
 		outMessage = getDelKwargs("outMessage")
-		stopFlag = getDelKwargs("stopFlag")
 		minProgress = getDelKwargs("minProgress")
 		if minProgress:
 			app.progressBarMin(minProgress)
@@ -645,7 +647,7 @@ class MainWindow(QMainWindow):
 			minProgress = 0., stopFlag = True)
 
 	def updateInspireInfo(self, bibkey):
-		self.StatusBarMessage("Starting generic info update from Inspire...")
+		self.StatusBarMessage("Starting generic info update from INSPIRE-HEP...")
 		self.updateII_thr, self.uIIReceiver = self._runInThread(
 			thread_updateInspireInfo, "Update Info",
 			bibkey,
@@ -678,8 +680,22 @@ class MainWindow(QMainWindow):
 		aSP.show()
 		self.done()
 
+	def getInspireStats(self, inspireId):
+		self.paperStats_thr, self.pSReceiver = self._runInThread(
+			thread_paperStats, "Paper Stats",
+			inspireId,
+			totStr = "[inspireStats] paperStats will process ", progrStr = "%) - looking for paper: ",
+			minProgress = 0., stopFlag = False)
+		if self.lastPaperStats is None:
+			infoMessage("No results obtained. Maybe there was an error.")
+			return False
+		self.lastPaperStats["fig"] = pBStats.plotStats(paper = True)
+		pSP = paperStatsPlots(self.lastPaperStats["fig"], title = "Statistics for recid:%s"%inspireId, parent = self)
+		pSP.show()
+		self.done()
+
 	def inspireLoadAndInsert(self, doReload = True):
-		queryStr = askGenericText("Insert the query string you want to use for importing from InspireHEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
+		queryStr = askGenericText("Insert the query string you want to use for importing from INSPIRE-HEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
 		if queryStr == "":
 			pBGUIErrorManager("[inspireLoadAndInsert] empty string! cannot proceed.", priority = 0)
 			return False
@@ -693,7 +709,7 @@ class MainWindow(QMainWindow):
 				return False
 
 		self.inspireLoadAndInsert_thr, self.iLAIReceiver = self._runInThread(
-			thread_loadAndInsert, "Import from Inspire",
+			thread_loadAndInsert, "Import from INSPIRE-HEP",
 			queryStr,
 			totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ",
 			minProgress = 0., stopFlag = True,
@@ -731,6 +747,8 @@ class MainWindow(QMainWindow):
 		adIm = advImportDialog()
 		adIm.exec_()
 		method = adIm.comboMethod.currentText().lower()
+		if method == "inspire-hep":
+			method = "inspire"
 		string = adIm.searchStr.text().strip()
 		if adIm.result == True and string != "":
 			cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)

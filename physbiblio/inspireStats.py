@@ -128,12 +128,17 @@ class inspireStatsLoader():
 			citingPapersList[0].append(allInfo[p]["date"])
 		for i,p in enumerate(sorted(citingPapersList[0])):
 			citingPapersList[0][i] = p
-			citingPapersList[1].append(i)
+			citingPapersList[1].append(i+1)
 		citingPapersList[0].append(datetime.date.today())
-		citingPapersList[1].append(citingPapersList[1][-1])
+		try:
+			citingPapersList[1].append(citingPapersList[1][-1])
+		except IndexError:
+			citingPapersList[1].append(0)
 		self.paperPlotInfo = { "id": paperID, "aI": allInfo, "citList": citingPapersList }
 		if plot:
 			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
+		if verbose > 0:
+			print("[inspireStats] Done!")
 		return self.paperPlotInfo
 	
 	def plotStats(self, paper = False, author = False, show = False, save = False, path = ".", markPapers = False):

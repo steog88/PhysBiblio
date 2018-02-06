@@ -247,7 +247,7 @@ class printText(QDialog):
 	"""create a window for printing text of command line output"""
 	stopped = Signal()
 
-	def __init__(self, parent = None, title = "", progressBar = True, totStr = None, progrStr = None):
+	def __init__(self, parent = None, title = "", progressBar = True, totStr = None, progrStr = None, noStopButton = False):
 		super(printText, self).__init__(parent)
 		self.message = None
 		if title != "":
@@ -255,6 +255,7 @@ class printText(QDialog):
 		else:
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
+		self.noStopButton = noStopButton
 		self._want_to_close = False
 		self.totString = totStr if totStr is not None else "emptyString"
 		self.progressString = progrStr if progrStr is not None else "emptyString"
@@ -287,10 +288,11 @@ class printText(QDialog):
 			grid.addWidget(self.progressBar)
 
 		# cancel button...should learn how to connect it with a thread kill
-		self.cancelButton = QPushButton('Stop', self)
-		self.cancelButton.clicked.connect(self.stopExec)
-		self.cancelButton.setAutoDefault(True)
-		grid.addWidget(self.cancelButton)
+		if self.noStopButton is not True:
+			self.cancelButton = QPushButton('Stop', self)
+			self.cancelButton.clicked.connect(self.stopExec)
+			self.cancelButton.setAutoDefault(True)
+			grid.addWidget(self.cancelButton)
 		self.closeButton = QPushButton('Close', self)
 		self.closeButton.clicked.connect(self.reject)
 		self.closeButton.setDisabled(True)
@@ -403,8 +405,8 @@ class advImportDialog(QDialog):
 		##search
 		grid.addWidget(QLabel("Select method: "), 0, 0)
 		self.comboMethod = MyComboBox(self,
-			["Inspire", "arXiv", "DOI", "ISBN"],
-			current = "Inspire")
+			["INSPIRE-HEP", "arXiv", "DOI", "ISBN"],
+			current = "INSPIRE-HEP")
 		grid.addWidget(self.comboMethod, 0, 1)
 
 		grid.addWidget(QLabel("Search string: "), 1, 0)
