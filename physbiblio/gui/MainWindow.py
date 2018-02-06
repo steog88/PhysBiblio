@@ -223,6 +223,11 @@ class MainWindow(QMainWindow):
 								statusTip="Remove spare entries from the connection tables.",
 								triggered=self.cleanSpare)
 
+		self.cleanSparePDFAct = QAction(
+								"&Clean spare PDF folders", self,
+								statusTip="Remove spare PDF folders.",
+								triggered=self.cleanSparePDF)
+
 	def closeEvent(self, event):
 		if pBDB.checkUncommitted():
 			if askYesNo("There may be unsaved changes to the database.\nDo you really want to exit?"):
@@ -282,6 +287,7 @@ class MainWindow(QMainWindow):
 		self.menuBar().addSeparator()
 		self.toolMenu = self.menuBar().addMenu("&Tools")
 		self.toolMenu.addAction(self.cleanSpareAct)
+		self.toolMenu.addAction(self.cleanSparePDFAct)
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 		# self.toolMenu.addSeparator()
@@ -461,6 +467,10 @@ class MainWindow(QMainWindow):
 
 	def cleanSpare(self):
 		self.cS_thr, self.cSReceiver = self._runInThread(thread_cleanSpare, "Clean spare entries")
+
+	def cleanSparePDF(self):
+		if askYesNo("Do you really want to delete the unassociated PDF folders?\nThere may be some (unlikely) accidental deletion of files."):
+			self.cSP_thr, self.cSPReceiver = self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
 
 	def CreateStatusBar(self):
 		"""

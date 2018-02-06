@@ -196,6 +196,7 @@ class localPDF():
 			print("[PDF] Spare PDF folders found: %d\n%s\nThey will be removed now."%(len(folders), folders))
 			for f in folders:
 				shutil.rmtree(osp.join(self.pdfDir, f))
+			print("Done!")
 		else:
 			print("[PDF] Nothing found.")
 

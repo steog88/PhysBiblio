@@ -156,3 +156,16 @@ class thread_cleanSpare(MyThread):
 		pBDB.utils.cleanSpareEntries()
 		self.my_receiver.running = False
 		self.finished.emit()
+
+class thread_cleanSparePDF(MyThread):
+	def __init__(self, queue, myrec, parent):
+		super(thread_cleanSparePDF, self).__init__()
+		self.parent = parent
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		pBPDF.removeSparePDFFolders()
+		self.my_receiver.running = False
+		self.finished.emit()
