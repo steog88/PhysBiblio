@@ -600,7 +600,7 @@ class MainWindow(QMainWindow):
 				offs = int(newSearchWin.limitOffs.text())
 			except ValueError:
 				offs = 0
-			noLim = pBDB.bibs.fetchFromDict(searchDict, limitOffset = offs).lastFetched
+			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
 				).lastFetched
