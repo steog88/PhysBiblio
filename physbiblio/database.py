@@ -49,6 +49,8 @@ class physbiblioDB():
 			print("-------New database. Creating tables!\n\n")
 			pbfo.createTables(self)
 		
+		# self.cursExec("ALTER TABLE entries ADD COLUMN abstract TEXT")
+
 		self.lastFetched = None
 		self.catsHier = None
 
