@@ -59,6 +59,7 @@ def writeBibtexInfo(entry):
 	infoText += "<br/>Categories: <i>%s</i>"%(", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None")
 	exps = pBDB.exps.getByEntry(entry["bibkey"])
 	infoText += "<br/>Experiments: <i>%s</i>"%(", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
+	infoText += "<br/><br/><b>Abstract:</b><br/>%s"%(entry["abstract"])
 	return infoText
 
 def editBibtex(parent, statusBarObject, editKey = None):
@@ -501,7 +502,7 @@ class bibtexList(QFrame, objListWindow):
 		elif action == staAction:
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		elif action == absAction:
-			self.arxivAbstract(arxiv)
+			self.arxivAbstract(arxiv, bibkey)
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")
@@ -600,9 +601,10 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.done()
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-	def arxivAbstract(self, arxiv):
+	def arxivAbstract(self, arxiv, bibkey):
 		bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
 		abstract = full["abstract"]
+		pBDB.bibs.updateField(bibkey, "abstract", abstract)
 		infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 
 	def finalizeTable(self):
