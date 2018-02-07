@@ -24,12 +24,12 @@ class webSearch(webInterf):
 		self.urlArgs = {
 			"start":"0"}
 		
-	def retrieveUrlFirst(self, string, searchType = "all"):
-		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"})
-	def retrieveUrlAll(self, string, searchType = "all"):
-		return self.arxivRetriever(string, searchType)
+	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
+		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"}, **kwargs)
+	def retrieveUrlAll(self, string, searchType = "all", **kwargs):
+		return self.arxivRetriever(string, searchType, **kwargs)
 
-	def arxivRetriever(self, string, searchType = "all", additionalArgs = None):
+	def arxivRetriever(self, string, searchType = "all", additionalArgs = None, fullDict = False):
 		"""reads the feed content into a dictionary, used to return a bibtex"""
 		if additionalArgs:
 			for k, v in additionalArgs.iteritems():
@@ -73,7 +73,10 @@ class webSearch(webInterf):
 				except:
 					print("[DB] -> Error in converting year")
 				db.entries.append(tmp)
-			return pbWriter.write(db)
+			if fullDict:
+				return pbWriter.write(db), tmp
+			else:
+				return pbWriter.write(db)
 		except:
 			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
 			return ""

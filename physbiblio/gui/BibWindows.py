@@ -452,6 +452,7 @@ class bibtexList(QFrame, objListWindow):
 		insAction = menu.addAction("Complete info (from INSPIRE-HEP)")
 		updAction = menu.addAction("Update (search INSPIRE-HEP)")
 		staAction = menu.addAction("Citation statistics (from INSPIRE-HEP)")
+		absAction = menu.addAction("Get abstract (from arXiv)")
 		menu.addSeparator()
 		
 		action = menu.exec_(event.globalPos())
@@ -499,6 +500,8 @@ class bibtexList(QFrame, objListWindow):
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
 		elif action == staAction:
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
+		elif action == absAction:
+			self.arxivAbstract(arxiv)
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")
@@ -596,6 +599,11 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.sendMessage("Arxiv download execution completed! Please check that it worked...")
 		self.parent.done()
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+
+	def arxivAbstract(self, arxiv):
+		bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
+		abstract = full["abstract"]
+		infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
