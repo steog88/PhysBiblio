@@ -357,6 +357,11 @@ class MainWindow(QMainWindow):
 
 		#self.setWindowTitle('QtGui.QSplitter')
 		#self.show()
+		if pbConfig.needFirstConfiguration:
+			infoMessage("Missing configuration file.\nYou should verify the configuration now.")
+			self.config()
+			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+			self.reloadMainContent()
 
 	def refreshMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one, using last used query"""

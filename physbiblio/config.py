@@ -1,10 +1,6 @@
 import sys, ast, os
 
 configuration_params = [
-{"name": "configMainFile",
-	"default": 'data/params.cfg',
-	"description": 'Name of the configuration file',
-	"special": None},
 {"name": "mainDatabaseName",
 	"default": 'data/physbiblio.db',
 	"description": 'Name of the database file',
@@ -64,6 +60,7 @@ class ConfigVars():
 	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
 		"""initialize variables and read the external file"""
+		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
 		self.path = os.path.realpath(__file__).replace("physbiblio/config.pyc","").replace("physbiblio/config.py","")
@@ -78,7 +75,7 @@ class ConfigVars():
 			self.defProf, self.profiles = ast.literal_eval(txt.replace("\n",""))
 		except (IOError, ValueError, SyntaxError) as e:
 			print e
-			self.profiles = {"default": {"f": self.params["configMainFile"], "d":""}}
+			self.profiles = {"default": {"f": "data/params.cfg", "d":""}}
 			self.defProf = "default"
 			self.writeProfiles()
 		#except ...:
@@ -138,6 +135,7 @@ class ConfigVars():
 		except IOError:
 			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
+			self.needFirstConfiguration = True
 		except Exception:
 			print("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
