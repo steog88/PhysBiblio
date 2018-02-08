@@ -330,6 +330,10 @@ class MainWindow(QMainWindow):
 		self.bottomLeft = bibtexWindow(self)
 		self.bottomLeft.setFrameShape(QFrame.StyledPanel)
 
+		#will contain the abstract of the bibtex entry:
+		self.bottomCenter = bibtexInfo(self)
+		self.bottomCenter.setFrameShape(QFrame.StyledPanel)
+
 		#will contain other info on the bibtex entry:
 		self.bottomRight = bibtexInfo(self)
 		self.bottomRight.setFrameShape(QFrame.StyledPanel)
@@ -338,6 +342,7 @@ class MainWindow(QMainWindow):
 		splitter.addWidget(self.bibtexList)
 		splitterBottom = QSplitter(Qt.Horizontal)
 		splitterBottom.addWidget(self.bottomLeft)
+		splitterBottom.addWidget(self.bottomCenter)
 		splitterBottom.addWidget(self.bottomRight)
 		splitter.addWidget(splitterBottom)
 		splitter.setStretchFactor(0,3)

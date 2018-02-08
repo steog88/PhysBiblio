@@ -59,8 +59,10 @@ def writeBibtexInfo(entry):
 	infoText += "<br/>Categories: <i>%s</i>"%(", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None")
 	exps = pBDB.exps.getByEntry(entry["bibkey"])
 	infoText += "<br/>Experiments: <i>%s</i>"%(", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
-	infoText += "<br/><br/><b>Abstract:</b><br/>%s"%(entry["abstract"])
 	return infoText
+
+def writeAbstract(entry):
+	return "<b>Abstract:</b><br/>%s"%(entry["abstract"])
 
 def editBibtex(parent, statusBarObject, editKey = None):
 	if editKey is not None:
@@ -559,6 +561,7 @@ class bibtexList(QFrame, objListWindow):
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
+		self.parent.bottomCenter.text.setText(writeAbstract(entry))
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "modify":
 			editBibtex(self.parent, self.parent, bibkey)
