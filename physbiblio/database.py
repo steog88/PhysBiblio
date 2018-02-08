@@ -1107,7 +1107,7 @@ class entries(physbiblioDBSub):
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
-			marks = None, firstdate = None, pubdate = None, noUpd = None, number = None):
+			marks = None, firstdate = None, pubdate = None, noUpd = None, abstract = None, number = None):
 		"""convert a bibtex into a dictionary, eventually using also additional info"""
 		data = {}
 		if number is None:
@@ -1115,7 +1115,7 @@ class entries(physbiblioDBSub):
 		try:
 			element = bibtexparser.loads(bibtex).entries[number]
 			data["bibkey"] = bibkey if bibkey else element["ID"]	
-		except:
+		except KeyError:
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
@@ -1129,10 +1129,10 @@ class entries(physbiblioDBSub):
 		else:
 			try:
 				data["arxiv"] = element["arxiv"]
-			except:
+			except KeyError:
 				try:
 					data["arxiv"] = element["eprint"]
-				except:
+				except KeyError:
 					data["arxiv"] = None
 		data["ads"] = ads if ads else None
 		data["scholar"] = scholar if scholar else None
@@ -1141,21 +1141,21 @@ class entries(physbiblioDBSub):
 		else:
 			try:
 				data["doi"] = element["doi"]
-			except:
+			except KeyError:
 				data["doi"] = None
 		if isbn:
 			data["isbn"] = isbn
 		else:
 			try:
 				data["isbn"] = element["isbn"]
-			except:
+			except KeyError:
 				data["isbn"] = None
 		if year:
 			data["year"] = year
 		else:
 			try:
 				data["year"] = element["year"]
-			except:
+			except KeyError:
 				try:
 					identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
 					for t in identif.finditer(data["arxiv"]):
@@ -1166,17 +1166,17 @@ class entries(physbiblioDBSub):
 								data["year"] = "19"+a
 							else:
 								data["year"] = "20"+a
-				except:
+				except KeyError:
 					data["year"]=None
 		if link:
 			data["link"] = link
 		else:
 			try:
 				data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
-			except:
+			except KeyError:
 				try:
 					data["link"] = pbConfig.doiUrl + data["doi"]
-				except:
+				except KeyError:
 					data["link"] = None
 		data["comments"] = comments if comments else None
 		data["old_keys"] = old_keys if old_keys else None
@@ -1185,7 +1185,7 @@ class entries(physbiblioDBSub):
 		else:
 			try:
 				data["crossref"] = element["crossref"]
-			except:
+			except KeyError:
 				data["crossref"] = None
 		data["exp_paper"] = 1 if exp_paper else 0
 		data["lecture"] = 1 if lecture else 0
@@ -1195,6 +1195,12 @@ class entries(physbiblioDBSub):
 		data["book"] = 1 if book else 0
 		data["noUpdate"] = 1 if noUpd else 0
 		data["marks"] = marks if marks else ""
+		if not abstract:
+			try:
+				abstract = element["abstract"]
+			except KeyError:
+				pass
+		data["abstract"] = abstract if abstract else None
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
 		data["pubdate"] = pubdate if pubdate else ""
 		return data
@@ -1414,6 +1420,9 @@ class entries(physbiblioDBSub):
 			else:
 				data = self.prepareInsert(e)
 			key = data["bibkey"]
+			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
+				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
+				data["abstract"] = arxivDict["abstract"]
 			if imposeKey is not None:
 				data["bibkey"] = imposeKey
 				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
