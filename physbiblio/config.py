@@ -37,6 +37,10 @@ configuration_params = [
 	"default": 3,
 	"description": 'Max number of authors to be displayed in the main list',
 	"special": 'float'},
+{"name": "fetchAbstract",
+	"default": False,
+	"description": 'Automatically fetch the abstract from arXiv if an arxiv number is present',
+	"special": 'boolean'},
 {"name": "bibListFontSize",
 	"default": 9,
 	"description": 'Font size in the list of bibtex entries and companion boxes',
@@ -44,7 +48,7 @@ configuration_params = [
 {"name": "bibtexListColumns",
 	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
 	"description": 'The columns to be shown in the entries list',
-	"special": 'list'}
+	"special": 'list'},
 ]
 
 config_paramOrder = [ p["name"] for p in configuration_params ]
