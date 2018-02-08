@@ -605,11 +605,14 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 	def arxivAbstract(self, arxiv, bibkey, message = True):
-		bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
-		abstract = full["abstract"]
-		pBDB.bibs.updateField(bibkey, "abstract", abstract)
-		if message:
-			infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
+		if arxiv:
+			bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
+			abstract = full["abstract"]
+			pBDB.bibs.updateField(bibkey, "abstract", abstract)
+			if message:
+				infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
+		else:
+			infoMessage("No arxiv number for entry '%s'!"%bibkey)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
@@ -781,8 +784,10 @@ class askSelBibAction(askAction):
 		self.close()
 
 	def onAbs(self):
+		infoMessage("Starting the abstract download process, please wait...")
 		for entry in self.entries:
 			self.parent.bibtexList.arxivAbstract(entry["arxiv"], entry["bibkey"], message = False)
+		infoMessage("Done!")
 		self.close()
 
 	def onDown(self):
