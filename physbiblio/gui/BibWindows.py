@@ -604,11 +604,12 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.done()
 		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-	def arxivAbstract(self, arxiv, bibkey):
+	def arxivAbstract(self, arxiv, bibkey, message = True):
 		bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
 		abstract = full["abstract"]
 		pBDB.bibs.updateField(bibkey, "abstract", abstract)
-		infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
+		if message:
+			infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
@@ -763,6 +764,8 @@ class askSelBibAction(askAction):
 		self.result = "done"
 		self.possibleActions.append(["Clean entries", self.onClean])
 		self.possibleActions.append(["Update entries", self.onUpdate])
+		self.possibleActions.append(["Load abstract from arXiv", self.onAbs])
+		self.possibleActions.append(["Download PDF from arXiv", self.onDown])
 		self.possibleActions.append(["Export entries in a .bib file", self.onExport])
 		self.possibleActions.append(["Copy all the (existing) PDF", self.copyAllPdf])
 		self.possibleActions.append(["Select categories", self.onCat])
@@ -775,6 +778,21 @@ class askSelBibAction(askAction):
 
 	def onUpdate(self):
 		self.parent.updateAllBibtexs(self, useEntries = self.entries)
+		self.close()
+
+	def onAbs(self):
+		for entry in self.entries:
+			self.parent.bibtexList.arxivAbstract(entry["arxiv"], entry["bibkey"], message = False)
+		self.close()
+
+	def onDown(self):
+		self.downArxiv_thr = []
+		for entry in self.entries:
+			if entry["arxiv"] is not None:
+				self.parent.StatusBarMessage("downloading PDF for arxiv:%s..."%entry["arxiv"])
+				self.downArxiv_thr.append(thread_downloadArxiv(entry["bibkey"]))
+				self.connect(self.downArxiv_thr[-1], SIGNAL("finished()"), self.parent.bibtexList.downloadArxivDone)
+				self.downArxiv_thr[-1].start()
 		self.close()
 
 	def onExport(self):
