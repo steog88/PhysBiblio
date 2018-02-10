@@ -4,6 +4,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
+import re
 
 try:
 	from physbiblio.database import pBDB
@@ -16,6 +17,7 @@ try:
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.ExpWindows import *
 	from physbiblio.gui.marks import *
+	from physbiblio.parse_accents import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -70,7 +72,8 @@ class abstractFormulas():
 		self.document = QTextDocument()
 		self.editor.setDocument(self.document)
 		self.abstractTitle = abstractTitle
-		self.text = abstractTitle + text
+		text = str(text)
+		self.text = abstractTitle + texToHtml(text)
 
 	def hasLatex(self):
 		return "$" in self.text
@@ -111,19 +114,14 @@ class abstractFormulas():
 
 	def prepareText(self):
 		textList = self.text.split("$")
-		mathTexts = [ q for i,q in enumerate(textList) if i%2 == 1 ]
+		matchFormula = re.compile('\$.*?\$', re.MULTILINE)
+		mathTexts = [ q.group() for q in matchFormula.finditer(self.text) ]
 
 		images = []
-		for i,text in enumerate(mathTexts):
-			images.append(self.mathTex_to_QPixmap("$" + text + "$"))
-		i = 0
-		text = ""
-		for j, t in enumerate(textList):
-			if j%2 == 0:
-				text += t
-			else:
-				text += " <img src=\"mydata://image%d.png\" /> "%i
-				i += 1
+		text = self.text
+		for i, t in enumerate(mathTexts):
+			images.append(self.mathTex_to_QPixmap(t))
+			text = text.replace(t, "<img src=\"mydata://image%d.png\" />"%i)
 		return images, text
 
 	def submitText(self, imgs, text):
@@ -133,13 +131,13 @@ class abstractFormulas():
 			self.document.addResource(QTextDocument.ImageResource,
 				QUrl("mydata://image%d.png"%i), image)
 		self.editor.insertHtml(text)
+		self.mainWin.StatusBarMessage("Latex processing done!")
 
 def writeAbstract(mainWin, entry):
 	a = abstractFormulas(mainWin, entry["abstract"])
 	if a.hasLatex():
 		mainWin.StatusBarMessage("Parsing LaTeX...")
 	a.doText()
-	mainWin.StatusBarMessage("Done!")
 
 def editBibtex(parent, statusBarObject, editKey = None):
 	if editKey is not None:

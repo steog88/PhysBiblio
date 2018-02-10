@@ -1,4 +1,5 @@
 # -*- coding: iso-8859-15 -*-
+import re
 #import codecs
 
 accents_changed = []
@@ -214,3 +215,21 @@ def parse_accents_record(record):
 				accents_changed.append(record["ID"])
 			record[val] = tmp
 	return record
+
+latex2Html_commands = [
+	["textit","i"],
+	["textbf","b"],
+]
+latex2Html_strings = [
+	["\%","%"],
+	["~"," "],
+	["\ "," "],
+]
+def texToHtml(text):
+	for tex, html in latex2Html_commands:
+		match = re.compile('\\\\%s\{(.*| |\n)?\}'%tex, re.MULTILINE)
+		for t in match.finditer(text):
+			text = text.replace(t.group(), "<{html}>{cont}</{html}>".format(html = html, cont = t.group(1)))
+	for tex, html in latex2Html_strings:
+		text = text.replace(tex, html)
+	return text
