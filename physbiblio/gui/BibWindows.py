@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+import matplotlib as mpl
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess
@@ -61,8 +63,63 @@ def writeBibtexInfo(entry):
 	infoText += "<br/>Experiments: <i>%s</i>"%(", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
 	return infoText
 
-def writeAbstract(entry):
-	return "<b>Abstract:</b><br/>%s"%(entry["abstract"])
+class abstractFormulas():
+	def __init__(self, mainWin, text, fontsize = pbConfig.params["bibListFontSize"]):
+		self.fontsize = fontsize
+		self.mainWin = mainWin
+		self.editor = self.mainWin.bottomCenter.text
+		self.document = QTextDocument()
+		self.editor.setDocument(self.document)
+		self.text = text
+		if "$" in text:
+			self.prepareText()
+		else:
+			self.editor.insertHtml(text)
+
+	def mathTex_to_QPixmap(self, mathTex):
+		fig = mpl.figure.Figure()
+		fig.patch.set_facecolor('none')
+		fig.set_canvas(FigureCanvasAgg(fig))
+		renderer = fig.canvas.get_renderer()
+
+		ax = fig.add_axes([0, 0, 1, 1])
+		ax.axis('off')
+		ax.patch.set_facecolor('none')
+		t = ax.text(0, 0, mathTex, ha='left', va='bottom', fontsize = self.fontsize)
+
+		fwidth, fheight = fig.get_size_inches()
+		fig_bbox = fig.get_window_extent(renderer)
+
+		text_bbox = t.get_window_extent(renderer)
+
+		tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
+		tight_fheight = text_bbox.height * fheight / fig_bbox.height
+
+		fig.set_size_inches(tight_fwidth, tight_fheight)
+
+		buf, size = fig.canvas.print_to_buffer()
+		qimage = QImage.rgbSwapped(QImage(buf, size[0], size[1], QImage.Format_ARGB32))
+		qpixmap = QPixmap(qimage)
+		return qpixmap
+
+	def prepareText(self):
+		textList = self.text.split("$")
+		mathTexts = [ q for i,q in enumerate(textList) if i%2 == 1 ]
+
+		for i,text in enumerate(mathTexts):
+			image = self.mathTex_to_QPixmap("$" + text + "$")
+			self.document.addResource(QTextDocument.ImageResource,
+				QUrl("mydata://image%d.png"%i), image)
+		i = 0
+		for j, t in enumerate(textList):
+			if j%2 == 0:
+				self.editor.insertHtml(t)
+			else:
+				self.editor.insertHtml(" <img src=\"mydata://image%d.png\" /> "%i)
+				i += 1
+
+def writeAbstract(mainWin, entry):
+	a = abstractFormulas(mainWin, "<b>Abstract:</b><br/>%s"%(entry["abstract"]))
 
 def editBibtex(parent, statusBarObject, editKey = None):
 	if editKey is not None:
@@ -561,8 +618,8 @@ class bibtexList(QFrame, objListWindow):
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
-		self.parent.bottomCenter.text.setText(writeAbstract(entry))
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
+		writeAbstract(self.parent, entry)
 		if self.colContents[col] == "modify":
 			editBibtex(self.parent, self.parent, bibkey)
 		elif self.colContents[col] == "delete":
