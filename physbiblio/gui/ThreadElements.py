@@ -66,6 +66,16 @@ class thread_downloadArxiv(MyThread):
 	def run(self):
 		pBPDF.downloadArxiv(self.bibkey)
 
+class thread_processLatex(MyThread):
+	passData = Signal(list, str)
+	def __init__(self, func):
+		super(thread_processLatex, self).__init__()
+		self.func = func
+
+	def run(self):
+		images, text = self.func()
+		self.passData.emit(images, text)
+
 class thread_authorStats(MyThread):
 	def __init__(self, queue, myrec, name, parent = None):
 		super(thread_authorStats, self).__init__(parent)

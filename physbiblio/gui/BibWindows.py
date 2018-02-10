@@ -4,7 +4,6 @@ import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import subprocess
 
 try:
 	from physbiblio.database import pBDB
@@ -64,17 +63,26 @@ def writeBibtexInfo(entry):
 	return infoText
 
 class abstractFormulas():
-	def __init__(self, mainWin, text, fontsize = pbConfig.params["bibListFontSize"]):
+	def __init__(self, mainWin, text, fontsize = pbConfig.params["bibListFontSize"], abstractTitle = "<b>Abstract:</b><br/>"):
 		self.fontsize = fontsize
 		self.mainWin = mainWin
 		self.editor = self.mainWin.bottomCenter.text
 		self.document = QTextDocument()
 		self.editor.setDocument(self.document)
-		self.text = text
-		if "$" in text:
-			self.prepareText()
+		self.abstractTitle = abstractTitle
+		self.text = abstractTitle + text
+
+	def hasLatex(self):
+		return "$" in self.text
+
+	def doText(self):
+		if "$" in self.text:
+			self.editor.insertHtml("%sProcessing LaTeX formulas..."%self.abstractTitle)
+			self.thr = thread_processLatex(self.prepareText)
+			self.thr.passData.connect(self.submitText)
+			self.thr.start()
 		else:
-			self.editor.insertHtml(text)
+			self.editor.insertHtml(self.text)
 
 	def mathTex_to_QPixmap(self, mathTex):
 		fig = mpl.figure.Figure()
@@ -99,27 +107,39 @@ class abstractFormulas():
 
 		buf, size = fig.canvas.print_to_buffer()
 		qimage = QImage.rgbSwapped(QImage(buf, size[0], size[1], QImage.Format_ARGB32))
-		qpixmap = QPixmap(qimage)
-		return qpixmap
+		return qimage
 
 	def prepareText(self):
 		textList = self.text.split("$")
 		mathTexts = [ q for i,q in enumerate(textList) if i%2 == 1 ]
 
+		images = []
 		for i,text in enumerate(mathTexts):
-			image = self.mathTex_to_QPixmap("$" + text + "$")
-			self.document.addResource(QTextDocument.ImageResource,
-				QUrl("mydata://image%d.png"%i), image)
+			images.append(self.mathTex_to_QPixmap("$" + text + "$"))
 		i = 0
+		text = ""
 		for j, t in enumerate(textList):
 			if j%2 == 0:
-				self.editor.insertHtml(t)
+				text += t
 			else:
-				self.editor.insertHtml(" <img src=\"mydata://image%d.png\" /> "%i)
+				text += " <img src=\"mydata://image%d.png\" /> "%i
 				i += 1
+		return images, text
+
+	def submitText(self, imgs, text):
+		self.document = QTextDocument()
+		self.editor.setDocument(self.document)
+		for i, image in enumerate(imgs):
+			self.document.addResource(QTextDocument.ImageResource,
+				QUrl("mydata://image%d.png"%i), image)
+		self.editor.insertHtml(text)
 
 def writeAbstract(mainWin, entry):
-	a = abstractFormulas(mainWin, "<b>Abstract:</b><br/>%s"%(entry["abstract"]))
+	a = abstractFormulas(mainWin, entry["abstract"])
+	if a.hasLatex():
+		mainWin.StatusBarMessage("Parsing LaTeX...")
+	a.doText()
+	mainWin.StatusBarMessage("Done!")
 
 def editBibtex(parent, statusBarObject, editKey = None):
 	if editKey is not None:
