@@ -569,8 +569,8 @@ class MainWindow(QMainWindow):
 	def newBibtex(self):
 		editBibtex(self, self)
 
-	def searchBiblio(self):
-		newSearchWin = searchBibsWindow(self)
+	def searchBiblio(self, replace = False):
+		newSearchWin = searchBibsWindow(self, replace = replace)
 		newSearchWin.exec_()
 		searchDict = {}
 		if newSearchWin.result is True:
@@ -611,6 +611,8 @@ class MainWindow(QMainWindow):
 			except ValueError:
 				offs = 0
 			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
+			if replace:
+				return newSearchWin.replField.currentText(), newSearchWin.replOld.text(), newSearchWin.replNew.text()
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
 				).lastFetched
@@ -618,8 +620,25 @@ class MainWindow(QMainWindow):
 				infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
 					len(lastFetched), len(noLim)))
 			self.reloadMainContent(lastFetched)
+		elif replace:
+			return False
 
 	def searchAndReplace(self):
+		result = self.searchBiblio(replace = True)
+		if result is False:
+			return False
+		field, old, new = result
+		if old == "":
+			infoMessage("The string to substitute is empty!")
+			return
+		if new == "":
+			if not askYesNo("Empty new string. Are you sure you want to continue?"):
+				return
+		success, changed, failed = pBDB.bibs.replace(field, old, new, pBDB.bibs.lastFetched)
+		infoMessage("Replace completed.\n%d elements successfully processed (of which %d changed), %d failures."%(len(success), len(changed), len(failed)))
+		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+
+	def oldSearchAndReplace(self):
 		dialog = searchReplaceDialog(self)
 		dialog.exec_()
 		if dialog.result == True:

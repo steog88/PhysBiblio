@@ -1076,6 +1076,36 @@ class entries(physbiblioDBSub):
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
 			return keys
 
+	def replace(self, field, old, new, entries = None):
+		"""replace a string with a new one, in the given field of the (previously) selected bibtex entries"""
+		success = []
+		changed = []
+		failed = []
+		for entry in entries:
+			try:
+				if not field in entry["bibtexDict"].keys() and not field in entry.keys():
+					raise KeyError("Field %s not found in entry %s"%(entry["bibkey"], field))
+				if field in entry["bibtexDict"].keys():
+					before = entry["bibtexDict"][field]
+					after  = entry["bibtexDict"][field].replace(old, new)
+					entry["bibtexDict"][field] = after
+					db = bibtexparser.bibdatabase.BibDatabase()
+					db.entries = []
+					db.entries.append(entry["bibtexDict"])
+					entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+					self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
+				if field in entry.keys():
+					before = entry[field]
+					after  = entry[field].replace(old, new)
+					self.updateField(entry["bibkey"], field, after, verbose = 0)
+			except KeyError:
+				failed.append(entry["bibkey"])
+			else:
+				success.append(entry["bibkey"])
+				if before != after:
+					changed.append(entry["bibkey"])
+		return success, changed, failed
+
 	def update(self, data, oldkey):
 		"""update entry"""
 		data["bibkey"] = oldkey

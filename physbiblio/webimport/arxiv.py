@@ -7,7 +7,6 @@ try:
 except ImportError:
 	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from physbiblio.webimport.webInterf import *
 from physbiblio.parse_accents import *

@@ -915,10 +915,11 @@ class askSelBibAction(askAction):
 
 class searchBibsWindow(editObjectWindow):
 	"""create a window for editing or creating a bibtex entry"""
-	def __init__(self, parent = None, bib = None):
+	def __init__(self, parent = None, bib = None, replace = False):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
+		self.replace = replace
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -1085,24 +1086,46 @@ class searchBibsWindow(editObjectWindow):
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 
-		#limit to, limit offset
 		i += 2
-		try:
-			lim = self.limitValue.text()
-			offs = self.limitOffs.text()
-		except AttributeError:
-			lim = str(pbConfig.params["defaultLimitBibtexs"])
-			offs = "0"
-		self.currGrid.addWidget(MyLabelRight("Max number of results:"), i - 1, 0, 1, 2)
-		self.limitValue = QLineEdit(lim)
-		self.limitValue.setMaxLength(6)
-		self.limitValue.setFixedWidth(75)
-		self.currGrid.addWidget(self.limitValue, i - 1, 2)
-		self.currGrid.addWidget(MyLabelRight("Start from:"), i - 1, 3, 1, 2)
-		self.limitOffs = QLineEdit(offs)
-		self.limitOffs.setMaxLength(6)
-		self.limitOffs.setFixedWidth(75)
-		self.currGrid.addWidget(self.limitOffs, i - 1, 5)
+		if self.replace:
+			self.currGrid.addWidget(MyLabelRight("Replace in field:"), i - 1, 0, 1, 2)
+			try:
+				fie = self.replField.currentText()
+				old = self.replOld.text()
+				new = self.replNew.text()
+			except AttributeError:
+				fie = "bibtex"
+				old = ""
+				new = ""
+			self.replField = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume"], current = fie)
+			self.currGrid.addWidget(self.replField, i - 1, 2, 1, 2)
+			i += 1
+			self.currGrid.addWidget(MyLabelRight("Replace:"), i - 1, 0)
+			self.replOld = QLineEdit(old)
+			self.currGrid.addWidget(self.replOld, i - 1, 1, 1, 2)
+			self.currGrid.addWidget(MyLabelRight("with:"), i - 1, 3)
+			self.replNew = QLineEdit(new)
+			self.currGrid.addWidget(self.replNew, i - 1, 4, 1, 2)
+			self.limitValue = QLineEdit("100000")
+			self.limitOffs = QLineEdit("0")
+		else:
+			#limit to, limit offset
+			try:
+				lim = self.limitValue.text()
+				offs = self.limitOffs.text()
+			except AttributeError:
+				lim = str(pbConfig.params["defaultLimitBibtexs"])
+				offs = "0"
+			self.currGrid.addWidget(MyLabelRight("Max number of results:"), i - 1, 0, 1, 2)
+			self.limitValue = QLineEdit(lim)
+			self.limitValue.setMaxLength(6)
+			self.limitValue.setFixedWidth(75)
+			self.currGrid.addWidget(self.limitValue, i - 1, 2)
+			self.currGrid.addWidget(MyLabelRight("Start from:"), i - 1, 3, 1, 2)
+			self.limitOffs = QLineEdit(offs)
+			self.limitOffs.setMaxLength(6)
+			self.limitOffs.setFixedWidth(75)
+			self.currGrid.addWidget(self.limitOffs, i - 1, 5)
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 		i += 1
