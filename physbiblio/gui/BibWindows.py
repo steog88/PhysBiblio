@@ -939,6 +939,10 @@ class searchBibsWindow(editObjectWindow):
 		self.values["type"] = []
 		self.values["typeConn"] = "AND"
 		self.numberOfRows = 1
+		self.replOld = None
+		self.replNew = None
+		self.limitValue = None
+		self.limitOffs = None
 		self.createForm()
 
 	def onAskCats(self):
@@ -991,7 +995,7 @@ class searchBibsWindow(editObjectWindow):
 
 	def eventFilter(self, widget, event):
 		if (event.type() == QEvent.KeyPress and
-				widget in [a["content"] for a in self.textValues]):
+				widget in [a["content"] for a in self.textValues] + [self.replOld, self.replNew, self.limitValue, self.limitOffs]):
 			key = event.key()
 			if key == Qt.Key_Return or key == Qt.Key_Enter:
 				self.acceptButton.setFocus()
@@ -1099,6 +1103,9 @@ class searchBibsWindow(editObjectWindow):
 				new = ""
 			self.replField = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume"], current = fie)
 			self.currGrid.addWidget(self.replField, i - 1, 2, 1, 2)
+			self.currGrid.addWidget(MyLabelRight("regex:"), i - 1, 4)
+			self.replRegex = QCheckBox("", self)
+			self.currGrid.addWidget(self.replRegex, i - 1, 5)
 			i += 1
 			self.currGrid.addWidget(MyLabelRight("Replace:"), i - 1, 0)
 			self.replOld = QLineEdit(old)
@@ -1106,6 +1113,8 @@ class searchBibsWindow(editObjectWindow):
 			self.currGrid.addWidget(MyLabelRight("with:"), i - 1, 3)
 			self.replNew = QLineEdit(new)
 			self.currGrid.addWidget(self.replNew, i - 1, 4, 1, 2)
+			self.replOld.installEventFilter(self)
+			self.replNew.installEventFilter(self)
 			self.limitValue = QLineEdit("100000")
 			self.limitOffs = QLineEdit("0")
 		else:
@@ -1126,6 +1135,8 @@ class searchBibsWindow(editObjectWindow):
 			self.limitOffs.setMaxLength(6)
 			self.limitOffs.setFixedWidth(75)
 			self.currGrid.addWidget(self.limitOffs, i - 1, 5)
+			self.limitValue.installEventFilter(self)
+			self.limitOffs.installEventFilter(self)
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 		i += 1

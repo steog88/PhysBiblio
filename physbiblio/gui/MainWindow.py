@@ -71,6 +71,12 @@ class MainWindow(QMainWindow):
 								statusTip="Edit profiles",
 								triggered=self.editProfiles)
 
+		self.undoAct = QAction(QIcon(":/images/edit-undo.png"),
+								"&Undo", self,
+								shortcut="Ctrl+Z",
+								statusTip="Rollback to last saved database state",
+								triggered=self.undoDB)
+
 		self.saveAct = QAction(QIcon(":/images/file-save.png"),
 								"&Save database", self,
 								shortcut="Ctrl+S",
@@ -245,6 +251,7 @@ class MainWindow(QMainWindow):
 		Create Qt menus.
 		"""
 		self.fileMenu = self.menuBar().addMenu("&File")
+		self.fileMenu.addAction(self.undoAct)
 		self.fileMenu.addAction(self.saveAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exportAct)
@@ -303,6 +310,7 @@ class MainWindow(QMainWindow):
 		self.helpMenu.addAction(self.aboutAct)
 		
 		self.mainToolBar = self.addToolBar('Toolbar')
+		self.mainToolBar.addAction(self.undoAct)
 		self.mainToolBar.addAction(self.saveAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.newBibAct)
@@ -367,6 +375,10 @@ class MainWindow(QMainWindow):
 			self.config()
 			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
 			self.reloadMainContent()
+
+	def undoDB(self):
+		pBDB.undo()
+		self.reloadMainContent()
 
 	def refreshMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one, using last used query"""
@@ -612,7 +624,7 @@ class MainWindow(QMainWindow):
 				offs = 0
 			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 			if replace:
-				return newSearchWin.replField.currentText(), newSearchWin.replOld.text(), newSearchWin.replNew.text()
+				return newSearchWin.replField.currentText(), newSearchWin.replOld.text(), newSearchWin.replNew.text(), newSearchWin.replRegex.isChecked()
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
 				).lastFetched
@@ -627,15 +639,15 @@ class MainWindow(QMainWindow):
 		result = self.searchBiblio(replace = True)
 		if result is False:
 			return False
-		field, old, new = result
+		field, old, new, regex = result
 		if old == "":
 			infoMessage("The string to substitute is empty!")
 			return
 		if new == "":
 			if not askYesNo("Empty new string. Are you sure you want to continue?"):
 				return
-		success, changed, failed = pBDB.bibs.replace(field, old, new, pBDB.bibs.lastFetched)
-		infoMessage("Replace completed.\n%d elements successfully processed (of which %d changed), %d failures."%(len(success), len(changed), len(failed)))
+		success, changed, failed = pBDB.bibs.replace(field, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
+		infoMessage("Replace completed.\n%d elements successfully processed (of which %d changed), %d failures (see below).\n%s"%(len(success), len(changed), len(failed), failed))
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 	def oldSearchAndReplace(self):

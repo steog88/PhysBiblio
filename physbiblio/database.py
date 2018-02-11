@@ -819,10 +819,11 @@ class entries(physbiblioDBSub):
 				tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
 			except IndexError:
 				tmp["bibtexDict"] = {}
-			try:
-				tmp["title"] = tmp["bibtexDict"]["title"]
-			except KeyError:
-				tmp["title"] = ""
+			for fi in ["title", "journal", "volume", "number", "pages"]:
+				try:
+					tmp[fi] = tmp["bibtexDict"][fi]
+				except KeyError:
+					tmp[fi] = ""
 			try:
 				author = tmp["bibtexDict"]["author"]
 				if author.count("and") > pbConfig.params["maxAuthorNames"] - 1:
@@ -1076,8 +1077,14 @@ class entries(physbiblioDBSub):
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
 			return keys
 
-	def replace(self, field, old, new, entries = None):
+	def replace(self, field, old, new, entries = None, regex = False):
 		"""replace a string with a new one, in the given field of the (previously) selected bibtex entries"""
+		def myReplace(line):
+			if regex:
+				line = re.sub(old, new, line)
+			else:
+				line = line.replace(old, new)
+			return line
 		success = []
 		changed = []
 		failed = []
@@ -1087,7 +1094,7 @@ class entries(physbiblioDBSub):
 					raise KeyError("Field %s not found in entry %s"%(entry["bibkey"], field))
 				if field in entry["bibtexDict"].keys():
 					before = entry["bibtexDict"][field]
-					after  = entry["bibtexDict"][field].replace(old, new)
+					after  = myReplace(before)
 					entry["bibtexDict"][field] = after
 					db = bibtexparser.bibdatabase.BibDatabase()
 					db.entries = []
@@ -1096,7 +1103,7 @@ class entries(physbiblioDBSub):
 					self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
 				if field in entry.keys():
 					before = entry[field]
-					after  = entry[field].replace(old, new)
+					after  = myReplace(before)
 					self.updateField(entry["bibkey"], field, after, verbose = 0)
 			except KeyError:
 				failed.append(entry["bibkey"])
