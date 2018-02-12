@@ -1190,7 +1190,7 @@ class entries(physbiblioDBSub):
 				try:
 					data["arxiv"] = element["eprint"]
 				except KeyError:
-					data["arxiv"] = None
+					data["arxiv"] = ""
 		data["ads"] = ads if ads else None
 		data["scholar"] = scholar if scholar else None
 		if doi:
@@ -1420,7 +1420,7 @@ class entries(physbiblioDBSub):
 				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
 				return 0, 0, []
 		num = 0
-		err = 0
+		err = []
 		changed = []
 		tot = len(entries)
 		self.runningOAIUpdates = True
@@ -1438,14 +1438,18 @@ class entries(physbiblioDBSub):
 					num += 1
 					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
-						err += 1
+						err.append(e["bibkey"])
 					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
 						print("[DB] -- element changed!")
 						changed.append(e["bibkey"])
 					print("")
 		print("\n[DB] %d entries processed"%num)
-		print("\n[DB] %d errors occurred"%err)
+		print("\n[DB] %d errors occurred"%len(err))
+		if len(err)>0:
+			print(err)
 		print("\n[DB] %d entries changed"%len(changed))
+		if len(changed)>0:
+			print(changed)
 		return num, err, changed
 		
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):

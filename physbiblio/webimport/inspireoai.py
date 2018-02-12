@@ -202,7 +202,8 @@ class webSearch(webInterf):
 				try:
 					res["journal"] = res["journal"].replace(".", ". ")
 				except AttributeError:
-					print("[DB] 'journal' from OAI is not a string (?)")
+					pBErrorManager("[DB] 'journal' from OAI is missing or not a string (is this a proceeding? recid%s)"%inspireID)
+					return False
 				for k in ["doi", "volume", "pages", "year", "journal"]:
 					if res[k] != "" and res[k] is not None:
 						element[k] = res[k]

@@ -81,7 +81,7 @@ class abstractFormulas():
 	def doText(self):
 		if "$" in self.text:
 			self.editor.insertHtml("%sProcessing LaTeX formulas..."%self.abstractTitle)
-			self.thr = thread_processLatex(self.prepareText)
+			self.thr = thread_processLatex(self.prepareText, self.mainWin)
 			self.thr.passData.connect(self.submitText)
 			self.thr.start()
 		else:
@@ -593,7 +593,7 @@ class bibtexList(QFrame, objListWindow):
 			pBPDF.openFile(bibkey, "doi")
 		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
 			self.parent.StatusBarMessage("downloading PDF from arxiv...")
-			self.downArxiv_thr = thread_downloadArxiv(bibkey)
+			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent)
 			self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.downloadArxivDone)
 			self.downArxiv_thr.start()
 		elif "delArx" in pdfActs.keys() and action == pdfActs["delArx"]:
@@ -874,7 +874,7 @@ class askSelBibAction(askAction):
 		for entry in self.entries:
 			if entry["arxiv"] is not None:
 				self.parent.StatusBarMessage("downloading PDF for arxiv:%s..."%entry["arxiv"])
-				self.downArxiv_thr.append(thread_downloadArxiv(entry["bibkey"]))
+				self.downArxiv_thr.append(thread_downloadArxiv(entry["bibkey"], self.parent))
 				self.connect(self.downArxiv_thr[-1], SIGNAL("finished()"), self.parent.bibtexList.downloadArxivDone)
 				self.downArxiv_thr[-1].start()
 		self.close()

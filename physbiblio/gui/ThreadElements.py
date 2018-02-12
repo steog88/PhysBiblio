@@ -59,8 +59,8 @@ class thread_updateInspireInfo(MyThread):
 		pass
 
 class thread_downloadArxiv(MyThread):
-	def __init__(self, bibkey):
-		super(thread_downloadArxiv, self).__init__()
+	def __init__(self, bibkey, parent = None):
+		super(thread_downloadArxiv, self).__init__(parent)
 		self.bibkey = bibkey
 
 	def run(self):
@@ -68,8 +68,8 @@ class thread_downloadArxiv(MyThread):
 
 class thread_processLatex(MyThread):
 	passData = Signal(list, str)
-	def __init__(self, func):
-		super(thread_processLatex, self).__init__()
+	def __init__(self, func, parent = None):
+		super(thread_processLatex, self).__init__(parent)
 		self.func = func
 
 	def run(self):
@@ -171,7 +171,7 @@ class thread_exportTexBib(MyThread):
 
 class thread_cleanSpare(MyThread):
 	def __init__(self, queue, myrec, parent):
-		super(thread_cleanSpare, self).__init__()
+		super(thread_cleanSpare, self).__init__(parent)
 		self.parent = parent
 		self.queue = queue
 		self.my_receiver = myrec
@@ -184,7 +184,7 @@ class thread_cleanSpare(MyThread):
 
 class thread_cleanSparePDF(MyThread):
 	def __init__(self, queue, myrec, parent):
-		super(thread_cleanSparePDF, self).__init__()
+		super(thread_cleanSparePDF, self).__init__(parent)
 		self.parent = parent
 		self.queue = queue
 		self.my_receiver = myrec
