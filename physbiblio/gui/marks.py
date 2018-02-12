@@ -33,7 +33,7 @@ class marks():
 		if addAny:
 			markValues["any"] = QRadioButton("Any")
 			vbox.addWidget(markValues["any"])
-		vbox.addStretch(1)
+		# vbox.addStretch(1)
 		groupBox.setLayout(vbox)
 		return groupBox, markValues
 

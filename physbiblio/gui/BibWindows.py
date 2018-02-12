@@ -73,7 +73,7 @@ class abstractFormulas():
 		self.editor.setDocument(self.document)
 		self.abstractTitle = abstractTitle
 		text = str(text)
-		self.text = abstractTitle + texToHtml(text)
+		self.text = abstractTitle + texToHtml(text).replace("\n", " ")
 
 	def hasLatex(self):
 		return "$" in self.text
@@ -101,7 +101,11 @@ class abstractFormulas():
 		fwidth, fheight = fig.get_size_inches()
 		fig_bbox = fig.get_window_extent(renderer)
 
-		text_bbox = t.get_window_extent(renderer)
+		try:
+			text_bbox = t.get_window_extent(renderer)
+		except ValueError:
+			pBErrorManager("[convert] Error when converting latex to image", traceback)
+			return None
 
 		tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
 		tight_fheight = text_bbox.height * fheight / fig_bbox.height
@@ -753,7 +757,7 @@ class editBibtexEntry(editObjectWindow):
 		i = 0
 		for k in pBDB.tableCols["entries"]:
 			val = self.data[k] if self.data[k] is not None else ""
-			if k != "bibtex" and k != "marks" and k not in self.checkboxes:
+			if k != "bibtex" and k != "marks" and k != "abstract" and k not in self.checkboxes:
 				i += 1
 				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
 				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)

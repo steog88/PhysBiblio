@@ -874,6 +874,7 @@ class MainWindow(QMainWindow):
 if __name__=='__main__':
 	try:
 		myApp=QApplication(sys.argv)
+		myApp.setAttribute(Qt.AA_X11InitThreads)
 		myWindow=MainWindow()
 		myWindow.show()
 		sys.exit(myApp.exec_())
