@@ -193,6 +193,8 @@ class webSearch(webInterf):
 		if verbose > 0:
 			print("[oai] reading data --- " + time.strftime("%c"))
 		try:
+			if record[1] is None:
+				raise ValueError("[oai] Empty record!")
 			res = self.readRecord(record[1])
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:

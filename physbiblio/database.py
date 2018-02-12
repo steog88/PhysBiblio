@@ -1364,11 +1364,14 @@ class entries(physbiblioDBSub):
 			try:
 				inspireID.isdigit()
 			except AttributeError:
-				print("[DB] wrong value/format in inspireID: ", inspireID)
+				pBErrorManager("[DB] wrong value/format in inspireID: %s"%inspireID)
 				return False
 		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
 		if verbose > 1:
 			print(result)
+		if result is False:
+			pBErrorManager("[DB][oai] empty record looking for recid:%s!"%inspireID)
+			return False
 		try:
 			key = result["bibkey"]
 			old = self.getByBibkey(key, saveQuery = False)
@@ -1389,8 +1392,7 @@ class entries(physbiblioDBSub):
 			if verbose > 0:
 				print("[DB] inspire OAI info for %s saved."%inspireID)
 		except:
-			print("[DB][oai] something missing in entry %s"%result["id"])
-			print(traceback.format_exc())
+			pBErrorManager("[DB][oai] something missing in entry %s"%inspireID, traceback)
 			return False
 		return True
 	
