@@ -687,8 +687,8 @@ class MainWindow(QMainWindow):
 				return False
 		self.updateAllBibtexs(startFrom, force = force)
 
-	def updateAllBibtexs(self, startFrom = 0, useEntries = None, force = False):
-		self.StatusBarMessage("Starting update of bibtexs...")
+	def updateAllBibtexs(self, startFrom = pbConfig.params["defaultUpdateFrom"], useEntries = None, force = False):
+		self.StatusBarMessage("Starting update of bibtexs from %s..."%startFrom)
 		self.updateOAI_thr, self.uOAIReceiver = self._runInThread(
 			thread_updateAllBibtexs, "Update Bibtexs",
 			startFrom, useEntries = useEntries, force = force,

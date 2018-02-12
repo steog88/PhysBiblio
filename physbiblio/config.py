@@ -32,11 +32,15 @@ configuration_params = [
 {"name": "defaultLimitBibtexs",
 	"default": 50,
 	"description": 'Number of bibtex entries in the initial view of the main table',
-	"special": 'float'},
+	"special": 'int'},
+{"name": "defaultUpdateFrom",
+	"default": 0,
+	"description": 'Index of bibtex entries (firstdate ASC) from which I should start when using "Update bibtexs"',
+	"special": 'int'},
 {"name": "maxAuthorNames",
 	"default": 3,
 	"description": 'Max number of authors to be displayed in the main list',
-	"special": 'float'},
+	"special": 'int'},
 {"name": "fetchAbstract",
 	"default": False,
 	"description": 'Automatically fetch the abstract from arXiv if an arxiv number is present',
@@ -123,6 +127,8 @@ class ConfigVars():
 				try:
 					if config_special[k] == 'float':
 						self.params[k] = float(v)
+					elif config_special[k] == 'int':
+						self.params[k] = int(v)
 					elif config_special[k] == 'boolean':
 						if v.lower() in ('true','1','yes','on'):
 							self.params[k] = True
