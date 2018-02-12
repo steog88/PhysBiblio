@@ -56,9 +56,11 @@ PhysBiblio has some nice features which may help to manage the bibliography. Som
 ### Import
 The default import interface can fetch and download information from INSPIRE-HEP.
 The advanced import can also work with [arXiv](www.arxiv.org), [dx.doi.org](dx.doi.org), [ISBN2bibtex](http://www.ebook.de/de/tools/isbn2bibtex).
+If an arXiv identifier is present, you can download the paper abstract from arXiv (there is an option to do this by default).
 
 ### Export
-It is very easy to export some entries into a `.bib` file. You can export the entire bibtex database, a selection or let the program export only the entries that you need to compile a given `.tex` file.
+It is very easy to export some entries into a `.bib` file.
+You can export the entire bibtex database, a selection or let the program export only the entries that you need to compile a given `.tex` file.
 
 ### Update
 PhysBiblio can use INSPIRE-HEP information in order to update the information of recently published entries.
@@ -83,19 +85,30 @@ You will not need to know where it is saved, because you will access it from the
 
 ### Marks
 You can mark the entries to be able to easily see if they are good/bad, to notice which ones you need to read or the most interesting ones.
+A limited number of marks is available, but more can be added editing the `physbiblio/gui/marks.py` module and adding the corresponding new icons in `physbiblio/gui/images/`
+(you will need to edit `physbiblio/gui/Resources.qrc` and run `physbiblio/gui/update_resources.sh`).
 
 ### Search and replace
 Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
-A pretty powerful "search and replace" function is also implemented, which can use regular expressions (regex).
-Two examples:
+The search form is quite self-explanatory.
+You can play with the logical operators and add more fields if necessary.
 
-* To move the letter reference from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
+A pretty powerful "search and replace" function, which can use regular expressions (regex), is also implemented.
+The search function is the same as in the search only case, but now you cannot select the limit and offset.
+The replace fields let you select from which field you want to take the input and in which one you want to store the new string.
+An additional filtering is performed when trying to match the regular expression. No match, no action.
+
+Two (regex) search and replace examples:
+
+* To move the letter from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
   - from: "published", "(Phys. Rev. [A-Z]{1})([0-9]{2}).*"
   - To 1: "journal", "\1"
   - To 2: "volume", "\2"
+  To match "Phys. Rev. X" you will have to change "[0-9]{2}" to "[0-9]{1}" in the pattern string.
+  If you want to match "J. Phys. G", change the first part of the pattern string accordingly ("J. Phys. [A-Z]{1}").
 
-* To remove the first two numbers from "volume" field of JCAP entries, use:
-  - filter using "jcap" in "bibtex",
+* To remove the first two numbers from "volume" field of JHEP/JCAP entries, use:
+  - filter using ["jhep" or "jcap"] ("add another line" and use "OR") in "bibtex",
   - replace "([0-9]{2})([0-9]{2})" in "volume" with "\2"
 
 ## 3. Data paths

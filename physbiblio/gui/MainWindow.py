@@ -653,7 +653,9 @@ class MainWindow(QMainWindow):
 			if not askYesNo("Empty new string. Are you sure you want to continue?"):
 				return
 		success, changed, failed = pBDB.bibs.replace(fiOld, fiNew, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
-		infoMessage("Replace completed.\n%d elements successfully processed (of which %d changed), %d failures (see below).\n%s"%(len(success), len(changed), len(failed), failed))
+		infoMessage("Replace completed.\n" +
+			"%d elements successfully processed (of which %d changed), %d failures (see below)."%(len(success), len(changed), len(failed)) +
+			"\nChanged: %s\nFailed: %s"%(changed, failed))
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 	def oldSearchAndReplace(self):

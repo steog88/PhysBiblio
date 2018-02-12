@@ -1083,9 +1083,13 @@ class entries(physbiblioDBSub):
 
 	def replace(self, fiOld, fiNews, old, news, entries = None, regex = False):
 		"""replace a string with a new one, in the given field of the (previously) selected bibtex entries"""
-		def myReplace(line, new):
+		def myReplace(line, new, previous = None):
 			if regex:
-				line = re.sub(old, new, line)
+				reg = re.compile(old)
+				if reg.match(line):
+					line = reg.sub(new, line)
+				else:
+					line = previous
 			else:
 				line = line.replace(old, new)
 			return line
@@ -1100,11 +1104,15 @@ class entries(physbiblioDBSub):
 					before = entry["bibtexDict"][fiOld]
 				elif fiOld in entry.keys():
 					before = entry[fiOld]
+				bef = []
+				aft = []
 				for fiNew, new in zip(fiNews, news):
 					if not fiNew in entry["bibtexDict"].keys() and not fiNew in entry.keys():
 						raise KeyError("Field %s not found in entry %s"%(fiNew, entry["bibkey"]))
 					if fiNew in entry["bibtexDict"].keys():
-						after  = myReplace(before, new)
+						bef.append(entry["bibtexDict"][fiNew])
+						after  = myReplace(before, new, previous = entry["bibtexDict"][fiNew])
+						aft.append(after)
 						entry["bibtexDict"][fiNew] = after
 						db = bibtexparser.bibdatabase.BibDatabase()
 						db.entries = []
@@ -1112,14 +1120,16 @@ class entries(physbiblioDBSub):
 						entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 						self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
 					if fiNew in entry.keys():
-						after  = myReplace(before, new)
+						bef.append(entry[fiNew])
+						after  = myReplace(before, new, previous = entry[fiNew])
+						aft.append(after)
 						self.updateField(entry["bibkey"], fiNew, after, verbose = 0)
 			except KeyError:
 				pBErrorManager("[DB] something wrong in replace", traceback)
 				failed.append(entry["bibkey"])
 			else:
 				success.append(entry["bibkey"])
-				if before != after:
+				if any(b != a for a,b in zip(aft, bef)):
 					changed.append(entry["bibkey"])
 		return success, changed, failed
 
