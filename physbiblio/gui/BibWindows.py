@@ -941,6 +941,7 @@ class searchBibsWindow(editObjectWindow):
 		self.numberOfRows = 1
 		self.replOld = None
 		self.replNew = None
+		self.replNew1 = None
 		self.limitValue = None
 		self.limitOffs = None
 		self.createForm()
@@ -1092,31 +1093,49 @@ class searchBibsWindow(editObjectWindow):
 
 		i += 2
 		if self.replace:
-			self.currGrid.addWidget(MyLabelRight("Replace in field:"), i - 1, 0, 1, 2)
+			self.currGrid.addWidget(QLabel("Replace:"), i - 1, 0)
+			self.currGrid.addWidget(MyLabelRight("regex:"), i - 1, 2)
+			self.replRegex = QCheckBox("", self)
+			self.currGrid.addWidget(self.replRegex, i - 1, 3)
 			try:
-				fie = self.replField.currentText()
+				fieOld = self.replOldField.currentText()
+				fieNew = self.replNewField.currentText()
+				fieNew1 = self.replNewField1.currentText()
+				double = self.doubleEdit.isChecked()
 				old = self.replOld.text()
 				new = self.replNew.text()
+				new1 = self.replNew1.text()
 			except AttributeError:
-				fie = "bibtex"
+				fieOld = "author"
+				fieNew = "author"
+				fieNew1 = "author"
+				double = False
 				old = ""
 				new = ""
-			self.replField = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume"], current = fie)
-			self.currGrid.addWidget(self.replField, i - 1, 2, 1, 2)
-			self.currGrid.addWidget(MyLabelRight("regex:"), i - 1, 4)
-			self.replRegex = QCheckBox("", self)
-			self.currGrid.addWidget(self.replRegex, i - 1, 5)
-			i += 1
-			self.currGrid.addWidget(MyLabelRight("Replace:"), i - 1, 0)
+				new1 = ""
+			self.currGrid.addWidget(MyLabelRight("From field:"), i, 0)
+			self.replOldField = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume", "published"], current = fieNew)
+			self.currGrid.addWidget(self.replOldField, i, 1, 1, 2)
 			self.replOld = QLineEdit(old)
-			self.currGrid.addWidget(self.replOld, i - 1, 1, 1, 2)
-			self.currGrid.addWidget(MyLabelRight("with:"), i - 1, 3)
+			self.currGrid.addWidget(self.replOld, i, 3, 1, 3)
+			i += 1
+			self.currGrid.addWidget(MyLabelRight("Into field:"), i, 0)
+			self.replNewField = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume"], current = fieNew)
+			self.currGrid.addWidget(self.replNewField, i, 1, 1, 2)
 			self.replNew = QLineEdit(new)
-			self.currGrid.addWidget(self.replNew, i - 1, 4, 1, 2)
+			self.currGrid.addWidget(self.replNew, i, 3, 1, 3)
+			i += 1
+			self.doubleEdit = QCheckBox("and also:")
+			self.currGrid.addWidget(self.doubleEdit, i, 0)
+			self.replNewField1 = MyComboBox(self, ["arxiv", "doi", "year", "author", "title", "journal", "number", "volume"], current = fieNew)
+			self.currGrid.addWidget(self.replNewField1, i, 1, 1, 2)
+			self.replNew1 = QLineEdit(new1)
+			self.currGrid.addWidget(self.replNew1, i, 3, 1, 3)
 			self.replOld.installEventFilter(self)
 			self.replNew.installEventFilter(self)
 			self.limitValue = QLineEdit("100000")
 			self.limitOffs = QLineEdit("0")
+			i += 1
 		else:
 			#limit to, limit offset
 			try:

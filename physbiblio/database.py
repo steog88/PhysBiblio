@@ -825,6 +825,10 @@ class entries(physbiblioDBSub):
 				except KeyError:
 					tmp[fi] = ""
 			try:
+				tmp["published"] = " ".join([tmp["journal"], tmp["volume"], "(%s)"%tmp["year"], tmp["pages"]])
+			except IndexError:
+				tmp["published"] = ""
+			try:
 				author = tmp["bibtexDict"]["author"]
 				if author.count("and") > pbConfig.params["maxAuthorNames"] - 1:
 					author = author[:author.index("and")] + "et al."
@@ -1077,9 +1081,9 @@ class entries(physbiblioDBSub):
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
 			return keys
 
-	def replace(self, field, old, new, entries = None, regex = False):
+	def replace(self, fiOld, fiNews, old, news, entries = None, regex = False):
 		"""replace a string with a new one, in the given field of the (previously) selected bibtex entries"""
-		def myReplace(line):
+		def myReplace(line, new):
 			if regex:
 				line = re.sub(old, new, line)
 			else:
@@ -1090,22 +1094,28 @@ class entries(physbiblioDBSub):
 		failed = []
 		for entry in entries:
 			try:
-				if not field in entry["bibtexDict"].keys() and not field in entry.keys():
-					raise KeyError("Field %s not found in entry %s"%(entry["bibkey"], field))
-				if field in entry["bibtexDict"].keys():
-					before = entry["bibtexDict"][field]
-					after  = myReplace(before)
-					entry["bibtexDict"][field] = after
-					db = bibtexparser.bibdatabase.BibDatabase()
-					db.entries = []
-					db.entries.append(entry["bibtexDict"])
-					entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
-					self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
-				if field in entry.keys():
-					before = entry[field]
-					after  = myReplace(before)
-					self.updateField(entry["bibkey"], field, after, verbose = 0)
+				if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
+					raise KeyError("Field %s not found in entry %s"%(fiOld, entry["bibkey"]))
+				if fiOld in entry["bibtexDict"].keys():
+					before = entry["bibtexDict"][fiOld]
+				elif fiOld in entry.keys():
+					before = entry[fiOld]
+				for fiNew, new in zip(fiNews, news):
+					if not fiNew in entry["bibtexDict"].keys() and not fiNew in entry.keys():
+						raise KeyError("Field %s not found in entry %s"%(fiNew, entry["bibkey"]))
+					if fiNew in entry["bibtexDict"].keys():
+						after  = myReplace(before, new)
+						entry["bibtexDict"][fiNew] = after
+						db = bibtexparser.bibdatabase.BibDatabase()
+						db.entries = []
+						db.entries.append(entry["bibtexDict"])
+						entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+						self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
+					if fiNew in entry.keys():
+						after  = myReplace(before, new)
+						self.updateField(entry["bibkey"], fiNew, after, verbose = 0)
 			except KeyError:
+				pBErrorManager("[DB] something wrong in replace", traceback)
 				failed.append(entry["bibkey"])
 			else:
 				success.append(entry["bibkey"])

@@ -624,7 +624,13 @@ class MainWindow(QMainWindow):
 				offs = 0
 			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 			if replace:
-				return newSearchWin.replField.currentText(), newSearchWin.replOld.text(), newSearchWin.replNew.text(), newSearchWin.replRegex.isChecked()
+				fieldsNew = [ newSearchWin.replNewField.currentText() ]
+				replNew = [ newSearchWin.replNew.text() ]
+				if newSearchWin.doubleEdit.isChecked():
+					fieldsNew.append(newSearchWin.replNewField1.currentText())
+					replNew.append(newSearchWin.replNew1.text())
+				return (newSearchWin.replOldField.currentText(), fieldsNew,
+					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 				limitTo = lim, limitOffset = offs
 				).lastFetched
@@ -639,14 +645,14 @@ class MainWindow(QMainWindow):
 		result = self.searchBiblio(replace = True)
 		if result is False:
 			return False
-		field, old, new, regex = result
+		fiOld, fiNew, old, new, regex = result
 		if old == "":
 			infoMessage("The string to substitute is empty!")
 			return
-		if new == "":
+		if any(n == "" for n in new):
 			if not askYesNo("Empty new string. Are you sure you want to continue?"):
 				return
-		success, changed, failed = pBDB.bibs.replace(field, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
+		success, changed, failed = pBDB.bibs.replace(fiOld, fiNew, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
 		infoMessage("Replace completed.\n%d elements successfully processed (of which %d changed), %d failures (see below).\n%s"%(len(success), len(changed), len(failed), failed))
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 

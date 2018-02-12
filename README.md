@@ -86,7 +86,17 @@ You can mark the entries to be able to easily see if they are good/bad, to notic
 
 ### Search and replace
 Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
-A very preliminary "search and replace" function is also implemented.
+A pretty powerful "search and replace" function is also implemented, which can use regular expressions (regex).
+Two examples:
+
+* To move the letter reference from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
+  - from: "published", "(Phys. Rev. [A-Z]{1})([0-9]{2}).*"
+  - To 1: "journal", "\1"
+  - To 1: "journal", "\2"
+
+* To remove the first two numbers from "volume" field of JCAP entries, use:
+  - filter using "jcap" in "bibtex",
+  - replace "([0-9]{2})([0-9]{2})" in "volume" with "\2"
 
 ## 3. Data paths
 PhysBiblio saves data, by default, in a `data/` subfolder of its main path.
