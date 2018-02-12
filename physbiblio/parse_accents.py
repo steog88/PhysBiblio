@@ -226,6 +226,9 @@ latex2Html_strings = [
 	["~"," "],
 	["\ "," "],
 ]
+latex_replace = [
+	["text", "rm"],
+]
 def texToHtml(text):
 	for tex, html in latex2Html_commands:
 		match = re.compile('\\\\%s\{(.*| |\n)?\}'%tex, re.MULTILINE)
@@ -233,4 +236,8 @@ def texToHtml(text):
 			text = text.replace(t.group(), "<{html}>{cont}</{html}>".format(html = html, cont = t.group(1)))
 	for tex, html in latex2Html_strings:
 		text = text.replace(tex, html)
+	for tex, new in latex_replace:
+		match = re.compile('\\\\%s\{(.*| |\n)?\}'%tex, re.MULTILINE)
+		for t in match.finditer(text):
+			text = text.replace(t.group(), "\\%s{%s}"%(new, t.group(1)))
 	return text
