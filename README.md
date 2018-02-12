@@ -92,7 +92,7 @@ Two examples:
 * To move the letter reference from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
   - from: "published", "(Phys. Rev. [A-Z]{1})([0-9]{2}).*"
   - To 1: "journal", "\1"
-  - To 1: "journal", "\2"
+  - To 2: "volume", "\2"
 
 * To remove the first two numbers from "volume" field of JCAP entries, use:
   - filter using "jcap" in "bibtex",
