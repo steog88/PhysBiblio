@@ -63,12 +63,6 @@ class pBGUIErrorManager():
 		else:
 			error.critical(error, unicode("Critical error"), unicode(message.replace('\n', '<br>')))
 
-def excepthook(cls, exception, trcbk):
-	text = "".join(traceback.format_exception(cls, exception, trcbk))
-	pBGUIErrorManager(text)
-
-sys.excepthook = excepthook
-
 class configEditColumns(QDialog):
 	def __init__(self, parent = None):
 		super(configEditColumns, self).__init__(parent)

@@ -47,6 +47,9 @@ class MainWindow(QMainWindow):
 		self.CreateStatusBar()
 		self.lastAuthorStats = None
 		self.lastPaperStats = None
+		self.errorManager = pbErrorThread
+		self.errorManager.setParent(self)
+		self.errorManager.emitError.connect(self.gotError)
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -870,6 +873,9 @@ class MainWindow(QMainWindow):
 
 	def done(self):
 		self.StatusBarMessage("...done!")
+
+	def gotError(self, text):
+		pBGUIErrorManager(text)
 
 if __name__=='__main__':
 	try:
