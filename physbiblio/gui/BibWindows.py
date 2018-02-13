@@ -244,7 +244,9 @@ class bibtexInfo(QFrame):
 		self.currLayout.addWidget(self.text)
 
 class MyBibTableModel(MyTableModel):
-	def __init__(self, parent, bib_list, header, stdCols = [], addCols = [], askBibs = False, previous = [], *args):
+	def __init__(self, parent, bib_list, header, stdCols = [], addCols = [], askBibs = False, previous = [], mainWin = None, *args):
+		self.parent = parent
+		self.mainWin = mainWin
 		self.typeClass = "Bibs"
 		self.dataList = bib_list
 		MyTableModel.__init__(self, parent, header + ["bibtex"], askBibs, previous, *args)
@@ -308,7 +310,7 @@ class MyBibTableModel(MyTableModel):
 				else:
 					value = self.dataList[row]["bibtex"]
 		except IndexError:
-			pBGUIErrorManager("MyBibTableModel.data(): invalid index", trcbk = traceback)
+			self.parentObj.gotError("MyBibTableModel.data(): invalid index", trcbk = traceback)
 			return None
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
@@ -452,6 +454,7 @@ class bibtexList(QFrame, objListWindow):
 			self.bibs, self.columns + self.additionalCols,
 			self.columns, self.additionalCols,
 			askBibs = self.askBibs,
+			mainWin = self.parent,
 			previous = self.previous)
 
 		self.changeEnableActions()
@@ -734,10 +737,10 @@ class editBibtexEntry(editObjectWindow):
 
 	def onOk(self):
 		if self.textValues["bibtex"].toPlainText() == "":
-			pBGUIErrorManager("Invalid form contents: empty bibtex!", priority = 2)
+			self.parent.gotError("Invalid form contents: empty bibtex!", priority = 2)
 			return False
 		elif not self.textValues["bibkey"].isReadOnly() and self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
-			pBGUIErrorManager("Invalid form contents: bibtex key will be taken from bibtex!", priority = 1)
+			self.parent.gotError("Invalid form contents: bibtex key will be taken from bibtex!", priority = 1)
 			return False
 		self.result	= True
 		self.close()
