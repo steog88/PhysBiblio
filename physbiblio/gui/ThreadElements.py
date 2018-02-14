@@ -167,6 +167,25 @@ class thread_cleanAllBibtexs(MyThread):
 	def setStopFlag(self):
 		pBDB.bibs.runningCleanBibtexs = False
 
+class thread_importFromBib(MyThread):
+	def __init__(self, queue, myrec, bibFile, complete, parent = None):
+		super(thread_importFromBib, self).__init__(parent)
+		self.parent = parent
+		self.bibFile = bibFile
+		self.complete = complete
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		pBDB.bibs.importFromBib(self.bibFile, self.complete)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.importFromBibFlag = False
+
 class thread_exportTexBib(MyThread):
 	def __init__(self, queue, myrec, texFile, outFName, parent = None):
 		super(thread_exportTexBib, self).__init__(parent)

@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite3 import OperationalError, ProgrammingError, DatabaseError
 import os, re, traceback, datetime
 import bibtexparser
 import ast
@@ -105,7 +106,7 @@ class physbiblioDB():
 				self.conn.execute(query,data)
 			else:
 				self.conn.execute(query)
-		except Exception, err:
+		except (OperationalError, ProgrammingError, DatabaseError) as err:
 			print('[connExec] ERROR: %s'%err)
 			print(traceback.format_exc())
 			self.conn.rollback()
@@ -1207,6 +1208,7 @@ class entries(physbiblioDBSub):
 				data["isbn"] = element["isbn"]
 			except KeyError:
 				data["isbn"] = None
+		data["year"] = None
 		if year:
 			data["year"] = year
 		else:
@@ -1555,6 +1557,55 @@ class entries(physbiblioDBSub):
 		"""load the entries, then ask for their categories"""
 		self.loadAndInsert(entry, method = method, imposeKey = imposeKey, number = number, returnBibtex = returnBibtex, childProcess = childProcess)
 		pBDB.catBib.askCats(self.lastInserted)
+
+	def importFromBib(self, filename, completeInfo = True):
+		"""read a .bib file and add the entries to the database"""
+		def printExisting(entry, existing):
+			print("[DB] Already existing: %s\n"%entry)
+		self.lastInserted = []
+		exist = []
+		errors = []
+		print("[DB] Importing from file bib: %s"%filename)
+		with open(filename) as r:
+			bibText = r.read()
+		elements = bibtexparser.loads(bibText).entries
+		db = bibtexparser.bibdatabase.BibDatabase()
+		self.importFromBibFlag = True
+		for e in elements:
+			if self.importFromBibFlag:
+				db.entries = [e]
+				bibtex = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+				data = self.prepareInsert(bibtex)
+				key = data["bibkey"]
+				existing = self.getByBibkey(key, saveQuery = False)
+				if existing:
+					printExisting(key, existing)
+					exist.append(key)
+				elif key.strip() == "":
+					pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n")
+					errors.append(key)
+				else:
+					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
+						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
+						data["abstract"] = arxivDict["abstract"]
+					print("[DB] entry will have key\n'%s'"%key)
+					if not self.insert(data):
+						pBErrorManager("[DB] failed in inserting entry %s\n"%key)
+						errors.append(key)
+					else:
+						pBDB.catBib.insert(pbConfig.params["defaultCategories"], key)
+						try:
+							if completeInfo:
+								eid = self.updateInspireID(key)
+								self.updateInfoFromOAI(eid)
+							print("[DB] element successfully inserted.\n")
+							self.lastInserted.append(key)
+						except Exception, err:
+							pBErrorManager("[DB] failed in completing info for entry %s\n"%key)
+							print(err)
+							errors.append(key)
+		print("[DB] import completed.\n%d entries processed, of which %d existing, %d successfully inserted and %d errors."%(
+			len(elements), len(exist), len(self.lastInserted), len(errors)))
 
 	def setBook(self, key, value = 1):
 		"""set (or unset) an entry as a book"""

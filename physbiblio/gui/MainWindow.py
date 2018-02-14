@@ -86,7 +86,12 @@ class MainWindow(QMainWindow):
 								shortcut="Ctrl+S",
 								statusTip="Save the modifications",
 								triggered=self.save)
-								
+
+		self.importBibAct = QAction("&Import from *.bib", self,
+								shortcut="Ctrl+B",
+								statusTip="Import the entries from a *.bib file",
+								triggered=self.importFromBib)
+
 		self.exportAct = QAction(QIcon(":/images/export.png"),
 								"Ex&port last as *.bib", self,
 								#shortcut="Ctrl+P",
@@ -271,6 +276,7 @@ class MainWindow(QMainWindow):
 
 		self.bibMenu = self.menuBar().addMenu("&Bibliography")
 		self.bibMenu.addAction(self.newBibAct)
+		self.bibMenu.addAction(self.importBibAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertWithCatsAct)
 		self.bibMenu.addAction(self.inspireLoadAndInsertAct)
 		self.bibMenu.addAction(self.advImportAct)
@@ -518,7 +524,19 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Changes saved")
 		else:
 			self.StatusBarMessage("Nothing saved")
-		
+
+	def importFromBib(self):
+		filename = askFileName(self, title = "From where do you want to import?", filter = "Bibtex (*.bib)")
+		if filename != "":
+			self._runInThread(
+				thread_importFromBib, "Importing...",
+				filename, askYesNo("Do you want to use INSPIRE to find more information about the imported entries?"),
+				minProgress=0,  stopFlag = True, outMessage = "All entries into %s have been imported"%filename)
+			self.StatusBarMessage("File %s imported!"%filename)
+			self.reloadMainContent()
+		else:
+			self.StatusBarMessage("Empty filename given!")
+
 	def export(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
@@ -526,7 +544,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
 		else:
 			self.StatusBarMessage("Empty filename given!")
-	
+
 	def exportSelection(self, entries):
 		filename = askSaveFileName(self, title = "Where do you want to export the selected entries?", filter = "Bibtex (*.bib)")
 		if filename != "":

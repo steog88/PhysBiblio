@@ -163,12 +163,13 @@ class pbExport():
 				newCheck = pBDB.bibs.getByBibkey(m, saveQuery = False)
 
 				if len(newCheck) > 0:
+					pBDB.catBib.insert(pbConfig.params["defaultCategories"], m)
 					retrieved.append(m)
 					try:
 						saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 					except:
 						unexpected.append(m)
-						print("[export] unexpected error in extracting entry '%s' to the output file"%m)
+						print("[export] unexpected error in saving entry '%s' into the output file"%m)
 				else:
 					if newWeb and not newWeb.find(m) > 0:
 						warnings += 1
