@@ -19,6 +19,7 @@ try:
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *
+	from physbiblio.gui.configWindows import *
 	from physbiblio.gui.ExpWindows import *
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.ProfilesManager import *
