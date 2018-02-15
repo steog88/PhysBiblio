@@ -1571,12 +1571,15 @@ class entries(physbiblioDBSub):
 		elements = bibtexparser.loads(bibText).entries
 		db = bibtexparser.bibdatabase.BibDatabase()
 		self.importFromBibFlag = True
-		for e in elements:
+		print("[DB] entries to be processed: %d"%len(elements))
+		tot = len(elements)
+		for ie, e in enumerate(elements):
 			if self.importFromBibFlag:
 				db.entries = [e]
 				bibtex = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 				data = self.prepareInsert(bibtex)
 				key = data["bibkey"]
+				print("[DB] %5d / %d (%5.2f%%), processing entry %s"%(ie+1, tot, 100.*(ie+1.)/tot, key))
 				existing = self.getByBibkey(key, saveQuery = False)
 				if existing:
 					printExisting(key, existing)

@@ -531,6 +531,7 @@ class MainWindow(QMainWindow):
 			self._runInThread(
 				thread_importFromBib, "Importing...",
 				filename, askYesNo("Do you want to use INSPIRE to find more information about the imported entries?"),
+				totStr = "[DB] entries to be processed: ", progrStr = "%), processing entry ",
 				minProgress=0,  stopFlag = True, outMessage = "All entries into %s have been imported"%filename)
 			self.StatusBarMessage("File %s imported!"%filename)
 			self.reloadMainContent()
