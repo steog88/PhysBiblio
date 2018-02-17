@@ -538,7 +538,9 @@ class bibtexList(QFrame, objListWindow):
 		insAction = menu.addAction("Complete info (from INSPIRE-HEP)")
 		updAction = menu.addAction("Update (search INSPIRE-HEP)")
 		staAction = menu.addAction("Citation statistics (from INSPIRE-HEP)")
-		absAction = menu.addAction("Get abstract (from arXiv)")
+		if arxiv is not None and arxiv != "":
+			absAction = menu.addAction("Get abstract (from arXiv)")
+			arxAction = menu.addAction("Get info (from arXiv)")
 		menu.addSeparator()
 		
 		action = menu.exec_(event.globalPos())
@@ -588,6 +590,15 @@ class bibtexList(QFrame, objListWindow):
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		elif action == absAction:
 			self.arxivAbstract(arxiv, bibkey)
+		elif action == arxAction:
+			askFieldsWin = fieldsFromArxiv()
+			askFieldsWin.exec_()
+			if askFieldsWin.result:
+				result = pBDB.bibs.getFieldsFromArxiv(bibkey, askFieldsWin.output)
+				if result is True:
+					infoMessage("Done!")
+				else:
+					self.parent.gotError(result)
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")
@@ -1371,3 +1382,36 @@ class mergeBibtexs(editBibtexEntry):
 
 		self.setGeometry(100,100,3*self.bibtexWidth+50, 25*i)
 		self.centerWindow()
+
+class fieldsFromArxiv(QDialog):
+	def __init__(self, parent = None):
+		super(fieldsFromArxiv, self).__init__(parent)
+		self.setWindowTitle("Import fields from arXiv")
+		self.parent = parent
+		self.checkBoxes = {}
+		self.arxivDict = ["authors", "title", "doi", "primaryclass", "archiveprefix"]
+		vbox = QVBoxLayout()
+		for k in self.arxivDict:
+			self.checkBoxes[k] = QCheckBox(k, self)
+			self.checkBoxes[k].setChecked(True)
+			vbox.addWidget(self.checkBoxes[k])
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		vbox.addWidget(self.acceptButton)
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		vbox.addWidget(self.cancelButton)
+		self.setLayout(vbox)
+
+	def onOk(self):
+		self.output = []
+		for k in self.checkBoxes.keys():
+			if self.checkBoxes[k].isChecked():
+				self.output.append(k)
+		self.result = True
+		self.close()
+
+	def onCancel(self):
+		self.result = False
+		self.close()

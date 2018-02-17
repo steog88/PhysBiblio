@@ -1453,7 +1453,34 @@ class entries(physbiblioDBSub):
 		if len(changed)>0:
 			print(changed)
 		return num, err, changed
-		
+
+	def getFieldsFromArxiv(self, bibkey, fields):
+		bibtex = self.getField(bibkey, "bibtex")
+		arxiv = self.getField(bibkey, "arxiv")
+		try:
+			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
+			tmp = bibtexparser.loads(bibtex).entries[0]
+			for k in fields:
+				try:
+					tmp[k] = arxivDict[k]
+				except KeyError:
+					pass
+			if "authors" in fields:
+				try:
+					authors = tmp["authors"].split(" and ")
+					if len(authors) > pbConfig.params["maxAuthorSave"]:
+						start = 1 if "collaboration" in authors[0] else 0
+						tmp["authors"] = " and ".join(authors[start:start+pbConfig.params["maxAuthorSave"]] + ["others"])
+				except KeyError:
+					pass
+			db = bibtexparser.bibdatabase.BibDatabase()
+			db.entries = [tmp]
+			bibtex = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+			self.updateField(bibkey, "bibtex", bibtex)
+			return True
+		except Exception:
+			return "Cannot get and save info from arXiv!\n" + traceback.format_exc()
+
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
 		requireAll = False
