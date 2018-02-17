@@ -1293,24 +1293,28 @@ class mergeBibtexs(editBibtexEntry):
 
 		i = 0
 		for k in self.generic:
-			self.currGrid.addWidget(MyLabelCenter("%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
-			i += 1
-			addFieldOld("0", k, i, 0)
-			addRadio("0", k, i, 1)
-			addFieldOld("1", k, i, 4)
-			addRadio("1", k, i, 3)
-
-			#add radio
-			if self.dataOld["0"][k] != "" and self.dataOld["1"][k] == "":
-				self.radioButtons["0"][k].toggle()
-				val = self.dataOld["0"][k]
-			elif self.dataOld["0"][k] == "" and self.dataOld["1"][k] != "":
-				self.radioButtons["1"][k].toggle()
-				val = self.dataOld["1"][k]
+			if self.dataOld["0"][k] == self.dataOld["1"][k]:
+				self.textValues[k] = QLineEdit(str(self.dataOld["0"][k]))
+				self.textValues[k].hide()
 			else:
-				val = ""
-			addFieldNew(k, i, val)
-			i += 1
+				self.currGrid.addWidget(MyLabelCenter("%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
+				i += 1
+				addFieldOld("0", k, i, 0)
+				addRadio("0", k, i, 1)
+				addFieldOld("1", k, i, 4)
+				addRadio("1", k, i, 3)
+
+				#add radio
+				if self.dataOld["0"][k] != "" and self.dataOld["1"][k] == "":
+					self.radioButtons["0"][k].toggle()
+					val = self.dataOld["0"][k]
+				elif self.dataOld["0"][k] == "" and self.dataOld["1"][k] != "":
+					self.radioButtons["1"][k].toggle()
+					val = self.dataOld["1"][k]
+				else:
+					val = ""
+				addFieldNew(k, i, val)
+				i += 1
 
 		i += 1
 		groupBox, markValues = pBMarks.getGroupbox(self.data["marks"], description = pBDB.descriptions["entries"]["marks"])
@@ -1353,20 +1357,8 @@ class mergeBibtexs(editBibtexEntry):
 		self.currGrid.addWidget(self.textValues[k], i, 2, self.bibtexEditLines, 1)
 		i += self.bibtexEditLines
 
-		j = 0
-		# for k in pBDB.tableCols["entries"]:
-			# val = self.data[k]
-			# if k in self.checkboxes:
-				# j += 2
-				# self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
-				# self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
-				# self.checkValues[k] = QCheckBox("", self)
-				# if val == 1:
-					# self.checkValues[k].toggle()
-				# self.currGrid.addWidget(self.checkValues[k], int((i+1-(i+i)%2)/2)*2 + j - 2, 3)
-
 		# OK button
-		i += j + 1
+		i += 1
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
 		self.currGrid.addWidget(self.acceptButton, i, 0, 1, 2)
