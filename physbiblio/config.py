@@ -43,7 +43,7 @@ configuration_params = [
 	"special": 'int'},
 {"name": "maxAuthorSave",
 	"default": 6,
-	"description": 'Max number of authors to be saved',
+	"description": 'Max number of authors to be saved when adding info from arXiv',
 	"special": 'int'},
 {"name": "fetchAbstract",
 	"default": False,
