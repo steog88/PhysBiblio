@@ -863,6 +863,48 @@ class askSelBibAction(askAction):
 	def onMerge(self):
 		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)
 		mergewin.exec_()
+		if mergewin.result is True:
+			data = {}
+			for k, v in mergewin.textValues.items():
+				try:
+					s = "%s"%v.text()
+					data[k] = s
+				except AttributeError:
+					try:
+						s = "%s"%v.toPlainText()
+						data[k] = s
+					except AttributeError:
+						pass
+			for k, v in mergewin.checkValues.items():
+				if v.isChecked():
+					data[k] = 1
+				else:
+					data[k] = 0
+			data["marks"] = ""
+			for m, ckb in mergewin.markValues.items():
+				if ckb.isChecked():
+					data["marks"] += "'%s',"%m
+			data = pBDB.bibs.prepareInsert(**data)
+			if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
+				pBDB.commit()
+				try:
+					for key in [self.entries[0]["bibkey"], self.entries[1]["bibkey"]]:
+						pBDB.bibs.delete(key)
+				except:
+					self.parent.gotError("Cannot delete old items!")
+					pBDB.undo()
+				else:
+					if not pBDB.bibs.insert(data):
+						self.parent.gotError("Cannot insert new item!")
+						pBDB.undo()
+					else:
+						self.parent.setWindowTitle("PhysBiblio*")
+						try:
+							self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+						except:
+							pBErrorManager("Impossible to reload content.")
+			else:
+				self.parent.gotError("ERROR: empty bibtex and/or bibkey!")
 		self.close()
 
 	def onClean(self):
@@ -1217,7 +1259,7 @@ class mergeBibtexs(editBibtexEntry):
 			self.textValues[k].blockSignals(False)
 			self.updateBibkey()
 		else:
-			self.textValues[k].setText(self.dataOld[ix][k])
+			self.textValues[k].setText(str(self.dataOld[ix][k]))
 
 	def textModified(self, k, val):
 		for ix in ["0", "1"]:
@@ -1288,7 +1330,7 @@ class mergeBibtexs(editBibtexEntry):
 		self.textValues[k] = QPlainTextEdit(str(self.data[k] if self.data[k] is not None else ""))
 		self.textValues[k].textChanged.connect(self.updateBibkey)
 		self.textValues[k].setMinimumWidth(self.bibtexWidth)
-		self.textValues[k].textChanged.connect(lambda x = "": self.textModified("bibtex", x))
+		self.textValues[k].textChanged.connect(lambda x = "": self.textModified("bibtex", str(x)))
 		self.currGrid.addWidget(self.textValues[k], i, 2, self.bibtexEditLines, 1)
 		i += self.bibtexEditLines
 
