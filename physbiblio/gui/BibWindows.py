@@ -440,6 +440,7 @@ class bibtexList(QFrame, objListWindow):
 		self.selectToolBar.addAction(self.selAllAct)
 		self.selectToolBar.addAction(self.unselAllAct)
 		self.selectToolBar.addAction(self.okAct)
+		self.selectToolBar.addWidget(QLabel("(Select exactly two entries to enable merging them)"))
 		self.selectToolBar.addSeparator()
 
 		self.filterInput = QLineEdit("",  self)
@@ -837,7 +838,7 @@ class askPdfAction(askAction):
 		self.close()
 
 class askSelBibAction(askAction):
-	def __init__(self, parent = None, keys = ""):
+	def __init__(self, parent = None, keys = []):
 		super(askSelBibAction, self).__init__(parent)
 		self.keys = keys
 		self.entries = []
@@ -847,6 +848,8 @@ class askSelBibAction(askAction):
 		self.message = "What to do with the selected entries?"
 		self.possibleActions = []
 		self.result = "done"
+		if len(keys) == 2:
+			self.possibleActions.append(["Merge entries", self.onMerge])
 		self.possibleActions.append(["Clean entries", self.onClean])
 		self.possibleActions.append(["Update entries", self.onUpdate])
 		self.possibleActions.append(["Load abstract from arXiv", self.onAbs])
@@ -856,6 +859,11 @@ class askSelBibAction(askAction):
 		self.possibleActions.append(["Select categories", self.onCat])
 		self.possibleActions.append(["Select experiments", self.onExp])
 		self.initUI()
+
+	def onMerge(self):
+		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)
+		mergewin.exec_()
+		self.close()
 
 	def onClean(self):
 		self.parent.cleanAllBibtexs(self, useEntries = self.entries)
@@ -1181,3 +1189,132 @@ class searchBibsWindow(editObjectWindow):
 		self.cancelButton.setFixedWidth(80)
 
 		self.currGrid.setColumnStretch(6, 1)
+
+class mergeBibtexs(editBibtexEntry):
+	def __init__(self, bib1, bib2, parent = None):
+		super(editBibtexEntry, self).__init__(parent)
+		self.bibtexEditLines = 8
+		self.bibtexWidth = 330
+		self.dataOld = {"0": bib1, "1": bib2}
+		self.data = {}
+		for k in pBDB.tableCols["entries"]:
+			self.data[k] = ""
+		self.checkValues = {}
+		self.markValues = {}
+		self.radioButtons = {"0": {}, "1": {}}
+		self.textValues["0"] = {}
+		self.textValues["1"] = {}
+		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
+		self.generic = ["year", "doi", "arxiv", "inspire", "isbn", "firstdate", "pubdate",]
+		self.createForm()
+
+	def radioToggled(self, ix, k, val):
+		self.radioButtons[ix][k].setChecked(True)
+		self.radioButtons[str((int(ix)+1)%2)][k].setChecked(False)
+		if k == "bibtex":
+			self.textValues[k].blockSignals(True)
+			self.textValues[k].setPlainText(self.dataOld[ix][k])
+			self.textValues[k].blockSignals(False)
+			self.updateBibkey()
+		else:
+			self.textValues[k].setText(self.dataOld[ix][k])
+
+	def textModified(self, k, val):
+		for ix in ["0", "1"]:
+			self.radioButtons[ix][k].setChecked(False)
+
+	def createForm(self):
+		def addFieldOld(ix, k, i, c):
+			self.textValues[ix][k] = QLineEdit(str(self.dataOld[ix][k] if self.dataOld[ix][k] is not None else ""))
+			self.textValues[ix][k].setReadOnly(True)
+			self.currGrid.addWidget(self.textValues[ix][k], i, c)
+		def addFieldNew(k, i, v):
+			self.textValues[k] = QLineEdit(str(v))
+			self.textValues[k].textEdited.connect(lambda x: self.textModified(k, x))
+			self.currGrid.addWidget(self.textValues[k], i, 2)
+		def addRadio(ix, k, i, c):
+			self.radioButtons[ix][k] = QRadioButton("")
+			self.radioButtons[ix][k].setAutoExclusive(False)
+			self.radioButtons[ix][k].clicked.connect(lambda x = False: self.radioToggled(ix, k, x))
+			self.currGrid.addWidget(self.radioButtons[ix][k], i, c)
+		def addBibtexOld(ix, i, c):
+			k = "bibtex"
+			self.textValues[ix][k] = QPlainTextEdit(str(self.dataOld[ix][k] if self.dataOld[ix][k] is not None else ""))
+			self.textValues[ix][k].setReadOnly(True)
+			self.textValues[ix][k].setMinimumWidth(self.bibtexWidth)
+			self.currGrid.addWidget(self.textValues[ix][k], i, c, self.bibtexEditLines, 1)
+		self.setWindowTitle('Merge bibtex entries')
+
+		i = 0
+		for k in self.generic:
+			self.currGrid.addWidget(MyLabelCenter("%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
+			i += 1
+			addFieldOld("0", k, i, 0)
+			addRadio("0", k, i, 1)
+			addFieldOld("1", k, i, 4)
+			addRadio("1", k, i, 3)
+
+			#add radio
+			if self.dataOld["0"][k] != "" and self.dataOld["1"][k] == "":
+				self.radioButtons["0"][k].toggle()
+				val = self.dataOld["0"][k]
+			elif self.dataOld["0"][k] == "" and self.dataOld["1"][k] != "":
+				self.radioButtons["1"][k].toggle()
+				val = self.dataOld["1"][k]
+			else:
+				val = ""
+			addFieldNew(k, i, val)
+			i += 1
+
+		#bibtex text editor
+		i += 1
+		k = "bibkey"
+		self.currGrid.addWidget(MyLabelCenter("%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
+		i += 1
+		addFieldOld("0", k, i, 0)
+		addFieldOld("1", k, i, 4)
+		self.textValues[k] = QLineEdit("")
+		self.textValues[k].setReadOnly(True)
+		self.currGrid.addWidget(self.textValues[k], i, 2)
+		i += 1
+		k = "bibtex"
+		self.currGrid.addWidget(MyLabelCenter("%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
+		i += 1
+		addBibtexOld("0", i, 0)
+		addRadio("0", k, i, 1)
+		addBibtexOld("1", i, 4)
+		addRadio("1", k, i, 3)
+		#radio and connection
+		self.textValues[k] = QPlainTextEdit(str(self.data[k] if self.data[k] is not None else ""))
+		self.textValues[k].textChanged.connect(self.updateBibkey)
+		self.textValues[k].setMinimumWidth(self.bibtexWidth)
+		self.textValues[k].textChanged.connect(lambda x = "": self.textModified("bibtex", x))
+		self.currGrid.addWidget(self.textValues[k], i, 2, self.bibtexEditLines, 1)
+		i += self.bibtexEditLines
+
+		j = 0
+		# for k in pBDB.tableCols["entries"]:
+			# val = self.data[k]
+			# if k in self.checkboxes:
+				# j += 2
+				# self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
+				# self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
+				# self.checkValues[k] = QCheckBox("", self)
+				# if val == 1:
+					# self.checkValues[k].toggle()
+				# self.currGrid.addWidget(self.checkValues[k], int((i+1-(i+i)%2)/2)*2 + j - 2, 3)
+
+		# OK button
+		i += j + 1
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.currGrid.addWidget(self.acceptButton, i, 0, 1, 2)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.currGrid.addWidget(self.cancelButton, i, 3, 1, 2)
+
+		self.setGeometry(100,100,3*self.bibtexWidth+50, 25*i)
+		self.centerWindow()
