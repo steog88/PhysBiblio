@@ -1165,7 +1165,7 @@ class entries(physbiblioDBSub):
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
-			marks = None, firstdate = None, pubdate = None, noUpd = None, abstract = None, number = None):
+			marks = None, firstdate = None, pubdate = None, noUpdate = None, abstract = None, number = None):
 		"""convert a bibtex into a dictionary, eventually using also additional info"""
 		data = {}
 		if number is None:
@@ -1252,7 +1252,7 @@ class entries(physbiblioDBSub):
 		data["review"] = 1 if review else 0
 		data["proceeding"] = 1 if proceeding else 0
 		data["book"] = 1 if book else 0
-		data["noUpdate"] = 1 if noUpd else 0
+		data["noUpdate"] = 1 if noUpdate else 0
 		data["marks"] = marks if marks else ""
 		if not abstract:
 			try:

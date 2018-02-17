@@ -884,6 +884,10 @@ class askSelBibAction(askAction):
 			for m, ckb in mergewin.markValues.items():
 				if ckb.isChecked():
 					data["marks"] += "'%s',"%m
+			if data["old_keys"].strip() != "":
+				data["old_keys"] = ", ".join([data["old_keys"], self.entries[0]["bibkey"], self.entries[1]["bibkey"]])
+			else:
+				data["old_keys"] = ", ".join([self.entries[0]["bibkey"], self.entries[1]["bibkey"]])
 			data = pBDB.bibs.prepareInsert(**data)
 			if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 				pBDB.commit()
@@ -1247,7 +1251,7 @@ class mergeBibtexs(editBibtexEntry):
 		self.textValues["0"] = {}
 		self.textValues["1"] = {}
 		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
-		self.generic = ["year", "doi", "arxiv", "inspire", "isbn", "firstdate", "pubdate",]
+		self.generic = ["year", "doi", "arxiv", "inspire", "isbn", "firstdate", "pubdate", "ads", "scholar", "link", "comments", "old_keys", "crossref"]
 		self.createForm()
 
 	def radioToggled(self, ix, k, val):
@@ -1307,6 +1311,21 @@ class mergeBibtexs(editBibtexEntry):
 				val = ""
 			addFieldNew(k, i, val)
 			i += 1
+
+		i += 1
+		groupBox, markValues = pBMarks.getGroupbox(self.data["marks"], description = pBDB.descriptions["entries"]["marks"])
+		self.markValues = markValues
+		self.currGrid.addWidget(groupBox, i, 0, 1, 5)
+		i += 1
+		groupBox = QGroupBox("Types")
+		groupBox.setFlat(True)
+		hbox = QHBoxLayout()
+		for k in pBDB.tableCols["entries"]:
+			if k in self.checkboxes:
+				self.checkValues[k] = QCheckBox(k, self)
+				hbox.addWidget(self.checkValues[k])
+		groupBox.setLayout(hbox)
+		self.currGrid.addWidget(groupBox, i, 0, 1, 5)
 
 		#bibtex text editor
 		i += 1
