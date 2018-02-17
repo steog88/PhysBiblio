@@ -15,6 +15,11 @@ class MyLabelRight(QLabel):
 		super(MyLabelRight, self).__init__(label)
 		self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
+class MyLabelCenter(QLabel):
+	def __init__(self, label):
+		super(MyLabelCenter, self).__init__(label)
+		self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+
 class objListWindow(QDialog):
 	"""create a window for printing the list of experiments"""
 	def __init__(self, parent = None):
