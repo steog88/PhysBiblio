@@ -489,11 +489,11 @@ class MainWindow(QMainWindow):
 			print addMessage
 		thr = thread_func(queue, rec, *args, parent = self, **kwargs)
 
-		self.connect(rec, SIGNAL("finished()"), rec.deleteLater)
-		self.connect(thr, SIGNAL("finished()"), app.enableClose)
-		self.connect(thr, SIGNAL("finished()"), thr.deleteLater)
+		rec.finished.connect(rec.deleteLater)
+		thr.finished.connect(app.enableClose)
+		thr.finished.connect(thr.deleteLater)
 		if stopFlag:
-			self.connect(app, SIGNAL("stopped()"), thr.setStopFlag)
+			app.stopped.connect(thr.setStopFlag)
 
 		sys.stdout = WriteStream(queue)
 		thr.start()

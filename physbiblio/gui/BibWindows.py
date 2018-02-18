@@ -419,7 +419,7 @@ class bibtexList(QFrame, objListWindow):
 	def onOk(self):
 		self.parent.selectedBibs = [key for key in self.table_model.selectedElements.keys() if self.table_model.selectedElements[key] == True]
 		ask = askSelBibAction(self.parent, self.parent.selectedBibs)
-		ask.exec_()
+		ask.exec_(QCursor.pos())
 		if ask.result == "done":
 			self.clearSelection()
 
@@ -609,7 +609,7 @@ class bibtexList(QFrame, objListWindow):
 		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
 			self.parent.StatusBarMessage("downloading PDF from arxiv...")
 			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent)
-			self.connect(self.downArxiv_thr, SIGNAL("finished()"), self.downloadArxivDone)
+			self.downArxiv_thr.finished.connect(self.downloadArxivDone)
 			self.downArxiv_thr.start()
 		elif "delArx" in pdfActs.keys() and action == pdfActs["delArx"]:
 			deletePdfFile(bibkey, "arxiv", "arxiv PDF")
@@ -848,7 +848,7 @@ class askPdfAction(askAction):
 		self.result	= "openDoi"
 		self.close()
 
-class askSelBibAction(askAction):
+class askSelBibAction(QMenu):
 	def __init__(self, parent = None, keys = []):
 		super(askSelBibAction, self).__init__(parent)
 		self.keys = keys
@@ -860,17 +860,31 @@ class askSelBibAction(askAction):
 		self.possibleActions = []
 		self.result = "done"
 		if len(keys) == 2:
-			self.possibleActions.append(["Merge entries", self.onMerge])
-		self.possibleActions.append(["Clean entries", self.onClean])
-		self.possibleActions.append(["Update entries", self.onUpdate])
-		self.possibleActions.append(["Load abstract from arXiv", self.onAbs])
-		self.possibleActions.append(["Get fields from arXiv", self.onArx])
-		self.possibleActions.append(["Download PDF from arXiv", self.onDown])
-		self.possibleActions.append(["Export entries in a .bib file", self.onExport])
-		self.possibleActions.append(["Copy all the (existing) PDF", self.copyAllPdf])
-		self.possibleActions.append(["Select categories", self.onCat])
-		self.possibleActions.append(["Select experiments", self.onExp])
-		self.initUI()
+			self.possibleActions.append(QAction("Merge entries", self, triggered = self.onMerge))
+		self.possibleActions.append(QAction("Clean entries", self, triggered = self.onClean))
+		self.possibleActions.append(QAction("Update entries", self, triggered = self.onUpdate))
+		self.possibleActions.append(None)
+		self.possibleActions.append(QAction("Load abstract from arXiv", self, triggered = self.onAbs))
+		self.possibleActions.append(QAction("Get fields from arXiv", self, triggered = self.onArx))
+		self.possibleActions.append(QAction("Download PDF from arXiv", self, triggered = self.onDown))
+		self.possibleActions.append(None)
+		self.possibleActions.append(QAction("Export entries in a .bib file", self, triggered = self.onExport))
+		self.possibleActions.append(None)
+		self.possibleActions.append(QAction("Copy all the (existing) PDF", self, triggered = self.copyAllPdf))
+		self.possibleActions.append(None)
+		self.possibleActions.append(QAction("Select categories", self, triggered = self.onCat))
+		self.possibleActions.append(QAction("Select experiments", self, triggered = self.onExp))
+
+		self.actions = []
+		for act in self.possibleActions:
+			if act is None:
+				self.addSeparator()
+			else:
+				self.addAction(act)
+
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Escape:
+			self.close()
 
 	def onMerge(self):
 		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)
@@ -948,7 +962,7 @@ class askSelBibAction(askAction):
 			if entry["arxiv"] is not None:
 				self.parent.StatusBarMessage("downloading PDF for arxiv:%s..."%entry["arxiv"])
 				self.downArxiv_thr.append(thread_downloadArxiv(entry["bibkey"], self.parent))
-				self.connect(self.downArxiv_thr[-1], SIGNAL("finished()"), self.parent.bibtexList.downloadArxivDone)
+				self.downArxiv_thr[-1].finished.connect(self.parent.bibtexList.downloadArxivDone)
 				self.downArxiv_thr[-1].start()
 		self.close()
 
