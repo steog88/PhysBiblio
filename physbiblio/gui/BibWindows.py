@@ -685,7 +685,7 @@ class bibtexList(QFrame, objListWindow):
 				pBPDF.openFile(bibkey, fileName = pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
-				ask.exec_()
+				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
 					self.parent.StatusBarMessage("opening arxiv PDF...")
 					pBPDF.openFile(bibkey, "arxiv")
@@ -828,17 +828,18 @@ class editBibtexEntry(editObjectWindow):
 		self.setGeometry(100,100,400, 25*i)
 		self.centerWindow()
 
-class askPdfAction(askAction):
+class askPdfAction(MyMenu):
 	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
 		super(askPdfAction, self).__init__(parent)
 		self.message = "What PDF of this entry (%s) do you want to open?"%(key)
 		self.possibleActions = []
 		files = pBPDF.getExisting(key, fullPath = True)
 		if pBPDF.getFilePath(key, "arxiv") in files:
-			self.possibleActions.append(["Open arxiv PDF", self.onOpenArxiv])
+			self.possibleActions.append(QAction("Open arxiv PDF", self, triggered = self.onOpenArxiv))
 		if pBPDF.getFilePath(key, "doi") in files:
-			self.possibleActions.append(["Open DOI PDF", self.onOpenDoi])
-		self.initUI()
+			self.possibleActions.append(QAction("Open DOI PDF", self, triggered = self.onOpenDoi))
+
+		self.fillMenu()
 
 	def onOpenArxiv(self):
 		self.result	= "openArxiv"
@@ -848,7 +849,7 @@ class askPdfAction(askAction):
 		self.result	= "openDoi"
 		self.close()
 
-class askSelBibAction(QMenu):
+class askSelBibAction(MyMenu):
 	def __init__(self, parent = None, keys = []):
 		super(askSelBibAction, self).__init__(parent)
 		self.keys = keys
@@ -856,8 +857,6 @@ class askSelBibAction(QMenu):
 		for k in keys:
 			self.entries.append(pBDB.bibs.getByBibkey(k)[0])
 		self.parent = parent
-		self.message = "What to do with the selected entries?"
-		self.possibleActions = []
 		self.result = "done"
 		if len(keys) == 2:
 			self.possibleActions.append(QAction("Merge entries", self, triggered = self.onMerge))
@@ -875,16 +874,7 @@ class askSelBibAction(QMenu):
 		self.possibleActions.append(QAction("Select categories", self, triggered = self.onCat))
 		self.possibleActions.append(QAction("Select experiments", self, triggered = self.onExp))
 
-		self.actions = []
-		for act in self.possibleActions:
-			if act is None:
-				self.addSeparator()
-			else:
-				self.addAction(act)
-
-	def keyPressEvent(self, e):
-		if e.key() == Qt.Key_Escape:
-			self.close()
+		self.fillMenu()
 
 	def onMerge(self):
 		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)

@@ -452,3 +452,20 @@ class MyDDTableWidget(QTableWidget):
 				selectedRows.append(item.row())
 		selectedRows.sort()
 		return selectedRows
+
+class MyMenu(QMenu):
+	def __init__(self, parent = None):
+		super(MyMenu, self).__init__(parent)
+		self.possibleActions = []
+		self.result = False
+
+	def fillMenu(self):
+		for act in self.possibleActions:
+			if act is None:
+				self.addSeparator()
+			else:
+				self.addAction(act)
+
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Escape:
+			self.close()
