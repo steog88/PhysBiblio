@@ -1455,8 +1455,28 @@ class entries(physbiblioDBSub):
 		return num, err, changed
 
 	def getFieldsFromArxiv(self, bibkey, fields):
+		if type(bibkey) is list:
+			tot = len(bibkey)
+			self.getArxivFieldsFlag = True
+			success = []
+			fail = []
+			print("[DB] thread_fieldsArxiv will process %d entries."%tot)
+			for ix, k in enumerate(bibkey):
+				arxiv = str(self.getField(k, "arxiv"))
+				if self.getArxivFieldsFlag and arxiv.strip() != "":
+					print("\n[DB] %5d / %d (%5.2f%%) - processing: arxiv:%s\n"%(ix+1, tot, 100.*(ix+1)/tot, arxiv))
+					result = self.getFieldsFromArxiv(k, fields)
+					if result is True:
+						success.append(k)
+					else:
+						fail.append(k)
+			print("\n\n[DB] thread_fieldsArxiv has finished!")
+			print("%d entries processed, of which these %d generated errors:\n%s"%(len(success+fail), len(fail), fail))
+			return success, fail
 		bibtex = self.getField(bibkey, "bibtex")
-		arxiv = self.getField(bibkey, "arxiv")
+		arxiv = str(self.getField(bibkey, "arxiv"))
+		if arxiv.strip() == "":
+			return False
 		try:
 			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
 			tmp = bibtexparser.loads(bibtex).entries[0]

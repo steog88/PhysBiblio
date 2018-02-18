@@ -190,6 +190,11 @@ class MainWindow(QMainWindow):
 								statusTip="Clean all the bibtexs",
 								triggered=self.cleanAllBibtexs)
 
+		self.infoFromArxivAct = QAction("Info from ar&Xiv", self,
+								shortcut="Ctrl+V",
+								statusTip="Get info from arXiv",
+								triggered=self.infoFromArxiv)
+
 		self.cleanAllBibtexsAskAct = QAction("C&lean bibtexs (from ...)", self,
 								shortcut="Ctrl+Shift+L",
 								statusTip="Clean all the bibtexs, starting from a given one",
@@ -284,11 +289,13 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.cleanAllBibtexsAct)
 		self.bibMenu.addAction(self.cleanAllBibtexsAskAct)
 		self.bibMenu.addSeparator()
+		self.bibMenu.addAction(self.infoFromArxivAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAskAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.searchBibAct)
 		self.bibMenu.addAction(self.searchReplaceAct)
+		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.refreshAct)
 		self.bibMenu.addAction(self.reloadAct)
 
@@ -887,6 +894,19 @@ class MainWindow(QMainWindow):
 			startFrom, useEntries = useEntries,
 			totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ",
 			minProgress = 0., stopFlag = True)
+
+	def infoFromArxiv(self, useEntries = None):
+		if useEntries is None:
+			useEntries = pBDB.bibs.getAll()
+		askFieldsWin = fieldsFromArxiv()
+		askFieldsWin.exec_()
+		if askFieldsWin.result:
+			self.StatusBarMessage("Starting importing info from arxiv...")
+			self.fieldsArxiv_thr, self.arxivReceiver = self._runInThread(
+				thread_fieldsArxiv, "Get info from arXiv",
+				[e["bibkey"] for e in useEntries], askFieldsWin.output,
+				totStr = "[DB] thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
+				minProgress = 0., stopFlag = True)
 
 	def sendMessage(self, message):
 		infoMessage(message)

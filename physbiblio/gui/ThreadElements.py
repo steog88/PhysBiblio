@@ -230,3 +230,22 @@ class thread_cleanSparePDF(MyThread):
 		pBPDF.removeSparePDFFolders()
 		self.my_receiver.running = False
 		self.finished.emit()
+
+class thread_fieldsArxiv(MyThread):
+	def __init__(self, queue, myrec, entries, fields, parent = None):
+		super(thread_fieldsArxiv, self).__init__(parent)
+		self.parent = parent
+		self.entries = entries
+		self.fields = fields
+		self.queue = queue
+		self.my_receiver = myrec
+
+	def run(self):
+		self.my_receiver.start()
+		pBDB.bibs.getFieldsFromArxiv(self.entries, self.fields)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.getArxivFieldsFlag = False

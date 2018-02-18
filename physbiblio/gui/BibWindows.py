@@ -864,6 +864,7 @@ class askSelBibAction(askAction):
 		self.possibleActions.append(["Clean entries", self.onClean])
 		self.possibleActions.append(["Update entries", self.onUpdate])
 		self.possibleActions.append(["Load abstract from arXiv", self.onAbs])
+		self.possibleActions.append(["Get fields from arXiv", self.onArx])
 		self.possibleActions.append(["Download PDF from arXiv", self.onDown])
 		self.possibleActions.append(["Export entries in a .bib file", self.onExport])
 		self.possibleActions.append(["Copy all the (existing) PDF", self.copyAllPdf])
@@ -935,6 +936,10 @@ class askSelBibAction(askAction):
 		for entry in self.entries:
 			self.parent.bibtexList.arxivAbstract(entry["arxiv"], entry["bibkey"], message = False)
 		infoMessage("Done!")
+		self.close()
+
+	def onArx(self):
+		self.parent.infoFromArxiv(self.entries)
 		self.close()
 
 	def onDown(self):
