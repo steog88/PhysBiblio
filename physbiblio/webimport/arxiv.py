@@ -1,7 +1,5 @@
-import sys,re,os
-from urllib2 import Request
-import urllib2
-import feedparser, traceback
+import sys, re, os, traceback
+import feedparser
 try:
 	from physbiblio.errors import pBErrorManager
 except ImportError:
@@ -54,7 +52,7 @@ class webSearch(webInterf):
 				tmp["arxiv"] = idArx
 				try:
 					tmp["doi"] = entry['arxiv_doi']
-				except KeyError, e:
+				except KeyError as e:
 					print("[arXiv] -> KeyError: ", e)
 				tmp["abstract"] = entry['summary']
 				tmp["authors"] = " and ".join([ au["name"] for au in entry['authors']])

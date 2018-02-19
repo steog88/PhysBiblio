@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-15 -*-
 import re
-#import codecs
+import sys
 
 accents_changed = []
 ################################################################
@@ -199,7 +199,11 @@ unicode_to_latex = {
     u"\u2014": "--",
     u"\u2015": "---",
 }
-translation_table = dict([(ord(k), unicode(v)) for k, v in unicode_to_latex.items()])
+
+if sys.version_info[0] < 3:
+	translation_table = dict([(ord(k), unicode(v)) for k, v in unicode_to_latex.items()])
+else:
+	translation_table = dict([(ord(k), str(v)) for k, v in unicode_to_latex.items()])
 
 def parse_accents_str(string):
 	if string is not None and string is not "":

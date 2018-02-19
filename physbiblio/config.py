@@ -90,14 +90,14 @@ class ConfigVars():
 			txt = "".join(txtarr)
 			self.defProf, self.profiles = ast.literal_eval(txt.replace("\n",""))
 		except (IOError, ValueError, SyntaxError) as e:
-			print e
+			print(e)
 			self.profiles = {"default": {"f": "data/params.cfg", "d":""}}
 			self.defProf = "default"
 			self.writeProfiles()
 		#except ...:
 			#...
 		self.defaultProfile = self.profiles[self.defProf]
-		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
+		print("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		
 		self.readConfigFile()
@@ -118,7 +118,7 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
-		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
+		print("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		self.params = {}
 		self.readConfigFile()

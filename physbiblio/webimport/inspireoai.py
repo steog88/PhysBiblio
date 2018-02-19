@@ -1,29 +1,34 @@
 import sys, re, os, time
-from urllib2 import Request
-import urllib2
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
-from bibtexparser.bibdatabase import BibDatabase
-import bibtexparser
-from physbiblio.bibtexwriter import pbWriter
-from physbiblio.errors import pBErrorManager
-
 import codecs
-reload(sys)
-sys.setdefaultencoding('utf-8')
+
+if sys.version_info[0] < 3:
+	reload(sys)
+	sys.setdefaultencoding('utf-8')
+	from httplib import IncompleteRead
+else:
+	from http.client import IncompleteRead
 
 import datetime, traceback
 
+from lxml import etree
+import bibtexparser
 from oaipmh.client import Client
 from oaipmh.error import ErrorBase
 from oaipmh.metadata import MetadataRegistry
-from lxml import etree
 
-from cStringIO import StringIO
+if sys.version_info[0] < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
 from lxml.etree import tostring
 from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
-import httplib
+
+from physbiblio.webimport.webInterf import *
+from physbiblio.parse_accents import *
+from bibtexparser.bibdatabase import BibDatabase
+from physbiblio.bibtexwriter import pbWriter
+from physbiblio.errors import pBErrorManager
 
 def safe_list_get(l, idx, default=""):
 	"""
@@ -186,7 +191,7 @@ class webSearch(webInterf):
 		"""get the marcxml for a given record"""
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
-		except ErrorBase, httplib.IncompleteRead:
+		except (ErrorBase, IncompleteRead):
 			pBErrorManager("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID, traceback)
 			return False
 		nhand = 0
@@ -238,7 +243,7 @@ class webSearch(webInterf):
 				id_ = id.replace("oai:inspirehep.net:", "")
 				tmpDict["id"] = id_
 				foundObjects.append(tmpDict)
-			except Exception, e:
+			except Exception as e:
 				print(count, id)
 				print(e)
 				print(traceback.format_exc())

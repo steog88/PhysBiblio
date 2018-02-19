@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-from Queue import Queue
+if sys.version_info[0] < 3:
+	from Queue import Queue
+else:
+	from queue import Queue
+
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
@@ -27,9 +31,12 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -486,7 +493,7 @@ class MainWindow(QMainWindow):
 		rec = MyReceiver(queue, self)
 		rec.mysignal.connect(app.append_text)
 		if addMessage:
-			print addMessage
+			print(addMessage)
 		thr = thread_func(queue, rec, *args, parent = self, **kwargs)
 
 		rec.finished.connect(rec.deleteLater)
@@ -637,7 +644,7 @@ class MainWindow(QMainWindow):
 			if len(newSearchWin.values["type"]) > 0:
 				for k in newSearchWin.values["type"]:
 					searchDict[k] = {"str": "1", "operator": "=", "connection": newSearchWin.values["typeConn"]}
-					print searchDict[k]
+					print(searchDict[k])
 			for i, dic in enumerate(newSearchWin.textValues):
 				k="%s#%d"%(dic["field"].currentText(), i)
 				s = "%s"%dic["content"].text()

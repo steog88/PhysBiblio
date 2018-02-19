@@ -1,7 +1,8 @@
-import sys, re, os
-import urllib2
-import socket
-import pkgutil, traceback
+import sys, re, os, socket, pkgutil, traceback
+if sys.version_info[0] < 3:
+	from urllib2 import Request, urlopen, URLError
+else:
+	from urllib.request import Request, urlopen, URLError
 try:
 	from physbiblio.errors import pBErrorManager
 except ImportError:
@@ -36,12 +37,12 @@ class webInterf():
 		"""use urllib to get the html content of the given url"""
 		try:
 			if headers is not None:
-				req = urllib2.Request(url, headers = headers)
+				req = Request(url, headers = headers)
 			else:
-				req = urllib2.Request(url)
-			response = urllib2.urlopen(req, timeout = self.urlTimeout)
+				req = Request(url)
+			response = urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
-		except urllib2.URLError:
+		except URLError:
 			pBErrorManager("[%s] -> error in retrieving data from url"%self.name)
 			return None
 		except socket.timeout:
@@ -67,10 +68,10 @@ class webInterf():
 			return
 		for q in self.interfaces:
 			try:
-				_temp = __import__("physbiblio.webimport." + q, globals(), locals(), ["webSearch"], -1)
+				_temp = __import__("physbiblio.webimport." + q, globals(), locals(), ["webSearch"])
 				self.webSearch[q] = getattr(_temp, "webSearch")()
 			except:
-				pBErrorManager("physbiblio.webimport.%s import error"%q)
+				pBErrorManager("physbiblio.webimport.%s import error"%q, traceback)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):

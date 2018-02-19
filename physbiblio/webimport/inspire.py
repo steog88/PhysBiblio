@@ -1,6 +1,3 @@
-import sys,re,os
-from urllib2 import Request
-import urllib2
 from physbiblio.config import pbConfig
 from physbiblio.webimport.webInterf import *
 from physbiblio.parse_accents import *

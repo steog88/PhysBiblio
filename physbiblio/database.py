@@ -122,7 +122,7 @@ class physbiblioDB():
 				self.curs.execute(query,data)
 			else:
 				self.curs.execute(query)
-		except Exception, err:
+		except Exception as err:
 			print('[cursExec] ERROR: %s'%err)
 			return False
 		else:
@@ -1078,7 +1078,7 @@ class entries(physbiblioDBSub):
 		self.cursExec(self.lastQuery, self.lastVals)
 		self.lastFetched = self.completeFetched(self.curs.fetchall())
 		keys = [k["bibkey"] for k in self.lastFetched]
-		print "[DB] Replacing text in entries: ", keys
+		print("[DB] Replacing text in entries: ", keys)
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
 			return keys
 
@@ -1309,7 +1309,7 @@ class entries(physbiblioDBSub):
 				and value is not "" and value is not None:
 			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
 			if verbose > 1:
-				print query, field, value
+				print(query, field, value)
 			return self.connExec(query, {"field": value, "bibkey": key})
 		else:
 			if verbose > 1:
@@ -1331,7 +1331,7 @@ class entries(physbiblioDBSub):
 			else:
 				return False
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 			
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
@@ -1650,7 +1650,7 @@ class entries(physbiblioDBSub):
 								self.updateInfoFromOAI(eid)
 							print("[DB] element successfully inserted.\n")
 							self.lastInserted.append(key)
-						except Exception, err:
+						except Exception as err:
 							pBErrorManager("[DB] failed in completing info for entry %s\n"%key)
 							print(err)
 							errors.append(key)

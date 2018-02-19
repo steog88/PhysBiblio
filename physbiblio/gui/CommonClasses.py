@@ -4,9 +4,15 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	import physbiblio.gui.Resources_pyside
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.database import catString
+except ImportError:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+try:
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 

@@ -1,7 +1,10 @@
 import os, sys, numpy, codecs, re, time
 import os.path as osp
 import json
-from urllib2 import Request, urlopen
+if sys.version_info[0] < 3:
+	from urllib2 import Request, urlopen
+else:
+	from urllib.request import Request, urlopen
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')

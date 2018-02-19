@@ -1,6 +1,4 @@
-import sys,re,os
-from urllib2 import Request
-import urllib2, traceback
+import sys, re, os, traceback
 try:
 	from physbiblio.errors import pBErrorManager
 except ImportError:

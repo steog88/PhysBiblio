@@ -1,4 +1,8 @@
-import sys, shutil, urllib2
+import sys, shutil
+if sys.version_info[0] < 3:
+	from urllib2 import urlopen
+else:
+	from urllib.request import urlopen
 import os.path as osp
 import os
 import subprocess
@@ -92,7 +96,7 @@ class localPDF():
 			self.createFolder(key)
 			url = pBDB.bibs.getArxivUrl(key, 'pdf')
 			print("[localPDF] Downloading arXiv PDF from %s"%url)
-			response = urllib2.urlopen(url)
+			response = urlopen(url)
 			with open(fname, 'wb') as newF:
 				newF.write(response.read())
 			print("[localPDF] File saved to %s"%fname)

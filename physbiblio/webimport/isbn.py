@@ -1,6 +1,3 @@
-#import sys,re,os
-#from urllib2 import Request
-#import urllib2
 import traceback
 try:
 	from physbiblio.errors import pBErrorManager

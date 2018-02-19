@@ -19,9 +19,12 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 def editExperiment(parent, statusBarObject, editIdExp = None):
 	if editIdExp is not None:
@@ -247,7 +250,7 @@ class ExpWindowList(objListWindow):
 				return
 			if self.colContents[col] == "inspire":
 				link = "http://inspirehep.net/record/" + link
-			print "will open '%s' "%link
+			print("will open '%s' "%link)
 			try:
 				print("[GUI] opening '%s'..."%link)
 				subprocess.Popen([pbConfig.params["webApplication"], link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
