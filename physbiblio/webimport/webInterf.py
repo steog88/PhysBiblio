@@ -3,7 +3,7 @@ Module that creates the base class webInterf, which will be used by other module
 
 Uses urllib
 """
-import sys, re, os, socket, pkgutil, traceback
+import sys, os, socket, pkgutil, traceback
 if sys.version_info[0] < 3:
 	from urllib2 import Request, urlopen, URLError
 else:
@@ -48,7 +48,7 @@ class webInterf():
 
 		Uses the self.urlArgs dictionary to generate the list of HTTP GET parameters.
 		"""
-		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.iteritems()])
+		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.items()])
 		
 	def textFromUrl(self, url, headers = None):
 		"""
@@ -76,7 +76,7 @@ class webInterf():
 			return None
 		try:
 			text = data.decode('utf-8')
-		except:
+		except Exception:
 			pBErrorManager("[%s] -> bad codification, utf-8 decode failed"%self.name)
 			return None
 		return text
@@ -117,7 +117,7 @@ class webInterf():
 			try:
 				_temp = __import__("physbiblio.webimport." + method, globals(), locals(), ["webSearch"])
 				self.webSearch[method] = getattr(_temp, "webSearch")()
-			except:
+			except Exception:
 				pBErrorManager("physbiblio.webimport.%s import error"%method, traceback)
 		self.loaded = True
 	
@@ -136,6 +136,7 @@ class webInterf():
 			return getattr(self.webSearch[method], retrieveUrlFirst)(search)
 		except KeyError:
 			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
+			return ""
 		
 	def retrieveUrlAllFrom(self, search, method):
 		"""
@@ -152,6 +153,7 @@ class webInterf():
 			return getattr(self.webSearch[method], retrieveUrlAll)(search)
 		except KeyError:
 			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
+			return ""
 
 physBiblioWeb = webInterf()
 physBiblioWeb.loadInterfaces()

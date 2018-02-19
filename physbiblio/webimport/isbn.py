@@ -1,3 +1,6 @@
+"""
+Module that deals with importing info from the ISBN2Bibtex API.
+"""
 import traceback
 try:
 	from physbiblio.errors import pBErrorManager
@@ -8,9 +11,13 @@ from physbiblio.webimport.webInterf import *
 from physbiblio.parse_accents import *
 
 class webSearch(webInterf):
-	"""isbn method"""
+	"""Subclass of webInterf that can connect to ISBN2Bibtex to perform searches"""
 	def __init__(self):
-		"""configuration"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the ISBN2Bibtex API.
+		"""
 		webInterf.__init__(self)
 		self.name = "isbn"
 		self.description = "ISBN to bibtex"
@@ -18,18 +25,28 @@ class webSearch(webInterf):
 		self.urlArgs = {}
 		
 	def retrieveUrlFirst(self,string):
-		"""get first (and only) bibtex for a given isbn"""
+		"""
+		Retrieves the first (only) result from the content of the given web page.
+
+		Parameters:
+			string: the search string (the ISBN)
+
+		Output:
+			returns the bibtex string
+		"""
 		self.urlArgs["isbn"] = string
 		url = self.createUrl()
 		print("[isbn] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			return parse_accents_str(text[:])
-		except:
-			pBErrorManager("[isbn] -> ERROR: impossible to get results")
+		except Exception:
+			pBErrorManager("[isbn] -> ERROR: impossible to get results", traceback)
 			return ""
 		
 	def retrieveUrlAll(self,string):
-		"""get first (and only) bibtex for a given isbn (redirect)"""
+		"""
+		Alias for retrieveUrlFirst
+		"""
 		return self.retrieveUrlFirst(string)
 

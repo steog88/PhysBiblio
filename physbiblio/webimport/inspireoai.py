@@ -1,7 +1,11 @@
-import sys, re, os, time
+"""
+Use INSPIRE-HEP OAI API to collect information on single papers (given the identifier) or to harvest updates in a given time period
+"""
+import sys, time
 import codecs
 
 if sys.version_info[0] < 3:
+	#needed to set utf-8 as encoding
 	reload(sys)
 	sys.setdefaultencoding('utf-8')
 	from httplib import IncompleteRead
@@ -10,7 +14,6 @@ else:
 
 import datetime, traceback
 
-from lxml import etree
 import bibtexparser
 from oaipmh.client import Client
 from oaipmh.error import ErrorBase
@@ -24,13 +27,17 @@ from lxml.etree import tostring
 from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
 
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
-from bibtexparser.bibdatabase import BibDatabase
-from physbiblio.bibtexwriter import pbWriter
-from physbiblio.errors import pBErrorManager
+try:
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
+	from bibtexparser.bibdatabase import BibDatabase
+	from physbiblio.bibtexwriter import pbWriter
+	from physbiblio.errors import pBErrorManager
+except ImportError:
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 
-def safe_list_get(l, idx, default=""):
+def safe_list_get(l, idx, default = ""):
 	"""
 	Safely get an element from a list.
 	No error if it doesn't exist...
@@ -68,11 +75,14 @@ def get_journal_ref_xml(marcxml):
 	return p, v, y, c, m, x, t
 
 class MARCXMLReader(object):
-    """Returns the PyMARC record from the OAI structure for MARC XML"""
-    def __call__(self, element):
-        handler = marcxml.XmlHandler()
-        marcxml.parse_xml(StringIO(tostring(element[0], encoding='UTF-8')), handler)
-        return handler.records[0]
+	"""Returns the PyMARC record from the OAI structure for MARC XML"""
+	def __call__(self, element):
+		handler = marcxml.XmlHandler()
+		if sys.version_info[0] < 3:
+			marcxml.parse_xml(StringIO(tostring(element[0], encoding='UTF-8')), handler)
+		else:
+			marcxml.parse_xml(StringIO(tostring(element[0], encoding=str)), handler)
+		return handler.records[0]
 
 marcxml_reader = MARCXMLReader()
 
@@ -80,9 +90,13 @@ registry = metadata.MetadataRegistry()
 registry.registerReader('marcxml', marcxml_reader)
 
 class webSearch(webInterf):
-	"""inspire OAI methods"""
+	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches using the OAI API"""
 	def __init__(self):
-		"""configuration"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the INSPIRE-HEP OAI API.
+		"""
 		webInterf.__init__(self)
 		self.name = "inspireoai"
 		self.description = "INSPIRE OAI interface"
@@ -102,17 +116,23 @@ class webSearch(webInterf):
 		]
 		
 	def retrieveUrlFirst(self,string):
-		"""not possible to search a single string"""
+		"""
+		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
+		"""
 		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def retrieveUrlAll(self,string):
-		"""not possible to search a single string"""
+		"""
+		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
+		"""
 		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record):
-		"""read the content of a record marcxml"""
+		"""
+		Read the content of a marcxml record to return a bibtex string
+		"""
 		tmpDict = {}
 		record.to_unicode = True
 		record.force_utf8 = True
@@ -123,8 +143,8 @@ class webSearch(webInterf):
 			for q in record.get_fields('024'):
 				if q["2"] == "DOI":
 					tmpDict["doi"] = q["a"]
-		except:
-			pass
+		except Exception as e:
+			print(traceback.format_exc())
 		try:
 			tmpDict["arxiv"]  = None
 			tmpDict["bibkey"] = None
@@ -145,8 +165,8 @@ class webSearch(webInterf):
 				if q["9"] == "ADS":
 					if q["a"] is not None:
 						tmpDict["ads"] = q["a"]
-		except:
-			pass
+		except (IndexError, TypeError) as e:
+			print(e)
 		if tmpDict["bibkey"] is None and len(tmpOld) > 0:
 			tmpDict["bibkey"] = tmpOld[0]
 			tmpOld = []
@@ -156,7 +176,7 @@ class webSearch(webInterf):
 			tmpDict["volume"]  = v[0]
 			tmpDict["year"]    = y[0]
 			tmpDict["pages"]   = p[0]
-		except:
+		except IndexError:
 			tmpDict["journal"] = None
 			tmpDict["volume"]  = None
 			tmpDict["year"]    = None
@@ -170,25 +190,35 @@ class webSearch(webInterf):
 				if firstdate is not None:
 					firstdate = firstdate["x"]
 			tmpDict["firstdate"] = firstdate
-		except:
+		except TypeError:
 			tmpDict["firstdate"] = None
 		try:
 			tmpDict["pubdate"] = record["260"]["c"]
-		except:
+		except TypeError:
 			tmpDict["pubdate"] = None
 		try:
 			tmpDict["isbn"] = record["020"]["a"]
-		except:
+		except TypeError:
 			tmpDict["isbn"] = None
 		try:
 			tmpDict["pubdate"] = record["260"]["c"]
-		except:
+		except TypeError:
 			tmpDict["pubdate"] = None
 		tmpDict["oldkeys"] = ",".join(tmpOld)
 		return tmpDict
 	
 	def retrieveOAIData(self, inspireID, bibtex = None, verbose = 0):
-		"""get the marcxml for a given record"""
+		"""
+		Get the marcxml entry for a given record
+
+		Parameters:
+			inspireID: the INSPIRE-HEP identifier (a number) of the desired entry
+			bibtex (default None): whether the bibtex should be included in the output dictionary
+			verbose (default 0): increase the output level
+
+		Output:
+			the dictionary containing the bibtex information
+		"""
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
 		except (ErrorBase, IncompleteRead):
@@ -226,7 +256,15 @@ class webSearch(webInterf):
 			return False
 		
 	def retrieveOAIUpdates(self, date1, date2):
-		"""get all the updates and new occurrences between two dates"""
+		"""
+		Harvest the OAI API to get all the updates and new occurrences between two dates
+
+		Parameters:
+			date1, date2: dates that define the time interval to be searched
+
+		Output:
+			a list of dictionaries containing the bibtex information
+		"""
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml', from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
 		print("\n[oai] STARTING OAI harvester --- " + time.strftime("%c") + "\n\n")

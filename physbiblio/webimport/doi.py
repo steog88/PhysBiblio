@@ -1,4 +1,7 @@
-import sys, re, os, traceback
+"""
+Module that deals with importing info from the DOI.org API.
+"""
+import traceback
 try:
 	from physbiblio.errors import pBErrorManager
 except ImportError:
@@ -8,9 +11,13 @@ from physbiblio.webimport.webInterf import *
 from physbiblio.parse_accents import *
 
 class webSearch(webInterf):
-	"""doi web interface"""
+	"""Subclass of webInterf that can connect to doi.org to perform searches"""
 	def __init__(self):
-		"""configuration"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the DOI.org API.
+		"""
 		webInterf.__init__(self)
 		self.name = "doi"
 		self.description = "Doi fetcher"
@@ -18,20 +25,34 @@ class webSearch(webInterf):
 		self.headers = {'accept': 'application/x-bibtex'}
 		
 	def createUrl(self, doi):
-		"""doi url behaves differently from other urls"""
+		"""
+		Joins the base url and the search string to get the full url.
+
+		(DOI.org url Behaves differently than other APIs in the modules of this subpackage)
+		"""
 		return self.url + doi
 		
 	def retrieveUrlFirst(self,string):
-		"""first (and only) bibtex result for a given doi"""
+		"""
+		Retrieves the first (only) result from the content of the given web page.
+
+		Parameters:
+			string: the search string (the DOI)
+
+		Output:
+			returns the bibtex string
+		"""
 		url = self.createUrl(string)
 		print("[doi] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url, self.headers)
 		try:
 			return text[:]
-		except:
-			pBErrorManager("[doi] -> ERROR: impossible to get results")
+		except Exception:
+			pBErrorManager("[doi] -> ERROR: impossible to get results", traceback)
 			return ""
 		
 	def retrieveUrlAll(self,string):
-		"""first (and only) bibtex result for a given doi (redirect to retrieveUrlFirst)"""
+		"""
+		Alias for retrieveUrlFirst
+		"""
 		return self.retrieveUrlFirst(string)

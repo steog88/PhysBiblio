@@ -3,7 +3,7 @@ Module that deals with importing info from the arXiv API.
 
 Uses feedparser module to read the page content
 """
-import sys, re, os, traceback
+import re, traceback
 import feedparser
 try:
 	from physbiblio.errors import pBErrorManager
@@ -82,7 +82,7 @@ class webSearch(webInterf):
 			(optional, depending on fullDict): the bibtex Dictionary
 		"""
 		if additionalArgs:
-			for k, v in additionalArgs.iteritems():
+			for k, v in additionalArgs.items():
 				self.urlArgs[k] = v
 		self.urlArgs["search_query"] = searchType + ":" + string
 		url = self.createUrl()
@@ -120,13 +120,16 @@ class webSearch(webInterf):
 								dictionary["year"] = "19" + a
 							else:
 								dictionary["year"] = "20" + a
-				except:
+				except Exception:
 					print("[DB] -> Error in converting year")
 				db.entries.append(dictionary)
 			if fullDict:
 				return pbWriter.write(db), dictionary
 			else:
 				return pbWriter.write(db)
-		except:#intercept all possible errors
+		except Exception:#intercept all other possible errors
 			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
-			return ""
+			if fullDict:
+				return "",  {}
+			else:
+				return ""

@@ -1,11 +1,24 @@
+"""
+Module that deals with importing info from the INSPIRE-HEP API.
+"""
+import traceback
+try:
+	from physbiblio.errors import pBErrorManager
+except ImportError:
+	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 from physbiblio.config import pbConfig
 from physbiblio.webimport.webInterf import *
 from physbiblio.parse_accents import *
 
 class webSearch(webInterf):
-	"""inspire methods"""
+	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches"""
 	def __init__(self):
-		"""configurations"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the INSPIRE-HEP API.
+		"""
 		webInterf.__init__(self)
 		self.name = "inspire"
 		self.description = "INSPIRE fetcher"
@@ -20,20 +33,17 @@ class webSearch(webInterf):
 			"eb": "B",
 			"of": "hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
 			}
-		self.urlRecordExt = {
-			"bibtex": "/export/hx",
-		}
-		
-	def urlOfRecord(self, inspireID, extension = None):
-		"""get url for a given record"""
-		if extension and extension in self.urlRecordExt.keys():
-			ext = self.urlRecordExt[extension]
-		else:
-			ext = ""
-		return self.urlRecord + inspireID + ext
 		
 	def retrieveUrlFirst(self, string):
-		"""retrieve the first entry from a html page"""
+		"""
+		Retrieves the first result from the content of the given web page.
+
+		Parameters:
+			string: the search string
+
+		Output:
+			returns the bibtex string obtained from the API
+		"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
 		print("[inspire] search %s -> %s"%(string, url))
@@ -46,12 +56,20 @@ class webSearch(webInterf):
 			else:
 				bibtex = ""
 			return parse_accents_str(bibtex)
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
 			return ""
 		
 	def retrieveUrlAll(self, string):
-		"""retrieve all the entries from a html page"""
+		"""
+		Retrieves all the result from the content of the given web page.
+
+		Parameters:
+			string: the search string
+
+		Output:
+			returns the bibtex string obtained from the API
+		"""
 		self.urlArgs["p"] = "\"" + string + "\""
 		url = self.createUrl()
 		print("[inspire] search %s -> %s"%(string, url))
@@ -64,15 +82,21 @@ class webSearch(webInterf):
 			else:
 				bibtex = ""
 			return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
-		"""read the inspire ID of a given entry from the html page"""
+		"""
+		Read the fetched content for a given entry to obtain its INSPIRE-HEP ID
+
+		Parameters:
+			string: the search string
+			number (optional): the integer corresponding to the desired entry in the list, if more than one is present
+		"""
 		i = 0
 		self.urlArgs["p"] = "\"" + string + "\""
-		self.urlArgs["of"] = "hb" #not bibtex but standard
+		self.urlArgs["of"] = "hb" #do not ask bibtex, but standard
 		url = self.createUrl()
 		self.urlArgs["of"] = "hx" #restore
 		print("[inspire] search ID of %s -> %s"%(string, url))
@@ -88,6 +112,6 @@ class webSearch(webInterf):
 						i += 1
 			print("[inspire] found: %s"%inspireID)
 			return inspireID
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
 			return ""
