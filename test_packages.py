@@ -4,9 +4,10 @@ Test file for the packages in the PhysBiblio application, a bibliography manager
 
 This file is part of the PhysBiblio package.
 """
-import sys, datetime
+import sys, datetime, traceback
 
 try:
+	from physbiblio.errors import pBErrorManager
 	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -14,10 +15,29 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+def test_pBErrorManager():
+	"""
+	Test pBErrorManager raising few exceptions.
+	"""
+	try:
+		raise Exception("Test warning")
+	except Exception as e:
+		pBErrorManager(str(e), traceback, priority = 0)
+	try:
+		raise Exception("Test error")
+	except Exception as e:
+		pBErrorManager(str(e), traceback, priority = 1)
+	try:
+		raise Exception("Test critical error")
+	except Exception as e:
+		pBErrorManager(str(e), traceback, priority = 2)
+
 def test_webImport():
 	"""
 	Test the functions that import entries from the web.
 	Should not fail if everything works fine.
+
+	Tests also pbWriter._entry_to_bibtex using the other functions
 	"""
 	print(physBiblioWeb.webSearch.keys())
 	tests = {
@@ -44,4 +64,5 @@ def test_webImport():
 	print(physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2))
 
 if __name__=='__main__':
+	test_pBErrorManager()
 	test_webImport()
