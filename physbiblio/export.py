@@ -209,7 +209,7 @@ class pbExport():
 			print(" - ".join(unexpected))
 		if len(newKeys.keys()) > 0:
 			print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
-			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.iteritems() ] ) )
+			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
 		print("[export] -->     " + str(warnings) + " warning(s) occurred!")
 
 	def updateExportedBib(self, fname, overwrite = False):

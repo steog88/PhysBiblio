@@ -2,7 +2,7 @@ import bibtexparser
 
 class MyBibTexWriter(bibtexparser.bwriter.BibTexWriter):
 	def __init__(self):
-		super(MyBibtexWriter, self).__init__()
+		super(MyBibTexWriter, self).__init__()
 		#use 13 characters for the field name:
 		self._max_field_width=13
 		#order of fields in output

@@ -3,7 +3,6 @@ from sqlite3 import OperationalError, ProgrammingError, DatabaseError
 import os, re, traceback, datetime
 import bibtexparser
 import ast
-import physbiblio.webimport.webInterf as webInt
 import time
 
 try:
@@ -952,7 +951,7 @@ class entries(physbiblioDBSub):
 		if params and len(params) > 0:
 			query += " where "
 			first = True
-			for k, v in params.iteritems():
+			for k, v in params.items():
 				if type(v) is list:
 					for v1 in v:
 						if first:
