@@ -1,3 +1,8 @@
+"""
+Module that deals with importing info from the arXiv API.
+
+Uses feedparser module to read the page content
+"""
 import sys, re, os, traceback
 import feedparser
 try:
@@ -11,9 +16,13 @@ from physbiblio.parse_accents import *
 from physbiblio.bibtexwriter import pbWriter
 
 class webSearch(webInterf):
-	"""arxiv.org search"""
+	"""Subclass of webInterf that can connect to arxiv.org to perform searches"""
 	def __init__(self):
-		"""constants"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the arxiv.org API.
+		"""
 		webInterf.__init__(self)
 		self.name = "arXiv"
 		self.description = "arXiv fetcher"
@@ -22,12 +31,56 @@ class webSearch(webInterf):
 			"start":"0"}
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
+		"""
+		Retrieves the first result from the content of the given web page.
+		The function calls arxivRetriever which will do the job.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all')
+
+		Output:
+			returns the bibtex string built from arxivRetriever
+		"""
 		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"}, **kwargs)
+
 	def retrieveUrlAll(self, string, searchType = "all", **kwargs):
+		"""
+		Retrieves all the results from the content of the given web page.
+		The function calls arxivRetriever which will do the job.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all')
+
+		Output:
+			returns the bibtex string built from arxivRetriever
+		"""
 		return self.arxivRetriever(string, searchType, **kwargs)
 
 	def arxivRetriever(self, string, searchType = "all", additionalArgs = None, fullDict = False):
-		"""reads the feed content into a dictionary, used to return a bibtex"""
+		"""
+		Reads the feed content got from arxiv into a dictionary, used to return a bibtex.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all'). The possible values are:
+				ti->	Title
+				au	->	Author
+				abs	->	Abstract
+				co	->	Comment
+				jr	->	Journal Reference
+				cat	->	Subject Category
+				rn	->	Report Number
+				id	->	Id (use id_list instead)
+				all	->	All of the above
+			additionalArgs: a dictionary of additional arguments that can be passed to self.urlArgs (default None)
+			fullDict (logical): return the bibtex dictionary in addition to the bibtex text (default False)
+
+		Output:
+			the bibtex text
+			(optional, depending on fullDict): the bibtex Dictionary
+		"""
 		if additionalArgs:
 			for k, v in additionalArgs.iteritems():
 				self.urlArgs[k] = v
@@ -40,52 +93,40 @@ class webSearch(webInterf):
 			db = BibDatabase()
 			db.entries = []
 			for entry in data['entries']:
-				tmp = {}
+				dictionary = {}
 				idArx = entry['id'].replace("http://arxiv.org/abs/", "")
 				pos = idArx.find("v")
 				if pos >= 0:
 					idArx = idArx[0:pos]
-				tmp["ENTRYTYPE"] = "article"
-				tmp["ID"] = idArx
-				tmp["archiveprefix"] = "arXiv"
-				tmp["title"] = entry['title']
-				tmp["arxiv"] = idArx
+				dictionary["ENTRYTYPE"] = "article"
+				dictionary["ID"] = idArx
+				dictionary["archiveprefix"] = "arXiv"
+				dictionary["title"] = entry['title']
+				dictionary["arxiv"] = idArx
 				try:
-					tmp["doi"] = entry['arxiv_doi']
+					dictionary["doi"] = entry['arxiv_doi']
 				except KeyError as e:
 					print("[arXiv] -> KeyError: ", e)
-				tmp["abstract"] = entry['summary']
-				tmp["authors"] = " and ".join([ au["name"] for au in entry['authors']])
-				tmp["primaryclass"] = entry['arxiv_primary_category']['term']
+				dictionary["abstract"] = entry['summary']
+				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
+				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
 				identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
 				try:
-					for t in identif.finditer(tmp["arxiv"]):
+					for t in identif.finditer(dictionary["arxiv"]):
 						if len(t.group()) > 0:
 							e = t.group()
 							a = e[0:2]
 							if int(a) > 80:
-								tmp["year"] = "19" + a
+								dictionary["year"] = "19" + a
 							else:
-								tmp["year"] = "20" + a
+								dictionary["year"] = "20" + a
 				except:
 					print("[DB] -> Error in converting year")
-				db.entries.append(tmp)
+				db.entries.append(dictionary)
 			if fullDict:
-				return pbWriter.write(db), tmp
+				return pbWriter.write(db), dictionary
 			else:
 				return pbWriter.write(db)
-		except:
+		except:#intercept all possible errors
 			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
 			return ""
-
-
-#Table: search_query field prefixes
-#ti	Title
-#au	Author
-#abs	Abstract
-#co	Comment
-#jr	Journal Reference
-#cat	Subject Category
-#rn	Report Number
-#id	Id (use id_list instead)
-#all	All of the above

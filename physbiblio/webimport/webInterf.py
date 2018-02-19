@@ -1,3 +1,8 @@
+"""
+Module that creates the base class webInterf, which will be used by other modules in this package.
+
+Uses urllib
+"""
 import sys, re, os, socket, pkgutil, traceback
 if sys.version_info[0] < 3:
 	from urllib2 import Request, urlopen, URLError
@@ -10,17 +15,25 @@ except ImportError:
 	print(traceback.format_exc())
 try:
 	import physbiblio.webimport as wi
-	#from physbiblio.database import *
 	from physbiblio.config import pbConfig
 except ImportError:
 	pBErrorManager("Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
+
+#scan package content to load list of available modules, to be imported later
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
 class webInterf():
-	"""this is the main class for the web search methods"""
+	"""
+	This is the main class for the web search methods.
+
+	It contains a constructor, a function to create an appropriate url and to retrieve text from the url,
+	a function to load other webinterfaces
+	"""
 	def __init__(self):
-		"""initializes the class variables"""
+		"""
+		Initializes the class variables.
+		"""
 		self.url = None
 		self.urlArgs = None
 		self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
@@ -30,11 +43,24 @@ class webInterf():
 		self.loaded = False
 		
 	def createUrl(self):
-		"""joins the arguments of the GET query to get the full url"""
+		"""
+		Joins the arguments of the GET query to get the full url.
+
+		Uses the self.urlArgs dictionary to generate the list of HTTP GET parameters.
+		"""
 		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.iteritems()])
 		
 	def textFromUrl(self, url, headers = None):
-		"""use urllib to get the html content of the given url"""
+		"""
+		Use urllib to get the html content of the given url.
+
+		Parameters:
+			url: the url to be opened
+			headers (default None): the additional headers to be passed to urllib.Request
+
+		Output:
+			text: the content of the url
+		"""
 		try:
 			if headers is not None:
 				req = Request(url, headers = headers)
@@ -56,31 +82,76 @@ class webInterf():
 		return text
 	
 	def retrieveUrlFirst(self, search):
-		"""retrieves the first bibtexs that the search gives"""
+		"""
+		Retrieves the first bibtexs that the search gives, using the subclass specific instructions.
+
+		Parameter:
+			search: the string to be searched
+
+		Output:
+			returns None in the default implementation (must be subclassed)
+		"""
 		return None
 	def retrieveUrlAll(self, search):
-		"""retrieves all the bibtexs that the search gives"""
+		"""
+		Retrieves all the bibtexs that the search gives, using the subclass specific instructions
+
+		Parameter:
+			search: the string to be searched
+
+		Output:
+			returns None in the default implementation (must be subclassed)
+		"""
 		return None
 	
 	def loadInterfaces(self):
-		"""load the codes that will interface with the main websites to search bibtex info into a dictionary of classes"""
+		"""
+		Load the subclasses that will interface with the main websites to search bibtex info
+		and saves them into a dictionary (`self.webSearch`).
+
+		The subclasses are read scanning the package directory.
+		"""
 		if self.loaded:
 			return
-		for q in self.interfaces:
+		for method in self.interfaces:
 			try:
-				_temp = __import__("physbiblio.webimport." + q, globals(), locals(), ["webSearch"])
-				self.webSearch[q] = getattr(_temp, "webSearch")()
+				_temp = __import__("physbiblio.webimport." + method, globals(), locals(), ["webSearch"])
+				self.webSearch[method] = getattr(_temp, "webSearch")()
 			except:
-				pBErrorManager("physbiblio.webimport.%s import error"%q, traceback)
+				pBErrorManager("physbiblio.webimport.%s import error"%method, traceback)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):
-		"""will call subclass method"""
-		getattr(self.webSearch[method], retrieveUrlFirst)(search)
+		"""
+		Calls the function retrieveUrlFirst given the subclass method.
+
+		Parameters:
+			search: the search string
+			method: the key of the method in `self.webSearch`
+
+		Output:
+			None in the default implementation (must be subclassed)
+		"""
+		try:
+			return getattr(self.webSearch[method], retrieveUrlFirst)(search)
+		except KeyError:
+			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
 		
 	def retrieveUrlAllFrom(self, search, method):
-		"""will call subclass method"""
-		getattr(self.webSearch[method], retrieveUrlAll)(search)
+		"""
+		Calls the function retrieveUrlAll given the subclass method.
+
+		Parameters:
+			search: the search string
+			method: the key of the method in `self.webSearch`
+
+		Output:
+			None in the default implementation (must be subclassed)
+		"""
+		try:
+			return getattr(self.webSearch[method], retrieveUrlAll)(search)
+		except KeyError:
+			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
 
 physBiblioWeb = webInterf()
 physBiblioWeb.loadInterfaces()
