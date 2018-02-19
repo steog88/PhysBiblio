@@ -16,7 +16,8 @@ except Exception:
 
 def test_webImport():
 	"""
-	Test the functions that import entries from the web
+	Test the functions that import entries from the web.
+	Should not fail if everything works fine.
 	"""
 	print(physBiblioWeb.webSearch.keys())
 	tests = {
@@ -26,12 +27,13 @@ def test_webImport():
 		"inspireoai": "1385583",
 		"isbn": "9780198508717",
 		}
-	# for method, string in tests.items():
-		# if method == "inspireoai":
-			# print(physBiblioWeb.webSearch[method].retrieveOAIData(string))
-		# else:
-			# print(physBiblioWeb.webSearch[method].retrieveUrlFirst(string))
-			# print(physBiblioWeb.webSearch[method].retrieveUrlAll(string))
+	for method, string in tests.items():
+		if method == "inspireoai":
+			print(physBiblioWeb.webSearch[method].retrieveOAIData(string))
+		else:
+			print(physBiblioWeb.webSearch[method].retrieveUrlFirst(string))
+			print(physBiblioWeb.webSearch[method].retrieveUrlAll(string))
+	print(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"]))
 
 	date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
 	date2 = datetime.date.today().strftime("%Y-%m-%d")
