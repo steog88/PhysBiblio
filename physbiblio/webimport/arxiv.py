@@ -1,7 +1,9 @@
 """
 Module that deals with importing info from the arXiv API.
 
-Uses feedparser module to read the page content
+Uses feedparser module to read the page content.
+
+This file is part of the PhysBiblio package.
 """
 import re, traceback
 import feedparser

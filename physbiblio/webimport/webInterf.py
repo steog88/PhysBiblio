@@ -1,7 +1,9 @@
 """
 Module that creates the base class webInterf, which will be used by other modules in this package.
 
-Uses urllib
+Uses urllib to download url content.
+
+This file is part of the PhysBiblio package.
 """
 import sys, os, socket, pkgutil, traceback
 if sys.version_info[0] < 3:

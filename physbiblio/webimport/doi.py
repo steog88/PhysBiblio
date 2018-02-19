@@ -1,5 +1,7 @@
 """
 Module that deals with importing info from the DOI.org API.
+
+This file is part of the PhysBiblio package.
 """
 import traceback
 try:
