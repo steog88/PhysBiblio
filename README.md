@@ -15,14 +15,18 @@ PhysBiblio depends on several python packages:
 * bibtexparser (to manage bibtex entries)
 * feedparser (to deal with arXiv data)
 * pymarc (to deal with arXiv data)
+* matplotlib (to do some plots)
 
 Within Ubuntu, you should be able to install all the required packages using:
 ```
 sudo apt install python-pyside pip
-sudo pip install git+http://github.com/infrae/pyoai
-sudo pip install bibtexparser
-sudo pip install feedparser
-sudo pip install pymarc
+sudo pip install pyoai bibtexparser feedparser pymarc matplotlib
+```
+
+If you want to use `python 3.x`, use instead
+```
+sudo apt install python3-pyside pip3
+sudo pip3 install pyoai bibtexparser feedparser pymarc matplotlib
 ```
 
 ### Installation and usage
@@ -47,7 +51,7 @@ When you first open PhysBiblio, you will need to set up some configuration param
 In particular, if you do not correctly set the web browser and the PDF reader some features may not work.
 
 **WARNING:**  
-PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 17.10 versions), using python up to version 2.7.14.  
+PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 17.10 versions), using python version 2.7+ and 3.5+.  
 It may work equally well in other operating systems or with different python versions, but it has not been tested.  
 In any case, several bugs are still present and the program may freeze or crash unexpectedly.
 
