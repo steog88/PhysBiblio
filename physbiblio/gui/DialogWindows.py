@@ -36,12 +36,12 @@ def askFileNames(parent = None, title = "Filename to use:", filter = ""):
 	reply = QFileDialog.getOpenFileNames(parent, title, "", filter)
 	return reply[0]
 
-def askSaveFileName(parent = None, title = "Filename to use:", filter = ""):
-	reply = QFileDialog.getSaveFileName(parent, title, "", filter, options = QFileDialog.DontConfirmOverwrite)
+def askSaveFileName(parent = None, title = "Filename to use:", filter = "", dir = ""):
+	reply = QFileDialog.getSaveFileName(parent, title, dir, filter, options = QFileDialog.DontConfirmOverwrite)
 	return reply[0]
 
-def askDirName(parent = None, title = "Directory to use:"):
-	reply = QFileDialog.getExistingDirectory(parent, title, "", options=QFileDialog.ShowDirsOnly)
+def askDirName(parent = None, title = "Directory to use:", dir = ""):
+	reply = QFileDialog.getExistingDirectory(parent, title, dir, options = QFileDialog.ShowDirsOnly)
 	return reply
 
 def askGenericText(message, title, parent = None):

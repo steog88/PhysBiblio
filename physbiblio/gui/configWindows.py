@@ -38,6 +38,18 @@ class configWindow(QDialog):
 		self.result	= True
 		self.close()
 
+	def editFolder(self, paramkey = "pdfFolder"):
+		ix = pbConfig.paramOrder.index(paramkey)
+		folder = askDirName(parent = None, dir = pbConfig.params[paramkey], title = "Directory for saving PDF files:")
+		if folder.strip() != "":
+			self.textValues[ix][1].setText(str(folder))
+
+	def editFile(self, paramkey, text, filter = ""):
+		ix = pbConfig.paramOrder.index(paramkey)
+		fname = askSaveFileName(parent = None, title = text, dir = pbConfig.params[paramkey], filter = filter)
+		if fname.strip() != "":
+			self.textValues[ix][1].setText(str(fname))
+
 	def editColumns(self):
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		window = configEditColumns(self)
@@ -68,6 +80,15 @@ class configWindow(QDialog):
 			if k == "bibtexListColumns":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editColumns)
+			elif k == "pdfFolder":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editFolder)
+			elif k == "mainDatabaseName":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(lambda: self.editFile("mainDatabaseName", "Name for the database file", filter = "*.db"))
+			elif k == "logFile":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(lambda: self.editFile("logFile", "Name for the log file", filter = "*.log"))
 			elif k == "defaultCategories":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editDefCats)
