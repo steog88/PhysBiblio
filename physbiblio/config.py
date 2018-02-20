@@ -113,9 +113,9 @@ class ConfigVars():
 		#except ...:
 			#...
 
+		self.checkOldPaths()
 		for k, prof in self.profiles.items():
 			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
-		self.checkOldPaths()
 
 		self.defaultProfile = self.profiles[self.defProf]
 		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
@@ -145,9 +145,11 @@ class ConfigVars():
 		save = False
 		for k, prof in self.profiles.items():
 			if "data/" in prof["f"]:
-				self.profiles[k]["f"] = prof["f"].replace("data/", "")
 				if os.path.isfile(prof["f"]):
-					os.rename(prof["f"], os.path.join(self.configPath, self.profiles[k]["f"]))
+					new = os.path.join(self.configPath, self.profiles[k]["f"].replace("data/", ""))
+					print("Moving file %s to %s"%(prof["f"], new))
+					os.rename(prof["f"], new)
+				self.profiles[k]["f"] = prof["f"].replace("data/", "")
 				save = True
 		if save:
 			self.writeProfiles()
