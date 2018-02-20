@@ -1,5 +1,11 @@
+"""
+Manages the configuration of PhysBiblio, from saving to reading.
+
+This file is part of the PhysBiblio package.
+"""
 import sys, ast, os
 
+#these are the default parameter values, descriptions and types
 configuration_params = [
 {"name": "mainDatabaseName",
 	"default": 'data/physbiblio.db',
@@ -73,9 +79,15 @@ for p in configuration_params:
 	config_special[p["name"]] = p["special"]
 		
 class ConfigVars():
-	"""contains all the common settings and the settings stored in the .cfg file"""
+	"""
+	Contains all the common settings and the settings stored in the .cfg file.
+	Includes also the functions to read and write the config file.
+	"""
 	def __init__(self):
-		"""initialize variables and read the external file"""
+		"""
+		Initialize the configuration.
+		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
+		"""
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
@@ -102,18 +114,30 @@ class ConfigVars():
 		
 		self.readConfigFile()
 
+		#some urls
 		self.arxivUrl = "http://arxiv.org/"
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
 	
 	def writeProfiles(self):
+		"""
+		Writes the list of profiles and the related parameters in the profiles file.
+		"""
 		if not os.path.exists("data/"):
 			os.makedirs("data/")
 		with open(self.configProfilesFile, 'w') as w:
 			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
 
 	def reInit(self, newShort, newProfile):
+		"""
+		Used when changing profile.
+		Reloads all the configuration from scratch given the new profile name.
+
+		Parameters:
+			newShort (str): short name for the new profile to be loaded
+			newProfile (dict): the profile file dictionary
+		"""
 		self.defProf = newShort
 		for k, v in config_defaults.items():
 			self.params[k] = v
@@ -124,7 +148,10 @@ class ConfigVars():
 		self.readConfigFile()
 		
 	def readConfigFile(self):
-		"""read all the configuration from an external file"""
+		"""
+		Read the configuration from a file, whose name is stored in self.configMainFile.
+		Parses the various parameters given their declared type.
+		"""
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		try:
@@ -158,7 +185,9 @@ class ConfigVars():
 			print("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
-		"""write the current configuration in a file"""
+		"""
+		Write the current configuration in a file, whose name is stored in self.configMainFile.
+		"""
 		txt = ""
 		for k in self.paramOrder:
 			current = "%s = %s\n"%(k, self.params[k])
