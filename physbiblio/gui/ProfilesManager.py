@@ -30,14 +30,14 @@ def editProf(parent, statusBarObject):
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
 					del pbConfig.profiles[name]
 					try:
-						os.remove(os.path.join("data/", currEl["f"].text()))
+						os.remove(os.path.join(pbConfig.configPath, currEl["f"].text()))
 					except OSError:
 						pass
 			else:
 				if name.strip() != "":
 					pbConfig.profiles[name] = {}
 					pbConfig.profiles[name]["d"] = currEl["d"].text()
-					fname = os.path.join("data/", currEl["f"].text())
+					fname = os.path.join(pbConfig.configPath, currEl["f"].text())
 					pbConfig.profiles[name]["f"] = fname
 					infoMessage("New profile created.\nYou should configure it properly before use!\n(switch to it and open the configuration)")
 		pbConfig.writeProfiles()
@@ -137,7 +137,7 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["r"], i, 0)
 
 			tempEl["n"] = QLineEdit(k)
-			tempEl["f"] = QLineEdit(prof["f"].replace("data/", ""))
+			tempEl["f"] = QLineEdit(prof["f"].replace(pbConfig.configPath, ""))
 			tempEl["n"].setReadOnly(True)
 			tempEl["f"].setReadOnly(True)
 			tempEl["d"] = QLineEdit(prof["d"])

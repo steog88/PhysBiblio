@@ -9,6 +9,7 @@ It is written in Python, it uses PySide for the graphical interface and Sqlite f
 
 ### Dependencies
 PhysBiblio depends on several python packages:
+* appdirs (cross-platform default paths)
 * sqlite3 (for the database)
 * pyside (for the graphical interface)
 * pyoai	(for massively harvesting the INSPIRE-HEP database)
@@ -19,10 +20,7 @@ PhysBiblio depends on several python packages:
 Within Ubuntu, you should be able to install all the required packages using:
 ```
 sudo apt install python-pyside pip
-sudo pip install git+http://github.com/infrae/pyoai
-sudo pip install bibtexparser
-sudo pip install feedparser
-sudo pip install pymarc
+sudo pip install appdirs pyoai bibtexparser feedparser pymarc
 ```
 
 ### Installation and usage

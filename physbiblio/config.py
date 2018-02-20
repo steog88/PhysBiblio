@@ -1,16 +1,17 @@
 import sys, ast, os
+from appdirs import AppDirs
 
 configuration_params = [
 {"name": "mainDatabaseName",
-	"default": 'data/physbiblio.db',
+	"default": 'PBDATAphysbiblio.db',
 	"description": 'Name of the database file',
 	"special": None},
 {"name": "logFile",
-	"default": 'data/params.log',
+	"default": 'PBDATAparams.log',
 	"description": 'Name of the log file',
 	"special": None},
 {"name": "pdfFolder",
-	"default": 'data/pdf/',
+	"default": 'PBDATApdf',
 	"description": 'Folder where to save the PDF files',
 	"special": None},
 {"name": "pdfApplication",
@@ -76,26 +77,46 @@ class ConfigVars():
 	"""contains all the common settings and the settings stored in the .cfg file"""
 	def __init__(self):
 		"""initialize variables and read the external file"""
+		self.defaultDirs = AppDirs("PhysBiblio")
+
+		self.configPath = self.defaultDirs.user_config_dir + os.sep
+		self.dataPath = self.defaultDirs.user_data_dir + os.sep
+		print("Default configuration path: %s"%self.configPath)
+		if not os.path.exists(self.configPath):
+			os.makedirs(self.configPath)
+		print("Default data path: %s"%self.dataPath)
+		if not os.path.exists(self.dataPath):
+			os.makedirs(self.dataPath)
+		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
+		self.checkOldProfiles()
+
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
-		self.path = os.path.realpath(__file__).replace("physbiblio/config.pyc","").replace("physbiblio/config.py","")
 		for k, v in config_defaults.items():
+			if type(v) is str and "PBDATA" in v:
+				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
+				config_defaults[k] = v
 			self.params[k] = v
 		self.descriptions = config_descriptions
-		self.configProfilesFile = "data/profiles.dat"
+
 		try:
 			with open(self.configProfilesFile) as r:
 				txtarr = r.readlines()
 			txt = "".join(txtarr)
 			self.defProf, self.profiles = ast.literal_eval(txt.replace("\n",""))
 		except (IOError, ValueError, SyntaxError) as e:
-			print e
-			self.profiles = {"default": {"f": "data/params.cfg", "d":""}}
+			print(e)
+			self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
 			self.defProf = "default"
 			self.writeProfiles()
 		#except ...:
 			#...
+
+		for k, prof in self.profiles.items():
+			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
+		self.checkOldPaths()
+
 		self.defaultProfile = self.profiles[self.defProf]
 		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
 		self.configMainFile = self.defaultProfile["f"]
@@ -106,10 +127,34 @@ class ConfigVars():
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
-	
+
+	def checkOldProfiles(self):
+		"""
+		Check if there is a profiles.dat file in the 'data/' subfolder.
+		If yes, move it to the new self.configPath.
+		"""
+		if os.path.isfile(os.path.join("data", "profiles.dat")):
+			print("[config] Moving profiles.dat from old to new location")
+			os.rename(os.path.join("data", "profiles.dat"), self.configProfilesFile)
+
+	def checkOldPaths(self):
+		"""
+		Check if there are configuration files in the 'data/' subfolder.
+		If yes, move them to the new self.configPath or self.dataPath.
+		"""
+		save = False
+		for k, prof in self.profiles.items():
+			if "data/" in prof["f"]:
+				self.profiles[k]["f"] = prof["f"].replace("data/", "")
+				if os.path.isfile(prof["f"]):
+					os.rename(prof["f"], os.path.join(self.configPath, self.profiles[k]["f"]))
+				save = True
+		if save:
+			self.writeProfiles()
+
 	def writeProfiles(self):
-		if not os.path.exists("data/"):
-			os.makedirs("data/")
+		if not os.path.exists(self.configPath):
+			os.makedirs(self.configPath)
 		with open(self.configProfilesFile, 'w') as w:
 			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
 
@@ -149,6 +194,7 @@ class ConfigVars():
 					else:
 						self.params[k] = v
 				except Exception:
+					print(traceback.format_exc())
 					self.params[k] = v
 		except IOError:
 			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
