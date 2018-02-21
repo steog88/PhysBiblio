@@ -1,3 +1,8 @@
+"""
+Module that opens the external links.
+
+This file is part of the PhysBiblio package.
+"""
 import subprocess, traceback
 try:
 	from physbiblio.errors import pBErrorManager
@@ -13,16 +18,37 @@ except ImportError:
 	pBErrorManager("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
 	
 class viewEntry():
-	"""Contains methods to print or open a web link to the entry"""
+	"""
+	Contains methods to print or open a web link to the entry
+	"""
 	def __init__(self):
-		"""init link base names and application name"""
+		"""
+		Init the class, storing the name of the external web application
+		and the base strings to build some links
+		"""
 		self.webApp = pbConfig.params["webApplication"]
 
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 		
 	def printLink(self, key, arg = "arxiv", fileArg = None):
-		"""uses database information to compute and print the web link, or the pdf module to open a pdf"""
+		"""
+		Uses database information to construct and print the web link,
+		or the pdf module to open a pdf
+
+		Parameters:
+			key: the bibtex identifier as stored in the database. It may be a list (calls recursively itself)
+			arg: the string defining the type of link/action ("arxiv", "doi", "inspire", "file")
+			fileArg: additional argument for the PDF module, used only if arg == "file"
+
+		Output:
+			link: the string of the web link if arg in ("arxiv", "doi", "inspire"), True if arg == "file", False if arg is invalid
+		"""
+		if type(key) is list:
+			links = []
+			for k in key:
+				links.append(self.printLink(k, arg, fileArg))
+			return links
 		arxiv = pBDB.bibs.getField(key, "arxiv")
 		doi = pBDB.bibs.getField(key, "doi")
 		inspire = pBDB.bibs.getField(key, "inspire")
@@ -38,14 +64,20 @@ class viewEntry():
 			link = self.inspireSearch + key
 		elif arg is "file":
 			pBPDF.openFile(key, fileArg)
+			return True
 		else:
 			pBErrorManager("[viewEntry] ERROR: invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
 			return False
 
 		return link
-		
+
 	def openLink(self, key, arg = "arxiv", fileArg = None):
-		"""uses the printLink method to compute the web link and opens it"""
+		"""
+		Uses the printLink method to generate the web link and opens it in an external application
+
+		Parameters:
+			key, arg, fileArg as in the printLink method
+		"""
 		if type(key) is list:
 			for k in key:
 				self.openLink(k, arg, fileArg)

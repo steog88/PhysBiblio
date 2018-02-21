@@ -22,7 +22,9 @@ except ImportError:
 
 def cli():
 	"""
-	Open a command line interface
+	Open a command line interface.
+
+	Many imports allow the user to automatically access the useful classes.
 	"""
 	vars = globals().copy()
 	vars.update(locals())

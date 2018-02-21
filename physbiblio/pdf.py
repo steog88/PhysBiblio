@@ -1,3 +1,8 @@
+"""
+This module manages the saved PDF files and opens them if required.
+
+This file is part of the PhysBiblio package.
+"""
 import sys, shutil
 if sys.version_info[0] < 3:
 	from urllib2 import urlopen
@@ -15,50 +20,91 @@ except ImportError:
 	print(traceback.format_exc())
 	
 class localPDF():
-	"""manages the pdf and the material of the various entries"""
+	"""
+	Class with functions to manage the PDF folder content and the stored material
+	"""
 	def __init__(self):
-		"""set variables"""
-		if pbConfig.params["pdfFolder"][0] == "/":
-			self.pdfDir = pbConfig.params["pdfFolder"]
-		else:
-			self.pdfDir = osp.join(osp.split(osp.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
+		"""
+		Init the class and set some default variables
+		"""
+		self.pdfDir = pbConfig.params["pdfFolder"]
 		self.badFNameCharacters = r'\/:*?"<>|' + "'"
 		self.pdfApp = pbConfig.params["pdfApplication"]
 		
-	def badFName(self, value):
-		"""substitute bad characters"""
-		new = ""
-		for i in value:
+	def badFName(self, filename):
+		"""
+		Clean the filename substituting the bad characters with '_'
+
+		Parameters:
+			filename (string): the string containing the file name
+
+		Output:
+			the cleaned filename
+		"""
+		newFilename = ""
+		for i in filename:
 			if i not in self.badFNameCharacters:
-				new += i
+				newFilename += i
 			else:
-				new += "_"
-		return new
+				newFilename += "_"
+		return newFilename
 		
 	def getFileDir(self, key):
-		"""obtain the name of the directory for a given entry"""
+		"""
+		Obtain the name of the directory for a given entry.
+		The name is cleaned and the absolute path is generated.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+
+		Output:
+			the (cleaned) absolute path for the PDF files associated with the entry
+		"""
 		return osp.join(self.pdfDir, self.badFName(key))
 		
-	def getFilePath(self, key, ftype):
-		"""obtain the file path for a given file type (arxiv, doi, ...) of a given entry"""
-		if ftype not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+	def getFilePath(self, key, fileType):
+		"""
+		Obtain the file path for a given file type (arxiv, doi, ...) of a given entry.
+		It reads the field from the database in order to generate the file name.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+
+		Output:
+			the (cleaned) absolute path for the PDF file
+		"""
+		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
 			print("[localPDF] required field does not exist or is not valid")
 			return ""
-		fname = pBDB.bibs.getField(key, ftype)
-		if fname is None:
-			print("[localPDF] impossible to get the type '%s' filename for entry %s"%(ftype, key))
+		filename = pBDB.bibs.getField(key, fileType)
+		if filename is None:
+			print("[localPDF] impossible to get the type '%s' filename for entry %s"%(fileType, key))
 			return ""
 		else:
-			fname = self.badFName(fname)
-			return osp.join(self.getFileDir(key), fname + '.pdf')
+			filename = self.badFName(filename)
+			return osp.join(self.getFileDir(key), filename + '.pdf')
 		
 	def createFolder(self, key, noCheck = False):
-		"""create the folder for a given entry"""
+		"""
+		Create the PDF folder for a given entry.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			noCheck (bool): True to avoid checking if the directory exists. Default False
+		"""
 		directory = self.getFileDir(key)
 		if noCheck or not osp.exists(directory):
 			os.makedirs(directory)
 
 	def renameFolder(self, oldkey, newkey):
+		"""
+		Rename the PDF folder for a given entry for which the bibtex key has been changed.
+
+		Parameters:
+			oldkey (string): the old bibtex key of the entry
+			newkey (string): the new bibtex key of the entry
+		"""
 		olddir = self.getFileDir(oldkey)
 		if osp.exists(olddir):
 			newdir = self.getFileDir(newkey)
@@ -67,29 +113,68 @@ class localPDF():
 		else:
 			return False
 
-	def copyNewFile(self, key, origFile, ftype = None, customName = None):
-		"""copy a file in the filesystem into the directory corresponding to the given entry"""
+	def copyNewFile(self, key, origFileName, fileType = None, customName = None):
+		"""
+		Copy a file in any place of the filesystem into the directory corresponding to the given entry
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			origFileName (string): the name of the file to be copied
+			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken. customName can be given instead.
+			customName (string): a completely independent name for the file. It may be given instead of fileType.
+		"""
 		if not osp.exists(self.getFileDir(key)):
 			self.createFolder(key, True)
 		if customName is not None:
-			newFile = osp.join(self.getFileDir(key), customName)
-		elif ftype is not None:
-			newFile = self.getFilePath(key, ftype)
+			newFileName = osp.join(self.getFileDir(key), customName)
+		elif fileType is not None:
+			newFileName = self.getFilePath(key, fileType)
 		else:
-			print("[localPDF] ERROR: you should supply a ftype ('doi' or 'arxiv') or a customName!")
+			print("[localPDF] ERROR: you should supply a fileType ('doi' or 'arxiv') or a customName!")
 			return False
 		try:
-			shutil.copy2(origFile, newFile)
-			print("[localPDF] %s copied to %s"%(origFile, newFile))
+			shutil.copy2(origFileName, newFileName)
+			print("[localPDF] %s copied to %s"%(origFileName, newFileName))
 			return True
 		except:
-			print("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, newFile))
+			pBErrorManager("[localPDF] ERROR: impossible to copy %s to %s"%(origFileName, newFileName), traceback)
+			return False
+
+	def copyToDir(self, outFolder, key, fileType = None, customName = None):
+		"""
+		Copy a file from the directory corresponding to the given entry to the a directory in the filesystem.
+
+		Parameters:
+			outFolder (string): the name of the destination folder
+			key (string): the bibtex key of the entry
+			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken. customName can be given instead.
+			customName (string): a completely independent name for the file. It may be given instead of fileType.
+		"""
+		if customName is not None:
+			origFile = osp.join(self.getFileDir(key), customName)
+		elif fileType is not None:
+			origFile = self.getFilePath(key, fileType)
+		else:
+			print("[localPDF] ERROR: you should supply a fileType ('doi' or 'arxiv') or a customName!")
+			return False
+		try:
+			shutil.copy2(origFile, outFolder)
+			print("[localPDF] %s copied to %s"%(origFile, outFolder))
+			return True
+		except:
+			pBErrorManager("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, outFolder), traceback)
 			return False
 		
 	def downloadArxiv(self, key, force = False):
-		"""download the arxiv file for a given entry"""
-		fname = self.getFilePath(key, "arxiv")
-		if osp.exists(fname) and not force:
+		"""
+		Download the PDF file from arXiv for a given entry and save it in the proper folder.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			force (boolean, optional, default False): force the replacement of the file if it already exists. If False and there is a PDF with the same name, no action is performed.
+		"""
+		filename = self.getFilePath(key, "arxiv")
+		if osp.exists(filename) and not force:
 			print("[localPDF] There is already a pdf and overwrite not requested.")
 			return
 		try:
@@ -97,14 +182,25 @@ class localPDF():
 			url = pBDB.bibs.getArxivUrl(key, 'pdf')
 			print("[localPDF] Downloading arXiv PDF from %s"%url)
 			response = urlopen(url)
-			with open(fname, 'wb') as newF:
+			with open(filename, 'wb') as newF:
 				newF.write(response.read())
-			print("[localPDF] File saved to %s"%fname)
+			print("[localPDF] File saved to %s"%filename)
 		except:
-			print("[localPDF] Impossible to download the arXiv PDF for '%s'"%key)
+			pBErrorManager("[localPDF] Impossible to download the arXiv PDF for '%s'"%key, traceback)
 	
 	def openFile(self, key, arg = None, fileType = None, fileNum = None, fileName = None):
-		"""open a file in an external application"""
+		"""
+		Open a PDF file in an external application (if defined in the configuration).
+		Does nothing if there is self.pdfApp is empty.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			at least one of the following (they are considered in this order):
+				arg: used to guess the fileType, fileNum or fileName
+				fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+				fileNum: the number of the desired PDF in the list of existing PDF files for the considered entry
+				filaName: the specific file name
+		"""
 		try:
 			if arg == "arxiv" or arg == "doi":
 				fileType = arg
@@ -121,33 +217,54 @@ class localPDF():
 			elif fileName is not None:
 				fName = osp.join(self.getFileDir(key), fileName)
 			else:
-				print("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
+				pBErrorManager("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
 				return
 			if self.pdfApp != "":
 				print("[localPDF] opening '%s'..."%fName)
 				subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
-			print("[localPDF] opening PDF for '%s' failed!"%key)
+			pBErrorManager("[localPDF] opening PDF for '%s' failed!"%key, traceback)
 	
 	def checkFile(self, key, fileType):
-		"""check if a file of a given type exists (arxiv, doi, ...)"""
-		if fileType is None:
-			print("[localPDF] ERROR: invalid argument to checkFile!")
+		"""
+		Check if a file of a given type (arxiv, doi, ...) and a given entry exists.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+
+		Output:
+			boolean (if the arguments are valid) or None (if fileType is bad)
+		"""
+		if fileType in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+			pBErrorManager("[localPDF] ERROR: invalid argument to checkFile!")
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))
 
-	def removeFile(self, key, ftype, fname = None):
-		"""delete a file"""
-		if fname is None:
-			fname = self.getFilePath(key, ftype)
+	def removeFile(self, key, fileType, fileName = None):
+		"""
+		Delete a PDF file.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+		"""
+		if fileName is None:
+			fileName = self.getFilePath(key, fileType)
 		try:
-			os.remove(fname)
-			print("[localPDF] file %s removed"%fname)
+			os.remove(fileName)
+			print("[localPDF] file %s removed"%fileName)
 		except OSError:
-			print("[localPDF] ERROR: impossible to remove file: %s"%fname)
+			pBErrorManager("[localPDF] ERROR: impossible to remove file: %s"%fileName, traceback)
 			
 	def getExisting(self, key, fullPath = False):
-		"""obtain the list of existing files for a given entry"""
+		"""
+		Obtain the list of existing files for a given entry.
+
+		Parameters:
+			key (string): the bibtex key of the entry
+			fullPath (boolean, default False): return the list with absolute paths
+		"""
 		fileDir = self.getFileDir(key)
 		try:
 			if fullPath:
@@ -158,13 +275,22 @@ class localPDF():
 			return []
 			
 	def printExisting(self, key, fullPath = False):
-		"""print the list of existing files for a given entry"""
+		"""
+		Print the list of existing files for a given entry, using self.getExisting to get it.
+		Same parameters as self.getExisting.
+		"""
 		print("[localPDF] Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
 			print("%2d: %s"%(i, e))
 	
 	def printAllExisting(self, entries = None, fullPath = False):
-		"""list all the existing files for all the entries in the database"""
+		"""
+		Print the complete list of all the existing PDF files in the PDF folder, given all the entries in the database or a specific subset
+
+		Parameters:
+			entries (list, optional): the list of bibtex keys to consider. If None, get all the database content
+			fullPath (boolean, default False): print the list with absolute paths
+		"""
 		if entries is None:
 			entries = pBDB.bibs.getAll(orderBy = "firstdate", saveQuery = False)
 		for e in entries:
@@ -172,24 +298,11 @@ class localPDF():
 			if len(exist) > 0:
 				print("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
-	def copyToDir(self, outFolder, key, ftype = None, customName = None):
-		"""copy a file from the directory corresponding to the given entry to the given directory in the filesystem"""
-		if customName is not None:
-			origFile = osp.join(self.getFileDir(key), customName)
-		elif ftype is not None:
-			origFile = self.getFilePath(key, ftype)
-		else:
-			print("[localPDF] ERROR: you should supply a ftype ('doi' or 'arxiv') or a customName!")
-			return False
-		try:
-			shutil.copy2(origFile, outFolder)
-			print("[localPDF] %s copied to %s"%(origFile, outFolder))
-			return True
-		except:
-			print("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, outFolder))
-			return False
-
 	def removeSparePDFFolders(self):
+		"""
+		Scans the PDF folder in order to find single unassociated directories (their name is not matched by any database entry).
+		The unassociated directories are removed without asking any additional confirmation. Be careful!
+		"""
 		keys = [ a["bibkey"] for a in pBDB.bibs.getAll()]
 		folders = os.listdir(self.pdfDir)
 		for k in keys:
