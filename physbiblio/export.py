@@ -1,3 +1,7 @@
+"""
+
+This file is part of the PhysBiblio package.
+"""
 import os, sys, numpy, codecs, re
 import bibtexparser
 import shutil

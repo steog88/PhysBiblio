@@ -398,7 +398,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		source_index = model.index(row_num, 0, parent)
 
 		children_count =  model.rowCount(source_index)
-		for i in xrange(children_count):
+		for i in range(children_count):
 			if self.filterAcceptsRow(i, source_index):
 				return True
 		return False

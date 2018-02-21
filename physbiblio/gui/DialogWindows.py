@@ -60,11 +60,11 @@ class pBGUIErrorManager():
 		pBErrorManager(message, trcbk, priority = priority)
 		error = QMessageBox()
 		if priority == 0:
-			error.information(error, unicode("Warning"), unicode(message.replace('\n', '<br>')))
+			error.information(error, "Warning", message.replace('\n', '<br>'))
 		elif priority == 1:
-			error.warning(error, unicode("Error"), unicode(message.replace('\n', '<br>')))
+			error.warning(error, "Error", message.replace('\n', '<br>'))
 		else:
-			error.critical(error, unicode("Critical error"), unicode(message.replace('\n', '<br>')))
+			error.critical(error, "Critical error", message.replace('\n', '<br>'))
 
 class configEditColumns(QDialog):
 	def __init__(self, parent = None):

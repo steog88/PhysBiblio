@@ -1,3 +1,7 @@
+"""
+
+This file is part of the PhysBiblio package.
+"""
 import sqlite3
 from sqlite3 import OperationalError, ProgrammingError, DatabaseError
 import os, re, traceback, datetime

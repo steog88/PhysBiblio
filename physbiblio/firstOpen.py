@@ -1,3 +1,7 @@
+"""
+
+This file is part of the PhysBiblio package.
+"""
 import os, traceback
 try:
 	from physbiblio.errors import pBErrorManager
