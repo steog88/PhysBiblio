@@ -341,7 +341,7 @@ class inspireStatsLoader():
 					try:
 						plt.plot(self.authorPlotInfo["aI"][p]["citingPapersList"][0],self.authorPlotInfo["aI"][p]["citingPapersList"][1])
 					except:
-						pass
+						pBErrorManager("[inspireStats] Something went wrong while plotting...", traceback)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
