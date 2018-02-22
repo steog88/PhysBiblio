@@ -1,4 +1,5 @@
 """
+Functions that should run only when PhysBiblio is opened for the first time.
 
 This file is part of the PhysBiblio package.
 """
@@ -22,7 +23,9 @@ except ImportError:
 	#createTables(pBDB)
 
 def createTables(database):
-	"""create tables: useful only at first use"""
+	"""
+	Create tables for the database (and insert the default categories), if it is missing.
+	"""
 	for q in database.tableFields.keys():
 		command="CREATE TABLE "+q+" (\n"
 		first=True
@@ -35,7 +38,7 @@ def createTables(database):
 		command+=");"
 		print(command+"\n")
 		if not database.connExec(command):
-			pBErrorManager("[DB] error: create %s failed"%q)
+			pBErrorManager("[DB] error: create %s failed"%q, traceback)
 	command="""
 	INSERT into categories (idCat, name, description, parentCat, ord)
 		values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
@@ -43,6 +46,6 @@ def createTables(database):
 		"""
 	print(command+"\n")
 	if not database.connExec(command):
-		pBErrorManager("[DB] error: insert main categories failed")
+		pBErrorManager("[DB] error: insert main categories failed", traceback)
 	database.commit()
 		

@@ -1,8 +1,9 @@
 """
+Classes and functions that manage the export of the database entries into .bib files.
 
 This file is part of the PhysBiblio package.
 """
-import os, sys, numpy, codecs, re
+import os, codecs, re
 import bibtexparser
 import shutil
 try:
@@ -13,96 +14,143 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class pbExport():
+	"""
+	Class that contains the export functions and related.
+	"""
 	def __init__(self):
+		"""
+		Initialize the class instance and set some default variables.
+		"""
 		self.exportForTexFlag = True
 		self.backupextension = ".bck"
 
-	def backupCopy(self, fname):
-		if os.path.isfile(fname):
-			shutil.copy2(fname, fname + self.backupextension)
+	def backupCopy(self, fileName):
+		"""
+		Creates a backup copy of the given file.
 
-	def restoreBackupCopy(self, fname):
-		if os.path.isfile(fname + self.backupextension):
-			shutil.copy2(fname + self.backupextension, fname)
+		Parameters:
+			fileName: the name of the file to be backed up
+		"""
+		if os.path.isfile(fileName):
+			shutil.copy2(fileName, fileName + self.backupextension)
 
-	def rmBackupCopy(self, fname):
-		if os.path.isfile(fname + self.backupextension):
-			os.remove(fname + self.backupextension)
+	def restoreBackupCopy(self, fileName):
+		"""
+		Restores the backup copy of the given file, if any.
 
-	def exportLast(self, fname):
-		"""export the last selection of entries into a .bib file"""
-		self.backupCopy(fname)
+		Parameters:
+			fileName: the name of the file to be restore
+		"""
+		if os.path.isfile(fileName + self.backupextension):
+			shutil.copy2(fileName + self.backupextension, fileName)
+
+	def rmBackupCopy(self, fileName):
+		"""
+		Deletes the backup copy of the given file, if any.
+
+		Parameters:
+			fileName: the name of the file of which the backup should be deleted
+		"""
+		if os.path.isfile(fileName + self.backupextension):
+			os.remove(fileName + self.backupextension)
+
+	def exportLast(self, fileName):
+		"""
+		Export the last queried entries into a .bib file, if the list is not empty.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+		"""
+		self.backupCopy(fileName)
 		if pBDB.bibs.lastFetched:
 			txt = ""
 			for q in pBDB.bibs.lastFetched:
 				txt += q["bibtex"] + "\n"
 			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
 				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
+				self.restoreBackupCopy(fileName)
 		else:
 			print("[export] No last selection to export!")
-		self.rmBackupCopy(fname)
+		self.rmBackupCopy(fileName)
 
-	def exportAll(self, fname):
-		"""export all the entries in the database in a .bib file"""
-		self.backupCopy(fname)
+	def exportAll(self, fileName):
+		"""
+		Export all the entries in the database into a .bib file.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+		"""
+		self.backupCopy(fileName)
 		rows = pBDB.bibs.getAll(saveQuery = False)
 		if len(rows) > 0:
 			txt = ""
 			for q in rows:
 				txt += q["bibtex"] + "\n"
 			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
 				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
+				self.restoreBackupCopy(fileName)
 		else:
 			print("[export] No elements to export!")
-		self.rmBackupCopy(fname)
+		self.rmBackupCopy(fileName)
 
-	def exportSelected(self, fname, rows):
-		"""export all the selected entries in the database in a .bib file"""
-		self.backupCopy(fname)
+	def exportSelected(self, fileName, rows):
+		"""
+		Export the given entries into a .bib file.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+			rows: the list of entries to be exported
+		"""
+		self.backupCopy(fileName)
 		if len(rows) > 0:
 			txt = ""
 			for q in rows:
 				txt += q["bibtex"] + "\n"
 			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
 				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
+				self.restoreBackupCopy(fileName)
 		else:
 			print("[export] No elements to export!")
-		self.rmBackupCopy(fname)
+		self.rmBackupCopy(fileName)
 
-	def exportForTexFile(self, texFile, outFName, overwrite = False, autosave = True):
+	def exportForTexFile(self, texFileName, outFileName, overwrite = False, autosave = True):
 		"""
-		export only the bibtexs required to compile a given .tex file (or a list of).
-		If missing, it tries to download them
+		Reads a .tex file looking for the \cite{} commands, collects the bibtex entries cited in the text and stores them in a bibtex file.
+		The entries are taken from the database first, or from INSPIRE-HEP if possible.
+		The downloaded entries are saved in the database.
+
+		Parameters:
+			texFileName: the name (or a list of names) of the considered .tex file(s)
+			outFileName: the name of the output file, where the required entries will be added
+			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
+			autosave (boolean, default True): if True, the changes to the database are automatically saved.
 		"""
 		self.exportForTexFlag = True
-		print("[export] reading keys from '%s'"%texFile)
-		print("[export] saving in '%s'"%outFName)
+		print("[export] reading keys from '%s'"%texFileName)
+		print("[export] saving in '%s'"%outFileName)
 		if autosave:
 			print("[export] I will automatically save the changes at the end!")
 
 		if overwrite:
-			with open(outFName, "w") as o:
+			with open(outFileName, "w") as o:
 				o.write("%file written by PhysBiblio\n")
 
-		existingBib = open(outFName, "r").read()
+		existingBib = open(outFileName, "r").read()
 
-		if type(texFile) is list:
-			if len(texFile) == 0:
+		if type(texFileName) is list:
+			if len(texFileName) == 0:
 				return False
-			for t in texFile:
-				self.exportForTexFile(t, outFName, overwrite = False, autosave = autosave)
+			for t in texFileName:
+				self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
 			print("[export] done for all the texFiles. See previous errors (if any)")
 			return True
 
@@ -118,6 +166,12 @@ class pbExport():
 
 		unexpected = []
 		def saveEntryOutBib(a):
+			"""
+			Remove unwanted fields and add the bibtex entry to the output file
+
+			Parameters:
+				a: the bibtex entry
+			"""
 			bib = '@' + a.replace('@', '')
 			for u in unw1.finditer(bib):
 				bib = bib.replace(u.group(), '')
@@ -127,14 +181,14 @@ class pbExport():
 				bib = bib.replace(u.group(), '')
 			bibf = '\n'.join([line for line in bib.split('\n') if line.strip() ])
 			try:
-				with open(outFName, "a") as o:
+				with open(outFileName, "a") as o:
 					o.write(bibf + "\n")
 					print("[export] %s inserted in output file"%m)
-			except:
-				print("[export] ERROR: impossible to write file '%s'"%outFName)
+			except IOError:
+				pBErrorManager("[export] ERROR: impossible to write file '%s'"%outFileName, traceback)
 
 		keyscont=""
-		with open(texFile) as r:
+		with open(texFileName) as r:
 			keyscont += r.read()
 
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
@@ -173,7 +227,7 @@ class pbExport():
 						saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 					except:
 						unexpected.append(m)
-						print("[export] unexpected error in saving entry '%s' into the output file"%m)
+						pBErrorManager("[export] unexpected error in saving entry '%s' into the output file"%m, traceback)
 				else:
 					if newWeb and not newWeb.find(m) > 0:
 						warnings += 1
@@ -194,7 +248,7 @@ class pbExport():
 					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 				except:
 					unexpected.append(m)
-					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
+					pBErrorManager("[export] unexpected error in extracting entry '%s' to the output file"%m, traceback)
 
 		if autosave:
 			pBDB.commit()
@@ -215,11 +269,19 @@ class pbExport():
 			print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
 			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
 		print("[export] -->     " + str(warnings) + " warning(s) occurred!")
+		return True
 
-	def updateExportedBib(self, fname, overwrite = False):
-		self.backupCopy(fname)
+	def updateExportedBib(self, fileName, overwrite = False):
+		"""
+		Reads a bibtex file and updates the entries that it contains, for example if the entry has been published.
+
+		Parameters:
+			fileName: the name of the considered bibtex file
+			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
+		"""
+		self.backupCopy(fileName)
 		bibfile=""
-		with open(fname) as r:
+		with open(fileName) as r:
 			bibfile += r.read()
 		try:
 			biblist = bibtexparser.loads(bibfile)
@@ -237,13 +299,13 @@ class pbExport():
 				db.entries.append(b)
 		txt = pbWriter.write(db).strip()
 		try:
-			with codecs.open(fname, 'w', 'utf-8') as outfile:
+			with codecs.open(fileName, 'w', 'utf-8') as outfile:
 				outfile.write(txt)
 		except Exception:
 			pBErrorManager("[export] problems in exporting .bib file!", traceback)
-			self.restoreBackupCopy(fname)
+			self.restoreBackupCopy(fileName)
 		if overwrite:
-			self.rmBackupCopy(fname)
+			self.rmBackupCopy(fileName)
 		return True
 
 pBExport = pbExport()
