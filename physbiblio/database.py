@@ -1,19 +1,18 @@
 """
+Module that manages the actions on the database (and few more).
 
 This file is part of the PhysBiblio package.
 """
 import sqlite3
 from sqlite3 import OperationalError, ProgrammingError, DatabaseError
 import os, re, traceback, datetime
-import bibtexparser
 import ast
-import time
+import bibtexparser
 
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.bibtexwriter import pbWriter
 	from physbiblio.errors import pBErrorManager
-	import physbiblio.parse_accents as parse_accents
 	import physbiblio.firstOpen as pbfo
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	import physbiblio.tablesDef
@@ -24,16 +23,20 @@ except ImportError:
 encoding_default = 'iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
 parser.encoding = encoding_default
-parser.customization = parse_accents.parse_accents_record
+parser.customization = parse_accents_record
 parser.alt_dict = {}
 
 class physbiblioDB():
 	"""
-	Contains most of the basic DB functions
+	Contains most of the basic functions on the database.
+	Will be subclassed to do everything else.
 	"""
 	def __init__(self, dbname = pbConfig.params['mainDatabaseName']):
 		"""
-		Initialize DB class
+		Initialize database class (column names, descriptions) and opens the database.
+
+		Parameters:
+			dbname: the name of the database to be opened
 		"""
 		#structure of the tables
 		self.tableFields = physbiblio.tablesDef.tableFields
@@ -59,13 +62,18 @@ class physbiblioDB():
 		self.catsHier = None
 
 	def reOpenDB(self, newDB = None):
+		"""
+		Close the currently open database and open a new one.
+
+		Parameters:
+			newDB: the name of the new database
+		"""
 		if newDB is not None:
 			self.closeDB()
 			del self.conn
 			del self.curs
 			self.dbname = newDB
 			db_is_new = not os.path.exists(self.dbname)
-			#time.sleep(2)
 			self.openDB()
 			if db_is_new:
 				print("-------New database. Creating tables!\n\n")
@@ -76,34 +84,54 @@ class physbiblioDB():
 			self.loadSubClasses()
 
 	def checkUncommitted(self):
+		"""
+		Check if there are uncommitted changes.
+		"""
 		#return self.conn.in_transaction() #works only with sqlite > 3.2...
 		return self.dbChanged
 
 	def openDB(self):
-		"""open the database"""
+		"""
+		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
+		"""
 		print("[DB] Opening database: %s"%self.dbname)
 		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
 
 	def closeDB(self):
-		"""close the database"""
+		"""
+		Close the database.
+		"""
 		print("[DB] Closing database...")
 		self.conn.close()
 
 	def commit(self):
-		"""commit the changes"""
+		"""
+		Commit the changes.
+		"""
 		self.conn.commit()
 		self.dbChanged = False
 		print("[DB] saved.")
 
 	def undo(self):
-		"""undo the uncommitted changes"""
+		"""
+		Undo the uncommitted changes and roll back to the last commit.
+		"""
 		self.conn.rollback()
 		print("[DB] rolled back to last commit.")
 		
 	def connExec(self,query,data=None):
-		"""execute connection"""
+		"""
+		Execute connection.
+
+		Parameters:
+			query (string): the query to be executed
+			data (dictionary or list): the values of the parameters in the query
+
+		Output:
+			True if successfull, False if an exception occurred
+		"""
 		try:
 			if data:
 				self.conn.execute(query,data)
@@ -119,7 +147,16 @@ class physbiblioDB():
 			return True
 
 	def cursExec(self,query,data=None):
-		"""execute cursor"""
+		"""
+		Execute cursor.
+
+		Parameters:
+			query (string): the query to be executed
+			data (dictionary or list): the values of the parameters in the query
+
+		Output:
+			True if successfull, False if an exception occurred
+		"""
 		try:
 			if data:
 				self.curs.execute(query,data)
@@ -132,6 +169,9 @@ class physbiblioDB():
 			return True
 	
 	def loadSubClasses(self):
+		"""
+		Load the subclasses that manage the content in the various tables in the database.
+		"""
 		try:
 			del self.bibs
 			del self.cats
@@ -159,7 +199,7 @@ class physbiblioDBSub():
 	"""
 	def __init__(self):
 		"""
-		Initialize DB class
+		Initialize DB class, connecting to the main physbiblioDB instance (pBDB).
 		"""
 		#structure of the tables
 		self.tableFields = physbiblio.tablesDef.tableFields
@@ -176,25 +216,43 @@ class physbiblioDBSub():
 		self.catsHier = None
 
 	def closeDB(self):
-		"""close the database"""
+		"""
+		Close the database (using pBDB.close)
+		"""
 		pBDB.closeDB()
 
 	def commit(self):
-		"""commit the changes"""
+		"""
+		Commit the changes (using pBDB.commit)
+		"""
 		pBDB.commit()
 
 	def connExec(self,query,data=None):
-		"""execute connection"""
+		"""
+		Execute connection (see pBDB.connExec)
+		"""
 		return pBDB.connExec(query, data = data)
 
 	def cursExec(self,query,data=None):
-		"""execute cursor"""
+		"""
+		Execute cursor (see pBDB.cursExec)
+		"""
 		return pBDB.cursExec(query, data = data)
 
 class categories(physbiblioDBSub):
-	"""functions for categories"""
+	"""
+	Subclass that manages the functions for the categories.
+	"""
 	def insert(self, data):
-		"""new category"""
+		"""
+		Insert a new category
+
+		Parameters:
+			data: the dictionary containing the category field values
+
+		Output:
+			False if another category with the same name and parent is present, the output of self.connExec otherwise
+		"""
 		self.cursExec("""
 			select * from categories where name=? and parentCat=?
 			""", (data["name"], data["parentCat"]))
@@ -208,7 +266,16 @@ class categories(physbiblioDBSub):
 				""", data)
 
 	def update(self, data, idCat):
-		"""update"""
+		"""
+		Update all the fields of an existing category
+
+		Parameters:
+			data: the dictionary containing the category field values
+			idCat: the id of the category in the database
+
+		Output:
+			the output of self.connExec
+		"""
 		data["idCat"] = idCat
 		print(data)
 		query = "replace into categories (" +\
@@ -217,7 +284,17 @@ class categories(physbiblioDBSub):
 		return self.connExec(query, data)
 
 	def updateField(self, idCat, field, value):
-		"""update only a field"""
+		"""
+		Update a field of an existing category
+
+		Parameters:
+			idCat: the id of the category in the database
+			field: the name of the field
+			value: the value of the field
+
+		Output:
+			False if the field or the value is not valid, the output of self.connExec otherwise
+		"""
 		print("[DB] updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["categories"] and field is not "idCat" \
 				and value is not "" and value is not None:
@@ -227,21 +304,42 @@ class categories(physbiblioDBSub):
 			return False
 
 	def getAll(self):
-		"""get all the categories"""
+		"""
+		Get all the categories
+
+		Output:
+			the list of `sqlite3.Row` objects with all the categories in the database
+		"""
 		self.cursExec("""
 		select * from categories
 		""")
 		return self.curs.fetchall()
 
 	def getByID(self, idCat):
-		"""get category matching the idCat"""
+		"""
+		Get a category given its id
+
+		Parameters:
+			idCat: the id of the required category
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 			select * from categories where idCat=?
 			""", (idCat, ))
 		return self.curs.fetchall()
 
 	def getDictByID(self, idCat):
-		"""get category matching the idCat, return a dictionary"""
+		"""
+		Get a category given its id, returns a standard dictionary
+
+		Parameters:
+			idCat: the id of the required category
+
+		Output:
+			a dictionary with all field values for the required category
+		"""
 		self.cursExec("""
 			select * from categories where idCat=?
 			""", (idCat, ))
@@ -256,13 +354,30 @@ class categories(physbiblioDBSub):
 		return catDict
 
 	def getByName(self,name):
+		"""
+		Get categories given the name
+
+		Parameters:
+			name: the name of the required category
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 		select * from categories where name=?
 		""", (name,))
 		return self.curs.fetchall()
 
 	def getChild(self, parent):
-		"""get subdirectories of a given one"""
+		"""
+		Get the subcategories that have as a parent the given one
+
+		Parameters:
+			parent: the id of the parent category
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 		select cats1.*
 		from categories as cats
@@ -273,6 +388,15 @@ class categories(physbiblioDBSub):
 
 	def getParent(self, child):
 		"""get parent directory of a given one"""
+		"""
+		Get the category that is the parent of the given one
+
+		Parameters:
+			child: the id of the child category
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 		select cats.*
 		from categories as cats
@@ -282,12 +406,28 @@ class categories(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getHier(self, cats = None, startFrom = 0, replace = True):
-		"""get categories and subcategories in a tree-like structure"""
+		"""
+		Builds a tree with the parent/child structure of the categories
+
+		Parameters:
+			cats: the list of `sqlite3.Row` objects of the categories to be considered or None (in this case the list is taken from self.getAll)
+			startFrom (default 0, the main category): the parent category starting from which the tree should be built
+			replace (boolean, default True): if True, rebuild the structure again, if False return the previously calculated one
+
+		Output:
+			the dictionary defining the tree of subcategories of the initial one
+		"""
 		if self.catsHier is not None and not replace:
 			return self.catsHier
 		if cats is None:
 			cats = self.getAll()
 		def addSubCats(idC):
+			"""
+			The subfunction that recursively builds the list of child categories
+
+			Parameters:
+				idC: the id of the parent category
+			"""
 			tmp = {}
 			for c in [ a for a in cats if a["parentCat"] == idC and a["idCat"] != 0 ]:
 				tmp[c["idCat"]] = addSubCats(c["idCat"])
@@ -298,13 +438,30 @@ class categories(physbiblioDBSub):
 		return catsHier
 
 	def printHier(self, startFrom = 0, sp = 5*" ", withDesc = False, depth = 10, replace = False):
-		"""print categories and subcategories in a tree-like form"""
+		"""
+		Print categories and subcategories in a tree-like form
+
+		Parameters:
+			startFrom (default 0, the main category): the starting parent category
+			sp (default 5*" "): the spacing to use while indenting inner levels
+			withDesc (boolean, default False): if True, print also the category description
+			depth (default 10): the maximum number of levels to print
+			replace (boolean, default True): if True, rebuild the structure again, if False return the previously calculated one
+		"""
 		cats = self.getAll()
 		if depth < 2:
 			print("[DB] invalid depth in printCatHier (must be greater than 2)")
 			depth = 10
 		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
 		def printSubGroup(tree, indent = "", startDepth = 0):
+			"""
+			The subfunction that recursively builds the list of child categories
+
+			Parameters:
+				tree (dictionary): the tree structure to use
+				indent (default ""): the indentation level from which to start
+				startDepth (default 0): the depth from which to start
+			"""
 			if startDepth <= depth:
 				for l in cats_alphabetical(tree.keys()):
 					print(indent + catString(l))
@@ -312,7 +469,17 @@ class categories(physbiblioDBSub):
 		printSubGroup(catsHier)
 
 	def delete(self, idCat, name = None):
-		"""delete a category, its subcategories and all their connections"""
+		"""
+		Delete a category, its subcategories and all their connections.
+		Cannot delete categories with id ==0 or ==1 (Main and Tags, the default categories).
+
+		Parameters:
+			idCat: the id of the category (or a list)
+			name (optional): if id is smaller than 2, the name is used instead.
+
+		Output:
+			False if id ==0 or ==1, True otherwise
+		"""
 		if type(idCat) is list:
 			for c in idCat:
 				self.delete(c)
@@ -321,8 +488,8 @@ class categories(physbiblioDBSub):
 				result = self.extractCatByName(name)
 				idCat = result[0]["idCat"]
 			if idCat < 2:
-				print("[DB] Error: should not delete the category with id: %d%s.)"%(idCat, " (name: %s)"%name if name else ""))
-				return false
+				print("[DB] Error: should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
+				return False
 			print("[DB] using idCat=%d"%idCat)
 			self.cursExec("""
 			delete from categories where idCat=?
@@ -336,9 +503,18 @@ class categories(physbiblioDBSub):
 			print("[DB] looking for child categories")
 			for row in self.getChild(idCat):
 				self.deleteCat(row["idCat"])
+			return True
 
 	def getByEntry(self, key):
-		"""find all the categories for a given entry"""
+		"""
+		Find all the categories associated to a given entry
+
+		Parameters:
+			key: the bibtex key of the entry
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 				select * from categories
 				join entryCats on categories.idCat=entryCats.idCat
@@ -347,7 +523,15 @@ class categories(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getByExp(self, idExp):
-		"""find all the categories for a given experiment"""
+		"""
+		Find all the categories associated to a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching categories
+		"""
 		self.cursExec("""
 				select * from categories
 				join expCats on categories.idCat=expCats.idCat
@@ -358,9 +542,20 @@ class categories(physbiblioDBSub):
 pBDB.cats = categories()
 
 class catsEntries(physbiblioDBSub):
-	"""functions for connecting categories and entries"""
+	"""
+	Functions for connecting categories and entries
+	"""
 	def getOne(self, idCat, key):
-		"""fine connection"""
+		"""
+		Find connections between a category and an entry
+
+		Parameters:
+			idCat: the category id
+			key: the bibtex key
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching connections
+		"""
 		self.cursExec("""
 				select * from entryCats where bibkey=:bibkey and idCat=:idCat
 				""",
@@ -368,14 +563,25 @@ class catsEntries(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getAll(self):
-		"""get all the connections"""
+		"""
+		Get all the connections
+
+		Output:
+			the list of `sqlite3.Row` objects
+		"""
 		self.cursExec("""
 				select * from entryCats
 				""")
 		return self.curs.fetchall()
 
 	def insert(self, idCat, key):
-		"""create a new connection"""
+		"""
+		Create a new connection between a category and a bibtex entry
+
+		Parameters:
+			idCat: the category id
+			key: the bibtex key
+		"""
 		if type(idCat) is list:
 			for q in idCat:
 				self.insert(q, key)
@@ -393,7 +599,16 @@ class catsEntries(physbiblioDBSub):
 				return False
 
 	def delete(self, idCat, key):
-		"""delete connection"""
+		"""
+		Delete a connection between a category and a bibtex entry
+
+		Parameters:
+			idCat: the category id
+			key: the bibtex key
+
+		Output:
+			the output of self.connExec
+		"""
 		if type(idCat) is list:
 			for q in idCat:
 				self.delete(q, key)
@@ -407,13 +622,27 @@ class catsEntries(physbiblioDBSub):
 					{"bibkey": key, "idCat": idCat})
 
 	def updateBibkey(self, new, old):
-		"""update if there is a bibkey change"""
+		"""
+		Update the connections affected by a bibkey change
+
+		Parameters:
+			new: the new bibtex key
+			old: the old bibtex key
+
+		Output:
+			the output of self.connExec
+		"""
 		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
 		query = "update entryCats set bibkey=:new where bibkey=:old\n"
 		return self.connExec(query, {"new": new, "old": old})
 
 	def askCats(self, keys):
-		"""loop over given keys and ask for the cats to be saved"""
+		"""
+		Loop over the given bibtex keys and ask for the categories to be associated with them
+
+		Parameters:
+			keys: a single key or a list of bibtex keys
+		"""
 		if type(keys) is not list:
 			keys = [keys]
 		for k in keys:
@@ -425,7 +654,12 @@ class catsEntries(physbiblioDBSub):
 				print("[DB] something failed in reading your input")
 
 	def askKeys(self, cats):
-		"""loop over given cats and ask for the entries to be saved"""
+		"""
+		Loop over the given categories and ask for the bibtex keys to be associated with them
+
+		Parameters:
+			cats: a single id or a list of categories
+		"""
 		if type(cats) is not list:
 			cats = [cats]
 		for c in cats:
@@ -1861,10 +2095,22 @@ class entries(physbiblioDBSub):
 pBDB.bibs = entries()
 
 class utilities(physbiblioDBSub):
-	"""various useful functions"""
+	"""
+	Adds some more useful functions to the database management
+	"""
 	def cleanSpareEntries(self):
-		"""finds and deletes connections where one of the parts is missing"""
+		"""
+		Find and delete connections (bibtex-category, bibtex-experiment, category-experiment) where one of the parts is missing
+		"""
 		def deletePresent(ix1, ix2, join, func):
+			"""
+			Delete the connections if one of the two extremities are missing in the respective tables.
+
+			Parameters:
+				ix1, ix2: the lists of ids/bibkeys where to look for the indexes
+				join: the list of pairs of connected elements
+				func: the function that must be used to delete the connections
+			"""
 			for e in join:
 				if e[0] not in ix1 or e[1] not in ix2:
 					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
@@ -1879,7 +2125,12 @@ class utilities(physbiblioDBSub):
 		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in pBDB.catExp.getAll()], pBDB.catExp.delete)
 	
 	def cleanAllBibtexs(self, verbose = 0):
-		"""remove newlines, non-standard characters and comments from the bibtex of all the entries"""
+		"""
+		Remove newlines, non-standard characters and comments from the bibtex of all the entries in the database
+
+		Parameters:
+			verbose: print more messages
+		"""
 		b = pBDB.bibs
 		for e in b.getAll():
 			t = e["bibtex"]
@@ -1891,6 +2142,16 @@ class utilities(physbiblioDBSub):
 pBDB.utils = utilities()
 
 def catString(idCat, withDesc = False):
+	"""
+	Return the string describing the category (id, name, description if required)
+
+	Parameters:
+		idCat: the id of the category
+		withDesc (boolean, default False): if True, add the category description
+
+	Output:
+		the output string
+	"""
 	cat = pBDB.cats.getByID(idCat)[0]
 	if withDesc:
 		return '%4d: %s - <i>%s</i>'%(cat['idCat'], cat['name'], cat['description'])
@@ -1898,6 +2159,15 @@ def catString(idCat, withDesc = False):
 		return '%4d: %s'%(cat['idCat'], cat['name'])
 
 def cats_alphabetical(listId):
+	"""
+	Sort the categories in the given list in alphabetical order
+
+	Parameters:
+		listId: the list of ids of the categories
+
+	Output:
+		the list of ids, ordered according to the category names.
+	"""
 	listIn = [ pBDB.cats.getByID(i)[0] for i in listId ]
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
