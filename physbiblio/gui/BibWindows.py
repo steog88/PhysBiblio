@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
@@ -468,20 +469,20 @@ class bibtexList(QFrame, objListWindow):
 		self.finalizeTable()
 
 	def triggeredContextMenuEvent(self, row, col, event):
-		def deletePdfFile(bibkey, ftype, fdesc, custom = None):
+		def deletePdfFile(bibkey, fileType, fdesc, custom = None):
 			if askYesNo("Do you really want to delete the %s file for entry %s?"%(fdesc, bibkey)):
 				self.parent.StatusBarMessage("deleting %s file..."%fdesc)
 				if custom is not None:
-					pBPDF.removeFile(bibkey, "", fname = custom)
+					pBPDF.removeFile(bibkey, "", fileName = custom)
 				else:
-					pBPDF.removeFile(bibkey, ftype)
+					pBPDF.removeFile(bibkey, fileType)
 				self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-		def copyPdfFile(bibkey, ftype, custom = None):
-			pdfName = osp.join(pBPDF.getFileDir(bibkey), custom) if custom is not None else pBPDF.getFilePath(bibkey, ftype)
+		def copyPdfFile(bibkey, fileType, custom = None):
+			pdfName = os.path.join(pBPDF.getFileDir(bibkey), custom) if custom is not None else pBPDF.getFilePath(bibkey, fileType)
 			outFolder = askDirName(self, title = "Where do you want to save the PDF %s?"%pdfName)
 			if outFolder.strip() != "":
-				pBPDF.copyToDir(outFolder, bibkey, ftype = ftype, customName = custom)
+				pBPDF.copyToDir(outFolder, bibkey, fileType = fileType, customName = custom)
 
 		index = self.tablewidget.model().index(row, col)
 		try:
@@ -972,14 +973,14 @@ class askSelBibAction(MyMenu):
 			for entryDict in self.entries:
 				entry = entryDict["bibkey"]
 				if pBPDF.checkFile(entry, "doi"):
-					pBPDF.copyToDir(outFolder, entry, ftype = "doi")
+					pBPDF.copyToDir(outFolder, entry, fileType = "doi")
 				elif pBPDF.checkFile(entry, "arxiv"):
-					pBPDF.copyToDir(outFolder, entry, ftype = "arxiv")
+					pBPDF.copyToDir(outFolder, entry, fileType = "arxiv")
 				else:
 					existing = pBPDF.getExisting(entry)
 					if len(existing) > 0:
 						for ex in existing:
-							pBPDF.copyToDir(outFolder, entry, "", custom = ex)
+							pBPDF.copyToDir(outFolder, entry, "", customName = ex)
 		self.close()
 
 	def onCat(self):
