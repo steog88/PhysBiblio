@@ -544,6 +544,9 @@ class bibtexList(QFrame, objListWindow):
 		if arxiv is not None and arxiv != "":
 			absAction = menu.addAction("Get abstract (from arXiv)")
 			arxAction = menu.addAction("Get info (from arXiv)")
+		else:
+			absAction = "absAction"
+			arxAction = "arxAction"
 		menu.addSeparator()
 		
 		action = menu.exec_(event.globalPos())
