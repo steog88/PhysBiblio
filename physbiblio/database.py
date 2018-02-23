@@ -579,8 +579,11 @@ class catsEntries(physbiblioDBSub):
 		Create a new connection between a category and a bibtex entry
 
 		Parameters:
-			idCat: the category id
-			key: the bibtex key
+			idCat: the category id (or a list)
+			key: the bibtex key (or a list)
+
+		Output:
+			False if the connection is already present, the output of self.connExec otherwise
 		"""
 		if type(idCat) is list:
 			for q in idCat:
@@ -603,8 +606,8 @@ class catsEntries(physbiblioDBSub):
 		Delete a connection between a category and a bibtex entry
 
 		Parameters:
-			idCat: the category id
-			key: the bibtex key
+			idCat: the category id (or a list)
+			key: the bibtex key (or a list)
 
 		Output:
 			the output of self.connExec
@@ -673,9 +676,20 @@ class catsEntries(physbiblioDBSub):
 pBDB.catBib = catsEntries()
 
 class catsExps(physbiblioDBSub):
-	"""functions for connecting categories and entries"""
+	"""
+	Functions for connecting categories and experiments
+	"""
 	def getOne(self, idCat, idExp):
-		"""get one connection"""
+		"""
+		Find connections between a category and an experiment
+
+		Parameters:
+			idCat: the category id
+			idExp: the experiment id
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching connections
+		"""
 		self.cursExec("""
 				select * from expCats where idExp=:idExp and idCat=:idCat
 				""",
@@ -683,14 +697,28 @@ class catsExps(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getAll(self):
-		"""find all the connections"""
+		"""
+		Get all the connections
+
+		Output:
+			the list of `sqlite3.Row` objects
+		"""
 		self.cursExec("""
 				select * from expCats
 				""")
 		return self.curs.fetchall()
 
 	def insert(self, idCat, idExp):
-		"""insert a new connection"""
+		"""
+		Create a new connection between a category and an experiment
+
+		Parameters:
+			idCat: the category id (or a list)
+			idExp: the experiment id (or a list)
+
+		Output:
+			False if the connection is already present, the output of self.connExec otherwise
+		"""
 		if type(idCat) is list:
 			for q in idCat:
 				self.insert(q, idExp)
@@ -708,7 +736,16 @@ class catsExps(physbiblioDBSub):
 				return False
 
 	def delete(self, idCat, idExp):
-		"""delete one connection"""
+		"""
+		Delete a connection between a category and an experiment
+
+		Parameters:
+			idCat: the category id (or a list)
+			idExp: the experiment id (or a list)
+
+		Output:
+			the output of self.connExec
+		"""
 		if type(idCat) is list:
 			for q in idCat:
 				self.delete(q, idExp)
@@ -722,7 +759,12 @@ class catsExps(physbiblioDBSub):
 					{"idExp": idExp, "idCat": idCat})
 
 	def askCats(self, exps):
-		"""loop over given exps and ask for the cats to be saved"""
+		"""
+		Loop over the given experiment ids and ask for the categories to be associated with them
+
+		Parameters:
+			exps: a single id or a list of experiment ids
+		"""
 		if type(exps) is not list:
 			exps = [exps]
 		for e in exps:
@@ -734,7 +776,12 @@ class catsExps(physbiblioDBSub):
 				print("[DB] something failed in reading your input")
 
 	def askExps(self, cats):
-		"""loop over given cats and ask for the experiments to be saved"""
+		"""
+		Loop over the given category ids and ask for the experiments to be associated with them
+
+		Parameters:
+			cats: a single id or a list of category ids
+		"""
 		if type(cats) is not list:
 			cats = [cats]
 		for c in cats:
@@ -748,9 +795,20 @@ class catsExps(physbiblioDBSub):
 pBDB.catExp = catsExps()
 
 class entryExps(physbiblioDBSub):
-	"""functions for connecting entries and experiments"""
+	"""
+	Functions for connecting entries and experiments
+	"""
 	def getOne(self, key, idExp):
-		"""find one connection"""
+		"""
+		Find connections between an entry and an experiment
+
+		Parameters:
+			key: the bibtex key
+			idExp: the experiment id
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching connections
+		"""
 		self.cursExec("""
 				select * from entryExps where idExp=:idExp and bibkey=:bibkey
 				""",
@@ -758,14 +816,28 @@ class entryExps(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getAll(self):
-		"""find all the connections"""
+		"""
+		Get all the connections
+
+		Output:
+			the list of `sqlite3.Row` objects
+		"""
 		self.cursExec("""
 				select * from entryExps
 				""")
 		return self.curs.fetchall()
 
 	def insert(self, key, idExp):
-		"""insert a new connection"""
+		"""
+		Create a new connection between a bibtex entry and an experiment
+
+		Parameters:
+			key: the bibtex key (or a list)
+			idExp: the experiment id (or a list)
+
+		Output:
+			False if the connection is already present, the output of self.connExec otherwise
+		"""
 		if type(key) is list:
 			for q in key:
 				self.insert(q, idExp)
@@ -785,7 +857,16 @@ class entryExps(physbiblioDBSub):
 				return False
 
 	def delete(self, key, idExp):
-		"""delete one connection"""
+		"""
+		Delete a connection between a bibtex entry and an experiment
+
+		Parameters:
+			key: the bibtex key (or a list)
+			idExp: the experiment id (or a list)
+
+		Output:
+			the output of self.connExec
+		"""
 		if type(key) is list:
 			for q in key:
 				self.delete(q, idExp)
@@ -799,13 +880,27 @@ class entryExps(physbiblioDBSub):
 					{"idExp": idExp, "bibkey": key})
 
 	def updateBibkey(self, new, old):
-		"""update if there is a bibkey change"""
+		"""
+		Update the connections affected by a bibkey change
+
+		Parameters:
+			new: the new bibtex key
+			old: the old bibtex key
+
+		Output:
+			the output of self.connExec
+		"""
 		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
 		query = "update entryExps set bibkey=:new where bibkey=:old\n"
 		return self.connExec(query, {"new": new, "old": old})
 
 	def askExps(self, keys):
-		"""loop over given keys and ask for the exps to be saved"""
+		"""
+		Loop over the given bibtex keys and ask for the experiments to be associated with them
+
+		Parameters:
+			keys: a single key or a list of bibtex keys
+		"""
 		if type(keys) is not list:
 			keys = [keys]
 		for k in keys:
@@ -817,7 +912,12 @@ class entryExps(physbiblioDBSub):
 				print("[DB] something failed in reading your input")
 
 	def askKeys(self, exps):
-		"""loop over given exps and ask for the entries to be saved"""
+		"""
+		Loop over the given experiment ids and ask for the bibtexs to be associated with them
+
+		Parameters:
+			exps: a single id or a list of experiment ids
+		"""
 		if type(exps) is not list:
 			exps = [exps]
 		for e in exps:
@@ -831,16 +931,35 @@ class entryExps(physbiblioDBSub):
 pBDB.bibExp = entryExps()
 
 class experiments(physbiblioDBSub):
-	"""functions for experiments"""
+	"""
+	Functions to manage the experiments
+	"""
 	def insert(self,data):
-		"""insert a new experiment"""
+		"""
+		Insert a new experiment
+
+		Parameters:
+			data: the dictionary with the experiment fields
+
+		Output:
+			the output of self.connExec
+		"""
 		return self.connExec("""
 				INSERT into experiments (name, comments, homepage, inspire)
 					values (:name, :comments, :homepage, :inspire)
 				""", data)
 
 	def update(self, data, idExp):
-		"""update an existing experiment"""
+		"""
+		Update an existing experiment
+
+		Parameters:
+			data: the dictionary with the experiment fields
+			idExp: the experiment id
+
+		Output:
+			the output of self.connExec
+		"""
 		data["idExp"] = idExp
 		print(data)
 		query = "replace into experiments (" +\
@@ -849,7 +968,17 @@ class experiments(physbiblioDBSub):
 		return self.connExec(query, data)
 
 	def updateField(self, idExp, field, value):
-		"""update a field"""
+		"""
+		Update an existing experiment
+
+		Parameters:
+			idExp: the experiment id
+			field: the field name
+			value: the new field value
+
+		Output:
+			False if the field or the content is invalid, the output of self.connExec otherwise
+		"""
 		print("[DB] updating '%s' for entry '%s'"%(field, idExp))
 		if field in self.tableCols["experiments"] and field is not "idExp" \
 				and value is not "" and value is not None:
@@ -859,14 +988,30 @@ class experiments(physbiblioDBSub):
 			return False
 
 	def getByID(self, idExp):
-		"""get experiments matching the idExp"""
+		"""
+		Get experiment matching the given id
+
+		Parameters:
+			idExp: the experiment id
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching experiments
+		"""
 		self.cursExec("""
 			select * from experiments where idExp=?
 			""", (idExp, ))
 		return self.curs.fetchall()
 
 	def getDictByID(self, idExp):
-		"""get experiments matching the idExp, return a dictionary"""
+		"""
+		Get experiment matching the given id, returns a standard dictionary
+
+		Parameters:
+			idExp: the experiment id
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching experiments
+		"""
 		self.cursExec("""
 			select * from experiments where idExp=?
 			""", (idExp, ))
@@ -881,7 +1026,16 @@ class experiments(physbiblioDBSub):
 		return expDict
 
 	def getAll(self, orderBy = "name", order = "ASC"):
-		"""get all the experiments from the DB"""
+		"""
+		Get all the experiments
+
+		Parameters:
+			orderBy: the field used to order the output
+			order: "ASC" or "DESC"
+
+		Output:
+			the list of `sqlite3.Row` objects with all the experiments in the database
+		"""
 		self.cursExec("""
 			select * from experiments
 			order by %s %s
@@ -889,14 +1043,30 @@ class experiments(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getByName(self, name):
-		"""get experiments matching a name"""
+		"""
+		Get all the experiments matching a given name
+
+		Parameters:
+			name: the experiment name to be matched
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching experiments
+		"""
 		self.cursExec("""
 			select * from experiments where name=?
 			""", (name, ))
 		return self.curs.fetchall()
 
 	def filterAll(self, string):
-		"""get experiments matching a string"""
+		"""
+		Get all the experiments matching a given string
+
+		Parameters:
+			string: the string to be matched
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching experiments
+		"""
 		string = "%" + string + "%"
 		self.cursExec("""
 			select * from experiments where name LIKE ? OR comments LIKE ? OR homepage LIKE ? OR inspire LIKE ?
@@ -904,7 +1074,14 @@ class experiments(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def printInCats(self, startFrom = 0, sp = 5 * " ", withDesc = False):
-		"""prints the experiments under the corresponding categories"""
+		"""
+		Prints the experiments under the corresponding categories
+
+		Parameters:
+			startFrom (int): where to start from
+			sp (string): the spacing
+			withDesc (boolean, default False): whether to print the description
+		"""
 		cats = pBDB.cats.getAll()
 		exps = self.getAll()
 		catsHier = pBDB.cats.getHier(cats, startFrom = startFrom)
@@ -912,12 +1089,30 @@ class experiments(physbiblioDBSub):
 		for c in cats:
 			showCat[c["idCat"]] = False
 		def expString(idExp):
+			"""
+			Get the string describing the experiment
+
+			Parameters:
+				idExp: the experiment id
+
+			Output:
+				the string
+			"""
 			exp = [ e for e in exps if e["idExp"] == idExp ][0]
 			if withDesc:
 				return sp + '-> %s (%d) - %s'%(exp['name'], exp['idExp'], exp['comments'])
 			else:
 				return sp + '-> %s (%d)'%(exp['name'], exp['idExp'])
 		def alphabetExp(listId):
+			"""
+			Order experiments within a list in alphabetical order
+
+			Parameters:
+				listId: the list of experiment ids
+
+			Output:
+				the ordered list of id
+			"""
 			listIn = [ e for e in exps if e["idExp"] in listId ]
 			decorated = [ (x["name"], x) for x in listIn ]
 			decorated.sort()
@@ -929,11 +1124,18 @@ class experiments(physbiblioDBSub):
 				showCat[idC] = True
 			expCats[idC].append(idE)
 		def printExpCats(ix, lev):
+			"""
+			Prints the experiments in a given category
+
+			Parameters:
+				ix: the category id
+				lev: the indentation level
+			"""
 			try:
 				for e in alphabetExp(expCats[ix]):
 					print(lev * sp + expString(e))
 			except:
-				pass
+				pBErrorManager("[DB] error printing experiments!", traceback)
 		for l0 in cats_alphabetical(catsHier.keys()):
 			for l1 in cats_alphabetical(catsHier[l0].keys()):
 				if showCat[l1]:
@@ -975,7 +1177,13 @@ class experiments(physbiblioDBSub):
 								printExpCats(l4, 5)
 
 	def delete(self, idExp, name = None):
-		"""delete an experiment and its connections"""
+		"""
+		Delete an experiment and all its connections
+
+		Parameters:
+			idExp:
+			name:
+		"""
 		if type(idExp) is list:
 			for e in idExp:
 				self.delete(e)
@@ -992,18 +1200,38 @@ class experiments(physbiblioDBSub):
 			""", (idExp, ))
 
 	def to_str(self, q):
-		"""convert the experiment row in a string"""
+		"""
+		Convert the experiment row in a string
+
+		Parameters:
+			q: the experiment record (sqlite3.Row or dict)
+		"""
 		return "%3d: %-20s [%-40s] [%s]"%(q["idExp"], q["name"], q["homepage"], q["inspire"])
 
 	def printAll(self, exps = None, orderBy = "name", order = "ASC"):
-		"""print all the experiments"""
+		"""
+		Print all the experiments
+
+		Parameters:
+			exps: the experiments (if None it gets all the experiments in the database)
+			orderBy: the field to use for ordering the experiments, if they are not given
+			order: which order, if exps is not given
+		"""
 		if exps is None:
 			exps = self.getAll(orderBy = orderBy, order = order)
 		for q in exps:
 			print(self.to_str(q))
 
 	def getByCat(self, idCat):
-		"""find all the experiments under a given category"""
+		"""
+		Get all the experiments associated with a given category
+
+		Parameters:
+			idCat: the id of the category to be matched
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching experiments
+		"""
 		query = """
 				select * from experiments
 				join expCats on experiments.idExp=expCats.idExp
@@ -1013,7 +1241,15 @@ class experiments(physbiblioDBSub):
 		return self.curs.fetchall()
 
 	def getByEntry(self, key):
-		"""find all the experiments for a given entry"""
+		"""
+		Get all the experiments matching a given bibtex entry
+
+		Parameters:
+			key: the key of the bibtex to be matched
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching experiments
+		"""
 		self.cursExec("""
 				select * from experiments
 				join entryExps on experiments.idExp=entryExps.idExp
@@ -1024,14 +1260,26 @@ class experiments(physbiblioDBSub):
 pBDB.exps = experiments()
 
 class entries(physbiblioDBSub):
-	"""functions for the entries"""
-	def __init__(self): #need to create lastFetched
+	"""
+	Functions to manage the bibtex entries
+	"""
+	def __init__(self):
+		"""
+		Call parent __init__ and create an empty lastFetched & c.
+		"""
 		physbiblioDBSub.__init__(self)
-		self.lastFetched = "select * from entries limit 10"
+		self.lastFetched = []
+		self.lastQuery = "select * from entries limit 10"
+		self.lastVals = ()
 		self.lastInserted = []
 
 	def delete(self, key):
-		"""delete an entry and its connections"""
+		"""
+		Delete an entry and all its connections
+
+		Parameters:
+			key: the bibtex key (or a list)
+		"""
 		if type(key) is list:
 			for k in key:
 				self.delete(k)
@@ -1048,6 +1296,15 @@ class entries(physbiblioDBSub):
 			""", (key,))
 
 	def completeFetched(self, fetched_in):
+		"""
+		Use the database content to add additional fields ("bibtexDict", "published", "author", "title", "journal", "volume", "number", "pages") to the query results.
+
+		Parameters:
+			fetched_in: the list of `sqlite3.Row` objects returned by the last query
+
+		Output:
+			a dictionary with the original and the new fields
+		"""
 		fetched_out = []
 		for el in fetched_in:
 			tmp = {}
@@ -1077,7 +1334,12 @@ class entries(physbiblioDBSub):
 		return fetched_out
 
 	def fetchFromLast(self):
-		"""fetch entries using the last query"""
+		"""
+		Fetch entries using the last saved query
+
+		Output:
+			self
+		"""
 		try:
 			if len(self.lastVals) > 0:
 				self.cursExec(self.lastQuery, self.lastVals)
@@ -1092,7 +1354,29 @@ class entries(physbiblioDBSub):
 
 	def fetchFromDict(self, queryDict = {}, catExpOperator = "and", defaultConnection = "and",
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
-		"""fetch entries reading the information from a dictionary. can be used for complex queries"""
+		"""
+		Fetch entries using a number of criterions
+
+		Parameters:
+			queryDict: a dictionary containing mostly dictionaries for the fields used to filter and the criterion for each field. Possible fields:
+				"cats" or "exps" > {"operator": the logical connection, "id": the id to match}
+				"catExpOperator" > "and" or "or" (see below)
+				Each other item should be a dictionary with the following fields:
+				{"str": the string to match
+				"operator": "like" if the field must only contain the string, "=" for exact match
+				"connection" (optional): logical operator}
+
+			catExpOperator: "and" (default) or "or", the logical operator that connects multiple category + experiment searches. May be overwritten by an item in queryDict
+			defaultConnection: "and" (default) or "or", the default logical operator for multiple field matches
+			orderBy: the name of the field according to which the results are ordered
+			orderType: "ASC" (default) or "DESC"
+			limitTo (int or None): maximum number of results. If None, do not limit
+			limitOffset (int or None): where to start in the ordered list. If None, use 0
+			saveQuery (boolean, default True): if True, save the query for future reuse
+
+		Output:
+			self
+		"""
 		def getQueryStr(di):
 			return "%%%s%%"%di["str"] if di["operator"] == "like" else di["str"]
 		first = True
@@ -1104,6 +1388,18 @@ class entries(physbiblioDBSub):
 			catExpOperator = queryDict["catExpOperator"]
 			del queryDict["catExpOperator"]
 		def catExpStrings(tp, tabName, fieldName):
+			"""
+			Returns the string and the data needed to perform a search using categories and/or experiments
+
+			Parameters:
+				tp: the field of queryDict to consider
+				tabName: the name of the table to consider
+				fieldName: the name of the primary key in the considered table
+
+			Output:
+				joinStr, whereStr, valsTmp:
+				the string containing the `join` structure, the one containing the `where` conditions and a tuple with the values of the fields
+			"""
 			joinStr = ""
 			whereStr = ""
 			valsTmp = tuple()
@@ -1175,7 +1471,7 @@ class entries(physbiblioDBSub):
 			else:
 				self.cursExec(query)
 		except:
-			print("[DB] query failed: %s"%query)
+			pBErrorManager("[DB] query failed: %s"%query, traceback)
 			print(vals)
 		fetched_in = self.curs.fetchall()
 		self.lastFetched = self.completeFetched(fetched_in)
@@ -1183,8 +1479,23 @@ class entries(physbiblioDBSub):
 
 	def fetchAll(self, params = None, connection = "and", operator = "=",
 			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
-		"""save entries fetched from the database"""
-		query = """select * from entries """
+		"""
+		Fetch entries using a number of criterions. Simpler than self.fetchFromDict.
+
+		Parameters:
+			params (a dictionary or None): if a dictionary, it must contain the structure "field": "value"
+			connection: "and"/"or", default "and"
+			operator: "=" for exact match, "like" for containing match
+			orderBy: the name of the field according to which the results are ordered
+			orderType: "ASC" (default) or "DESC"
+			limitTo (int or None): maximum number of results. If None, do not limit
+			limitOffset (int or None): where to start in the ordered list. If None, use 0
+			saveQuery (boolean, default True): if True, save the query for future reuse
+
+		Output:
+			self
+		"""
+		query = "select * from entries "
 		vals = ()
 		if params and len(params) > 0:
 			query += " where "
@@ -1226,11 +1537,27 @@ class entries(physbiblioDBSub):
 		return self
 	
 	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
-		"""get entries from the database"""
+		"""
+		Use self.fetchAll and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchAll
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset, saveQuery = saveQuery).lastFetched
 
 	def fetchByBibkey(self, bibkey, saveQuery = True):
-		"""shortcut for selecting entries by their bibtek key"""
+		"""
+		Use self.fetchAll with a match on the bibtex key and returns the dictionary of fetched entries
+
+		Parameters:
+			bibkey: the bibtex key to match (or a list)
+			saveQuery (boolean, default True): whether to save the query or not
+
+		Output:
+			self
+		"""
 		if type(bibkey) is list:
 			return self.fetchAll(params = {"bibkey": bibkey},
 				connection = "or ", saveQuery = saveQuery)
@@ -1238,11 +1565,27 @@ class entries(physbiblioDBSub):
 			return self.fetchAll(params = {"bibkey": bibkey}, saveQuery = saveQuery)
 		
 	def getByBibkey(self, bibkey, saveQuery = True):
-		"""shortcut for selecting entries by their bibtek key"""
+		"""
+		Use self.fetchByBibkey and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchByBibkey
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchByBibkey(bibkey, saveQuery = saveQuery).lastFetched
 
 	def fetchByKey(self, key, saveQuery = True):
-		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
+		"""
+		Use self.fetchAll with a match on the bibtex key in the bibkey, bibtex or old_keys fields and returns the dictionary of fetched entries
+
+		Parameters:
+			key: the bibtex key to match (or a list)
+			saveQuery (boolean, default True): whether to save the query or not
+
+		Output:
+			self
+		"""
 		if type(key) is list:
 			strings = ["%%%s%%"%q for q in key]
 			return self.fetchAll(
@@ -1258,11 +1601,27 @@ class entries(physbiblioDBSub):
 				saveQuery = saveQuery)
 
 	def getByKey(self, key, saveQuery = True):
-		"""shortcut for selecting entries based on a current or old key, or searching the bibtex entry"""
+		"""
+		Use self.fetchByKey and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchByKey
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchByKey(key, saveQuery = saveQuery).lastFetched
 
 	def fetchByBibtex(self, string, saveQuery = True):
-		"""shortcut for selecting entries with a search in the bibtex field"""
+		"""
+		Use self.fetchAll with a match on the bibtex content and returns the dictionary of fetched entries
+
+		Parameters:
+			string: the string to match in the bibtex (or a list)
+			saveQuery (boolean, default True): whether to save the query or not
+
+		Output:
+			self
+		"""
 		if type(string) is list:
 			return self.fetchAll(
 				params = {"bibtex":["%%%s%%"%q for q in string]},
@@ -1276,11 +1635,27 @@ class entries(physbiblioDBSub):
 				saveQuery = saveQuery)
 
 	def getByBibtex(self, string, saveQuery = True):
-		"""shortcut for selecting entries with a search in the bibtex field"""
+		"""
+		Use self.fetchByBibtex and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchByBibtex
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchByBibtex(string, saveQuery = saveQuery).lastFetched
 
 	def getField(self, key, field):
-		"""extract the content of one field from a entry in the database, searched by bibtex key"""
+		"""
+		Extract the content of one field from a entry in the database, searched by bibtex key
+
+		Parameters:
+			key: the bibtex key
+			field: the field name
+
+		Output:
+			False if the search failed, the output of self.getByBibkey otherwise
+		"""
 		try:
 			return self.getByBibkey(key, saveQuery = False)[0][field]
 		except IndexError:
@@ -1288,21 +1663,55 @@ class entries(physbiblioDBSub):
 			return False
 
 	def toDataDict(self, key):
-		"""convert the entry bibtex into a dictionary"""
+		"""
+		Convert the entry bibtex into a dictionary
+
+		Parameters:
+			key: the bibtex key
+
+		Output:
+			the output of self.prepareInsertEntry
+		"""
 		return self.prepareInsertEntry(self.getField(key, "bibtex"))
 
 	def getDoiUrl(self, key):
-		"""get doi url"""
-		url = pbConfig.doiUrl + self.getField(key, "doi")
-		return url
+		"""
+		Get the doi.org url for the entry, if it has something in the doi field
+
+		Parameters:
+			key: the bibtex key
+
+		Output:
+			a string
+		"""
+		url = self.getField(key, "doi")
+		return pbConfig.doiUrl + url if url != "" and url is not False else False
 
 	def getArxivUrl(self, key, urlType = "abs"):
-		"""get doi url"""
-		url = pbConfig.arxivUrl + urlType + "/" + self.getField(key, "arxiv")
+		"""
+		Get the arxiv.org url for the entry, if it has something in the arxiv field
+
+		Parameters:
+			key: the bibtex key
+			urlType: "abs" or "pdf"
+
+		Output:
+			a string
+		"""
+		url = self.getField(key, "arxiv")
+		url = pbConfig.arxivUrl + urlType + "/" + url if url != "" and url is not False else False
 		return url
 			
 	def insert(self, data):
-		"""insert entry"""
+		"""
+		Insert an entry
+
+		Parameters:
+			data: a dictionary with the data fields to be inserted
+
+		Output:
+			the output of self.connExec
+		"""
 		return self.connExec("INSERT into entries (" +
 					", ".join(self.tableCols["entries"]) + ") values (:" +
 					", :".join(self.tableCols["entries"]) + ")\n",
@@ -1895,7 +2304,16 @@ class entries(physbiblioDBSub):
 			len(elements), len(exist), len(self.lastInserted), len(errors)))
 
 	def setBook(self, key, value = 1):
-		"""set (or unset) an entry as a book"""
+		"""
+		Set (or unset) the book field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setBook(q, value)
@@ -1903,7 +2321,16 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "book", value, 0)
 
 	def setLecture(self, key, value = 1):
-		"""set (or unset) an entry as a lecture"""
+		"""
+		Set (or unset) the Lecture field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setLecture(q, value)
@@ -1911,7 +2338,16 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "lecture", value, 0)
 
 	def setPhdThesis(self, key, value = 1):
-		"""set (or unset) an entry as a PhD thesis"""
+		"""
+		Set (or unset) the PhD thesis field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setPhdThesis(q, value)
@@ -1919,7 +2355,16 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "phd_thesis", value, 0)
 
 	def setProceeding(self, key, value = 1):
-		"""set (or unset) an entry as a proceeding"""
+		"""
+		Set (or unset) the proceeding field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setProceeding(q, value)
@@ -1927,7 +2372,16 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "proceeding", value, 0)
 
 	def setReview(self, key, value = 1):
-		"""set (or unset) an entry as a review"""
+		"""
+		Set (or unset) the review field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setReview(q, value)
@@ -1935,7 +2389,16 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "review", value, 0)
 
 	def setNoUpdate(self, key, value = 1):
-		"""set (or unset) an entry as a review"""
+		"""
+		Set (or unset) the noUpdate field for an entry
+
+		Parameters:
+			key: the bibtex key
+			value: 1 or 0
+
+		Output:
+			the output of self.updateField
+		"""
 		if type(key) is list:
 			for q in key:
 				self.setNoUpdate(q, value)
@@ -1943,7 +2406,12 @@ class entries(physbiblioDBSub):
 			return self.updateField(key, "noUpdate", value, 0)
 			
 	def printAllBibtexs(self, entriesIn = None):
-		"""print the bibtex codes for all the entries (or for a given subset)"""
+		"""
+		Print the bibtex codes for all the entries (or for a given subset)
+
+		Parameters:
+			entriesIn: the list of entries to print. If None, use self.lastFetched or self.getAll.
+		"""
 		if entriesIn is not None:
 			entries = entriesIn
 		elif self.lastFetched is not None:
@@ -1955,7 +2423,12 @@ class entries(physbiblioDBSub):
 		print("[DB] %d elements found"%len(entries))
 			
 	def printAllBibkeys(self, entriesIn = None):
-		"""print the bibtex keys for all the entries (or for a given subset)"""
+		"""
+		Print the bibtex keys for all the entries (or for a given subset)
+
+		Parameters:
+			entriesIn: the list of entries to print. If None, use self.lastFetched or self.getAll.
+		"""
 		if entriesIn is not None:
 			entries = entriesIn
 		elif self.lastFetched is not None:
@@ -1967,7 +2440,14 @@ class entries(physbiblioDBSub):
 		print("[DB] %d elements found"%len(entries))
 			
 	def printAllInfo(self, entriesIn = None, orderBy = "firstdate", addFields = None):
-		"""print the short info for all the entries (or for a given subset)"""
+		"""
+		Print a short resume for all the bibtex entries (or for a given subset)
+
+		Parameters:
+			entriesIn: the list of entries to print. If None, use self.lastFetched or self.getAll.
+			orderBy (default "firstdate"): field to consider for ordering the entries (if using self.getAll)
+			addFields: print additional fields in addition to the minimal info, default None
+		"""
 		if entriesIn is not None:
 			entries = entriesIn
 		elif self.lastFetched is not None:
@@ -2013,7 +2493,17 @@ class entries(physbiblioDBSub):
 		print("[DB] %d elements found"%len(entries))
 
 	def fetchByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
-		"""find all the entries in a given category"""
+		"""
+		Fetch all the entries associated to a given category
+
+		Parameters:
+			idCat: the id of the category
+			orderBy (default "entries.firstdate"): the "table.field" to use for ordering
+			orderType: "ASC" (default) or "DESC"
+
+		Output:
+			self
+		"""
 		query = """
 				select * from entries
 				join entryCats on entries.bibkey=entryCats.bibkey
@@ -2033,10 +2523,28 @@ class entries(physbiblioDBSub):
 		return self
 
 	def getByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
+		"""
+		Use self.fetchByCat and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchByCat
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchByCat(idCat, orderBy = orderBy, orderType = orderType).lastFetched
 
 	def fetchByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
-		"""find all the entries for a given experiment"""
+		"""
+		Fetch all the entries associated to a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+			orderBy (default "entries.firstdate"): the "table.field" to use for ordering
+			orderType: "ASC" (default) or "DESC"
+
+		Output:
+			self
+		"""
 		query = """
 				select * from entries
 				join entryExps on entries.bibkey=entryExps.bibkey
@@ -2056,10 +2564,27 @@ class entries(physbiblioDBSub):
 		return self
 
 	def getByExp(self, idExp, orderBy = "entries.firstdate", orderType = "ASC"):
+		"""
+		Use self.fetchByExp and returns the dictionary of fetched entries
+
+		Parameters: see self.fetchByExp
+
+		Output:
+			a dictionary
+		"""
 		return self.fetchByExp(idExp, orderBy = orderBy, orderType = orderType).lastFetched
 
 	def cleanBibtexs(self, startFrom = 0, entries = None):
-		"""clean and reformat the bibtexs"""
+		"""
+		Clean (remove comments, unwanted fields, newlines, accents) and reformat the bibtexs
+
+		Parameters:
+			startFrom (default 0): the index where to start from
+			entries: the list of entries to be considered. If None, the output of self.getAll
+
+		Output:
+			num, err, changed: the number of considered entries, the number of errors, the list of keys of changed entries
+		"""
 		if entries is None:
 			try:
 				entries = self.getAll(saveQuery = False)[startFrom:]
@@ -2086,6 +2611,7 @@ class entries(physbiblioDBSub):
 						print("[DB] -- element changed!")
 						changed.append(e["bibkey"])
 				except ValueError:
+					pBErrorManager("[DB] Error while cleaning entry '%s'"%e["bibkey"], traceback, priority = 0)
 					err += 1
 		print("\n[DB] %d entries processed"%num)
 		print("\n[DB] %d errors occurred"%err)
