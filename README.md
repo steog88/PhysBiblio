@@ -115,13 +115,15 @@ Two (regex) search and replace examples:
   - replace `([0-9]{2})([0-9]{2})` in "volume" with `\2`.
 
 ## 3. Data paths
-PhysBiblio saves data, by default, in a `data/` subfolder of its main path.
+PhysBiblio now saves data, by default, in the directories specified by the `appdirs` package using `user_config_dir` and `user_data_dir`.
 
-The stored data include:
+The stored configuration includes:
 * a `profiles.dat` file, containing the information on the existing profiles;
+* a number of `.cfg` files, which contain the configuration for each profile.
+
+The stored data, which may be moved to a different folder, include:
 * a `pdf/` subfolder, with the PDF for all the papers. This is shared for all the profiles unless you set different paths in the configuration files of each profile;
-* sets of `.cfg`, `.db` and `.log` files, which contain the configuration, the database and an error log for each profile.
+* sets of `.db` and `.log` files, which contain the database and an error log for each profile.
 
-You can change some of the paths in the configuration.
+You can change some of the paths and file names in the configuration.
 Please note that changing the configuration **will not move** the existing files into the new locations.
-
