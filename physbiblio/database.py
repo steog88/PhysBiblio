@@ -1718,7 +1718,16 @@ class entries(physbiblioDBSub):
 					data)
 
 	def replaceInBibtex(self, old, new):
-		"""replace a string with a new one, in all the bibtex entries of the table"""
+		"""
+		Replace a string with a new one, in all the matching bibtex entries of the table
+
+		Parameters:
+			old: the old string
+			new: the new string
+
+		Output:
+			the list of keys of the matching bibtex entries or False if self.connExec failed
+		"""
 		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
 		self.lastVals  = {"match": "%"+old+"%"}
 		self.cursExec(self.lastQuery, self.lastVals)
@@ -1727,10 +1736,36 @@ class entries(physbiblioDBSub):
 		print("[DB] Replacing text in entries: ", keys)
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
 			return keys
+		else:
+			return False
 
 	def replace(self, fiOld, fiNews, old, news, entries = None, regex = False):
-		"""replace a string with a new one, in the given field of the (previously) selected bibtex entries"""
+		"""
+		Replace a string with a new one, in the given field of the (previously) selected bibtex entries
+
+		Parameters:
+			fiOld: the field where the string to match is taken from
+			fiNews: the new fields where to insert the replaced string
+			old: the old string to replace
+			news: the list of new strings
+			entries (None or a list): the entries to consider. If None, use self.getAll
+			regex (boolean, default False): whether to use regular expression for matching and replacing
+
+		Output:
+			success, changed, failed: the lists of entries that were successfully processed, changed or produced errors
+		"""
 		def myReplace(line, new, previous = None):
+			"""
+			Replace the old with the new string in the given line
+
+			Parameters:
+				line: the string where to match and replace
+				new: the new string
+				previous (default None): the previous content of the field (useful when using regex and complex replaces)
+
+			Output:
+				the processed line or previous (if regex and no matches are found)
+			"""
 			if regex:
 				reg = re.compile(old)
 				if reg.match(line):
@@ -1740,6 +1775,8 @@ class entries(physbiblioDBSub):
 			else:
 				line = line.replace(old, new)
 			return line
+		if entries is None:
+			entries = self.getAll(saveQuery = False)
 		success = []
 		changed = []
 		failed = []
@@ -1781,7 +1818,16 @@ class entries(physbiblioDBSub):
 		return success, changed, failed
 
 	def update(self, data, oldkey):
-		"""update entry"""
+		"""
+		Update an entry
+
+		Parameters:
+			data: a dictionary with the new field contents
+			oldKey: the bibtex key of the entry to be updated
+
+		Output:
+			the output of self.connExec
+		"""
 		data["bibkey"] = oldkey
 		query = "replace into entries (" +\
 					", ".join(data.keys()) + ") values (:" + \
@@ -1789,7 +1835,15 @@ class entries(physbiblioDBSub):
 		return self.connExec(query, data)
 
 	def rmBibtexComments(self, bibtex):
-		"""remove comments and empty lines from bibtex"""
+		"""
+		Remove comments and empty lines from a bibtex
+
+		Parameters:
+			bibtex: the bibtex to process
+
+		Output:
+			the processed bibtex
+		"""
 		output = ""
 		for l in bibtex.splitlines():
 			lx = l.strip()
@@ -1798,7 +1852,15 @@ class entries(physbiblioDBSub):
 		return output.strip()
 
 	def rmBibtexACapo(self, bibtex):
-		"""remove returns from bibtex"""
+		"""
+		Remove line breaks in the fields of a bibtex
+
+		Parameters:
+			bibtex: the bibtex to process
+
+		Output:
+			the processed bibtex
+		"""
 		output = ""
 		db = bibtexparser.bibdatabase.BibDatabase()
 		tmp = {}
@@ -1812,7 +1874,20 @@ class entries(physbiblioDBSub):
 			year = None, link = None, comments = None, old_keys = None, crossref = None,
 			exp_paper = None, lecture = None, phd_thesis = None, review = None, proceeding = None, book = None,
 			marks = None, firstdate = None, pubdate = None, noUpdate = None, abstract = None, number = None):
-		"""convert a bibtex into a dictionary, eventually using also additional info"""
+		"""
+		Convert a bibtex into a dictionary, eventually using also additional info
+
+		Mandatory parameter:
+			bibtex: the bibtex string for the entry (more than one is allowed, only one will be considered, see Optional argument>number)
+
+		Optional fields:
+			number (default None, converted to 0): the index of the desired entry in the list of bibtex strings
+			the value for the fields in the database table:
+			bibkey, inspire, arxiv, ads, scholar, doi, isbn, year, link, comments, old_keys, crossref, exp_paper, lecture, phd_thesis, review, proceeding, book, marks, firstdate, pubdate, noUpdate, abstract
+
+		Output:
+			a dictionary with all the field values for self.insert
+		"""
 		data = {}
 		if number is None:
 			number = 0
@@ -1911,17 +1986,45 @@ class entries(physbiblioDBSub):
 		return data
 		
 	def prepareUpdateByKey(self, key_old, key_new):
-		"""get an entry bibtex and prepare an update using the new bibtex from another database entry"""
+		"""
+		Get an entry bibtex and prepare an update, using the new bibtex from another database entry
+
+		Parameters:
+			key_old: the key of the old entry
+			key_new: the key of the new entry
+
+		Output:
+			the output of self.prepareInsert(u)
+		"""
 		u = self.prepareUpdate(self.getField(key_old, "bibtex"), self.getField(key_new, "bibtex"))
 		return self.prepareInsert(u)
 	
 	def prepareUpdateByBibtex(self, key_old, bibtex_new):
-		"""get an entry bibtex and prepare an update using the new given bibtex"""
+		"""
+		Get an entry bibtex and prepare an update, using the new bibtex passed as an argument
+
+		Parameters:
+			key_old: the key of the old entry
+			bibtex_new: the new bibtex
+
+		Output:
+			the output of self.prepareInsert(u)
+		"""
 		u = self.prepareUpdate(self.getEntryField(key_old, "bibtex"), bibtex_new)
 		return self.prepareInsert(u)
 		
 	def prepareUpdate(self, bibtexOld, bibtexNew):
-		"""prepare the update of an entry, comparing two bibtexs"""
+		"""
+		Prepare the update of an entry, comparing two bibtexs.
+		Uses the fields from the old bibtex, adds the ones in the new bibtex and updates the repeated ones
+
+		Parameters:
+			bibtexOld: the old bibtex
+			bibtexNew: the new bibtex
+
+		Output:
+			the joined bibtex
+		"""
 		elementOld = bibtexparser.loads(bibtexOld).entries[0]
 		elementNew = bibtexparser.loads(bibtexNew).entries[0]
 		db = bibtexparser.bibdatabase.BibDatabase()
@@ -1936,7 +2039,17 @@ class entries(physbiblioDBSub):
 		return pbWriter.write(db)
 		
 	def updateInspireID(self, string, key = None, number = None):
-		"""use inspire websearch module to get and update the inspireID"""
+		"""
+		Use inspire websearch module to get and update the inspire ID of an entry
+
+		Parameters:
+			string: the string so be searched
+			key (optional): the bibtex key of the database entry
+			number (optional): the index of the desired element in the list of results
+
+		Output:
+			the id or False if empty
+		"""
 		newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(string, number = number)
 		if key is None:
 			key = string
@@ -1948,7 +2061,18 @@ class entries(physbiblioDBSub):
 			return False
 	
 	def updateField(self, key, field, value, verbose = 1):
-		"""update a single field of an entry"""
+		"""
+		Update a single field of an entry
+
+		Parameters:
+			key: the bibtex key
+			field: the field name
+			value: the new value of the field
+			verbose (int): increase output level
+
+		Output:
+			the output of self.connExec or False if the field is invalid
+		"""
 		if verbose > 0:
 			print("[DB] updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["entries"] and field != "bibkey" \
@@ -1963,7 +2087,16 @@ class entries(physbiblioDBSub):
 			return False
 	
 	def updateBibkey(self, oldKey, newKey):
-		"""update the bibkey of an entry"""
+		"""
+		Update the bibtex key of an entry
+
+		Parameters:
+			oldKey: the old bibtex key
+			newKey: the new bibtex key
+
+		Output:
+			the output of self.connExec or False if some errors occurred
+		"""
 		print("[DB] updating bibkey for entry '%s' into '%s'"%(oldKey, newKey))
 		try:
 			query = "update entries set bibkey=:new where bibkey=:old\n"
@@ -1981,7 +2114,12 @@ class entries(physbiblioDBSub):
 			return False
 			
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
-		"""use inspire OAI webinterface to get updated entries between two dates"""
+		"""
+		Use inspire OAI webinterface to get updated information on the entries between two dates
+
+		Parameters:
+			date1, date2: the two dates defining the time interval to consider
+		"""
 		if date1 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date1):
 			date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
 		if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
@@ -2006,7 +2144,17 @@ class entries(physbiblioDBSub):
 		print("[DB] inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0):
-		"""use inspire OAI to retrieve the info for a single entry"""
+		"""
+		Use inspire OAI to retrieve the info for a single entry
+
+		Parameters:
+			inspireID: the id of the entry in inspires. If is not a number, assume it is the bibtex key
+			bibtex: see physBiblio.webimport.inspireoai.retrieveOAIData
+			verbose: increase level of verbosity
+
+		Output:
+			True if successful, or False if there were errors
+		"""
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
 			inspireID = self.getField(inspireID, "inspire")
 			try:
@@ -2036,16 +2184,25 @@ class entries(physbiblioDBSub):
 							else:
 								self.updateField(key, d, result[o], verbose = 0)
 					except:
-						print("[DB][oai] key error: (%s, %s)"%(o,d))
+						pBErrorManager("[DB][oai] key error: (%s, %s)"%(o,d), traceback, priority = 0)
 			if verbose > 0:
 				print("[DB] inspire OAI info for %s saved."%inspireID)
 		except:
-			pBErrorManager("[DB][oai] something missing in entry %s"%inspireID, traceback)
+			pBErrorManager("[DB][oai] something missing in entry %s"%inspireID, traceback, priority = 1)
 			return False
 		return True
 	
 	def updateFromOAI(self, entry, verbose = 0):
-		"""update entry from inspire OAI. If inspireID is missing, look for it"""
+		"""
+		Update an entry from inspire OAI. If inspireID is missing, look for it before
+
+		Parameters:
+			entry: the inspire ID or an identifier of the entry to consider (also a list is accepted)
+			verbose: increase level of verbosity
+
+		Output:
+			for a single entry, the output of self.updateInfoFromOAI
+		"""
 		if type(entry) is list:
 			for e in entry:
 				self.updateFromOAI(e, verbose = verbose)
@@ -2060,13 +2217,23 @@ class entries(physbiblioDBSub):
 				return self.updateInfoFromOAI(inspireID, verbose = verbose)
 	
 	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
-		"""select unpublished papers and look for updates using inspireOAI"""
+		"""
+		Select unpublished papers and look for updates using inspireOAI
+
+		Parameters:
+			startFrom (default 0): the index in the list of entries where to start updating
+			entries: the list of entries to be considered or None (if None, use self.getAll)
+			force (boolean, default False): force the update also of entries which already have journal information
+
+		Output:
+			num, err, changed: the number of processed entries, the list of errors and of changed entries
+		"""
 		if entries is None:
 			try:
 				entries = self.getAll(saveQuery = False)[startFrom:]
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
-				return 0, 0, []
+				return 0, [], []
 		num = 0
 		err = []
 		changed = []
@@ -2101,6 +2268,19 @@ class entries(physbiblioDBSub):
 		return num, err, changed
 
 	def getFieldsFromArxiv(self, bibkey, fields):
+		"""
+		Use arxiv.org to retrieve more fields for the entry
+
+		Parameters:
+			bibkey: the bibtex key of the entry
+			fields: the fields to be updated using information from arxiv.org
+
+		Output:
+			False or the error message (used in the GUI part) if some error occurred,
+			True if a single entry has been successfully processed
+			or
+			the lists of successfully processed entryes and failures when considering a list
+		"""
 		if type(bibkey) is list:
 			tot = len(bibkey)
 			self.getArxivFieldsFlag = True
@@ -2148,14 +2328,55 @@ class entries(physbiblioDBSub):
 			return "Cannot get and save info from arXiv!\n" + traceback.format_exc()
 
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
-		"""read a list of keywords and look for inspire contents, then load in the database all the info"""
+		"""
+		Read a list of keywords and look for inspire contents, then load in the database all the info
+
+		Parameters:
+			entry: the bibtex key or a list
+			method: "inspire" (default) or any other supported method from the webimport subpackage
+			imposeKey (default None): if a string, the bibtex key to use with the imported entry
+			number (default None): if not None, the index of the wanted entry in the list of results
+			returnBibtex (boolean, default False): whether to return the bibtex of the entry
+			childProcess (boolean, default False): if True, do not reset the self.lastInserted (used when recursively called)
+
+		Output:
+			False if some error occurred, True if successful but returnBibtex is False or entry is not a list, the bibtex field if entry is a single element and returnBibtex is True
+		"""
 		requireAll = False
 		def printExisting(entry, existing):
+			"""
+			Print a message if the entry already exists, returns True or the bibtex field depending on the value of returnBibtex
+
+			Parameters:
+				entry: the entry key
+				existing: the list of dictionaries returned by self.getByBibkey
+
+			Output:
+				the bibtex field if returnBibtex is True, True otherwise
+			"""
 			print("[DB] Already existing: %s\n"%entry)
 			if returnBibtex:
 				return existing[0]["bibtex"]
 			else:
 				return True
+		def returnListIfSub(a, out):
+			"""
+			If the original list contains sublists, return a list with all the elements in the list and each sublist
+
+			Parameters:
+				a: the original list
+				out: the previous output, which will be recursively increased
+
+			Output:
+				the output, increased with the new elements
+			"""
+			if type(a) is list:
+				for el in a:
+					out = returnListIfSub(el, out)
+				return out
+			else:
+				out += [a]
+				return out
 		if not childProcess:
 			self.lastInserted = []
 		if entry is not None and not type(entry) is list:
@@ -2217,14 +2438,6 @@ class entries(physbiblioDBSub):
 				return False
 		elif entry is not None and type(entry) is list:
 			failed = []
-			def returnListIfSub(a, out):
-				if type(a) is list:
-					for el in a:
-						out = returnListIfSub(el, out)
-					return out
-				else:
-					out += [a]
-					return out
 			entry = returnListIfSub(entry, [])
 			self.runningLoadAndInsert = True
 			tot = len(entry)
@@ -2242,18 +2455,35 @@ class entries(physbiblioDBSub):
 				print("[DB] imported entries:\n%s"%", ".join(self.lastInserted))
 			if len(failed) > 0:
 				pBErrorManager("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
+			return True
 		else:
 			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
 			return False
 			
 	def loadAndInsertWithCats(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
-		"""load the entries, then ask for their categories"""
+		"""
+		Load the entries, then ask for their categories. Uses self.loadAndInsert and pBDB.catBib.askCats
+
+		Parameters: see self.loadAndInsert
+		"""
 		self.loadAndInsert(entry, method = method, imposeKey = imposeKey, number = number, returnBibtex = returnBibtex, childProcess = childProcess)
 		pBDB.catBib.askCats(self.lastInserted)
 
 	def importFromBib(self, filename, completeInfo = True):
-		"""read a .bib file and add the entries to the database"""
-		def printExisting(entry, existing):
+		"""
+		Read a .bib file and add the contained entries in the database
+
+		Parameters:
+			filename: the name of the .bib file
+			completeInfo (boolean, default True): use the bibtex key and other fields to look for more information online
+		"""
+		def printExisting(entry):
+			"""
+			Print a message when the entry is already present in the database
+
+			Parameters:
+				entry: the entry key
+			"""
 			print("[DB] Already existing: %s\n"%entry)
 		self.lastInserted = []
 		exist = []
@@ -2275,7 +2505,7 @@ class entries(physbiblioDBSub):
 				print("[DB] %5d / %d (%5.2f%%), processing entry %s"%(ie+1, tot, 100.*(ie+1.)/tot, key))
 				existing = self.getByBibkey(key, saveQuery = False)
 				if existing:
-					printExisting(key, existing)
+					printExisting(key)
 					exist.append(key)
 				elif key.strip() == "":
 					pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n")
@@ -2297,7 +2527,7 @@ class entries(physbiblioDBSub):
 							print("[DB] element successfully inserted.\n")
 							self.lastInserted.append(key)
 						except Exception as err:
-							pBErrorManager("[DB] failed in completing info for entry %s\n"%key)
+							pBErrorManager("[DB] failed in completing info for entry %s\n"%key, priority = 1)
 							print(err)
 							errors.append(key)
 		print("[DB] import completed.\n%d entries processed, of which %d existing, %d successfully inserted and %d errors."%(
