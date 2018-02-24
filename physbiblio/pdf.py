@@ -109,7 +109,7 @@ class localPDF():
 		if osp.exists(olddir):
 			newdir = self.getFileDir(newkey)
 			print("[PDF] Renaming %s to %s"%(olddir, newdir))
-			return os.rename(olddir, newdir)
+			return shutil.move(olddir, newdir)
 		else:
 			return False
 
@@ -236,7 +236,7 @@ class localPDF():
 		Output:
 			boolean (if the arguments are valid) or None (if fileType is bad)
 		"""
-		if fileType in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
 			pBErrorManager("[localPDF] ERROR: invalid argument to checkFile!")
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))

@@ -16,11 +16,12 @@ PhysBiblio depends on several python packages:
 * feedparser (to deal with arXiv data)
 * pymarc (to deal with arXiv data)
 * matplotlib (to do some plots)
+* unittest and unittest.mock (for testing the methods and functions)
 
 Within Ubuntu, you should be able to install all the required packages using:
 ```
 sudo apt install python-pyside pip
-sudo pip install pyoai bibtexparser feedparser pymarc matplotlib
+sudo pip install pyoai bibtexparser feedparser pymarc matplotlib unittest2 mock
 ```
 
 If you want to use `python 3.x`, use instead
