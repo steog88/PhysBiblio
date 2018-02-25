@@ -4,16 +4,18 @@ This module manages the saved PDF files and opens them if required.
 This file is part of the PhysBiblio package.
 """
 import sys, shutil
+import traceback
 if sys.version_info[0] < 3:
-	from urllib2 import urlopen
+	from urllib2 import urlopen, HTTPError
 else:
-	from urllib.request import urlopen
+	from urllib.request import urlopen, HTTPError
 import os.path as osp
 import os
 import subprocess
 
 try:
 	from physbiblio.config import pbConfig
+	from physbiblio.errors import pBErrorManager
 	from physbiblio.database import pBDB
 except ImportError:
 	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -176,17 +178,26 @@ class localPDF():
 		filename = self.getFilePath(key, "arxiv")
 		if osp.exists(filename) and not force:
 			print("[localPDF] There is already a pdf and overwrite not requested.")
-			return
+			return True
 		try:
 			self.createFolder(key)
 			url = pBDB.bibs.getArxivUrl(key, 'pdf')
+			if url is False:
+				print("[localPDF] invalid arXiv PDF url for '%s', probably the field is empty."%key)
+				return False
 			print("[localPDF] Downloading arXiv PDF from %s"%url)
 			response = urlopen(url)
 			with open(filename, 'wb') as newF:
 				newF.write(response.read())
 			print("[localPDF] File saved to %s"%filename)
+		except HTTPError:
+			pBErrorManager("[localPDF] ArXiv PDF for '%s' not found (404 error on url: %s)"%(key, url))
+			return False
 		except:
 			pBErrorManager("[localPDF] Impossible to download the arXiv PDF for '%s'"%key, traceback)
+			return False
+		else:
+			return os.path.exists(filename)
 	
 	def openFile(self, key, arg = None, fileType = None, fileNum = None, fileName = None):
 		"""
@@ -248,14 +259,20 @@ class localPDF():
 		Parameters:
 			key (string): the bibtex key of the entry
 			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+			fileName (optional): specify the file name instead of computing it from the database information
+
+		Output:
+			True if successful, False if exception occurred
 		"""
 		if fileName is None:
 			fileName = self.getFilePath(key, fileType)
 		try:
 			os.remove(fileName)
 			print("[localPDF] file %s removed"%fileName)
+			return True
 		except OSError:
 			pBErrorManager("[localPDF] ERROR: impossible to remove file: %s"%fileName, traceback)
+			return False
 			
 	def getExisting(self, key, fullPath = False):
 		"""

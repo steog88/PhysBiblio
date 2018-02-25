@@ -7,9 +7,9 @@ This file is part of the PhysBiblio package.
 """
 import sys, os, socket, pkgutil, traceback
 if sys.version_info[0] < 3:
-	from urllib2 import Request, urlopen, URLError
+	from urllib2 import Request, urlopen, URLError, HTTPError
 else:
-	from urllib.request import Request, urlopen, URLError
+	from urllib.request import Request, urlopen, URLError, HTTPError
 try:
 	from physbiblio.errors import pBErrorManager
 except ImportError:
@@ -72,6 +72,9 @@ class webInterf():
 			data = response.read()
 		except URLError:
 			pBErrorManager("[%s] -> error in retrieving data from url"%self.name)
+			return None
+		except HTTPError:
+			pBErrorManager("[%s] -> %s not found"%url)
 			return None
 		except socket.timeout:
 			pBErrorManager("[%s] -> timed out"%self.name)

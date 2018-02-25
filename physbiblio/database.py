@@ -1661,6 +1661,9 @@ class entries(physbiblioDBSub):
 		except IndexError:
 			print("[DB] ERROR in getEntryField('%s', '%s'): no element found?"%(key, field))
 			return False
+		except KeyError:
+			print("[DB] ERROR in getEntryField('%s', '%s'): the field is missing?"%(key, field))
+			return False
 
 	def toDataDict(self, key):
 		"""
@@ -1685,7 +1688,7 @@ class entries(physbiblioDBSub):
 			a string
 		"""
 		url = self.getField(key, "doi")
-		return pbConfig.doiUrl + url if url != "" and url is not False else False
+		return pbConfig.doiUrl + url if url != "" and url is not False and url is not None and url is not "" else False
 
 	def getArxivUrl(self, key, urlType = "abs"):
 		"""
@@ -1699,8 +1702,7 @@ class entries(physbiblioDBSub):
 			a string
 		"""
 		url = self.getField(key, "arxiv")
-		url = pbConfig.arxivUrl + urlType + "/" + url if url != "" and url is not False else False
-		return url
+		return pbConfig.arxivUrl + urlType + "/" + url if url != "" and url is not False and url is not None and url is not "" else False
 			
 	def insert(self, data):
 		"""
