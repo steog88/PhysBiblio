@@ -279,8 +279,9 @@ class TestExportMethods(unittest.TestCase):
 		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
 		self.assertFalse(os.path.exists(testBibName))
 		testTexName = os.path.join(pbConfig.path, "tests_%s.tex"%datetime.datetime.today().strftime('%y%m%d'))
-		open(testTexName, "w").write("\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}\n")
-		self.assertEqual(open(testTexName).read(), "\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}\n")
+		texString = "\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+		open(testTexName, "w").write(texString)
+		self.assertEqual(open(testTexName).read(), texString)
 		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		pBDB.catBib.insert = MagicMock(return_value = True)
 		pBDB.bibs.getAll = MagicMock(return_value = sampleList)
@@ -288,8 +289,9 @@ class TestExportMethods(unittest.TestCase):
 			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
 			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
 			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}]])
-		pBDB.bibs.loadAndInsert = MagicMock(return_value = '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}')
+			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+			[]])
+		pBDB.bibs.loadAndInsert = MagicMock(side_effect = ['@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}', ''])
 		pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
 		self.assertTrue(os.path.exists(testBibName))
 		self.assertEqual(open(testBibName).read(), '%file written by PhysBiblio\n@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}\n')
