@@ -11,7 +11,7 @@ configuration_params = [
 	"default": 'data/physbiblio.db',
 	"description": 'Name of the database file',
 	"special": None},
-{"name": "logFile",
+{"name": "logFileName",
 	"default": 'data/params.log',
 	"description": 'Name of the log file',
 	"special": None},

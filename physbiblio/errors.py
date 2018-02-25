@@ -36,7 +36,7 @@ class pBErrorManager():
 				print(trcbk.format_exc())
 
 		try:
-			with open(os.path.join(pbConfig.path, pbConfig.params["logFile"]), "a") as w:
+			with open(os.path.join(pbConfig.path, pbConfig.params["logFileName"]), "a") as w:
 				w.write(message)
 				if trcbk is not None:
 					w.write(trcbk.format_exc())

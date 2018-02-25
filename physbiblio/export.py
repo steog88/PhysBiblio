@@ -6,8 +6,10 @@ This file is part of the PhysBiblio package.
 import os, codecs, re
 import bibtexparser
 import shutil
+import traceback
 try:
 	from physbiblio.errors import pBErrorManager
+	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
@@ -22,7 +24,7 @@ class pbExport():
 		Initialize the class instance and set some default variables.
 		"""
 		self.exportForTexFlag = True
-		self.backupextension = ".bck"
+		self.backupExtension = ".bck"
 
 	def backupCopy(self, fileName):
 		"""
@@ -32,7 +34,7 @@ class pbExport():
 			fileName: the name of the file to be backed up
 		"""
 		if os.path.isfile(fileName):
-			shutil.copy2(fileName, fileName + self.backupextension)
+			shutil.copy2(fileName, fileName + self.backupExtension)
 
 	def restoreBackupCopy(self, fileName):
 		"""
@@ -41,8 +43,8 @@ class pbExport():
 		Parameters:
 			fileName: the name of the file to be restore
 		"""
-		if os.path.isfile(fileName + self.backupextension):
-			shutil.copy2(fileName + self.backupextension, fileName)
+		if os.path.isfile(fileName + self.backupExtension):
+			shutil.copy2(fileName + self.backupExtension, fileName)
 
 	def rmBackupCopy(self, fileName):
 		"""
@@ -51,8 +53,8 @@ class pbExport():
 		Parameters:
 			fileName: the name of the file of which the backup should be deleted
 		"""
-		if os.path.isfile(fileName + self.backupextension):
-			os.remove(fileName + self.backupextension)
+		if os.path.isfile(fileName + self.backupExtension):
+			os.remove(fileName + self.backupExtension)
 
 	def exportLast(self, fileName):
 		"""

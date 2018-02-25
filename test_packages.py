@@ -16,17 +16,18 @@ else:
 try:
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.pdf import pBPDF
-	from physbiblio.database import pBDB
+	from physbiblio.export import pBExport
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-skipLongTests = False
-skipOnlineTests = False
+skipLongTests = True
+skipOnlineTests = True
 
 def test_pBErrorManager():
 	"""
@@ -47,7 +48,7 @@ def test_pBErrorManager():
 		pBErrorManager(str(e), traceback, priority = 2)
 	print("Done!")
 
-@unittest.skipIf(skipOnlineTests, "Long tests")
+@unittest.skipIf(skipOnlineTests, "Online tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that import entries from the web.
@@ -174,19 +175,20 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_manageFiles(self):
 		"""Test creation, copy and deletion of files and folders"""
+		emptyPdfName = os.path.join(pBPDF.pdfDir, "tests_%s.pdf"%datetime.datetime.today().strftime('%y%m%d'))
 		pBPDF.createFolder("abc.def")
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.def")))
 		pBPDF.renameFolder("abc.def", "abc.fed")
 		self.assertFalse(os.path.exists(pBPDF.getFileDir("abc.def")))
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
-		open(os.path.join(pBPDF.pdfDir, "empty.pdf"), 'a').close()
+		open(emptyPdfName, 'a').close()
 		pBDB.bibs.getField = MagicMock(return_value="12345678")
-		pBPDF.copyNewFile("abc.fed", os.path.join(pBPDF.pdfDir, "empty.pdf"), "arxiv")
-		pBPDF.copyNewFile("abc.fed", os.path.join(pBPDF.pdfDir, "empty.pdf"),
+		pBPDF.copyNewFile("abc.fed", emptyPdfName, "arxiv")
+		pBPDF.copyNewFile("abc.fed", emptyPdfName,
 			customName = "empty.pdf")
 		self.assertTrue(os.path.exists(pBPDF.getFilePath("abc.fed", "arxiv")))
-		os.remove(os.path.join(pBPDF.pdfDir, "empty.pdf"))
-		self.assertFalse(os.path.exists(os.path.join(pBPDF.pdfDir, "empty.pdf")))
+		os.remove(emptyPdfName)
+		self.assertFalse(os.path.exists(emptyPdfName))
 		pBPDF.copyToDir(pBPDF.pdfDir, "abc.fed", "arxiv")
 		self.assertTrue(os.path.exists(os.path.join(pBPDF.pdfDir, "12345678.pdf")))
 		self.assertTrue(pBPDF.removeFile("abc.fed", "arxiv"))
@@ -227,23 +229,90 @@ class TestPdfMethods(unittest.TestCase):
 		self.assertFalse(os.path.exists(pBPDF.getFileDir("ghi")))
 		shutil.rmtree(pBPDF.pdfDir)
 
+@unittest.skipIf(skipLongTests, "Long tests")
+class TestExportMethods(unittest.TestCase):
+	def test_backup(self):
+		emptyFileName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		if os.path.exists(emptyFileName): os.remove(emptyFileName)
+		if os.path.exists(emptyFileName + pBExport.backupExtension): os.remove(emptyFileName + pBExport.backupExtension)
+		pBExport.backupCopy(emptyFileName)
+		self.assertFalse(os.path.exists(emptyFileName))
+		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
+		open(emptyFileName, 'a').close()
+		pBExport.backupCopy(emptyFileName)
+		self.assertTrue(os.path.exists(emptyFileName + pBExport.backupExtension))
+		os.remove(emptyFileName)
+		self.assertFalse(os.path.exists(emptyFileName))
+		pBExport.restoreBackupCopy(emptyFileName)
+		self.assertTrue(os.path.exists(emptyFileName))
+		os.remove(emptyFileName)
+		pBExport.rmBackupCopy(emptyFileName)
+		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
+
+	def test_offlineExports(self):
+		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
+		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
+		pBDB.bibs.lastFetched = sampleList
+		pBExport.exportLast(testBibName)
+		self.assertEqual(open(testBibName).read(), sampleTxt)
+		os.remove(testBibName)
+
+		pBDB.bibs.getAll = MagicMock(return_value = sampleList)
+		pBExport.exportAll(testBibName)
+		self.assertEqual(open(testBibName).read(), sampleTxt)
+		os.remove(testBibName)
+
+		sampleList = [{"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="{yes}",\n}'}]
+		sampleTxt = '@Article{empty2,\nauthor="me2",\ntitle="{yes}",\n}\n'
+		pBExport.exportSelected(testBibName, sampleList)
+		self.assertEqual(open(testBibName).read(), sampleTxt)
+
+		pBDB.bibs.getByBibkey = MagicMock(return_value = [{"bibtexDict": {"ID": "empty2", "ENTRYTYPE": "Article", "author": "me et al", "title": "yes"}}])
+		pBExport.updateExportedBib(testBibName, overwrite = True)
+		self.assertEqual(open(testBibName).read().replace(" ","").replace("\n",""),
+			 sampleTxt.replace("me2", 'me et al').replace(" ","").replace("\n",""))
+		pBExport.rmBackupCopy(testBibName)
+		os.remove(testBibName)
+
+	def test_exportForTexFile(self):
+		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		self.assertFalse(os.path.exists(testBibName))
+		testTexName = os.path.join(pbConfig.path, "tests_%s.tex"%datetime.datetime.today().strftime('%y%m%d'))
+		open(testTexName, "w").write("\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}\n")
+		self.assertEqual(open(testTexName).read(), "\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}\n")
+		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
+		pBDB.catBib.insert = MagicMock(return_value = True)
+		pBDB.bibs.getAll = MagicMock(return_value = sampleList)
+		pBDB.bibs.getByBibkey = MagicMock(side_effect = [
+			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
+			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
+			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}]])
+		pBDB.bibs.loadAndInsert = MagicMock(return_value = '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}')
+		pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
+		self.assertTrue(os.path.exists(testBibName))
+		self.assertEqual(open(testBibName).read(), '%file written by PhysBiblio\n@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}\n')
+		os.remove(testBibName)
+		os.remove(testTexName)
+
 class TestBuilding(unittest.TestCase):
 	def test_new(self):
 		pass
 
-
 if __name__=='__main__':
-	pbConfig.params["logFile"] = "test_packages.log"
-	logFileName = os.path.join(pbConfig.path, pbConfig.params["logFile"])
+	pbConfig.params["logFileName"] = "test_packages.log"
+	logFileName = os.path.join(pbConfig.path, pbConfig.params["logFileName"])
 	os.remove(logFileName) if os.path.exists(logFileName) else None
 	try:
 		test_pBErrorManager()
 	except:
 		print("#"*40 + "\nException encountered during execution!\n" + "#"*40)
 		print(traceback.format_exc())
-		print("Please read the traceback and try to discover what went wrong.")
-		print("To get support, you may open an issue here: https://github.com/steog88/physBiblio/issues\n" + "#"*40)
 	else:
 		print("\nStarting tests...\n")
-		unittest.main()
-		print("#"*20 + "\nAll the tests were completed!\n" + "#"*20)
+		try:
+			unittest.main()
+		except:#just to be able to exec operations after unittest.main()
+			os.remove(logFileName)
+			print("#"*29 + "\nAll the tests were completed!\nSee above for the output.\n" + "#"*29)
