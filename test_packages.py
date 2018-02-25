@@ -47,7 +47,7 @@ def test_pBErrorManager():
 		pBErrorManager(str(e), traceback, priority = 2)
 	print("Done!")
 
-# @unittest.skipIf(skipOnlineTests, "Long tests")
+@unittest.skipIf(skipOnlineTests, "Long tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that import entries from the web.
@@ -56,6 +56,7 @@ class TestWebImportMethods(unittest.TestCase):
 	Tests also pbWriter._entry_to_bibtex using the other functions
 	"""
 	def test_methods_success(self):
+		"""Test webimport with known results"""
 		print(physBiblioWeb.webSearch.keys())
 		tests = {
 			"arxiv": ["1507.08204", """@Article{1507.08204,
@@ -125,8 +126,28 @@ with a summary of future perspectives.}",
 				self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())
 		self.assertEqual(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]), u'1385583')
 
+	def test_methods_insuccess(self):
+		"""Test webimport using missing and/or invalid identifiers"""
+		print(physBiblioWeb.webSearch.keys())
+		tests = {
+			"arxiv": ["1801.15000", ""],
+			"doi": ["10.1088/9999-3899/43/a/033001", ""],
+			"inspire": ["Gariazzo:2014rra", ""],
+			"isbn": ["978019850871a", ""],
+			}
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1110620"), {'doi': None, 'isbn': None, 'ads': None, 'pubdate': None, 'firstdate': None, 'journal': None, 'arxiv': None, 'id': '1110620', 'volume': None, 'bibtex': None, 'year': None, 'oldkeys': '', 'bibkey': None, 'pages': None})
+		self.assertFalse(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("9999999"))
+		for method, strings in tests.items():
+			print(method)
+			res=physBiblioWeb.webSearch[method].retrieveUrlFirst(strings[0])
+			print res
+			self.assertEqual(res.strip(), strings[1].strip())
+			self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())
+		self.assertEqual(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]), "")
+
 	@unittest.skipIf(skipOnlineTests or skipLongTests, "Long tests")
 	def test_inspireoai(self):
+		"""test retrieve daily data from inspireOAI"""
 		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
 		date2 = datetime.date.today().strftime("%Y-%m-%d")
 		yren, monen, dayen = date1.split('-')
@@ -137,7 +158,11 @@ with a summary of future perspectives.}",
 
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestPdfMethods(unittest.TestCase):
+	"""
+	Test the methods and functions in the pdf module
+	"""
 	def test_fnames(self):
+		"""Test names of folders and directories"""
 		self.assertEqual(pBPDF.badFName(r'a\b/c:d*e?f"g<h>i|' + "j'"),
 			"a_b_c_d_e_f_g_h_i_j_")
 		self.assertEqual(pBPDF.getFileDir(r'a\b/c:d*e?f"g<h>i|' + "j'"),
@@ -147,7 +172,8 @@ class TestPdfMethods(unittest.TestCase):
 		self.assertEqual(pBPDF.getFilePath("abc.def", "arxiv"),
 			os.path.join(testPaperFolder, "12345678.pdf"))
 
-	def test_createFolder(self):
+	def test_manageFiles(self):
+		"""Test creation, copy and deletion of files and folders"""
 		pBPDF.createFolder("abc.def")
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.def")))
 		pBPDF.renameFolder("abc.def", "abc.fed")
@@ -170,6 +196,7 @@ class TestPdfMethods(unittest.TestCase):
 
 	@unittest.skipIf(skipOnlineTests, "Long tests")
 	def test_download(self):
+		"""Test downloadArxiv"""
 		pBDB.bibs.getField = MagicMock(return_value="1507.08204")
 		self.assertTrue(pBPDF.downloadArxiv("abc.def"))
 		self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
@@ -188,6 +215,7 @@ class TestPdfMethods(unittest.TestCase):
 		shutil.rmtree(pBPDF.getFileDir("abc.def"))
 
 	def test_removeSpare(self):
+		"""Test finding spare folders"""
 		pBDB.bibs.getAll = MagicMock(return_value=[{"bibkey":"abc"}, {"bibkey":"def"}])
 		pBPDF.pdfDir = os.path.join(pbConfig.path, "tmppdf")
 		for q in ["abc", "def", "ghi"]:
@@ -202,6 +230,7 @@ class TestPdfMethods(unittest.TestCase):
 class TestBuilding(unittest.TestCase):
 	def test_new(self):
 		pass
+
 
 if __name__=='__main__':
 	pbConfig.params["logFile"] = "test_packages.log"
