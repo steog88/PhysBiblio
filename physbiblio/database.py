@@ -182,25 +182,26 @@ class physbiblioDB():
 			del self.utils
 		except:
 			pass
-		self.utils = utilities()
-		self.bibs = entries()
-		self.cats = categories()
-		self.exps = experiments()
-		self.bibExp = entryExps()
-		self.catBib = catsEntries()
-		self.catExp = catsExps()
+		self.utils = utilities(self)
+		self.bibs = entries(self)
+		self.cats = categories(self)
+		self.exps = experiments(self)
+		self.bibExp = entryExps(self)
+		self.catBib = catsEntries(self)
+		self.catExp = catsExps(self)
 
 pBDB=physbiblioDB()
 
 class physbiblioDBSub():
 	"""
-	Uses physbiblioDB instance 'pBDB' to act on the database.
+	Uses physbiblioDB instance 'self.mainDB = parent' to act on the database.
 	All the subcategories of physbiblioDB are defined starting from this one.
 	"""
-	def __init__(self):
+	def __init__(self, parent):
 		"""
-		Initialize DB class, connecting to the main physbiblioDB instance (pBDB).
+		Initialize DB class, connecting to the main physbiblioDB instance (parent).
 		"""
+		self.mainDB = parent
 		#structure of the tables
 		self.tableFields = physbiblio.tablesDef.tableFields
 		#names of the columns
@@ -208,36 +209,36 @@ class physbiblioDBSub():
 		for q in self.tableFields.keys():
 			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
 
-		self.conn = pBDB.conn
-		self.curs = pBDB.curs
-		self.dbname = pBDB.dbname
+		self.conn = self.mainDB.conn
+		self.curs = self.mainDB.curs
+		self.dbname = self.mainDB.dbname
 
 		self.lastFetched = None
 		self.catsHier = None
 
 	def closeDB(self):
 		"""
-		Close the database (using pBDB.close)
+		Close the database (using physbiblioDB.close)
 		"""
-		pBDB.closeDB()
+		self.mainDB.closeDB()
 
 	def commit(self):
 		"""
-		Commit the changes (using pBDB.commit)
+		Commit the changes (using physbiblioDB.commit)
 		"""
-		pBDB.commit()
+		self.mainDB.commit()
 
 	def connExec(self,query,data=None):
 		"""
-		Execute connection (see pBDB.connExec)
+		Execute connection (see physbiblioDB.connExec)
 		"""
-		return pBDB.connExec(query, data = data)
+		return self.mainDB.connExec(query, data = data)
 
 	def cursExec(self,query,data=None):
 		"""
-		Execute cursor (see pBDB.cursExec)
+		Execute cursor (see physbiblioDB.cursExec)
 		"""
-		return pBDB.cursExec(query, data = data)
+		return self.mainDB.cursExec(query, data = data)
 
 class categories(physbiblioDBSub):
 	"""
@@ -539,7 +540,7 @@ class categories(physbiblioDBSub):
 				""", (idExp,))
 		return self.curs.fetchall()
 
-pBDB.cats = categories()
+pBDB.cats = categories(pBDB)
 
 class catsEntries(physbiblioDBSub):
 	"""
@@ -673,7 +674,7 @@ class catsEntries(physbiblioDBSub):
 			except:
 				print("[DB] something failed in reading your input")
 
-pBDB.catBib = catsEntries()
+pBDB.catBib = catsEntries(pBDB)
 
 class catsExps(physbiblioDBSub):
 	"""
@@ -792,7 +793,7 @@ class catsExps(physbiblioDBSub):
 			except:
 				print("[DB] something failed in reading your input")
 
-pBDB.catExp = catsExps()
+pBDB.catExp = catsExps(pBDB)
 
 class entryExps(physbiblioDBSub):
 	"""
@@ -850,8 +851,8 @@ class entryExps(physbiblioDBSub):
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
 						{"idExp": idExp, "bibkey": key}):
-					for c in pBDB.cats.getByExp(idExp):
-						pBDB.catBib.insert(c["idCat"],key)
+					for c in self.mainDB.cats.getByExp(idExp):
+						self.mainDB.catBib.insert(c["idCat"],key)
 			else:
 				print("[DB] entryExp already present: (%d, %s)"%(idExp, key))
 				return False
@@ -928,7 +929,7 @@ class entryExps(physbiblioDBSub):
 			except:
 				print("[DB] something failed in reading your input")
 
-pBDB.bibExp = entryExps()
+pBDB.bibExp = entryExps(pBDB)
 
 class experiments(physbiblioDBSub):
 	"""
@@ -1082,9 +1083,9 @@ class experiments(physbiblioDBSub):
 			sp (string): the spacing
 			withDesc (boolean, default False): whether to print the description
 		"""
-		cats = pBDB.cats.getAll()
+		cats = self.mainDB.cats.getAll()
 		exps = self.getAll()
-		catsHier = pBDB.cats.getHier(cats, startFrom = startFrom)
+		catsHier = self.mainDB.cats.getHier(cats, startFrom = startFrom)
 		showCat = {}
 		for c in cats:
 			showCat[c["idCat"]] = False
@@ -1118,7 +1119,7 @@ class experiments(physbiblioDBSub):
 			decorated.sort()
 			return [ x[1]["idExp"] for x in decorated ]
 		expCats = {}
-		for (a, idE, idC) in pBDB.catExp.getAll():
+		for (a, idE, idC) in self.mainDB.catExp.getAll():
 			if idC not in expCats.keys():
 				expCats[idC] = []
 				showCat[idC] = True
@@ -1257,17 +1258,17 @@ class experiments(physbiblioDBSub):
 				""", (key, ))
 		return self.curs.fetchall()
 
-pBDB.exps = experiments()
+pBDB.exps = experiments(pBDB)
 
 class entries(physbiblioDBSub):
 	"""
 	Functions to manage the bibtex entries
 	"""
-	def __init__(self):
+	def __init__(self, parent):
 		"""
 		Call parent __init__ and create an empty lastFetched & c.
 		"""
-		physbiblioDBSub.__init__(self)
+		physbiblioDBSub.__init__(self, parent)
 		self.lastFetched = []
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
@@ -2464,12 +2465,12 @@ class entries(physbiblioDBSub):
 			
 	def loadAndInsertWithCats(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""
-		Load the entries, then ask for their categories. Uses self.loadAndInsert and pBDB.catBib.askCats
+		Load the entries, then ask for their categories. Uses self.loadAndInsert and self.mainDB.catBib.askCats
 
 		Parameters: see self.loadAndInsert
 		"""
 		self.loadAndInsert(entry, method = method, imposeKey = imposeKey, number = number, returnBibtex = returnBibtex, childProcess = childProcess)
-		pBDB.catBib.askCats(self.lastInserted)
+		self.mainDB.catBib.askCats(self.lastInserted)
 
 	def importFromBib(self, filename, completeInfo = True):
 		"""
@@ -2521,7 +2522,7 @@ class entries(physbiblioDBSub):
 						pBErrorManager("[DB] failed in inserting entry %s\n"%key)
 						errors.append(key)
 					else:
-						pBDB.catBib.insert(pbConfig.params["defaultCategories"], key)
+						self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
 						try:
 							if completeInfo:
 								eid = self.updateInspireID(key)
@@ -2850,7 +2851,7 @@ class entries(physbiblioDBSub):
 		print("\n[DB] %d entries changed"%len(changed))
 		return num, err, changed
 
-pBDB.bibs = entries()
+pBDB.bibs = entries(pBDB)
 
 class utilities(physbiblioDBSub):
 	"""
@@ -2874,13 +2875,13 @@ class utilities(physbiblioDBSub):
 					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 
-		bibkeys = [ e["bibkey"] for e in pBDB.bibs.getAll(saveQuery = False) ]
-		idCats  = [ e["idCat"]  for e in pBDB.cats.getAll() ]
-		idExps  = [ e["idExp"]  for e in pBDB.exps.getAll() ]
+		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.getAll(saveQuery = False) ]
+		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
+		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
 		
-		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in pBDB.bibExp.getAll()], pBDB.bibExp.delete)
-		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in pBDB.catBib.getAll()], pBDB.catBib.delete)
-		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in pBDB.catExp.getAll()], pBDB.catExp.delete)
+		deletePresent(bibkeys, idExps, [ [e["bibkey"], e["idExp"]] for e in self.mainDB.bibExp.getAll()], self.mainDB.bibExp.delete)
+		deletePresent(idCats, bibkeys, [ [e["idCat"], e["bibkey"]] for e in self.mainDB.catBib.getAll()], self.mainDB.catBib.delete)
+		deletePresent(idCats, idExps,  [ [e["idCat"], e["idExp"]]  for e in self.mainDB.catExp.getAll()], self.mainDB.catExp.delete)
 	
 	def cleanAllBibtexs(self, verbose = 0):
 		"""
@@ -2889,7 +2890,7 @@ class utilities(physbiblioDBSub):
 		Parameters:
 			verbose: print more messages
 		"""
-		b = pBDB.bibs
+		b = self.mainDB.bibs
 		for e in b.getAll():
 			t = e["bibtex"]
 			t = b.rmBibtexComments(t)
@@ -2897,7 +2898,7 @@ class utilities(physbiblioDBSub):
 			t = b.rmBibtexACapo(t)
 			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
 
-pBDB.utils = utilities()
+pBDB.utils = utilities(pBDB)
 
 def catString(idCat, withDesc = False):
 	"""
@@ -2931,11 +2932,17 @@ def cats_alphabetical(listId):
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]
 
-def dbStats():
-	pBDB.stats={}
-	pBDB.stats["bibs"] = len(pBDB.bibs.getAll())
-	pBDB.stats["cats"] = len(pBDB.cats.getAll())
-	pBDB.stats["exps"] = len(pBDB.exps.getAll())
-	pBDB.stats["catBib"] = len(pBDB.catBib.getAll())
-	pBDB.stats["catExp"] = len(pBDB.catExp.getAll())
-	pBDB.stats["bibExp"] = len(pBDB.bibExp.getAll())
+def dbStats(db):
+	"""
+	Get statistics on the number of entries in the various database tables
+	
+	Parameters:
+		db: the database (instance of physbiblioDB)
+	"""
+	db.stats={}
+	db.stats["bibs"] = len(db.bibs.getAll())
+	db.stats["cats"] = len(db.cats.getAll())
+	db.stats["exps"] = len(db.exps.getAll())
+	db.stats["catBib"] = len(db.catBib.getAll())
+	db.stats["catExp"] = len(db.catExp.getAll())
+	db.stats["bibExp"] = len(db.bibExp.getAll())

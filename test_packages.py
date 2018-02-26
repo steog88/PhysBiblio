@@ -17,7 +17,7 @@ else:
 try:
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB
+	from physbiblio.database import pBDB, physbiblioDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.pdf import pBPDF
 	from physbiblio.export import pBExport
@@ -28,8 +28,17 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-skipLongTests = False
-skipOnlineTests = False
+skipLongTests = True
+skipOnlineTests = True
+
+today_ymd = datetime.datetime.today().strftime('%y%m%d')
+
+#reload DB using a temporary DB file, will be removed at the end 
+global pBDB
+tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
+pBDB.closeDB()
+pBDB = physbiblioDB(tempDBName)
+pBDB.loadSubClasses()
 
 def test_pBErrorManager():
 	"""
@@ -177,7 +186,7 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_manageFiles(self):
 		"""Test creation, copy and deletion of files and folders"""
-		emptyPdfName = os.path.join(pBPDF.pdfDir, "tests_%s.pdf"%datetime.datetime.today().strftime('%y%m%d'))
+		emptyPdfName = os.path.join(pBPDF.pdfDir, "tests_%s.pdf"%today_ymd)
 		pBPDF.createFolder("abc.def")
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.def")))
 		pBPDF.renameFolder("abc.def", "abc.fed")
@@ -221,7 +230,7 @@ class TestPdfMethods(unittest.TestCase):
 	def test_removeSpare(self):
 		"""Test finding spare folders"""
 		pBDB.bibs.getAll = MagicMock(return_value=[{"bibkey":"abc"}, {"bibkey":"def"}])
-		pBPDF.pdfDir = os.path.join(pbConfig.path, "tmppdf")
+		pBPDF.pdfDir = os.path.join(pbConfig.path, "tmppdf_%s"%today_ymd)
 		for q in ["abc", "def", "ghi"]:
 			pBPDF.createFolder(q)
 			self.assertTrue(os.path.exists(pBPDF.getFileDir(q)))
@@ -234,7 +243,7 @@ class TestPdfMethods(unittest.TestCase):
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestExportMethods(unittest.TestCase):
 	def test_backup(self):
-		emptyFileName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		emptyFileName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		if os.path.exists(emptyFileName): os.remove(emptyFileName)
 		if os.path.exists(emptyFileName + pBExport.backupExtension): os.remove(emptyFileName + pBExport.backupExtension)
 		self.assertFalse(pBExport.backupCopy(emptyFileName))
@@ -254,7 +263,7 @@ class TestExportMethods(unittest.TestCase):
 		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 
 	def test_offlineExports(self):
-		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
 		pBDB.bibs.lastFetched = sampleList
@@ -280,9 +289,9 @@ class TestExportMethods(unittest.TestCase):
 		os.remove(testBibName)
 
 	def test_exportForTexFile(self):
-		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
+		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		self.assertFalse(os.path.exists(testBibName))
-		testTexName = os.path.join(pbConfig.path, "tests_%s.tex"%datetime.datetime.today().strftime('%y%m%d'))
+		testTexName = os.path.join(pbConfig.path, "tests_%s.tex"%today_ymd)
 		texString = "\cite{empty}\citep{empty2}\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
 		open(testTexName, "w").write(texString)
 		self.assertEqual(open(testTexName).read(), texString)
@@ -341,4 +350,5 @@ if __name__=='__main__':
 			unittest.main()
 		except:#just to be able to exec operations after unittest.main()
 			os.remove(logFileName)
+			os.remove(tempDBName)
 			print("#"*29 + "\nAll the tests were completed!\nSee above for the output.\n" + "#"*29)

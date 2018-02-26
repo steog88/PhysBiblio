@@ -462,7 +462,7 @@ class MainWindow(QMainWindow):
 		"""
 		Function to show About Box
 		"""
-		dbStats()
+		dbStats(pBDB)
 		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
 		QMessageBox.about(self, "PhysBiblio database statistics",
 			"The PhysBiblio database currently contains the following number of records:\n"+
