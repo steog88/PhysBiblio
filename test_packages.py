@@ -5,6 +5,7 @@ Test file for the packages in the PhysBiblio application, a bibliography manager
 This file is part of the PhysBiblio package.
 """
 import sys, datetime, traceback, os
+from stat import S_IREAD, S_IRGRP, S_IROTH
 import shutil
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -236,18 +237,20 @@ class TestExportMethods(unittest.TestCase):
 		emptyFileName = os.path.join(pbConfig.path, "tests_%s.bib"%datetime.datetime.today().strftime('%y%m%d'))
 		if os.path.exists(emptyFileName): os.remove(emptyFileName)
 		if os.path.exists(emptyFileName + pBExport.backupExtension): os.remove(emptyFileName + pBExport.backupExtension)
-		pBExport.backupCopy(emptyFileName)
+		self.assertFalse(pBExport.backupCopy(emptyFileName))
 		self.assertFalse(os.path.exists(emptyFileName))
 		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 		open(emptyFileName, 'a').close()
-		pBExport.backupCopy(emptyFileName)
+		self.assertTrue(pBExport.backupCopy(emptyFileName))
 		self.assertTrue(os.path.exists(emptyFileName + pBExport.backupExtension))
 		os.remove(emptyFileName)
 		self.assertFalse(os.path.exists(emptyFileName))
-		pBExport.restoreBackupCopy(emptyFileName)
+		self.assertTrue(pBExport.restoreBackupCopy(emptyFileName))
 		self.assertTrue(os.path.exists(emptyFileName))
+		os.chmod(emptyFileName, S_IREAD)
+		self.assertFalse(pBExport.restoreBackupCopy(emptyFileName))
 		os.remove(emptyFileName)
-		pBExport.rmBackupCopy(emptyFileName)
+		self.assertTrue(pBExport.rmBackupCopy(emptyFileName))
 		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 
 	def test_offlineExports(self):

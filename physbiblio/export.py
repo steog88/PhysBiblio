@@ -34,7 +34,14 @@ class pbExport():
 			fileName: the name of the file to be backed up
 		"""
 		if os.path.isfile(fileName):
-			shutil.copy2(fileName, fileName + self.backupExtension)
+			try:
+				shutil.copy2(fileName, fileName + self.backupExtension)
+			except IOError:
+				pBErrorManager("[export] Cannot write backup file.\nCheck the folder permissions.",  traceback)
+				return False
+			else:
+				return True
+		return False
 
 	def restoreBackupCopy(self, fileName):
 		"""
@@ -44,7 +51,14 @@ class pbExport():
 			fileName: the name of the file to be restore
 		"""
 		if os.path.isfile(fileName + self.backupExtension):
-			shutil.copy2(fileName + self.backupExtension, fileName)
+			try:
+				shutil.copy2(fileName + self.backupExtension, fileName)
+			except IOError:
+				pBErrorManager("[export] Cannot restore backup file.\nCheck the file permissions.",  traceback)
+				return False
+			else:
+				return True
+		return False
 
 	def rmBackupCopy(self, fileName):
 		"""
@@ -54,7 +68,14 @@ class pbExport():
 			fileName: the name of the file of which the backup should be deleted
 		"""
 		if os.path.isfile(fileName + self.backupExtension):
-			os.remove(fileName + self.backupExtension)
+			try:
+				os.remove(fileName + self.backupExtension)
+			except IOError:
+				pBErrorManager("[export] Cannot remove backup file.\nCheck the file permissions.",  traceback)
+				return False
+			else:
+				return True
+		return True
 
 	def exportLast(self, fileName):
 		"""
@@ -135,6 +156,9 @@ class pbExport():
 			outFileName: the name of the output file, where the required entries will be added
 			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
 			autosave (boolean, default True): if True, the changes to the database are automatically saved.
+
+		Output:
+			True if successful, False if errors occurred
 		"""
 		self.exportForTexFlag = True
 		print("[export] reading keys from '%s'"%texFileName)
@@ -143,10 +167,17 @@ class pbExport():
 			print("[export] I will automatically save the changes at the end!")
 
 		if overwrite:
-			with open(outFileName, "w") as o:
-				o.write("%file written by PhysBiblio\n")
+			try:
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n")
+			except IOError:
+				pBErrorManager("[export] Cannot write on file.\nCheck the file permissions.",  traceback)
 
-		existingBib = open(outFileName, "r").read()
+		try:
+			existingBib = open(outFileName, "r").read()
+		except IOError:
+			pBErrorManager("[export] Cannot read file %s."%outFileName,  traceback)
+			return False
 
 		if type(texFileName) is list:
 			if len(texFileName) == 0:
@@ -190,8 +221,12 @@ class pbExport():
 				pBErrorManager("[export] ERROR: impossible to write file '%s'"%outFileName, traceback)
 
 		keyscont=""
-		with open(texFileName) as r:
-			keyscont += r.read()
+		try:
+			with open(texFileName) as r:
+				keyscont += r.read()
+		except IOError:
+			pBErrorManager("[export] The file %s does not exist."%texFileName, traceback)
+			return False
 
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
 
@@ -280,11 +315,18 @@ class pbExport():
 		Parameters:
 			fileName: the name of the considered bibtex file
 			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
+
+		Output:
+			True if successful, False if errors occurred
 		"""
 		self.backupCopy(fileName)
 		bibfile=""
-		with open(fileName) as r:
-			bibfile += r.read()
+		try:
+			with open(fileName) as r:
+				bibfile += r.read()
+		except IOError:
+			pBErrorManager("[export] Cannot write on file.\nCheck the file permissions.",  traceback)
+			return False
 		try:
 			biblist = bibtexparser.loads(bibfile)
 		except IndexError:
@@ -306,6 +348,7 @@ class pbExport():
 		except Exception:
 			pBErrorManager("[export] problems in exporting .bib file!", traceback)
 			self.restoreBackupCopy(fileName)
+			return False
 		if overwrite:
 			self.rmBackupCopy(fileName)
 		return True
