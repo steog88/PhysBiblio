@@ -20,14 +20,15 @@ try:
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.pdf import pBPDF
 	from physbiblio.export import pBExport
+	from physbiblio.view import pBView
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-skipLongTests = True
-skipOnlineTests = True
+skipLongTests = False
+skipOnlineTests = False
 
 def test_pBErrorManager():
 	"""
@@ -297,6 +298,26 @@ class TestExportMethods(unittest.TestCase):
 		self.assertEqual(open(testBibName).read(), '%file written by PhysBiblio\n@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}\n')
 		os.remove(testBibName)
 		os.remove(testTexName)
+
+@unittest.skipIf(skipLongTests, "Long tests")
+class TestViewMethods(unittest.TestCase):
+	def test_printLink(self):
+		pBDB.bibs.getField = MagicMock(side_effect = [
+			'1507.08204', '', '', '1507.08204', #test "arxiv"
+			'', '10.1088/0954-3899/43/3/033001', '', '10.1088/0954-3899/43/3/033001', #test "doi"
+			'', '', '1385583', #test "inspire", inspire ID present
+			'1507.08204', '', '', #test "inspire", inspire ID not present, arxiv present
+			'', '', False, #test "inspire", inspire ID not present, arxiv not present
+			'', '', '', #test "arxiv", no info
+			'', '', '', #test "doi", no info
+			])
+		self.assertEqual(pBView.printLink("a", "arxiv"), "http://arxiv.org/abs/1507.08204")
+		self.assertEqual(pBView.printLink("a", "doi"), "http://dx.doi.org/10.1088/0954-3899/43/3/033001")
+		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/record/1385583")
+		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+1507.08204")
+		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
+		self.assertFalse(pBView.printLink("a", "arxiv"))
+		self.assertFalse(pBView.printLink("a", "doi"))
 
 class TestBuilding(unittest.TestCase):
 	def test_new(self):
