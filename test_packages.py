@@ -30,15 +30,14 @@ except Exception:
 
 skipLongTests = True
 skipOnlineTests = True
+skipDBTests = False
 
 today_ymd = datetime.datetime.today().strftime('%y%m%d')
 
 #reload DB using a temporary DB file, will be removed at the end 
 global pBDB
 tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
-pBDB.closeDB()
 pBDB = physbiblioDB(tempDBName)
-pBDB.loadSubClasses()
 
 def test_pBErrorManager():
 	"""
@@ -330,6 +329,36 @@ class TestViewMethods(unittest.TestCase):
 		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
 		self.assertFalse(pBView.printLink("a", "arxiv"))
 		self.assertFalse(pBView.printLink("a", "doi"))
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseMain(unittest.TestCase):
+	def test_new(self):
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseLinks(unittest.TestCase):
+	def test_new(self):
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseExperiments(unittest.TestCase):
+	def test_new(self):
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseCategories(unittest.TestCase):
+	def test_new(self):
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseEntries(unittest.TestCase):
+	def test_new(self):
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseUtilities(unittest.TestCase):
+	def test_new(self):
+		pass
 
 class TestBuilding(unittest.TestCase):
 	def test_new(self):
