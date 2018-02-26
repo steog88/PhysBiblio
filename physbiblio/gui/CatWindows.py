@@ -5,7 +5,7 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
-	from physbiblio.database import pBDB, cats_alphabetical, catString
+	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
@@ -259,7 +259,7 @@ class catsWindowList(QDialog):
 	def _populateTree(self, children, idCat):
 		name = pBDB.cats.getByID(idCat)[0]["name"]
 		children_list = []
-		for child in cats_alphabetical(children):
+		for child in cats_alphabetical(children, pBDB):
 			child_item = self._populateTree(children[child], child)
 			children_list.append(child_item)
 		return NamedElement(idCat, name, children_list)

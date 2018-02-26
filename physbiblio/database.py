@@ -61,6 +61,8 @@ class physbiblioDB():
 		self.lastFetched = None
 		self.catsHier = None
 
+		self.loadSubClasses()
+
 	def reOpenDB(self, newDB = None):
 		"""
 		Close the currently open database and open a new one.
@@ -189,8 +191,6 @@ class physbiblioDB():
 		self.bibExp = entryExps(self)
 		self.catBib = catsEntries(self)
 		self.catExp = catsExps(self)
-
-pBDB=physbiblioDB()
 
 class physbiblioDBSub():
 	"""
@@ -464,8 +464,8 @@ class categories(physbiblioDBSub):
 				startDepth (default 0): the depth from which to start
 			"""
 			if startDepth <= depth:
-				for l in cats_alphabetical(tree.keys()):
-					print(indent + catString(l))
+				for l in cats_alphabetical(tree.keys(), self.mainDB):
+					print(indent + catString(l, self.mainDB))
 					printSubGroup(tree[l], (startDepth + 1) * sp, startDepth + 1)
 		printSubGroup(catsHier)
 
@@ -539,8 +539,6 @@ class categories(physbiblioDBSub):
 				where expCats.idExp=?
 				""", (idExp,))
 		return self.curs.fetchall()
-
-pBDB.cats = categories(pBDB)
 
 class catsEntries(physbiblioDBSub):
 	"""
@@ -674,8 +672,6 @@ class catsEntries(physbiblioDBSub):
 			except:
 				print("[DB] something failed in reading your input")
 
-pBDB.catBib = catsEntries(pBDB)
-
 class catsExps(physbiblioDBSub):
 	"""
 	Functions for connecting categories and experiments
@@ -792,8 +788,6 @@ class catsExps(physbiblioDBSub):
 				self.insert(c, exps)
 			except:
 				print("[DB] something failed in reading your input")
-
-pBDB.catExp = catsExps(pBDB)
 
 class entryExps(physbiblioDBSub):
 	"""
@@ -928,8 +922,6 @@ class entryExps(physbiblioDBSub):
 				self.insert(keys, e)
 			except:
 				print("[DB] something failed in reading your input")
-
-pBDB.bibExp = entryExps(pBDB)
 
 class experiments(physbiblioDBSub):
 	"""
@@ -1137,44 +1129,44 @@ class experiments(physbiblioDBSub):
 					print(lev * sp + expString(e))
 			except:
 				pBErrorManager("[DB] error printing experiments!", traceback)
-		for l0 in cats_alphabetical(catsHier.keys()):
-			for l1 in cats_alphabetical(catsHier[l0].keys()):
+		for l0 in cats_alphabetical(catsHier.keys(), self.mainDB):
+			for l1 in cats_alphabetical(catsHier[l0].keys(), self.mainDB):
 				if showCat[l1]:
 					showCat[l0] = True
-				for l2 in cats_alphabetical(catsHier[l0][l1].keys()):
+				for l2 in cats_alphabetical(catsHier[l0][l1].keys(), self.mainDB):
 					if showCat[l2]:
 						showCat[l0] = True
 						showCat[l1] = True
-					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys()):
+					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys(), self.mainDB):
 						if showCat[l3]:
 							showCat[l0] = True
 							showCat[l1] = True
 							showCat[l2] = True
-						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys()):
+						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys(), self.mainDB):
 							if showCat[l4]:
 								showCat[l0] = True
 								showCat[l1] = True
 								showCat[l2] = True
 								showCat[l2] = True
-		for l0 in cats_alphabetical(catsHier.keys()):
+		for l0 in cats_alphabetical(catsHier.keys(), self.mainDB):
 			if showCat[l0]:
-				print(catString(l0))
+				print(catString(l0, self.mainDB))
 				printExpCats(l0, 1)
-			for l1 in cats_alphabetical(catsHier[l0].keys()):
+			for l1 in cats_alphabetical(catsHier[l0].keys(), self.mainDB):
 				if showCat[l1]:
-					print(sp + catString(l1))
+					print(sp + catString(l1, self.mainDB))
 					printExpCats(l1, 2)
-				for l2 in cats_alphabetical(catsHier[l0][l1].keys()):
+				for l2 in cats_alphabetical(catsHier[l0][l1].keys(), self.mainDB):
 					if showCat[l2]:
-						print(2*sp + catString(l2))
+						print(2*sp + catString(l2, self.mainDB))
 						printExpCats(l2, 3)
-					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys()):
+					for l3 in cats_alphabetical(catsHier[l0][l1][l2].keys(), self.mainDB):
 						if showCat[l3]:
-							print(3*sp + catString(l3))
+							print(3*sp + catString(l3, self.mainDB))
 							printExpCats(l3, 4)
-						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys()):
+						for l4 in cats_alphabetical(catsHier[l0][l1][l2][l3].keys(), self.mainDB):
 							if showCat[l4]:
-								print(4*sp + catString(l4))
+								print(4*sp + catString(l4, self.mainDB))
 								printExpCats(l4, 5)
 
 	def delete(self, idExp, name = None):
@@ -1257,8 +1249,6 @@ class experiments(physbiblioDBSub):
 				where entryExps.bibkey=?
 				""", (key, ))
 		return self.curs.fetchall()
-
-pBDB.exps = experiments(pBDB)
 
 class entries(physbiblioDBSub):
 	"""
@@ -2851,8 +2841,6 @@ class entries(physbiblioDBSub):
 		print("\n[DB] %d entries changed"%len(changed))
 		return num, err, changed
 
-pBDB.bibs = entries(pBDB)
-
 class utilities(physbiblioDBSub):
 	"""
 	Adds some more useful functions to the database management
@@ -2898,9 +2886,8 @@ class utilities(physbiblioDBSub):
 			t = b.rmBibtexACapo(t)
 			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
 
-pBDB.utils = utilities(pBDB)
 
-def catString(idCat, withDesc = False):
+def catString(idCat, db, withDesc = False):
 	"""
 	Return the string describing the category (id, name, description if required)
 
@@ -2911,13 +2898,13 @@ def catString(idCat, withDesc = False):
 	Output:
 		the output string
 	"""
-	cat = pBDB.cats.getByID(idCat)[0]
+	cat = db.cats.getByID(idCat)[0]
 	if withDesc:
 		return '%4d: %s - <i>%s</i>'%(cat['idCat'], cat['name'], cat['description'])
 	else:
 		return '%4d: %s'%(cat['idCat'], cat['name'])
 
-def cats_alphabetical(listId):
+def cats_alphabetical(listId, db):
 	"""
 	Sort the categories in the given list in alphabetical order
 
@@ -2927,7 +2914,7 @@ def cats_alphabetical(listId):
 	Output:
 		the list of ids, ordered according to the category names.
 	"""
-	listIn = [ pBDB.cats.getByID(i)[0] for i in listId ]
+	listIn = [ db.cats.getByID(i)[0] for i in listId ]
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]
@@ -2946,3 +2933,5 @@ def dbStats(db):
 	db.stats["catBib"] = len(db.catBib.getAll())
 	db.stats["catExp"] = len(db.catExp.getAll())
 	db.stats["bibExp"] = len(db.bibExp.getAll())
+
+pBDB=physbiblioDB()

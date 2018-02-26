@@ -5,7 +5,7 @@ from PySide.QtGui  import *
 
 try:
 	from physbiblio.gui.DialogWindows import *
-	from physbiblio.database import catString
+	from physbiblio.database import pBDB, catString
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -341,7 +341,7 @@ class NamedElement(object): # your internal structure
 	def __init__(self, idCat, name, subelements):
 		self.idCat = idCat
 		self.name = name
-		self.text = catString(idCat)
+		self.text = catString(idCat, pBDB)
 		self.subelements = subelements
 
 class NamedNode(TreeNode):
