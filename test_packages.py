@@ -6,13 +6,14 @@ This file is part of the PhysBiblio package.
 """
 import sys, datetime, traceback, os
 from stat import S_IREAD, S_IRGRP, S_IROTH
+import ast
 import shutil
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import MagicMock
+	from mock import MagicMock, patch, call
 else:
 	import unittest
-	from unittest.mock import MagicMock
+	from unittest.mock import MagicMock, patch, call
 
 try:
 	from physbiblio.errors import pBErrorManager
@@ -37,6 +38,8 @@ today_ymd = datetime.datetime.today().strftime('%y%m%d')
 #reload DB using a temporary DB file, will be removed at the end 
 global pBDB
 tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
+if os.path.exists(tempDBName):
+	os.remove(tempDBName)
 pBDB = physbiblioDB(tempDBName)
 
 def test_pBErrorManager():
@@ -331,14 +334,141 @@ class TestViewMethods(unittest.TestCase):
 		self.assertFalse(pBView.printLink("a", "doi"))
 
 @unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseMain(unittest.TestCase):
-	def test_new(self):
-		pass
+class TestDatabaseMain(unittest.TestCase):#using cats just for simplicity
+	def test_operations(self):
+		self.assertFalse(pBDB.checkUncommitted())
+		self.assertTrue(pBDB.cursExec("SELECT * from categories"))
+		self.assertTrue(pBDB.cursExec("SELECT * from categories where idCat=?", (1,)))
+		self.assertTrue(pBDB.closeDB())
+		self.assertTrue(pBDB.reOpenDB())
+		self.assertFalse(pBDB.cursExec("SELECT * from categories where idCat=?",()))
+		self.assertFalse(pBDB.cats.cursExec("SELECT * from categories where "))
+		self.assertFalse(pBDB.checkUncommitted())
+		self.assertTrue(pBDB.connExec("""
+				INSERT into categories (name, description, parentCat, comments, ord)
+					values (:name, :description, :parentCat, :comments, :ord)
+				""", {"name":"abc","description":"d","parentCat":0,"comments":"", "ord":0}))
+		self.assertTrue(pBDB.checkUncommitted())
+		self.assertEqual(len(pBDB.cats.getAll()), 3)
+		self.assertTrue(pBDB.undo())
+		self.assertEqual(len(pBDB.cats.getAll()), 2)
+		self.assertTrue(pBDB.cats.connExec("""
+				INSERT into categories (name, description, parentCat, comments, ord)
+					values (:name, :description, :parentCat, :comments, :ord)
+				""", {"name":"abc","description":"d","parentCat":0,"comments":"", "ord":0}))
+		self.assertTrue(pBDB.commit())
+		self.assertTrue(pBDB.undo())
+		self.assertEqual(len(pBDB.cats.getAll()), 3)
+		self.assertTrue(pBDB.connExec("""
+				INSERT into categories (name, description, parentCat, comments, ord)
+					values (:name, :description, :parentCat, :comments, :ord)
+				""", {"name":"abcd","description":"e","parentCat":0,"comments":"", "ord":0}))
+		self.assertEqual(len(pBDB.cats.getAll()), 4)
+		self.assertFalse(pBDB.cursExec("SELECT * from categories where "))
+		self.assertEqual(len(pBDB.cats.getAll()), 4)
+		self.assertFalse(pBDB.connExec("""
+				INSERT into categories (name, description, parentCat, comments, ord)
+					values (:name, :description, :parentCat, :comments, :ord)
+				""", {"name":"abcd","description":"e","parentCat":0,"comments":""}))
+		self.assertEqual(len(pBDB.cats.getAll()), 3)
+
+	def test_literal_eval(self):
+		self.assertEqual(pBDB.cats.literal_eval("[1,2]"), [1,2])
+		self.assertEqual(pBDB.cats.literal_eval("['test','a']"), ["test","a"])
+		self.assertEqual(pBDB.cats.literal_eval("'test b'"), "'test b'")
+		self.assertEqual(pBDB.cats.literal_eval("test c"), "test c")
+		self.assertEqual(pBDB.cats.literal_eval("\"test d\""), '"test d"')
+		self.assertEqual(pBDB.cats.literal_eval("[test e"), "[test e")
+		self.assertEqual(pBDB.cats.literal_eval("[test f]"), None)
+		self.assertEqual(pBDB.cats.literal_eval("'test g','test h'"), ["test g", "test h"])
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseLinks(unittest.TestCase):
-	def test_new(self):
-		pass
+	def test_catEntries(self):
+		pBDB.utils.cleanSpareEntries()
+		self.assertTrue(pBDB.catBib.insert(1, "test"))
+		self.assertFalse(pBDB.catBib.insert(1, "test"))#already present
+		self.assertEqual(tuple(pBDB.catBib.getOne(1, "test")[0]), (1,"test",1))
+		self.assertTrue(pBDB.catBib.delete(1, "test"))
+		self.assertEqual(pBDB.catBib.getOne(1, "test"), [])
+		self.assertEqual(pBDB.catBib.insert(1, ["test1", "test2"]), None)
+		self.assertEqual([tuple(a) for a in pBDB.catBib.getAll()], [(1,"test1",1), (2,"test2",1)])
+		self.assertEqual(pBDB.catBib.delete(1, ["test1", "test2"]), None)
+		self.assertEqual([tuple(a) for a in pBDB.catBib.getAll()], [])
+		self.assertEqual(pBDB.catBib.insert([1,2], ["test1", "testA"]), None)
+		self.assertTrue(pBDB.catBib.updateBibkey("test2", "testA"))
+		self.assertEqual([tuple(a) for a in pBDB.catBib.getAll()],
+			[(1,"test1",1), (2,"test2",1), (3,"test1",2), (4,"test2",2)])
+		pBDB.utils.cleanSpareEntries()
+		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+			pBDB.catBib.askCats("test1")
+			_raw_input.assert_called_once_with("categories for 'test1': ")
+		with patch('__builtin__.raw_input', return_value='1,2') as _raw_input:
+			pBDB.catBib.askCats("test1")
+			_raw_input.assert_called_once_with("categories for 'test1': ")
+		with patch('__builtin__.raw_input', return_value='test2') as _raw_input:
+			pBDB.catBib.askKeys([1,2])
+			_raw_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
+		self.assertEqual([tuple(a) for a in pBDB.catBib.getAll()],
+			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertTrue(pBDB.catBib.insert("test", "test"))
+		pBDB.undo()
+
+	def test_catExps(self):
+		pBDB.utils.cleanSpareEntries()
+		self.assertTrue(pBDB.catExp.insert(1, 10))
+		self.assertFalse(pBDB.catExp.insert(1, 10))#already present
+		self.assertEqual(tuple(pBDB.catExp.getOne(1, 10)[0]), (1,10,1))
+		self.assertTrue(pBDB.catExp.delete(1, 10))
+		self.assertEqual(pBDB.catExp.getOne(1, 10), [])
+		self.assertEqual(pBDB.catExp.insert(1, [10, 11]), None)
+		self.assertEqual([tuple(a) for a in pBDB.catExp.getAll()], [(1, 10, 1), (2, 11, 1)])
+		self.assertEqual(pBDB.catExp.delete(1, [10, 11]), None)
+		self.assertEqual([tuple(a) for a in pBDB.catExp.getAll()], [])
+		self.assertEqual(pBDB.catExp.insert([1,2], [10, 11]), None)
+		self.assertEqual([tuple(a) for a in pBDB.catExp.getAll()],
+			[(1, 10, 1), (2, 11, 1), (3, 10, 2), (4, 11, 2)])
+		pBDB.utils.cleanSpareEntries()
+		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+			pBDB.catExp.askCats(10)
+			_raw_input.assert_called_once_with("categories for '10': ")
+		with patch('__builtin__.raw_input', return_value='11') as _raw_input:
+			pBDB.catExp.askExps([1,2])
+			_raw_input.assert_has_calls([call("experiments for '1': "), call("experiments for '2': ")])
+		self.assertEqual([tuple(a) for a in pBDB.catExp.getAll()],
+			[(1, 10, 1), (2, 10, 2), (3, 11, 1), (4, 11, 2)])
+		self.assertTrue(pBDB.catExp.insert("test", "test"))
+		pBDB.undo()
+
+	def test_entryExps(self):
+		pBDB.utils.cleanSpareEntries()
+		self.assertTrue(pBDB.bibExp.insert("test", 1))
+		self.assertFalse(pBDB.bibExp.insert("test", 1))#already present
+		self.assertEqual(tuple(pBDB.bibExp.getOne("test", 1)[0]), (1,"test",1))
+		self.assertTrue(pBDB.bibExp.delete("test", 1))
+		self.assertEqual(pBDB.bibExp.getOne("test", 1), [])
+		self.assertEqual(pBDB.bibExp.insert(["test1", "test2"], 1), None)
+		self.assertEqual([tuple(a) for a in pBDB.bibExp.getAll()], [(1,"test1",1), (2,"test2",1)])
+		self.assertEqual(pBDB.bibExp.delete(["test1", "test2"], 1), None)
+		self.assertEqual([tuple(a) for a in pBDB.bibExp.getAll()], [])
+		self.assertEqual(pBDB.bibExp.insert(["test1", "testA"], [1,2]), None)
+		self.assertTrue(pBDB.bibExp.updateBibkey("test2", "testA"))
+		self.assertEqual([tuple(a) for a in pBDB.bibExp.getAll()],
+			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		pBDB.utils.cleanSpareEntries()
+		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+			pBDB.bibExp.askExps("test1")
+			_raw_input.assert_called_once_with("experiments for 'test1': ")
+		with patch('__builtin__.raw_input', return_value='1,2') as _raw_input:
+			pBDB.bibExp.askExps("test1")
+			_raw_input.assert_called_once_with("experiments for 'test1': ")
+		with patch('__builtin__.raw_input', return_value='test2') as _raw_input:
+			pBDB.bibExp.askKeys([1,2])
+			_raw_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
+		self.assertEqual([tuple(a) for a in pBDB.bibExp.getAll()],
+			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertTrue(pBDB.bibExp.insert("test", "test"))
+		pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseExperiments(unittest.TestCase):

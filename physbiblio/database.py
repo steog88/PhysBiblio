@@ -63,12 +63,28 @@ class physbiblioDB():
 
 		self.loadSubClasses()
 
+	def openDB(self):
+		"""
+		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
+
+		Output:
+			True if successfull
+		"""
+		print("[DB] Opening database: %s"%self.dbname)
+		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
+		self.conn.row_factory = sqlite3.Row
+		self.curs = self.conn.cursor()
+		return True
+
 	def reOpenDB(self, newDB = None):
 		"""
-		Close the currently open database and open a new one.
+		Close the currently open database and open a new one (the same if newDB is None).
 
 		Parameters:
-			newDB: the name of the new database
+			newDB: None (default) or the name of the new database
+
+		Output:
+			True if successfull
 		"""
 		if newDB is not None:
 			self.closeDB()
@@ -84,22 +100,13 @@ class physbiblioDB():
 			self.lastFetched = None
 			self.catsHier = None
 			self.loadSubClasses()
-
-	def checkUncommitted(self):
-		"""
-		Check if there are uncommitted changes.
-		"""
-		#return self.conn.in_transaction() #works only with sqlite > 3.2...
-		return self.dbChanged
-
-	def openDB(self):
-		"""
-		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
-		"""
-		print("[DB] Opening database: %s"%self.dbname)
-		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
-		self.conn.row_factory = sqlite3.Row
-		self.curs = self.conn.cursor()
+		else:
+			self.closeDB()
+			self.openDB()
+			self.lastFetched = None
+			self.catsHier = None
+			self.loadSubClasses()
+		return True
 
 	def closeDB(self):
 		"""
@@ -107,23 +114,51 @@ class physbiblioDB():
 		"""
 		print("[DB] Closing database...")
 		self.conn.close()
+		return True
+
+	def checkUncommitted(self):
+		"""
+		Check if there are uncommitted changes.
+
+		Output:
+			True/False
+		"""
+		#return self.conn.in_transaction() #works only with sqlite > 3.2...
+		return self.dbChanged
 
 	def commit(self):
 		"""
 		Commit the changes.
+
+		Output:
+			True if successfull, False if an exception occurred
 		"""
-		self.conn.commit()
-		self.dbChanged = False
-		print("[DB] saved.")
+		try:
+			self.conn.commit()
+			self.dbChanged = False
+			print("[DB] saved.")
+			return True
+		except Exception:
+			pBErrorManager("[DB] Impossible to commit!", traceback)
+			return False
 
 	def undo(self):
 		"""
 		Undo the uncommitted changes and roll back to the last commit.
+
+		Output:
+			True if successfull, False if an exception occurred
 		"""
-		self.conn.rollback()
-		print("[DB] rolled back to last commit.")
+		try:
+			self.conn.rollback()
+			self.dbChanged = False
+			print("[DB] rolled back to last commit.")
+			return True
+		except Exception:
+			pBErrorManager("[DB] Impossible to rollback!", traceback)
+			return False
 		
-	def connExec(self,query,data=None):
+	def connExec(self, query, data = None):
 		"""
 		Execute connection.
 
@@ -140,8 +175,7 @@ class physbiblioDB():
 			else:
 				self.conn.execute(query)
 		except (OperationalError, ProgrammingError, DatabaseError) as err:
-			print('[connExec] ERROR: %s'%err)
-			print(traceback.format_exc())
+			pBErrorManager('[connExec] ERROR: %s'%err, traceback)
 			self.conn.rollback()
 			return False
 		else:
@@ -165,7 +199,7 @@ class physbiblioDB():
 			else:
 				self.curs.execute(query)
 		except Exception as err:
-			print('[cursExec] ERROR: %s'%err)
+			pBErrorManager('[cursExec] ERROR: %s'%err, traceback)
 			return False
 		else:
 			return True
@@ -173,6 +207,9 @@ class physbiblioDB():
 	def loadSubClasses(self):
 		"""
 		Load the subclasses that manage the content in the various tables in the database.
+
+		Output:
+			True if successfull
 		"""
 		try:
 			del self.bibs
@@ -191,6 +228,7 @@ class physbiblioDB():
 		self.bibExp = entryExps(self)
 		self.catBib = catsEntries(self)
 		self.catExp = catsExps(self)
+		return True
 
 class physbiblioDBSub():
 	"""
@@ -215,6 +253,18 @@ class physbiblioDBSub():
 
 		self.lastFetched = None
 		self.catsHier = None
+
+	def literal_eval(self, string):
+		try:
+			if "[" in string and "]" in string:
+				return ast.literal_eval(string.strip())
+			elif "," in string:
+				return ast.literal_eval("[%s]"%string.strip())
+			else:
+				return string.strip()
+		except SyntaxError:
+			pBErrorManager("[DB] error in literal_eval with string '%s'"%string)
+			return None
 
 	def closeDB(self):
 		"""
@@ -650,10 +700,10 @@ class catsEntries(physbiblioDBSub):
 		for k in keys:
 			string = raw_input("categories for '%s': "%k)
 			try:
-				cats = ast.literal_eval("["+string.strip()+"]")
+				cats = self.literal_eval(string)
 				self.insert(cats, k)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 	def askKeys(self, cats):
 		"""
@@ -667,10 +717,10 @@ class catsEntries(physbiblioDBSub):
 		for c in cats:
 			string = raw_input("entries for '%d': "%c)
 			try:
-				keys = ast.literal_eval("["+string.strip()+"]")
+				keys = self.literal_eval(string)
 				self.insert(c, keys)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 class catsExps(physbiblioDBSub):
 	"""
@@ -767,10 +817,10 @@ class catsExps(physbiblioDBSub):
 		for e in exps:
 			string = raw_input("categories for '%d': "%e)
 			try:
-				cats = ast.literal_eval("["+string.strip()+"]")
+				cats = self.literal_eval(string)
 				self.insert(cats, e)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 	def askExps(self, cats):
 		"""
@@ -782,12 +832,12 @@ class catsExps(physbiblioDBSub):
 		if type(cats) is not list:
 			cats = [cats]
 		for c in cats:
-			string = raw_input("entries for '%d': "%c)
+			string = raw_input("experiments for '%d': "%c)
 			try:
-				exps = ast.literal_eval("["+string.strip()+"]")
+				exps = self.literal_eval(string)
 				self.insert(c, exps)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 class entryExps(physbiblioDBSub):
 	"""
@@ -847,8 +897,9 @@ class entryExps(physbiblioDBSub):
 						{"idExp": idExp, "bibkey": key}):
 					for c in self.mainDB.cats.getByExp(idExp):
 						self.mainDB.catBib.insert(c["idCat"],key)
+					return True
 			else:
-				print("[DB] entryExp already present: (%d, %s)"%(idExp, key))
+				print("[DB] entryExp already present: (%s, %d)"%(key, idExp))
 				return False
 
 	def delete(self, key, idExp):
@@ -901,10 +952,10 @@ class entryExps(physbiblioDBSub):
 		for k in keys:
 			string = raw_input("experiments for '%s': "%k)
 			try:
-				exps = ast.literal_eval("["+string.strip()+"]")
+				exps = self.literal_eval(string)
 				self.insert(k, exps)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 	def askKeys(self, exps):
 		"""
@@ -918,10 +969,10 @@ class entryExps(physbiblioDBSub):
 		for e in exps:
 			string = raw_input("entries for '%d': "%e)
 			try:
-				keys = ast.literal_eval("["+string.strip()+"]")
+				keys = self.literal_eval(string)
 				self.insert(keys, e)
 			except:
-				print("[DB] something failed in reading your input")
+				print("[DB] something failed in reading your input '%s'"%string)
 
 class experiments(physbiblioDBSub):
 	"""
