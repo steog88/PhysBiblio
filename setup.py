@@ -2,9 +2,14 @@
 
 from setuptools import setup
 
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
 setup(name='PhysBiblio',
 		version='0.1.0',
 		description='A bibliography manager in Python (using Sqlite and PySide)',
+		long_description=readme(),
 		author='Stefano Gariazzo',
 		author_email='stefano.gariazzo@gmail.com',
 		url='https://github.com/steog88/physBiblio',
@@ -14,7 +19,7 @@ setup(name='PhysBiblio',
 		packages=['physbiblio', 'physbiblio.gui', 'physbiblio.webimport'],
 		scripts=['physbiblio.py', 'physbiblio_test.py'],
 		package_data={
-			'': ['*.sh', '*.png'],
+			'': ['*.sh', '*.md', '*.png'],
 			'physbiblio.gui': ['images/*.png'],
 		},
 		install_requires=[

@@ -1,4 +1,7 @@
-default: test
+default: sdist
+
+sdist:
+	python setup.py sdist
 
 test:
 	python physbiblio_test.py
