@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='PhysBiblio',
-		version='0.1',
+		version='0.1.0',
 		description='A bibliography manager in Python (using Sqlite and PySide)',
 		author='Stefano Gariazzo',
 		author_email='stefano.gariazzo@gmail.com',
@@ -26,5 +26,5 @@ setup(name='PhysBiblio',
 			'unittest2;python_version<"3"',
 			'mock;python_version<"3"',
 			],
-		provides=['physbiblio', 'physbiblio.gui', 'physbiblio.webimport'],
+		provides=['physbiblio'],
 	)
