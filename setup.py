@@ -32,4 +32,5 @@ setup(name='PhysBiblio',
 			'mock;python_version<"3"',
 			],
 		provides=['physbiblio'],
+		data_files = [("", ["LICENSE"])],
 	)
