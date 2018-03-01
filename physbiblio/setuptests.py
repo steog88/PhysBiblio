@@ -19,7 +19,7 @@ today_ymd = datetime.datetime.today().strftime('%y%m%d')
 
 skipOnlineTests = True
 skipLongTests = True
-skipDBTests = False
+skipDBTests = True
 skipOAITests = True
 
 pbConfig.params["logFileName"] = "test_packages.log"
