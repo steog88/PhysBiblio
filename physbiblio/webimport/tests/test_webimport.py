@@ -14,9 +14,10 @@ else:
 	from unittest.mock import MagicMock, patch, call
 
 try:
+	from physbiblio.setuptests import *
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB, physbiblioDB
+	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -24,15 +25,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-today_ymd = datetime.datetime.today().strftime('%y%m%d')
-
-#reload DB using a temporary DB file, will be removed at the end 
-global pBDB
-tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
-if os.path.exists(tempDBName):
-	os.remove(tempDBName)
-pBDB = physbiblioDB(tempDBName)
-
+@unittest.skipIf(skipOnlineTests, "Online tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that import entries from the web.
@@ -40,6 +33,7 @@ class TestWebImportMethods(unittest.TestCase):
 
 	Tests also pbWriter._entry_to_bibtex using the other functions
 	"""
+
 	def test_methods_success(self):
 		"""Test webimport with known results"""
 		print(physBiblioWeb.webSearch.keys())
@@ -125,11 +119,12 @@ with a summary of future perspectives.}",
 		for method, strings in tests.items():
 			print(method)
 			res=physBiblioWeb.webSearch[method].retrieveUrlFirst(strings[0])
-			print res
+			print(res)
 			self.assertEqual(res.strip(), strings[1].strip())
 			self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())
 		self.assertEqual(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]), "")
 
+	@unittest.skipIf(skipOAITests, "Online tests")
 	def test_inspireoai(self):
 		"""test retrieve daily data from inspireOAI"""
 		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
@@ -141,13 +136,5 @@ with a summary of future perspectives.}",
 		print(physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2))
 
 if __name__=='__main__':
-	pbConfig.params["logFileName"] = "test_packages.log"
-	logFileName = os.path.join(pbConfig.path, pbConfig.params["logFileName"])
-	os.remove(logFileName) if os.path.exists(logFileName) else None
 	print("\nStarting tests...\n")
-	try:
-		unittest.main()
-	except:#just to be able to exec operations after unittest.main()
-		os.remove(logFileName)
-		os.remove(tempDBName)
-		print("#"*29 + "\nAll the tests were completed!\nSee above for the output.\n" + "#"*29)
+	unittest.main()

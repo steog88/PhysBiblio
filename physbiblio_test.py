@@ -29,8 +29,8 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-skipLongTests = True
-skipOnlineTests = True
+skipLongTests = False#True
+skipOnlineTests = False#True
 skipDBTests = False
 
 today_ymd = datetime.datetime.today().strftime('%y%m%d')

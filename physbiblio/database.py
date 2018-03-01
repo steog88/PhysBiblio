@@ -31,7 +31,7 @@ class physbiblioDB():
 	Contains most of the basic functions on the database.
 	Will be subclassed to do everything else.
 	"""
-	def __init__(self, dbname = pbConfig.params['mainDatabaseName']):
+	def __init__(self, dbname = pbConfig.params['mainDatabaseName'], noOpen = False):
 		"""
 		Initialize database class (column names, descriptions) and opens the database.
 
@@ -45,23 +45,26 @@ class physbiblioDB():
 		self.tableCols = {}
 		for q in self.tableFields.keys():
 			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
-		
+
 		self.dbChanged = False
 		self.conn = None
 		self.curs = None
 		self.dbname = dbname
 		db_is_new = not os.path.exists(self.dbname)
-		self.openDB()
-		if db_is_new:
-			print("-------New database. Creating tables!\n\n")
-			pbfo.createTables(self)
-		
+
+		if not noOpen:
+			self.openDB()
+			if db_is_new:
+				print("-------New database. Creating tables!\n\n")
+				pbfo.createTables(self)
+
 		# self.cursExec("ALTER TABLE entries ADD COLUMN abstract TEXT")
 
 		self.lastFetched = None
 		self.catsHier = None
 
 		self.loadSubClasses()
+
 
 	def openDB(self):
 		"""

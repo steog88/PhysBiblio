@@ -20,28 +20,32 @@ PhysBiblio depends on several python packages:
 
 Within Ubuntu, you should be able to install all the required packages using:
 ```
-sudo apt install python-pyside pip
-sudo pip install pyoai bibtexparser feedparser pymarc matplotlib unittest2 mock
+sudo apt install pip
+sudo pip install pyside pyoai bibtexparser feedparser pymarc matplotlib unittest2 mock
 ```
 
-If you want to use `python 3.x`, use instead
+If you want to use `python 3.x`, use instead:
 ```
-sudo apt install python3-pyside pip3
-sudo pip3 install pyoai bibtexparser feedparser pymarc matplotlib
+sudo apt install pip3 python3-pyside
+sudo pip3 install pyside pyoai bibtexparser feedparser pymarc matplotlib
 ```
+
+However, I personally recommend installing `pip` as described [here](https://pip.pypa.io/en/stable/installing/).
+
+Please note that `PySide` does not support Python versions newer than 3.5+, so you cannot install `PySide` with `pip3` if you have a newer version than the 3.5.
 
 ### Installation and usage
 To install PhysBiblio into your computer, go to [PhysBiblio](https://github.com/steog88/physBiblio), clone the git repository or download the .zip archive and uncompress it into the folder you prefer.
 
-To run the program, execute the main.py file that you will find in the newly created folder.  
-You may launch it by double-clicking or via command line, using `./main.py` or `python main.py`.
+To run the program, execute the `physbiblio.py` file that you will find in the newly created folder.  
+You may launch it by double-clicking or via command line, using `./physbiblio.py` or `python physbiblio.py`.
 
 In Ubuntu, you may want to create a shortcut to PhysBiblio.  
 To do so, you can simply create a new file /your/home/.local/share/applications/PhysBiblio.desktop with the editor of your choice, which must contain the following lines:
 ```
 [Desktop Entry]
 Type=Application
-Exec=/path/to/PhysBiblio/main.py
+Exec=/path/to/PhysBiblio/physbiblio.py
 Icon=/path/to/PhysBiblio/physbiblio/gui/images/icon.png
 Name=PhysBiblio
 Path[$e]=/path/to/PhysBiblio/

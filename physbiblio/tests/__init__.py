@@ -1,9 +1,10 @@
 """
-Tests for the physbiblio.webimport package.
+Tests for the modules in the physbiblio package.
 
 This file is part of the PhysBiblio package.
 """
 __author__ = 'Stefano Gariazzo'
 __email__ = "stefano.gariazzo@gmail.com"
 
-__all__ = ["test_webimport"]
+__all__ = ["test_database", "errors", "test_export", "test_pdf", "test_view"]
+
