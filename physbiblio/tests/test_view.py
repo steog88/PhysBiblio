@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the packages in the PhysBiblio application, a bibliography manager written in Python.
+Test file for the physbiblio.view module.
 
 This file is part of the PhysBiblio package.
 """
