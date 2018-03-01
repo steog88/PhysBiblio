@@ -22,7 +22,7 @@ skipLongTests = True
 skipDBTests = True
 skipOAITests = True
 
-pbConfig.params["logFileName"] = "test_packages.log"
+pbConfig.params["logFileName"] = "test_packages_%s.log"%today_ymd
 logFileName = os.path.join(pbConfig.path, pbConfig.params["logFileName"])
 
 tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
