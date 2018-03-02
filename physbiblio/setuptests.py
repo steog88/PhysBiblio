@@ -29,7 +29,7 @@ tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
 if os.path.exists(tempDBName):
 	os.remove(tempDBName)
 
-class myTestCase(unittest.TestCase):
+class DBTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		self.pBDB = physbiblioDB(tempDBName)

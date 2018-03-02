@@ -23,7 +23,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-# @unittest.skipIf(skipLongTests, "Online tests")
+@unittest.skipIf(skipLongTests, "Online tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that writes bibtexs.

@@ -357,6 +357,43 @@ class categories(physbiblioDBSub):
 		else:
 			return False
 
+	def delete(self, idCat, name = None):
+		"""
+		Delete a category, its subcategories and all their connections.
+		Cannot delete categories with id ==0 or ==1 (Main and Tags, the default categories).
+
+		Parameters:
+			idCat: the id of the category (or a list)
+			name (optional): if id is smaller than 2, the name is used instead.
+
+		Output:
+			False if id ==0 or ==1, True otherwise
+		"""
+		if type(idCat) is list:
+			for c in idCat:
+				self.delete(c)
+		else:
+			if idCat < 2 and name:
+				result = self.extractCatByName(name)
+				idCat = result[0]["idCat"]
+			if idCat < 2:
+				print("[DB] Error: should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
+				return False
+			print("[DB] using idCat=%d"%idCat)
+			self.cursExec("""
+			delete from categories where idCat=?
+			""", (idCat, ))
+			self.cursExec("""
+			delete from expCats where idCat=?
+			""", (idCat, ))
+			self.cursExec("""
+			delete from entryCats where idCat=?
+			""", (idCat, ))
+			print("[DB] looking for child categories")
+			for row in self.getChild(idCat):
+				self.deleteCat(row["idCat"])
+			return True
+
 	def getAll(self):
 		"""
 		Get all the categories
@@ -521,43 +558,6 @@ class categories(physbiblioDBSub):
 					print(indent + catString(l, self.mainDB))
 					printSubGroup(tree[l], (startDepth + 1) * sp, startDepth + 1)
 		printSubGroup(catsHier)
-
-	def delete(self, idCat, name = None):
-		"""
-		Delete a category, its subcategories and all their connections.
-		Cannot delete categories with id ==0 or ==1 (Main and Tags, the default categories).
-
-		Parameters:
-			idCat: the id of the category (or a list)
-			name (optional): if id is smaller than 2, the name is used instead.
-
-		Output:
-			False if id ==0 or ==1, True otherwise
-		"""
-		if type(idCat) is list:
-			for c in idCat:
-				self.delete(c)
-		else:
-			if idCat < 2 and name:
-				result = self.extractCatByName(name)
-				idCat = result[0]["idCat"]
-			if idCat < 2:
-				print("[DB] Error: should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
-				return False
-			print("[DB] using idCat=%d"%idCat)
-			self.cursExec("""
-			delete from categories where idCat=?
-			""", (idCat, ))
-			self.cursExec("""
-			delete from expCats where idCat=?
-			""", (idCat, ))
-			self.cursExec("""
-			delete from entryCats where idCat=?
-			""", (idCat, ))
-			print("[DB] looking for child categories")
-			for row in self.getChild(idCat):
-				self.deleteCat(row["idCat"])
-			return True
 
 	def getByEntry(self, key):
 		"""
@@ -981,7 +981,7 @@ class experiments(physbiblioDBSub):
 	"""
 	Functions to manage the experiments
 	"""
-	def insert(self,data):
+	def insert(self, data):
 		"""
 		Insert a new experiment
 
@@ -1034,6 +1034,46 @@ class experiments(physbiblioDBSub):
 		else:
 			return False
 
+	def delete(self, idExp, name = None):
+		"""
+		Delete an experiment and all its connections
+
+		Parameters:
+			idExp:
+			name:
+		"""
+		if type(idExp) is list:
+			for e in idExp:
+				self.delete(e)
+		else:
+			print("[DB] using idExp=%d"%idExp)
+			self.cursExec("""
+			delete from experiments where idExp=?
+			""", (idExp, ))
+			self.cursExec("""
+			delete from expCats where idExp=?
+			""", (idExp, ))
+			self.cursExec("""
+			delete from entryExps where idExp=?
+			""", (idExp, ))
+
+	def getAll(self, orderBy = "name", order = "ASC"):
+		"""
+		Get all the experiments
+
+		Parameters:
+			orderBy: the field used to order the output
+			order: "ASC" or "DESC"
+
+		Output:
+			the list of `sqlite3.Row` objects with all the experiments in the database
+		"""
+		self.cursExec("""
+			select * from experiments
+			order by %s %s
+			"""%(orderBy, order))
+		return self.curs.fetchall()
+
 	def getByID(self, idExp):
 		"""
 		Get experiment matching the given id
@@ -1072,23 +1112,6 @@ class experiments(physbiblioDBSub):
 			expDict = None
 		return expDict
 
-	def getAll(self, orderBy = "name", order = "ASC"):
-		"""
-		Get all the experiments
-
-		Parameters:
-			orderBy: the field used to order the output
-			order: "ASC" or "DESC"
-
-		Output:
-			the list of `sqlite3.Row` objects with all the experiments in the database
-		"""
-		self.cursExec("""
-			select * from experiments
-			order by %s %s
-			"""%(orderBy, order))
-		return self.curs.fetchall()
-
 	def getByName(self, name):
 		"""
 		Get all the experiments matching a given name
@@ -1119,6 +1142,15 @@ class experiments(physbiblioDBSub):
 			select * from experiments where name LIKE ? OR comments LIKE ? OR homepage LIKE ? OR inspire LIKE ?
 			""", (string, string, string, string))
 		return self.curs.fetchall()
+
+	def to_str(self, q):
+		"""
+		Convert the experiment row in a string
+
+		Parameters:
+			q: the experiment record (sqlite3.Row or dict)
+		"""
+		return "%3d: %-20s [%-40s] [%s]"%(q["idExp"], q["name"], q["homepage"], q["inspire"])
 
 	def printInCats(self, startFrom = 0, sp = 5 * " ", withDesc = False):
 		"""
@@ -1222,38 +1254,6 @@ class experiments(physbiblioDBSub):
 							if showCat[l4]:
 								print(4*sp + catString(l4, self.mainDB))
 								printExpCats(l4, 5)
-
-	def delete(self, idExp, name = None):
-		"""
-		Delete an experiment and all its connections
-
-		Parameters:
-			idExp:
-			name:
-		"""
-		if type(idExp) is list:
-			for e in idExp:
-				self.delete(e)
-		else:
-			print("[DB] using idExp=%d"%idExp)
-			self.cursExec("""
-			delete from experiments where idExp=?
-			""", (idExp, ))
-			self.cursExec("""
-			delete from expCats where idExp=?
-			""", (idExp, ))
-			self.cursExec("""
-			delete from entryExps where idExp=?
-			""", (idExp, ))
-
-	def to_str(self, q):
-		"""
-		Convert the experiment row in a string
-
-		Parameters:
-			q: the experiment record (sqlite3.Row or dict)
-		"""
-		return "%3d: %-20s [%-40s] [%s]"%(q["idExp"], q["name"], q["homepage"], q["inspire"])
 
 	def printAll(self, exps = None, orderBy = "name", order = "ASC"):
 		"""
@@ -2980,7 +2980,7 @@ def dbStats(db):
 	Parameters:
 		db: the database (instance of physbiblioDB)
 	"""
-	db.stats={}
+	db.stats = {}
 	db.stats["bibs"] = len(db.bibs.getAll())
 	db.stats["cats"] = len(db.cats.getAll())
 	db.stats["exps"] = len(db.exps.getAll())

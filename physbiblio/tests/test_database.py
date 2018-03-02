@@ -9,14 +9,17 @@ import sys, traceback
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
 	from mock import MagicMock, patch, call
+	from StringIO import StringIO
 else:
 	import unittest
 	from unittest.mock import MagicMock, patch, call
+	from io import StringIO
 
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
+	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -24,8 +27,10 @@ except Exception:
 	print(traceback.format_exc())
 
 @unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseMain(myTestCase):#using cats just for simplicity
+class TestDatabaseMain(DBTestCase):#using cats just for simplicity
+	"""Test main database class physbiblioDB and physbiblioDBSub structures"""
 	def test_operations(self):
+		"""Test main database functions (open/close, basic commands)"""
 		print(self.pBDB.dbname)
 		self.assertFalse(self.pBDB.checkUncommitted())
 		self.assertTrue(self.pBDB.cursExec("SELECT * from categories"))
@@ -62,8 +67,13 @@ class TestDatabaseMain(myTestCase):#using cats just for simplicity
 					values (:name, :description, :parentCat, :comments, :ord)
 				""", {"name":"abcd","description":"e","parentCat":0,"comments":""}))
 		self.assertEqual(len(self.pBDB.cats.getAll()), 3)
+		self.assertRaises(AttributeError, lambda: self.pBDB.stats)
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 0, "cats": 3, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
 
 	def test_literal_eval(self):
+		"""Test literal_eval in physbiblioDBSub"""
 		self.assertEqual(self.pBDB.cats.literal_eval("[1,2]"), [1,2])
 		self.assertEqual(self.pBDB.cats.literal_eval("['test','a']"), ["test","a"])
 		self.assertEqual(self.pBDB.cats.literal_eval("'test b'"), "'test b'")
@@ -74,8 +84,10 @@ class TestDatabaseMain(myTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"), ["test g", "test h"])
 
 @unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseLinks(myTestCase):
-	def test_catEntries(self):
+class TestDatabaseLinks(DBTestCase):
+	"""Test subclasses connecting categories, experiments, entries"""
+	def test_catsEntries(self):
+		"""Test catsEntries functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.catBib.insert(1, "test"))
 		self.assertFalse(self.pBDB.catBib.insert(1, "test"))#already present
@@ -106,6 +118,7 @@ class TestDatabaseLinks(myTestCase):
 		self.pBDB.undo()
 
 	def test_catExps(self):
+		"""Test catsExps functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.catExp.insert(1, 10))
 		self.assertFalse(self.pBDB.catExp.insert(1, 10))#already present
@@ -132,6 +145,7 @@ class TestDatabaseLinks(myTestCase):
 		self.pBDB.undo()
 
 	def test_entryExps(self):
+		"""Test entryExps functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.bibExp.insert("test", 1))
 		self.assertFalse(self.pBDB.bibExp.insert("test", 1))#already present
@@ -162,24 +176,107 @@ class TestDatabaseLinks(myTestCase):
 		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseExperiments(myTestCase):
+class TestDatabaseExperiments(DBTestCase):
+	"""Tests for the methods in the experiments subclass"""
+	def test_insert(self):
+		pass
+	def test_update(self):
+		# update
+		# updateField
+		pass
+	def test_get(self):
+		# getByID
+		# getDictByID
+		# getAll
+		# getByName
+		pass
+	def filter(self):
+		# filterAll
+		pass
+	def test_delete(self):
+		pass
+	def test_print(self):
+		# to_str
+		# printAll
+		# printInCats
+		pass
+	def test_getByOthers(self):
+		# getByEntry
+		# getByCat
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseCategories(DBTestCase):
+	"""Tests for the methods in the categories subclass"""
+	def test_catString(self):
+		pass
+	def test_cats_alphabetical(self):
+		pass
+	def test_insert(self):
+		pass
+	def test_delete(self):
+		pass
+	def test_update(self):
+		pass
+		# update
+		# updateField
+	def test_get(self):
+		pass
+		# getAll
+		# getByID
+		# getDictByID
+		# getByName
+		# getChild
+		# getParent
+	def test_hierarchy(self):
+		pass
+		# getHier
+		# printHier
+	def test_getByOthers(self):
+		# getByEntry
+		# getByExp
+		pass
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestDatabaseEntries(DBTestCase):
+	"""Tests for the methods in the entries subclass"""
 	def test_new(self):
 		pass
 
 @unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseCategories(myTestCase):
-	def test_new(self):
-		pass
+class TestDatabaseUtilities(DBTestCase):
+	"""Tests for the methods in the utilities subclass"""
 
-@unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseEntries(myTestCase):
-	def test_new(self):
-		pass
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_cleanSpare(self, function, expected_output, mock_stdout):
+		"""Catch and test stdout of the function"""
+		function()
+		self.assertEqual(mock_stdout.getvalue(), expected_output)
 
-@unittest.skipIf(skipDBTests, "Database tests")
-class TestDatabaseUtilities(myTestCase):
-	def test_new(self):
-		pass
+	def test_spare(self):
+		"""create spare connections just to delete them with cleanSpareEntries"""
+		self.pBDB.utils.cleanSpareEntries()
+		self.assertTrue(self.pBDB.catBib.insert(1, "test"))
+		self.assertEqual(self.pBDB.catExp.insert(1, [0, 1]), None)
+		self.pBDB.exps.insert({"name": "testExp", "comments": "", "homepage":"", "inspire": "1"})
+		self.assertTrue(self.pBDB.bibExp.insert("test", 1))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 1, "catExp": 2, "bibExp": 1})
+		self.assert_cleanSpare(self.pBDB.utils.cleanSpareEntries,
+			'[DB] cleaning (test, 1)\n[DB] cleaning (1, test)\n[DB] cleaning (1, 0)\n')
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 0, "catExp": 1, "bibExp": 0})
+
+	def test_bibtexs(self):
+		"""Create and clean a bibtex entry"""
+		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{abc,\nauthor = "me",\ntitle = "\u00E8\n\u00F1",}', bibkey = "abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertEqual(self.pBDB.utils.cleanAllBibtexs(), None)
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"),
+			u'@Article{abc,\n        author = "me",\n         title = "{\`{e} \~{n}}",\n}\n\n')
+		self.pBDB.bibs.delete("abc")
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")
