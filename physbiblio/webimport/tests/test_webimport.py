@@ -30,8 +30,6 @@ class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that import entries from the web.
 	Should not fail if everything works fine.
-
-	Tests also pbWriter._entry_to_bibtex using the other functions
 	"""
 
 	def test_methods_success(self):

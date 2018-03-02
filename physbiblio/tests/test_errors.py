@@ -26,8 +26,10 @@ except Exception:
 	print(traceback.format_exc())
 
 class TestBuilding(unittest.TestCase):
+	"""Test pBErrorManager outputs"""
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_notraceback(self, message, priority, expected_output, mock_stdout):
+		"""Test print to stdout without traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
@@ -36,6 +38,7 @@ class TestBuilding(unittest.TestCase):
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_withtraceback(self, message, priority, expected_output, mock_stdout):
+		"""Test print to stdout with traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
@@ -44,6 +47,7 @@ class TestBuilding(unittest.TestCase):
 
 	@patch('sys.stderr', new_callable=StringIO)
 	def assert_stderr(self, message, priority, expected_output, mock_stdout):
+		"""Test print to stderr without traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
@@ -52,13 +56,15 @@ class TestBuilding(unittest.TestCase):
 
 	@patch('sys.stderr', new_callable=StringIO)
 	def assert_fullstderr(self, message, priority, expected_output, mock_stdout):
+		"""Test print to stderr with traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
 			pBErrorManager(str(e), traceback, priority = priority)
 		self.assertEqual(mock_stdout.getvalue(), expected_output + traceback.format_exc())
 
-	def test_new(self):
+	def test_errors(self):
+		"""Test pBErrorManager with different input combinations"""
 		try:
 			with open(logFileName) as logFile:
 				log_old = logFile.read()

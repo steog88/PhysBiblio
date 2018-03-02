@@ -28,7 +28,9 @@ except Exception:
 
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestExportMethods(unittest.TestCase):
+	"""Tests for methods in physbiblio.export"""
 	def test_backup(self):
+		"""Test backup file creation and related"""
 		emptyFileName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		if os.path.exists(emptyFileName): os.remove(emptyFileName)
 		if os.path.exists(emptyFileName + pBExport.backupExtension): os.remove(emptyFileName + pBExport.backupExtension)
@@ -49,6 +51,7 @@ class TestExportMethods(unittest.TestCase):
 		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 
 	def test_offlineExports(self):
+		"""Test of offline export functions (exportAll, exportSelected, updateExportedBib"""
 		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
@@ -75,6 +78,7 @@ class TestExportMethods(unittest.TestCase):
 		os.remove(testBibName)
 
 	def test_exportForTexFile(self):
+		"""test exportForTexFile function with a fake tex and database"""
 		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		self.assertFalse(os.path.exists(testBibName))
 		testTexName = os.path.join(pbConfig.path, "tests_%s.tex"%today_ymd)

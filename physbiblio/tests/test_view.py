@@ -27,7 +27,9 @@ except Exception:
 
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestViewMethods(unittest.TestCase):
+	"""Tests for methods in physbiblio.view"""
 	def test_printLink(self):
+		"""Test printLink function with different inputs"""
 		pBDB.bibs.getField = MagicMock(side_effect = [
 			'1507.08204', '', '', '1507.08204', #test "arxiv"
 			'', '10.1088/0954-3899/43/3/033001', '', '10.1088/0954-3899/43/3/033001', #test "doi"
