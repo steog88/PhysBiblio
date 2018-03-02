@@ -215,23 +215,57 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertEqual(self.pBDB.stats["bibExp"], 0)
 
 	def test_get(self):
-		# getByID
-		# getDictByID
-		# getAll
-		# getByName
-		pass
-	def filter(self):
-		# filterAll
-		pass
+		"""Test get methods"""
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp2", "comments": "", "homepage": "", "inspire": ""}))
+		self.checkNumberExperiments(2)
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getAll()],
+			[{"idExp": 1, "name": "exp1", "comments": "", "homepage": "", "inspire": ""},
+			{"idExp": 2, "name": "exp2", "comments": "", "homepage": "", "inspire": ""}])
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByID(1)],
+			[{"idExp": 1, "name": "exp1", "comments": "", "homepage": "", "inspire": ""}])
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByName("exp2")],
+			[{"idExp": 2, "name": "exp2", "comments": "", "homepage": "", "inspire": ""}])
+		self.assertEqual(self.pBDB.exps.getDictByID(1),
+			{"idExp": 1, "name": "exp1", "comments": "", "homepage": "", "inspire": ""})
+		self.pBDB.undo()
+
+	def test_filterAll(self):
+		"""test the filterAll function, that looks into all the fields for a matching string"""
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1match", "comments": "", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp2", "comments": "match", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp3", "comments": "", "homepage": "match", "inspire": ""}))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp4", "comments": "", "homepage": "", "inspire": "match"}))
+		self.checkNumberExperiments(4)
+		self.assertEqual([dict(e) for e in self.pBDB.exps.filterAll("match")],
+			[{"idExp": 1, "name": "exp1match", "comments": "", "homepage": "", "inspire": ""},
+			{"idExp": 2, "name": "exp2", "comments": "match", "homepage": "", "inspire": ""},
+			{"idExp": 3, "name": "exp3", "comments": "", "homepage": "match", "inspire": ""},
+			{"idExp": 4, "name": "exp4", "comments": "", "homepage": "", "inspire": "match"}])
+		self.assertEqual(len(self.pBDB.exps.filterAll("nonmatch")), 0)
+		self.pBDB.undo()
+
 	def test_print(self):
+		"""Test to_str, printAll and printInCats"""
 		# to_str
 		# printAll
 		# printInCats
 		pass
+
 	def test_getByOthers(self):
-		# getByEntry
-		# getByCat
-		pass
+		"""Test getByCat and getByEntry creating some fake records"""
+		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{abc,\nauthor = "me",\ntitle = "title",}', bibkey = "abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.catExp.insert(0, 1))
+		self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
+		self.assertEqual(self.pBDB.exps.getByEntry("def"), [])
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByEntry("abc")],
+			[{'inspire': u'', 'comments': u'', 'name': u'exp1', 'bibkey': u'abc', 'idEnEx': 1, 'homepage': u'', 'idExp': 1}])
+		self.assertEqual(self.pBDB.exps.getByCat("1"), [])
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByCat(0)],
+			[{'idCat': 0, 'inspire': u'', 'comments': u'', 'name': u'exp1', 'idExC': 1, 'homepage': u'', 'idExp': 1}])
+		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseCategories(DBTestCase):
