@@ -175,12 +175,18 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 		self.pBDB.undo()
 
-# @unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseExperiments(DBTestCase):
 	"""Tests for the methods in the experiments subclass"""
 	def checkNumberExperiments(self, number):
 		"""Check the number of experiments"""
 		self.assertEqual(len(self.pBDB.exps.getAll()), number)
+
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_cleanSpare(self, function, expected_output, mock_stdout):
+		"""Catch and test stdout of the function"""
+		function()
+		self.assertEqual(mock_stdout.getvalue(), expected_output)
 
 	def test_insertUpdateDelete(self):
 		"""Test insert, update, updateField, delete for an experiment"""
@@ -247,10 +253,18 @@ class TestDatabaseExperiments(DBTestCase):
 
 	def test_print(self):
 		"""Test to_str, printAll and printInCats"""
-		# to_str
-		# printAll
-		# printInCats
-		pass
+		self.assertTrue(self.pBDB.exps.insert(
+			{"name": "exp1", "comments": "comment", "homepage": "http://some.url.org/", "inspire": "12"}))
+		self.assertEqual(self.pBDB.exps.to_str(self.pBDB.exps.getByID(1)[0]),
+			u'  1: exp1                 [http://some.url.org/                    ] [12]')
+		self.assertTrue(self.pBDB.exps.insert(
+			{"name": "exp2", "comments": "", "homepage": "", "inspire": ""}))
+		self.assert_cleanSpare(self.pBDB.exps.printAll,
+			"  1: exp1                 [http://some.url.org/                    ] [12]\n  2: exp2                 [                                        ] []\n")
+		self.assertTrue(self.pBDB.catExp.insert(0, 1))
+		self.assertTrue(self.pBDB.catExp.insert(1, 2))
+		self.assert_cleanSpare(self.pBDB.exps.printInCats,
+			"   0: Main\n          -> exp1 (1)\n        1: Tags\n               -> exp2 (2)\n")
 
 	def test_getByOthers(self):
 		"""Test getByCat and getByEntry creating some fake records"""
@@ -341,7 +355,8 @@ class TestDatabaseUtilities(DBTestCase):
 		self.pBDB.bibs.delete("abc")
 
 def tearDownModule():
-	os.remove(tempDBName)
+	if os.path.exists(tempDBName):
+		os.remove(tempDBName)
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")
