@@ -179,7 +179,6 @@ class physbiblioDB():
 				self.conn.execute(query)
 		except (OperationalError, ProgrammingError, DatabaseError) as err:
 			pBErrorManager('[connExec] ERROR: %s'%err, traceback)
-			self.conn.rollback()
 			return False
 		else:
 			self.dbChanged = True
@@ -331,7 +330,6 @@ class categories(physbiblioDBSub):
 			the output of self.connExec
 		"""
 		data["idCat"] = idCat
-		print(data)
 		query = "replace into categories (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
@@ -1008,7 +1006,6 @@ class experiments(physbiblioDBSub):
 			the output of self.connExec
 		"""
 		data["idExp"] = idExp
-		print(data)
 		query = "replace into experiments (" +\
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
