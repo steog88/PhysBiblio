@@ -1031,13 +1031,12 @@ class experiments(physbiblioDBSub):
 		else:
 			return False
 
-	def delete(self, idExp, name = None):
+	def delete(self, idExp):
 		"""
 		Delete an experiment and all its connections
 
 		Parameters:
-			idExp:
-			name:
+			idExp: the experiment ID
 		"""
 		if type(idExp) is list:
 			for e in idExp:

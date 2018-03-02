@@ -175,15 +175,45 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 		self.pBDB.undo()
 
-@unittest.skipIf(skipDBTests, "Database tests")
+# @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseExperiments(DBTestCase):
 	"""Tests for the methods in the experiments subclass"""
-	def test_insert(self):
-		pass
-	def test_update(self):
-		# update
-		# updateField
-		pass
+	def checkNumberExperiments(self, number):
+		"""Check the number of experiments"""
+		self.assertEqual(len(self.pBDB.exps.getAll()), number)
+
+	def test_insertUpdateDelete(self):
+		"""Test insert, update, updateField, delete for an experiment"""
+		self.checkNumberExperiments(0)
+		self.assertFalse(self.pBDB.exps.insert({"name": "exp1"}))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		self.checkNumberExperiments(1)
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		self.checkNumberExperiments(2)
+		self.assertEqual({e["idExp"]: e["name"] for e in self.pBDB.exps.getAll()}, {1: "exp1", 2: "exp1"})
+		self.assertEqual({e["idExp"]: e["inspire"] for e in self.pBDB.exps.getAll()}, {1: "", 2: ""})
+		self.assertTrue(self.pBDB.exps.update({"name": "exp2", "comments": "", "homepage": "", "inspire": "123"}, 2))
+		self.assertEqual({e["idExp"]: e["name"] for e in self.pBDB.exps.getAll()}, {1: "exp1", 2: "exp2"})
+		self.assertTrue(self.pBDB.exps.updateField(1, "inspire", "456"))
+		self.assertEqual({e["idExp"]: e["inspire"] for e in self.pBDB.exps.getAll()}, {1: "456", 2: "123"})
+		self.assertFalse(self.pBDB.exps.update({"name": "exp2", "inspire": "123"}, 2))
+		self.assertFalse(self.pBDB.exps.updateField(1, "inspires", "456"))
+		self.assertFalse(self.pBDB.exps.updateField(1, "idExp", "2"))
+		self.assertFalse(self.pBDB.exps.updateField(1, "inspire", ""))
+		self.assertFalse(self.pBDB.exps.updateField(1, "inspire", None))
+		self.checkNumberExperiments(2)
+		self.assertTrue(self.pBDB.catExp.insert(1, 1))
+		self.assertTrue(self.pBDB.bibExp.insert("test", 1))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats["exps"], 2)
+		self.assertEqual(self.pBDB.stats["catExp"], 1)
+		self.assertEqual(self.pBDB.stats["bibExp"], 1)
+		self.pBDB.exps.delete([1, 2])
+		self.checkNumberExperiments(0)
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats["catExp"], 0)
+		self.assertEqual(self.pBDB.stats["bibExp"], 0)
+
 	def test_get(self):
 		# getByID
 		# getDictByID
@@ -192,8 +222,6 @@ class TestDatabaseExperiments(DBTestCase):
 		pass
 	def filter(self):
 		# filterAll
-		pass
-	def test_delete(self):
 		pass
 	def test_print(self):
 		# to_str
@@ -277,6 +305,9 @@ class TestDatabaseUtilities(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"),
 			u'@Article{abc,\n        author = "me",\n         title = "{\`{e} \~{n}}",\n}\n\n')
 		self.pBDB.bibs.delete("abc")
+
+def tearDownModule():
+	os.remove(tempDBName)
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")
