@@ -34,7 +34,7 @@ class webSearch(webInterf):
 		"""
 		return self.url + doi
 		
-	def retrieveUrlFirst(self,string):
+	def retrieveUrlFirst(self, string):
 		"""
 		Retrieves the first (only) result from the content of the given web page.
 
@@ -53,8 +53,8 @@ class webSearch(webInterf):
 			pBErrorManager("[doi] -> ERROR: impossible to get results", traceback)
 			return ""
 		
-	def retrieveUrlAll(self,string):
+	def retrieveUrlAll(self, string):
 		"""
-		Alias for retrieveUrlFirst
+		Alias for retrieveUrlFirst (no more than one object should match a doi)
 		"""
 		return self.retrieveUrlFirst(string)
