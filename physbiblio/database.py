@@ -306,9 +306,13 @@ class categories(physbiblioDBSub):
 		Output:
 			False if another category with the same name and parent is present, the output of self.connExec otherwise
 		"""
-		self.cursExec("""
-			select * from categories where name=? and parentCat=?
-			""", (data["name"], data["parentCat"]))
+		try:
+			self.cursExec("""
+				select * from categories where name=? and parentCat=?
+				""", (data["name"], data["parentCat"]))
+		except KeyError:
+			pBErrorManager("[DB] missing field when inserting category", traceback)
+			return False
 		if self.curs.fetchall():
 			print("An entry with the same name is already present in the same category!")
 			return False
@@ -347,7 +351,7 @@ class categories(physbiblioDBSub):
 		Output:
 			False if the field or the value is not valid, the output of self.connExec otherwise
 		"""
-		print("[DB] updating '%s' for entry '%s'"%(field, key))
+		print("[DB] updating '%s' for entry '%s'"%(field, idCat))
 		if field in self.tableCols["categories"] and field is not "idCat" \
 				and value is not "" and value is not None:
 			query = "update categories set " + field + "=:field where idCat=:idCat\n"
@@ -378,6 +382,9 @@ class categories(physbiblioDBSub):
 				print("[DB] Error: should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
 				return False
 			print("[DB] using idCat=%d"%idCat)
+			print("[DB] looking for child categories")
+			for row in self.getChild(idCat):
+				self.delete(row["idCat"])
 			self.cursExec("""
 			delete from categories where idCat=?
 			""", (idCat, ))
@@ -387,9 +394,6 @@ class categories(physbiblioDBSub):
 			self.cursExec("""
 			delete from entryCats where idCat=?
 			""", (idCat, ))
-			print("[DB] looking for child categories")
-			for row in self.getChild(idCat):
-				self.deleteCat(row["idCat"])
 			return True
 
 	def getAll(self):
@@ -553,7 +557,7 @@ class categories(physbiblioDBSub):
 			"""
 			if startDepth <= depth:
 				for l in cats_alphabetical(tree.keys(), self.mainDB):
-					print(indent + catString(l, self.mainDB))
+					print(indent + catString(l, self.mainDB, withDesc = withDesc))
 					printSubGroup(tree[l], (startDepth + 1) * sp, startDepth + 1)
 		printSubGroup(catsHier)
 
@@ -2948,7 +2952,11 @@ def catString(idCat, db, withDesc = False):
 	Output:
 		the output string
 	"""
-	cat = db.cats.getByID(idCat)[0]
+	try:
+		cat = db.cats.getByID(idCat)[0]
+	except IndexError:
+		pBErrorManager("[DB][catString] category '%s' not in database"%idCat)
+		return ""
 	if withDesc:
 		return '%4d: %s - <i>%s</i>'%(cat['idCat'], cat['name'], cat['description'])
 	else:
@@ -2964,7 +2972,12 @@ def cats_alphabetical(listId, db):
 	Output:
 		the list of ids, ordered according to the category names.
 	"""
-	listIn = [ db.cats.getByID(i)[0] for i in listId ]
+	listIn = []
+	for i in listId:
+		try:
+			listIn.append(db.cats.getByID(i)[0])
+		except IndexError:
+			pBErrorManager("[DB][cats_alphabetical] category '%s' not in database"%i)
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]

@@ -183,7 +183,7 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertEqual(len(self.pBDB.exps.getAll()), number)
 
 	@patch('sys.stdout', new_callable=StringIO)
-	def assert_cleanSpare(self, function, expected_output, mock_stdout):
+	def assert_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and test stdout of the function"""
 		function()
 		self.assertEqual(mock_stdout.getvalue(), expected_output)
@@ -259,11 +259,11 @@ class TestDatabaseExperiments(DBTestCase):
 			u'  1: exp1                 [http://some.url.org/                    ] [12]')
 		self.assertTrue(self.pBDB.exps.insert(
 			{"name": "exp2", "comments": "", "homepage": "", "inspire": ""}))
-		self.assert_cleanSpare(self.pBDB.exps.printAll,
+		self.assert_stdout(self.pBDB.exps.printAll,
 			"  1: exp1                 [http://some.url.org/                    ] [12]\n  2: exp2                 [                                        ] []\n")
 		self.assertTrue(self.pBDB.catExp.insert(0, 1))
 		self.assertTrue(self.pBDB.catExp.insert(1, 2))
-		self.assert_cleanSpare(self.pBDB.exps.printInCats,
+		self.assert_stdout(self.pBDB.exps.printInCats,
 			"   0: Main\n          -> exp1 (1)\n        1: Tags\n               -> exp2 (2)\n")
 
 	def test_getByOthers(self):
@@ -284,34 +284,142 @@ class TestDatabaseExperiments(DBTestCase):
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseCategories(DBTestCase):
 	"""Tests for the methods in the categories subclass"""
-	def test_catString(self):
-		pass
-	def test_cats_alphabetical(self):
-		pass
-	def test_insert(self):
-		pass
-	def test_delete(self):
-		pass
-	def test_update(self):
-		pass
-		# update
-		# updateField
+	def checkNumberCategories(self, number):
+		"""Check the number of experiments"""
+		self.assertEqual(len(self.pBDB.cats.getAll()), number)
+
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_stdout(self, function, expected_output, mock_stdout):
+		"""Catch and test stdout of the function"""
+		function()
+		self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+	def test_insertUpdateDelete(self):
+		"""Test insert, update, updateField, delete for an experiment"""
+		self.checkNumberCategories(2)
+		self.assertFalse(self.pBDB.cats.insert({"name": "cat1"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "cat1", "comments": "", "description": "", "parentCat": "0", "ord": "0"}))
+		self.checkNumberCategories(3)
+		self.assertFalse(self.pBDB.cats.insert({"name": "cat1", "comments": "", "description": "", "parentCat": "0", "ord": "1"}))
+		self.assert_stdout(lambda: self.pBDB.cats.insert({"name": "cat1", "comments": "", "description": "", "parentCat": "0", "ord": "1"}),
+			"An entry with the same name is already present in the same category!\n")
+		self.assertTrue(self.pBDB.cats.insert({"name": "cat1", "comments": "", "description": "", "parentCat": "1", "ord": "1"}))
+		self.checkNumberCategories(4)
+		self.assertEqual({e["idCat"]: e["name"] for e in self.pBDB.cats.getAll()},
+			{0: "Main", 1: "Tags", 2: "cat1", 3: "cat1"})
+		self.assertEqual({e["idCat"]: e["parentCat"] for e in self.pBDB.cats.getAll()},
+			{0: 0, 1: 0, 2: 0, 3: 1})
+		self.assertTrue(self.pBDB.cats.update({"name": "cat2", "comments": "", "description": "", "parentCat": "1", "ord": 0}, 2))
+		self.assertEqual({e["idCat"]: e["name"] for e in self.pBDB.cats.getAll()},
+			{0: "Main", 1: "Tags", 2: "cat2", 3: "cat1"})
+		self.assertTrue(self.pBDB.cats.updateField(1, "description", "abcd"))
+		self.assertEqual({e["idCat"]: e["description"] for e in self.pBDB.cats.getAll()},
+			{0: "This is the main category. All the other ones are subcategories of this one", 1: "abcd", 2: "", 3: ""})
+		self.assertFalse(self.pBDB.cats.update({"name": "cat2", "comments": ""}, 2))
+		self.assertFalse(self.pBDB.cats.updateField(1, "inspires", "abc"))
+		self.assertFalse(self.pBDB.cats.updateField(1, "idCat", "2"))
+		self.assertFalse(self.pBDB.cats.updateField(1, "parentCat", ""))
+		self.assertFalse(self.pBDB.cats.updateField(1, "parentCat", None))
+		self.checkNumberCategories(4)
+		self.assertTrue(self.pBDB.catExp.insert(2, 1))
+		self.assertTrue(self.pBDB.catBib.insert(2, "test"))
+		self.assertTrue(self.pBDB.cats.insert({"name": "cat3", "comments": "", "description": "", "parentCat": "3", "ord": "1"}))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats["cats"], 5)
+		self.assertEqual(self.pBDB.stats["catExp"], 1)
+		self.assertEqual(self.pBDB.stats["catBib"], 1)
+		self.pBDB.cats.delete([2, 3])
+		self.checkNumberCategories(2)
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats["catExp"], 0)
+		self.assertEqual(self.pBDB.stats["catBib"], 0)
+		self.assert_stdout(lambda: self.pBDB.cats.delete(0), "[DB] Error: should not delete the category with id: 0.\n")
+		self.checkNumberCategories(2)
+		self.assert_stdout(lambda: self.pBDB.cats.delete(1), "[DB] Error: should not delete the category with id: 1.\n")
+		self.checkNumberCategories(2)
+
 	def test_get(self):
-		pass
-		# getAll
-		# getByID
-		# getDictByID
-		# getByName
-		# getChild
-		# getParent
-	def test_hierarchy(self):
-		pass
-		# getHier
-		# printHier
+		"""Test get methods"""
+		self.assertTrue(self.pBDB.cats.insert({"name": "cat1", "comments": "", "description": "", "parentCat": "1", "ord": "0"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "cat2", "comments": "", "description": "", "parentCat": "1", "ord": "0"}))
+		self.checkNumberCategories(4)
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getAll()],
+			[{"idCat": 0, "name": "Main", "comments": "", "description": "This is the main category. All the other ones are subcategories of this one", "parentCat": 0, "ord": 0},
+			{"idCat": 1, "name": "Tags", "comments": "", "description": "Use this category to store tags (such as: ongoing projects, temporary cats,...)", "parentCat": 0, "ord": 0},
+			{"idCat": 2, "name": "cat1", "comments": "", "description": "", "parentCat": 1, "ord": 0},
+			{"idCat": 3, "name": "cat2", "comments": "", "description": "", "parentCat": 1, "ord": 0}])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByID(2)],
+			[{"idCat": 2, "name": "cat1", "comments": "", "description": "", "parentCat": 1, "ord": 0}])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByName("cat2")],
+			[{"idCat": 3, "name": "cat2", "comments": "", "description": "", "parentCat": 1, "ord": 0}])
+		self.assertEqual(self.pBDB.cats.getDictByID(2),
+			{"idCat": 2, "name": "cat1", "comments": "", "description": "", "parentCat": 1, "ord": 0})
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getChild(0)],
+			[{"idCat": 0, "name": "Main", "comments": "", "description": "This is the main category. All the other ones are subcategories of this one", "parentCat": 0, "ord": 0},
+			{"idCat": 1, "name": "Tags", "comments": "", "description": "Use this category to store tags (such as: ongoing projects, temporary cats,...)", "parentCat": 0, "ord": 0}])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getChild(2)], [])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getParent(1)],
+			[{"idCat": 0, "name": "Main", "comments": "", "description": "This is the main category. All the other ones are subcategories of this one", "parentCat": 0, "ord": 0}])
+		self.pBDB.undo()
+
 	def test_getByOthers(self):
-		# getByEntry
-		# getByExp
-		pass
+		"""Test getByExp and getByEntry creating some fake records"""
+		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{abc,\nauthor = "me",\ntitle = "title",}', bibkey = "abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.catExp.insert(1, 1))
+		self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
+		self.assertEqual(self.pBDB.cats.getByEntry("def"), [])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByEntry("abc")],
+			[{'idCat': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idEnC': 1, 'ord': 0, 'bibkey': u'abc', 'name': u'Tags'}])
+		self.assertEqual(self.pBDB.cats.getByExp("2"), [])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByExp(1)],
+			[{'idCat': 1, 'idExp': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idExC': 1, 'ord': 0, 'name': u'Tags'}])
+		self.pBDB.undo()
+
+	def test_catString(self):
+		"""Test catString with existing and non existing records"""
+		self.assertEqual(catString(1, self.pBDB), "   1: Tags")
+		self.assertEqual(catString(1, self.pBDB, True), "   1: Tags - <i>Use this category to store tags (such as: ongoing projects, temporary cats,...)</i>")
+		self.assertEqual(catString(2, self.pBDB), "")
+		self.assert_stdout(lambda: catString(2, self.pBDB),
+			"[DB][catString] category '2' not in database\n\n")
+		self.pBDB.undo()
+
+	def test_cats_alphabetical(self):
+		"""Test alphabetical ordering of idCats with cats_alphabetical"""
+		self.assertTrue(self.pBDB.cats.insert({"name": "c", "comments": "", "description": "", "parentCat": "1", "ord": "0"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "g", "comments": "", "description": "", "parentCat": "1", "ord": "0"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "d", "comments": "", "description": "", "parentCat": "1", "ord": "0"}))
+		listId = [a["idCat"] for a in self.pBDB.cats.getChild(1)]
+		self.assertEqual(listId, [2, 3, 4])
+		self.assertEqual(cats_alphabetical(listId, self.pBDB), [2, 4, 3])
+		self.assertEqual(cats_alphabetical([3, 4, 5], self.pBDB), [4, 3])
+		self.assertEqual(cats_alphabetical([], self.pBDB), [])
+		self.assert_stdout(lambda: cats_alphabetical([5], self.pBDB),
+			"[DB][cats_alphabetical] category '5' not in database\n\n")
+		self.pBDB.undo()
+
+	def test_hierarchy(self):
+		"""Testing the construction and print of the category hierarchies"""
+		self.assertTrue(self.pBDB.cats.insert({"name": "c", "comments": "", "description": "1", "parentCat": "1", "ord": "0"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "d", "comments": "", "description": "2", "parentCat": "2", "ord": "0"}))
+		self.assertTrue(self.pBDB.cats.insert({"name": "e", "comments": "", "description": "3", "parentCat": "1", "ord": "0"}))
+		self.assertEqual(self.pBDB.cats.getHier(), {0: {1: {2: {3: {}}, 4: {}}}})
+		self.assertEqual(self.pBDB.cats.getHier(replace = False), {0: {1: {2: {3: {}}, 4: {}}}})
+		self.assertEqual(self.pBDB.cats.getHier(startFrom = 2), {2: {3: {}}})
+		self.assertEqual(self.pBDB.cats.getHier(self.pBDB.cats.getChild(2)), {0: {}})#as 0 is not in the original list!
+		self.assertEqual(self.pBDB.cats.getHier(self.pBDB.cats.getChild(2), startFrom = 2), {2: {3: {}}})
+		self.assertEqual(self.pBDB.cats.getHier(), {0: {1: {2: {3: {}}, 4: {}}}})
+		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True),
+			"   0: Main\n        1: Tags\n             2: c\n                  3: d\n             4: e\n")
+		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, sp = 3*" "),
+			"   0: Main\n      1: Tags\n         2: c\n            3: d\n         4: e\n")
+		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, startFrom = 2, withDesc = True),
+			"   2: c - <i>1</i>\n        3: d - <i>2</i>\n")
+		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, depth = 2),
+			"   0: Main\n        1: Tags\n             2: c\n             4: e\n")
+		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
