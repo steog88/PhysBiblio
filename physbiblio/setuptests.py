@@ -18,9 +18,9 @@ except Exception:
 today_ymd = datetime.datetime.today().strftime('%y%m%d')
 
 skipOnlineTests = True
-skipLongTests = True
-skipDBTests = True
-skipOAITests = True
+skipOAITests    = True
+skipLongTests   = True
+skipDBTests     = False
 
 pbConfig.params["logFileName"] = "test_packages_%s.log"%today_ymd
 logFileName = os.path.join(pbConfig.path, pbConfig.params["logFileName"])

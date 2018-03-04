@@ -26,6 +26,8 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+pBPDF.pdfDir = os.path.join(pbConfig.path, "testpdf_%s"%today_ymd)
+
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestPdfMethods(unittest.TestCase):
 	"""
@@ -88,7 +90,6 @@ class TestPdfMethods(unittest.TestCase):
 	def test_removeSpare(self):
 		"""Test finding spare folders"""
 		pBDB.bibs.getAll = MagicMock(return_value=[{"bibkey":"abc"}, {"bibkey":"def"}])
-		pBPDF.pdfDir = os.path.join(pbConfig.path, "tmppdf_%s"%today_ymd)
 		for q in ["abc", "def", "ghi"]:
 			pBPDF.createFolder(q)
 			self.assertTrue(os.path.exists(pBPDF.getFileDir(q)))

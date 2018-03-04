@@ -66,11 +66,14 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				INSERT into categories (name, description, parentCat, comments, ord)
 					values (:name, :description, :parentCat, :comments, :ord)
 				""", {"name":"abcd","description":"e","parentCat":0,"comments":""}))
-		self.assertEqual(len(self.pBDB.cats.getAll()), 3)
+		self.assertEqual(len(self.pBDB.cats.getAll()), 4)
 		self.assertRaises(AttributeError, lambda: self.pBDB.stats)
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
-			{"bibs": 0, "cats": 3, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
+			{"bibs": 0, "cats": 4, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
+		self.pBDB.cats.delete([2, 3])
+		self.assertEqual(len(self.pBDB.cats.getAll()), 2)
+		self.pBDB.commit()
 
 	def test_literal_eval(self):
 		"""Test literal_eval in physbiblioDBSub"""
@@ -82,6 +85,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("[test e"), "[test e")
 		self.assertEqual(self.pBDB.cats.literal_eval("[test f]"), None)
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"), ["test g", "test h"])
+		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseLinks(DBTestCase):
@@ -219,6 +223,7 @@ class TestDatabaseExperiments(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats["catExp"], 0)
 		self.assertEqual(self.pBDB.stats["bibExp"], 0)
+		self.pBDB.undo()
 
 	def test_get(self):
 		"""Test get methods"""
@@ -265,6 +270,7 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertTrue(self.pBDB.catExp.insert(1, 2))
 		self.assert_stdout(self.pBDB.exps.printInCats,
 			"   0: Main\n          -> exp1 (1)\n        1: Tags\n               -> exp2 (2)\n")
+		self.pBDB.undo()
 
 	def test_getByOthers(self):
 		"""Test getByCat and getByEntry creating some fake records"""
@@ -337,6 +343,7 @@ class TestDatabaseCategories(DBTestCase):
 		self.checkNumberCategories(2)
 		self.assert_stdout(lambda: self.pBDB.cats.delete(1), "[DB] Error: should not delete the category with id: 1.\n")
 		self.checkNumberCategories(2)
+		self.pBDB.undo()
 
 	def test_get(self):
 		"""Test get methods"""
@@ -452,6 +459,7 @@ class TestDatabaseUtilities(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 0, "catExp": 1, "bibExp": 0})
+		self.pBDB.undo()
 
 	def test_bibtexs(self):
 		"""Create and clean a bibtex entry"""
@@ -461,6 +469,7 @@ class TestDatabaseUtilities(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"),
 			u'@Article{abc,\n        author = "me",\n         title = "{\`{e} \~{n}}",\n}\n\n')
 		self.pBDB.bibs.delete("abc")
+		self.pBDB.undo()
 
 def tearDownModule():
 	if os.path.exists(tempDBName):
