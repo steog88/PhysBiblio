@@ -3,6 +3,9 @@ Module for retrieving bibtex information from a list of given web resources (see
 
 This module is part of the PhysBiblio package.
 """
+import physbiblio
+__version__ = physbiblio.__version__
+
 __author__ = 'Stefano Gariazzo'
 __email__ = "stefano.gariazzo@gmail.com"
 

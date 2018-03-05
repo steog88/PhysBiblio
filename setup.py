@@ -7,12 +7,14 @@ This file is part of the PhysBiblio package.
 
 from setuptools import setup
 
+import physbiblio
+
 def readme():
     with open('README.md') as f:
         return f.read()
 
 setup(name='PhysBiblio',
-		version='0.1.0',
+		version=physbiblio.__version__,
 		description='A bibliography manager in Python (using Sqlite and PySide)',
 		long_description=readme(),
 		author='Stefano Gariazzo',
