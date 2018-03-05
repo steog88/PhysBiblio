@@ -9,4 +9,5 @@ notes.py
 *.db
 *.cfg
 *.log
+!/test*.log
 profiles.dat
