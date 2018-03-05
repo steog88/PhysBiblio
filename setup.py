@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+Script for installing, uploading, doing tests and so on.
+
+This file is part of the PhysBiblio package.
+"""
 
 from setuptools import setup
 
@@ -16,8 +21,9 @@ setup(name='PhysBiblio',
 		license="GPL-3.0",
 		keywords="bibliography hep-ph high-energy-physics bibtex",
 
-		packages=['physbiblio', 'physbiblio.gui', 'physbiblio.webimport'],
-		scripts=['physbiblio.py', 'physbiblio_test.py'],
+		packages=['physbiblio', 'physbiblio.gui', 'physbiblio.webimport',
+			'physbiblio.tests', 'physbiblio.webimport.tests'],
+		scripts=['physbiblio.py'],
 		package_data={
 			'': ['*.sh', '*.md', '*.png'],
 			'physbiblio.gui': ['images/*.png'],
@@ -33,4 +39,5 @@ setup(name='PhysBiblio',
 			],
 		provides=['physbiblio'],
 		data_files = [("", ["LICENSE"])],
+		test_loader = "physbiblio.testLoader:MyScanningLoader",
 	)

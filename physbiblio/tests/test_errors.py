@@ -42,8 +42,9 @@ class TestBuilding(unittest.TestCase):
 		try:
 			raise Exception(message)
 		except Exception as e:
+			tracebackText = traceback.format_exc()
 			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + traceback.format_exc() + "\n")
+		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText + "\n")
 
 	@patch('sys.stderr', new_callable=StringIO)
 	def assert_stderr(self, message, priority, expected_output, mock_stdout):
@@ -60,8 +61,9 @@ class TestBuilding(unittest.TestCase):
 		try:
 			raise Exception(message)
 		except Exception as e:
+			tracebackText = traceback.format_exc()
 			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + traceback.format_exc())
+		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText)
 
 	def test_errors(self):
 		"""Test pBErrorManager with different input combinations"""

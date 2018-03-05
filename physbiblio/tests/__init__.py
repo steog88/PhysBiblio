@@ -6,5 +6,5 @@ This file is part of the PhysBiblio package.
 __author__ = 'Stefano Gariazzo'
 __email__ = "stefano.gariazzo@gmail.com"
 
-__all__ = ["test_database", "test_errors", "test_export", "test_pdf", "test_view"]
+__all__ = ["test_bibtexwriter", "test_database", "test_errors", "test_export", "test_pdf", "test_view"]
 
