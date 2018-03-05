@@ -29,6 +29,7 @@ setup(name='PhysBiblio',
 			'physbiblio.gui': ['images/*.png'],
 		},
 		install_requires=[
+			'six',
 			'bibtexparser(>=1.0.1)',
 			'pyoai',
 			'feedparser',

@@ -8,6 +8,7 @@ from sqlite3 import OperationalError, ProgrammingError, DatabaseError
 import os, re, traceback, datetime
 import ast
 import bibtexparser
+import six.moves
 
 try:
 	from physbiblio.config import pbConfig
@@ -703,7 +704,7 @@ class catsEntries(physbiblioDBSub):
 		if type(keys) is not list:
 			keys = [keys]
 		for k in keys:
-			string = raw_input("categories for '%s': "%k)
+			string = six.moves.input("categories for '%s': "%k)
 			try:
 				cats = self.literal_eval(string)
 				self.insert(cats, k)
@@ -720,7 +721,7 @@ class catsEntries(physbiblioDBSub):
 		if type(cats) is not list:
 			cats = [cats]
 		for c in cats:
-			string = raw_input("entries for '%d': "%c)
+			string = six.moves.input("entries for '%d': "%c)
 			try:
 				keys = self.literal_eval(string)
 				self.insert(c, keys)
@@ -820,7 +821,7 @@ class catsExps(physbiblioDBSub):
 		if type(exps) is not list:
 			exps = [exps]
 		for e in exps:
-			string = raw_input("categories for '%d': "%e)
+			string = six.moves.input("categories for '%d': "%e)
 			try:
 				cats = self.literal_eval(string)
 				self.insert(cats, e)
@@ -837,7 +838,7 @@ class catsExps(physbiblioDBSub):
 		if type(cats) is not list:
 			cats = [cats]
 		for c in cats:
-			string = raw_input("experiments for '%d': "%c)
+			string = six.moves.input("experiments for '%d': "%c)
 			try:
 				exps = self.literal_eval(string)
 				self.insert(c, exps)
@@ -955,7 +956,7 @@ class entryExps(physbiblioDBSub):
 		if type(keys) is not list:
 			keys = [keys]
 		for k in keys:
-			string = raw_input("experiments for '%s': "%k)
+			string = six.moves.input("experiments for '%s': "%k)
 			try:
 				exps = self.literal_eval(string)
 				self.insert(k, exps)
@@ -972,7 +973,7 @@ class entryExps(physbiblioDBSub):
 		if type(exps) is not list:
 			exps = [exps]
 		for e in exps:
-			string = raw_input("entries for '%d': "%e)
+			string = six.moves.input("entries for '%d': "%e)
 			try:
 				keys = self.literal_eval(string)
 				self.insert(keys, e)

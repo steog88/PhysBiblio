@@ -33,3 +33,6 @@ class DBTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		self.pBDB = physbiblioDB(tempDBName)
+
+	def tearDown(self):
+		self.pBDB.undo()

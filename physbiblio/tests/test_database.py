@@ -5,6 +5,7 @@ Test file for the physbiblio.database module.
 This file is part of the PhysBiblio package.
 """
 import sys, traceback
+import six
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -85,7 +86,6 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("[test e"), "[test e")
 		self.assertEqual(self.pBDB.cats.literal_eval("[test f]"), None)
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"), ["test g", "test h"])
-		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseLinks(DBTestCase):
@@ -107,19 +107,18 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual([tuple(a) for a in self.pBDB.catBib.getAll()],
 			[(1,"test1",1), (2,"test2",1), (3,"test1",2), (4,"test2",2)])
 		self.pBDB.utils.cleanSpareEntries()
-		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+		with patch('six.moves.input', return_value='[1,2]') as _input:
 			self.pBDB.catBib.askCats("test1")
-			_raw_input.assert_called_once_with("categories for 'test1': ")
-		with patch('__builtin__.raw_input', return_value='1,2') as _raw_input:
+			_input.assert_called_once_with("categories for 'test1': ")
+		with patch('six.moves.input', return_value='1,2') as _input:
 			self.pBDB.catBib.askCats("test1")
-			_raw_input.assert_called_once_with("categories for 'test1': ")
-		with patch('__builtin__.raw_input', return_value='test2') as _raw_input:
+			_input.assert_called_once_with("categories for 'test1': ")
+		with patch('six.moves.input', return_value='test2') as _input:
 			self.pBDB.catBib.askKeys([1,2])
-			_raw_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
+			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catBib.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
 		self.assertTrue(self.pBDB.catBib.insert("test", "test"))
-		self.pBDB.undo()
 
 	def test_catExps(self):
 		"""Test catsExps functions"""
@@ -137,16 +136,15 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual([tuple(a) for a in self.pBDB.catExp.getAll()],
 			[(1, 10, 1), (2, 11, 1), (3, 10, 2), (4, 11, 2)])
 		self.pBDB.utils.cleanSpareEntries()
-		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+		with patch('six.moves.input', return_value='[1,2]') as _input:
 			self.pBDB.catExp.askCats(10)
-			_raw_input.assert_called_once_with("categories for '10': ")
-		with patch('__builtin__.raw_input', return_value='11') as _raw_input:
+			_input.assert_called_once_with("categories for '10': ")
+		with patch('six.moves.input', return_value='11') as _input:
 			self.pBDB.catExp.askExps([1,2])
-			_raw_input.assert_has_calls([call("experiments for '1': "), call("experiments for '2': ")])
+			_input.assert_has_calls([call("experiments for '1': "), call("experiments for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catExp.getAll()],
 			[(1, 10, 1), (2, 10, 2), (3, 11, 1), (4, 11, 2)])
 		self.assertTrue(self.pBDB.catExp.insert("test", "test"))
-		self.pBDB.undo()
 
 	def test_entryExps(self):
 		"""Test entryExps functions"""
@@ -165,19 +163,18 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual([tuple(a) for a in self.pBDB.bibExp.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
 		self.pBDB.utils.cleanSpareEntries()
-		with patch('__builtin__.raw_input', return_value='[1,2]') as _raw_input:
+		with patch('six.moves.input', return_value='[1,2]') as _input:
 			self.pBDB.bibExp.askExps("test1")
-			_raw_input.assert_called_once_with("experiments for 'test1': ")
-		with patch('__builtin__.raw_input', return_value='1,2') as _raw_input:
+			_input.assert_called_once_with("experiments for 'test1': ")
+		with patch('six.moves.input', return_value='1,2') as _input:
 			self.pBDB.bibExp.askExps("test1")
-			_raw_input.assert_called_once_with("experiments for 'test1': ")
-		with patch('__builtin__.raw_input', return_value='test2') as _raw_input:
+			_input.assert_called_once_with("experiments for 'test1': ")
+		with patch('six.moves.input', return_value='test2') as _input:
 			self.pBDB.bibExp.askKeys([1,2])
-			_raw_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
+			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.bibExp.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
-		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseExperiments(DBTestCase):
@@ -223,7 +220,6 @@ class TestDatabaseExperiments(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats["catExp"], 0)
 		self.assertEqual(self.pBDB.stats["bibExp"], 0)
-		self.pBDB.undo()
 
 	def test_get(self):
 		"""Test get methods"""
@@ -239,7 +235,6 @@ class TestDatabaseExperiments(DBTestCase):
 			[{"idExp": 2, "name": "exp2", "comments": "", "homepage": "", "inspire": ""}])
 		self.assertEqual(self.pBDB.exps.getDictByID(1),
 			{"idExp": 1, "name": "exp1", "comments": "", "homepage": "", "inspire": ""})
-		self.pBDB.undo()
 
 	def test_filterAll(self):
 		"""test the filterAll function, that looks into all the fields for a matching string"""
@@ -254,7 +249,6 @@ class TestDatabaseExperiments(DBTestCase):
 			{"idExp": 3, "name": "exp3", "comments": "", "homepage": "match", "inspire": ""},
 			{"idExp": 4, "name": "exp4", "comments": "", "homepage": "", "inspire": "match"}])
 		self.assertEqual(len(self.pBDB.exps.filterAll("nonmatch")), 0)
-		self.pBDB.undo()
 
 	def test_print(self):
 		"""Test to_str, printAll and printInCats"""
@@ -270,7 +264,6 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertTrue(self.pBDB.catExp.insert(1, 2))
 		self.assert_stdout(self.pBDB.exps.printInCats,
 			"   0: Main\n          -> exp1 (1)\n        1: Tags\n               -> exp2 (2)\n")
-		self.pBDB.undo()
 
 	def test_getByOthers(self):
 		"""Test getByCat and getByEntry creating some fake records"""
@@ -285,7 +278,6 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertEqual(self.pBDB.exps.getByCat("1"), [])
 		self.assertEqual([dict(e) for e in self.pBDB.exps.getByCat(0)],
 			[{'idCat': 0, 'inspire': u'', 'comments': u'', 'name': u'exp1', 'idExC': 1, 'homepage': u'', 'idExp': 1}])
-		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseCategories(DBTestCase):
@@ -343,7 +335,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.checkNumberCategories(2)
 		self.assert_stdout(lambda: self.pBDB.cats.delete(1), "[DB] Error: should not delete the category with id: 1.\n")
 		self.checkNumberCategories(2)
-		self.pBDB.undo()
 
 	def test_get(self):
 		"""Test get methods"""
@@ -367,7 +358,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual([dict(e) for e in self.pBDB.cats.getChild(2)], [])
 		self.assertEqual([dict(e) for e in self.pBDB.cats.getParent(1)],
 			[{"idCat": 0, "name": "Main", "comments": "", "description": "This is the main category. All the other ones are subcategories of this one", "parentCat": 0, "ord": 0}])
-		self.pBDB.undo()
 
 	def test_getByOthers(self):
 		"""Test getByExp and getByEntry creating some fake records"""
@@ -382,7 +372,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(self.pBDB.cats.getByExp("2"), [])
 		self.assertEqual([dict(e) for e in self.pBDB.cats.getByExp(1)],
 			[{'idCat': 1, 'idExp': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idExC': 1, 'ord': 0, 'name': u'Tags'}])
-		self.pBDB.undo()
 
 	def test_catString(self):
 		"""Test catString with existing and non existing records"""
@@ -391,7 +380,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(catString(2, self.pBDB), "")
 		self.assert_stdout(lambda: catString(2, self.pBDB),
 			"[DB][catString] category '2' not in database\n\n")
-		self.pBDB.undo()
 
 	def test_cats_alphabetical(self):
 		"""Test alphabetical ordering of idCats with cats_alphabetical"""
@@ -405,7 +393,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(cats_alphabetical([], self.pBDB), [])
 		self.assert_stdout(lambda: cats_alphabetical([5], self.pBDB),
 			"[DB][cats_alphabetical] category '5' not in database\n\n")
-		self.pBDB.undo()
 
 	def test_hierarchy(self):
 		"""Testing the construction and print of the category hierarchies"""
@@ -426,7 +413,6 @@ class TestDatabaseCategories(DBTestCase):
 			"   2: c - <i>1</i>\n        3: d - <i>2</i>\n")
 		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, depth = 2),
 			"   0: Main\n        1: Tags\n             2: c\n             4: e\n")
-		self.pBDB.undo()
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
@@ -459,7 +445,6 @@ class TestDatabaseUtilities(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 0, "catExp": 1, "bibExp": 0})
-		self.pBDB.undo()
 
 	def test_bibtexs(self):
 		"""Create and clean a bibtex entry"""
@@ -469,7 +454,6 @@ class TestDatabaseUtilities(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"),
 			u'@Article{abc,\n        author = "me",\n         title = "{\`{e} \~{n}}",\n}\n\n')
 		self.pBDB.bibs.delete("abc")
-		self.pBDB.undo()
 
 def tearDownModule():
 	if os.path.exists(tempDBName):
