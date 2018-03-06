@@ -417,8 +417,131 @@ class TestDatabaseCategories(DBTestCase):
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
-	def test_new(self):
+	def test_delete(self):
 		pass
+
+	def test_prepareInsert(self):
+		pass
+
+	def test_insert(self):
+		pass
+
+	def test_update(self):
+		# update
+		# updateField
+		# updateBibkey
+		pass
+
+	def test_prepareUpdate(self):
+		# prepareUpdateByKey
+		# prepareUpdateByBibtex
+		# prepareUpdate
+		pass
+
+	def test_replace(self):
+		# replace
+		# replaceInBibtex
+		pass
+
+	def test_completeFetched(self):
+		pass
+
+	def test_fetchFromLast(self):
+		pass
+
+	def test_fetchFromDict(self):
+		pass
+
+	def test_fetchAll(self):
+		# fetchAll
+		# getAll
+		pass
+
+	def test_fetchByBibkey(self):
+		# fetchByBibtex
+		# getByBibtex
+		pass
+
+	def test_fetchByKey(self):
+		# fetchByKey
+		# getByKey
+		pass
+
+	def test_fetchByBibtex(self):
+		# fetchByBibtex
+		# getByBibtex
+		pass
+
+	def test_getField(self):
+		pass
+
+	def test_toDataDict(self):
+		pass
+
+	def test_getUrl(self):
+		# getDoiUrl
+		# getArxivUrl
+		pass
+
+	def test_fetchByCat(self):
+		# fetchByCat
+		# getByCat
+		pass
+
+	def test_fetchByExp(self):
+		# fetchByExp
+		# getByExp
+		pass
+
+	def test_cleanBibtexs(self):
+		pass
+
+	def test_printAll(self):
+		# printAllBibtexs
+		# printAllBibkeys
+		# printAllInfo
+		pass
+
+	def test_setStuff(self):
+		# setBook
+		# setLecture
+		# setPhdThesis
+		# setProceeding
+		# setReview
+		# setNoUpdate
+		pass
+
+	def test_importFromBib(self):
+		pass
+
+	def test_loadAndInsert(self):
+		# loadAndInsert
+		# loadAndInsertWithCats
+		pass
+
+	def test_getFieldsFromArxiv(self):
+		pass
+
+	def test_rmBibtexStuff(self):
+		# rmBibtexACapo
+		# rmBibtexComments
+		pass
+
+	def test_updateInspireID(self):
+		pass
+
+	def test_searchOAIUpdates(self):
+		pass
+
+	def test_updateInfoFromOAI(self):
+		pass
+
+	def test_updateFromOAI(self):
+		pass
+
+	def test_getDailyInfoFromOAI(self):
+		pass
+
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):

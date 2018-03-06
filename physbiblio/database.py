@@ -1749,7 +1749,7 @@ class entries(physbiblioDBSub):
 		"""
 		url = self.getField(key, "arxiv")
 		return pbConfig.arxivUrl + urlType + "/" + url if url != "" and url is not False and url is not None and url is not "" else False
-			
+
 	def insert(self, data):
 		"""
 		Insert an entry
@@ -1764,106 +1764,6 @@ class entries(physbiblioDBSub):
 					", ".join(self.tableCols["entries"]) + ") values (:" +
 					", :".join(self.tableCols["entries"]) + ")\n",
 					data)
-
-	def replaceInBibtex(self, old, new):
-		"""
-		Replace a string with a new one, in all the matching bibtex entries of the table
-
-		Parameters:
-			old: the old string
-			new: the new string
-
-		Output:
-			the list of keys of the matching bibtex entries or False if self.connExec failed
-		"""
-		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
-		self.lastVals  = {"match": "%"+old+"%"}
-		self.cursExec(self.lastQuery, self.lastVals)
-		self.lastFetched = self.completeFetched(self.curs.fetchall())
-		keys = [k["bibkey"] for k in self.lastFetched]
-		print("[DB] Replacing text in entries: ", keys)
-		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
-			return keys
-		else:
-			return False
-
-	def replace(self, fiOld, fiNews, old, news, entries = None, regex = False):
-		"""
-		Replace a string with a new one, in the given field of the (previously) selected bibtex entries
-
-		Parameters:
-			fiOld: the field where the string to match is taken from
-			fiNews: the new fields where to insert the replaced string
-			old: the old string to replace
-			news: the list of new strings
-			entries (None or a list): the entries to consider. If None, use self.getAll
-			regex (boolean, default False): whether to use regular expression for matching and replacing
-
-		Output:
-			success, changed, failed: the lists of entries that were successfully processed, changed or produced errors
-		"""
-		def myReplace(line, new, previous = None):
-			"""
-			Replace the old with the new string in the given line
-
-			Parameters:
-				line: the string where to match and replace
-				new: the new string
-				previous (default None): the previous content of the field (useful when using regex and complex replaces)
-
-			Output:
-				the processed line or previous (if regex and no matches are found)
-			"""
-			if regex:
-				reg = re.compile(old)
-				if reg.match(line):
-					line = reg.sub(new, line)
-				else:
-					line = previous
-			else:
-				line = line.replace(old, new)
-			return line
-		if entries is None:
-			entries = self.getAll(saveQuery = False)
-		success = []
-		changed = []
-		failed = []
-		for entry in entries:
-			try:
-				if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
-					raise KeyError("Field %s not found in entry %s"%(fiOld, entry["bibkey"]))
-				if fiOld in entry["bibtexDict"].keys():
-					before = entry["bibtexDict"][fiOld]
-				elif fiOld in entry.keys():
-					before = entry[fiOld]
-				bef = []
-				aft = []
-				for fiNew, new in zip(fiNews, news):
-					if not fiNew in entry["bibtexDict"].keys() and not fiNew in entry.keys():
-						raise KeyError("Field %s not found in entry %s"%(fiNew, entry["bibkey"]))
-					if fiNew in entry["bibtexDict"].keys():
-						bef.append(entry["bibtexDict"][fiNew])
-						after  = myReplace(before, new, previous = entry["bibtexDict"][fiNew])
-						aft.append(after)
-						entry["bibtexDict"][fiNew] = after
-						db = bibtexparser.bibdatabase.BibDatabase()
-						db.entries = []
-						db.entries.append(entry["bibtexDict"])
-						entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
-						self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
-					if fiNew in entry.keys():
-						bef.append(entry[fiNew])
-						after  = myReplace(before, new, previous = entry[fiNew])
-						aft.append(after)
-						self.updateField(entry["bibkey"], fiNew, after, verbose = 0)
-			except KeyError:
-				pBErrorManager("[DB] something wrong in replace", traceback)
-				failed.append(entry["bibkey"])
-			else:
-				success.append(entry["bibkey"])
-				if any(b != a for a,b in zip(aft, bef)):
-					changed.append(entry["bibkey"])
-		return success, changed, failed
 
 	def update(self, data, oldkey):
 		"""
@@ -1881,41 +1781,6 @@ class entries(physbiblioDBSub):
 					", ".join(data.keys()) + ") values (:" + \
 					", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
-
-	def rmBibtexComments(self, bibtex):
-		"""
-		Remove comments and empty lines from a bibtex
-
-		Parameters:
-			bibtex: the bibtex to process
-
-		Output:
-			the processed bibtex
-		"""
-		output = ""
-		for l in bibtex.splitlines():
-			lx = l.strip()
-			if len(lx) > 0 and lx[0] != "%":
-				output += l + "\n"
-		return output.strip()
-
-	def rmBibtexACapo(self, bibtex):
-		"""
-		Remove line breaks in the fields of a bibtex
-
-		Parameters:
-			bibtex: the bibtex to process
-
-		Output:
-			the processed bibtex
-		"""
-		output = ""
-		db = bibtexparser.bibdatabase.BibDatabase()
-		tmp = {}
-		for k,v in bibtexparser.loads(bibtex).entries[0].items():
-			tmp[k] = v.replace("\n", " ")
-		db.entries = [tmp]
-		return pbWriter.write(db)
 
 	def prepareInsert(self,
 			bibtex, bibkey = None, inspire = None, arxiv = None, ads = None, scholar = None, doi = None, isbn = None,
@@ -2085,7 +1950,7 @@ class entries(physbiblioDBSub):
 				keep[k] = elementNew[k]
 		db.entries.append(keep)
 		return pbWriter.write(db)
-		
+
 	def updateInspireID(self, string, key = None, number = None):
 		"""
 		Use inspire websearch module to get and update the inspire ID of an entry
@@ -2263,57 +2128,141 @@ class entries(physbiblioDBSub):
 			else:
 				inspireID = self.updateInspireID(entry, entry)
 				return self.updateInfoFromOAI(inspireID, verbose = verbose)
-	
-	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
+
+	def replaceInBibtex(self, old, new):
 		"""
-		Select unpublished papers and look for updates using inspireOAI
+		Replace a string with a new one, in all the matching bibtex entries of the table
 
 		Parameters:
-			startFrom (default 0): the index in the list of entries where to start updating
-			entries: the list of entries to be considered or None (if None, use self.getAll)
-			force (boolean, default False): force the update also of entries which already have journal information
+			old: the old string
+			new: the new string
 
 		Output:
-			num, err, changed: the number of processed entries, the list of errors and of changed entries
+			the list of keys of the matching bibtex entries or False if self.connExec failed
 		"""
+		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
+		self.lastVals  = {"match": "%"+old+"%"}
+		self.cursExec(self.lastQuery, self.lastVals)
+		self.lastFetched = self.completeFetched(self.curs.fetchall())
+		keys = [k["bibkey"] for k in self.lastFetched]
+		print("[DB] Replacing text in entries: ", keys)
+		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
+			return keys
+		else:
+			return False
+
+	def replace(self, fiOld, fiNews, old, news, entries = None, regex = False):
+		"""
+		Replace a string with a new one, in the given field of the (previously) selected bibtex entries
+
+		Parameters:
+			fiOld: the field where the string to match is taken from
+			fiNews: the new fields where to insert the replaced string
+			old: the old string to replace
+			news: the list of new strings
+			entries (None or a list): the entries to consider. If None, use self.getAll
+			regex (boolean, default False): whether to use regular expression for matching and replacing
+
+		Output:
+			success, changed, failed: the lists of entries that were successfully processed, changed or produced errors
+		"""
+		def myReplace(line, new, previous = None):
+			"""
+			Replace the old with the new string in the given line
+
+			Parameters:
+				line: the string where to match and replace
+				new: the new string
+				previous (default None): the previous content of the field (useful when using regex and complex replaces)
+
+			Output:
+				the processed line or previous (if regex and no matches are found)
+			"""
+			if regex:
+				reg = re.compile(old)
+				if reg.match(line):
+					line = reg.sub(new, line)
+				else:
+					line = previous
+			else:
+				line = line.replace(old, new)
+			return line
 		if entries is None:
-			try:
-				entries = self.getAll(saveQuery = False)[startFrom:]
-			except TypeError:
-				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
-				return 0, [], []
-		num = 0
-		err = []
+			entries = self.getAll(saveQuery = False)
+		success = []
 		changed = []
-		tot = len(entries)
-		self.runningOAIUpdates = True
-		print("[DB] searchOAIUpdates will process %d total entries"%tot)
-		for ix,e in enumerate(entries):
-			if self.runningOAIUpdates \
-				and e["proceeding"] == 0 \
-				and e["book"] == 0 \
-				and e["lecture"] == 0 \
-				and e["phd_thesis"] == 0 \
-				and e["noUpdate"] == 0 \
-				and e["inspire"] is not None \
-				and e["inspire"] != "" \
-				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
-					num += 1
-					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
-					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
-						err.append(e["bibkey"])
-					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
-						print("[DB] -- element changed!")
-						changed.append(e["bibkey"])
-					print("")
-		print("\n[DB] %d entries processed"%num)
-		print("\n[DB] %d errors occurred"%len(err))
-		if len(err)>0:
-			print(err)
-		print("\n[DB] %d entries changed"%len(changed))
-		if len(changed)>0:
-			print(changed)
-		return num, err, changed
+		failed = []
+		for entry in entries:
+			try:
+				if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
+					raise KeyError("Field %s not found in entry %s"%(fiOld, entry["bibkey"]))
+				if fiOld in entry["bibtexDict"].keys():
+					before = entry["bibtexDict"][fiOld]
+				elif fiOld in entry.keys():
+					before = entry[fiOld]
+				bef = []
+				aft = []
+				for fiNew, new in zip(fiNews, news):
+					if not fiNew in entry["bibtexDict"].keys() and not fiNew in entry.keys():
+						raise KeyError("Field %s not found in entry %s"%(fiNew, entry["bibkey"]))
+					if fiNew in entry["bibtexDict"].keys():
+						bef.append(entry["bibtexDict"][fiNew])
+						after  = myReplace(before, new, previous = entry["bibtexDict"][fiNew])
+						aft.append(after)
+						entry["bibtexDict"][fiNew] = after
+						db = bibtexparser.bibdatabase.BibDatabase()
+						db.entries = []
+						db.entries.append(entry["bibtexDict"])
+						entry["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+						self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose = 0)
+					if fiNew in entry.keys():
+						bef.append(entry[fiNew])
+						after  = myReplace(before, new, previous = entry[fiNew])
+						aft.append(after)
+						self.updateField(entry["bibkey"], fiNew, after, verbose = 0)
+			except KeyError:
+				pBErrorManager("[DB] something wrong in replace", traceback)
+				failed.append(entry["bibkey"])
+			else:
+				success.append(entry["bibkey"])
+				if any(b != a for a,b in zip(aft, bef)):
+					changed.append(entry["bibkey"])
+		return success, changed, failed
+
+	def rmBibtexComments(self, bibtex):
+		"""
+		Remove comments and empty lines from a bibtex
+
+		Parameters:
+			bibtex: the bibtex to process
+
+		Output:
+			the processed bibtex
+		"""
+		output = ""
+		for l in bibtex.splitlines():
+			lx = l.strip()
+			if len(lx) > 0 and lx[0] != "%":
+				output += l + "\n"
+		return output.strip()
+
+	def rmBibtexACapo(self, bibtex):
+		"""
+		Remove line breaks in the fields of a bibtex
+
+		Parameters:
+			bibtex: the bibtex to process
+
+		Output:
+			the processed bibtex
+		"""
+		output = ""
+		db = bibtexparser.bibdatabase.BibDatabase()
+		tmp = {}
+		for k,v in bibtexparser.loads(bibtex).entries[0].items():
+			tmp[k] = v.replace("\n", " ")
+		db.entries = [tmp]
+		return pbWriter.write(db)
 
 	def getFieldsFromArxiv(self, bibkey, fields):
 		"""
@@ -2894,6 +2843,57 @@ class entries(physbiblioDBSub):
 		print("\n[DB] %d entries processed"%num)
 		print("\n[DB] %d errors occurred"%err)
 		print("\n[DB] %d entries changed"%len(changed))
+		return num, err, changed
+	
+	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
+		"""
+		Select unpublished papers and look for updates using inspireOAI
+
+		Parameters:
+			startFrom (default 0): the index in the list of entries where to start updating
+			entries: the list of entries to be considered or None (if None, use self.getAll)
+			force (boolean, default False): force the update also of entries which already have journal information
+
+		Output:
+			num, err, changed: the number of processed entries, the list of errors and of changed entries
+		"""
+		if entries is None:
+			try:
+				entries = self.getAll(saveQuery = False)[startFrom:]
+			except TypeError:
+				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
+				return 0, [], []
+		num = 0
+		err = []
+		changed = []
+		tot = len(entries)
+		self.runningOAIUpdates = True
+		print("[DB] searchOAIUpdates will process %d total entries"%tot)
+		for ix,e in enumerate(entries):
+			if self.runningOAIUpdates \
+				and e["proceeding"] == 0 \
+				and e["book"] == 0 \
+				and e["lecture"] == 0 \
+				and e["phd_thesis"] == 0 \
+				and e["noUpdate"] == 0 \
+				and e["inspire"] is not None \
+				and e["inspire"] != "" \
+				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
+					num += 1
+					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
+						err.append(e["bibkey"])
+					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
+						print("[DB] -- element changed!")
+						changed.append(e["bibkey"])
+					print("")
+		print("\n[DB] %d entries processed"%num)
+		print("\n[DB] %d errors occurred"%len(err))
+		if len(err)>0:
+			print(err)
+		print("\n[DB] %d entries changed"%len(changed))
+		if len(changed)>0:
+			print(changed)
 		return num, err, changed
 
 class utilities(physbiblioDBSub):
