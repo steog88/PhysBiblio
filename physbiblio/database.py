@@ -202,7 +202,7 @@ class physbiblioDB():
 			else:
 				self.curs.execute(query)
 		except Exception as err:
-			pBErrorManager('[cursExec] ERROR: %s'%err, traceback)
+			pBErrorManager('[cursExec] ERROR: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data), traceback)
 			return False
 		else:
 			return True
@@ -1531,7 +1531,7 @@ class entries(physbiblioDBSub):
 		Parameters:
 			params (a dictionary or None): if a dictionary, it must contain the structure "field": "value"
 			connection: "and"/"or", default "and"
-			operator: "=" for exact match, "like" for containing match
+			operator: "=" for exact match (default), "like" for containing match
 			orderBy: the name of the field according to which the results are ordered
 			orderType: "ASC" (default) or "DESC"
 			limitTo (int or None): maximum number of results. If None, do not limit
@@ -1543,6 +1543,15 @@ class entries(physbiblioDBSub):
 		"""
 		query = "select * from entries "
 		vals = ()
+		if connection.strip() != "and" and connection.strip() != "or":
+			pBErrorManager("[DB] invalid logical connection operator ('%s') in database operations!\nReverting to default 'and'."%connection)
+			connection = "and"
+		if operator.strip() != "=" and operator.strip() != "like":
+			pBErrorManager("[DB] invalid comparison operator ('%s') in database operations!\nReverting to default '='."%operator)
+			operator = "="
+		if orderType.strip() != "ASC" and orderType.strip() != "DESC":
+			pBErrorManager("[DB] invalid ordering ('%s') in database operations!\nReverting to default 'ASC'."%orderType)
+			orderType = "ASC"
 		if params and len(params) > 0:
 			query += " where "
 			first = True
@@ -1553,20 +1562,24 @@ class entries(physbiblioDBSub):
 							first = False
 						else:
 							query += " %s "%connection
-						query += k + operator + " ? "
+						query += k + " %s "%operator + " ? "
+						if operator.strip() == "like" and "%" not in v1:
+							v1 = "%%%s%%"%v1
 						vals += (v1,)
 				else:
 					if first:
 						first = False
 					else:
 						query += " %s "%connection
-					query += k + operator + "? "
+					query += k + " %s "%operator + "? "
+					if operator.strip() == "like" and "%" not in v:
+						v = "%%%s%%"%v
 					vals += (v,)
 		query += " order by " + orderBy + " " + orderType if orderBy else ""
 		if limitTo is not None:
 			query += " LIMIT %s"%(str(limitTo))
-		if limitOffset is not None:
-			query += " OFFSET %s"%(str(limitOffset))
+			if limitOffset is not None:
+				query += " OFFSET %s"%(str(limitOffset))
 		if saveQuery:
 			self.lastQuery = query
 			self.lastVals  = vals
@@ -1582,7 +1595,7 @@ class entries(physbiblioDBSub):
 		self.lastFetched = self.completeFetched(fetched_in)
 		return self
 	
-	def getAll(self, params = None, connection = "and ", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
+	def getAll(self, params = None, connection = "and", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
 		"""
 		Use self.fetchAll and returns the dictionary of fetched entries
 
@@ -1606,7 +1619,7 @@ class entries(physbiblioDBSub):
 		"""
 		if type(bibkey) is list:
 			return self.fetchAll(params = {"bibkey": bibkey},
-				connection = "or ", saveQuery = saveQuery)
+				connection = "or", saveQuery = saveQuery)
 		else:
 			return self.fetchAll(params = {"bibkey": bibkey}, saveQuery = saveQuery)
 		

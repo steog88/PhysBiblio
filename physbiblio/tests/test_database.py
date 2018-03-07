@@ -414,11 +414,37 @@ class TestDatabaseCategories(DBTestCase):
 		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, depth = 2),
 			"   0: Main\n        1: Tags\n             2: c\n             4: e\n")
 
-@unittest.skipIf(skipDBTests, "Database tests")
+# @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
+	def insert_three(self):
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		data = self.pBDB.bibs.prepareInsert(u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		data = self.pBDB.bibs.prepareInsert(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}', arxiv="ghi")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+
 	def test_delete(self):
-		pass
+		"""Test delete a bibtex entry from the DB"""
+		self.insert_three()
+		self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
+		self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
+		self.pBDB.bibs.delete("aaa")
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
+		self.pBDB.bibs.delete("abc")
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 2, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
+		self.pBDB.bibs.delete(["def","ghi"])
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 0, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
 
 	def test_prepareInsert(self):
 		pass
@@ -447,30 +473,214 @@ class TestDatabaseEntries(DBTestCase):
 		pass
 
 	def test_fetchFromLast(self):
-		pass
+		"""Test the function fetchFromLast for the DB entries"""
+		self.insert_three()
+		self.pBDB.bibs.lastQuery = "SELECT * FROM entries"
+		self.pBDB.bibs.lastVals = ()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched],
+			["abc", "def", "ghi"])
+		self.pBDB.bibs.fetchByBibkey("def")
+		self.pBDB.bibs.lastVals = ("def",)
+		self.pBDB.bibs.lastQuery = "select * from entries  where bibkey=?"
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched],
+			["def"])
 
 	def test_fetchFromDict(self):
 		pass
 
 	def test_fetchAll(self):
-		# fetchAll
-		# getAll
-		pass
+		"""Test the fetchAll and getAll functions"""
+		#generic
+		self.insert_three()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+			["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll().lastFetched],
+			["abc", "def", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC")
+		#saveQuery
+		self.pBDB.bibs.lastQuery = ""
+		self.pBDB.bibs.getAll(saveQuery = False)
+		self.assertEqual(self.pBDB.bibs.lastQuery, "")
+		self.pBDB.bibs.fetchAll(saveQuery = False)
+		self.assertEqual(self.pBDB.bibs.lastQuery, "")
+		#limitTo
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = 1)],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitTo = 1).lastFetched],
+			["abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC LIMIT 1")
+		#limitTo + limitOffset
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = 5, limitOffset = 1)],
+			["def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitTo = 5, limitOffset = 1).lastFetched],
+			["def", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC LIMIT 5 OFFSET 1")
+		#limitOffset alone (no effect)
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitOffset = 1)],
+			["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitOffset = 1).lastFetched],
+			["abc", "def", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC")
+		#orderType
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderType = "DESC")],
+			["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(orderType = "DESC").lastFetched],
+			["abc", "def", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate DESC")
+		#orderBy
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderBy = "bibkey", orderType = "DESC")],
+			["ghi", "def", "abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(orderBy = "bibkey", orderType = "DESC").lastFetched],
+			["ghi", "def", "abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "select * from entries  order by bibkey DESC")
+
+		#some parameter combinations
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
+			params = {"bibkey": "abc"})],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
+			params = {"bibkey": "abc"}).lastFetched],
+			["abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey = ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("abc",))
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
+			params = {"bibkey": "abc", "arxiv": "def"})],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
+			params = {"bibkey": "abc", "arxiv": "def"}).lastFetched],
+			[])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey = ?  and arxiv = ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
+			params = {"bibkey": "abc", "arxiv": "def"}, connection = "or")],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
+			params = {"bibkey": "abc", "arxiv": "def"}, connection = "or").lastFetched],
+			["abc", "def"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey = ?  or arxiv = ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
+			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "like")],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
+			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "like").lastFetched],
+			["abc", "def"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey like ?  or arxiv like ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("%ab%", "%ef%"))
+
+		#test some bad connection or operator
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
+			params = {"bibkey": "abc", "arxiv": "def"}, connection = "o r")],
+			[])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey = ?  and arxiv = ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
+			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "lik").lastFetched],
+			[])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey = ?  or arxiv = ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("ab", "ef"))
+
+		#generate some errors
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = "a")], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = "bibkey")], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = 1, limitOffset = "a")], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderBy = "a")], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderType = "abc")], ["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(params = {"abc": "bibkey"})], [])
 
 	def test_fetchByBibkey(self):
-		# fetchByBibtex
-		# getByBibtex
-		pass
+		"""Test the fetchByBibkey and getByBibkey functions"""
+		self.insert_three()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abcdef").lastFetched],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abcdef")],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abc").lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc")],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey(["abc", "def"]).lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibkey(["abc", "def"])],
+			["abc", "def"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibkey =  ?  or bibkey =  ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+		self.pBDB.bibs.lastQuery = ""
+		self.pBDB.bibs.lastVals = ()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abc", saveQuery = False).lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc", saveQuery = False)],
+			["abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "")
+		self.assertEqual(self.pBDB.bibs.lastVals, ())
 
 	def test_fetchByKey(self):
-		# fetchByKey
-		# getByKey
-		pass
+		"""Test the fetchByKey and getByKey functions"""
+		self.insert_three()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abcdef").lastFetched],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abcdef")],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abc").lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abc")],
+			["abc"])
+		self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByKey(["abc", "def"]).lastFetched],
+			["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey(["abc", "def"])],
+			["abc", "def", "ghi"])
+		self.assertRegex(self.pBDB.bibs.lastQuery, "select \* from entries  where .*")
+		self.assertRegex(self.pBDB.bibs.lastQuery, ".*bibkey  like   \?  or  bibkey  like   \?.*")
+		self.assertRegex(self.pBDB.bibs.lastQuery, ".*old_keys  like   \?  or  old_keys  like   \?.*")
+		self.assertRegex(self.pBDB.bibs.lastQuery, ".*bibtex  like   \?  or  bibtex  like   \?.*")
+		self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals,
+			('%abc%', '%def%', '%abc%', '%def%', '%abc%', '%def%'))
+		self.pBDB.bibs.lastQuery = ""
+		self.pBDB.bibs.lastVals = ()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abc", saveQuery = False).lastFetched],
+			["abc", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abc", saveQuery = False)],
+			["abc", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "")
+		self.assertEqual(self.pBDB.bibs.lastVals, ())
 
 	def test_fetchByBibtex(self):
-		# fetchByBibtex
-		# getByBibtex
-		pass
+		"""Test the fetchByBibtex and getByBibtex functions"""
+		self.insert_three()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("abcdef").lastFetched],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abcdef")],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("me").lastFetched],
+			["abc", "def", "ghi"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibtex("me")],
+			["abc", "def", "ghi"])
+		self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex(["abc", "def"]).lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibtex(["abc", "def"])],
+			["abc", "def"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where bibtex  like   ?  or bibtex  like   ?  order by firstdate ASC")
+		self.assertEqual(self.pBDB.bibs.lastVals,
+			('%abc%', '%def%'))
+		self.pBDB.bibs.lastQuery = ""
+		self.pBDB.bibs.lastVals = ()
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("abc", saveQuery = False).lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abc", saveQuery = False)],
+			["abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery, "")
+		self.assertEqual(self.pBDB.bibs.lastVals, ())
 
 	def test_getField(self):
 		pass
