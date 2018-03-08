@@ -9,6 +9,7 @@ import os, re, traceback, datetime
 import ast
 import bibtexparser
 import six.moves
+from pyparsing import ParseException
 
 try:
 	from physbiblio.config import pbConfig
@@ -1360,6 +1361,9 @@ class entries(physbiblioDBSub):
 				tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
 			except IndexError:
 				tmp["bibtexDict"] = {}
+			except ParseException:
+				pBErrorManager("[DB] Problem in parsing the following bibtex code:\n%s"%el["bibtex"])
+				tmp["bibtexDict"] = {}
 			for fi in ["title", "journal", "volume", "number", "pages"]:
 				try:
 					tmp[fi] = tmp["bibtexDict"][fi]
@@ -1367,7 +1371,7 @@ class entries(physbiblioDBSub):
 					tmp[fi] = ""
 			try:
 				tmp["published"] = " ".join([tmp["journal"], tmp["volume"], "(%s)"%tmp["year"], tmp["pages"]])
-			except IndexError:
+			except KeyError:
 				tmp["published"] = ""
 			try:
 				author = tmp["bibtexDict"]["author"]

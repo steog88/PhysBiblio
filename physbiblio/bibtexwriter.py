@@ -17,11 +17,11 @@ class MyBibTexWriter(BibTexWriter):
 		self._max_field_width = 13
 		#order of fields in output
 		self.display_order = [
-			'author', 'collaboration', 'title', 'publisher', 'journal', 'volume', 'year', 'pages',
+			'author', 'collaboration', 'title', 'booktitle', 'publisher', 'journal', 'volume', 'year', 'pages',
 			'russian',
 			'archiveprefix', 'primaryclass', 'eprint', 'doi',
 			'reportNumber']
-		self.bracket_fields = ['title', 'www', 'note', 'abstract', 'comment', 'article', 'url']
+		self.bracket_fields = ['title', 'booktitle', 'www', 'note', 'abstract', 'comment', 'article', 'url']
 		self.excluded_fields = ["adsnote", "adsurl", "slaccitation"]
 		#Necessary to avoid a change of the ordering of the bibtex entries:
 		self.order_entries_by = None
