@@ -417,6 +417,12 @@ class TestDatabaseCategories(DBTestCase):
 # @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_stdout(self, function, expected_output, mock_stdout):
+		"""Catch and test stdout of the function"""
+		function()
+		self.assertEqual(mock_stdout.getvalue(), expected_output)
+
 	def insert_three(self):
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
 		self.assertTrue(self.pBDB.bibs.insert(data))
@@ -683,15 +689,33 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.lastVals, ())
 
 	def test_getField(self):
-		pass
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+			arxiv = "abc", doi = "1", isbn = 9)
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "doi"), "1")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "abc")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
+		self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
+		self.assert_stdout(lambda: self.pBDB.bibs.getField("def", "isbn"),
+			"[DB] ERROR in getEntryField('def', 'isbn'): no element found?\n")
+		self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
+		self.assert_stdout(lambda: self.pBDB.bibs.getField("abc", "def"),
+			"[DB] ERROR in getEntryField('abc', 'def'): the field is missing?\n")
 
 	def test_toDataDict(self):
 		pass
 
 	def test_getUrl(self):
-		# getDoiUrl
-		# getArxivUrl
-		pass
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+			arxiv = "1234.5678", doi = "1/2/3")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertEqual(self.pBDB.bibs.getArxivUrl("abc"), "http://arxiv.org/abs/1234.5678")
+		self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "http://dx.doi.org/1/2/3")
+		self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
+		self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}')
+		self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
+		self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
 
 	def test_fetchByCat(self):
 		# fetchByCat

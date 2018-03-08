@@ -131,7 +131,7 @@ class physbiblioDB():
 		#return self.conn.in_transaction() #works only with sqlite > 3.2...
 		return self.dbChanged
 
-	def commit(self):
+	def commit(self, verbose = True):
 		"""
 		Commit the changes.
 
@@ -141,13 +141,14 @@ class physbiblioDB():
 		try:
 			self.conn.commit()
 			self.dbChanged = False
-			print("[DB] saved.")
+			if verbose:
+				print("[DB] saved.")
 			return True
 		except Exception:
 			pBErrorManager("[DB] Impossible to commit!", traceback)
 			return False
 
-	def undo(self):
+	def undo(self, verbose = True):
 		"""
 		Undo the uncommitted changes and roll back to the last commit.
 
@@ -157,7 +158,8 @@ class physbiblioDB():
 		try:
 			self.conn.rollback()
 			self.dbChanged = False
-			print("[DB] rolled back to last commit.")
+			if verbose:
+				print("[DB] rolled back to last commit.")
 			return True
 		except Exception:
 			pBErrorManager("[DB] Impossible to rollback!", traceback)
@@ -1751,7 +1753,7 @@ class entries(physbiblioDBSub):
 			a string
 		"""
 		url = self.getField(key, "doi")
-		return pbConfig.doiUrl + url if url != "" and url is not False and url is not None and url is not "" else False
+		return pbConfig.doiUrl + url if url != "" and url is not False and url is not None else False
 
 	def getArxivUrl(self, key, urlType = "abs"):
 		"""

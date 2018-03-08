@@ -35,4 +35,4 @@ class DBTestCase(unittest.TestCase):
 		self.pBDB = physbiblioDB(tempDBName)
 
 	def tearDown(self):
-		self.pBDB.undo()
+		self.pBDB.undo(verbose = False)
