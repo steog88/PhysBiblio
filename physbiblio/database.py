@@ -1825,7 +1825,11 @@ class entries(physbiblioDBSub):
 			number = 0
 		try:
 			element = bibtexparser.loads(bibtex).entries[number]
-			data["bibkey"] = bibkey if bibkey else element["ID"]	
+			data["bibkey"] = bibkey if bibkey else element["ID"]
+		except IndexError:
+			print("[DB] ERROR: no elements found?")
+			data["bibkey"] = ""
+			return data
 		except KeyError:
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
