@@ -2015,7 +2015,7 @@ class entries(physbiblioDBSub):
 		if verbose > 0:
 			print("[DB] updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["entries"] and field != "bibkey" \
-				and value is not "" and value is not None:
+				and value is not None:
 			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
 			if verbose > 1:
 				print(query, field, value)

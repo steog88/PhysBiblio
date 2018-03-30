@@ -206,7 +206,6 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertFalse(self.pBDB.exps.update({"name": "exp2", "inspire": "123"}, 2))
 		self.assertFalse(self.pBDB.exps.updateField(1, "inspires", "456"))
 		self.assertFalse(self.pBDB.exps.updateField(1, "idExp", "2"))
-		self.assertFalse(self.pBDB.exps.updateField(1, "inspire", ""))
 		self.assertFalse(self.pBDB.exps.updateField(1, "inspire", None))
 		self.checkNumberExperiments(2)
 		self.assertTrue(self.pBDB.catExp.insert(1, 1))
@@ -316,7 +315,6 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertFalse(self.pBDB.cats.update({"name": "cat2", "comments": ""}, 2))
 		self.assertFalse(self.pBDB.cats.updateField(1, "inspires", "abc"))
 		self.assertFalse(self.pBDB.cats.updateField(1, "idCat", "2"))
-		self.assertFalse(self.pBDB.cats.updateField(1, "parentCat", ""))
 		self.assertFalse(self.pBDB.cats.updateField(1, "parentCat", None))
 		self.checkNumberCategories(4)
 		self.assertTrue(self.pBDB.catExp.insert(2, 1))
@@ -472,10 +470,41 @@ class TestDatabaseEntries(DBTestCase):
 		self.assert_in_stdout(lambda:self.pBDB.bibs.insert(data), 'ProgrammingError: You did not supply a value for binding 3.')
 
 	def test_update(self):
-		# update
-		# updateField #what to do if the new field value must be empty?
-		# updateBibkey
-		pass
+		self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+		datanew = self.pBDB.bibs.prepareInsert(u'@article{cde,\nauthor = "me",\ntitle = "abc",}', arxiv="cde")
+		self.assertTrue(self.pBDB.bibs.update(datanew, "abc"))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "cde")
+		del data["arxiv"]
+		self.assertTrue(self.pBDB.bibs.update(data, "abc"))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), None)
+		e1 = self.pBDB.bibs.getByBibkey("abc")
+		self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde"}, "abc"))
+		self.assert_in_stdout(lambda:self.pBDB.bibs.update({"bibkey": "cde"}, "abc"),
+			'IntegrityError: NOT NULL constraint failed: entries.bibtex')
+		self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde", "bibtex": u'@article{abc,\nauthor = "me",\ntitle = "abc",}'}, "abc"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("abc"), e1)
+
+		self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
+		self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
+		self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["bibtex"], '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
+
+		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
+		self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose = 0))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], '1234')
+		self.assertFalse(self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 0))
+		self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose = 0))
 
 	def test_prepareUpdate(self):
 		# prepareUpdateByKey
