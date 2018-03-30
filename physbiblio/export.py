@@ -187,9 +187,6 @@ class pbExport():
 			print("[export] done for all the texFiles. See previous errors (if any)")
 			return True
 
-		allBibEntries = pBDB.bibs.getAll(saveQuery = False)
-		allbib = [ e["bibkey"] for e in allBibEntries ]
-
 		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
 		unw2 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?[\n ]*\}')	#remove unwanted fields
@@ -229,6 +226,7 @@ class pbExport():
 			return False
 
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
+		print(r"[export] %d \cite commands found in .tex file"%len(citaz))
 
 		requiredBibkeys = []
 		for c in citaz:
@@ -248,7 +246,7 @@ class pbExport():
 		notFound = []
 		warnings = 0
 		for s in requiredBibkeys:
-			if s not in allbib and s.strip() != "":
+			if not pBDB.bibs.getByBibtex(s) and s.strip() != "":
 				missing.append(s)
 
 		for m in requiredBibkeys:
