@@ -484,7 +484,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), None)
 		e1 = self.pBDB.bibs.getByBibkey("abc")
 		self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde"}, "abc"))
-		self.assert_in_stdout(lambda:self.pBDB.bibs.update({"bibkey": "cde"}, "abc"),
+		self.assert_in_stdout(lambda: self.pBDB.bibs.update({"bibkey": "cde"}, "abc"),
 			'IntegrityError: NOT NULL constraint failed: entries.bibtex')
 		self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde", "bibtex": u'@article{abc,\nauthor = "me",\ntitle = "abc",}'}, "abc"))
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc"), e1)
@@ -502,9 +502,15 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
 		self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose = 0))
+		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspire", "1234"),
+			"[DB] updating 'inspire' for entry 'def'\n")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], '1234')
 		self.assertFalse(self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 0))
 		self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose = 0))
+		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspires", "1234"),
+			"[DB] updating 'inspires' for entry 'def'\n")
+		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 2),
+			"[DB] updating 'inspires' for entry 'def'\n[DB] non-existing field or unappropriated value: (def, inspires, 1234)\n")
 
 	def test_prepareUpdate(self):
 		# prepareUpdateByKey
