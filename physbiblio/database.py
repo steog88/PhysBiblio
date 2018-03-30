@@ -1740,7 +1740,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.prepareInsertEntry
 		"""
-		return self.prepareInsertEntry(self.getField(key, "bibtex"))
+		return self.prepareInsert(self.getField(key, "bibtex"))
 
 	def getDoiUrl(self, key):
 		"""
@@ -1888,7 +1888,10 @@ class entries(physbiblioDBSub):
 			data["link"] = link
 		else:
 			try:
-				data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
+				if data["arxiv"] != "":
+					data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
+				else:
+					data["link"] = None
 			except KeyError:
 				try:
 					data["link"] = pbConfig.doiUrl + data["doi"]

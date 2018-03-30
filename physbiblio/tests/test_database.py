@@ -423,6 +423,12 @@ class TestDatabaseEntries(DBTestCase):
 		function()
 		self.assertEqual(mock_stdout.getvalue(), expected_output)
 
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_in_stdout(self, function, expected_output, mock_stdout):
+		"""Catch and test stdout of the function"""
+		function()
+		self.assertIn(expected_output, mock_stdout.getvalue())
+
 	def insert_three(self):
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
 		self.assertTrue(self.pBDB.bibs.insert(data))
@@ -456,11 +462,18 @@ class TestDatabaseEntries(DBTestCase):
 		pass
 
 	def test_insert(self):
-		pass
+		self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+		self.pBDB.undo(verbose = False)
+		del data["arxiv"]
+		self.assertFalse(self.pBDB.bibs.insert(data))
+		self.assert_in_stdout(lambda:self.pBDB.bibs.insert(data), 'ProgrammingError: You did not supply a value for binding 3.')
 
 	def test_update(self):
 		# update
-		# updateField
+		# updateField #what to do if the new field value must be empty?
 		# updateBibkey
 		pass
 
@@ -703,7 +716,10 @@ class TestDatabaseEntries(DBTestCase):
 			"[DB] ERROR in getEntryField('abc', 'def'): the field is missing?\n")
 
 	def test_toDataDict(self):
-		pass
+		self.insert_three()
+		a = self.pBDB.bibs.toDataDict("abc")
+		self.assertEqual(a["bibkey"], "abc")
+		self.assertEqual(a["bibtex"], u'@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
 
 	def test_getUrl(self):
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
