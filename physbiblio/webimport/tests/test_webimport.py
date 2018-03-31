@@ -122,7 +122,7 @@ with a summary of future perspectives.}",
 			self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())
 		self.assertEqual(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]), "")
 
-	@unittest.skipIf(skipOAITests, "Online tests")
+	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_inspireoai(self):
 		"""test retrieve daily data from inspireOAI"""
 		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")

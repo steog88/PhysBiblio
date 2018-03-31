@@ -1366,6 +1366,11 @@ class entries(physbiblioDBSub):
 			except ParseException:
 				pBErrorManager("[DB] Problem in parsing the following bibtex code:\n%s"%el["bibtex"])
 				tmp["bibtexDict"] = {}
+			try:
+				tmp["year"] = tmp["bibtexDict"]["year"]
+			except KeyError:
+				if tmp["year"] is None:
+					tmp["year"] = ""
 			for fi in ["title", "journal", "volume", "number", "pages"]:
 				try:
 					tmp[fi] = tmp["bibtexDict"][fi]
@@ -1373,6 +1378,8 @@ class entries(physbiblioDBSub):
 					tmp[fi] = ""
 			try:
 				tmp["published"] = " ".join([tmp["journal"], tmp["volume"], "(%s)"%tmp["year"], tmp["pages"]])
+				if tmp["published"] == "  () ":
+					tmp["published"] = ""
 			except KeyError:
 				tmp["published"] = ""
 			try:
@@ -1830,7 +1837,7 @@ class entries(physbiblioDBSub):
 			print("[DB] ERROR: no elements found?")
 			data["bibkey"] = ""
 			return data
-		except KeyError:
+		except (KeyError, ParseException):
 			print("[DB] ERROR: impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data

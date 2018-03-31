@@ -527,7 +527,39 @@ class TestDatabaseEntries(DBTestCase):
 		pass
 
 	def test_completeFetched(self):
-		pass
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}')))
+		fetched = self.pBDB.bibs.getByBibkey("abc")
+		completed = self.pBDB.bibs.completeFetched(fetched)[0]
+		self.assertEqual(completed["author"], "me")
+		self.assertEqual(completed["title"], "{abc}")
+		self.assertEqual(completed["journal"], "jcap")
+		self.assertEqual(completed["volume"], "3")
+		self.assertEqual(completed["year"], "2018")
+		self.assertEqual(completed["pages"], "1")
+		self.assertEqual(completed["published"], "jcap 3 (2018) 1")
+
+		self.pBDB.undo(verbose = 0)
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{abc,\nauthor = "me and you and him and them",\ntitle = "abc",\n}')))
+		fetched = self.pBDB.bibs.getByBibkey("abc")
+		completed = self.pBDB.bibs.completeFetched(fetched)[0]
+		self.assertEqual(completed["author"], "me et al.")
+		self.assertEqual(completed["title"], "{abc}")
+		self.assertEqual(completed["journal"], "")
+		self.assertEqual(completed["volume"], "")
+		self.assertEqual(completed["year"], "")
+		self.assertEqual(completed["pages"], "")
+		self.assertEqual(completed["published"], "")
+
+		data = self.pBDB.bibs.prepareInsert(u'@article{def,\nauthor = "me",\ntitle = "def",}')
+		data["bibtex"] = u'@article{abc,\nauthor = "me",\ntitle = "de"f",}'
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		fetched = self.pBDB.bibs.getAll()
+		completed = self.pBDB.bibs.completeFetched(fetched)
+		self.assertEqual(completed[0]["bibtexDict"],
+			{'ENTRYTYPE': 'article', 'ID': 'abc', 'author': 'me and you and him and them', 'title': '{abc}'})
+		self.assertEqual(completed[1]["bibtexDict"], {})
 
 	def test_fetchFromLast(self):
 		"""Test the function fetchFromLast for the DB entries"""
@@ -815,6 +847,7 @@ class TestDatabaseEntries(DBTestCase):
 	def test_importFromBib(self):
 		pass
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_loadAndInsert(self):
 		# loadAndInsert
 		# loadAndInsertWithCats
@@ -836,21 +869,27 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
 			u'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n')
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_getFieldsFromArxiv(self):
 		pass
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_updateInspireID(self):
 		pass
 
+	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_searchOAIUpdates(self):
 		pass
 
+	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_updateInfoFromOAI(self):
 		pass
 
+	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_updateFromOAI(self):
 		pass
 
+	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_getDailyInfoFromOAI(self):
 		pass
 
