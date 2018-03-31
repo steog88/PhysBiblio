@@ -423,11 +423,12 @@ class TestDatabaseEntries(DBTestCase):
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and test stdout of the function"""
+		"""Catch and if test stdout of the function contains a string"""
 		function()
 		self.assertIn(expected_output, mock_stdout.getvalue())
 
 	def insert_three(self):
+		"""Insert three elements in the DB for testing"""
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
 		self.assertTrue(self.pBDB.bibs.insert(data))
 		data = self.pBDB.bibs.prepareInsert(u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def")
@@ -460,6 +461,7 @@ class TestDatabaseEntries(DBTestCase):
 		pass
 
 	def test_insert(self):
+		"""Test insertion and of bibtex items"""
 		self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
 		self.assertTrue(self.pBDB.bibs.insert(data))
@@ -470,6 +472,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assert_in_stdout(lambda:self.pBDB.bibs.insert(data), 'ProgrammingError: You did not supply a value for binding 3.')
 
 	def test_update(self):
+		"""Test general update, field update, bibkey update"""
 		self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
 		self.assertTrue(self.pBDB.bibs.insert(data))
@@ -788,13 +791,26 @@ class TestDatabaseEntries(DBTestCase):
 		pass
 
 	def test_setStuff(self):
-		# setBook
-		# setLecture
-		# setPhdThesis
-		# setProceeding
-		# setReview
-		# setNoUpdate
-		pass
+		"""test ["setBook", "setLecture", "setPhdThesis", "setProceeding", "setReview", "setNoUpdate"]"""
+		self.insert_three()
+		for procedure, field in zip(
+				["setBook", "setLecture", "setPhdThesis", "setProceeding", "setReview", "setNoUpdate"],
+				["book", "lecture", "phd_thesis", "proceeding", "review", "noUpdate"]):
+			self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
+			self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc"))
+			self.assertEqual(self.pBDB.bibs.getField("abc", field), 1)
+			self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc", 0))
+			self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
+			self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc1"))
+
+			self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
+			self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
+			self.assertEqual(getattr(self.pBDB.bibs, procedure)(["def", "ghi"]), None)
+			self.assertEqual(self.pBDB.bibs.getField("def", field), 1)
+			self.assertEqual(self.pBDB.bibs.getField("ghi", field), 1)
+			self.assertEqual(getattr(self.pBDB.bibs, procedure)(["def", "ghi"], 0), None)
+			self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
+			self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
 
 	def test_importFromBib(self):
 		pass
@@ -804,12 +820,23 @@ class TestDatabaseEntries(DBTestCase):
 		# loadAndInsertWithCats
 		pass
 
-	def test_getFieldsFromArxiv(self):
-		pass
-
 	def test_rmBibtexStuff(self):
-		# rmBibtexACapo
-		# rmBibtexComments
+		"""Test rmBibtexComments and rmBibtexACapo"""
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n  %journal="JCAP",\n}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}')
+
+		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'),
+			u'@Article{ghi,\n        author = "me",\n         title = "{gh i}",\n}\n\n')
+		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
+			u'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n')
+
+	def test_getFieldsFromArxiv(self):
 		pass
 
 	def test_updateInspireID(self):
