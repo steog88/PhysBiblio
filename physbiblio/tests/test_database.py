@@ -804,14 +804,73 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
 
 	def test_fetchByCat(self):
-		# fetchByCat
-		# getByCat
-		pass
+		"""test bibs.fetchByCat e bibs.getByCat"""
+		self.insert_three()
+		self.pBDB.catBib.insert(1, ["abc", "def"])
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 3, "cats": 2, "exps": 0, "catBib": 2, "catExp": 0, "bibExp": 0})
+		entries = self.pBDB.bibs.fetchByCat(1).lastFetched
+		self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+		entries = self.pBDB.bibs.getByCat(1)
+		self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+
+		entries = self.pBDB.bibs.fetchByCat(1, orderBy = "entries.bibkey", orderType = "DESC").lastFetched
+		self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+		entries = self.pBDB.bibs.getByCat(1, orderBy = "entries.bibkey", orderType = "DESC")
+		self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+
+		entries = self.pBDB.bibs.getByCat(2)
+		self.assertEqual([e["bibkey"] for e in entries], [])
+
+		entries = self.pBDB.bibs.getByCat(1, orderBy = "entries.bib")
+		self.assertEqual([e["bibkey"] for e in entries], [])
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderBy = "entries.bib"),
+			"[cursExec] ERROR: no such column: entries.bib")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderBy = "entries.bib"),
+			"OperationalError: no such column: entries.bib")
+
+		entries = self.pBDB.bibs.getByCat(1, orderType = "wrong")
+		self.assertEqual([e["bibkey"] for e in entries], [])
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderType = "wrong"),
+			'[cursExec] ERROR: near "wrong": syntax error')
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderType = "wrong"),
+			'OperationalError: near "wrong": syntax error')
 
 	def test_fetchByExp(self):
-		# fetchByExp
-		# getByExp
-		pass
+		"""test bibs.fetchByExp e bibs.getByExp"""
+		self.insert_three()
+		self.pBDB.bibExp.insert(["abc", "def"], 0)
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+		dbStats(self.pBDB)
+		self.assertEqual(self.pBDB.stats,
+			{"bibs": 3, "cats": 2, "exps": 1, "catBib": 0, "catExp": 0, "bibExp": 2})
+		entries = self.pBDB.bibs.fetchByExp(0).lastFetched
+		self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+		entries = self.pBDB.bibs.getByExp(0)
+		self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+
+		entries = self.pBDB.bibs.fetchByExp(0, orderBy = "entries.bibkey", orderType = "DESC").lastFetched
+		self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+		entries = self.pBDB.bibs.getByExp(0, orderBy = "entries.bibkey", orderType = "DESC")
+		self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+
+		entries = self.pBDB.bibs.getByExp(2)
+		self.assertEqual([e["bibkey"] for e in entries], [])
+
+		entries = self.pBDB.bibs.getByExp(0, orderBy = "entries.bib")
+		self.assertEqual([e["bibkey"] for e in entries], [])
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderBy = "entries.bib"),
+			"[cursExec] ERROR: no such column: entries.bib")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderBy = "entries.bib"),
+			"OperationalError: no such column: entries.bib")
+
+		entries = self.pBDB.bibs.getByExp(0, orderType = "wrong")
+		self.assertEqual([e["bibkey"] for e in entries], [])
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderType = "wrong"),
+			'[cursExec] ERROR: near "wrong": syntax error')
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderType = "wrong"),
+			'OperationalError: near "wrong": syntax error')
 
 	def test_cleanBibtexs(self):
 		pass
