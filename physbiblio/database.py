@@ -1420,14 +1420,15 @@ class entries(physbiblioDBSub):
 			queryDict: a dictionary containing mostly dictionaries for the fields used to filter and the criterion for each field. Possible fields:
 				"cats" or "exps" > {"operator": the logical connection, "id": the id to match}
 				"catExpOperator" > "and" or "or" (see below)
-				Each other item should be a dictionary with the following fields:
+				Each other item (the key in the dictionary should be the name of a field in the entries table)
+					should be a dictionary with the following fields:
 				{"str": the string to match
 				"operator": "like" if the field must only contain the string, "=" for exact match
 				"connection" (optional): logical operator}
 
 			catExpOperator: "and" (default) or "or", the logical operator that connects multiple category + experiment searches. May be overwritten by an item in queryDict
 			defaultConnection: "and" (default) or "or", the default logical operator for multiple field matches
-			orderBy: the name of the field according to which the results are ordered
+			orderBy: the name of the field according to which the results must be ordered
 			orderType: "ASC" (default) or "DESC"
 			limitTo (int or None): maximum number of results. If None, do not limit
 			limitOffset (int or None): where to start in the ordered list. If None, use 0
@@ -1446,6 +1447,7 @@ class entries(physbiblioDBSub):
 		if "catExpOperator" in queryDict.keys():
 			catExpOperator = queryDict["catExpOperator"]
 			del queryDict["catExpOperator"]
+		catExpOperator = " %s "%catExpOperator
 		def catExpStrings(tp, tabName, fieldName):
 			"""
 			Returns the string and the data needed to perform a search using categories and/or experiments
@@ -1478,9 +1480,9 @@ class entries(physbiblioDBSub):
 					pBErrorManager("[DB] invalid operator for joining cats!")
 					return joinStr, whereStr, valsTmp
 			else:
-				joinStr += "left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
+				joinStr += " left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
 				whereStr += "%s.%s=? "%(tabName, fieldName)
-				valsTmp = tuple(str(queryDict["cats"]["id"]))
+				valsTmp = tuple(str(queryDict[tp]["id"]))
 			return joinStr, whereStr, valsTmp
 		if "cats" in queryDict.keys():
 			jC,wC,vC = catExpStrings("cats", "entryCats", "idCat")
@@ -1510,7 +1512,7 @@ class entries(physbiblioDBSub):
 				query += " %s "%queryDict[k]["connection"] if "connection" in queryDict[k].keys() else defaultConnection
 			s = k.split("#")[0]
 			if s in self.tableCols["entries"]:
-				query += " %s%s %s ?"%(prependTab, s, queryDict[k]["operator"])
+				query += " %s%s %s ? "%(prependTab, s, queryDict[k]["operator"])
 				vals += (getQueryStr(queryDict[k]), )
 		query += " order by " + prependTab + orderBy + " " + orderType if orderBy else ""
 		if limitTo is not None:
@@ -1532,6 +1534,7 @@ class entries(physbiblioDBSub):
 		except:
 			pBErrorManager("[DB] query failed: %s"%query, traceback)
 			print(vals)
+			return self
 		fetched_in = self.curs.fetchall()
 		self.lastFetched = self.completeFetched(fetched_in)
 		return self

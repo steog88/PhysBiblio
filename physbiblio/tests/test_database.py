@@ -575,7 +575,97 @@ class TestDatabaseEntries(DBTestCase):
 			["def"])
 
 	def test_fetchFromDict(self):
-		pass
+		"""test the pretty complicated function fetchFromDict"""
+		self.insert_three()
+		self.pBDB.bibExp.insert(["abc", "def"], 0)
+		self.pBDB.catBib.insert(0, ["abc"])
+		self.pBDB.catBib.insert(1, ["def", "ghi"])
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
+
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey": {"str": "ab", "operator": "like"}}).lastFetched],
+			["abc"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where  bibkey like ?  order by firstdate ASC")
+
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0}}, saveQuery = False).lastFetched],
+			["abc", "def"])
+		self.assertEqual(self.pBDB.bibs.lastQuery,
+			"select * from entries  where  bibkey like ?  order by firstdate ASC")
+
+		#try with different cats and exps
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0},
+			"cats": {"operator": "or", "id": [0, 1]}},
+			catExpOperator = "and").lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0},
+			"cats": {"operator": "or", "id": [0, 1]}},
+			catExpOperator = "or").lastFetched],
+			["abc", "def", "ghi"])
+		self.pBDB.catBib.insert(0, ["def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"cats": {"operator": "and", "id": [0, 1]}}).lastFetched],
+			["def"])
+		self.pBDB.catBib.delete(0, "def")
+
+		#check limitTo, limitOffset
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0},
+			"cats": {"operator": "or", "id": [0, 1]}},
+			catExpOperator = "or", limitTo = 2).lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0},
+			"cats": {"operator": "or", "id": [0, 1]}},
+			catExpOperator = "or", limitTo = 1, limitOffset = 2).lastFetched],
+			["ghi"])
+
+		#check orderBy, orderType
+		self.pBDB.bibs.updateField("def", "firstdate", "2018-01-01")
+		self.pBDB.bibs.updateField("abc", "firstdate", "2018-01-02")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0}}, orderBy = "bibkey").lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0}}, orderType = "DESC").lastFetched],
+			["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"exps": {"operator": "and", "id": 0}}, orderBy = "bibkey", orderType = "DESC").lastFetched],
+			["def", "abc"])
+
+		#check connection operator and multiple match
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey#0": {"str": "a", "operator": "like"},
+			"bibkey#1": {"str": "b", "operator": "like"}}).lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey#0": {"str": "abc", "operator": "="},
+			"arxiv": {"str": "abc", "operator": "="}}).lastFetched],
+			["abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey#0": {"str": "a", "operator": "like"},
+			"bibkey#1": {"str": "d", "operator": "like"}}).lastFetched],
+			[])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey#0": {"str": "a", "operator": "like", "connection": "or"},
+			"bibkey#1": {"str": "d", "operator": "like", "connection": "or"}}).lastFetched],
+			["def", "abc"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey#0": {"str": "a", "operator": "like"},
+			"bibkey#1": {"str": "d", "operator": "like"}}, defaultConnection = "or").lastFetched],
+			["def", "abc"])
+
+		#check wrong behaviour with a list in "str"
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey": {"str": ["a", "b"], "operator": "like"}}).lastFetched], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			{"bibkey": {"str": ["a", "b"], "operator": "="}}).lastFetched], [])
+		self.assert_in_stdout(lambda: self.pBDB.bibs.fetchFromDict(
+			{"bibkey": {"str": ["a", "b"], "operator": "="}}),
+			"InterfaceError: Error binding parameter 0 - probably unsupported type.")
 
 	def test_fetchAll(self):
 		"""Test the fetchAll and getAll functions"""
