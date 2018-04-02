@@ -1897,16 +1897,17 @@ class entries(physbiblioDBSub):
 		if link:
 			data["link"] = link
 		else:
+			data["link"] = ""
 			try:
-				if data["arxiv"] != "":
+				if data["arxiv"] is not None and data["arxiv"] != "":
 					data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
-				else:
-					data["link"] = None
 			except KeyError:
-				try:
+				pass
+			try:
+				if data["doi"] is not None and data["doi"] != "":
 					data["link"] = pbConfig.doiUrl + data["doi"]
-				except KeyError:
-					data["link"] = None
+			except KeyError:
+				pass
 		data["comments"] = comments if comments else None
 		data["old_keys"] = old_keys if old_keys else None
 		if crossref:

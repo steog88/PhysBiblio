@@ -6,6 +6,7 @@ This file is part of the PhysBiblio package.
 """
 import sys, traceback
 import six
+import datetime
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -458,7 +459,91 @@ class TestDatabaseEntries(DBTestCase):
 			{"bibs": 0, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0})
 
 	def test_prepareInsert(self):
-		pass
+		"""test prepareInsert"""
+		#multiple entries in bibtex:
+		self.assertEqual(self.pBDB.bibs.prepareInsert(
+			u'@article{abc,\nauthor = "me",\ntitle = "mytit",}\n@article{def,\nauthor = "you",\ntitle = "other",}')["bibkey"], "abc")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(
+			u'@article{abc,\nauthor = "me",\ntitle = "mytit",}\n@article{def,\nauthor = "you",\ntitle = "other",}', number = 1)["bibkey"], "def")
+
+		#different fields
+		bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\narxiv="1801.00000",\n}'
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, bibkey = "def")["bibkey"], "def")
+
+		data = self.pBDB.bibs.prepareInsert(bibtex)
+		self.assertEqual(data["bibkey"], "abc")
+		self.assertEqual(data["arxiv"], "1801.00000")
+
+		#test simple fields
+		bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
+		for k in ["inspire", "ads", "scholar", "comments", "old_keys", "abstract"]:
+			self.assertEqual(data[k], None)
+			tmp = {}
+			tmp[k] = "try"
+			self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
+		for k in ["pubdate", "marks"]:
+			self.assertEqual(data[k], "")
+			tmp = {}
+			tmp[k] = "try"
+			self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
+		for k in ["exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]:
+			self.assertEqual(data[k], 0)
+			tmp = {}
+			tmp[k] = 1
+			self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], 1)
+
+		#test arxiv
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, arxiv = "1801.00000")["arxiv"],
+			"1801.00000")
+		bibtexA = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\neprint="1801.00000",\n}'
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)["arxiv"], "1801.00000")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["arxiv"], "")
+
+		#more tests
+		self.assertEqual(data["doi"], None)
+		self.assertEqual(data["crossref"], None)
+		self.assertEqual(data["abstract"], None)
+		for k in ["doi", "isbn", "crossref", "abstract"]:
+			bibtexA = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n%s="something",\n}'%k
+			self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)[k], "something")
+			tmp = {}
+			tmp[k] = "something"
+			self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "something")
+
+		#test year
+		self.assertEqual(data["year"], "2018")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, year = "1999")["year"], "1999")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, arxiv = "hep-ph/9901000")["year"], "1999")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(
+			u'@article{abc,\nauthor = "me",\ntitle = "mytit",\nyear="2005",\n}')["year"],
+			"2005")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["year"], None)
+
+		#test link
+		self.assertEqual(data["link"],
+			pbConfig.arxivUrl + "abs/" + "1801.00000")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, link = "http://some.thing")["link"],
+			"http://some.thing")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, doi = "somedoi")["link"],
+			pbConfig.doiUrl + "somedoi")
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["link"], "")
+
+		#test firstdate
+		self.assertEqual(data["firstdate"], datetime.date.today().strftime("%Y-%m-%d"))
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, firstdate = "2018-01-01")["firstdate"],
+			"2018-01-01")
+
+		#test abstract
+		bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\nabstract="try",\n}'
+		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["abstract"], "try")
+
+		#empty bibtex
+		self.assertEqual(self.pBDB.bibs.prepareInsert(""), {"bibkey": ""})
+		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareInsert(""),
+			"[DB] ERROR: no elements found?")
+		self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"), {"bibkey": ""})
+		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareInsert("@article{abc,"),
+			"[DB] ERROR: impossible to parse bibtex!")
 
 	def test_insert(self):
 		"""Test insertion and of bibtex items"""
