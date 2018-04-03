@@ -2501,7 +2501,11 @@ class entries(physbiblioDBSub):
 		print("[DB] Importing from file bib: %s"%filename)
 		with open(filename) as r:
 			bibText = r.read()
-		elements = bibtexparser.loads(bibText).entries
+		try:
+			elements = bibtexparser.loads(bibText).entries
+		except ParseException:
+			pBErrorManager("[DB][entries][importFromBib] Impossible to parse text:\n%s"%bibText, traceback)
+			return
 		db = bibtexparser.bibdatabase.BibDatabase()
 		self.importFromBibFlag = True
 		print("[DB] entries to be processed: %d"%len(elements))
@@ -2521,7 +2525,7 @@ class entries(physbiblioDBSub):
 					pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n")
 					errors.append(key)
 				else:
-					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
+					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
 						data["abstract"] = arxivDict["abstract"]
 					print("[DB] entry will have key\n'%s'"%key)

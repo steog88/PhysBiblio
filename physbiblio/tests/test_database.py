@@ -1187,8 +1187,34 @@ class TestDatabaseEntries(DBTestCase):
 			self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
 			self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_importFromBib(self):
-		pass
+		with open("tmpbib.bib", "w") as f:
+			f.write(u'@article{abc,\nauthor = "me",\ntitle = "abc",}\n@article{def,\nauthor = "me",\ntitle = "def",}\n')
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
+
+		self.pBDB.undo(verbose = 0)
+		with open("tmpbib.bib", "w") as f:
+			f.write(u'@article{abc,\nauthor = "me",\ntitle = "abc",\n}\n@article{def,\n}\n')
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False),
+			"[DB][entries][importFromBib] Impossible to parse text:")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], [])
+
+		#test with completeInfo
+		pbConfig.params["fetchAbstract"] = True
+		pbConfig.params["defaultCategories"] = 1
+		with open("tmpbib.bib", "w") as f:
+			f.write(u'@article{Gariazzo:2015rra,\nauthor = "me",\narxiv = "1507.08204",\n}\n@article{Gariazzo:2014rra,\nauthor="me",\n}\n')
+		self.pBDB.bibs.importFromBib("tmpbib.bib")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["Gariazzo:2015rra", "Gariazzo:2014rra"])
+		self.assertEqual([e["inspire"] for e in self.pBDB.bibs.getAll()], ["1385583", None])
+		self.assertEqual([len(e["abstract"]) > 10 if e["abstract"] is not None else 0 for e in self.pBDB.bibs.getAll()], [True, False])
+		self.assertEqual([e["firstdate"] for e in self.pBDB.bibs.getAll()], ['2015-07-29', datetime.date.today().strftime("%Y-%m-%d")])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByCat(1)], ["Gariazzo:2015rra", "Gariazzo:2014rra"])
+
+		os.remove("tmpbib.bib")
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_loadAndInsert(self):
