@@ -644,9 +644,29 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(data["bibtex"], resultB)
 
 	def test_replace(self):
+		"""test replace functions"""
+		#replaceInBibtex
+		bibtexIn = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		bibtexOut = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			bibtexIn)))
+		bibtexOut = self.pBDB.bibs.getField("abc", "bibtex")
+		self.assertEqual(self.pBDB.bibs.replaceInBibtex("abcd", "abcde"), [])
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+		self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", "JCAP"), ["abc"])
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("jcap", "JCAP"))
+		self.assertEqual(self.pBDB.bibs.replaceInBibtex("JCAP", "jcap"), ["abc"])
+
+		self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"]), False)
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"]),
+			"InterfaceError: Error binding parameter :new - probably unsupported type.")
+		self.assertEqual(self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP"), False)
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP"),
+			"InterfaceError: Error binding parameter :old - probably unsupported type.")
+
 		# replace
-		# replaceInBibtex
-		pass
 
 	def test_completeFetched(self):
 		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(

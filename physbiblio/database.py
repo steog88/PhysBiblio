@@ -4,7 +4,7 @@ Module that manages the actions on the database (and few more).
 This file is part of the PhysBiblio package.
 """
 import sqlite3
-from sqlite3 import OperationalError, ProgrammingError, DatabaseError
+from sqlite3 import OperationalError, ProgrammingError, DatabaseError, InterfaceError
 import os, re, traceback, datetime
 import ast
 import bibtexparser
@@ -181,7 +181,7 @@ class physbiblioDB():
 				self.conn.execute(query,data)
 			else:
 				self.conn.execute(query)
-		except (OperationalError, ProgrammingError, DatabaseError) as err:
+		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
 			pBErrorManager('[connExec] ERROR: %s'%err, traceback)
 			return False
 		else:
@@ -2150,12 +2150,13 @@ class entries(physbiblioDBSub):
 			the list of keys of the matching bibtex entries or False if self.connExec failed
 		"""
 		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
-		self.lastVals  = {"match": "%"+old+"%"}
+		match = "%"+"%s"%old+"%"
+		self.lastVals  = {"match": match}
 		self.cursExec(self.lastQuery, self.lastVals)
 		self.lastFetched = self.completeFetched(self.curs.fetchall())
 		keys = [k["bibkey"] for k in self.lastFetched]
 		print("[DB] Replacing text in entries: ", keys)
-		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": "%"+old+"%"}):
+		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": match}):
 			return keys
 		else:
 			return False
