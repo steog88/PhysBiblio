@@ -2167,7 +2167,7 @@ class entries(physbiblioDBSub):
 
 		Parameters:
 			fiOld: the field where the string to match is taken from
-			fiNews: the new fields where to insert the replaced string
+			fiNews: the list of new fields where to insert the replaced string
 			old: the old string to replace
 			news: the list of new strings
 			entries (None or a list): the entries to consider. If None, use self.getAll
@@ -2197,6 +2197,9 @@ class entries(physbiblioDBSub):
 			else:
 				line = line.replace(old, new)
 			return line
+		if type(fiNews) is not list or type(news) is not list:
+			pBErrorManager("[DB][bibs][replace] invalid 'fiNews' or 'news' (they must be lists)")
+			return [], [], []
 		if entries is None:
 			entries = self.getAll(saveQuery = False)
 		success = []

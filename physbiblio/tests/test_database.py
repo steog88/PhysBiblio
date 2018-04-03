@@ -646,10 +646,9 @@ class TestDatabaseEntries(DBTestCase):
 	def test_replace(self):
 		"""test replace functions"""
 		#replaceInBibtex
-		bibtexIn = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
-		bibtexOut = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
-			bibtexIn)))
+		bibtexIn = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="1803",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		bibtexOut = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="1803",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
 		bibtexOut = self.pBDB.bibs.getField("abc", "bibtex")
 		self.assertEqual(self.pBDB.bibs.replaceInBibtex("abcd", "abcde"), [])
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
@@ -667,6 +666,59 @@ class TestDatabaseEntries(DBTestCase):
 			"InterfaceError: Error binding parameter :old - probably unsupported type.")
 
 		# replace
+		bibtexOut = u'@Article{abc,\n        author = "me",\n         title = "{abc}",\n       journal = "jcap",\n        volume = "1803",\n          year = "2018",\n         pages = "1",\n         arxiv = "1234.56789",\n}'
+		self.assertEqual(self.pBDB.bibs.replace("bibtex", ["bibtex"], "abcd", ["abcde"]),
+			(["abc"], [], []))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+		self.assertEqual(self.pBDB.bibs.replace("volume", ["volume"], "([0-9]{2})([0-9]{2})", [r'\2'], regex = True),
+			(["abc"], ["abc"], []))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("1803", "03"))
+
+		self.assertEqual(self.pBDB.bibs.replace("volume", ["volume"], "03", [r'1803']),
+			(["abc"], ["abc"], []))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+		self.assertEqual(self.pBDB.bibs.replace("volume", ["volume", "journal"], "1803", ["03", "1803"]),
+			(["abc"], ["abc"], []))
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("1803", "03").replace("jcap", "1803"))
+
+		bibtexIn = u'@article{def,\nauthor = "me",\ntitle = "def",\njournal="Phys. Rev.",\nvolume="D95",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		bibtexOut = u'@Article{def,\n        author = "me",\n         title = "{def}",\n       journal = "Phys. Rev. D",\n        volume = "95",\n          year = "2018",\n         pages = "1",\n         arxiv = "1234.56789",\n}'
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
+		self.assertEqual(self.pBDB.bibs.replace("published", ["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*", [r'\1', r'\2'], regex = True),
+			(["abc", "def"], ["def"], []))
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
+
+		self.assertEqual(self.pBDB.bibs.replace("published", ["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*", [r'\1', r'\2'],
+			regex = True),
+			(["abc", "def"], [], []))
+		self.assertEqual(self.pBDB.bibs.replace("published", ["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*", [r'\1', r'\2'],
+			entries = self.pBDB.bibs.getByBibkey("abc"), regex = True),
+			(["abc"], [], []))
+		self.assertEqual(self.pBDB.bibs.replace("published", ["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*", [r'\1', r'\2'],
+			entries = self.pBDB.bibs.getByBibkey("abc"), regex = False),
+			(["abc"], ["abc"], []))
+
+		self.assertEqual(self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"),
+			([], [], []))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"),
+			"[DB][bibs][replace] invalid 'fiNews' or 'news' (they must be lists)")
+		self.assertEqual(self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ['56789']),
+			([], [], ["abc", "def"]))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ['56789']),
+			"[DB] something wrong in replace")
+
+		bibtexIn = u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\neprint="1234.56789",\n}'
+		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
+		self.assertEqual(self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ['56789']),
+			(["ghi"], ["ghi"], ["abc", "def"]))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ['56789']),
+			"Field eprint not found in entry ")
+		self.assertEqual(self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ['56789']),
+			(["ghi"], [], ["abc", "def"]))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ['56789']),
+			"[DB] something wrong in replace")
 
 	def test_completeFetched(self):
 		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
