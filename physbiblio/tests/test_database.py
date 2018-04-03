@@ -1214,6 +1214,18 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual([e["firstdate"] for e in self.pBDB.bibs.getAll()], ['2015-07-29', datetime.date.today().strftime("%Y-%m-%d")])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByCat(1)], ["Gariazzo:2015rra", "Gariazzo:2014rra"])
 
+		self.pBDB.undo(verbose = 0)
+		pbConfig.params["fetchAbstract"] = False
+		pbConfig.params["defaultCategories"] = {"ab"}
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False),
+			"2 entries processed, of which 2 existing")
+
+		self.pBDB.undo(verbose = 0)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False),
+			"ERROR: Error binding parameter :idCat - probably unsupported type.")
+		self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
+
 		os.remove("tmpbib.bib")
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
