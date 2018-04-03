@@ -601,10 +601,36 @@ class TestDatabaseEntries(DBTestCase):
 			"[DB] updating 'inspires' for entry 'def'\n[DB] non-existing field or unappropriated value: (def, inspires, 1234)\n")
 
 	def test_prepareUpdate(self):
-		# prepareUpdateByKey
-		# prepareUpdateByBibtex
-		# prepareUpdate
-		pass
+		"""test prepareUpdate and related functions"""
+		bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
+		bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",\narxiv="1234",\n}'
+		resultA = u'@Article{abc,\n        author = "me",\n         title = "{ABC}",\n         arxiv = "1234",\n}'
+		resultB = u'@Article{abc1,\n        author = "me",\n         title = "{abc}",\n         arxiv = "1234",\n}'
+
+		bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
+		self.assertEqual(bibtex, resultA + "\n\n")
+		bibtex = self.pBDB.bibs.prepareUpdate(bibtexB, bibtexA)
+		self.assertEqual(bibtex, resultB + "\n\n")
+
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexA))
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexB))
+		data = self.pBDB.bibs.prepareUpdateByKey("abc", "abc1")
+		self.assertEqual(data["bibkey"], "abc")
+		self.assertEqual(data["arxiv"], "1234")
+		self.assertEqual(data["bibtex"], resultA)
+		data = self.pBDB.bibs.prepareUpdateByKey("abc1", "abc")
+		self.assertEqual(data["bibkey"], "abc1")
+		self.assertEqual(data["arxiv"], "1234")
+		self.assertEqual(data["bibtex"], resultB)
+
+		data = self.pBDB.bibs.prepareUpdateByBibtex("abc", bibtexB)
+		self.assertEqual(data["bibkey"], "abc")
+		self.assertEqual(data["arxiv"], "1234")
+		self.assertEqual(data["bibtex"], resultA)
+		data = self.pBDB.bibs.prepareUpdateByBibtex("abc1", bibtexA)
+		self.assertEqual(data["bibkey"], "abc1")
+		self.assertEqual(data["arxiv"], "1234")
+		self.assertEqual(data["bibtex"], resultB)
 
 	def test_replace(self):
 		# replace

@@ -1925,7 +1925,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.prepareInsert(u)
 		"""
-		u = self.prepareUpdate(self.getEntryField(key_old, "bibtex"), bibtex_new)
+		u = self.prepareUpdate(self.getField(key_old, "bibtex"), bibtex_new)
 		return self.prepareInsert(u)
 		
 	def prepareUpdate(self, bibtexOld, bibtexNew):
