@@ -1848,7 +1848,6 @@ class entries(physbiblioDBSub):
 		db.entries = []
 		db.entries.append(element)
 		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
-		data["inspire"] = inspire if inspire else None
 		if arxiv:
 			data["arxiv"] = arxiv
 		else:
@@ -1859,22 +1858,14 @@ class entries(physbiblioDBSub):
 					data["arxiv"] = element["eprint"]
 				except KeyError:
 					data["arxiv"] = ""
-		data["ads"] = ads if ads else None
-		data["scholar"] = scholar if scholar else None
-		if doi:
-			data["doi"] = doi
-		else:
-			try:
-				data["doi"] = element["doi"]
-			except KeyError:
-				data["doi"] = None
-		if isbn:
-			data["isbn"] = isbn
-		else:
-			try:
-				data["isbn"] = element["isbn"]
-			except KeyError:
-				data["isbn"] = None
+		for k in ["doi", "isbn"]:
+			if locals()[k]:
+				data[k] = locals()[k]
+			else:
+				try:
+					data[k] = element[k]
+				except KeyError:
+					data[k] = None
 		data["year"] = None
 		if year:
 			data["year"] = year
@@ -1908,31 +1899,23 @@ class entries(physbiblioDBSub):
 					data["link"] = pbConfig.doiUrl + data["doi"]
 			except KeyError:
 				pass
-		data["comments"] = comments if comments else None
-		data["old_keys"] = old_keys if old_keys else None
-		if crossref:
-			data["crossref"] = crossref
-		else:
-			try:
-				data["crossref"] = element["crossref"]
-			except KeyError:
-				data["crossref"] = None
-		data["exp_paper"] = 1 if exp_paper else 0
-		data["lecture"] = 1 if lecture else 0
-		data["phd_thesis"] = 1 if phd_thesis else 0
-		data["review"] = 1 if review else 0
-		data["proceeding"] = 1 if proceeding else 0
-		data["book"] = 1 if book else 0
-		data["noUpdate"] = 1 if noUpdate else 0
-		data["marks"] = marks if marks else ""
 		if not abstract:
 			try:
 				abstract = element["abstract"]
 			except KeyError:
 				pass
-		data["abstract"] = abstract if abstract else None
+		if not crossref:
+			try:
+				crossref = element["crossref"]
+			except KeyError:
+				pass
+		for k in ["abstract", "ads", "comments", "crossref", "inspire", "old_keys", "scholar"]:
+			data[k] = locals()[k] if locals()[k] else None
+		for k in ["book", "exp_paper", "lecture", "noUpdate", "phd_thesis", "proceeding", "review"]:
+			data[k] = 1 if locals()[k] else 0
+		for k in ["marks", "pubdate"]:
+			data[k] = locals()[k] if locals()[k] else ""
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
-		data["pubdate"] = pubdate if pubdate else ""
 		return data
 		
 	def prepareUpdateByKey(self, key_old, key_new):
