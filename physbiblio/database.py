@@ -1848,24 +1848,20 @@ class entries(physbiblioDBSub):
 		db.entries = []
 		db.entries.append(element)
 		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
-		if arxiv:
-			data["arxiv"] = arxiv
-		else:
-			try:
-				data["arxiv"] = element["arxiv"]
-			except KeyError:
-				try:
-					data["arxiv"] = element["eprint"]
-				except KeyError:
-					data["arxiv"] = ""
-		for k in ["doi", "isbn"]:
-			if locals()[k]:
-				data[k] = locals()[k]
-			else:
-				try:
-					data[k] = element[k]
-				except KeyError:
-					data[k] = None
+		#most of the fields have standard behaviour:
+		for k in ["abstract", "crossref", "doi", "isbn"]:
+			data[k] = locals()[k] if locals()[k] else element[k] if k in element.keys() else None
+		for k in ["ads", "comments", "inspire", "old_keys", "scholar"]:
+			data[k] = locals()[k] if locals()[k] else None
+		for k in ["book", "exp_paper", "lecture", "noUpdate", "phd_thesis", "proceeding", "review"]:
+			data[k] = 1 if locals()[k] else 0
+		for k in ["marks", "pubdate"]:
+			data[k] = locals()[k] if locals()[k] else ""
+		#arxiv
+		data["arxiv"] = arxiv if arxiv else \
+			element["arxiv"] if "arxiv" in element.keys() else \
+			element["eprint"] if "eprint" in element.keys() else ""
+		#year
 		data["year"] = None
 		if year:
 			data["year"] = year
@@ -1885,6 +1881,7 @@ class entries(physbiblioDBSub):
 								data["year"] = "20"+a
 				except KeyError:
 					data["year"]=None
+		#link
 		if link:
 			data["link"] = link
 		else:
@@ -1899,22 +1896,7 @@ class entries(physbiblioDBSub):
 					data["link"] = pbConfig.doiUrl + data["doi"]
 			except KeyError:
 				pass
-		if not abstract:
-			try:
-				abstract = element["abstract"]
-			except KeyError:
-				pass
-		if not crossref:
-			try:
-				crossref = element["crossref"]
-			except KeyError:
-				pass
-		for k in ["abstract", "ads", "comments", "crossref", "inspire", "old_keys", "scholar"]:
-			data[k] = locals()[k] if locals()[k] else None
-		for k in ["book", "exp_paper", "lecture", "noUpdate", "phd_thesis", "proceeding", "review"]:
-			data[k] = 1 if locals()[k] else 0
-		for k in ["marks", "pubdate"]:
-			data[k] = locals()[k] if locals()[k] else ""
+		#firstdate
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
 		return data
 		
