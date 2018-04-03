@@ -1940,8 +1940,15 @@ class entries(physbiblioDBSub):
 		Output:
 			the joined bibtex
 		"""
-		elementOld = bibtexparser.loads(bibtexOld).entries[0]
-		elementNew = bibtexparser.loads(bibtexNew).entries[0]
+		try:
+			elementOld = bibtexparser.loads(bibtexOld).entries[0]
+			elementNew = bibtexparser.loads(bibtexNew).entries[0]
+		except ParseException:
+			pBErrorManager("[DB] parsing exception in prepareUpdate:\n%s\n%s"%(bibtexOld, bibtexNew))
+			return ""
+		except IndexError:
+			pBErrorManager("[DB] empty bibtex?\n%s\n%s"%(bibtexOld, bibtexNew))
+			return ""
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
 		keep = elementOld

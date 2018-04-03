@@ -604,8 +604,19 @@ class TestDatabaseEntries(DBTestCase):
 		"""test prepareUpdate and related functions"""
 		bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
 		bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",\narxiv="1234",\n}'
+		bibtexE = "@article{,}"
 		resultA = u'@Article{abc,\n        author = "me",\n         title = "{ABC}",\n         arxiv = "1234",\n}'
 		resultB = u'@Article{abc1,\n        author = "me",\n         title = "{abc}",\n         arxiv = "1234",\n}'
+
+		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE), "")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE),
+			"[DB] parsing exception in prepareUpdate")
+		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA), "")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA),
+			"[DB] parsing exception in prepareUpdate")
+		self.assertEqual(self.pBDB.bibs.prepareUpdate("", bibtexA), "")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate("", bibtexA),
+			"[DB] empty bibtex?")
 
 		bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
 		self.assertEqual(bibtex, resultA + "\n\n")
