@@ -2658,8 +2658,6 @@ class entries(physbiblioDBSub):
 		"""
 		if entriesIn is not None:
 			entries = entriesIn
-		elif self.lastFetched is not None:
-			entries = self.lastFetched
 		else:
 			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
@@ -2675,8 +2673,6 @@ class entries(physbiblioDBSub):
 		"""
 		if entriesIn is not None:
 			entries = entriesIn
-		elif self.lastFetched is not None:
-			entries = self.lastFetched
 		else:
 			entries = self.getAll(orderBy = "firstdate")
 		for i, e in enumerate(entries):
@@ -2694,8 +2690,6 @@ class entries(physbiblioDBSub):
 		"""
 		if entriesIn is not None:
 			entries = entriesIn
-		elif self.lastFetched is not None:
-			entries = self.lastFetched
 		else:
 			entries = self.getAll(orderBy = orderBy)
 		for i, e in enumerate(entries):
@@ -2854,7 +2848,7 @@ class entries(physbiblioDBSub):
 					if e["bibtex"] != newbibtex and self.updateField(e["bibkey"], "bibtex", newbibtex):
 						print("[DB] -- element changed!")
 						changed.append(e["bibkey"])
-				except ValueError:
+				except (ValueError, ParseException):
 					pBErrorManager("[DB] Error while cleaning entry '%s'"%e["bibkey"], traceback, priority = 0)
 					err += 1
 		print("\n[DB] %d entries processed"%num)

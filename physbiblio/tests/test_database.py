@@ -1157,13 +1157,71 @@ class TestDatabaseEntries(DBTestCase):
 			'OperationalError: near "wrong": syntax error')
 
 	def test_cleanBibtexs(self):
-		pass
+		"""test cleanBibtexs"""
+		self.insert_three()
+		bibtexIn = u'%comment\n@article{abc,\n\nauthor = "me",\ntitle = "ab\nc",\njournal="jcap",\nvolume="1803",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
+		bibtexOut = u'@Article{abc,\n        author = "me",\n         title = "{ab c}",\n       journal = "jcap",\n        volume = "1803",\n          year = "2018",\n         pages = "1",\n         arxiv = "1234.56789",\n}'
+		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(startFrom = 1),
+			"[DB] cleanBibtexs will process 2 total entries")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(entries = self.pBDB.bibs.getByBibkey("def")),
+			"[DB] cleanBibtexs will process 1 total entries")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(startFrom = "a"),
+			"[DB] invalid startFrom in cleanBibtexs")
+		self.assertEqual(self.pBDB.bibs.cleanBibtexs(startFrom = 5),
+			(0, 0, []))
+
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
+			"[DB] cleanBibtexs will process 3 total entries")
+		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+		self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
+		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
+			"[DB] 3 entries processed\n\n[DB] 0 errors occurred\n\n[DB] 1 entries changed")
+		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+		self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
+			"[DB] Error while cleaning entry 'def'")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
+			"[DB] 3 entries processed\n\n[DB] 1 errors occurred\n\n[DB] 0 entries changed")
+		self.pBDB.bibs.cleanBibtexs()
 
 	def test_printAll(self):
-		# printAllBibtexs
-		# printAllBibkeys
-		# printAllInfo
-		pass
+		self.insert_three()
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibkeys(),
+			"   0 abc\n   1 def\n   2 ghi\n[DB] 3 elements found\n")
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibkeys(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
+			"   0 abc\n[DB] 1 elements found\n")
+
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibtexs(),
+			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n   1 - @Article{def,\n        author = "me",\n         title = "{def}",\n}\n\n   2 - @Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n[DB] 3 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibtexs(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
+			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n[DB] 1 elements found\n')
+
+		today = datetime.date.today().strftime("%Y-%m-%d")
+		self.pBDB.bibs.setReview("abc")
+		self.pBDB.bibs.updateField("abc", "arxiv", "1234")
+		self.pBDB.bibs.updateField("abc", "doi", "somedoi")
+		self.pBDB.bibs.printAllInfo()
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[   1 - '+today+' ]        def                            def                  -                   \n[   2 - '+today+' ]        ghi                            ghi                  -                   \n[DB] 3 elements found\n')
+		self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
+		self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(),
+			'[   0 - 2018-01-01 ]        ghi                            ghi                  -                   \n[   1 - 2018-03-01 ]        def                            def                  -                   \n[   2 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 3 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 1 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = "author"),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n[DB] 1 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = ["author"]),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n[DB] 1 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = "title"),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   title: {abc}\n[DB] 1 elements found\n')
+		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = ["eprint", "journals"]),
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 1 elements found\n')
 
 	def test_setStuff(self):
 		"""test ["setBook", "setLecture", "setPhdThesis", "setProceeding", "setReview", "setNoUpdate"]"""
@@ -1186,6 +1244,22 @@ class TestDatabaseEntries(DBTestCase):
 			self.assertEqual(getattr(self.pBDB.bibs, procedure)(["def", "ghi"], 0), None)
 			self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
 			self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
+
+	def test_rmBibtexStuff(self):
+		"""Test rmBibtexComments and rmBibtexACapo"""
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'),
+			u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}')
+		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n  %journal="JCAP",\n}'),
+			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}')
+
+		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'),
+			u'@Article{ghi,\n        author = "me",\n         title = "{gh i}",\n}\n\n')
+		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
+			u'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n')
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_importFromBib(self):
@@ -1233,22 +1307,6 @@ class TestDatabaseEntries(DBTestCase):
 		# loadAndInsert
 		# loadAndInsertWithCats
 		pass
-
-	def test_rmBibtexStuff(self):
-		"""Test rmBibtexComments and rmBibtexACapo"""
-		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
-			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
-		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'),
-			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}')
-		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'),
-			u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}')
-		self.assertEqual(self.pBDB.bibs.rmBibtexComments(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n  %journal="JCAP",\n}'),
-			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}')
-
-		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'),
-			u'@Article{ghi,\n        author = "me",\n         title = "{gh i}",\n}\n\n')
-		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
-			u'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n')
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_getFieldsFromArxiv(self):
