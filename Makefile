@@ -1,16 +1,18 @@
+PYTHON ?= python
+
 default: sdist
 
 sdist:
-	python setup.py sdist
+	$(PYTHON) setup.py sdist
 
 test:
-	python physbiblio_test.py
+	$(PYTHON) setup.py test
 
 uploadtest:
-	python setup.py sdist upload -r pypitest
+	$(PYTHON) setup.py sdist upload -r pypitest
 
 upload:
-	python setup.py sdist upload
+	$(PYTHON) setup.py sdist upload
 
 push:
 	git push
