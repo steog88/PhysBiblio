@@ -1310,7 +1310,19 @@ class TestDatabaseEntries(DBTestCase):
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_getFieldsFromArxiv(self):
-		pass
+		pbConfig.params["maxAuthorSave"] = 5
+		self.pBDB.bibs.insert(
+			self.pBDB.bibs.prepareInsert(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'))
+		self.pBDB.bibs.insert(
+			self.pBDB.bibs.prepareInsert(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}'))
+		self.assertNotIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+		self.assertFalse(self.pBDB.bibs.getFieldsFromArxiv("abcd", "authors"))
+		self.assertTrue(self.pBDB.bibs.getFieldsFromArxiv("Ade:2013zuv", "authors"))
+		self.assertIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+		self.assertEqual(self.pBDB.bibs.getFieldsFromArxiv(["Gariazzo:2015rra", "Ade:2013zuv"], "primaryclass"),
+			(["Gariazzo:2015rra", "Ade:2013zuv"], []))
+		self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+		self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_updateInspireID(self):

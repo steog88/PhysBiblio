@@ -605,6 +605,7 @@ class bibtexList(QFrame, objListWindow):
 				if result is True:
 					infoMessage("Done!")
 				else:
+					#must be improved...the function only returns False
 					self.parent.gotError(result)
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:

@@ -2286,7 +2286,7 @@ class entries(physbiblioDBSub):
 			fields: the fields to be updated using information from arxiv.org
 
 		Output:
-			False or the error message (used in the GUI part) if some error occurred,
+			False if some error occurred,
 			True if a single entry has been successfully processed
 			or
 			the lists of successfully processed entryes and failures when considering a list
@@ -2309,9 +2309,11 @@ class entries(physbiblioDBSub):
 			print("\n\n[DB] thread_fieldsArxiv has finished!")
 			print("%d entries processed, of which these %d generated errors:\n%s"%(len(success+fail), len(fail), fail))
 			return success, fail
+		if type(fields) is not list:
+			fields = [fields]
 		bibtex = self.getField(bibkey, "bibtex")
 		arxiv = str(self.getField(bibkey, "arxiv"))
-		if arxiv.strip() == "":
+		if arxiv is "False" or arxiv is "None" or arxiv.strip() == "":
 			return False
 		try:
 			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
@@ -2326,7 +2328,7 @@ class entries(physbiblioDBSub):
 					authors = tmp["authors"].split(" and ")
 					if len(authors) > pbConfig.params["maxAuthorSave"]:
 						start = 1 if "collaboration" in authors[0] else 0
-						tmp["authors"] = " and ".join(authors[start:start+pbConfig.params["maxAuthorSave"]] + ["others"])
+						tmp["author"] = " and ".join(authors[start:start+pbConfig.params["maxAuthorSave"]] + ["others"])
 				except KeyError:
 					pass
 			db = bibtexparser.bibdatabase.BibDatabase()
@@ -2335,7 +2337,8 @@ class entries(physbiblioDBSub):
 			self.updateField(bibkey, "bibtex", bibtex)
 			return True
 		except Exception:
-			return "Cannot get and save info from arXiv!\n" + traceback.format_exc()
+			pBErrorManager("Cannot get and save info from arXiv!\n", traceback)
+			return False
 
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
 		"""
