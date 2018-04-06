@@ -2071,13 +2071,13 @@ class entries(physbiblioDBSub):
 			try:
 				key = e["bibkey"]
 				print(key)
-				old = self.extractEntryByBibkey(key)
+				old = self.getByBibkey(key)
 				if len(old) > 0:
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
-							self.updateEntryField(key, d, e[o], 0)
+							self.updateField(key, d, e[o], 0)
 			except:
-				print("[DB][oai] something missing in entry %s"%e["id"])
+				pBErrorManager("[DB][oai] something missing in entry %s"%e["id"], traceback)
 		print("[DB] inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0):

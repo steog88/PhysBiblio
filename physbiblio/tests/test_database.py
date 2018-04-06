@@ -22,6 +22,7 @@ try:
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.database import dbStats, catString, cats_alphabetical
+	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -1342,10 +1343,33 @@ class TestDatabaseEntries(DBTestCase):
 	def test_updateFromOAI(self):
 		pass
 
-	@unittest.skipIf(skipOAITests, "Online tests with OAI")
+	# @unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_getDailyInfoFromOAI(self):
-		pass
-
+		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
+		self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
+			[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': 'http://arxiv.org/abs/1303.5076', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': '2018-04-06', 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
+		physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates = MagicMock(side_effect=[[], [], [], [],
+			[{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}]])
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None, 'arxiv': '1507.08204', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2015, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2018-04-06', 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ', 'author': ''}])
+		d1 = "2018-01-01"
+		d2 = "2018-01-02"
+		d1t = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
+		d2t = datetime.date.today().strftime("%Y-%m-%d")
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(),
+			"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2t))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(d1, d2),
+			"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(date2 = d2),
+			"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(date1 = d1),
+			"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2t))
+		self.pBDB.bibs.getDailyInfoFromOAI(date1 = d1)
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
+			[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': 'http://arxiv.org/abs/1303.5076', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': '2018-04-06', 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': ''}])
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):
