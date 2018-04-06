@@ -1794,6 +1794,18 @@ class entries(physbiblioDBSub):
 					", :".join(self.tableCols["entries"]) + ")\n",
 					data)
 
+	def insertFromBibtex(self, bibtex):
+		"""
+		A function that wraps self.insert(self.prepareInsert(bibtex))
+
+		Parameters:
+			bibtex: the string containing the bibtex code for the given element
+
+		Output:
+			the output of self.insert
+		"""
+		return self.insert(self.prepareInsert(bibtex))
+
 	def update(self, data, oldkey):
 		"""
 		Update an entry

@@ -555,6 +555,7 @@ class TestDatabaseEntries(DBTestCase):
 		del data["arxiv"]
 		self.assertFalse(self.pBDB.bibs.insert(data))
 		self.assert_in_stdout(lambda:self.pBDB.bibs.insert(data), 'ProgrammingError: You did not supply a value for binding 3.')
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}'))
 
 	def test_update(self):
 		"""Test general update, field update, bibkey update"""
@@ -623,8 +624,8 @@ class TestDatabaseEntries(DBTestCase):
 		bibtex = self.pBDB.bibs.prepareUpdate(bibtexB, bibtexA)
 		self.assertEqual(bibtex, resultB + "\n\n")
 
-		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexA))
-		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexB))
+		self.pBDB.bibs.insertFromBibtex(bibtexA)
+		self.pBDB.bibs.insertFromBibtex(bibtexB)
 		data = self.pBDB.bibs.prepareUpdateByKey("abc", "abc1")
 		self.assertEqual(data["bibkey"], "abc")
 		self.assertEqual(data["arxiv"], "1234")
@@ -648,7 +649,7 @@ class TestDatabaseEntries(DBTestCase):
 		#replaceInBibtex
 		bibtexIn = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="1803",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
 		bibtexOut = u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="1803",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
 		bibtexOut = self.pBDB.bibs.getField("abc", "bibtex")
 		self.assertEqual(self.pBDB.bibs.replaceInBibtex("abcd", "abcde"), [])
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
@@ -685,7 +686,7 @@ class TestDatabaseEntries(DBTestCase):
 
 		bibtexIn = u'@article{def,\nauthor = "me",\ntitle = "def",\njournal="Phys. Rev.",\nvolume="D95",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'
 		bibtexOut = u'@Article{def,\n        author = "me",\n         title = "{def}",\n       journal = "Phys. Rev. D",\n        volume = "95",\n          year = "2018",\n         pages = "1",\n         arxiv = "1234.56789",\n}'
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
 		self.assertEqual(self.pBDB.bibs.replace("published", ["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*", [r'\1', r'\2'], regex = True),
 			(["abc", "def"], ["def"], []))
 		self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
@@ -710,7 +711,7 @@ class TestDatabaseEntries(DBTestCase):
 			"[DB] something wrong in replace")
 
 		bibtexIn = u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\neprint="1234.56789",\n}'
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(bibtexIn)))
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
 		self.assertEqual(self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ['56789']),
 			(["ghi"], ["ghi"], ["abc", "def"]))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ['56789']),
@@ -721,8 +722,8 @@ class TestDatabaseEntries(DBTestCase):
 			"[DB] something wrong in replace")
 
 	def test_completeFetched(self):
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
-			u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}')))
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(
+			u'@article{abc,\nauthor = "me",\ntitle = "abc",\njournal="jcap",\nvolume="3",\nyear="2018",\npages="1",\narxiv="1234.56789",\n}'))
 		fetched = self.pBDB.bibs.getByBibkey("abc")
 		completed = self.pBDB.bibs.completeFetched(fetched)[0]
 		self.assertEqual(completed["author"], "me")
@@ -734,8 +735,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed["published"], "jcap 3 (2018) 1")
 
 		self.pBDB.undo(verbose = 0)
-		self.assertTrue(self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
-			u'@article{abc,\nauthor = "me and you and him and them",\ntitle = "abc",\n}')))
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(u'@article{abc,\nauthor = "me and you and him and them",\ntitle = "abc",\n}'))
 		fetched = self.pBDB.bibs.getByBibkey("abc")
 		completed = self.pBDB.bibs.completeFetched(fetched)[0]
 		self.assertEqual(completed["author"], "me et al.")
@@ -1083,7 +1083,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "http://dx.doi.org/1/2/3")
 		self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
 		self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
-		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}')
+		self.assertTrue(self.pBDB.bibs.insertFromBibtex(u'@article{def,\nauthor = "me",\ntitle = "def",}'))
 		self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
 		self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
 
@@ -1311,10 +1311,8 @@ class TestDatabaseEntries(DBTestCase):
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_getFieldsFromArxiv(self):
 		pbConfig.params["maxAuthorSave"] = 5
-		self.pBDB.bibs.insert(
-			self.pBDB.bibs.prepareInsert(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'))
-		self.pBDB.bibs.insert(
-			self.pBDB.bibs.prepareInsert(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}'))
+		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
+		self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
 		self.assertNotIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
 		self.assertFalse(self.pBDB.bibs.getFieldsFromArxiv("abcd", "authors"))
 		self.assertTrue(self.pBDB.bibs.getFieldsFromArxiv("Ade:2013zuv", "authors"))
