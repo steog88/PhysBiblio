@@ -1324,7 +1324,11 @@ class TestDatabaseEntries(DBTestCase):
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_updateInspireID(self):
-		pass
+		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo 2015", "Gariazzo:2015rra", number = 3), "1385583")
+		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015", "Gariazzo:2015rra"))
+		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
 	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_searchOAIUpdates(self):
@@ -1375,7 +1379,7 @@ class TestDatabaseUtilities(DBTestCase):
 		self.assertTrue(self.pBDB.bibs.insert(data))
 		self.assertEqual(self.pBDB.utils.cleanAllBibtexs(), None)
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"),
-			u'@Article{abc,\n        author = "me",\n         title = "{\`{e} \~{n}}",\n}\n\n')
+			u'@Article{abc,\n        author = "me",\n         title = "{{\`e} {\~n}}",\n}\n\n')
 		self.pBDB.bibs.delete("abc")
 
 def tearDownModule():

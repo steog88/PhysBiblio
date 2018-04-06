@@ -1991,6 +1991,9 @@ class entries(physbiblioDBSub):
 			query = "update entries set inspire=:inspire where bibkey=:bibkey\n"
 			if self.connExec(query, {"inspire": newid, "bibkey": key}):
 				return newid
+			else:
+				print("[DB] something went wrong in updateInspireID")
+				return False
 		else:
 			return False
 	

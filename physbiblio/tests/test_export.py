@@ -87,13 +87,16 @@ class TestExportMethods(unittest.TestCase):
 		self.assertEqual(open(testTexName).read(), texString)
 		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		pBDB.catBib.insert = MagicMock(return_value = True)
-		pBDB.bibs.getAll = MagicMock(return_value = sampleList)
 		pBDB.bibs.getByBibkey = MagicMock(side_effect = [
 			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
 			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
 			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
 			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-			[]])
+			[], []])
+		pBDB.bibs.getByBibtex = MagicMock(side_effect = [
+			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
+			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
+			[], []])
 		pBDB.bibs.loadAndInsert = MagicMock(side_effect = ['@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}', ''])
 		pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
 		self.assertTrue(os.path.exists(testBibName))

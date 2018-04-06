@@ -94,6 +94,7 @@ class webSearch(webInterf):
 			data = feedparser.parse(text)
 			db = BibDatabase()
 			db.entries = []
+			dictionaries = []
 			for entry in data['entries']:
 				dictionary = {}
 				idArx = entry['id'].replace("http://arxiv.org/abs/", "")
@@ -125,7 +126,12 @@ class webSearch(webInterf):
 				except Exception:
 					print("[DB] -> Error in converting year")
 				db.entries.append(dictionary)
+				dictionaries.append(dictionary)
 			if fullDict:
+				dictionary = dictionaries[0]
+				for d in dictionaries:
+					if string in d["arxiv"]:
+						dictionary = d
 				return pbWriter.write(db), dictionary
 			else:
 				return pbWriter.write(db)

@@ -46,7 +46,7 @@ class webSearch(webInterf):
 		Output:
 			returns the bibtex string obtained from the API
 		"""
-		self.urlArgs["p"] = "\"" + string + "\""
+		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
 		print("[inspire] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
@@ -72,7 +72,7 @@ class webSearch(webInterf):
 		Output:
 			returns the bibtex string obtained from the API
 		"""
-		self.urlArgs["p"] = "\"" + string + "\""
+		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
 		print("[inspire] search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
@@ -97,14 +97,18 @@ class webSearch(webInterf):
 			number (optional): the integer corresponding to the desired entry in the list, if more than one is present
 		"""
 		i = 0
-		self.urlArgs["p"] = "\"" + string + "\""
+		self.urlArgs["p"] = string.replace(" ", "+")
 		self.urlArgs["of"] = "hb" #do not ask bibtex, but standard
 		url = self.createUrl()
 		self.urlArgs["of"] = "hx" #restore
 		print("[inspire] search ID of %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
+		if text is None:
+			pBErrorManager("[inspire] An error occurred. Empty text obtained")
+			return ""
 		try:
 			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
+			inspireID = ""
 			for q in searchID.finditer(text):
 				if len(q.group()) > 0:
 					if number is None or i == number:
