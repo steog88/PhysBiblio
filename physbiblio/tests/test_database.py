@@ -1335,14 +1335,57 @@ class TestDatabaseEntries(DBTestCase):
 	def test_searchOAIUpdates(self):
 		pass
 
-	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_updateInfoFromOAI(self):
-		pass
-		#what if called with False as ID?
+		"""test updateInfoFromOAI, but with mocked methods"""
+		mockOut = {'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
+		self.pBDB.bibs.getField = MagicMock(side_effect = ["abcd", False, "12345"])
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
+		orig_func = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData
+		mock_function = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData = create_autospec(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData, side_effect = [
+			False,
+			mockOut, mockOut, mockOut,
+			{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",\ntitle="{Light Sterile Neutrinos}"\n}', 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'},
+			{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, }, {'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, },
+			{'doi': u'10.1088/0954-3899/43/3/033001', 'bibkey': "Gariazzo:2015rra", }, {'doi': u'10.1088/0954-3899/43/3/033001', 'bibkey': "Gariazzo:2015rra", },
+			])
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc", verbose = 2))
+		mock_function.assert_called_once_with("12345", bibtex = None, verbose = 2)
+		self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2))
+		mock_function.reset_mock()
+		self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2),
+			"[DB] inspire OAI info for 12345 saved.")
+		mock_function.assert_called_once_with("12345", bibtex = None, verbose = 2)
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
+		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None, 'arxiv': '1507.08204', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2015, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2018-04-07', 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ', 'author': ''}])
+		mock_function.reset_mock()
+		self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", bibtex = u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', verbose = 2),
+			"doi = 10.1088/0954-3899/43/3/033001 (None)")
+		mock_function.assert_called_once_with("12345", bibtex =  u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', verbose = 2)
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': ''}])
+		self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
+		self.maxDiff = None
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo",\n         title = "{Light Sterile Neutrinos}",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra', 'author': 'Gariazzo', 'title': '{Light Sterile Neutrinos}'}, 'title': '{Light Sterile Neutrinos}', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': 'Gariazzo'}])
+		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
+			"[DB][oai] something missing in entry")
+		self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
+			"[DB][oai] key error")
+		physBiblioWeb.webSearch["inspireoai"].retrieveOAIData = orig_func
 
 	def test_updateFromOAI(self):
 		"""test updateFromOAI without relying on the true pBDB.bibs.updateInfoFromOAI (mocked)"""
 		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(u'@article{abc,\narxiv="1234.56789"\n}', inspire = "12345"))
+		original_func = self.pBDB.bibs.updateInfoFromOAI
 		mock_function = self.pBDB.bibs.updateInfoFromOAI = create_autospec(self.pBDB.bibs.updateInfoFromOAI, side_effect = ["a", "b", "c", "d", "e", "f"])
 		self.pBDB.bibs.updateInspireID = MagicMock(side_effect = ["54321", False])
 		self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
@@ -1361,6 +1404,7 @@ class TestDatabaseEntries(DBTestCase):
 		mock_function.reset_mock()
 		self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
 		mock_function.assert_called_once_with(False, verbose = 0)
+		self.pBDB.bibs.updateInfoFromOAI = original_func
 
 	def test_getDailyInfoFromOAI(self):
 		"""test the function getDailyInfoFromOAI, without relying on the true physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates (mocked)"""

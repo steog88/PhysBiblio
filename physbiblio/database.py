@@ -2085,13 +2085,16 @@ class entries(physbiblioDBSub):
 		Use inspire OAI to retrieve the info for a single entry
 
 		Parameters:
-			inspireID: the id of the entry in inspires. If is not a number, assume it is the bibtex key
+			inspireID (string): the id of the entry in inspires. If is not a number, assume it is the bibtex key
 			bibtex: see physBiblio.webimport.inspireoai.retrieveOAIData
 			verbose: increase level of verbosity
 
 		Output:
 			True if successful, or False if there were errors
 		"""
+		if inspireID is False or inspireID is "" or inspireID is None:
+			pBErrorManager("[DB][updateInfoFromOAI] inspireID is empty, cannot proceed.")
+			return False
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
 			inspireID = self.getField(inspireID, "inspire")
 			try:
@@ -2120,11 +2123,11 @@ class entries(physbiblioDBSub):
 								self.updateField(key, d, self.rmBibtexComments(self.rmBibtexACapo(result[o].strip())), verbose = 0)
 							else:
 								self.updateField(key, d, result[o], verbose = 0)
-					except:
+					except KeyError:
 						pBErrorManager("[DB][oai] key error: (%s, %s)"%(o,d), traceback, priority = 0)
 			if verbose > 0:
 				print("[DB] inspire OAI info for %s saved."%inspireID)
-		except:
+		except KeyError:
 			pBErrorManager("[DB][oai] something missing in entry %s"%inspireID, traceback, priority = 1)
 			return False
 		return True
