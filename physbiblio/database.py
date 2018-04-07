@@ -2134,15 +2134,18 @@ class entries(physbiblioDBSub):
 		Update an entry from inspire OAI. If inspireID is missing, look for it before
 
 		Parameters:
-			entry: the inspire ID or an identifier of the entry to consider (also a list is accepted)
+			entry (string): the inspire ID or an identifier of the entry to consider (also a list is accepted)
 			verbose: increase level of verbosity
 
 		Output:
 			for a single entry, the output of self.updateInfoFromOAI
+			for a list of entries, a list with the output of self.updateInfoFromOAI for each entry
 		"""
 		if type(entry) is list:
+			output = []
 			for e in entry:
-				self.updateFromOAI(e, verbose = verbose)
+				output.append(self.updateFromOAI(e, verbose = verbose))
+			return output
 		elif entry.isdigit():
 			return self.updateInfoFromOAI(entry, verbose = verbose)
 		else:

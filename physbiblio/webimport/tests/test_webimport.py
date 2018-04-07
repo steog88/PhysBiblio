@@ -131,7 +131,9 @@ with a summary of future perspectives.}",
 		yrst, monst, dayst = date2.split('-')
 		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
 		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
-		print(physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2))
+		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+		self.assertEqual(type(result), list)
+		print(len(result), result[0])
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")
