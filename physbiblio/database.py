@@ -2564,9 +2564,8 @@ class entries(physbiblioDBSub):
 								self.updateInfoFromOAI(eid)
 							print("[DB] element successfully inserted.\n")
 							self.lastInserted.append(key)
-						except Exception as err:
-							pBErrorManager("[DB] failed in completing info for entry %s\n"%key, priority = 1)
-							print(err)
+						except Exception:
+							pBErrorManager("[DB] failed in completing info for entry %s\n"%key, traceback, priority = 1)
 							errors.append(key)
 		print("[DB] import completed.\n%d entries processed, of which %d existing, %d successfully inserted and %d errors."%(
 			len(elements), len(exist), len(self.lastInserted), len(errors)))

@@ -1262,7 +1262,6 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
 			u'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n')
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_importFromBib(self):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = "abc",}\n@article{def,\nauthor = "me",\ntitle = "def",}\n')
@@ -1282,12 +1281,24 @@ class TestDatabaseEntries(DBTestCase):
 		pbConfig.params["defaultCategories"] = 1
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{Gariazzo:2015rra,\nauthor = "me",\narxiv = "1507.08204",\n}\n@article{Gariazzo:2014rra,\nauthor="me",\n}\n')
+		orig_func1 = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll
+		orig_func2 = self.pBDB.bibs.updateInspireID
+		orig_func3 = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData
+		physBiblioWeb.webSearch["arxiv"].retrieveUrlAll = MagicMock(side_effect = [
+			("bibtex_not_used", {"abstract": "some fake abstract"})])
+		self.pBDB.bibs.updateInspireID = MagicMock(side_effect = ["1385583", False])
+		physBiblioWeb.webSearch["inspireoai"].retrieveOAIData = MagicMock(side_effect=[
+			{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'},
+			[]])
 		self.pBDB.bibs.importFromBib("tmpbib.bib")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["Gariazzo:2015rra", "Gariazzo:2014rra"])
 		self.assertEqual([e["inspire"] for e in self.pBDB.bibs.getAll()], ["1385583", None])
 		self.assertEqual([len(e["abstract"]) > 10 if e["abstract"] is not None else 0 for e in self.pBDB.bibs.getAll()], [True, False])
 		self.assertEqual([e["firstdate"] for e in self.pBDB.bibs.getAll()], ['2015-07-29', datetime.date.today().strftime("%Y-%m-%d")])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByCat(1)], ["Gariazzo:2015rra", "Gariazzo:2014rra"])
+		physBiblioWeb.webSearch["arxiv"].retrieveUrlAll = orig_func1
+		self.pBDB.bibs.updateInspireID = orig_func2
+		physBiblioWeb.webSearch["inspireoai"].retrieveOAIData = orig_func3
 
 		self.pBDB.undo(verbose = 0)
 		pbConfig.params["fetchAbstract"] = False
@@ -1337,6 +1348,7 @@ class TestDatabaseEntries(DBTestCase):
 
 	def test_updateInfoFromOAI(self):
 		"""test updateInfoFromOAI, but with mocked methods"""
+		dt = datetime.date.today().strftime("%Y-%m-%d")
 		mockOut = {'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
@@ -1363,7 +1375,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
 		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None, 'arxiv': '1507.08204', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2015, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2018-04-07', 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ', 'author': ''}])
+			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None, 'arxiv': '1507.08204', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2015, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': dt, 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ', 'author': ''}])
 		mock_function.reset_mock()
 		self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", bibtex = u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', verbose = 2),
 			"doi = 10.1088/0954-3899/43/3/033001 (None)")
