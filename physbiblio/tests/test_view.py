@@ -8,10 +8,10 @@ import sys, traceback
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import MagicMock, patch, call
+	from mock import patch
 else:
 	import unittest
-	from unittest.mock import MagicMock, patch, call
+	from unittest.mock import patch
 
 try:
 	from physbiblio.setuptests import *
@@ -30,22 +30,22 @@ class TestViewMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.view"""
 	def test_printLink(self):
 		"""Test printLink function with different inputs"""
-		pBDB.bibs.getField = MagicMock(side_effect = [
-			'1507.08204', '', '', '1507.08204', #test "arxiv"
-			'', '10.1088/0954-3899/43/3/033001', '', '10.1088/0954-3899/43/3/033001', #test "doi"
-			'', '', '1385583', #test "inspire", inspire ID present
-			'1507.08204', '', '', #test "inspire", inspire ID not present, arxiv present
-			'', '', False, #test "inspire", inspire ID not present, arxiv not present
-			'', '', '', #test "arxiv", no info
-			'', '', '', #test "doi", no info
-			])
-		self.assertEqual(pBView.printLink("a", "arxiv"), "http://arxiv.org/abs/1507.08204")
-		self.assertEqual(pBView.printLink("a", "doi"), "http://dx.doi.org/10.1088/0954-3899/43/3/033001")
-		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/record/1385583")
-		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+1507.08204")
-		self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
-		self.assertFalse(pBView.printLink("a", "arxiv"))
-		self.assertFalse(pBView.printLink("a", "doi"))
+		with patch('physbiblio.database.entries.getField', side_effect = [
+				'1507.08204', '', '', '1507.08204', #test "arxiv"
+				'', '10.1088/0954-3899/43/3/033001', '', '10.1088/0954-3899/43/3/033001', #test "doi"
+				'', '', '1385583', #test "inspire", inspire ID present
+				'1507.08204', '', '', #test "inspire", inspire ID not present, arxiv present
+				'', '', False, #test "inspire", inspire ID not present, arxiv not present
+				'', '', '', #test "arxiv", no info
+				'', '', '', #test "doi", no info
+				]) as _mock:
+			self.assertEqual(pBView.printLink("a", "arxiv"), "http://arxiv.org/abs/1507.08204")
+			self.assertEqual(pBView.printLink("a", "doi"), "http://dx.doi.org/10.1088/0954-3899/43/3/033001")
+			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/record/1385583")
+			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+1507.08204")
+			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
+			self.assertFalse(pBView.printLink("a", "arxiv"))
+			self.assertFalse(pBView.printLink("a", "doi"))
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")

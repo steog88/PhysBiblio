@@ -8,10 +8,8 @@ import sys, datetime, traceback, os
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import MagicMock, patch, call
 else:
 	import unittest
-	from unittest.mock import MagicMock, patch, call
 
 try:
 	from physbiblio.setuptests import *

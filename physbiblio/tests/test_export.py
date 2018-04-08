@@ -9,10 +9,10 @@ from stat import S_IREAD, S_IRGRP, S_IROTH
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import MagicMock, patch, call
+	from mock import patch
 else:
 	import unittest
-	from unittest.mock import MagicMock, patch, call
+	from unittest.mock import patch
 
 try:
 	from physbiblio.setuptests import *
@@ -60,8 +60,8 @@ class TestExportMethods(unittest.TestCase):
 		self.assertEqual(open(testBibName).read(), sampleTxt)
 		os.remove(testBibName)
 
-		pBDB.bibs.getAll = MagicMock(return_value = sampleList)
-		pBExport.exportAll(testBibName)
+		with patch('physbiblio.database.entries.getAll', return_value = sampleList) as _mock:
+			pBExport.exportAll(testBibName)
 		self.assertEqual(open(testBibName).read(), sampleTxt)
 		os.remove(testBibName)
 
@@ -70,8 +70,8 @@ class TestExportMethods(unittest.TestCase):
 		pBExport.exportSelected(testBibName, sampleList)
 		self.assertEqual(open(testBibName).read(), sampleTxt)
 
-		pBDB.bibs.getByBibkey = MagicMock(return_value = [{"bibtexDict": {"ID": "empty2", "ENTRYTYPE": "Article", "author": "me et al", "title": "yes"}}])
-		pBExport.updateExportedBib(testBibName, overwrite = True)
+		with patch('physbiblio.database.entries.getByBibkey', return_value = [{"bibtexDict": {"ID": "empty2", "ENTRYTYPE": "Article", "author": "me et al", "title": "yes"}}]) as _mock:
+			pBExport.updateExportedBib(testBibName, overwrite = True)
 		self.assertEqual(open(testBibName).read().replace(" ","").replace("\n",""),
 			 sampleTxt.replace("me2", 'me et al').replace(" ","").replace("\n",""))
 		pBExport.rmBackupCopy(testBibName)
@@ -86,19 +86,21 @@ class TestExportMethods(unittest.TestCase):
 		open(testTexName, "w").write(texString)
 		self.assertEqual(open(testTexName).read(), texString)
 		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
-		pBDB.catBib.insert = MagicMock(return_value = True)
-		pBDB.bibs.getByBibkey = MagicMock(side_effect = [
-			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
-			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
-			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-			[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-			[], []])
-		pBDB.bibs.getByBibtex = MagicMock(side_effect = [
-			[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
-			[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
-			[], []])
-		pBDB.bibs.loadAndInsert = MagicMock(side_effect = ['@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}', ''])
-		pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
+
+		with patch('physbiblio.database.catsEntries.insert', return_value = True) as _ceins:
+			with patch('physbiblio.database.entries.getByBibkey', side_effect = [
+					[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
+					[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
+					[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+					[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+					[], []]) as _getbbibk:
+				with patch('physbiblio.database.entries.getByBibtex', side_effect = [
+						[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
+						[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
+						[], []]) as _getbbibt:
+					with patch('physbiblio.database.entries.loadAndInsert',
+							side_effect = ['@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}', '']) as _mock:
+						pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
 		self.assertTrue(os.path.exists(testBibName))
 		self.assertEqual(open(testBibName).read(), '%file written by PhysBiblio\n@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}\n')
 		os.remove(testBibName)
