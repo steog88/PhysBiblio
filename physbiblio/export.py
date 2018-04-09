@@ -109,7 +109,7 @@ class pbExport():
 		self.backupCopy(fileName)
 		pBDB.bibs.fetchAll(saveQuery = False, doFetch = False)
 		txt = ""
-		for q in pBDB.curs:
+		for q in pBDB.cursor():
 			txt += q["bibtex"] + "\n"
 		if txt != "":
 			try:

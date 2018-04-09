@@ -903,15 +903,17 @@ class MainWindow(QMainWindow):
 			minProgress = 0., stopFlag = True)
 
 	def infoFromArxiv(self, useEntries = None):
+		iterator = useEntries
 		if useEntries is None:
-			useEntries = pBDB.bibs.getAll()
+			pBDB.bibs.fetchAll(doFetch = False)
+			iterator = pBDB.curs
 		askFieldsWin = fieldsFromArxiv()
 		askFieldsWin.exec_()
 		if askFieldsWin.result:
 			self.StatusBarMessage("Starting importing info from arxiv...")
 			self.fieldsArxiv_thr, self.arxivReceiver = self._runInThread(
 				thread_fieldsArxiv, "Get info from arXiv",
-				[e["bibkey"] for e in useEntries], askFieldsWin.output,
+				[e["bibkey"] for e in iterator], askFieldsWin.output,
 				totStr = "[DB] thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
 				minProgress = 0., stopFlag = True)
 

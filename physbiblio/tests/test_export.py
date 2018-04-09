@@ -51,17 +51,12 @@ class TestExportMethods(unittest.TestCase):
 		self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 
 	def test_offlineExports(self):
-		"""Test of offline export functions (exportAll, exportSelected, updateExportedBib"""
+		"""Test of offline export functions exportSelected, updateExportedBib"""
 		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
 		pBDB.bibs.lastFetched = sampleList
 		pBExport.exportLast(testBibName)
-		self.assertEqual(open(testBibName).read(), sampleTxt)
-		os.remove(testBibName)
-
-		with patch('physbiblio.database.entries.getAll', return_value = sampleList) as _mock:
-			pBExport.exportAll(testBibName)
 		self.assertEqual(open(testBibName).read(), sampleTxt)
 		os.remove(testBibName)
 
@@ -75,6 +70,16 @@ class TestExportMethods(unittest.TestCase):
 		self.assertEqual(open(testBibName).read().replace(" ","").replace("\n",""),
 			 sampleTxt.replace("me2", 'me et al').replace(" ","").replace("\n",""))
 		pBExport.rmBackupCopy(testBibName)
+		os.remove(testBibName)
+
+	def test_exportAll(self):
+		"""Test of exportAll"""
+		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
+		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
+		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
+		with patch('physbiblio.database.physbiblioDB.cursor', return_value = sampleList) as _curs:
+			pBExport.exportAll(testBibName)
+		self.assertEqual(open(testBibName).read(), sampleTxt)
 		os.remove(testBibName)
 
 	def test_exportForTexFile(self):

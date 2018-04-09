@@ -209,7 +209,10 @@ class physbiblioDB():
 			return False
 		else:
 			return True
-	
+
+	def cursor(self):
+		return self.curs
+
 	def loadSubClasses(self):
 		"""
 		Load the subclasses that manage the content in the various tables in the database.
@@ -2103,6 +2106,9 @@ class entries(physbiblioDBSub):
 			try:
 				inspireID.isdigit()
 			except AttributeError:
+				pBErrorManager("[DB] wrong type in inspireID: %s"%inspireID)
+				return False
+			if not inspireID.isdigit():
 				pBErrorManager("[DB] wrong value/format in inspireID: %s"%inspireID)
 				return False
 		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
@@ -2682,13 +2688,19 @@ class entries(physbiblioDBSub):
 		Parameters:
 			entriesIn: the list of entries to print. If None, use self.lastFetched or self.getAll.
 		"""
-		if entriesIn is not None:
-			entries = entriesIn
-		else:
-			entries = self.getAll(orderBy = "firstdate")
-		for i, e in enumerate(entries):
+		total = 0
+		def _print(i, e):
 			print("%4d - %s\n"%(i, e["bibtex"]))
-		print("[DB] %d elements found"%len(entries))
+		if entriesIn is not None:
+			for i, e in enumerate(entriesIn):
+				_print(i, e)
+				total += 1
+		else:
+			self.fetchAll(orderBy = "firstdate", doFetch = False)
+			for i, e in enumerate(self.curs):
+				_print(i, e)
+				total += 1
+		print("[DB] %d elements found"%total)
 			
 	def printAllBibkeys(self, entriesIn = None):
 		"""
@@ -2697,13 +2709,19 @@ class entries(physbiblioDBSub):
 		Parameters:
 			entriesIn: the list of entries to print. If None, use self.lastFetched or self.getAll.
 		"""
-		if entriesIn is not None:
-			entries = entriesIn
-		else:
-			entries = self.getAll(orderBy = "firstdate")
-		for i, e in enumerate(entries):
+		total = 0
+		def _print(i, e):
 			print("%4d %s"%(i, e["bibkey"]))
-		print("[DB] %d elements found"%len(entries))
+		if entriesIn is not None:
+			for i, e in enumerate(entriesIn):
+				_print(i, e)
+				total += 1
+		else:
+			self.fetchAll(orderBy = "firstdate", doFetch = False)
+			for i, e in enumerate(self.curs):
+				_print(i, e)
+				total += 1
+		print("[DB] %d elements found"%total)
 			
 	def printAllInfo(self, entriesIn = None, orderBy = "firstdate", addFields = None):
 		"""
@@ -2715,10 +2733,13 @@ class entries(physbiblioDBSub):
 			addFields: print additional fields in addition to the minimal info, default None
 		"""
 		if entriesIn is not None:
-			entries = entriesIn
+			iterator = entriesIn
 		else:
-			entries = self.getAll(orderBy = orderBy)
-		for i, e in enumerate(entries):
+			self.fetchAll(orderBy = orderBy, doFetch = False)
+			iterator = self.curs
+		total = 0
+		for i, e in enumerate(iterator):
+			total += 1
 			orderDate = "[%4d - %-11s]"%(i, e["firstdate"])
 			bibKeyStr = "%-30s "%e["bibkey"]
 			typeStr = ""
@@ -2754,7 +2775,7 @@ class entries(physbiblioDBSub):
 							print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
 				except:
 					pass
-		print("[DB] %d elements found"%len(entries))
+		print("[DB] %d elements found"%total)
 
 	def fetchByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""
@@ -2955,7 +2976,8 @@ class utilities(physbiblioDBSub):
 					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 
-		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.getAll(saveQuery = False) ]
+		self.mainDB.bibs.fetchAll(saveQuery = False, doFetch = False)
+		bibkeys = [ e["bibkey"] for e in self.mainDB.curs ]
 		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
 		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
 		

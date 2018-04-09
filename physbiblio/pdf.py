@@ -308,9 +308,11 @@ class localPDF():
 			entries (list, optional): the list of bibtex keys to consider. If None, get all the database content
 			fullPath (boolean, default False): print the list with absolute paths
 		"""
+		iterator = entries
 		if entries is None:
-			entries = pBDB.bibs.getAll(orderBy = "firstdate", saveQuery = False)
-		for e in entries:
+			pBDB.bibs.fetchAll(orderBy = "firstdate", saveQuery = False, doFetch = False)
+			iterator = pBDB.curs
+		for e in iterator:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
 			if len(exist) > 0:
 				print("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
@@ -322,7 +324,8 @@ class localPDF():
 		"""
 		pBDB.bibs.fetchAll(doFetch = False)
 		folders = os.listdir(self.pdfDir)
-		for k in pBDB.curs:
+		for e in pBDB.cursor():
+			k = e["bibkey"]
 			cleaned = self.badFName(k)
 			if cleaned in folders:
 				del folders[folders.index(cleaned)]
