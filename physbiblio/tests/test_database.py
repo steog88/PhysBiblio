@@ -1308,6 +1308,7 @@ class TestDatabaseEntries(DBTestCase):
 		os.remove("tmpbib.bib")
 
 	def test_loadAndInsert(self):
+		"""tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
 		# loadAndInsert
 
 		# loadAndInsertWithCats
@@ -1320,6 +1321,7 @@ class TestDatabaseEntries(DBTestCase):
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_getFieldsFromArxiv(self):
+		"""tests for getFieldsFromArxiv (online)"""
 		pbConfig.params["maxAuthorSave"] = 5
 		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
 		self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
@@ -1334,15 +1336,59 @@ class TestDatabaseEntries(DBTestCase):
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_updateInspireID(self):
+		"""tests for updateInspireID (online)"""
 		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
 		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
 		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo 2015", "Gariazzo:2015rra", number = 3), "1385583")
 		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015", "Gariazzo:2015rra"))
 		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
-	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_searchOAIUpdates(self):
-		pass
+		"""tests for searchOAIUpdates, with mock functions"""
+		self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1), (0, [], []))
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire = "1385583"))
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire = "1224741"))
+		entry1 = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+		entry2 = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+		entry1a = dict(entry1)
+		entry2a = dict(entry2)
+		entry1a["doi"] = "1/2/3/4"
+		entry2a["doi"] = "1/2/3/4"
+		entry1a["bibtexDict"]["journal"] = "jcap"
+		entry2a["bibtexDict"]["journal"] = "jcap"
+		with patch('physbiblio.database.entries.updateInfoFromOAI', side_effect=[
+				True, True,
+				True, True,
+				True, True,
+				False, True,
+				]) as _mock_uioai:
+			with patch("physbiblio.database.entries.getAll", side_effect = [
+					[entry1, entry2],#1
+					[entry1a, entry2a],#2
+					[entry1a, entry2a],#3
+					[entry1, entry2],#4
+					[entry1, entry2],#6
+					]) as _mock_ga:
+				with patch("physbiblio.database.entries.getByBibkey", side_effect = [
+						[entry1a], [entry2a],#1
+						[entry1a], [entry2a],#3
+						[entry1a], [entry2a],#4,5
+						[entry2a]#6
+						]) as _mock_gbk:
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
+						(2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]))
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
+						(0, [], []))
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(force = True),
+						(2, [], []))
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1),
+						(1, [], ["Ade:2013zuv"]))
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(entries = [entry1]),
+						(1, [], ["Gariazzo:2015rra"]))
+					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
+						(2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]))
 
 	def test_updateInfoFromOAI(self):
 		"""test updateInfoFromOAI, but with mocked methods"""
