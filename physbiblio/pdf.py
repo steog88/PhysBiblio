@@ -320,9 +320,9 @@ class localPDF():
 		Scans the PDF folder in order to find single unassociated directories (their name is not matched by any database entry).
 		The unassociated directories are removed without asking any additional confirmation. Be careful!
 		"""
-		keys = [ a["bibkey"] for a in pBDB.bibs.getAll()]
+		pBDB.bibs.fetchAll(doFetch = False)
 		folders = os.listdir(self.pdfDir)
-		for k in keys:
+		for k in pBDB.curs:
 			cleaned = self.badFName(k)
 			if cleaned in folders:
 				del folders[folders.index(cleaned)]

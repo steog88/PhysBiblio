@@ -1540,7 +1540,8 @@ class entries(physbiblioDBSub):
 		return self
 
 	def fetchAll(self, params = None, connection = "and", operator = "=",
-			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
+			orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True,
+			doFetch = True):
 		"""
 		Fetch entries using a number of criterions. Simpler than self.fetchFromDict.
 
@@ -1553,6 +1554,7 @@ class entries(physbiblioDBSub):
 			limitTo (int or None): maximum number of results. If None, do not limit
 			limitOffset (int or None): where to start in the ordered list. If None, use 0
 			saveQuery (boolean, default True): if True, save the query for future reuse
+			doFetch (boolean, default True): use self.curs.fetchall and store all the rows in a list. Set to False to directly use the iterator on self.curs.
 
 		Output:
 			self
@@ -1607,8 +1609,9 @@ class entries(physbiblioDBSub):
 		except:
 			print("[DB] query failed: %s"%query)
 			print(vals)
-		fetched_in = self.curs.fetchall()
-		self.lastFetched = self.completeFetched(fetched_in)
+		if doFetch:
+			fetched_in = self.curs.fetchall()
+			self.lastFetched = self.completeFetched(fetched_in)
 		return self
 	
 	def getAll(self, params = None, connection = "and", operator = "=", orderBy = "firstdate", orderType = "ASC", limitTo = None, limitOffset = None, saveQuery = True):
@@ -1620,7 +1623,7 @@ class entries(physbiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset, saveQuery = saveQuery).lastFetched
+		return self.fetchAll(params = params, connection = connection, operator = operator, orderBy = orderBy, orderType = orderType, limitTo = limitTo, limitOffset = limitOffset, saveQuery = saveQuery, doFetch = True).lastFetched
 
 	def fetchByBibkey(self, bibkey, saveQuery = True):
 		"""

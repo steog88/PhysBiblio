@@ -107,11 +107,11 @@ class pbExport():
 			fileName: the name of the output bibtex file
 		"""
 		self.backupCopy(fileName)
-		rows = pBDB.bibs.getAll(saveQuery = False)
-		if len(rows) > 0:
-			txt = ""
-			for q in rows:
-				txt += q["bibtex"] + "\n"
+		pBDB.bibs.fetchAll(saveQuery = False, doFetch = False)
+		txt = ""
+		for q in pBDB.curs:
+			txt += q["bibtex"] + "\n"
+		if txt != "":
 			try:
 				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
