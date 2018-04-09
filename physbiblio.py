@@ -27,38 +27,57 @@ def TorF(s):
 	else:
 		return None
 
+def call_cli():
+	from physbiblio.cli import cli as physBiblioCLI
+	physBiblioCLI()
+	exit()
+
+def call_tex(arguments):
+	from physbiblio.export import pBExport
+	if len(arguments) < 2:
+		print("\nWrong usage of command line command 'tex': mandatory arguments are missing. Please use:")
+		print("`physbiblio.py tex '/folder/where/tex/files/are/' 'name_of_output.bib' [overwrite [autosave]]`")
+		print("(the optional arguments overwrite and autosave may be 1,T,t,True,true for True or 0,F,f,False,false for False. Default: overwrite = False, autosave = True)\n")
+		exit()
+	texFiles = arguments[0]
+	bibFile = arguments[1]
+	overwrite = TorF(arguments[2]) if len(arguments) > 2 else False
+	autosave = TorF(arguments[3]) if len(sys.argv) > 3 else True
+	if overwrite is None or autosave is None:
+		print("\nInvalid value for overwrite or autosave. You may use 1,T,t,True,true for True or 0,F,f,False,false for False.\n")
+	pBExport.exportForTexFile(texFiles, bibFile, overwrite = overwrite, autosave = autosave)
+	exit()
+
+def call_export(arguments):
+	from physbiblio.export import pBExport
+	if len(arguments) < 1:
+		print("\nWrong usage of command line command 'export': mandatory argument 'fname' is missing.\n")
+		exit()
+	fname = arguments[0]
+	pBExport.exportAll(fname)
+	exit()
+
 # GUI application
 if __name__=='__main__':
-	command = None
-	if len(sys.argv) > 1:
-		command = sys.argv[1].lower()
-	if command == "help":
-		print("\nAvailable command line options:")
-		print("* help: print this text;")
-		print("* cli: open a command line where to directly run PhysBiblio functions;")
-		print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs.")
-		print("")
-		exit()
-	elif command == "cli":
-		from physbiblio.cli import cli as physBiblioCLI
-		physBiblioCLI()
-		exit()
-	elif command == "tex":
-		from physbiblio.export import pBExport
-		if len(sys.argv) < 4:
-			print("\nWrong usage of command line command 'tex': mandatory arguments are missing. Please use:")
-			print("`physbiblio.py tex '/folder/where/tex/files/are/' 'name_of_output.bib' [overwrite [autosave]]`")
-			print("(the optional arguments overwrite and autosave may be 1,T,t,True,true for True or 0,F,f,False,false for False. Default: overwrite = False, autosave = True)\n")
-		texFiles = sys.argv[2]
-		bibFile = sys.argv[3]
-		overwrite = TorF(sys.argv[4]) if len(sys.argv) > 4 else False
-		autosave = TorF(sys.argv[5]) if len(sys.argv) > 5 else True
-		if overwrite is None or autosave is None:
-			print("\nInvalid value for overwrite or autosave. You may use 1,T,t,True,true for True or 0,F,f,False,false for False.\n")
-		pBExport.exportForTexFile(texFiles, bibFile, overwrite = overwrite, autosave = autosave)
-		exit()
-
 	try:
+		command = None
+		if len(sys.argv) > 1:
+			command = sys.argv[1].lower()
+		if command == "help":
+			print("\nAvailable command line options:")
+			print("* help: print this text;")
+			print("* cli: open a command line where to directly run PhysBiblio functions;")
+			print("* export: export all the DB entries in a *.bib file;")
+			print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs.")
+			print("")
+			exit()
+		elif command == "cli":
+			call_cli()
+		elif command == "tex":
+			call_tex(sys.argv[2:])
+		elif command == "export":
+			call_export(sys.argv[2:])
+
 		app = QApplication(sys.argv)
 		mainWin = MainWindow()
 		mainWin.show()
