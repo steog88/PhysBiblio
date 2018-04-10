@@ -223,7 +223,7 @@ class webSearch(webInterf):
 		"""
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
-		except (ErrorBase, IncompleteRead):
+		except (URLError, ErrorBase, IncompleteRead):
 			pBErrorManager("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID, traceback)
 			return False
 		nhand = 0
