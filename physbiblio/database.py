@@ -10,6 +10,7 @@ import ast
 import bibtexparser
 import six.moves
 from pyparsing import ParseException
+import dictdiffer
 
 try:
 	from physbiblio.config import pbConfig
@@ -298,6 +299,12 @@ class physbiblioDBSub():
 		Execute cursor (see physbiblioDB.cursExec)
 		"""
 		return self.mainDB.cursExec(query, data = data)
+
+	def cursor(self):
+		"""
+		Return the cursor
+		"""
+		return self.mainDB.cursor()
 
 class categories(physbiblioDBSub):
 	"""
@@ -1324,6 +1331,11 @@ class entries(physbiblioDBSub):
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
 		self.lastInserted = []
+
+	def numEntries(self):
+		"""obtain the number of entries in the table"""
+		self.cursExec("SELECT Count(*) FROM entries")
+		return self.curs.fetchall()[0][0]
 
 	def delete(self, key):
 		"""
@@ -2872,21 +2884,28 @@ class entries(physbiblioDBSub):
 		"""
 		if entries is None:
 			try:
-				entries = self.getAll(saveQuery = False)[startFrom:]
+				tot = self.numEntries() - startFrom
+				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
+				iterator = self.cursor()
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in cleanBibtexs", traceback)
 				return 0, 0, []
+		else:
+			iterator = entries
+			tot = len(entries)
 		num = 0
 		err = 0
 		changed = []
-		tot = len(entries)
 		self.runningCleanBibtexs = True
 		print("[DB] cleanBibtexs will process %d total entries"%tot)
 		db = bibtexparser.bibdatabase.BibDatabase()
-		for ix,e in enumerate(entries):
+		for ix, e in enumerate(iterator):
 			if self.runningCleanBibtexs:
 				num += 1
 				print("[DB] %5d / %d (%5.2f%%) - cleaning: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				for field in ["old_keys"]:#convert None to "" from given fields
+					if e[field] is None:
+						self.updateField(e["bibkey"], field, "")
 				try:
 					element = bibtexparser.loads(e["bibtex"]).entries[0]
 					db.entries = []
@@ -2917,19 +2936,25 @@ class entries(physbiblioDBSub):
 		"""
 		if entries is None:
 			try:
-				entries = self.getAll(saveQuery = False)[startFrom:]
+				tot = self.numEntries() - startFrom
+				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
+				iterator = self.cursor()
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
 				return 0, [], []
+		else:
+			iterator = entries
+			tot = len(entries)
 		num = 0
 		err = []
 		changed = []
-		tot = len(entries)
 		self.runningOAIUpdates = True
 		print("[DB] searchOAIUpdates will process %d total entries"%tot)
-		for ix,e in enumerate(entries):
+		for ix, e in enumerate(iterator):
+			if not "bibtexDict" in e.keys():
+				e = self.completeFetched([e])[0]
 			if self.runningOAIUpdates \
-				and e["proceeding"] == 0 \
+				and ( e["proceeding"] == 0 or force ) \
 				and e["book"] == 0 \
 				and e["lecture"] == 0 \
 				and e["phd_thesis"] == 0 \
@@ -2941,9 +2966,13 @@ class entries(physbiblioDBSub):
 					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
 						err.append(e["bibkey"])
-					elif e != self.getByBibkey(e["bibkey"], saveQuery = False)[0]:
-						print("[DB] -- element changed!")
-						changed.append(e["bibkey"])
+					else:
+						new = self.getByBibkey(e["bibkey"], saveQuery = False)[0]
+						if e != new:
+							print("[DB] -- element changed!")
+							for diff in list(dictdiffer.diff(e, new)):
+								print(diff)
+							changed.append(e["bibkey"])
 					print("")
 		print("\n[DB] %d entries processed"%num)
 		print("\n[DB] %d errors occurred"%len(err))

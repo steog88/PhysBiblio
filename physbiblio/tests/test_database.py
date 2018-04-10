@@ -1364,11 +1364,11 @@ class TestDatabaseEntries(DBTestCase):
 				True, True,
 				False, True,
 				]) as _mock_uioai:
-			with patch("physbiblio.database.entries.getAll", side_effect = [
+			with patch("physbiblio.database.entries.cursor", side_effect = [
 					[entry1, entry2],#1
 					[entry1a, entry2a],#2
 					[entry1a, entry2a],#3
-					[entry1, entry2],#4
+					[entry2],#4
 					[entry1, entry2],#6
 					]) as _mock_ga:
 				with patch("physbiblio.database.entries.getByBibkey", side_effect = [
@@ -1378,17 +1378,17 @@ class TestDatabaseEntries(DBTestCase):
 						[entry2a]#6
 						]) as _mock_gbk:
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
-						(2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]))
+						(2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]))#1
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
-						(0, [], []))
+						(0, [], []))#2
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(force = True),
-						(2, [], []))
+						(2, [], []))#3
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1),
-						(1, [], ["Ade:2013zuv"]))
+						(1, [], ["Ade:2013zuv"]))#4
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(entries = [entry1]),
-						(1, [], ["Gariazzo:2015rra"]))
+						(1, [], ["Gariazzo:2015rra"]))#5
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
-						(2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]))
+						(2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]))#6
 
 	def test_updateInfoFromOAI(self):
 		"""test updateInfoFromOAI, but with mocked methods"""
