@@ -51,6 +51,7 @@ class MyBibTexWriter(BibTexWriter):
 		# Write field = value lines
 		for field in [i for i in display_order if i not in ['ENTRYTYPE', 'ID']]:
 			try:
+				entry[field] = entry[field].replace("{{{", "{").replace("}}}", "}")
 				bibtex += ",\n" + self.indent + "{0:>{1}}".format(field, self._max_field_width) + ' = "' + \
 					("{"+entry[field]+"}" if field in self.bracket_fields and (entry[field][0] != "{" or entry[field][-1] != "}") else entry[field]) + '"'
 			except TypeError:
