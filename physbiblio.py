@@ -61,6 +61,13 @@ def call_update(arguments):
 	startFrom = arguments[0] if len(arguments) > 0 else 0
 	force = TorF(arguments[1]) if len(arguments) > 1 else False
 	pBDB.bibs.searchOAIUpdates(startFrom = startFrom, force = force)
+	pBDB.commit()
+	exit()
+
+def call_clean(arguments):
+	startFrom = arguments[0] if len(arguments) > 0 else 0
+	pBDB.bibs.cleanBibtexs(startFrom = startFrom)
+	pBDB.commit()
 	exit()
 
 # GUI application
@@ -86,6 +93,8 @@ if __name__=='__main__':
 			call_export(sys.argv[2:])
 		elif command == "update":
 			call_update(sys.argv[2:])
+		elif command == "clean":
+			call_clean(sys.argv[2:])
 
 		app = QApplication(sys.argv)
 		mainWin = MainWindow()
