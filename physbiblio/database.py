@@ -2268,11 +2268,16 @@ class entries(physbiblioDBSub):
 			pBErrorManager("[DB][bibs][replace] invalid 'fiNews' or 'news' (they must be lists)")
 			return [], [], []
 		if entries is None:
-			entries = self.getAll(saveQuery = False)
+			self.fetchAll(saveQuery = False, doFetch = False)
+			iterator = self.cursor()
+		else:
+			iterator = entries
 		success = []
 		changed = []
 		failed = []
-		for entry in entries:
+		for entry in iterator:
+			if not "bibtexDict" in entry.keys():
+				entry = self.completeFetched([entry])[0]
 			try:
 				if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
 					raise KeyError("Field %s not found in entry %s"%(fiOld, entry["bibkey"]))
@@ -3047,7 +3052,8 @@ class utilities(physbiblioDBSub):
 			verbose: print more messages
 		"""
 		b = self.mainDB.bibs
-		for e in b.getAll():
+		b.fetchAll(doFetch = False)
+		for e in b.cursor():
 			t = e["bibtex"]
 			t = b.rmBibtexComments(t)
 			t = parse_accents_str(t)
