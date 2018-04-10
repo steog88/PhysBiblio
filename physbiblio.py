@@ -42,7 +42,7 @@ def call_tex(arguments):
 	texFiles = arguments[0]
 	bibFile = arguments[1]
 	overwrite = TorF(arguments[2]) if len(arguments) > 2 else False
-	autosave = TorF(arguments[3]) if len(sys.argv) > 3 else True
+	autosave = TorF(arguments[3]) if len(arguments) > 3 else True
 	if overwrite is None or autosave is None:
 		print("\nInvalid value for overwrite or autosave. You may use 1,T,t,True,true for True or 0,F,f,False,false for False.\n")
 	pBExport.exportForTexFile(texFiles, bibFile, overwrite = overwrite, autosave = autosave)
@@ -57,6 +57,12 @@ def call_export(arguments):
 	pBExport.exportAll(fname)
 	exit()
 
+def call_update(arguments):
+	startFrom = arguments[0] if len(arguments) > 0 else 0
+	force = TorF(arguments[1]) if len(arguments) > 1 else False
+	pBDB.bibs.searchOAIUpdates(startFrom = startFrom, force = force)
+	exit()
+
 # GUI application
 if __name__=='__main__':
 	try:
@@ -68,7 +74,8 @@ if __name__=='__main__':
 			print("* help: print this text;")
 			print("* cli: open a command line where to directly run PhysBiblio functions;")
 			print("* export: export all the DB entries in a *.bib file;")
-			print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs.")
+			print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs;")
+			print("* update: use INSPIRE to update the information in the database.")
 			print("")
 			exit()
 		elif command == "cli":
@@ -77,6 +84,8 @@ if __name__=='__main__':
 			call_tex(sys.argv[2:])
 		elif command == "export":
 			call_export(sys.argv[2:])
+		elif command == "update":
+			call_update(sys.argv[2:])
 
 		app = QApplication(sys.argv)
 		mainWin = MainWindow()
