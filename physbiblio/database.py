@@ -310,6 +310,11 @@ class categories(physbiblioDBSub):
 	"""
 	Subclass that manages the functions for the categories.
 	"""
+	def count(self):
+		"""obtain the number of categories in the table"""
+		self.cursExec("SELECT Count(*) FROM categories")
+		return self.curs.fetchall()[0][0]
+
 	def insert(self, data):
 		"""
 		Insert a new category
@@ -613,6 +618,11 @@ class catsEntries(physbiblioDBSub):
 	"""
 	Functions for connecting categories and entries
 	"""
+	def count(self):
+		"""obtain the number of rows in entryCats"""
+		self.cursExec("SELECT Count(*) FROM entryCats")
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, key):
 		"""
 		Find connections between a category and an entry
@@ -745,6 +755,11 @@ class catsExps(physbiblioDBSub):
 	"""
 	Functions for connecting categories and experiments
 	"""
+	def count(self):
+		"""obtain the number of rows in expCats"""
+		self.cursExec("SELECT Count(*) FROM expCats")
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, idExp):
 		"""
 		Find connections between a category and an experiment
@@ -862,6 +877,11 @@ class entryExps(physbiblioDBSub):
 	"""
 	Functions for connecting entries and experiments
 	"""
+	def count(self):
+		"""obtain the number of rows in entryExps"""
+		self.cursExec("SELECT Count(*) FROM entryExps")
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, key, idExp):
 		"""
 		Find connections between an entry and an experiment
@@ -997,6 +1017,11 @@ class experiments(physbiblioDBSub):
 	"""
 	Functions to manage the experiments
 	"""
+	def count(self):
+		"""obtain the number of experiments in the table"""
+		self.cursExec("SELECT Count(*) FROM experiments")
+		return self.curs.fetchall()[0][0]
+
 	def insert(self, data):
 		"""
 		Insert a new experiment
@@ -1332,7 +1357,7 @@ class entries(physbiblioDBSub):
 		self.lastVals = ()
 		self.lastInserted = []
 
-	def numEntries(self):
+	def count(self):
 		"""obtain the number of entries in the table"""
 		self.cursExec("SELECT Count(*) FROM entries")
 		return self.curs.fetchall()[0][0]
@@ -2884,7 +2909,7 @@ class entries(physbiblioDBSub):
 		"""
 		if entries is None:
 			try:
-				tot = self.numEntries() - startFrom
+				tot = self.count() - startFrom
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
 				iterator = self.cursor()
 			except TypeError:
@@ -2936,7 +2961,7 @@ class entries(physbiblioDBSub):
 		"""
 		if entries is None:
 			try:
-				tot = self.numEntries() - startFrom
+				tot = self.count() - startFrom
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
 				iterator = self.cursor()
 			except TypeError:
@@ -3079,11 +3104,11 @@ def dbStats(db):
 		db: the database (instance of physbiblioDB)
 	"""
 	db.stats = {}
-	db.stats["bibs"] = len(db.bibs.getAll())
-	db.stats["cats"] = len(db.cats.getAll())
-	db.stats["exps"] = len(db.exps.getAll())
-	db.stats["catBib"] = len(db.catBib.getAll())
-	db.stats["catExp"] = len(db.catExp.getAll())
-	db.stats["bibExp"] = len(db.bibExp.getAll())
+	db.stats["bibs"] = db.bibs.count()
+	db.stats["cats"] = db.cats.count()
+	db.stats["exps"] = db.exps.count()
+	db.stats["catBib"] = db.catBib.count()
+	db.stats["catExp"] = db.catExp.count()
+	db.stats["bibExp"] = db.bibExp.count()
 
 pBDB=physbiblioDB()
