@@ -58,7 +58,7 @@ def call_export(arguments):
 	exit()
 
 def call_update(arguments):
-	startFrom = arguments[0] if len(arguments) > 0 else 0
+	startFrom = int(arguments[0]) if len(arguments) > 0 else 0
 	force = TorF(arguments[1]) if len(arguments) > 1 else False
 	pBDB.bibs.searchOAIUpdates(startFrom = startFrom, force = force)
 	pBDB.commit()
