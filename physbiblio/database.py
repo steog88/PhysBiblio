@@ -1890,7 +1890,9 @@ class entries(physbiblioDBSub):
 			number = 0
 		try:
 			element = bibtexparser.loads(bibtex).entries[number]
-			data["bibkey"] = bibkey if bibkey else element["ID"]
+			if bibkey:
+				element["ID"] = bibkey
+			data["bibkey"] = element["ID"]
 		except IndexError:
 			print("[DB] ERROR: no elements found?")
 			data["bibkey"] = ""
@@ -2418,7 +2420,7 @@ class entries(physbiblioDBSub):
 
 		Parameters:
 			entry: the bibtex key or a list
-			method: "inspire" (default) or any other supported method from the webimport subpackage
+			method: "inspire" (default) or any other supported method from the webimport subpackage or "bibtex"
 			imposeKey (default None): if a string, the bibtex key to use with the imported entry
 			number (default None): if not None, the index of the wanted entry in the list of results
 			returnBibtex (boolean, default False): whether to return the bibtex of the entry
@@ -2469,9 +2471,19 @@ class entries(physbiblioDBSub):
 			if existing:
 				return printExisting(entry, existing)
 			if method == "bibtex":
-				e = entry
+				try:
+					db = bibtexparser.bibdatabase.BibDatabase()
+					db.entries = bibtexparser.loads(entry).entries
+					e  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+				except ParseException:
+					pBErrorManager("[DB][loadAndInsert] Error while reading the bibtex '%s'"%entry, traceback, priority = 0)
+					return False
 			else:
-				e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
+				try:
+					e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
+				except KeyError:
+					pBErrorManager("[DB][loadAndInsert] method not valid: %s"%method)
+					return False
 				if e.count('@') > 1:
 					if number is not None:
 						requireAll = True
@@ -2479,18 +2491,13 @@ class entries(physbiblioDBSub):
 						print(e)
 						print("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n")
 						return False
+			kwargs = {}
 			if requireAll:
-				data = self.prepareInsert(e, number = number)
-			else:
-				data = self.prepareInsert(e)
+				kwargs["number"] = number
+			if imposeKey is not None and imposeKey.strip() is not "":
+				kwargs["bibkey"] = imposeKey
+			data = self.prepareInsert(e, **kwargs)
 			key = data["bibkey"]
-			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
-				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
-				data["abstract"] = arxivDict["abstract"]
-			if imposeKey is not None:
-				data["bibkey"] = imposeKey
-				data["bibtex"] = data["bibtex"].replace(key, imposeKey)
-				key = imposeKey
 			if key.strip() == "":
 				pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
@@ -2498,6 +2505,9 @@ class entries(physbiblioDBSub):
 			if existing:
 				return printExisting(key, existing)
 			print("[DB] entry will have key\n'%s'"%key)
+			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
+				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
+				data["abstract"] = arxivDict["abstract"]
 			try:
 				self.insert(data)
 			except:

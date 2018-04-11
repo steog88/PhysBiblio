@@ -469,6 +469,7 @@ class TestDatabaseEntries(DBTestCase):
 		#different fields
 		bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\narxiv="1801.00000",\n}'
 		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, bibkey = "def")["bibkey"], "def")
+		self.assertIn("rticle{def,", self.pBDB.bibs.prepareInsert(bibtex, bibkey = "def")["bibtex"])
 
 		data = self.pBDB.bibs.prepareInsert(bibtex)
 		self.assertEqual(data["bibkey"], "abc")
@@ -1310,6 +1311,56 @@ class TestDatabaseEntries(DBTestCase):
 	def test_loadAndInsert(self):
 		"""tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
 		# loadAndInsert
+		self.assertFalse(self.pBDB.bibs.loadAndInsert(None))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(None),
+			"[DB] ERROR: invalid arguments to loadAndInsertEntries!")
+		#methods
+		for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
+			with patch('physbiblio.webimport.%s.webSearch.retrieveUrlAll'%method, return_value = "") as _mock:
+				self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method = method))
+				_mock.assert_called_once_with("abcdef")
+		self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method = "nonexistent"))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("abcdef", method = "nonexistent"),
+			"[DB][loadAndInsert] method not valid:")
+		self.assertTrue(self.pBDB.bibs.loadAndInsert('@article{abc,\nauthor="me",\ntitle="abc",\n}', method = "bibtex"))
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
+		#childProcess
+		self.assertEqual(self.pBDB.bibs.lastInserted, ["abc"])
+		#imposeKey
+		self.assertTrue(self.pBDB.bibs.loadAndInsert('@article{abc,\nauthor="me",\ntitle="abc",\n}',
+			imposeKey = "def", method = "bibtex", childProcess = True))
+		self.assertEqual(self.pBDB.bibs.lastInserted, ["abc", "def"])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
+		allBibtexs = [e["bibtex"] for e in self.pBDB.bibs.getAll()]
+		self.assertEqual(allBibtexs[0].replace("{abc,", "{def,"), allBibtexs[1])
+		#existing
+		self.assertEqual(self.pBDB.bibs.count(), 2)
+		self.assertTrue(self.pBDB.bibs.loadAndInsert('@article{abc,\nauthor="me",\ntitle="abc",\n}',
+			method = "bibtex"))
+		self.assertEqual(self.pBDB.bibs.count(), 2)
+		self.assertEqual(self.pBDB.bibs.loadAndInsert('@article{abc,\nauthor="me",\ntitle="abc",\n}',
+			method = "bibtex", returnBibtex = True),
+			'@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
+		#returnBibtex
+		self.assertEqual(self.pBDB.bibs.loadAndInsert('@article{ghi,\nauthor="me",\ntitle="ghi",\n}',
+			method = "bibtex", returnBibtex = True),
+			'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}')
+		#unreadable bibtex (bibtex method)
+		self.assertFalse(self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"))
+		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"),
+			"[DB][loadAndInsert] Error while reading the bibtex ")
+
+		self.pBDB.undo(verbose = 0)
+		#test add categories
+		#test with list entry (also nested lists)
+		#test with number>0
+		#test existing after import (l2510)
+
+		#test setBook when using isbn
+		#test abstract download
+		#test updateInspireID, updateInfoFromOAI are called
+		#test empty bibkey
+
 
 		# loadAndInsertWithCats
 		self.pBDB.bibs.lastInserted = ["abc"]
