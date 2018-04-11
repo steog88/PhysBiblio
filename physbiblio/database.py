@@ -1638,7 +1638,7 @@ class entries(physbiblioDBSub):
 			query += " LIMIT %s"%(str(limitTo))
 			if limitOffset is not None:
 				query += " OFFSET %s"%(str(limitOffset))
-		if saveQuery:
+		if saveQuery and doFetch:
 			self.lastQuery = query
 			self.lastVals  = vals
 		try:
