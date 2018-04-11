@@ -88,7 +88,7 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_removeSpare(self):
 		"""Test finding spare folders"""
-		with patch('physbiblio.database.physbiblioDB.cursor',
+		with patch('physbiblio.database.entries.fetchCursor',
 				return_value=[{"bibkey":"abc"}, {"bibkey":"def"}]) as _mock:
 			for q in ["abc", "def", "ghi"]:
 				pBPDF.createFolder(q)

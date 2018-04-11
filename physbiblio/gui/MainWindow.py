@@ -906,7 +906,7 @@ class MainWindow(QMainWindow):
 		iterator = useEntries
 		if useEntries is None:
 			pBDB.bibs.fetchAll(doFetch = False)
-			iterator = pBDB.curs
+			iterator = pBDB.bibs.fetchCursor()
 		askFieldsWin = fieldsFromArxiv()
 		askFieldsWin.exec_()
 		if askFieldsWin.result:

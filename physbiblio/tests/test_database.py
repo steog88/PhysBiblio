@@ -1501,7 +1501,7 @@ class TestDatabaseEntries(DBTestCase):
 				True, True,
 				False, True,
 				]) as _mock_uioai:
-			with patch("physbiblio.database.entries.cursor", side_effect = [
+			with patch("physbiblio.database.entries.fetchCursor", side_effect = [
 					[entry1, entry2],#1
 					[entry1a, entry2a],#2
 					[entry1a, entry2a],#3

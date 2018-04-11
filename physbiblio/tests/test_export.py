@@ -77,7 +77,7 @@ class TestExportMethods(unittest.TestCase):
 		testBibName = os.path.join(pbConfig.path, "tests_%s.bib"%today_ymd)
 		sampleList = [{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
-		with patch('physbiblio.database.physbiblioDB.cursor', return_value = sampleList) as _curs:
+		with patch('physbiblio.database.entries.fetchCursor', return_value = sampleList) as _curs:
 			pBExport.exportAll(testBibName)
 		self.assertEqual(open(testBibName).read(), sampleTxt)
 		os.remove(testBibName)

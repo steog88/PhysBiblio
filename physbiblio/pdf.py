@@ -311,7 +311,7 @@ class localPDF():
 		iterator = entries
 		if entries is None:
 			pBDB.bibs.fetchAll(orderBy = "firstdate", saveQuery = False, doFetch = False)
-			iterator = pBDB.curs
+			iterator = pBDB.bibs.fetchCursor()
 		for e in iterator:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
 			if len(exist) > 0:
@@ -324,7 +324,7 @@ class localPDF():
 		"""
 		pBDB.bibs.fetchAll(doFetch = False)
 		folders = os.listdir(self.pdfDir)
-		for e in pBDB.cursor():
+		for e in pBDB.bibs.fetchCursor():
 			k = e["bibkey"]
 			cleaned = self.badFName(k)
 			if cleaned in folders:

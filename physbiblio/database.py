@@ -189,7 +189,7 @@ class physbiblioDB():
 			self.dbChanged = True
 			return True
 
-	def cursExec(self,query,data=None):
+	def cursExec(self, query, data = None):
 		"""
 		Execute cursor.
 
@@ -294,7 +294,7 @@ class physbiblioDBSub():
 		"""
 		return self.mainDB.connExec(query, data = data)
 
-	def cursExec(self,query,data=None):
+	def cursExec(self, query, data = None):
 		"""
 		Execute cursor (see physbiblioDB.cursExec)
 		"""
@@ -1356,6 +1356,13 @@ class entries(physbiblioDBSub):
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
 		self.lastInserted = []
+		self.fetchCurs = self.conn.cursor()
+
+	def fetchCursor(self):
+		"""
+		Return the cursor
+		"""
+		return self.fetchCurs
 
 	def count(self):
 		"""obtain the number of entries in the table"""
@@ -1641,13 +1648,17 @@ class entries(physbiblioDBSub):
 		if saveQuery and doFetch:
 			self.lastQuery = query
 			self.lastVals  = vals
+		if doFetch:
+			cursor = self.curs
+		else:
+			cursor = self.fetchCurs
 		try:
 			if len(vals) > 0:
-				self.cursExec(query, vals)
+				cursor.execute(query, vals)
 			else:
-				self.cursExec(query)
-		except:
-			print("[DB] query failed: %s"%query)
+				cursor.execute(query)
+		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
+			pBErrorManager("[DB] query failed: %s"%query, traceback)
 			print(vals)
 		if doFetch:
 			fetched_in = self.curs.fetchall()
@@ -2273,7 +2284,7 @@ class entries(physbiblioDBSub):
 			return [], [], []
 		if entries is None:
 			self.fetchAll(saveQuery = False, doFetch = False)
-			iterator = self.cursor()
+			iterator = self.fetchCursor()
 		else:
 			iterator = entries
 		success = []
@@ -2755,7 +2766,7 @@ class entries(physbiblioDBSub):
 				total += 1
 		else:
 			self.fetchAll(orderBy = "firstdate", doFetch = False)
-			for i, e in enumerate(self.curs):
+			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
 		print("[DB] %d elements found"%total)
@@ -2776,7 +2787,7 @@ class entries(physbiblioDBSub):
 				total += 1
 		else:
 			self.fetchAll(orderBy = "firstdate", doFetch = False)
-			for i, e in enumerate(self.curs):
+			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
 		print("[DB] %d elements found"%total)
@@ -2794,7 +2805,7 @@ class entries(physbiblioDBSub):
 			iterator = entriesIn
 		else:
 			self.fetchAll(orderBy = orderBy, doFetch = False)
-			iterator = self.curs
+			iterator = self.fetchCursor()
 		total = 0
 		for i, e in enumerate(iterator):
 			total += 1
@@ -2932,7 +2943,7 @@ class entries(physbiblioDBSub):
 			try:
 				tot = self.count() - startFrom
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
-				iterator = self.cursor()
+				iterator = self.fetchCursor()
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in cleanBibtexs", traceback)
 				return 0, 0, []
@@ -2984,7 +2995,7 @@ class entries(physbiblioDBSub):
 			try:
 				tot = self.count() - startFrom
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
-				iterator = self.cursor()
+				iterator = self.fetchCursor()
 			except TypeError:
 				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
 				return 0, [], []
@@ -3052,7 +3063,7 @@ class utilities(physbiblioDBSub):
 					func(e[0], e[1])
 
 		self.mainDB.bibs.fetchAll(saveQuery = False, doFetch = False)
-		bibkeys = [ e["bibkey"] for e in self.mainDB.curs ]
+		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.fetchCursor() ]
 		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
 		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
 		
@@ -3069,7 +3080,7 @@ class utilities(physbiblioDBSub):
 		"""
 		b = self.mainDB.bibs
 		b.fetchAll(doFetch = False)
-		for e in b.cursor():
+		for e in b.fetchCursor():
 			t = e["bibtex"]
 			t = b.rmBibtexComments(t)
 			t = parse_accents_str(t)
