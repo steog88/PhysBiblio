@@ -1890,6 +1890,8 @@ class entries(physbiblioDBSub):
 			number = 0
 		try:
 			element = bibtexparser.loads(bibtex).entries[number]
+			if element["ID"] is None:
+				element["ID"] = ""
 			if bibkey:
 				element["ID"] = bibkey
 			data["bibkey"] = element["ID"]
@@ -2347,7 +2349,11 @@ class entries(physbiblioDBSub):
 		db = bibtexparser.bibdatabase.BibDatabase()
 		tmp = {}
 		for k,v in bibtexparser.loads(bibtex).entries[0].items():
-			tmp[k] = v.replace("\n", " ")
+			try:
+				tmp[k] = v.replace("\n", " ")
+			except AttributeError:
+				pBErrorManager("[DB] wrong type or value for field %s (%s)?"%(k, v))
+				tmp[k] = v
 		db.entries = [tmp]
 		return pbWriter.write(db)
 
@@ -2484,13 +2490,12 @@ class entries(physbiblioDBSub):
 				except KeyError:
 					pBErrorManager("[DB][loadAndInsert] method not valid: %s"%method)
 					return False
-				if e.count('@') > 1:
-					if number is not None:
-						requireAll = True
-					else:
-						print(e)
-						print("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n")
-						return False
+			if e.count('@') > 1:
+				if number is not None:
+					requireAll = True
+				else:
+					pBErrorManager("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n%s"%e, priority = 0)
+					return False
 			kwargs = {}
 			if requireAll:
 				kwargs["number"] = number
@@ -2505,7 +2510,7 @@ class entries(physbiblioDBSub):
 			if existing:
 				return printExisting(key, existing)
 			print("[DB] entry will have key\n'%s'"%key)
-			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not None:
+			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
 				data["abstract"] = arxivDict["abstract"]
 			try:
@@ -2514,6 +2519,7 @@ class entries(physbiblioDBSub):
 				pBErrorManager("[DB] loadAndInsert(%s) failed in inserting entry\n"%entry)
 				return False
 			try:
+				self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
 				if method == "inspire":
 					if not requireAll:
 						eid = self.updateInspireID(entry, key)

@@ -40,7 +40,7 @@ class MyBibTexWriter(BibTexWriter):
 		"""
 		bibtex = ''
 		# Write BibTeX key
-		bibtex += '@' + entry['ENTRYTYPE'].capitalize() + '{' + entry['ID']
+		bibtex += '@' + entry['ENTRYTYPE'].capitalize() + '{' + ( entry['ID'] if entry['ID'] is not None else "" )
 
 		# create display_order of fields for this entry
 		# first those keys which are both in self.display_order and in entry.keys

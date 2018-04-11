@@ -1345,22 +1345,108 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.loadAndInsert('@article{ghi,\nauthor="me",\ntitle="ghi",\n}',
 			method = "bibtex", returnBibtex = True),
 			'@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}')
+		self.assertEqual(self.pBDB.bibs.lastInserted, ["ghi"])
 		#unreadable bibtex (bibtex method)
 		self.assertFalse(self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"),
 			"[DB][loadAndInsert] Error while reading the bibtex ")
 
 		self.pBDB.undo(verbose = 0)
-		#test add categories
-		#test with list entry (also nested lists)
-		#test with number>0
-		#test existing after import (l2510)
-
-		#test setBook when using isbn
-		#test abstract download
-		#test updateInspireID, updateInfoFromOAI are called
-		#test empty bibkey
-
+		pbConfig.params["defaultCategories"] = [1]
+		pbConfig.params["fetchAbstract"] = False
+		with patch('physbiblio.database.entries.updateInspireID', return_value = "1") as _mock_uiid:
+			with patch('physbiblio.database.entries.updateInfoFromOAI', return_value = True) as _mock_uio:
+				#test add categories
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						return_value = u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n') as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+					self.assertEqual([e["idCat"] for e in self.pBDB.cats.getByEntry("key0")],
+						pbConfig.params["defaultCategories"])
+				self.pBDB.undo(verbose = 0)
+				#test with list entry (also nested lists)
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						side_effect = [
+						u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',
+						u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n']) as _mock:
+					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(["key0", "key1"]),
+						"[DB] Already existing: key0")
+					_mock.assert_has_calls([call("key0"), call("key1")])
+					self.assertEqual(self.pBDB.bibs.count(), 1)
+				self.pBDB.undo(verbose = 0)
+				#test with number>0
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						side_effect = [
+						u'@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n@article{key1,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',
+						u'@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n@article{key1,\nauthor = "Gariazzo",\ntitle = "{title}",}\n']) as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number = 1))
+					self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+						["key1"])
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number = 0))
+					self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+						["key1", "key0"])
+				self.pBDB.undo(verbose = 0)
+				#test setBook when using isbn
+				with patch('physbiblio.webimport.isbn.webSearch.retrieveUrlAll',
+						return_value = u'@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}') as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method = "isbn"))
+					self.assertEqual([e["book"] for e in self.pBDB.bibs.getAll()],
+						[1])
+				self.pBDB.undo(verbose = 0)
+				#test abstract download
+				pbConfig.params["fetchAbstract"] = True
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						side_effect = [
+						u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',
+						u'\n@article{key1,\nauthor = "Gariazzo",\ntitle = "{title}",\narxiv="1234.5678",}\n']) as _mock:
+					with patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
+							return_value = (u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n', {"abstract": "some fake abstract"})) as _mock:
+						self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+						self.assertEqual(self.pBDB.bibs.getByBibkey("key0")[0]["abstract"], None)
+						self.assertTrue(self.pBDB.bibs.loadAndInsert("key1"))
+						self.assertEqual(self.pBDB.bibs.getByBibkey("key1")[0]["abstract"], "some fake abstract")
+				pbConfig.params["fetchAbstract"] = False
+				self.pBDB.undo(verbose = 0)
+				#unreadable bibtex, empty bibkey (any other method)
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						side_effect = [
+						u'\n@article{key0,\nauthor = ',
+						u'\n@article{key0,\nauthor = ',
+						u'\n@article{ ,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',
+						u'\n@article{ ,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',]) as _mock:
+					self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
+					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("key0"),
+						"[DB] ERROR: impossible to parse bibtex!\n[DB] ERROR: impossible to insert an entry with empty bibkey")
+					self.pBDB.undo(verbose = 0)
+					self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
+					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("key0"),
+						"[DB] wrong type or value for field ID (None)?\n\n[DB] ERROR: impossible to insert an entry with empty bibkey")
+				self.pBDB.undo(verbose = 0)
+				_mock_uiid.reset_mock()
+				_mock_uio.reset_mock()
+				#test updateInspireID, updateInfoFromOAI are called
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						return_value = u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",\narxiv="1234.5678",}') as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+					_mock_uiid.assert_called_once_with('key0', 'key0')
+					_mock_uio.assert_called_once_with('1')
+				self.pBDB.undo(verbose = 0)
+				_mock_uiid.reset_mock()
+				_mock_uio.reset_mock()
+				#test updateInspireID, updateInfoFromOAI are called
+				with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+						return_value = u'@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",\narxiv="1234.5678",}\n@article{key1,\nauthor = "Gariazzo",\ntitle = "{title}",\narxiv="1234.5678",}\n') as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number = 0))
+					_mock_uiid.assert_called_once_with('key0', 'key0', number = 0)
+					_mock_uio.assert_called_once_with('1')
+				self.pBDB.undo(verbose = 0)
+				_mock_uiid.reset_mock()
+				_mock_uio.reset_mock()
+				#test updateInspireID, updateInfoFromOAI are called
+				with patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
+						return_value = u'@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",\narxiv="1234.5678",}') as _mock:
+					self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method = "arxiv"))
+					_mock_uiid.assert_not_called()
+					_mock_uio.assert_not_called()
 
 		# loadAndInsertWithCats
 		self.pBDB.bibs.lastInserted = ["abc"]
