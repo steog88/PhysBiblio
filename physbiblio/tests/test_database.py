@@ -413,7 +413,7 @@ class TestDatabaseCategories(DBTestCase):
 		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, depth = 2),
 			"   0: Main\n        1: Tags\n             2: c\n             4: e\n")
 
-# @unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
 	@patch('sys.stdout', new_callable=StringIO)
