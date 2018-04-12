@@ -486,8 +486,12 @@ class bibtexList(QFrame, objListWindow):
 
 		index = self.tablewidget.model().index(row, col)
 		try:
-			bibkey = str(self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data())
+			bibkey = self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data()
+			if bibkey is None or bibkey is "":
+				return
+			bibkey = str(bibkey)
 		except AttributeError:
+			pBErrorManager("[GUI] error in reading table content", traceback)
 			return
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
