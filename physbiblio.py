@@ -6,6 +6,7 @@ This file is part of the PhysBiblio package.
 """
 
 import sys, traceback
+import datetime
 
 from PySide.QtGui import QApplication
 
@@ -70,10 +71,16 @@ def call_clean(arguments):
 	pBDB.commit()
 	exit()
 
+def call_oaiDates(date1, date2):
+	pBDB.bibs.getDailyInfoFromOAI(date1, date2)
+	pBDB.commit()
+	exit()
+
 # GUI application
 if __name__=='__main__':
 	try:
 		command = None
+		dateLast = datetime.date.today().strftime("%Y-%m-%d")
 		if len(sys.argv) > 1:
 			command = sys.argv[1].lower()
 		if command == "help":
@@ -95,6 +102,9 @@ if __name__=='__main__':
 			call_update(sys.argv[2:])
 		elif command == "clean":
 			call_clean(sys.argv[2:])
+		elif command == "daily":
+			date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
+			call_oaiDates(date1, dateLast)
 
 		app = QApplication(sys.argv)
 		mainWin = MainWindow()

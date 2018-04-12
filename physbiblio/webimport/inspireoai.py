@@ -235,19 +235,7 @@ class webSearch(webInterf):
 			res = self.readRecord(record[1])
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
-				element = bibtexparser.loads(bibtex).entries[0]
-				try:
-					res["journal"] = res["journal"].replace(".", ". ")
-				except AttributeError:
-					pBErrorManager("[DB] 'journal' from OAI is missing or not a string (is this a proceeding? recid%s)"%inspireID)
-					return False
-				for k in ["doi", "volume", "pages", "year", "journal"]:
-					if res[k] != "" and res[k] is not None:
-						element[k] = res[k]
-				db = BibDatabase()
-				db.entries = []
-				db.entries.append(element)
-				res["bibtex"] = pbWriter.write(db)
+				self.updateBibtex(res, bibtex)
 			else:
 				res["bibtex"] = None
 			if verbose > 0:
@@ -256,7 +244,30 @@ class webSearch(webInterf):
 		except Exception:
 			pBErrorManager("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID, traceback)
 			return False
-		
+
+	def updateBibtex(self, res, bibtex):
+		"""use OAI data to update the (existing) bibtex information of an entry"""
+		try:
+			element = bibtexparser.loads(bibtex).entries[0]
+		except:
+			pBErrorManager("[inspireoai] invalid bibtex!\n%s"%bibtex)
+			return None
+		try:
+			res["journal"] = res["journal"].replace(".", ". ")
+		except AttributeError:
+			pBErrorManager("[DB] 'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
+			return False
+		try:
+			for k in ["doi", "volume", "pages", "year", "journal"]:
+				if res[k] != "" and res[k] is not None:
+					element[k] = res[k]
+		except KeyError:
+			pBErrorManager("[DB] something from OAI is missing (recid:%s)"%res["id"])
+			return False
+		db = BibDatabase()
+		db.entries = [element]
+		return pbWriter.write(db)
+
 	def retrieveOAIUpdates(self, date1, date2):
 		"""
 		Harvest the OAI API to get all the updates and new occurrences between two dates

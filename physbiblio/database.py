@@ -2131,11 +2131,12 @@ class entries(physbiblioDBSub):
 				print(key)
 				old = self.getByBibkey(key)
 				if len(old) > 0:
+					e["bibtex"] = physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"])
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
 							self.updateField(key, d, e[o], 0)
 			except:
-				pBErrorManager("[DB][oai] something missing in entry %s"%e["id"], traceback)
+				pBErrorManager("[DB][oai] something missing in entry %s\n%s"%(e["id"], e), traceback)
 		print("[DB] inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0):
