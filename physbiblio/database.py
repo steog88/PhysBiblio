@@ -2134,12 +2134,14 @@ class entries(physbiblioDBSub):
 					e["bibtex"] = physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"])
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d]:
-							self.updateField(key, d, e[o], 0)
+							print(d, e[o])
+							if o != "bibtex":
+								self.updateField(key, d, e[o], verbose = 0)
 			except:
 				pBErrorManager("[DB][oai] something missing in entry %s\n%s"%(e["id"], e), traceback)
 		print("[DB] inspire OAI harvesting done!")
 
-	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0):
+	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
 		"""
 		Use inspire OAI to retrieve the info for a single entry
 
@@ -2164,7 +2166,7 @@ class entries(physbiblioDBSub):
 			if not inspireID.isdigit():
 				pBErrorManager("[DB] wrong value/format in inspireID: %s"%inspireID)
 				return False
-		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose)
+		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose, readConferenceTitle = readConferenceTitle)
 		if verbose > 1:
 			print(result)
 		if result is False:
@@ -2540,6 +2542,10 @@ class entries(physbiblioDBSub):
 					self.updateInfoFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
+				if "inproceeding" in data["bibtex"].lower():
+					self.setProceeding(key)
+				if "phdthesis" in data["bibtex"].lower():
+					self.setPhdThesis(key)
 				print("[DB] element successfully inserted.\n")
 				self.lastInserted.append(key)
 				if returnBibtex:
@@ -3022,7 +3028,7 @@ class entries(physbiblioDBSub):
 				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
 					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
-					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0):
+					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0, readConferenceTitle = (e["proceeding"] == 1 and force) ):
 						err.append(e["bibkey"])
 					else:
 						new = self.getByBibkey(e["bibkey"], saveQuery = False)[0]

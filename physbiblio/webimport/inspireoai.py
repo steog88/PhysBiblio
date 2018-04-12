@@ -63,6 +63,7 @@ def get_journal_ref_xml(marcxml):
 	m = []
 	x = []
 	t = []
+	w = []
 	if marcxml["773"] is not None:
 		for q in marcxml.get_fields("773"):
 			p.append(parse_accents_str(q["p"]))	#journal name (even if submitted to only)
@@ -74,7 +75,8 @@ def get_journal_ref_xml(marcxml):
 			
 			x.append(parse_accents_str(q["x"]))	#freetext journal/book info
 			t.append(parse_accents_str(q["t"]))	#for conf papers: presented at etc, freetext or KB?
-	return p, v, y, c, m, x, t
+			w.append(parse_accents_str(q["w"]))	#for conf papers: conference code
+	return p, v, y, c, m, x, t, w
 
 class MARCXMLReader(object):
 	"""Returns the PyMARC record from the OAI structure for MARC XML"""
@@ -116,6 +118,12 @@ class webSearch(webInterf):
 			["isbn", "isbn"],
 			["bibtex", "bibtex"],
 		]
+		self.bibtexFields = [
+			"author", "title",
+			"journal", "volume", "year", "pages",
+			"arxiv", "primaryclass", "archiveprefix", "eprint",
+			"doi", "isbn",
+			"school", "reportnumber", "booktitle"]
 		
 	def retrieveUrlFirst(self,string):
 		"""
@@ -131,7 +139,7 @@ class webSearch(webInterf):
 		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
 		return ""
 		
-	def readRecord(self, record):
+	def readRecord(self, record, readConferenceTitle = False):
 		"""
 		Read the content of a marcxml record to return a bibtex string
 		"""
@@ -158,7 +166,7 @@ class webSearch(webInterf):
 						arxiv = tmp.replace("oai:arXiv.org:", "")
 					else:
 						arxiv = ""
-					tmpDict["arxiv"]=arxiv
+					tmpDict["arxiv"] = arxiv
 				if q["9"] == "SPIRESTeX" or q["9"] == "INSPIRETeX":
 					if q["z"]:
 						tmpDict["bibkey"] = q["z"]
@@ -173,16 +181,21 @@ class webSearch(webInterf):
 			tmpDict["bibkey"] = tmpOld[0]
 			tmpOld = []
 		try:
-			j, v, y, p, m, x, t = get_journal_ref_xml(record)
+			j, v, y, p, m, x, t, w = get_journal_ref_xml(record)
 			tmpDict["journal"] = j[0]
 			tmpDict["volume"]  = v[0]
 			tmpDict["year"]    = y[0]
 			tmpDict["pages"]   = p[0]
+			if w[0] is not None:
+				conferenceCode = w[0]
+			else:
+				conferenceCode = None
 		except IndexError:
 			tmpDict["journal"] = None
 			tmpDict["volume"]  = None
 			tmpDict["year"]    = None
 			tmpDict["pages"]   = None
+			conferenceCode = None
 		try:
 			firstdate = record["269"]
 			if firstdate is not None:
@@ -203,18 +216,28 @@ class webSearch(webInterf):
 		except TypeError:
 			tmpDict["author"] = ""
 		try:
+			addAuthors = 0
 			for r in record.get_fields("700"):
+				addAuthors += 1
+				if addAuthors > pbConfig.params["maxAuthorSave"]:
+					tmpDict["author"] += " and others"
+					break
 				tmpDict["author"] += " and %s"%r["a"]
 		except:
 			pass
 		try:
-			tmpDict["primaryclass"] = record["037"]["c"]
-			tmpDict["archiveprefix"] = record["037"]["9"]
-			tmpDict["eprint"] = record["037"]["a"].lower().replace("arxiv:", "")
+			for q in record.get_fields('037'):
+				if "arXiv" in q["a"]:
+					tmpDict["primaryclass"] = q["c"]
+					tmpDict["archiveprefix"] = q["9"]
+					tmpDict["eprint"] = q["a"].lower().replace("arxiv:", "")
+				else:
+					tmpDict["reportnumber"] = q["a"]
 		except:
 			tmpDict["primaryclass"] = None
 			tmpDict["archiveprefix"] = None
 			tmpDict["eprint"] = None
+			tmpDict["reportnumber"] = None
 		try:
 			tmpDict["title"] = record["245"]["a"]
 		except TypeError:
@@ -223,14 +246,53 @@ class webSearch(webInterf):
 			tmpDict["isbn"] = record["020"]["a"]
 		except TypeError:
 			tmpDict["isbn"] = None
-		try:
-			tmpDict["pubdate"] = record["260"]["c"]
-		except TypeError:
-			tmpDict["pubdate"] = None
+		if conferenceCode is not None and readConferenceTitle:
+			url = "http://inspirehep.net/search?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3AProceedings&of=xe"%(conferenceCode, conferenceCode.replace("-", "%2F"))
+			text = parse_accents_str(self.textFromUrl(url))
+			title = re.compile('<title>(.*)</title>', re.MULTILINE)
+			try:
+				tmpDict["booktitle"] = [m.group(1) for m in title.finditer(text)][0]
+			except IndexError:
+				tmpDict["booktitle"] = None
+		if tmpDict["isbn"] is not None:
+			tmpDict["ENTRYTYPE"] = "book"
+		else:
+			try:
+				collections = [r["a"].lower() for r in record.get_fields("980")]
+			except:
+				collections = []
+			if "conferencepaper" in collections or conferenceCode is not None:
+				tmpDict["ENTRYTYPE"] = "inproceedings"
+			elif "thesis" in collections:
+				tmpDict["ENTRYTYPE"] = "phdthesis"
+				try:
+					tmpDict["school"] = record["502"]["c"]
+					tmpDict["year"] = record["502"]["d"]
+				except:
+					pass
+			else:
+				tmpDict["ENTRYTYPE"] = "article"
 		tmpDict["oldkeys"] = ",".join(tmpOld)
+		for k in tmpDict.keys():
+			try:
+				tmpDict[k] = parse_accents_str(tmpDict[k])
+			except:
+				pass
+		bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
+		for k in self.bibtexFields:
+			if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] is not "":
+				bibtexDict[k] = tmpDict[k]
+		try:
+			if bibtexDict["arxiv"] == bibtexDict["eprint"] and bibtexDict["eprint"] is not None:
+				del bibtexDict["arxiv"]
+		except:
+			pass
+		db = bibtexparser.bibdatabase.BibDatabase()
+		db.entries = [bibtexDict]
+		tmpDict["bibtex"] = pbWriter.write(db)
 		return tmpDict
 	
-	def retrieveOAIData(self, inspireID, bibtex = None, verbose = 0):
+	def retrieveOAIData(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
 		"""
 		Get the marcxml entry for a given record
 
@@ -238,6 +300,7 @@ class webSearch(webInterf):
 			inspireID: the INSPIRE-HEP identifier (a number) of the desired entry
 			bibtex (default None): whether the bibtex should be included in the output dictionary
 			verbose (default 0): increase the output level
+			readConferenceTitle (boolean, default False): try to read the conference title if dealing with a proceeding
 
 		Output:
 			the dictionary containing the bibtex information
@@ -253,12 +316,10 @@ class webSearch(webInterf):
 		try:
 			if record[1] is None:
 				raise ValueError("[oai] Empty record!")
-			res = self.readRecord(record[1])
+			res = self.readRecord(record[1], readConferenceTitle = readConferenceTitle)
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				self.updateBibtex(res, bibtex)
-			else:
-				res["bibtex"] = None
 			if verbose > 0:
 				print("[oai] done.")
 			return res
@@ -272,19 +333,19 @@ class webSearch(webInterf):
 			element = bibtexparser.loads(bibtex).entries[0]
 		except:
 			pBErrorManager("[inspireoai] invalid bibtex!\n%s"%bibtex)
-			return None
+			return bibtex
 		try:
 			res["journal"] = res["journal"].replace(".", ". ")
 		except AttributeError:
 			pBErrorManager("[DB] 'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
-			return False
+			return bibtex
 		try:
 			for k in ["doi", "volume", "pages", "year", "journal"]:
 				if res[k] != "" and res[k] is not None:
 					element[k] = res[k]
 		except KeyError:
 			pBErrorManager("[DB] something from OAI is missing (recid:%s)"%res["id"])
-			return False
+			return bibtex
 		db = BibDatabase()
 		db.entries = [element]
 		return pbWriter.write(db)
