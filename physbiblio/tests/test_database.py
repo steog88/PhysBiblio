@@ -1547,12 +1547,12 @@ class TestDatabaseEntries(DBTestCase):
 					{'doi': u'10.1088/0954-3899/43/3/033001', 'bibkey': "Gariazzo:2015rra", }, {'doi': u'10.1088/0954-3899/43/3/033001', 'bibkey': "Gariazzo:2015rra", },
 					]) as mock_function:
 				self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc", verbose = 2))
-				mock_function.assert_called_once_with("12345", bibtex = None, verbose = 2)
+				mock_function.assert_called_once_with("12345", bibtex = None, readConferenceTitle=False, verbose = 2)
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2))
 				mock_function.reset_mock()
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2),
 					"[DB] inspire OAI info for 12345 saved.")
-				mock_function.assert_called_once_with("12345", bibtex = None, verbose = 2)
+				mock_function.assert_called_once_with("12345", bibtex = None, readConferenceTitle=False, verbose = 2)
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
 				self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
@@ -1560,7 +1560,7 @@ class TestDatabaseEntries(DBTestCase):
 				mock_function.reset_mock()
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", bibtex = u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', verbose = 2),
 					"doi = 10.1088/0954-3899/43/3/033001 (None)")
-				mock_function.assert_called_once_with("12345", bibtex =  u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', verbose = 2)
+				mock_function.assert_called_once_with("12345", bibtex =  u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', readConferenceTitle=False, verbose = 2)
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': ''}])
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
