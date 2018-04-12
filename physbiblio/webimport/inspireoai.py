@@ -199,6 +199,27 @@ class webSearch(webInterf):
 		except TypeError:
 			tmpDict["pubdate"] = None
 		try:
+			tmpDict["author"] = record["100"]["a"]
+		except TypeError:
+			tmpDict["author"] = ""
+		try:
+			for r in record.get_fields("700"):
+				tmpDict["author"] += " and %s"%r["a"]
+		except:
+			pass
+		try:
+			tmpDict["primaryclass"] = record["037"]["c"]
+			tmpDict["archiveprefix"] = record["037"]["9"]
+			tmpDict["eprint"] = record["037"]["a"].lower().replace("arxiv:", "")
+		except:
+			tmpDict["primaryclass"] = None
+			tmpDict["archiveprefix"] = None
+			tmpDict["eprint"] = None
+		try:
+			tmpDict["title"] = record["245"]["a"]
+		except TypeError:
+			tmpDict["title"] = None
+		try:
 			tmpDict["isbn"] = record["020"]["a"]
 		except TypeError:
 			tmpDict["isbn"] = None
