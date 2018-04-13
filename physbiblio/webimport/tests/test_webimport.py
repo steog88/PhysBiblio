@@ -79,7 +79,8 @@ with a summary of future perspectives.}",
       primaryClass   = "hep-ph",
       SLACcitation   = "%%CITATION = ARXIV:1507.08204;%%"
 }"""],
-			"inspireoai": ["1385583", {'doi': '10.1088/0954-3899/43/3/033001', 'arxiv': '1507.08204', 'bibkey': 'Gariazzo:2015rra', 'ads': '2015JPhG...43c3001G', 'journal': 'J.Phys.', 'volume': 'G43', 'year': '2016', 'pages': '033001', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'eprint': '1507.08204', 'title': 'Light sterile neutrinos', 'isbn': None, 'ENTRYTYPE': 'article', 'oldkeys': '', 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n', 'id': '1385583'}],
+			"inspireoai": ["1385583",
+				{'doi': '10.1088/0954-3899/43/3/033001', 'arxiv': '1507.08204', 'bibkey': 'Gariazzo:2015rra', 'ads': '2015JPhG...43c3001G', 'journal': 'J.Phys.', 'volume': 'G43', 'year': '2016', 'pages': '033001', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'collaboration': None, 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'eprint': '1507.08204', 'title': 'Light sterile neutrinos', 'isbn': None, 'ENTRYTYPE': 'article', 'oldkeys': '', 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n', 'id': '1385583', 'link': 'http://dx.doi.org/10.1088/0954-3899/43/3/033001', 'reportnumber': None}],
 			"isbn": ["9780198508717", """@book{9780198508717,
   Author = {Carlo Giunti, Chung W. Kim},
   Title = {Fundamentals of Neutrino Physics and Astrophysics},
@@ -110,7 +111,8 @@ with a summary of future perspectives.}",
 			"inspire": ["Gariazzo:2014rra", ""],
 			"isbn": ["978019850871a", ""],
 			}
-		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1110620"), {'doi': None, 'arxiv': None, 'bibkey': None, 'ads': None, 'journal': None, 'volume': None, 'year': None, 'pages': None, 'firstdate': None, 'pubdate': None, 'author': ' and Tauber, Jan', 'title': 'Anisotropies of the Cosmic Background Radiation Field', 'isbn': None, 'ENTRYTYPE': 'article', 'oldkeys': '', 'bibtex': '@Article{,\n        author = " and Tauber, Jan",\n         title = "{Anisotropies of the Cosmic Background Radiation Field}",\n}\n\n', 'id': '1110620'})
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1110620"),
+			{'doi': None, 'arxiv': None, 'bibkey': None, 'ads': None, 'journal': None, 'volume': None, 'year': None, 'pages': None, 'firstdate': None, 'pubdate': None, 'author': ' and Tauber, Jan', 'collaboration': 'Planck', 'title': 'Anisotropies of the Cosmic Background Radiation Field', 'isbn': None, 'ENTRYTYPE': 'article', 'oldkeys': '', 'bibtex': '@Article{,\n        author = " and Tauber, Jan",\n collaboration = "Planck",\n         title = "{Anisotropies of the Cosmic Background Radiation Field}",\n}\n\n', 'id': '1110620', 'archiveprefix': None, 'eprint': None, 'link': None, 'primaryclass': None, 'reportnumber': None,})
 		self.assertFalse(physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("9999999"))
 		for method, strings in tests.items():
 			print(method)

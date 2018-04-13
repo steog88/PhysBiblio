@@ -28,6 +28,9 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+fullRecordAde = {'bibkey': 'Ade:2013zuv', 'inspire': '1224741', 'arxiv': '1303.5076', 'ads': '2014A&A...571A..16P', 'scholar': None, 'doi': '10.1051/0004-6361/201321591', 'isbn': None, 'year': '2014', 'link': 'http://dx.doi.org/10.1051/0004-6361/201321591', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n        author = "Ade, P.A.R. and others",\n collaboration = "Planck",\n         title = "{Planck 2013 results. XVI. Cosmological parameters}",\n       journal = "Astron.Astrophys.",\n        volume = "571",\n          year = "2014",\n         pages = "A16",\n archiveprefix = "arXiv",\n  primaryclass = "astro-ph.CO",\n        eprint = "1303.5076",\n           doi = "10.1051/0004-6361/201321591",\n  reportnumber = "CERN-PH-TH-2013-129",\n}', 'firstdate': '2013-03-20', 'pubdate': '2014-10-29', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'reportnumber': 'CERN-PH-TH-2013-129', 'doi': '10.1051/0004-6361/201321591', 'eprint': '1303.5076', 'primaryclass': 'astro-ph.CO', 'archiveprefix': 'arXiv', 'pages': 'A16', 'year': '2014', 'volume': '571', 'journal': 'Astron.Astrophys.', 'title': '{Planck 2013 results. XVI. Cosmological parameters}', 'collaboration': 'Planck', 'author': 'Ade, P.A.R. and others', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '{Planck 2013 results. XVI. Cosmological parameters}', 'journal': 'Astron.Astrophys.', 'volume': '571', 'number': '', 'pages': 'A16', 'published': 'Astron.Astrophys. 571 (2014) A16', 'author': 'Ade, P.A.R. and others'}
+fullRecordGariazzo = {'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': 'http://dx.doi.org/10.1088/0954-3899/43/3/033001', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'doi': '10.1088/0954-3899/43/3/033001', 'eprint': '1507.08204', 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'title': '{Light sterile neutrinos}', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '{Light sterile neutrinos}', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': 'Gariazzo, S. et al.'}
+
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 	"""Test main database class physbiblioDB and physbiblioDBSub structures"""
@@ -968,6 +971,13 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderType = "abc")], ["abc", "def", "ghi"])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(params = {"abc": "bibkey"})], [])
 
+		#test different cursors
+		self.pBDB.bibs.lastFetched = "test"
+		self.pBDB.bibs.fetchAll(doFetch = False)
+		self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchCurs], ["abc", "def", "ghi"])
+		self.assertEqual(self.pBDB.bibs.lastFetched, "test")
+
 	def test_fetchByBibkey(self):
 		"""Test the fetchByBibkey and getByBibkey functions"""
 		self.insert_three()
@@ -1308,6 +1318,12 @@ class TestDatabaseEntries(DBTestCase):
 
 		os.remove("tmpbib.bib")
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
+	def test_loadAndInsert_online(self):
+		"""tests for loadAndInsert with online connection"""
+		self.assertTrue(self.pBDB.bibs.loadAndInsert(['Gariazzo:2015rra', 'Ade:2013zuv']))
+		self.assertEqual(self.pBDB.bibs.getAll(), [fullRecordAde, fullRecordGariazzo])
+
 	def test_loadAndInsert(self):
 		"""tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
 		# loadAndInsert
@@ -1480,6 +1496,18 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015", "Gariazzo:2015rra"))
 		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
+	def test_searchOAIUpdates_online(self):
+		"""tests for searchOAIUpdates, with real connection"""
+		self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1), (0, [], []))
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire = "1385583"))
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
+			u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire = "1224741"))
+		self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
+			(2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]))
+		self.assertEqual(self.pBDB.bibs.getAll(), [fullRecordAde, fullRecordGariazzo])
+
 	def test_searchOAIUpdates(self):
 		"""tests for searchOAIUpdates, with mock functions"""
 		self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1), (0, [], []))
@@ -1527,6 +1555,18 @@ class TestDatabaseEntries(DBTestCase):
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
 						(2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]))#6
 
+	@unittest.skipIf(skipOnlineTests, "Online tests")
+	def test_updateInfoFromOAI_online(self):
+		"""test updateInfoFromOAI, with online connection"""
+		expected = [fullRecordGariazzo]
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire = "1385583"))
+		self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("Gariazzo:2015rra"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+		self.pBDB.undo(verbose = 0)
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire = "1385583"))
+		self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("1385583"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+
 	def test_updateInfoFromOAI(self):
 		"""test updateInfoFromOAI, but with mocked methods"""
 		dt = datetime.date.today().strftime("%Y-%m-%d")
@@ -1564,7 +1604,6 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': ''}])
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
-				self.maxDiff = None
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo",\n         title = "{Light Sterile Neutrinos}",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra', 'author': 'Gariazzo', 'title': '{Light Sterile Neutrinos}'}, 'title': '{Light Sterile Neutrinos}', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': 'Gariazzo'}])
 				self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
@@ -1573,6 +1612,18 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
 					"[DB][oai] key error")
+
+	@unittest.skipIf(skipOnlineTests, "Online tests")
+	def test_updateFromOAI_online(self):
+		"""test updateFromOAI with online connection"""
+		expected = [fullRecordGariazzo]
+		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
+		self.assertTrue(self.pBDB.bibs.updateFromOAI("Gariazzo:2015rra"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+		self.pBDB.undo(verbose = 0)
+		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire = "1385583"))
+		self.assertTrue(self.pBDB.bibs.updateFromOAI("1385583"))
+		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
 
 	def test_updateFromOAI(self):
 		"""test updateFromOAI without relying on the true pBDB.bibs.updateInfoFromOAI (mocked)"""
@@ -1625,8 +1676,9 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.bibs.getDailyInfoFromOAI(date1 = d1)
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
 				[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': 'http://arxiv.org/abs/1303.5076', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': d2t, 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
+			print(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"))
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': ''}])
+				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'doi': '10.1088/0954-3899/43/3/033001', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': ''}])
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):

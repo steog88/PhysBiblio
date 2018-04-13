@@ -117,6 +117,7 @@ class webSearch(webInterf):
 			["ads", "ads"],
 			["isbn", "isbn"],
 			["bibtex", "bibtex"],
+			["link", "link"],
 		]
 		self.bibtexFields = [
 			"author", "title",
@@ -217,18 +218,26 @@ class webSearch(webInterf):
 			tmpDict["author"] = ""
 		try:
 			addAuthors = 0
-			for r in record.get_fields("700"):
-				addAuthors += 1
-				if addAuthors > pbConfig.params["maxAuthorSave"]:
-					tmpDict["author"] += " and others"
-					break
-				tmpDict["author"] += " and %s"%r["a"]
+			print(len(record.get_fields("700")))
+			if len(record.get_fields("700")) > pbConfig.params["maxAuthorSave"] - 1:
+				tmpDict["author"] += " and others"
+			else:
+				for r in record.get_fields("700"):
+					addAuthors += 1
+					if addAuthors > pbConfig.params["maxAuthorSave"]:
+						tmpDict["author"] += " and others"
+						break
+					tmpDict["author"] += " and %s"%r["a"]
 		except:
 			pass
 		try:
 			tmpDict["collaboration"] = record["710"]["g"]
 		except TypeError:
 			tmpDict["collaboration"] = None
+		tmpDict["primaryclass"] = None
+		tmpDict["archiveprefix"] = None
+		tmpDict["eprint"] = None
+		tmpDict["reportnumber"] = None
 		try:
 			for q in record.get_fields('037'):
 				if "arXiv" in q["a"]:
@@ -238,10 +247,9 @@ class webSearch(webInterf):
 				else:
 					tmpDict["reportnumber"] = q["a"]
 		except:
-			tmpDict["primaryclass"] = None
-			tmpDict["archiveprefix"] = None
-			tmpDict["eprint"] = None
-			tmpDict["reportnumber"] = None
+			pass
+		if tmpDict["arxiv"] != tmpDict["eprint"] and tmpDict["eprint"] is not None:
+			tmpDict["arxiv"] = tmpDict["eprint"]
 		try:
 			tmpDict["title"] = record["245"]["a"]
 		except TypeError:
@@ -282,6 +290,17 @@ class webSearch(webInterf):
 				tmpDict[k] = parse_accents_str(tmpDict[k])
 			except:
 				pass
+		tmpDict["link"] = None
+		try:
+			if tmpDict["arxiv"] is not None and tmpDict["arxiv"] != "":
+				tmpDict["link"] = pbConfig.arxivUrl + "abs/" + tmpDict["arxiv"]
+		except KeyError:
+			pass
+		try:
+			if tmpDict["doi"] is not None and tmpDict["doi"] != "":
+				tmpDict["link"] = pbConfig.doiUrl + tmpDict["doi"]
+		except KeyError:
+			pass
 		bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
 		for k in self.bibtexFields:
 			if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] is not "":
@@ -339,7 +358,7 @@ class webSearch(webInterf):
 			pBErrorManager("[inspireoai] invalid bibtex!\n%s"%bibtex)
 			return bibtex
 		try:
-			res["journal"] = res["journal"].replace(".", ". ")
+			res["journal"] = res["journal"]
 		except AttributeError:
 			pBErrorManager("[DB] 'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
 			return bibtex
