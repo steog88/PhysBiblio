@@ -2125,20 +2125,28 @@ class entries(physbiblioDBSub):
 		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
 		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
 		entries = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+		changed = []
 		for e in entries:
 			try:
 				key = e["bibkey"]
 				print(key)
 				old = self.getByBibkey(key)
 				if len(old) > 0:
-					e["bibtex"] = physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"])
+					e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"]).strip()))
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
-						if e[o] != old[0][d]:
-							print(d, e[o])
-							if o != "bibtex":
-								self.updateField(key, d, e[o], verbose = 0)
+						if e[o] != old[0][d] and e[o] != None:
+							if o == "bibtex":
+								print(d)
+								print("old:\n%s"%old[0][d])
+								print("new:\n%s"%e[o])
+							else:
+								print(d, e[o])
+							self.updateField(key, d, e[o], verbose = 0)
+							if len(changed) == 0 or changed[-1] != key:
+								changed.append(key)
 			except:
-				pBErrorManager("[DB][oai] something missing in entry %s\n%s"%(e["id"], e), traceback)
+				pBErrorManager("[DB][oai] something wrong with entry %s\n%s"%(e["id"], e), traceback)
+		print("[DB][oai] changed entries:\n%s"%changed)
 		print("[DB] inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):

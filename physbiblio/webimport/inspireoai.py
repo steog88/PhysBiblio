@@ -123,7 +123,7 @@ class webSearch(webInterf):
 			"journal", "volume", "year", "pages",
 			"arxiv", "primaryclass", "archiveprefix", "eprint",
 			"doi", "isbn",
-			"school", "reportnumber", "booktitle"]
+			"school", "reportnumber", "booktitle", "collaboration"]
 		
 	def retrieveUrlFirst(self,string):
 		"""
@@ -225,6 +225,10 @@ class webSearch(webInterf):
 				tmpDict["author"] += " and %s"%r["a"]
 		except:
 			pass
+		try:
+			tmpDict["collaboration"] = record["710"]["g"]
+		except TypeError:
+			tmpDict["collaboration"] = None
 		try:
 			for q in record.get_fields('037'):
 				if "arXiv" in q["a"]:
