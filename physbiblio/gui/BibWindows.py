@@ -592,11 +592,11 @@ class bibtexList(QFrame, objListWindow):
 		elif action == opInsAct:
 			pBView.openLink(bibkey, "inspire")
 		elif action == cleAction:
-			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
+			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
 		elif action == insAction:
 			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
-			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
+			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True)
 		elif action == staAction:
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		elif action == absAction:
