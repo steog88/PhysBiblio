@@ -17,6 +17,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
+	from physbiblio.webimport.inspireoai import get_journal_ref_xml
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -121,6 +122,30 @@ with a summary of future perspectives.}",
 			self.assertEqual(res.strip(), strings[1].strip())
 			self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())
 		self.assertEqual(physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]), "")
+
+	def test_inspireoai_other(self):
+		"""test auxiliary functions in inspireoai module"""
+		marcxmlRecord1 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:1385583")[1]
+		marcxmlRecord2 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:1414175")[1]
+		self.assertEqual(get_journal_ref_xml(marcxmlRecord1),
+			(['J.Phys.'], ['G43'], ['2016'], ['033001'], [None], [None], [None], [None]))
+		self.assertEqual(get_journal_ref_xml(marcxmlRecord2),
+			([None], [None], ['2017'], ['469-475'], [None], [None], [None], ['C15-08-20']))
+		dict1a = physBiblioWeb.webSearch["inspireoai"].readRecord(marcxmlRecord1)
+		dict1b = physBiblioWeb.webSearch["inspireoai"].readRecord(marcxmlRecord1, readConferenceTitle = True)
+		self.assertEqual(dict1a, dict1b)
+		self.assertEqual(dict1a,
+			{'doi': '10.1088/0954-3899/43/3/033001', 'arxiv': '1507.08204', 'bibkey': 'Gariazzo:2015rra', 'ads': '2015JPhG...43c3001G', 'journal': 'J.Phys.', 'volume': 'G43', 'year': '2016', 'pages': '033001', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'collaboration': None, 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'eprint': '1507.08204', 'reportnumber': None, 'title': 'Light sterile neutrinos', 'isbn': None, 'ENTRYTYPE': 'article', 'oldkeys': '', 'link': 'http://dx.doi.org/10.1088/0954-3899/43/3/033001', 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n'})
+		dict2 = physBiblioWeb.webSearch["inspireoai"].readRecord(marcxmlRecord2, readConferenceTitle = True)
+		self.assertEqual(dict2, {'doi': '10.1142/9789813224568_0076', 'arxiv': '1601.01475', 'bibkey': 'Gariazzo:2016ehl', 'ads': None, 'journal': None, 'volume': None, 'year': '2017', 'pages': '469-475', 'firstdate': '2016-01-07', 'pubdate': '2017', 'author': 'Gariazzo, Stefano', 'collaboration': None, 'primaryclass': 'astro-ph.CO', 'archiveprefix': 'arXiv', 'eprint': '1601.01475', 'reportnumber': None, 'title': 'Light Sterile Neutrinos In Cosmology', 'isbn': None, 'booktitle': 'Proceedings, 17th Lomonosov Conference on Elementary Particle Physics: Moscow, Russia, August 20-26, 2015', 'ENTRYTYPE': 'inproceedings', 'oldkeys': '', 'link': 'http://dx.doi.org/10.1142/9789813224568_0076', 'bibtex': '@Inproceedings{Gariazzo:2016ehl,\n        author = "Gariazzo, Stefano",\n         title = "{Light Sterile Neutrinos In Cosmology}",\n     booktitle = "{Proceedings, 17th Lomonosov Conference on Elementary Particle Physics: Moscow, Russia, August 20-26, 2015}",\n          year = "2017",\n         pages = "469-475",\n archiveprefix = "arXiv",\n  primaryclass = "astro-ph.CO",\n        eprint = "1601.01475",\n           doi = "10.1142/9789813224568_0076",\n}\n\n'})
+		dict1a["id"] = "1385583"
+		dict2["id"] = "1414175"
+		bibtex1 = '@article{abc,\nauthor="me",}'
+		bibtex2 = '@article{abc,'
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict2, bibtex1), bibtex1)
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex2), bibtex2)
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex1),
+			'@Article{abc,\n        author = "me",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n')
 
 	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_inspireoai(self):

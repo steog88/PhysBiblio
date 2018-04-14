@@ -218,7 +218,6 @@ class webSearch(webInterf):
 			tmpDict["author"] = ""
 		try:
 			addAuthors = 0
-			print(len(record.get_fields("700")))
 			if len(record.get_fields("700")) > pbConfig.params["maxAuthorSave"] - 1:
 				tmpDict["author"] += " and others"
 			else:
@@ -357,9 +356,7 @@ class webSearch(webInterf):
 		except:
 			pBErrorManager("[inspireoai] invalid bibtex!\n%s"%bibtex)
 			return bibtex
-		try:
-			res["journal"] = res["journal"]
-		except AttributeError:
+		if res["journal"] is None:
 			pBErrorManager("[DB] 'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
 			return bibtex
 		try:
