@@ -2131,7 +2131,7 @@ class entries(physbiblioDBSub):
 				key = e["bibkey"]
 				print(key)
 				old = self.getByBibkey(key, saveQuery = False)
-				if len(old) > 0:
+				if len(old) > 0 and old[0]["noUpdate"] == 0:
 					e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"]).strip()))
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d] and e[o] != None:
