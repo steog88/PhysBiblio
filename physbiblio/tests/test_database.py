@@ -185,7 +185,7 @@ class TestDatabaseExperiments(DBTestCase):
 	"""Tests for the methods in the experiments subclass"""
 	def checkNumberExperiments(self, number):
 		"""Check the number of experiments"""
-		self.assertEqual(len(self.pBDB.exps.getAll()), number)
+		self.assertEqual(self.pBDB.exps.count(), number)
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_stdout(self, function, expected_output, mock_stdout):
@@ -287,7 +287,7 @@ class TestDatabaseCategories(DBTestCase):
 	"""Tests for the methods in the categories subclass"""
 	def checkNumberCategories(self, number):
 		"""Check the number of experiments"""
-		self.assertEqual(len(self.pBDB.cats.getAll()), number)
+		self.assertEqual(self.pBDB.cats.count(), number)
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_stdout(self, function, expected_output, mock_stdout):

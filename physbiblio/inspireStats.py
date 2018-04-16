@@ -6,12 +6,10 @@ Uses matplotlib to do plots.
 This file is part of the PhysBiblio package.
 """
 import sys, time
+import traceback
 import os.path as osp
 import json
-if sys.version_info[0] < 3:
-	from urllib2 import Request, urlopen
-else:
-	from urllib.request import Request, urlopen
+import requests
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')
@@ -53,7 +51,7 @@ class inspireStatsLoader():
 			wantBackend: a string that defines the wanted backend
 		"""
 		if wantBackend != matplotlib.get_backend():
-			matplotlib.use(wantBackend,warn=False, force=True)
+			matplotlib.use(wantBackend, warn = False, force = True)
 			from matplotlib import pyplot as plt
 			print("[inspireStats] changed backend to %s"%matplotlib.get_backend())
 
@@ -68,10 +66,9 @@ class inspireStatsLoader():
 			the json object generated from the url content
 		"""
 		def getSeries(url):
-			response = urlopen(url, timeout = self.timeout)
-			text = response.read()
+			response = requests.get(url, timeout = self.timeout)
 			try:
-				return json.loads(text)
+				return json.loads(response.content.decode("utf-8"))
 			except:
 				pBErrorManager("[inspireStats] Cannot read the page content!", traceback)
 				return []
