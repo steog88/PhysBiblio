@@ -97,10 +97,7 @@ class ConfigVars():
 		self.descriptions = config_descriptions
 		self.configProfilesFile = "data/profiles.dat"
 		try:
-			with open(self.configProfilesFile) as r:
-				txtarr = r.readlines()
-			txt = "".join(txtarr)
-			self.defProf, self.profiles = ast.literal_eval(txt.replace("\n",""))
+			self.defProf, self.profiles = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			print(e)
 			self.profiles = {"default": {"f": "data/params.cfg", "d":""}}
@@ -119,7 +116,16 @@ class ConfigVars():
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
-	
+
+	def readProfiles(self):
+		"""
+		Reads the list of profiles and the related parameters in the profiles file.
+		"""
+		with open(self.configProfilesFile) as r:
+			txtarr = r.readlines()
+		txt = "".join(txtarr)
+		return ast.literal_eval(txt.replace("\n",""))
+
 	def writeProfiles(self):
 		"""
 		Writes the list of profiles and the related parameters in the profiles file.

@@ -5,21 +5,14 @@ Test file for the physbiblio.firstOpen module.
 This file is part of the PhysBiblio package.
 """
 import sys, traceback
-import six
-import datetime
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
-	from StringIO import StringIO
 else:
 	import unittest
-	from unittest.mock import patch, call
-	from io import StringIO
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.database import physbiblioDB
 	from physbiblio.firstOpen import createTables
@@ -29,6 +22,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+@unittest.skipIf(skipLongTests, "Long tests")
 class TestFirstOpenMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.firstOpen"""
 
