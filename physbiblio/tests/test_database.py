@@ -947,22 +947,25 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
 			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "like").lastFetched],
 			["abc", "def"])
-		self.assertEqual(self.pBDB.bibs.lastQuery,
-			"select * from entries  where bibkey like ?  or arxiv like ?  order by firstdate ASC")
+		self.assertIn(self.pBDB.bibs.lastQuery,
+			["select * from entries  where bibkey like ?  or arxiv like ?  order by firstdate ASC",
+			"select * from entries  where arxiv like ?  or bibkey like ?  order by firstdate ASC"])
 		self.assertEqual(self.pBDB.bibs.lastVals, ("%ab%", "%ef%"))
 
 		#test some bad connection or operator
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
 			params = {"bibkey": "abc", "arxiv": "def"}, connection = "o r")],
 			[])
-		self.assertEqual(self.pBDB.bibs.lastQuery,
-			"select * from entries  where bibkey = ?  and arxiv = ?  order by firstdate ASC")
+		self.assertIn(self.pBDB.bibs.lastQuery,
+			["select * from entries  where bibkey = ?  and arxiv = ?  order by firstdate ASC",
+			"select * from entries  where arxiv = ?  and bibkey = ?  order by firstdate ASC"])
 		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
 			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "lik").lastFetched],
 			[])
-		self.assertEqual(self.pBDB.bibs.lastQuery,
-			"select * from entries  where bibkey = ?  or arxiv = ?  order by firstdate ASC")
+		self.assertIn(self.pBDB.bibs.lastQuery,
+			["select * from entries  where bibkey = ?  or arxiv = ?  order by firstdate ASC",
+			"select * from entries  where arxiv = ?  or bibkey = ?  order by firstdate ASC"])
 		self.assertEqual(self.pBDB.bibs.lastVals, ("ab", "ef"))
 
 		#generate some errors

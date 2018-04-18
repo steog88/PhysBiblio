@@ -57,7 +57,8 @@ class physbiblioDB():
 
 		if not noOpen:
 			self.openDB()
-			if db_is_new:
+			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
 				print("-------New database. Creating tables!\n\n")
 				pbfo.createTables(self)
 
@@ -80,6 +81,7 @@ class physbiblioDB():
 		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
+		self.loadSubClasses()
 		return True
 
 	def reOpenDB(self, newDB = None):
@@ -99,19 +101,22 @@ class physbiblioDB():
 			self.dbname = newDB
 			db_is_new = not os.path.exists(self.dbname)
 			self.openDB()
-			if db_is_new:
+			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
 				print("-------New database. Creating tables!\n\n")
 				pbfo.createTables(self)
 
 			self.lastFetched = None
 			self.catsHier = None
-			self.loadSubClasses()
 		else:
 			self.closeDB()
 			self.openDB()
+			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+				print("-------New database. Creating tables!\n\n")
+				pbfo.createTables(self)
 			self.lastFetched = None
 			self.catsHier = None
-			self.loadSubClasses()
 		return True
 
 	def closeDB(self):
@@ -1356,7 +1361,10 @@ class entries(physbiblioDBSub):
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
 		self.lastInserted = []
-		self.fetchCurs = self.conn.cursor()
+		try:
+			self.fetchCurs = self.conn.cursor()
+		except AttributeError:
+			self.fetchCurs = None
 
 	def fetchCursor(self):
 		"""

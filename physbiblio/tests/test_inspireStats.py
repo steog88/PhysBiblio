@@ -25,7 +25,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-# @unittest.skipIf(skipOnlineTests, "Online tests")
+@unittest.skipIf(skipOnlineTests, "Online tests")
 class TestInspireStatsMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.inspireStats"""
 	@patch('sys.stdout', new_callable=StringIO)
