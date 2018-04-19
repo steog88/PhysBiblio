@@ -84,7 +84,7 @@ class TestConfigMethods(unittest.TestCase):
 			self.assertTrue(tempPbConfig1.needFirstConfiguration)
 
 	def test_profiles(self):
-		"""Test config methods for config management"""
+		"""Test config methods for profiles management"""
 		tempPbConfig = ConfigVars()
 		tempCfgName = os.path.join(pbConfig.path, "tests_%s.cfg"%today_ymd)
 		tempProfName = os.path.join(pbConfig.path, "tests_%s.dat"%today_ymd)

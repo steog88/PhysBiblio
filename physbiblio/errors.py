@@ -4,6 +4,7 @@ Module that only contains the pBErrorManager definition.
 This file is part of the PhysBiblio package.
 """
 import sys, traceback, os
+import logging
 
 try:
 	from physbiblio.config import pbConfig
@@ -12,7 +13,7 @@ except ImportError:
 
 class pBErrorManager():
 	"""Class that manages the output of the errors and stores the messages into a log file"""
-	def __init__(self, message, trcbk = None, priority = 0):
+	def __init__(self):
 		"""
 		Constructor for PBErrorManager.
 
@@ -21,29 +22,36 @@ class pBErrorManager():
 			trcbk: the traceback of the error
 			priority (int): the importance of the error
 		"""
-		if priority > 1:
-			message = "****Critical error****\n" + message
-		elif priority > 0:
-			message = "**Error**\n" + message
-		message += "\n"
-		if sys.stdout == sys.__stdout__:
-			sys.stderr.write(message)
-			if trcbk is not None:
-				sys.stderr.write(trcbk.format_exc())
+		if pbConfig.params["loggingLevel"] == 0:
+			loglevel=logging.ERROR
+		elif pbConfig.params["loggingLevel"] == 1:
+			loglevel=logging.WARNING
+		elif pbConfig.params["loggingLevel"] == 2:
+			loglevel=logging.INFO
 		else:
-			print(message)
-			if trcbk is not None:
-				print(trcbk.format_exc())
+			level=logging.DEBUG
+		formatter = logging.Formatter('%(levelname)s %(asctime)s:%(message)s')
+		logging.basicConfig(
+			format=formatter,
+			level=loglevel)
+		#the main logger, will save to stdout and log file
+		self.logger = logging.getLogger("physbibliolog")
+		fh = logging.FileHandler(pbConfig.params["logFileName"])
+		fh.setFormatter(formatter)
+		self.logger.addHandler(fh)
 
-		try:
-			with open(os.path.join(pbConfig.path, pbConfig.params["logFileName"]), "a") as w:
-				w.write(message)
-				if trcbk is not None:
-					w.write(trcbk.format_exc())
-		except IOError:
-			if sys.stdout == sys.__stdout__:
-				sys.stderr.write("[errorlog] ERROR in saving log file!")
-				sys.stderr.write(traceback.format_exc())
-			else:
-				print("[errorlog] ERROR in saving log file!")
-				print(traceback.format_exc())
+		#other logger, will be used instead of print and redirected
+		self.out = logging.getLogger("physbiblioout")
+		self.out.setLevel(logging.INFO)
+		self.out.setFormatter('%(message)s')
+
+	def log(self, message, trcbk = None, priority = 0):
+		message += "\n"
+		if trcbk is not None:
+			message += trcbk.format_exc()
+
+		self.logger.log(priority*10, message)
+
+	def out(self, message):
+		message += "\n"
+		self.out.info(message)
