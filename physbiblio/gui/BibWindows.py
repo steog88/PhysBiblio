@@ -6,6 +6,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import re
+from pyparsing import ParseException
 
 try:
 	from physbiblio.database import pBDB
@@ -774,7 +775,7 @@ class editBibtexEntry(editObjectWindow):
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
 			bibkey = element["ID"]
-		except (ValueError, IndexError):
+		except (ValueError, IndexError, ParseException):
 			bibkey = "not valid bibtex!"
 		self.textValues["bibkey"].setText(bibkey)
 

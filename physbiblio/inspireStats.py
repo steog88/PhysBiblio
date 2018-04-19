@@ -6,6 +6,7 @@ Uses matplotlib to do plots.
 This file is part of the PhysBiblio package.
 """
 import sys, time
+import os
 import traceback
 import os.path as osp
 import json
@@ -13,7 +14,7 @@ import requests
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4'] = 'PySide'
+os.environ["QT_API"] = 'PySide'
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
