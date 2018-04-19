@@ -5,17 +5,14 @@ This file is part of the PhysBiblio package.
 """
 import subprocess, traceback
 try:
-	from physbiblio.errors import pBErrorManager
-except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
-	print(traceback.format_exc())
-
-try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.pdf import pBPDF
 except ImportError:
-	pBErrorManager("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 	
 class viewEntry():
 	"""
@@ -66,7 +63,7 @@ class viewEntry():
 			pBPDF.openFile(key, fileArg)
 			return True
 		else:
-			pBErrorManager("[viewEntry] ERROR: invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
+			pBLogger.warning("Invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
 			return False
 
 		return link
@@ -86,11 +83,11 @@ class viewEntry():
 			if link:
 				try:
 					if self.webApp != "":
-						print("[viewEntry] opening '%s'..."%link)
+						pBLogger.info("Opening '%s'..."%link)
 						subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 				except OSError:
-					pBErrorManager("[viewEntry] opening link for '%s' failed!"%key)
+					pBLogger.warning("Opening link for '%s' failed!"%key)
 			else:
-				pBErrorManager("[viewEntry] impossible to get the '%s' link for entry '%s'"%(arg, key))
+				pBLogger.warning("Impossible to get the '%s' link for entry '%s'"%(arg, key))
 
 pBView = viewEntry()

@@ -8,13 +8,14 @@ import bibtexparser
 import shutil
 import traceback
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-
+	print(traceback.format_exc())
+	raise
 class pbExport():
 	"""
 	Class that contains the export functions and related.
@@ -37,7 +38,7 @@ class pbExport():
 			try:
 				shutil.copy2(fileName, fileName + self.backupExtension)
 			except IOError:
-				pBErrorManager("[export] Cannot write backup file.\nCheck the folder permissions.",  traceback)
+				pBLogger.exception("Cannot write backup file.\nCheck the folder permissions.")
 				return False
 			else:
 				return True
@@ -54,7 +55,7 @@ class pbExport():
 			try:
 				shutil.copy2(fileName + self.backupExtension, fileName)
 			except IOError:
-				pBErrorManager("[export] Cannot restore backup file.\nCheck the file permissions.",  traceback)
+				pBLogger.exception("Cannot restore backup file.\nCheck the file permissions.")
 				return False
 			else:
 				return True
@@ -71,7 +72,7 @@ class pbExport():
 			try:
 				os.remove(fileName + self.backupExtension)
 			except IOError:
-				pBErrorManager("[export] Cannot remove backup file.\nCheck the file permissions.",  traceback)
+				pBLogger.exception("Cannot remove backup file.\nCheck the file permissions.")
 				return False
 			else:
 				return True
@@ -93,10 +94,10 @@ class pbExport():
 				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				pBLogger.exception("Problems in exporting .bib file!")
 				self.restoreBackupCopy(fileName)
 		else:
-			print("[export] No last selection to export!")
+			pBLogger.info("No last selection to export!")
 		self.rmBackupCopy(fileName)
 
 	def exportAll(self, fileName):
@@ -116,10 +117,10 @@ class pbExport():
 				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				pBLogger.exception("Problems in exporting .bib file!", traceback)
 				self.restoreBackupCopy(fileName)
 		else:
-			print("[export] No elements to export!")
+			pBLogger.info("No elements to export!")
 		self.rmBackupCopy(fileName)
 
 	def exportSelected(self, fileName, rows):
@@ -139,10 +140,10 @@ class pbExport():
 				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
+				pBLogger.exception("Problems in exporting .bib file!")
 				self.restoreBackupCopy(fileName)
 		else:
-			print("[export] No elements to export!")
+			pBLogger.info("No elements to export!")
 		self.rmBackupCopy(fileName)
 
 	def exportForTexFile(self, texFileName, outFileName, overwrite = False, autosave = True):
@@ -161,22 +162,22 @@ class pbExport():
 			True if successful, False if errors occurred
 		"""
 		self.exportForTexFlag = True
-		print("[export] reading keys from '%s'"%texFileName)
-		print("[export] saving in '%s'"%outFileName)
+		pBLogger.info("Reading keys from '%s'"%texFileName)
+		pBLogger.info("Saving in '%s'"%outFileName)
 		if autosave:
-			print("[export] I will automatically save the changes at the end!")
+			pBLogger.info("Changes will be automatically saved at the end!")
 
 		if overwrite:
 			try:
 				with open(outFileName, "w") as o:
 					o.write("%file written by PhysBiblio\n")
 			except IOError:
-				pBErrorManager("[export] Cannot write on file.\nCheck the file permissions.",  traceback)
+				pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
 
 		try:
 			existingBib = open(outFileName, "r").read()
 		except IOError:
-			pBErrorManager("[export] Cannot read file %s."%outFileName,  traceback)
+			pBLogger.exception("Cannot read file %s."%outFileName)
 			return False
 
 		if type(texFileName) is list:
@@ -184,7 +185,7 @@ class pbExport():
 				return False
 			for t in texFileName:
 				self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
-			print("[export] done for all the texFiles. See previous errors (if any)")
+			pBLogger.info("Done for all the texFiles. See previous errors (if any)")
 			return True
 
 		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
@@ -213,20 +214,20 @@ class pbExport():
 			try:
 				with open(outFileName, "a") as o:
 					o.write(bibf + "\n")
-					print("[export] %s inserted in output file"%m)
+					pBLogger.info("%s inserted in output file"%m)
 			except IOError:
-				pBErrorManager("[export] ERROR: impossible to write file '%s'"%outFileName, traceback)
+				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 
 		keyscont=""
 		try:
 			with open(texFileName) as r:
 				keyscont += r.read()
 		except IOError:
-			pBErrorManager("[export] The file %s does not exist."%texFileName, traceback)
+			pBLogger.exception("The file %s does not exist."%texFileName)
 			return False
 
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
-		print(r"[export] %d \cite commands found in .tex file"%len(citaz))
+		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
 		requiredBibkeys = []
 		for c in citaz:
@@ -238,7 +239,7 @@ class pbExport():
 			for e in a:
 				if e not in requiredBibkeys and e not in existingBib and e.strip() != "":
 					requiredBibkeys.append(e)
-		print("[export] %d new keys found"%len(requiredBibkeys))
+		pBLogger.info("%d new keys found"%len(requiredBibkeys))
 
 		missing = []
 		retrieved = []
@@ -251,7 +252,7 @@ class pbExport():
 
 		for m in requiredBibkeys:
 			if m in missing and self.exportForTexFlag:
-				print("[export] key '%s' missing, trying to import it from Web"%m)
+				pBLogger.info("Key '%s' missing, trying to import it from Web"%m)
 				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
 				newCheck = pBDB.bibs.getByBibkey(m, saveQuery = False)
 
@@ -262,7 +263,7 @@ class pbExport():
 						saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 					except:
 						unexpected.append(m)
-						pBErrorManager("[export] unexpected error in saving entry '%s' into the output file"%m, traceback)
+						pBLogger.exception("Unexpected error in saving entry '%s' into the output file"%m)
 				else:
 					if newWeb and not newWeb.find(m) > 0:
 						warnings += 1
@@ -277,33 +278,33 @@ class pbExport():
 					else:
 						notFound.append(m)
 						warnings += 1
-				print("\n")
+				pBLogger.info("\n")
 			else:
 				try:
 					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 				except:
 					unexpected.append(m)
-					pBErrorManager("[export] unexpected error in extracting entry '%s' to the output file"%m, traceback)
+					pBLogger.exception("Unexpected error in extracting entry '%s' to the output file"%m)
 
 		if autosave:
 			pBDB.commit()
-		print("\n[export] RESUME")
-		print("[export] %d new keys found in .tex file"%len(requiredBibkeys))
+		pBLogger.info("\nRESUME")
+		pBLogger.info("%d new keys found in .tex file"%len(requiredBibkeys))
 		if len(missing) > 0:
-			print("\n[export] %d required entries were missing in database"%len(missing))
+			pBLogger.info("\n%d required entries were missing in database"%len(missing))
 		if len(retrieved) > 0:
-			print("\n[export] retrieved %d new entries:"%len(retrieved))
-			print(" - ".join(retrieved))
+			pBLogger.info("\n%d new entries retrieved:"%len(retrieved))
+			pBLogger.info(" - ".join(retrieved))
 		if len(notFound) > 0:
-			print("\n[export] impossible to find %d entries:"%len(notFound))
-			print(" - ".join(notFound))
+			pBLogger.info("\nImpossible to find %d entries:"%len(notFound))
+			pBLogger.info(" - ".join(notFound))
 		if len(unexpected) > 0:
-			print("\n[export] unexpected errors for %d entries:"%len(unexpected))
-			print(" - ".join(unexpected))
+			pBLogger.info("\nUnexpected errors for %d entries:"%len(unexpected))
+			pBLogger.info(" - ".join(unexpected))
 		if len(newKeys.keys()) > 0:
-			print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
-			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
-		print("[export] -->     " + str(warnings) + " warning(s) occurred!")
+			pBLogger.info("\nPossible non-matching keys in %d entries"%len(newKeys.keys()))
+			pBLogger.info("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
+		pBLogger.info("     " + str(warnings) + " warning(s) occurred!")
 		return True
 
 	def updateExportedBib(self, fileName, overwrite = False):
@@ -323,13 +324,13 @@ class pbExport():
 			with open(fileName) as r:
 				bibfile += r.read()
 		except IOError:
-			pBErrorManager("[export] Cannot write on file.\nCheck the file permissions.",  traceback)
+			pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
 			return False
 		try:
 			biblist = bibtexparser.loads(bibfile)
 		except IndexError:
-			pBErrorManager("[export] problems in loading the .bib file!", traceback)
-			return "[export] problems in loading the .bib file!"
+			pBLogger.exception("Problems in loading the .bib file!")
+			return False
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
 		for b in biblist.entries:
@@ -344,7 +345,7 @@ class pbExport():
 			with codecs.open(fileName, 'w', 'utf-8') as outfile:
 				outfile.write(txt)
 		except Exception:
-			pBErrorManager("[export] problems in exporting .bib file!", traceback)
+			pBLogger.exception("Problems in exporting .bib file!")
 			self.restoreBackupCopy(fileName)
 			return False
 		if overwrite:

@@ -9,7 +9,9 @@ import logging
 try:
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Cannot load physbiblio.config module: check your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 class pBErrorManagerClass():
 	"""Class that manages the output of the errors and stores the messages into a log file"""

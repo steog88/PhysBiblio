@@ -15,11 +15,12 @@ import subprocess
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
 except ImportError:
-	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
+	raise
 	
 class localPDF():
 	"""
@@ -77,11 +78,11 @@ class localPDF():
 			the (cleaned) absolute path for the PDF file
 		"""
 		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
-			print("[localPDF] required field does not exist or is not valid")
+			pBLogger.warning("Required field does not exist or is not valid")
 			return ""
 		filename = pBDB.bibs.getField(key, fileType)
 		if filename is None:
-			print("[localPDF] impossible to get the type '%s' filename for entry %s"%(fileType, key))
+			pBLogger.warning("Impossible to get the type '%s' filename for entry %s"%(fileType, key))
 			return ""
 		else:
 			filename = self.badFName(filename)
@@ -110,7 +111,7 @@ class localPDF():
 		olddir = self.getFileDir(oldkey)
 		if osp.exists(olddir):
 			newdir = self.getFileDir(newkey)
-			print("[PDF] Renaming %s to %s"%(olddir, newdir))
+			pBLogger.info("Renaming %s to %s"%(olddir, newdir))
 			return shutil.move(olddir, newdir)
 		else:
 			return False
@@ -132,14 +133,14 @@ class localPDF():
 		elif fileType is not None:
 			newFileName = self.getFilePath(key, fileType)
 		else:
-			print("[localPDF] ERROR: you should supply a fileType ('doi' or 'arxiv') or a customName!")
+			pBLogger.warning("You should supply a fileType ('doi' or 'arxiv') or a customName!")
 			return False
 		try:
 			shutil.copy2(origFileName, newFileName)
-			print("[localPDF] %s copied to %s"%(origFileName, newFileName))
+			pBLogger.info("%s copied to %s"%(origFileName, newFileName))
 			return True
 		except:
-			pBErrorManager("[localPDF] ERROR: impossible to copy %s to %s"%(origFileName, newFileName), traceback)
+			pBLogger.exception("Impossible to copy %s to %s"%(origFileName, newFileName))
 			return False
 
 	def copyToDir(self, outFolder, key, fileType = None, customName = None):
@@ -157,14 +158,14 @@ class localPDF():
 		elif fileType is not None:
 			origFile = self.getFilePath(key, fileType)
 		else:
-			print("[localPDF] ERROR: you should supply a fileType ('doi' or 'arxiv') or a customName!")
+			pBLogger.warning("You should supply a fileType ('doi' or 'arxiv') or a customName!")
 			return False
 		try:
 			shutil.copy2(origFile, outFolder)
-			print("[localPDF] %s copied to %s"%(origFile, outFolder))
+			pBLogger.info("%s copied to %s"%(origFile, outFolder))
 			return True
 		except:
-			pBErrorManager("[localPDF] ERROR: impossible to copy %s to %s"%(origFile, outFolder), traceback)
+			pBLogger.exception("Impossible to copy %s to %s"%(origFile, outFolder))
 			return False
 		
 	def downloadArxiv(self, key, force = False):
@@ -177,24 +178,24 @@ class localPDF():
 		"""
 		filename = self.getFilePath(key, "arxiv")
 		if osp.exists(filename) and not force:
-			print("[localPDF] There is already a pdf and overwrite not requested.")
+			pBLogger.info("There is already a pdf and overwrite not requested.")
 			return True
 		try:
 			self.createFolder(key)
 			url = pBDB.bibs.getArxivUrl(key, 'pdf')
 			if url is False:
-				print("[localPDF] invalid arXiv PDF url for '%s', probably the field is empty."%key)
+				pBLogger.warning("Invalid arXiv PDF url for '%s', probably the field is empty."%key)
 				return False
-			print("[localPDF] Downloading arXiv PDF from %s"%url)
+			pBLogger.info("Downloading arXiv PDF from %s"%url)
 			response = urlopen(url)
 			with open(filename, 'wb') as newF:
 				newF.write(response.read())
-			print("[localPDF] File saved to %s"%filename)
+			pBLogger.info("File saved to %s"%filename)
 		except HTTPError:
-			pBErrorManager("[localPDF] ArXiv PDF for '%s' not found (404 error on url: %s)"%(key, url))
+			pBLogger.exception("ArXiv PDF for '%s' not found (404 error on url: %s)"%(key, url))
 			return False
 		except:
-			pBErrorManager("[localPDF] Impossible to download the arXiv PDF for '%s'"%key, traceback)
+			pBLogger.exception("Impossible to download the arXiv PDF for '%s'"%key)
 			return False
 		else:
 			return os.path.exists(filename)
@@ -228,13 +229,13 @@ class localPDF():
 			elif fileName is not None:
 				fName = osp.join(self.getFileDir(key), fileName)
 			else:
-				pBErrorManager("[localPDF] ERROR: invalid selection. One among fileType, fileNum or fileName must be given!")
+				pBLogger.warning("Invalid selection. One among fileType, fileNum or fileName must be given!")
 				return
 			if self.pdfApp != "":
-				print("[localPDF] opening '%s'..."%fName)
+				pBLogger.info("Opening '%s'..."%fName)
 				subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
-			pBErrorManager("[localPDF] opening PDF for '%s' failed!"%key, traceback)
+			pBLogger.exception("Opening PDF for '%s' failed!"%key)
 	
 	def checkFile(self, key, fileType):
 		"""
@@ -248,7 +249,7 @@ class localPDF():
 			boolean (if the arguments are valid) or None (if fileType is bad)
 		"""
 		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
-			pBErrorManager("[localPDF] ERROR: invalid argument to checkFile!")
+			pBLogger.warning("Invalid argument to checkFile!")
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))
 
@@ -268,10 +269,10 @@ class localPDF():
 			fileName = self.getFilePath(key, fileType)
 		try:
 			os.remove(fileName)
-			print("[localPDF] file %s removed"%fileName)
+			pBLogger.info("File %s removed"%fileName)
 			return True
 		except OSError:
-			pBErrorManager("[localPDF] ERROR: impossible to remove file: %s"%fileName, traceback)
+			pBLogger.exception("Impossible to remove file: %s"%fileName)
 			return False
 			
 	def getExisting(self, key, fullPath = False):
@@ -296,9 +297,9 @@ class localPDF():
 		Print the list of existing files for a given entry, using self.getExisting to get it.
 		Same parameters as self.getExisting.
 		"""
-		print("[localPDF] Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
+		pBLogger.info("Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
-			print("%2d: %s"%(i, e))
+			pBLogger.info("%2d: %s"%(i, e))
 	
 	def printAllExisting(self, entries = None, fullPath = False):
 		"""
@@ -315,7 +316,7 @@ class localPDF():
 		for e in iterator:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
 			if len(exist) > 0:
-				print("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
+				pBLogger.info("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
 	def removeSparePDFFolders(self):
 		"""
@@ -330,11 +331,11 @@ class localPDF():
 			if cleaned in folders:
 				del folders[folders.index(cleaned)]
 		if len(folders) > 0:
-			print("[PDF] Spare PDF folders found: %d\n%s\nThey will be removed now."%(len(folders), folders))
+			pBLogger.info("Spare PDF folders found: %d\n%s\nThey will be removed now."%(len(folders), folders))
 			for f in folders:
 				shutil.rmtree(osp.join(self.pdfDir, f))
-			print("Done!")
+			pBLogger.info("Done!")
 		else:
-			print("[PDF] Nothing found.")
+			pBLogger.warning("Nothing found.")
 
 pBPDF = localPDF()
