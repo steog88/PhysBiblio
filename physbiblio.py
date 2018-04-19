@@ -12,12 +12,11 @@ from PySide.QtGui import QApplication
 
 try:
 	from physbiblio.database import pBDB
+	from physbiblio.errors import pBLogger
 	from physbiblio.gui.MainWindow import MainWindow
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
-except Exception:
-	print(traceback.format_exc())
 
 def TorF(s):
 	"""Get a True or False value from a command line option"""
@@ -112,9 +111,9 @@ if __name__=='__main__':
 		mainWin.raise_()
 		sys.exit(app.exec_())
 	except NameError:
-		print("NameError:",sys.exc_info()[1])
+		pBLogger.critical("NameError:",sys.exc_info()[1])
 	except SystemExit:
 		pBDB.closeDB()
-		print("Closing main window...")
+		pBLogger.info("Closing main window...")
 	except Exception:
-		print(traceback.format_exc())
+		pBLogger.critical(traceback.format_exc())
