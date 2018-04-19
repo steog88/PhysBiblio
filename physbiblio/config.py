@@ -4,6 +4,7 @@ Manages the configuration of PhysBiblio, from saving to reading.
 This file is part of the PhysBiblio package.
 """
 import sys, ast, os
+import logging
 
 #these are the default parameter values, descriptions and types
 configuration_params = [
@@ -11,6 +12,10 @@ configuration_params = [
 	"default": 'data/physbiblio.db',
 	"description": 'Name of the database file',
 	"special": None},
+{"name": "loggingLevel",
+	"default": 0,
+	"description": 'How many messages to save in the log file',
+	"special": 'int'},
 {"name": "logFileName",
 	"default": 'data/params.log',
 	"description": 'Name of the log file',
@@ -88,6 +93,10 @@ class ConfigVars():
 		Initialize the configuration.
 		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
 		"""
+		#needed because the pBErrorManager logger will be loaded later!
+		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
+		self.logger = logging.getLogger("physbibliolog")
+
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
@@ -99,14 +108,14 @@ class ConfigVars():
 		try:
 			self.defProf, self.profiles = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
-			print(e)
+			self.logger.warning(e)
 			self.profiles = {"default": {"f": "data/params.cfg", "d":""}}
 			self.defProf = "default"
 			self.writeProfiles()
 		#except ...:
 			#...
 		self.defaultProfile = self.profiles[self.defProf]
-		print("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
+		self.logger.info("starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		
 		self.readConfigFile()
@@ -148,7 +157,7 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
-		print("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
+		self.logger.info("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		self.params = {}
 		self.readConfigFile()
@@ -184,11 +193,11 @@ class ConfigVars():
 				except Exception:
 					self.params[k] = v
 		except IOError:
-			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
+			self.logger.warning("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
 			self.needFirstConfiguration = True
 		except Exception:
-			print("[config] ERROR: reading %s file failed."%self.configMainFile)
+			self.logger.error("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
 		"""
@@ -203,6 +212,6 @@ class ConfigVars():
 			with open(self.configMainFile, "w") as w:
 				w.write(txt)
 		except IOError:
-			print("[config] ERROR in saving config file!")
+			self.logger.error("[config] ERROR in saving config file!")
 
 pbConfig = ConfigVars()
