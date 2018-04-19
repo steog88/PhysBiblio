@@ -13,7 +13,7 @@ configuration_params = [
 	"description": 'Name of the database file',
 	"special": None},
 {"name": "loggingLevel",
-	"default": 0,
+	"default": 1,
 	"description": 'How many messages to save in the log file',
 	"special": 'int'},
 {"name": "logFileName",
@@ -93,7 +93,7 @@ class ConfigVars():
 		Initialize the configuration.
 		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
 		"""
-		#needed because the pBErrorManager logger will be loaded later!
+		#needed because the main logger will be loaded later!
 		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
 		self.logger = logging.getLogger("physbibliolog")
 
