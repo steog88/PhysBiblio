@@ -17,7 +17,7 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManagerClass
 	from physbiblio.config import pbConfig
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -27,60 +27,46 @@ except Exception:
 
 class TestBuilding(unittest.TestCase):
 	"""Test pBErrorManager outputs"""
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_notraceback(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stdout without traceback"""
+	@classmethod
+	def setUpClass(self):
+		self.maxDiff = None
+		pbConfig.params["loggingLevel"] = 3
+		pbConfig.params["logFileName"] = logFileName
+		self.pBErrorManager = pBErrorManagerClass()
+
+	@patch('logging.Logger.log')
+	def assert_notraceback(self, message, priority, mock_log):
+		"""Test print to stderr with traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
-			pBErrorManager(str(e), priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
+			self.pBErrorManager(str(e), priority = priority)
+		mock_log.assert_called_once_with((2+priority)*10, message)
 
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_withtraceback(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stdout with traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			tracebackText = traceback.format_exc()
-			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText + "\n")
-
-	@patch('sys.stderr', new_callable=StringIO)
-	def assert_stderr(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stderr without traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			pBErrorManager(str(e), priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
-
-	@patch('sys.stderr', new_callable=StringIO)
-	def assert_fullstderr(self, message, priority, expected_output, mock_stdout):
+	@patch('logging.Logger.log')
+	def assert_withtraceback(self, message, priority, mock_log):
 		"""Test print to stderr with traceback"""
 		try:
 			raise Exception(message)
 		except Exception as e:
 			tracebackText = traceback.format_exc()
-			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText)
+			self.pBErrorManager(str(e), trcbk = traceback, priority = priority)
+		mock_log.assert_called_once_with((2+priority)*10, message + "\n" + tracebackText)
 
 	def test_errors(self):
 		"""Test pBErrorManager with different input combinations"""
+		open(logFileName, 'w').close()
+		self.assert_notraceback("test warning", 0)
+		self.assert_notraceback("test error", 1)
 		try:
-			with open(logFileName) as logFile:
-				log_old = logFile.read()
-		except IOError:
-			log_old = ""
-		self.assert_notraceback("test warning", 0, "test warning\n\n")
-		self.assert_notraceback("test error", 1, "**Error**\ntest error\n\n")
+			raise Exception(message)
+		except Exception as e:
+			self.pBErrorManager(str(e), priority = 2)
 		with open(logFileName) as logFile:
 			log_new = logFile.read()
-		self.assertEqual(log_new, log_old + "test warning\n" + "**Error**\ntest error\n")
-		self.assert_notraceback("test critical", 2, "****Critical error****\ntest critical\n\n")
-		self.assert_withtraceback("test warning", 0, "test warning\n\n")
-		self.assert_stderr("test warning", 0, "test warning\n")
-		self.assert_fullstderr("test warning", 0, "test warning\n")
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertTrue("      ERROR : [errors.log] global name 'message' is not defined" in log_new
+			or "      ERROR : [errors.log] name 'message' is not defined" in log_new)
 
 if __name__=='__main__':
 	print("\nStarting tests...\n")
