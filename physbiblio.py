@@ -87,6 +87,7 @@ if __name__=='__main__':
 			print("\nAvailable command line options:")
 			print("* help: print this text;")
 			print("* cli: open a command line where to directly run PhysBiblio functions;")
+			print("* daily: retrieve records changed in the day from InspireOAI and update entries;")
 			print("* export: export all the DB entries in a *.bib file;")
 			print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs;")
 			print("* update: use INSPIRE to update the information in the database.")
