@@ -14,8 +14,9 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import physbiblioDB
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-    raise
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 today_ymd = datetime.datetime.today().strftime('%y%m%d')
 

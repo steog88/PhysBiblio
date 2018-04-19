@@ -7,6 +7,7 @@ import os, codecs, re
 import bibtexparser
 import shutil
 import traceback
+
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
@@ -16,6 +17,7 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 	raise
+
 class pbExport():
 	"""
 	Class that contains the export functions and related.
