@@ -5,12 +5,13 @@ This file is part of the PhysBiblio package.
 """
 import traceback
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
+	raise
 
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to doi.org to perform searches"""
@@ -45,12 +46,12 @@ class webSearch(webInterf):
 			returns the bibtex string
 		"""
 		url = self.createUrl(string)
-		print("[doi] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url, self.headers)
 		try:
 			return text[:]
 		except Exception:
-			pBErrorManager("[doi] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self, string):

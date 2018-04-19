@@ -5,13 +5,14 @@ This file is part of the PhysBiblio package.
 """
 import traceback
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from physbiblio.config import pbConfig
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from physbiblio.config import pbConfig
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
+	raise
 
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches"""
@@ -48,7 +49,7 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		print("[inspire] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -59,7 +60,7 @@ class webSearch(webInterf):
 				bibtex = ""
 			return parse_accents_str(bibtex)
 		except Exception:
-			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self, string):
@@ -74,7 +75,7 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		print("[inspire] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -85,7 +86,7 @@ class webSearch(webInterf):
 				bibtex = ""
 			return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
 		except Exception:
-			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
@@ -101,10 +102,10 @@ class webSearch(webInterf):
 		self.urlArgs["of"] = "hb" #do not ask bibtex, but standard
 		url = self.createUrl()
 		self.urlArgs["of"] = "hx" #restore
-		print("[inspire] search ID of %s -> %s"%(string, url))
+		pBLogger.info("Search ID of %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		if text is None:
-			pBErrorManager("[inspire] An error occurred. Empty text obtained")
+			pBLogger.warning("An error occurred. Empty text obtained")
 			return ""
 		try:
 			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
@@ -116,8 +117,8 @@ class webSearch(webInterf):
 						break
 					else:
 						i += 1
-			print("[inspire] found: %s"%inspireID)
+			pBLogger.info("Found: %s"%inspireID)
 			return inspireID
 		except Exception:
-			pBErrorManager("[inspire] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			return ""

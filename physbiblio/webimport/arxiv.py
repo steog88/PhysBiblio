@@ -8,14 +8,15 @@ This file is part of the PhysBiblio package.
 import re, traceback
 import feedparser
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from bibtexparser.bibdatabase import BibDatabase
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
+	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from bibtexparser.bibdatabase import BibDatabase
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
-from physbiblio.bibtexwriter import pbWriter
+	raise
 
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to arxiv.org to perform searches"""
@@ -88,7 +89,7 @@ class webSearch(webInterf):
 				self.urlArgs[k] = v
 		self.urlArgs["search_query"] = searchType + ":" + string
 		url = self.createUrl()
-		print("[arxiv] search %s:%s -> %s"%(searchType, string, url))
+		pBLogger.info("Search %s:%s -> %s"%(searchType, string, url))
 		text = parse_accents_str(self.textFromUrl(url))
 		try:
 			data = feedparser.parse(text)
@@ -109,7 +110,7 @@ class webSearch(webInterf):
 				try:
 					dictionary["doi"] = entry['arxiv_doi']
 				except KeyError as e:
-					print("[arXiv] -> KeyError: ", e)
+					pBLogger.warning("KeyError: ", e)
 				dictionary["abstract"] = entry['summary']
 				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
 				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
@@ -124,7 +125,7 @@ class webSearch(webInterf):
 							else:
 								dictionary["year"] = "20" + a
 				except Exception:
-					print("[DB] -> Error in converting year")
+					pBLogger.warning("Error in converting year")
 				db.entries.append(dictionary)
 				dictionaries.append(dictionary)
 			if fullDict:
@@ -136,7 +137,7 @@ class webSearch(webInterf):
 			else:
 				return pbWriter.write(db)
 		except Exception:#intercept all other possible errors
-			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			if fullDict:
 				return "",  {}
 			else:

@@ -30,14 +30,15 @@ from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import *
 	from physbiblio.parse_accents import *
 	from bibtexparser.bibdatabase import BibDatabase
 	from physbiblio.bibtexwriter import pbWriter
-	from physbiblio.errors import pBErrorManager
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
+	raise
 
 def safe_list_get(l, idx, default = ""):
 	"""
@@ -126,18 +127,18 @@ class webSearch(webInterf):
 			"doi", "isbn",
 			"school", "reportnumber", "booktitle", "collaboration"]
 		
-	def retrieveUrlFirst(self,string):
+	def retrieveUrlFirst(self, string):
 		"""
 		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
 		"""
-		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
+		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
 		
-	def retrieveUrlAll(self,string):
+	def retrieveUrlAll(self, string):
 		"""
 		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
 		"""
-		pBErrorManager("[oai] -> ERROR: inspireoai cannot search strings in the DB")
+		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record, readConferenceTitle = False):
@@ -155,7 +156,7 @@ class webSearch(webInterf):
 				if q["2"] == "DOI":
 					tmpDict["doi"] = q["a"]
 		except Exception as e:
-			print(traceback.format_exc())
+			pBLogger.warning("Error in readRecord!", exc_info = True)
 		try:
 			tmpDict["arxiv"]  = None
 			tmpDict["bibkey"] = None
@@ -177,7 +178,7 @@ class webSearch(webInterf):
 					if q["a"] is not None:
 						tmpDict["ads"] = q["a"]
 		except (IndexError, TypeError) as e:
-			print(e)
+			pBLogger.warning("Error in readRecord!", exc_info = True)
 		if tmpDict["bibkey"] is None and len(tmpOld) > 0:
 			tmpDict["bibkey"] = tmpOld[0]
 			tmpOld = []
@@ -330,23 +331,23 @@ class webSearch(webInterf):
 		try:
 			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
 		except (URLError, ErrorBase, IncompleteRead):
-			pBErrorManager("[oai] ERROR: impossible to get marcxml for entry %s"%inspireID, traceback)
+			pBLogger.exception("Impossible to get marcxml for entry %s"%inspireID)
 			return False
 		nhand = 0
 		if verbose > 0:
-			print("[oai] reading data --- " + time.strftime("%c"))
+			pBLogger.info("Reading data --- " + time.strftime("%c"))
 		try:
 			if record[1] is None:
-				raise ValueError("[oai] Empty record!")
+				raise ValueError("Empty record!")
 			res = self.readRecord(record[1], readConferenceTitle = readConferenceTitle)
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				self.updateBibtex(res, bibtex)
 			if verbose > 0:
-				print("[oai] done.")
+				pBLogger.info("Done.")
 			return res
 		except Exception:
-			pBErrorManager("[oai] ERROR: impossible to read marcxml for entry %s"%inspireID, traceback)
+			pBLogger.exception("Impossible to read marcxml for entry %s"%inspireID)
 			return False
 
 	def updateBibtex(self, res, bibtex):
@@ -354,17 +355,17 @@ class webSearch(webInterf):
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
 		except:
-			pBErrorManager("[inspireoai] invalid bibtex!\n%s"%bibtex)
+			pBLogger.warning("Invalid bibtex!\n%s"%bibtex)
 			return bibtex
 		if res["journal"] is None:
-			pBErrorManager("[DB] 'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
+			pBLogger.warning("'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
 			return bibtex
 		try:
 			for k in ["doi", "volume", "pages", "year", "journal"]:
 				if res[k] != "" and res[k] is not None:
 					element[k] = res[k]
 		except KeyError:
-			pBErrorManager("[DB] something from OAI is missing (recid:%s)"%res["id"])
+			pBLogger.warning("Something from OAI is missing (recid:%s)"%res["id"])
 			return bibtex
 		db = BibDatabase()
 		db.entries = [element]
@@ -382,12 +383,12 @@ class webSearch(webInterf):
 		"""
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml', from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
-		print("\n[oai] STARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
+		pBLogger.info("\nSTARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
 		foundObjects = []
 		for count, rec in enumerate(recs):
 			id = rec[0].identifier()
 			if count % 500 == 0:
-				print("[oai] Processed %d elements"%count)
+				pBLogger.info("Processed %d elements"%count)
 			record = rec[1] # Get pyMARC representation
 			if not record:
 				continue
@@ -397,9 +398,7 @@ class webSearch(webInterf):
 				tmpDict["id"] = id_
 				foundObjects.append(tmpDict)
 			except Exception as e:
-				print(count, id)
-				print(e)
-				print(traceback.format_exc())
-		print("[oai] Processed %d elements"%count)
-		print("[oai] END --- " + time.strftime("%c") + "\n\n")
+				pBLogger.exception("%s, %s\n%s"%(count, id, e))
+		pBLogger.info("Processed %d elements"%count)
+		pBLogger.info("END --- " + time.strftime("%c") + "\n\n")
 		return foundObjects

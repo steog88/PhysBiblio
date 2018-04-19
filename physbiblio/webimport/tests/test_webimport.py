@@ -13,9 +13,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
-	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.webimport.inspireoai import get_journal_ref_xml
 except ImportError:
