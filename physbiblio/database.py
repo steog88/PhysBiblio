@@ -2783,7 +2783,7 @@ class entries(physbiblioDBSub):
 		"""
 		total = 0
 		def _print(i, e):
-			pBLogger.info("%4d - %s\n"%(i, e["bibtex"]))
+			print("%4d - %s\n"%(i, e["bibtex"]))
 		if entriesIn is not None:
 			for i, e in enumerate(entriesIn):
 				_print(i, e)
@@ -2804,7 +2804,7 @@ class entries(physbiblioDBSub):
 		"""
 		total = 0
 		def _print(i, e):
-			pBLogger.info("%4d %s"%(i, e["bibkey"]))
+			print("%4d %s"%(i, e["bibkey"]))
 		if entriesIn is not None:
 			for i, e in enumerate(entriesIn):
 				_print(i, e)
@@ -2852,20 +2852,20 @@ class entries(physbiblioDBSub):
 				moreStr = "%-20s"%(e["arxiv"] if e["arxiv"] is not None else "-")
 			elif e["proceeding"] == 1:
 				typeStr = "(proc)"
-			pBLogger.info(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
+			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
 			if addFields is not None:
 				try:
 					if type(addFields) is list:
 						for f in addFields:
 							try:
-								pBLogger.info("   %s: %s"%(f, e[f]))
+								print("   %s: %s"%(f, e[f]))
 							except:
-								pBLogger.info("   %s: %s"%(f, e["bibtexDict"][f]))
+								print("   %s: %s"%(f, e["bibtexDict"][f]))
 					else:
 						try:
-							pBLogger.info("   %s: %s"%(addFields, e[addFields]))
+							print("   %s: %s"%(addFields, e[addFields]))
 						except:
-							pBLogger.info("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
+							print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
 				except:
 					pass
 		pBLogger.info("%d elements found"%total)
