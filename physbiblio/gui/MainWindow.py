@@ -810,7 +810,7 @@ class MainWindow(QMainWindow):
 
 	def askCatsForEntries(self, entriesList):
 		for entry in entriesList:
-			selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
+			selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry, previous = [a[0] for a in pBDB.cats.getByEntry(entry)])
 			selectCats.exec_()
 			if selectCats.result in ["Ok", "Exps"]:
 				cats = self.selectedCats
