@@ -8,6 +8,7 @@ from PySide.QtGui  import *
 import re
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
@@ -108,7 +109,7 @@ class abstractFormulas():
 		try:
 			text_bbox = t.get_window_extent(renderer)
 		except ValueError:
-			pBErrorManager("[convert] Error when converting latex to image", traceback)
+			pBLogger.exception("Error when converting latex to image")
 			return None
 
 		tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
@@ -491,7 +492,7 @@ class bibtexList(QFrame, objListWindow):
 				return
 			bibkey = str(bibkey)
 		except AttributeError:
-			pBErrorManager("[GUI] error in reading table content", traceback)
+			pBLogger.exception("Error in reading table content")
 			return
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
@@ -934,7 +935,7 @@ class askSelBibAction(MyMenu):
 						try:
 							self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 						except:
-							pBErrorManager("Impossible to reload content.")
+							pBLogger.warning("Impossible to reload content.")
 			else:
 				self.parent.gotError("ERROR: empty bibtex and/or bibkey!")
 		self.close()

@@ -5,6 +5,7 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
@@ -84,7 +85,7 @@ class CatsModel(TreeModel):
 			try:
 				self.selectedCats[prevIx] = True
 			except IndexError:
-				pBErrorManager("[Cats] Invalid idCat in previous selection: %s"%prevIx)
+				pBLogger.warning("Invalid idCat in previous selection: %s"%prevIx)
 
 	def _getRootNodes(self):
 		return [NamedNode(elem, None, index)
