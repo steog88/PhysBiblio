@@ -1,5 +1,5 @@
 """
-Module that only contains the pBErrorManager definition.
+Module that contains the pBErrorManager and pBLogger definitions.
 
 This file is part of the PhysBiblio package.
 """
@@ -15,9 +15,9 @@ except ImportError:
 
 class pBErrorManagerClass():
 	"""Class that manages the output of the errors and stores the messages into a log file"""
-	def __init__(self):
+	def __init__(self, loggerString = "physbibliolog"):
 		"""
-		Constructor for PBErrorManager.
+		Constructor for PBErrorManagerClass.
 		"""
 		self.tempsh = None
 		if pbConfig.params["loggingLevel"] == 0:
@@ -29,7 +29,7 @@ class pBErrorManagerClass():
 		else:
 			self.loglevel = logging.DEBUG
 		#the main logger, will save to stdout and log file
-		self.logger = logging.getLogger("physbibliolog")
+		self.logger = logging.getLogger(loggerString)
 		self.logger.propagate = False
 		self.logger.setLevel(min(logging.INFO, self.loglevel))
 
@@ -57,29 +57,17 @@ class pBErrorManagerClass():
 		"""
 		if self.tempsh is not None:
 			self.logger.warning("There is already a temporary handler. More than one is currently not supported")
-			return
+			return False
 		self.tempsh = logging.StreamHandler(stream)
 		self.tempsh.setLevel(level)
 		formatter = logging.Formatter(format)
 		self.tempsh.setFormatter(formatter)
 		self.logger.addHandler(self.tempsh)
+		return True
 
 	def rmTempHandler(self):
 		self.logger.removeHandler(self.tempsh)
 		self.tempsh = None
-
-	def __call__(self, message, trcbk = None, priority = 0):
-		"""
-		Directly calls the logger for printing and storing the messages in the log file, for backwards compatibility only. Will be removed.
-
-		Parameters:
-			message: a text containing a description of the error
-			trcbk: the traceback of the error
-			priority (int): the importance of the error
-		"""
-		if trcbk is not None:
-			message += "\n" + trcbk.format_exc()
-		self.logger.log((2+priority)*10, message)
 
 pBErrorManager = pBErrorManagerClass()
 pBLogger = pBErrorManager.logger

@@ -25,55 +25,101 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-class TestBuilding(unittest.TestCase):
-	"""Test pBErrorManager outputs"""
+class TestErrors(unittest.TestCase):
+	"""Test pBErrorManagerClass stuff"""
 	@classmethod
 	def setUpClass(self):
 		"""settings"""
 		pbConfig.params["loggingLevel"] = 3
 		pbConfig.params["logFileName"] = logFileName
-		self.pBErrorManager = pBErrorManagerClass()
+		self.pBErrorManager = pBErrorManagerClass("testlogger")
 
-	@patch('logging.Logger.log')
-	def assert_notraceback(self, message, priority, mock_log):
-		"""Test print to stderr with traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			self.pBErrorManager(str(e), priority = priority)
-		mock_log.assert_called_once_with((2+priority)*10, message)
+	def reset(self, m):
+		"""Clear a StringIO object"""
+		m.seek(0)
+		m.truncate(0)
 
-	@patch('logging.Logger.log')
-	def assert_withtraceback(self, message, priority, mock_log):
-		"""Test print to stderr with traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			tracebackText = traceback.format_exc()
-			self.pBErrorManager(str(e), trcbk = traceback, priority = priority)
-		mock_log.assert_called_once_with((2+priority)*10, message + "\n" + tracebackText)
-
-	def test_errors(self):
-		"""Test pBErrorManager with different input combinations"""
+	def resetLogFile(self):
+		"""Reset the logfile content"""
 		open(logFileName, 'w').close()
-		self.assert_notraceback("test warning", 0)
-		self.assert_notraceback("test error", 1)
-		try:
-			raise Exception(message)
-		except Exception as e:
-			self.pBErrorManager(str(e), priority = 2)
+
+	def readLogFile(self):
+		"""Read the logfile content"""
 		with open(logFileName) as logFile:
 			log_new = logFile.read()
-		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
-		self.assertTrue("      ERROR : [errors.__call__] global name 'message' is not defined" in log_new
-			or "      ERROR : [errors.__call__] name 'message' is not defined" in log_new)
+		return log_new
 
-	def test_logger_stuff(self):
-		"""Test some stuff related to the logger"""
-		self.assertFalse("NYI")
-		#test traceback inclusion and levels in logfile
+	def test_critical(self):
+		"""Test pBLogger.critical with and without exception"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.critical(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("CRITICAL : [test_errors.test_critical] Fake error", log_new)
+		self.assertNotIn("Traceback (most recent call last):", log_new)
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.critical(str(e), exc_info = True)
+		log_new = self.readLogFile()
+		self.assertIn("Traceback (most recent call last):", log_new)
+
+	def test_exception(self):
+		"""Test pBLogger.exception"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.exception(str(e))
+		try:
+			raise Exception("New fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.error(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] Fake error", log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] New fake error", log_new)
+		self.assertIn("Traceback (most recent call last):", log_new)
+
+	def test_warning(self):
+		"""Test pBLogger.warning"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake warning")
+		except Exception as e:
+			self.pBErrorManager.logger.warning(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("WARNING : [test_errors.test_warning] Fake warning", log_new)
+
+	def test_info(self):
+		"""Test pBLogger.info"""
+		self.resetLogFile()
+		self.pBErrorManager.logger.info("Some info")
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("INFO : [test_errors.test_info] Some info", log_new)
 
 	def test_tempHandler(self):
 		"""Test stuff as the temporary handler"""
-		self.assertFalse("NYI")
-		#test additional handler using a StringIO
+		self.assertEqual(self.pBErrorManager.tempsh, None)
+		self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
+		with patch('sys.stdout', new_callable=StringIO) as _mock:
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
+			self.assertFalse(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
+			self.assertEqual(_mock.getvalue(), "There is already a temporary handler. More than one is currently not supported\n")
+			self.reset(_mock)
+			self.pBErrorManager.logger.critical("Fake critical")
+			self.assertEqual(_mock.getvalue(), "Fake critical\n")
+			self.pBErrorManager.rmTempHandler()
+			self.assertEqual(self.pBErrorManager.tempsh, None)
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
+			self.reset(_mock)
+			self.assertEqual(_mock.getvalue(), "")
+			self.pBErrorManager.logger.critical("Fake critical")
+			self.assertEqual(_mock.getvalue(), "")
