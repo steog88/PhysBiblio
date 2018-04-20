@@ -14,7 +14,6 @@ try:
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CatWindows import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.database import pBDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")

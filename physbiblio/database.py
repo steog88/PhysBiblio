@@ -15,13 +15,15 @@ import dictdiffer
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.bibtexwriter import pbWriter
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
 	import physbiblio.firstOpen as pbfo
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	import physbiblio.tablesDef
 	from physbiblio.parse_accents import *
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 encoding_default = 'iso-8859-15'
 parser = bibtexparser.bparser.BibTexParser()
@@ -59,7 +61,7 @@ class physbiblioDB():
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
-				print("-------New database. Creating tables!\n\n")
+				pBLogger.info("-------New database. Creating tables!\n\n")
 				pbfo.createTables(self)
 
 		# self.cursExec("ALTER TABLE entries ADD COLUMN abstract TEXT")
@@ -77,7 +79,7 @@ class physbiblioDB():
 		Output:
 			True if successfull
 		"""
-		print("[DB] Opening database: %s"%self.dbname)
+		pBLogger.info("Opening database: %s"%self.dbname)
 		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
@@ -103,7 +105,7 @@ class physbiblioDB():
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
-				print("-------New database. Creating tables!\n\n")
+				pBLogger.info("-------New database. Creating tables!\n\n")
 				pbfo.createTables(self)
 
 			self.lastFetched = None
@@ -113,7 +115,7 @@ class physbiblioDB():
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
-				print("-------New database. Creating tables!\n\n")
+				pBLogger.info("-------New database. Creating tables!\n\n")
 				pbfo.createTables(self)
 			self.lastFetched = None
 			self.catsHier = None
@@ -123,7 +125,7 @@ class physbiblioDB():
 		"""
 		Close the database.
 		"""
-		print("[DB] Closing database...")
+		pBLogger.info("Closing database...")
 		self.conn.close()
 		return True
 
@@ -148,10 +150,10 @@ class physbiblioDB():
 			self.conn.commit()
 			self.dbChanged = False
 			if verbose:
-				print("[DB] saved.")
+				pBLogger.info("Database saved.")
 			return True
 		except Exception:
-			pBErrorManager("[DB] Impossible to commit!", traceback)
+			pBLogger.exception("Impossible to commit!")
 			return False
 
 	def undo(self, verbose = True):
@@ -165,10 +167,10 @@ class physbiblioDB():
 			self.conn.rollback()
 			self.dbChanged = False
 			if verbose:
-				print("[DB] rolled back to last commit.")
+				pBLogger.info("Rolled back to last commit.")
 			return True
 		except Exception:
-			pBErrorManager("[DB] Impossible to rollback!", traceback)
+			pBLogger.exception("Impossible to rollback!")
 			return False
 		
 	def connExec(self, query, data = None):
@@ -188,7 +190,7 @@ class physbiblioDB():
 			else:
 				self.conn.execute(query)
 		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
-			pBErrorManager('[connExec] ERROR: %s'%err, traceback)
+			pBLogger.exception('Connection error: %s\nquery: %s'%(err, query))
 			return False
 		else:
 			self.dbChanged = True
@@ -211,7 +213,7 @@ class physbiblioDB():
 			else:
 				self.curs.execute(query)
 		except Exception as err:
-			pBErrorManager('[cursExec] ERROR: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data), traceback)
+			pBLogger.exception('Cursor error: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data))
 			return False
 		else:
 			return True
@@ -278,7 +280,7 @@ class physbiblioDBSub():
 			else:
 				return string.strip()
 		except SyntaxError:
-			pBErrorManager("[DB] error in literal_eval with string '%s'"%string)
+			pBLogger.warning("Error in literal_eval with string '%s'"%string)
 			return None
 
 	def closeDB(self):
@@ -335,10 +337,10 @@ class categories(physbiblioDBSub):
 				select * from categories where name=? and parentCat=?
 				""", (data["name"], data["parentCat"]))
 		except KeyError:
-			pBErrorManager("[DB] missing field when inserting category", traceback)
+			pBLogger.exception("Missing field when inserting category")
 			return False
 		if self.curs.fetchall():
-			print("An entry with the same name is already present in the same category!")
+			pBLogger.info("An entry with the same name is already present in the same category!")
 			return False
 		else:
 			return self.connExec("""
@@ -375,7 +377,7 @@ class categories(physbiblioDBSub):
 		Output:
 			False if the field or the value is not valid, the output of self.connExec otherwise
 		"""
-		print("[DB] updating '%s' for entry '%s'"%(field, idCat))
+		pBLogger.info("Updating '%s' for entry '%s'"%(field, idCat))
 		if field in self.tableCols["categories"] and field is not "idCat" \
 				and value is not "" and value is not None:
 			query = "update categories set " + field + "=:field where idCat=:idCat\n"
@@ -403,10 +405,10 @@ class categories(physbiblioDBSub):
 				result = self.extractCatByName(name)
 				idCat = result[0]["idCat"]
 			if idCat < 2:
-				print("[DB] Error: should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
+				pBLogger.info("You should not delete the category with id: %d%s."%(idCat, " (name: %s)"%name if name else ""))
 				return False
-			print("[DB] using idCat=%d"%idCat)
-			print("[DB] looking for child categories")
+			pBLogger.info("Using idCat=%d"%idCat)
+			pBLogger.info("Looking for child categories")
 			for row in self.getChild(idCat):
 				self.delete(row["idCat"])
 			self.cursExec("""
@@ -466,7 +468,7 @@ class categories(physbiblioDBSub):
 			for i,k in enumerate(self.tableCols["categories"]):
 				catDict[k] = entry[i]
 		except:
-			print("[DB] Error in extracting category by idCat")
+			pBLogger.info("Error in extracting category by idCat")
 			catDict = None
 		return catDict
 
@@ -567,7 +569,7 @@ class categories(physbiblioDBSub):
 		"""
 		cats = self.getAll()
 		if depth < 2:
-			print("[DB] invalid depth in printCatHier (must be greater than 2)")
+			pBLogger.warning("Invalid depth in printCatHier (must be greater than 2)")
 			depth = 10
 		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
 		def printSubGroup(tree, indent = "", startDepth = 0):
@@ -676,12 +678,13 @@ class catsEntries(physbiblioDBSub):
 				self.insert(idCat, q)
 		else:
 			if len(self.getOne(idCat, key))==0:
+				pBLogger.debug("inserting (idCat=%s and key=%s)"%(idCat, key))
 				return self.connExec("""
 						INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
 						""",
 						{"bibkey": key, "idCat": idCat})
 			else:
-				print("[DB] entryCat already present: (%d, %s)"%(idCat, key))
+				pBLogger.info("EntryCat already present: (%d, %s)"%(idCat, key))
 				return False
 
 	def delete(self, idCat, key):
@@ -718,7 +721,7 @@ class catsEntries(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
+		pBLogger.info("Updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
 		query = "update entryCats set bibkey=:new where bibkey=:old\n"
 		return self.connExec(query, {"new": new, "old": old})
 
@@ -737,7 +740,7 @@ class catsEntries(physbiblioDBSub):
 				cats = self.literal_eval(string)
 				self.insert(cats, k)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 	def askKeys(self, cats):
 		"""
@@ -754,7 +757,7 @@ class catsEntries(physbiblioDBSub):
 				keys = self.literal_eval(string)
 				self.insert(c, keys)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 class catsExps(physbiblioDBSub):
 	"""
@@ -813,12 +816,13 @@ class catsExps(physbiblioDBSub):
 				self.insert(idCat, q)
 		else:
 			if len(self.getOne(idCat, idExp))==0:
+				pBLogger.debug("inserting (idCat=%s and idExp=%s)"%(idCat, idExp))
 				return self.connExec("""
 						INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
 						""",
 						{"idExp": idExp, "idCat": idCat})
 			else:
-				print("[DB] expCat already present: (%d, %d)"%(idCat, idExp))
+				pBLogger.info("ExpCat already present: (%d, %d)"%(idCat, idExp))
 				return False
 
 	def delete(self, idCat, idExp):
@@ -859,7 +863,7 @@ class catsExps(physbiblioDBSub):
 				cats = self.literal_eval(string)
 				self.insert(cats, e)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 	def askExps(self, cats):
 		"""
@@ -876,7 +880,7 @@ class catsExps(physbiblioDBSub):
 				exps = self.literal_eval(string)
 				self.insert(c, exps)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 class entryExps(physbiblioDBSub):
 	"""
@@ -935,6 +939,7 @@ class entryExps(physbiblioDBSub):
 				self.insert(key, q)
 		else:
 			if len(self.getOne(key, idExp))==0:
+				pBLogger.debug("inserting (key=%s and idExp=%s)"%(key, idExp))
 				if self.connExec("""
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
@@ -943,7 +948,7 @@ class entryExps(physbiblioDBSub):
 						self.mainDB.catBib.insert(c["idCat"],key)
 					return True
 			else:
-				print("[DB] entryExp already present: (%s, %d)"%(key, idExp))
+				pBLogger.info("EntryExp already present: (%s, %d)"%(key, idExp))
 				return False
 
 	def delete(self, key, idExp):
@@ -980,7 +985,7 @@ class entryExps(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		print("[DB] updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
+		pBLogger.info("Updating entryCats for bibkey change, from '%s' to '%s'"%(old, new))
 		query = "update entryExps set bibkey=:new where bibkey=:old\n"
 		return self.connExec(query, {"new": new, "old": old})
 
@@ -999,7 +1004,7 @@ class entryExps(physbiblioDBSub):
 				exps = self.literal_eval(string)
 				self.insert(k, exps)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 	def askKeys(self, exps):
 		"""
@@ -1016,7 +1021,7 @@ class entryExps(physbiblioDBSub):
 				keys = self.literal_eval(string)
 				self.insert(keys, e)
 			except:
-				print("[DB] something failed in reading your input '%s'"%string)
+				pBLogger.warning("Something failed in reading your input '%s'"%string)
 
 class experiments(physbiblioDBSub):
 	"""
@@ -1071,7 +1076,7 @@ class experiments(physbiblioDBSub):
 		Output:
 			False if the field or the content is invalid, the output of self.connExec otherwise
 		"""
-		print("[DB] updating '%s' for entry '%s'"%(field, idExp))
+		pBLogger.info("Updating '%s' for entry '%s'"%(field, idExp))
 		if field in self.tableCols["experiments"] and field is not "idExp" \
 				and value is not "" and value is not None:
 			query = "update experiments set " + field + "=:field where idExp=:idExp\n"
@@ -1090,7 +1095,7 @@ class experiments(physbiblioDBSub):
 			for e in idExp:
 				self.delete(e)
 		else:
-			print("[DB] using idExp=%d"%idExp)
+			pBLogger.info("Using idExp=%d"%idExp)
 			self.cursExec("""
 			delete from experiments where idExp=?
 			""", (idExp, ))
@@ -1152,7 +1157,7 @@ class experiments(physbiblioDBSub):
 			for i,k in enumerate(self.tableCols["experiments"]):
 				expDict[k] = entry[i]
 		except:
-			print("[DB] Error in extracting experiment by idExp")
+			pBLogger.info("Error in extracting experiment by idExp")
 			expDict = None
 		return expDict
 
@@ -1258,7 +1263,7 @@ class experiments(physbiblioDBSub):
 				for e in alphabetExp(expCats[ix]):
 					print(lev * sp + expString(e))
 			except:
-				pBErrorManager("[DB] error printing experiments!", traceback)
+				pBLogger.exception("Error printing experiments!")
 		for l0 in cats_alphabetical(catsHier.keys(), self.mainDB):
 			for l1 in cats_alphabetical(catsHier[l0].keys(), self.mainDB):
 				if showCat[l1]:
@@ -1388,7 +1393,7 @@ class entries(physbiblioDBSub):
 			for k in key:
 				self.delete(k)
 		else:
-			print("[DB] delete entry, using key = '%s'"%key)
+			pBLogger.info("Delete entry, using key = '%s'"%key)
 			self.cursExec("""
 			delete from entries where bibkey=?
 			""", (key,))
@@ -1419,7 +1424,7 @@ class entries(physbiblioDBSub):
 			except IndexError:
 				tmp["bibtexDict"] = {}
 			except ParseException:
-				pBErrorManager("[DB] Problem in parsing the following bibtex code:\n%s"%el["bibtex"])
+				pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%el["bibtex"])
 				tmp["bibtexDict"] = {}
 			try:
 				tmp["year"] = tmp["bibtexDict"]["year"]
@@ -1460,8 +1465,7 @@ class entries(physbiblioDBSub):
 			else:
 				self.cursExec(self.lastQuery)
 		except:
-			print("[DB] query failed: %s"%self.lastQuery)
-			print(self.lastVals)
+			pBLogger.warning("Query failed: %s\nvalues:"%(self.lastQuery, self.lastVals))
 		fetched_in = self.curs.fetchall()
 		self.lastFetched = self.completeFetched(fetched_in)
 		return self
@@ -1532,7 +1536,7 @@ class entries(physbiblioDBSub):
 						["%s%d.%s=?"%(tabName, iC, fieldName) for iC,q in enumerate(queryDict[tp]["id"])]) + ")"
 					valsTmp = tuple(queryDict[tp]["id"])
 				else:
-					pBErrorManager("[DB] invalid operator for joining cats!")
+					pBLogger.warning("Invalid operator for joining cats!")
 					return joinStr, whereStr, valsTmp
 			else:
 				joinStr += " left join %s on entries.bibkey=%s.bibkey"%(tabName, tabName)
@@ -1579,16 +1583,14 @@ class entries(physbiblioDBSub):
 		if saveQuery:
 			self.lastQuery = query
 			self.lastVals  = vals
-		print("[DB] using query:\n%s"%query)
-		print(vals)
+		pBLogger.info("Using query:\n%s\nvalues: %s"%(query, vals))
 		try:
 			if len(vals) > 0:
 				self.cursExec(query, vals)
 			else:
 				self.cursExec(query)
 		except:
-			pBErrorManager("[DB] query failed: %s"%query, traceback)
-			print(vals)
+			pBLogger.exception("Query failed: %s\nvalues: %s"%(query, vals))
 			return self
 		fetched_in = self.curs.fetchall()
 		self.lastFetched = self.completeFetched(fetched_in)
@@ -1617,13 +1619,13 @@ class entries(physbiblioDBSub):
 		query = "select * from entries "
 		vals = ()
 		if connection.strip() != "and" and connection.strip() != "or":
-			pBErrorManager("[DB] invalid logical connection operator ('%s') in database operations!\nReverting to default 'and'."%connection)
+			pBLogger.warning("Invalid logical connection operator ('%s') in database operations!\nReverting to default 'and'."%connection)
 			connection = "and"
 		if operator.strip() != "=" and operator.strip() != "like":
-			pBErrorManager("[DB] invalid comparison operator ('%s') in database operations!\nReverting to default '='."%operator)
+			pBLogger.warning("Invalid comparison operator ('%s') in database operations!\nReverting to default '='."%operator)
 			operator = "="
 		if orderType.strip() != "ASC" and orderType.strip() != "DESC":
-			pBErrorManager("[DB] invalid ordering ('%s') in database operations!\nReverting to default 'ASC'."%orderType)
+			pBLogger.warning("Invalid ordering ('%s') in database operations!\nReverting to default 'ASC'."%orderType)
 			orderType = "ASC"
 		if params and len(params) > 0:
 			query += " where "
@@ -1666,8 +1668,7 @@ class entries(physbiblioDBSub):
 			else:
 				cursor.execute(query)
 		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
-			pBErrorManager("[DB] query failed: %s"%query, traceback)
-			print(vals)
+			pBLogger.exception("Query failed: %s\nvalues: %s"%(query, vals))
 		if doFetch:
 			fetched_in = self.curs.fetchall()
 			self.lastFetched = self.completeFetched(fetched_in)
@@ -1796,10 +1797,10 @@ class entries(physbiblioDBSub):
 		try:
 			return self.getByBibkey(key, saveQuery = False)[0][field]
 		except IndexError:
-			print("[DB] ERROR in getEntryField('%s', '%s'): no element found?"%(key, field))
+			pBLogger.warning("Error in getEntryField('%s', '%s'): no element found?"%(key, field))
 			return False
 		except KeyError:
-			print("[DB] ERROR in getEntryField('%s', '%s'): the field is missing?"%(key, field))
+			pBLogger.warning("Error in getEntryField('%s', '%s'): the field is missing?"%(key, field))
 			return False
 
 	def toDataDict(self, key):
@@ -1915,11 +1916,11 @@ class entries(physbiblioDBSub):
 				element["ID"] = bibkey
 			data["bibkey"] = element["ID"]
 		except IndexError:
-			print("[DB] ERROR: no elements found?")
+			pBLogger.info("No elements found?")
 			data["bibkey"] = ""
 			return data
 		except (KeyError, ParseException):
-			print("[DB] ERROR: impossible to parse bibtex!")
+			pBLogger.info("Impossible to parse bibtex!")
 			data["bibkey"] = ""
 			return data
 		db = bibtexparser.bibdatabase.BibDatabase()
@@ -2022,10 +2023,10 @@ class entries(physbiblioDBSub):
 			elementOld = bibtexparser.loads(bibtexOld).entries[0]
 			elementNew = bibtexparser.loads(bibtexNew).entries[0]
 		except ParseException:
-			pBErrorManager("[DB] parsing exception in prepareUpdate:\n%s\n%s"%(bibtexOld, bibtexNew))
+			pBLogger.warning("Parsing exception in prepareUpdate:\n%s\n%s"%(bibtexOld, bibtexNew))
 			return ""
 		except IndexError:
-			pBErrorManager("[DB] empty bibtex?\n%s\n%s"%(bibtexOld, bibtexNew))
+			pBLogger.warning("Empty bibtex?\n%s\n%s"%(bibtexOld, bibtexNew))
 			return ""
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
@@ -2058,7 +2059,7 @@ class entries(physbiblioDBSub):
 			if self.connExec(query, {"inspire": newid, "bibkey": key}):
 				return newid
 			else:
-				print("[DB] something went wrong in updateInspireID")
+				pBLogger.warning("Something went wrong in updateInspireID")
 				return False
 		else:
 			return False
@@ -2077,16 +2078,16 @@ class entries(physbiblioDBSub):
 			the output of self.connExec or False if the field is invalid
 		"""
 		if verbose > 0:
-			print("[DB] updating '%s' for entry '%s'"%(field, key))
+			pBLogger.info("Updating '%s' for entry '%s'"%(field, key))
 		if field in self.tableCols["entries"] and field != "bibkey" \
 				and value is not None:
 			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
 			if verbose > 1:
-				print(query, field, value)
+				pBLogger.info("%s"%((query, field, value)))
 			return self.connExec(query, {"field": value, "bibkey": key})
 		else:
 			if verbose > 1:
-				print("[DB] non-existing field or unappropriated value: (%s, %s, %s)"%(key, field, value))
+				pBLogger.warning("Non-existing field or unappropriated value: (%s, %s, %s)"%(key, field, value))
 			return False
 	
 	def updateBibkey(self, oldKey, newKey):
@@ -2100,7 +2101,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.connExec or False if some errors occurred
 		"""
-		print("[DB] updating bibkey for entry '%s' into '%s'"%(oldKey, newKey))
+		pBLogger.info("Updating bibkey for entry '%s' into '%s'"%(oldKey, newKey))
 		try:
 			query = "update entries set bibkey=:new where bibkey=:old\n"
 			if self.connExec(query, {"new": newKey, "old": oldKey}):
@@ -2113,7 +2114,7 @@ class entries(physbiblioDBSub):
 			else:
 				return False
 		except:
-			print(traceback.format_exc())
+			pBLogger.warning("Impossible to update bibkey", exc_info = True)
 			return False
 			
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
@@ -2129,7 +2130,7 @@ class entries(physbiblioDBSub):
 			date2 = datetime.date.today().strftime("%Y-%m-%d")
 		yren, monen, dayen = date1.split('-')
 		yrst, monst, dayst = date2.split('-')
-		print("[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(date1, date2))
+		pBLogger.info("Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(date1, date2))
 		date1 = datetime.datetime(int(yren), int(monen), int(dayen))
 		date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
 		entries = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
@@ -2137,25 +2138,25 @@ class entries(physbiblioDBSub):
 		for e in entries:
 			try:
 				key = e["bibkey"]
-				print(key)
+				pBLogger.info(key)
 				old = self.getByBibkey(key, saveQuery = False)
 				if len(old) > 0 and old[0]["noUpdate"] == 0:
 					e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"]).strip()))
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d] and e[o] != None:
 							if o == "bibtex":
-								print(d)
-								print("old:\n%s"%old[0][d])
-								print("new:\n%s"%e[o])
+								pBLogger.info(d)
+								pBLogger.info("old:\n%s"%old[0][d])
+								pBLogger.info("new:\n%s"%e[o])
 							else:
-								print(d, e[o])
+								pBLogger.info("%s, %s"%(d, e[o]))
 							self.updateField(key, d, e[o], verbose = 0)
 							if len(changed) == 0 or changed[-1] != key:
 								changed.append(key)
 			except:
-				pBErrorManager("[DB][oai] something wrong with entry %s\n%s"%(e["id"], e), traceback)
-		print("[DB][oai] changed entries:\n%s"%changed)
-		print("[DB] inspire OAI harvesting done!")
+				pBLogger.exception("something wrong with entry %s\n%s"%(e["id"], e))
+		pBLogger.info("Changed entries:\n%s"%changed)
+		pBLogger.info("Inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
 		"""
@@ -2170,45 +2171,45 @@ class entries(physbiblioDBSub):
 			True if successful, or False if there were errors
 		"""
 		if inspireID is False or inspireID is "" or inspireID is None:
-			pBErrorManager("[DB][updateInfoFromOAI] inspireID is empty, cannot proceed.")
+			pBLogger.error("InspireID is empty, cannot proceed.")
 			return False
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
 			inspireID = self.getField(inspireID, "inspire")
 			try:
 				inspireID.isdigit()
 			except AttributeError:
-				pBErrorManager("[DB] wrong type in inspireID: %s"%inspireID)
+				pBLogger.error("Wrong type in inspireID: %s"%inspireID)
 				return False
 			if not inspireID.isdigit():
-				pBErrorManager("[DB] wrong value/format in inspireID: %s"%inspireID)
+				pBLogger.error("Wrong value/format in inspireID: %s"%inspireID)
 				return False
 		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose, readConferenceTitle = readConferenceTitle)
 		if verbose > 1:
-			print(result)
+			pBLogger.info(result)
 		if result is False:
-			pBErrorManager("[DB][oai] empty record looking for recid:%s!"%inspireID)
+			pBLogger.error("Empty record looking for recid:%s!"%inspireID)
 			return False
 		try:
 			key = result["bibkey"]
 			old = self.getByBibkey(key, saveQuery = False)
 			if verbose > 1:
-				print("%s, %s"%(key, old))
+				pBLogger.info("%s, %s"%(key, old))
 			if len(old) > 0:
 				for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 					try:
 						if verbose > 0:
-							print("%s = %s (%s)"%(d, result[o], old[0][d]))
+							pBLogger.info("%s = %s (%s)"%(d, result[o], old[0][d]))
 						if result[o] != old[0][d]:
 							if o == "bibtex" and result[o] is not None:
 								self.updateField(key, d, self.rmBibtexComments(self.rmBibtexACapo(result[o].strip())), verbose = 0)
 							else:
 								self.updateField(key, d, result[o], verbose = 0)
 					except KeyError:
-						pBErrorManager("[DB][oai] key error: (%s, %s)"%(o,d), traceback, priority = 0)
+						pBLogger.exception("Key error: (%s, %s)"%(o,d))
 			if verbose > 0:
-				print("[DB] inspire OAI info for %s saved."%inspireID)
+				pBLogger.info("Inspire OAI info for %s saved."%inspireID)
 		except KeyError:
-			pBErrorManager("[DB][oai] something missing in entry %s"%inspireID, traceback, priority = 1)
+			pBLogger.exception("Something missing in entry %s"%inspireID)
 			return False
 		return True
 	
@@ -2256,7 +2257,7 @@ class entries(physbiblioDBSub):
 		self.cursExec(self.lastQuery, self.lastVals)
 		self.lastFetched = self.completeFetched(self.curs.fetchall())
 		keys = [k["bibkey"] for k in self.lastFetched]
-		print("[DB] Replacing text in entries: ", keys)
+		pBLogger.info("Replacing text in entries: ", keys)
 		if self.connExec("UPDATE entries SET bibtex = replace( bibtex, :old, :new ) WHERE bibtex LIKE :match", {"old": old, "new": new, "match": match}):
 			return keys
 		else:
@@ -2299,7 +2300,7 @@ class entries(physbiblioDBSub):
 				line = line.replace(old, new)
 			return line
 		if type(fiNews) is not list or type(news) is not list:
-			pBErrorManager("[DB][bibs][replace] invalid 'fiNews' or 'news' (they must be lists)")
+			pBLogger.warning("Invalid 'fiNews' or 'news' (they must be lists)")
 			return [], [], []
 		if entries is None:
 			self.fetchAll(saveQuery = False, doFetch = False)
@@ -2340,7 +2341,7 @@ class entries(physbiblioDBSub):
 						aft.append(after)
 						self.updateField(entry["bibkey"], fiNew, after, verbose = 0)
 			except KeyError:
-				pBErrorManager("[DB] something wrong in replace", traceback)
+				pBLogger.exception("Something wrong in replace")
 				failed.append(entry["bibkey"])
 			else:
 				success.append(entry["bibkey"])
@@ -2382,7 +2383,7 @@ class entries(physbiblioDBSub):
 			try:
 				tmp[k] = v.replace("\n", " ")
 			except AttributeError:
-				pBErrorManager("[DB] wrong type or value for field %s (%s)?"%(k, v))
+				pBLogger.warning("Wrong type or value for field %s (%s)?"%(k, v))
 				tmp[k] = v
 		db.entries = [tmp]
 		return pbWriter.write(db)
@@ -2406,18 +2407,18 @@ class entries(physbiblioDBSub):
 			self.getArxivFieldsFlag = True
 			success = []
 			fail = []
-			print("[DB] thread_fieldsArxiv will process %d entries."%tot)
+			pBLogger.info("Thread_fieldsArxiv will process %d entries."%tot)
 			for ix, k in enumerate(bibkey):
 				arxiv = str(self.getField(k, "arxiv"))
 				if self.getArxivFieldsFlag and arxiv.strip() != "":
-					print("\n[DB] %5d / %d (%5.2f%%) - processing: arxiv:%s\n"%(ix+1, tot, 100.*(ix+1)/tot, arxiv))
+					pBLogger.info("\n%5d / %d (%5.2f%%) - processing: arxiv:%s\n"%(ix+1, tot, 100.*(ix+1)/tot, arxiv))
 					result = self.getFieldsFromArxiv(k, fields)
 					if result is True:
 						success.append(k)
 					else:
 						fail.append(k)
-			print("\n\n[DB] thread_fieldsArxiv has finished!")
-			print("%d entries processed, of which these %d generated errors:\n%s"%(len(success+fail), len(fail), fail))
+			pBLogger.info("\n\nThread_fieldsArxiv has finished!")
+			pBLogger.info("%d entries processed, of which these %d generated errors:\n%s"%(len(success+fail), len(fail), fail))
 			return success, fail
 		if type(fields) is not list:
 			fields = [fields]
@@ -2447,7 +2448,7 @@ class entries(physbiblioDBSub):
 			self.updateField(bibkey, "bibtex", bibtex)
 			return True
 		except Exception:
-			pBErrorManager("Cannot get and save info from arXiv!\n", traceback)
+			pBLogger.exception("Cannot get and save info from arXiv!\n")
 			return False
 
 	def loadAndInsert(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
@@ -2477,7 +2478,7 @@ class entries(physbiblioDBSub):
 			Output:
 				the bibtex field if returnBibtex is True, True otherwise
 			"""
-			print("[DB] Already existing: %s\n"%entry)
+			pBLogger.info("Already existing: %s\n"%entry)
 			if returnBibtex:
 				return existing[0]["bibtex"]
 			else:
@@ -2512,19 +2513,19 @@ class entries(physbiblioDBSub):
 					db.entries = bibtexparser.loads(entry).entries
 					e  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 				except ParseException:
-					pBErrorManager("[DB][loadAndInsert] Error while reading the bibtex '%s'"%entry, traceback, priority = 0)
+					pBLogger.exception("Error while reading the bibtex '%s'"%entry)
 					return False
 			else:
 				try:
 					e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
 				except KeyError:
-					pBErrorManager("[DB][loadAndInsert] method not valid: %s"%method)
+					pBLogger.error("Method not valid: %s"%method)
 					return False
 			if e.count('@') > 1:
 				if number is not None:
 					requireAll = True
 				else:
-					pBErrorManager("[DB] WARNING: possible mismatch. Specify the number of element to select with 'number'\n%s"%e, priority = 0)
+					pBLogger.warning("Possible mismatch. Specify the number of element to select with 'number'\n%s"%e, priority = 0)
 					return False
 			kwargs = {}
 			if requireAll:
@@ -2534,19 +2535,19 @@ class entries(physbiblioDBSub):
 			data = self.prepareInsert(e, **kwargs)
 			key = data["bibkey"]
 			if key.strip() == "":
-				pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%entry)
+				pBLogger.error("Impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
 			existing = self.getByBibkey(key, saveQuery = False)
 			if existing:
 				return printExisting(key, existing)
-			print("[DB] entry will have key\n'%s'"%key)
+			pBLogger.info("Entry will have key\n'%s'"%key)
 			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
 				data["abstract"] = arxivDict["abstract"]
 			try:
 				self.insert(data)
 			except:
-				pBErrorManager("[DB] loadAndInsert(%s) failed in inserting entry\n"%entry)
+				pBLogger.exception("Failed in inserting entry %s\n"%entry)
 				return False
 			try:
 				self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
@@ -2562,37 +2563,37 @@ class entries(physbiblioDBSub):
 					self.setProceeding(key)
 				if "phdthesis" in data["bibtex"].lower():
 					self.setPhdThesis(key)
-				print("[DB] element successfully inserted.\n")
+				pBLogger.info("Element successfully inserted.\n")
 				self.lastInserted.append(key)
 				if returnBibtex:
 					return e
 				else:
 					return True
 			except:
-				pBErrorManager("[DB] loadAndInsertEntries(%s) failed in completing info\n"%entry)
+				pBLogger.warning("Failed in completing info for entry %s\n"%entry)
 				return False
 		elif entry is not None and type(entry) is list:
 			failed = []
 			entry = returnListIfSub(entry, [])
 			self.runningLoadAndInsert = True
 			tot = len(entry)
-			print("[DB] loadAndInsert will process %d total entries"%tot)
+			pBLogger.info("LoadAndInsert will process %d total entries"%tot)
 			ix = 0
 			for e in entry:
 				if type(e) is float:
 					e = str(e)
 				if self.runningLoadAndInsert:
-					print("[DB] %5d / %d (%5.2f%%) - looking for string: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e))
+					pBLogger.info("%5d / %d (%5.2f%%) - looking for string: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e))
 					if not self.loadAndInsert(e, childProcess = True):
 						failed.append(e)
 					ix += 1
 			if len(self.lastInserted) > 0:
-				print("[DB] imported entries:\n%s"%", ".join(self.lastInserted))
+				pBLogger.info("Imported entries:\n%s"%", ".join(self.lastInserted))
 			if len(failed) > 0:
-				pBErrorManager("[DB] ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
+				pBLogger.warning("ERRORS!\nFailed to load and import entries:\n%s"%", ".join(failed))
 			return True
 		else:
-			print("[DB] ERROR: invalid arguments to loadAndInsertEntries!")
+			pBLogger.error("Invalid arguments!")
 			return False
 			
 	def loadAndInsertWithCats(self, entry, method = "inspire", imposeKey = None, number = None, returnBibtex = False, childProcess = False):
@@ -2619,21 +2620,21 @@ class entries(physbiblioDBSub):
 			Parameters:
 				entry: the entry key
 			"""
-			print("[DB] Already existing: %s\n"%entry)
+			pBLogger.info("Already existing: %s\n"%entry)
 		self.lastInserted = []
 		exist = []
 		errors = []
-		print("[DB] Importing from file bib: %s"%filename)
+		pBLogger.info("Importing from file bib: %s"%filename)
 		with open(filename) as r:
 			bibText = r.read()
 		try:
 			elements = bibtexparser.loads(bibText).entries
 		except ParseException:
-			pBErrorManager("[DB][entries][importFromBib] Impossible to parse text:\n%s"%bibText, traceback)
+			pBLogger.exception("Impossible to parse text:\n%s"%bibText)
 			return
 		db = bibtexparser.bibdatabase.BibDatabase()
 		self.importFromBibFlag = True
-		print("[DB] entries to be processed: %d"%len(elements))
+		pBLogger.info("Entries to be processed: %d"%len(elements))
 		tot = len(elements)
 		for ie, e in enumerate(elements):
 			if self.importFromBibFlag:
@@ -2641,21 +2642,21 @@ class entries(physbiblioDBSub):
 				bibtex = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 				data = self.prepareInsert(bibtex)
 				key = data["bibkey"]
-				print("[DB] %5d / %d (%5.2f%%), processing entry %s"%(ie+1, tot, 100.*(ie+1.)/tot, key))
+				pBLogger.info("%5d / %d (%5.2f%%), processing entry %s"%(ie+1, tot, 100.*(ie+1.)/tot, key))
 				existing = self.getByBibkey(key, saveQuery = False)
 				if existing:
 					printExisting(key)
 					exist.append(key)
 				elif key.strip() == "":
-					pBErrorManager("[DB] ERROR: impossible to insert an entry with empty bibkey!\n")
+					pBLogger.warning("Impossible to insert an entry with empty bibkey!\n")
 					errors.append(key)
 				else:
 					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
 						data["abstract"] = arxivDict["abstract"]
-					print("[DB] entry will have key\n'%s'"%key)
+					pBLogger.info("Entry will have key\n'%s'"%key)
 					if not self.insert(data):
-						pBErrorManager("[DB] failed in inserting entry %s\n"%key)
+						pBLogger.warning("Failed in inserting entry %s\n"%key)
 						errors.append(key)
 					else:
 						self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
@@ -2663,12 +2664,12 @@ class entries(physbiblioDBSub):
 							if completeInfo:
 								eid = self.updateInspireID(key)
 								self.updateInfoFromOAI(eid)
-							print("[DB] element successfully inserted.\n")
+							pBLogger.info("Element successfully inserted.\n")
 							self.lastInserted.append(key)
 						except Exception:
-							pBErrorManager("[DB] failed in completing info for entry %s\n"%key, traceback, priority = 1)
+							pBLogger.exception("Failed in completing info for entry %s\n"%key)
 							errors.append(key)
-		print("[DB] import completed.\n%d entries processed, of which %d existing, %d successfully inserted and %d errors."%(
+		pBLogger.info("Import completed.\n%d entries processed, of which %d existing, %d successfully inserted and %d errors."%(
 			len(elements), len(exist), len(self.lastInserted), len(errors)))
 
 	def setBook(self, key, value = 1):
@@ -2792,7 +2793,7 @@ class entries(physbiblioDBSub):
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
-		print("[DB] %d elements found"%total)
+		pBLogger.info("%d elements found"%total)
 			
 	def printAllBibkeys(self, entriesIn = None):
 		"""
@@ -2813,7 +2814,7 @@ class entries(physbiblioDBSub):
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
-		print("[DB] %d elements found"%total)
+		pBLogger.info("%d elements found"%total)
 			
 	def printAllInfo(self, entriesIn = None, orderBy = "firstdate", addFields = None):
 		"""
@@ -2867,7 +2868,7 @@ class entries(physbiblioDBSub):
 							print("   %s: %s"%(addFields, e["bibtexDict"][addFields]))
 				except:
 					pass
-		print("[DB] %d elements found"%total)
+		pBLogger.info("%d elements found"%total)
 
 	def fetchByCat(self, idCat, orderBy = "entries.firstdate", orderType = "ASC"):
 		"""
@@ -2968,7 +2969,7 @@ class entries(physbiblioDBSub):
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
 				iterator = self.fetchCursor()
 			except TypeError:
-				pBErrorManager("[DB] invalid startFrom in cleanBibtexs", traceback)
+				pBLogger.exception("Invalid startFrom in cleanBibtexs")
 				return 0, 0, []
 		else:
 			iterator = entries
@@ -2977,12 +2978,12 @@ class entries(physbiblioDBSub):
 		err = 0
 		changed = []
 		self.runningCleanBibtexs = True
-		print("[DB] cleanBibtexs will process %d total entries"%tot)
+		pBLogger.info("CleanBibtexs will process %d total entries"%tot)
 		db = bibtexparser.bibdatabase.BibDatabase()
 		for ix, e in enumerate(iterator):
 			if self.runningCleanBibtexs:
 				num += 1
-				print("[DB] %5d / %d (%5.2f%%) - cleaning: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				pBLogger.info("%5d / %d (%5.2f%%) - cleaning: '%s'\n"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 				for field in ["old_keys"]:#convert None to "" from given fields
 					if e[field] is None:
 						self.updateField(e["bibkey"], field, "")
@@ -2992,14 +2993,14 @@ class entries(physbiblioDBSub):
 					db.entries.append(element)
 					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
 					if e["bibtex"] != newbibtex and self.updateField(e["bibkey"], "bibtex", newbibtex):
-						print("[DB] -- element changed!")
+						pBLogger.info("-- element changed!")
 						changed.append(e["bibkey"])
 				except (ValueError, ParseException):
-					pBErrorManager("[DB] Error while cleaning entry '%s'"%e["bibkey"], traceback, priority = 0)
+					pBLogger.warning("Error while cleaning entry '%s'"%e["bibkey"], exc_info = True)
 					err += 1
-		print("\n[DB] %d entries processed"%num)
-		print("\n[DB] %d errors occurred"%err)
-		print("\n[DB] %d entries changed"%len(changed))
+		pBLogger.info("\n%d entries processed"%num)
+		pBLogger.info("\n%d errors occurred"%err)
+		pBLogger.info("\n%d entries changed"%len(changed))
 		return num, err, changed
 	
 	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
@@ -3020,7 +3021,7 @@ class entries(physbiblioDBSub):
 				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
 				iterator = self.fetchCursor()
 			except TypeError:
-				pBErrorManager("[DB] invalid startFrom in searchOAIUpdates", traceback)
+				pBLogger.exception("Invalid startFrom in searchOAIUpdates")
 				return 0, [], []
 		else:
 			iterator = entries
@@ -3029,7 +3030,7 @@ class entries(physbiblioDBSub):
 		err = []
 		changed = []
 		self.runningOAIUpdates = True
-		print("[DB] searchOAIUpdates will process %d total entries"%tot)
+		pBLogger.info("SearchOAIUpdates will process %d total entries"%tot)
 		for ix, e in enumerate(iterator):
 			if not "bibtexDict" in e.keys():
 				e = self.completeFetched([e])[0]
@@ -3043,24 +3044,24 @@ class entries(physbiblioDBSub):
 				and e["inspire"] != "" \
 				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
-					print("[DB] %5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+					pBLogger.info("%5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0, readConferenceTitle = (e["proceeding"] == 1 and force) ):
 						err.append(e["bibkey"])
 					else:
 						new = self.getByBibkey(e["bibkey"], saveQuery = False)[0]
 						if e != new:
-							print("[DB] -- element changed!")
+							pBLogger.info("-- element changed!")
 							for diff in list(dictdiffer.diff(e, new)):
-								print(diff)
+								pBLogger.info(diff)
 							changed.append(e["bibkey"])
-					print("")
-		print("\n[DB] %d entries processed"%num)
-		print("\n[DB] %d errors occurred"%len(err))
+					pBLogger.info("")
+		pBLogger.info("\n%d entries processed"%num)
+		pBLogger.info("\n%d errors occurred"%len(err))
 		if len(err)>0:
-			print(err)
-		print("\n[DB] %d entries changed"%len(changed))
+			pBLogger.info(err)
+		pBLogger.info("\n%d entries changed"%len(changed))
 		if len(changed)>0:
-			print(changed)
+			pBLogger.info(changed)
 		return num, err, changed
 
 class utilities(physbiblioDBSub):
@@ -3082,7 +3083,7 @@ class utilities(physbiblioDBSub):
 			"""
 			for e in join:
 				if e[0] not in ix1 or e[1] not in ix2:
-					print("[DB] cleaning (%s, %s)"%(e[0], e[1]))
+					pBLogger.info("Cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 
 		self.mainDB.bibs.fetchAll(saveQuery = False, doFetch = False)
@@ -3125,7 +3126,7 @@ def catString(idCat, db, withDesc = False):
 	try:
 		cat = db.cats.getByID(idCat)[0]
 	except IndexError:
-		pBErrorManager("[DB][catString] category '%s' not in database"%idCat)
+		pBLogger.warning("Category '%s' not in database"%idCat)
 		return ""
 	if withDesc:
 		return '%4d: %s - <i>%s</i>'%(cat['idCat'], cat['name'], cat['description'])
@@ -3147,7 +3148,7 @@ def cats_alphabetical(listId, db):
 		try:
 			listIn.append(db.cats.getByID(i)[0])
 		except IndexError:
-			pBErrorManager("[DB][cats_alphabetical] category '%s' not in database"%i)
+			pBLogger.warning("Category '%s' not in database"%i)
 	decorated = [ (x["name"].lower(), x) for x in listIn ]
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]

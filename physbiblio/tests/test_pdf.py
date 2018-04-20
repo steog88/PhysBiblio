@@ -16,7 +16,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB, physbiblioDB
 	from physbiblio.pdf import pBPDF
@@ -100,5 +99,4 @@ class TestPdfMethods(unittest.TestCase):
 		shutil.rmtree(pBPDF.pdfDir)
 
 if __name__=='__main__':
-	print("\nStarting tests...\n")
 	unittest.main()

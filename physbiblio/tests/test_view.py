@@ -15,7 +15,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.view import pBView
@@ -48,5 +47,4 @@ class TestViewMethods(unittest.TestCase):
 			self.assertFalse(pBView.printLink("a", "doi"))
 
 if __name__=='__main__':
-	print("\nStarting tests...\n")
 	unittest.main()

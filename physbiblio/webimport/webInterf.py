@@ -11,15 +11,13 @@ if sys.version_info[0] < 3:
 else:
 	from urllib.request import Request, urlopen, URLError, HTTPError
 try:
-	from physbiblio.errors import pBErrorManager
-except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
-	print(traceback.format_exc())
-try:
+	from physbiblio.errors import pBLogger
 	import physbiblio.webimport as wi
 	from physbiblio.config import pbConfig
 except ImportError:
-	pBErrorManager("Could not find physbiblio and its contents: configure your PYTHONPATH!", traceback)
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 #scan package content to load list of available modules, to be imported later
 pkgpath = os.path.dirname(wi.__file__)
@@ -71,18 +69,18 @@ class webInterf():
 			response = urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
 		except URLError:
-			pBErrorManager("[%s] -> error in retrieving data from url"%self.name)
+			pBLogger.warning("[%s] -> Error in retrieving data from url"%self.name)
 			return None
 		except HTTPError:
-			pBErrorManager("[%s] -> %s not found"%url)
+			pBLogger.warning("[%s] -> %s not found"%url)
 			return None
 		except socket.timeout:
-			pBErrorManager("[%s] -> timed out"%self.name)
+			pBLogger.warning("[%s] -> Timed out"%self.name)
 			return None
 		try:
 			text = data.decode('utf-8')
 		except Exception:
-			pBErrorManager("[%s] -> bad codification, utf-8 decode failed"%self.name)
+			pBLogger.warning("[%s] -> Bad codification, utf-8 decode failed"%self.name)
 			return None
 		return text
 	
@@ -123,7 +121,7 @@ class webInterf():
 				_temp = __import__("physbiblio.webimport." + method, globals(), locals(), ["webSearch"])
 				self.webSearch[method] = getattr(_temp, "webSearch")()
 			except Exception:
-				pBErrorManager("physbiblio.webimport.%s import error"%method, traceback)
+				pBLogger.exception("Error importing physbiblio.webimport.%s"%method)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):
@@ -140,7 +138,7 @@ class webInterf():
 		try:
 			return getattr(self.webSearch[method], retrieveUrlFirst)(search)
 		except KeyError:
-			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
+			pBLogger.warning("The method '%s' is not available!"%method)
 			return ""
 		
 	def retrieveUrlAllFrom(self, search, method):
@@ -157,7 +155,7 @@ class webInterf():
 		try:
 			return getattr(self.webSearch[method], retrieveUrlAll)(search)
 		except KeyError:
-			pBErrorManager("[WebImport] The method '%s' is not available!"%method)
+			pBLogger.warning("The method '%s' is not available!"%method)
 			return ""
 
 physBiblioWeb = webInterf()

@@ -8,6 +8,13 @@ This file is part of the PhysBiblio package.
 import re
 import sys
 
+try:
+	from physbiblio.errors import pBLogger
+except ImportError:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
+
 accents_changed = []
 ################################################################
 # LaTeX accents replacement
@@ -239,8 +246,8 @@ def parse_accents_record(record):
 		if val is not "ID" and len(record[val].strip()) > 0:
 			tmp = parse_accents_str(record[val])
 			if tmp != record[val]:
-				print("    -> Converting bad characters in entry %s: "%record["ID"])
-				print("         -- "+tmp.encode("utf-8"))
+				pBLogger.info("    -> Converting bad characters in entry %s: "%record["ID"])
+				pBLogger.info("         -- "+tmp.encode("utf-8"))
 				accents_changed.append(record["ID"])
 			record[val] = tmp
 	return record

@@ -5,12 +5,13 @@ This file is part of the PhysBiblio package.
 """
 import traceback
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
+	raise
 
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to ISBN2Bibtex to perform searches"""
@@ -38,12 +39,12 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["isbn"] = string
 		url = self.createUrl()
-		print("[isbn] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			return parse_accents_str(text[:])
 		except Exception:
-			pBErrorManager("[isbn] -> ERROR: impossible to get results", traceback)
+			pBLogger.exception("Impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self,string):

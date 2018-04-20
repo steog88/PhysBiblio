@@ -17,7 +17,7 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManagerClass
 	from physbiblio.config import pbConfig
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -25,63 +25,101 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-class TestBuilding(unittest.TestCase):
-	"""Test pBErrorManager outputs"""
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_notraceback(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stdout without traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			pBErrorManager(str(e), priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
+class TestErrors(unittest.TestCase):
+	"""Test pBErrorManagerClass stuff"""
+	@classmethod
+	def setUpClass(self):
+		"""settings"""
+		pbConfig.params["loggingLevel"] = 3
+		pbConfig.params["logFileName"] = logFileName
+		self.pBErrorManager = pBErrorManagerClass("testlogger")
 
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_withtraceback(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stdout with traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			tracebackText = traceback.format_exc()
-			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText + "\n")
+	def reset(self, m):
+		"""Clear a StringIO object"""
+		m.seek(0)
+		m.truncate(0)
 
-	@patch('sys.stderr', new_callable=StringIO)
-	def assert_stderr(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stderr without traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			pBErrorManager(str(e), priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
+	def resetLogFile(self):
+		"""Reset the logfile content"""
+		open(logFileName, 'w').close()
 
-	@patch('sys.stderr', new_callable=StringIO)
-	def assert_fullstderr(self, message, priority, expected_output, mock_stdout):
-		"""Test print to stderr with traceback"""
-		try:
-			raise Exception(message)
-		except Exception as e:
-			tracebackText = traceback.format_exc()
-			pBErrorManager(str(e), traceback, priority = priority)
-		self.assertEqual(mock_stdout.getvalue(), expected_output + tracebackText)
-
-	def test_errors(self):
-		"""Test pBErrorManager with different input combinations"""
-		try:
-			with open(logFileName) as logFile:
-				log_old = logFile.read()
-		except IOError:
-			log_old = ""
-		self.assert_notraceback("test warning", 0, "test warning\n\n")
-		self.assert_notraceback("test error", 1, "**Error**\ntest error\n\n")
+	def readLogFile(self):
+		"""Read the logfile content"""
 		with open(logFileName) as logFile:
 			log_new = logFile.read()
-		self.assertEqual(log_new, log_old + "test warning\n" + "**Error**\ntest error\n")
-		self.assert_notraceback("test critical", 2, "****Critical error****\ntest critical\n\n")
-		self.assert_withtraceback("test warning", 0, "test warning\n\n")
-		self.assert_stderr("test warning", 0, "test warning\n")
-		self.assert_fullstderr("test warning", 0, "test warning\n")
+		return log_new
 
-if __name__=='__main__':
-	print("\nStarting tests...\n")
-	unittest.main()
+	def test_critical(self):
+		"""Test pBLogger.critical with and without exception"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.critical(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("CRITICAL : [test_errors.test_critical] Fake error", log_new)
+		self.assertNotIn("Traceback (most recent call last):", log_new)
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.critical(str(e), exc_info = True)
+		log_new = self.readLogFile()
+		self.assertIn("Traceback (most recent call last):", log_new)
+
+	def test_exception(self):
+		"""Test pBLogger.exception"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.exception(str(e))
+		try:
+			raise Exception("New fake error")
+		except Exception as e:
+			self.pBErrorManager.logger.error(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] Fake error", log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] New fake error", log_new)
+		self.assertIn("Traceback (most recent call last):", log_new)
+
+	def test_warning(self):
+		"""Test pBLogger.warning"""
+		self.resetLogFile()
+		try:
+			raise Exception("Fake warning")
+		except Exception as e:
+			self.pBErrorManager.logger.warning(str(e))
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("WARNING : [test_errors.test_warning] Fake warning", log_new)
+
+	def test_info(self):
+		"""Test pBLogger.info"""
+		self.resetLogFile()
+		self.pBErrorManager.logger.info("Some info")
+		log_new = self.readLogFile()
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn("INFO : [test_errors.test_info] Some info", log_new)
+
+	def test_tempHandler(self):
+		"""Test stuff as the temporary handler"""
+		self.assertEqual(self.pBErrorManager.tempsh, None)
+		self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
+		with patch('sys.stdout', new_callable=StringIO) as _mock:
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
+			self.assertFalse(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
+			self.assertEqual(_mock.getvalue(), "There is already a temporary handler. More than one is currently not supported\n")
+			self.reset(_mock)
+			self.pBErrorManager.logger.critical("Fake critical")
+			self.assertEqual(_mock.getvalue(), "Fake critical\n")
+			self.pBErrorManager.rmTempHandler()
+			self.assertEqual(self.pBErrorManager.tempsh, None)
+			self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
+			self.reset(_mock)
+			self.assertEqual(_mock.getvalue(), "")
+			self.pBErrorManager.logger.critical("Fake critical")
+			self.assertEqual(_mock.getvalue(), "")

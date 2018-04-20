@@ -1,49 +1,73 @@
 """
-Module that only contains the pBErrorManager definition.
+Module that contains the pBErrorManager and pBLogger definitions.
 
 This file is part of the PhysBiblio package.
 """
 import sys, traceback, os
+import logging
 
 try:
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Cannot load physbiblio.config module: check your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
-class pBErrorManager():
+class pBErrorManagerClass():
 	"""Class that manages the output of the errors and stores the messages into a log file"""
-	def __init__(self, message, trcbk = None, priority = 0):
+	def __init__(self, loggerString = "physbibliolog"):
 		"""
-		Constructor for PBErrorManager.
+		Constructor for PBErrorManagerClass.
+		"""
+		self.tempsh = None
+		if pbConfig.params["loggingLevel"] == 0:
+			self.loglevel = logging.ERROR
+		elif pbConfig.params["loggingLevel"] == 1:
+			self.loglevel = logging.WARNING
+		elif pbConfig.params["loggingLevel"] == 2:
+			self.loglevel = logging.INFO
+		else:
+			self.loglevel = logging.DEBUG
+		#the main logger, will save to stdout and log file
+		self.logger = logging.getLogger(loggerString)
+		self.logger.propagate = False
+		self.logger.setLevel(min(logging.INFO, self.loglevel))
+
+		fh = logging.FileHandler(pbConfig.params["logFileName"])
+		fh.setLevel(self.loglevel)
+		formatter = logging.Formatter('%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s')
+		fh.setFormatter(formatter)
+		self.logger.addHandler(fh)
+
+		sh = logging.StreamHandler()
+		sh.setLevel(logging.INFO)
+		formatter = logging.Formatter('[%(module)s.%(funcName)s] %(message)s')
+		sh.setFormatter(formatter)
+		self.logger.addHandler(sh)
+
+	def tempHandler(self, stream = sys.stdout, level = logging.INFO, format = '[%(module)s.%(funcName)s] %(message)s'):
+		"""
+		Set a temporary StreamHandler for the logger, given the stream, with default level logging.INFO.
+		Useful when redirecting stdout
 
 		Parameters:
-			message: a text containing a description of the error
-			trcbk: the traceback of the error
-			priority (int): the importance of the error
+			stream: the stream to be used (default: sys.stdout)
+			level: the level to be used (default: logging.INFO)
+			format: the format, using the logging syntax (default: '[%(module)s.%(funcName)s] %(message)s')
 		"""
-		if priority > 1:
-			message = "****Critical error****\n" + message
-		elif priority > 0:
-			message = "**Error**\n" + message
-		message += "\n"
-		if sys.stdout == sys.__stdout__:
-			sys.stderr.write(message)
-			if trcbk is not None:
-				sys.stderr.write(trcbk.format_exc())
-		else:
-			print(message)
-			if trcbk is not None:
-				print(trcbk.format_exc())
+		if self.tempsh is not None:
+			self.logger.warning("There is already a temporary handler. More than one is currently not supported")
+			return False
+		self.tempsh = logging.StreamHandler(stream)
+		self.tempsh.setLevel(level)
+		formatter = logging.Formatter(format)
+		self.tempsh.setFormatter(formatter)
+		self.logger.addHandler(self.tempsh)
+		return True
 
-		try:
-			with open(os.path.join(pbConfig.path, pbConfig.params["logFileName"]), "a") as w:
-				w.write(message)
-				if trcbk is not None:
-					w.write(trcbk.format_exc())
-		except IOError:
-			if sys.stdout == sys.__stdout__:
-				sys.stderr.write("[errorlog] ERROR in saving log file!")
-				sys.stderr.write(traceback.format_exc())
-			else:
-				print("[errorlog] ERROR in saving log file!")
-				print(traceback.format_exc())
+	def rmTempHandler(self):
+		self.logger.removeHandler(self.tempsh)
+		self.tempsh = None
+
+pBErrorManager = pBErrorManagerClass()
+pBLogger = pBErrorManager.logger

@@ -8,6 +8,7 @@ import readline # optional, will allow Up/Down/History in the console
 import code
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.export import pBExport
 	import physbiblio.webimport.webInterf as webInt
 	from physbiblio.config import pbConfig
@@ -17,8 +18,9 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
-	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
+	raise
 
 def cli():
 	"""
@@ -31,4 +33,4 @@ def cli():
 	shell = code.InteractiveConsole(vars)
 	shell.interact("[CLI] Activating CommandLineInterface\n" + \
 		"Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).")
-	print("[CLI] CommandLineInterface closed.")
+	pBLogger.info("CommandLineInterface closed.")

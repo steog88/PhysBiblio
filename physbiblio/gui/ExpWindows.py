@@ -4,11 +4,6 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess, traceback
 import operator
-try:
-	from physbiblio.errors import pBErrorManager
-except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
-	print(traceback.format_exc())
 
 try:
 	from physbiblio.database import *
