@@ -4,6 +4,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.database import pBDB, catString
 except ImportError:
@@ -143,25 +144,19 @@ class MyThread(QThread):
 
 	finished = Signal()
 
-class WriteStream(QObject):
+class WriteStream(MyThread):
+	mysignal = Signal(str)
+	finished = Signal()
 	"""class used to redirect the stdout prints to a window"""
-	def __init__(self,queue):
+	def __init__(self, queue, parent = None, *args, **kwargs):
+		super(WriteStream, self).__init__(parent, *args, **kwargs)
 		self.queue = queue
+		self.running = True
+		self.parent = parent
 
 	def write(self, text):
 		"""output is sent to window but also copied to real stdout"""
 		self.queue.put(text)
-		sys.__stdout__.write(text)
-
-class MyReceiver(MyThread):
-	mysignal = Signal(str)
-	finished = Signal()
-
-	def __init__(self, queue, parent = None, *args, **kwargs):
-		super(MyReceiver, self).__init__(parent, *args, **kwargs)
-		self.queue = queue
-		self.running = True
-		self.parent = parent
 
 	def run(self):
 		while self.running:
@@ -228,7 +223,7 @@ class MyTableModel(QAbstractTableModel):
 			try:
 				self.selectedElements[prevK] = True
 			except IndexError:
-				pBErrorManager("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
+				pBLogger.exception("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
 		self.emit(SIGNAL("layoutChanged()"))
 
 	def selectAll(self):
