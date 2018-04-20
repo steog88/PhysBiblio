@@ -14,7 +14,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
@@ -53,5 +52,4 @@ class TestWebImportMethods(unittest.TestCase):
 			'@Custom{test,\n        author = "me",\n         title = "{{My} title}",\n       journal = "JCAP",\n       myfield = "abcd",\n}')
 
 if __name__=='__main__':
-	print("\nStarting tests...\n")
 	unittest.main()

@@ -48,3 +48,6 @@ class TestFirstOpenMethods(unittest.TestCase):
 		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"])
 		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
+
+if __name__=='__main__':
+	unittest.main()

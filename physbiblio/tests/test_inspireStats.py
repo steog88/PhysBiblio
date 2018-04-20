@@ -17,6 +17,7 @@ else:
 	from io import StringIO
 
 try:
+	from physbiblio.errors import pBErrorManager
 	from physbiblio.setuptests import *
 	from physbiblio.inspireStats import pBStats
 except ImportError:
@@ -31,7 +32,9 @@ class TestInspireStatsMethods(unittest.TestCase):
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
+		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
 		function()
+		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
 
 	def test_paperStats(self):
@@ -77,3 +80,6 @@ class TestInspireStatsMethods(unittest.TestCase):
 			self.assertEqual(len(testGood['figs']), 6)
 			for f in testGood["figs"]:
 				self.assertIsInstance(f, matplotlib.figure.Figure)
+
+if __name__=='__main__':
+	unittest.main()

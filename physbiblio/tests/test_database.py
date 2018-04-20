@@ -19,7 +19,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
@@ -187,12 +186,6 @@ class TestDatabaseExperiments(DBTestCase):
 		"""Check the number of experiments"""
 		self.assertEqual(self.pBDB.exps.count(), number)
 
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and test stdout of the function"""
-		function()
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
-
 	def test_insertUpdateDelete(self):
 		"""Test insert, update, updateField, delete for an experiment"""
 		self.checkNumberExperiments(0)
@@ -289,12 +282,6 @@ class TestDatabaseCategories(DBTestCase):
 		"""Check the number of experiments"""
 		self.assertEqual(self.pBDB.cats.count(), number)
 
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and test stdout of the function"""
-		function()
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
-
 	def test_insertUpdateDelete(self):
 		"""Test insert, update, updateField, delete for an experiment"""
 		self.checkNumberCategories(2)
@@ -333,9 +320,9 @@ class TestDatabaseCategories(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats["catExp"], 0)
 		self.assertEqual(self.pBDB.stats["catBib"], 0)
-		self.assert_stdout(lambda: self.pBDB.cats.delete(0), "[DB] Error: should not delete the category with id: 0.\n")
+		self.assert_stdout(lambda: self.pBDB.cats.delete(0), "You should not delete the category with id: 0.\n")
 		self.checkNumberCategories(2)
-		self.assert_stdout(lambda: self.pBDB.cats.delete(1), "[DB] Error: should not delete the category with id: 1.\n")
+		self.assert_stdout(lambda: self.pBDB.cats.delete(1), "You should not delete the category with id: 1.\n")
 		self.checkNumberCategories(2)
 
 	def test_get(self):
@@ -381,7 +368,7 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(catString(1, self.pBDB, True), "   1: Tags - <i>Use this category to store tags (such as: ongoing projects, temporary cats,...)</i>")
 		self.assertEqual(catString(2, self.pBDB), "")
 		self.assert_stdout(lambda: catString(2, self.pBDB),
-			"[DB][catString] category '2' not in database\n\n")
+			"Category '2' not in database\n")
 
 	def test_cats_alphabetical(self):
 		"""Test alphabetical ordering of idCats with cats_alphabetical"""
@@ -394,7 +381,7 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(cats_alphabetical([3, 4, 5], self.pBDB), [4, 3])
 		self.assertEqual(cats_alphabetical([], self.pBDB), [])
 		self.assert_stdout(lambda: cats_alphabetical([5], self.pBDB),
-			"[DB][cats_alphabetical] category '5' not in database\n\n")
+			"Category '5' not in database\n")
 
 	def test_hierarchy(self):
 		"""Testing the construction and print of the category hierarchies"""
@@ -419,18 +406,6 @@ class TestDatabaseCategories(DBTestCase):
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and test stdout of the function"""
-		function()
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
-
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_in_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and if test stdout of the function contains a string"""
-		function()
-		self.assertIn(expected_output, mock_stdout.getvalue())
-
 	def insert_three(self):
 		"""Insert three elements in the DB for testing"""
 		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
@@ -544,10 +519,10 @@ class TestDatabaseEntries(DBTestCase):
 		#empty bibtex
 		self.assertEqual(self.pBDB.bibs.prepareInsert(""), {"bibkey": ""})
 		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareInsert(""),
-			"[DB] ERROR: no elements found?")
+			"No elements found?")
 		self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"), {"bibkey": ""})
 		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareInsert("@article{abc,"),
-			"[DB] ERROR: impossible to parse bibtex!")
+			"Impossible to parse bibtex!")
 
 	def test_insert(self):
 		"""Test insertion and of bibtex items"""
@@ -596,14 +571,14 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
 		self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose = 0))
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspire", "1234"),
-			"[DB] updating 'inspire' for entry 'def'\n")
+			"Updating 'inspire' for entry 'def'\n")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], '1234')
 		self.assertFalse(self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 0))
 		self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose = 0))
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspires", "1234"),
-			"[DB] updating 'inspires' for entry 'def'\n")
+			"Updating 'inspires' for entry 'def'\n")
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 2),
-			"[DB] updating 'inspires' for entry 'def'\n[DB] non-existing field or unappropriated value: (def, inspires, 1234)\n")
+			"Updating 'inspires' for entry 'def'\nNon-existing field or unappropriated value: (def, inspires, 1234)\n")
 
 	def test_prepareUpdate(self):
 		"""test prepareUpdate and related functions"""
@@ -615,13 +590,13 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE), "")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE),
-			"[DB] parsing exception in prepareUpdate")
+			"Parsing exception in prepareUpdate")
 		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA), "")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA),
-			"[DB] parsing exception in prepareUpdate")
+			"Parsing exception in prepareUpdate")
 		self.assertEqual(self.pBDB.bibs.prepareUpdate("", bibtexA), "")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate("", bibtexA),
-			"[DB] empty bibtex?")
+			"Empty bibtex?")
 
 		bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
 		self.assertEqual(bibtex, resultA + "\n\n")
@@ -708,11 +683,11 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"),
 			([], [], []))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"),
-			"[DB][bibs][replace] invalid 'fiNews' or 'news' (they must be lists)")
+			"Invalid 'fiNews' or 'news' (they must be lists)")
 		self.assertEqual(self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ['56789']),
 			([], [], ["abc", "def"]))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ['56789']),
-			"[DB] something wrong in replace")
+			"Something wrong in replace")
 
 		bibtexIn = u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\neprint="1234.56789",\n}'
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
@@ -723,7 +698,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ['56789']),
 			(["ghi"], [], ["abc", "def"]))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ['56789']),
-			"[DB] something wrong in replace")
+			"Something wrong in replace")
 
 	def test_completeFetched(self):
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(
@@ -950,7 +925,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertIn(self.pBDB.bibs.lastQuery,
 			["select * from entries  where bibkey like ?  or arxiv like ?  order by firstdate ASC",
 			"select * from entries  where arxiv like ?  or bibkey like ?  order by firstdate ASC"])
-		self.assertEqual(self.pBDB.bibs.lastVals, ("%ab%", "%ef%"))
+		self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("%ab%", "%ef%")))
 
 		#test some bad connection or operator
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(
@@ -959,14 +934,14 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertIn(self.pBDB.bibs.lastQuery,
 			["select * from entries  where bibkey = ?  and arxiv = ?  order by firstdate ASC",
 			"select * from entries  where arxiv = ?  and bibkey = ?  order by firstdate ASC"])
-		self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+		self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchAll(
 			params = {"bibkey": "ab", "arxiv": "ef"}, connection = "or", operator = "lik").lastFetched],
 			[])
 		self.assertIn(self.pBDB.bibs.lastQuery,
 			["select * from entries  where bibkey = ?  or arxiv = ?  order by firstdate ASC",
 			"select * from entries  where arxiv = ?  or bibkey = ?  order by firstdate ASC"])
-		self.assertEqual(self.pBDB.bibs.lastVals, ("ab", "ef"))
+		self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("ab", "ef")))
 
 		#generate some errors
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo = "a")], [])
@@ -1080,10 +1055,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
 		self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
 		self.assert_stdout(lambda: self.pBDB.bibs.getField("def", "isbn"),
-			"[DB] ERROR in getEntryField('def', 'isbn'): no element found?\n")
+			"Error in getEntryField('def', 'isbn'): no element found?\n")
 		self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
 		self.assert_stdout(lambda: self.pBDB.bibs.getField("abc", "def"),
-			"[DB] ERROR in getEntryField('abc', 'def'): the field is missing?\n")
+			"Error in getEntryField('abc', 'def'): the field is missing?\n")
 
 	def test_toDataDict(self):
 		self.insert_three()
@@ -1126,14 +1101,14 @@ class TestDatabaseEntries(DBTestCase):
 		entries = self.pBDB.bibs.getByCat(1, orderBy = "entries.bib")
 		self.assertEqual([e["bibkey"] for e in entries], [])
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderBy = "entries.bib"),
-			"[cursExec] ERROR: no such column: entries.bib")
+			"Cursor error: no such column: entries.bib")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderBy = "entries.bib"),
 			"OperationalError: no such column: entries.bib")
 
 		entries = self.pBDB.bibs.getByCat(1, orderType = "wrong")
 		self.assertEqual([e["bibkey"] for e in entries], [])
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderType = "wrong"),
-			'[cursExec] ERROR: near "wrong": syntax error')
+			'Cursor error: near "wrong": syntax error')
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByCat(1, orderType = "wrong"),
 			'OperationalError: near "wrong": syntax error')
 
@@ -1161,14 +1136,14 @@ class TestDatabaseEntries(DBTestCase):
 		entries = self.pBDB.bibs.getByExp(0, orderBy = "entries.bib")
 		self.assertEqual([e["bibkey"] for e in entries], [])
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderBy = "entries.bib"),
-			"[cursExec] ERROR: no such column: entries.bib")
+			"Cursor error: no such column: entries.bib")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderBy = "entries.bib"),
 			"OperationalError: no such column: entries.bib")
 
 		entries = self.pBDB.bibs.getByExp(0, orderType = "wrong")
 		self.assertEqual([e["bibkey"] for e in entries], [])
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderType = "wrong"),
-			'[cursExec] ERROR: near "wrong": syntax error')
+			'Cursor error: near "wrong": syntax error')
 		self.assert_in_stdout(lambda: self.pBDB.bibs.getByExp(0, orderType = "wrong"),
 			'OperationalError: near "wrong": syntax error')
 
@@ -1179,43 +1154,43 @@ class TestDatabaseEntries(DBTestCase):
 		bibtexOut = u'@Article{abc,\n        author = "me",\n         title = "{ab c}",\n       journal = "jcap",\n        volume = "1803",\n          year = "2018",\n         pages = "1",\n         arxiv = "1234.56789",\n}'
 		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(startFrom = 1),
-			"[DB] cleanBibtexs will process 2 total entries")
+			"CleanBibtexs will process 2 total entries")
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(entries = self.pBDB.bibs.getByBibkey("def")),
-			"[DB] cleanBibtexs will process 1 total entries")
+			"CleanBibtexs will process 1 total entries")
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(startFrom = "a"),
-			"[DB] invalid startFrom in cleanBibtexs")
+			"Invalid startFrom in cleanBibtexs")
 		self.assertEqual(self.pBDB.bibs.cleanBibtexs(startFrom = 5),
 			(0, 0, []))
 
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"[DB] cleanBibtexs will process 3 total entries")
+			"CleanBibtexs will process 3 total entries")
 		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
 		self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
 		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"[DB] 3 entries processed\n\n[DB] 0 errors occurred\n\n[DB] 1 entries changed")
+			"3 entries processed\n\n0 errors occurred\n\n1 entries changed")
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
 
 		self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"[DB] Error while cleaning entry 'def'")
+			"Error while cleaning entry 'def'")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"[DB] 3 entries processed\n\n[DB] 1 errors occurred\n\n[DB] 0 entries changed")
+			"3 entries processed\n\n1 errors occurred\n\n0 entries changed")
 		self.pBDB.bibs.cleanBibtexs()
 
 	def test_printAll(self):
 		self.insert_three()
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibkeys(),
-			"   0 abc\n   1 def\n   2 ghi\n[DB] 3 elements found\n")
+			"   0 abc\n   1 def\n   2 ghi\n3 elements found\n")
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibkeys(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
-			"   0 abc\n[DB] 1 elements found\n")
+			"   0 abc\n1 elements found\n")
 
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibtexs(),
-			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n   1 - @Article{def,\n        author = "me",\n         title = "{def}",\n}\n\n   2 - @Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n[DB] 3 elements found\n')
+			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n   1 - @Article{def,\n        author = "me",\n         title = "{def}",\n}\n\n   2 - @Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n\n3 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllBibtexs(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
-			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n[DB] 1 elements found\n')
+			'   0 - @Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n\n1 elements found\n')
 
 		today = datetime.date.today().strftime("%Y-%m-%d")
 		self.pBDB.bibs.setReview("abc")
@@ -1223,21 +1198,21 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.updateField("abc", "doi", "somedoi")
 		self.pBDB.bibs.printAllInfo()
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[   1 - '+today+' ]        def                            def                  -                   \n[   2 - '+today+' ]        ghi                            ghi                  -                   \n[DB] 3 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[   1 - '+today+' ]        def                            def                  -                   \n[   2 - '+today+' ]        ghi                            ghi                  -                   \n3 elements found\n')
 		self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
 		self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(),
-			'[   0 - 2018-01-01 ]        ghi                            ghi                  -                   \n[   1 - 2018-03-01 ]        def                            def                  -                   \n[   2 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 3 elements found\n')
+			'[   0 - 2018-01-01 ]        ghi                            ghi                  -                   \n[   1 - 2018-03-01 ]        def                            def                  -                   \n[   2 - '+today+' ]  (rev) abc                            1234                 somedoi             \n3 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc")),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 1 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n1 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = "author"),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n[DB] 1 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n1 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = ["author"]),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n[DB] 1 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   author: me\n1 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = "title"),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   title: {abc}\n[DB] 1 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n   title: {abc}\n1 elements found\n')
 		self.assert_stdout(lambda: self.pBDB.bibs.printAllInfo(entriesIn = self.pBDB.bibs.getByBibkey("abc"), addFields = ["eprint", "journals"]),
-			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n[DB] 1 elements found\n')
+			'[   0 - '+today+' ]  (rev) abc                            1234                 somedoi             \n1 elements found\n')
 
 	def test_setStuff(self):
 		"""test ["setBook", "setLecture", "setPhdThesis", "setProceeding", "setReview", "setNoUpdate"]"""
@@ -1288,7 +1263,7 @@ class TestDatabaseEntries(DBTestCase):
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = "abc",\n}\n@article{def,\n}\n')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False),
-			"[DB][entries][importFromBib] Impossible to parse text:")
+			"Impossible to parse text:")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], [])
 
 		#test with completeInfo
@@ -1318,7 +1293,7 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.pBDB.undo(verbose = 0)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False),
-			"ERROR: Error binding parameter :idCat - probably unsupported type.")
+			"Error binding parameter :idCat - probably unsupported type.")
 		self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
 
 		os.remove("tmpbib.bib")
@@ -1334,7 +1309,7 @@ class TestDatabaseEntries(DBTestCase):
 		# loadAndInsert
 		self.assertFalse(self.pBDB.bibs.loadAndInsert(None))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(None),
-			"[DB] ERROR: invalid arguments to loadAndInsertEntries!")
+			"Invalid arguments!")
 		#methods
 		for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
 			with patch('physbiblio.webimport.%s.webSearch.retrieveUrlAll'%method, return_value = "") as _mock:
@@ -1342,7 +1317,7 @@ class TestDatabaseEntries(DBTestCase):
 				_mock.assert_called_once_with("abcdef")
 		self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method = "nonexistent"))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("abcdef", method = "nonexistent"),
-			"[DB][loadAndInsert] method not valid:")
+			"Method not valid:")
 		self.assertTrue(self.pBDB.bibs.loadAndInsert('@article{abc,\nauthor="me",\ntitle="abc",\n}', method = "bibtex"))
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
 		#childProcess
@@ -1370,7 +1345,7 @@ class TestDatabaseEntries(DBTestCase):
 		#unreadable bibtex (bibtex method)
 		self.assertFalse(self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert('@article{jkl,', method = "bibtex"),
-			"[DB][loadAndInsert] Error while reading the bibtex ")
+			"Error while reading the bibtex ")
 
 		self.pBDB.undo(verbose = 0)
 		pbConfig.params["defaultCategories"] = [1]
@@ -1390,7 +1365,7 @@ class TestDatabaseEntries(DBTestCase):
 						u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',
 						u'\n@article{key0,\nauthor = "Gariazzo",\ntitle = "{title}",}\n']) as _mock:
 					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(["key0", "key1"]),
-						"[DB] Already existing: key0")
+						"Already existing: key0")
 					_mock.assert_has_calls([call("key0"), call("key1")])
 					self.assertEqual(self.pBDB.bibs.count(), 1)
 				self.pBDB.undo(verbose = 0)
@@ -1436,11 +1411,11 @@ class TestDatabaseEntries(DBTestCase):
 						u'\n@article{ ,\nauthor = "Gariazzo",\ntitle = "{title}",}\n',]) as _mock:
 					self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("key0"),
-						"[DB] ERROR: impossible to parse bibtex!\n[DB] ERROR: impossible to insert an entry with empty bibkey")
+						"Impossible to parse bibtex!\nImpossible to insert an entry with empty bibkey")
 					self.pBDB.undo(verbose = 0)
 					self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 					self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert("key0"),
-						"[DB] wrong type or value for field ID (None)?\n\n[DB] ERROR: impossible to insert an entry with empty bibkey")
+						"Wrong type or value for field ID (None)?\nImpossible to insert an entry with empty bibkey")
 				self.pBDB.undo(verbose = 0)
 				_mock_uiid.reset_mock()
 				_mock_uio.reset_mock()
@@ -1596,7 +1571,7 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2))
 				mock_function.reset_mock()
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345", verbose = 2),
-					"[DB] inspire OAI info for 12345 saved.")
+					"Inspire OAI info for 12345 saved.")
 				mock_function.assert_called_once_with("12345", bibtex = None, readConferenceTitle=False, verbose = 2)
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
 				self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
@@ -1613,10 +1588,10 @@ class TestDatabaseEntries(DBTestCase):
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': 2016, 'link': 'http://arxiv.org/abs/1507.08204', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo",\n         title = "{Light Sterile Neutrinos}",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra', 'author': 'Gariazzo', 'title': '{Light Sterile Neutrinos}'}, 'title': '{Light Sterile Neutrinos}', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2016) ', 'author': 'Gariazzo'}])
 				self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
-					"[DB][oai] something missing in entry")
+					"Something missing in entry")
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
-					"[DB][oai] key error")
+					"Key error")
 
 	@unittest.skipIf(skipOnlineTests, "Online tests")
 	def test_updateFromOAI_online(self):
@@ -1671,13 +1646,13 @@ class TestDatabaseEntries(DBTestCase):
 				[{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}]
 				]) as _mock:
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(),
-				"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2t))
+				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2t))
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(d1, d2),
-				"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2))
+				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2))
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(date2 = d2),
-				"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2))
+				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1t, d2))
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(date1 = d1),
-				"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2t))
+				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2t))
 			self.pBDB.bibs.getDailyInfoFromOAI(date1 = d1)
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
 				[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': 'http://arxiv.org/abs/1303.5076', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': d2t, 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
@@ -1698,7 +1673,7 @@ class TestDatabaseEntries(DBTestCase):
 				[{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None, 'ads': u'2015JPhG...43c3001G', 'pubdate': u'2016-01-13', 'firstdate': u'2015-07-29', 'journal': u'J.Phys.', 'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43', 'bibtex': None, 'year': u'2016', 'oldkeys': '', 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}]
 				]) as _mock:
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(d1, d2),
-				"[DB] calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2))
+				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(d1, d2))
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
 				[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': 'http://arxiv.org/abs/1303.5076', 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': d2t, 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 1, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
@@ -1707,13 +1682,6 @@ class TestDatabaseEntries(DBTestCase):
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):
 	"""Tests for the methods in the utilities subclass"""
-
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_cleanSpare(self, function, expected_output, mock_stdout):
-		"""Catch and test stdout of the function"""
-		function()
-		self.assertEqual(mock_stdout.getvalue(), expected_output)
-
 	def test_spare(self):
 		"""create spare connections just to delete them with cleanSpareEntries"""
 		self.pBDB.utils.cleanSpareEntries()
@@ -1724,8 +1692,8 @@ class TestDatabaseUtilities(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 1, "catExp": 2, "bibExp": 1})
-		self.assert_cleanSpare(self.pBDB.utils.cleanSpareEntries,
-			'[DB] cleaning (test, 1)\n[DB] cleaning (1, test)\n[DB] cleaning (1, 0)\n')
+		self.assert_stdout(self.pBDB.utils.cleanSpareEntries,
+			'Cleaning (test, 1)\nCleaning (1, test)\nCleaning (1, 0)\n')
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 0, "cats": 2, "exps": 1, "catBib": 0, "catExp": 1, "bibExp": 0})
@@ -1744,5 +1712,4 @@ def tearDownModule():
 		os.remove(tempDBName)
 
 if __name__=='__main__':
-	print("\nStarting tests...\n")
 	unittest.main()

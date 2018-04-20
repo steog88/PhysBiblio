@@ -55,6 +55,9 @@ class pBErrorManagerClass():
 			level: the level to be used (default: logging.INFO)
 			format: the format, using the logging syntax (default: '[%(module)s.%(funcName)s] %(message)s')
 		"""
+		if self.tempsh is not None:
+			self.logger.warning("There is already a temporary handler. More than one is currently not supported")
+			return
 		self.tempsh = logging.StreamHandler(stream)
 		self.tempsh.setLevel(level)
 		formatter = logging.Formatter(format)

@@ -213,7 +213,7 @@ class physbiblioDB():
 			else:
 				self.curs.execute(query)
 		except Exception as err:
-			pBLogger.exception('cursor error: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data))
+			pBLogger.exception('Cursor error: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data))
 			return False
 		else:
 			return True

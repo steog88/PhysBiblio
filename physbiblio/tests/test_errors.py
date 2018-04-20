@@ -29,7 +29,7 @@ class TestBuilding(unittest.TestCase):
 	"""Test pBErrorManager outputs"""
 	@classmethod
 	def setUpClass(self):
-		self.maxDiff = None
+		"""settings"""
 		pbConfig.params["loggingLevel"] = 3
 		pbConfig.params["logFileName"] = logFileName
 		self.pBErrorManager = pBErrorManagerClass()
@@ -65,9 +65,15 @@ class TestBuilding(unittest.TestCase):
 		with open(logFileName) as logFile:
 			log_new = logFile.read()
 		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
-		self.assertTrue("      ERROR : [errors.log] global name 'message' is not defined" in log_new
-			or "      ERROR : [errors.log] name 'message' is not defined" in log_new)
+		self.assertTrue("      ERROR : [errors.__call__] global name 'message' is not defined" in log_new
+			or "      ERROR : [errors.__call__] name 'message' is not defined" in log_new)
 
-if __name__=='__main__':
-	print("\nStarting tests...\n")
-	unittest.main()
+	def test_logger_stuff(self):
+		"""Test some stuff related to the logger"""
+		self.assertFalse("NYI")
+		#test traceback inclusion and levels in logfile
+
+	def test_tempHandler(self):
+		"""Test stuff as the temporary handler"""
+		self.assertFalse("NYI")
+		#test additional handler using a StringIO

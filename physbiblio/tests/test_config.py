@@ -16,7 +16,6 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.config import pbConfig, ConfigVars, config_defaults
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -108,3 +107,6 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig.defProf, tempPbConfig.profiles = tempPbConfig.readProfiles()
 		self.assertEqual(tempPbConfig.defProf, "tmp")
 		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName, "d":""}})
+
+if __name__=='__main__':
+	unittest.main()

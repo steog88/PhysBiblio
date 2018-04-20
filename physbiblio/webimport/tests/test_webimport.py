@@ -158,5 +158,4 @@ with a summary of future perspectives.}",
 		print(len(result), result[0])
 
 if __name__=='__main__':
-	print("\nStarting tests...\n")
 	unittest.main()
