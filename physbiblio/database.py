@@ -678,6 +678,7 @@ class catsEntries(physbiblioDBSub):
 				self.insert(idCat, q)
 		else:
 			if len(self.getOne(idCat, key))==0:
+				pBLogger.debug("inserting (idCat=%s and key=%s)"%(idCat, key))
 				return self.connExec("""
 						INSERT into entryCats (bibkey, idCat) values (:bibkey, :idCat)
 						""",
@@ -815,6 +816,7 @@ class catsExps(physbiblioDBSub):
 				self.insert(idCat, q)
 		else:
 			if len(self.getOne(idCat, idExp))==0:
+				pBLogger.debug("inserting (idCat=%s and idExp=%s)"%(idCat, idExp))
 				return self.connExec("""
 						INSERT into expCats (idExp, idCat) values (:idExp, :idCat)
 						""",
@@ -937,6 +939,7 @@ class entryExps(physbiblioDBSub):
 				self.insert(key, q)
 		else:
 			if len(self.getOne(key, idExp))==0:
+				pBLogger.debug("inserting (key=%s and idExp=%s)"%(key, idExp))
 				if self.connExec("""
 						INSERT into entryExps (idExp, bibkey) values (:idExp, :bibkey)
 						""",
