@@ -1,7 +1,7 @@
 """
 Tests for the physbiblio.webimport package.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 
 import physbiblio

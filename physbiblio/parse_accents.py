@@ -3,7 +3,7 @@
 This module tries to convert the unicode accented chars into latex strings.
 Will be probably rewritten to use pylatexenc.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import re
 import sys

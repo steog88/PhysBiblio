@@ -1,7 +1,7 @@
 """
 Module that manages the actions on the database (and few more).
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sqlite3
 from sqlite3 import OperationalError, ProgrammingError, DatabaseError, InterfaceError

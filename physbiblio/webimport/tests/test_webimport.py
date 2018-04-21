@@ -2,7 +2,7 @@
 """
 Test file for the physbiblio.webimport subpackage.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, datetime, traceback, os
 

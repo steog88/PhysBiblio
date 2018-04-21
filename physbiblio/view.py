@@ -1,7 +1,7 @@
 """
 Module that opens the external links.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import subprocess, traceback
 try:

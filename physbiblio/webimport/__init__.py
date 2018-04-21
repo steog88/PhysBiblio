@@ -1,7 +1,7 @@
 """
 Module for retrieving bibtex information from a list of given web resources (see `__all__`).
 
-This module is part of the PhysBiblio package.
+This module is part of the physbiblio package.
 """
 import physbiblio
 __version__ = physbiblio.__version__

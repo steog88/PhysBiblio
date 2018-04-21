@@ -1,7 +1,7 @@
 """
 Manages the configuration of PhysBiblio, from saving to reading.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, ast, os
 import logging

@@ -2,7 +2,7 @@
 """
 Test file for the physbiblio.export module.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, traceback, os
 from stat import S_IREAD, S_IRGRP, S_IROTH

@@ -2,7 +2,7 @@
 """
 Script for installing, uploading, doing tests and so on.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 
 from setuptools import setup
@@ -13,7 +13,7 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
-setup(name='PhysBiblio',
+setup(name='physbiblio',
 		version=physbiblio.__version__,
 		description='A bibliography manager in Python (using Sqlite and PySide)',
 		long_description=readme(),
@@ -25,7 +25,7 @@ setup(name='PhysBiblio',
 
 		packages=['physbiblio', 'physbiblio.gui', 'physbiblio.webimport',
 			'physbiblio.tests', 'physbiblio.webimport.tests'],
-		scripts=['physbiblio.py'],
+		scripts=['PhysBiblio'],
 		package_data={
 			'': ['*.sh', '*.md', '*.png'],
 			'physbiblio.gui': ['images/*.png'],
@@ -44,6 +44,6 @@ setup(name='PhysBiblio',
 			'unittest2;python_version<"3"',
 			],
 		provides=['physbiblio'],
-		data_files = [("", ["LICENSE", "CHANGELOG"])],
+		data_files = [("physbiblio", ["LICENSE", "CHANGELOG"])],
 		test_loader = "physbiblio.testLoader:MyScanningLoader",
 	)

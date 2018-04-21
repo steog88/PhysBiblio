@@ -3,7 +3,7 @@ Module that creates the base class webInterf, which will be used by other module
 
 Uses urllib to download url content.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, os, socket, pkgutil, traceback
 if sys.version_info[0] < 3:

@@ -2,7 +2,7 @@
 """
 Test file for the physbiblio.pdf module.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, traceback, os
 import shutil

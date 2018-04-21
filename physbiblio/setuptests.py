@@ -1,7 +1,7 @@
 """
 Utilities for in the tests of the physbiblio modules.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, traceback, datetime, os
 

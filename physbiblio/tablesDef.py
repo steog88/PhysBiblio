@@ -1,7 +1,7 @@
 """
 Static definitions of the structure (column names and content) for the tables of the database.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 tableFields = {}
 tableFields["entries"] = [

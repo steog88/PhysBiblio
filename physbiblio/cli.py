@@ -1,7 +1,7 @@
 """
 Module that creates a command line interface to manually run the PhysBiblio internal commands.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, traceback
 import readline # optional, will allow Up/Down/History in the console

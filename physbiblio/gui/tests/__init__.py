@@ -1,7 +1,7 @@
 """
 Tests for the physbiblio.gui package.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import physbiblio
 __version__ = physbiblio.__version__

@@ -1,7 +1,7 @@
 """
 Classes and functions that manage the export of the database entries into .bib files.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import os, codecs, re
 import bibtexparser

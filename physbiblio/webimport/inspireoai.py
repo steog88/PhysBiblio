@@ -1,7 +1,7 @@
 """
 Use INSPIRE-HEP OAI API to collect information on single papers (given the identifier) or to harvest updates in a given time period.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, time
 import codecs

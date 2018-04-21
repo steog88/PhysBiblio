@@ -1,9 +1,13 @@
 """
 Adapting the code from setuptools.command.test:ScanningLoader, which is not finding tests in python3.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
-from unittest import TestLoader
+import sys
+if sys.version_info[0] < 3:
+	from unittest2 import TestLoader
+else:
+	from unittest import TestLoader
 
 from pkg_resources import (resource_listdir, resource_exists)
 

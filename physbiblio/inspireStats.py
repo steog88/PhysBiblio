@@ -3,7 +3,7 @@ Module that uses INSPIRE-HEP to get author (number of papers, h index, citations
 
 Uses matplotlib to do plots.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, time
 import os

@@ -41,28 +41,30 @@ sudo apt install python3-pyside
 sudo pip3 install physbiblio
 ```
 
+At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
+
 ### Test that everything works
 Once you have installed the software, you may want to spend few minutes to run the test suite
 and check that everything works.  
-The test suite is available through the `setup.py` script that is stored in the same directory as the `physbiblio.py` executable:
+The test suite is available through the same `PhysBiblio` executable with the command `test`:
 ```
-python /path/to/physbiblio/setup.py test
+python /path/to/PhysBiblio test
 ```
 To run with `python3.x`, use instead:
 ```
-python3 /path/to/physbiblio/setup.py test
+python3 /path/to/PhysBiblio test
 ```
 
-The entire suite of tests will check that all the functions work properly and should complete without errors and failures.  
+The entire suite of tests will check that all the functions work properly and should complete without errors and failures in a few minutes, depending on the internet connection speed.  
 A failure may be due to missing packages or missing internet connection (or bugs).
 If you are not sure which is your case, please ask help  [here](https://github.com/steog88/physBiblio/issues).
 
 ### Usage
-To run the program, execute `physbiblio.py` that have been installed.
+To run the program, execute `PhysBiblio` that have been installed.
 By default it will run with `python2.x`.
 You can choose a specific `python` version running it explicitely via command line, for example you may select `python3` with
 ```
-python3 /path/to/physbiblio.py
+python3 /path/to/PhysBiblio
 ```
 
 You may want to create a menu shortcut to PhysBiblio.
@@ -70,7 +72,7 @@ In Ubuntu, you can simply create a new file `/your/home/.local/share/application
 ```
 [Desktop Entry]
 Type=Application
-Exec=/path/to/PhysBiblio/physbiblio.py
+Exec=/path/to/PhysBiblio/PhysBiblio
 Icon=/path/to/PhysBiblio/physbiblio/gui/images/icon.png
 Name=PhysBiblio
 Path[$e]=/path/to/PhysBiblio/
@@ -174,11 +176,11 @@ In order to avoid heavy traffic on the server when using the `update` functions 
 Basically instead of looking for each single entry, the code will download the information of all the entries modified in a given time interval and use what is needed in the local database.  
 In this way, the amount of data traffic is higher, but the server-side load for INSPIRE-HEP is much more sustainable.
 
-The easiest way to do this (in Linux) is to use a cron job that will run daily or weekly and the command `physbiblio.py daily` or `physbiblio.py weekly` (see also [3. Command line usage](#3-command-line-usage)).  
+The easiest way to do this (in Linux) is to use a cron job that will run daily or weekly and the command `PhysBiblio daily` or `PhysBiblio weekly` (see also [3. Command line usage](#3-command-line-usage)).  
 To set your cron job, use `crontab -e` and add one of the following lines:
 ```
-0 7 * * * /path/to/physbiblio.py daily > /path/to/log_daily_`date "+\%y\%m\%d"`.log 2>&1
-0 7 * * sat /path/to/physbiblio.py weekly > /path/to/log_weekly_`date "+\%y\%m\%d"`.log 2>&1
+0 7 * * * /path/to/PhysBiblio daily > /path/to/log_daily_`date "+\%y\%m\%d"`.log 2>&1
+0 7 * * sat /path/to/PhysBiblio weekly > /path/to/log_weekly_`date "+\%y\%m\%d"`.log 2>&1
 ```
 The syntax is simple: the `daily` (`weekly`) script will run every day (every saturday) at 7:00 and save a logfile in the desired folder.
 
@@ -191,11 +193,12 @@ Currently, the commands run only using the default profile.
 
 The usage is simple:
 ```
-/path/to/physbiblio.py <command> [options]
+/path/to/PhysBiblio <command> [options]
 ```
 
 The list of available commands includes:
 * `help`: print the list of available commands.
+* `test`: execute the test suite.
 * `clean`: process all the bibtex entries in the database to remove bad characters and reformat them.
 * `cli`: internal command line interface to work with internal commands. Mainly intended for developing.
 * `daily`: see [here](#inspire-oai).

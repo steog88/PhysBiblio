@@ -1,7 +1,7 @@
 """
 Functions that should run only when PhysBiblio is opened for the first time.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import os, traceback
 try:

@@ -1,7 +1,7 @@
 """
 Module that contains the MyBibTexWriter class (needed to override _entry_to_bibtex).
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 from bibtexparser.bwriter import BibTexWriter
 

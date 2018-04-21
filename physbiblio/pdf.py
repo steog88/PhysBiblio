@@ -1,7 +1,7 @@
 """
 This module manages the saved PDF files and opens them if required.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, shutil
 import traceback

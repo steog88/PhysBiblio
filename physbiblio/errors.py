@@ -1,7 +1,7 @@
 """
 Module that contains the pBErrorManager and pBLogger definitions.
 
-This file is part of the PhysBiblio package.
+This file is part of the physbiblio package.
 """
 import sys, traceback, os
 import logging
