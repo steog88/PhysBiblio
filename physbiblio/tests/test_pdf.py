@@ -25,7 +25,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-pBPDF.pdfDir = os.path.join(pbConfig.path, "testpdf_%s"%today_ymd)
+pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s"%today_ymd)
 
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestPdfMethods(unittest.TestCase):

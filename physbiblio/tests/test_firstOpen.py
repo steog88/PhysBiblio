@@ -22,17 +22,18 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
+
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestFirstOpenMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.firstOpen"""
 
 	def test_createTables(self):
 		"""Test that all the tables are created at first time, if DB is empty"""
-		tempDBName = os.path.join(pbConfig.path, "tests_first_%s.db"%today_ymd)
-		if os.path.exists(tempDBName):
-			os.remove(tempDBName)
-		open(tempDBName, 'a').close()
-		self.pBDB = physbiblioDB(tempDBName, noOpen = True)
+		if os.path.exists(tempFDBName):
+			os.remove(tempFDBName)
+		open(tempFDBName, 'a').close()
+		self.pBDB = physbiblioDB(tempFDBName, noOpen = True)
 		self.pBDB.openDB()
 
 		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
@@ -42,12 +43,16 @@ class TestFirstOpenMethods(unittest.TestCase):
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"])
 		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
 
-		os.remove(tempDBName)
-		open(tempDBName, 'a').close()
-		self.pBDB = physbiblioDB(tempDBName)
+		os.remove(tempFDBName)
+		open(tempFDBName, 'a').close()
+		self.pBDB = physbiblioDB(tempFDBName)
 		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"])
 		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
+
+def tearDownModule():
+	if os.path.exists(tempFDBName):
+		os.remove(tempFDBName)
 
 if __name__=='__main__':
 	unittest.main()

@@ -23,12 +23,13 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+tempCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg"%today_ymd)
+tempProfName = os.path.join(pbConfig.dataPath, "tests_%s.dat"%today_ymd)
 class TestConfigMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.config"""
 
 	def test_config(self):
 		"""Test config methods for config management"""
-		tempCfgName = os.path.join(pbConfig.path, "tests_%s.cfg"%today_ymd)
 		if os.path.exists(tempCfgName):
 			os.remove(tempCfgName)
 		newConfParamsDict = dict(config_defaults)
@@ -85,8 +86,6 @@ class TestConfigMethods(unittest.TestCase):
 	def test_profiles(self):
 		"""Test config methods for profiles management"""
 		tempPbConfig = ConfigVars()
-		tempCfgName = os.path.join(pbConfig.path, "tests_%s.cfg"%today_ymd)
-		tempProfName = os.path.join(pbConfig.path, "tests_%s.dat"%today_ymd)
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
 		origDef, origProfiles = tempPbConfig.defProf, tempPbConfig.profiles
@@ -107,6 +106,12 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig.defProf, tempPbConfig.profiles = tempPbConfig.readProfiles()
 		self.assertEqual(tempPbConfig.defProf, "tmp")
 		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName, "d":""}})
+
+def tearDownModule():
+	if os.path.exists(tempCfgName):
+		os.remove(tempCfgName)
+	if os.path.exists(tempProfName):
+		os.remove(tempProfName)
 
 if __name__=='__main__':
 	unittest.main()

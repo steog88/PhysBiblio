@@ -113,7 +113,6 @@ class ConfigVars():
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
-		self.path = os.path.realpath(__file__).replace("physbiblio/config.pyc","").replace("physbiblio/config.py","")
 		for k, v in config_defaults.items():
 			if type(v) is str and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))

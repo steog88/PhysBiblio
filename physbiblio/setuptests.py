@@ -31,9 +31,9 @@ skipLongTests   = False
 skipDBTests     = False
 
 pbConfig.params["logFileName"] = "tests_%s.log"%today_ymd
-logFileName = os.path.join(pbConfig.path, pbConfig.params["logFileName"])
+logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])
 
-tempDBName = os.path.join(pbConfig.path, "tests_%s.db"%today_ymd)
+tempDBName = os.path.join(pbConfig.dataPath, "tests_%s.db"%today_ymd)
 if os.path.exists(tempDBName):
 	os.remove(tempDBName)
 
@@ -61,3 +61,7 @@ class DBTestCase(unittest.TestCase):
 		function()
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
+
+def tearDownModule():
+	if os.path.exists(logFileName):
+		os.remove(logFileName)
