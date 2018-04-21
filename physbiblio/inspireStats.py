@@ -14,7 +14,7 @@ import requests
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')
-os.environ["QT_API"] = 'PySide'
+os.environ["QT_API"] = 'pyside'
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages

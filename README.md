@@ -19,16 +19,23 @@ If you do not have `pip` installed in your system, see [this page](https://pip.p
 
 If you use `python 2+`, simply use (system-wide install)
 ```
-sudo pip install physbiblio
+sudo pip install pyside physbiblio
 ```
 or (user only install)
 ```
-pip install --user physbiblio
+pip install --user pyside physbiblio
+```
+However, I find that installing `pyside` via `pip` can bring some amount of trouble.
+If you are not lucky with the previous command, you may want to install `PySide` via package manager and then use `pip` only for `PhysBiblio`.
+The easiest way is then (Ubuntu):
+```
+sudo apt install python-pyside
+sudo pip install physbiblio
 ```
 
 For `python 3+`, the situation is complicated by the fact that
 the series `1.x` of `PySide` available through `pip` does not support Python versions newer than 3.5+, so you cannot install `PySide` with `pip3` if you have a newer version than the 3.5.
-This can be solved if you install `PySide` with the package manager of your system, for example in Ubuntu using
+This can be solved again if you install `PySide` with the package manager of your system, for example in Ubuntu using
 ```
 sudo apt install python3-pyside
 sudo pip3 install physbiblio
@@ -77,6 +84,7 @@ In particular, if you do not correctly set the web browser and the PDF reader so
 PhysBiblio depends on several python packages:
 * sqlite3 (for the database)
 * pyside (for the graphical interface)
+* appdirs (default paths)
 * bibtexparser (to manage bibtex entries)
 * dictdiffer (show differences between dictionaries)
 * feedparser (to deal with arXiv data)
