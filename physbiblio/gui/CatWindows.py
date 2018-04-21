@@ -5,16 +5,20 @@ from PySide.QtGui  import *
 import subprocess
 
 try:
-	from physbiblio.database import pBDB, cats_alphabetical, catString
+	from physbiblio.errors import pBLogger
+	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 	if editIdCat is not None:
@@ -81,7 +85,7 @@ class CatsModel(TreeModel):
 			try:
 				self.selectedCats[prevIx] = True
 			except IndexError:
-				pBErrorManager("[Cats] Invalid idCat in previous selection: %s"%prevIx)
+				pBLogger.warning("Invalid idCat in previous selection: %s"%prevIx)
 
 	def _getRootNodes(self):
 		return [NamedNode(elem, None, index)
@@ -256,7 +260,7 @@ class catsWindowList(QDialog):
 	def _populateTree(self, children, idCat):
 		name = pBDB.cats.getByID(idCat)[0]["name"]
 		children_list = []
-		for child in cats_alphabetical(children):
+		for child in cats_alphabetical(children, pBDB):
 			child_item = self._populateTree(children[child], child)
 			children_list.append(child_item)
 		return NamedElement(idCat, name, children_list)

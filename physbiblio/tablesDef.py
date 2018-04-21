@@ -1,4 +1,8 @@
-"""definitions of the tables for the database"""
+"""
+Static definitions of the structure (column names and content) for the tables of the database.
+
+This file is part of the PhysBiblio package.
+"""
 tableFields = {}
 tableFields["entries"] = [
 	["bibkey", 	"text", "primary key not null"],

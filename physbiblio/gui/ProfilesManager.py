@@ -125,7 +125,7 @@ class editProfile(editObjectWindow):
 
 		self.def_group = QButtonGroup(self.currGrid)
 		self.elements = []
-		for k, prof in pbConfig.profiles.iteritems():
+		for k, prof in pbConfig.profiles.items():
 			i += 1
 			tempEl = {}
 			tempEl["r"] = QRadioButton("")

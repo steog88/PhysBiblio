@@ -1,21 +1,31 @@
-import sys,re,os
-from urllib2 import Request
-import urllib2
-import feedparser, traceback
+"""
+Module that deals with importing info from the arXiv API.
+
+Uses feedparser module to read the page content.
+
+This file is part of the PhysBiblio package.
+"""
+import re, traceback
+import feedparser
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from bibtexparser.bibdatabase import BibDatabase
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
+	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
-	print("Could not find physbiblio.errors and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
-from bibtexparser.bibdatabase import BibDatabase
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
-from physbiblio.bibtexwriter import pbWriter
+	raise
 
 class webSearch(webInterf):
-	"""arxiv.org search"""
+	"""Subclass of webInterf that can connect to arxiv.org to perform searches"""
 	def __init__(self):
-		"""constants"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the arxiv.org API.
+		"""
 		webInterf.__init__(self)
 		self.name = "arXiv"
 		self.description = "arXiv fetcher"
@@ -24,70 +34,111 @@ class webSearch(webInterf):
 			"start":"0"}
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
+		"""
+		Retrieves the first result from the content of the given web page.
+		The function calls arxivRetriever which will do the job.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all')
+
+		Output:
+			returns the bibtex string built from arxivRetriever
+		"""
 		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"}, **kwargs)
+
 	def retrieveUrlAll(self, string, searchType = "all", **kwargs):
+		"""
+		Retrieves all the results from the content of the given web page.
+		The function calls arxivRetriever which will do the job.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all')
+
+		Output:
+			returns the bibtex string built from arxivRetriever
+		"""
 		return self.arxivRetriever(string, searchType, **kwargs)
 
 	def arxivRetriever(self, string, searchType = "all", additionalArgs = None, fullDict = False):
-		"""reads the feed content into a dictionary, used to return a bibtex"""
+		"""
+		Reads the feed content got from arxiv into a dictionary, used to return a bibtex.
+
+		Parameters:
+			string: the search string
+			searchType: the search method in arxiv API (default 'all'). The possible values are:
+				ti->	Title
+				au	->	Author
+				abs	->	Abstract
+				co	->	Comment
+				jr	->	Journal Reference
+				cat	->	Subject Category
+				rn	->	Report Number
+				id	->	Id (use id_list instead)
+				all	->	All of the above
+			additionalArgs: a dictionary of additional arguments that can be passed to self.urlArgs (default None)
+			fullDict (logical): return the bibtex dictionary in addition to the bibtex text (default False)
+
+		Output:
+			the bibtex text
+			(optional, depending on fullDict): the bibtex Dictionary
+		"""
 		if additionalArgs:
-			for k, v in additionalArgs.iteritems():
+			for k, v in additionalArgs.items():
 				self.urlArgs[k] = v
 		self.urlArgs["search_query"] = searchType + ":" + string
 		url = self.createUrl()
-		print("[arxiv] search %s:%s -> %s"%(searchType, string, url))
+		pBLogger.info("Search %s:%s -> %s"%(searchType, string, url))
 		text = parse_accents_str(self.textFromUrl(url))
 		try:
 			data = feedparser.parse(text)
 			db = BibDatabase()
 			db.entries = []
+			dictionaries = []
 			for entry in data['entries']:
-				tmp = {}
+				dictionary = {}
 				idArx = entry['id'].replace("http://arxiv.org/abs/", "")
 				pos = idArx.find("v")
 				if pos >= 0:
 					idArx = idArx[0:pos]
-				tmp["ENTRYTYPE"] = "article"
-				tmp["ID"] = idArx
-				tmp["archiveprefix"] = "arXiv"
-				tmp["title"] = entry['title']
-				tmp["arxiv"] = idArx
+				dictionary["ENTRYTYPE"] = "article"
+				dictionary["ID"] = idArx
+				dictionary["archiveprefix"] = "arXiv"
+				dictionary["title"] = entry['title']
+				dictionary["arxiv"] = idArx
 				try:
-					tmp["doi"] = entry['arxiv_doi']
-				except KeyError, e:
-					print("[arXiv] -> KeyError: ", e)
-				tmp["abstract"] = entry['summary']
-				tmp["authors"] = " and ".join([ au["name"] for au in entry['authors']])
-				tmp["primaryclass"] = entry['arxiv_primary_category']['term']
+					dictionary["doi"] = entry['arxiv_doi']
+				except KeyError as e:
+					pBLogger.warning("KeyError: ", e)
+				dictionary["abstract"] = entry['summary']
+				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
+				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
 				identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
 				try:
-					for t in identif.finditer(tmp["arxiv"]):
+					for t in identif.finditer(dictionary["arxiv"]):
 						if len(t.group()) > 0:
 							e = t.group()
 							a = e[0:2]
 							if int(a) > 80:
-								tmp["year"] = "19" + a
+								dictionary["year"] = "19" + a
 							else:
-								tmp["year"] = "20" + a
-				except:
-					print("[DB] -> Error in converting year")
-				db.entries.append(tmp)
+								dictionary["year"] = "20" + a
+				except Exception:
+					pBLogger.warning("Error in converting year")
+				db.entries.append(dictionary)
+				dictionaries.append(dictionary)
 			if fullDict:
-				return pbWriter.write(db), tmp
+				dictionary = dictionaries[0]
+				for d in dictionaries:
+					if string in d["arxiv"]:
+						dictionary = d
+				return pbWriter.write(db), dictionary
 			else:
 				return pbWriter.write(db)
-		except:
-			pBErrorManager("[arXiv] -> ERROR: impossible to get results", traceback)
-			return ""
-
-
-#Table: search_query field prefixes
-#ti	Title
-#au	Author
-#abs	Abstract
-#co	Comment
-#jr	Journal Reference
-#cat	Subject Category
-#rn	Report Number
-#id	Id (use id_list instead)
-#all	All of the above
+		except Exception:#intercept all other possible errors
+			pBLogger.exception("Impossible to get results")
+			if fullDict:
+				return "",  {}
+			else:
+				return ""

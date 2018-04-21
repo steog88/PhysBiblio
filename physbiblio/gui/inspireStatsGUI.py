@@ -5,7 +5,6 @@ from PySide.QtGui  import *
 import numpy as np
 import matplotlib
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4'] = 'PySide'
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
@@ -20,9 +19,12 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 figTitles = [
 "Paper number",

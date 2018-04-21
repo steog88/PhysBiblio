@@ -1,25 +1,42 @@
-import os, sys, numpy, codecs, re, time
+"""
+Module that uses INSPIRE-HEP to get author (number of papers, h index, citations) and paper statistics (citations).
+
+Uses matplotlib to do plots.
+
+This file is part of the PhysBiblio package.
+"""
+import sys, time
+import os
+import traceback
 import os.path as osp
 import json
-from urllib2 import Request, urlopen
+import requests
 import dateutil, datetime
 import matplotlib
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4'] = 'PySide'
+os.environ["QT_API"] = 'PySide'
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
-	from physbiblio.errors import pBErrorManager
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 class inspireStatsLoader():
+	"""
+	Class that contains the methods to collect information from INSPIRE-HEP
+	"""
 	def __init__(self):
+		"""
+		The class constructor, defines some constants and search options
+		"""
 		self.urlBase = pbConfig.inspireSearchBase
 		self.timeout = float(pbConfig.params["timeoutWebSearch"])
 		self.authorStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
@@ -30,18 +47,33 @@ class inspireStatsLoader():
 		self.paperPlotInfo = None
 
 	def changeBackend(self, wantBackend):
+		"""
+		Changes the matplotlib backend currently in use.
+
+		Parameters:
+			wantBackend: a string that defines the wanted backend
+		"""
 		if wantBackend != matplotlib.get_backend():
-			matplotlib.use(wantBackend,warn=False, force=True)
+			matplotlib.use(wantBackend, warn = False, force = True)
 			from matplotlib import pyplot as plt
-			print("[inspireStats] changed backend to %s"%matplotlib.get_backend())
+			pBLogger.info("Changed backend to %s"%matplotlib.get_backend())
 
 	def JsonFromUrl(self, url):
+		"""
+		Function that downloads the url content and returns a Json object
+
+		Parameters:
+			url: string containing the url to be opened
+
+		Output:
+			the json object generated from the url content
+		"""
 		def getSeries(url):
-			response = urlopen(url, timeout = self.timeout)
-			text = response.read()
+			response = requests.get(url, timeout = self.timeout)
 			try:
-				return json.loads(text)
+				return json.loads(response.content.decode("utf-8"))
 			except:
+				pBLogger.exception("Cannot read the page content!")
 				return []
 		ser = 0
 		complete = []
@@ -54,6 +86,27 @@ class inspireStatsLoader():
 				ser += 1
 
 	def authorStats(self, authorName, plot = False, reset = True):
+		"""
+		Function that gets the data and constructs the statistics for a given author.
+
+		Parameters:
+			authorName: the author name as identified into INSPIRE-HEP, or a list of author names (it calls itself recursively for all the list elements)
+			plot (boolean, default False): True to call self.plotStats
+			reset (boolean, default False): True to delete all previous existing data (used as False when processing a list of authors)
+
+		Output:
+			a dictionary containing all the statistic information.
+			For a single author, the structure is the following:
+			{
+				"name": the author name,
+				"aI": The complete information, including the dictionaries with the single papers info (see self.paperStats), the citations and the corresponding dates,
+				"paLi": a list of [id, date] of the papers associated with the author,
+				"allLi": the complete list of [date, total citations] with all the citations to the papers,
+				"meanLi": the complete list of [date, total citations/number of papers] computed at each point from "allLi" content,
+				"h": the h-index,
+				"figs" (only if `plot` is True): contains the figures. See self.plotStats
+			}
+		"""
 		if reset:
 			self.allInfo = {}
 			self.authorPapersList = [[],[]]
@@ -63,16 +116,16 @@ class inspireStatsLoader():
 				self.authorStats(a, reset = False)
 			self.authorPlotInfo["name"] = authorName
 			return self.authorPlotInfo
-		print("[inspireStats] stats for author '%s'"%authorName)
+		pBLogger.info("Stats for author '%s'"%authorName)
 		url = pbConfig.inspireSearchBase + "?p=author:" + authorName + self.authorStatsOpts
 		data = self.JsonFromUrl(url)
 		recid_authorPapers = [ "%d"%a["recid"] for a in data ]
 		tot = len(recid_authorPapers)
-		print("[inspireStats] authorStats will process %d total papers to retrieve citations"%tot)
+		pBLogger.info("AuthorStats will process %d total papers to retrieve citations"%tot)
 		self.runningAuthorStats = True
 		for i, p in enumerate(recid_authorPapers):
 			if not self.runningAuthorStats:
-				print("[inspireStats] received 'stop' signal. Interrupting download of information. Processing and exiting...")
+				pBLogger.info("Received 'stop' signal. Interrupting download of information. Processing and exiting...")
 				break
 			if tot > 20:
 				time.sleep(1)
@@ -80,7 +133,7 @@ class inspireStatsLoader():
 			self.allInfo[p] = {}
 			self.allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			self.authorPapersList[0].append(self.allInfo[p]["date"])
-			print("[inspireStats] %5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
+			pBLogger.info("%5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p, verbose = 0, paperDate = self.allInfo[p]["date"])
 			self.allInfo[p]["infoDict"] = paperInfo["aI"]
 			self.allInfo[p]["citingPapersList"] = paperInfo["citList"]
@@ -90,7 +143,7 @@ class inspireStatsLoader():
 		for i,p in enumerate(sorted(self.authorPapersList[0])):
 			self.authorPapersList[0][i] = p
 			self.authorPapersList[1].append(i + 1)
-		print("[inspireStats] saving citation counts...")
+		pBLogger.info("Saving citation counts...")
 		allCitList = [[],[]]
 		meanCitList = [[],[]]
 		currPaper = 0
@@ -103,18 +156,37 @@ class inspireStatsLoader():
 			meanCitList[1].append((i+1.)/self.authorPapersList[1][currPaper])
 		hind = 0
 		citations = [len(self.allInfo[k]["citingPapersList"][0]) - 2 for k in self.allInfo.keys()]
-		for h in xrange(len(citations)):
+		for h in range(len(citations)):
 			if len([a for a in citations if a >= h]) >= h:
 				hind = h
 		self.authorPlotInfo = { "name": authorName, "aI": self.allInfo, "paLi": self.authorPapersList, "allLi": allCitList,  "meanLi": meanCitList, "h": hind }
 		if plot:
 			self.authorPlotInfo["figs"] = self.plotStats(author = True)
-		print("[inspireStats] stats for author '%s' completed!"%authorName)
+		pBLogger.info("Stats for author '%s' completed!"%authorName)
 		return self.authorPlotInfo
 
 	def paperStats(self, paperID, plot = False, verbose = 1, paperDate = None):
+		"""
+		Function that gets the data and constructs the statistics for a given paper.
+
+		Parameters:
+			paperID (string): the INSPIRE-HEP id of the paper (a number)
+			plot (boolean): whether or not the citations should be plotted (default False)
+			verbose (int, default 1): increase the verbosity level
+			paperDate (datetime, optional): the date of at which the paper was published
+
+		Output:
+			a dictionary containing all the desired information.
+			The structure is the following:
+			{
+				"id": the paper ID,
+				"aI": the list of creation date for all the papers, in INSPIRE-HEP order,
+				"citList": the ordered list of citing papers,
+				"fig" (only if `plot` is True): contains the figure. See self.plotStats
+			}
+		"""
 		if verbose > 0:
-			print("[inspireStats] stats for paper '%s'"%paperID)
+			pBLogger.info("Stats for paper '%s'"%paperID)
 		url = pbConfig.inspireSearchBase + "?p=refersto:recid:" + paperID + self.paperStatsOpts
 		data = self.JsonFromUrl(url)
 		recid_citingPapers = [ a["recid"] for a in data ]
@@ -138,13 +210,29 @@ class inspireStatsLoader():
 		if plot:
 			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
 		if verbose > 0:
-			print("[inspireStats] Done!")
+			pBLogger.info("Done!")
 		return self.paperPlotInfo
 	
 	def plotStats(self, paper = False, author = False, show = False, save = False, path = ".", markPapers = False):
+		"""
+		Plot the collected information, using matplotlib.pyplot.
+
+		Parameters:
+			paper (boolean, default False): plot statistics for the last analyzed paper
+			author (boolean, default False): plot statistics for the last analyzed author
+			show (boolean, default False): True to show the plots in a separate window (with matplotlib.pyplot.show())
+			save (boolean, default False): True to save the plots into files.
+			path (string): where to save the plots
+			markPapers (boolean, default False): True to draw a vertical lines at the dates corresponding to a paper appearing
+
+		Output:
+			False if paper==False and author==False,
+			the matplotlib.pyplot figure containing the citation plot if paper==True,
+			a list of matplotlib.pyplot figures containing the various plots if author==True
+		"""
 		if paper and self.paperPlotInfo is not None:
 			if len(self.paperPlotInfo["citList"][0]) > 0:
-				print("[inspireStats] plotting for paper '%s'..."%self.paperPlotInfo["id"])
+				pBLogger.info("Plotting for paper '%s'..."%self.paperPlotInfo["id"])
 				fig, ax = plt.subplots()
 				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1], picker=5)
 				fig.autofmt_xdate()
@@ -157,7 +245,7 @@ class inspireStatsLoader():
 				plt.close()
 				return fig
 		elif author and self.authorPlotInfo is not None:
-			print("[inspireStats] plotting for author '%s'..."%self.authorPlotInfo["name"])
+			pBLogger.info("Plotting for author '%s'..."%self.authorPlotInfo["name"])
 			try:
 				ymin = min(int(self.authorPlotInfo["allLi"][0][0].strftime("%Y"))-2, int(self.authorPlotInfo["paLi"][0][0].strftime("%Y"))-2)
 				ymax = max(int(self.authorPlotInfo["allLi"][0][-1].strftime("%Y"))+2, int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y"))+2)
@@ -166,7 +254,7 @@ class inspireStatsLoader():
 					ymin = int(self.authorPlotInfo["paLi"][0][0].strftime("%Y"))-2
 					ymax = int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y"))+2
 				except:
-					pBErrorManager("[inspireStats] no publications for this author?")
+					pBLogger.warning("No publications for this author?")
 					return False
 			figs = []
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
@@ -253,7 +341,7 @@ class inspireStatsLoader():
 					try:
 						plt.plot(self.authorPlotInfo["aI"][p]["citingPapersList"][0],self.authorPlotInfo["aI"][p]["citingPapersList"][1])
 					except:
-						pass
+						pBLogger.exception("Something went wrong while plotting...")
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_paperCit.pdf'))
@@ -265,7 +353,7 @@ class inspireStatsLoader():
 				figs.append(fig)
 			return figs
 		else:
-			print("[inspireStats] nothing to plot...")
+			pBLogger.info("Nothing to plot...")
 			return False
 
 pBStats = inspireStatsLoader()

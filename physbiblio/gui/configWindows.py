@@ -14,14 +14,16 @@ try:
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CatWindows import *
-	from physbiblio.errors import pBErrorManager
 	from physbiblio.database import pBDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""

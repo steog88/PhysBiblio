@@ -1,109 +1,194 @@
-import os, sys, numpy, codecs, re
+"""
+Classes and functions that manage the export of the database entries into .bib files.
+
+This file is part of the PhysBiblio package.
+"""
+import os, codecs, re
 import bibtexparser
 import shutil
+import traceback
+
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
+	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.bibtexwriter import pbWriter
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 class pbExport():
+	"""
+	Class that contains the export functions and related.
+	"""
 	def __init__(self):
+		"""
+		Initialize the class instance and set some default variables.
+		"""
 		self.exportForTexFlag = True
-		self.backupextension = ".bck"
+		self.backupExtension = ".bck"
 
-	def backupCopy(self, fname):
-		if os.path.isfile(fname):
-			shutil.copy2(fname, fname + self.backupextension)
+	def backupCopy(self, fileName):
+		"""
+		Creates a backup copy of the given file.
 
-	def restoreBackupCopy(self, fname):
-		if os.path.isfile(fname + self.backupextension):
-			shutil.copy2(fname + self.backupextension, fname)
+		Parameters:
+			fileName: the name of the file to be backed up
+		"""
+		if os.path.isfile(fileName):
+			try:
+				shutil.copy2(fileName, fileName + self.backupExtension)
+			except IOError:
+				pBLogger.exception("Cannot write backup file.\nCheck the folder permissions.")
+				return False
+			else:
+				return True
+		return False
 
-	def rmBackupCopy(self, fname):
-		if os.path.isfile(fname + self.backupextension):
-			os.remove(fname + self.backupextension)
+	def restoreBackupCopy(self, fileName):
+		"""
+		Restores the backup copy of the given file, if any.
 
-	def exportLast(self, fname):
-		"""export the last selection of entries into a .bib file"""
-		self.backupCopy(fname)
+		Parameters:
+			fileName: the name of the file to be restore
+		"""
+		if os.path.isfile(fileName + self.backupExtension):
+			try:
+				shutil.copy2(fileName + self.backupExtension, fileName)
+			except IOError:
+				pBLogger.exception("Cannot restore backup file.\nCheck the file permissions.")
+				return False
+			else:
+				return True
+		return False
+
+	def rmBackupCopy(self, fileName):
+		"""
+		Deletes the backup copy of the given file, if any.
+
+		Parameters:
+			fileName: the name of the file of which the backup should be deleted
+		"""
+		if os.path.isfile(fileName + self.backupExtension):
+			try:
+				os.remove(fileName + self.backupExtension)
+			except IOError:
+				pBLogger.exception("Cannot remove backup file.\nCheck the file permissions.")
+				return False
+			else:
+				return True
+		return True
+
+	def exportLast(self, fileName):
+		"""
+		Export the last queried entries into a .bib file, if the list is not empty.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+		"""
+		self.backupCopy(fileName)
 		if pBDB.bibs.lastFetched:
 			txt = ""
 			for q in pBDB.bibs.lastFetched:
 				txt += q["bibtex"] + "\n"
 			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
 					bibfile.write(txt)
 			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
+				pBLogger.exception("Problems in exporting .bib file!")
+				self.restoreBackupCopy(fileName)
 		else:
-			print("[export] No last selection to export!")
-		self.rmBackupCopy(fname)
+			pBLogger.info("No last selection to export!")
+		self.rmBackupCopy(fileName)
 
-	def exportAll(self, fname):
-		"""export all the entries in the database in a .bib file"""
-		self.backupCopy(fname)
-		rows = pBDB.bibs.getAll(saveQuery = False)
-		if len(rows) > 0:
-			txt = ""
-			for q in rows:
-				txt += q["bibtex"] + "\n"
-			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
-					bibfile.write(txt)
-			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
-		else:
-			print("[export] No elements to export!")
-		self.rmBackupCopy(fname)
-
-	def exportSelected(self, fname, rows):
-		"""export all the selected entries in the database in a .bib file"""
-		self.backupCopy(fname)
-		if len(rows) > 0:
-			txt = ""
-			for q in rows:
-				txt += q["bibtex"] + "\n"
-			try:
-				with codecs.open(fname, 'w', 'utf-8') as bibfile:
-					bibfile.write(txt)
-			except Exception:
-				pBErrorManager("[export] problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fname)
-		else:
-			print("[export] No elements to export!")
-		self.rmBackupCopy(fname)
-
-	def exportForTexFile(self, texFile, outFName, overwrite = False, autosave = True):
+	def exportAll(self, fileName):
 		"""
-		export only the bibtexs required to compile a given .tex file (or a list of).
-		If missing, it tries to download them
+		Export all the entries in the database into a .bib file.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+		"""
+		self.backupCopy(fileName)
+		pBDB.bibs.fetchAll(saveQuery = False, doFetch = False)
+		txt = ""
+		for q in pBDB.bibs.fetchCursor():
+			txt += q["bibtex"] + "\n"
+		if txt != "":
+			try:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
+					bibfile.write(txt)
+			except Exception:
+				pBLogger.exception("Problems in exporting .bib file!", traceback)
+				self.restoreBackupCopy(fileName)
+		else:
+			pBLogger.info("No elements to export!")
+		self.rmBackupCopy(fileName)
+
+	def exportSelected(self, fileName, rows):
+		"""
+		Export the given entries into a .bib file.
+
+		Parameters:
+			fileName: the name of the output bibtex file
+			rows: the list of entries to be exported
+		"""
+		self.backupCopy(fileName)
+		if len(rows) > 0:
+			txt = ""
+			for q in rows:
+				txt += q["bibtex"] + "\n"
+			try:
+				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
+					bibfile.write(txt)
+			except Exception:
+				pBLogger.exception("Problems in exporting .bib file!")
+				self.restoreBackupCopy(fileName)
+		else:
+			pBLogger.info("No elements to export!")
+		self.rmBackupCopy(fileName)
+
+	def exportForTexFile(self, texFileName, outFileName, overwrite = False, autosave = True):
+		"""
+		Reads a .tex file looking for the \cite{} commands, collects the bibtex entries cited in the text and stores them in a bibtex file.
+		The entries are taken from the database first, or from INSPIRE-HEP if possible.
+		The downloaded entries are saved in the database.
+
+		Parameters:
+			texFileName: the name (or a list of names) of the considered .tex file(s)
+			outFileName: the name of the output file, where the required entries will be added
+			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
+			autosave (boolean, default True): if True, the changes to the database are automatically saved.
+
+		Output:
+			True if successful, False if errors occurred
 		"""
 		self.exportForTexFlag = True
-		print("[export] reading keys from '%s'"%texFile)
-		print("[export] saving in '%s'"%outFName)
+		pBLogger.info("Reading keys from '%s'"%texFileName)
+		pBLogger.info("Saving in '%s'"%outFileName)
 		if autosave:
-			print("[export] I will automatically save the changes at the end!")
+			pBLogger.info("Changes will be automatically saved at the end!")
 
 		if overwrite:
-			with open(outFName, "w") as o:
-				o.write("%file written by PhysBiblio\n")
+			try:
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n")
+			except IOError:
+				pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
 
-		existingBib = open(outFName, "r").read()
+		try:
+			existingBib = open(outFileName, "r").read()
+		except IOError:
+			pBLogger.exception("Cannot read file %s."%outFileName)
+			return False
 
-		if type(texFile) is list:
-			if len(texFile) == 0:
+		if type(texFileName) is list:
+			if len(texFileName) == 0:
 				return False
-			for t in texFile:
-				self.exportForTexFile(t, outFName, overwrite = False, autosave = autosave)
-			print("[export] done for all the texFiles. See previous errors (if any)")
+			for t in texFileName:
+				self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
+			pBLogger.info("Done for all the texFiles. See previous errors (if any)")
 			return True
-
-		allBibEntries = pBDB.bibs.getAll(saveQuery = False)
-		allbib = [ e["bibkey"] for e in allBibEntries ]
 
 		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
@@ -114,6 +199,12 @@ class pbExport():
 
 		unexpected = []
 		def saveEntryOutBib(a):
+			"""
+			Remove unwanted fields and add the bibtex entry to the output file
+
+			Parameters:
+				a: the bibtex entry
+			"""
 			bib = '@' + a.replace('@', '')
 			for u in unw1.finditer(bib):
 				bib = bib.replace(u.group(), '')
@@ -123,17 +214,22 @@ class pbExport():
 				bib = bib.replace(u.group(), '')
 			bibf = '\n'.join([line for line in bib.split('\n') if line.strip() ])
 			try:
-				with open(outFName, "a") as o:
+				with open(outFileName, "a") as o:
 					o.write(bibf + "\n")
-					print("[export] %s inserted in output file"%m)
-			except:
-				print("[export] ERROR: impossible to write file '%s'"%outFName)
+					pBLogger.info("%s inserted in output file"%m)
+			except IOError:
+				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 
 		keyscont=""
-		with open(texFile) as r:
-			keyscont += r.read()
+		try:
+			with open(texFileName) as r:
+				keyscont += r.read()
+		except IOError:
+			pBLogger.exception("The file %s does not exist."%texFileName)
+			return False
 
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
+		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
 		requiredBibkeys = []
 		for c in citaz:
@@ -145,7 +241,7 @@ class pbExport():
 			for e in a:
 				if e not in requiredBibkeys and e not in existingBib and e.strip() != "":
 					requiredBibkeys.append(e)
-		print("[export] %d new keys found"%len(requiredBibkeys))
+		pBLogger.info("%d new keys found"%len(requiredBibkeys))
 
 		missing = []
 		retrieved = []
@@ -153,12 +249,12 @@ class pbExport():
 		notFound = []
 		warnings = 0
 		for s in requiredBibkeys:
-			if s not in allbib and s.strip() != "":
+			if not pBDB.bibs.getByBibtex(s) and s.strip() != "":
 				missing.append(s)
 
 		for m in requiredBibkeys:
 			if m in missing and self.exportForTexFlag:
-				print("[export] key '%s' missing, trying to import it from Web"%m)
+				pBLogger.info("Key '%s' missing, trying to import it from Web"%m)
 				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
 				newCheck = pBDB.bibs.getByBibkey(m, saveQuery = False)
 
@@ -169,7 +265,7 @@ class pbExport():
 						saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 					except:
 						unexpected.append(m)
-						print("[export] unexpected error in saving entry '%s' into the output file"%m)
+						pBLogger.exception("Unexpected error in saving entry '%s' into the output file"%m)
 				else:
 					if newWeb and not newWeb.find(m) > 0:
 						warnings += 1
@@ -184,44 +280,59 @@ class pbExport():
 					else:
 						notFound.append(m)
 						warnings += 1
-				print("\n")
+				pBLogger.info("\n")
 			else:
 				try:
 					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
 				except:
 					unexpected.append(m)
-					print("[export] unexpected error in extracting entry '%s' to the output file"%m)
+					pBLogger.exception("Unexpected error in extracting entry '%s' to the output file"%m)
 
 		if autosave:
 			pBDB.commit()
-		print("\n[export] RESUME")
-		print("[export] %d new keys found in .tex file"%len(requiredBibkeys))
+		pBLogger.info("\nRESUME")
+		pBLogger.info("%d new keys found in .tex file"%len(requiredBibkeys))
 		if len(missing) > 0:
-			print("\n[export] %d required entries were missing in database"%len(missing))
+			pBLogger.info("\n%d required entries were missing in database"%len(missing))
 		if len(retrieved) > 0:
-			print("\n[export] retrieved %d new entries:"%len(retrieved))
-			print(" - ".join(retrieved))
+			pBLogger.info("\n%d new entries retrieved:"%len(retrieved))
+			pBLogger.info(" - ".join(retrieved))
 		if len(notFound) > 0:
-			print("\n[export] impossible to find %d entries:"%len(notFound))
-			print(" - ".join(notFound))
+			pBLogger.info("\nImpossible to find %d entries:"%len(notFound))
+			pBLogger.info(" - ".join(notFound))
 		if len(unexpected) > 0:
-			print("\n[export] unexpected errors for %d entries:"%len(unexpected))
-			print(" - ".join(unexpected))
+			pBLogger.info("\nUnexpected errors for %d entries:"%len(unexpected))
+			pBLogger.info(" - ".join(unexpected))
 		if len(newKeys.keys()) > 0:
-			print("\n[export] possible non-matching keys in %d entries"%len(newKeys.keys()))
-			print("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.iteritems() ] ) )
-		print("[export] -->     " + str(warnings) + " warning(s) occurred!")
+			pBLogger.info("\nPossible non-matching keys in %d entries"%len(newKeys.keys()))
+			pBLogger.info("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
+		pBLogger.info("     " + str(warnings) + " warning(s) occurred!")
+		return True
 
-	def updateExportedBib(self, fname, overwrite = False):
-		self.backupCopy(fname)
+	def updateExportedBib(self, fileName, overwrite = False):
+		"""
+		Reads a bibtex file and updates the entries that it contains, for example if the entry has been published.
+
+		Parameters:
+			fileName: the name of the considered bibtex file
+			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
+
+		Output:
+			True if successful, False if errors occurred
+		"""
+		self.backupCopy(fileName)
 		bibfile=""
-		with open(fname) as r:
-			bibfile += r.read()
+		try:
+			with open(fileName) as r:
+				bibfile += r.read()
+		except IOError:
+			pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
+			return False
 		try:
 			biblist = bibtexparser.loads(bibfile)
 		except IndexError:
-			pBErrorManager("[export] problems in loading the .bib file!", traceback)
-			return "[export] problems in loading the .bib file!"
+			pBLogger.exception("Problems in loading the .bib file!")
+			return False
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
 		for b in biblist.entries:
@@ -233,13 +344,14 @@ class pbExport():
 				db.entries.append(b)
 		txt = pbWriter.write(db).strip()
 		try:
-			with codecs.open(fname, 'w', 'utf-8') as outfile:
+			with codecs.open(fileName, 'w', 'utf-8') as outfile:
 				outfile.write(txt)
 		except Exception:
-			pBErrorManager("[export] problems in exporting .bib file!", traceback)
-			self.restoreBackupCopy(fname)
+			pBLogger.exception("Problems in exporting .bib file!")
+			self.restoreBackupCopy(fileName)
+			return False
 		if overwrite:
-			self.rmBackupCopy(fname)
+			self.rmBackupCopy(fileName)
 		return True
 
 pBExport = pbExport()

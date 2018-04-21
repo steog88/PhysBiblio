@@ -12,14 +12,17 @@ try:
 	#from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 def askYesNo(message, title = "Question"):
 	reply = QMessageBox.question(None, title, message, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -53,15 +56,16 @@ def infoMessage(message, title = "Information"):
 
 class pBGUIErrorManager():
 	def __init__(self, message, trcbk = None, priority = 2):
-		message += "\n"
-		pBErrorManager(message, trcbk, priority = priority)
+		if trcbk is not None:
+			message += "\n" + trcbk.format_exc()
+		pBLogger.log((2+priority)*10, message)
 		error = QMessageBox()
 		if priority == 0:
-			error.information(error, unicode("Warning"), unicode(message.replace('\n', '<br>')))
+			error.information(error, "Warning", message.replace('\n', '<br>'))
 		elif priority == 1:
-			error.warning(error, unicode("Error"), unicode(message.replace('\n', '<br>')))
+			error.warning(error, "Error", message.replace('\n', '<br>'))
 		else:
-			error.critical(error, unicode("Critical error"), unicode(message.replace('\n', '<br>')))
+			error.critical(error, "Critical error", message.replace('\n', '<br>'))
 
 class configEditColumns(QDialog):
 	def __init__(self, parent = None):

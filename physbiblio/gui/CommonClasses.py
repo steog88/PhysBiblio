@@ -4,9 +4,16 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	import physbiblio.gui.Resources_pyside
+	from physbiblio.errors import pBLogger
 	from physbiblio.gui.DialogWindows import *
-	from physbiblio.database import catString
+	from physbiblio.database import pBDB, catString
+except ImportError:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+try:
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
 	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
@@ -137,25 +144,19 @@ class MyThread(QThread):
 
 	finished = Signal()
 
-class WriteStream(QObject):
+class WriteStream(MyThread):
+	mysignal = Signal(str)
+	finished = Signal()
 	"""class used to redirect the stdout prints to a window"""
-	def __init__(self,queue):
+	def __init__(self, queue, parent = None, *args, **kwargs):
+		super(WriteStream, self).__init__(parent, *args, **kwargs)
 		self.queue = queue
+		self.running = True
+		self.parent = parent
 
 	def write(self, text):
 		"""output is sent to window but also copied to real stdout"""
 		self.queue.put(text)
-		sys.__stdout__.write(text)
-
-class MyReceiver(MyThread):
-	mysignal = Signal(str)
-	finished = Signal()
-
-	def __init__(self, queue, parent = None, *args, **kwargs):
-		super(MyReceiver, self).__init__(parent, *args, **kwargs)
-		self.queue = queue
-		self.running = True
-		self.parent = parent
 
 	def run(self):
 		while self.running:
@@ -222,7 +223,7 @@ class MyTableModel(QAbstractTableModel):
 			try:
 				self.selectedElements[prevK] = True
 			except IndexError:
-				pBErrorManager("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
+				pBLogger.exception("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
 		self.emit(SIGNAL("layoutChanged()"))
 
 	def selectAll(self):
@@ -335,7 +336,7 @@ class NamedElement(object): # your internal structure
 	def __init__(self, idCat, name, subelements):
 		self.idCat = idCat
 		self.name = name
-		self.text = catString(idCat)
+		self.text = catString(idCat, pBDB)
 		self.subelements = subelements
 
 class NamedNode(TreeNode):
@@ -392,7 +393,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		source_index = model.index(row_num, 0, parent)
 
 		children_count =  model.rowCount(source_index)
-		for i in xrange(children_count):
+		for i in range(children_count):
 			if self.filterAcceptsRow(i, source_index):
 				return True
 		return False

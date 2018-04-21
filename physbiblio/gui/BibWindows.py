@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 import sys
+import os
 import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import re
+from pyparsing import ParseException
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
@@ -21,9 +24,12 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 convertType = {
 	"review":  "Review",
@@ -104,7 +110,7 @@ class abstractFormulas():
 		try:
 			text_bbox = t.get_window_extent(renderer)
 		except ValueError:
-			pBErrorManager("[convert] Error when converting latex to image", traceback)
+			pBLogger.exception("Error when converting latex to image")
 			return None
 
 		tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
@@ -465,25 +471,29 @@ class bibtexList(QFrame, objListWindow):
 		self.finalizeTable()
 
 	def triggeredContextMenuEvent(self, row, col, event):
-		def deletePdfFile(bibkey, ftype, fdesc, custom = None):
+		def deletePdfFile(bibkey, fileType, fdesc, custom = None):
 			if askYesNo("Do you really want to delete the %s file for entry %s?"%(fdesc, bibkey)):
 				self.parent.StatusBarMessage("deleting %s file..."%fdesc)
 				if custom is not None:
-					pBPDF.removeFile(bibkey, "", fname = custom)
+					pBPDF.removeFile(bibkey, "", fileName = custom)
 				else:
-					pBPDF.removeFile(bibkey, ftype)
+					pBPDF.removeFile(bibkey, fileType)
 				self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-		def copyPdfFile(bibkey, ftype, custom = None):
-			pdfName = osp.join(pBPDF.getFileDir(bibkey), custom) if custom is not None else pBPDF.getFilePath(bibkey, ftype)
+		def copyPdfFile(bibkey, fileType, custom = None):
+			pdfName = os.path.join(pBPDF.getFileDir(bibkey), custom) if custom is not None else pBPDF.getFilePath(bibkey, fileType)
 			outFolder = askDirName(self, title = "Where do you want to save the PDF %s?"%pdfName)
 			if outFolder.strip() != "":
-				pBPDF.copyToDir(outFolder, bibkey, ftype = ftype, customName = custom)
+				pBPDF.copyToDir(outFolder, bibkey, fileType = fileType, customName = custom)
 
 		index = self.tablewidget.model().index(row, col)
 		try:
-			bibkey = str(self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data())
+			bibkey = self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data()
+			if bibkey is None or bibkey is "":
+				return
+			bibkey = str(bibkey)
 		except AttributeError:
+			pBLogger.exception("Error in reading table content")
 			return
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
@@ -519,9 +529,9 @@ class bibtexList(QFrame, objListWindow):
 		elif doi is not None and doi != "":
 			pdfActs["addDoi"] = pdfMenu.addAction("Assign DOI PDF")
 		pdfMenu.addSeparator()
-		pdfActs["openOtherPDF"] = [None for i in xrange(len(files))]
-		pdfActs["delOtherPDF"] = [None for i in xrange(len(files))]
-		pdfActs["copyOtherPDF"] = [None for i in xrange(len(files))]
+		pdfActs["openOtherPDF"] = [None for i in range(len(files))]
+		pdfActs["delOtherPDF"] = [None for i in range(len(files))]
+		pdfActs["copyOtherPDF"] = [None for i in range(len(files))]
 		for i,f in enumerate(files):
 			pdfActs["openOtherPDF"][i] = pdfMenu.addAction("Open %s"%f.replace(pdfDir+"/", ""))
 			pdfActs["delOtherPDF"][i] = pdfMenu.addAction("Delete %s"%f.replace(pdfDir+"/", ""))
@@ -541,6 +551,9 @@ class bibtexList(QFrame, objListWindow):
 		if arxiv is not None and arxiv != "":
 			absAction = menu.addAction("Get abstract (from arXiv)")
 			arxAction = menu.addAction("Get info (from arXiv)")
+		else:
+			absAction = "absAction"
+			arxAction = "arxAction"
 		menu.addSeparator()
 		
 		action = menu.exec_(event.globalPos())
@@ -581,11 +594,11 @@ class bibtexList(QFrame, objListWindow):
 		elif action == opInsAct:
 			pBView.openLink(bibkey, "inspire")
 		elif action == cleAction:
-			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey))
+			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
 		elif action == insAction:
 			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
-			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey), force = True)
+			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True)
 		elif action == staAction:
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		elif action == absAction:
@@ -598,6 +611,7 @@ class bibtexList(QFrame, objListWindow):
 				if result is True:
 					infoMessage("Done!")
 				else:
+					#must be improved...the function only returns False
 					self.parent.gotError(result)
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
@@ -762,7 +776,7 @@ class editBibtexEntry(editObjectWindow):
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
 			bibkey = element["ID"]
-		except (ValueError, IndexError):
+		except (ValueError, IndexError, ParseException):
 			bibkey = "not valid bibtex!"
 		self.textValues["bibkey"].setText(bibkey)
 
@@ -922,7 +936,7 @@ class askSelBibAction(MyMenu):
 						try:
 							self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 						except:
-							pBErrorManager("Impossible to reload content.")
+							pBLogger.warning("Impossible to reload content.")
 			else:
 				self.parent.gotError("ERROR: empty bibtex and/or bibkey!")
 		self.close()
@@ -966,14 +980,14 @@ class askSelBibAction(MyMenu):
 			for entryDict in self.entries:
 				entry = entryDict["bibkey"]
 				if pBPDF.checkFile(entry, "doi"):
-					pBPDF.copyToDir(outFolder, entry, ftype = "doi")
+					pBPDF.copyToDir(outFolder, entry, fileType = "doi")
 				elif pBPDF.checkFile(entry, "arxiv"):
-					pBPDF.copyToDir(outFolder, entry, ftype = "arxiv")
+					pBPDF.copyToDir(outFolder, entry, fileType = "arxiv")
 				else:
 					existing = pBPDF.getExisting(entry)
 					if len(existing) > 0:
 						for ex in existing:
-							pBPDF.copyToDir(outFolder, entry, "", custom = ex)
+							pBPDF.copyToDir(outFolder, entry, "", customName = ex)
 		self.close()
 
 	def onCat(self):

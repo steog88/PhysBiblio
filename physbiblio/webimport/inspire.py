@@ -1,14 +1,27 @@
-import sys,re,os
-from urllib2 import Request
-import urllib2
-from physbiblio.config import pbConfig
-from physbiblio.webimport.webInterf import *
-from physbiblio.parse_accents import *
+"""
+Module that deals with importing info from the INSPIRE-HEP API.
+
+This file is part of the PhysBiblio package.
+"""
+import traceback
+try:
+	from physbiblio.errors import pBLogger
+	from physbiblio.config import pbConfig
+	from physbiblio.webimport.webInterf import *
+	from physbiblio.parse_accents import *
+except ImportError:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
 
 class webSearch(webInterf):
-	"""inspire methods"""
+	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches"""
 	def __init__(self):
-		"""configurations"""
+		"""
+		Initializes the class variables using the webInterf constructor.
+
+		Define additional specific parameters for the INSPIRE-HEP API.
+		"""
 		webInterf.__init__(self)
 		self.name = "inspire"
 		self.description = "INSPIRE fetcher"
@@ -23,23 +36,20 @@ class webSearch(webInterf):
 			"eb": "B",
 			"of": "hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
 			}
-		self.urlRecordExt = {
-			"bibtex": "/export/hx",
-		}
-		
-	def urlOfRecord(self, inspireID, extension = None):
-		"""get url for a given record"""
-		if extension and extension in self.urlRecordExt.keys():
-			ext = self.urlRecordExt[extension]
-		else:
-			ext = ""
-		return self.urlRecord + inspireID + ext
 		
 	def retrieveUrlFirst(self, string):
-		"""retrieve the first entry from a html page"""
-		self.urlArgs["p"] = "\"" + string + "\""
+		"""
+		Retrieves the first result from the content of the given web page.
+
+		Parameters:
+			string: the search string
+
+		Output:
+			returns the bibtex string obtained from the API
+		"""
+		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		print("[inspire] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -49,15 +59,23 @@ class webSearch(webInterf):
 			else:
 				bibtex = ""
 			return parse_accents_str(bibtex)
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBLogger.exception("Impossible to get results")
 			return ""
 		
 	def retrieveUrlAll(self, string):
-		"""retrieve all the entries from a html page"""
-		self.urlArgs["p"] = "\"" + string + "\""
+		"""
+		Retrieves all the result from the content of the given web page.
+
+		Parameters:
+			string: the search string
+
+		Output:
+			returns the bibtex string obtained from the API
+		"""
+		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		print("[inspire] search %s -> %s"%(string, url))
+		pBLogger.info("Search %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -67,21 +85,31 @@ class webSearch(webInterf):
 			else:
 				bibtex = ""
 			return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBLogger.exception("Impossible to get results")
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
-		"""read the inspire ID of a given entry from the html page"""
+		"""
+		Read the fetched content for a given entry to obtain its INSPIRE-HEP ID
+
+		Parameters:
+			string: the search string
+			number (optional): the integer corresponding to the desired entry in the list, if more than one is present
+		"""
 		i = 0
-		self.urlArgs["p"] = "\"" + string + "\""
-		self.urlArgs["of"] = "hb" #not bibtex but standard
+		self.urlArgs["p"] = string.replace(" ", "+")
+		self.urlArgs["of"] = "hb" #do not ask bibtex, but standard
 		url = self.createUrl()
 		self.urlArgs["of"] = "hx" #restore
-		print("[inspire] search ID of %s -> %s"%(string, url))
+		pBLogger.info("Search ID of %s -> %s"%(string, url))
 		text = self.textFromUrl(url)
+		if text is None:
+			pBLogger.warning("An error occurred. Empty text obtained")
+			return ""
 		try:
 			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
+			inspireID = ""
 			for q in searchID.finditer(text):
 				if len(q.group()) > 0:
 					if number is None or i == number:
@@ -89,8 +117,8 @@ class webSearch(webInterf):
 						break
 					else:
 						i += 1
-			print("[inspire] found: %s"%inspireID)
+			pBLogger.info("Found: %s"%inspireID)
 			return inspireID
-		except:
-			print("[inspire] -> ERROR: impossible to get results")
+		except Exception:
+			pBLogger.exception("Impossible to get results")
 			return ""

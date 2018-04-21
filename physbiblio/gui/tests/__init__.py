@@ -1,3 +1,8 @@
+"""
+Tests for the physbiblio.gui package.
+
+This file is part of the PhysBiblio package.
+"""
 import physbiblio
 __version__ = physbiblio.__version__
 

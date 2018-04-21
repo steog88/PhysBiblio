@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-from Queue import Queue
+if sys.version_info[0] < 3:
+	from Queue import Queue
+else:
+	from queue import Queue
+
 from PySide.QtCore import *
 from PySide.QtGui  import *
 import signal
@@ -9,7 +13,7 @@ import ast
 import glob
 
 try:
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import *
 	from physbiblio.export import pBExport
 	import physbiblio.webimport.webInterf as webInt
@@ -27,9 +31,12 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
-	import physbiblio.gui.Resources_pyside
+	if sys.version_info[0] < 3:
+		import physbiblio.gui.Resources_pyside
+	else:
+		import physbiblio.gui.Resources_pyside3
 except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
+	print("Missing Resources_pyside: Run script update_resources.sh")
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -455,7 +462,7 @@ class MainWindow(QMainWindow):
 		"""
 		Function to show About Box
 		"""
-		dbStats()
+		dbStats(pBDB)
 		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
 		QMessageBox.about(self, "PhysBiblio database statistics",
 			"The PhysBiblio database currently contains the following number of records:\n"+
@@ -483,35 +490,34 @@ class MainWindow(QMainWindow):
 		if minProgress:
 			app.progressBarMin(minProgress)
 		queue = Queue()
-		rec = MyReceiver(queue, self)
-		rec.mysignal.connect(app.append_text)
+		ws = WriteStream(queue)
+		ws.mysignal.connect(app.append_text)
 		if addMessage:
-			print addMessage
-		thr = thread_func(queue, rec, *args, parent = self, **kwargs)
+			print(addMessage)
+		thr = thread_func(queue, ws, *args, parent = self, **kwargs)
 
-		rec.finished.connect(rec.deleteLater)
+		ws.finished.connect(ws.deleteLater)
 		thr.finished.connect(app.enableClose)
 		thr.finished.connect(thr.deleteLater)
 		if stopFlag:
 			app.stopped.connect(thr.setStopFlag)
 
-		sys.stdout = WriteStream(queue)
+		pBErrorManager.tempHandler(ws, format = '%(message)s')
 		thr.start()
 		app.exec_()
-		print("Closing...")
-		sys.stdout = sys.__stdout__
+		pBLogger.info("Closing...")
+		pBErrorManager.rmTempHandler()
 		if outMessage:
 			self.StatusBarMessage(outMessage)
 		else:
 			self.done()
-		return thr, rec
 
 	def cleanSpare(self):
-		self.cS_thr, self.cSReceiver = self._runInThread(thread_cleanSpare, "Clean spare entries")
+		self._runInThread(thread_cleanSpare, "Clean spare entries")
 
 	def cleanSparePDF(self):
 		if askYesNo("Do you really want to delete the unassociated PDF folders?\nThere may be some (unlikely) accidental deletion of files."):
-			self.cSP_thr, self.cSPReceiver = self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
+			self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
 
 	def CreateStatusBar(self):
 		"""
@@ -566,7 +572,7 @@ class MainWindow(QMainWindow):
 		if outFName != "":
 			texFile = askFileNames(self, title = "Which is/are the *.tex file(s) you want to compile?", filter = "Latex (*.tex)")
 			if (type(texFile) is not list and texFile != "") or (type(texFile) is list and len(texFile)>0):
-				self.exportTexBib_thr, self.exportTexBibReceiver = self._runInThread(
+				self._runInThread(
 					thread_exportTexBib, "Exporting...",
 					texFile, outFName,
 					minProgress=0,  stopFlag = True, outMessage = "All entries saved into %s"%outFName)
@@ -637,7 +643,7 @@ class MainWindow(QMainWindow):
 			if len(newSearchWin.values["type"]) > 0:
 				for k in newSearchWin.values["type"]:
 					searchDict[k] = {"str": "1", "operator": "=", "connection": newSearchWin.values["typeConn"]}
-					print searchDict[k]
+					print(searchDict[k])
 			for i, dic in enumerate(newSearchWin.textValues):
 				k="%s#%d"%(dic["field"].currentText(), i)
 				s = "%s"%dic["content"].text()
@@ -719,7 +725,7 @@ class MainWindow(QMainWindow):
 
 	def updateAllBibtexs(self, startFrom = pbConfig.params["defaultUpdateFrom"], useEntries = None, force = False):
 		self.StatusBarMessage("Starting update of bibtexs from %s..."%startFrom)
-		self.updateOAI_thr, self.uOAIReceiver = self._runInThread(
+		self._runInThread(
 			thread_updateAllBibtexs, "Update Bibtexs",
 			startFrom, useEntries = useEntries, force = force,
 			totStr = "[DB] searchOAIUpdates will process ", progrStr = "%) - looking for update: ",
@@ -727,7 +733,7 @@ class MainWindow(QMainWindow):
 
 	def updateInspireInfo(self, bibkey):
 		self.StatusBarMessage("Starting generic info update from INSPIRE-HEP...")
-		self.updateII_thr, self.uIIReceiver = self._runInThread(
+		self._runInThread(
 			thread_updateInspireInfo, "Update Info",
 			bibkey,
 			minProgress = 0., stopFlag = True)
@@ -745,7 +751,7 @@ class MainWindow(QMainWindow):
 				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 
-		self.authorStats_thr, self.aSReceiver = self._runInThread(
+		self._runInThread(
 			thread_authorStats, "Author Stats",
 			authorName,
 			totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ",
@@ -760,7 +766,7 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def getInspireStats(self, inspireId):
-		self.paperStats_thr, self.pSReceiver = self._runInThread(
+		self._runInThread(
 			thread_paperStats, "Paper Stats",
 			inspireId,
 			totStr = "[inspireStats] paperStats will process ", progrStr = "%) - looking for paper: ",
@@ -787,7 +793,7 @@ class MainWindow(QMainWindow):
 				self.gotError("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?", priority = 1)
 				return False
 
-		self.inspireLoadAndInsert_thr, self.iLAIReceiver = self._runInThread(
+		self._runInThread(
 			thread_loadAndInsert, "Import from INSPIRE-HEP",
 			queryStr,
 			totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ",
@@ -803,7 +809,7 @@ class MainWindow(QMainWindow):
 
 	def askCatsForEntries(self, entriesList):
 		for entry in entriesList:
-			selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry)
+			selectCats = catsWindowList(parent = self, askCats = True, askForBib = entry, previous = [a[0] for a in pBDB.cats.getByEntry(entry)])
 			selectCats.exec_()
 			if selectCats.result in ["Ok", "Exps"]:
 				cats = self.selectedCats
@@ -835,7 +841,7 @@ class MainWindow(QMainWindow):
 			found = {}
 			for el in elements:
 				if el["ID"].strip() == "":
-					pBErrorManager("[advancedImport] ERROR: impossible to insert an entry with empty bibkey!\n%s\n"%el["ID"])
+					pBLogger.warning("Impossible to insert an entry with empty bibkey!\n%s\n"%el["ID"])
 				else:
 					found[el["ID"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["ID"], saveQuery = False) ) > 0}
 			if len(found) == 0:
@@ -857,7 +863,7 @@ class MainWindow(QMainWindow):
 					try:
 						pBDB.bibs.insert(data)
 					except:
-						pBErrorManager("[advancedImport] failed in inserting entry %s\n"%key)
+						pBLogger.warning("Failed in inserting entry %s\n"%key)
 						continue
 					try:
 						if method == "inspire":
@@ -868,7 +874,7 @@ class MainWindow(QMainWindow):
 						print("[advancedImport] element successfully inserted.\n")
 						inserted.append(key)
 					except:
-						pBErrorManager("[advancedImport] failed in completing info for entry %s\n"%key)
+						pBLogger.warning("Failed in completing info for entry %s\n"%key)
 				self.StatusBarMessage("[advancedImport] entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)
@@ -889,22 +895,24 @@ class MainWindow(QMainWindow):
 
 	def cleanAllBibtexs(self, startFrom = 0, useEntries = None):
 		self.StatusBarMessage("Starting cleaning of bibtexs...")
-		self.cleanBibtexs_thr, self.cleanReceiver = self._runInThread(
+		self._runInThread(
 			thread_cleanAllBibtexs, "Clean Bibtexs",
 			startFrom, useEntries = useEntries,
 			totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ",
 			minProgress = 0., stopFlag = True)
 
 	def infoFromArxiv(self, useEntries = None):
+		iterator = useEntries
 		if useEntries is None:
-			useEntries = pBDB.bibs.getAll()
+			pBDB.bibs.fetchAll(doFetch = False)
+			iterator = pBDB.bibs.fetchCursor()
 		askFieldsWin = fieldsFromArxiv()
 		askFieldsWin.exec_()
 		if askFieldsWin.result:
 			self.StatusBarMessage("Starting importing info from arxiv...")
-			self.fieldsArxiv_thr, self.arxivReceiver = self._runInThread(
+			self._runInThread(
 				thread_fieldsArxiv, "Get info from arXiv",
-				[e["bibkey"] for e in useEntries], askFieldsWin.output,
+				[e["bibkey"] for e in iterator], askFieldsWin.output,
 				totStr = "[DB] thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
 				minProgress = 0., stopFlag = True)
 

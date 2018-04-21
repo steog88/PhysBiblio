@@ -1,6 +1,13 @@
+"""
+Manages the configuration of PhysBiblio, from saving to reading.
+
+This file is part of the PhysBiblio package.
+"""
 import sys, ast, os
+import logging
 from appdirs import AppDirs
 
+#these are the default parameter values, descriptions and types
 configuration_params = [
 {"name": "mainDatabaseName",
 	"default": 'PBDATAphysbiblio.db',
@@ -74,17 +81,26 @@ for p in configuration_params:
 	config_special[p["name"]] = p["special"]
 		
 class ConfigVars():
-	"""contains all the common settings and the settings stored in the .cfg file"""
+	"""
+	Contains all the common settings and the settings stored in the .cfg file.
+	Includes also the functions to read and write the config file.
+	"""
 	def __init__(self):
-		"""initialize variables and read the external file"""
+		"""
+		Initialize the configuration.
+		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
+		"""
+		#needed because the main logger will be loaded later!
+		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
+		self.logger = logging.getLogger("physbibliolog")
 		self.defaultDirs = AppDirs("PhysBiblio")
 
 		self.configPath = self.defaultDirs.user_config_dir + os.sep
 		self.dataPath = self.defaultDirs.user_data_dir + os.sep
-		print("Default configuration path: %s"%self.configPath)
+		self.logger.info("Default configuration path: %s"%self.configPath)
 		if not os.path.exists(self.configPath):
 			os.makedirs(self.configPath)
-		print("Default data path: %s"%self.dataPath)
+		self.logger.info("Default data path: %s"%self.dataPath)
 		if not os.path.exists(self.dataPath):
 			os.makedirs(self.dataPath)
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
@@ -93,6 +109,7 @@ class ConfigVars():
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.params = {}
+		self.path = os.path.realpath(__file__).replace("physbiblio/config.pyc","").replace("physbiblio/config.py","")
 		for k, v in config_defaults.items():
 			if type(v) is str and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
@@ -101,12 +118,9 @@ class ConfigVars():
 		self.descriptions = config_descriptions
 
 		try:
-			with open(self.configProfilesFile) as r:
-				txtarr = r.readlines()
-			txt = "".join(txtarr)
-			self.defProf, self.profiles = ast.literal_eval(txt.replace("\n",""))
+			self.defProf, self.profiles = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
-			print(e)
+			self.logger.warning(e)
 			self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
 			self.defProf = "default"
 			self.writeProfiles()
@@ -118,18 +132,29 @@ class ConfigVars():
 			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
 
 		self.defaultProfile = self.profiles[self.defProf]
-		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
+		self.logger.info("starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		
 		self.readConfigFile()
 
+		#some urls
 		self.arxivUrl = "http://arxiv.org/"
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
 
+	def readProfiles(self):
+		"""
+		Reads the list of profiles and the related parameters in the profiles file.
+		"""
+		with open(self.configProfilesFile) as r:
+			txtarr = r.readlines()
+		txt = "".join(txtarr)
+		return ast.literal_eval(txt.replace("\n",""))
+
 	def checkOldProfiles(self):
 		"""
+		Intended for backwards compatibility.
 		Check if there is a profiles.dat file in the 'data/' subfolder.
 		If yes, move it to the new self.configPath.
 		"""
@@ -139,6 +164,7 @@ class ConfigVars():
 
 	def checkOldPaths(self):
 		"""
+		Intended for backwards compatibility.
 		Check if there are configuration files in the 'data/' subfolder.
 		If yes, move them to the new self.configPath or self.dataPath.
 		"""
@@ -155,23 +181,37 @@ class ConfigVars():
 			self.writeProfiles()
 
 	def writeProfiles(self):
+		"""
+		Writes the list of profiles and the related parameters in the profiles file.
+		"""
 		if not os.path.exists(self.configPath):
 			os.makedirs(self.configPath)
 		with open(self.configProfilesFile, 'w') as w:
 			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
 
 	def reInit(self, newShort, newProfile):
+		"""
+		Used when changing profile.
+		Reloads all the configuration from scratch given the new profile name.
+
+		Parameters:
+			newShort (str): short name for the new profile to be loaded
+			newProfile (dict): the profile file dictionary
+		"""
 		self.defProf = newShort
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
-		print "[config] starting with configuration in '%s'"%self.defaultProfile["f"]
+		self.logger.info("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		self.params = {}
 		self.readConfigFile()
 		
 	def readConfigFile(self):
-		"""read all the configuration from an external file"""
+		"""
+		Read the configuration from a file, whose name is stored in self.configMainFile.
+		Parses the various parameters given their declared type.
+		"""
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		try:
@@ -196,17 +236,19 @@ class ConfigVars():
 					else:
 						self.params[k] = v
 				except Exception:
-					print(traceback.format_exc())
+					self.logger.warning("Failed in reading parameter", exc_info = True)
 					self.params[k] = v
 		except IOError:
-			print("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
+			self.logger.warning("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
 			self.needFirstConfiguration = True
 		except Exception:
-			print("[config] ERROR: reading %s file failed."%self.configMainFile)
+			self.logger.error("[config] ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
-		"""write the current configuration in a file"""
+		"""
+		Write the current configuration in a file, whose name is stored in self.configMainFile.
+		"""
 		txt = ""
 		for k in self.paramOrder:
 			current = "%s = %s\n"%(k, self.params[k])
@@ -216,6 +258,6 @@ class ConfigVars():
 			with open(self.configMainFile, "w") as w:
 				w.write(txt)
 		except IOError:
-			print("[config] ERROR in saving config file!")
+			self.logger.error("[config] ERROR in saving config file!")
 
 pbConfig = ConfigVars()

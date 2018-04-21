@@ -1,8 +1,14 @@
+"""
+Module that creates a command line interface to manually run the PhysBiblio internal commands.
+
+This file is part of the PhysBiblio package.
+"""
 import sys, traceback
 import readline # optional, will allow Up/Down/History in the console
 import code
 
 try:
+	from physbiblio.errors import pBLogger
 	from physbiblio.export import pBExport
 	import physbiblio.webimport.webInterf as webInt
 	from physbiblio.config import pbConfig
@@ -12,14 +18,19 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
-	print("[CLI] Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
+	raise
 
 def cli():
-	"""open a command line interface"""
+	"""
+	Open a command line interface.
+
+	Many imports allow the user to automatically access the useful classes.
+	"""
 	vars = globals().copy()
 	vars.update(locals())
 	shell = code.InteractiveConsole(vars)
-	shell.interact("""[CLI] Activating CommandLineInterface
-Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).""")
-	print("[CLI] CommandLineInterface closed.")
+	shell.interact("[CLI] Activating CommandLineInterface\n" + \
+		"Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).")
+	pBLogger.info("CommandLineInterface closed.")
