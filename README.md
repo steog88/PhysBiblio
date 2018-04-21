@@ -41,7 +41,7 @@ sudo apt install python3-pyside
 sudo pip3 install physbiblio
 ```
 
-At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
+At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/bin/`, `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
 
 ### Test that everything works
 Once you have installed the software, you may want to spend few minutes to run the test suite
@@ -78,7 +78,7 @@ Icon=/path/to/physbiblio/icon.png
 Name=PhysBiblio
 Path[$e]=/path/to/PhysBiblio/
 ```
-The icon may be located in `/usr/local/physbiblio/icon.png` (Ubuntu-like)
+The icon may be located in `/usr/local/physbiblio/icon.png` or `/usr/physbiblio/icon.png`.
 
 ### Default settings
 When you first open PhysBiblio, you will need to set up some configuration parameters.  
