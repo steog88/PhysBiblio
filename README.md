@@ -42,6 +42,11 @@ sudo pip3 install physbiblio
 ```
 
 At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/bin/`, `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
+You can find out the location where the package is installed with
+```
+pip show -f physbiblio
+```
+The primary director is under `Location`, you can combine with the information provided by the list of `Files`.
 
 ### Test that everything works
 Once you have installed the software, you may want to spend few minutes to run the test suite

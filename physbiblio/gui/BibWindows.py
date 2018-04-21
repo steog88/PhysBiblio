@@ -498,9 +498,22 @@ class bibtexList(QFrame, objListWindow):
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
 		menu.addSeparator()
-		delAction = menu.addAction("Delete")
 		modAction = menu.addAction("Modify")
 		cleAction = menu.addAction("Clean")
+		delAction = menu.addAction("Delete")
+		menu.addSeparator()
+
+		copyMenu = menu.addMenu("Copy to clipboard")
+		copyActions = {}
+		copyActions["bibkey"] = copyMenu.addAction("Copy key")
+		copyActions["cite"] = copyMenu.addAction(r"Copy \cite{key}")
+		copyActions["bibtex"] = copyMenu.addAction("Copy bibtex")
+		abstract = pBDB.bibs.getField(bibkey, "abstract")
+		if abstract is not None and abstract.strip() != "":
+			copyActions["abstract"] = copyMenu.addAction("Copy abstract")
+		link = pBDB.bibs.getField(bibkey, "link")
+		if link is not None and link.strip() != "":
+			copyActions["link"] = copyMenu.addAction("Copy link")
 		menu.addSeparator()
 
 		pdfMenu = menu.addMenu("PDF")
@@ -561,6 +574,20 @@ class bibtexList(QFrame, objListWindow):
 			deleteBibtex(self.parent, self.parent, bibkey)
 		elif action == modAction:
 			editBibtex(self.parent, self.parent, bibkey)
+		elif action == cleAction:
+			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
+		#copy functions
+		elif "bibkey" in copyActions.keys() and action == copyActions["bibkey"]:
+			self.copyToClipboard(bibkey)
+		elif "cite" in copyActions.keys() and action == copyActions["cite"]:
+			self.copyToClipboard(r"\cite{%s}"%bibkey)
+		elif "bibtex" in copyActions.keys() and action == copyActions["bibtex"]:
+			self.copyToClipboard(pBDB.bibs.getField(bibkey, "bibtex"))
+		elif "abstract" in copyActions.keys() and action == copyActions["abstract"]:
+			self.copyToClipboard(abstract)
+		elif "link" in copyActions.keys() and action == copyActions["link"]:
+			self.copyToClipboard(link)
+		#categories
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByEntry(bibkey)]
 			selectCats = catsWindowList(parent = self.parent, askCats = True, askForBib = bibkey, expButton = False, previous = previous)
@@ -574,6 +601,7 @@ class bibtexList(QFrame, objListWindow):
 					if c not in previous:
 						pBDB.catBib.insert(c, bibkey)
 				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%bibkey)
+		#experiments
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
 			selectExps = ExpWindowList(parent = self.parent, askExps = True, askForBib = bibkey, previous = previous)
@@ -587,14 +615,14 @@ class bibtexList(QFrame, objListWindow):
 					if e not in previous:
 						pBDB.bibExp.insert(bibkey, e)
 				self.parent.StatusBarMessage("experiments for '%s' successfully inserted"%bibkey)
+		#open functions
 		elif action == opArxAct:
 			pBView.openLink(bibkey, "arxiv")
 		elif action == opDoiAct:
 			pBView.openLink(bibkey, "doi")
 		elif action == opInsAct:
 			pBView.openLink(bibkey, "inspire")
-		elif action == cleAction:
-			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
+		#online information
 		elif action == insAction:
 			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
@@ -721,6 +749,12 @@ class bibtexList(QFrame, objListWindow):
 				infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 		else:
 			infoMessage("No arxiv number for entry '%s'!"%bibkey)
+
+	def copyToClipboard(self, text):
+		"""copy the given text to the clipboard"""
+		pBLogger.info("Copying to clipboard: '%s'"%text)
+		clipboard = QApplication.clipboard()
+		clipboard.setText(text)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
