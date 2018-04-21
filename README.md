@@ -47,11 +47,12 @@ At this point, `PhysBiblio` will be installed in your computer, in Linux it will
 Once you have installed the software, you may want to spend few minutes to run the test suite
 and check that everything works.  
 The test suite is available through the same `PhysBiblio` executable with the command `test`:
+`PhysBiblio test`
+If this does not work, check that the global variable PATH is correctly configured.
+The other possibility is to point to the PhysBiblio script directly, using one of the following commands:
 ```
+/path/to/PhysBiblio test
 python /path/to/PhysBiblio test
-```
-To run with `python3.x`, use instead:
-```
 python3 /path/to/PhysBiblio test
 ```
 
@@ -72,11 +73,12 @@ In Ubuntu, you can simply create a new file `/your/home/.local/share/application
 ```
 [Desktop Entry]
 Type=Application
-Exec=/path/to/PhysBiblio/PhysBiblio
-Icon=/path/to/PhysBiblio/physbiblio/gui/images/icon.png
+Exec=/path/to/PhysBiblio
+Icon=/path/to/physbiblio/icon.png
 Name=PhysBiblio
 Path[$e]=/path/to/PhysBiblio/
 ```
+The icon may be located in `/usr/local/physbiblio/icon.png` (Ubuntu-like)
 
 ### Default settings
 When you first open PhysBiblio, you will need to set up some configuration parameters.  
@@ -141,9 +143,6 @@ You will not need to know where it is saved, because you will access it from the
 
 ### Marks
 You can mark the entries to be able to easily see if they are good/bad, to notice which ones you need to read or the most interesting ones.
-
-A limited number of marks is available, but more can be added editing the `physbiblio/gui/marks.py` module and adding the corresponding new icons in `physbiblio/gui/images/`
-(you will need to edit `physbiblio/gui/Resources.qrc` and run `physbiblio/gui/update_resources.sh`).
 
 ### Search and replace
 Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
@@ -231,4 +230,3 @@ The stored data, which may be moved to a different folder, include:
 
 You can change some of the paths and file names in the configuration.
 Please note that changing the configuration **will not move** the existing files into the new locations.
-
