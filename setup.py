@@ -44,6 +44,6 @@ setup(name='PhysBiblio',
 			'unittest2;python_version<"3"',
 			],
 		provides=['physbiblio'],
-		data_files = [("", ["LICENSE"])],
+		data_files = [("", ["LICENSE", "CHANGELOG"])],
 		test_loader = "physbiblio.testLoader:MyScanningLoader",
 	)

@@ -1,0 +1,18 @@
+0.2.0 (2018-04-21):
+	Code improvements:
+	* python3 compatibility
+	* setup.py
+	* test suite for non-graphical part
+	* docstrings for non-graphical part
+	* default paths with appdirs
+	* logging
+	* several optimizations/adjustments/improvements/speed-ups/bugfixes
+	
+	New features:
+	* import from bibtex file
+	* command line usage of main executable
+	* more fields are read from INSPIRE
+	* daily/weekly INSPIRE-HEP OAI harvesting
+
+0.1.0 (2018-02-18):
+	first release
