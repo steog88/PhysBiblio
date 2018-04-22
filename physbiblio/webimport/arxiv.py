@@ -110,8 +110,8 @@ class webSearch(webInterf):
 				try:
 					dictionary["doi"] = entry['arxiv_doi']
 				except KeyError as e:
-					pBLogger.warning("KeyError: ", e)
-				dictionary["abstract"] = entry['summary']
+					pBLogger.warning("KeyError: %s"%e)
+				dictionary["abstract"] = entry['summary'].replace("\n", " ")
 				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
 				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
 				identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")

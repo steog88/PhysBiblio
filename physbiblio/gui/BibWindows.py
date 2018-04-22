@@ -742,7 +742,7 @@ class bibtexList(QFrame, objListWindow):
 
 	def arxivAbstract(self, arxiv, bibkey, message = True):
 		if arxiv:
-			bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
+			bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, searchType = "id", fullDict = True)
 			abstract = full["abstract"]
 			pBDB.bibs.updateField(bibkey, "abstract", abstract)
 			if message:

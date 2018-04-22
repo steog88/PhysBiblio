@@ -1,3 +1,14 @@
+0.x (2018-yy):
+	Code improvements:
+	* docstrings for GUI modules
+
+	New features:
+	* copy some contents to clipboard from main table
+
+	Bugs solved:
+	* multiple matches when looking for record in arxiv given the id
+	* no newlines in abstracts
+
 0.2.0 (2018-04-21):
 	Code improvements:
 	* python3 compatibility

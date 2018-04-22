@@ -2427,7 +2427,7 @@ class entries(physbiblioDBSub):
 		if arxiv is "False" or arxiv is "None" or arxiv.strip() == "":
 			return False
 		try:
-			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, fullDict = True)
+			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(arxiv, searchType = "id", fullDict = True)
 			tmp = bibtexparser.loads(bibtex).entries[0]
 			for k in fields:
 				try:
@@ -2542,7 +2542,7 @@ class entries(physbiblioDBSub):
 				return printExisting(key, existing)
 			pBLogger.info("Entry will have key\n'%s'"%key)
 			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
-				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
+				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], searchType = "id", fullDict = True)
 				data["abstract"] = arxivDict["abstract"]
 			try:
 				self.insert(data)
@@ -2652,7 +2652,7 @@ class entries(physbiblioDBSub):
 					errors.append(key)
 				else:
 					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
-						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], fullDict = True)
+						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], searchType = "id", fullDict = True)
 						data["abstract"] = arxivDict["abstract"]
 					pBLogger.info("Entry will have key\n'%s'"%key)
 					if not self.insert(data):
