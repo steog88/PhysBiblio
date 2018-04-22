@@ -87,13 +87,17 @@ class configWindow(QDialog):
 				self.textValues[-1][1].clicked.connect(self.editFolder)
 			elif k == "mainDatabaseName":
 				self.textValues.append([k, QPushButton(val)])
-				self.textValues[-1][1].clicked.connect(lambda: self.editFile("mainDatabaseName", "Name for the database file", filter = "*.db"))
-			elif k == "logFile":
+				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the database file", filter = "*.db"))
+			elif k == "loggingLevel":
+				self.textValues.append([k, MyComboBox(self, ["0", "1", "2", "3"], val)])
+			elif k == "logFileName":
 				self.textValues.append([k, QPushButton(val)])
-				self.textValues[-1][1].clicked.connect(lambda: self.editFile("logFile", "Name for the log file", filter = "*.log"))
+				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the log file", filter = "*.log"))
 			elif k == "defaultCategories":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editDefCats)
+			elif pbConfig.specialTypes[k] == "boolean":
+				self.textValues.append([k, MyTrueFalseCombo(self, val)])
 			else:
 				self.textValues.append([k, QLineEdit(val)])
 			grid.addWidget(self.textValues[i-1][1], i-1, 2, 1, 2)

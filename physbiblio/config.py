@@ -15,7 +15,7 @@ configuration_params = [
 	"special": None},
 {"name": "loggingLevel",
 	"default": 1,
-	"description": 'How many messages to save in the log file',
+	"description": 'How many messages to save in the log file (will have effects only after closing the application)',
 	"special": 'int'},
 {"name": "logFileName",
 	"default": 'PBDATAparams.log',
@@ -112,6 +112,7 @@ class ConfigVars():
 
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
+		self.specialTypes = config_special
 		self.params = {}
 		for k, v in config_defaults.items():
 			if type(v) is str and "PBDATA" in v:

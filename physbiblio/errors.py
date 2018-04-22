@@ -40,7 +40,7 @@ class pBErrorManagerClass():
 		self.logger.addHandler(fh)
 
 		sh = logging.StreamHandler()
-		sh.setLevel(logging.INFO)
+		sh.setLevel(min(logging.INFO, self.loglevel))
 		formatter = logging.Formatter('[%(module)s.%(funcName)s] %(message)s')
 		sh.setFormatter(formatter)
 		self.logger.addHandler(sh)

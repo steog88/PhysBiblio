@@ -429,9 +429,13 @@ class MainWindow(QMainWindow):
 		cfgWin.exec_()
 		if cfgWin.result:
 			for q in cfgWin.textValues:
-				s = "%s"%q[1].text()
+				if isinstance(q[1], MyComboBox):
+					s = "%s"%q[1].currentText()
+				else:
+					s = "%s"%q[1].text()
 				if pbConfig.params[q[0]] != s:
 					pbConfig.params[q[0]] = s
+				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
 			pbConfig.saveConfigFile()
 			pbConfig.readConfigFile()
 			self.reloadConfig()

@@ -1,9 +1,11 @@
 0.x (2018-yy):
 	Code improvements:
+	* pBGUIErrorManager works with logger temporary handlers
 	* docstrings for GUI modules
 
 	New features:
 	* copy some contents to clipboard from main table
+	* improved window for configuration settings
 
 	Bugs solved:
 	* multiple matches when looking for record in arxiv given the id
