@@ -5,6 +5,11 @@ from PySide.QtGui  import *
 import subprocess
 import traceback
 
+if sys.version_info[0] < 3:
+	from StringIO import StringIO
+else:
+	from io import StringIO
+
 try:
 	#from physbiblio.database import *
 	#from physbiblio.export import pBExport
@@ -12,7 +17,7 @@ try:
 	#from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
-	from physbiblio.errors import pBLogger
+	from physbiblio.errors import pBLogger, pBErrorManager
 	from physbiblio.database import pBDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -58,14 +63,17 @@ class pBGUIErrorManager():
 	def __init__(self, message, trcbk = None, priority = 2):
 		if trcbk is not None:
 			message += "\n" + trcbk.format_exc()
+		tempStream = StringIO()
+		pBErrorManager.tempHandler(tempStream)
 		pBLogger.log((2+priority)*10, message)
+		pBErrorManager.rmTempHandler()
 		error = QMessageBox()
 		if priority == 0:
-			error.information(error, "Warning", message.replace('\n', '<br>'))
+			error.information(error, "Warning", tempStream.getvalue().replace('\n', '<br>'))
 		elif priority == 1:
-			error.warning(error, "Error", message.replace('\n', '<br>'))
+			error.warning(error, "Error", tempStream.getvalue().replace('\n', '<br>'))
 		else:
-			error.critical(error, "Critical error", message.replace('\n', '<br>'))
+			error.critical(error, "Critical error", tempStream.getvalue().replace('\n', '<br>'))
 
 class configEditColumns(QDialog):
 	def __init__(self, parent = None):
