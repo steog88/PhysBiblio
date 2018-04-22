@@ -19,7 +19,7 @@ class pBErrorManagerClass():
 		"""
 		Constructor for PBErrorManagerClass.
 		"""
-		self.tempsh = None
+		self.tempsh = []
 		if pbConfig.params["loggingLevel"] == 0:
 			self.loglevel = logging.ERROR
 		elif pbConfig.params["loggingLevel"] == 1:
@@ -55,19 +55,27 @@ class pBErrorManagerClass():
 			level: the level to be used (default: logging.INFO)
 			format: the format, using the logging syntax (default: '[%(module)s.%(funcName)s] %(message)s')
 		"""
-		if self.tempsh is not None:
-			self.logger.warning("There is already a temporary handler. More than one is currently not supported")
+		try:
+			self.tempsh.append(logging.StreamHandler(stream))
+			self.tempsh[-1].setLevel(level)
+			formatter = logging.Formatter(format)
+			self.tempsh[-1].setFormatter(formatter)
+			self.logger.addHandler(self.tempsh[-1])
+			return True
+		except Exception:
+			self.logger.exception("Failed while trying to add a new handler")
 			return False
-		self.tempsh = logging.StreamHandler(stream)
-		self.tempsh.setLevel(level)
-		formatter = logging.Formatter(format)
-		self.tempsh.setFormatter(formatter)
-		self.logger.addHandler(self.tempsh)
-		return True
 
 	def rmTempHandler(self):
-		self.logger.removeHandler(self.tempsh)
-		self.tempsh = None
+		"""Delete the last temporary handler that has been created"""
+		self.logger.removeHandler(self.tempsh[-1])
+		del self.tempsh[-1]
+
+	def rmAllTempHandlers(self):
+		"""Delete the all the temporary handlers that have been created"""
+		for temp in self.tempsh:
+			self.logger.removeHandler(temp)
+		self.tempsh = []
 
 pBErrorManager = pBErrorManagerClass()
 pBLogger = pBErrorManager.logger
