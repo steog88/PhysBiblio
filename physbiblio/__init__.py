@@ -7,6 +7,7 @@ __author__ = 'Stefano Gariazzo'
 __email__ = "stefano.gariazzo@gmail.com"
 
 __version__ = "0.2.0"
+__version_date__ = "21/04/2018"
 
 __all__ = ["bibtexwriter", "cli", "config", "database", "errors", "export", "firstOpen", "inspireStats", "parse_accents", "pdf", "tablesDef", "tests", "view", "gui", "webimport"]
 

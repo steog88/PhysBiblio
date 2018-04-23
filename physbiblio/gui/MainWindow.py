@@ -470,9 +470,16 @@ class MainWindow(QMainWindow):
 		"""
 		Function to show About Box
 		"""
-		QMessageBox.about(self, "About PhysBiblio",
-			"PhysBiblio is a cross-platform tool for managing a LaTeX/BibTeX database. "+
-			"It supports grouping, tagging and various different other functions.")
+		mbox = QMessageBox(QMessageBox.Information,
+			"About PhysBiblio",
+			"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>https://github.com/steog88/physBiblio</a>) is a cross-platform tool for managing a LaTeX/BibTeX database. "+
+			"It is written in <code>python</code>, using <code>sqlite3</code> for the database management and <code>PySide</code> for the graphical part."+
+			"<br>It supports grouping, tagging, import/export, automatic update and various different other functions.<br><br>"+
+			"<b>Author:</b> Stefano Gariazzo <i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"+
+			"<b>Version:</b> %s (%s)"%(physbiblio.__version__, physbiblio.__version_date__))
+		mbox.setTextFormat(Qt.RichText)
+		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
+		mbox.exec_()
 
 	def showDBStats(self):
 		"""
