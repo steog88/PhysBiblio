@@ -235,3 +235,6 @@ The stored data, which may be moved to a different folder, include:
 
 You can change some of the paths and file names in the configuration.
 Please note that changing the configuration **will not move** the existing files into the new locations.
+
+## 5. Acknowledgments
+Icons adopted in the GUI are mainly from the [Breeze-icons](https://github.com/KDE/breeze-icons) theme, from [KDE](https://www.kde.org/).
