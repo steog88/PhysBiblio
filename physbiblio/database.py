@@ -2145,11 +2145,11 @@ class entries(physbiblioDBSub):
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d] and e[o] != None:
 							if o == "bibtex":
-								pBLogger.info(d)
+								pBLogger.info("-- %s"%d)
 								pBLogger.info("old:\n%s"%old[0][d])
 								pBLogger.info("new:\n%s"%e[o])
 							else:
-								pBLogger.info("%s, %s"%(d, e[o]))
+								pBLogger.info("-- %s, '%s' -> '%s'"%(d, old[0][d], e[o]))
 							self.updateField(key, d, e[o], verbose = 0)
 							if len(changed) == 0 or changed[-1] != key:
 								changed.append(key)
