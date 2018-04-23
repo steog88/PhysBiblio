@@ -34,8 +34,6 @@ def excepthook(cls, exception, trcbk):
 	text = "".join(traceback.format_exception(cls, exception, trcbk))
 	pbErrorThread.emitError.emit(text)
 
-sys.excepthook = excepthook
-
 class thread_updateAllBibtexs(MyThread):
 	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False):
 		super(thread_updateAllBibtexs, self).__init__(parent)

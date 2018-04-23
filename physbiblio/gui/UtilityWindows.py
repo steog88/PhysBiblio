@@ -124,3 +124,54 @@ class configWindow(QDialog):
 		cp = QDesktopWidget().availableGeometry().center()
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
+
+class LogFileContentDialog(QDialog):
+	"""create a window for the logFile content"""
+	def __init__(self, parent = None):
+		super(LogFileContentDialog, self).__init__(parent)
+		self.title = "Log File Content"
+		self.initUI()
+
+	def clearLog(self):
+		if askYesNo("Are you sure you want to clear the log file?"):
+			try:
+				open(pbConfig.params["logFileName"], "w").close()
+			except IOError:
+				pBGUIErrorManager("Impossible to clear log file!", trcbk = traceback, priority = 1)
+			else:
+				infoMessage("Log file cleared.")
+				self.close()
+
+	def initUI(self):
+		self.setWindowTitle(self.title)
+
+		grid = QVBoxLayout()
+		grid.setSpacing(1)
+
+		grid.addWidget(QLabel("Reading %s"%pbConfig.params["logFileName"]))
+		try:
+			with open(pbConfig.params["logFileName"]) as r:
+				text = r.read()
+		except IOError:
+			text = "Impossible to read log file!"
+			pBLogger.exception(text)
+		self.textEdit = QPlainTextEdit(text)
+		self.textEdit.setReadOnly(True)
+		grid.addWidget(self.textEdit)
+
+		self.closeButton = QPushButton('Close', self)
+		self.closeButton.setAutoDefault(True)
+		self.closeButton.clicked.connect(self.close)
+		grid.addWidget(self.closeButton)
+
+		self.clearButton = QPushButton('Clear log file', self)
+		self.clearButton.clicked.connect(self.clearLog)
+		grid.addWidget(self.clearButton)
+
+		self.setGeometry(100, 100, 800, 800)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())

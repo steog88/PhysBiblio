@@ -14,6 +14,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.errors import pBLogger
 	from physbiblio.gui.MainWindow import MainWindow
+	from physbiblio.gui.ThreadElements import excepthook
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -122,6 +123,7 @@ if __name__=='__main__':
 			call_oaiDates(date1, dateLast)
 
 		app = QApplication(sys.argv)
+		sys.excepthook = excepthook
 		mainWin = MainWindow()
 		mainWin.show()
 		mainWin.raise_()

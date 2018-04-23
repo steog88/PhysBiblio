@@ -23,7 +23,7 @@ try:
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *
-	from physbiblio.gui.configWindows import *
+	from physbiblio.gui.UtilityWindows import *
 	from physbiblio.gui.ExpWindows import *
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.ProfilesManager import *
@@ -241,6 +241,12 @@ class MainWindow(QMainWindow):
 								statusTip="Show About box",
 								triggered=self.showAbout)
 
+		self.logfileAct = QAction(#QIcon(":/images/settings.png"),
+								"Log file", self,
+								shortcut="Ctrl+G",
+								statusTip="Show the content of the logfile",
+								triggered=self.logfile)
+
 		self.dbstatsAct = QAction(QIcon(":/images/stats.png"),
 								"&Database info", self,
 								statusTip="Show some statistics about the current database",
@@ -331,6 +337,8 @@ class MainWindow(QMainWindow):
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.dbstatsAct)
+		self.helpMenu.addAction(self.logfileAct)
+		self.helpMenu.addSeparator()
 		self.helpMenu.addAction(self.aboutAct)
 		
 		self.mainToolBar = self.addToolBar('Toolbar')
@@ -443,6 +451,10 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Configuration saved")
 		else:
 			self.StatusBarMessage("Changes discarded")
+
+	def logfile(self):
+		logfileWin = LogFileContentDialog(self)
+		logfileWin.exec_()
 
 	def reloadConfig(self):
 		self.StatusBarMessage("Reloading configuration...")
