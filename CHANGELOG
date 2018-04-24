@@ -2,6 +2,7 @@
 	Code improvements:
 	* pBGUIErrorManager works with logger temporary handlers
 	* docstrings for GUI modules
+	* QDesktopServices takes care of opening pdf and web pages (GUI)
 
 	New/updated features:
 	* copy some contents to clipboard from main table
