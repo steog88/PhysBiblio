@@ -6,10 +6,6 @@ import subprocess
 import traceback
 
 try:
-	#from physbiblio.database import *
-	#from physbiblio.export import pBExport
-	#import physbiblio.webimport.webInterf as webInt
-	#from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.DialogWindows import *

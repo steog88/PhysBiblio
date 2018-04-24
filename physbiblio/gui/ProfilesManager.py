@@ -9,8 +9,6 @@ try:
 	from physbiblio.database import *
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
-	from physbiblio.pdf import pBPDF
-	from physbiblio.view import pBView
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

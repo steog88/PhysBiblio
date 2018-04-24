@@ -458,12 +458,12 @@ class MainWindow(QMainWindow):
 
 	def reloadConfig(self):
 		self.StatusBarMessage("Reloading configuration...")
+		pBView.webApp = pbConfig.params["webApplication"]
 		pBPDF.pdfApp = pbConfig.params["pdfApplication"]
 		if pbConfig.params["pdfFolder"][0] == "/":
 			pBPDF.pdfDir = pbConfig.params["pdfFolder"]
 		else:
 			pBPDF.pdfDir = os.path.join(os.path.split(os.path.abspath(sys.argv[0]))[0], pbConfig.params["pdfFolder"])
-		pBView.webApp = pbConfig.params["webApplication"]
 		self.bibtexList.reloadColumnContents()
 
 	def showAbout(self):

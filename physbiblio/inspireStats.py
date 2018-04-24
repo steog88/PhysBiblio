@@ -21,9 +21,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB
-	from physbiblio.pdf import pBPDF
-	from physbiblio.view import pBView
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
