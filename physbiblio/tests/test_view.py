@@ -27,8 +27,8 @@ except Exception:
 @unittest.skipIf(skipLongTests, "Long tests")
 class TestViewMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.view"""
-	def test_printLink(self):
-		"""Test printLink function with different inputs"""
+	def test_getLink(self):
+		"""Test getLink function with different inputs"""
 		with patch('physbiblio.database.entries.getField', side_effect = [
 				'1507.08204', '', '', '1507.08204', #test "arxiv"
 				'', '10.1088/0954-3899/43/3/033001', '', '10.1088/0954-3899/43/3/033001', #test "doi"
@@ -38,13 +38,13 @@ class TestViewMethods(unittest.TestCase):
 				'', '', '', #test "arxiv", no info
 				'', '', '', #test "doi", no info
 				]) as _mock:
-			self.assertEqual(pBView.printLink("a", "arxiv"), "http://arxiv.org/abs/1507.08204")
-			self.assertEqual(pBView.printLink("a", "doi"), "http://dx.doi.org/10.1088/0954-3899/43/3/033001")
-			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/record/1385583")
-			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+1507.08204")
-			self.assertEqual(pBView.printLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
-			self.assertFalse(pBView.printLink("a", "arxiv"))
-			self.assertFalse(pBView.printLink("a", "doi"))
+			self.assertEqual(pBView.getLink("a", "arxiv"), "http://arxiv.org/abs/1507.08204")
+			self.assertEqual(pBView.getLink("a", "doi"), "http://dx.doi.org/10.1088/0954-3899/43/3/033001")
+			self.assertEqual(pBView.getLink("a", "inspire"), "http://inspirehep.net/record/1385583")
+			self.assertEqual(pBView.getLink("a", "inspire"), "http://inspirehep.net/search?p=find+1507.08204")
+			self.assertEqual(pBView.getLink("a", "inspire"), "http://inspirehep.net/search?p=find+a")
+			self.assertFalse(pBView.getLink("a", "arxiv"))
+			self.assertFalse(pBView.getLink("a", "doi"))
 
 if __name__=='__main__':
 	unittest.main()

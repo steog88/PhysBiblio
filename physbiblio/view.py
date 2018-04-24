@@ -28,7 +28,7 @@ class viewEntry():
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 		
-	def printLink(self, key, arg = "arxiv", fileArg = None):
+	def getLink(self, key, arg = "arxiv", fileArg = None):
 		"""
 		Uses database information to construct and print the web link,
 		or the pdf module to open a pdf
@@ -44,7 +44,10 @@ class viewEntry():
 		if type(key) is list:
 			links = []
 			for k in key:
-				links.append(self.printLink(k, arg, fileArg))
+				if arg is not "file":
+					links.append(self.getLink(k, arg, fileArg))
+				else:
+					links.append(fileArg)
 			return links
 		arxiv = pBDB.bibs.getField(key, "arxiv")
 		doi = pBDB.bibs.getField(key, "doi")
@@ -61,7 +64,7 @@ class viewEntry():
 			link = self.inspireSearch + key
 		elif arg is "file":
 			pBPDF.openFile(key, fileArg)
-			return True
+			return fileArg
 		else:
 			pBLogger.warning("Invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
 			return False
@@ -70,16 +73,19 @@ class viewEntry():
 
 	def openLink(self, key, arg = "arxiv", fileArg = None):
 		"""
-		Uses the printLink method to generate the web link and opens it in an external application
+		Uses the getLink method to generate the web link and opens it in an external application
 
 		Parameters:
-			key, arg, fileArg as in the printLink method
+			key, arg, fileArg as in the getLink method
 		"""
 		if type(key) is list:
 			for k in key:
 				self.openLink(k, arg, fileArg)
 		else:
-			link = self.printLink(key, arg = arg, fileArg = fileArg)
+			if arg is "file":
+				self.getLink(key, arg = arg, fileArg = fileArg)
+				return
+			link = self.getLink(key, arg = arg, fileArg = fileArg)
 			if link:
 				try:
 					if self.webApp != "":
