@@ -15,7 +15,6 @@ try:
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.pdf import pBPDF
-	from physbiblio.view import pBView
 	from physbiblio.gui.ThreadElements import *
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.ExpWindows import *
@@ -617,11 +616,11 @@ class bibtexList(QFrame, objListWindow):
 				self.parent.StatusBarMessage("experiments for '%s' successfully inserted"%bibkey)
 		#open functions
 		elif action == opArxAct:
-			pBView.openLink(bibkey, "arxiv")
+			pBGuiView.openLink(bibkey, "arxiv")
 		elif action == opDoiAct:
-			pBView.openLink(bibkey, "doi")
+			pBGuiView.openLink(bibkey, "doi")
 		elif action == opInsAct:
-			pBView.openLink(bibkey, "inspire")
+			pBGuiView.openLink(bibkey, "inspire")
 		#online information
 		elif action == insAction:
 			self.parent.updateInspireInfo(bibkey)
@@ -644,10 +643,10 @@ class bibtexList(QFrame, objListWindow):
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")
-			pBPDF.openFile(bibkey, "arxiv")
+			pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 		elif "openDoi" in pdfActs.keys() and action == pdfActs["openDoi"]:
 			self.parent.StatusBarMessage("opening doi PDF...")
-			pBPDF.openFile(bibkey, "doi")
+			pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "doi"))
 		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
 			self.parent.StatusBarMessage("downloading PDF from arxiv...")
 			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent)
@@ -678,7 +677,7 @@ class bibtexList(QFrame, objListWindow):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
 					self.parent.StatusBarMessage("opening %s..."%fn)
-					pBPDF.openFile(bibkey, fileName = fn)
+					pBGuiView.openLink(bibkey, "file", fileArg = fn)
 			for i, act in enumerate(pdfActs["delOtherPDF"]):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
@@ -699,10 +698,6 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		writeAbstract(self.parent, entry)
-		if self.colContents[col] == "modify":
-			editBibtex(self.parent, self.parent, bibkey)
-		elif self.colContents[col] == "delete":
-			deleteBibtex(self.parent, self.parent, bibkey)
 
 	def cellDoubleClick(self, index):
 		row = index.row()
@@ -715,25 +710,25 @@ class bibtexList(QFrame, objListWindow):
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "doi" and entry["doi"] is not None and entry["doi"] != "":
-			pBView.openLink(bibkey, "doi")
+			pBGuiView.openLink(bibkey, "doi")
 		elif self.colContents[col] == "arxiv" and entry["arxiv"] is not None and entry["arxiv"] != "":
-			pBView.openLink(bibkey, "arxiv")
+			pBGuiView.openLink(bibkey, "arxiv")
 		elif self.colContents[col] == "inspire" and entry["inspire"] is not None and entry["inspire"] != "":
-			pBView.openLink(bibkey, "inspire")
+			pBGuiView.openLink(bibkey, "inspire")
 		elif self.colContents[col] == "pdf":
-			pdfFiles = pBPDF.getExisting(bibkey)
+			pdfFiles = pBPDF.getExisting(bibkey, fullPath = True)
 			if len(pdfFiles) == 1:
 				self.parent.StatusBarMessage("opening PDF...")
-				pBPDF.openFile(bibkey, fileName = pdfFiles[0])
+				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
 					self.parent.StatusBarMessage("opening arxiv PDF...")
-					pBPDF.openFile(bibkey, "arxiv")
+					pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 				elif ask.result == "openDoi":
 					self.parent.StatusBarMessage("opening doi PDF...")
-					pBPDF.openFile(bibkey, "doi")
+					pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "doi"))
 
 	def downloadArxivDone(self):
 		self.parent.sendMessage("Arxiv download execution completed! Please check that it worked...")

@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 import sys
+import os
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
 	from physbiblio.errors import pBLogger
+	from physbiblio.view import viewEntry
+	from physbiblio.pdf import pBPDF
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.database import pBDB, catString
 except ImportError:
@@ -474,3 +477,31 @@ class MyMenu(QMenu):
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Escape:
 			self.close()
+
+class guiViewEntry(viewEntry):
+	"""
+	Extends viewEntry class to work with QtGui.QDesktopServices
+	"""
+	def __init__(self):
+		"""
+		Init the class, storing the name of the external web application
+		and the base strings to build some links
+		"""
+		viewEntry.__init__(self)
+
+	def openLink(self, key, arg = "", fileArg = None):
+		if type(key) is list:
+			for k in key:
+				self.openLink(k, arg, fileArg)
+		else:
+			if arg is "file":
+				url = QUrl.fromLocalFile(fileArg)
+			else:
+				link = self.getLink(key, arg = arg, fileArg = fileArg)
+				url = QUrl(link)
+			if QDesktopServices.openUrl(url):
+				pBLogger.debug("Opening link '%s' for entry '%s' successful!"%(url.toString(), key))
+			else:
+				pBLogger.warning("Opening link for '%s' failed!"%key)
+
+pBGuiView = guiViewEntry()
