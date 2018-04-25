@@ -135,10 +135,7 @@ class ConfigVars():
 			self.defProf, self.profiles = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
-			self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
-			open(self.profiles["default"]["f"], "a").close()
-			self.defProf = "default"
-			self.writeProfiles()
+			self.createDefaultProfile()
 
 		self.verifyProfiles()
 
@@ -160,7 +157,7 @@ class ConfigVars():
 
 	def verifyProfiles(self):
 		"""
-		Check the list of existing
+		Sync the list of profiles with the config folder content
 		"""
 		changed = False
 		files = [ p["f"].split(os.sep)[-1] for p in self.profiles.values()]
@@ -177,9 +174,24 @@ class ConfigVars():
 				new = s.replace(".cfg", "")
 				self.profiles[new] = {"f": f, "d":""}
 				changed = True
+		if len(self.profiles) == 0:
+			self.createDefaultProfile()
+			changed = True
+		if self.defProf not in self.profiles.keys():
+			self.logger.warning("Bad default profile name. Using another existing one.")
+			self.defProf = self.profiles.keys()[0]
 		if changed:
 			self.logger.warning("The list of profiles has been updated to match the content of the config folder.")
 			self.writeProfiles()
+
+	def createDefaultProfile(self):
+		"""
+		Create the default profile
+		"""
+		self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
+		open(self.profiles["default"]["f"], "a").close()
+		self.defProf = "default"
+		self.writeProfiles()
 
 	def readProfiles(self):
 		"""

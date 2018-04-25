@@ -28,6 +28,15 @@ tempProfName = os.path.join(pbConfig.dataPath, "tests_%s.dat"%today_ymd)
 class TestConfigMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.config"""
 
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_in_stdout_multi(self, function, expected_output, mock_stdout):
+		"""Catch and if test stdout of the function contains a string"""
+		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		function()
+		pBErrorManager.rmTempHandler()
+		for e in expected_output:
+			self.assertIn(e, mock_stdout.getvalue())
+
 	def test_config(self):
 		"""Test config methods for config management"""
 		if os.path.exists(tempCfgName):
@@ -35,53 +44,54 @@ class TestConfigMethods(unittest.TestCase):
 		newConfParamsDict = dict(config_defaults)
 		with patch("physbiblio.config.ConfigVars.readProfiles",
 				return_value = ("tmp", {"tmp": {"f": tempCfgName, "d":""}})) as _mock_readprof:
-			self.assertFalse(os.path.exists(tempCfgName))
-			tempPbConfig = ConfigVars()
-			self.assertTrue(os.path.exists(tempCfgName))
-			_mock_readprof.assert_called_once_with()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), [])
+			with patch("physbiblio.config.ConfigVars.verifyProfiles", return_value = None) as _verp:
+				self.assertFalse(os.path.exists(tempCfgName))
+				tempPbConfig = ConfigVars()
+				self.assertTrue(os.path.exists(tempCfgName))
+				_mock_readprof.assert_called_once_with()
+				with open(tempCfgName) as r:
+					self.assertEqual(r.readlines(), [])
 
-			self.assertEqual(tempPbConfig.params, newConfParamsDict)
-			tempPbConfig.params["logFileName"] = "newfilename"
-			newConfParamsDict["logFileName"] = "newfilename"
-			tempPbConfig.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), ["logFileName = newfilename\n"])
+				self.assertEqual(tempPbConfig.params, newConfParamsDict)
+				tempPbConfig.params["logFileName"] = "newfilename"
+				newConfParamsDict["logFileName"] = "newfilename"
+				tempPbConfig.saveConfigFile()
+				with open(tempCfgName) as r:
+					self.assertEqual(r.readlines(), ["logFileName = newfilename\n"])
 
-			tempPbConfig1 = ConfigVars()
-			self.assertEqual(tempPbConfig1.params, newConfParamsDict)
-			tempPbConfig1.params["logFileName"] = "otherfilename"
-			newConfParamsDict["logFileName"] = "otherfilename"
-			tempPbConfig1.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), ["logFileName = otherfilename\n"])
+				tempPbConfig1 = ConfigVars()
+				self.assertEqual(tempPbConfig1.params, newConfParamsDict)
+				tempPbConfig1.params["logFileName"] = "otherfilename"
+				newConfParamsDict["logFileName"] = "otherfilename"
+				tempPbConfig1.saveConfigFile()
+				with open(tempCfgName) as r:
+					self.assertEqual(r.readlines(), ["logFileName = otherfilename\n"])
 
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
-			self.assertEqual(tempPbConfig.params, newConfParamsDict)
-			os.remove(tempCfgName)
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
-			self.assertEqual(tempPbConfig.params, config_defaults)
+				tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
+				self.assertEqual(tempPbConfig.params, newConfParamsDict)
+				os.remove(tempCfgName)
+				tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
+				self.assertEqual(tempPbConfig.params, config_defaults)
 
-			tempPbConfig1.params["timeoutWebSearch"] = 10.
-			tempPbConfig1.params["askBeforeExit"] = True
-			tempPbConfig1.params["maxAuthorNames"] = 5
-			tempPbConfig1.params["defaultCategories"] = [1]
-			tempPbConfig1.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(),
-					["logFileName = otherfilename\n",
-					"timeoutWebSearch = 10.0\n",
-					"askBeforeExit = True\n",
-					"maxAuthorNames = 5\n",
-					"defaultCategories = [1]\n"])
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
-			self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
+				tempPbConfig1.params["timeoutWebSearch"] = 10.
+				tempPbConfig1.params["askBeforeExit"] = True
+				tempPbConfig1.params["maxAuthorNames"] = 5
+				tempPbConfig1.params["defaultCategories"] = [1]
+				tempPbConfig1.saveConfigFile()
+				with open(tempCfgName) as r:
+					self.assertEqual(r.readlines(),
+						["logFileName = otherfilename\n",
+						"timeoutWebSearch = 10.0\n",
+						"askBeforeExit = True\n",
+						"maxAuthorNames = 5\n",
+						"defaultCategories = [1]\n"])
+				tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
+				self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
 
-			os.remove(tempCfgName)
-			self.assertFalse(tempPbConfig1.needFirstConfiguration)
-			tempPbConfig1.readConfigFile()
-			self.assertTrue(tempPbConfig1.needFirstConfiguration)
+				os.remove(tempCfgName)
+				self.assertFalse(tempPbConfig1.needFirstConfiguration)
+				tempPbConfig1.readConfigFile()
+				self.assertTrue(tempPbConfig1.needFirstConfiguration)
 
 	def test_profiles(self):
 		"""Test config methods for profiles management"""
@@ -106,6 +116,13 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig.defProf, tempPbConfig.profiles = tempPbConfig.readProfiles()
 		self.assertEqual(tempPbConfig.defProf, "tmp")
 		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName, "d":""}})
+
+		tempPbConfig.defProf, tempPbConfig.profiles = ("new", {"new": {"f": tempCfgName + "abc", "d":""}})
+		with patch("physbiblio.config.ConfigVars.writeProfiles", return_value = None) as _verp:
+			self.assert_in_stdout_multi(tempPbConfig.verifyProfiles,
+				["Bad default profile name. Using another existing one.",
+				"The profile configuration file %s does not exist. Removing profile."%(tempCfgName + "abc"),
+				"The list of profiles has been updated to match the content of the config folder."])
 
 def tearDownModule():
 	if os.path.exists(tempCfgName):
