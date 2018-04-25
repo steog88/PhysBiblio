@@ -7,7 +7,7 @@ import traceback
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.gui.ErrorManager import pBGUIErrorManager
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CatWindows import *
@@ -134,7 +134,7 @@ class LogFileContentDialog(QDialog):
 			try:
 				open(pbConfig.params["logFileName"], "w").close()
 			except IOError:
-				pBGUIErrorManager("Impossible to clear log file!", trcbk = traceback, priority = 1)
+				pBGUILogger.exception("Impossible to clear log file!")
 			else:
 				infoMessage("Log file cleared.")
 				self.close()

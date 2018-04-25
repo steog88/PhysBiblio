@@ -12,14 +12,15 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
+	from physbiblio.pdf import pBPDF
+	from physbiblio.parse_accents import *
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
-	from physbiblio.pdf import pBPDF
 	from physbiblio.gui.ThreadElements import *
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.ExpWindows import *
 	from physbiblio.gui.marks import *
-	from physbiblio.parse_accents import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -315,7 +316,7 @@ class MyBibTableModel(MyTableModel):
 				else:
 					value = self.dataList[row]["bibtex"]
 		except IndexError:
-			self.parentObj.gotError("MyBibTableModel.data(): invalid index", trcbk = traceback)
+			pBGUILogger.exception("MyBibTableModel.data(): invalid index")
 			return None
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
@@ -639,7 +640,7 @@ class bibtexList(QFrame, objListWindow):
 					infoMessage("Done!")
 				else:
 					#must be improved...the function only returns False
-					self.parent.gotError(result)
+					pBGUILogger.warning("getFieldsFromArxiv failed")
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
 			self.parent.StatusBarMessage("opening arxiv PDF...")
@@ -792,10 +793,10 @@ class editBibtexEntry(editObjectWindow):
 
 	def onOk(self):
 		if self.textValues["bibtex"].toPlainText() == "":
-			self.parent.gotError("Invalid form contents: empty bibtex!", priority = 2)
+			pBGUILogger.error("Invalid form contents: empty bibtex!")
 			return False
 		elif not self.textValues["bibkey"].isReadOnly() and self.textValues["bibkey"].text() != "" and self.textValues["bibtex"].toPlainText() != "":
-			self.parent.gotError("Invalid form contents: bibtex key will be taken from bibtex!", priority = 1)
+			pBGUILogger.error("Invalid form contents: bibtex key will be taken from bibtex!")
 			return False
 		self.result	= True
 		self.close()
@@ -954,11 +955,11 @@ class askSelBibAction(MyMenu):
 					for key in [self.entries[0]["bibkey"], self.entries[1]["bibkey"]]:
 						pBDB.bibs.delete(key)
 				except:
-					self.parent.gotError("Cannot delete old items!")
+					pBGUILogger.exception("Cannot delete old items!")
 					pBDB.undo()
 				else:
 					if not pBDB.bibs.insert(data):
-						self.parent.gotError("Cannot insert new item!")
+						pBGUILogger.error("Cannot insert new item!")
 						pBDB.undo()
 					else:
 						self.parent.setWindowTitle("PhysBiblio*")
@@ -967,7 +968,7 @@ class askSelBibAction(MyMenu):
 						except:
 							pBLogger.warning("Impossible to reload content.")
 			else:
-				self.parent.gotError("ERROR: empty bibtex and/or bibkey!")
+				pBGUILogger.error("Empty bibtex and/or bibkey!")
 		self.close()
 
 	def onClean(self):

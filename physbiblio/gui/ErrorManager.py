@@ -44,9 +44,5 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 		self.guiStream = ErrorStream()
 		self.tempHandler(self.guiStream, level = logging.DEBUG, format = '%(message)s')
 
-	def __call__(self, message, trcbk = None, priority = 2):
-		if trcbk is not None:
-			message += "\n" + trcbk.format_exc()
-		self.logger.log((2+priority)*10, message)
-
 pBGUIErrorManager = pBErrorManagerClassGui()
+pBGUILogger = pBGUIErrorManager.logger

@@ -1,6 +1,6 @@
 0.x (2018-yy-xx):
 	Code improvements:
-	* pBGUIErrorManager works with logger temporary handlers
+	* pBGUIErrorManager improved with a subclass of pBErrorManagerClass and a new dedicated logger
 	* docstrings for GUI modules
 	* QDesktopServices takes care of opening pdf and web pages (GUI)
 

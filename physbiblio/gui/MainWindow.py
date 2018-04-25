@@ -21,7 +21,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
-	from physbiblio.gui.ErrorManager import pBGUIErrorManager
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *
@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
 		self.lastPaperStats = None
 		self.errorManager = pbErrorThread
 		self.errorManager.setParent(self)
-		self.errorManager.emitError.connect(self.gotError)
+		self.errorManager.emitError.connect(pBGUILogger.error)
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -624,6 +624,7 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty output filename!")
 	
 	def categories(self):
+		raise Exception("test")
 		self.StatusBarMessage("categories triggered")
 		catListWin = catsWindowList(self)
 		catListWin.show()
@@ -766,13 +767,13 @@ class MainWindow(QMainWindow):
 	def authorStats(self):
 		authorName = str(askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self))
 		if authorName is "":
-			self.gotError("Empty name inserted! cannot proceed.", priority = 0)
+			pBGUILogger.warning("Empty name inserted! cannot proceed.")
 			return False
 		if "[" in authorName:
 			try:
 				authorName = ast.literal_eval(authorName.strip())
 			except SyntaxError:
-				self.gotError("Cannot recognize the list sintax. Missing quotes in the string?", traceback, priority = 1)
+				pBGUILogger.exception("Cannot recognize the list sintax. Missing quotes in the string?")
 				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 
@@ -807,7 +808,7 @@ class MainWindow(QMainWindow):
 	def inspireLoadAndInsert(self, doReload = True):
 		queryStr = askGenericText("Insert the query string you want to use for importing from INSPIRE-HEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
 		if queryStr == "":
-			self.gotError("[inspireLoadAndInsert] empty string! cannot proceed.", priority = 0)
+			pBGUILogger.warning("Empty string! cannot proceed.")
 			return False
 		self.loadedAndInserted = []
 		self.StatusBarMessage("Starting import from INSPIRE...")
@@ -815,7 +816,7 @@ class MainWindow(QMainWindow):
 			try:
 				queryStr = ast.literal_eval("["+queryStr.strip()+"]")
 			except SyntaxError:
-				self.gotError("[inspireLoadAndInsert] cannot recognize the list sintax. Missing quotes in the string?", priority = 1)
+				pBGUILogger.exception("Cannot recognize the list sintax. Missing quotes in the string?")
 				return False
 
 		self._runInThread(
@@ -946,9 +947,6 @@ class MainWindow(QMainWindow):
 
 	def done(self):
 		self.StatusBarMessage("...done!")
-
-	def gotError(self, text, trcbk = None, priority = 2):
-		pBGUIErrorManager(text, trcbk = trcbk, priority = priority)
 
 if __name__=='__main__':
 	try:
