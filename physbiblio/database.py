@@ -2407,17 +2407,17 @@ class entries(physbiblioDBSub):
 			self.getArxivFieldsFlag = True
 			success = []
 			fail = []
-			pBLogger.info("Thread_fieldsArxiv will process %d entries."%tot)
+			pBLogger.info("getFieldsFromArxiv will process %d entries."%tot)
 			for ix, k in enumerate(bibkey):
 				arxiv = str(self.getField(k, "arxiv"))
 				if self.getArxivFieldsFlag and arxiv.strip() != "":
-					pBLogger.info("\n%5d / %d (%5.2f%%) - processing: arxiv:%s\n"%(ix+1, tot, 100.*(ix+1)/tot, arxiv))
+					pBLogger.info("%5d / %d (%5.2f%%) - processing: arxiv:%s\n"%(ix+1, tot, 100.*(ix+1)/tot, arxiv))
 					result = self.getFieldsFromArxiv(k, fields)
 					if result is True:
 						success.append(k)
 					else:
 						fail.append(k)
-			pBLogger.info("\n\nThread_fieldsArxiv has finished!")
+			pBLogger.info("\n\ngetFieldsFromArxiv has finished!")
 			pBLogger.info("%d entries processed, of which these %d generated errors:\n%s"%(len(success+fail), len(fail), fail))
 			return success, fail
 		if type(fields) is not list:
@@ -2540,7 +2540,7 @@ class entries(physbiblioDBSub):
 			existing = self.getByBibkey(key, saveQuery = False)
 			if existing:
 				return printExisting(key, existing)
-			pBLogger.info("Entry will have key\n'%s'"%key)
+			pBLogger.info("Entry will have key: '%s'"%key)
 			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], searchType = "id", fullDict = True)
 				data["abstract"] = arxivDict["abstract"]
@@ -2654,7 +2654,7 @@ class entries(physbiblioDBSub):
 					if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 						arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(data["arxiv"], searchType = "id", fullDict = True)
 						data["abstract"] = arxivDict["abstract"]
-					pBLogger.info("Entry will have key\n'%s'"%key)
+					pBLogger.info("Entry will have key: '%s'"%key)
 					if not self.insert(data):
 						pBLogger.warning("Failed in inserting entry %s\n"%key)
 						errors.append(key)
@@ -2998,9 +2998,9 @@ class entries(physbiblioDBSub):
 				except (ValueError, ParseException):
 					pBLogger.warning("Error while cleaning entry '%s'"%e["bibkey"], exc_info = True)
 					err += 1
-		pBLogger.info("\n%d entries processed"%num)
-		pBLogger.info("\n%d errors occurred"%err)
-		pBLogger.info("\n%d entries changed"%len(changed))
+		pBLogger.info("%d entries processed"%num)
+		pBLogger.info("%d errors occurred"%err)
+		pBLogger.info("%d entries changed"%len(changed))
 		return num, err, changed
 	
 	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
@@ -3055,11 +3055,11 @@ class entries(physbiblioDBSub):
 								pBLogger.info(diff)
 							changed.append(e["bibkey"])
 					pBLogger.info("")
-		pBLogger.info("\n%d entries processed"%num)
-		pBLogger.info("\n%d errors occurred"%len(err))
+		pBLogger.info("%d entries processed"%num)
+		pBLogger.info("%d errors occurred"%len(err))
 		if len(err)>0:
 			pBLogger.info(err)
-		pBLogger.info("\n%d entries changed"%len(changed))
+		pBLogger.info("%d entries changed"%len(changed))
 		if len(changed)>0:
 			pBLogger.info(changed)
 		return num, err, changed

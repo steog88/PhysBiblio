@@ -12,6 +12,7 @@
 	Bugs solved:
 	* multiple matches when looking for record in arxiv given the id
 	* no newlines in abstracts
+	* progress bar count
 
 0.2.0 (2018-04-21):
 	Code improvements:

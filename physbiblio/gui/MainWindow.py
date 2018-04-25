@@ -20,6 +20,7 @@ try:
 	from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
+	from physbiblio.view import pBView
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *
@@ -515,8 +516,6 @@ class MainWindow(QMainWindow):
 		queue = Queue()
 		ws = WriteStream(queue)
 		ws.mysignal.connect(app.append_text)
-		if addMessage:
-			print(addMessage)
 		thr = thread_func(queue, ws, *args, parent = self, **kwargs)
 
 		ws.finished.connect(ws.deleteLater)
@@ -526,6 +525,8 @@ class MainWindow(QMainWindow):
 			app.stopped.connect(thr.setStopFlag)
 
 		pBErrorManager.tempHandler(ws, format = '%(message)s')
+		if addMessage:
+			pBLogger.info(addMessage)
 		thr.start()
 		app.exec_()
 		pBLogger.info("Closing...")
@@ -567,7 +568,7 @@ class MainWindow(QMainWindow):
 			self._runInThread(
 				thread_importFromBib, "Importing...",
 				filename, askYesNo("Do you want to use INSPIRE to find more information about the imported entries?"),
-				totStr = "[DB] entries to be processed: ", progrStr = "%), processing entry ",
+				totStr = "Entries to be processed: ", progrStr = "%), processing entry ",
 				minProgress=0,  stopFlag = True, outMessage = "All entries into %s have been imported"%filename)
 			self.StatusBarMessage("File %s imported!"%filename)
 			self.reloadMainContent()
@@ -751,7 +752,7 @@ class MainWindow(QMainWindow):
 		self._runInThread(
 			thread_updateAllBibtexs, "Update Bibtexs",
 			startFrom, useEntries = useEntries, force = force,
-			totStr = "[DB] searchOAIUpdates will process ", progrStr = "%) - looking for update: ",
+			totStr = "SearchOAIUpdates will process ", progrStr = "%) - looking for update: ",
 			minProgress = 0., stopFlag = True)
 
 	def updateInspireInfo(self, bibkey):
@@ -764,20 +765,20 @@ class MainWindow(QMainWindow):
 	def authorStats(self):
 		authorName = str(askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self))
 		if authorName is "":
-			self.gotError("[authorStats] empty name inserted! cannot proceed.", priority = 0)
+			self.gotError("Empty name inserted! cannot proceed.", priority = 0)
 			return False
 		if "[" in authorName:
 			try:
 				authorName = ast.literal_eval(authorName.strip())
 			except SyntaxError:
-				self.gotError("[authorStats] cannot recognize the list sintax. Missing quotes in the string?", traceback, priority = 1)
+				self.gotError("Cannot recognize the list sintax. Missing quotes in the string?", traceback, priority = 1)
 				return False
 		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
 
 		self._runInThread(
 			thread_authorStats, "Author Stats",
 			authorName,
-			totStr = "[inspireStats] authorStats will process ", progrStr = "%) - looking for paper: ",
+			totStr = "AuthorStats will process ", progrStr = "%) - looking for paper: ",
 			minProgress = 0., stopFlag = True)
 
 		if self.lastAuthorStats is None or len(self.lastAuthorStats["paLi"][0]) == 0:
@@ -792,7 +793,7 @@ class MainWindow(QMainWindow):
 		self._runInThread(
 			thread_paperStats, "Paper Stats",
 			inspireId,
-			totStr = "[inspireStats] paperStats will process ", progrStr = "%) - looking for paper: ",
+			totStr = "PaperStats will process ", progrStr = "%) - looking for paper: ",
 			minProgress = 0., stopFlag = False)
 		if self.lastPaperStats is None:
 			infoMessage("No results obtained. Maybe there was an error.")
@@ -819,9 +820,9 @@ class MainWindow(QMainWindow):
 		self._runInThread(
 			thread_loadAndInsert, "Import from INSPIRE-HEP",
 			queryStr,
-			totStr = "[DB] loadAndInsert will process ", progrStr = "%) - looking for string: ",
+			totStr = "LoadAndInsert will process ", progrStr = "%) - looking for string: ",
 			minProgress = 0., stopFlag = True,
-			addMessage = "[inspireLoadAndInsert] searching:\n%s"%queryStr)
+			addMessage = "Searching:\n%s"%queryStr)
 
 		if self.loadedAndInserted is []:
 			infoMessage("No results obtained. Maybe there was an error or you interrupted execution.")
@@ -921,7 +922,7 @@ class MainWindow(QMainWindow):
 		self._runInThread(
 			thread_cleanAllBibtexs, "Clean Bibtexs",
 			startFrom, useEntries = useEntries,
-			totStr = "[DB] cleanBibtexs will process ", progrStr = "%) - cleaning: ",
+			totStr = "CleanBibtexs will process ", progrStr = "%) - cleaning: ",
 			minProgress = 0., stopFlag = True)
 
 	def infoFromArxiv(self, useEntries = None):
@@ -936,7 +937,7 @@ class MainWindow(QMainWindow):
 			self._runInThread(
 				thread_fieldsArxiv, "Get info from arXiv",
 				[e["bibkey"] for e in iterator], askFieldsWin.output,
-				totStr = "[DB] thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
+				totStr = "Thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
 				minProgress = 0., stopFlag = True)
 
 	def sendMessage(self, message):

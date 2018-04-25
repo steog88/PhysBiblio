@@ -290,22 +290,22 @@ class pbExport():
 
 		if autosave:
 			pBDB.commit()
-		pBLogger.info("\nRESUME")
+		pBLogger.info("\n\nRESUME")
 		pBLogger.info("%d new keys found in .tex file"%len(requiredBibkeys))
 		if len(missing) > 0:
-			pBLogger.info("\n%d required entries were missing in database"%len(missing))
+			pBLogger.info("%d required entries were missing in database"%len(missing))
 		if len(retrieved) > 0:
-			pBLogger.info("\n%d new entries retrieved:"%len(retrieved))
+			pBLogger.info("%d new entries retrieved:"%len(retrieved))
 			pBLogger.info(" - ".join(retrieved))
 		if len(notFound) > 0:
-			pBLogger.info("\nImpossible to find %d entries:"%len(notFound))
+			pBLogger.info("Impossible to find %d entries:"%len(notFound))
 			pBLogger.info(" - ".join(notFound))
 		if len(unexpected) > 0:
-			pBLogger.info("\nUnexpected errors for %d entries:"%len(unexpected))
+			pBLogger.info("Unexpected errors for %d entries:"%len(unexpected))
 			pBLogger.info(" - ".join(unexpected))
 		if len(newKeys.keys()) > 0:
-			pBLogger.info("\nPossible non-matching keys in %d entries"%len(newKeys.keys()))
-			pBLogger.info("\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
+			pBLogger.info("Possible non-matching keys in %d entries"%len(newKeys.keys()) + \
+				"\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
 		pBLogger.info("     " + str(warnings) + " warning(s) occurred!")
 		return True
 
