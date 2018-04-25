@@ -14,7 +14,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.errors import pBLogger
 	from physbiblio.gui.MainWindow import MainWindow
-	from physbiblio.gui.ThreadElements import excepthook
+	from physbiblio.gui.ErrorManager import excepthook
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise

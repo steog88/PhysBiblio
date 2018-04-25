@@ -1,5 +1,6 @@
 import sys
 import logging
+import traceback
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
@@ -46,3 +47,7 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 
 pBGUIErrorManager = pBErrorManagerClassGui()
 pBGUILogger = pBGUIErrorManager.logger
+
+def excepthook(cls, exception, trcbk):
+	text = "".join(traceback.format_exception(cls, exception, trcbk))
+	pBGUILogger.error(text)

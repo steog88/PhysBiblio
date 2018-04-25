@@ -57,9 +57,6 @@ class MainWindow(QMainWindow):
 		self.CreateStatusBar()
 		self.lastAuthorStats = None
 		self.lastPaperStats = None
-		self.errorManager = pbErrorThread
-		self.errorManager.setParent(self)
-		self.errorManager.emitError.connect(pBGUILogger.error)
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -624,7 +621,6 @@ class MainWindow(QMainWindow):
 			self.StatusBarMessage("Empty output filename!")
 	
 	def categories(self):
-		raise Exception("test")
 		self.StatusBarMessage("categories triggered")
 		catListWin = catsWindowList(self)
 		catListWin.show()

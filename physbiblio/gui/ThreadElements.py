@@ -19,21 +19,6 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
-class thread_errors(MyThread):
-	emitError = Signal(str)
-	def __init__(self, parent = None):
-		super(thread_errors, self).__init__(parent)
-		self.setParent(parent)
-
-	def setParent(self, parent):
-		self.parent = parent
-
-pbErrorThread = thread_errors()
-
-def excepthook(cls, exception, trcbk):
-	text = "".join(traceback.format_exception(cls, exception, trcbk))
-	pbErrorThread.emitError.emit(text)
-
 class thread_updateAllBibtexs(MyThread):
 	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False):
 		super(thread_updateAllBibtexs, self).__init__(parent)
