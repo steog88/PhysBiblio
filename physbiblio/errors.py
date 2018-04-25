@@ -77,5 +77,9 @@ class pBErrorManagerClass():
 			self.logger.removeHandler(temp)
 		self.tempsh = []
 
+	def excepthook(self, cls, exception, trcbk):
+		self.logger.error("Unhandled exception", exc_info = (cls, exception, trcbk))
+
 pBErrorManager = pBErrorManagerClass()
 pBLogger = pBErrorManager.logger
+sys.excepthook = pBErrorManager.excepthook

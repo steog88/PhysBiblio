@@ -1,7 +1,7 @@
 0.x (2018-yy-xx):
 	Code improvements:
+	* custom excepthook for non-gui and then gui when ready
 	* pBGUIErrorManager improved with a subclass of pBErrorManagerClass and a new dedicated logger
-	* docstrings for GUI modules
 	* QDesktopServices takes care of opening pdf and web pages (GUI)
 
 	New/updated features:

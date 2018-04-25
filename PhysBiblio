@@ -14,7 +14,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.errors import pBLogger
 	from physbiblio.gui.MainWindow import MainWindow
-	from physbiblio.gui.ErrorManager import excepthook
+	from physbiblio.gui.ErrorManager import pBGUIErrorManager
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -77,53 +77,53 @@ def call_oaiDates(date1, date2):
 	exit()
 
 if __name__=='__main__':
-	try:
-		command = None
-		dateLast = datetime.date.today().strftime("%Y-%m-%d")
-		if len(sys.argv) > 1:
-			command = sys.argv[1].lower()
-		if command == "help":
-			print("\nAvailable command line options:")
-			print("* help: print this text;")
-			print("* test: run the test suite;")
-			print("* clean: parse and clean all the bibtex entries in the database;")
-			print("* cli: open a command line where to directly run PhysBiblio functions;")
-			print("* daily: retrieve records changed in the day from InspireOAI and update entries;")
-			print("* export: export all the DB entries in a *.bib file;")
-			print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs;")
-			print("* update: use INSPIRE to update the information in the database;")
-			print("* weekly: retrieve records changed in the week from InspireOAI and update entries.")
-			print("")
-			exit()
-		elif command == "test":
-			if sys.version_info[0] < 3:
-				import unittest2 as unittest
-			else:
-				import unittest
-			from physbiblio.testLoader import MyScanningLoader
-			suite = MyScanningLoader().discover('physbiblio')
-			testRunner = unittest.runner.TextTestRunner()
-			testRunner.run(suite)
-			exit()
-		elif command == "clean":
-			call_clean(sys.argv[2:])
-		elif command == "cli":
-			call_cli()
-		elif command == "daily":
-			date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
-			call_oaiDates(date1, dateLast)
-		elif command == "export":
-			call_export(sys.argv[2:])
-		elif command == "tex":
-			call_tex(sys.argv[2:])
-		elif command == "update":
-			call_update(sys.argv[2:])
-		elif command == "weekly":
-			date1 = (datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d")
-			call_oaiDates(date1, dateLast)
+	command = None
+	dateLast = datetime.date.today().strftime("%Y-%m-%d")
+	if len(sys.argv) > 1:
+		command = sys.argv[1].lower()
+	if command == "help":
+		print("\nAvailable command line options:")
+		print("* help: print this text;")
+		print("* test: run the test suite;")
+		print("* clean: parse and clean all the bibtex entries in the database;")
+		print("* cli: open a command line where to directly run PhysBiblio functions;")
+		print("* daily: retrieve records changed in the day from InspireOAI and update entries;")
+		print("* export: export all the DB entries in a *.bib file;")
+		print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs;")
+		print("* update: use INSPIRE to update the information in the database;")
+		print("* weekly: retrieve records changed in the week from InspireOAI and update entries.")
+		print("")
+		exit()
+	elif command == "test":
+		if sys.version_info[0] < 3:
+			import unittest2 as unittest
+		else:
+			import unittest
+		from physbiblio.testLoader import MyScanningLoader
+		suite = MyScanningLoader().discover('physbiblio')
+		testRunner = unittest.runner.TextTestRunner()
+		testRunner.run(suite)
+		exit()
+	elif command == "clean":
+		call_clean(sys.argv[2:])
+	elif command == "cli":
+		call_cli()
+	elif command == "daily":
+		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
+		call_oaiDates(date1, dateLast)
+	elif command == "export":
+		call_export(sys.argv[2:])
+	elif command == "tex":
+		call_tex(sys.argv[2:])
+	elif command == "update":
+		call_update(sys.argv[2:])
+	elif command == "weekly":
+		date1 = (datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d")
+		call_oaiDates(date1, dateLast)
 
+	try:
 		app = QApplication(sys.argv)
-		sys.excepthook = excepthook
+		sys.excepthook = pBGUIErrorManager.excepthook
 		mainWin = MainWindow()
 		mainWin.show()
 		mainWin.raise_()
@@ -133,5 +133,3 @@ if __name__=='__main__':
 	except SystemExit:
 		pBDB.closeDB()
 		pBLogger.info("Closing main window...")
-	except Exception as e:
-		pBLogger.critical(str(e), exc_info = True)
