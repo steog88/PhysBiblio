@@ -21,6 +21,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
+	from physbiblio.gui.ErrorManager import pBGUIErrorManager
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.BibWindows import *
 	from physbiblio.gui.CatWindows import *

@@ -59,22 +59,6 @@ def askGenericText(message, title, parent = None):
 def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
 
-class pBGUIErrorManager():
-	def __init__(self, message, trcbk = None, priority = 2):
-		if trcbk is not None:
-			message += "\n" + trcbk.format_exc()
-		tempStream = StringIO()
-		pBErrorManager.tempHandler(tempStream)
-		pBLogger.log((2+priority)*10, message)
-		pBErrorManager.rmTempHandler()
-		error = QMessageBox()
-		if priority == 0:
-			error.information(error, "Warning", tempStream.getvalue().replace('\n', '<br>'))
-		elif priority == 1:
-			error.warning(error, "Error", tempStream.getvalue().replace('\n', '<br>'))
-		else:
-			error.critical(error, "Critical error", tempStream.getvalue().replace('\n', '<br>'))
-
 class configEditColumns(QDialog):
 	def __init__(self, parent = None):
 		super(configEditColumns, self).__init__(parent)

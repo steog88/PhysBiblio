@@ -7,6 +7,7 @@ import traceback
 
 try:
 	from physbiblio.config import pbConfig
+	from physbiblio.gui.ErrorManager import pBGUIErrorManager
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CatWindows import *

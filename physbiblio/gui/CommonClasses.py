@@ -5,7 +5,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
-	from physbiblio.errors import pBLogger
+	from physbiblio.errors import pBErrorManagerClass, pBLogger
 	from physbiblio.view import viewEntry
 	from physbiblio.pdf import pBPDF
 	from physbiblio.gui.DialogWindows import *
@@ -503,5 +503,6 @@ class guiViewEntry(viewEntry):
 				pBLogger.debug("Opening link '%s' for entry '%s' successful!"%(url.toString(), key))
 			else:
 				pBLogger.warning("Opening link for '%s' failed!"%key)
+
 
 pBGuiView = guiViewEntry()
