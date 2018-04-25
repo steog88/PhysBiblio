@@ -5,6 +5,7 @@ This file is part of the physbiblio package.
 """
 import sys, ast, os
 import logging
+import glob
 from appdirs import AppDirs
 
 #these are the default parameter values, descriptions and types
@@ -135,10 +136,11 @@ class ConfigVars():
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
 			self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
+			open(self.profiles["default"]["f"], "a").close()
 			self.defProf = "default"
 			self.writeProfiles()
-		#except ...:
-			#...
+
+		self.verifyProfiles()
 
 		self.checkOldPaths()
 		for k, prof in self.profiles.items():
@@ -155,6 +157,29 @@ class ConfigVars():
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
+
+	def verifyProfiles(self):
+		"""
+		Check the list of existing
+		"""
+		changed = False
+		files = [ p["f"].split(os.sep)[-1] for p in self.profiles.values()]
+		keys = list(self.profiles.keys())
+		for p in keys:
+			if not os.path.exists(self.profiles[p]["f"]):
+				self.logger.warning("The profile configuration file %s does not exist. Removing profile."%self.profiles[p]["f"])
+				del self.profiles[p]
+				changed = True
+		for f in glob.iglob(self.configPath + os.sep + "*.cfg"):
+			s = f.split(os.sep)[-1]
+			if s not in files:
+				self.logger.warning("New profile configuration file %s found. Adding profile."%f)
+				new = s.replace(".cfg", "")
+				self.profiles[new] = {"f": f, "d":""}
+				changed = True
+		if changed:
+			self.logger.warning("The list of profiles has been updated to match the content of the config folder.")
+			self.writeProfiles()
 
 	def readProfiles(self):
 		"""

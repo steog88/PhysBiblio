@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import sys, time
+import os
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import *
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 except ImportError:
@@ -30,14 +32,16 @@ def editProf(parent, statusBarObject):
 					try:
 						os.remove(os.path.join(pbConfig.configPath, currEl["f"].text()))
 					except OSError:
-						pass
+						pBGUILogger.warning("Impossible to cancel the profile file %s."%currEl["f"])
 			else:
 				if name.strip() != "":
 					pbConfig.profiles[name] = {}
 					pbConfig.profiles[name]["d"] = currEl["d"].text()
-					fname = os.path.join(pbConfig.configPath, currEl["f"].text())
+					fname = currEl["f"].text().split(os.sep)[-1] + ".cfg"
+					fname = fname.replace(".cfg.cfg", ".cfg")
 					pbConfig.profiles[name]["f"] = fname
-					infoMessage("New profile created.\nYou should configure it properly before use!\n(switch to it and open the configuration)")
+					open(os.path.join(pbConfig.configPath, fname), "a").close()
+					pBGUILogger.info("New profile created.\nYou should configure it properly before use!\n(switch to it and open the configuration)")
 		pbConfig.writeProfiles()
 	else:
 		message = "No modifications"
@@ -135,7 +139,7 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["r"], i, 0)
 
 			tempEl["n"] = QLineEdit(k)
-			tempEl["f"] = QLineEdit(prof["f"].replace(pbConfig.configPath, ""))
+			tempEl["f"] = QLineEdit(prof["f"].split(os.sep)[-1])
 			tempEl["n"].setReadOnly(True)
 			tempEl["f"].setReadOnly(True)
 			tempEl["d"] = QLineEdit(prof["d"])
