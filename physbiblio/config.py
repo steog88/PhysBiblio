@@ -75,6 +75,13 @@ configuration_params = [
 	"special": 'list'},
 ]
 
+loggingLevels = [
+	"0 - errors",
+	"1 - warnings",
+	"2 - info",
+	"3 - all"
+]
+
 config_paramOrder = [ p["name"] for p in configuration_params ]
 config_defaults = {}
 config_descriptions = {}
@@ -113,6 +120,8 @@ class ConfigVars():
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.specialTypes = config_special
+		self.defaultsParams = config_defaults
+		self.loggingLevels = loggingLevels
 		self.params = {}
 		for k, v in config_defaults.items():
 			if type(v) is str and "PBDATA" in v:

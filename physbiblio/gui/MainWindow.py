@@ -440,6 +440,8 @@ class MainWindow(QMainWindow):
 					s = "%s"%q[1].currentText()
 				else:
 					s = "%s"%q[1].text()
+				if q[0] == "loggingLevel":
+					s = s.split(" - ")[0]
 				if pbConfig.params[q[0]] != s:
 					pbConfig.params[q[0]] = s
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))

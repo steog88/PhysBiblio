@@ -86,7 +86,11 @@ class configWindow(QDialog):
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the database file", filter = "*.db"))
 			elif k == "loggingLevel":
-				self.textValues.append([k, MyComboBox(self, ["0", "1", "2", "3"], val)])
+				try:
+					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(val)])])
+				except ValueError:
+					pBGUILogger.warning("Invalid string for 'loggingLevel' param. Reset to default")
+					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(pbConfig.defaultsParams["loggingLevel"])])])
 			elif k == "logFileName":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the log file", filter = "*.log"))
