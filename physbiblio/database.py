@@ -2603,6 +2603,8 @@ class entries(physbiblioDBSub):
 		Parameters: see self.loadAndInsert
 		"""
 		self.loadAndInsert(entry, method = method, imposeKey = imposeKey, number = number, returnBibtex = returnBibtex, childProcess = childProcess)
+		for key in self.lastInserted:
+			self.mainDB.catBib.delete(pbConfig.params["defaultCategories"], key)
 		self.mainDB.catBib.askCats(self.lastInserted)
 
 	def importFromBib(self, filename, completeInfo = True):

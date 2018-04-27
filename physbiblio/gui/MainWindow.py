@@ -849,6 +849,8 @@ class MainWindow(QMainWindow):
 
 	def inspireLoadAndInsertWithCats(self):
 		if self.inspireLoadAndInsert(doReload = False) and len(self.loadedAndInserted) > 0:
+			for key in self.loadedAndInserted:
+				pBDB.catBib.delete(pbConfig.params["defaultCategories"], key)
 			self.askCatsForEntries(self.loadedAndInserted)
 			self.reloadMainContent()
 
