@@ -48,6 +48,11 @@ pip show -f physbiblio
 ```
 The primary director is under `Location`, you can combine with the information provided by the list of `Files`.
 
+To upgrade from a previously installed version, add the option `-U` or `--upgrade` when running `pip`, for example:
+```
+sudo pip install -U physbiblio
+```
+
 ### Test that everything works
 Once you have installed the software, you may want to spend few minutes to run the test suite
 and check that everything works.  
