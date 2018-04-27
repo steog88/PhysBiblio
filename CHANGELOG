@@ -1,4 +1,6 @@
 0.x (2018-yy-xx):
+
+0.2.1 (2018-04-27):
 	Code improvements:
 	* custom excepthook for non-gui and then gui when ready
 	* pBGUIErrorManager improved with a subclass of pBErrorManagerClass and a new dedicated logger
@@ -13,6 +15,7 @@
 	* multiple matches when looking for record in arxiv given the id
 	* no newlines in abstracts
 	* progress bar count
+	* default categories after import
 
 0.2.0 (2018-04-21):
 	Code improvements:
