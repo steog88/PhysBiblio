@@ -2,6 +2,8 @@
     <qresource prefix="/">
         <file>images/application-exit.png</file>
         <file>images/application-pdf.png</file>
+        <file>images/arrow-down.png</file>
+        <file>images/arrow-up.png</file>
         <file>images/delete.png</file>
         <file>images/dialog-error.png</file>
         <file>images/dialog-ok-apply.png</file>
