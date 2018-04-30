@@ -132,7 +132,7 @@ class ConfigVars():
 		self.descriptions = config_descriptions
 
 		try:
-			self.defProf, self.profiles = self.readProfiles()
+			self.defProf, self.profiles, self.profileOrder = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
 			self.createDefaultProfile()
@@ -180,6 +180,10 @@ class ConfigVars():
 		if self.defProf not in self.profiles.keys():
 			self.logger.warning("Bad default profile name. Using another existing one.")
 			self.defProf = self.profiles.keys()[0]
+		if self.profileOrder == []:
+			self.logger.warning("Empty profile order. Using alphabetic order.")
+			self.profileOrder = sorted(self.profiles.keys())
+			changed = True
 		if changed:
 			self.logger.warning("The list of profiles has been updated to match the content of the config folder.")
 			self.writeProfiles()
@@ -191,6 +195,7 @@ class ConfigVars():
 		self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
 		open(self.profiles["default"]["f"], "a").close()
 		self.defProf = "default"
+		self.profileOrder = []
 		self.writeProfiles()
 
 	def readProfiles(self):
@@ -200,7 +205,10 @@ class ConfigVars():
 		with open(self.configProfilesFile) as r:
 			txtarr = r.readlines()
 		txt = "".join(txtarr)
-		return ast.literal_eval(txt.replace("\n",""))
+		parsed = ast.literal_eval(txt.replace("\n",""))
+		if len(parsed) < 3:
+			parsed = parsed + tuple(sorted(parsed[1].keys()))
+		return parsed
 
 	def checkOldProfiles(self):
 		"""
@@ -237,7 +245,7 @@ class ConfigVars():
 		if not os.path.exists(self.configPath):
 			os.makedirs(self.configPath)
 		with open(self.configProfilesFile, 'w') as w:
-			w.write("'%s',\n%s\n"%(self.defProf, self.profiles))
+			w.write("'%s',\n%s,\n%s\n"%(self.defProf, self.profiles, self.profileOrder))
 
 	def reInit(self, newShort, newProfile):
 		"""

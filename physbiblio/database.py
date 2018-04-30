@@ -2155,7 +2155,7 @@ class entries(physbiblioDBSub):
 								changed.append(key)
 			except:
 				pBLogger.exception("something wrong with entry %s\n%s"%(e["id"], e))
-		pBLogger.info("Changed entries:\n%s"%changed)
+		pBLogger.info("%d changed entries:\n%s"%(len(changed), changed))
 		pBLogger.info("Inspire OAI harvesting done!")
 
 	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
