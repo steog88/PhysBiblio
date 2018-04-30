@@ -210,6 +210,39 @@ class ConfigVars():
 			parsed = parsed + tuple(sorted(parsed[1].keys()))
 		return parsed
 
+	def renameProfile(self, name, fileName):
+		"""
+		Rename a profile given the name of the config file
+
+		Parameters:
+			* name
+			* fileName
+		"""
+		oldName = None
+		for k in self.profiles.keys():
+			if self.profiles[k]["f"].split(os.sep)[-1] == fileName:
+				oldName = k
+		self.profiles[name] = dict(self.profiles[oldName])
+		del self.profiles[oldName]
+		for i, k in enumerate(self.profileOrder):
+			if k == oldName:
+				self.profileOrder[i] = name
+		self.logger.info("Profile renamed: %s -> %s"%(oldName, name))
+
+	def setProfileOrder(self, new, save = True):
+		"""
+		Update the profile order and save
+
+		Parameters:
+			* new: the ordered list of profile names
+			* save (boolean, default False): write the new settings in the profiles.dat
+		"""
+		if self.profileOrder != new:
+			self.profileOrder = new
+			self.logger.warning("The order of profiles has been updated.")
+			if save:
+				self.writeProfiles()
+
 	def checkOldProfiles(self):
 		"""
 		Intended for backwards compatibility.

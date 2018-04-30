@@ -15,6 +15,7 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 def editProf(parent, statusBarObject):
+	oldOrder = pbConfig.profileOrder
 	newProfWin = editProfile(parent)
 	newProfWin.exec_()
 	data = {}
@@ -22,6 +23,7 @@ def editProf(parent, statusBarObject):
 		newProfiles = {}
 		for currEl in newProfWin.elements:
 			name = currEl["n"].text()
+			fileName = currEl["f"].text()
 			if currEl["r"].isChecked() and name != "":
 				pbConfig.defProf = name
 			if name in pbConfig.profiles.keys():
@@ -33,6 +35,16 @@ def editProf(parent, statusBarObject):
 						os.remove(os.path.join(pbConfig.configPath, currEl["f"].text()))
 					except OSError:
 						pBGUILogger.warning("Impossible to cancel the profile file %s."%currEl["f"])
+			elif fileName in [pbConfig.profiles[k]["f"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
+				pbConfig.renameProfile(name, fileName)
+				pbConfig.profiles[name]["d"] = currEl["d"].text()
+				if currEl["x"].isChecked() and \
+						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
+					del pbConfig.profiles[name]
+					try:
+						os.remove(os.path.join(pbConfig.configPath, fileName))
+					except OSError:
+						pBGUILogger.warning("Impossible to cancel the profile file %s."%fileName)
 			else:
 				if name.strip() != "":
 					pbConfig.profiles[name] = {}
@@ -44,6 +56,7 @@ def editProf(parent, statusBarObject):
 					pBGUILogger.info("New profile created.\nYou should configure it properly before use!\n(switch to it and open the configuration)")
 		pbConfig.writeProfiles()
 	else:
+		pbConfig.profileOrder = oldOrder
 		message = "No modifications"
 	try:
 		statusBarObject.StatusBarMessage(message)
@@ -111,23 +124,31 @@ class selectProfiles(QDialog):
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
 
+class myOrderPushButton(QPushButton):
+	def __init__(self, parent, data, icon, text):
+		QPushButton.__init__(self, icon, text)
+		self.data = data
+		self.parent = parent
+		self.clicked.connect(self.onClick)
+
+	def onClick(self):
+		self.parent.switchLines(self.data)
+
 class editProfile(editObjectWindow):
 	"""create a window for editing or creating a profile"""
+
 	def __init__(self, parent = None):
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
-	def createForm(self):
-		self.setWindowTitle('Edit profile')
-
-		i = 0
-		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
-		for i,e in enumerate(labels):
-			self.currGrid.addWidget(e, 0, i)
-
+	def addButtons(self):
 		self.def_group = QButtonGroup(self.currGrid)
 		self.elements = []
-		for k, prof in pbConfig.profiles.items():
+		self.arrows = []
+		i = 0
+		j = 0
+		for k in pbConfig.profileOrder:
+			prof = pbConfig.profiles[k]
 			i += 1
 			tempEl = {}
 			tempEl["r"] = QRadioButton("")
@@ -140,7 +161,6 @@ class editProfile(editObjectWindow):
 
 			tempEl["n"] = QLineEdit(k)
 			tempEl["f"] = QLineEdit(prof["f"].split(os.sep)[-1])
-			tempEl["n"].setReadOnly(True)
 			tempEl["f"].setReadOnly(True)
 			tempEl["d"] = QLineEdit(prof["d"])
 			self.currGrid.addWidget(tempEl["n"], i, 1)
@@ -148,7 +168,24 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["d"], i, 3)
 			tempEl["x"] = QCheckBox("", self)
 			self.currGrid.addWidget(tempEl["x"], i, 4)
+			if i > 1:
+				self.arrows.append([
+					myOrderPushButton(self, j, QPixmap(":/images/arrow-down.png").scaledToHeight(48), ""),
+					myOrderPushButton(self, j, QPixmap(":/images/arrow-up.png").scaledToHeight(48), "")])
+				self.currGrid.addWidget(self.arrows[j][0], i-1, 6)
+				self.currGrid.addWidget(self.arrows[j][1], i, 5)
+				j += 1
 			self.elements.append(tempEl)
+
+	def createForm(self):
+		self.setWindowTitle('Edit profile')
+
+		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
+		for i,e in enumerate(labels):
+			self.currGrid.addWidget(e, 0, i)
+
+		self.addButtons()
+
 		i += 2
 		tempEl = {}
 		self.currGrid.addWidget(QLabel("Add new?"), i-1, 0)
@@ -178,3 +215,18 @@ class editProfile(editObjectWindow):
 
 		self.setGeometry(100,100,700, 25*i)
 		self.centerWindow()
+
+	def switchLines(self, ix):
+		tempOrder = list(pbConfig.profileOrder)
+		tempOrder[ix] = pbConfig.profileOrder[ix+1]
+		tempOrder[ix+1] = pbConfig.profileOrder[ix]
+		pbConfig.setProfileOrder(tempOrder, save = False)
+		self.cleanLayout()
+		self.createForm()
+
+	def cleanLayout(self):
+		"""delete previous table widget"""
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
