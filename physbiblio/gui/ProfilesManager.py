@@ -141,19 +141,19 @@ class editProfile(editObjectWindow):
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
-	def addButtons(self):
+	def addButtons(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder):
 		self.def_group = QButtonGroup(self.currGrid)
 		self.elements = []
 		self.arrows = []
 		i = 0
 		j = 0
-		for k in pbConfig.profileOrder:
-			prof = pbConfig.profiles[k]
+		for k in profileOrder:
+			prof = profilesData[k]
 			i += 1
 			tempEl = {}
 			tempEl["r"] = QRadioButton("")
 			self.def_group.addButton(tempEl["r"])
-			if pbConfig.defProf == k:
+			if pbConfig.defProf == k or ("r" in prof.keys() and prof["r"]):
 				tempEl["r"].setChecked(True)
 			else:
 				tempEl["r"].setChecked(False)
@@ -167,6 +167,8 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["f"], i, 2)
 			self.currGrid.addWidget(tempEl["d"], i, 3)
 			tempEl["x"] = QCheckBox("", self)
+			if "x" in prof.keys() and prof["x"]:
+				tempEl["x"].setChecked(True)
 			self.currGrid.addWidget(tempEl["x"], i, 4)
 			if i > 1:
 				self.arrows.append([
@@ -177,26 +179,29 @@ class editProfile(editObjectWindow):
 				j += 1
 			self.elements.append(tempEl)
 
-	def createForm(self):
+	def createForm(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, newLine = {"r": False, "n": "", "f": "", "d": ""}):
 		self.setWindowTitle('Edit profile')
 
 		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
 		for i,e in enumerate(labels):
 			self.currGrid.addWidget(e, 0, i)
 
-		self.addButtons()
+		self.addButtons(profilesData, profileOrder)
 
-		i += 2
+		i = len(pbConfig.profiles) + 2
 		tempEl = {}
 		self.currGrid.addWidget(QLabel("Add new?"), i-1, 0)
 		tempEl["r"] = QRadioButton("")
 		self.def_group.addButton(tempEl["r"])
-		tempEl["r"].setChecked(False)
+		if newLine["r"]:
+			tempEl["r"].setChecked(True)
+		else:
+			tempEl["r"].setChecked(False)
 		self.currGrid.addWidget(tempEl["r"], i, 0)
 
-		tempEl["n"] = QLineEdit("")
-		tempEl["f"] = QLineEdit("")
-		tempEl["d"] = QLineEdit("")
+		tempEl["n"] = QLineEdit(newLine["n"])
+		tempEl["f"] = QLineEdit(newLine["f"])
+		tempEl["d"] = QLineEdit(newLine["d"])
 		self.currGrid.addWidget(tempEl["n"], i, 1)
 		self.currGrid.addWidget(tempEl["f"], i, 2)
 		self.currGrid.addWidget(tempEl["d"], i, 3)
@@ -213,16 +218,28 @@ class editProfile(editObjectWindow):
 		self.cancelButton.setAutoDefault(True)
 		self.currGrid.addWidget(self.cancelButton, i+1, 0)
 
-		self.setGeometry(100,100,700, 25*i)
-		self.centerWindow()
-
 	def switchLines(self, ix):
-		tempOrder = list(pbConfig.profileOrder)
-		tempOrder[ix] = pbConfig.profileOrder[ix+1]
-		tempOrder[ix+1] = pbConfig.profileOrder[ix]
-		pbConfig.setProfileOrder(tempOrder, save = False)
+		currentValues = {}
+		currentOrder = []
+		for el in self.elements[:len(pbConfig.profiles)]:
+			tmp = {}
+			tmp["f"] = el["f"].text()
+			tmp["d"] = el["d"].text()
+			tmp["r"] = el["r"].isChecked()
+			tmp["x"] = el["x"].isChecked()
+			currentValues[el["n"].text()] = tmp
+			currentOrder.append(el["n"].text())
+		newLine = {
+			"r": self.elements[-1]["r"].isChecked(),
+			"n": self.elements[-1]["n"].text(),
+			"f": self.elements[-1]["f"].text(),
+			"d": self.elements[-1]["d"].text(),
+		}
+		tempOrder = list(currentOrder)
+		tempOrder[ix] = currentOrder[ix+1]
+		tempOrder[ix+1] = currentOrder[ix]
 		self.cleanLayout()
-		self.createForm()
+		self.createForm(currentValues, tempOrder, newLine)
 
 	def cleanLayout(self):
 		"""delete previous table widget"""
