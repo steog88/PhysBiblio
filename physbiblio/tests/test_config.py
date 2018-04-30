@@ -43,7 +43,7 @@ class TestConfigMethods(unittest.TestCase):
 			os.remove(tempCfgName)
 		newConfParamsDict = dict(config_defaults)
 		with patch("physbiblio.config.ConfigVars.readProfiles",
-				return_value = ("tmp", {"tmp": {"f": tempCfgName, "d":""}})) as _mock_readprof:
+				return_value = ("tmp", {"tmp": {"f": tempCfgName, "d":""}}, ["tmp"])) as _mock_readprof:
 			with patch("physbiblio.config.ConfigVars.verifyProfiles", return_value = None) as _verp:
 				self.assertFalse(os.path.exists(tempCfgName))
 				tempPbConfig = ConfigVars()
@@ -98,30 +98,34 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig = ConfigVars()
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
-		origDef, origProfiles = tempPbConfig.defProf, tempPbConfig.profiles
+		origDef, origProfiles, origOrder = tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder
 
-		tempPbConfig.defProf, tempPbConfig.profiles = ("tmp", {"tmp": {"f": tempCfgName, "d":""}})
+		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = ("tmp", {"tmp": {"f": tempCfgName, "d":""}}, ["tmp"])
 		tempPbConfig.configProfilesFile = tempProfName
 		tempPbConfig.writeProfiles()
 		with open(tempProfName) as r:
 			lines = r.readlines()
 		self.assertEqual(lines[0], "'tmp',\n")
 		self.assertIn(lines[1],
-			["{'tmp': {'f': '%s', 'd': ''}}\n"%tempCfgName,
-			"{'tmp': {'d': '', 'f': '%s'}}\n"%tempCfgName])
+			["{'tmp': {'f': '%s', 'd': ''}},\n"%tempCfgName,
+			"{'tmp': {'d': '', 'f': '%s'}},\n"%tempCfgName])
+		self.assertEqual(lines[2], "['tmp']\n")
 
-		tempPbConfig.defProf, tempPbConfig.profiles = origDef, origProfiles
+		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = origDef, origProfiles, origOrder
 		self.assertEqual(tempPbConfig.defProf, origDef)
 		self.assertEqual(tempPbConfig.profiles, origProfiles)
-		tempPbConfig.defProf, tempPbConfig.profiles = tempPbConfig.readProfiles()
+		self.assertEqual(tempPbConfig.profileOrder, origOrder)
+		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = tempPbConfig.readProfiles()
 		self.assertEqual(tempPbConfig.defProf, "tmp")
 		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName, "d":""}})
+		self.assertEqual(tempPbConfig.profileOrder, ["tmp"])
 
-		tempPbConfig.defProf, tempPbConfig.profiles = ("new", {"new": {"f": tempCfgName + "abc", "d":""}})
+		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = ("new", {"new": {"f": tempCfgName + "abc", "d":""}}, [])
 		with patch("physbiblio.config.ConfigVars.writeProfiles", return_value = None) as _verp:
 			self.assert_in_stdout_multi(tempPbConfig.verifyProfiles,
 				["Bad default profile name. Using another existing one.",
 				"The profile configuration file %s does not exist. Removing profile."%(tempCfgName + "abc"),
+				"Empty profile order. Using alphabetic order.",
 				"The list of profiles has been updated to match the content of the config folder."])
 
 def tearDownModule():
