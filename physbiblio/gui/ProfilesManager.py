@@ -21,6 +21,7 @@ def editProf(parent, statusBarObject):
 	data = {}
 	if newProfWin.result:
 		newProfiles = {}
+		pbConfig.profileOrder = [e["n"].text() for e in newProfWin.elements if e["n"].text() != ""]
 		for currEl in newProfWin.elements:
 			name = currEl["n"].text()
 			fileName = currEl["f"].text()
