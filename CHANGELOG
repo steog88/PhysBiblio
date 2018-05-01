@@ -1,7 +1,11 @@
 0.x (2018-yy-xx):
-	* settings for profile order and rename
+
+0.2.2 (2018-05-01):
+	* readme updates
+	* settings for profile order and rename (due to a new format in profiles.dat, some information may be lost in the transition)
 	* main executable sub-commands improved with argparse
 	* call PhysBiblio sub-commands with the "-p" option to select the profile to use
+	* python3 bugs
 
 0.2.1 (2018-04-27):
 	Code improvements:

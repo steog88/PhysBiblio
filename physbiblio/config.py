@@ -179,7 +179,7 @@ class ConfigVars():
 			changed = True
 		if self.defProf not in self.profiles.keys():
 			self.logger.warning("Bad default profile name. Using another existing one.")
-			self.defProf = self.profiles.keys()[0]
+			self.defProf = list(self.profiles.keys())[0]
 		if self.profileOrder == []:
 			self.logger.warning("Empty profile order. Using alphabetic order.")
 			self.profileOrder = sorted(self.profiles.keys())
