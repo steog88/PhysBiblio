@@ -250,7 +250,7 @@ class ConfigVars():
 		If yes, move it to the new self.configPath.
 		"""
 		if os.path.isfile(os.path.join("data", "profiles.dat")):
-			print("[config] Moving profiles.dat from old to new location")
+			self.logger.info("Moving profiles.dat from old to new location")
 			os.rename(os.path.join("data", "profiles.dat"), self.configProfilesFile)
 
 	def checkOldPaths(self):
@@ -264,7 +264,7 @@ class ConfigVars():
 			if "data/" in prof["f"]:
 				if os.path.isfile(prof["f"]):
 					new = os.path.join(self.configPath, self.profiles[k]["f"].replace("data/", ""))
-					print("Moving file %s to %s"%(prof["f"], new))
+					self.logger.info("Moving file %s to %s"%(prof["f"], new))
 					os.rename(prof["f"], new)
 				self.profiles[k]["f"] = prof["f"].replace("data/", "")
 				save = True
@@ -293,7 +293,7 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
-		self.logger.info("[config] starting with configuration in '%s'"%self.defaultProfile["f"])
+		self.logger.info("Starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = self.defaultProfile["f"]
 		self.params = {}
 		self.readConfigFile()
@@ -330,11 +330,11 @@ class ConfigVars():
 					self.logger.warning("Failed in reading parameter", exc_info = True)
 					self.params[k] = v
 		except IOError:
-			self.logger.warning("[config] ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
+			self.logger.warning("ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
 			self.saveConfigFile()
 			self.needFirstConfiguration = True
 		except Exception:
-			self.logger.error("[config] ERROR: reading %s file failed."%self.configMainFile)
+			self.logger.error("ERROR: reading %s file failed."%self.configMainFile)
 		
 	def saveConfigFile(self):
 		"""
@@ -349,6 +349,6 @@ class ConfigVars():
 			with open(self.configMainFile, "w") as w:
 				w.write(txt)
 		except IOError:
-			self.logger.error("[config] ERROR in saving config file!")
+			self.logger.error("ERROR in saving config file!")
 
 pbConfig = ConfigVars()

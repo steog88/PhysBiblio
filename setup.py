@@ -32,6 +32,7 @@ setup(name='physbiblio',
 		},
 		install_requires=[
 			'appdirs',
+			'argparse',
 			'bibtexparser(>=1.0.1)',
 			'dictdiffer',
 			'feedparser',

@@ -7,10 +7,13 @@ This file is part of the physbiblio package.
 
 import sys, traceback
 import datetime
+import argparse
 
 from PySide.QtGui import QApplication
 
 try:
+	from physbiblio import __version__, __version_date__
+	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.errors import pBLogger
 	from physbiblio.gui.MainWindow import MainWindow
@@ -28,99 +31,56 @@ def TorF(s):
 	else:
 		return None
 
-def call_clean(arguments):
-	startFrom = arguments[0] if len(arguments) > 0 else 0
-	pBDB.bibs.cleanBibtexs(startFrom = startFrom)
+def call_clean(args):
+	pBDB.bibs.cleanBibtexs(startFrom = args.startFrom)
 	pBDB.commit()
-	exit()
 
-def call_cli():
+def call_cli(args):
 	from physbiblio.cli import cli as physBiblioCLI
 	physBiblioCLI()
-	exit()
 
-def call_export(arguments):
+def call_export(args):
 	from physbiblio.export import pBExport
-	if len(arguments) < 1:
-		print("\nWrong usage of command line command 'export': mandatory argument 'fname' is missing.\n")
-		exit()
-	fname = arguments[0]
-	pBExport.exportAll(fname)
-	exit()
+	pBExport.exportAll(args.filename)
 
-def call_tex(arguments):
+def call_tests(args):
+	if sys.version_info[0] < 3:
+		import unittest2 as unittest
+	else:
+		import unittest
+	from physbiblio.testLoader import MyScanningLoader
+	suite = MyScanningLoader().discover('physbiblio')
+	testRunner = unittest.runner.TextTestRunner()
+	testRunner.run(suite)
+
+def call_tex(args):
 	from physbiblio.export import pBExport
-	if len(arguments) < 2:
-		print("\nWrong usage of command line command 'tex': mandatory arguments are missing. Please use:")
-		print("`PhysBiblio tex '/folder/where/tex/files/are/' 'name_of_output.bib' [overwrite [autosave]]`")
-		print("(the optional arguments overwrite and autosave may be 1,T,t,True,true for True or 0,F,f,False,false for False. Default: overwrite = False, autosave = True)\n")
-		exit()
-	texFiles = arguments[0]
-	bibFile = arguments[1]
-	overwrite = TorF(arguments[2]) if len(arguments) > 2 else False
-	autosave = TorF(arguments[3]) if len(arguments) > 3 else True
-	if overwrite is None or autosave is None:
-		print("\nInvalid value for overwrite or autosave. You may use 1,T,t,True,true for True or 0,F,f,False,false for False.\n")
-	pBExport.exportForTexFile(texFiles, bibFile, overwrite = overwrite, autosave = autosave)
-	exit()
+	pBExport.exportForTexFile(args.texFiles, args.bibFile, overwrite = args.overwrite, autosave = args.save)
 
-def call_update(arguments):
-	startFrom = int(arguments[0]) if len(arguments) > 0 else 0
-	force = TorF(arguments[1]) if len(arguments) > 1 else False
-	pBDB.bibs.searchOAIUpdates(startFrom = startFrom, force = force)
+def call_update(args):
+	pBDB.bibs.searchOAIUpdates(startFrom = args.startFrom, force = args.force)
 	pBDB.commit()
-	exit()
 
 def call_oaiDates(date1, date2):
 	pBDB.bibs.getDailyInfoFromOAI(date1, date2)
 	pBDB.commit()
-	exit()
 
-if __name__=='__main__':
-	command = None
-	dateLast = datetime.date.today().strftime("%Y-%m-%d")
-	if len(sys.argv) > 1:
-		command = sys.argv[1].lower()
-	if command == "help":
-		print("\nAvailable command line options:")
-		print("* help: print this text;")
-		print("* test: run the test suite;")
-		print("* clean: parse and clean all the bibtex entries in the database;")
-		print("* cli: open a command line where to directly run PhysBiblio functions;")
-		print("* daily: retrieve records changed in the day from InspireOAI and update entries;")
-		print("* export: export all the DB entries in a *.bib file;")
-		print("* tex: read .tex file(s) and create a *.bib file with the cited bibtexs;")
-		print("* update: use INSPIRE to update the information in the database;")
-		print("* weekly: retrieve records changed in the week from InspireOAI and update entries.")
-		print("")
-		exit()
-	elif command == "test":
-		if sys.version_info[0] < 3:
-			import unittest2 as unittest
-		else:
-			import unittest
-		from physbiblio.testLoader import MyScanningLoader
-		suite = MyScanningLoader().discover('physbiblio')
-		testRunner = unittest.runner.TextTestRunner()
-		testRunner.run(suite)
-		exit()
-	elif command == "clean":
-		call_clean(sys.argv[2:])
-	elif command == "cli":
-		call_cli()
-	elif command == "daily":
-		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
-		call_oaiDates(date1, dateLast)
-	elif command == "export":
-		call_export(sys.argv[2:])
-	elif command == "tex":
-		call_tex(sys.argv[2:])
-	elif command == "update":
-		call_update(sys.argv[2:])
-	elif command == "weekly":
-		date1 = (datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d")
-		call_oaiDates(date1, dateLast)
+dateLast = datetime.date.today().strftime("%Y-%m-%d")
 
+def call_dates(args):
+	call_oaiDates(args.start, args.end)
+
+def call_daily(args):
+	call_oaiDates(
+		(datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"),
+		dateLast)
+
+def call_weekly(args):
+	call_oaiDates(
+		(datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d"),
+		dateLast)
+
+def call_gui():
 	try:
 		app = QApplication(sys.argv)
 		sys.excepthook = pBGUIErrorManager.excepthook
@@ -133,3 +93,72 @@ if __name__=='__main__':
 	except SystemExit:
 		pBDB.closeDB()
 		pBLogger.info("Closing main window...")
+
+class newProfileAction(argparse.Action):
+	def __init__(self, option_strings, dest, **kwargs):
+		super(newProfileAction, self).__init__(option_strings, dest, **kwargs)
+
+	def __call__(self, parser, namespace, values, option_string=None):
+		prof = values[0]
+		if prof in pbConfig.profiles.keys():
+			pBLogger.info("Changing profile to '%s'"%prof)
+			newProfile = pbConfig.profiles[prof]
+			pbConfig.reInit(prof, newProfile)
+			if pbConfig.needFirstConfiguration:
+				infoMessage("Missing configuration file.\nYou should verify the configuration now.")
+				self.parent.config()
+			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+		setattr(namespace, self.dest, values)
+
+parser = argparse.ArgumentParser(prog = 'PhysBiblio')
+parser.add_argument('-p', '--profile', action = newProfileAction, nargs =  1, help = 'define the profile that must be used')
+parser.add_argument('-v', '--version', action = 'version', version = 'PhysBiblio %s (%s)'%(__version__, __version_date__))
+subparsers = parser.add_subparsers(help = 'sub-command help', dest = 'cmd')
+
+parser_cli = subparsers.add_parser('cli', help = 'open the internal command line interface')
+parser_cli.set_defaults(func = call_cli)
+
+parser_clean = subparsers.add_parser('clean', help = 'clean the entries in the database')
+parser_clean.add_argument('-s', '--startFrom', type = int, help = 'the index from which the cleaning should start', default = 0)
+parser_clean.set_defaults(func = call_clean)
+
+parser_daily = subparsers.add_parser('daily', help = 'fetch the daily updates from INSPIRE-HEP OAI')
+parser_daily.set_defaults(func = call_daily)
+
+parser_export = subparsers.add_parser('export', help = 'export all the entries in the database in a file')
+parser_export.add_argument('filename', help = 'the filename where to save the entries')
+parser_export.set_defaults(func = call_export)
+
+parser_dates = subparsers.add_parser('dates', help = 'fetch the updates from INSPIRE-HEP OAI between the given dates')
+parser_dates.add_argument('start', metavar = 'startdate', help = 'the starting date', default = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"))
+parser_dates.add_argument('end', metavar = 'enddate', help = 'the ending date', default = dateLast)
+parser_dates.set_defaults(func = call_dates)
+
+parser_test = subparsers.add_parser('test', help = 'run the test suite')
+parser_test.set_defaults(func = call_tests)
+
+parser_tex = subparsers.add_parser('tex', help = 'read .tex file(s) and create a *.bib file with the cited bibtexs')
+parser_tex.add_argument('texFiles', metavar = 'texfilename', help = 'the filename of the tex file to read. A folder or wildcards are admitted')
+parser_tex.add_argument('bibFile', metavar = 'bibfilename', help = 'the filename of the bib file where to write')
+parser_tex.add_argument('-o', '--overwrite', dest = 'overwrite', action='store_true', help = 'overwrite the bib file, if existing')
+parser_tex.add_argument('-s', '--save', dest = 'save', action='store_false', help = 'save the changes in the database')
+parser_tex.set_defaults(func = call_tex)
+
+parser_update = subparsers.add_parser('update', help = 'use INSPIRE to update the information in the database')
+parser_update.add_argument('-s', '--startFrom', type = int, help = 'the index from which the updating should start', default = 0)
+parser_update.add_argument('-f', '--force', action='store_true', help = 'force the update')
+parser_update.set_defaults(func = call_update)
+
+parser_weekly = subparsers.add_parser('weekly', help = 'fetch the weekly updates from INSPIRE-HEP OAI')
+parser_weekly.set_defaults(func = call_weekly)
+
+parser_gui = subparsers.add_parser('gui', help = 'open the gui')
+parser_gui.set_defaults(func = call_gui)
+
+if __name__=='__main__':
+	command = None
+	if len(sys.argv) > 1:
+		args = parser.parse_args(sys.argv[1:])
+		args.func(args)
+	else:
+		call_gui()
