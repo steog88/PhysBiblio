@@ -1,5 +1,7 @@
 0.x (2018-yy-xx):
 	* settings for profile order and rename
+	* main executable sub-commands improved with argparse
+	* call PhysBiblio sub-commands with the "-p" option to select the profile to use
 
 0.2.1 (2018-04-27):
 	Code improvements:
