@@ -92,13 +92,14 @@ The icon may be located in `/usr/local/physbiblio/icon.png` or `/usr/physbiblio/
 
 ### Default settings
 When you first open PhysBiblio, you will need to set up some configuration parameters.  
-In particular, if you do not correctly set the web browser and the PDF reader some features may not work.
+In particular, if you do not correctly set the web browser and the PDF reader, some features may not work when using the command line.
 
 ### Dependencies
 PhysBiblio depends on several python packages:
 * sqlite3 (for the database)
 * pyside (for the graphical interface)
 * appdirs (default paths)
+* argparse (arguments from command line)
 * bibtexparser (to manage bibtex entries)
 * dictdiffer (show differences between dictionaries)
 * feedparser (to deal with arXiv data)
@@ -141,10 +142,6 @@ You can add subcategories in a tree structure and filter your bibtex entries acc
 ### Experiments
 Separately from categories, you can organize papers published by experiments or collaborations and insert links to the experiment web page.
 When you assign a paper to an experiment, it will be classified also in the same categories of the experiment itself.
-
-### Profiles
-You may manage different profiles, each with different settings and independent databases.
-It may be useful if you want to maintain separate activities or collections independently one of the other.
 
 ### PDF
 A "Download from arXiv" feature is present for all the papers with an arXiv identifier.  
@@ -198,7 +195,6 @@ You may then check the bottom of the logfile to see the modified entries and scr
 ## 3. Command line usage
 Some functions are available also as simple command line instructions,
 so they can be included in any non-graphical script.
-Currently, the commands run only using the default profile.
 
 The usage is simple:
 ```
@@ -206,17 +202,17 @@ The usage is simple:
 ```
 
 The list of available commands includes:
-* `help`: print the list of available commands.
+* `gui`: run the graphical interface (default if no options are used).
 * `test`: execute the test suite.
 * `clean`: process all the bibtex entries in the database to remove bad characters and reformat them.
 * `cli`: internal command line interface to work with internal commands. Mainly intended for developing.
 * `daily`: see [here](#inspire-oai).
-* `export filename`:
+* `export`:
 	export all the bibtex entries in the database, creating a file with the given `filename`.
 	If already existing, the file will be overwritten.
-* `tex texfile(s) outputfile [overwrite=False] [autosave=True]`:
-	read one or more `.tex` files (`texfile(s)` must be a single string, eventually with wildcards),
-	scanning for `\cite` or similar commands, and generate a single `.bib` file (`outputfile`)
+* `tex`:
+	read one or more `.tex` files,
+	scanning for `\cite` or similar commands, and generate a single `.bib` file
 	with the required bibtex entries to compile the set of `.tex` files.
 	If they are in the local database, the bibtexs are just copied into the output file,
 	otherwise the script will connect to INSPIRE-HEP to download the entries,
@@ -226,6 +222,12 @@ The list of available commands includes:
 	for each of the entries in the database, if required, get updated information from INSPIRE-HEP (publication info or title updates, for example).
 	You are encouraged not to use this function if you have a large database, see [here](#inspire-oai) instead.
 * `weekly`: see [here](#inspire-oai).
+
+The best ways to know how to use the various sub-commands and options are
+```
+/path/to/PhysBiblio -h
+/path/to/PhysBiblio <command> -h
+```
 
 ## 4. Data paths
 PhysBiblio now saves data, by default, in the directories specified by the `appdirs` package using `user_config_dir` and `user_data_dir`.
