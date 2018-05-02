@@ -50,13 +50,10 @@ class physbiblioDBCore():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 
-		# self.cursExec("ALTER TABLE entries ADD COLUMN abstract TEXT")
-
 		self.lastFetched = None
 		self.catsHier = None
 
 		self.loadSubClasses()
-
 
 	def openDB(self):
 		"""
@@ -72,40 +69,8 @@ class physbiblioDBCore():
 		self.loadSubClasses()
 		return True
 
-	def reOpenDB(self, newDB = None):
-		"""
-		Close the currently open database and open a new one (the same if newDB is None).
-
-		Parameters:
-			newDB: None (default) or the name of the new database
-
-		Output:
-			True if successfull
-		"""
-		if newDB is not None:
-			self.closeDB()
-			del self.conn
-			del self.curs
-			self.dbname = newDB
-			db_is_new = not os.path.exists(self.dbname)
-			self.openDB()
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
-				self.logger.info("-------New database. Creating tables!\n\n")
-				self.createTables()
-
-			self.lastFetched = None
-			self.catsHier = None
-		else:
-			self.closeDB()
-			self.openDB()
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
-				self.logger.info("-------New database. Creating tables!\n\n")
-				self.createTables()
-			self.lastFetched = None
-			self.catsHier = None
-		return True
+	def reOpenDB(self):
+		pass
 
 	def closeDB(self):
 		"""
@@ -207,14 +172,19 @@ class physbiblioDBCore():
 	def cursor(self):
 		return self.curs
 
-	def createTables(self):
+	def loadSubClasses(self):
+		pass
+
+	def createTables(self, fieldsDict = None):
 		"""
 		Create tables for the database (and insert the default categories), if it is missing.
 		"""
-		for q in self.tableFields.keys():
+		if fieldsDict is None:
+			fieldsDict = self.tableFields
+		for q in fieldsDict.keys():
 			command="CREATE TABLE "+q+" (\n"
 			first=True
-			for el in self.tableFields[q]:
+			for el in fieldsDict[q]:
 				if first:
 					first=False
 				else:

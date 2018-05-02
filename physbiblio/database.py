@@ -34,6 +34,41 @@ class physbiblioDB(physbiblioDBCore):
 	def __init__(self, *args, **kwargs):
 		physbiblioDBCore.__init__(self, *args, **kwargs)
 
+	def reOpenDB(self, newDB = None):
+		"""
+		Close the currently open database and open a new one (the same if newDB is None).
+
+		Parameters:
+			newDB: None (default) or the name of the new database
+
+		Output:
+			True if successfull
+		"""
+		if newDB is not None:
+			self.closeDB()
+			del self.conn
+			del self.curs
+			self.dbname = newDB
+			db_is_new = not os.path.exists(self.dbname)
+			self.openDB()
+			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+				self.logger.info("-------New database. Creating tables!\n\n")
+				self.createTables()
+
+			self.lastFetched = None
+			self.catsHier = None
+		else:
+			self.closeDB()
+			self.openDB()
+			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+				self.logger.info("-------New database. Creating tables!\n\n")
+				self.createTables()
+			self.lastFetched = None
+			self.catsHier = None
+		return True
+
 	def loadSubClasses(self):
 		"""
 		Load the subclasses that manage the content in the various tables in the database.

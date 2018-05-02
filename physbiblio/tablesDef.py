@@ -8,7 +8,7 @@ profilesSettingsTable = [
 	["name", 		"text", "not null"],
 	["description", "text", ""],
 	["databasefile","int", "default 0"],
-	["default", 	"int", "default 0"],
+	["isDefault", 	"int", "default 0"],
 	["ord", 		"int", "default 0"]
 ]
 
