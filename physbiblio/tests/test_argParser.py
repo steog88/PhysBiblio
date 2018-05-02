@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the physbiblio.bibtexWriter module.
+Test file for the physbiblio.argParser module.
 
 This file is part of the physbiblio package.
 """
@@ -49,7 +49,7 @@ class TestParser(unittest.TestCase):
 
 	@patch('sys.stderr', new_callable=StringIO)
 	def assert_in_stderr_sysexit(self, function, expected_output, mock_stderr):
-		"""Catch and if test stdout of the function contains a string"""
+		"""Catch and if test stderr of the function contains a string"""
 		with self.assertRaises(SystemExit):
 			function()
 		string = mock_stderr.getvalue()
@@ -128,7 +128,7 @@ class TestParser(unittest.TestCase):
 					mock.assert_called_once_with(*expected[0], **expected[1])
 
 	def test_subcommands_fail(self):
-		"""Test that the options are recognised correctly. Excluding "test" and "gui" sub-commands."""
+		"""Test that the options are recognised correctly."""
 		parser = setParser()
 		tests = [
 			["clean", ["-f"]],

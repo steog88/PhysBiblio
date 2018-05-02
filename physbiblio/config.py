@@ -163,8 +163,8 @@ class ConfigVars():
 		files = [ p["f"].split(os.sep)[-1] for p in self.profiles.values()]
 		keys = list(self.profiles.keys())
 		for p in keys:
-			if not os.path.exists(self.profiles[p]["f"]):
-				self.logger.warning("The profile configuration file %s does not exist. Removing profile."%self.profiles[p]["f"])
+			if not os.path.exists(os.path.join(self.configPath, self.profiles[p]["f"])):
+				self.logger.warning("The profile configuration file %s does not exist. Removing profile."%os.path.join(self.configPath, self.profiles[p]["f"]))
 				del self.profiles[p]
 				changed = True
 		for f in glob.iglob(self.configPath + os.sep + "*.cfg"):
@@ -192,8 +192,8 @@ class ConfigVars():
 		"""
 		Create the default profile
 		"""
-		self.profiles = {"default": {"f": os.path.join(self.configPath, "params.cfg"), "d":""}}
-		open(self.profiles["default"]["f"], "a").close()
+		self.profiles = {"default": {"f": "params.cfg", "d":""}}
+		open(os.path.join(self.configPath, self.profiles["default"]["f"]), "a").close()
 		self.defProf = "default"
 		self.profileOrder = []
 		self.writeProfiles()
@@ -277,8 +277,12 @@ class ConfigVars():
 		"""
 		if not os.path.exists(self.configPath):
 			os.makedirs(self.configPath)
+		cleaned = dict(self.profiles)
+		for k in cleaned.keys():
+			cleaned[k]["f"] = cleaned[k]["f"].split(os.sep)[-1]
 		with open(self.configProfilesFile, 'w') as w:
-			w.write("'%s',\n%s,\n%s\n"%(self.defProf, self.profiles, self.profileOrder))
+			w.write("'%s',\n%s,\n%s\n"%(self.defProf, cleaned, self.profileOrder))
+		self.logger.info("%s written."%self.configProfilesFile)
 
 	def reInit(self, newShort, newProfile):
 		"""
@@ -294,7 +298,7 @@ class ConfigVars():
 			self.params[k] = v
 		self.defaultProfile = newProfile
 		self.logger.info("Starting with configuration in '%s'"%self.defaultProfile["f"])
-		self.configMainFile = self.defaultProfile["f"]
+		self.configMainFile = os.path.join(self.configPath, self.defaultProfile["f"])
 		self.params = {}
 		self.readConfigFile()
 		

@@ -23,7 +23,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
-tempCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg"%today_ymd)
+tempCfgName = os.path.join(pbConfig.configPath, "tests_%s.cfg"%today_ymd)
 tempProfName = os.path.join(pbConfig.dataPath, "tests_%s.dat"%today_ymd)
 class TestConfigMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.config"""
@@ -95,7 +95,8 @@ class TestConfigMethods(unittest.TestCase):
 
 	def test_profiles(self):
 		"""Test config methods for profiles management"""
-		tempPbConfig = ConfigVars()
+		with patch("physbiblio.config.ConfigVars.writeProfiles", return_value = None) as _verp:
+			tempPbConfig = ConfigVars()
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
 		origDef, origProfiles, origOrder = tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder
@@ -107,8 +108,8 @@ class TestConfigMethods(unittest.TestCase):
 			lines = r.readlines()
 		self.assertEqual(lines[0], "'tmp',\n")
 		self.assertIn(lines[1],
-			["{'tmp': {'f': '%s', 'd': ''}},\n"%tempCfgName,
-			"{'tmp': {'d': '', 'f': '%s'}},\n"%tempCfgName])
+			["{'tmp': {'f': '%s', 'd': ''}},\n"%tempCfgName.split(os.sep)[-1],
+			"{'tmp': {'d': '', 'f': '%s'}},\n"%tempCfgName.split(os.sep)[-1]])
 		self.assertEqual(lines[2], "['tmp']\n")
 
 		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = origDef, origProfiles, origOrder
@@ -117,10 +118,10 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profileOrder, origOrder)
 		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = tempPbConfig.readProfiles()
 		self.assertEqual(tempPbConfig.defProf, "tmp")
-		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName, "d":""}})
+		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName.split(os.sep)[-1], "d":""}})
 		self.assertEqual(tempPbConfig.profileOrder, ["tmp"])
 
-		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = ("new", {"new": {"f": tempCfgName + "abc", "d":""}}, [])
+		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = ("new", {"new": {"f": tempCfgName.split(os.sep)[-1] + "abc", "d":""}}, [])
 		with patch("physbiblio.config.ConfigVars.writeProfiles", return_value = None) as _verp:
 			self.assert_in_stdout_multi(tempPbConfig.verifyProfiles,
 				["Bad default profile name. Using another existing one.",
