@@ -9,5 +9,5 @@ __email__ = "stefano.gariazzo@gmail.com"
 __version__ = "0.2.2"
 __version_date__ = "01/05/2018"
 
-__all__ = ["bibtexwriter", "cli", "config", "database", "errors", "export", "firstOpen", "inspireStats", "parse_accents", "pdf", "tablesDef", "tests", "view", "gui", "webimport"]
+__all__ = ["bibtexwriter", "cli", "config", "databaseCore", "database", "errors", "export", "inspireStats", "parse_accents", "pdf", "tablesDef", "tests", "view", "gui", "webimport"]
 

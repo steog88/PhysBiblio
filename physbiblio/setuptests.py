@@ -16,7 +16,7 @@ else:
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.errors import pBErrorManager
+	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import physbiblioDB
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -41,7 +41,7 @@ class DBTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		self.maxDiff = None
-		self.pBDB = physbiblioDB(tempDBName)
+		self.pBDB = physbiblioDB(tempDBName, pBLogger)
 
 	def tearDown(self):
 		self.pBDB.undo(verbose = False)
