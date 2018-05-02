@@ -8,6 +8,14 @@ import logging
 import glob
 from appdirs import AppDirs
 
+try:
+	from physbiblio.databaseCore import physbiblioDBCore
+	from physbiblio.tablesDef import profilesSettingsTable
+except ImportError:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
+	raise
+
 #these are the default parameter values, descriptions and types
 configuration_params = [
 {"name": "mainDatabaseName",
@@ -115,7 +123,31 @@ class ConfigVars():
 		self.logger.info("Default data path: %s"%self.dataPath)
 		if not os.path.exists(self.dataPath):
 			os.makedirs(self.dataPath)
+
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
+		self.configProfilesDbFile = os.path.join(self.configPath, "profiles.db")
+		noProfileDb = not os.path.exists(self.configProfilesDbFile)
+		self.configProfilesDb = physbiblioDBCore(self.configProfilesDbFile, self.logger, noOpen = True)
+		self.configProfilesDb.openDB()
+		if noProfileDb:
+			command="CREATE TABLE profiles (\n"
+			first=True
+			for el in profilesSettingsTable:
+				if first:
+					first=False
+				else:
+					command+=",\n"
+				command+=" ".join(el)
+			command+=");"
+			self.logger.info(command+"\n")
+			if not self.configProfilesDb.connExec(command):
+				self.logger.critical("Create profiles failed")
+				sys.exit(1)
+			self.configProfilesDb.commit()
+		self.configProfilesDb.cursExec("SELECT * FROM profiles\n")
+		if len(self.configProfilesDb.curs.fetchall()) == 0:
+			self.createDefaultProfile()
+
 		self.checkOldProfiles()
 
 		self.needFirstConfiguration = False
@@ -138,8 +170,6 @@ class ConfigVars():
 			self.createDefaultProfile()
 
 		self.verifyProfiles()
-
-		self.checkOldPaths()
 		for k, prof in self.profiles.items():
 			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
 
@@ -154,6 +184,16 @@ class ConfigVars():
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
+
+	def checkOldProfiles(self):
+		"""
+		Intended for backwards compatibility.
+		Check if there is a profiles.dat file in the 'data/' subfolder.
+		If yes, move it to the new self.configPath.
+		"""
+		if os.path.isfile(os.path.join("data", "profiles.dat")):
+			self.logger.info("Moving info from profiles.dat into the profiles.db")
+			os.rename(os.path.join("data", "profiles.dat"), self.configProfilesFile)
 
 	def verifyProfiles(self):
 		"""
@@ -192,11 +232,14 @@ class ConfigVars():
 		"""
 		Create the default profile
 		"""
-		self.profiles = {"default": {"f": "params.cfg", "d":""}}
-		open(os.path.join(self.configPath, self.profiles["default"]["f"]), "a").close()
-		self.defProf = "default"
-		self.profileOrder = []
-		self.writeProfiles()
+		command = "INSERT into profiles (name, description, databasefile, isDefault, ord) " + \
+			'values ("default", "", "%s", 1, 0)'%(
+				os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))
+		self.logger.info(command+"\n")
+		if not self.configProfilesDb.connExec(command):
+			self.logger.exception("Cannot insert default profile")
+			sys.exit(1)
+		self.configProfilesDb.commit()
 
 	def readProfiles(self):
 		"""
@@ -242,34 +285,6 @@ class ConfigVars():
 			self.logger.warning("The order of profiles has been updated.")
 			if save:
 				self.writeProfiles()
-
-	def checkOldProfiles(self):
-		"""
-		Intended for backwards compatibility.
-		Check if there is a profiles.dat file in the 'data/' subfolder.
-		If yes, move it to the new self.configPath.
-		"""
-		if os.path.isfile(os.path.join("data", "profiles.dat")):
-			self.logger.info("Moving profiles.dat from old to new location")
-			os.rename(os.path.join("data", "profiles.dat"), self.configProfilesFile)
-
-	def checkOldPaths(self):
-		"""
-		Intended for backwards compatibility.
-		Check if there are configuration files in the 'data/' subfolder.
-		If yes, move them to the new self.configPath or self.dataPath.
-		"""
-		save = False
-		for k, prof in self.profiles.items():
-			if "data/" in prof["f"]:
-				if os.path.isfile(prof["f"]):
-					new = os.path.join(self.configPath, self.profiles[k]["f"].replace("data/", ""))
-					self.logger.info("Moving file %s to %s"%(prof["f"], new))
-					os.rename(prof["f"], new)
-				self.profiles[k]["f"] = prof["f"].replace("data/", "")
-				save = True
-		if save:
-			self.writeProfiles()
 
 	def writeProfiles(self):
 		"""
