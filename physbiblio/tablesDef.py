@@ -5,8 +5,9 @@ This file is part of the physbiblio package.
 """
 profilesSettingsTable = [
 	["name", 		"text", "primary key not null"],
+	["databasefile","text", "not null"],
 	["description", "text", ""],
-	["databasefile","int", "default 0"],
+	["oldCfg",      "text", ""],
 	["isDefault", 	"int", "default 0"],
 	["ord", 		"int", "default 0"]
 ]
@@ -63,8 +64,7 @@ tableFields["entryExps"] = [
 	["bibkey", "text", "not null"],
 	["idExp",  "int", "not null"]];
 tableFields["settings"] = [
-	["id", 		"integer", "primary key"],
-	["name", 	"text", "not null"],
+	["name", 	"text", "primary key not null"],
 	["value", 	"text", "default ''"]]
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {

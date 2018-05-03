@@ -6,6 +6,7 @@ This file is part of the physbiblio package.
 import sqlite3
 from sqlite3 import OperationalError, ProgrammingError, DatabaseError, InterfaceError
 import os
+import ast
 
 try:
 	import physbiblio.tablesDef
@@ -46,7 +47,7 @@ class physbiblioDBCore():
 		if not noOpen:
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 
@@ -181,7 +182,11 @@ class physbiblioDBCore():
 		"""
 		if fieldsDict is None:
 			fieldsDict = self.tableFields
+		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+		existingTables = [name[0] for name in self.curs]
 		for q in fieldsDict.keys():
+			if q in existingTables:
+				continue
 			command="CREATE TABLE "+q+" (\n"
 			first=True
 			for el in fieldsDict[q]:
@@ -194,12 +199,80 @@ class physbiblioDBCore():
 			self.logger.info(command+"\n")
 			if not self.connExec(command):
 				self.logger.critical("Create %s failed"%q)
-		command="""
-		INSERT into categories (idCat, name, description, parentCat, ord)
-			values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
-			(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
-			"""
-		self.logger.info(command+"\n")
-		if not self.connExec(command):
-			self.logger.exception("Insert main categories failed")
+		self.cursExec("select * from categories where idCat = 0 or idCat = 1\n")
+		if len(self.curs.fetchall()) < 2:
+			command="""
+			INSERT into categories (idCat, name, description, parentCat, ord)
+				values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
+				(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
+				"""
+			self.logger.info(command+"\n")
+			if not self.connExec(command):
+				self.logger.error("Insert main categories failed")
 		self.commit()
+
+class physbiblioDBSub():
+	"""
+	Uses physbiblioDB instance 'self.mainDB = parent' to act on the database.
+	All the subcategories of physbiblioDB are defined starting from this one.
+	"""
+	def __init__(self, parent):
+		"""
+		Initialize DB class, connecting to the main physbiblioDB instance (parent).
+		"""
+		self.mainDB = parent
+		#structure of the tables
+		self.tableFields = self.mainDB.tableFields
+		#names of the columns
+		self.tableCols = {}
+		for q in self.tableFields.keys():
+			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
+
+		self.conn = self.mainDB.conn
+		self.curs = self.mainDB.curs
+		self.dbname = self.mainDB.dbname
+
+		self.lastFetched = None
+		self.catsHier = None
+
+	def literal_eval(self, string):
+		try:
+			if "[" in string and "]" in string:
+				return ast.literal_eval(string.strip())
+			elif "," in string:
+				return ast.literal_eval("[%s]"%string.strip())
+			else:
+				return string.strip()
+		except SyntaxError:
+			pBLogger.warning("Error in literal_eval with string '%s'"%string)
+			return None
+
+	def closeDB(self):
+		"""
+		Close the database (using physbiblioDB.close)
+		"""
+		self.mainDB.closeDB()
+
+	def commit(self):
+		"""
+		Commit the changes (using physbiblioDB.commit)
+		"""
+		self.mainDB.commit()
+
+	def connExec(self,query,data=None):
+		"""
+		Execute connection (see physbiblioDB.connExec)
+		"""
+		return self.mainDB.connExec(query, data = data)
+
+	def cursExec(self, query, data = None):
+		"""
+		Execute cursor (see physbiblioDB.cursExec)
+		"""
+		return self.mainDB.cursExec(query, data = data)
+
+	def cursor(self):
+		"""
+		Return the cursor
+		"""
+		return self.mainDB.cursor()

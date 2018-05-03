@@ -13,7 +13,7 @@ from pyparsing import ParseException
 import dictdiffer
 
 try:
-	from physbiblio.databaseCore import physbiblioDBCore
+	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
 	from physbiblio.config import pbConfig
 	from physbiblio.bibtexwriter import pbWriter
 	from physbiblio.errors import pBLogger
@@ -94,72 +94,6 @@ class physbiblioDB(physbiblioDBCore):
 		self.catBib = catsEntries(self)
 		self.catExp = catsExps(self)
 		return True
-
-class physbiblioDBSub():
-	"""
-	Uses physbiblioDB instance 'self.mainDB = parent' to act on the database.
-	All the subcategories of physbiblioDB are defined starting from this one.
-	"""
-	def __init__(self, parent):
-		"""
-		Initialize DB class, connecting to the main physbiblioDB instance (parent).
-		"""
-		self.mainDB = parent
-		#structure of the tables
-		self.tableFields = self.mainDB.tableFields
-		#names of the columns
-		self.tableCols = {}
-		for q in self.tableFields.keys():
-			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
-
-		self.conn = self.mainDB.conn
-		self.curs = self.mainDB.curs
-		self.dbname = self.mainDB.dbname
-
-		self.lastFetched = None
-		self.catsHier = None
-
-	def literal_eval(self, string):
-		try:
-			if "[" in string and "]" in string:
-				return ast.literal_eval(string.strip())
-			elif "," in string:
-				return ast.literal_eval("[%s]"%string.strip())
-			else:
-				return string.strip()
-		except SyntaxError:
-			pBLogger.warning("Error in literal_eval with string '%s'"%string)
-			return None
-
-	def closeDB(self):
-		"""
-		Close the database (using physbiblioDB.close)
-		"""
-		self.mainDB.closeDB()
-
-	def commit(self):
-		"""
-		Commit the changes (using physbiblioDB.commit)
-		"""
-		self.mainDB.commit()
-
-	def connExec(self,query,data=None):
-		"""
-		Execute connection (see physbiblioDB.connExec)
-		"""
-		return self.mainDB.connExec(query, data = data)
-
-	def cursExec(self, query, data = None):
-		"""
-		Execute cursor (see physbiblioDB.cursExec)
-		"""
-		return self.mainDB.cursExec(query, data = data)
-
-	def cursor(self):
-		"""
-		Return the cursor
-		"""
-		return self.mainDB.cursor()
 
 class categories(physbiblioDBSub):
 	"""
