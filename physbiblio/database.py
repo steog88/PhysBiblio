@@ -2525,7 +2525,7 @@ class entries(physbiblioDBSub):
 				if number is not None:
 					requireAll = True
 				else:
-					pBLogger.warning("Possible mismatch. Specify the number of element to select with 'number'\n%s"%e, priority = 0)
+					pBLogger.warning("Possible mismatch. Specify the number of element to select with 'number'\n%s"%e)
 					return False
 			kwargs = {}
 			if requireAll:
