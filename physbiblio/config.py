@@ -9,7 +9,7 @@ import glob
 from appdirs import AppDirs
 
 try:
-	from physbiblio.databaseCore import physbiblioDBCore
+	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
 	from physbiblio.tablesDef import profilesSettingsTable
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
@@ -140,17 +140,19 @@ class profilesDB(physbiblioDBCore):
 			name = "default",
 			description = "",
 			databasefile = None,
+			oldCfg = "",
 			isDefault = 0,
 			order = 0):
 		"""Create a new profile"""
 		if databasefile is None:
 			databasefile = os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))
-		command = "INSERT into profiles (name, description, databasefile, isDefault, ord) " + \
-			'values (:name, :description, :databasefile, :isDefault, :ord)'
+		command = "INSERT into profiles (name, description, databasefile, oldCfg, isDefault, ord) " + \
+			'values (:name, :description, :databasefile, :oldCfg, :isDefault, :ord)'
 		data = {
 			"name": name,
 			"description": description,
 			"databasefile": databasefile,
+			"oldCfg": oldCfg,
 			"isDefault": isDefault,
 			"ord": order}
 		self.logger.info("%s\n%s"%(command, data))
@@ -187,21 +189,22 @@ class profilesDB(physbiblioDBCore):
 		self.commit()
 		return True
 
-	def deleteProfile(self, name, databasename):
+	def deleteProfile(self, name):
 		"""Delete a profile given the name and databasefile"""
-		if field == "" or databasename == "":
-			self.logger.error("You must provide both the name and the databasename!")
+		if name.strip() == "":
+			self.logger.error("You must provide the profile name!")
 			return False
-		command = "delete from profiles where name = :name and databasename = :dbname "
-		data = {
-			"name": name,
-			"dbname": databasename,
-			}
-		if not self.connExec(command, data):
+		command = "delete from profiles where name = :name\n"
+		if not self.connExec(command, {"name": name}):
 			self.logger.error("Cannot delete profile")
 			return False
 		self.commit()
 		return True
+
+	def getProfiles(self):
+		"""Get all the profiles"""
+		self.cursExec("SELECT * FROM profiles order by ord ASC, name DESC\n")
+		return self.curs.fetchall()
 
 	def getProfile(self, name = "", filename = ""):
 		"""Get a profile given its name or the name of the database file"""
@@ -252,7 +255,7 @@ class profilesDB(physbiblioDBCore):
 			self.createProfile()
 			self.setDefaultProfile("default")
 		self.cursExec("SELECT * FROM profiles WHERE isDefault = 1\n")
-		return [e["name"] for e in self.curs.fetchall()]
+		return [e["name"] for e in self.curs.fetchall()][0]
 
 	def setDefaultProfile(self, name = None):
 		"""
@@ -273,6 +276,88 @@ class profilesDB(physbiblioDBCore):
 		else:
 			self.logger.warning("No profiles with the given name!")
 			return False
+
+class configurationDB(physbiblioDBSub):
+	"""
+	Subclass that manages the functions for the categories.
+	"""
+	def count(self):
+		"""obtain the number of categories in the table"""
+		self.cursExec("SELECT Count(*) FROM settings")
+		return self.curs.fetchall()[0][0]
+
+	def insert(self, name, value):
+		"""
+		Insert a new setting
+
+		Parameters:
+			name: the config name
+			value: the content of the setting
+
+		Output:
+			False if another category with the same name and parent is present, the output of self.connExec otherwise
+		"""
+		self.cursExec("select * from settings where name=?\n", ("name",))
+		if len(self.curs.fetchall()) > 0:
+			pBLogger.info("An entry with the same name is already present. Updating it")
+			return self.update(name, value)
+		else:
+			return self.connExec("INSERT into settings (name, value) values (:name, :value)\n",
+				{"name": name, "value": value})
+
+	def update(self, name, value):
+		"""
+		Update an existing setting
+
+		Parameters:
+			name: the config name
+			value: the content of the setting
+
+		Output:
+			the output of self.connExec
+		"""
+		self.cursExec("select * from settings where name=?\n", ("name",))
+		if len(self.curs.fetchall()) == 0:
+			pBLogger.info("No settings found with this name. Inserting it")
+			return self.insert(name, value)
+		else:
+			return self.connExec("update settings set value = :value where name = :name\n",
+				{"name": name, "value": value})
+
+	def delete(self, name):
+		"""
+		Delete a setting.
+
+		Parameters:
+			name: the setting name
+
+		Output:
+			the output of cursExec
+		"""
+		return self.cursExec("delete from setting where name=?\n", (name, ))
+
+	def getAll(self):
+		"""
+		Get all the settings
+
+		Output:
+			the list of `sqlite3.Row` objects with all the settings in the database
+		"""
+		self.cursExec("select * from settings\n")
+		return self.curs.fetchall()
+
+	def getByName(self, name):
+		"""
+		Get a setting given its name
+
+		Parameters:
+			name: the name of the setting
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching settings
+		"""
+		self.cursExec("select * from settings where name=?\n", (name, ))
+		return self.curs.fetchall()
 
 class ConfigVars():
 	"""
@@ -298,12 +383,6 @@ class ConfigVars():
 		if not os.path.exists(self.dataPath):
 			os.makedirs(self.dataPath)
 
-		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
-		self.configProfilesDbFile = os.path.join(self.configPath, "profiles.db")
-		self.configProfilesDb = profilesDB(self.configProfilesDbFile, self.logger, self.dataPath)
-
-		self.checkOldProfiles()
-
 		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.specialTypes = config_special
@@ -317,13 +396,21 @@ class ConfigVars():
 			self.params[k] = v
 		self.descriptions = config_descriptions
 
+		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
+		self.profilesDbFile = os.path.join(self.configPath, "profiles.db")
+		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath)
+
+		self.checkOldProfiles()
+
 		try:
-			self.defProf, self.profiles, self.profileOrder = self.readProfiles()
+			if os.path.isfile(self.configProfilesFile):
+				self.defProf, self.profiles, self.profileOrder = self.readProfiles()
+			else:
+				self.defProf, self.profiles, self.profileOrder = self.setProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
-			self.createDefaultProfile()
+			self.profilesDb.createProfile()
 
-		self.verifyProfiles()
 		for k, prof in self.profiles.items():
 			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
 
@@ -345,55 +432,31 @@ class ConfigVars():
 		Check if there is a profiles.dat file in the 'data/' subfolder.
 		If yes, move it to the new self.configPath.
 		"""
-		if os.path.isfile(os.path.join("data", "profiles.dat")):
+		if os.path.isfile(self.configProfilesFile):
 			self.logger.info("Moving info from profiles.dat into the profiles.db")
-			self.logger.critical("NYI")
+			for k in self.profilesDb.getProfileOrder():
+				self.profilesDb.deleteProfile(k)
+			defProf, profiles, profileOrder = self.readProfiles()
+			for k in profiles.keys():
+				self.reInit(k, profiles[k])
+				tempDb = physbiblioDBCore(self.params["mainDatabaseName"], self.logger)
+				configDb = configurationDB(tempDb)
 
-	def verifyProfiles(self):
-		"""
-		Sync the list of profiles with the config folder content
-		"""
-		changed = False
-		files = [ p["f"].split(os.sep)[-1] for p in self.profiles.values()]
-		keys = list(self.profiles.keys())
-		for p in keys:
-			if not os.path.exists(os.path.join(self.configPath, self.profiles[p]["f"])):
-				self.logger.warning("The profile configuration file %s does not exist. Removing profile."%os.path.join(self.configPath, self.profiles[p]["f"]))
-				del self.profiles[p]
-				changed = True
-		for f in glob.iglob(self.configPath + os.sep + "*.cfg"):
-			s = f.split(os.sep)[-1]
-			if s not in files:
-				self.logger.warning("New profile configuration file %s found. Adding profile."%f)
-				new = s.replace(".cfg", "")
-				self.profiles[new] = {"f": f, "d":""}
-				changed = True
-		if len(self.profiles) == 0:
-			self.createDefaultProfile()
-			changed = True
-		if self.defProf not in self.profiles.keys():
-			self.logger.warning("Bad default profile name. Using another existing one.")
-			self.defProf = list(self.profiles.keys())[0]
-		if self.profileOrder == []:
-			self.logger.warning("Empty profile order. Using alphabetic order.")
-			self.profileOrder = sorted(self.profiles.keys())
-			changed = True
-		if changed:
-			self.logger.warning("The list of profiles has been updated to match the content of the config folder.")
-			self.writeProfiles()
-
-	def createDefaultProfile(self):
-		"""
-		Create the default profile
-		"""
-		command = "INSERT into profiles (name, description, databasefile, isDefault, ord) " + \
-			'values ("default", "", "%s", 1, 0)'%(
-				os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))
-		self.logger.info(command+"\n")
-		if not self.configProfilesDb.connExec(command):
-			self.logger.exception("Cannot insert default profile")
-			sys.exit(1)
-		self.configProfilesDb.commit()
+				self.profilesDb.createProfile(
+					name = k,
+					description = profiles[k]["d"],
+					databasefile = self.params["mainDatabaseName"],
+					oldCfg = profiles[k]["f"],
+					isDefault = k == defProf,
+					order = profileOrder.index(k))
+				for k in self.paramOrder:
+					if self.params[k] != config_defaults[k]:
+						configDb.insert(k, str(self.params[k]))
+				tempDb.commit()
+				print(configDb.getAll())
+				tempDb.closeDB()
+			self.logger.info([dict(e) for e in self.profilesDb.getProfiles()])
+			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
 
 	def readProfiles(self):
 		"""
@@ -406,6 +469,21 @@ class ConfigVars():
 		if len(parsed) < 3:
 			parsed = parsed + tuple(sorted(parsed[1].keys()))
 		return parsed
+
+	def setProfiles(self):
+		"""
+		Reads the list of profiles and the related parameters in the profiles file.
+		"""
+		allProf = self.profilesDb.getProfiles()
+		profiles = {}
+		for e in allProf:
+			profiles[e["name"]] = {
+				"n": e["name"],
+				"d": e["description"],
+				"f": e["oldCfg"],
+				"db": e["databasefile"],
+			}
+		return self.profilesDb.getDefaultProfile(), profiles, self.profilesDb.getProfileOrder()
 
 	def renameProfile(self, name, fileName):
 		"""
@@ -463,6 +541,7 @@ class ConfigVars():
 			newProfile (dict): the profile file dictionary
 		"""
 		self.defProf = newShort
+		self.params = {}
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.defaultProfile = newProfile
@@ -477,6 +556,8 @@ class ConfigVars():
 		Parses the various parameters given their declared type.
 		"""
 		for k, v in config_defaults.items():
+			if type(v) is str and "PBDATA" in v:
+				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
 		try:
 			with open(self.configMainFile) as r:
@@ -498,6 +579,8 @@ class ConfigVars():
 					elif config_special[k] == 'list':
 						self.params[k] = ast.literal_eval(v.strip())
 					else:
+						if type(v) is str and "PBDATA" in v:
+							v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 						self.params[k] = v
 				except Exception:
 					self.logger.warning("Failed in reading parameter", exc_info = True)
