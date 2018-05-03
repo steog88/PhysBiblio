@@ -4,8 +4,7 @@ Static definitions of the structure (column names and content) for the tables of
 This file is part of the physbiblio package.
 """
 profilesSettingsTable = [
-	["id", 			"integer", "primary key"],
-	["name", 		"text", "not null"],
+	["name", 		"text", "primary key not null"],
 	["description", "text", ""],
 	["databasefile","int", "default 0"],
 	["isDefault", 	"int", "default 0"],

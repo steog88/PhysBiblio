@@ -99,7 +99,179 @@ for p in configuration_params:
 	config_defaults[p["name"]] = p["default"]
 	config_descriptions[p["name"]] = p["description"]
 	config_special[p["name"]] = p["special"]
+
+class profilesDB(physbiblioDBCore):
+	"""Class that manages the operations on the profiles in the DB"""
+	def __init__(self, dbname, logger, datapath):
+		"""Class constructor"""
+		self.dataPath = datapath
+		noProfileDb = not os.path.exists(dbname)
+		physbiblioDBCore.__init__(self, dbname, logger, noOpen = True)
+		self.openDB()
+
+		if noProfileDb:
+			self.createTable()
+
+		if self.countProfiles() == 0:
+			self.createProfile()
+			self.setDefaultProfile("default")
+
+	def createTable(self):
+		"""
+		Create the profiles table
+		"""
+		command="CREATE TABLE profiles (\n"
+		for el in profilesSettingsTable:
+			command += " ".join(el) + ",\n"
+		command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
+		self.logger.info(command+"\n")
+		if not self.connExec(command):
+			self.logger.critical("Create profiles failed")
+			sys.exit(1)
+		self.commit()
+
+	def countProfiles(self):
+		"""Obtain the number of profiles in the table"""
+		self.cursExec("SELECT Count(*) FROM profiles")
+		return self.curs.fetchall()[0][0]
+
+	def createProfile(self,
+			name = "default",
+			description = "",
+			databasefile = None,
+			isDefault = 0,
+			order = 0):
+		"""Create a new profile"""
+		if databasefile is None:
+			databasefile = os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))
+		command = "INSERT into profiles (name, description, databasefile, isDefault, ord) " + \
+			'values (:name, :description, :databasefile, :isDefault, :ord)'
+		data = {
+			"name": name,
+			"description": description,
+			"databasefile": databasefile,
+			"isDefault": isDefault,
+			"ord": order}
+		self.logger.info("%s\n%s"%(command, data))
+		if not self.connExec(command, data):
+			self.logger.exception("Cannot insert profile")
+			sys.exit(1)
+		self.commit()
+
+	def updateProfileField(self, name, field, value, identifier = "name"):
+		"""
+		Update a field of an existing profile
+
+		Parameters:
 		
+		Output:
+			True if successful, False otherwise
+		"""
+		if (field == "databasefile" and identifier != "name") or \
+				(field == "name" and identifier != "databasefile") or \
+				field not in [e[0] for e in profilesSettingsTable]:
+			self.logger.error("Invalid field or identifier: %s, %s"%(field, identifier))
+			return False
+		command = "update profiles set %s = :val "%field + \
+			' where %s = :iden\n'%identifier
+		data = {
+			"val": value,
+			"iden": name,
+			}
+		self.logger.debug("%s\n%s"%(command, data))
+		if not self.connExec(command, data):
+			self.logger.error("Cannot insert profile")
+			return False
+		self.commit()
+		return True
+
+	def deleteProfile(self, name, database):
+		"""Update a field of an existing profile"""
+		if (field == "databasefile" and identifier != "name") or \
+				(field == "name" and identifier != "databasefile") or \
+				field not in [e[0] for e in profilesSettingsTable]:
+			self.logger.error("Invalid field or identifier: %s, %s"%(field, identifier))
+			return False
+		command = "update profiles set %s = :val "%field + \
+			' where %s = :iden\n'%identifier
+		data = {
+			"val": value,
+			"iden": name,
+			}
+		self.logger.debug("%s\n%s"%(command, data))
+		if not self.connExec(command, data):
+			self.logger.error("Cannot insert profile")
+			return False
+		self.commit()
+		return True
+
+	def getProfile(self, name = "", filename = ""):
+		"""Get a profile given its name or the name of the database file"""
+		if name.strip() == "" and filename.strip() == "":
+			self.logger.warning("You should specify the name or the filename associated with the profile")
+			return []
+		if name.strip() != "" and filename.strip() != "":
+			self.logger.warning("You should specify only the name or only the filename associated with the profile")
+			return []
+		self.cursExec("SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
+			{"name": name, "file": filename})
+		return self.curs.fetchall()[0]
+
+	def getProfileOrder(self):
+		"""Obtain the order of profiles"""
+		if self.countProfiles() == 0:
+			self.createProfile()
+			self.setDefaultProfile("default")
+		self.cursExec("SELECT * FROM profiles order by ord ASC, name ASC\n")
+		return [e["name"] for e in self.curs.fetchall()]
+
+	def setProfileOrder(self, order = []):
+		"""
+		Set the new order of profiles
+
+		Parameters:
+			order: the ordered list of profile names
+		"""
+		if order is []:
+			self.logger.warning("No order given!")
+			return
+		if sorted(order) != sorted([e["name"] for e in self.curs.fetchall()]):
+			self.logger.warning("List of profile names does not match existing profiles!")
+			return
+		for ix, profName in enumerate(order):
+			self.cursExec("update profiles set ord=:ord where name=:name\n", {"name": profName, "ord": ix})
+		self.commit()
+
+	def getDefaultProfile(self):
+		"""
+		Obtain the name of the default profile
+		"""
+		if self.countProfiles() == 0:
+			self.createProfile()
+			self.setDefaultProfile("default")
+		self.cursExec("SELECT * FROM profiles WHERE isDefault = 1\n")
+		return [e["name"] for e in self.curs.fetchall()]
+
+	def setDefaultProfile(self, name = None):
+		"""
+		Set the new default profile
+
+		Parameters:
+			name: the profile name
+		"""
+		if name is None or name.strip() == "":
+			self.logger.warning("No name given!")
+			return False
+		self.cursExec("SELECT * FROM profiles WHERE name = :name\n", {"name": name})
+		if len(self.curs.fetchall()) == 1:
+			if self.cursExec("update profiles set isDefault=0 where 1\n") and \
+					self.cursExec("update profiles set isDefault=1 where name = :name\n", {"name": name}):
+				self.commit()
+				return True
+		else:
+			self.logger.warning("No profiles with the given name!")
+			return False
+
 class ConfigVars():
 	"""
 	Contains all the common settings and the settings stored in the .cfg file.
@@ -126,27 +298,7 @@ class ConfigVars():
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
 		self.configProfilesDbFile = os.path.join(self.configPath, "profiles.db")
-		noProfileDb = not os.path.exists(self.configProfilesDbFile)
-		self.configProfilesDb = physbiblioDBCore(self.configProfilesDbFile, self.logger, noOpen = True)
-		self.configProfilesDb.openDB()
-		if noProfileDb:
-			command="CREATE TABLE profiles (\n"
-			first=True
-			for el in profilesSettingsTable:
-				if first:
-					first=False
-				else:
-					command+=",\n"
-				command+=" ".join(el)
-			command+=");"
-			self.logger.info(command+"\n")
-			if not self.configProfilesDb.connExec(command):
-				self.logger.critical("Create profiles failed")
-				sys.exit(1)
-			self.configProfilesDb.commit()
-		self.configProfilesDb.cursExec("SELECT * FROM profiles\n")
-		if len(self.configProfilesDb.curs.fetchall()) == 0:
-			self.createDefaultProfile()
+		self.configProfilesDb = profilesDB(self.configProfilesDbFile, self.logger, self.dataPath)
 
 		self.checkOldProfiles()
 
@@ -193,7 +345,7 @@ class ConfigVars():
 		"""
 		if os.path.isfile(os.path.join("data", "profiles.dat")):
 			self.logger.info("Moving info from profiles.dat into the profiles.db")
-			os.rename(os.path.join("data", "profiles.dat"), self.configProfilesFile)
+			self.logger.critical("NYI")
 
 	def verifyProfiles(self):
 		"""
