@@ -129,6 +129,7 @@ class profilesDB(physbiblioDBCore):
 			self.logger.critical("Create profiles failed")
 			sys.exit(1)
 		self.commit()
+		return True
 
 	def countProfiles(self):
 		"""Obtain the number of profiles in the table"""
@@ -157,6 +158,7 @@ class profilesDB(physbiblioDBCore):
 			self.logger.exception("Cannot insert profile")
 			sys.exit(1)
 		self.commit()
+		return True
 
 	def updateProfileField(self, name, field, value, identifier = "name"):
 		"""
@@ -185,22 +187,18 @@ class profilesDB(physbiblioDBCore):
 		self.commit()
 		return True
 
-	def deleteProfile(self, name, database):
-		"""Update a field of an existing profile"""
-		if (field == "databasefile" and identifier != "name") or \
-				(field == "name" and identifier != "databasefile") or \
-				field not in [e[0] for e in profilesSettingsTable]:
-			self.logger.error("Invalid field or identifier: %s, %s"%(field, identifier))
+	def deleteProfile(self, name, databasename):
+		"""Delete a profile given the name and databasefile"""
+		if field == "" or databasename == "":
+			self.logger.error("You must provide both the name and the databasename!")
 			return False
-		command = "update profiles set %s = :val "%field + \
-			' where %s = :iden\n'%identifier
+		command = "delete from profiles where name = :name and databasename = :dbname "
 		data = {
-			"val": value,
-			"iden": name,
+			"name": name,
+			"dbname": databasename,
 			}
-		self.logger.debug("%s\n%s"%(command, data))
 		if not self.connExec(command, data):
-			self.logger.error("Cannot insert profile")
+			self.logger.error("Cannot delete profile")
 			return False
 		self.commit()
 		return True
@@ -234,13 +232,17 @@ class profilesDB(physbiblioDBCore):
 		"""
 		if order is []:
 			self.logger.warning("No order given!")
-			return
+			return False
 		if sorted(order) != sorted([e["name"] for e in self.curs.fetchall()]):
 			self.logger.warning("List of profile names does not match existing profiles!")
-			return
+			return False
+		failed = False
 		for ix, profName in enumerate(order):
-			self.cursExec("update profiles set ord=:ord where name=:name\n", {"name": profName, "ord": ix})
-		self.commit()
+			if not self.cursExec("update profiles set ord=:ord where name=:name\n", {"name": profName, "ord": ix}):
+				failed = True
+		if not failed:
+			self.commit()
+		return failed
 
 	def getDefaultProfile(self):
 		"""
