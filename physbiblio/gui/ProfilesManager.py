@@ -32,7 +32,7 @@ def editProf(parent, statusBarObject):
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
 					pbConfig.profilesDb.deleteProfile(name)
 			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
-				pbConfig.profilesDb.updateProfileField(fileName, "name", name, identifier = "databasefile")
+				pbConfig.profilesDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifier = "databasefile")
 				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
@@ -129,7 +129,13 @@ class editProfile(editObjectWindow):
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
-	def addButtons(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, defaultProfile = pbConfig.defaultProfileName):
+	def addButtons(self, profilesData = None, profileOrder = None, defaultProfile = None):
+		if profilesData is None:
+			profilesData = pbConfig.profiles
+		if profileOrder is None:
+			profileOrder = pbConfig.profileOrder
+		if defaultProfile is None:
+			defaultProfile = pbConfig.defaultProfileName
 		self.def_group = QButtonGroup(self.currGrid)
 		self.elements = []
 		self.arrows = []
@@ -167,7 +173,14 @@ class editProfile(editObjectWindow):
 				j += 1
 			self.elements.append(tempEl)
 
-	def createForm(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, newLine = {"r": False, "n": "", "db": "", "d": ""}):
+	def createForm(self, profilesData = None, profileOrder = None, defaultProfile = None, newLine = {"r": False, "n": "", "db": "", "d": ""}):
+		if profilesData is None:
+			profilesData = pbConfig.profiles
+		if profileOrder is None:
+			profileOrder = pbConfig.profileOrder
+		if defaultProfile is None:
+			defaultProfile = pbConfig.defaultProfileName
+
 		self.setWindowTitle('Edit profile')
 
 		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
