@@ -404,7 +404,7 @@ class MainWindow(QMainWindow):
 		if pbConfig.needFirstConfiguration:
 			infoMessage("Missing configuration file.\nYou should verify the configuration now.")
 			self.config()
-			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+			pBDB.reOpenDB(pbConfig.currentDatabase)
 			self.reloadMainContent()
 
 	def undoDB(self):
@@ -435,6 +435,7 @@ class MainWindow(QMainWindow):
 		cfgWin = configWindow(self)
 		cfgWin.exec_()
 		if cfgWin.result:
+			changed = False
 			for q in cfgWin.textValues:
 				if isinstance(q[1], MyComboBox):
 					s = "%s"%q[1].currentText()
@@ -444,12 +445,15 @@ class MainWindow(QMainWindow):
 					s = s.split(" - ")[0]
 				if pbConfig.params[q[0]] != s:
 					pbConfig.params[q[0]] = s
+					pBDB.config.update(q[0], s)
+					changed = True
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
-			# pbConfig.saveConfigFile()
-			# pbConfig.readConfigFile()
-			self.reloadConfig()
-			self.refreshMainContent()
-			self.StatusBarMessage("Configuration saved")
+			if changed:
+				pBDB.commit()
+				pbConfig.readConfig()
+				self.reloadConfig()
+				self.refreshMainContent()
+				self.StatusBarMessage("Configuration saved")
 		else:
 			self.StatusBarMessage("Changes discarded")
 

@@ -111,7 +111,7 @@ class newProfileAction(argparse.Action):
 			if pbConfig.needFirstConfiguration:
 				infoMessage("Missing configuration file.\nYou should verify the configuration now.")
 				self.parent.config()
-			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+			pBDB.reOpenDB(pbConfig.currentDatabase)
 		setattr(namespace, self.dest, values)
 
 def setParser():

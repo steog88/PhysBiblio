@@ -22,7 +22,7 @@ class physbiblioDBCore():
 	Contains most of the basic functions on the database.
 	Will be subclassed to do everything else.
 	"""
-	def __init__(self, dbname, logger, noOpen = False):
+	def __init__(self, dbname, logger, noOpen = False, info = True):
 		"""
 		Initialize database class (column names, descriptions) and opens the database.
 
@@ -45,10 +45,10 @@ class physbiblioDBCore():
 		db_is_new = not os.path.exists(self.dbname)
 
 		if not noOpen:
-			self.openDB()
+			self.openDB(info = info)
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
-				self.logger.info("-------New database. Creating tables!\n\n")
+				self.logger.info("-------New database or missing tables. Creating them!\n\n")
 				self.createTables()
 
 		self.lastFetched = None
@@ -56,14 +56,17 @@ class physbiblioDBCore():
 
 		self.loadSubClasses()
 
-	def openDB(self):
+	def openDB(self, info = True):
 		"""
 		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
 
 		Output:
 			True if successfull
 		"""
-		self.logger.info("Opening database: %s"%self.dbname)
+		if info:
+			self.logger.info("Opening database: %s"%self.dbname)
+		else:
+			self.logger.debug("Opening database: %s"%self.dbname)
 		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
 		self.conn.row_factory = sqlite3.Row
 		self.curs = self.conn.cursor()
@@ -73,11 +76,14 @@ class physbiblioDBCore():
 	def reOpenDB(self):
 		pass
 
-	def closeDB(self):
+	def closeDB(self, info = True):
 		"""
 		Close the database.
 		"""
-		self.logger.info("Closing database...")
+		if info:
+			self.logger.info("Closing database...")
+		else:
+			self.logger.debug("Closing database...")
 		self.conn.close()
 		return True
 

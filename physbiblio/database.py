@@ -14,7 +14,7 @@ import dictdiffer
 
 try:
 	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
-	from physbiblio.config import pbConfig
+	from physbiblio.config import pbConfig, configurationDB
 	from physbiblio.bibtexwriter import pbWriter
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import physBiblioWeb
@@ -84,6 +84,7 @@ class physbiblioDB(physbiblioDBCore):
 			del self.catBib
 			del self.catExp
 			del self.utils
+			del self.config
 		except:
 			pass
 		self.utils = utilities(self)
@@ -93,6 +94,7 @@ class physbiblioDB(physbiblioDBCore):
 		self.bibExp = entryExps(self)
 		self.catBib = catsEntries(self)
 		self.catExp = catsExps(self)
+		self.config = configurationDB(self)
 		return True
 
 class categories(physbiblioDBSub):
@@ -2952,4 +2954,4 @@ def dbStats(db):
 	db.stats["catExp"] = db.catExp.count()
 	db.stats["bibExp"] = db.bibExp.count()
 
-pBDB = physbiblioDB(pbConfig.params['mainDatabaseName'], pBLogger)
+pBDB = physbiblioDB(pbConfig.currentDatabase, pBLogger)

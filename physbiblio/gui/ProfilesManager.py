@@ -84,7 +84,7 @@ class selectProfiles(QDialog):
 			if pbConfig.needFirstConfiguration:
 				infoMessage("Missing configuration file.\nYou should verify the configuration now.")
 				self.parent.config()
-			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+			pBDB.reOpenDB(pbConfig.currentDatabase)
 
 		self.parent.reloadConfig()
 		self.parent.reloadMainContent()

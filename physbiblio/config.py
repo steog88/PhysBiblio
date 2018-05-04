@@ -102,12 +102,12 @@ for p in configuration_params:
 
 class profilesDB(physbiblioDBCore):
 	"""Class that manages the operations on the profiles in the DB"""
-	def __init__(self, dbname, logger, datapath):
+	def __init__(self, dbname, logger, datapath, info = True):
 		"""Class constructor"""
 		self.dataPath = datapath
 		noProfileDb = not os.path.exists(dbname)
 		physbiblioDBCore.__init__(self, dbname, logger, noOpen = True)
-		self.openDB()
+		self.openDB(info = info)
 
 		if noProfileDb:
 			self.createTable()
@@ -398,7 +398,7 @@ class ConfigVars():
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
 		self.profilesDbFile = os.path.join(self.configPath, "profiles.db")
-		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath)
+		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath, info = False)
 
 		self.checkOldProfiles()
 
@@ -409,9 +409,11 @@ class ConfigVars():
 			self.profilesDb.createProfile()
 
 		self.defaultProfile = self.profiles[self.defProf]
-		self.logger.info("Starting with profile '%s', database: %s"%(self.defProf, self.defaultProfile["db"]))
+		self.currentDatabase = self.defaultProfile["db"]
+		self.logger.info("Starting with profile '%s', database: %s"%(self.defProf, self.currentDatabase))
 
 		self.readConfig()
+		# self.profilesDb.closeDB(info = False)
 
 		#some urls
 		self.arxivUrl = "http://arxiv.org/"
@@ -450,8 +452,10 @@ class ConfigVars():
 				tempDb.closeDB()
 				oldfile = os.path.join(self.configPath, profiles[k]["f"])
 				os.rename(oldfile, oldfile + "_bck")
+				self.logger.info("Old '%s' renamed to '%s'."%(oldfile, oldfile + "_bck"))
 			self.logger.info([dict(e) for e in self.profilesDb.getProfiles()])
 			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
+			self.logger.info("Old '%s' renamed to '%s'."%(self.configProfilesFile, self.configProfilesFile + "_bck"))
 
 	def oldReadProfiles(self):
 		"""
@@ -491,6 +495,7 @@ class ConfigVars():
 		"""
 		self.defProf = newShort
 		self.defaultProfile = newProfile
+		self.currentDatabase = newProfile["db"]
 		self.params = {}
 		for k, v in config_defaults.items():
 			self.params[k] = v
@@ -507,7 +512,7 @@ class ConfigVars():
 			if type(v) is str and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
-		tempDb = physbiblioDBCore(self.defaultProfile["db"], self.logger)
+		tempDb = physbiblioDBCore(self.currentDatabase, self.logger, info = False)
 		configDb = configurationDB(tempDb)
 		try:
 			for k in config_defaults.keys():
@@ -538,7 +543,7 @@ class ConfigVars():
 					self.params[k] = v
 		except Exception:
 			self.logger.error("ERROR: reading config from '%s' failed."%self.defaultProfile["db"])
-		tempDb.closeDB()
+		tempDb.closeDB(info = False)
 		self.logger.debug("Configuration loaded.\n")
 
 	def oldReInit(self, newShort, newProfile):
