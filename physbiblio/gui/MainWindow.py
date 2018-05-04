@@ -389,23 +389,9 @@ class MainWindow(QMainWindow):
 
 		availableWidth		= QDesktopWidget().availableGeometry().width()
 		availableHeight		= QDesktopWidget().availableGeometry().height()
-		#splitterBottom.setMinimumHeight(0.2*availableHeight)
-		#splitterBottom.setMaximumHeight(0.4*availableHeight)
-		#splitter.setMinimumHeight(0.8*availableHeight)
-		#splitter.setMaximumHeight(0.8*availableHeight)
 		splitter.setGeometry(0, 0, availableWidth, availableHeight)
 
 		self.setCentralWidget(splitter)
-		#self.setLayout(hbox)
-		#QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-
-		#self.setWindowTitle('QtGui.QSplitter')
-		#self.show()
-		if pbConfig.needFirstConfiguration:
-			infoMessage("Missing configuration file.\nYou should verify the configuration now.")
-			self.config()
-			pBDB.reOpenDB(pbConfig.currentDatabase)
-			self.reloadMainContent()
 
 	def undoDB(self):
 		pBDB.undo()

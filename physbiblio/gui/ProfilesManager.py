@@ -81,9 +81,6 @@ class selectProfiles(QDialog):
 		if newProfile != pbConfig.defaultProfile:
 			print("[config] Changing profile...")
 			pbConfig.reInit(prof, newProfile)
-			if pbConfig.needFirstConfiguration:
-				infoMessage("Missing configuration file.\nYou should verify the configuration now.")
-				self.parent.config()
 			pBDB.reOpenDB(pbConfig.currentDatabase)
 
 		self.parent.reloadConfig()

@@ -383,7 +383,6 @@ class ConfigVars():
 		if not os.path.exists(self.dataPath):
 			os.makedirs(self.dataPath)
 
-		self.needFirstConfiguration = False
 		self.paramOrder = config_paramOrder
 		self.specialTypes = config_special
 		self.defaultsParams = config_defaults
@@ -413,7 +412,6 @@ class ConfigVars():
 		self.logger.info("Starting with profile '%s', database: %s"%(self.defProf, self.currentDatabase))
 
 		self.readConfig()
-		# self.profilesDb.closeDB(info = False)
 
 		#some urls
 		self.arxivUrl = "http://arxiv.org/"
