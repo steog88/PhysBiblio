@@ -429,9 +429,13 @@ class MainWindow(QMainWindow):
 					s = "%s"%q[1].text()
 				if q[0] == "loggingLevel":
 					s = s.split(" - ")[0]
-				if pbConfig.params[q[0]] != s:
+				if str(pbConfig.params[q[0]]) != s:
+					pBLogger.info("New value for param %s = %s (old: '%s')"%(q[0], s, pbConfig.params[q[0]]))
 					pbConfig.params[q[0]] = s
 					pBDB.config.update(q[0], s)
+					changed = True
+				if str(pbConfig.defaultsParams[q[0]]) == s:
+					pBDB.config.delete(q[0])
 					changed = True
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
 			if changed:

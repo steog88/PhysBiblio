@@ -52,7 +52,7 @@ class physbiblioDB(physbiblioDBCore):
 			db_is_new = not os.path.exists(self.dbname)
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 
@@ -62,7 +62,7 @@ class physbiblioDB(physbiblioDBCore):
 			self.closeDB()
 			self.openDB()
 			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments"]:
+			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 			self.lastFetched = None

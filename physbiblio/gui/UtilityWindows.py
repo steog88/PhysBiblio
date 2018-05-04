@@ -72,19 +72,17 @@ class configWindow(QDialog):
 
 		i = 0
 		for k in pbConfig.paramOrder:
+			if k == "mainDatabaseName":
+				continue
 			i += 1
 			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
 			grid.addWidget(QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)), i-1, 0, 1, 2)
-			#grid.addWidget(QLabel("(%s)"%pbConfig.descriptions[k]), i-1, 1)
 			if k == "bibtexListColumns":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editColumns)
 			elif k == "pdfFolder":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editFolder)
-			elif k == "mainDatabaseName":
-				self.textValues.append([k, QPushButton(val)])
-				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the database file", filter = "*.db"))
 			elif k == "loggingLevel":
 				try:
 					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(val)])])

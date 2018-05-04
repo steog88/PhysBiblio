@@ -21,41 +21,32 @@ def editProf(parent, statusBarObject):
 	data = {}
 	if newProfWin.result:
 		newProfiles = {}
-		pbConfig.profileOrder = [e["n"].text() for e in newProfWin.elements if e["n"].text() != ""]
 		for currEl in newProfWin.elements:
 			name = currEl["n"].text()
 			fileName = currEl["f"].text()
 			if currEl["r"].isChecked() and name != "":
-				pbConfig.defProf = name
+				pbConfig.profilesDb.setDefaultProfile(name)
 			if name in pbConfig.profiles.keys():
-				pbConfig.profiles[name]["d"] = currEl["d"].text()
+				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
-					del pbConfig.profiles[name]
-					try:
-						os.remove(os.path.join(pbConfig.configPath, currEl["f"].text()))
-					except OSError:
-						pBGUILogger.warning("Impossible to cancel the profile file %s."%currEl["f"])
-			elif fileName in [pbConfig.profiles[k]["f"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
-				pbConfig.renameProfile(name, fileName)
-				pbConfig.profiles[name]["d"] = currEl["d"].text()
+					pbConfig.profilesDb.deleteProfile(name)
+			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
+				pbConfig.profilesDb.updateProfileField(fileName, "name", name, identifier = "databasefile")
+				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
-					del pbConfig.profiles[name]
-					try:
-						os.remove(os.path.join(pbConfig.configPath, fileName))
-					except OSError:
-						pBGUILogger.warning("Impossible to cancel the profile file %s."%fileName)
+					pbConfig.profilesDb.deleteProfile(name)
 			else:
 				if name.strip() != "":
-					pbConfig.profiles[name] = {}
-					pbConfig.profiles[name]["d"] = currEl["d"].text()
-					fname = currEl["f"].text().split(os.sep)[-1] + ".cfg"
-					fname = fname.replace(".cfg.cfg", ".cfg")
-					pbConfig.profiles[name]["f"] = fname
-					open(os.path.join(pbConfig.configPath, fname), "a").close()
-					pBGUILogger.info("New profile created.\nYou should configure it properly before use!\n(switch to it and open the configuration)")
-		pbConfig.writeProfiles()
+					pbConfig.profilesDb.createProfile(
+						name = name,
+						description = currEl["d"].text(),
+						databasefile = (currEl["f"].text().split(os.sep)[-1] + ".db").replace(".db.db", ".db"),
+						)
+					pBGUILogger.info("New profile created.")
+		pbConfig.profilesDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != ""])
+		pbConfig.loadProfiles()
 	else:
 		pbConfig.profileOrder = oldOrder
 		message = "No modifications"
@@ -78,7 +69,7 @@ class selectProfiles(QDialog):
 	def onLoad(self):
 		prof, desc = self.combo.currentText().split(" -- ")
 		newProfile = pbConfig.profiles[prof]
-		if newProfile != pbConfig.defaultProfile:
+		if newProfile != pbConfig.defaultProfileName:
 			print("[config] Changing profile...")
 			pbConfig.reInit(prof, newProfile)
 			pBDB.reOpenDB(pbConfig.currentDatabase)
@@ -100,8 +91,8 @@ class selectProfiles(QDialog):
 
 		grid.addWidget(QLabel("Available profiles: "), i, 0)
 		self.combo = MyComboBox(self,
-			["%s -- %s"%(p, pbConfig.profiles[p]["d"]) for p in pbConfig.profiles.keys()],
-			current = "%s -- %s"%(pbConfig.defProf, pbConfig.defaultProfile["d"]))
+			["%s -- %s"%(p, pbConfig.profiles[p]["d"]) for p in pbConfig.profileOrder],
+			current = "%s -- %s"%(pbConfig.currentProfileName, pbConfig.currentProfile["d"]))
 		grid.addWidget(self.combo, i, 1)
 		i += 1
 
@@ -114,7 +105,6 @@ class selectProfiles(QDialog):
 		self.cancelButton.setAutoDefault(True)
 		grid.addWidget(self.cancelButton, i+1, 1)
 
-		#self.setGeometry(100,100,300, 30*i)
 		self.setLayout(grid)
 
 		qr = self.frameGeometry()
@@ -139,7 +129,7 @@ class editProfile(editObjectWindow):
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
-	def addButtons(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder):
+	def addButtons(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, defaultProfile = pbConfig.defaultProfileName):
 		self.def_group = QButtonGroup(self.currGrid)
 		self.elements = []
 		self.arrows = []
@@ -151,14 +141,14 @@ class editProfile(editObjectWindow):
 			tempEl = {}
 			tempEl["r"] = QRadioButton("")
 			self.def_group.addButton(tempEl["r"])
-			if pbConfig.defProf == k or ("r" in prof.keys() and prof["r"]):
+			if defaultProfile == k or ("r" in prof.keys() and prof["r"]):
 				tempEl["r"].setChecked(True)
 			else:
 				tempEl["r"].setChecked(False)
 			self.currGrid.addWidget(tempEl["r"], i, 0)
 
 			tempEl["n"] = QLineEdit(k)
-			tempEl["f"] = QLineEdit(prof["f"].split(os.sep)[-1])
+			tempEl["f"] = QLineEdit(prof["db"].split(os.sep)[-1])
 			tempEl["f"].setReadOnly(True)
 			tempEl["d"] = QLineEdit(prof["d"])
 			self.currGrid.addWidget(tempEl["n"], i, 1)
@@ -177,7 +167,7 @@ class editProfile(editObjectWindow):
 				j += 1
 			self.elements.append(tempEl)
 
-	def createForm(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, newLine = {"r": False, "n": "", "f": "", "d": ""}):
+	def createForm(self, profilesData = pbConfig.profiles, profileOrder = pbConfig.profileOrder, newLine = {"r": False, "n": "", "db": "", "d": ""}):
 		self.setWindowTitle('Edit profile')
 
 		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
@@ -198,7 +188,7 @@ class editProfile(editObjectWindow):
 		self.currGrid.addWidget(tempEl["r"], i, 0)
 
 		tempEl["n"] = QLineEdit(newLine["n"])
-		tempEl["f"] = QLineEdit(newLine["f"])
+		tempEl["f"] = QLineEdit(newLine["db"])
 		tempEl["d"] = QLineEdit(newLine["d"])
 		self.currGrid.addWidget(tempEl["n"], i, 1)
 		self.currGrid.addWidget(tempEl["f"], i, 2)
@@ -221,7 +211,7 @@ class editProfile(editObjectWindow):
 		currentOrder = []
 		for el in self.elements[:len(pbConfig.profiles)]:
 			tmp = {}
-			tmp["f"] = el["f"].text()
+			tmp["f"] = el["db"].text()
 			tmp["d"] = el["d"].text()
 			tmp["r"] = el["r"].isChecked()
 			tmp["x"] = el["x"].isChecked()
@@ -230,7 +220,7 @@ class editProfile(editObjectWindow):
 		newLine = {
 			"r": self.elements[-1]["r"].isChecked(),
 			"n": self.elements[-1]["n"].text(),
-			"f": self.elements[-1]["f"].text(),
+			"db": self.elements[-1]["f"].text(),
 			"d": self.elements[-1]["d"].text(),
 		}
 		tempOrder = list(currentOrder)

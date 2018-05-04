@@ -232,9 +232,7 @@ The best ways to know how to use the various sub-commands and options are
 ## 4. Data paths
 PhysBiblio now saves data, by default, in the directories specified by the `appdirs` package using `user_config_dir` and `user_data_dir`.
 
-The stored configuration includes:
-* a `profiles.dat` file, containing the information on the existing profiles;
-* a number of `.cfg` files, which contain the configuration for each profile.
+The stored configuration includes a `profiles.db` file, containing the information on the existing profiles.
 
 The stored data, which may be moved to a different folder, include:
 * a `pdf/` subfolder, with the PDF for all the papers. This is shared for all the profiles unless you set different paths in the configuration files of each profile;
