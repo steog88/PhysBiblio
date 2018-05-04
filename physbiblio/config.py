@@ -36,11 +36,11 @@ configuration_params = [
 	"special": None},
 {"name": "pdfApplication",
 	"default": '',
-	"description": 'Application for opening PDF files',
+	"description": 'Application for opening PDF files (used only via command line)',
 	"special": None},
 {"name": "webApplication",
 	"default": '',
-	"description": 'Web browser',
+	"description": 'Web browser (used only via command line)',
 	"special": None},
 {"name": "timeoutWebSearch",
 	"default": 20.,
@@ -403,22 +403,15 @@ class ConfigVars():
 		self.checkOldProfiles()
 
 		try:
-			if os.path.isfile(self.configProfilesFile):
-				self.defProf, self.profiles, self.profileOrder = self.readProfiles()
-			else:
-				self.defProf, self.profiles, self.profileOrder = self.setProfiles()
+			self.defProf, self.profiles, self.profileOrder = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
 			self.profilesDb.createProfile()
 
-		for k, prof in self.profiles.items():
-			self.profiles[k]["f"] = os.path.join(self.configPath, prof["f"])
-
 		self.defaultProfile = self.profiles[self.defProf]
-		self.logger.info("starting with configuration in '%s'"%self.defaultProfile["f"])
-		self.configMainFile = self.defaultProfile["f"]
-		
-		self.readConfigFile()
+		self.logger.info("Starting with profile '%s', database: %s"%(self.defProf, self.defaultProfile["db"]))
+
+		self.readConfig()
 
 		#some urls
 		self.arxivUrl = "http://arxiv.org/"
@@ -436,9 +429,9 @@ class ConfigVars():
 			self.logger.info("Moving info from profiles.dat into the profiles.db")
 			for k in self.profilesDb.getProfileOrder():
 				self.profilesDb.deleteProfile(k)
-			defProf, profiles, profileOrder = self.readProfiles()
+			defProf, profiles, profileOrder = self.oldReadProfiles()
 			for k in profiles.keys():
-				self.reInit(k, profiles[k])
+				self.oldReInit(k, profiles[k])
 				tempDb = physbiblioDBCore(self.params["mainDatabaseName"], self.logger)
 				configDb = configurationDB(tempDb)
 
@@ -449,16 +442,18 @@ class ConfigVars():
 					oldCfg = profiles[k]["f"],
 					isDefault = k == defProf,
 					order = profileOrder.index(k))
-				for k in self.paramOrder:
-					if self.params[k] != config_defaults[k]:
-						configDb.insert(k, str(self.params[k]))
+				for p in self.paramOrder:
+					if self.params[p] != config_defaults[p]:
+						configDb.insert(p, str(self.params[p]))
 				tempDb.commit()
 				print(configDb.getAll())
 				tempDb.closeDB()
+				oldfile = os.path.join(self.configPath, profiles[k]["f"])
+				os.rename(oldfile, oldfile + "_bck")
 			self.logger.info([dict(e) for e in self.profilesDb.getProfiles()])
 			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
 
-	def readProfiles(self):
+	def oldReadProfiles(self):
 		"""
 		Reads the list of profiles and the related parameters in the profiles file.
 		"""
@@ -470,7 +465,7 @@ class ConfigVars():
 			parsed = parsed + tuple(sorted(parsed[1].keys()))
 		return parsed
 
-	def setProfiles(self):
+	def readProfiles(self):
 		"""
 		Reads the list of profiles and the related parameters in the profiles file.
 		"""
@@ -485,53 +480,68 @@ class ConfigVars():
 			}
 		return self.profilesDb.getDefaultProfile(), profiles, self.profilesDb.getProfileOrder()
 
-	def renameProfile(self, name, fileName):
-		"""
-		Rename a profile given the name of the config file
-
-		Parameters:
-			* name
-			* fileName
-		"""
-		oldName = None
-		for k in self.profiles.keys():
-			if self.profiles[k]["f"].split(os.sep)[-1] == fileName:
-				oldName = k
-		self.profiles[name] = dict(self.profiles[oldName])
-		del self.profiles[oldName]
-		for i, k in enumerate(self.profileOrder):
-			if k == oldName:
-				self.profileOrder[i] = name
-		self.logger.info("Profile renamed: %s -> %s"%(oldName, name))
-
-	def setProfileOrder(self, new, save = True):
-		"""
-		Update the profile order and save
-
-		Parameters:
-			* new: the ordered list of profile names
-			* save (boolean, default False): write the new settings in the profiles.dat
-		"""
-		if self.profileOrder != new:
-			self.profileOrder = new
-			self.logger.warning("The order of profiles has been updated.")
-			if save:
-				self.writeProfiles()
-
-	def writeProfiles(self):
-		"""
-		Writes the list of profiles and the related parameters in the profiles file.
-		"""
-		if not os.path.exists(self.configPath):
-			os.makedirs(self.configPath)
-		cleaned = dict(self.profiles)
-		for k in cleaned.keys():
-			cleaned[k]["f"] = cleaned[k]["f"].split(os.sep)[-1]
-		with open(self.configProfilesFile, 'w') as w:
-			w.write("'%s',\n%s,\n%s\n"%(self.defProf, cleaned, self.profileOrder))
-		self.logger.info("%s written."%self.configProfilesFile)
-
 	def reInit(self, newShort, newProfile):
+		"""
+		Used when changing profile.
+		Reloads all the configuration from scratch given the new profile name.
+
+		Parameters:
+			newShort (str): short name for the new profile to be loaded
+			newProfile (dict): the profile file dictionary
+		"""
+		self.defProf = newShort
+		self.defaultProfile = newProfile
+		self.params = {}
+		for k, v in config_defaults.items():
+			self.params[k] = v
+		self.logger.info("Restarting with profile '%s', database: %s"%(self.defProf, self.defaultProfile["db"]))
+		self.readConfig()
+
+	def readConfig(self):
+		"""
+		Read the configuration from the current database.
+		Parses the various parameters given their declared type.
+		"""
+		self.logger.debug("Reading configuration.\n")
+		for k, v in config_defaults.items():
+			if type(v) is str and "PBDATA" in v:
+				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
+			self.params[k] = v
+		tempDb = physbiblioDBCore(self.defaultProfile["db"], self.logger)
+		configDb = configurationDB(tempDb)
+		try:
+			for k in config_defaults.keys():
+				cont = configDb.getByName(k)
+				if len(cont) == 0:
+					continue
+				v = cont[0]["value"]
+				try:
+					if config_special[k] == 'float':
+						self.params[k] = float(v)
+					elif config_special[k] == 'int':
+						self.params[k] = int(v)
+					elif config_special[k] == 'boolean':
+						if v.lower() in ('true','1','yes','on'):
+							self.params[k] = True
+						elif v.lower() in ('false','0','no','off'):
+							self.params[k] = False
+						else:
+							raise ValueError
+					elif config_special[k] == 'list':
+						self.params[k] = ast.literal_eval(v.strip())
+					else:
+						if type(v) is str and "PBDATA" in v:
+							v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
+						self.params[k] = v
+				except Exception:
+					self.logger.warning("Failed in reading parameter", exc_info = True)
+					self.params[k] = v
+		except Exception:
+			self.logger.error("ERROR: reading config from '%s' failed."%self.defaultProfile["db"])
+		tempDb.closeDB()
+		self.logger.debug("Configuration loaded.\n")
+
+	def oldReInit(self, newShort, newProfile):
 		"""
 		Used when changing profile.
 		Reloads all the configuration from scratch given the new profile name.
@@ -548,9 +558,9 @@ class ConfigVars():
 		self.logger.info("Starting with configuration in '%s'"%self.defaultProfile["f"])
 		self.configMainFile = os.path.join(self.configPath, self.defaultProfile["f"])
 		self.params = {}
-		self.readConfigFile()
-		
-	def readConfigFile(self):
+		self.oldReadConfigFile()
+
+	def oldReadConfigFile(self):
 		"""
 		Read the configuration from a file, whose name is stored in self.configMainFile.
 		Parses the various parameters given their declared type.
@@ -586,25 +596,8 @@ class ConfigVars():
 					self.logger.warning("Failed in reading parameter", exc_info = True)
 					self.params[k] = v
 		except IOError:
-			self.logger.warning("ERROR: config file %s do not exist. Creating it..."%self.configMainFile)
-			self.saveConfigFile()
-			self.needFirstConfiguration = True
+			self.logger.warning("ERROR: config file %s do not exist."%self.configMainFile)
 		except Exception:
 			self.logger.error("ERROR: reading %s file failed."%self.configMainFile)
-		
-	def saveConfigFile(self):
-		"""
-		Write the current configuration in a file, whose name is stored in self.configMainFile.
-		"""
-		txt = ""
-		for k in self.paramOrder:
-			current = "%s = %s\n"%(k, self.params[k])
-			if current != "%s = %s\n"%(k, config_defaults[k]):
-				txt += current
-		try:
-			with open(self.configMainFile, "w") as w:
-				w.write(txt)
-		except IOError:
-			self.logger.error("ERROR in saving config file!")
 
 pbConfig = ConfigVars()

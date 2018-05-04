@@ -445,8 +445,8 @@ class MainWindow(QMainWindow):
 				if pbConfig.params[q[0]] != s:
 					pbConfig.params[q[0]] = s
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
-			pbConfig.saveConfigFile()
-			pbConfig.readConfigFile()
+			# pbConfig.saveConfigFile()
+			# pbConfig.readConfigFile()
 			self.reloadConfig()
 			self.refreshMainContent()
 			self.StatusBarMessage("Configuration saved")
