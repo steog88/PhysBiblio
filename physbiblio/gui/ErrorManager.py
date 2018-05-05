@@ -25,11 +25,11 @@ class ErrorStream(StringIO):
 	def write(self, text):
 		text = text.replace('\n', '<br>')
 		if self.priority == 0:
-			QMessageBox.information(None, "Warning", text)
+			QMessageBox.information(None, "Information", text)
 		elif self.priority > 1:
-			QMessageBox.critical(None, "Critical error", text)
+			QMessageBox.critical(None, "Error", text)
 		else:
-			QMessageBox.warning(None, "Error", text)
+			QMessageBox.warning(None, "Warning", text)
 		self.priority = 1
 
 class pBErrorManagerClassGui(pBErrorManagerClass):
@@ -44,6 +44,10 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 		pBErrorManagerClass.__init__(self, "physbiblioguilog")
 		self.guiStream = ErrorStream()
 		self.tempHandler(self.guiStream, level = logging.DEBUG, format = '%(message)s')
+
+	def loggerPriority(self, prio):
+		self.guiStream.priority = prio
+		return self.logger
 
 pBGUIErrorManager = pBErrorManagerClassGui()
 pBGUILogger = pBGUIErrorManager.logger

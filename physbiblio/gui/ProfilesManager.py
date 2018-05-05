@@ -2,13 +2,14 @@
 
 import sys, time
 import os
+import glob
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import *
-	from physbiblio.gui.ErrorManager import pBGUILogger
+	from physbiblio.gui.ErrorManager import pBGUIErrorManager
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 except ImportError:
@@ -21,9 +22,13 @@ def editProf(parent, statusBarObject):
 	data = {}
 	if newProfWin.result:
 		newProfiles = {}
+		deleted = []
 		for currEl in newProfWin.elements:
 			name = currEl["n"].text()
-			fileName = currEl["f"].text()
+			try:
+				fileName = currEl["f"].text()
+			except AttributeError:
+				fileName = currEl["f"].currentText()
 			if currEl["r"].isChecked() and name != "":
 				pbConfig.profilesDb.setDefaultProfile(name)
 			if name in pbConfig.profiles.keys():
@@ -31,21 +36,23 @@ def editProf(parent, statusBarObject):
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
 					pbConfig.profilesDb.deleteProfile(name)
+					deleted.append(name)
 			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
 				pbConfig.profilesDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifier = "databasefile")
 				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
 					pbConfig.profilesDb.deleteProfile(name)
+					deleted.append(name)
 			else:
 				if name.strip() != "":
 					pbConfig.profilesDb.createProfile(
 						name = name,
 						description = currEl["d"].text(),
-						databasefile = (currEl["f"].text().split(os.sep)[-1] + ".db").replace(".db.db", ".db"),
+						databasefile = os.path.join(pbConfig.dataPath, (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db")),
 						)
-					pBGUILogger.info("New profile created.")
-		pbConfig.profilesDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != ""])
+					pBGUIErrorManager.loggerPriority(0).info("New profile created.")
+		pbConfig.profilesDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != "" and e["n"].text() not in deleted])
 		pbConfig.loadProfiles()
 	else:
 		pbConfig.profileOrder = oldOrder
@@ -201,8 +208,14 @@ class editProfile(editObjectWindow):
 		self.currGrid.addWidget(tempEl["r"], i, 0)
 
 		tempEl["n"] = QLineEdit(newLine["n"])
-		tempEl["f"] = QLineEdit(newLine["db"])
 		tempEl["d"] = QLineEdit(newLine["d"])
+
+		tempEl["f"] = QComboBox(self)
+		tempEl["f"].setEditable(True)
+		dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
+		registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
+		tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+
 		self.currGrid.addWidget(tempEl["n"], i, 1)
 		self.currGrid.addWidget(tempEl["f"], i, 2)
 		self.currGrid.addWidget(tempEl["d"], i, 3)
@@ -224,7 +237,7 @@ class editProfile(editObjectWindow):
 		currentOrder = []
 		for el in self.elements[:len(pbConfig.profiles)]:
 			tmp = {}
-			tmp["f"] = el["db"].text()
+			tmp["db"] = el["f"].text()
 			tmp["d"] = el["d"].text()
 			tmp["r"] = el["r"].isChecked()
 			tmp["x"] = el["x"].isChecked()

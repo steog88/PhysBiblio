@@ -5,7 +5,6 @@ This file is part of the physbiblio package.
 """
 import sys, ast, os
 import logging
-import glob
 from appdirs import AppDirs
 
 try:
