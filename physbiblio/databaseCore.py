@@ -250,7 +250,7 @@ class physbiblioDBSub():
 			else:
 				return string.strip()
 		except SyntaxError:
-			pBLogger.warning("Error in literal_eval with string '%s'"%string)
+			self.mainDB.logger.warning("Error in literal_eval with string '%s'"%string)
 			return None
 
 	def closeDB(self):
