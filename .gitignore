@@ -1,15 +1,4 @@
 *.pyc
-*.bib
-*.pdf
 *.geany
-0*.sh
 notes.py
 *tmp*
-*.bib
-*.db
-*.cfg
-*.log
-!/tests*.log
-!/tests*.cfg
-!/tests*.db
-profiles.dat
