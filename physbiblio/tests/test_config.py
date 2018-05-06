@@ -120,6 +120,36 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName.split(os.sep)[-1], "d":""}})
 		self.assertEqual(tempPbConfig.profileOrder, ["tmp"])
 
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestConfigDB(DBTestCase):
+	"""Test creation of tables"""
+	def test_configDB(self):
+		"""Test count, insert and update, delete and get methods"""
+		self.assertEqual(self.pBDB.config.count(), 0)
+		self.assertTrue(self.pBDB.config.insert("test", "somevalue"))
+		self.assertEqual(self.pBDB.config.count(), 1)
+		self.assertTrue(self.pBDB.config.insert("test1", "somevalue"))
+		self.assertEqual(self.pBDB.config.count(), 2)
+		self.assertTrue(self.pBDB.config.insert("test", "somevalue1"))
+		self.assertEqual(self.pBDB.config.count(), 2)
+		self.assertTrue(self.pBDB.config.update("test1", "somevalueA"))
+		self.assertEqual(self.pBDB.config.count(), 2)
+		self.assertTrue(self.pBDB.config.update("test2", "somevalue"))
+		self.assertEqual(self.pBDB.config.count(), 3)
+		for n, v in [
+				["test", "somevalue1"],
+				["test1", "somevalueA"],
+				["test2", "somevalue"]]:
+			self.assertEqual(self.pBDB.config.getByName(n)[0]["value"], v)
+		self.assertEqual({e["name"]: e["value"] for e in self.pBDB.config.getAll()},
+			{"test": "somevalue1",
+			"test1": "somevalueA",
+			"test2": "somevalue"})
+		self.assertTrue(self.pBDB.config.delete("test3"))
+		self.assertEqual(self.pBDB.config.count(), 3)
+		self.assertTrue(self.pBDB.config.delete("test2"))
+		self.assertEqual(self.pBDB.config.count(), 2)
+
 def tearDownModule():
 	if os.path.exists(tempCfgName):
 		os.remove(tempCfgName)
