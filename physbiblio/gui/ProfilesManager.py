@@ -3,6 +3,7 @@
 import sys, time
 import os
 import glob
+import shutil
 from PySide.QtCore import *
 from PySide.QtGui  import *
 
@@ -46,11 +47,14 @@ def editProf(parent, statusBarObject):
 					deleted.append(name)
 			else:
 				if name.strip() != "":
+					newFileName = os.path.join(pbConfig.dataPath, (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db"))
 					pbConfig.profilesDb.createProfile(
 						name = name,
 						description = currEl["d"].text(),
-						databasefile = os.path.join(pbConfig.dataPath, (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db")),
+						databasefile = newFileName,
 						)
+					if currEl["c"].currentText() != "None":
+						shutil.copy2(os.path.join(pbConfig.dataPath, currEl["c"].currentText()), newFileName)
 					pBGUIErrorManager.loggerPriority(0).info("New profile created.")
 		pbConfig.profilesDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != "" and e["n"].text() not in deleted])
 		pbConfig.loadProfiles()
@@ -136,6 +140,20 @@ class editProfile(editObjectWindow):
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
+	def onOk(self):
+		if (self.elements[-1]["f"].currentText().strip() != "" and self.elements[-1]["n"].text().strip() == "") \
+				or (self.elements[-1]["f"].currentText().strip() == "" and self.elements[-1]["n"].text().strip() != ""):
+			pBGUIErrorManager.logger.info("Cannot create a new profile if 'name' or 'filename' is empty.")
+			return
+		if self.elements[-1]["n"].text().strip() in [a["n"].text() for a in self.elements[:-1]]:
+			pBGUIErrorManager.logger.info("Cannot create new profile: 'name' already in use.")
+			return
+		if (self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] + ".db").replace(".db.db", ".db") in [a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]]:
+			pBGUIErrorManager.logger.info("Cannot create new profile: 'filename' already in use.")
+			return
+		self.result	= True
+		self.close()
+
 	def addButtons(self, profilesData = None, profileOrder = None, defaultProfile = None):
 		if profilesData is None:
 			profilesData = pbConfig.profiles
@@ -167,17 +185,17 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["n"], i, 1)
 			self.currGrid.addWidget(tempEl["f"], i, 2)
 			self.currGrid.addWidget(tempEl["d"], i, 3)
-			tempEl["x"] = QCheckBox("", self)
-			if "x" in prof.keys() and prof["x"]:
-				tempEl["x"].setChecked(True)
-			self.currGrid.addWidget(tempEl["x"], i, 4)
 			if i > 1:
 				self.arrows.append([
 					myOrderPushButton(self, j, QPixmap(":/images/arrow-down.png").scaledToHeight(48), ""),
 					myOrderPushButton(self, j, QPixmap(":/images/arrow-up.png").scaledToHeight(48), "")])
-				self.currGrid.addWidget(self.arrows[j][0], i-1, 6)
-				self.currGrid.addWidget(self.arrows[j][1], i, 5)
+				self.currGrid.addWidget(self.arrows[j][0], i-1, 5)
+				self.currGrid.addWidget(self.arrows[j][1], i, 4)
 				j += 1
+			tempEl["x"] = QCheckBox("", self)
+			if "x" in prof.keys() and prof["x"]:
+				tempEl["x"].setChecked(True)
+			self.currGrid.addWidget(tempEl["x"], i, 6)
 			self.elements.append(tempEl)
 
 	def createForm(self, profilesData = None, profileOrder = None, defaultProfile = None, newLine = {"r": False, "n": "", "db": "", "d": ""}):
@@ -190,13 +208,16 @@ class editProfile(editObjectWindow):
 
 		self.setWindowTitle('Edit profile')
 
-		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description"), QLabel("Delete?") ]
+		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description") ]
 		for i,e in enumerate(labels):
 			self.currGrid.addWidget(e, 0, i)
+		self.currGrid.addWidget(QLabel("Order"), 0, 4, 1, 2)
+		self.currGrid.addWidget(QLabel("Delete?"), 0, 6)
 
 		self.addButtons(profilesData, profileOrder)
 
-		i = len(pbConfig.profiles) + 2
+		i = len(pbConfig.profiles) + 3
+		self.currGrid.addWidget(QLabel(""), i-2, 0)
 		tempEl = {}
 		self.currGrid.addWidget(QLabel("Add new?"), i-1, 0)
 		tempEl["r"] = QRadioButton("")
@@ -208,19 +229,27 @@ class editProfile(editObjectWindow):
 		self.currGrid.addWidget(tempEl["r"], i, 0)
 
 		tempEl["n"] = QLineEdit(newLine["n"])
-		tempEl["d"] = QLineEdit(newLine["d"])
+		self.currGrid.addWidget(tempEl["n"], i, 1)
 
 		tempEl["f"] = QComboBox(self)
 		tempEl["f"].setEditable(True)
 		dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
 		registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
 		tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
-
-		self.currGrid.addWidget(tempEl["n"], i, 1)
 		self.currGrid.addWidget(tempEl["f"], i, 2)
+
+		tempEl["d"] = QLineEdit(newLine["d"])
 		self.currGrid.addWidget(tempEl["d"], i, 3)
+
+		self.currGrid.addWidget(QLabel("Copy from:"), i, 4, 1, 2)
+		tempEl["c"] = QComboBox(self)
+		tempEl["c"].addItems(["None"] + registeredDb)
+		self.currGrid.addWidget(tempEl["c"], i, 6)
+
 		self.elements.append(tempEl)
 
+		i += 1
+		self.currGrid.addWidget(QLabel(""), i, 0)
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
@@ -230,7 +259,7 @@ class editProfile(editObjectWindow):
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i+1, 0)
+		self.currGrid.addWidget(self.cancelButton, i+1, 2)
 
 	def switchLines(self, ix):
 		currentValues = {}
