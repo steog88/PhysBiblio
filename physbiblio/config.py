@@ -365,7 +365,7 @@ class ConfigVars():
 	"""
 	Contains all the common settings, the information on the profiles and their configuration.
 	"""
-	def __init__(self):
+	def __init__(self, profileFileName = "profiles.db"):
 		"""
 		Initialize the configuration.
 		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
@@ -397,7 +397,7 @@ class ConfigVars():
 		self.descriptions = config_descriptions
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
-		self.profilesDbFile = os.path.join(self.configPath, "profiles.db")
+		self.profilesDbFile = os.path.join(self.configPath, profileFileName)
 		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath, info = False)
 
 		self.checkOldProfiles()

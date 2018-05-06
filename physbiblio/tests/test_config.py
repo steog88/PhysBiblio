@@ -16,15 +16,19 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.config import pbConfig, ConfigVars, config_defaults
+	from physbiblio.databaseCore import physbiblioDBCore
+	from physbiblio.config import pbConfig, ConfigVars, config_defaults, configurationDB, profilesDB
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-tempCfgName = os.path.join(pbConfig.configPath, "tests_%s.cfg"%today_ymd)
-tempProfName = os.path.join(pbConfig.dataPath, "tests_%s.dat"%today_ymd)
+tempOldCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg"%today_ymd)
+tempCfgName = os.path.join(pbConfig.dataPath, "tests_cfg_%s.db"%today_ymd)
+tempCfgName1 = os.path.join(pbConfig.dataPath, "tests_cfg1_%s.db"%today_ymd)
+tempProfName = os.path.join(pbConfig.dataPath, "tests_profiles_%s.db"%today_ymd)
+
 class TestConfigMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.config"""
 
@@ -43,86 +47,80 @@ class TestConfigMethods(unittest.TestCase):
 			os.remove(tempCfgName)
 		newConfParamsDict = dict(config_defaults)
 		with patch("physbiblio.config.ConfigVars.readProfiles",
-				return_value = ("tmp", {"tmp": {"f": tempCfgName, "d":""}}, ["tmp"])) as _mock_readprof:
+				return_value = ("tmp", {"tmp": {"db": tempCfgName, "d":""}}, ["tmp"])) as _mock_readprof:
 			self.assertFalse(os.path.exists(tempCfgName))
 			tempPbConfig = ConfigVars()
+			tempDb = physbiblioDBCore(tempCfgName, tempPbConfig.logger, info = False)
+			configDb = configurationDB(tempDb)
+
 			self.assertTrue(os.path.exists(tempCfgName))
 			_mock_readprof.assert_called_once_with()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), [])
-
-			self.assertEqual(tempPbConfig.params, newConfParamsDict)
-			tempPbConfig.params["logFileName"] = "newfilename"
-			newConfParamsDict["logFileName"] = "newfilename"
-			tempPbConfig.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), ["logFileName = newfilename\n"])
+			self.assertEqual(len(configDb.getAll()), 0)
 
 			tempPbConfig1 = ConfigVars()
 			self.assertEqual(tempPbConfig1.params, newConfParamsDict)
 			tempPbConfig1.params["logFileName"] = "otherfilename"
-			newConfParamsDict["logFileName"] = "otherfilename"
-			tempPbConfig1.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(), ["logFileName = otherfilename\n"])
-
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
-			self.assertEqual(tempPbConfig.params, newConfParamsDict)
-			os.remove(tempCfgName)
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
-			self.assertEqual(tempPbConfig.params, config_defaults)
-
 			tempPbConfig1.params["timeoutWebSearch"] = 10.
 			tempPbConfig1.params["askBeforeExit"] = True
 			tempPbConfig1.params["maxAuthorNames"] = 5
 			tempPbConfig1.params["defaultCategories"] = [1]
-			tempPbConfig1.saveConfigFile()
-			with open(tempCfgName) as r:
-				self.assertEqual(r.readlines(),
-					["logFileName = otherfilename\n",
-					"timeoutWebSearch = 10.0\n",
-					"askBeforeExit = True\n",
-					"maxAuthorNames = 5\n",
-					"defaultCategories = [1]\n"])
-			tempPbConfig.reInit("tmp", {"f": tempCfgName, "d":""})
+			with open(tempOldCfgName, "w") as f:
+				f.write("logFileName = otherfilename\n"+
+					"timeoutWebSearch = 10.0\n"+
+					"askBeforeExit = True\n"+
+					"maxAuthorNames = 5\n"+
+					"defaultCategories = [1]\n")
+			tempPbConfig = ConfigVars()
+			tempPbConfig.configMainFile = tempOldCfgName
+			tempPbConfig.oldReadConfigFile()
 			self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
-
-			os.remove(tempCfgName)
-			self.assertFalse(tempPbConfig1.needFirstConfiguration)
-			tempPbConfig1.readConfigFile()
-			self.assertTrue(tempPbConfig1.needFirstConfiguration)
+		os.remove(tempCfgName)
+		os.remove(tempOldCfgName)
 
 	def test_profiles(self):
 		"""Test config methods for profiles management"""
-		with patch("physbiblio.config.ConfigVars.writeProfiles", return_value = None) as _verp:
-			tempPbConfig = ConfigVars()
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
-		origDef, origProfiles, origOrder = tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder
+		tempPbConfig = ConfigVars(tempProfName)
+		self.assertEqual(tempPbConfig.defaultProfileName, "default")
+		self.assertEqual(tempPbConfig.profiles,
+			{u"default": {
+				"d": u"",
+				"f": u"",
+				"n": u"default",
+				"db": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))}})
+		self.assertEqual(tempPbConfig.profileOrder, ["default"])
+		self.assertEqual(tempPbConfig.params, config_defaults)
 
-		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = ("tmp", {"tmp": {"f": tempCfgName, "d":""}}, ["tmp"])
-		tempPbConfig.configProfilesFile = tempProfName
-		tempPbConfig.writeProfiles()
-		with open(tempProfName) as r:
-			lines = r.readlines()
-		self.assertEqual(lines[0], "'tmp',\n")
-		self.assertIn(lines[1],
-			["{'tmp': {'f': '%s', 'd': ''}},\n"%tempCfgName.split(os.sep)[-1],
-			"{'tmp': {'d': '', 'f': '%s'}},\n"%tempCfgName.split(os.sep)[-1]])
-		self.assertEqual(lines[2], "['tmp']\n")
+		# readConfig
+		# reInit
+		# readProfiles
+		# reloadProfiles
 
-		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = origDef, origProfiles, origOrder
-		self.assertEqual(tempPbConfig.defProf, origDef)
-		self.assertEqual(tempPbConfig.profiles, origProfiles)
-		self.assertEqual(tempPbConfig.profileOrder, origOrder)
-		tempPbConfig.defProf, tempPbConfig.profiles, tempPbConfig.profileOrder = tempPbConfig.readProfiles()
-		self.assertEqual(tempPbConfig.defProf, "tmp")
-		self.assertEqual(tempPbConfig.profiles, {"tmp": {"f": tempCfgName.split(os.sep)[-1], "d":""}})
-		self.assertEqual(tempPbConfig.profileOrder, ["tmp"])
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestProfilesDB(unittest.TestCase):
+	"""Test profilesDB"""
+	def test_profilesDB(self):
+		"""Test database for profiles"""
+		if os.path.exists(tempProfName):
+			os.remove(tempProfName)
+		self.profilesDb = profilesDB(tempProfName, pbConfig.logger, pbConfig.dataPath, info = False)
+
+		# createTable
+		# countProfiles
+		# createProfile
+		# updateProfileField
+		# deleteProfile
+		# getProfiles
+		# getProfile
+		# getProfileOrder
+		# setProfileOrder
+		# getDefaultProfile
+		# setDefaultProfile
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestConfigDB(DBTestCase):
-	"""Test creation of tables"""
+	"""Test configurationDB"""
 	def test_configDB(self):
 		"""Test count, insert and update, delete and get methods"""
 		self.assertEqual(self.pBDB.config.count(), 0)
@@ -153,8 +151,12 @@ class TestConfigDB(DBTestCase):
 def tearDownModule():
 	if os.path.exists(tempCfgName):
 		os.remove(tempCfgName)
+	if os.path.exists(tempCfgName1):
+		os.remove(tempCfgName1)
 	if os.path.exists(tempProfName):
 		os.remove(tempProfName)
+	if os.path.exists(tempOldCfgName):
+		os.remove(tempOldCfgName)
 
 if __name__=='__main__':
 	unittest.main()
