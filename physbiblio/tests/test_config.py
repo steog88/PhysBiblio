@@ -92,10 +92,95 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
 		self.assertEqual(tempPbConfig.params, config_defaults)
 
-		# readConfig
-		# reInit
-		# readProfiles
-		# reloadProfiles
+		tempProfName1 = os.path.join(pbConfig.dataPath, "tests_profiles1_%s.db"%today_ymd)
+		self.assertTrue(tempPbConfig.profilesDb.createProfile("temp", "none", tempProfName1))
+		self.assertTrue(tempPbConfig.profilesDb.setDefaultProfile("temp"))
+		self.assertEqual(tempPbConfig.defaultProfileName, "default")
+		self.assertEqual([e["n"] for e in tempPbConfig.profiles.values()], ["default"])
+		self.assertEqual(tempPbConfig.profileOrder, ["default"])
+		self.assertEqual(tempPbConfig.currentProfileName, "default")
+		self.assertEqual(tempPbConfig.currentDatabase, str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))))
+		tempParams = tempPbConfig.params
+
+		default, profiles, ordered = tempPbConfig.readProfiles()
+		self.assertEqual(default, "temp")
+		self.assertEqual(profiles,
+			{u"default": {
+				"d": u"",
+				"f": u"",
+				"n": u"default",
+				"db": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))},
+			u"temp": {
+				"d": u"none",
+				"f": u"",
+				"n": u"temp",
+				"db": tempProfName1}})
+		self.assertEqual(ordered, ["default", "temp"])
+
+		tempProfName2 = tempProfName1.replace("profiles1", "profiles2")
+		self.assertTrue(tempPbConfig.profilesDb.createProfile("other", "none1", tempProfName2))
+		tempPbConfig.reloadProfiles()
+		self.assertEqual(tempPbConfig.defaultProfileName, "temp")
+		self.assertEqual(sorted([e["n"] for e in tempPbConfig.profiles.values()]), ["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.profileOrder, ["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
+
+		tempPbConfig.reInit("other")
+		self.assertEqual(tempPbConfig.defaultProfileName, "temp")
+		self.assertEqual(sorted([e["n"] for e in tempPbConfig.profiles.values()]), ["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.profileOrder, ["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.currentProfileName, "other")
+		self.assertEqual(tempPbConfig.currentDatabase, tempProfName2)
+
+		tempPbConfig.reInit("other", tempPbConfig.profiles["temp"])
+		self.assertEqual(tempPbConfig.currentProfileName, "other")
+		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
+
+		tempPbConfig.reInit("temp", tempPbConfig.profiles["temp"])
+		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
+
+		tempPbConfig.reInit("nonexistent")
+		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
+		self.assertEqual(tempPbConfig.params, tempParams)
+
+		tempDb = physbiblioDBCore(tempProfName1, tempPbConfig.logger, info = False)
+		configDb = configurationDB(tempDb)
+		configDb.insert("defaultCategories", "[0")
+		configDb.commit()
+
+		tempPbConfig.readConfig()
+		self.assertEqual(tempPbConfig.params, tempParams)
+		self.assert_in_stdout_multi(tempPbConfig.readConfig,
+			["Failed in reading parameter 'defaultCategories'."])
+
+		configDb.insert("loggingLevel", "4")
+		configDb.insert("pdfFolder", "/nonexistent/")
+		configDb.insert("askBeforeExit", "True")
+		configDb.insert("timeoutWebSearch", "20.")
+		configDb.commit()
+		tempParams["loggingLevel"] = 4
+		tempParams["pdfFolder"] = u"/nonexistent/"
+		tempParams["askBeforeExit"] = True
+		tempParams["timeoutWebSearch"] = 20.
+		tempPbConfig.readConfig()
+		self.assertEqual(tempPbConfig.params, tempParams)
+		self.assert_in_stdout_multi(tempPbConfig.readConfig,
+			["Failed in reading parameter 'defaultCategories'."])
+
+		configDb.insert("defaultCategories", "[0]")
+		configDb.commit()
+		tempParams["defaultCategories"] = [0]
+		tempPbConfig.readConfig()
+		self.assertEqual(tempPbConfig.params, tempParams)
+
+		tempDb.closeDB(info = False)
+		if os.path.exists(tempProfName1):
+			os.remove(tempProfName1)
+		if os.path.exists(tempProfName2):
+			os.remove(tempProfName2)
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestProfilesDB(unittest.TestCase):

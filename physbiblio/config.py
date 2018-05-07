@@ -139,9 +139,7 @@ class profilesDB(physbiblioDBCore):
 			name = "default",
 			description = "",
 			databasefile = None,
-			oldCfg = "",
-			isDefault = 0,
-			order = 0):
+			oldCfg = ""):
 		"""Create a new profile"""
 		if databasefile is None:
 			databasefile = os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))
@@ -152,8 +150,8 @@ class profilesDB(physbiblioDBCore):
 			"description": description,
 			"databasefile": databasefile,
 			"oldCfg": oldCfg,
-			"isDefault": isDefault,
-			"ord": order}
+			"isDefault": 1 if self.countProfiles() == 0 else 0,
+			"ord": 100}
 		self.logger.info("%s\n%s"%(command, data))
 		if not self.connExec(command, data):
 			self.logger.exception("Cannot insert profile")
@@ -492,7 +490,7 @@ class ConfigVars():
 			}
 		return self.profilesDb.getDefaultProfile(), profiles, self.profilesDb.getProfileOrder()
 
-	def reInit(self, newShort, newProfile):
+	def reInit(self, newShort, newProfile = None):
 		"""
 		Used when changing profile.
 		Reloads all the configuration from scratch given the new profile name.
@@ -501,6 +499,12 @@ class ConfigVars():
 			newShort (str): short name for the new profile to be loaded
 			newProfile (dict): the profile file dictionary
 		"""
+		if newProfile is None:
+			try:
+				newProfile = self.profiles[newShort]
+			except KeyError:
+				self.logger.error("Profile not found!")
+				return
 		self.currentProfileName = newShort
 		self.currentDatabase = newProfile["db"]
 		self.params = {}
@@ -550,8 +554,8 @@ class ConfigVars():
 							v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 						self.params[k] = v
 				except Exception:
-					self.logger.warning("Failed in reading parameter", exc_info = True)
-					self.params[k] = v
+					self.logger.warning("Failed in reading parameter '%s'."%k, exc_info = True)
+					self.params[k] = config_defaults[k]
 		except Exception:
 			self.logger.error("ERROR: reading config from '%s' failed."%self.currentProfile["db"])
 		tempDb.closeDB(info = False)
