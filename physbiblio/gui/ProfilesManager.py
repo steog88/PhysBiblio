@@ -275,7 +275,7 @@ class editProfile(editObjectWindow):
 		newLine = {
 			"r": self.elements[-1]["r"].isChecked(),
 			"n": self.elements[-1]["n"].text(),
-			"db": self.elements[-1]["f"].text(),
+			"db": self.elements[-1]["f"].currentText(),
 			"d": self.elements[-1]["d"].text(),
 		}
 		tempOrder = list(currentOrder)

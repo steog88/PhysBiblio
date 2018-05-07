@@ -454,9 +454,9 @@ class ConfigVars():
 					name = k,
 					description = profiles[k]["d"],
 					databasefile = self.params["mainDatabaseName"],
-					oldCfg = profiles[k]["f"],
-					isDefault = k == defProf,
-					order = profileOrder.index(k))
+					oldCfg = profiles[k]["f"])
+				if k == defProf:
+					self.profilesDb.setDefaultProfile(k)
 				for p in self.paramOrder:
 					if p == "mainDatabaseName":
 						continue
@@ -467,6 +467,7 @@ class ConfigVars():
 				oldfile = os.path.join(self.configPath, profiles[k]["f"])
 				os.rename(oldfile, oldfile + "_bck")
 				self.logger.info("Old '%s' renamed to '%s'."%(oldfile, oldfile + "_bck"))
+			self.profilesDb.setProfileOrder(profileOrder)
 			self.logger.info([dict(e) for e in self.profilesDb.getProfiles()])
 			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
 			self.logger.info("Old '%s' renamed to '%s'."%(self.configProfilesFile, self.configProfilesFile + "_bck"))
