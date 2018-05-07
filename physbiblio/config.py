@@ -104,16 +104,15 @@ class profilesDB(physbiblioDBCore):
 	def __init__(self, dbname, logger, datapath, info = True):
 		"""Class constructor"""
 		self.dataPath = datapath
-		noProfileDb = not os.path.exists(dbname)
 		physbiblioDBCore.__init__(self, dbname, logger, noOpen = True)
 		self.openDB(info = info)
 
-		if noProfileDb:
+		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+		if [name[0] for name in self.curs] != ["profiles"]:
 			self.createTable()
 
 		if self.countProfiles() == 0:
 			self.createProfile()
-			self.setDefaultProfile("default")
 
 	def createTable(self):
 		"""
@@ -159,7 +158,7 @@ class profilesDB(physbiblioDBCore):
 		self.commit(verbose = False)
 		return True
 
-	def updateProfileField(self, name, field, value, identifier = "name"):
+	def updateProfileField(self, identifier, field, value, identifierField = "name"):
 		"""
 		Update a field of an existing profile
 
@@ -168,16 +167,18 @@ class profilesDB(physbiblioDBCore):
 		Output:
 			True if successful, False otherwise
 		"""
-		if (field == "databasefile" and identifier != "name") or \
-				(field == "name" and identifier != "databasefile") or \
+		if (field == "databasefile" and identifierField != "name") or \
+				(field == "name" and identifierField != "databasefile") or \
+				(identifierField == "isDefault" and identifier != 1) or \
+				identifierField not in ["name", "databasefile", "isDefault"] or \
 				field not in [e[0] for e in profilesSettingsTable]:
-			self.logger.error("Invalid field or identifier: %s, %s"%(field, identifier))
+			self.logger.error("Invalid field or identifierField: %s, %s"%(field, identifierField))
 			return False
 		command = "update profiles set %s = :val "%field + \
-			' where %s = :iden\n'%identifier
+			' where %s = :iden\n'%identifierField
 		data = {
 			"val": value,
-			"iden": name,
+			"iden": identifier,
 			}
 		self.logger.debug("%s\n%s"%(command, data))
 		if not self.connExec(command, data):
@@ -201,17 +202,17 @@ class profilesDB(physbiblioDBCore):
 
 	def getProfiles(self):
 		"""Get all the profiles"""
-		self.cursExec("SELECT * FROM profiles order by ord ASC, name DESC\n")
+		self.cursExec("SELECT * FROM profiles order by ord ASC, name ASC\n")
 		return self.curs.fetchall()
 
 	def getProfile(self, name = "", filename = ""):
 		"""Get a profile given its name or the name of the database file"""
 		if name.strip() == "" and filename.strip() == "":
 			self.logger.warning("You should specify the name or the filename associated with the profile")
-			return []
+			return {}
 		if name.strip() != "" and filename.strip() != "":
 			self.logger.warning("You should specify only the name or only the filename associated with the profile")
-			return []
+			return {}
 		self.cursExec("SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
 			{"name": name, "file": filename})
 		return self.curs.fetchall()[0]
@@ -231,7 +232,7 @@ class profilesDB(physbiblioDBCore):
 		Parameters:
 			order: the ordered list of profile names
 		"""
-		if order is []:
+		if order == []:
 			self.logger.warning("No order given!")
 			return False
 		if sorted(order) != sorted([e["name"] for e in self.getProfiles()]):
@@ -245,7 +246,10 @@ class profilesDB(physbiblioDBCore):
 				failed = True
 		if not failed:
 			self.commit(verbose = False)
-		return failed
+		else:
+			self.logger.error("Something went wrong when setting new profile order. Undoing...")
+			self.undo(verbose = False)
+		return (not failed)
 
 	def getDefaultProfile(self):
 		"""
@@ -273,6 +277,10 @@ class profilesDB(physbiblioDBCore):
 					self.connExec("update profiles set isDefault=1 where name = :name\n", {"name": name}):
 				self.commit(verbose = False)
 				return True
+			else:
+				self.logger.error("Something went wrong when setting new default profile. Undoing...")
+				self.undo(verbose = False)
+				return False
 		else:
 			self.logger.warning("No profiles with the given name!")
 			return False
