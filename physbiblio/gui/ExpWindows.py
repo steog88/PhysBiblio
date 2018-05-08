@@ -2,7 +2,7 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import subprocess, traceback
+import traceback
 import operator
 
 try:
@@ -248,7 +248,7 @@ class ExpWindowList(objListWindow):
 			print("will open '%s' "%link)
 			try:
 				print("[GUI] opening '%s'..."%link)
-				subprocess.Popen([pbConfig.params["webApplication"], link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+				pBGuiView.openLink(link, "link")
 			except:
 				print("[GUI] opening link '%s' failed!"%link)
 

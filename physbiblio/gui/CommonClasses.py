@@ -496,6 +496,8 @@ class guiViewEntry(viewEntry):
 		else:
 			if arg is "file":
 				url = QUrl.fromLocalFile(fileArg)
+			elif arg is "link":
+				url = QUrl(key)
 			else:
 				link = self.getLink(key, arg = arg, fileArg = fileArg)
 				url = QUrl(link)

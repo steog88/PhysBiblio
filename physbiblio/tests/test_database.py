@@ -19,6 +19,7 @@ else:
 
 try:
 	from physbiblio.setuptests import *
+	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
@@ -29,6 +30,37 @@ except Exception:
 
 fullRecordAde = {'bibkey': 'Ade:2013zuv', 'inspire': '1224741', 'arxiv': '1303.5076', 'ads': '2014A&A...571A..16P', 'scholar': None, 'doi': '10.1051/0004-6361/201321591', 'isbn': None, 'year': '2014', 'link': 'http://dx.doi.org/10.1051/0004-6361/201321591', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n        author = "Ade, P.A.R. and others",\n collaboration = "Planck",\n         title = "{Planck 2013 results. XVI. Cosmological parameters}",\n       journal = "Astron.Astrophys.",\n        volume = "571",\n          year = "2014",\n         pages = "A16",\n archiveprefix = "arXiv",\n  primaryclass = "astro-ph.CO",\n        eprint = "1303.5076",\n           doi = "10.1051/0004-6361/201321591",\n  reportnumber = "CERN-PH-TH-2013-129",\n}', 'firstdate': '2013-03-20', 'pubdate': '2014-10-29', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'reportnumber': 'CERN-PH-TH-2013-129', 'doi': '10.1051/0004-6361/201321591', 'eprint': '1303.5076', 'primaryclass': 'astro-ph.CO', 'archiveprefix': 'arXiv', 'pages': 'A16', 'year': '2014', 'volume': '571', 'journal': 'Astron.Astrophys.', 'title': '{Planck 2013 results. XVI. Cosmological parameters}', 'collaboration': 'Planck', 'author': 'Ade, P.A.R. and others', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '{Planck 2013 results. XVI. Cosmological parameters}', 'journal': 'Astron.Astrophys.', 'volume': '571', 'number': '', 'pages': 'A16', 'published': 'Astron.Astrophys. 571 (2014) A16', 'author': 'Ade, P.A.R. and others'}
 fullRecordGariazzo = {'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': 'http://dx.doi.org/10.1088/0954-3899/43/3/033001', 'comments': None, 'old_keys': '', 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'doi': '10.1088/0954-3899/43/3/033001', 'eprint': '1507.08204', 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'title': '{Light sterile neutrinos}', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '{Light sterile neutrinos}', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': 'Gariazzo, S. et al.'}
+tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
+
+@unittest.skipIf(skipDBTests, "Database tests")
+class TestCreateTables(unittest.TestCase):
+	"""Test creation of tables"""
+	def test_createTables(self):
+		"""Test that all the tables are created at first time, if DB is empty"""
+		if os.path.exists(tempFDBName):
+			os.remove(tempFDBName)
+		open(tempFDBName, 'a').close()
+		self.pBDB = physbiblioDB(tempFDBName, pBLogger, noOpen = True)
+		self.pBDB.openDB()
+
+		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
+		self.assertEqual([name[0] for name in self.pBDB.cursor()], [])
+		self.pBDB.createTables()
+		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
+		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"])
+		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
+
+		os.remove(tempFDBName)
+		open(tempFDBName, 'a').close()
+		self.pBDB = physbiblioDB(tempFDBName, pBLogger)
+		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
+		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"])
+		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
+
+	@classmethod
+	def tearDownClass(self):
+		if os.path.exists(tempFDBName):
+			os.remove(tempFDBName)
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseMain(DBTestCase):#using cats just for simplicity

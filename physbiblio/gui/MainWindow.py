@@ -389,23 +389,9 @@ class MainWindow(QMainWindow):
 
 		availableWidth		= QDesktopWidget().availableGeometry().width()
 		availableHeight		= QDesktopWidget().availableGeometry().height()
-		#splitterBottom.setMinimumHeight(0.2*availableHeight)
-		#splitterBottom.setMaximumHeight(0.4*availableHeight)
-		#splitter.setMinimumHeight(0.8*availableHeight)
-		#splitter.setMaximumHeight(0.8*availableHeight)
 		splitter.setGeometry(0, 0, availableWidth, availableHeight)
 
 		self.setCentralWidget(splitter)
-		#self.setLayout(hbox)
-		#QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-
-		#self.setWindowTitle('QtGui.QSplitter')
-		#self.show()
-		if pbConfig.needFirstConfiguration:
-			infoMessage("Missing configuration file.\nYou should verify the configuration now.")
-			self.config()
-			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
-			self.reloadMainContent()
 
 	def undoDB(self):
 		pBDB.undo()
@@ -435,6 +421,7 @@ class MainWindow(QMainWindow):
 		cfgWin = configWindow(self)
 		cfgWin.exec_()
 		if cfgWin.result:
+			changed = False
 			for q in cfgWin.textValues:
 				if isinstance(q[1], MyComboBox):
 					s = "%s"%q[1].currentText()
@@ -442,14 +429,21 @@ class MainWindow(QMainWindow):
 					s = "%s"%q[1].text()
 				if q[0] == "loggingLevel":
 					s = s.split(" - ")[0]
-				if pbConfig.params[q[0]] != s:
+				if str(pbConfig.params[q[0]]) != s:
+					pBLogger.info("New value for param %s = %s (old: '%s')"%(q[0], s, pbConfig.params[q[0]]))
 					pbConfig.params[q[0]] = s
+					pBDB.config.update(q[0], s)
+					changed = True
+				if str(pbConfig.defaultsParams[q[0]]) == s:
+					pBDB.config.delete(q[0])
+					changed = True
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
-			pbConfig.saveConfigFile()
-			pbConfig.readConfigFile()
-			self.reloadConfig()
-			self.refreshMainContent()
-			self.StatusBarMessage("Configuration saved")
+			if changed:
+				pBDB.commit()
+				pbConfig.readConfig()
+				self.reloadConfig()
+				self.refreshMainContent()
+				self.StatusBarMessage("Configuration saved")
 		else:
 			self.StatusBarMessage("Changes discarded")
 

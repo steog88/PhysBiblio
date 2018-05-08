@@ -87,6 +87,9 @@ class TestWebImportMethods(unittest.TestCase):
 			print(method)
 			if method == "inspireoai":
 				self.assertEqual(physBiblioWeb.webSearch[method].retrieveOAIData(strings[0]), strings[1])
+			elif method == "arxiv":
+				self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlFirst(strings[0], searchType = "id").strip(), strings[1].strip())
+				self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0], searchType = "id").strip(), strings[1].strip())
 			else:
 				self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlFirst(strings[0]).strip(), strings[1].strip())
 				self.assertEqual(physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(), strings[1].strip())

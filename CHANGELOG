@@ -1,5 +1,8 @@
 0.x (2018-yy-xx):
 	* bug in saving profile order
+	* profiles management goes through dedicated database
+	* configuration settings saved inside the database
+	* few bugs solved
 
 0.2.2 (2018-05-01):
 	* readme updates

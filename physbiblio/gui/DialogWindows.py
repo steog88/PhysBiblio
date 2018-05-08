@@ -2,7 +2,6 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import subprocess
 import traceback
 
 if sys.version_info[0] < 3:

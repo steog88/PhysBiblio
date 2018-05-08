@@ -108,10 +108,7 @@ class newProfileAction(argparse.Action):
 			pBLogger.info("Changing profile to '%s'"%prof)
 			newProfile = pbConfig.profiles[prof]
 			pbConfig.reInit(prof, newProfile)
-			if pbConfig.needFirstConfiguration:
-				infoMessage("Missing configuration file.\nYou should verify the configuration now.")
-				self.parent.config()
-			pBDB.reOpenDB(pbConfig.params['mainDatabaseName'])
+			pBDB.reOpenDB(pbConfig.currentDatabase)
 		setattr(namespace, self.dest, values)
 
 def setParser():

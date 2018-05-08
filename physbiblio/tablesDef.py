@@ -3,6 +3,15 @@ Static definitions of the structure (column names and content) for the tables of
 
 This file is part of the physbiblio package.
 """
+profilesSettingsTable = [
+	["name", 		"text", "primary key not null"],
+	["databasefile","text", "not null"],
+	["description", "text", ""],
+	["oldCfg",      "text", ""],
+	["isDefault", 	"int", "default 0"],
+	["ord", 		"int", "default 100"]
+]
+
 tableFields = {}
 tableFields["entries"] = [
 	["bibkey", 	"text", "primary key not null"],
@@ -54,6 +63,9 @@ tableFields["entryExps"] = [
 	["idEnEx", "integer", "primary key"],
 	["bibkey", "text", "not null"],
 	["idExp",  "int", "not null"]];
+tableFields["settings"] = [
+	["name", 	"text", "primary key not null"],
+	["value", 	"text", "default ''"]]
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {
 	"bibkey":	"Unique bibtex key that identifies the bibliographic element",
@@ -105,3 +117,7 @@ fieldsDescriptions["entryExps"] = {
 	"idEnEx": "Unique identifier",
 	"bibkey": "Corresponding bibtex key",
 	"idExp":  "Corresponding experiment ID"}
+fieldsDescriptions["settings"] = {
+	"id": "Unique identifier",
+	"name": "name of the setting",
+	"value": "value of the setting"}

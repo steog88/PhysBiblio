@@ -2,7 +2,6 @@
 import sys
 from PySide.QtCore import *
 from PySide.QtGui  import *
-import subprocess
 
 try:
 	from physbiblio.errors import pBLogger

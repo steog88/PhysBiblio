@@ -85,7 +85,10 @@ class viewEntry():
 			if arg is "file":
 				self.getLink(key, arg = arg, fileArg = fileArg)
 				return
-			link = self.getLink(key, arg = arg, fileArg = fileArg)
+			elif arg is "link":
+				link = key
+			else:
+				link = self.getLink(key, arg = arg, fileArg = fileArg)
 			if link:
 				try:
 					if self.webApp != "":
