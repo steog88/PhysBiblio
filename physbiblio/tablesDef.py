@@ -9,7 +9,7 @@ profilesSettingsTable = [
 	["description", "text", ""],
 	["oldCfg",      "text", ""],
 	["isDefault", 	"int", "default 0"],
-	["ord", 		"int", "default 0"]
+	["ord", 		"int", "default 100"]
 ]
 
 tableFields = {}

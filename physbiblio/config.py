@@ -100,9 +100,19 @@ for p in configuration_params:
 	config_special[p["name"]] = p["special"]
 
 class profilesDB(physbiblioDBCore):
-	"""Class that manages the operations on the profiles in the DB"""
+	"""
+	Class that manages the operations on the profiles DB
+	"""
 	def __init__(self, dbname, logger, datapath, info = True):
-		"""Class constructor"""
+		"""
+		Class constructor
+
+		Parameters:
+			dbname: the name of the database to open
+			logger: the logger used for messages
+			datapath: the path where to store database files
+			info (boolean, default True): print some output messages
+		"""
 		self.dataPath = datapath
 		physbiblioDBCore.__init__(self, dbname, logger, noOpen = True)
 		self.openDB(info = info)
@@ -130,7 +140,12 @@ class profilesDB(physbiblioDBCore):
 		return True
 
 	def countProfiles(self):
-		"""Obtain the number of profiles in the table"""
+		"""
+		Obtain the number of profiles in the database
+
+		Output:
+			the number of profiles
+		"""
 		self.cursExec("SELECT Count(*) FROM profiles")
 		return self.curs.fetchall()[0][0]
 
@@ -139,7 +154,18 @@ class profilesDB(physbiblioDBCore):
 			description = "",
 			databasefile = None,
 			oldCfg = ""):
-		"""Create a new profile"""
+		"""
+		Create a new profile
+
+		Parameters:
+			name: the name of the profile
+			description: a short description of the profile
+			databasefile: the name of the database file which will contain data
+			oldCfg: the name of the old .cfg file (backwards compatibility only)
+
+		Output:
+			True if successful, sys.exit(1) otherwise
+		"""
 		if databasefile is None:
 			databasefile = os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))
 		command = "INSERT into profiles (name, description, databasefile, oldCfg, isDefault, ord) " + \
@@ -163,6 +189,10 @@ class profilesDB(physbiblioDBCore):
 		Update a field of an existing profile
 
 		Parameters:
+			identifier: the identifier of the profile. It may be 1 if `identifierField` == "isDefault", the name of the profile or the database filename if `identifierField` == "name" or "databasefile", respectively.
+			field: the name of the field to update.
+			value: the new vallue of the field
+			identifierField: "name", "databasefile" or "isDefault". It must be "databasefile" if you want to change the dprofile name and "name" if you want to change the databasefile (discouraged, however)
 		
 		Output:
 			True if successful, False otherwise
@@ -188,7 +218,15 @@ class profilesDB(physbiblioDBCore):
 		return True
 
 	def deleteProfile(self, name):
-		"""Delete a profile given the name and databasefile"""
+		"""
+		Delete a profile given the name
+
+		Parameters:
+			name: the profile name
+
+		Output:
+			True if successful, False otherwise
+		"""
 		if name.strip() == "":
 			self.logger.error("You must provide the profile name!")
 			return False
@@ -201,12 +239,26 @@ class profilesDB(physbiblioDBCore):
 		return True
 
 	def getProfiles(self):
-		"""Get all the profiles"""
+		"""
+		Get the list of profiles
+
+		Output:
+			the list of `sqlite3.Row` objects
+		"""
 		self.cursExec("SELECT * FROM profiles order by ord ASC, name ASC\n")
 		return self.curs.fetchall()
 
 	def getProfile(self, name = "", filename = ""):
-		"""Get a profile given its name or the name of the database file"""
+		"""
+		Get a profile given its name or the name of the database file. Note that only one of the two may be given
+
+		Parameters:
+			name: the name of the profile
+			filename: the database filename of the profile
+
+		Output:
+			the `sqlite3.Row` object
+		"""
 		if name.strip() == "" and filename.strip() == "":
 			self.logger.warning("You should specify the name or the filename associated with the profile")
 			return {}
@@ -218,7 +270,12 @@ class profilesDB(physbiblioDBCore):
 		return self.curs.fetchall()[0]
 
 	def getProfileOrder(self):
-		"""Obtain the order of profiles"""
+		"""
+		Obtain the order of profiles
+
+		Output:
+			a list with the names of the ordered profiles
+		"""
 		if self.countProfiles() == 0:
 			self.createProfile()
 			self.setDefaultProfile("default")
@@ -231,6 +288,9 @@ class profilesDB(physbiblioDBCore):
 
 		Parameters:
 			order: the ordered list of profile names
+
+		Output:
+			True if successful, False otherwise
 		"""
 		if order == []:
 			self.logger.warning("No order given!")
@@ -254,6 +314,9 @@ class profilesDB(physbiblioDBCore):
 	def getDefaultProfile(self):
 		"""
 		Obtain the name of the default profile
+
+		Output:
+			the `sqlite3.Row` objects
 		"""
 		if self.countProfiles() == 0:
 			self.createProfile()
@@ -267,6 +330,9 @@ class profilesDB(physbiblioDBCore):
 
 		Parameters:
 			name: the profile name
+
+		Output:
+			True if successful, False otherwise
 		"""
 		if name is None or name.strip() == "":
 			self.logger.warning("No name given!")
@@ -290,20 +356,25 @@ class configurationDB(physbiblioDBSub):
 	Subclass that manages the functions for the categories.
 	"""
 	def count(self):
-		"""obtain the number of categories in the table"""
+		"""
+		Obtain the number of settings in the table
+
+		Output:
+			the number of settings
+		"""
 		self.cursExec("SELECT Count(*) FROM settings")
 		return self.curs.fetchall()[0][0]
 
 	def insert(self, name, value):
 		"""
-		Insert a new setting
+		Insert a new setting. If already existing, update it
 
 		Parameters:
 			name: the config name
 			value: the content of the setting
 
 		Output:
-			False if another category with the same name and parent is present, the output of self.connExec otherwise
+			the output of self.connExec
 		"""
 		self.cursExec("select * from settings where name=?\n", (name,))
 		if len(self.curs.fetchall()) > 0:
@@ -374,7 +445,7 @@ class ConfigVars():
 	def __init__(self, profileFileName = "profiles.db"):
 		"""
 		Initialize the configuration.
-		Check the profiles first, then for the default profile start with the default parameter values and read the external file.
+		Check the profiles first, then load the default profile and its configuration.
 		"""
 		#needed because the main logger will be loaded later!
 		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
@@ -416,7 +487,9 @@ class ConfigVars():
 		self.inspireSearchBase = "http://inspirehep.net/search"
 
 	def loadProfiles(self):
-		"""Load the information from the profile database from scratch"""
+		"""
+		Load the information from the profile database
+		"""
 		try:
 			self.defaultProfileName, self.profiles, self.profileOrder = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
@@ -424,7 +497,9 @@ class ConfigVars():
 			self.profilesDb.createProfile()
 
 	def reloadProfiles(self):
-		"""Load the information from the profile database, the change to default profile and the settings from scratch"""
+		"""
+		Load the information from the profile database, reset the default and current profile and the settings
+		"""
 		self.loadProfiles()
 
 		self.currentProfileName = self.defaultProfileName
@@ -487,6 +562,9 @@ class ConfigVars():
 	def readProfiles(self):
 		"""
 		Reads the list of profiles and the related parameters from the profiles database.
+
+		Output:
+			the name of the default profile, the dictionary with the profiles and the list of ordered profile names
 		"""
 		allProf = self.profilesDb.getProfiles()
 		profiles = {}
@@ -502,11 +580,11 @@ class ConfigVars():
 	def reInit(self, newShort, newProfile = None):
 		"""
 		Used when changing profile.
-		Reloads all the configuration from scratch given the new profile name.
+		Reload all the configuration given the new profile name.
 
 		Parameters:
 			newShort (str): short name for the new profile to be loaded
-			newProfile (dict): the profile file dictionary
+			newProfile (dict, optional): the profile file dictionary
 		"""
 		if newProfile is None:
 			try:

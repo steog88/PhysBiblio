@@ -28,6 +28,9 @@ class physbiblioDBCore():
 
 		Parameters:
 			dbname: the name of the database to be opened
+			logger: the logger used for messages
+			noOpen (boolean, default False): open the database or not
+			info (boolean, default True): show some output when opening DB
 		"""
 		#structure of the tables
 		self.tableFields = physbiblio.tablesDef.tableFields
@@ -60,8 +63,11 @@ class physbiblioDBCore():
 		"""
 		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
 
+		Parameters:
+			info (boolean, default True): show some output when opening DB
+
 		Output:
-			True if successfull
+			True
 		"""
 		if info:
 			self.logger.info("Opening database: %s"%self.dbname)
@@ -74,11 +80,17 @@ class physbiblioDBCore():
 		return True
 
 	def reOpenDB(self):
+		"""
+		Not defined at this stage. Present in subclass physbiblioDB
+		"""
 		pass
 
 	def closeDB(self, info = True):
 		"""
 		Close the database.
+
+		Parameters:
+			info (boolean, default True): show some output when opening DB
 		"""
 		if info:
 			self.logger.info("Closing database...")
@@ -101,6 +113,9 @@ class physbiblioDBCore():
 		"""
 		Commit the changes.
 
+		Parameters:
+			verbose (boolean, default True): show some output when opening DB
+
 		Output:
 			True if successfull, False if an exception occurred
 		"""
@@ -117,6 +132,9 @@ class physbiblioDBCore():
 	def undo(self, verbose = True):
 		"""
 		Undo the uncommitted changes and roll back to the last commit.
+
+		Parameters:
+			verbose (boolean, default True): show some output when opening DB
 
 		Output:
 			True if successfull, False if an exception occurred
@@ -177,14 +195,23 @@ class physbiblioDBCore():
 			return True
 
 	def cursor(self):
+		"""
+		Function wrapper that returns the default cursor
+		"""
 		return self.curs
 
 	def loadSubClasses(self):
+		"""
+		Not defined at this stage. Present in subclass physbiblioDB
+		"""
 		pass
 
 	def createTables(self, fieldsDict = None):
 		"""
 		Create tables for the database (and insert the default categories), if it is missing.
+
+		Parameters:
+			fieldsDict (default None): the structure of the tables (see physbiblio.tablesDef)
 		"""
 		if fieldsDict is None:
 			fieldsDict = self.tableFields
@@ -242,6 +269,15 @@ class physbiblioDBSub():
 		self.catsHier = None
 
 	def literal_eval(self, string):
+		"""
+		Wrapper for ast.literal_eval
+
+		Parameters:
+			string: the string to evaluate
+
+		Output:
+			a string or None
+		"""
 		try:
 			if "[" in string and "]" in string:
 				return ast.literal_eval(string.strip())

@@ -31,7 +31,13 @@ parser.customization = parse_accents_record
 parser.alt_dict = {}
 
 class physbiblioDB(physbiblioDBCore):
+	"""
+	Subclassing physbiblioDBCore to add reOpenDB and loadSubClasses implementations.
+	"""
 	def __init__(self, *args, **kwargs):
+		"""
+		Wrapper for physbiblioDBCore.__init__
+		"""
 		physbiblioDBCore.__init__(self, *args, **kwargs)
 
 	def reOpenDB(self, newDB = None):
@@ -74,7 +80,7 @@ class physbiblioDB(physbiblioDBCore):
 		Load the subclasses that manage the content in the various tables in the database.
 
 		Output:
-			True if successfull
+			True
 		"""
 		try:
 			del self.bibs

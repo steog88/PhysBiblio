@@ -39,7 +39,7 @@ def editProf(parent, statusBarObject):
 					pbConfig.profilesDb.deleteProfile(name)
 					deleted.append(name)
 			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
-				pbConfig.profilesDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifier = "databasefile")
+				pbConfig.profilesDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifierField = "databasefile")
 				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
