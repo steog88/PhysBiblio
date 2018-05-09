@@ -129,8 +129,8 @@ def setParser():
 	parser_daily.set_defaults(func = call_daily)
 
 	parser_dates = subparsers.add_parser('dates', help = 'fetch the updates from INSPIRE-HEP OAI between the given dates')
-	parser_dates.add_argument('start', metavar = 'startdate', help = 'the starting date', default = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"))
-	parser_dates.add_argument('end', metavar = 'enddate', help = 'the ending date', default = dateLast)
+	parser_dates.add_argument('start', metavar = 'startdate', help = 'the starting date (format as yyyy-mm-dd)', default = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"))
+	parser_dates.add_argument('end', metavar = 'enddate', help = 'the ending date (format as yyyy-mm-dd)', default = dateLast)
 	parser_dates.set_defaults(func = call_dates)
 
 	parser_export = subparsers.add_parser('export', help = 'export all the entries in the database in a file')

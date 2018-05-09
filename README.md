@@ -183,6 +183,8 @@ Basically instead of looking for each single entry, the code will download the i
 In this way, the amount of data traffic is higher, but the server-side load for INSPIRE-HEP is much more sustainable.
 
 The easiest way to do this (in Linux) is to use a cron job that will run daily or weekly and the command `PhysBiblio daily` or `PhysBiblio weekly` (see also [3. Command line usage](#3-command-line-usage)).  
+The `daily` (`weekly`) routines will download the updates of the last day (week) from the INSPIRE-HEP database and update the local database.
+
 To set your cron job, use `crontab -e` and add one of the following lines:
 ```
 0 7 * * * /path/to/PhysBiblio daily > /path/to/log_daily_`date "+\%y\%m\%d"`.log 2>&1
@@ -191,6 +193,9 @@ To set your cron job, use `crontab -e` and add one of the following lines:
 The syntax is simple: the `daily` (`weekly`) script will run every day (every saturday) at 7:00 and save a logfile in the desired folder.
 
 You may then check the bottom of the logfile to see the modified entries and scroll the entire the content if you want to see the complete list of modifications.
+
+You can also use the more generic `PhysBiblio dates [date1[, date2]]` command, which enables you to fetch the content between the two given dates (which must be in the format `yyyy-mm-dd`).
+If not given, the default dates are the same as for the `daily` command.
 
 ## 3. Command line usage
 Some functions are available also as simple command line instructions,
@@ -207,6 +212,7 @@ The list of available commands includes:
 * `clean`: process all the bibtex entries in the database to remove bad characters and reformat them.
 * `cli`: internal command line interface to work with internal commands. Mainly intended for developing.
 * `daily`: see [here](#inspire-oai).
+* `dates`: see [here](#inspire-oai).
 * `export`:
 	export all the bibtex entries in the database, creating a file with the given `filename`.
 	If already existing, the file will be overwritten.
