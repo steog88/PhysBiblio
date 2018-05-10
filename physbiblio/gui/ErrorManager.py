@@ -23,6 +23,8 @@ class ErrorStream(StringIO):
 		self.priority = prio
 
 	def write(self, text):
+		if text.strip() == "":
+			return
 		text = text.replace('\n', '<br>')
 		if self.priority == 0:
 			QMessageBox.information(None, "Information", text)

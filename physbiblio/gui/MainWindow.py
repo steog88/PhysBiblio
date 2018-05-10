@@ -731,7 +731,9 @@ class MainWindow(QMainWindow):
 
 	def updateAllBibtexsAsk(self):
 		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")
-		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the updates:", "Where do you want to start searchOAIUpdates from?", self)
+		text, out = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the updates:", "Where do you want to start searchOAIUpdates from?", self)
+		if not out:
+			return False
 		try:
 			startFrom = int(text)
 		except ValueError:
@@ -757,7 +759,11 @@ class MainWindow(QMainWindow):
 			minProgress = 0., stopFlag = True)
 
 	def authorStats(self):
-		authorName = str(askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self))
+		authorName, out = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
+		if not out:
+			return False
+		else:
+			authorName = str(authorName)
 		if authorName is "":
 			pBGUILogger.warning("Empty name inserted! cannot proceed.")
 			return False
@@ -798,7 +804,9 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def inspireLoadAndInsert(self, doReload = True):
-		queryStr = askGenericText("Insert the query string you want to use for importing from INSPIRE-HEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
+		queryStr, out = askGenericText("Insert the query string you want to use for importing from INSPIRE-HEP:\n(It will be interpreted as a list, if possible)", "Query string?", self)
+		if not out:
+			return False
 		if queryStr == "":
 			pBGUILogger.warning("Empty string! cannot proceed.")
 			return False
@@ -806,8 +814,8 @@ class MainWindow(QMainWindow):
 		self.StatusBarMessage("Starting import from INSPIRE...")
 		if "," in queryStr:
 			try:
-				queryStr = ast.literal_eval("["+queryStr.strip()+"]")
-			except SyntaxError:
+				queryStr = ast.literal_eval("[" + queryStr.strip() + "]")
+			except (ValueError, SyntaxError):
 				pBGUILogger.exception("Cannot recognize the list sintax. Missing quotes in the string?")
 				return False
 
@@ -903,7 +911,9 @@ class MainWindow(QMainWindow):
 			return False
 
 	def cleanAllBibtexsAsk(self):
-		text = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the cleaning:", "Where do you want to start cleanBibtexs from?", self)
+		text, out = askGenericText("Insert the ordinal number of the bibtex element from which you want to start the cleaning:", "Where do you want to start cleanBibtexs from?", self)
+		if not out:
+			return False
 		try:
 			startFrom = int(text)
 		except ValueError:

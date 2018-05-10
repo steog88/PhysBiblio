@@ -53,7 +53,7 @@ def askDirName(parent = None, title = "Directory to use:", dir = ""):
 
 def askGenericText(message, title, parent = None):
 	reply = QInputDialog.getText(parent, title, message)
-	return reply[0]
+	return reply
 
 def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
