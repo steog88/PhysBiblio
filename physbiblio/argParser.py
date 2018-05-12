@@ -141,8 +141,8 @@ def setParser():
 	parser_test.set_defaults(func = call_tests)
 
 	parser_tex = subparsers.add_parser('tex', help = 'read .tex file(s) and create a *.bib file with the cited bibtexs')
-	parser_tex.add_argument('texFiles', metavar = 'texfilename', help = 'the filename of the tex file to read. A folder or wildcards are admitted')
 	parser_tex.add_argument('bibFile', metavar = 'bibfilename', help = 'the filename of the bib file where to write')
+	parser_tex.add_argument('texFiles', metavar = 'texfilename', help = 'the filename of the tex file to read. A folder or wildcards are admitted', nargs = '+')
 	parser_tex.add_argument('-o', '--overwrite', dest = 'overwrite', action='store_true', help = 'overwrite the bib file, if existing')
 	parser_tex.add_argument('-s', '--save', dest = 'save', action='store_false', help = 'save the changes in the database')
 	parser_tex.set_defaults(func = call_tex)
