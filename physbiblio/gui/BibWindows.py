@@ -730,6 +730,10 @@ class bibtexList(QFrame, objListWindow):
 				elif ask.result == "openDoi":
 					self.parent.StatusBarMessage("opening doi PDF...")
 					pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "doi"))
+				elif type(ask.result) is str and "openOther_" in ask.result:
+					filename = ask.result.replace("openOther_", "")
+					self.parent.StatusBarMessage("opening %s..."%filename)
+					pBGuiView.openLink(bibkey, "file", fileArg = os.path.join(pBPDF.getFileDir(bibkey), filename))
 
 	def downloadArxivDone(self):
 		self.parent.sendMessage("Arxiv download execution completed! Please check that it worked...")
@@ -872,6 +876,16 @@ class editBibtexEntry(editObjectWindow):
 		self.setGeometry(100,100,400, 25*i)
 		self.centerWindow()
 
+class MyPdfAction(QAction):
+	def __init__(self, filename, parentMenu, *args, **kwargs):
+		QAction.__init__(self, *args, triggered = self.returnFileName, **kwargs)
+		self.filename = filename
+		self.parentMenu = parentMenu
+
+	def returnFileName(self):
+		self.parentMenu.result = "openOther_%s"%self.filename
+		self.parentMenu.close()
+
 class askPdfAction(MyMenu):
 	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
 		super(askPdfAction, self).__init__(parent)
@@ -880,10 +894,18 @@ class askPdfAction(MyMenu):
 		files = pBPDF.getExisting(key, fullPath = True)
 		if pBPDF.getFilePath(key, "arxiv") in files:
 			self.possibleActions.append(QAction("Open arxiv PDF", self, triggered = self.onOpenArxiv))
+			files.remove(pBPDF.getFilePath(key, "arxiv"))
 		if pBPDF.getFilePath(key, "doi") in files:
 			self.possibleActions.append(QAction("Open DOI PDF", self, triggered = self.onOpenDoi))
+			files.remove(pBPDF.getFilePath(key, "doi"))
+		for f in files:
+			self.possibleActions.append(MyPdfAction(f, self, "Open %s"%f.split(os.sep)[-1], self))
 
 		self.fillMenu()
+
+	def onOpenOther(self, filename):
+		self.result = "openOther_%s"%filename
+		self.close()
 
 	def onOpenArxiv(self):
 		self.result	= "openArxiv"
