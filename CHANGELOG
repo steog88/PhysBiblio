@@ -1,6 +1,7 @@
 0.x (2018-yy-xx):
 	* bug when managing gui warning messages in some python versions solved
 	* argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
+	* full resume of exportForTexFile after many tex file processed
 
 0.3.0 (2018-05-08):
 	* profiles management goes through dedicated database

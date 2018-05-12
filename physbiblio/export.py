@@ -163,7 +163,32 @@ class pbExport():
 		Output:
 			True if successful, False if errors occurred
 		"""
+		def printOutput(reqBibkeys, miss, retr, nFound, unexp, nKeys, warn, full = False):
+			pBLogger.info("\n\nRESUME")
+			pBLogger.info("%d new keys found in .tex file"%len(reqBibkeys))
+			j = ', '
+			if full:
+				pBLogger.info(j.join(reqBibkeys))
+			if len(miss) > 0:
+				pBLogger.info("%d required entries were missing in database"%len(miss))
+				if full:
+					pBLogger.info(j.join(miss))
+			if len(retr) > 0:
+				pBLogger.info("%d new entries retrieved:"%len(retr))
+				pBLogger.info(j.join(retr))
+			if len(nFound) > 0:
+				pBLogger.info("Impossible to find %d entries:"%len(nFound))
+				pBLogger.info(j.join(nFound))
+			if len(unexp) > 0:
+				pBLogger.info("Unexpected errors for %d entries:"%len(unexp))
+				pBLogger.info(j.join(unexp))
+			if len(nKeys.keys()) > 0:
+				pBLogger.info("Possible non-matching keys in %d entries:\n"%len(nKeys.keys()) + \
+					"\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in nKeys.items() ] ) )
+			pBLogger.info("     %s warning(s) occurred!"%warn)
+
 		self.exportForTexFlag = True
+		pBLogger.info("Starting exportForTexFile...\n\n")
 		pBLogger.info("Reading keys from '%s'"%texFileName)
 		pBLogger.info("Saving in '%s'"%outFileName)
 		if autosave:
@@ -182,13 +207,30 @@ class pbExport():
 			pBLogger.exception("Cannot read file %s."%outFileName)
 			return False
 
+		missing = []
+		newKeys = {}
+		notFound = []
+		requiredBibkeys = []
+		retrieved = []
+		unexpected = []
+		warnings = 0
+
 		if type(texFileName) is list:
 			if len(texFileName) == 0:
 				return False
 			for t in texFileName:
-				self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
-			pBLogger.info("Done for all the texFiles. See previous errors (if any)")
-			return True
+				req, m, ret, nF, un, nK, w = self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
+				requiredBibkeys += req
+				missing += m
+				retrieved += ret
+				notFound += nF
+				unexpected += un
+				for k, v in nK.items():
+					newKeys[k] = v
+				warnings += w
+			pBLogger.info("Done for all the texFiles.\n\n")
+			printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, full = True)
+			return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings
 
 		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
@@ -197,7 +239,6 @@ class pbExport():
 		bibel = re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,', re.MULTILINE | re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
 		bibty = re.compile('@[a-zA-Z]*\{', re.MULTILINE | re.DOTALL)	#find the @Article(or other) entry for the key "m"
 
-		unexpected = []
 		def saveEntryOutBib(a):
 			"""
 			Remove unwanted fields and add the bibtex entry to the output file
@@ -231,7 +272,6 @@ class pbExport():
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
 		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
-		requiredBibkeys = []
 		for c in citaz:
 			b = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '')
 			d = b.replace(' ', '')
@@ -243,11 +283,6 @@ class pbExport():
 					requiredBibkeys.append(e)
 		pBLogger.info("%d new keys found"%len(requiredBibkeys))
 
-		missing = []
-		retrieved = []
-		newKeys = {}
-		notFound = []
-		warnings = 0
 		for s in requiredBibkeys:
 			if not pBDB.bibs.getByBibtex(s) and s.strip() != "":
 				missing.append(s)
@@ -290,24 +325,8 @@ class pbExport():
 
 		if autosave:
 			pBDB.commit()
-		pBLogger.info("\n\nRESUME")
-		pBLogger.info("%d new keys found in .tex file"%len(requiredBibkeys))
-		if len(missing) > 0:
-			pBLogger.info("%d required entries were missing in database"%len(missing))
-		if len(retrieved) > 0:
-			pBLogger.info("%d new entries retrieved:"%len(retrieved))
-			pBLogger.info(" - ".join(retrieved))
-		if len(notFound) > 0:
-			pBLogger.info("Impossible to find %d entries:"%len(notFound))
-			pBLogger.info(" - ".join(notFound))
-		if len(unexpected) > 0:
-			pBLogger.info("Unexpected errors for %d entries:"%len(unexpected))
-			pBLogger.info(" - ".join(unexpected))
-		if len(newKeys.keys()) > 0:
-			pBLogger.info("Possible non-matching keys in %d entries"%len(newKeys.keys()) + \
-				"\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in newKeys.items() ] ) )
-		pBLogger.info("     " + str(warnings) + " warning(s) occurred!")
-		return True
+		printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings)
+		return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings
 
 	def updateExportedBib(self, fileName, overwrite = False):
 		"""
