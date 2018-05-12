@@ -286,9 +286,9 @@ class localPDF():
 		fileDir = self.getFileDir(key)
 		try:
 			if fullPath:
-				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) ]
+				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
 			else:
-				return os.listdir(fileDir)
+				return [ e for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
 		except:
 			return []
 			

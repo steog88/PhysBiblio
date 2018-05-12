@@ -76,7 +76,11 @@ class TestPdfMethods(unittest.TestCase):
 				["1507.08204.pdf"])
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath = True),
 				[os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204.pdf")])
+			open(os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204"), "w").close()
+			self.assertEqual(pBPDF.getExisting("abc.def", fullPath = False),
+				["1507.08204.pdf"])
 			self.assertTrue(pBPDF.removeFile("abc.def", "arxiv"))
+			self.assertTrue(pBPDF.removeFile("abc.def", "file", os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204")))
 			self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
 		with patch('physbiblio.database.entries.getField',
 				side_effect = ["1801.15000", "1801.15000", "", "", None, None]) as _mock:
