@@ -72,17 +72,23 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 		pass
 
 class CatsModel(TreeModel):
-	def __init__(self, cats, rootElements, parent = None, previous = []):
+	def __init__(self, cats, rootElements, parent = None, previous = [], multipleRecords = False):
 		self.cats = cats
 		self.rootElements = rootElements
 		TreeModel.__init__(self)
 		self.parentObj = parent
 		self.selectedCats = {}
+		self.previousSaved = {}
 		for cat in self.cats:
 			self.selectedCats[cat["idCat"]] = False
+			self.previousSaved[cat["idCat"]] = False
 		for prevIx in previous:
 			try:
-				self.selectedCats[prevIx] = True
+				if multipleRecords:
+					self.previousSaved[prevIx] = True
+					self.selectedCats[prevIx] = "p"
+				else:
+					self.selectedCats[prevIx] = True
 			except IndexError:
 				pBLogger.warning("Invalid idCat in previous selection: %s"%prevIx)
 
@@ -104,7 +110,9 @@ class CatsModel(TreeModel):
 			return value
 
 		if role == Qt.CheckStateRole and self.parentObj.askCats and column == 0:
-			if self.selectedCats[idCat] == False:
+			if self.previousSaved[idCat] == True and self.selectedCats[idCat] == "p":
+				return Qt.PartiallyChecked
+			elif self.selectedCats[idCat] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
@@ -131,6 +139,7 @@ class CatsModel(TreeModel):
 	def setData(self, index, value, role):
 		idCat = index.internalPointer().ref.idCat
 		if role == Qt.CheckStateRole and index.column() == 0:
+			self.previousSaved[idCat] = False
 			if value == Qt.Checked:
 				self.selectedCats[idCat] = True
 			else:
@@ -138,9 +147,8 @@ class CatsModel(TreeModel):
 		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
 		return True
 
-
 class catsWindowList(QDialog):
-	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = [], single = False):
+	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = [], single = False, multipleRecords = False):
 		super(catsWindowList, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle("Categories")
@@ -151,6 +159,7 @@ class catsWindowList(QDialog):
 		self.expButton = expButton
 		self.previous = previous
 		self.single = single
+		self.multipleRecords = multipleRecords
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
@@ -183,6 +192,7 @@ class catsWindowList(QDialog):
 
 	def onOk(self, exps = False):
 		self.parent.selectedCats = [idC for idC in self.root_model.selectedCats.keys() if self.root_model.selectedCats[idC] == True]
+		self.parent.previousUnchanged = [idC for idC in self.root_model.previousSaved.keys() if self.root_model.previousSaved[idC] == True]
 
 		if self.single and len(self.parent.selectedCats) > 1 and self.parent.selectedCats[0] == 0:
 			self.parent.selectedCats.pop(0)
@@ -223,7 +233,7 @@ class catsWindowList(QDialog):
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
-		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous)
+		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous, multipleRecords = self.multipleRecords)
 		self.proxyModel = LeafFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)

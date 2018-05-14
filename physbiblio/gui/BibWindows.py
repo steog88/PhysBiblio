@@ -1043,10 +1043,16 @@ class askSelBibAction(MyMenu):
 		self.close()
 
 	def onCat(self):
-		infoMessage("Warning: you can just add categories to the selected entries, not delete!")
-		selectCats = catsWindowList(parent = self.parent, askCats = True, expButton = False, previous = [])
+		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
+		selectCats = catsWindowList(parent = self.parent, askCats = True, expButton = False, previous = previousAll, multipleRecords = True)
 		selectCats.exec_()
 		if selectCats.result == "Ok":
+			for c in self.parent.previousUnchanged:
+				if c in previousAll:
+					del previousAll[previousAll.index(c)]
+			for c in previousAll:
+				if c not in self.parent.selectedCats:
+					pBDB.catBib.delete(c, self.keys)
 			pBDB.catBib.insert(self.parent.selectedCats, self.keys)
 			self.parent.StatusBarMessage("categories successfully inserted")
 		self.close()
