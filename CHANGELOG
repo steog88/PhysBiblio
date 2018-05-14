@@ -4,6 +4,7 @@
 	* full resume of exportForTexFile after many tex file processed
 	* cellDoubleClick supports opening any pdf when double clicking on pdf cell
 	* context menu action for opening entries corresponding to clicked category/experiment
+	* new shortcuts for refresh and reload
 
 0.3.0 (2018-05-08):
 	* profiles management goes through dedicated database

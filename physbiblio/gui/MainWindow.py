@@ -225,13 +225,13 @@ class MainWindow(QMainWindow):
 
 		self.refreshAct = QAction(QIcon(":/images/refresh2.png"),
 								"&Refresh current entries list", self,
-								shortcut="Ctrl+R",
+								shortcut="F5",
 								statusTip="Refresh the current list of entries",
 								triggered=self.refreshMainContent)
 
 		self.reloadAct = QAction(QIcon(":/images/refresh.png"),
 								"&Reload (reset) main table", self,
-								shortcut="Ctrl+Shift+R",
+								shortcut="Shift+F5",
 								statusTip="Reload the list of bibtex entries",
 								triggered=self.reloadMainContent)
 
