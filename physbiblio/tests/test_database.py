@@ -296,6 +296,7 @@ class TestDatabaseExperiments(DBTestCase):
 	def test_getByOthers(self):
 		"""Test getByCat and getByEntry creating some fake records"""
 		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{abc,\nauthor = "me",\ntitle = "title",}', bibkey = "abc")
+		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{defghi,\nauthor = "me",\ntitle = "title",}', bibkey = "defghi")
 		self.assertTrue(self.pBDB.bibs.insert(data))
 		self.assertTrue(self.pBDB.exps.insert({"name": "exp1", "comments": "", "homepage": "", "inspire": ""}))
 		self.assertTrue(self.pBDB.catExp.insert(0, 1))
@@ -303,9 +304,16 @@ class TestDatabaseExperiments(DBTestCase):
 		self.assertEqual(self.pBDB.exps.getByEntry("def"), [])
 		self.assertEqual([dict(e) for e in self.pBDB.exps.getByEntry("abc")],
 			[{'inspire': u'', 'comments': u'', 'name': u'exp1', 'bibkey': u'abc', 'idEnEx': 1, 'homepage': u'', 'idExp': 1}])
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByEntries(["abc", "defghi"])],
+			[{'inspire': u'', 'comments': u'', 'name': u'exp1', 'bibkey': u'abc', 'idEnEx': 1, 'homepage': u'', 'idExp': 1}])
 		self.assertEqual(self.pBDB.exps.getByCat("1"), [])
 		self.assertEqual([dict(e) for e in self.pBDB.exps.getByCat(0)],
 			[{'idCat': 0, 'inspire': u'', 'comments': u'', 'name': u'exp1', 'idExC': 1, 'homepage': u'', 'idExp': 1}])
+		self.assertTrue(self.pBDB.exps.insert({"name": "exp2", "comments": "", "homepage": "", "inspire": ""}))
+		self.assertTrue(self.pBDB.bibExp.insert("defghi", 2))
+		self.assertEqual([dict(e) for e in self.pBDB.exps.getByEntries(["abc", "defghi"])],
+			[{'inspire': u'', 'comments': u'', 'name': u'exp1', 'bibkey': u'abc', 'idEnEx': 1, 'homepage': u'', 'idExp': 1},
+			{'inspire': u'', 'comments': u'', 'name': u'exp2', 'bibkey': u'defghi', 'idEnEx': 2, 'homepage': u'', 'idExp': 2}])
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseCategories(DBTestCase):
@@ -393,6 +401,14 @@ class TestDatabaseCategories(DBTestCase):
 		self.assertEqual(self.pBDB.cats.getByExp("2"), [])
 		self.assertEqual([dict(e) for e in self.pBDB.cats.getByExp(1)],
 			[{'idCat': 1, 'idExp': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idExC': 1, 'ord': 0, 'name': u'Tags'}])
+		self.assertEqual(self.pBDB.cats.getByExp("2"), [])
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByEntries(["abc", "defghi"])],
+			[{'idCat': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idEnC': 1, 'ord': 0, 'bibkey': u'abc', 'name': u'Tags'}])
+		data = self.pBDB.bibs.prepareInsert(u'\n\n%comment\n@article{defghi,\nauthor = "me",\ntitle = "title",}', bibkey = "defghi")
+		self.assertTrue(self.pBDB.catBib.insert(0, "defghi"))
+		self.assertEqual([dict(e) for e in self.pBDB.cats.getByEntries(["abc", "defghi"])],
+			[{'idCat': 1, 'parentCat': 0, 'description': u'Use this category to store tags (such as: ongoing projects, temporary cats,...)', 'comments': u'', 'idEnC': 1, 'ord': 0, 'bibkey': u'abc', 'name': u'Tags'},
+			{"idCat": 0, "name": "Main", "comments": "", "description": "This is the main category. All the other ones are subcategories of this one", "parentCat": 0, "ord": 0, 'idEnC': 2, 'bibkey': u'defghi'}])
 
 	def test_catString(self):
 		"""Test catString with existing and non existing records"""

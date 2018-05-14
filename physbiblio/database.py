@@ -394,6 +394,22 @@ class categories(physbiblioDBSub):
 				""", (key,))
 		return self.curs.fetchall()
 
+	def getByEntries(self, keys):
+		"""
+		Find all the categories associated to a list of entries
+
+		Parameters:
+			keys: the list of bibtex keys of the entries
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching categories
+		"""
+		self.cursExec("""
+				select * from categories
+				join entryCats on categories.idCat=entryCats.idCat
+				where """ + " or ".join(["entryCats.bibkey=?" for k in keys]) + "\n", keys)
+		return self.curs.fetchall()
+
 	def getByExp(self, idExp):
 		"""
 		Find all the categories associated to a given experiment
@@ -1141,6 +1157,22 @@ class experiments(physbiblioDBSub):
 				join entryExps on experiments.idExp=entryExps.idExp
 				where entryExps.bibkey=?
 				""", (key, ))
+		return self.curs.fetchall()
+
+	def getByEntries(self, keys):
+		"""
+		Get all the experiments matching a list of given bibtex entries
+
+		Parameters:
+			keys: the keys of the bibtex to be matched
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching experiments
+		"""
+		self.cursExec("""
+				select * from experiments
+				join entryExps on experiments.idExp=entryExps.idExp
+				where """ + " or ".join(["entryExps.bibkey=?" for k in keys]) + "\n", keys)
 		return self.curs.fetchall()
 
 class entries(physbiblioDBSub):
