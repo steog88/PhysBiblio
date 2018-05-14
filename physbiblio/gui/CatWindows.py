@@ -273,13 +273,18 @@ class catsWindowList(QDialog):
 		menu = QMenu()
 		titAct = menu.addAction("--Category: %s--"%catName).setDisabled(True)
 		menu.addSeparator()
+		bibAction = menu.addAction("Open list of corresponding entries")
+		menu.addSeparator()
 		modAction = menu.addAction("Modify")
 		delAction = menu.addAction("Delete")
 		menu.addSeparator()
 		subAction = menu.addAction("Add subcategory")
 
 		action = menu.exec_(event.globalPos())
-		if action == modAction:
+		if action == bibAction:
+			searchDict = {"cats": {"id": [idCat], "operator": "and"}}
+			self.parent.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+		elif action == modAction:
 			editCategory(self, self.parent, idCat)
 		elif action == delAction:
 			deleteCategory(self, self.parent, idCat, catName)

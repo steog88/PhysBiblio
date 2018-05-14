@@ -50,7 +50,7 @@ configuration_params = [
 	"description": 'Confirm before exiting',
 	"special": 'boolean'},
 {"name": "defaultLimitBibtexs",
-	"default": 50,
+	"default": 100,
 	"description": 'Number of bibtex entries in the initial view of the main table',
 	"special": 'int'},
 {"name": "defaultUpdateFrom",

@@ -201,13 +201,18 @@ class ExpWindowList(objListWindow):
 		menu = QMenu()
 		titAct = menu.addAction("--Experiment: %s--"%expName).setDisabled(True)
 		menu.addSeparator()
+		bibAction = menu.addAction("Open list of corresponding entries")
+		menu.addSeparator()
 		modAction = menu.addAction("Modify")
 		delAction = menu.addAction("Delete")
 		menu.addSeparator()
 		catAction = menu.addAction("Categories")
 		action = menu.exec_(event.globalPos())
 
-		if action == modAction:
+		if action == bibAction:
+			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
+			self.parent.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+		elif action == modAction:
 			editExperiment(self, self.parent, idExp)
 		elif action == delAction:
 			deleteExperiment(self, self.parent, idExp, expName)

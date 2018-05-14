@@ -671,7 +671,7 @@ class MainWindow(QMainWindow):
 			try:
 				lim = int(newSearchWin.limitValue.text())
 			except ValueError:
-				lim = 50
+				lim = pbConfig.params["defaultLimitBibtexs"]
 			try:
 				offs = int(newSearchWin.limitOffs.text())
 			except ValueError:
