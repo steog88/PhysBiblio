@@ -46,7 +46,7 @@ class webSearch(webInterf):
 			returns the bibtex string
 		"""
 		url = self.createUrl(string)
-		pBLogger.info("Search %s -> %s"%(string, url))
+		pBLogger.info("Search '%s' -> %s"%(string, url))
 		text = self.textFromUrl(url, self.headers)
 		try:
 			return text[:]

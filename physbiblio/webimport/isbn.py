@@ -39,7 +39,7 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["isbn"] = string
 		url = self.createUrl()
-		pBLogger.info("Search %s -> %s"%(string, url))
+		pBLogger.info("Search '%s' -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			return parse_accents_str(text[:])

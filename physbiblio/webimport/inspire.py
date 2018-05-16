@@ -49,7 +49,7 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		pBLogger.info("Search %s -> %s"%(string, url))
+		pBLogger.info("Search '%s' -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")
@@ -75,7 +75,7 @@ class webSearch(webInterf):
 		"""
 		self.urlArgs["p"] = string.replace(" ", "+")
 		url = self.createUrl()
-		pBLogger.info("Search %s -> %s"%(string, url))
+		pBLogger.info("Search '%s' -> %s"%(string, url))
 		text = self.textFromUrl(url)
 		try:
 			i1 = text.find("<pre>")

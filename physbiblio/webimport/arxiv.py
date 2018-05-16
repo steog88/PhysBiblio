@@ -89,7 +89,7 @@ class webSearch(webInterf):
 				self.urlArgs[k] = v
 		self.urlArgs["search_query"] = searchType + ":" + string
 		url = self.createUrl()
-		pBLogger.info("Search %s:%s -> %s"%(searchType, string, url))
+		pBLogger.info("Search '%s:%s' -> %s"%(searchType, string, url))
 		text = parse_accents_str(self.textFromUrl(url))
 		try:
 			data = feedparser.parse(text)
