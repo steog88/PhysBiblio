@@ -7,6 +7,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import re
 from pyparsing import ParseException
+from pylatexenc.latex2text import LatexNodes2Text
 
 try:
 	from physbiblio.errors import pBLogger
@@ -46,8 +47,9 @@ def writeBibtexInfo(entry):
 		if entry[t] == 1:
 			infoText += "(%s) "%convertType[t]
 	infoText += "<u>%s</u>  (use with '<u>\cite{%s}</u>')<br/>"%(entry["bibkey"], entry["bibkey"])
+	latexToText = LatexNodes2Text(keep_inline_math = True, keep_comments = False)
 	try:
-		infoText += "<b>%s</b><br/>%s<br/>"%(entry["bibtexDict"]["author"], entry["bibtexDict"]["title"])
+		infoText += "<b>%s</b><br/>%s<br/>"%(latexToText.latex_to_text(entry["bibtexDict"]["author"]), latexToText.latex_to_text(entry["bibtexDict"]["title"]))
 	except KeyError:
 		pass
 	try:
@@ -253,6 +255,7 @@ class MyBibTableModel(MyTableModel):
 	def __init__(self, parent, bib_list, header, stdCols = [], addCols = [], askBibs = False, previous = [], mainWin = None, *args):
 		self.parent = parent
 		self.mainWin = mainWin
+		self.latexToText = LatexNodes2Text(keep_inline_math = False, keep_comments = False)
 		self.typeClass = "Bibs"
 		self.dataList = bib_list
 		MyTableModel.__init__(self, parent, header + ["bibtex"], askBibs, previous, *args)
@@ -306,6 +309,8 @@ class MyBibTableModel(MyTableModel):
 			elif column < self.lenStdCols:
 				try:
 					value = self.dataList[row][self.stdCols[column]]
+					if self.stdCols[column] in ["title", "author"]:
+						value = self.latexToText.latex_to_text(value)
 				except KeyError:
 					value = ""
 			else:

@@ -6,6 +6,7 @@
 	* context menu action for opening entries corresponding to clicked category/experiment
 	* new shortcuts for refresh and reload
 	* enabled deletion of categories for selected entries
+	* improved utf-8 to latex conversion with pylatexenc
 
 0.3.0 (2018-05-08):
 	* profiles management goes through dedicated database

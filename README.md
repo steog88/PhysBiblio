@@ -104,6 +104,7 @@ PhysBiblio depends on several python packages:
 * dictdiffer (show differences between dictionaries)
 * feedparser (to deal with arXiv data)
 * matplotlib (to do some plots)
+* pylatexenc (conversion of accented and other utf-8 characters to latex commands)
 * pymarc (to deal with arXiv data)
 * pyoai	(for massively harvesting the INSPIRE-HEP database)
 * requests (download json pages)
