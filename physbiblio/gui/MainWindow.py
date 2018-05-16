@@ -879,9 +879,11 @@ class MainWindow(QMainWindow):
 			selImpo = advImportSelect(found, self)
 			selImpo.exec_()
 			if selImpo.result == True:
-				for ch in selImpo.checkBoxes:
-					if not ch.isChecked():
-						found.pop(ch.text())
+				newFound = {}
+				for ch, val in selImpo.selected.items():
+					if val:
+						newFound[ch] = found[ch]
+				found = newFound
 				db = bibtexparser.bibdatabase.BibDatabase()
 				inserted = []
 				for key, el in found.items():

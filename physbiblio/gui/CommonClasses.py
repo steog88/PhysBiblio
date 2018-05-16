@@ -32,12 +32,16 @@ class MyLabelCenter(QLabel):
 
 class objListWindow(QDialog):
 	"""create a window for printing the list of experiments"""
-	def __init__(self, parent = None):
+	def __init__(self, parent = None, gridLayout = False):
 		"""init using parent class and create common definitions"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
 		self.proxyModel = None
-		self.currLayout = QVBoxLayout()
+		self.gridLayout = gridLayout
+		if gridLayout:
+			self.currLayout = QGridLayout()
+		else:
+			self.currLayout = QVBoxLayout()
 		self.setLayout(self.currLayout)
 
 	def triggeredContextMenuEvent(self, row, col, event):
@@ -72,7 +76,7 @@ class objListWindow(QDialog):
 		self.proxyModel.sort(sortColumn, sortOrder)
 		self.currLayout.addWidget(self.tablewidget)
 
-	def finalizeTable(self):
+	def finalizeTable(self, gridPos = (1, 0)):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
 		self.tablewidget.resizeColumnsToContents()
 
@@ -90,7 +94,10 @@ class objListWindow(QDialog):
 		self.tablewidget.clicked.connect(self.cellClick)
 		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
 
-		self.currLayout.addWidget(self.tablewidget)
+		if self.gridLayout:
+			self.currLayout.addWidget(self.tablewidget, *gridPos)
+		else:
+			self.currLayout.addWidget(self.tablewidget)
 
 	def cleanLayout(self):
 		"""delete previous table widget"""
@@ -506,5 +513,57 @@ class guiViewEntry(viewEntry):
 			else:
 				pBLogger.warning("Opening link for '%s' failed!"%key)
 
-
 pBGuiView = guiViewEntry()
+
+class MyImportedTableModel(MyTableModel):
+	def __init__(self, parent, biblist, header, *args):
+		self.typeClass = "imports"
+		self.bibsOrder = [k for k in biblist.keys()]
+		self.dataList = [biblist[k]['bibpars'] for k in self.bibsOrder]
+		self.existList = [biblist[k]['exist'] for k in self.bibsOrder]
+		MyTableModel.__init__(self, parent, header, *args)
+		self.prepareSelected()
+
+	def getIdentifier(self, element):
+		return element["ID"]
+
+	def data(self, index, role):
+		if not index.isValid():
+			return None
+		row = index.row()
+		column = index.column()
+		try:
+			value = self.dataList[row][self.header[column]]
+		except (IndexError, KeyError):
+			return None
+
+		if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
+			if self.selectedElements[self.dataList[row]["ID"]] == False:
+				return Qt.Unchecked
+			else:
+				return Qt.Checked
+		if role in [Qt.EditRole, Qt.DisplayRole] and column == 0 and self.existList[row] is True:
+			return value + " - already existing"
+		if role == Qt.EditRole:
+			return value
+		if role == Qt.DisplayRole:
+			return value
+		return None
+
+	def setData(self, index, value, role):
+		if role == Qt.CheckStateRole and index.column() == 0:
+			if value == Qt.Checked:
+				self.selectedElements[self.dataList[index.row()]["ID"]] = True
+			else:
+				self.selectedElements[self.dataList[index.row()]["ID"]] = False
+
+		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		return True
+
+	def flags(self, index):
+		if not index.isValid():
+			return None
+		if index.column() == 0 and self.existList[index.row()] is False:
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		else:
+			return Qt.ItemIsEnabled | Qt.ItemIsSelectable

@@ -300,12 +300,11 @@ class advImportDialog(QDialog):
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
 
-class advImportSelect(QDialog):
+class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
-	def __init__(self, bibs=[], parent = None):
-		super(advImportSelect, self).__init__(parent)
+	def __init__(self, bibs = [], parent = None):
 		self.bibs = bibs
-		self.oneNew = False
+		super(advImportSelect, self).__init__(parent, gridLayout = True)
 		self.checkBoxes = []
 		self.initUI()
 
@@ -314,71 +313,67 @@ class advImportSelect(QDialog):
 		self.close()
 
 	def onOk(self):
+		self.selected = self.table_model.selectedElements
 		self.result	= True
 		self.close()
+
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Escape:
+			self.result	= False
+			self.close()
+
+	def changeFilter(self, string):
+		self.proxyModel.setFilterRegExp(str(string))
 
 	def initUI(self):
 		self.setWindowTitle('Advanced import - results')
 
-		grid = QGridLayout()
-		grid.setSpacing(1)
+		self.currLayout.setSpacing(1)
 
-		grid.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:\n"), 0, 0, 1, 2)
-		##search
-		i = 0
-		for bk, elDic in self.bibs.items():
-			el = elDic["bibpars"]
-			if elDic["exist"] is False:
-				self.checkBoxes.append(QCheckBox(bk, self))
-				self.checkBoxes[i].toggle()
-				grid.addWidget(self.checkBoxes[i], i+1, 0)
-				try:
-					title = el["title"]
-				except:
-					title = "Title not found"
-				try:
-					authors = el["author"]
-				except:
-					authors = "Authors not found"
-				try:
-					arxiv = el["arxiv"]
-				except:
-					try:
-						arxiv = el["eprint"]
-					except:
-						arxiv = "arXiv number not found"
-				grid.addWidget(QLabel("%s\n%s\n%s"%(title, authors, arxiv)), i+1, 1)
-				self.oneNew = True
-			else:
-				self.checkBoxes.append(QCheckBox(bk, self))
-				self.checkBoxes[i].setDisabled(True)
-				grid.addWidget(self.checkBoxes[i], i+1, 0)
-				grid.addWidget(QLabel("Already existing"), i+1, 1)
-			i += 1
+		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:\n"))
 
-		i += 2
-		grid.addWidget(QLabel("\n"), i-1, 1)
-		if self.oneNew:
-			grid.addWidget(QLabel("Ask categories at the end?"), i, 1)
-			self.askCats = QCheckBox("", self)
-			self.askCats.toggle()
-			grid.addWidget(self.askCats, i, 0)
+		headers = ["ID", "title", "author", "eprint", "doi"]
+		for k in self.bibs.keys():
+			try:
+				self.bibs[k]['bibpars']["eprint"] = self.bibs[k]['bibpars']["arxiv"]
+			except KeyError:
+				pass
+			try:
+				self.bibs[k]['bibpars']["author"] = self.bibs[k]['bibpars']["authors"]
+			except KeyError:
+				pass
+			for f in headers:
+				try:
+					self.bibs[k]['bibpars'][f] = self.bibs[k]['bibpars'][f].replace("\n", "")
+				except KeyError:
+					pass
+		self.table_model = MyImportedTableModel(self, self.bibs, headers)
+		self.addFilterInput("Filter entries")
+		self.setProxyStuff(0, Qt.AscendingOrder)
 
-			# OK button
-			self.acceptButton = QPushButton('OK', self)
-			self.acceptButton.clicked.connect(self.onOk)
-			grid.addWidget(self.acceptButton, i+1, 0)
+		self.finalizeTable(gridPos = (1, 0, 1, 2))
+
+		i = 2
+		self.askCats = QCheckBox("Ask categories at the end?", self)
+		self.askCats.toggle()
+		self.currLayout.addWidget(self.askCats, i, 0)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.currLayout.addWidget(self.acceptButton, i + 1, 0)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		grid.addWidget(self.cancelButton, i+1, 1)
+		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
-		self.setGeometry(100,100,400, 100)
-		self.setLayout(grid)
+	def triggeredContextMenuEvent(self, row, col, event):
+		pass
 
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
+	def cellClick(self, index):
+		pass
+
+	def cellDoubleClick(self, index):
+		pass
