@@ -110,7 +110,7 @@ class webSearch(webInterf):
 				try:
 					dictionary["doi"] = entry['arxiv_doi']
 				except KeyError as e:
-					pBLogger.warning("KeyError: %s"%e)
+					pBLogger.debug("KeyError: %s"%e)
 				dictionary["abstract"] = entry['summary'].replace("\n", " ")
 				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
 				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
