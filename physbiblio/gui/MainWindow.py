@@ -60,7 +60,18 @@ class MainWindow(QMainWindow):
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
-	
+
+		self.checkUpdated = thread_checkUpdated(self)
+		self.checkUpdated.finished.connect(self.checkUpdated.deleteLater)
+		self.checkUpdated.result.connect(self.printNewVersion)
+		self.checkUpdated.start()
+
+	def printNewVersion(self, outdated, newVersion):
+		if outdated:
+			pBGUILogger.warning("New version available (%s)!\nYou can upgrade with `pip install -U physbiblio`."%newVersion)
+		else:
+			pBLogger.info("No new versions available!")
+
 	def setIcon(self):
 		appIcon=QIcon(':/images/icon.png')
 		self.setWindowIcon(appIcon)

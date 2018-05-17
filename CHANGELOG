@@ -1,12 +1,19 @@
-0.x (2018-yy-xx):
-	* bug when managing gui warning messages in some python versions solved
+0.4.0 (2018-yy-xx):
+	Improvements:
+	* improved advanced import using a tablemodel
+	* context menu action for opening entries corresponding to clicked category/experiment
 	* argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
 	* full resume of exportForTexFile after many tex file processed
 	* cellDoubleClick supports opening any pdf when double clicking on pdf cell
-	* context menu action for opening entries corresponding to clicked category/experiment
-	* new shortcuts for refresh and reload
-	* enabled deletion of categories for selected entries
 	* improved utf-8 to latex conversion with pylatexenc
+
+	New features:
+	* enabled deleting of categories for selected entries
+	* check if new versions are available at startup
+
+	Bugs:
+	* bug when managing gui warning messages in some python versions solved
+	* new shortcuts for refresh and reload
 
 0.3.0 (2018-05-08):
 	* profiles management goes through dedicated database

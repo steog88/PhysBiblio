@@ -3,21 +3,30 @@
 import sys, time
 from PySide.QtCore import *
 from PySide.QtGui  import *
+from outdated import check_outdated
 
 try:
+	from physbiblio import __version__
 	from physbiblio.database import *
 	from physbiblio.pdf import pBPDF
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.export import pBExport
-	#import physbiblio.webimport.webInterf as webInt
-	#from physbiblio.cli import cli as physBiblioCLI
-	#from physbiblio.config import pbConfig
 	from physbiblio.gui.DialogWindows import *
-	#from physbiblio.gui.BibWindows import *
-	#from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.CommonClasses import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+
+class thread_checkUpdated(MyThread):
+	result = Signal(bool, str)
+
+	def __init__(self, parent = None):
+		super(thread_checkUpdated, self).__init__(parent)
+		self.parent = parent
+
+	def run(self):
+		outdated, newVersion = check_outdated('physbiblio', __version__)
+		self.result.emit(outdated, newVersion)
+		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):
 	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False):
