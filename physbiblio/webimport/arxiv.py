@@ -59,7 +59,7 @@ class webSearch(webInterf):
 		Output:
 			returns the bibtex string built from arxivRetriever
 		"""
-		return self.arxivRetriever(string, searchType, **kwargs)
+		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results": pbConfig.params["maxArxivResults"]}, **kwargs)
 
 	def arxivRetriever(self, string, searchType = "all", additionalArgs = None, fullDict = False):
 		"""

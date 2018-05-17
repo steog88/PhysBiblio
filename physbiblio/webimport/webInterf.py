@@ -48,7 +48,7 @@ class webInterf():
 
 		Uses the self.urlArgs dictionary to generate the list of HTTP GET parameters.
 		"""
-		return self.url + "?" + "&".join([a + "=" + b for a, b in self.urlArgs.items()])
+		return self.url + "?" + "&".join(["%s=%s"%(a, b) for a, b in self.urlArgs.items()])
 		
 	def textFromUrl(self, url, headers = None):
 		"""
