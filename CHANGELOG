@@ -1,6 +1,7 @@
 0.4.0 (2018-yy-xx):
 	Improvements:
 	* improved advanced import using a tablemodel
+	* advanced import checks arxiv and doi to mark entries as existing
 	* context menu action for opening entries corresponding to clicked category/experiment
 	* argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
 	* full resume of exportForTexFile after many tex file processed
@@ -14,6 +15,8 @@
 	Bugs:
 	* bug when managing gui warning messages in some python versions solved
 	* new shortcuts for refresh and reload
+	* bugs in config dialog solved
+	* fixed broken argParser tests
 
 0.3.0 (2018-05-08):
 	* profiles management goes through dedicated database
