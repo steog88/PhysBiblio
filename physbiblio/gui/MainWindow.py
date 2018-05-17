@@ -555,8 +555,8 @@ class MainWindow(QMainWindow):
 		self.myStatusBar.showMessage('Ready', 0)
 		self.setStatusBar(self.myStatusBar)
 		
-	def StatusBarMessage(self, message = "abc", time = 2000):
-		print("[StatusBar] %s"%message)
+	def StatusBarMessage(self, message = "abc", time = 4000):
+		pBLogger.info(message)
 		self.myStatusBar.showMessage(message, time)
 
 	def save(self):
@@ -882,7 +882,14 @@ class MainWindow(QMainWindow):
 				if el["ID"].strip() == "":
 					pBLogger.warning("Impossible to insert an entry with empty bibkey!\n%s\n"%el["ID"])
 				else:
-					found[el["ID"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["ID"], saveQuery = False) ) > 0}
+					exist = (len(pBDB.bibs.getByBibkey(el["ID"], saveQuery = False) ) > 0)
+					for f in ["arxiv", "doi"]:
+						try:
+							exist = (exist or
+								(el[f].strip != "" and len(pBDB.bibs.fetchAll(params = {f: el[f]}, saveQuery = False).lastFetched) > 0))
+						except KeyError as e:
+							pBLogger.debug(e)
+					found[el["ID"]] = {"bibpars": el, "exist": exist}
 			if len(found) == 0:
 				infoMessage("No results obtained.")
 				return False
@@ -912,11 +919,11 @@ class MainWindow(QMainWindow):
 							pBDB.bibs.updateInfoFromOAI(eid)
 						elif method == "isbn":
 							pBDB.bibs.setBook(key)
-						print("[advancedImport] element successfully inserted.\n")
+						pBLogger.info("Element '%s' successfully inserted.\n"%key)
 						inserted.append(key)
 					except:
 						pBLogger.warning("Failed in completing info for entry %s\n"%key)
-				self.StatusBarMessage("[advancedImport] entries successfully imported: %s"%inserted)
+				self.StatusBarMessage("[advancedImport] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)
 			self.reloadMainContent()
