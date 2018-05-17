@@ -4,6 +4,7 @@ from PySide.QtCore import *
 from PySide.QtGui  import *
 import subprocess
 import traceback
+import ast
 
 try:
 	from physbiblio.config import pbConfig
@@ -39,19 +40,19 @@ class configWindow(QDialog):
 
 	def editFolder(self, paramkey = "pdfFolder"):
 		ix = pbConfig.paramOrder.index(paramkey)
-		folder = askDirName(parent = None, dir = pbConfig.params[paramkey], title = "Directory for saving PDF files:")
+		folder = askDirName(parent = None, dir = self.textValues[ix][1].text(), title = "Directory for saving PDF files:")
 		if folder.strip() != "":
 			self.textValues[ix][1].setText(str(folder))
 
-	def editFile(self, paramkey, text, filter = ""):
+	def editFile(self, paramkey = "logFileName", text = "Name for the log file", filter = "*.log"):
 		ix = pbConfig.paramOrder.index(paramkey)
-		fname = askSaveFileName(parent = None, title = text, dir = pbConfig.params[paramkey], filter = filter)
+		fname = askSaveFileName(parent = None, title = text, dir = self.textValues[ix][1].text(), filter = filter)
 		if fname.strip() != "":
 			self.textValues[ix][1].setText(str(fname))
 
 	def editColumns(self):
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
-		window = configEditColumns(self)
+		window = configEditColumns(self, ast.literal_eval(self.textValues[ix][1].text().strip()))
 		window.exec_()
 		if window.result:
 			columns = window.selected
@@ -59,7 +60,7 @@ class configWindow(QDialog):
 
 	def editDefCats(self):
 		ix = pbConfig.paramOrder.index("defaultCategories")
-		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = pbConfig.params["defaultCategories"])
+		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = ast.literal_eval(self.textValues[ix][1].text().strip()))
 		selectCats.exec_()
 		if selectCats.result == "Ok":
 			self.textValues[ix][1].setText(str(self.selectedCats))
@@ -72,8 +73,6 @@ class configWindow(QDialog):
 
 		i = 0
 		for k in pbConfig.paramOrder:
-			if k == "mainDatabaseName":
-				continue
 			i += 1
 			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
 			grid.addWidget(QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)), i-1, 0, 1, 2)
@@ -91,7 +90,7 @@ class configWindow(QDialog):
 					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(pbConfig.defaultsParams["loggingLevel"])])])
 			elif k == "logFileName":
 				self.textValues.append([k, QPushButton(val)])
-				self.textValues[-1][1].clicked.connect(lambda: self.editFile(k, "Name for the log file", filter = "*.log"))
+				self.textValues[-1][1].clicked.connect(self.editFile)
 			elif k == "defaultCategories":
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editDefCats)

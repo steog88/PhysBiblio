@@ -94,7 +94,7 @@ loggingLevels = [
 	"3 - all"
 ]
 
-config_paramOrder = [ p["name"] for p in configuration_params ]
+config_paramOrder = [ p["name"] for p in configuration_params if p["name"] != "mainDatabaseName"]
 config_defaults = {}
 config_descriptions = {}
 config_special = {}
@@ -537,8 +537,6 @@ class ConfigVars():
 				if k == defProf:
 					self.profilesDb.setDefaultProfile(k)
 				for p in self.paramOrder:
-					if p == "mainDatabaseName":
-						continue
 					if self.params[p] != config_defaults[p]:
 						configDb.insert(p, str(self.params[p]))
 				tempDb.commit()

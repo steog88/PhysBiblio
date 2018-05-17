@@ -59,10 +59,11 @@ def infoMessage(message, title = "Information"):
 	reply = QMessageBox.information(None, title, message)
 
 class configEditColumns(QDialog):
-	def __init__(self, parent = None):
+	def __init__(self, parent = None, previous = None):
 		super(configEditColumns, self).__init__(parent)
 		self.excludeCols = ["crossref", "bibtex", "exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
 		self.moreCols = ["title", "author", "journal", "volume", "pages", "primaryclass", "booktitle", "reportnumber"]
+		self.previousSelected = previous if previous is not None else pbConfig.params["bibtexListColumns"]
 		self.initUI()
 
 	def onCancel(self):
@@ -87,7 +88,7 @@ class configEditColumns(QDialog):
 		self.layout.addWidget(self.listSel, 1, 1)
 
 		self.allItems = pBDB.descriptions["entries"].keys() + self.moreCols
-		self.selItems = pbConfig.params["bibtexListColumns"]
+		self.selItems = self.previousSelected
 		i=0
 		for col in self.allItems:
 			if col not in self.selItems and col not in self.excludeCols:
