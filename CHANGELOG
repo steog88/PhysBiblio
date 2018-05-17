@@ -1,7 +1,7 @@
 0.4.0 (2018-yy-xx):
 	Improvements:
 	* improved advanced import using a tablemodel
-	* advanced import checks arxiv and doi to mark entries as existing
+	* advanced import and loadAndInsert check arxiv and doi to mark entries as existing
 	* context menu action for opening entries corresponding to clicked category/experiment
 	* argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
 	* full resume of exportForTexFile after many tex file processed

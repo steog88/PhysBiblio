@@ -2327,6 +2327,14 @@ class entries(physbiblioDBSub):
 			self.lastInserted = []
 		if entry is not None and not type(entry) is list:
 			existing = self.getByBibkey(entry, saveQuery = False)
+			exist = (len(existing) > 0)
+			for f in ["arxiv", "doi"]:
+				try:
+					temp = self.fetchAll(params = {f: entry}, saveQuery = False).lastFetched
+					exist = (exist or (len(temp) > 0))
+					existing += temp
+				except KeyError:
+					pBLogger.debug("Error", exc_info = True)
 			if existing:
 				return printExisting(entry, existing)
 			if method == "bibtex":
@@ -2360,6 +2368,15 @@ class entries(physbiblioDBSub):
 				pBLogger.error("Impossible to insert an entry with empty bibkey!\n%s\n"%entry)
 				return False
 			existing = self.getByBibkey(key, saveQuery = False)
+			exist = (len(existing) > 0)
+			for f in ["arxiv", "doi"]:
+				try:
+					if data[f].strip() != "":
+						temp = self.fetchAll(params = {f: data[f]}, saveQuery = False).lastFetched
+						exist = (exist or (len(temp) > 0))
+						existing += temp
+				except (AttributeError, KeyError):
+					pBLogger.debug("Error", exc_info = True)
 			if existing:
 				return printExisting(key, existing)
 			pBLogger.info("Entry will have key: '%s'"%key)
