@@ -45,7 +45,8 @@ def call_tests(args):
 def call_tex(args):
 	"""Function used when the "tex" subcommand is called"""
 	from physbiblio.export import pBExport
-	pBExport.exportForTexFile(args.texFiles, args.bibFile, overwrite = args.overwrite, autosave = args.save)
+	pBExport.exportForTexFile(args.texFiles, args.bibFile, overwrite = args.overwrite, autosave = args.save,
+		updateExisting = args.updateExisting, removeUnused = args.removeUnused)
 
 def call_update(args):
 	"""Function used when the "update" subcommand is called"""
@@ -144,7 +145,9 @@ def setParser():
 	parser_tex.add_argument('bibFile', metavar = 'bibfilename', help = 'the filename of the bib file where to write')
 	parser_tex.add_argument('texFiles', metavar = 'texfilename', help = 'the filename of the tex file to read. A folder or wildcards are admitted', nargs = '+')
 	parser_tex.add_argument('-o', '--overwrite', dest = 'overwrite', action='store_true', help = 'overwrite the bib file, if existing')
+	parser_tex.add_argument('-r', '--removeUnused', dest = 'removeUnused', action='store_true', help = 'remove from the .bib file those elements that are not more used in the tex')
 	parser_tex.add_argument('-s', '--save', dest = 'save', action='store_false', help = 'save the changes in the database')
+	parser_tex.add_argument('-u', '--updateExisting', dest = 'updateExisting', action='store_true', help = 'update the elements in the .bib file if they changed in the database and remove duplicated entries')
 	parser_tex.set_defaults(func = call_tex)
 
 	parser_update = subparsers.add_parser('update', help = 'use INSPIRE to update the information in the database')

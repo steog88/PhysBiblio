@@ -28,6 +28,7 @@ class pbExport():
 		"""
 		self.exportForTexFlag = True
 		self.backupExtension = ".bck"
+		self.unwantedFields = ["owner", "timestamp", "__markedentry", "abstract"]
 
 	def backupCopy(self, fileName):
 		"""
@@ -148,7 +149,8 @@ class pbExport():
 			pBLogger.info("No elements to export!")
 		self.rmBackupCopy(fileName)
 
-	def exportForTexFile(self, texFileName, outFileName, overwrite = False, autosave = True):
+	def exportForTexFile(self, texFileName, outFileName, overwrite = False, autosave = True,
+			updateExisting = False, removeUnused = False, newOperation = True):
 		"""
 		Reads a .tex file looking for the \cite{} commands, collects the bibtex entries cited in the text and stores them in a bibtex file.
 		The entries are taken from the database first, or from INSPIRE-HEP if possible.
@@ -159,12 +161,19 @@ class pbExport():
 			outFileName: the name of the output file, where the required entries will be added
 			overwrite (boolean, default False): if True, the previous version of the file is replaced and no backup copy is created
 			autosave (boolean, default True): if True, the changes to the database are automatically saved.
+			updateExisting (boolean, default False): if True, remove duplicates and update entries that have been chenged in the DB
+			removeUnused (boolean, default False): if True, remove bibtex entries that are no more cited in the tex files
+			newOperation (boolean, default True): reset the self.existingBibsList and read file .bib content. Time consuming! better to just keep it updated when using multiple texs...
 
 		Output:
 			True if successful, False if errors occurred
 		"""
-		def printOutput(reqBibkeys, miss, retr, nFound, unexp, nKeys, warn, full = False):
+		db = bibtexparser.bibdatabase.BibDatabase()
+
+		def printOutput(reqBibkeys, miss, retr, nFound, unexp, nKeys, warn, totalCites, full = False):
 			pBLogger.info("\n\nRESUME")
+			if totalCites is not None:
+				pBLogger.info("%d keys found in .tex file"%totalCites)
 			pBLogger.info("%d new keys found in .tex file"%len(reqBibkeys))
 			j = ', '
 			if full:
@@ -184,8 +193,36 @@ class pbExport():
 				pBLogger.info(j.join(unexp))
 			if len(nKeys.keys()) > 0:
 				pBLogger.info("Possible non-matching keys in %d entries:\n"%len(nKeys.keys()) + \
-					"\n".join(["'%s' => %s"%(k, ", ".join(n) ) for k, n in nKeys.items() ] ) )
+					"\n".join(["'%s' => '%s'"%(k, n) for k, n in nKeys.items() ] ) )
 			pBLogger.info("     %s warning(s) occurred!"%warn)
+
+		def saveEntryOutBib(a, m = None):
+			"""
+			Remove unwanted fields and add the bibtex entry to the output file
+
+			Parameters:
+				a: the bibtex entry
+				m: the ID (bibtex key) of the entry, if it is not the default one
+			"""
+			entry = bibtexparser.loads(a).entries[0]
+			for u in self.unwantedFields:
+				try:
+					del entry[u]
+				except KeyError:
+					pass
+			if m is not None:
+				m = m.strip()
+				if m.lower() != entry["ID"].strip().lower():
+					entry["ID"] = m
+			db.entries = [entry]
+			bibf = pbWriter.write(db)
+			try:
+				with open(outFileName, "a") as o:
+					o.write(bibf)
+					pBLogger.info("%s inserted in output file"%m)
+			except IOError:
+				pBLogger.exception("Impossible to write file '%s'"%outFileName)
+				return False
 
 		self.exportForTexFlag = True
 		pBLogger.info("Starting exportForTexFile...\n\n")
@@ -194,19 +231,6 @@ class pbExport():
 		if autosave:
 			pBLogger.info("Changes will be automatically saved at the end!")
 
-		if overwrite:
-			try:
-				with open(outFileName, "w") as o:
-					o.write("%file written by PhysBiblio\n")
-			except IOError:
-				pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
-
-		try:
-			existingBib = open(outFileName, "r").read()
-		except IOError:
-			pBLogger.exception("Cannot read file %s."%outFileName)
-			return False
-
 		missing = []
 		newKeys = {}
 		notFound = []
@@ -214,53 +238,71 @@ class pbExport():
 		retrieved = []
 		unexpected = []
 		warnings = 0
+		totalCites = 0
 
-		if type(texFileName) is list:
-			if len(texFileName) == 0:
-				return False
-			for t in texFileName:
-				req, m, ret, nF, un, nK, w = self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave)
-				requiredBibkeys += req
-				missing += m
-				retrieved += ret
-				notFound += nF
-				unexpected += un
-				for k, v in nK.items():
-					newKeys[k] = v
-				warnings += w
-			pBLogger.info("Done for all the texFiles.\n\n")
-			printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, full = True)
-			return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings
-
-		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
-		unw1 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?,[\n]*')	#remove unwanted fields
-		unw2 = re.compile('[ ]*(Owner|Timestamp|__markedentry|File)+[ ]*=.*?[\n ]*\}')	#remove unwanted fields
-		unw3 = re.compile('[ ]*Abstract[ ]*=[ ]*[{]+(.*?)[}]+,', re.MULTILINE)		#remove Abstract field
-		bibel = re.compile('@[a-zA-Z]*\{([A-Za-z]*:[0-9]*[a-z]*)?,', re.MULTILINE | re.DOTALL)	#find the @Article(or other)...}, entry for the key "m"
-		bibty = re.compile('@[a-zA-Z]*\{', re.MULTILINE | re.DOTALL)	#find the @Article(or other) entry for the key "m"
-
-		def saveEntryOutBib(a):
-			"""
-			Remove unwanted fields and add the bibtex entry to the output file
-
-			Parameters:
-				a: the bibtex entry
-			"""
-			bib = '@' + a.replace('@', '')
-			for u in unw1.finditer(bib):
-				bib = bib.replace(u.group(), '')
-			for u in unw2.finditer(bib):
-				bib = bib.replace(u.group(), '')
-			for u in unw3.finditer(bib):
-				bib = bib.replace(u.group(), '')
-			bibf = '\n'.join([line for line in bib.split('\n') if line.strip() ])
+		#if overwrite, reset the output file
+		if overwrite:
 			try:
-				with open(outFileName, "a") as o:
-					o.write(bibf + "\n")
-					pBLogger.info("%s inserted in output file"%m)
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n")
+			except IOError:
+				pBLogger.exception("Cannot write on file.\nCheck the file permissions.")
+				return False
+
+		#read previous content of output file, if any
+		try:
+			with open(outFileName, "r") as f:
+				existingBibText = f.read()
+		except IOError:
+			pBLogger.exception("Cannot read file %s."%outFileName)
+			return False
+
+		#this is time consuming if there are many entries. Do not load it every time for multiple texs!
+		if newOperation:
+			self.existingBibsList = bibtexparser.loads(existingBibText).entries
+		# work with dictionary, so that if there are repeated entries (entries with same ID) they are automatically discarded
+		existingBibsDict = { e["ID"]: e for e in self.existingBibsList}
+
+		#if requested, do some cleaning
+		if updateExisting:
+			#update entry from DB if existing
+			for k, v in existingBibsDict.items():
+				e = pBDB.bibs.getByBibtex(k, saveQuery = False)
+				if len(e)>0 and e[0]["bibtexDict"] != v:
+					existingBibsDict[k] = e[0]["bibtexDict"]
+
+			#write new (updated) bib content (so also repeated entries are removed)
+			db.entries = [e for e in existingBibsDict.values()]
+			bibf = pbWriter.write(db)
+			try:
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n" + bibf)
+					pBLogger.info("Output file updated")
 			except IOError:
 				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 
+		#if there is a list of tex files, run this function for each of them...no updateExisting and removeUnused!
+		if type(texFileName) is list:
+			if len(texFileName) == 0:
+				return False
+			elif len(texFileName) == 1:
+				texFileName = texFileName[0]
+			else:
+				for t in texFileName:
+					req, m, ret, nF, un, nK, w, cits = self.exportForTexFile(t, outFileName, overwrite = False, autosave = autosave, updateExisting = False, removeUnused = False, newOperation = False)
+					requiredBibkeys += req
+					missing += m
+					retrieved += ret
+					notFound += nF
+					unexpected += un
+					for k, v in nK.items():
+						newKeys[k] = v
+					warnings += w
+				pBLogger.info("Done for all the texFiles.\n\n")
+				printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, None, full = True)
+				return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, None
+
+		#read the texFile
 		keyscont=""
 		try:
 			with open(texFileName) as r:
@@ -269,64 +311,94 @@ class pbExport():
 			pBLogger.exception("The file %s does not exist."%texFileName)
 			return False
 
+		#extract \cite* commands
+		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
 		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
+		#extract required keys from \cite* commands
+		citations = set([])
 		for c in citaz:
-			b = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '')
-			d = b.replace(' ', '')
-			b = d.replace('\n', '')
-			d = b.replace(r'}', '')
-			a = d.split(',')
+			a = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '').replace(' ', '').replace('\n', '').replace(r'}', '').split(',')
 			for e in a:
-				if e not in requiredBibkeys and e not in existingBib and e.strip() != "":
-					requiredBibkeys.append(e)
-		pBLogger.info("%d new keys found"%len(requiredBibkeys))
+				e = e.strip()
+				if e == "":
+					continue
+				citations.add(e)
+				if e not in requiredBibkeys:
+					try:
+						#this it's just to check if already present
+						tmp = existingBibsDict[e]
+					except KeyError:
+						requiredBibkeys.append(e)
+		pBLogger.info("%d new keys found, %d in total."%(len(requiredBibkeys), len(citations)))
 
-		for s in requiredBibkeys:
-			if not pBDB.bibs.getByBibtex(s) and s.strip() != "":
-				missing.append(s)
+		#if True, remove unused bibtex entries
+		if removeUnused:
+			newDict = {}
+			for k, v in existingBibsDict.items():
+				if e in citations:
+					newDict[k] = existingBibsDict[k]
+			db.entries = [e for e in newDict.values()]
+			bibf = pbWriter.write(db)
+			try:
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n" + bibf)
+					pBLogger.info("Output file updated")
+			except IOError:
+				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 
+		#check what is missing in the database and insert/import what is needed:
 		for m in requiredBibkeys:
-			if m in missing and self.exportForTexFlag:
+			if m.strip() == "":
+				continue
+			entry = pBDB.bibs.getByBibtex(m)
+			entryMissing = len(entry) == 0
+			if not self.exportForTexFlag:
+				#if flag set, stop execution and go to the end skipping everything
+				continue
+			elif not entryMissing:
+				#if already in the database, just insert it as it is
+				bibtex = entry[0]["bibtex"]
+				bibtexDict = entry[0]["bibtexDict"]
+			else:
+				#if no entry is found, mark it as missing
+				missing.append(m)
+				#if not present, try INSPIRE import
 				pBLogger.info("Key '%s' missing, trying to import it from Web"%m)
 				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
-				newCheck = pBDB.bibs.getByBibkey(m, saveQuery = False)
+				newCheck = pBDB.bibs.getByBibtex(m, saveQuery = False)
 
+				#if the import worked, insert the entry
 				if len(newCheck) > 0:
-					pBDB.catBib.insert(pbConfig.params["defaultCategories"], m)
-					retrieved.append(m)
-					try:
-						saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
-					except:
-						unexpected.append(m)
-						pBLogger.exception("Unexpected error in saving entry '%s' into the output file"%m)
+					#if key is not matching, just replace it in the exported bib and print a message
+					if m.strip().lower() != newCheck[0]["bibkey"].lower():
+						warnings += 1
+						newKeys[m] = newCheck[0]["bibkey"]
+					if newCheck[0]["bibkey"] not in retrieved:
+						retrieved.append(newCheck[0]["bibkey"])
+					pBDB.catBib.insert(pbConfig.params["defaultCategories"], newCheck[0]["bibkey"])
+					bibtex = newCheck[0]["bibtex"]
+					bibtexDict = newCheck[0]["bibtexDict"]
 				else:
-					if newWeb and not newWeb.find(m) > 0:
-						warnings += 1
-						t = [ j.group() for j in bibel.finditer(newWeb) ]
-						t1 = []
-						for s in t:
-							for u in bibty.finditer(s):
-								s = s.replace(u.group(), '')
-							s = s.replace(',', '')
-							t1.append(s)
-						newKeys[m] = t1
-					else:
-						notFound.append(m)
-						warnings += 1
+					#if nothing found, add a warning for the end
+					warnings += 1
+					notFound.append(m)
+					continue
 				pBLogger.info("\n")
-			else:
-				try:
-					saveEntryOutBib(pBDB.bibs.getField(m, "bibtex"))
-				except:
-					unexpected.append(m)
-					pBLogger.exception("Unexpected error in extracting entry '%s' to the output file"%m)
+			#save in output file
+			try:
+				bibtexDict["ID"] = m
+				self.existingBibsList.append(bibtexDict)
+				saveEntryOutBib(bibtex, m)
+			except:
+				unexpected.append(m)
+				pBLogger.exception("Unexpected error in extracting entry '%s' to the output file"%m)
 
 		if autosave:
 			pBDB.commit()
-		printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings)
-		return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings
+		printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(citations))
+		return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(citations)
 
 	def updateExportedBib(self, fileName, overwrite = False):
 		"""

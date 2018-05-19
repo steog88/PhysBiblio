@@ -88,44 +88,45 @@ class TestExportMethods(unittest.TestCase):
 	def test_exportForTexFile(self):
 		"""test exportForTexFile function with a fake tex and database"""
 		testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib"%today_ymd)
-		self.assertFalse(os.path.exists(testBibName))
 		testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex"%today_ymd)
 		texString = "\cite{empty,prova, empty2}\citep{empty2}\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
 		open(testTexName, "w").write(texString)
 		self.assertEqual(open(testTexName).read(), texString)
-		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}, {"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
+		sampleList = [{"bibkey": "empty", "bibtex": '@Article{empty,\n        author = "me",\n         title = "{no}",\n}'},
+			{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 
+		self.assertFalse(os.path.exists(testBibName))
 		with patch('physbiblio.database.catsEntries.insert', return_value = True) as _ceins:
-			with patch('physbiblio.database.entries.getByBibkey', side_effect = [
-					[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
+			with patch('physbiblio.database.entries.getByBibtex', side_effect = [
+					[{"bibkey": "empty", "bibtexDict": {}, "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
 					[],
-					[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
-					[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-					[{"bibkey": "Gariazzo:2015rra", "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
-					[], []]) as _getbbibk:
-				with patch('physbiblio.database.entries.getByBibtex', side_effect = [
-						[{"bibkey": "empty", "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
-						[],
-						[{"bibkey": "empty2", "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
-						[], []]) as _getbbibt:
-					with patch('physbiblio.database.entries.loadAndInsert',
-							side_effect = [
-								'@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}',
-								'@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}',
-								'']) as _mock:
+					[{"bibkey": "Gariazzo:2015rra", "bibtexDict": {}, "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+					[{"bibkey": "empty2", "bibtexDict": {}, "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
+					[],
+					[{"bibkey": "Gariazzo:2015rra", "bibtexDict": {}, "bibtex": '@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}'}],
+					[],
+					[],
+					]) as _getbbibt:
+				with patch('physbiblio.database.entries.loadAndInsert',
+						side_effect = [
+							'@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}',
+							'@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}',
+							'']) as _mock:
 						output = pBExport.exportForTexFile(testTexName, testBibName, overwrite = True, autosave = False)
-		self.assertEqual(output[0], ['empty', 'prova', 'empty2', 'Gariazzo:2015rra', 'Gariazzo:2017rra'])
-		self.assertEqual(output[1], ['prova', 'Gariazzo:2015rra', 'Gariazzo:2017rra'])
-		self.assertEqual(output[2], ['Gariazzo:2015rra'])
-		self.assertEqual(output[3], ['Gariazzo:2017rra'])
-		self.assertEqual(output[4], [])
-		self.assertEqual(output[5], {'prova': ['Gariazzo:2015rra']})
-		self.assertEqual(output[6], 2)
+		self.assertEqual(output[0], ['empty', 'prova', 'empty2', 'Gariazzo:2015rra', 'Gariazzo:2017rra']) #requiredBibkeys
+		self.assertEqual(output[1], ['prova', 'Gariazzo:2015rra', 'Gariazzo:2017rra']) #missing
+		self.assertEqual(output[2], ['Gariazzo:2015rra']) #retrieved
+		self.assertEqual(output[3], ['Gariazzo:2017rra']) #notFound
+		self.assertEqual(output[4], []) #unexpected
+		self.assertEqual(output[5], {'prova': 'Gariazzo:2015rra'}) #newKeys
+		self.assertEqual(output[6], 2) #warnings
+		self.assertEqual(output[7], 5) #total
 		self.assertTrue(os.path.exists(testBibName))
 		with open(testBibName) as f:
-			self.assertEqual(f.read(), '%file written by PhysBiblio\n@Article{empty,\nauthor="me",\ntitle="no"\n}\n@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n@article{Gariazzo:2015rra,\nauthor= "Gariazzo, S. and others",\ntitle="{Light sterile neutrinos}",\n}\n')
+			self.assertEqual(f.read(), '%file written by PhysBiblio\n@Article{empty,\n        author = "me",\n         title = "{no}",\n}\n\n@Article{prova,\n        author = "Gariazzo, S. and others",\n         title = "{Light sterile neutrinos}",\n}\n\n@Article{empty2,\n        author = "me2",\n         title = "{yes}",\n}\n\n@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and others",\n         title = "{Light sterile neutrinos}",\n}\n\n')
 		os.remove(testBibName)
 		os.remove(testTexName)
+		#add tests without overwrite = True and using new options updateExisting, removeUnused
 
 if __name__=='__main__':
 	unittest.main()
