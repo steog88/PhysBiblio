@@ -20,6 +20,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.errors import pBLogger
+	from physbiblio.export import pBExport
 	from physbiblio.config import pbConfig
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
@@ -1005,6 +1006,15 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchCurs], ["abc", "def", "ghi"])
 		self.assertEqual(self.pBDB.bibs.lastFetched, "test")
+
+		testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib"%today_ymd)
+		sampleTxt = '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}\n@Article{def,\n        author = "me",\n         title = "{def}",\n}\n@Article{ghi,\n        author = "me",\n         title = "{ghi}",\n}\n'
+		self.pBDB.bibs.fetchAll(doFetch = False)
+		with patch('physbiblio.database.entries.fetchCursor', return_value = self.pBDB.bibs.fetchCursor()) as _curs:
+			pBExport.exportAll(testBibName)
+		with open(testBibName) as f:
+			self.assertEqual(f.read(), sampleTxt)
+		os.remove(testBibName)
 
 	def test_fetchByBibkey(self):
 		"""Test the fetchByBibkey and getByBibkey functions"""

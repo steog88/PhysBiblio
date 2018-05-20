@@ -8,6 +8,7 @@
 	* cellDoubleClick supports opening any pdf when double clicking on pdf cell
 	* improved utf-8 to latex conversion with pylatexenc
 	* exportForTexFile improved quite a lot
+	* speed-up of exportAll, exportLast, exportSelected
 
 	New features:
 	* enabled deleting of categories for selected entries

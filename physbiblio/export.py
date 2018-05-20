@@ -205,6 +205,23 @@ class pbExport():
 				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 				return False
 
+		def removeUnusedBibtexs(existingBibsDict):
+			"""
+			Functions that reads the list of bibtex entries in the existing .bib file and removes the ones that are not inside \cite commands
+			"""
+			newDict = {}
+			for k, v in existingBibsDict.items():
+				if k in self.allCitations:
+					newDict[k] = existingBibsDict[k]
+			db.entries = [e for e in newDict.values()]
+			bibf = pbWriter.write(db)
+			try:
+				with open(outFileName, "w") as o:
+					o.write("%file written by PhysBiblio\n" + bibf)
+					pBLogger.info("Output file updated")
+			except IOError:
+				pBLogger.exception("Impossible to write file '%s'"%outFileName)
+
 		self.exportForTexFlag = True
 		pBLogger.info("Starting exportForTexFile...\n\n")
 		pBLogger.info("Reading keys from '%s'"%texFileName)
@@ -240,6 +257,7 @@ class pbExport():
 
 		#this is time consuming if there are many entries. Do not load it every time for multiple texs!
 		if newOperation:
+			self.allCitations = set([])
 			self.existingBibsList = bibtexparser.loads(existingBibText).entries
 		# work with dictionary, so that if there are repeated entries (entries with same ID) they are automatically discarded
 		existingBibsDict = { e["ID"]: e for e in self.existingBibsList}
@@ -280,8 +298,10 @@ class pbExport():
 						newKeys[k] = v
 					warnings += w
 				pBLogger.info("Done for all the texFiles.\n\n")
-				printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, None, full = True)
-				return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, None
+				if removeUnused:
+					removeUnusedBibtexs(existingBibsDict)
+				printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(self.allCitations), full = True)
+				return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(self.allCitations)
 
 		#read the texFile
 		keyscont=""
@@ -298,36 +318,24 @@ class pbExport():
 		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
 		#extract required keys from \cite* commands
-		citations = set([])
 		for c in citaz:
 			a = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '').replace(' ', '').replace('\n', '').replace(r'}', '').split(',')
 			for e in a:
 				e = e.strip()
 				if e == "":
 					continue
-				citations.add(e)
+				self.allCitations.add(e)
 				if e not in requiredBibkeys:
 					try:
 						#this it's just to check if already present
 						tmp = existingBibsDict[e]
 					except KeyError:
 						requiredBibkeys.append(e)
-		pBLogger.info("%d new keys found, %d in total."%(len(requiredBibkeys), len(citations)))
+		pBLogger.info("%d new keys found, %d in total."%(len(requiredBibkeys), len(self.allCitations)))
 
 		#if True, remove unused bibtex entries
 		if removeUnused:
-			newDict = {}
-			for k, v in existingBibsDict.items():
-				if e in citations:
-					newDict[k] = existingBibsDict[k]
-			db.entries = [e for e in newDict.values()]
-			bibf = pbWriter.write(db)
-			try:
-				with open(outFileName, "w") as o:
-					o.write("%file written by PhysBiblio\n" + bibf)
-					pBLogger.info("Output file updated")
-			except IOError:
-				pBLogger.exception("Impossible to write file '%s'"%outFileName)
+			removeUnusedBibtexs(existingBibsDict)
 
 		#check what is missing in the database and insert/import what is needed:
 		for m in requiredBibkeys:
@@ -378,8 +386,8 @@ class pbExport():
 
 		if autosave:
 			pBDB.commit()
-		printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(citations))
-		return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(citations)
+		printOutput(requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(self.allCitations))
+		return requiredBibkeys, missing, retrieved, notFound, unexpected, newKeys, warnings, len(self.allCitations)
 
 	def updateExportedBib(self, fileName, overwrite = False):
 		"""
