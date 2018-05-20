@@ -240,6 +240,8 @@ class pbExport():
 
 		#if overwrite, reset the output file
 		if overwrite:
+			updateExisting = False
+			removeUnused = False
 			try:
 				with open(outFileName, "w") as o:
 					o.write("%file written by PhysBiblio\n")

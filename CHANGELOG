@@ -1,4 +1,4 @@
-0.4.0 (2018-yy-xx):
+0.4.0 (2018-05-18):
 	Improvements:
 	* improved advanced import using a tablemodel
 	* advanced import and loadAndInsert check arxiv and doi to mark entries as existing
