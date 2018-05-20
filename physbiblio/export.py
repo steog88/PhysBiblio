@@ -88,20 +88,10 @@ class pbExport():
 		Parameters:
 			fileName: the name of the output bibtex file
 		"""
-		self.backupCopy(fileName)
 		if pBDB.bibs.lastFetched:
-			txt = ""
-			for q in pBDB.bibs.lastFetched:
-				txt += q["bibtex"] + "\n"
-			try:
-				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
-					bibfile.write(txt)
-			except Exception:
-				pBLogger.exception("Problems in exporting .bib file!")
-				self.restoreBackupCopy(fileName)
+			self.exportRows(fileName, pBDB.bibs.lastFetched)
 		else:
 			pBLogger.info("No last selection to export!")
-		self.rmBackupCopy(fileName)
 
 	def exportAll(self, fileName):
 		"""
@@ -110,23 +100,16 @@ class pbExport():
 		Parameters:
 			fileName: the name of the output bibtex file
 		"""
-		self.backupCopy(fileName)
 		pBDB.bibs.fetchAll(saveQuery = False, doFetch = False)
-		txt = ""
-		for q in pBDB.bibs.fetchCursor():
-			txt += q["bibtex"] + "\n"
-		if txt != "":
-			try:
-				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
-					bibfile.write(txt)
-			except Exception:
-				pBLogger.exception("Problems in exporting .bib file!", traceback)
-				self.restoreBackupCopy(fileName)
-		else:
-			pBLogger.info("No elements to export!")
-		self.rmBackupCopy(fileName)
+		self.exportRows(fileName, pBDB.bibs.fetchCursor())
 
 	def exportSelected(self, fileName, rows):
+		"""
+		An alias for exportRows
+		"""
+		self.exportRows(fileName, rows)
+
+	def exportRows(self, fileName, rows):
 		"""
 		Export the given entries into a .bib file.
 
@@ -135,15 +118,13 @@ class pbExport():
 			rows: the list of entries to be exported
 		"""
 		self.backupCopy(fileName)
-		if len(rows) > 0:
-			txt = ""
-			for q in rows:
-				txt += q["bibtex"] + "\n"
+		if rows != []:
 			try:
 				with codecs.open(fileName, 'w', 'utf-8') as bibfile:
-					bibfile.write(txt)
+					for q in rows:
+						bibfile.write(q["bibtex"] + "\n")
 			except Exception:
-				pBLogger.exception("Problems in exporting .bib file!")
+				pBLogger.exception("Problems in exporting .bib file!", traceback)
 				self.restoreBackupCopy(fileName)
 		else:
 			pBLogger.info("No elements to export!")
