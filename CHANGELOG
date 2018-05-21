@@ -1,7 +1,9 @@
+0.4.1 (2018-05-21):
+	* bug when dealing with accents
 	* Conda instructions in readme
 	* config and data paths in About
 
-0.4.0 (2018-05-18):
+0.4.0 (2018-05-20):
 	Improvements:
 	* improved advanced import using a tablemodel
 	* advanced import and loadAndInsert check arxiv and doi to mark entries as existing
