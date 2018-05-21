@@ -24,12 +24,6 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
-encoding_default = 'iso-8859-15'
-parser = bibtexparser.bparser.BibTexParser()
-parser.encoding = encoding_default
-parser.customization = parse_accents_record
-parser.alt_dict = {}
-
 class physbiblioDB(physbiblioDBCore):
 	"""
 	Subclassing physbiblioDBCore to add reOpenDB and loadSubClasses implementations.
@@ -2832,7 +2826,7 @@ class entries(physbiblioDBSub):
 					element = bibtexparser.loads(e["bibtex"]).entries[0]
 					db.entries = []
 					db.entries.append(element)
-					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(parse_accents_str(pbWriter.write(db).strip())))
 					if e["bibtex"] != newbibtex and self.updateField(e["bibkey"], "bibtex", newbibtex):
 						pBLogger.info("-- element changed!")
 						changed.append(e["bibkey"])
