@@ -73,7 +73,7 @@ sudo pip install -U physbiblio
 ```
 or
 ```
-sudo pip install -U physbiblio
+pip install -U physbiblio
 ```
 
 ### Test that everything works
