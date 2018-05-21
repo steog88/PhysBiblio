@@ -17,6 +17,7 @@ Please report any bug that you find [here](https://github.com/steog88/physBiblio
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
+#### Python2
 If you use `python 2+`, simply use (system-wide install)
 ```
 sudo pip install pyside physbiblio
@@ -33,6 +34,7 @@ sudo apt install python-pyside
 sudo pip install physbiblio
 ```
 
+#### Python3
 For `python 3+`, the situation is complicated by the fact that
 the series `1.x` of `PySide` available through `pip` does not support Python versions newer than 3.5+, so you cannot install `PySide` with `pip3` if you have a newer version than the 3.5.
 This can be solved again if you install `PySide` with the package manager of your system, for example in Ubuntu using
@@ -41,6 +43,23 @@ sudo apt install python3-pyside
 sudo pip3 install physbiblio
 ```
 
+#### Conda
+Here you find a list of instructions to install and run `PhysBiblio` using `conda` and related commands.
+It is convenient to use a dedicated environment and python 2+, as `PySide` has problems with newer python versions.
+```
+conda create --name physbiblio python=2
+conda activate physbiblio
+conda install PySide
+pip install physbiblio
+```
+At this point, the installation is complete.
+To launch the main program correctly, once you have activated the appropriate `conda` environment (`conda activate physbiblio`), use:
+```
+python PhysBiblio
+```
+(if you omit `python`, it will try to use the default Python installation instead of the Conda one, and fail due to missing libraries)
+
+#### Additional info
 At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/bin/`, `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
 You can find out the location where the package is installed with
 ```
@@ -49,6 +68,10 @@ pip show -f physbiblio
 The primary director is under `Location`, you can combine with the information provided by the list of `Files`.
 
 To upgrade from a previously installed version, add the option `-U` or `--upgrade` when running `pip`, for example:
+```
+sudo pip install -U physbiblio
+```
+or
 ```
 sudo pip install -U physbiblio
 ```

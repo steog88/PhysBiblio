@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
 
 	def printNewVersion(self, outdated, newVersion):
 		if outdated:
-			pBGUILogger.warning("New version available (%s)!\nYou can upgrade with `pip install -U physbiblio`."%newVersion)
+			pBGUILogger.warning("New version available (%s)!\nYou can upgrade with `pip install -U physbiblio` (with `sudo`, eventually)."%newVersion)
 		else:
 			pBLogger.info("No new versions available!")
 
@@ -480,7 +480,13 @@ class MainWindow(QMainWindow):
 			"About PhysBiblio",
 			"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>https://github.com/steog88/physBiblio</a>) is a cross-platform tool for managing a LaTeX/BibTeX database. "+
 			"It is written in <code>python</code>, using <code>sqlite3</code> for the database management and <code>PySide</code> for the graphical part."+
-			"<br>It supports grouping, tagging, import/export, automatic update and various different other functions.<br><br>"+
+			"<br>"+
+			"It supports grouping, tagging, import/export, automatic update and various different other functions."+
+			"<br><br>"+
+			"<b>Paths:</b><br>"+
+			"<i>Configuration:</i> %s<br>"%pbConfig.configPath+
+			"<i>Data:</i> %s<br>"%pbConfig.dataPath+
+			"<br>"+
 			"<b>Author:</b> Stefano Gariazzo <i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"+
 			"<b>Version:</b> %s (%s)"%(physbiblio.__version__, physbiblio.__version_date__))
 		mbox.setTextFormat(Qt.RichText)
