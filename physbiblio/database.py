@@ -1240,7 +1240,7 @@ class entries(physbiblioDBSub):
 			except IndexError:
 				tmp["bibtexDict"] = {}
 			except ParseException:
-				pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%el["bibtex"])
+				pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%el["bibtex"], exc_info = True)
 				tmp["bibtexDict"] = {}
 			try:
 				tmp["year"] = tmp["bibtexDict"]["year"]
@@ -1957,7 +1957,11 @@ class entries(physbiblioDBSub):
 				pBLogger.info(key)
 				old = self.getByBibkey(key, saveQuery = False)
 				if len(old) > 0 and old[0]["noUpdate"] == 0:
-					e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"]).strip()))
+					outcome, bibtex = physBiblioWeb.webSearch["inspireoai"].updateBibtex(e, old[0]["bibtex"])
+					if not outcome:
+						pBLogger.warning("Something went wrong with this entry...")
+						continue
+					e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(bibtex.strip()))
 					for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
 						if e[o] != old[0][d] and e[o] != None:
 							if o == "bibtex":
@@ -1974,7 +1978,7 @@ class entries(physbiblioDBSub):
 		pBLogger.info("%d changed entries:\n%s"%(len(changed), changed))
 		pBLogger.info("Inspire OAI harvesting done!")
 
-	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
+	def updateInfoFromOAI(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False, reloadAll = False, originalKey = None):
 		"""
 		Use inspire OAI to retrieve the info for a single entry
 
@@ -1982,6 +1986,8 @@ class entries(physbiblioDBSub):
 			inspireID (string): the id of the entry in inspires. If is not a number, assume it is the bibtex key
 			bibtex: see physBiblio.webimport.inspireoai.retrieveOAIData
 			verbose: increase level of verbosity
+			reloadAll (boolean, default False): reload the entire content, without trying to simply update the existing one
+			originalKey (optional): the previous key of the entry (useful when reloadAll is True)
 
 		Output:
 			True if successful, or False if there were errors
@@ -1990,6 +1996,7 @@ class entries(physbiblioDBSub):
 			pBLogger.error("InspireID is empty, cannot proceed.")
 			return False
 		if not inspireID.isdigit(): #assume it's a key instead of the inspireID
+			originalKey = inspireID
 			inspireID = self.getField(inspireID, "inspire")
 			try:
 				inspireID.isdigit()
@@ -1999,15 +2006,24 @@ class entries(physbiblioDBSub):
 			if not inspireID.isdigit():
 				pBLogger.error("Wrong value/format in inspireID: %s"%inspireID)
 				return False
-		result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose, readConferenceTitle = readConferenceTitle)
+		if not reloadAll:
+			result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, bibtex = bibtex, verbose = verbose, readConferenceTitle = readConferenceTitle)
+		else:
+			result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(inspireID, verbose = verbose, readConferenceTitle = readConferenceTitle)
 		if verbose > 1:
 			pBLogger.info(result)
 		if result is False:
 			pBLogger.error("Empty record looking for recid:%s!"%inspireID)
 			return False
 		try:
-			key = result["bibkey"]
-			old = self.getByBibkey(key, saveQuery = False)
+			key = result["bibkey"] if originalKey is None else originalKey
+			if key != result["bibkey"]:
+				self.updateBibkey(key, result["bibkey"])
+				key = result["bibkey"]
+			if not reloadAll:
+				old = self.getByBibkey(key, saveQuery = False)
+			else:
+				old = [{k: "" for x, k in physBiblioWeb.webSearch["inspireoai"].correspondences}]
 			if verbose > 1:
 				pBLogger.info("%s, %s"%(key, old))
 			if len(old) > 0:
@@ -2838,7 +2854,7 @@ class entries(physbiblioDBSub):
 		pBLogger.info("%d entries changed"%len(changed))
 		return num, err, changed
 	
-	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False):
+	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False, reloadAll = False):
 		"""
 		Select unpublished papers and look for updates using inspireOAI
 
@@ -2846,6 +2862,7 @@ class entries(physbiblioDBSub):
 			startFrom (default 0): the index in the list of entries where to start updating
 			entries: the list of entries to be considered or None (if None, use self.getAll)
 			force (boolean, default False): force the update also of entries which already have journal information
+			reloadAll (boolean, default False): reload the entire content, without trying to simply update the existing one
 
 		Output:
 			num, err, changed: the number of processed entries, the list of errors and of changed entries
@@ -2880,10 +2897,10 @@ class entries(physbiblioDBSub):
 				and (force or ( e["doi"] is None or "journal" not in e["bibtexDict"].keys() ) ):
 					num += 1
 					pBLogger.info("%5d / %d (%5.2f%%) - looking for update: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
-					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0, readConferenceTitle = (e["proceeding"] == 1 and force) ):
+					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0, readConferenceTitle = (e["proceeding"] == 1 and force), reloadAll = reloadAll, originalKey = e["bibkey"]):
 						err.append(e["bibkey"])
 					else:
-						new = self.getByBibkey(e["bibkey"], saveQuery = False)[0]
+						new = self.getByKey(e["bibkey"], saveQuery = False)[0]
 						if e != new:
 							pBLogger.info("-- element changed!")
 							for diff in list(dictdiffer.diff(e, new)):

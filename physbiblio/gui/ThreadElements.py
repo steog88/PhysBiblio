@@ -29,7 +29,7 @@ class thread_checkUpdated(MyThread):
 		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):
-	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False):
+	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False, reloadAll = False):
 		super(thread_updateAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
@@ -37,10 +37,11 @@ class thread_updateAllBibtexs(MyThread):
 		self.my_receiver = myrec
 		self.useEntries = useEntries
 		self.force = force
+		self.reloadAll = reloadAll
 
 	def run(self):
 		self.my_receiver.start()
-		pBDB.bibs.searchOAIUpdates(self.startFrom, entries = self.useEntries, force = self.force)
+		pBDB.bibs.searchOAIUpdates(self.startFrom, entries = self.useEntries, force = self.force, reloadAll = self.reloadAll)
 		time.sleep(0.1)
 		self.my_receiver.running = False
 		self.finished.emit()

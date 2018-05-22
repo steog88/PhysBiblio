@@ -1574,7 +1574,7 @@ class TestDatabaseEntries(DBTestCase):
 					[entry2],#4
 					[entry1, entry2],#6
 					]) as _mock_ga:
-				with patch("physbiblio.database.entries.getByBibkey", side_effect = [
+				with patch("physbiblio.database.entries.getByKey", side_effect = [
 						[entry1a], [entry2a],#1
 						[entry1a], [entry2a],#3
 						[entry1a], [entry2a],#4,5

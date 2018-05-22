@@ -564,7 +564,8 @@ class bibtexList(QFrame, objListWindow):
 		opInsAct = menu.addAction("Open into INSPIRE-HEP")
 		menu.addSeparator()
 		insAction = menu.addAction("Complete info (from INSPIRE-HEP)")
-		updAction = menu.addAction("Update (search INSPIRE-HEP)")
+		updAction = menu.addAction("Update (from INSPIRE-HEP)")
+		relAction = menu.addAction("Reload (from INSPIRE-HEP)")
 		staAction = menu.addAction("Citation statistics (from INSPIRE-HEP)")
 		if arxiv is not None and arxiv != "":
 			absAction = menu.addAction("Get abstract (from arXiv)")
@@ -632,6 +633,8 @@ class bibtexList(QFrame, objListWindow):
 			self.parent.updateInspireInfo(bibkey)
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True)
+		elif action == relAction:
+			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True, reloadAll = True)
 		elif action == staAction:
 			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
 		elif action == absAction:
@@ -777,12 +780,14 @@ class bibtexList(QFrame, objListWindow):
 
 	def recreateTable(self, bibs = None):
 		"""delete previous table widget and create a new one"""
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		if bibs is not None:
 			self.bibs = bibs
 		else:
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC", limitTo = pbConfig.params["defaultLimitBibtexs"])
 		self.cleanLayout()
 		self.createTable()
+		QApplication.restoreOverrideCursor()
 
 class editBibtexEntry(editObjectWindow):
 	"""create a window for editing or creating a bibtex entry"""

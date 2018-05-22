@@ -134,10 +134,10 @@ class TestWebImportMethods(unittest.TestCase):
 		dict2["id"] = "1414175"
 		bibtex1 = '@article{abc,\nauthor="me",}'
 		bibtex2 = '@article{abc,'
-		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict2, bibtex1), bibtex1)
-		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex2), bibtex2)
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict2, bibtex1), (False, bibtex1))
+		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex2), (False, bibtex2))
 		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex1),
-			'@Article{abc,\n        author = "me",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n')
+			(True, '@Article{abc,\n        author = "me",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n'))
 
 	@unittest.skipIf(skipOAITests, "Online tests with OAI")
 	def test_inspireoai(self):

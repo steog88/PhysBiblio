@@ -342,7 +342,7 @@ class webSearch(webInterf):
 			res = self.readRecord(record[1], readConferenceTitle = readConferenceTitle)
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
-				self.updateBibtex(res, bibtex)
+				outcome, bibtex = self.updateBibtex(res, bibtex)
 			if verbose > 0:
 				pBLogger.info("Done.")
 			return res
@@ -356,20 +356,20 @@ class webSearch(webInterf):
 			element = bibtexparser.loads(bibtex).entries[0]
 		except:
 			pBLogger.warning("Invalid bibtex!\n%s"%bibtex)
-			return bibtex
+			return False, bibtex
 		if res["journal"] is None:
 			pBLogger.warning("'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
-			return bibtex
+			return False, bibtex
 		try:
 			for k in ["doi", "volume", "pages", "year", "journal"]:
 				if res[k] != "" and res[k] is not None:
 					element[k] = res[k]
 		except KeyError:
 			pBLogger.warning("Something from OAI is missing (recid:%s)"%res["id"])
-			return bibtex
+			return False, bibtex
 		db = BibDatabase()
 		db.entries = [element]
-		return pbWriter.write(db)
+		return True, pbWriter.write(db)
 
 	def retrieveOAIUpdates(self, date1, date2):
 		"""
