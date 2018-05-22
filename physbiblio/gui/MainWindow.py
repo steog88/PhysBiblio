@@ -881,6 +881,7 @@ class MainWindow(QMainWindow):
 			method = "inspire"
 		string = adIm.searchStr.text().strip()
 		if adIm.result == True and string != "":
+			QApplication.setOverrideCursor(Qt.WaitCursor)
 			cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
 			elements = bibtexparser.loads(cont).entries
 			found = {}
@@ -900,6 +901,7 @@ class MainWindow(QMainWindow):
 				infoMessage("No results obtained.")
 				return False
 
+			QApplication.restoreOverrideCursor()
 			selImpo = advImportSelect(found, self)
 			selImpo.exec_()
 			if selImpo.result == True:

@@ -331,7 +331,7 @@ class advImportSelect(objListWindow):
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:\n"))
+		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:"))
 
 		headers = ["ID", "title", "author", "eprint", "doi"]
 		for k in self.bibs.keys():
@@ -345,16 +345,16 @@ class advImportSelect(objListWindow):
 				pass
 			for f in headers:
 				try:
-					self.bibs[k]['bibpars'][f] = self.bibs[k]['bibpars'][f].replace("\n", "")
+					self.bibs[k]['bibpars'][f] = self.bibs[k]['bibpars'][f].replace("\n", " ")
 				except KeyError:
 					pass
 		self.table_model = MyImportedTableModel(self, self.bibs, headers)
-		self.addFilterInput("Filter entries")
+		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
 
-		self.finalizeTable(gridPos = (1, 0, 1, 2))
+		self.finalizeTable(gridPos = (2, 0, 1, 2))
 
-		i = 2
+		i = 3
 		self.askCats = QCheckBox("Ask categories at the end?", self)
 		self.askCats.toggle()
 		self.currLayout.addWidget(self.askCats, i, 0)

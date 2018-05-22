@@ -56,11 +56,15 @@ class objListWindow(QDialog):
 	def changeFilter(self, string):
 		self.proxyModel.setFilterRegExp(str(string))
 
-	def addFilterInput(self, placeholderText):
+	def addFilterInput(self, placeholderText, gridPos = (1, 0)):
 		self.filterInput = QLineEdit("",  self)
 		self.filterInput.setPlaceholderText(placeholderText)
 		self.filterInput.textChanged.connect(self.changeFilter)
-		self.currLayout.addWidget(self.filterInput)
+
+		if self.gridLayout:
+			self.currLayout.addWidget(self.filterInput, *gridPos)
+		else:
+			self.currLayout.addWidget(self.filterInput)
 		self.filterInput.setFocus()
 
 	def setProxyStuff(self, sortColumn, sortOrder):
@@ -80,16 +84,26 @@ class objListWindow(QDialog):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
 		self.tablewidget.resizeColumnsToContents()
 
-		vwidth = self.tablewidget.verticalHeader().width()
+		maxh = QDesktopWidget().availableGeometry().height()
+		maxw = QDesktopWidget().availableGeometry().width()
+		self.setMaximumHeight(maxh)
+		self.setMaximumWidth(maxw)
+
 		hwidth = self.tablewidget.horizontalHeader().length()
 		swidth = self.tablewidget.style().pixelMetric(QStyle.PM_ScrollBarExtent)
 		fwidth = self.tablewidget.frameWidth() * 2
 
 		if self.tableWidth is None:
-			self.tableWidth = hwidth + swidth + fwidth + 40
+			if hwidth > maxw - (swidth + fwidth):
+				self.tableWidth = maxw - (swidth + fwidth)
+			else:
+				self.tableWidth = hwidth + swidth + fwidth
 		self.tablewidget.setFixedWidth(self.tableWidth)
 
 		self.setMinimumHeight(600)
+
+		self.tablewidget.resizeColumnsToContents()
+		self.tablewidget.resizeRowsToContents()
 
 		self.tablewidget.clicked.connect(self.cellClick)
 		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
