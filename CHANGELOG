@@ -1,3 +1,6 @@
+	* arxivDaily function to retrieve arxiv daily updates with RSS
+	* improved some regex use
+
 0.4.1 (2018-05-21):
 	* bug when dealing with accents
 	* Conda instructions in readme

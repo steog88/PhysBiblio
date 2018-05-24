@@ -191,7 +191,7 @@ class webSearch(webInterf):
 		if text is None:
 			pBLogger.warning("Url is empty!")
 			return False
-		author = re.compile('>([^<]*)</a>')
+		author = re.compile('(>|&gt;)([^/]*)(</a>|&lt;/a&gt;)')
 		additionalInfo = re.compile(' \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)')
 		try:
 			data = feedparser.parse(parse_accents_str(text.decode("utf-8")))
@@ -200,7 +200,7 @@ class webSearch(webInterf):
 				tmp = {}
 				tmp["eprint"] = element["id"].split("/")[-1]
 				tmp["abstract"] = element["summary"].replace("\n", " ").replace("<p>", "").replace("</p>", "")
-				tmp["authors"] = [ m.group(1) for m in author.finditer(element["authors"][0]["name"]) if m != "" ]
+				tmp["authors"] = [ m.group(2) for m in author.finditer(element["authors"][0]["name"]) if m != "" ]
 				tmp["cross"] = "CROSS LISTED" in element["title"]
 				tmp["replacement"] = "UPDATED" in element["title"]
 				tmp["mainCat"] = [m.group(2) for m in additionalInfo.finditer(element["title"]) if m != ""][0]

@@ -152,5 +152,97 @@ class TestWebImportMethods(unittest.TestCase):
 		self.assertEqual(type(result), list)
 		print(len(result), result[0])
 
+	def test_arxivDaily(self):
+		"""test the arxivDaily method in the arxiv module"""
+		self.maxDiff = None
+		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("missing"))
+		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("physics.missing"))
+		content_example='''
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns="http://purl.org/rss/1.0/"
+ xmlns:content="http://purl.org/rss/1.0/modules/content/"
+ xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:syn="http://purl.org/rss/1.0/modules/syndication/"
+ xmlns:admin="http://webns.net/mvcb/"
+>
+
+<channel rdf:about="http://arxiv.org/">
+<title>hep-ex updates on arXiv.org</title>
+<link>http://arxiv.org/</link>
+<description rdf:parseType="Literal">High Energy Physics - Experiment (hep-ex) updates on the arXiv.org e-print archive</description>
+<dc:language>en-us</dc:language>
+<dc:date>2018-05-23T20:30:00-05:00</dc:date>
+<dc:publisher>www-admin@arxiv.org</dc:publisher>
+<dc:subject>High Energy Physics - Experiment</dc:subject>
+<syn:updateBase>1901-01-01T00:00+00:00</syn:updateBase>
+<syn:updateFrequency>1</syn:updateFrequency>
+<syn:updatePeriod>daily</syn:updatePeriod>
+<items>
+ <rdf:Seq>
+  <rdf:li rdf:resource="http://arxiv.org/abs/1805.08875" />
+  <rdf:li rdf:resource="http://arxiv.org/abs/1805.09166" />
+  <rdf:li rdf:resource="http://arxiv.org/abs/1805.06430" />
+ </rdf:Seq>
+</items>
+<image rdf:resource="http://arxiv.org/icons/sfx.gif" />
+</channel>
+<image rdf:about="http://arxiv.org/icons/sfx.gif">
+<title>arXiv.org</title>
+<url>http://arxiv.org/icons/sfx.gif</url>
+<link>http://arxiv.org/</link>
+</image>
+<item rdf:about="http://arxiv.org/abs/1805.08875">
+<title>Measurement of Transverse Single Spin Asymmetries in $\pi^0$ Production from $p^{\uparrow}+p$ and $p^{\uparrow}+A$ Collisions at STAR. (arXiv:1805.08875v1 [hep-ex])</title>
+<link>http://arxiv.org/abs/1805.08875</link>
+<description rdf:parseType="Literal">&lt;p&gt;In 2015 the first collisions between polarized protons and nuclei occurred at
+the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of
+$\sqrt{s_{NN}}=200$ GeV. Comparisons between spin asymmetries and
+cross-sections in $p+p$ production to those in $p+A$ production provide insight
+into nuclear structure, namely nuclear modification factors, nuclear dependence
+of spin asymmetries, and comparison to models with saturation effects. The
+transverse single-spin asymmetry, $A_{N}$, has been measured in $\pi^{0}$
+production in the STAR Forward Meson Spectrometer (FMS), an electromagnetic
+calorimeter covering a forward psuedorapidity range of $2.6&amp;lt;\eta&amp;lt;4$. Within
+this kinematic range, STAR has previously reported the persistence of large
+$\pi^0$ asymmetries with unexpected dependences on $p_T$ and event topology in
+$p+p$ collisions. This talk will compare these dependences to those in $p+A$
+production.
+&lt;/p&gt;
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+Dilks_C/0/1/0/all/0/1&quot;&gt;Christopher Dilks&lt;/a&gt; (STAR Collaboration)</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/1805.09166">
+<title>Recent Top quark results from the Tevatron. (arXiv:1805.09166v1 [hep-ex] CROSS LISTED)</title>
+<link>http://arxiv.org/abs/1805.09166</link>
+<description rdf:parseType="Literal">&lt;p&gt;We present recent measurements
+&lt;/p&gt;
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+Tuchming_B/0/1/0/all/0/1&quot;&gt;Boris Tuchming&lt;/a&gt;</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/1805.06430">
+<title>New Perspective on Hybrid Mesons. (arXiv:1805.06430v2 [nucl-th] UPDATED)</title>
+<link>http://arxiv.org/abs/1805.06430</link>
+<description rdf:parseType="Literal">&lt;p&gt;It is thought that strong interactions within the Standard Model can generate
+bound-states in which non-Abelian gauge-bosons play a dual role, serving both
+as force and matter fields.
+&lt;/p&gt;
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Xu_S/0/1/0/all/0/1&quot;&gt;Shu-Sheng Xu&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Cui_Z/0/1/0/all/0/1&quot;&gt;Zhu-Fang Cui&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Chang_L/0/1/0/all/0/1&quot;&gt;Lei Chang&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Papavassiliou_J/0/1/0/all/0/1&quot;&gt;Joannis Papavassiliou&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Roberts_C/0/1/0/all/0/1&quot;&gt;Craig D. Roberts&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/nucl-th/1/au:+Zong_H/0/1/0/all/0/1&quot;&gt;Hong-Shi Zong&lt;/a&gt;</dc:creator>
+</item>
+</rdf:RDF>'''
+		with patch('physbiblio.webimport.webInterf.webInterf.textFromUrl', return_value=content_example) as _fromUrl:
+			result = physBiblioWeb.webSearch["arxiv"].arxivDaily("hep-ex")
+			_fromUrl.assert_called_once_with("http://export.arxiv.org/rss/hep-ex")
+			self.assertEqual(result[0],
+				{'mainCat': u'hep-ex', 'title': u'Measurement of Transverse Single Spin Asymmetries in $\\pi^0$ Production from $p^{\\uparrow}+p$ and $p^{\\uparrow}+A$ Collisions at STAR.', 'abstract': u'In 2015 the first collisions between polarized protons and nuclei occurred at the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of $\\sqrt{s_{NN}}=200$ GeV. Comparisons between spin asymmetries and cross-sections in $p+p$ production to those in $p+A$ production provide insight into nuclear structure, namely nuclear modification factors, nuclear dependence of spin asymmetries, and comparison to models with saturation effects. The transverse single-spin asymmetry, $A_{N}$, has been measured in $\\pi^{0}$ production in the STAR Forward Meson Spectrometer (FMS), an electromagnetic calorimeter covering a forward psuedorapidity range of $2.6&lt;\\eta&lt;4$. Within this kinematic range, STAR has previously reported the persistence of large $\\pi^0$ asymmetries with unexpected dependences on $p_T$ and event topology in $p+p$ collisions. This talk will compare these dependences to those in $p+A$ production. ', 'cross': False, 'version': u'1805.08875v1', 'eprint': u'1805.08875', 'authors': [u'Christopher Dilks'], 'replacement': False})
+			self.assertEqual(result[1],
+				{'mainCat': u'hep-ex', 'title': u'Recent Top quark results from the Tevatron.', 'abstract': u'We present recent measurements ', 'cross': True, 'version': u'1805.09166v1', 'eprint': u'1805.09166', 'authors': [u'Boris Tuchming'], 'replacement': False})
+			self.assertEqual(result[2],
+				{'mainCat': u'nucl-th', 'title': u'New Perspective on Hybrid Mesons.', 'abstract': u'It is thought that strong interactions within the Standard Model can generate bound-states in which non-Abelian gauge-bosons play a dual role, serving both as force and matter fields. ', 'cross': False, 'version': u'1805.06430v2', 'eprint': u'1805.06430', 'authors': [u'Shu-Sheng Xu', u'Zhu-Fang Cui', u'Lei Chang', u'Joannis Papavassiliou', u'Craig D. Roberts', u'Hong-Shi Zong'], 'replacement': True})
+
 if __name__=='__main__':
 	unittest.main()
