@@ -1,5 +1,9 @@
+0.4.2 (2018-05-24):
 	* arxivDaily function to retrieve arxiv daily updates with RSS
 	* improved some regex use
+	* "reload from INSPIRE" function for trying fixing broken entries
+	* fixed advanced import selection window
+	* waiting mouse cursor for some long loading operations
 
 0.4.1 (2018-05-21):
 	* bug when dealing with accents
