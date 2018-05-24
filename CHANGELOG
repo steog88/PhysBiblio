@@ -1,4 +1,5 @@
 	* KeyErrors in advanced import less verbose
+	* crash when local version is newer than PyPI one solved
 
 0.4.2 (2018-05-24):
 	* arxivDaily function to retrieve arxiv daily updates with RSS

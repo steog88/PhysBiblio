@@ -24,8 +24,11 @@ class thread_checkUpdated(MyThread):
 		self.parent = parent
 
 	def run(self):
-		outdated, newVersion = check_outdated('physbiblio', __version__)
-		self.result.emit(outdated, newVersion)
+		try:
+			outdated, newVersion = check_outdated('physbiblio', __version__)
+			self.result.emit(outdated, newVersion)
+		except ValueError:
+			pBLogger.warning("Error when executing check_outdated. Maybe you are using a developing version", exc_info = True)
 		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):
