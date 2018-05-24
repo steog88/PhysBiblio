@@ -210,15 +210,18 @@ class pbExport():
 			Functions that reads the list of bibtex entries in the existing .bib file and removes the ones that are not inside \cite commands
 			"""
 			newDict = {}
+			notFound = []
 			for k, v in existingBibsDict.items():
 				if k in self.allCitations:
 					newDict[k] = existingBibsDict[k]
+				else:
+					notFound.append(k)
 			db.entries = [e for e in newDict.values()]
 			bibf = pbWriter.write(db)
 			try:
 				with open(outFileName, "w") as o:
 					o.write("%file written by PhysBiblio\n" + bibf)
-					pBLogger.info("Output file updated")
+					pBLogger.info("Output file updated. Removed entries:\n%s"%notFound)
 			except IOError:
 				pBLogger.exception("Impossible to write file '%s'"%outFileName)
 
@@ -315,24 +318,29 @@ class pbExport():
 			return False
 
 		#extract \cite* commands
-		cite = re.compile('\\\\(cite|citep|citet)\{([A-Za-z\']*:[0-9]*[a-z]*[,]?[\n ]*|[A-Za-z0-9\-][,]?[\n ]*|[A-Za-z0-9_\-][,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
+		matchKeys = '([A-Za-z_\-\']+:[0-9]*[A-Za-z]*|[A-Za-z0-9_\-\']+)'
+		cite = re.compile('\\\\(cite|citep|citet)\{([\n ]*' + matchKeys + '[,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
+		citeKeys = re.compile(matchKeys, re.MULTILINE)	#find the keys inside \cite{...}
 		citaz = [ m for m in cite.finditer(keyscont) if m != "" ]
 		pBLogger.info(r"%d \cite commands found in .tex file"%len(citaz))
 
 		#extract required keys from \cite* commands
 		for c in citaz:
-			a = c.group().replace(r'\cite{', '').replace(r'\citep{', '').replace(r'\citet{', '').replace(' ', '').replace('\n', '').replace(r'}', '').split(',')
-			for e in a:
-				e = e.strip()
-				if e == "":
-					continue
-				self.allCitations.add(e)
-				if e not in requiredBibkeys:
-					try:
-						#this it's just to check if already present
-						tmp = existingBibsDict[e]
-					except KeyError:
-						requiredBibkeys.append(e)
+			try:
+				for e in [l.group(1) for l in citeKeys.finditer(c.group())]:
+					e = e.strip()
+					if e == "" or e in ["cite", "citep", "citet"]:
+						continue
+					self.allCitations.add(e)
+					if e not in requiredBibkeys:
+						try:
+							#this it's just to check if already present
+							tmp = existingBibsDict[e]
+						except KeyError:
+							requiredBibkeys.append(e)
+			except (IndexError, AttributeError, TypeError):
+				pBLogger.warning("Cannot recognize citation list in '%s'!"%c.group())
+				a = []
 		pBLogger.info("%d new keys found, %d in total."%(len(requiredBibkeys), len(self.allCitations)))
 
 		#if True, remove unused bibtex entries
