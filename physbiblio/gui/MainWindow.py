@@ -889,13 +889,17 @@ class MainWindow(QMainWindow):
 				if el["ID"].strip() == "":
 					pBLogger.warning("Impossible to insert an entry with empty bibkey!\n%s\n"%el["ID"])
 				else:
+					try:
+						el["arxiv"] = el["eprint"]
+					except KeyError:
+						pass
 					exist = (len(pBDB.bibs.getByBibkey(el["ID"], saveQuery = False) ) > 0)
 					for f in ["arxiv", "doi"]:
 						try:
 							exist = (exist or
 								(el[f].strip() != "" and len(pBDB.bibs.fetchAll(params = {f: el[f]}, saveQuery = False).lastFetched) > 0))
 						except KeyError:
-							pBLogger.debug("Error", exc_info = True)
+							pBLogger.debug("KeyError '%s', entry: %s"%(f, el["ID"]))
 					found[el["ID"]] = {"bibpars": el, "exist": exist}
 			if len(found) == 0:
 				infoMessage("No results obtained.")

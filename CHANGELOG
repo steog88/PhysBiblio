@@ -1,3 +1,5 @@
+	* KeyErrors in advanced import less verbose
+
 0.4.2 (2018-05-24):
 	* arxivDaily function to retrieve arxiv daily updates with RSS
 	* improved some regex use
