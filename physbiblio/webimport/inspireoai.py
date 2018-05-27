@@ -11,8 +11,11 @@ if sys.version_info[0] < 3:
 	reload(sys)
 	sys.setdefaultencoding('utf-8')
 	from httplib import IncompleteRead
+	from urllib2 import URLError
 else:
 	from http.client import IncompleteRead
+	from urllib.request import URLError
+
 
 import datetime, traceback
 

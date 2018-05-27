@@ -152,9 +152,21 @@ class TestWebImportMethods(unittest.TestCase):
 		self.assertEqual(type(result), list)
 		print(len(result), result[0])
 
+class TestWebImportOffline(unittest.TestCase):
+	"""
+	Offline test for some functions of the webImport package.
+	"""
+	def test_arxivYear(self):
+		"""test the arxivDaily method in the arxiv module"""
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("abc"), None)
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("0123.345"), None)
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("hep-ph/9900000"), "1999")
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("hep-ph/990000"), None)
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("1234.5678"), "2012")
+		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("1678.56789"), "2016")
+
 	def test_arxivDaily(self):
 		"""test the arxivDaily method in the arxiv module"""
-		self.maxDiff = None
 		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("missing"))
 		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("physics.missing"))
 		content_example='''

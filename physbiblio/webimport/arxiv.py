@@ -34,27 +34,44 @@ class webSearch(webInterf):
 		self.urlArgs = {
 			"start":"0"}
 		self.categories = {
-			"astro-ph": ["", "CO", "EP", "GA", "HE", "IM", "SR"],
+			"astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
 			"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other", "quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
 			"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV", "CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL", "GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM", "MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO", "SC", "SD", "SE", "SI", "SY"],
 			"econ": ["EM"],
 			"eess": ["AS", "IV", "SP"],
-			"gr-qc": [""],
-			"hep-ex": [""],
-			"hep-lat": [""],
-			"hep-ph": [""],
-			"hep-th": [""],
+			"gr-qc": [],
+			"hep-ex": [],
+			"hep-lat": [],
+			"hep-ph": [],
+			"hep-th": [],
 			"math": ["AC", "AG", "AP", "AT", "CA", "CO", "CT", "CV", "DG", "DS", "FA", "GM", "GN", "GR", "GT", "HO", "IT", "KT", "LO", "MG", "MP", "NA", "NT", "OA", "OC", "PR", "QA", "RA", "RT", "SG", "SP", "ST"],
-			"math-ph": [""],
+			"math-ph": [],
 			"nlin": ["AO", "CD", "CG", "PS", "SI"],
-			"nucl-ex": [""],
-			"nucl-th": [""],
+			"nucl-ex": [],
+			"nucl-th": [],
 			"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph", "bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an", "ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det", "med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph", "space-ph"],
 			"q-bio": ["BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
 			"q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
-			"quant-ph": [""],
+			"quant-ph": [],
 			"stat": ["AP", "CO", "ME", "ML", "OT", "TH"]
 			}
+
+	def getYear(self, string):
+		"""
+		Use the arxiv id to compute the year
+		"""
+		identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
+		try:
+			for t in identif.finditer(string):
+				if len(t.group()) > 0:
+					a = t.group(1)
+					if int(a) > 90:
+						return "19" + a
+					else:
+						return "20" + a
+		except Exception:
+			pBLogger.warning("Error in converting year from '%s'"%string)
+			return None
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
 		"""
@@ -137,18 +154,9 @@ class webSearch(webInterf):
 				dictionary["abstract"] = entry['summary'].replace("\n", " ")
 				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
 				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
-				identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
-				try:
-					for t in identif.finditer(dictionary["arxiv"]):
-						if len(t.group()) > 0:
-							e = t.group()
-							a = e[0:2]
-							if int(a) > 80:
-								dictionary["year"] = "19" + a
-							else:
-								dictionary["year"] = "20" + a
-				except Exception:
-					pBLogger.warning("Error in converting year")
+				year = self.getYear(dictionary["arxiv"])
+				if year is not None:
+					dictionary["year"] = year
 				db.entries.append(dictionary)
 				dictionaries.append(dictionary)
 			if fullDict:
