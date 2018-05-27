@@ -209,9 +209,10 @@ class webSearch(webInterf):
 				tmp["eprint"] = element["id"].split("/")[-1]
 				tmp["abstract"] = element["summary"].replace("\n", " ").replace("<p>", "").replace("</p>", "")
 				tmp["authors"] = [ m.group(2) for m in author.finditer(element["authors"][0]["name"]) if m != "" ]
+				tmp["author"] = " and ".join(tmp["authors"]) if len(tmp["authors"]) < pbConfig.params["maxAuthorNames"] else " and ".join(tmp["authors"][0:pbConfig.params["maxAuthorNames"]] + ["others"])
 				tmp["cross"] = "CROSS LISTED" in element["title"]
 				tmp["replacement"] = "UPDATED" in element["title"]
-				tmp["mainCat"] = [m.group(2) for m in additionalInfo.finditer(element["title"]) if m != ""][0]
+				tmp["primaryclass"] = [m.group(2) for m in additionalInfo.finditer(element["title"]) if m != ""][0]
 				tmp["version"] = [m.group(1) for m in additionalInfo.finditer(element["title"]) if m != ""][0]
 				parenthesis = [m.group() for m in additionalInfo.finditer(element["title"]) if m != ""][0]
 				tmp["title"] = element["title"].replace(parenthesis, "")

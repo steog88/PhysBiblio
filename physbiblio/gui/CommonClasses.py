@@ -530,8 +530,9 @@ class guiViewEntry(viewEntry):
 pBGuiView = guiViewEntry()
 
 class MyImportedTableModel(MyTableModel):
-	def __init__(self, parent, biblist, header, *args):
+	def __init__(self, parent, biblist, header, idName = "ID", *args):
 		self.typeClass = "imports"
+		self.idName = idName
 		self.bibsOrder = [k for k in biblist.keys()]
 		self.dataList = [biblist[k]['bibpars'] for k in self.bibsOrder]
 		self.existList = [biblist[k]['exist'] for k in self.bibsOrder]
@@ -539,7 +540,7 @@ class MyImportedTableModel(MyTableModel):
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
-		return element["ID"]
+		return element[self.idName]
 
 	def data(self, index, role):
 		if not index.isValid():
@@ -552,7 +553,7 @@ class MyImportedTableModel(MyTableModel):
 			return None
 
 		if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
-			if self.selectedElements[self.dataList[row]["ID"]] == False:
+			if self.selectedElements[self.dataList[row][self.idName]] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
@@ -567,9 +568,9 @@ class MyImportedTableModel(MyTableModel):
 	def setData(self, index, value, role):
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedElements[self.dataList[index.row()]["ID"]] = True
+				self.selectedElements[self.dataList[index.row()][self.idName]] = True
 			else:
-				self.selectedElements[self.dataList[index.row()]["ID"]] = False
+				self.selectedElements[self.dataList[index.row()][self.idName]] = False
 
 		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
 		return True

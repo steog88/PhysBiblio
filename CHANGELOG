@@ -1,4 +1,5 @@
 	* KeyErrors in advanced import less verbose
+	* browse daily listing and directly import from arxiv
 	* crash when local version is newer than PyPI one solved
 	* crash when offline and checking version solved
 

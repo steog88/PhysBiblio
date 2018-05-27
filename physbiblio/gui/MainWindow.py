@@ -16,7 +16,7 @@ try:
 	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import *
 	from physbiblio.export import pBExport
-	import physbiblio.webimport.webInterf as webInt
+	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
@@ -212,6 +212,11 @@ class MainWindow(QMainWindow):
 								statusTip="Get info from arXiv",
 								triggered=self.infoFromArxiv)
 
+		self.dailyArxivAct = QAction("Browse last ar&Xiv listings", self,
+								shortcut="Ctrl+D",
+								statusTip="Browse most recent arXiv listings",
+								triggered=self.browseArxivDaily)
+
 		self.cleanAllBibtexsAskAct = QAction("C&lean bibtexs (from ...)", self,
 								shortcut="Ctrl+Shift+L",
 								statusTip="Clean all the bibtexs, starting from a given one",
@@ -221,12 +226,6 @@ class MainWindow(QMainWindow):
 								shortcut="Ctrl+Shift+A",
 								statusTip="Search publication and citation stats of an author from INSPIRES",
 								triggered=self.authorStats)
-
-		self.cliAct = QAction(QIcon(":/images/terminal.png"),
-								"&CLI", self,
-								shortcut="Ctrl+T",
-								statusTip="CommandLine Interface",
-								triggered=self.cli)
 
 		self.configAct = QAction(QIcon(":/images/settings.png"),
 								"Settin&gs", self,
@@ -334,15 +333,12 @@ class MainWindow(QMainWindow):
 		
 		self.menuBar().addSeparator()
 		self.toolMenu = self.menuBar().addMenu("&Tools")
+		self.toolMenu.addAction(self.dailyArxivAct)
+		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.cleanSpareAct)
 		self.toolMenu.addAction(self.cleanSparePDFAct)
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
-		# self.toolMenu.addSeparator()
-		# self.toolMenu.addAction(self.cliAct)
-		#self.optionMenu.addAction(self.optionsAct)
-		#self.optionMenu.addAction(self.plotOptionsAct)
-		#self.optionMenu.addAction(self.configOptionsAct)
 
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
@@ -363,7 +359,6 @@ class MainWindow(QMainWindow):
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.refreshAct)
 		self.mainToolBar.addAction(self.reloadAct)
-		# self.mainToolBar.addAction(self.cliAct)
 		self.mainToolBar.addSeparator()
 		self.mainToolBar.addAction(self.configAct)
 		self.mainToolBar.addAction(self.dbstatsAct)
@@ -977,6 +972,75 @@ class MainWindow(QMainWindow):
 				[e["bibkey"] for e in iterator], askFieldsWin.output,
 				totStr = "Thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
 				minProgress = 0., stopFlag = True)
+
+	def browseArxivDaily(self):
+		bDA = arxivDailyDialog()
+		bDA.exec_()
+		cat = bDA.comboCat.currentText().lower()
+		if bDA.result and cat != "":
+			sub = bDA.comboSub.currentText().lower()
+			try:
+				physBiblioWeb.webSearch["arxiv"].categories[cat]
+			except KeyError:
+				pBLogger.warning("Non-existent category! %s"%cat)
+			QApplication.setOverrideCursor(Qt.WaitCursor)
+			content = physBiblioWeb.webSearch["arxiv"].arxivDaily(cat if sub == "--" else "%s.%s"%(cat, sub))
+			found = {}
+			for el in content:
+				found[el["eprint"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["eprint"], saveQuery = False) ) > 0}
+			if len(found) == 0:
+				infoMessage("No results obtained.")
+				return False
+
+			QApplication.restoreOverrideCursor()
+			selImpo = dailyArxivSelect(found, self)
+			selImpo.exec_()
+			if selImpo.result == True:
+				newFound = {}
+				for ch, val in selImpo.selected.items():
+					if val:
+						newFound[ch] = found[ch]
+				found = newFound
+				db = bibtexparser.bibdatabase.BibDatabase()
+				inserted = []
+				for key, el in found.items():
+					db.entries = [{
+						"ID": el["bibpars"]["eprint"],
+						"ENTRYTYPE": "article",
+						"title": el["bibpars"]["title"],
+						"author": " and ".join(el["bibpars"]["authors"]),
+						"archiveprefix": "arXiv",
+						"eprint": el["bibpars"]["eprint"],
+						"primaryclass": el["bibpars"]["primaryclass"]}]
+					entry = pbWriter.write(db)
+					data = pBDB.bibs.prepareInsert(entry)
+					try:
+						if pBDB.bibs.insert(data):
+							pBLogger.info("Element '%s' successfully inserted.\n"%key)
+							inserted.append(key)
+						else:
+							pBLogger.warning("Failed in inserting entry %s\n"%key)
+							continue
+					except:
+						pBLogger.warning("An error occurred while inserting entry %s\n"%key)
+						continue
+					QApplication.setOverrideCursor(Qt.WaitCursor)
+					try:
+						eid = pBDB.bibs.updateInspireID(key)
+						pBDB.bibs.updateInfoFromOAI(eid, reloadAll = True)
+						newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+						print(key, newKey)
+						if key != newKey:
+							inserted[-1] = newKey
+					except:
+						pBLogger.warning("Failed in completing info for entry %s\n"%key)
+					QApplication.restoreOverrideCursor()
+				self.StatusBarMessage("[browseArxivDaily] Entries successfully imported: %s"%inserted)
+				if selImpo.askCats.isChecked():
+					self.askCatsForEntries(inserted)
+			self.reloadMainContent()
+		else:
+			return False
 
 	def sendMessage(self, message):
 		infoMessage(message)

@@ -10,14 +10,11 @@ else:
 	from io import StringIO
 
 try:
-	#from physbiblio.database import *
-	#from physbiblio.export import pBExport
-	#import physbiblio.webimport.webInterf as webInt
-	#from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.errors import pBLogger, pBErrorManager
 	from physbiblio.database import pBDB
+	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 try:
@@ -377,4 +374,98 @@ class advImportSelect(objListWindow):
 		pass
 
 	def cellDoubleClick(self, index):
+		pass
+
+class arxivDailyDialog(QDialog):
+	"""create a window for the advanced import"""
+	def __init__(self, parent = None):
+		super(arxivDailyDialog, self).__init__(parent)
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result	= True
+		self.close()
+
+	def updateCat(self, category):
+		del self.comboSub
+		self.comboSub = MyComboBox(self,
+			["--"] + physBiblioWeb.webSearch["arxiv"].categories[category],
+			current = "--")
+		self.grid.addWidget(self.comboSub, 1, 1)
+
+	def initUI(self):
+		self.setWindowTitle('Browse arxiv daily')
+
+		self.grid = QGridLayout()
+		self.grid.setSpacing(1)
+
+		##search
+		self.grid.addWidget(QLabel("Select category: "), 0, 0)
+		self.comboCat = MyComboBox(self,
+			[""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys()))
+		self.grid.addWidget(self.comboCat, 0, 1)
+
+		self.grid.addWidget(QLabel("Subcategory: "), 1, 0)
+		self.comboSub = MyComboBox(self,
+			[""])
+		self.grid.addWidget(self.comboSub, 1, 1)
+		self.comboCat.currentIndexChanged[str].connect(self.updateCat)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.grid.addWidget(self.acceptButton, 2, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.grid.addWidget(self.cancelButton, 2, 1)
+
+		self.setGeometry(100,100,400, 100)
+		self.setLayout(self.grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+class dailyArxivSelect(advImportSelect):
+	"""create a window for the advanced import"""
+	def initUI(self):
+		self.setWindowTitle('ArXiv daily listing - results')
+
+		self.currLayout.setSpacing(1)
+
+		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:"))
+
+		headers = ["eprint", "title", "author", "primaryclass"]
+		self.table_model = MyImportedTableModel(self, self.bibs, headers, idName = "eprint")
+		self.addFilterInput("Filter entries", gridPos = (1, 0))
+		self.setProxyStuff(0, Qt.AscendingOrder)
+
+		self.finalizeTable(gridPos = (2, 0, 1, 2))
+
+		i = 3
+		self.askCats = QCheckBox("Ask categories at the end?", self)
+		self.askCats.toggle()
+		self.currLayout.addWidget(self.askCats, i, 0)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.currLayout.addWidget(self.acceptButton, i + 1, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
+
+	def cellClick(self, index):
+		# open abstract in dedicated area
 		pass
