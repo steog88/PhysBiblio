@@ -4,6 +4,10 @@ import sys, time
 from PySide.QtCore import *
 from PySide.QtGui  import *
 from outdated import check_outdated
+if sys.version_info[0] < 3:
+	from urllib2 import URLError
+else:
+	from urllib.request import URLError
 
 try:
 	from physbiblio import __version__
@@ -29,6 +33,8 @@ class thread_checkUpdated(MyThread):
 			self.result.emit(outdated, newVersion)
 		except ValueError:
 			pBLogger.warning("Error when executing check_outdated. Maybe you are using a developing version", exc_info = True)
+		except URLError:
+			pBLogger.warning("Error when trying to check new versions. Are you offline?", exc_info = True)
 		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):
