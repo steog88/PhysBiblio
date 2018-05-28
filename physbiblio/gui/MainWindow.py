@@ -978,7 +978,7 @@ class MainWindow(QMainWindow):
 		bDA.exec_()
 		cat = bDA.comboCat.currentText().lower()
 		if bDA.result and cat != "":
-			sub = bDA.comboSub.currentText().lower()
+			sub = bDA.comboSub.currentText()
 			try:
 				physBiblioWeb.webSearch["arxiv"].categories[cat]
 			except KeyError:
@@ -1009,38 +1009,42 @@ class MainWindow(QMainWindow):
 				found = newFound
 				db = bibtexparser.bibdatabase.BibDatabase()
 				inserted = []
+				QApplication.setOverrideCursor(Qt.WaitCursor)
 				for key, el in found.items():
-					db.entries = [{
-						"ID": el["bibpars"]["eprint"],
-						"ENTRYTYPE": "article",
-						"title": el["bibpars"]["title"],
-						"author": " and ".join(el["bibpars"]["authors"]),
-						"archiveprefix": "arXiv",
-						"eprint": el["bibpars"]["eprint"],
-						"primaryclass": el["bibpars"]["primaryclass"]}]
-					entry = pbWriter.write(db)
-					data = pBDB.bibs.prepareInsert(entry)
-					try:
-						if pBDB.bibs.insert(data):
-							pBLogger.info("Element '%s' successfully inserted.\n"%key)
-							inserted.append(key)
-						else:
-							pBLogger.warning("Failed in inserting entry %s\n"%key)
-							continue
-					except:
-						pBLogger.warning("An error occurred while inserting entry %s\n"%key)
-						continue
-					QApplication.setOverrideCursor(Qt.WaitCursor)
-					try:
-						eid = pBDB.bibs.updateInspireID(key)
-						pBDB.bibs.updateInfoFromOAI(eid, reloadAll = True)
+					if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
 						newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
-						print(key, newKey)
-						if key != newKey:
-							inserted[-1] = newKey
-					except:
-						pBLogger.warning("Failed in completing info for entry %s\n"%key)
-					QApplication.restoreOverrideCursor()
+						inserted.append(newKey)
+					else:
+						db.entries = [{
+							"ID": el["bibpars"]["eprint"],
+							"ENTRYTYPE": "article",
+							"title": el["bibpars"]["title"],
+							"author": el["bibpars"]["author"],
+							"archiveprefix": "arXiv",
+							"eprint": el["bibpars"]["eprint"],
+							"primaryclass": el["bibpars"]["primaryclass"]}]
+						entry = pbWriter.write(db)
+						data = pBDB.bibs.prepareInsert(entry)
+						try:
+							if pBDB.bibs.insert(data):
+								pBLogger.info("Element '%s' successfully inserted.\n"%key)
+								inserted.append(key)
+							else:
+								pBLogger.warning("Failed in inserting entry %s\n"%key)
+								continue
+						except:
+							pBLogger.warning("An error occurred while inserting entry %s\n"%key)
+							continue
+						try:
+							eid = pBDB.bibs.updateInspireID(key)
+							pBDB.bibs.searchOAIUpdates(0, entries = pBDB.bibs.getByBibkey(key), force = True, reloadAll = True)
+							newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+							print(key, newKey)
+							if key != newKey:
+								inserted[-1] = newKey
+						except:
+							pBLogger.warning("Failed in completing info for entry %s\n"%key)
+				QApplication.restoreOverrideCursor()
 				self.StatusBarMessage("[browseArxivDaily] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)

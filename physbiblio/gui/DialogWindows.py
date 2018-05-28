@@ -392,11 +392,8 @@ class arxivDailyDialog(QDialog):
 		self.close()
 
 	def updateCat(self, category):
-		del self.comboSub
-		self.comboSub = MyComboBox(self,
-			["--"] + physBiblioWeb.webSearch["arxiv"].categories[category],
-			current = "--")
-		self.grid.addWidget(self.comboSub, 1, 1)
+		self.comboSub.clear()
+		self.comboSub.addItems(["--"] + physBiblioWeb.webSearch["arxiv"].categories[category])
 
 	def initUI(self):
 		self.setWindowTitle('Browse arxiv daily')
@@ -408,13 +405,13 @@ class arxivDailyDialog(QDialog):
 		self.grid.addWidget(QLabel("Select category: "), 0, 0)
 		self.comboCat = MyComboBox(self,
 			[""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys()))
+		self.comboCat.currentIndexChanged[str].connect(self.updateCat)
 		self.grid.addWidget(self.comboCat, 0, 1)
 
 		self.grid.addWidget(QLabel("Subcategory: "), 1, 0)
 		self.comboSub = MyComboBox(self,
 			[""])
 		self.grid.addWidget(self.comboSub, 1, 1)
-		self.comboCat.currentIndexChanged[str].connect(self.updateCat)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)

@@ -1,7 +1,12 @@
+0.4.3 (2018-05-28):
+	New features:
+	* browse daily listing and directly import from arxiv (or INSPIRE, if possible)
+
+	Improvements/bug fixes:
 	* KeyErrors in advanced import less verbose
-	* browse daily listing and directly import from arxiv
 	* crash when local version is newer than PyPI one solved
 	* crash when offline and checking version solved
+	* abstract formulas are not reprocessed if the entry abstract is the one already shown
 
 0.4.2 (2018-05-24):
 	* arxivDaily function to retrieve arxiv daily updates with RSS
