@@ -360,6 +360,7 @@ class bibtexList(QFrame, objListWindow):
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
+		self.currentAbstractKey = None
 
 		QFrame.__init__(self, parent)
 		objListWindow.__init__(self, parent)
@@ -706,7 +707,9 @@ class bibtexList(QFrame, objListWindow):
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
-		writeAbstract(self.parent, entry)
+		if self.currentAbstractKey != bibkey:
+			self.currentAbstractKey = bibkey
+			writeAbstract(self.parent, entry)
 
 	def cellDoubleClick(self, index):
 		row = index.row()
