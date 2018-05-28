@@ -9,10 +9,12 @@ test:
 	$(PYTHON) setup.py test
 
 uploadtest:
-	$(PYTHON) setup.py sdist upload -r pypitest
+	$(PYTHON) setup.py sdist
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 upload:
-	$(PYTHON) setup.py sdist upload
+	$(PYTHON) setup.py sdist
+	twine upload dist/*
 
 push:
 	git push

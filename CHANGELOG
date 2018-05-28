@@ -7,6 +7,7 @@
 	* crash when local version is newer than PyPI one solved
 	* crash when offline and checking version solved
 	* abstract formulas are not reprocessed if the entry abstract is the one already shown
+	* upload to PyPI with twine, to solve problem with reStructuredText which only appeared today
 
 0.4.2 (2018-05-24):
 	* arxivDaily function to retrieve arxiv daily updates with RSS
