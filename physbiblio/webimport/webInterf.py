@@ -70,18 +70,18 @@ class webInterf():
 			data = response.read()
 		except URLError:
 			pBLogger.warning("[%s] -> Error in retrieving data from url"%self.name)
-			return None
+			return ""
 		except HTTPError:
 			pBLogger.warning("[%s] -> %s not found"%url)
-			return None
+			return ""
 		except socket.timeout:
 			pBLogger.warning("[%s] -> Timed out"%self.name)
-			return None
+			return ""
 		try:
 			text = data.decode('utf-8')
 		except Exception:
 			pBLogger.warning("[%s] -> Bad codification, utf-8 decode failed"%self.name)
-			return None
+			return ""
 		return text
 	
 	def retrieveUrlFirst(self, search):
