@@ -302,6 +302,7 @@ class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
 	def __init__(self, bibs = [], parent = None):
 		self.bibs = bibs
+		self.parent = parent
 		super(advImportSelect, self).__init__(parent, gridLayout = True)
 		self.checkBoxes = []
 		self.initUI()
@@ -443,7 +444,7 @@ class dailyArxivSelect(advImportSelect):
 
 		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:"))
 
-		headers = ["eprint", "title", "author", "primaryclass"]
+		headers = ["eprint", "type", "title", "author", "primaryclass"]
 		self.table_model = MyImportedTableModel(self, self.bibs, headers, idName = "eprint")
 		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
@@ -466,6 +467,15 @@ class dailyArxivSelect(advImportSelect):
 		self.cancelButton.setAutoDefault(True)
 		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
+		self.abstractArea = QTextEdit('Abastract', self)
+		self.currLayout.addWidget(self.abstractArea, i + 3, 0, 4, 2)
+
 	def cellClick(self, index):
-		# open abstract in dedicated area
-		pass
+		row = index.row()
+		try:
+			eprint = str(self.proxyModel.sibling(row, 0, index).data())
+		except AttributeError:
+			return
+		if self.abstractFormulas is not None:
+			a = self.abstractFormulas(self.parent, self.bibs[eprint]["bibpars"]["abstract"], customEditor = self.abstractArea, statusMessages = False)
+			a.doText()

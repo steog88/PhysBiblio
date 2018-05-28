@@ -987,6 +987,11 @@ class MainWindow(QMainWindow):
 			content = physBiblioWeb.webSearch["arxiv"].arxivDaily(cat if sub == "--" else "%s.%s"%(cat, sub))
 			found = {}
 			for el in content:
+				el["type"] = ""
+				if el["replacement"]:
+					el["type"] += " [replacement]"
+				if el["cross"]:
+					el["type"] += " [cross-listed]"
 				found[el["eprint"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["eprint"], saveQuery = False) ) > 0}
 			if len(found) == 0:
 				infoMessage("No results obtained.")
@@ -994,6 +999,7 @@ class MainWindow(QMainWindow):
 
 			QApplication.restoreOverrideCursor()
 			selImpo = dailyArxivSelect(found, self)
+			selImpo.abstractFormulas = abstractFormulas
 			selImpo.exec_()
 			if selImpo.result == True:
 				newFound = {}

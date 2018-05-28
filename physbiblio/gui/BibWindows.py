@@ -73,10 +73,11 @@ def writeBibtexInfo(entry):
 	return infoText
 
 class abstractFormulas():
-	def __init__(self, mainWin, text, fontsize = pbConfig.params["bibListFontSize"], abstractTitle = "<b>Abstract:</b><br/>"):
+	def __init__(self, mainWin, text, fontsize = pbConfig.params["bibListFontSize"], abstractTitle = "<b>Abstract:</b><br/>", customEditor = None, statusMessages = True):
 		self.fontsize = fontsize
 		self.mainWin = mainWin
-		self.editor = self.mainWin.bottomCenter.text
+		self.statusMessages = statusMessages
+		self.editor = self.mainWin.bottomCenter.text if customEditor is None else customEditor
 		self.document = QTextDocument()
 		self.editor.setDocument(self.document)
 		self.abstractTitle = abstractTitle
@@ -143,7 +144,8 @@ class abstractFormulas():
 			self.document.addResource(QTextDocument.ImageResource,
 				QUrl("mydata://image%d.png"%i), image)
 		self.editor.insertHtml(text)
-		self.mainWin.StatusBarMessage("Latex processing done!")
+		if self.statusMessages:
+			self.mainWin.StatusBarMessage("Latex processing done!")
 
 def writeAbstract(mainWin, entry):
 	a = abstractFormulas(mainWin, entry["abstract"])
