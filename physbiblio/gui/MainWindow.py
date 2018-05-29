@@ -989,9 +989,9 @@ class MainWindow(QMainWindow):
 			for el in content:
 				el["type"] = ""
 				if el["replacement"]:
-					el["type"] += " [replacement]"
+					el["type"] += "[replacement]"
 				if el["cross"]:
-					el["type"] += " [cross-listed]"
+					el["type"] += "[cross-listed]"
 				found[el["eprint"]] = {"bibpars": el, "exist": len(pBDB.bibs.getByBibkey(el["eprint"], saveQuery = False) ) > 0}
 			if len(found) == 0:
 				infoMessage("No results obtained.")
