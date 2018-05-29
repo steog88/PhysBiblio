@@ -76,17 +76,11 @@ class physbiblioDB(physbiblioDBCore):
 		Output:
 			True
 		"""
-		try:
-			del self.bibs
-			del self.cats
-			del self.exps
-			del self.bibExp
-			del self.catBib
-			del self.catExp
-			del self.utils
-			del self.config
-		except:
-			pass
+		for q in ["bibs", "cats", "exps", "bibExp", "catBib", "catExp", "utils", "config", "searches"]:
+			try:
+				delattr(self, q)
+			except AttributeError:
+				pass
 		self.utils = utilities(self)
 		self.bibs = entries(self)
 		self.cats = categories(self)
@@ -95,6 +89,7 @@ class physbiblioDB(physbiblioDBCore):
 		self.catBib = catsEntries(self)
 		self.catExp = catsExps(self)
 		self.config = configurationDB(self)
+		self.searches = savedSearchesReplacements(self)
 		return True
 
 class categories(physbiblioDBSub):
@@ -2963,6 +2958,143 @@ class utilities(physbiblioDBSub):
 			t = b.rmBibtexACapo(t)
 			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
 
+class savedSearchesReplacements(physbiblioDBSub):
+	"""
+	Subclass that manages the functions for the saved search and replace records.
+	"""
+	def __init__(self, parent):
+		"""
+		Initialize DB class, connecting to the main physbiblioDB instance (parent). Create a dedicated connection and cursor.
+		"""
+		physbiblioDBSub.__init__(self, parent)
+
+		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
+		self.conn.row_factory = sqlite3.Row
+		self.curs = self.conn.cursor()
+
+	def count(self):
+		"""
+		Obtain the number of searches in the table
+
+		Output:
+			the number of searches
+		"""
+		self.cursExec("SELECT Count(*) FROM searches")
+		return self.curs.fetchall()[0][0]
+
+	def insert(self, name = "", count = 0, searchDict = {}, replaceFields = [], manual = False, replacement = False, limit = 0, offset = 0):
+		"""
+		Insert a new search/replace
+
+		Parameters:
+			name: the config name
+			count: the order in the cronology or in the menu
+			searchDict: the dictionary which is meant to be passed to fetchByDict
+			replaceFields: the replace fields used in searchAndReplace
+			manual (boolean, default False): manually saved entry
+			replacement (boolean, default False): replace or simple search
+			limit: the number of requested entries
+			offset: the offset
+
+		Output:
+			the output of self.connExec
+		"""
+		if limit == 0:
+			limit = pbConfig.params["defaultLimitBibtexs"]
+		return self.connExec("INSERT into searches (name, count, searchDict, limitNum, offsetNum, replaceFields, manual, isReplace) values (:name, :count, :searchDict, :limit, :offset, :replaceFields, :manual, :isReplace)\n",
+			{"name": name,
+			"count": count,
+			"searchDict": "%s"%searchDict,
+			"limit": limit,
+			"offset": offset,
+			"replaceFields": "%s"%replaceFields,
+			"manual": 1 if manual else 0,
+			"isReplace": 1 if replacement else 0,
+			})
+
+	def delete(self, idS):
+		"""
+		Delete a search/replace given the id.
+
+		Parameters:
+			idS: the unique identifier
+
+		Output:
+			the output of cursExec
+		"""
+		return self.cursExec("delete from searches where idS=?\n", (idS, ))
+
+	def getAll(self):
+		"""
+		Get all the searches
+
+		Output:
+			the list of `sqlite3.Row` objects with all the searches in the database
+		"""
+		self.cursExec("select * from searches order by count asc\n")
+		return self.curs.fetchall()
+
+	def getByID(self, idS):
+		"""
+		Get a search given its name
+
+		Parameters:
+			idS: the name of the search/replace
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where idS=?\n", (idS, ))
+		return self.curs.fetchall()
+
+	def getByName(self, name):
+		"""
+		Get a search given its name
+
+		Parameters:
+			name: the name of the search/replace
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where name=?\n", (name, ))
+		return self.curs.fetchall()
+
+	def getList(self, manual = False, replacement = False):
+		"""
+		Get searches or replaces which were not manually saved
+
+		Parameters:
+			manual (boolean, default False): manually saved entry
+			replacement (boolean, default False): replace or simple search
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where manual=? and isReplace=?\n", (
+			1 if manual else 0,
+			1 if replacement else 0))
+		return self.curs.fetchall()
+
+	def updateOrder(self, replacement = False):
+		"""
+		Update the cronology order for searches or replaces which were not manually saved
+
+		Parameters:
+			replacement (boolean, default False): replace or simple search
+
+		Output:
+			True if successfull, False if some sum failed
+		"""
+		self.cursExec("select * from searches where manual=0 and isReplace=?\n", (1 if replacement else 0, ))
+		for e in self.curs.fetchall():
+			if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
+				self.delete(e["idS"])
+			if not self.connExec("update searches set count = :count where idS=:idS\n",
+					{"idS": e["idS"], "count": e["count"] + 1}):
+				self.undo()
+				return False
+		return True
 
 def catString(idCat, db, withDesc = False):
 	"""
