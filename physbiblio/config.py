@@ -85,6 +85,10 @@ configuration_params = [
 	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
 	"description": 'The columns to be shown in the entries list',
 	"special": 'list'},
+{"name": "maxSavedSearches",
+	"default": 5,
+	"description": 'Max number of automatically saved search/replace arguments',
+	"special": 'int'},
 ]
 
 loggingLevels = [
