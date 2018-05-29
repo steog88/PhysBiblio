@@ -69,8 +69,10 @@ tableFields["settings"] = [
 tableFields["searches"] = [
 	["idS",				"int", "primary key"],
 	["name",			"text", ""],
-	["count",			"int", "not null"],
+	["count",			"int", "default 0 not null"],
 	["searchDict",		"text", "not null"],
+	["limitNum",		"int", "default 50"],
+	["offsetNum",		"int", "default 0"],
 	["replaceFields",	"text", ""],
 	["manual",			"int", "default 0"],
 	["isReplace",		"int", "default 0"]]
@@ -134,6 +136,8 @@ fieldsDescriptions["searches"] = {
 	"name":				"Custom name of the search/replace",
 	"count":			"Order of the entry in the cronology",
 	"searchDict":		"Dictionary of fields to be passed to fetchByDict",
+	"limit":			"The max number of results in the search",
+	"offset":			"The offset in the search",
 	"replaceFields":	"List of fields used in replacement",
 	"manual":			"Manually saved",
 	"isReplace":		"(T/F) A replacement or a simple search"}
