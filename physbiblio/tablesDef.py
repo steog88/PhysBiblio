@@ -67,13 +67,13 @@ tableFields["settings"] = [
 	["name", 	"text", "primary key not null"],
 	["value", 	"text", "default ''"]]
 tableFields["searches"] = [
-	["idS", "int", "primary key"],
-	["name", "text", ""],
-	["count", "int", "not null"],
-	["searchDict", "text", "not null"],
-	["replaceFields", "text", ""],
-	["manual", "int", "default 0"],
-	["isReplace", "int", "default 0"]]
+	["idS",				"int", "primary key"],
+	["name",			"text", ""],
+	["count",			"int", "not null"],
+	["searchDict",		"text", "not null"],
+	["replaceFields",	"text", ""],
+	["manual",			"int", "default 0"],
+	["isReplace",		"int", "default 0"]]
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {
 	"bibkey":	"Unique bibtex key that identifies the bibliographic element",
@@ -126,14 +126,14 @@ fieldsDescriptions["entryExps"] = {
 	"bibkey": "Corresponding bibtex key",
 	"idExp":  "Corresponding experiment ID"}
 fieldsDescriptions["settings"] = {
-	"id": "Unique identifier",
-	"name": "name of the setting",
-	"value": "value of the setting"}
+	"id": 		"Unique identifier",
+	"name": 	"name of the setting",
+	"value":	"value of the setting"}
 fieldsDescriptions["searches"] = {
-	"idS": "Unique identifier",
-	"name": "Custom name of the search/replace",
-	"count": "Order of the entry in the cronology",
-	"searchDict": "Dictionary of fields to be passed to fetchByDict",
-	"replaceFields": "List of fields used in replacement",
-	"manual": "Manually saved",
-	"isReplace": "(T/F) A replacement or a simple search"}
+	"idS":				"Unique identifier",
+	"name":				"Custom name of the search/replace",
+	"count":			"Order of the entry in the cronology",
+	"searchDict":		"Dictionary of fields to be passed to fetchByDict",
+	"replaceFields":	"List of fields used in replacement",
+	"manual":			"Manually saved",
+	"isReplace":		"(T/F) A replacement or a simple search"}
