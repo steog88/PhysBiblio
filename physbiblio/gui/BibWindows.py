@@ -1087,6 +1087,7 @@ class searchBibsWindow(editObjectWindow):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
+		self.save = False
 		self.replace = replace
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
@@ -1113,6 +1114,10 @@ class searchBibsWindow(editObjectWindow):
 		self.limitValue = None
 		self.limitOffs = None
 		self.createForm()
+
+	def onSave(self):
+		self.save = True
+		self.onOk()
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
@@ -1340,6 +1345,12 @@ class searchBibsWindow(editObjectWindow):
 		self.cancelButton.setAutoDefault(True)
 		self.currGrid.addWidget(self.cancelButton, i, 3)
 		self.cancelButton.setFixedWidth(80)
+
+		# save button
+		self.saveButton = QPushButton('Run and save', self)
+		self.saveButton.clicked.connect(self.onSave)
+		self.currGrid.addWidget(self.saveButton, i, 5)
+		self.saveButton.setFixedWidth(120)
 
 		self.currGrid.setColumnStretch(6, 1)
 

@@ -695,12 +695,12 @@ class MainWindow(QMainWindow):
 				if newSearchWin.doubleEdit.isChecked():
 					fieldsNew.append(newSearchWin.replNewField1.currentText())
 					replNew.append(newSearchWin.replNew1.text())
-				if save:#get value from save button or whatever
+				if newSearchWin.save:#get value from save button or whatever
 					# save searchDict, lim, offs, isReplace=T and the returned fields:
 					pass
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
-			if save:#get value from save button or whatever
+			if newSearchWin.save:#get value from save button or whatever
 				# save searchDict, lim, offs, isReplace=F
 				pass
 			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
