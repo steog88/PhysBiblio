@@ -255,7 +255,7 @@ as force and matter fields.
 			self.assertEqual(result[1],
 				{'primaryclass': u'hep-ex', 'author': u'Boris Tuchming', 'title': u'Recent Top quark results from the Tevatron.', 'abstract': u'We present recent measurements ', 'cross': True, 'version': u'1805.09166v1', 'eprint': u'1805.09166', 'authors': [u'Boris Tuchming'], 'replacement': False})
 			self.assertEqual(result[2],
-				{'primaryclass': u'nucl-th', 'author': u'Shu-Sheng Xu and Zhu-Fang Cui and Lei Chang and others', 'title': u'New Perspective on Hybrid Mesons.', 'abstract': u'It is thought that strong interactions within the Standard Model can generate bound-states in which non-Abelian gauge-bosons play a dual role, serving both as force and matter fields. ', 'cross': False, 'version': u'1805.06430v2', 'eprint': u'1805.06430', 'authors': [u'Shu-Sheng Xu', u'Zhu-Fang Cui', u'Lei Chang', u'Joannis Papavassiliou', u'Craig D. Roberts', u'Hong-Shi Zong'], 'replacement': True})
+				{'primaryclass': u'nucl-th', 'author': u'Shu-Sheng Xu and Zhu-Fang Cui and Lei Chang and others', 'title': u'New Perspective on Hybrid Mesons.', 'abstract': u'It is thought that strong interactions within the Standard Model can generate bound-states in which non-Abelian gauge-bosons play a dual role, serving both as force and matter fields. ', 'cross': True, 'version': u'1805.06430v2', 'eprint': u'1805.06430', 'authors': [u'Shu-Sheng Xu', u'Zhu-Fang Cui', u'Lei Chang', u'Joannis Papavassiliou', u'Craig D. Roberts', u'Hong-Shi Zong'], 'replacement': True})
 
 if __name__=='__main__':
 	unittest.main()

@@ -82,6 +82,7 @@ class TestConfigMethods(unittest.TestCase):
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
 		tempPbConfig = ConfigVars(tempProfName)
+		tempPbConfig.reloadProfiles()
 		self.assertEqual(tempPbConfig.defaultProfileName, "default")
 		self.assertEqual(tempPbConfig.profiles,
 			{u"default": {

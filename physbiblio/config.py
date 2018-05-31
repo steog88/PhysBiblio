@@ -482,7 +482,7 @@ class ConfigVars():
 		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath, info = False)
 
 		self.checkOldProfiles()
-		self.reloadProfiles()
+		self.loadProfiles()
 
 		#some urls
 		self.arxivUrl = "http://arxiv.org/"
@@ -500,14 +500,22 @@ class ConfigVars():
 			self.logger.warning(e)
 			self.profilesDb.createProfile()
 
-	def reloadProfiles(self):
+	def reloadProfiles(self, useProfile = None):
 		"""
 		Load the information from the profile database, reset the default and current profile and the settings
+
+		Parameters:
+			useProfile (optional): the name of the profile to be used instead of the default one
 		"""
 		self.loadProfiles()
 
-		self.currentProfileName = self.defaultProfileName
-		self.currentProfile = self.profiles[self.currentProfileName]
+		self.currentProfileName = self.defaultProfileName if useProfile is None else useProfile
+		try:
+			self.currentProfile = self.profiles[self.currentProfileName]
+		except KeyError:
+			self.logger.critical("The profile '%s' does not exist! Back to the default one ('%s')"%(useProfile, self.defaultProfileName))
+			self.currentProfileName = self.defaultProfileName
+			self.currentProfile = self.profiles[self.currentProfileName]
 		self.currentDatabase = self.currentProfile["db"]
 		self.logger.info("Starting with profile '%s', database: %s"%(self.currentProfileName, self.currentDatabase))
 

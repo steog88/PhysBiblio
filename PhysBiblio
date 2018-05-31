@@ -8,8 +8,8 @@ This file is part of the physbiblio package.
 import sys
 
 try:
-	from physbiblio import __version__, __version_date__
-	from physbiblio.argParser import *
+	from physbiblio.argParser import setParser, call_gui
+	from physbiblio.config import pbConfig
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -18,6 +18,9 @@ if __name__=='__main__':
 	if len(sys.argv) > 1:
 		parser = setParser()
 		args = parser.parse_args(sys.argv[1:])
+		if args.profile is None:
+			pbConfig.reloadProfiles()
 		args.func(args)
 	else:
+		pbConfig.reloadProfiles()
 		call_gui()

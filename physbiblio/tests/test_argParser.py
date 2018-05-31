@@ -78,9 +78,7 @@ class TestParser(unittest.TestCase):
 			profile = list(pbConfig.profiles.keys())[0]
 			with patch("physbiblio.cli.cli") as mock:
 				self.assert_in_stdout(lambda: parser.parse_args([opt, "%s"%profile, "cli"]),
-					["Changing profile to '%s'"%profile,
-					"Closing database...",
-					"Opening database:"])
+					["Starting with profile '%s', database"%profile])
 				args = parser.parse_args([opt, "%s"%profile, "cli"])
 				args.func(args)
 				mock.assert_called_once_with()

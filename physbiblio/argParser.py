@@ -10,14 +10,13 @@ import argparse
 try:
 	from physbiblio import __version__, __version_date__
 	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB
-	from physbiblio.errors import pBLogger
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
 
 def call_clean(args):
 	"""Function used when the "clean" subcommand is called"""
+	from physbiblio.database import pBDB
 	pBDB.bibs.cleanBibtexs(startFrom = args.startFrom)
 	pBDB.commit()
 
@@ -50,11 +49,13 @@ def call_tex(args):
 
 def call_update(args):
 	"""Function used when the "update" subcommand is called"""
+	from physbiblio.database import pBDB
 	pBDB.bibs.searchOAIUpdates(startFrom = args.startFrom, force = args.force)
 	pBDB.commit()
 
 def call_oaiDates(date1, date2):
 	"""Wrapper for getDailyInfoFromOAI + commit of the changes"""
+	from physbiblio.database import pBDB
 	pBDB.bibs.getDailyInfoFromOAI(date1, date2)
 	pBDB.commit()
 
@@ -80,6 +81,8 @@ def call_gui(args = None):
 	"""Function that runs the PhysBiblio GUI"""
 	from PySide.QtGui import QApplication
 	try:
+		from physbiblio.errors import pBLogger
+		from physbiblio.database import pBDB
 		from physbiblio.gui.MainWindow import MainWindow
 		from physbiblio.gui.ErrorManager import pBGUIErrorManager
 	except ImportError:
@@ -106,10 +109,7 @@ class newProfileAction(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
 		prof = values[0]
 		if prof in pbConfig.profiles.keys():
-			pBLogger.info("Changing profile to '%s'"%prof)
-			newProfile = pbConfig.profiles[prof]
-			pbConfig.reInit(prof, newProfile)
-			pBDB.reOpenDB(pbConfig.currentDatabase)
+			pbConfig.reloadProfiles(prof)
 		setattr(namespace, self.dest, values)
 
 def setParser():

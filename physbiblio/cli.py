@@ -33,4 +33,5 @@ def cli():
 	shell = code.InteractiveConsole(vars)
 	shell.interact("[CLI] Activating CommandLineInterface\n" + \
 		"Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).")
+	pBDB.closeDB()
 	pBLogger.info("CommandLineInterface closed.")

@@ -16,6 +16,7 @@ else:
 
 try:
 	from physbiblio.config import pbConfig
+	pbConfig.reloadProfiles()
 	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import physbiblioDB
 except ImportError:
