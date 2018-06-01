@@ -1,5 +1,6 @@
 	* speed up load when non-default profile is required
 	* fixing cross-list mark from arXiv daily
+	* default categories removed if "ask categories" is checked in daily arxiv import
 
 0.4.3 (2018-05-28):
 	New features:

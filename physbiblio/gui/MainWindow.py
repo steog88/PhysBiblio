@@ -932,6 +932,8 @@ class MainWindow(QMainWindow):
 						pBLogger.warning("Failed in completing info for entry %s\n"%key)
 				self.StatusBarMessage("[advancedImport] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
+					for key in inserted:
+						pBDB.catBib.delete(pbConfig.params["defaultCategories"], key)
 					self.askCatsForEntries(inserted)
 			self.reloadMainContent()
 		else:
