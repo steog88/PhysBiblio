@@ -43,7 +43,7 @@ class TestInspireStatsMethods(unittest.TestCase):
 		self.assertEqual(pBStats.paperStats("1358853"),
 			{'aI': {}, 'citList': [[datetime.date.today()], [0]], 'id': '1358853'})
 		self.assert_in_stdout(lambda: pBStats.paperStats("1358853"),
-			"Cannot read the page content!")
+			"Empty response!")
 
 		#needs multiple pages to load all the content
 		testGood = pBStats.paperStats("650592")

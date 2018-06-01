@@ -14,8 +14,13 @@ else:
 	from unittest.mock import patch
 	from io import StringIO
 
+today_ymd = datetime.datetime.today().strftime('%y%m%d')
+tempLogFileName = "tests_%s.log"%today_ymd
+
 try:
 	from physbiblio.config import pbConfig
+	pbConfig.overWritelogFileName = os.path.join(pbConfig.dataPath, tempLogFileName)
+	pbConfig.prepareLogger("physbibliotestlog")
 	pbConfig.reloadProfiles()
 	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import physbiblioDB
@@ -24,14 +29,12 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
-today_ymd = datetime.datetime.today().strftime('%y%m%d')
-
 skipOnlineTests = False
 skipOAITests    = False
 skipLongTests   = False
 skipDBTests     = False
 
-pbConfig.params["logFileName"] = "tests_%s.log"%today_ymd
+pbConfig.params["logFileName"] = tempLogFileName
 logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])
 
 tempDBName = os.path.join(pbConfig.dataPath, "tests_%s.db"%today_ymd)

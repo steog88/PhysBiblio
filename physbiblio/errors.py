@@ -29,11 +29,15 @@ class pBErrorManagerClass():
 		else:
 			self.loglevel = logging.DEBUG
 		#the main logger, will save to stdout and log file
+		self.loggerString = loggerString
 		self.logger = logging.getLogger(loggerString)
 		self.logger.propagate = False
 		self.logger.setLevel(min(logging.INFO, self.loglevel))
 
-		fh = logging.FileHandler(pbConfig.params["logFileName"])
+		try:
+			fh = logging.FileHandler(pbConfig.overWritelogFileName)
+		except AttributeError:
+			fh = logging.FileHandler(pbConfig.params["logFileName"])
 		fh.setLevel(self.loglevel)
 		formatter = logging.Formatter('%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s')
 		fh.setFormatter(formatter)
@@ -80,6 +84,6 @@ class pBErrorManagerClass():
 	def excepthook(self, cls, exception, trcbk):
 		self.logger.error("Unhandled exception", exc_info = (cls, exception, trcbk))
 
-pBErrorManager = pBErrorManagerClass()
+pBErrorManager = pBErrorManagerClass(pbConfig.loggerString)
 pBLogger = pBErrorManager.logger
 sys.excepthook = pBErrorManager.excepthook

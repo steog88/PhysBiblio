@@ -2,6 +2,8 @@
 	* fixing cross-list mark from arXiv daily
 	* default categories removed if "ask categories" is checked in daily arxiv import
 	* better treatment of json conversion of empty response in inspireStats
+	* avoid writing on the user log file when performing tests
+	* tests fixed
 
 0.4.3 (2018-05-28):
 	New features:

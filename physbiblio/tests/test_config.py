@@ -50,6 +50,7 @@ class TestConfigMethods(unittest.TestCase):
 				return_value = ("tmp", {"tmp": {"db": tempCfgName, "d":""}}, ["tmp"])) as _mock_readprof:
 			self.assertFalse(os.path.exists(tempCfgName))
 			tempPbConfig = ConfigVars()
+			tempPbConfig.prepareLogger("physbibliotestlog")
 			tempDb = physbiblioDBCore(tempCfgName, tempPbConfig.logger, info = False)
 			configDb = configurationDB(tempDb)
 
@@ -58,6 +59,7 @@ class TestConfigMethods(unittest.TestCase):
 			self.assertEqual(len(configDb.getAll()), 0)
 
 			tempPbConfig1 = ConfigVars()
+			tempPbConfig1.prepareLogger("physbibliotestlog")
 			self.assertEqual(tempPbConfig1.params, newConfParamsDict)
 			tempPbConfig1.params["logFileName"] = "otherfilename"
 			tempPbConfig1.params["timeoutWebSearch"] = 10.
@@ -71,6 +73,7 @@ class TestConfigMethods(unittest.TestCase):
 					"maxAuthorNames = 5\n"+
 					"defaultCategories = [1]\n")
 			tempPbConfig = ConfigVars()
+			tempPbConfig.prepareLogger("physbibliotestlog")
 			tempPbConfig.configMainFile = tempOldCfgName
 			tempPbConfig.oldReadConfigFile()
 			self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
@@ -82,6 +85,7 @@ class TestConfigMethods(unittest.TestCase):
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
 		tempPbConfig = ConfigVars(tempProfName)
+		tempPbConfig.prepareLogger("physbibliotestlog")
 		tempPbConfig.reloadProfiles()
 		self.assertEqual(tempPbConfig.defaultProfileName, "default")
 		self.assertEqual(tempPbConfig.profiles,

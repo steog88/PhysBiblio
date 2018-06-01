@@ -453,7 +453,7 @@ class ConfigVars():
 		"""
 		#needed because the main logger will be loaded later!
 		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
-		self.logger = logging.getLogger("physbibliolog")
+		self.prepareLogger("physbibliolog")
 		self.defaultDirs = AppDirs("PhysBiblio")
 
 		self.configPath = self.defaultDirs.user_config_dir + os.sep
@@ -489,6 +489,16 @@ class ConfigVars():
 		self.doiUrl = "http://dx.doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
+
+	def prepareLogger(self, string):
+		"""
+		Replace the logger used by this module
+
+		Parameters:
+			string: the string used in getLogger
+		"""
+		self.loggerString = string
+		self.logger = logging.getLogger(self.loggerString)
 
 	def loadProfiles(self):
 		"""
