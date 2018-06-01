@@ -69,6 +69,9 @@ class inspireStatsLoader():
 			response = requests.get(url, timeout = self.timeout)
 			try:
 				return json.loads(response.content.decode("utf-8"))
+			except ValueError:
+				pBLogger.warning("Empty response!")
+				return []
 			except:
 				pBLogger.exception("Cannot read the page content!")
 				return []
@@ -130,12 +133,13 @@ class inspireStatsLoader():
 			self.allInfo[p] = {}
 			self.allInfo[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
 			self.authorPapersList[0].append(self.allInfo[p]["date"])
-			pBLogger.info("%5d / %d (%5.2f%%) - looking for paper: '%s'\n"%(i+1, tot, 100.*(i+1)/tot, p))
+			pBLogger.info("%5d / %d (%5.2f%%) - looking for paper: '%s'"%(i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p, verbose = 0, paperDate = self.allInfo[p]["date"])
 			self.allInfo[p]["infoDict"] = paperInfo["aI"]
 			self.allInfo[p]["citingPapersList"] = paperInfo["citList"]
 			for c,v in self.allInfo[p]["infoDict"].items():
 				self.allCitations.append(v["date"])
+			pBLogger.info("")
 		self.authorPapersList[1] = []
 		for i,p in enumerate(sorted(self.authorPapersList[0])):
 			self.authorPapersList[0][i] = p
