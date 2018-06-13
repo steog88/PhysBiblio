@@ -41,6 +41,12 @@ convertType = {
 	"exp_paper": "Experimental paper",
 }
 
+def copyToClipboard(text):
+	"""copy the given text to the clipboard"""
+	pBLogger.info("Copying to clipboard: '%s'"%text)
+	clipboard = QApplication.clipboard()
+	clipboard.setText(text)
+
 def writeBibtexInfo(entry):
 	infoText = ""
 	for t in convertType.keys():
@@ -587,15 +593,15 @@ class bibtexList(QFrame, objListWindow):
 			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
 		#copy functions
 		elif "bibkey" in copyActions.keys() and action == copyActions["bibkey"]:
-			self.copyToClipboard(bibkey)
+			copyToClipboard(bibkey)
 		elif "cite" in copyActions.keys() and action == copyActions["cite"]:
-			self.copyToClipboard(r"\cite{%s}"%bibkey)
+			copyToClipboard(r"\cite{%s}"%bibkey)
 		elif "bibtex" in copyActions.keys() and action == copyActions["bibtex"]:
-			self.copyToClipboard(pBDB.bibs.getField(bibkey, "bibtex"))
+			copyToClipboard(pBDB.bibs.getField(bibkey, "bibtex"))
 		elif "abstract" in copyActions.keys() and action == copyActions["abstract"]:
-			self.copyToClipboard(abstract)
+			copyToClipboard(abstract)
 		elif "link" in copyActions.keys() and action == copyActions["link"]:
-			self.copyToClipboard(link)
+			copyToClipboard(link)
 		#categories
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByEntry(bibkey)]
@@ -762,12 +768,6 @@ class bibtexList(QFrame, objListWindow):
 				infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 		else:
 			infoMessage("No arxiv number for entry '%s'!"%bibkey)
-
-	def copyToClipboard(self, text):
-		"""copy the given text to the clipboard"""
-		pBLogger.info("Copying to clipboard: '%s'"%text)
-		clipboard = QApplication.clipboard()
-		clipboard.setText(text)
 
 	def finalizeTable(self):
 		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
@@ -944,6 +944,12 @@ class askSelBibAction(MyMenu):
 		self.possibleActions.append(QAction("Clean entries", self, triggered = self.onClean))
 		self.possibleActions.append(QAction("Update entries", self, triggered = self.onUpdate))
 		self.possibleActions.append(None)
+		self.possibleActions.append(["Copy to clipboard", [
+			QAction("Copy keys", self, triggered = self.onCopyKeys),
+			QAction("Copy \cite{keys}", self, triggered = self.onCopyCites),
+			QAction("Copy bibtexs", self, triggered = self.onCopyBibtexs)
+			]])
+		self.possibleActions.append(None)
 		self.possibleActions.append(QAction("Load abstract from arXiv", self, triggered = self.onAbs))
 		self.possibleActions.append(QAction("Get fields from arXiv", self, triggered = self.onArx))
 		self.possibleActions.append(QAction("Download PDF from arXiv", self, triggered = self.onDown))
@@ -956,6 +962,15 @@ class askSelBibAction(MyMenu):
 		self.possibleActions.append(QAction("Select experiments", self, triggered = self.onExp))
 
 		self.fillMenu()
+
+	def onCopyKeys(self):
+		copyToClipboard(",".join([e["bibkey"] for e in self.entries]))
+
+	def onCopyCites(self):
+		copyToClipboard("\cite{%s}"%",".join([e["bibkey"] for e in self.entries]))
+
+	def onCopyBibtexs(self):
+		copyToClipboard("\n\n".join([e["bibtex"] for e in self.entries]))
 
 	def onMerge(self):
 		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)

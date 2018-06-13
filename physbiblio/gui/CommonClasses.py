@@ -492,6 +492,10 @@ class MyMenu(QMenu):
 		for act in self.possibleActions:
 			if act is None:
 				self.addSeparator()
+			elif type(act) is list:
+				currmenu = self.addMenu(act[0])
+				for a in act[1]:
+					currmenu.addAction(a)
 			else:
 				self.addAction(act)
 
