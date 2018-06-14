@@ -2962,16 +2962,6 @@ class savedSearchesReplacements(physbiblioDBSub):
 	"""
 	Subclass that manages the functions for the saved search and replace records.
 	"""
-	def __init__(self, parent):
-		"""
-		Initialize DB class, connecting to the main physbiblioDB instance (parent). Create a dedicated connection and cursor.
-		"""
-		physbiblioDBSub.__init__(self, parent)
-
-		self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
-		self.conn.row_factory = sqlite3.Row
-		self.curs = self.conn.cursor()
-
 	def count(self):
 		"""
 		Obtain the number of searches in the table
