@@ -286,6 +286,7 @@ class MainWindow(QMainWindow):
 		"""
 		Create Qt menus.
 		"""
+		self.fileMenu = self.menuBar().clear()
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.undoAct)
 		self.fileMenu.addAction(self.saveAct)
@@ -340,13 +341,33 @@ class MainWindow(QMainWindow):
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 
+		freqSearches = pBDB.searches.getList(manual = True, replacement = False)
+		if len(freqSearches) > 0:
+			self.menuBar().addSeparator()
+			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
+			for fs in freqSearches:
+				self.searchMenu.addAction(QAction(
+					fs["name"], self,
+					triggered = lambda sD = ast.literal_eval(fs["searchDict"]), l = fs["limitNum"], o = fs["offsetNum"]: self.runSearchBiblio(sD, l, o)
+					))
+			self.searchMenu.addSeparator()
+			for fs in freqSearches:
+				self.searchMenu.addAction(QAction(
+					"Delete '%s'"%fs["name"], self,
+					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
+					))
+
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.dbstatsAct)
 		self.helpMenu.addAction(self.logfileAct)
 		self.helpMenu.addSeparator()
 		self.helpMenu.addAction(self.aboutAct)
-		
+
+		try:
+			self.removeToolBar(self.mainToolBar)
+		except AttributeError:
+			pass
 		self.mainToolBar = self.addToolBar('Toolbar')
 		self.mainToolBar.addAction(self.undoAct)
 		self.mainToolBar.addAction(self.saveAct)
@@ -688,7 +709,6 @@ class MainWindow(QMainWindow):
 				offs = int(newSearchWin.limitOffs.text())
 			except ValueError:
 				offs = 0
-			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 			if replace:
 				fieldsNew = [ newSearchWin.replNewField.currentText() ]
 				replNew = [ newSearchWin.replNew.text() ]
@@ -700,18 +720,37 @@ class MainWindow(QMainWindow):
 					pass
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
-			if newSearchWin.save:#get value from save button or whatever
-				# save searchDict, lim, offs, isReplace=F
-				pass
-			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
-				limitTo = lim, limitOffset = offs
-				).lastFetched
-			if len(noLim) > len(lastFetched):
-				infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
-					len(lastFetched), len(noLim)))
-			self.reloadMainContent(lastFetched)
+			if newSearchWin.save:
+				name = ""
+				wrong = False
+				while name.strip() == "":
+					res = askGenericText("Insert a name / short description to be able to recognise this search in the future:", "Search name", parent = self)
+					if res[1]:
+						name = res[0]
+					else:
+						wrong = True
+						break
+				if not wrong:
+					pBDB.searches.insert(name = name, count = 0, searchDict = searchDict, manual = True, replacement = False, limit = lim, offset = offs)
+					self.createMenusAndToolBar()
+			self.runSearchBiblio(searchDict, lim, offs)
 		elif replace:
 			return False
+
+	def runSearchBiblio(self, searchDict, lim, offs):
+		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
+		lastFetched = pBDB.bibs.fetchFromDict(searchDict,
+			limitTo = lim, limitOffset = offs
+			).lastFetched
+		if len(noLim) > len(lastFetched):
+			infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
+				len(lastFetched), len(noLim)))
+		self.reloadMainContent(lastFetched)
+
+	def delSearchBiblio(self, idS, name):
+		if askYesNo("Are you sure you want to delete the saved search '%s'?"%name):
+			pBDB.searches.delete(idS)
+			self.createMenusAndToolBar()
 
 	def searchAndReplace(self):
 		result = self.searchBiblio(replace = True)
