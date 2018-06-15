@@ -479,7 +479,7 @@ class globalDB(physbiblioDBCore):
 		Output:
 			the list of `sqlite3.Row` objects with all the matching searches
 		"""
-		self.cursExec("select * from searches where manual=? and isReplace=?\n", (
+		self.cursExec("select * from searches where manual=? and isReplace=? order by count ASC\n", (
 			1 if manual else 0,
 			1 if replacement else 0))
 		return self.curs.fetchall()
