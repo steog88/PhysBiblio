@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
 import os
-import matplotlib as mpl
+import matplotlib
+matplotlib.use('Qt4Agg')
+os.environ["QT_API"] = 'pyside'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
@@ -97,7 +99,7 @@ class abstractFormulas():
 			self.editor.insertHtml(self.text)
 
 	def mathTex_to_QPixmap(self, mathTex):
-		fig = mpl.figure.Figure()
+		fig = matplotlib.figure.Figure()
 		fig.patch.set_facecolor('none')
 		fig.set_canvas(FigureCanvasAgg(fig))
 		renderer = fig.canvas.get_renderer()

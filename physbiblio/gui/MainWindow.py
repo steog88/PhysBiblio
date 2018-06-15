@@ -17,7 +17,6 @@ try:
 	from physbiblio.database import *
 	from physbiblio.export import pBExport
 	from physbiblio.webimport.webInterf import physBiblioWeb
-	from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
@@ -438,6 +437,7 @@ class MainWindow(QMainWindow):
 
 	def undoDB(self):
 		pBDB.undo()
+		self.setWindowTitle('PhysBiblio')
 		self.reloadMainContent()
 
 	def refreshMainContent(self, bibs = None):
@@ -520,7 +520,8 @@ class MainWindow(QMainWindow):
 			"<i>Data:</i> %s<br>"%pbConfig.dataPath+
 			"<br>"+
 			"<b>Author:</b> Stefano Gariazzo <i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"+
-			"<b>Version:</b> %s (%s)"%(physbiblio.__version__, physbiblio.__version_date__))
+			"<b>Version:</b> %s (%s)<br>"%(physbiblio.__version__, physbiblio.__version_date__)+
+			"<b>Python version</b>: %s"%sys.version)
 		mbox.setTextFormat(Qt.RichText)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
 		mbox.exec_()
@@ -809,23 +810,6 @@ class MainWindow(QMainWindow):
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 		QApplication.restoreOverrideCursor()
-
-	def oldSearchAndReplace(self):
-		dialog = searchReplaceDialog(self)
-		dialog.exec_()
-		if dialog.result == True:
-			if dialog.searchEdit.text().strip() == "":
-				infoMessage("Empty search string!\nDoing nothing.")
-				return
-			changed = pBDB.bibs.replaceInBibtex(dialog.searchEdit.text(), dialog.replaceEdit.text())
-			if len(changed) > 0:
-				infoMessage("Elements changed:\n%s"%changed)
-			self.reloadMainContent(pBDB.bibs.lastFetched)
-
-	def cli(self):
-		self.StatusBarMessage("Activating CLI!")
-		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
-		physBiblioCLI()
 
 	def updateAllBibtexsAsk(self):
 		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")
