@@ -179,8 +179,9 @@ You can mark the entries to be able to easily see if they are good/bad, to notic
 ### Search and replace
 Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
 
-The search form should be easy to understand (if not, help me to improve it and submit an [issue](https://github.com/steog88/physBiblio/issues).
+The search form should be easy to understand (if not, help me to improve it and submit an [issue](https://github.com/steog88/physBiblio/issues)).
 You can play with the logical operators and add more fields if necessary.
+You can also save a search or a replace that you need frequently, they will appear in a new menu for future use.
 
 A pretty powerful "search and replace" function, which can use regular expressions (regex), is also implemented.  
 The search function is the same as in the search only case, but now you cannot select the limit and offset.  

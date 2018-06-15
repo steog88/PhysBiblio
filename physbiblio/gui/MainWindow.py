@@ -357,6 +357,22 @@ class MainWindow(QMainWindow):
 					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
 					))
 
+		freqReplaces = pBDB.searches.getList(manual = True, replacement = True)
+		if len(freqReplaces) > 0:
+			self.menuBar().addSeparator()
+			self.replaceMenu = self.menuBar().addMenu("Frequent &replace")
+			for fs in freqReplaces:
+				self.replaceMenu.addAction(QAction(
+					fs["name"], self,
+					triggered = lambda sD = ast.literal_eval(fs["searchDict"]), r = ast.literal_eval(fs["replaceFields"]), o = fs["offsetNum"]: self.runSearchReplaceBiblio(sD, r, o)
+					))
+			self.replaceMenu.addSeparator()
+			for fs in freqReplaces:
+				self.replaceMenu.addAction(QAction(
+					"Delete '%s'"%fs["name"], self,
+					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
+					))
+
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.dbstatsAct)
@@ -715,22 +731,33 @@ class MainWindow(QMainWindow):
 				if newSearchWin.doubleEdit.isChecked():
 					fieldsNew.append(newSearchWin.replNewField1.currentText())
 					replNew.append(newSearchWin.replNew1.text())
-				if newSearchWin.save:#get value from save button or whatever
-					# save searchDict, lim, offs, isReplace=T and the returned fields:
-					pass
+				if newSearchWin.save:
+					name = ""
+					cancel = False
+					while name.strip() == "":
+						res = askGenericText("Insert a name / short description to be able to recognise this replace in the future:", "Replace name", parent = self)
+						if res[1]:
+							name = res[0]
+						else:
+							cancel = True
+							break
+					if not cancel:
+						pBDB.searches.insert(name = name, count = 0, searchDict = searchDict, manual = True, replacement = True, limit = lim, offset = offs,
+							replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
+						self.createMenusAndToolBar()
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
 			if newSearchWin.save:
 				name = ""
-				wrong = False
+				cancel = False
 				while name.strip() == "":
 					res = askGenericText("Insert a name / short description to be able to recognise this search in the future:", "Search name", parent = self)
 					if res[1]:
 						name = res[0]
 					else:
-						wrong = True
+						cancel = True
 						break
-				if not wrong:
+				if not cancel:
 					pBDB.searches.insert(name = name, count = 0, searchDict = searchDict, manual = True, replacement = False, limit = lim, offset = offs)
 					self.createMenusAndToolBar()
 			self.runSearchBiblio(searchDict, lim, offs)
@@ -747,6 +774,10 @@ class MainWindow(QMainWindow):
 				len(lastFetched), len(noLim)))
 		self.reloadMainContent(lastFetched)
 
+	def runSearchReplaceBiblio(self, searchDict, replaceFields, offs):
+		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
+		self.runReplace(replaceFields)
+
 	def delSearchBiblio(self, idS, name):
 		if askYesNo("Are you sure you want to delete the saved search '%s'?"%name):
 			pBDB.searches.delete(idS)
@@ -756,7 +787,10 @@ class MainWindow(QMainWindow):
 		result = self.searchBiblio(replace = True)
 		if result is False:
 			return False
-		fiOld, fiNew, old, new, regex = result
+		self.runReplace(result)
+
+	def runReplace(self, replace):
+		fiOld, fiNew, old, new, regex = replace
 		if old == "":
 			infoMessage("The string to substitute is empty!")
 			return

@@ -1,3 +1,5 @@
+	* frequent searches and frequent replaces can be saved and reused without needing to insert the field info all the times
+
 0.4.3 (2018-05-28):
 	New features:
 	* browse daily listing and directly import from arxiv (or INSPIRE, if possible)
