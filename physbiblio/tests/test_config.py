@@ -17,7 +17,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.databaseCore import physbiblioDBCore
-	from physbiblio.config import pbConfig, ConfigVars, config_defaults, configurationDB, profilesDB
+	from physbiblio.config import pbConfig, ConfigVars, config_defaults, configurationDB, globalDB
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -93,8 +93,8 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.params, config_defaults)
 
 		tempProfName1 = os.path.join(pbConfig.dataPath, "tests_profiles1_%s.db"%today_ymd)
-		self.assertTrue(tempPbConfig.profilesDb.createProfile("temp", "none", tempProfName1))
-		self.assertTrue(tempPbConfig.profilesDb.setDefaultProfile("temp"))
+		self.assertTrue(tempPbConfig.globalDb.createProfile("temp", "none", tempProfName1))
+		self.assertTrue(tempPbConfig.globalDb.setDefaultProfile("temp"))
 		self.assertEqual(tempPbConfig.defaultProfileName, "default")
 		self.assertEqual([e["n"] for e in tempPbConfig.profiles.values()], ["default"])
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
@@ -119,7 +119,7 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(ordered, ["default", "temp"])
 
 		tempProfName2 = tempProfName1.replace("profiles1", "profiles2")
-		self.assertTrue(tempPbConfig.profilesDb.createProfile("other", "none1", tempProfName2))
+		self.assertTrue(tempPbConfig.globalDb.createProfile("other", "none1", tempProfName2))
 		tempPbConfig.reloadProfiles()
 		self.assertEqual(tempPbConfig.defaultProfileName, "temp")
 		self.assertEqual(sorted([e["n"] for e in tempPbConfig.profiles.values()]), ["default", "other", "temp"])
@@ -184,7 +184,7 @@ class TestConfigMethods(unittest.TestCase):
 			os.remove(tempProfName2)
 
 class TestProfilesDB(unittest.TestCase):
-	"""Test profilesDB"""
+	"""Test globalDB"""
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
@@ -193,26 +193,26 @@ class TestProfilesDB(unittest.TestCase):
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
 
-	def test_profilesDB(self):
+	def test_globalDB(self):
 		"""Test database for profiles"""
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
-		self.profilesDb = profilesDB(tempProfName, pbConfig.logger, pbConfig.dataPath, info = False)
-		self.assertEqual(self.profilesDb.countProfiles(), 1)
-		self.assertEqual(self.profilesDb.getDefaultProfile(), "default")
+		self.globalDb = globalDB(tempProfName, pbConfig.logger, pbConfig.dataPath, info = False)
+		self.assertEqual(self.globalDb.countProfiles(), 1)
+		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
 		with self.assertRaises(SystemExit):
-			self.assertFalse(self.profilesDb.createProfile())
+			self.assertFalse(self.globalDb.createProfile())
 		with self.assertRaises(SystemExit):
-			self.assertFalse(self.profilesDb.createProfile("default1"))
+			self.assertFalse(self.globalDb.createProfile("default1"))
 		with self.assertRaises(SystemExit):
-			self.assertFalse(self.profilesDb.createProfile(databasefile = "database1.db"))
+			self.assertFalse(self.globalDb.createProfile(databasefile = "database1.db"))
 
-		self.assertEqual(self.profilesDb.countProfiles(), 1)
-		self.assertTrue(self.profilesDb.createProfile("temp1", "d", "somefile.db", "old"))
-		self.assertEqual(self.profilesDb.countProfiles(), 2)
-		self.assertEqual(self.profilesDb.getDefaultProfile(), "default")
-		self.assertEqual(self.profilesDb.getProfileOrder(), ["default", "temp1"])
+		self.assertEqual(self.globalDb.countProfiles(), 1)
+		self.assertTrue(self.globalDb.createProfile("temp1", "d", "somefile.db", "old"))
+		self.assertEqual(self.globalDb.countProfiles(), 2)
+		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
+		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "temp1"])
 
 		output = {"name": "temp1",
 			"description": "d",
@@ -220,28 +220,28 @@ class TestProfilesDB(unittest.TestCase):
 			"oldCfg": "old",
 			"isDefault": 0,
 			"ord": 100}
-		self.assertEqual(dict(self.profilesDb.getProfile("temp1")), output)
-		self.assertTrue(self.profilesDb.updateProfileField("temp1", "description", "desc"))
+		self.assertEqual(dict(self.globalDb.getProfile("temp1")), output)
+		self.assertTrue(self.globalDb.updateProfileField("temp1", "description", "desc"))
 		output["description"] = "desc"
-		self.assertEqual(dict(self.profilesDb.getProfile("temp1")), output)
-		self.assertTrue(self.profilesDb.updateProfileField("somefile.db", "name", "temp", "databasefile"))
+		self.assertEqual(dict(self.globalDb.getProfile("temp1")), output)
+		self.assertTrue(self.globalDb.updateProfileField("somefile.db", "name", "temp", "databasefile"))
 		output["name"] = "temp"
 
-		self.assertEqual(dict(self.profilesDb.getProfile("temp")), output)
-		self.assertEqual(dict(self.profilesDb.getProfile(filename = "somefile.db")), output)
-		self.assertEqual(dict(self.profilesDb.getProfile()), {})
-		self.assertEqual(dict(self.profilesDb.getProfile("temp", "somefile.db")), {})
+		self.assertEqual(dict(self.globalDb.getProfile("temp")), output)
+		self.assertEqual(dict(self.globalDb.getProfile(filename = "somefile.db")), output)
+		self.assertEqual(dict(self.globalDb.getProfile()), {})
+		self.assertEqual(dict(self.globalDb.getProfile("temp", "somefile.db")), {})
 
-		self.assertFalse(self.profilesDb.updateProfileField("tmp", "name", "temp", "name"))
-		self.assertFalse(self.profilesDb.updateProfileField("tmp", "databasefile", "temp", "isDefault"))
-		self.assertFalse(self.profilesDb.updateProfileField("tmp", "name", "temp", "isDefault"))
-		self.assertFalse(self.profilesDb.updateProfileField("tmp", "name1", "temp"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp", "name", "temp", "name"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp", "databasefile", "temp", "isDefault"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp", "name", "temp", "isDefault"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp", "name1", "temp"))
 
-		self.assertTrue(self.profilesDb.updateProfileField(1, "description", "newsomething", "isDefault"))
+		self.assertTrue(self.globalDb.updateProfileField(1, "description", "newsomething", "isDefault"))
 		output["name"] = "temp"
-		self.assertEqual(dict(self.profilesDb.getProfile("temp")), output)
+		self.assertEqual(dict(self.globalDb.getProfile("temp")), output)
 
-		output = [dict(e) for e in self.profilesDb.getProfiles()]
+		output = [dict(e) for e in self.globalDb.getProfiles()]
 		self.assertEqual(output, [{"name": u"default",
 			"description": u"newsomething",
 			"databasefile": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))),
@@ -255,43 +255,43 @@ class TestProfilesDB(unittest.TestCase):
 			"isDefault": 0,
 			"ord": 100}])
 
-		self.assertEqual(self.profilesDb.getProfileOrder(), ["default", "temp"])
-		self.assertTrue(self.profilesDb.updateProfileField("somefile.db", "name", "abc", "databasefile"))
-		self.assertEqual(self.profilesDb.getProfileOrder(), ["abc", "default"])
-		self.assertTrue(self.profilesDb.setProfileOrder(["default", "abc"]))
-		self.assertEqual(self.profilesDb.getProfileOrder(), ["default", "abc"])
-		self.assertFalse(self.profilesDb.setProfileOrder())
-		self.assert_in_stdout(self.profilesDb.setProfileOrder, "No order given!")
-		self.assertFalse(self.profilesDb.setProfileOrder(["default", "temp"]))
-		self.assert_in_stdout(lambda: self.profilesDb.setProfileOrder(["default", "temp"]),
+		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "temp"])
+		self.assertTrue(self.globalDb.updateProfileField("somefile.db", "name", "abc", "databasefile"))
+		self.assertEqual(self.globalDb.getProfileOrder(), ["abc", "default"])
+		self.assertTrue(self.globalDb.setProfileOrder(["default", "abc"]))
+		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "abc"])
+		self.assertFalse(self.globalDb.setProfileOrder())
+		self.assert_in_stdout(self.globalDb.setProfileOrder, "No order given!")
+		self.assertFalse(self.globalDb.setProfileOrder(["default", "temp"]))
+		self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(["default", "temp"]),
 			"List of profile names does not match existing profiles!")
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
 				side_effect = [True, False, True, False]) as _mock:
-			self.assertFalse(self.profilesDb.setProfileOrder(["abc", "default"]))
-			self.assert_in_stdout(lambda: self.profilesDb.setProfileOrder(["abc", "default"]),
+			self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
+			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(["abc", "default"]),
 				"Something went wrong when setting new profile order. Undoing...")
 
-		self.assertEqual(self.profilesDb.getDefaultProfile(), "default")
-		self.assertTrue(self.profilesDb.setDefaultProfile("abc"))
-		self.assertEqual(self.profilesDb.getDefaultProfile(), "abc")
-		self.assertFalse(self.profilesDb.setDefaultProfile())
-		self.assert_in_stdout(self.profilesDb.setDefaultProfile,
+		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
+		self.assertTrue(self.globalDb.setDefaultProfile("abc"))
+		self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
+		self.assertFalse(self.globalDb.setDefaultProfile())
+		self.assert_in_stdout(self.globalDb.setDefaultProfile,
 			"No name given!")
-		self.assertFalse(self.profilesDb.setDefaultProfile("temp"))
-		self.assert_in_stdout(lambda: self.profilesDb.setDefaultProfile("temp"),
+		self.assertFalse(self.globalDb.setDefaultProfile("temp"))
+		self.assert_in_stdout(lambda: self.globalDb.setDefaultProfile("temp"),
 			"No profiles with the given name!")
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
 				side_effect = [True, False, True, False]) as _mock:
-			self.assertFalse(self.profilesDb.setDefaultProfile("abc"))
-			self.assert_in_stdout(lambda: self.profilesDb.setDefaultProfile("abc"),
+			self.assertFalse(self.globalDb.setDefaultProfile("abc"))
+			self.assert_in_stdout(lambda: self.globalDb.setDefaultProfile("abc"),
 				"Something went wrong when setting new default profile. Undoing...")
-		self.assertEqual(self.profilesDb.getDefaultProfile(), "abc")
+		self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
 
-		self.assertFalse(self.profilesDb.deleteProfile(""))
-		self.assertTrue(self.profilesDb.deleteProfile("temp1"))
-		self.assertEqual(self.profilesDb.countProfiles(), 2)
-		self.assertTrue(self.profilesDb.deleteProfile("abc"))
-		self.assertEqual(self.profilesDb.countProfiles(), 1)
+		self.assertFalse(self.globalDb.deleteProfile(""))
+		self.assertTrue(self.globalDb.deleteProfile("temp1"))
+		self.assertEqual(self.globalDb.countProfiles(), 2)
+		self.assertTrue(self.globalDb.deleteProfile("abc"))
+		self.assertEqual(self.globalDb.countProfiles(), 1)
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestConfigDB(DBTestCase):

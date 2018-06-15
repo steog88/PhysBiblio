@@ -9,7 +9,7 @@ from appdirs import AppDirs
 
 try:
 	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
-	from physbiblio.tablesDef import profilesSettingsTable
+	from physbiblio.tablesDef import profilesSettingsTable, searchesTable
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -107,9 +107,9 @@ for p in configuration_params:
 	config_descriptions[p["name"]] = p["description"]
 	config_special[p["name"]] = p["special"]
 
-class profilesDB(physbiblioDBCore):
+class globalDB(physbiblioDBCore):
 	"""
-	Class that manages the operations on the profiles DB
+	Class that manages the operations on the global DB: profiles and frequent searches/replaces
 	"""
 	def __init__(self, dbname, logger, datapath, info = True):
 		"""
@@ -126,25 +126,42 @@ class profilesDB(physbiblioDBCore):
 		self.openDB(info = info)
 
 		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-		if [name[0] for name in self.curs] != ["profiles"]:
-			self.createTable()
+		tables = [name[0] for name in self.curs]
+		if tables != ["profiles", "searches"]:
+			self.createTables(tables)
 
 		if self.countProfiles() == 0:
 			self.createProfile()
 
-	def createTable(self):
+	def createTables(self, existing):
 		"""
 		Create the profiles table
 		"""
-		command="CREATE TABLE profiles (\n"
-		for el in profilesSettingsTable:
-			command += " ".join(el) + ",\n"
-		command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
-		self.logger.info(command+"\n")
-		if not self.connExec(command):
-			self.logger.critical("Create profiles failed")
-			sys.exit(1)
-		self.commit()
+		if "profiles" not in existing:
+			command = "CREATE TABLE profiles (\n"
+			for el in profilesSettingsTable:
+				command += " ".join(el) + ",\n"
+			command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
+			self.logger.info(command+"\n")
+			if not self.connExec(command):
+				self.logger.critical("Create profiles table failed")
+				sys.exit(1)
+			self.commit()
+		if "searches" not in existing:
+			command = "CREATE TABLE searches (\n"
+			first = True
+			for el in searchesTable:
+				if first:
+					first = False
+				else:
+					command += ",\n"
+				command += " ".join(el)
+			command += ");"
+			self.logger.info(command + "\n")
+			if not self.connExec(command):
+				self.logger.critical("Create searches table failed")
+				sys.exit(1)
+			self.commit()
 		return True
 
 	def countProfiles(self):
@@ -359,6 +376,135 @@ class profilesDB(physbiblioDBCore):
 			self.logger.warning("No profiles with the given name!")
 			return False
 
+	def countSearches(self):
+		"""
+		Obtain the number of searches in the table
+
+		Output:
+			the number of searches
+		"""
+		self.cursExec("SELECT Count(*) FROM searches")
+		return self.curs.fetchall()[0][0]
+
+	def insertSearch(self, name = "", count = 0, searchDict = {}, replaceFields = [], manual = False, replacement = False, limit = 0, offset = 0):
+		"""
+		Insert a new search/replace
+
+		Parameters:
+			name: the config name
+			count: the order in the cronology or in the menu
+			searchDict: the dictionary which is meant to be passed to fetchByDict
+			replaceFields: the replace fields used in searchAndReplace
+			manual (boolean, default False): manually saved entry
+			replacement (boolean, default False): replace or simple search
+			limit: the number of requested entries
+			offset: the offset
+
+		Output:
+			the output of self.connExec
+		"""
+		if limit == 0:
+			limit = pbConfig.params["defaultLimitBibtexs"]
+		output = self.connExec("INSERT into searches (name, count, searchDict, limitNum, offsetNum, replaceFields, manual, isReplace) values (:name, :count, :searchDict, :limit, :offset, :replaceFields, :manual, :isReplace)\n",
+			{"name": name,
+			"count": count,
+			"searchDict": "%s"%searchDict,
+			"limit": limit,
+			"offset": offset,
+			"replaceFields": "%s"%replaceFields,
+			"manual": 1 if manual else 0,
+			"isReplace": 1 if replacement else 0,
+			})
+		self.commit()
+		return output
+
+	def deleteSearch(self, idS):
+		"""
+		Delete a search/replace given the id.
+
+		Parameters:
+			idS: the unique identifier
+
+		Output:
+			the output of cursExec
+		"""
+		output = self.cursExec("delete from searches where idS=?\n", (idS, ))
+		self.commit()
+		return output
+
+	def getAllSearches(self):
+		"""
+		Get all the searches
+
+		Output:
+			the list of `sqlite3.Row` objects with all the searches in the database
+		"""
+		self.cursExec("select * from searches order by count asc\n")
+		return self.curs.fetchall()
+
+	def getSearchByID(self, idS):
+		"""
+		Get a search given its name
+
+		Parameters:
+			idS: the name of the search/replace
+
+		Output:
+			the list (len = 1) of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where idS=?\n", (idS, ))
+		return self.curs.fetchall()
+
+	def getSearchByName(self, name):
+		"""
+		Get a search given its name
+
+		Parameters:
+			name: the name of the search/replace
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where name=?\n", (name, ))
+		return self.curs.fetchall()
+
+	def getSearchList(self, manual = False, replacement = False):
+		"""
+		Get searches or replaces which were not manually saved
+
+		Parameters:
+			manual (boolean, default False): manually saved entry
+			replacement (boolean, default False): replace or simple search
+
+		Output:
+			the list of `sqlite3.Row` objects with all the matching searches
+		"""
+		self.cursExec("select * from searches where manual=? and isReplace=?\n", (
+			1 if manual else 0,
+			1 if replacement else 0))
+		return self.curs.fetchall()
+
+	def updateSearchOrder(self, replacement = False):
+		"""
+		Update the cronology order for searches or replaces which were not manually saved
+
+		Parameters:
+			replacement (boolean, default False): replace or simple search
+
+		Output:
+			True if successfull, False if some sum failed
+		"""
+		self.cursExec("select * from searches where manual=0 and isReplace=?\n", (1 if replacement else 0, ))
+		for e in self.curs.fetchall():
+			if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
+				self.delete(e["idS"])
+			if not self.connExec("update searches set count = :count where idS=:idS\n",
+					{"idS": e["idS"], "count": e["count"] + 1}):
+				self.undo()
+				return False
+		self.commit()
+		return True
+
 class configurationDB(physbiblioDBSub):
 	"""
 	Subclass that manages the functions for the categories.
@@ -482,8 +628,8 @@ class ConfigVars():
 		self.descriptions = config_descriptions
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
-		self.profilesDbFile = os.path.join(self.configPath, profileFileName)
-		self.profilesDb = profilesDB(self.profilesDbFile, self.logger, self.dataPath, info = False)
+		self.globalDbFile = os.path.join(self.configPath, profileFileName)
+		self.globalDb = globalDB(self.globalDbFile, self.logger, self.dataPath, info = False)
 
 		self.checkOldProfiles()
 		self.reloadProfiles()
@@ -502,7 +648,7 @@ class ConfigVars():
 			self.defaultProfileName, self.profiles, self.profileOrder = self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
-			self.profilesDb.createProfile()
+			self.globalDb.createProfile()
 
 	def reloadProfiles(self):
 		"""
@@ -525,21 +671,21 @@ class ConfigVars():
 		"""
 		if os.path.isfile(self.configProfilesFile):
 			self.logger.info("Moving info from profiles.dat into the profiles.db")
-			for k in self.profilesDb.getProfileOrder():
-				self.profilesDb.deleteProfile(k)
+			for k in self.globalDb.getProfileOrder():
+				self.globalDb.deleteProfile(k)
 			defProf, profiles, profileOrder = self.oldReadProfiles()
 			for k in profiles.keys():
 				self.oldReInit(k, profiles[k])
 				tempDb = physbiblioDBCore(self.params["mainDatabaseName"], self.logger)
 				configDb = configurationDB(tempDb)
 
-				self.profilesDb.createProfile(
+				self.globalDb.createProfile(
 					name = k,
 					description = profiles[k]["d"],
 					databasefile = self.params["mainDatabaseName"],
 					oldCfg = profiles[k]["f"])
 				if k == defProf:
-					self.profilesDb.setDefaultProfile(k)
+					self.globalDb.setDefaultProfile(k)
 				for p in self.paramOrder:
 					if self.params[p] != config_defaults[p]:
 						configDb.insert(p, str(self.params[p]))
@@ -548,8 +694,8 @@ class ConfigVars():
 				oldfile = os.path.join(self.configPath, profiles[k]["f"])
 				os.rename(oldfile, oldfile + "_bck")
 				self.logger.info("Old '%s' renamed to '%s'."%(oldfile, oldfile + "_bck"))
-			self.profilesDb.setProfileOrder(profileOrder)
-			self.logger.info([dict(e) for e in self.profilesDb.getProfiles()])
+			self.globalDb.setProfileOrder(profileOrder)
+			self.logger.info([dict(e) for e in self.globalDb.getProfiles()])
 			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
 			self.logger.info("Old '%s' renamed to '%s'."%(self.configProfilesFile, self.configProfilesFile + "_bck"))
 
@@ -572,7 +718,7 @@ class ConfigVars():
 		Output:
 			the name of the default profile, the dictionary with the profiles and the list of ordered profile names
 		"""
-		allProf = self.profilesDb.getProfiles()
+		allProf = self.globalDb.getProfiles()
 		profiles = {}
 		for e in allProf:
 			profiles[e["name"]] = {
@@ -581,7 +727,7 @@ class ConfigVars():
 				"f": e["oldCfg"],
 				"db": e["databasefile"],
 			}
-		return self.profilesDb.getDefaultProfile(), profiles, self.profilesDb.getProfileOrder()
+		return self.globalDb.getDefaultProfile(), profiles, self.globalDb.getProfileOrder()
 
 	def reInit(self, newShort, newProfile = None):
 		"""

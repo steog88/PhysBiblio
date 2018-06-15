@@ -48,14 +48,14 @@ class TestCreateTables(unittest.TestCase):
 		self.assertEqual([name[0] for name in self.pBDB.cursor()], [])
 		self.pBDB.createTables()
 		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
-		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "searches", "settings"])
+		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"])
 		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
 
 		os.remove(tempFDBName)
 		open(tempFDBName, 'a').close()
 		self.pBDB = physbiblioDB(tempFDBName, pBLogger)
 		self.assertTrue(self.pBDB.cursExec("SELECT name FROM sqlite_master WHERE type='table';"))
-		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "searches", "settings"])
+		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]), ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"])
 		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()], ["Main", "Tags"])
 
 	@classmethod

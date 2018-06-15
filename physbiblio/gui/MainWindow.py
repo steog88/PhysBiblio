@@ -341,7 +341,7 @@ class MainWindow(QMainWindow):
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 
-		freqSearches = pBDB.searches.getList(manual = True, replacement = False)
+		freqSearches = pbConfig.globalDb.getSearchList(manual = True, replacement = False)
 		if len(freqSearches) > 0:
 			self.menuBar().addSeparator()
 			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
@@ -357,7 +357,7 @@ class MainWindow(QMainWindow):
 					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
 					))
 
-		freqReplaces = pBDB.searches.getList(manual = True, replacement = True)
+		freqReplaces = pbConfig.globalDb.getSearchList(manual = True, replacement = True)
 		if len(freqReplaces) > 0:
 			self.menuBar().addSeparator()
 			self.replaceMenu = self.menuBar().addMenu("Frequent &replace")
@@ -742,9 +742,10 @@ class MainWindow(QMainWindow):
 							cancel = True
 							break
 					if not cancel:
-						pBDB.searches.insert(name = name, count = 0, searchDict = searchDict, manual = True, replacement = True, limit = lim, offset = offs,
+						pbConfig.globalDb.insertSearch(name = name, count = 0, searchDict = searchDict, manual = True, replacement = True, limit = lim, offset = offs,
 							replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
 						self.createMenusAndToolBar()
+				noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
 			if newSearchWin.save:
@@ -758,13 +759,14 @@ class MainWindow(QMainWindow):
 						cancel = True
 						break
 				if not cancel:
-					pBDB.searches.insert(name = name, count = 0, searchDict = searchDict, manual = True, replacement = False, limit = lim, offset = offs)
+					pbConfig.globalDb.insertSearch(name = name, count = 0, searchDict = searchDict, manual = True, replacement = False, limit = lim, offset = offs)
 					self.createMenusAndToolBar()
 			self.runSearchBiblio(searchDict, lim, offs)
 		elif replace:
 			return False
 
 	def runSearchBiblio(self, searchDict, lim, offs):
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 		lastFetched = pBDB.bibs.fetchFromDict(searchDict,
 			limitTo = lim, limitOffset = offs
@@ -773,6 +775,7 @@ class MainWindow(QMainWindow):
 			infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
 				len(lastFetched), len(noLim)))
 		self.reloadMainContent(lastFetched)
+		QApplication.restoreOverrideCursor()
 
 	def runSearchReplaceBiblio(self, searchDict, replaceFields, offs):
 		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
@@ -780,7 +783,7 @@ class MainWindow(QMainWindow):
 
 	def delSearchBiblio(self, idS, name):
 		if askYesNo("Are you sure you want to delete the saved search '%s'?"%name):
-			pBDB.searches.delete(idS)
+			pbConfig.globalDb.deleteSearch(idS)
 			self.createMenusAndToolBar()
 
 	def searchAndReplace(self):
@@ -797,11 +800,15 @@ class MainWindow(QMainWindow):
 		if any(n == "" for n in new):
 			if not askYesNo("Empty new string. Are you sure you want to continue?"):
 				return
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		success, changed, failed = pBDB.bibs.replace(fiOld, fiNew, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
+		QApplication.restoreOverrideCursor()
 		infoMessage("Replace completed.\n" +
 			"%d elements successfully processed (of which %d changed), %d failures (see below)."%(len(success), len(changed), len(failed)) +
 			"\nChanged: %s\nFailed: %s"%(changed, failed))
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+		QApplication.restoreOverrideCursor()
 
 	def oldSearchAndReplace(self):
 		dialog = searchReplaceDialog(self)

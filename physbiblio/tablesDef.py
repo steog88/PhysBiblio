@@ -11,6 +11,26 @@ profilesSettingsTable = [
 	["isDefault", 	"integer", "default 0"],
 	["ord", 		"integer", "default 100"]
 ]
+searchesTable = [
+	["idS",				"integer", "primary key"],
+	["name",			"text", ""],
+	["count",			"integer", "default 0 not null"],
+	["searchDict",		"text", "not null"],
+	["limitNum",		"integer", "default 50"],
+	["offsetNum",		"integer", "default 0"],
+	["replaceFields",	"text", ""],
+	["manual",			"integer", "default 0"],
+	["isReplace",		"integer", "default 0"]]
+searchesTableDescriptions = {
+	"idS":				"Unique identifier",
+	"name":				"Custom name of the search/replace",
+	"count":			"Order of the entry in the cronology",
+	"searchDict":		"Dictionary of fields to be passed to fetchByDict",
+	"limit":			"The max number of results in the search",
+	"offset":			"The offset in the search",
+	"replaceFields":	"List of fields used in replacement",
+	"manual":			"Manually saved",
+	"isReplace":		"(T/F) A replacement or a simple search"}
 
 tableFields = {}
 tableFields["entries"] = [
@@ -66,16 +86,6 @@ tableFields["entryExps"] = [
 tableFields["settings"] = [
 	["name", 	"text", "primary key not null"],
 	["value", 	"text", "default ''"]]
-tableFields["searches"] = [
-	["idS",				"integer", "primary key"],
-	["name",			"text", ""],
-	["count",			"integer", "default 0 not null"],
-	["searchDict",		"text", "not null"],
-	["limitNum",		"integer", "default 50"],
-	["offsetNum",		"integer", "default 0"],
-	["replaceFields",	"text", ""],
-	["manual",			"integer", "default 0"],
-	["isReplace",		"integer", "default 0"]]
 fieldsDescriptions = {}
 fieldsDescriptions["entries"] = {
 	"bibkey":	"Unique bibtex key that identifies the bibliographic element",
@@ -131,13 +141,3 @@ fieldsDescriptions["settings"] = {
 	"id": 		"Unique identifier",
 	"name": 	"name of the setting",
 	"value":	"value of the setting"}
-fieldsDescriptions["searches"] = {
-	"idS":				"Unique identifier",
-	"name":				"Custom name of the search/replace",
-	"count":			"Order of the entry in the cronology",
-	"searchDict":		"Dictionary of fields to be passed to fetchByDict",
-	"limit":			"The max number of results in the search",
-	"offset":			"The offset in the search",
-	"replaceFields":	"List of fields used in replacement",
-	"manual":			"Manually saved",
-	"isReplace":		"(T/F) A replacement or a simple search"}
