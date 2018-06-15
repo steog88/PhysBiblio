@@ -497,7 +497,7 @@ class globalDB(physbiblioDBCore):
 		self.cursExec("select * from searches where manual=0 and isReplace=?\n", (1 if replacement else 0, ))
 		for e in self.curs.fetchall():
 			if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
-				self.delete(e["idS"])
+				self.deleteSearch(e["idS"])
 			if not self.connExec("update searches set count = :count where idS=:idS\n",
 					{"idS": e["idS"], "count": e["count"] + 1}):
 				self.undo()
