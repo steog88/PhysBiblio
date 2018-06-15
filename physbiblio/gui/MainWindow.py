@@ -746,6 +746,10 @@ class MainWindow(QMainWindow):
 						pbConfig.globalDb.insertSearch(name = name, count = 0, searchDict = searchDict, manual = True, replacement = True, limit = lim, offset = offs,
 							replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
 						self.createMenusAndToolBar()
+				else:
+					pbConfig.globalDb.updateSearchOrder(replacement = True)
+					pbConfig.globalDb.insertSearch(count = 0, searchDict = searchDict, manual = False, replacement = True, limit = lim, offset = offs,
+						replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
 				noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())

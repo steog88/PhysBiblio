@@ -494,7 +494,7 @@ class globalDB(physbiblioDBCore):
 		Output:
 			True if successfull, False if some sum failed
 		"""
-		self.cursExec("select * from searches where manual=0 and isReplace=?\n", (1 if replacement else 0, ))
+		self.cursExec("select * from searches where manual=? and isReplace=?\n", (0, 1 if replacement else 0))
 		for e in self.curs.fetchall():
 			if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
 				self.deleteSearch(e["idS"])
