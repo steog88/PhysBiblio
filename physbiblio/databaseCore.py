@@ -49,8 +49,7 @@ class physbiblioDBCore():
 
 		if not noOpen:
 			self.openDB(info = info)
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
+			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database or missing tables. Creating them!\n\n")
 				self.createTables()
 
@@ -205,6 +204,14 @@ class physbiblioDBCore():
 		Not defined at this stage. Present in subclass physbiblioDB
 		"""
 		pass
+
+	def checkExistingTables(self, wantedTables = ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]):
+		"""
+		Check that all the required tables are present in the database
+		"""
+		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+		tables = [name[0] for name in self.curs]
+		return not all(t in tables for t in wantedTables)
 
 	def createTables(self, fieldsDict = None):
 		"""

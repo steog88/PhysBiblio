@@ -127,7 +127,7 @@ class globalDB(physbiblioDBCore):
 
 		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 		tables = [name[0] for name in self.curs]
-		if tables != ["profiles", "searches"]:
+		if not all([a in tables for a in ["profiles", "searches"]]):
 			self.createTables(tables)
 
 		if self.countProfiles() == 0:
