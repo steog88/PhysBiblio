@@ -763,11 +763,11 @@ class MainWindow(QMainWindow):
 			totStr = "SearchOAIUpdates will process ", progrStr = "%) - looking for update: ",
 			minProgress = 0., stopFlag = True)
 
-	def updateInspireInfo(self, bibkey):
+	def updateInspireInfo(self, bibkey, inspireID = None):
 		self.StatusBarMessage("Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
 			thread_updateInspireInfo, "Update Info",
-			bibkey,
+			bibkey, inspireID,
 			minProgress = 0., stopFlag = True)
 
 	def authorStats(self):

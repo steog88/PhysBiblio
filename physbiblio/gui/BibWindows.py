@@ -531,6 +531,9 @@ class bibtexList(QFrame, objListWindow):
 		menu.addSeparator()
 
 		pdfMenu = menu.addMenu("PDF")
+		inspireID = pBDB.bibs.getField(bibkey, "inspire")
+		if inspireID.strip() == "" or inspireID is False:
+			inspireID = None
 		arxiv = pBDB.bibs.getField(bibkey, "arxiv")
 		doi = pBDB.bibs.getField(bibkey, "doi")
 		files = pBPDF.getExisting(bibkey, fullPath = True)
@@ -639,13 +642,13 @@ class bibtexList(QFrame, objListWindow):
 			pBGuiView.openLink(bibkey, "inspire")
 		#online information
 		elif action == insAction:
-			self.parent.updateInspireInfo(bibkey)
+			self.parent.updateInspireInfo(bibkey, inspireID = inspireID)
 		elif action == updAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True)
 		elif action == relAction:
 			self.parent.updateAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False), force = True, reloadAll = True)
 		elif action == staAction:
-			self.parent.getInspireStats(pBDB.bibs.getField(bibkey, "inspire"))
+			self.parent.getInspireStats(inspireID)
 		elif action == absAction:
 			self.arxivAbstract(arxiv, bibkey)
 		elif action == arxAction:

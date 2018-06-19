@@ -59,17 +59,23 @@ class thread_updateAllBibtexs(MyThread):
 		pBDB.bibs.runningOAIUpdates = False
 
 class thread_updateInspireInfo(MyThread):
-	def __init__(self, queue, myrec, bibkey, parent = None):
+	def __init__(self, queue, myrec, bibkey, inspireID = None, parent = None):
 		super(thread_updateInspireInfo, self).__init__(parent)
 		self.parent = parent
 		self.bibkey = bibkey
+		self.inspireID = inspireID
 		self.queue = queue
 		self.my_receiver = myrec
 
 	def run(self):
 		self.my_receiver.start()
-		eid = pBDB.bibs.updateInspireID(self.bibkey)
-		pBDB.bibs.updateInfoFromOAI(eid, verbose = 1)
+		if self.inspireID is None:
+			eid = pBDB.bibs.updateInspireID(self.bibkey)
+			originalKey = None
+		else:
+			eid = self.inspireID
+			originalKey = self.bibkey
+		pBDB.bibs.updateInfoFromOAI(eid, verbose = 1, originalKey = originalKey)
 		time.sleep(0.1)
 		self.my_receiver.running = False
 		self.finished.emit()

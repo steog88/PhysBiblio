@@ -2020,6 +2020,7 @@ class entries(physbiblioDBSub):
 			if key != result["bibkey"]:
 				self.updateBibkey(key, result["bibkey"])
 				key = result["bibkey"]
+				self.newKey = result["bibkey"]
 			if not reloadAll:
 				old = self.getByBibkey(key, saveQuery = False)
 			else:
@@ -2900,7 +2901,16 @@ class entries(physbiblioDBSub):
 					if not self.updateInfoFromOAI(e["inspire"], bibtex = e["bibtex"], verbose = 0, readConferenceTitle = (e["proceeding"] == 1 and force), reloadAll = reloadAll, originalKey = e["bibkey"]):
 						err.append(e["bibkey"])
 					else:
-						new = self.getByKey(e["bibkey"], saveQuery = False)[0]
+						try:
+							new = self.getByKey(e["bibkey"], saveQuery = False)[0]
+						except IndexError:
+							try:
+								e["bibkey"] = self.newKey
+								new = self.getByKey(e["bibkey"], saveQuery = False)[0]
+							except (AttributeError, IndexError):
+								pBLogger.exception("Something wrong here. Possibly the bibtex key has been changed while processing entry '%s'?"%e["bibkey"])
+								err.append(e["bibkey"])
+								continue
 						if e != new:
 							pBLogger.info("-- element changed!")
 							for diff in list(dictdiffer.diff(e, new)):
