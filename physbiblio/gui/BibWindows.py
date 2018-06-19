@@ -1091,6 +1091,7 @@ class searchBibsWindow(editObjectWindow):
 		self.result = False
 		self.save = False
 		self.replace = replace
+		self.historic = [self.processHistoric(a) for a in pbConfig.globalDb.getSearchList(manual = False, replacement = replace)]
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -1116,6 +1117,29 @@ class searchBibsWindow(editObjectWindow):
 		self.limitValue = None
 		self.limitOffs = None
 		self.createForm()
+
+	def processHistoric(self, record):
+		limit = record["limitNum"]
+		offset = record["offsetNum"]
+		replace = record["replaceFields"] if record["isReplace"] == 1 else []
+		try:
+			searchDict = ast.literal_eval(record["searchDict"])
+			replaceFields = ast.literal_eval(replace)
+			return (searchDict, replaceFields, limit, offset)
+		except:
+			pBLogger.warning("Something went wrong when processing the saved search/replace:\n%s\n%s"%(record["searchDict"], replace))
+			return ({}, [], limit, offset)
+
+	def cleanLayout(self):
+		"""delete previous table widget"""
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+
+	def changeCurrentContent(self, index):
+		self.cleanLayout()
+		self.createForm(index)
 
 	def onSave(self):
 		self.save = True
@@ -1178,8 +1202,17 @@ class searchBibsWindow(editObjectWindow):
 				return True
 		return QWidget.eventFilter(self, widget, event)
 
-	def createForm(self, spaceRowHeight = 25):
+	def createForm(self, defaultIndex = 0, spaceRowHeight = 25):
+		if defaultIndex > len(self.historic):
+			defaultIndex = 0
 		self.setWindowTitle('Search bibtex entries')
+		# tempEl["f"] = QComboBox(self)
+		# tempEl["f"].setEditable(True)
+		# dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
+		# registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
+		# tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+		# self.currGrid.addWidget(tempEl["f"], i, 2)
+		# tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
 
 		self.currGrid.addWidget(MyLabelRight("Filter by categories, using the following operator:"), 0, 0, 1, 3)
 		self.catsButton = QPushButton('Categories', self)
