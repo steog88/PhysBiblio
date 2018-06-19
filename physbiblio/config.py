@@ -122,7 +122,8 @@ class profilesDB(physbiblioDBCore):
 		self.openDB(info = info)
 
 		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-		if [name[0] for name in self.curs] != ["profiles"]:
+		existing = [name[0] for name in self.curs]
+		if not all([a in existing for a in ["profiles"]]):
 			self.createTable()
 
 		if self.countProfiles() == 0:
