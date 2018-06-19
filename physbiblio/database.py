@@ -2906,6 +2906,7 @@ class entries(physbiblioDBSub):
 						except IndexError:
 							try:
 								e["bibkey"] = self.newKey
+								del self.newKey
 								new = self.getByKey(e["bibkey"], saveQuery = False)[0]
 							except (AttributeError, IndexError):
 								pBLogger.exception("Something wrong here. Possibly the bibtex key has been changed while processing entry '%s'?"%e["bibkey"])

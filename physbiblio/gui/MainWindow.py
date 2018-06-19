@@ -762,6 +762,7 @@ class MainWindow(QMainWindow):
 			startFrom, useEntries = useEntries, force = force, reloadAll = reloadAll,
 			totStr = "SearchOAIUpdates will process ", progrStr = "%) - looking for update: ",
 			minProgress = 0., stopFlag = True)
+		self.refreshMainContent()
 
 	def updateInspireInfo(self, bibkey, inspireID = None):
 		self.StatusBarMessage("Starting generic info update from INSPIRE-HEP...")
@@ -769,6 +770,7 @@ class MainWindow(QMainWindow):
 			thread_updateInspireInfo, "Update Info",
 			bibkey, inspireID,
 			minProgress = 0., stopFlag = True)
+		self.refreshMainContent()
 
 	def authorStats(self):
 		authorName, out = askGenericText("Insert the INSPIRE name of the author of which you want the publication and citation statistics:", "Author name?", self)
