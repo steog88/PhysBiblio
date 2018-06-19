@@ -216,7 +216,7 @@ class pbExport():
 					newDict[k] = existingBibsDict[k]
 				else:
 					notFound.append(k)
-			db.entries = [e for e in newDict.values()]
+			db.entries = [newDict[k] for k in sorted([e["ID"] for e in newDict.values()], key = lambda s: s.lower())]
 			bibf = pbWriter.write(db)
 			try:
 				with open(outFileName, "w") as o:
@@ -274,9 +274,11 @@ class pbExport():
 				e = pBDB.bibs.getByBibtex(k, saveQuery = False)
 				if len(e)>0 and e[0]["bibtexDict"] != v:
 					existingBibsDict[k] = e[0]["bibtexDict"]
+					if existingBibsDict[k]["ID"].lower() != k.lower():
+						existingBibsDict[k]["ID"] = k
 
 			#write new (updated) bib content (so also repeated entries are removed)
-			db.entries = [e for e in existingBibsDict.values()]
+			db.entries = [existingBibsDict[k] for k in sorted([e["ID"] for e in existingBibsDict.values()], key = lambda s: s.lower())]
 			bibf = pbWriter.write(db)
 			try:
 				with open(outFileName, "w") as o:
