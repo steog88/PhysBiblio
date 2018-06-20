@@ -201,8 +201,10 @@ class webSearch(webInterf):
 			return False
 		author = re.compile('(>|&gt;)([^/]*)(</a>|&lt;/a&gt;)')
 		additionalInfo = re.compile(' \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)')
+		if sys.version_info[0] < 3:
+			text = text.decode("utf-8")
 		try:
-			data = feedparser.parse(parse_accents_str(text.decode("utf-8")))
+			data = feedparser.parse(parse_accents_str(text))
 			entries = []
 			for element in data.entries:
 				tmp = {}

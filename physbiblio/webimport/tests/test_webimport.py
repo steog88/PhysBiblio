@@ -169,8 +169,7 @@ class TestWebImportOffline(unittest.TestCase):
 		"""test the arxivDaily method in the arxiv module"""
 		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("missing"))
 		self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("physics.missing"))
-		content_example='''
-<?xml version="1.0" encoding="UTF-8"?>
+		content_example='''<?xml version="1.0" encoding="UTF-8"?>
 
 <rdf:RDF
  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -208,7 +207,7 @@ class TestWebImportOffline(unittest.TestCase):
 <link>http://arxiv.org/</link>
 </image>
 <item rdf:about="http://arxiv.org/abs/1805.08875">
-<title>Measurement of Transverse Single Spin Asymmetries in $\pi^0$ Production from $p^{\uparrow}+p$ and $p^{\uparrow}+A$ Collisions at STAR. (arXiv:1805.08875v1 [hep-ex])</title>
+<title>Measurement of Transverse Single Spin Asymmetries. (arXiv:1805.08875v1 [hep-ex])</title>
 <link>http://arxiv.org/abs/1805.08875</link>
 <description rdf:parseType="Literal">&lt;p&gt;In 2015 the first collisions between polarized protons and nuclei occurred at
 the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of
@@ -251,7 +250,7 @@ as force and matter fields.
 			_fromUrl.assert_called_once_with("http://export.arxiv.org/rss/hep-ex")
 			pbConfig.params["maxAuthorNames"] = 3
 			self.assertEqual(result[0],
-				{'primaryclass': u'hep-ex', 'author': u'Christopher Dilks', 'title': u'Measurement of Transverse Single Spin Asymmetries in $\\pi^0$ Production from $p^{\\uparrow}+p$ and $p^{\\uparrow}+A$ Collisions at STAR.', 'abstract': u'In 2015 the first collisions between polarized protons and nuclei occurred at the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of $\\sqrt{s_{NN}}=200$ GeV. Comparisons between spin asymmetries and cross-sections in $p+p$ production to those in $p+A$ production provide insight into nuclear structure, namely nuclear modification factors, nuclear dependence of spin asymmetries, and comparison to models with saturation effects. The transverse single-spin asymmetry, $A_{N}$, has been measured in $\\pi^{0}$ production in the STAR Forward Meson Spectrometer (FMS), an electromagnetic calorimeter covering a forward psuedorapidity range of $2.6&lt;\\eta&lt;4$. Within this kinematic range, STAR has previously reported the persistence of large $\\pi^0$ asymmetries with unexpected dependences on $p_T$ and event topology in $p+p$ collisions. This talk will compare these dependences to those in $p+A$ production. ', 'cross': False, 'version': u'1805.08875v1', 'eprint': u'1805.08875', 'authors': [u'Christopher Dilks'], 'replacement': False})
+				{'primaryclass': u'hep-ex', 'author': u'Christopher Dilks', 'title': u'Measurement of Transverse Single Spin Asymmetries.', 'abstract': u'In 2015 the first collisions between polarized protons and nuclei occurred at the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of $\\sqrt{s_{NN}}=200$ GeV. Comparisons between spin asymmetries and cross-sections in $p+p$ production to those in $p+A$ production provide insight into nuclear structure, namely nuclear modification factors, nuclear dependence of spin asymmetries, and comparison to models with saturation effects. The transverse single-spin asymmetry, $A_{N}$, has been measured in $\\pi^{0}$ production in the STAR Forward Meson Spectrometer (FMS), an electromagnetic calorimeter covering a forward psuedorapidity range of $2.6&lt;\\eta&lt;4$. Within this kinematic range, STAR has previously reported the persistence of large $\\pi^0$ asymmetries with unexpected dependences on $p_T$ and event topology in $p+p$ collisions. This talk will compare these dependences to those in $p+A$ production. ', 'cross': False, 'version': u'1805.08875v1', 'eprint': u'1805.08875', 'authors': [u'Christopher Dilks'], 'replacement': False})
 			self.assertEqual(result[1],
 				{'primaryclass': u'hep-ex', 'author': u'Boris Tuchming', 'title': u'Recent Top quark results from the Tevatron.', 'abstract': u'We present recent measurements ', 'cross': True, 'version': u'1805.09166v1', 'eprint': u'1805.09166', 'authors': [u'Boris Tuchming'], 'replacement': False})
 			self.assertEqual(result[2],

@@ -1922,7 +1922,11 @@ class entries(physbiblioDBSub):
 			query = "update entries set bibkey=:new where bibkey=:old\n"
 			if self.connExec(query, {"new": newKey, "old": oldKey}):
 				entry = self.getByBibkey(newKey)[0]
-				self.updateField(newKey, "old_keys", ",".join(entry["old_keys"].split(",") + [oldKey]))
+				try:
+					entry["old_keys"].split(",")
+				except AttributeError:
+					oldkeys = []
+				self.updateField(newKey, "old_keys", ",".join(oldkeys + [oldKey]))
 				try:
 					from physbiblio.pdf import pBPDF
 					pBPDF.renameFolder(oldKey, newKey)
