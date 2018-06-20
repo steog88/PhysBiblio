@@ -1921,6 +1921,13 @@ class entries(physbiblioDBSub):
 		try:
 			query = "update entries set bibkey=:new where bibkey=:old\n"
 			if self.connExec(query, {"new": newKey, "old": oldKey}):
+				entry = self.getByBibkey(newKey)[0]
+				self.updateField(newKey, "old_keys", ",".join(entry["old_keys"].split(",") + [oldKey]))
+				try:
+					from physbiblio.pdf import pBPDF
+					pBPDF.renameFolder(oldKey, newKey)
+				except Exception:
+					pBLogger.exception("Cannot rename folder")
 				query = "update entryCats set bibkey=:new where bibkey=:old\n"
 				if self.connExec(query, {"new": newKey, "old": oldKey}):
 					query = "update entryExps set bibkey=:new where bibkey=:old\n"
