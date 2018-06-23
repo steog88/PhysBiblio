@@ -2,6 +2,7 @@
 	* order of bibtex in updated bibtex file is now alphabetical in the bibtex keys
 	* problem with recognising existing tables in main DB solved
 	* bug when bibtex key changed during update solved
+	* updateBibkey now renames the pdf folder and updates old_keys
 
 0.4.4 (2018-06-13):
 	* speed up load when non-default profile is required
