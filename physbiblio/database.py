@@ -1923,7 +1923,9 @@ class entries(physbiblioDBSub):
 			if self.connExec(query, {"new": newKey, "old": oldKey}):
 				entry = self.getByBibkey(newKey)[0]
 				try:
-					entry["old_keys"].split(",")
+					oldkeys = entry["old_keys"].split(",")
+					if oldkeys == [""]:
+						oldkeys = []
 				except AttributeError:
 					oldkeys = []
 				self.updateField(newKey, "old_keys", ",".join(oldkeys + [oldKey]))

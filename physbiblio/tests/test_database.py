@@ -611,8 +611,11 @@ class TestDatabaseEntries(DBTestCase):
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
-		self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+		with patch('physbiblio.pdf.localPDF.renameFolder') as _mock_ren:
+			self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+			_mock_ren.assert_called_once_with("abc", "def")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["bibtex"], '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
+		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["old_keys"], 'abc')
 		dbStats(self.pBDB)
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1})
@@ -628,6 +631,12 @@ class TestDatabaseEntries(DBTestCase):
 			"Updating 'inspires' for entry 'def'\n")
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField("def", "inspires", "1234", verbose = 2),
 			"Updating 'inspires' for entry 'def'\nNon-existing field or unappropriated value: (def, inspires, 1234)\n")
+
+		with patch('physbiblio.pdf.localPDF.renameFolder') as _mock_ren:
+			self.assertTrue(self.pBDB.bibs.updateBibkey("def", "abc"))
+			_mock_ren.assert_called_once_with("def", "abc")
+		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"], '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
+		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"], 'abc,def')
 
 	def test_prepareUpdate(self):
 		"""test prepareUpdate and related functions"""
