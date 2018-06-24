@@ -24,7 +24,7 @@ class webSearch(webInterf):
 		webInterf.__init__(self)
 		self.name = "doi"
 		self.description = "Doi fetcher"
-		self.url = "http://dx.doi.org/"
+		self.url = "https://doi.org/"
 		self.headers = {'accept': 'application/x-bibtex'}
 		
 	def createUrl(self, doi):
