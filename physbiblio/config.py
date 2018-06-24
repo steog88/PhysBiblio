@@ -487,7 +487,7 @@ class ConfigVars():
 
 		#some urls
 		self.arxivUrl = "http://arxiv.org/"
-		self.doiUrl = "http://dx.doi.org/"
+		self.doiUrl = "https://doi.org/"
 		self.inspireRecord = "http://inspirehep.net/record/"
 		self.inspireSearchBase = "http://inspirehep.net/search"
 
