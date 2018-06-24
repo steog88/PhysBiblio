@@ -1124,11 +1124,15 @@ class searchBibsWindow(editObjectWindow):
 		replace = record["replaceFields"] if record["isReplace"] == 1 else []
 		try:
 			searchDict = ast.literal_eval(record["searchDict"])
-			replaceFields = ast.literal_eval(replace)
-			return (searchDict, replaceFields, limit, offset)
 		except:
-			pBLogger.warning("Something went wrong when processing the saved search/replace:\n%s\n%s"%(record["searchDict"], replace))
-			return ({}, [], limit, offset)
+			pBLogger.warning("Something went wrong when processing the saved search dict:\n%s"%record["searchDict"])
+			searchDict = {}
+		try:
+			replaceFields = ast.literal_eval(replace)
+		except:
+			pBLogger.warning("Something went wrong when processing the saved search/replace:\n%s\n%s"%replace)
+			replaceFields = []
+		return (searchDict, replaceFields, limit, offset)
 
 	def cleanLayout(self):
 		"""delete previous table widget"""
