@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 __author__ = 'Stefano Gariazzo'
 __email__ = "stefano.gariazzo@gmail.com"
 
-__version__ = "0.4.4"
-__version_date__ = "13/06/2018"
+__version__ = "0.5.0"
+__version_date__ = "24/06/2018"
 
 __all__ = ["bibtexwriter", "cli", "config", "databaseCore", "database", "errors", "export", "inspireStats", "parse_accents", "pdf", "tablesDef", "tests", "view", "gui", "webimport"]

@@ -1,9 +1,15 @@
+0.5.0 (2018-06-24):
+	New features:
 	* frequent searches and frequent replaces can be saved and reused without needing to insert the field info all the times
+	* saving most recent replace fields in a chronology (reuse possibility not yet implemented)
+
+	Improvements/bug fixes:
 	* fixed bug when bibtex key in tex file not matching the one in the DB and updating the existing bibtex file
 	* order of bibtex in updated bibtex file is now alphabetical in the bibtex keys
 	* problem with recognising existing tables in main DB solved
 	* bug when bibtex key changed during update solved
 	* updateBibkey now renames the pdf folder and updates old_keys
+	* arxiv and inspire data retrieved using https
 
 0.4.4 (2018-06-13):
 	* speed up load when non-default profile is required

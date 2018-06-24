@@ -202,6 +202,8 @@ Two (regex) search and replace examples:
   - filter using ["jhep" or "jcap"] ("add another line" and use "OR") in "bibtex";
   - replace `([0-9]{2})([0-9]{2})` in "volume" with `\2`.
 
+**New in 0.5.0**: you can now save the searches/replaces you use more frequently. They will be re-usable with two clicks in the new menu and shared among all the profiles.
+
 ### INSPIRE-OAI
 INSPIRE-HEP has a dedicated interface for massive harvesting, see [this page](http://inspirehep.net/info/hep/api).  
 In order to avoid heavy traffic on the server when using the `update` functions on a long list of entries, you should rely on the OAI functions.
