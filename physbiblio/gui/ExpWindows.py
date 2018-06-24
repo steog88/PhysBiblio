@@ -249,7 +249,7 @@ class ExpWindowList(objListWindow):
 			if link == "":
 				return
 			if self.colContents[col] == "inspire":
-				link = "http://inspirehep.net/record/" + link
+				link = pbConfig.inspireRecord + link
 			print("will open '%s' "%link)
 			try:
 				print("[GUI] opening '%s'..."%link)

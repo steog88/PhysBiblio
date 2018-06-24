@@ -29,8 +29,8 @@ class webSearch(webInterf):
 		webInterf.__init__(self)
 		self.name = "arXiv"
 		self.description = "arXiv fetcher"
-		self.url = "http://export.arxiv.org/api/query"
-		self.urlRss = "http://export.arxiv.org/rss/"
+		self.url = "https://export.arxiv.org/api/query"
+		self.urlRss = "https://export.arxiv.org/rss/"
 		self.urlArgs = {
 			"start":"0"}
 		self.categories = {
@@ -138,7 +138,7 @@ class webSearch(webInterf):
 			dictionaries = []
 			for entry in data['entries']:
 				dictionary = {}
-				idArx = entry['id'].replace("http://arxiv.org/abs/", "")
+				idArx = entry['id'].replace("http://arxiv.org/abs/", "").replace("https://arxiv.org/abs/", "")
 				pos = idArx.find("v")
 				if pos >= 0:
 					idArx = idArx[0:pos]

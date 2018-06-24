@@ -34,6 +34,7 @@ from oaipmh import metadata
 
 try:
 	from physbiblio.errors import pBLogger
+	from physbiblio.config import pbConfig
 	from physbiblio.webimport.webInterf import *
 	from physbiblio.parse_accents import *
 	from bibtexparser.bibdatabase import BibDatabase
@@ -108,7 +109,7 @@ class webSearch(webInterf):
 		webInterf.__init__(self)
 		self.name = "inspireoai"
 		self.description = "INSPIRE OAI interface"
-		self.url = "http://inspirehep.net/oai2d"
+		self.url = "https://inspirehep.net/oai2d"
 		self.oai = Client(self.url, registry)
 		self.correspondences = [
 			["id", "inspire"],
@@ -262,7 +263,7 @@ class webSearch(webInterf):
 		except TypeError:
 			tmpDict["isbn"] = None
 		if conferenceCode is not None and readConferenceTitle:
-			url = "http://inspirehep.net/search?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3AProceedings&of=xe"%(conferenceCode, conferenceCode.replace("-", "%2F"))
+			url = pbConfig.inspireSearchBase + "?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3AProceedings&of=xe"%(conferenceCode, conferenceCode.replace("-", "%2F"))
 			text = parse_accents_str(self.textFromUrl(url))
 			title = re.compile('<title>(.*)</title>', re.MULTILINE)
 			try:
@@ -296,7 +297,7 @@ class webSearch(webInterf):
 		tmpDict["link"] = None
 		try:
 			if tmpDict["arxiv"] is not None and tmpDict["arxiv"] != "":
-				tmpDict["link"] = pbConfig.arxivUrl + "abs/" + tmpDict["arxiv"]
+				tmpDict["link"] = pbConfig.arxivUrl + "/abs/" + tmpDict["arxiv"]
 		except KeyError:
 			pass
 		try:

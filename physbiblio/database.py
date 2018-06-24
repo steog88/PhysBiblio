@@ -1656,7 +1656,7 @@ class entries(physbiblioDBSub):
 			a string
 		"""
 		url = self.getField(key, "arxiv")
-		return pbConfig.arxivUrl + urlType + "/" + url if url != "" and url is not False and url is not None and url is not "" else False
+		return pbConfig.arxivUrl + "/" + urlType + "/" + url if url != "" and url is not False and url is not None and url is not "" else False
 
 	def insert(self, data):
 		"""
@@ -1783,7 +1783,7 @@ class entries(physbiblioDBSub):
 			data["link"] = ""
 			try:
 				if data["arxiv"] is not None and data["arxiv"] != "":
-					data["link"] = pbConfig.arxivUrl + "abs/" + data["arxiv"]
+					data["link"] = pbConfig.arxivUrl + "/abs/" + data["arxiv"]
 			except KeyError:
 				pass
 			try:

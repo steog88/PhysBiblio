@@ -486,10 +486,10 @@ class ConfigVars():
 		self.loadProfiles()
 
 		#some urls
-		self.arxivUrl = "http://arxiv.org/"
+		self.arxivUrl = "https://arxiv.org"
 		self.doiUrl = "https://doi.org/"
-		self.inspireRecord = "http://inspirehep.net/record/"
-		self.inspireSearchBase = "http://inspirehep.net/search"
+		self.inspireRecord = "https://inspirehep.net/record/"
+		self.inspireSearchBase = "https://inspirehep.net/search"
 
 	def prepareLogger(self, string):
 		"""

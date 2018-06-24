@@ -8,6 +8,7 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import *
 	from physbiblio.parse_accents import *
+	from physbiblio.config import pbConfig
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
@@ -24,7 +25,7 @@ class webSearch(webInterf):
 		webInterf.__init__(self)
 		self.name = "doi"
 		self.description = "Doi fetcher"
-		self.url = "https://doi.org/"
+		self.url = pbConfig.doiUrl
 		self.headers = {'accept': 'application/x-bibtex'}
 		
 	def createUrl(self, doi):
