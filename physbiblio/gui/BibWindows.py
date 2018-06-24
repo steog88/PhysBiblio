@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
 import os
-import matplotlib as mpl
+import matplotlib
+matplotlib.use('Qt4Agg')
+os.environ["QT_API"] = 'pyside'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide.QtCore import *
 from PySide.QtGui  import *
@@ -103,7 +105,7 @@ class abstractFormulas():
 			self.editor.insertHtml(self.text)
 
 	def mathTex_to_QPixmap(self, mathTex):
-		fig = mpl.figure.Figure()
+		fig = matplotlib.figure.Figure()
 		fig.patch.set_facecolor('none')
 		fig.set_canvas(FigureCanvasAgg(fig))
 		renderer = fig.canvas.get_renderer()
@@ -1105,7 +1107,9 @@ class searchBibsWindow(editObjectWindow):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
+		self.save = False
 		self.replace = replace
+		self.historic = [self.processHistoric(a) for a in pbConfig.globalDb.getSearchList(manual = False, replacement = replace)]
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -1131,6 +1135,37 @@ class searchBibsWindow(editObjectWindow):
 		self.limitValue = None
 		self.limitOffs = None
 		self.createForm()
+
+	def processHistoric(self, record):
+		limit = record["limitNum"]
+		offset = record["offsetNum"]
+		replace = record["replaceFields"] if record["isReplace"] == 1 else []
+		try:
+			searchDict = ast.literal_eval(record["searchDict"])
+		except:
+			pBLogger.warning("Something went wrong when processing the saved search dict:\n%s"%record["searchDict"])
+			searchDict = {}
+		try:
+			replaceFields = ast.literal_eval(replace)
+		except:
+			pBLogger.warning("Something went wrong when processing the saved search/replace:\n%s\n%s"%replace)
+			replaceFields = []
+		return (searchDict, replaceFields, limit, offset)
+
+	def cleanLayout(self):
+		"""delete previous table widget"""
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+
+	def changeCurrentContent(self, index):
+		self.cleanLayout()
+		self.createForm(index)
+
+	def onSave(self):
+		self.save = True
+		self.onOk()
 
 	def onAskCats(self):
 		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
@@ -1189,8 +1224,17 @@ class searchBibsWindow(editObjectWindow):
 				return True
 		return QWidget.eventFilter(self, widget, event)
 
-	def createForm(self, spaceRowHeight = 25):
+	def createForm(self, defaultIndex = 0, spaceRowHeight = 25):
+		if defaultIndex > len(self.historic):
+			defaultIndex = 0
 		self.setWindowTitle('Search bibtex entries')
+		# tempEl["f"] = QComboBox(self)
+		# tempEl["f"].setEditable(True)
+		# dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
+		# registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
+		# tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+		# self.currGrid.addWidget(tempEl["f"], i, 2)
+		# tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
 
 		self.currGrid.addWidget(MyLabelRight("Filter by categories, using the following operator:"), 0, 0, 1, 3)
 		self.catsButton = QPushButton('Categories', self)
@@ -1358,6 +1402,12 @@ class searchBibsWindow(editObjectWindow):
 		self.cancelButton.setAutoDefault(True)
 		self.currGrid.addWidget(self.cancelButton, i, 3)
 		self.cancelButton.setFixedWidth(80)
+
+		# save button
+		self.saveButton = QPushButton('Run and save', self)
+		self.saveButton.clicked.connect(self.onSave)
+		self.currGrid.addWidget(self.saveButton, i, 5)
+		self.saveButton.setFixedWidth(120)
 
 		self.currGrid.setColumnStretch(6, 1)
 

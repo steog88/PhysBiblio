@@ -17,7 +17,6 @@ try:
 	from physbiblio.database import *
 	from physbiblio.export import pBExport
 	from physbiblio.webimport.webInterf import physBiblioWeb
-	from physbiblio.cli import cli as physBiblioCLI
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
@@ -286,6 +285,7 @@ class MainWindow(QMainWindow):
 		"""
 		Create Qt menus.
 		"""
+		self.fileMenu = self.menuBar().clear()
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.undoAct)
 		self.fileMenu.addAction(self.saveAct)
@@ -340,13 +340,49 @@ class MainWindow(QMainWindow):
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 
+		freqSearches = pbConfig.globalDb.getSearchList(manual = True, replacement = False)
+		if len(freqSearches) > 0:
+			self.menuBar().addSeparator()
+			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
+			for fs in freqSearches:
+				self.searchMenu.addAction(QAction(
+					fs["name"], self,
+					triggered = lambda sD = ast.literal_eval(fs["searchDict"]), l = fs["limitNum"], o = fs["offsetNum"]: self.runSearchBiblio(sD, l, o)
+					))
+			self.searchMenu.addSeparator()
+			for fs in freqSearches:
+				self.searchMenu.addAction(QAction(
+					"Delete '%s'"%fs["name"], self,
+					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
+					))
+
+		freqReplaces = pbConfig.globalDb.getSearchList(manual = True, replacement = True)
+		if len(freqReplaces) > 0:
+			self.menuBar().addSeparator()
+			self.replaceMenu = self.menuBar().addMenu("Frequent &replace")
+			for fs in freqReplaces:
+				self.replaceMenu.addAction(QAction(
+					fs["name"], self,
+					triggered = lambda sD = ast.literal_eval(fs["searchDict"]), r = ast.literal_eval(fs["replaceFields"]), o = fs["offsetNum"]: self.runSearchReplaceBiblio(sD, r, o)
+					))
+			self.replaceMenu.addSeparator()
+			for fs in freqReplaces:
+				self.replaceMenu.addAction(QAction(
+					"Delete '%s'"%fs["name"], self,
+					triggered = lambda idS = fs["idS"], n = fs["name"]: self.delSearchBiblio(idS, n)
+					))
+
 		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.dbstatsAct)
 		self.helpMenu.addAction(self.logfileAct)
 		self.helpMenu.addSeparator()
 		self.helpMenu.addAction(self.aboutAct)
-		
+
+		try:
+			self.removeToolBar(self.mainToolBar)
+		except AttributeError:
+			pass
 		self.mainToolBar = self.addToolBar('Toolbar')
 		self.mainToolBar.addAction(self.undoAct)
 		self.mainToolBar.addAction(self.saveAct)
@@ -401,6 +437,7 @@ class MainWindow(QMainWindow):
 
 	def undoDB(self):
 		pBDB.undo()
+		self.setWindowTitle('PhysBiblio')
 		self.reloadMainContent()
 
 	def refreshMainContent(self, bibs = None):
@@ -483,7 +520,8 @@ class MainWindow(QMainWindow):
 			"<i>Data:</i> %s<br>"%pbConfig.dataPath+
 			"<br>"+
 			"<b>Author:</b> Stefano Gariazzo <i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"+
-			"<b>Version:</b> %s (%s)"%(physbiblio.__version__, physbiblio.__version_date__))
+			"<b>Version:</b> %s (%s)<br>"%(physbiblio.__version__, physbiblio.__version_date__)+
+			"<b>Python version</b>: %s"%sys.version)
 		mbox.setTextFormat(Qt.RichText)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
 		mbox.exec_()
@@ -688,58 +726,94 @@ class MainWindow(QMainWindow):
 				offs = int(newSearchWin.limitOffs.text())
 			except ValueError:
 				offs = 0
-			noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 			if replace:
 				fieldsNew = [ newSearchWin.replNewField.currentText() ]
 				replNew = [ newSearchWin.replNew.text() ]
 				if newSearchWin.doubleEdit.isChecked():
 					fieldsNew.append(newSearchWin.replNewField1.currentText())
 					replNew.append(newSearchWin.replNew1.text())
+				if newSearchWin.save:
+					name = ""
+					cancel = False
+					while name.strip() == "":
+						res = askGenericText("Insert a name / short description to be able to recognise this replace in the future:", "Replace name", parent = self)
+						if res[1]:
+							name = res[0]
+						else:
+							cancel = True
+							break
+					if not cancel:
+						pbConfig.globalDb.insertSearch(name = name, count = 0, searchDict = searchDict, manual = True, replacement = True, limit = lim, offset = offs,
+							replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
+						self.createMenusAndToolBar()
+				else:
+					pbConfig.globalDb.updateSearchOrder(replacement = True)
+					pbConfig.globalDb.insertSearch(count = 0, searchDict = searchDict, manual = False, replacement = True, limit = lim, offset = offs,
+						replaceFields = [newSearchWin.replOldField.currentText(), fieldsNew, newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked()])
+				noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
 				return (newSearchWin.replOldField.currentText(), fieldsNew,
 					newSearchWin.replOld.text(), replNew, newSearchWin.replRegex.isChecked())
-			lastFetched = pBDB.bibs.fetchFromDict(searchDict,
-				limitTo = lim, limitOffset = offs
-				).lastFetched
-			if len(noLim) > len(lastFetched):
-				infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
-					len(lastFetched), len(noLim)))
-			self.reloadMainContent(lastFetched)
+			if newSearchWin.save:
+				name = ""
+				cancel = False
+				while name.strip() == "":
+					res = askGenericText("Insert a name / short description to be able to recognise this search in the future:", "Search name", parent = self)
+					if res[1]:
+						name = res[0]
+					else:
+						cancel = True
+						break
+				if not cancel:
+					pbConfig.globalDb.insertSearch(name = name, count = 0, searchDict = searchDict, manual = True, replacement = False, limit = lim, offset = offs)
+					self.createMenusAndToolBar()
+			self.runSearchBiblio(searchDict, lim, offs)
 		elif replace:
 			return False
+
+	def runSearchBiblio(self, searchDict, lim, offs):
+		QApplication.setOverrideCursor(Qt.WaitCursor)
+		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
+		lastFetched = pBDB.bibs.fetchFromDict(searchDict,
+			limitTo = lim, limitOffset = offs
+			).lastFetched
+		if len(noLim) > len(lastFetched):
+			infoMessage("Warning: more entries match the current search, showing only the first %d of %d.\nChange 'Max number of results' in the search form to see more."%(
+				len(lastFetched), len(noLim)))
+		self.reloadMainContent(lastFetched)
+		QApplication.restoreOverrideCursor()
+
+	def runSearchReplaceBiblio(self, searchDict, replaceFields, offs):
+		noLim = pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset = offs).lastFetched
+		self.runReplace(replaceFields)
+
+	def delSearchBiblio(self, idS, name):
+		if askYesNo("Are you sure you want to delete the saved search '%s'?"%name):
+			pbConfig.globalDb.deleteSearch(idS)
+			self.createMenusAndToolBar()
 
 	def searchAndReplace(self):
 		result = self.searchBiblio(replace = True)
 		if result is False:
 			return False
-		fiOld, fiNew, old, new, regex = result
+		self.runReplace(result)
+
+	def runReplace(self, replace):
+		fiOld, fiNew, old, new, regex = replace
 		if old == "":
 			infoMessage("The string to substitute is empty!")
 			return
 		if any(n == "" for n in new):
 			if not askYesNo("Empty new string. Are you sure you want to continue?"):
 				return
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		success, changed, failed = pBDB.bibs.replace(fiOld, fiNew, old, new, entries = pBDB.bibs.lastFetched, regex = regex)
+		QApplication.restoreOverrideCursor()
 		infoMessage("Replace completed.\n" +
 			"%d elements successfully processed (of which %d changed), %d failures (see below)."%(len(success), len(changed), len(failed)) +
 			"\nChanged: %s\nFailed: %s"%(changed, failed))
+		QApplication.setOverrideCursor(Qt.WaitCursor)
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
-
-	def oldSearchAndReplace(self):
-		dialog = searchReplaceDialog(self)
-		dialog.exec_()
-		if dialog.result == True:
-			if dialog.searchEdit.text().strip() == "":
-				infoMessage("Empty search string!\nDoing nothing.")
-				return
-			changed = pBDB.bibs.replaceInBibtex(dialog.searchEdit.text(), dialog.replaceEdit.text())
-			if len(changed) > 0:
-				infoMessage("Elements changed:\n%s"%changed)
-			self.reloadMainContent(pBDB.bibs.lastFetched)
-
-	def cli(self):
-		self.StatusBarMessage("Activating CLI!")
-		infoMessage("Command Line Interface activated: switch to the terminal, please.", "CLI")
-		physBiblioCLI()
+		QApplication.restoreOverrideCursor()
 
 	def updateAllBibtexsAsk(self):
 		force = askYesNo("Do you want to force the update of already existing items?\n(Only regular articles not explicitely excluded will be considered)", "Force update:")

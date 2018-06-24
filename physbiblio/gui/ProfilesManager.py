@@ -31,24 +31,24 @@ def editProf(parent, statusBarObject):
 			except AttributeError:
 				fileName = currEl["f"].currentText()
 			if currEl["r"].isChecked() and name != "":
-				pbConfig.profilesDb.setDefaultProfile(name)
+				pbConfig.globalDb.setDefaultProfile(name)
 			if name in pbConfig.profiles.keys():
-				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
+				pbConfig.globalDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
-					pbConfig.profilesDb.deleteProfile(name)
+					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
 			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
-				pbConfig.profilesDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifierField = "databasefile")
-				pbConfig.profilesDb.updateProfileField(name, "description", currEl["d"].text())
+				pbConfig.globalDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifierField = "databasefile")
+				pbConfig.globalDb.updateProfileField(name, "description", currEl["d"].text())
 				if currEl["x"].isChecked() and \
 						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
-					pbConfig.profilesDb.deleteProfile(name)
+					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
 			else:
 				if name.strip() != "":
 					newFileName = os.path.join(pbConfig.dataPath, (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db"))
-					pbConfig.profilesDb.createProfile(
+					pbConfig.globalDb.createProfile(
 						name = name,
 						description = currEl["d"].text(),
 						databasefile = newFileName,
@@ -56,7 +56,7 @@ def editProf(parent, statusBarObject):
 					if currEl["c"].currentText() != "None":
 						shutil.copy2(os.path.join(pbConfig.dataPath, currEl["c"].currentText()), newFileName)
 					pBGUIErrorManager.loggerPriority(0).info("New profile created.")
-		pbConfig.profilesDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != "" and e["n"].text() not in deleted])
+		pbConfig.globalDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != "" and e["n"].text() not in deleted])
 		pbConfig.loadProfiles()
 	else:
 		pbConfig.profileOrder = oldOrder

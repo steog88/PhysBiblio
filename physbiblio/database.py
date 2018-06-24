@@ -51,8 +51,7 @@ class physbiblioDB(physbiblioDBCore):
 			self.dbname = newDB
 			db_is_new = not os.path.exists(self.dbname)
 			self.openDB()
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
+			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 
@@ -61,8 +60,7 @@ class physbiblioDB(physbiblioDBCore):
 		else:
 			self.closeDB()
 			self.openDB()
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
+			if self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 			self.lastFetched = None
@@ -76,17 +74,11 @@ class physbiblioDB(physbiblioDBCore):
 		Output:
 			True
 		"""
-		try:
-			del self.bibs
-			del self.cats
-			del self.exps
-			del self.bibExp
-			del self.catBib
-			del self.catExp
-			del self.utils
-			del self.config
-		except:
-			pass
+		for q in ["bibs", "cats", "exps", "bibExp", "catBib", "catExp", "utils", "config"]:
+			try:
+				delattr(self, q)
+			except AttributeError:
+				pass
 		self.utils = utilities(self)
 		self.bibs = entries(self)
 		self.cats = categories(self)
@@ -2986,7 +2978,6 @@ class utilities(physbiblioDBSub):
 			t = parse_accents_str(t)
 			t = b.rmBibtexACapo(t)
 			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
-
 
 def catString(idCat, db, withDesc = False):
 	"""

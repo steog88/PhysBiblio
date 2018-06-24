@@ -49,8 +49,7 @@ class physbiblioDBCore():
 
 		if not noOpen:
 			self.openDB(info = info)
-			self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
-			if db_is_new or sorted([name[0] for name in self.curs]) != ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]:
+			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database or missing tables. Creating them!\n\n")
 				self.createTables()
 
@@ -206,6 +205,14 @@ class physbiblioDBCore():
 		"""
 		pass
 
+	def checkExistingTables(self, wantedTables = ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]):
+		"""
+		Check that all the required tables are present in the database
+		"""
+		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
+		tables = [name[0] for name in self.curs]
+		return not all(t in tables for t in wantedTables)
+
 	def createTables(self, fieldsDict = None):
 		"""
 		Create tables for the database (and insert the default categories), if it is missing.
@@ -220,16 +227,16 @@ class physbiblioDBCore():
 		for q in fieldsDict.keys():
 			if q in existingTables:
 				continue
-			command="CREATE TABLE "+q+" (\n"
-			first=True
+			command = "CREATE TABLE %s (\n"%q
+			first = True
 			for el in fieldsDict[q]:
 				if first:
-					first=False
+					first = False
 				else:
-					command+=",\n"
-				command+=" ".join(el)
-			command+=");"
-			self.logger.info(command+"\n")
+					command += ",\n"
+				command += " ".join(el)
+			command += ");"
+			self.logger.info(command + "\n")
 			if not self.connExec(command):
 				self.logger.critical("Create %s failed"%q)
 		self.cursExec("select * from categories where idCat = 0 or idCat = 1\n")
@@ -239,7 +246,7 @@ class physbiblioDBCore():
 				values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
 				(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
 				"""
-			self.logger.info(command+"\n")
+			self.logger.info(command + "\n")
 			if not self.connExec(command):
 				self.logger.error("Insert main categories failed")
 		self.commit()

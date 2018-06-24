@@ -8,9 +8,29 @@ profilesSettingsTable = [
 	["databasefile","text", "not null"],
 	["description", "text", ""],
 	["oldCfg",      "text", ""],
-	["isDefault", 	"int", "default 0"],
-	["ord", 		"int", "default 100"]
+	["isDefault", 	"integer", "default 0"],
+	["ord", 		"integer", "default 100"]
 ]
+searchesTable = [
+	["idS",				"integer", "primary key"],
+	["name",			"text", ""],
+	["count",			"integer", "default 0 not null"],
+	["searchDict",		"text", "not null"],
+	["limitNum",		"integer", "default 50"],
+	["offsetNum",		"integer", "default 0"],
+	["replaceFields",	"text", ""],
+	["manual",			"integer", "default 0"],
+	["isReplace",		"integer", "default 0"]]
+searchesTableDescriptions = {
+	"idS":				"Unique identifier",
+	"name":				"Custom name of the search/replace",
+	"count":			"Order of the entry in the cronology",
+	"searchDict":		"Dictionary of fields to be passed to fetchByDict",
+	"limit":			"The max number of results in the search",
+	"offset":			"The offset in the search",
+	"replaceFields":	"List of fields used in replacement",
+	"manual":			"Manually saved",
+	"isReplace":		"(T/F) A replacement or a simple search"}
 
 tableFields = {}
 tableFields["entries"] = [
@@ -21,7 +41,7 @@ tableFields["entries"] = [
 	["scholar", "text", ""],
 	["doi", 	"text", ""],
 	["isbn", 	"text", ""],
-	["year", 	"int", ""],
+	["year", 	"integer", ""],
 	["link", 	"text", ""],
 	["comments", 	"text", ""],
 	["old_keys", 	"text", ""],
@@ -29,22 +49,22 @@ tableFields["entries"] = [
 	["bibtex", 		"text", "not null"],
 	["firstdate", 	"text", "not null"],
 	["pubdate", 	"text", ""],
-	["exp_paper",	"int", "default 0"],
-	["lecture",		"int", "default 0"],
-	["phd_thesis",	"int", "default 0"],
-	["review",		"int", "default 0"],
-	["proceeding",	"int", "default 0"],
-	["book",		"int", "default 0"],
-	["noUpdate",	"int", "default 0"],
+	["exp_paper",	"integer", "default 0"],
+	["lecture",		"integer", "default 0"],
+	["phd_thesis",	"integer", "default 0"],
+	["review",		"integer", "default 0"],
+	["proceeding",	"integer", "default 0"],
+	["book",		"integer", "default 0"],
+	["noUpdate",	"integer", "default 0"],
 	["marks", 		"text", ""],
 	["abstract", 	"text", ""]];
 tableFields["categories"] = [
 	["idCat", 		"integer", "primary key"],
 	["name", 		"text", "not null"],
 	["description", "text", "not null"],
-	["parentCat", 	"int", "default 0"],
+	["parentCat", 	"integer", "default 0"],
 	["comments", 	"text", "default ''"],
-	["ord", 		"int", "default 0"]];
+	["ord", 		"integer", "default 0"]];
 tableFields["experiments"] = [
 	["idExp", 	 "integer", "primary key"],
 	["name", 	 "text", "not null"],
@@ -53,16 +73,16 @@ tableFields["experiments"] = [
 	["inspire",  "text", ""]];
 tableFields["expCats"] = [
 	["idExC", "integer", "primary key"],
-	["idExp", "int", "not null"],
-	["idCat", "int", "not null"]];
+	["idExp", "integer", "not null"],
+	["idCat", "integer", "not null"]];
 tableFields["entryCats"] = [
 	["idEnC",  "integer", "primary key"],
 	["bibkey", "text", "not null"],
-	["idCat",  "int", "not null"]];
+	["idCat",  "integer", "not null"]];
 tableFields["entryExps"] = [
 	["idEnEx", "integer", "primary key"],
 	["bibkey", "text", "not null"],
-	["idExp",  "int", "not null"]];
+	["idExp",  "integer", "not null"]];
 tableFields["settings"] = [
 	["name", 	"text", "primary key not null"],
 	["value", 	"text", "default ''"]]
@@ -118,6 +138,6 @@ fieldsDescriptions["entryExps"] = {
 	"bibkey": "Corresponding bibtex key",
 	"idExp":  "Corresponding experiment ID"}
 fieldsDescriptions["settings"] = {
-	"id": "Unique identifier",
-	"name": "name of the setting",
-	"value": "value of the setting"}
+	"id": 		"Unique identifier",
+	"name": 	"name of the setting",
+	"value":	"value of the setting"}
