@@ -254,6 +254,8 @@ class webSearch(webInterf):
 			pass
 		if tmpDict["arxiv"] != tmpDict["eprint"] and tmpDict["eprint"] is not None:
 			tmpDict["arxiv"] = tmpDict["eprint"]
+		if tmpDict["eprint"] is not None and tmpDict["year"] is None:
+			tmpDict["year"] = physBiblioWeb.webSearch["arxiv"].getYear(tmpDict["eprint"])
 		try:
 			tmpDict["title"] = record["245"]["a"]
 		except TypeError:
