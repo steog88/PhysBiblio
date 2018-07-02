@@ -21,7 +21,7 @@ class marks():
 	def newMark(self, key, desc, icon):
 		self.marks[key] = {"desc": desc, "icon": ":/images/%s.png"%icon}
 
-	def getGroupbox(self, marksData, description = "Marks", radio= False, addAny = False):
+	def getGroupbox(self, marksData, description = "Marks", radio = False, addAny = False):
 		groupBox = QGroupBox(description)
 		markValues = {}
 		groupBox.setFlat(True)

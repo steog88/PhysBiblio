@@ -422,6 +422,18 @@ class bibtexList(QFrame, objListWindow):
 		self.unselAllAct.setEnabled(status)
 		self.okAct.setEnabled(status)
 
+	def addMark(self, bibkey, mark):
+		try:
+			initialMarks = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]["marks"]
+		except IndexError:
+			pBGUILogger.exception("Entry '%s' not found!"%bibkey)
+		marks = initialMarks.split(",")
+		if mark in marks:
+			marks.remove(mark)
+		else:
+			marks.append(mark)
+		pBDB.bibs.updateField(bibkey, "marks", ",".join(marks))
+
 	def enableSelection(self):
 		self.table_model.changeAsk()
 		self.changeEnableActions()
@@ -511,6 +523,11 @@ class bibtexList(QFrame, objListWindow):
 		except AttributeError:
 			pBLogger.exception("Error in reading table content")
 			return
+		try:
+			initialRecord = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+		except IndexError:
+			pBGUILogger.exception("The entry cannot be found!")
+			return False
 		menu = QMenu()
 		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
 		menu.addSeparator()
@@ -519,6 +536,22 @@ class bibtexList(QFrame, objListWindow):
 		delAction = menu.addAction("Delete")
 		menu.addSeparator()
 
+		marksMenu = menu.addMenu("Marks")
+		marksActions = {}
+		for m in [ k for k in pBMarks.marks.keys() ]:
+			if m in initialRecord["marks"]:
+				marksActions[m] = marksMenu.addAction("Unmark as '%s'"%pBMarks.marks[m]["desc"])
+			else:
+				marksActions[m] = marksMenu.addAction("Mark as '%s'"%pBMarks.marks[m]["desc"])
+		typeMenu = menu.addMenu("Type")
+		typeActions = {}
+		for k, v in convertType.items():
+			if initialRecord[k]:
+				typeActions[k] = typeMenu.addAction("Unset '%s'"%v)
+			else:
+				typeActions[k] = typeMenu.addAction("Set '%s'"%v)
+
+		menu.addSeparator()
 		copyMenu = menu.addMenu("Copy to clipboard")
 		copyActions = {}
 		copyActions["bibkey"] = copyMenu.addAction("Copy key")
@@ -530,7 +563,6 @@ class bibtexList(QFrame, objListWindow):
 		link = pBDB.bibs.getField(bibkey, "link")
 		if link is not None and link.strip() != "":
 			copyActions["link"] = copyMenu.addAction("Copy link")
-		menu.addSeparator()
 
 		pdfMenu = menu.addMenu("PDF")
 		inspireID = pBDB.bibs.getField(bibkey, "inspire")
@@ -596,6 +628,18 @@ class bibtexList(QFrame, objListWindow):
 			editBibtex(self.parent, self.parent, bibkey)
 		elif action == cleAction:
 			self.parent.cleanAllBibtexs(useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
+		#marks
+		elif action in marksActions.values():
+			for m, a in marksActions.items():
+				if a == action:
+					self.addMark(bibkey, m)
+					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+		#types
+		elif action in typeActions.values():
+			for k, a in typeActions.items():
+				if a == action:
+					pBDB.bibs.updateField(bibkey, k, 0 if initialRecord[k] else 1, 0)
+					self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 		#copy functions
 		elif "bibkey" in copyActions.keys() and action == copyActions["bibkey"]:
 			copyToClipboard(bibkey)
