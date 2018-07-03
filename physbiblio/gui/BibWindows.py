@@ -2,11 +2,12 @@
 import sys
 import os
 import matplotlib
-matplotlib.use('Qt4Agg')
-os.environ["QT_API"] = 'pyside'
+matplotlib.use('Qt5Agg')
+os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt, QEvent, QUrl
+from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
+from PySide2.QtWidgets import QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMenu, QPlainTextEdit, QPushButton, QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
 import re
 from pyparsing import ParseException
 from pylatexenc.latex2text import LatexNodes2Text
@@ -24,15 +25,9 @@ try:
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.gui.ExpWindows import *
 	from physbiblio.gui.marks import *
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
 
 convertType = {
 	"review":  "Review",
@@ -354,7 +349,7 @@ class MyBibTableModel(MyTableModel):
 			else:
 				self.selectedElements[self.dataList[index.row()]["bibkey"]] = False
 
-		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		self.dataChanged.emit(index, index)
 		return True
 
 class bibtexList(QFrame, objListWindow):
