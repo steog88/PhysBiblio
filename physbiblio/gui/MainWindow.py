@@ -6,8 +6,9 @@ if sys.version_info[0] < 3:
 else:
 	from queue import Queue
 
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtWidgets import QAction, QApplication, QDesktopWidget, QFrame, QMainWindow, QMessageBox, QSplitter, QStatusBar
 import signal
 import ast
 import glob
@@ -29,15 +30,13 @@ try:
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.ProfilesManager import *
 	from physbiblio.gui.ThreadElements import *
-except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+except ImportError as e:
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!", e)
+	print(traceback.format_exc())
 try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
+	import physbiblio.gui.Resources_pyside2
+except ImportError as e:
+	print("Missing Resources_pyside2: run script update_resources.sh", e)
 
 class MainWindow(QMainWindow):
 	def __init__(self):

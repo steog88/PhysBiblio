@@ -1,13 +1,9 @@
 import sys
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
+	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class marks():
 	def __init__(self):

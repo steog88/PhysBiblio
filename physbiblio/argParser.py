@@ -79,7 +79,7 @@ def call_weekly(args):
 
 def call_gui(args = None):
 	"""Function that runs the PhysBiblio GUI"""
-	from PySide.QtGui import QApplication
+	from PySide2.QtWidgets import QApplication
 	try:
 		from physbiblio.errors import pBLogger
 		from physbiblio.database import pBDB

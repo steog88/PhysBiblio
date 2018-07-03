@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys
 import os
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt, Signal, QAbstractItemModel, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QThread, QUrl
+from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
+from PySide2.QtWidgets import QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, QTableWidget, QTableWidgetItem, QVBoxLayout
 
 try:
 	from physbiblio.errors import pBErrorManagerClass, pBLogger
@@ -10,15 +11,9 @@ try:
 	from physbiblio.pdf import pBPDF
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.database import pBDB, catString
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside.py: Run script update_resources.sh")
 
 class MyLabelRight(QLabel):
 	def __init__(self, label):
@@ -232,18 +227,18 @@ class MyTableModel(QAbstractTableModel):
 		self.ask = ask
 
 	def changeAsk(self, new = None):
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.layoutAboutToBeChanged.emit()
 		if new is None:
 			self.ask = not self.ask
 		elif new == True or new == False:
 			self.ask = new
-		self.emit(SIGNAL("layoutChanged()"))
+		self.layoutChanged.emit()
 
 	def getIdentifier(self, element):
 		raise NotImplementedError()
 
 	def prepareSelected(self):
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.layoutAboutToBeChanged.emit()
 		self.selectedElements = {}
 		for bib in self.dataList:
 			self.selectedElements[self.getIdentifier(bib)] = False
@@ -252,19 +247,19 @@ class MyTableModel(QAbstractTableModel):
 				self.selectedElements[prevK] = True
 			except IndexError:
 				pBLogger.exception("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
-		self.emit(SIGNAL("layoutChanged()"))
+		self.layoutChanged.emit()
 
 	def selectAll(self):
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = True
-		self.emit(SIGNAL("layoutChanged()"))
+		self.layoutChanged.emit()
 
 	def unselectAll(self):
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = False
-		self.emit(SIGNAL("layoutChanged()"))
+		self.layoutChanged.emit()
 
 	def addImage(self, imagePath, height):
 		"""create a cell containing an image"""
@@ -311,11 +306,11 @@ class MyTableModel(QAbstractTableModel):
 
 	def sort(self, col = 1, order = Qt.AscendingOrder):
 		"""sort table by given column number col"""
-		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.layoutAboutToBeChanged.emit()
 		self.dataList = sorted(self.dataList, key=operator.itemgetter(col) )
 		if order == Qt.DescendingOrder:
 			self.dataList.reverse()
-		self.emit(SIGNAL("layoutChanged()"))
+		self.layoutChanged.emit()
 
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
 class TreeNode(object):
@@ -576,7 +571,7 @@ class MyImportedTableModel(MyTableModel):
 			else:
 				self.selectedElements[self.dataList[index.row()][self.idName]] = False
 
-		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		self.dataChanged.emit(index, index)
 		return True
 
 	def flags(self, index):

@@ -13,8 +13,8 @@ import json
 import requests
 import dateutil, datetime
 import matplotlib
-matplotlib.use('Qt4Agg')
-os.environ["QT_API"] = 'pyside'
+matplotlib.use('Qt5Agg')
+os.environ["QT_API"] = 'pyside2'
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
