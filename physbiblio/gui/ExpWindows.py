@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import QLabel, QLineEdit, QMenu, QPushButton
 import traceback
 import operator
 
@@ -11,15 +11,9 @@ try:
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.CatWindows import *
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
 
 def editExperiment(parent, statusBarObject, editIdExp = None):
 	if editIdExp is not None:
@@ -108,7 +102,7 @@ class MyExpTableModel(MyTableModel):
 			else:
 				self.selectedElements[self.dataList[index.row()][0]] = False
 
-		self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
+		self.dataChanged.emit(index, index)
 		return True
 
 class ExpWindowList(objListWindow):
