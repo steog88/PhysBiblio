@@ -5,6 +5,7 @@ This file is part of the physbiblio package.
 """
 import sys, traceback, os
 import logging
+import logging.handlers
 
 try:
 	from physbiblio.config import pbConfig
@@ -35,9 +36,9 @@ class pBErrorManagerClass():
 		self.logger.setLevel(min(logging.INFO, self.loglevel))
 
 		try:
-			fh = logging.FileHandler(pbConfig.overWritelogFileName)
+			fh = logging.handlers.RotatingFileHandler(pbConfig.overWritelogFileName, maxBytes=5. * 2**20, backupCount=5)
 		except AttributeError:
-			fh = logging.FileHandler(pbConfig.params["logFileName"])
+			fh = logging.handlers.RotatingFileHandler(pbConfig.params["logFileName"], maxBytes=5. * 2**20, backupCount=5)
 		fh.setLevel(self.loglevel)
 		formatter = logging.Formatter('%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s')
 		fh.setFormatter(formatter)
