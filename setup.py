@@ -15,7 +15,7 @@ def readme():
 
 setup(name='physbiblio',
 		version=physbiblio.__version__,
-		description='A bibliography manager in Python (using Sqlite and PySide)',
+		description='A bibliography manager in Python (using Sqlite and PySide2)',
 		long_description_content_type="text/markdown",
 		long_description=readme(),
 		author='Stefano Gariazzo',

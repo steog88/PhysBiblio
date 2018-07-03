@@ -3,7 +3,7 @@ Bibliography manager in Python
 by S. Gariazzo (stefano.gariazzo@gmail.com)
 
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
-It is written in Python, it uses PySide for the graphical interface and Sqlite for the database management.
+It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
 
 ## 1. Getting started
 
@@ -16,40 +16,34 @@ Please report any bug that you find [here](https://github.com/steog88/physBiblio
 ### Installation
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
+Unfortunately, `PySide2` has not yet been included in the PyPI repository, so it must be manually installed from the Qt website.
+Please note that at the moment `PySide2` is only available for `python` versions 2.7, 3.5 and 3.6.
 
 #### Python2
 If you use `python 2+`, simply use (system-wide install)
 ```
-sudo pip install pyside physbiblio
+sudo pip install --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
+sudo pip install physbiblio
 ```
 or (user only install)
 ```
-pip install --user pyside physbiblio
-```
-However, I find that installing `pyside` via `pip` can bring some amount of trouble.
-If you are not lucky with the previous command, you may want to install `PySide` via package manager and then use `pip` only for `PhysBiblio`.
-The easiest way is then (Ubuntu):
-```
-sudo apt install python-pyside
-sudo pip install physbiblio
+pip install --user --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
+pip install --user physbiblio
 ```
 
 #### Python3
-For `python 3+`, the situation is complicated by the fact that
-the series `1.x` of `PySide` available through `pip` does not support Python versions newer than 3.5+, so you cannot install `PySide` with `pip3` if you have a newer version than the 3.5.
-This can be solved again if you install `PySide` with the package manager of your system, for example in Ubuntu using
-```
-sudo apt install python3-pyside
-sudo pip3 install physbiblio
-```
+For `python 3+`, the commands are nearly unchanged.
+If `pip` points to your `python3` distribution, the above commands will do the job.
+Otherwise, use the same commands above but with `pip3` instead of `pip`.
 
 #### Conda
 Here you find a list of instructions to install and run `PhysBiblio` using `conda` and related commands.
-It is convenient to use a dedicated environment and python 2+, as `PySide` has problems with newer python versions.
+Note that the following commands have not (yet) been tested with `PySide2`.
+The part in the parenthesis in the first command is optional as long as the default python version is 2.7, 3.5 or 3.6.
 ```
-conda create --name physbiblio python=2
+conda create --name physbiblio (python=3.6)
 conda activate physbiblio
-conda install PySide
+pip install --user --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
 pip install physbiblio
 ```
 At this point, the installation is complete.
@@ -120,7 +114,7 @@ In particular, if you do not correctly set the web browser and the PDF reader, s
 ### Dependencies
 PhysBiblio depends on several python packages:
 * sqlite3 (for the database)
-* pyside (for the graphical interface)
+* pyside2 (for the graphical interface)
 * appdirs (default paths)
 * argparse (arguments from command line)
 * bibtexparser (to manage bibtex entries)
