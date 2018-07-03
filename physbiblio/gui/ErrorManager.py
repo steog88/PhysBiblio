@@ -1,8 +1,7 @@
 import sys
 import logging
 import traceback
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtWidgets import QMessageBox
 
 if sys.version_info[0] < 3:
 	from StringIO import StringIO

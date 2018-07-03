@@ -4,8 +4,9 @@ import sys, time
 import os
 import glob
 import shutil
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QPixmap
+from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QRadioButton
 
 try:
 	from physbiblio.config import pbConfig

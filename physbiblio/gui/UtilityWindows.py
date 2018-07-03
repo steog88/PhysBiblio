@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout
 import subprocess
 import traceback
 import ast
@@ -13,15 +13,9 @@ try:
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CatWindows import *
 	from physbiblio.database import pBDB
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""

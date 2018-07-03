@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import sys, time
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Signal
 from outdated import check_outdated
 if sys.version_info[0] < 3:
 	from urllib2 import URLError

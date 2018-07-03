@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 import sys
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QLineEdit, QPushButton
 import numpy as np
 import matplotlib
-matplotlib.use('Qt4Agg')
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 try:
 	from physbiblio.database import *
@@ -16,15 +17,9 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
 
 figTitles = [
 "Paper number",

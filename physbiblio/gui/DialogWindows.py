@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
-from PySide.QtCore import *
-from PySide.QtGui  import *
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtGui import QTextCursor
+from PySide2.QtWidgets import QCheckBox, QDesktopWidget, QDialog, QFileDialog, QGridLayout, QInputDialog, QLabel, QMessageBox, QProgressBar, QPushButton, QTableWidgetItem, QTextEdit
 import traceback
 
 if sys.version_info[0] < 3:
@@ -15,15 +16,9 @@ try:
 	from physbiblio.errors import pBLogger, pBErrorManager
 	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
+	import physbiblio.gui.Resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-try:
-	if sys.version_info[0] < 3:
-		import physbiblio.gui.Resources_pyside
-	else:
-		import physbiblio.gui.Resources_pyside3
-except ImportError:
-	print("Missing Resources_pyside: Run script update_resources.sh")
 
 def askYesNo(message, title = "Question"):
 	reply = QMessageBox.question(None, title, message, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -131,7 +126,6 @@ class printText(QDialog):
 			super(printText, self).closeEvent(evnt)
 		else:
 			evnt.ignore()
-			#self.setWindowState(QtCore.Qt.WindowMinimized)
 
 	def initUI(self):
 		self.setWindowTitle(self.title)
