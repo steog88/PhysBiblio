@@ -8,6 +8,7 @@ import operator
 try:
 	from physbiblio.database import *
 	from physbiblio.config import pbConfig
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 	from physbiblio.gui.CatWindows import *

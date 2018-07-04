@@ -7,6 +7,7 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
+	from physbiblio.gui.ErrorManager import pBGUILogger
 	from physbiblio.gui.DialogWindows import *
 	from physbiblio.gui.CommonClasses import *
 except ImportError:
@@ -230,6 +231,8 @@ class catsWindowList(QDialog):
 
 		self.tree = QTreeView(self)
 		self.currLayout.addWidget(self.tree)
+		self.tree.setMouseTracking(True)
+		self.tree.entered.connect(self.handleItemEntered)
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
@@ -273,6 +276,26 @@ class catsWindowList(QDialog):
 			child_item = self._populateTree(children[child], child)
 			children_list.append(child_item)
 		return NamedElement(idCat, name, children_list)
+
+	def handleItemEntered(self, index):
+		if index.isValid():
+			row = index.row()
+		else:
+			return
+		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
+		idCat = idCat.strip()
+		try:
+			catData = pBDB.cats.getByID(idCat)[0]
+		except IndexError:
+			pBGUILogger.exception("Failed in finding category")
+			return
+		QToolTip.showText(
+			QCursor.pos(),
+			"{idC}: {cat}\nCorresponding entries: {en}\nAssociated experiments: {ex}".format(
+				idC = idCat, cat = catData["name"], en = pBDB.catBib.countByCat(idCat), ex = pBDB.catExp.countByCat(idCat)),
+			self.tree.viewport(),
+			self.tree.visualRect(index)
+		)
 
 	def contextMenuEvent(self, event):
 		index = self.tree.selectedIndexes()[0]

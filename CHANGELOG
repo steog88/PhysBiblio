@@ -1,3 +1,4 @@
+	* tooltips show the number of entries and categories/experiments associated to each experiment/category
 	* use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
 	* bug in right click menu when marks is None
 
