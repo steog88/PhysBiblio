@@ -422,6 +422,19 @@ class catsEntries(physbiblioDBSub):
 		self.cursExec("SELECT Count(*) FROM entryCats")
 		return self.curs.fetchall()[0][0]
 
+	def countByCat(self, idCat):
+		"""
+		Obtain the number of rows in entryCats which are associated with a given category
+
+		Parameters:
+			idCat: the id of the category
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM entryCats WHERE idCat = :idCat", {"idCat": idCat, })
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, key):
 		"""
 		Find connections between a category and an entry
@@ -560,6 +573,32 @@ class catsExps(physbiblioDBSub):
 		self.cursExec("SELECT Count(*) FROM expCats")
 		return self.curs.fetchall()[0][0]
 
+	def countByExp(self, idExp):
+		"""
+		Obtain the number of rows in expCats which are associated with a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM expCats WHERE idExp = :idExp", {"idExp": idExp, })
+		return self.curs.fetchall()[0][0]
+
+	def countByCat(self, idCat):
+		"""
+		Obtain the number of rows in expCats which are associated with a given category
+
+		Parameters:
+			idCat: the id of the category
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM expCats WHERE idCat = :idCat", {"idCat": idCat, })
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, idExp):
 		"""
 		Find connections between a category and an experiment
@@ -681,6 +720,19 @@ class entryExps(physbiblioDBSub):
 	def count(self):
 		"""obtain the number of rows in entryExps"""
 		self.cursExec("SELECT Count(*) FROM entryExps")
+		return self.curs.fetchall()[0][0]
+
+	def countByExp(self, idExp):
+		"""
+		Obtain the number of rows in entryExps which are associated with a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM entryExps WHERE idExp = :idExp", {"idExp": idExp, })
 		return self.curs.fetchall()[0][0]
 
 	def getOne(self, key, idExp):

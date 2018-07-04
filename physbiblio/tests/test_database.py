@@ -154,6 +154,7 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catBib.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertEqual(self.pBDB.catBib.countByCat(1), 2)
 		self.assertTrue(self.pBDB.catBib.insert("test", "test"))
 
 	def test_catExps(self):
@@ -180,6 +181,9 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("experiments for '1': "), call("experiments for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catExp.getAll()],
 			[(1, 10, 1), (2, 10, 2), (3, 11, 1), (4, 11, 2)])
+		self.assertEqual(self.pBDB.catExp.countByCat(1), 2)
+		self.assertEqual(self.pBDB.catExp.countByExp(10), 2)
+		self.assertEqual(self.pBDB.catExp.countByExp(1), 0)
 		self.assertTrue(self.pBDB.catExp.insert("test", "test"))
 
 	def test_entryExps(self):
@@ -210,6 +214,7 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.bibExp.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertEqual(self.pBDB.bibExp.countByExp(1), 2)
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 
 @unittest.skipIf(skipDBTests, "Database tests")

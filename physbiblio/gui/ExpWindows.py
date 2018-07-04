@@ -229,7 +229,26 @@ class ExpWindowList(objListWindow):
 					if c not in previous:
 						pBDB.catExp.insert(c, idExp)
 				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%expName)
-				
+
+	def handleItemEntered(self, index):
+		if index.isValid():
+			row = index.row()
+		else:
+			return
+		idExp = str(self.proxyModel.sibling(row, 0, index).data())
+		try:
+			expData = pBDB.exps.getByID(idExp)[0]
+		except IndexError:
+			pBGUILogger.exception("Failed in finding experiment")
+			return
+		QToolTip.showText(
+			QCursor.pos(),
+			"{idE}: {exp}\nCorresponding entries: {en}\nAssociated categories: {ca}".format(
+				idE = idExp, exp = expData["name"], en = pBDB.bibExp.countByExp(idExp), ca = pBDB.catExp.countByExp(idExp)),
+			self.tablewidget.viewport(),
+			self.tablewidget.visualRect(index)
+		)
+
 	def cellClick(self, index):
 		if index.isValid():
 			row = index.row()

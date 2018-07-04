@@ -757,6 +757,9 @@ class bibtexList(QFrame, objListWindow):
 					fn = files[i].replace(pdfDir+"/", "")
 					copyPdfFile(bibkey, fn, custom = files[i])
 
+	def handleItemEntered(self, index):
+		pass
+
 	def cellClick(self, index):
 		row = index.row()
 		col = index.column()

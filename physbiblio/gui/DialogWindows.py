@@ -371,6 +371,9 @@ class advImportSelect(objListWindow):
 	def triggeredContextMenuEvent(self, row, col, event):
 		pass
 
+	def handleItemEntered(self, index):
+		pass
+
 	def cellClick(self, index):
 		pass
 
