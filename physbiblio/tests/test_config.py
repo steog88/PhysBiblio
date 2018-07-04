@@ -95,7 +95,6 @@ class TestConfigMethods(unittest.TestCase):
 				"n": u"default",
 				"db": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))}})
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
-		self.assertEqual(tempPbConfig.params, config_defaults)
 
 		tempProfName1 = os.path.join(pbConfig.dataPath, "tests_profiles1_%s.db"%today_ymd)
 		self.assertTrue(tempPbConfig.globalDb.createProfile("temp", "none", tempProfName1))
@@ -122,6 +121,8 @@ class TestConfigMethods(unittest.TestCase):
 				"n": u"temp",
 				"db": tempProfName1}})
 		self.assertEqual(ordered, ["default", "temp"])
+		tempPbConfig.reloadProfiles()
+		self.assertEqual(tempPbConfig.params, config_defaults)
 
 		tempProfName2 = tempProfName1.replace("profiles1", "profiles2")
 		self.assertTrue(tempPbConfig.globalDb.createProfile("other", "none1", tempProfName2))
