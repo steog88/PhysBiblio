@@ -525,6 +525,9 @@ class bibtexList(QFrame, objListWindow):
 			return
 		try:
 			initialRecord = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+			if initialRecord["marks"] is None:
+				initialRecord["marks"] = ""
+				pBDB.bibs.updateField(bibkey, "marks", "")
 		except IndexError:
 			pBGUILogger.exception("The entry cannot be found!")
 			return False

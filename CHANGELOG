@@ -1,4 +1,5 @@
 	* use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
+	* bug in right click menu when marks is None
 
 0.5.1 (2018-07-02):
 	* edit marks and entry types from right-click menu
