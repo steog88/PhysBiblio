@@ -2,7 +2,7 @@
 	* tooltips show the number of entries and categories/experiments associated to each experiment/category
 	* use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
 	* delete from multiple entries selection
-	* function to detect bibtexs that cannot be parsed
+	* functions to detect bibtexs that cannot be parsed and to edit them to fix the errors
 
 	Improvements/bug fixes:
 	* bug in right click menu when marks or inspireID is None
