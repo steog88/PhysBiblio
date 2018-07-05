@@ -1751,6 +1751,20 @@ class TestDatabaseEntries(DBTestCase):
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': '%s/abs/1507.08204'%pbConfig.arxivUrl, 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'doi': '10.1088/0954-3899/43/3/033001', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': ''}])
 
+	def test_findCorrupted(self):
+		"""test the function that finds corrupted bibtexs"""
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		data = self.pBDB.bibs.prepareInsert(u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,\nauthor = "m"e",\ntitle = "def",}'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom = 1), ["def"])
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,author = "me",title = "def"}'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
+
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):
 	"""Tests for the methods in the utilities subclass"""

@@ -2911,7 +2911,45 @@ class entries(physbiblioDBSub):
 		pBLogger.info("%d errors occurred"%err)
 		pBLogger.info("%d entries changed"%len(changed))
 		return num, err, changed
-	
+
+	def findCorruptedBibtexs(self, startFrom = 0, entries = None):
+		"""
+		Find bibtexs that cannot be read properly
+
+		Parameters:
+			startFrom (default 0): the index where to start from
+			entries: the list of entries to be considered. If None, the output of self.getAll
+
+		Output:
+			bibtexs: the list of problematic entries
+		"""
+		if entries is None:
+			try:
+				tot = self.count() - startFrom
+				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
+				iterator = self.fetchCursor()
+			except TypeError:
+				pBLogger.exception("Invalid startFrom in cleanBibtexs")
+				return 0, 0, []
+		else:
+			iterator = entries
+			tot = len(entries)
+		bibtexs = []
+		self.runningFindBadBibtexs = True
+		pBLogger.info("findCorruptedBibtexs will process %d total entries"%tot)
+		db = bibtexparser.bibdatabase.BibDatabase()
+		for ix, e in enumerate(iterator):
+			if self.runningFindBadBibtexs:
+				pBLogger.info("%5d / %d (%5.2f%%) - processing: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				try:
+					element = bibtexparser.loads(e["bibtex"]).entries[0]
+					pBLogger.info("%s is readable.\n"%element["ID"])
+				except:
+					bibtexs.append(e["bibkey"])
+					pBLogger.warning("%s is NOT readable!\n"%e["bibkey"])
+		pBLogger.info("%d bad entries found:\n %s"%(len(bibtexs), bibtexs))
+		return bibtexs
+
 	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False, reloadAll = False):
 		"""
 		Select unpublished papers and look for updates using inspireOAI
