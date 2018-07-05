@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QLabel, QLineEdit, QMenu, QPushButton
+from PySide2.QtGui import QCursor
+from PySide2.QtWidgets import QLabel, QLineEdit, QMenu, QPushButton, QToolTip
 import traceback
 import operator
 
