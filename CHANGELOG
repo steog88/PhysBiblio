@@ -1,5 +1,6 @@
 	* tooltips show the number of entries and categories/experiments associated to each experiment/category
 	* use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
+	* delete from multiple entries selection
 	* bug in right click menu when marks or inspireID is None
 	* solved bug in a test of default configuration
 

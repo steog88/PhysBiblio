@@ -216,7 +216,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 		pass
 
 def deleteBibtex(parent, statusBarObject, bibkey):
-	if askYesNo("Do you really want to delete this bibtex entry (bibkey = '%s')?"%(bibkey)):
+	if askYesNo("Do you really want to delete these bibtex entries (bibkeys = '%s')?"%(bibkey)):
 		pBDB.bibs.delete(bibkey)
 		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Bibtex entry deleted"
@@ -1002,6 +1002,7 @@ class askSelBibAction(MyMenu):
 			self.possibleActions.append(QAction("Merge entries", self, triggered = self.onMerge))
 		self.possibleActions.append(QAction("Clean entries", self, triggered = self.onClean))
 		self.possibleActions.append(QAction("Update entries", self, triggered = self.onUpdate))
+		self.possibleActions.append(QAction("Delete entries", self, triggered = self.onDelete))
 		self.possibleActions.append(None)
 		self.possibleActions.append(["Copy to clipboard", [
 			QAction("Copy keys", self, triggered = self.onCopyKeys),
@@ -1088,6 +1089,10 @@ class askSelBibAction(MyMenu):
 
 	def onUpdate(self):
 		self.parent.updateAllBibtexs(self, useEntries = self.entries)
+		self.close()
+
+	def onDelete(self):
+		deleteBibtex(self.parent, self.parent, [e["bibkey"] for e in self.entries])
 		self.close()
 
 	def onAbs(self):
