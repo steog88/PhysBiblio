@@ -528,6 +528,12 @@ class bibtexList(QFrame, objListWindow):
 			if initialRecord["marks"] is None:
 				initialRecord["marks"] = ""
 				pBDB.bibs.updateField(bibkey, "marks", "")
+			abstract = initialRecord["abstract"]
+			arxiv = initialRecord["arxiv"]
+			bibtex = initialRecord["bibtex"]
+			doi = initialRecord["doi"]
+			inspireID = initialRecord["inspire"]
+			link = initialRecord["link"]
 		except IndexError:
 			pBGUILogger.exception("The entry cannot be found!")
 			return False
@@ -560,19 +566,17 @@ class bibtexList(QFrame, objListWindow):
 		copyActions["bibkey"] = copyMenu.addAction("Copy key")
 		copyActions["cite"] = copyMenu.addAction(r"Copy \cite{key}")
 		copyActions["bibtex"] = copyMenu.addAction("Copy bibtex")
-		abstract = pBDB.bibs.getField(bibkey, "abstract")
 		if abstract is not None and abstract.strip() != "":
 			copyActions["abstract"] = copyMenu.addAction("Copy abstract")
-		link = pBDB.bibs.getField(bibkey, "link")
 		if link is not None and link.strip() != "":
 			copyActions["link"] = copyMenu.addAction("Copy link")
 
 		pdfMenu = menu.addMenu("PDF")
-		inspireID = pBDB.bibs.getField(bibkey, "inspire")
-		if inspireID.strip() == "" or inspireID is False:
+		try:
+			if inspireID.strip() == "" or inspireID is False:
+				inspireID = None
+		except AttributeError:
 			inspireID = None
-		arxiv = pBDB.bibs.getField(bibkey, "arxiv")
-		doi = pBDB.bibs.getField(bibkey, "doi")
 		files = pBPDF.getExisting(bibkey, fullPath = True)
 		arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
 		pdfDir = pBPDF.getFileDir(bibkey)
@@ -649,7 +653,7 @@ class bibtexList(QFrame, objListWindow):
 		elif "cite" in copyActions.keys() and action == copyActions["cite"]:
 			copyToClipboard(r"\cite{%s}"%bibkey)
 		elif "bibtex" in copyActions.keys() and action == copyActions["bibtex"]:
-			copyToClipboard(pBDB.bibs.getField(bibkey, "bibtex"))
+			copyToClipboard(bibtex)
 		elif "abstract" in copyActions.keys() and action == copyActions["abstract"]:
 			copyToClipboard(abstract)
 		elif "link" in copyActions.keys() and action == copyActions["link"]:
