@@ -643,6 +643,11 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"], '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"], 'abc,def')
 
+		self.pBDB.bibs.delete("abc")
+		self.insert_three()
+		with patch('physbiblio.pdf.localPDF.renameFolder') as _mock_ren:
+			self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
+
 	def test_prepareUpdate(self):
 		"""test prepareUpdate and related functions"""
 		bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'

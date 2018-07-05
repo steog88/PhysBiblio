@@ -195,8 +195,12 @@ def editBibtex(parent, statusBarObject, editKey = None):
 						if editKey not in data["old_keys"]:
 							data["old_keys"] += " " + editKey
 							data["old_keys"] = data["old_keys"].strip()
-						pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
-						pBPDF.renameFolder(editKey, data["bibkey"].strip())
+						if pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip()):
+							pBPDF.renameFolder(editKey, data["bibkey"].strip())
+						else:
+							pBGUILogger.warning("Cannot update bibtex key: already present. Restoring previous one.")
+							data["bibtex"] = data["bibtex"].replace(data["bibkey"], editKey)
+							data["bibkey"] = editKey
 					else:
 						data["bibkey"] = editKey
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
