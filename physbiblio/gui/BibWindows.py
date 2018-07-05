@@ -190,12 +190,15 @@ def editBibtex(parent, statusBarObject, editKey = None):
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 			if "bibkey" in data.keys():
 				if editKey is not None and data["bibkey"].strip() != editKey:
-					print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
-					if editKey not in data["old_keys"]:
-						data["old_keys"] += " " + editKey
-						data["old_keys"] = data["old_keys"].strip()
-					pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
-					pBPDF.renameFolder(editKey, data["bibkey"].strip())
+					if data["bibkey"].strip() != "not valid bibtex!":
+						print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
+						if editKey not in data["old_keys"]:
+							data["old_keys"] += " " + editKey
+							data["old_keys"] = data["old_keys"].strip()
+						pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
+						pBPDF.renameFolder(editKey, data["bibkey"].strip())
+					else:
+						data["bibkey"] = editKey
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:
