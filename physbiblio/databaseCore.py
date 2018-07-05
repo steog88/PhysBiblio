@@ -167,6 +167,9 @@ class physbiblioDBCore():
 		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
 			self.logger.exception('Connection error: %s\nquery: %s'%(err, query))
 			return False
+		except IntegrityError as err:
+			self.logger.exception('Cannot insert/update: ID exists!\n%s\nquery: %s'%(err, query))
+			return False
 		else:
 			self.dbChanged = True
 			return True

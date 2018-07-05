@@ -6,6 +6,7 @@ Uses urllib to download url content.
 This file is part of the physbiblio package.
 """
 import sys, os, socket, pkgutil, traceback
+import ssl
 if sys.version_info[0] < 3:
 	from urllib2 import Request, urlopen, URLError, HTTPError
 else:
@@ -74,7 +75,7 @@ class webInterf():
 		except HTTPError:
 			pBLogger.warning("[%s] -> %s not found"%url)
 			return ""
-		except socket.timeout:
+		except (ssl.SSLError, socket.timeout):
 			pBLogger.warning("[%s] -> Timed out"%self.name)
 			return ""
 		try:

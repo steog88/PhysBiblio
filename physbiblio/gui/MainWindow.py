@@ -205,6 +205,11 @@ class MainWindow(QMainWindow):
 								statusTip="Clean all the bibtexs",
 								triggered=self.cleanAllBibtexs)
 
+		self.findBadBibtexsAct = QAction("&Find corrupted bibtexs", self,
+								shortcut="Ctrl+Shift+B",
+								statusTip="Find all the bibtexs which contain syntax errors and are not readable",
+								triggered=self.findBadBibtexs)
+
 		self.infoFromArxivAct = QAction("Info from ar&Xiv", self,
 								shortcut="Ctrl+V",
 								statusTip="Get info from arXiv",
@@ -309,6 +314,7 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.cleanAllBibtexsAct)
 		self.bibMenu.addAction(self.cleanAllBibtexsAskAct)
+		self.bibMenu.addAction(self.findBadBibtexsAct)
 		self.bibMenu.addSeparator()
 		self.bibMenu.addAction(self.infoFromArxivAct)
 		self.bibMenu.addAction(self.updateAllBibtexsAct)
@@ -1034,6 +1040,23 @@ class MainWindow(QMainWindow):
 			startFrom, useEntries = useEntries,
 			totStr = "CleanBibtexs will process ", progrStr = "%) - cleaning: ",
 			minProgress = 0., stopFlag = True)
+
+	def findBadBibtexs(self, startFrom = 0, useEntries = None):
+		self.StatusBarMessage("Starting checking bibtexs...")
+		self.badBibtexs = []
+		self._runInThread(
+			thread_findBadBibtexs, "Check Bibtexs",
+			startFrom, useEntries = useEntries,
+			totStr = "findCorruptedBibtexs will process ", progrStr = "%) - processing: ",
+			minProgress = 0., stopFlag = True)
+		if len(self.badBibtexs) > 0:
+			if askYesNo("%d bad records have been found. Do you want to fix them one by one?"%len(self.badBibtexs)):
+				for bibkey in self.badBibtexs:
+					editBibtex(self, self, bibkey)
+			else:
+				infoMessage("These are the bibtex keys corresponding to invalid records:\n%s\n\nNo action will be performed."%", ".join(self.badBibtexs))
+		else:
+			infoMessage("No invalid records found!")
 
 	def infoFromArxiv(self, useEntries = None):
 		iterator = useEntries

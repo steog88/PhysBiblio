@@ -154,6 +154,7 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catBib.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertEqual(self.pBDB.catBib.countByCat(1), 2)
 		self.assertTrue(self.pBDB.catBib.insert("test", "test"))
 
 	def test_catExps(self):
@@ -180,6 +181,9 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("experiments for '1': "), call("experiments for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.catExp.getAll()],
 			[(1, 10, 1), (2, 10, 2), (3, 11, 1), (4, 11, 2)])
+		self.assertEqual(self.pBDB.catExp.countByCat(1), 2)
+		self.assertEqual(self.pBDB.catExp.countByExp(10), 2)
+		self.assertEqual(self.pBDB.catExp.countByExp(1), 0)
 		self.assertTrue(self.pBDB.catExp.insert("test", "test"))
 
 	def test_entryExps(self):
@@ -210,6 +214,7 @@ class TestDatabaseLinks(DBTestCase):
 			_input.assert_has_calls([call("entries for '1': "), call("entries for '2': ")])
 		self.assertEqual([tuple(a) for a in self.pBDB.bibExp.getAll()],
 			[(1,"test1",1), (2,"test1",2), (3,"test2",1), (4,"test2",2)])
+		self.assertEqual(self.pBDB.bibExp.countByExp(1), 2)
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 
 @unittest.skipIf(skipDBTests, "Database tests")
@@ -637,6 +642,11 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_ren.assert_called_once_with("def", "abc")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"], '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}')
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"], 'abc,def')
+
+		self.pBDB.bibs.delete("abc")
+		self.insert_three()
+		with patch('physbiblio.pdf.localPDF.renameFolder') as _mock_ren:
+			self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
 
 	def test_prepareUpdate(self):
 		"""test prepareUpdate and related functions"""
@@ -1745,6 +1755,20 @@ class TestDatabaseEntries(DBTestCase):
 				[{'bibkey': 'Ade:2013zuv', 'inspire': None, 'arxiv': '1303.5076', 'ads': None, 'scholar': None, 'doi': None, 'isbn': None, 'year': 2013, 'link': '%s/abs/1303.5076'%pbConfig.arxivUrl, 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Ade:2013zuv,\n         arxiv = "1303.5076",\n}', 'firstdate': d2t, 'pubdate': '', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 1, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '', 'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': '%s/abs/1507.08204'%pbConfig.arxivUrl, 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n         arxiv = "1507.08204",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'arxiv': '1507.08204', 'doi': '10.1088/0954-3899/43/3/033001', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': ''}])
+
+	def test_findCorrupted(self):
+		"""test the function that finds corrupted bibtexs"""
+		data = self.pBDB.bibs.prepareInsert(u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		data = self.pBDB.bibs.prepareInsert(u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def")
+		self.assertTrue(self.pBDB.bibs.insert(data))
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,\nauthor = "m"e",\ntitle = "def",}'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom = 1), ["def"])
+		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,author = "me",title = "def"}'))
+		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
 
 @unittest.skipIf(skipDBTests, "Database tests")
 class TestDatabaseUtilities(DBTestCase):

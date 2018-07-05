@@ -174,6 +174,25 @@ class thread_cleanAllBibtexs(MyThread):
 	def setStopFlag(self):
 		pBDB.bibs.runningCleanBibtexs = False
 
+class thread_findBadBibtexs(MyThread):
+	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None):
+		super(thread_findBadBibtexs, self).__init__(parent)
+		self.parent = parent
+		self.startFrom = startFrom
+		self.queue = queue
+		self.my_receiver = myrec
+		self.useEntries = useEntries
+
+	def run(self):
+		self.my_receiver.start()
+		self.parent.badBibtexs = pBDB.bibs.findCorruptedBibtexs(self.startFrom, entries = self.useEntries)
+		time.sleep(0.1)
+		self.my_receiver.running = False
+		self.finished.emit()
+
+	def setStopFlag(self):
+		pBDB.bibs.runningFindBadBibtexs = False
+
 class thread_importFromBib(MyThread):
 	def __init__(self, queue, myrec, bibFile, complete, parent = None):
 		super(thread_importFromBib, self).__init__(parent)

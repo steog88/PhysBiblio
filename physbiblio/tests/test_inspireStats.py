@@ -64,13 +64,13 @@ class TestInspireStatsMethods(unittest.TestCase):
 		"""Test paperStats function downloading real and fake data"""
 		with patch("physbiblio.inspireStats.inspireStatsLoader.paperStats",
 				return_value = {'aI': {1653464: {'date': datetime.datetime(2018, 2, 7, 4, 24, 2)}, 1662320: {'date': datetime.datetime(2018, 3, 14, 4, 53, 45)}, 1664547: {'date': datetime.datetime(2018, 3, 29, 5, 8, 58)}, 1663942: {'date': datetime.datetime(2018, 3, 26, 3, 25, 34)}, 1658582: {'date': datetime.datetime(2018, 3, 6, 3, 58, 52)}}, 'id': '1649081', 'citList': [[datetime.datetime(2018, 2, 7, 4, 24, 2), datetime.datetime(2018, 3, 6, 3, 58, 52), datetime.datetime(2018, 3, 14, 4, 53, 45), datetime.datetime(2018, 3, 26, 3, 25, 34), datetime.datetime(2018, 3, 29, 5, 8, 58), datetime.date(2018, 4, 16)], [1, 2, 3, 4, 5, 5]]}) as _mock:
-			testGood = pBStats.authorStats("Stefano.Gariazzo.1", plot = True)
-			for i in ['1253830', '1288846', '1292085', '1335389', '1347111', '1376456', '1385583', '1389136', '1399034', '1414175', '1418146', '1419638', '1422182', '1436472', '1467191', '1472072', '1489592', '1502879', '1508822', '1511397', '1515697', '1591119', '1608002', '1631308', '1641344', '1641345', '1642197', '1648424', '1649081', '1654819', '1667240']:
+			testGood = pBStats.authorStats("E.M.Zavanin.1", plot = True)
+			for i in ['1229039','1345462','1366180','1385583','1387736','1404176','1460832','1519902']:
 				self.assertIn(i, testGood["aI"].keys())
 			_mock.assert_has_calls([call(i, paperDate = testGood["aI"][i]["date"], verbose = 0) for i in sorted(testGood["aI"].keys())])
 			self.assertTrue(testGood.keys(), ['meanLi', 'allLi', 'aI', 'paLi', 'h', 'name'])
 			self.assertTrue(testGood["h"], 4)
-			self.assertTrue(testGood['name'], 'Stefano.Gariazzo.1')
+			self.assertTrue(testGood['name'], 'E.M.Zavanin.1')
 			self.assertEqual(len(testGood['paLi'][0]), len(testGood["aI"]))
 			self.assertEqual(len(testGood['paLi'][1]), len(testGood["aI"]))
 			self.assertEqual(len(testGood['allLi'][0]), 5 * len(testGood["aI"]))

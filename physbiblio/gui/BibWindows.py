@@ -185,12 +185,19 @@ def editBibtex(parent, statusBarObject, editKey = None):
 		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 			if "bibkey" in data.keys():
 				if editKey is not None and data["bibkey"].strip() != editKey:
-					print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
-					if editKey not in data["old_keys"]:
-						data["old_keys"] += " " + editKey
-						data["old_keys"] = data["old_keys"].strip()
-					pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip())
-					pBPDF.renameFolder(editKey, data["bibkey"].strip())
+					if data["bibkey"].strip() != "not valid bibtex!":
+						print("[GUI] New bibtex key (%s) for element '%s'..."%(data["bibkey"], editKey))
+						if editKey not in data["old_keys"]:
+							data["old_keys"] += " " + editKey
+							data["old_keys"] = data["old_keys"].strip()
+						if pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip()):
+							pBPDF.renameFolder(editKey, data["bibkey"].strip())
+						else:
+							pBGUILogger.warning("Cannot update bibtex key: already present. Restoring previous one.")
+							data["bibtex"] = data["bibtex"].replace(data["bibkey"], editKey)
+							data["bibkey"] = editKey
+					else:
+						data["bibkey"] = editKey
 				print("[GUI] Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:
@@ -211,7 +218,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 		pass
 
 def deleteBibtex(parent, statusBarObject, bibkey):
-	if askYesNo("Do you really want to delete this bibtex entry (bibkey = '%s')?"%(bibkey)):
+	if askYesNo("Do you really want to delete these bibtex entries (bibkeys = '%s')?"%(bibkey)):
 		pBDB.bibs.delete(bibkey)
 		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Bibtex entry deleted"
@@ -520,6 +527,15 @@ class bibtexList(QFrame, objListWindow):
 			return
 		try:
 			initialRecord = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+			if initialRecord["marks"] is None:
+				initialRecord["marks"] = ""
+				pBDB.bibs.updateField(bibkey, "marks", "")
+			abstract = initialRecord["abstract"]
+			arxiv = initialRecord["arxiv"]
+			bibtex = initialRecord["bibtex"]
+			doi = initialRecord["doi"]
+			inspireID = initialRecord["inspire"]
+			link = initialRecord["link"]
 		except IndexError:
 			pBGUILogger.exception("The entry cannot be found!")
 			return False
@@ -552,19 +568,17 @@ class bibtexList(QFrame, objListWindow):
 		copyActions["bibkey"] = copyMenu.addAction("Copy key")
 		copyActions["cite"] = copyMenu.addAction(r"Copy \cite{key}")
 		copyActions["bibtex"] = copyMenu.addAction("Copy bibtex")
-		abstract = pBDB.bibs.getField(bibkey, "abstract")
 		if abstract is not None and abstract.strip() != "":
 			copyActions["abstract"] = copyMenu.addAction("Copy abstract")
-		link = pBDB.bibs.getField(bibkey, "link")
 		if link is not None and link.strip() != "":
 			copyActions["link"] = copyMenu.addAction("Copy link")
 
 		pdfMenu = menu.addMenu("PDF")
-		inspireID = pBDB.bibs.getField(bibkey, "inspire")
-		if inspireID.strip() == "" or inspireID is False:
+		try:
+			if inspireID.strip() == "" or inspireID is False:
+				inspireID = None
+		except AttributeError:
 			inspireID = None
-		arxiv = pBDB.bibs.getField(bibkey, "arxiv")
-		doi = pBDB.bibs.getField(bibkey, "doi")
 		files = pBPDF.getExisting(bibkey, fullPath = True)
 		arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
 		pdfDir = pBPDF.getFileDir(bibkey)
@@ -641,7 +655,7 @@ class bibtexList(QFrame, objListWindow):
 		elif "cite" in copyActions.keys() and action == copyActions["cite"]:
 			copyToClipboard(r"\cite{%s}"%bibkey)
 		elif "bibtex" in copyActions.keys() and action == copyActions["bibtex"]:
-			copyToClipboard(pBDB.bibs.getField(bibkey, "bibtex"))
+			copyToClipboard(bibtex)
 		elif "abstract" in copyActions.keys() and action == copyActions["abstract"]:
 			copyToClipboard(abstract)
 		elif "link" in copyActions.keys() and action == copyActions["link"]:
@@ -748,6 +762,9 @@ class bibtexList(QFrame, objListWindow):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
 					copyPdfFile(bibkey, fn, custom = files[i])
+
+	def handleItemEntered(self, index):
+		pass
 
 	def cellClick(self, index):
 		row = index.row()
@@ -987,6 +1004,7 @@ class askSelBibAction(MyMenu):
 			self.possibleActions.append(QAction("Merge entries", self, triggered = self.onMerge))
 		self.possibleActions.append(QAction("Clean entries", self, triggered = self.onClean))
 		self.possibleActions.append(QAction("Update entries", self, triggered = self.onUpdate))
+		self.possibleActions.append(QAction("Delete entries", self, triggered = self.onDelete))
 		self.possibleActions.append(None)
 		self.possibleActions.append(["Copy to clipboard", [
 			QAction("Copy keys", self, triggered = self.onCopyKeys),
@@ -1073,6 +1091,10 @@ class askSelBibAction(MyMenu):
 
 	def onUpdate(self):
 		self.parent.updateAllBibtexs(self, useEntries = self.entries)
+		self.close()
+
+	def onDelete(self):
+		deleteBibtex(self.parent, self.parent, [e["bibkey"] for e in self.entries])
 		self.close()
 
 	def onAbs(self):

@@ -42,6 +42,9 @@ class objListWindow(QDialog):
 	def triggeredContextMenuEvent(self, row, col, event):
 		raise NotImplementedError()
 
+	def handleItemEntered(self, index):
+		raise NotImplementedError()
+
 	def cellClick(self, index):
 		raise NotImplementedError()
 
@@ -72,6 +75,7 @@ class objListWindow(QDialog):
 		self.tablewidget = MyTableView(self)
 		self.tablewidget.setModel(self.proxyModel)
 		self.tablewidget.setSortingEnabled(True)
+		self.tablewidget.setMouseTracking(True)
 		self.proxyModel.sort(sortColumn, sortOrder)
 		self.currLayout.addWidget(self.tablewidget)
 
@@ -100,6 +104,7 @@ class objListWindow(QDialog):
 		self.tablewidget.resizeColumnsToContents()
 		self.tablewidget.resizeRowsToContents()
 
+		self.tablewidget.entered.connect(self.handleItemEntered)
 		self.tablewidget.clicked.connect(self.cellClick)
 		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
 

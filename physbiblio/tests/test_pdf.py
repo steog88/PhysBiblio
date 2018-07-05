@@ -69,18 +69,18 @@ class TestPdfMethods(unittest.TestCase):
 	@unittest.skipIf(skipOnlineTests, "Long tests")
 	def test_download(self):
 		"""Test downloadArxiv"""
-		with patch('physbiblio.database.entries.getField', return_value="1507.08204") as _mock:
+		with patch('physbiblio.database.entries.getField', return_value="1806.11344") as _mock:
 			self.assertTrue(pBPDF.downloadArxiv("abc.def"))
 			self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath = False),
-				["1507.08204.pdf"])
+				["1806.11344.pdf"])
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath = True),
-				[os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204.pdf")])
-			open(os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204"), "w").close()
+				[os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344.pdf")])
+			open(os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344"), "w").close()
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath = False),
-				["1507.08204.pdf"])
+				["1806.11344.pdf"])
 			self.assertTrue(pBPDF.removeFile("abc.def", "arxiv"))
-			self.assertTrue(pBPDF.removeFile("abc.def", "file", os.path.join(pBPDF.getFileDir("abc.def"), "1507.08204")))
+			self.assertTrue(pBPDF.removeFile("abc.def", "file", os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344")))
 			self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
 		with patch('physbiblio.database.entries.getField',
 				side_effect = ["1801.15000", "1801.15000", "", "", None, None]) as _mock:

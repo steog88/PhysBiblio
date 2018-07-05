@@ -422,6 +422,19 @@ class catsEntries(physbiblioDBSub):
 		self.cursExec("SELECT Count(*) FROM entryCats")
 		return self.curs.fetchall()[0][0]
 
+	def countByCat(self, idCat):
+		"""
+		Obtain the number of rows in entryCats which are associated with a given category
+
+		Parameters:
+			idCat: the id of the category
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM entryCats WHERE idCat = :idCat", {"idCat": idCat, })
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, key):
 		"""
 		Find connections between a category and an entry
@@ -560,6 +573,32 @@ class catsExps(physbiblioDBSub):
 		self.cursExec("SELECT Count(*) FROM expCats")
 		return self.curs.fetchall()[0][0]
 
+	def countByExp(self, idExp):
+		"""
+		Obtain the number of rows in expCats which are associated with a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM expCats WHERE idExp = :idExp", {"idExp": idExp, })
+		return self.curs.fetchall()[0][0]
+
+	def countByCat(self, idCat):
+		"""
+		Obtain the number of rows in expCats which are associated with a given category
+
+		Parameters:
+			idCat: the id of the category
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM expCats WHERE idCat = :idCat", {"idCat": idCat, })
+		return self.curs.fetchall()[0][0]
+
 	def getOne(self, idCat, idExp):
 		"""
 		Find connections between a category and an experiment
@@ -681,6 +720,19 @@ class entryExps(physbiblioDBSub):
 	def count(self):
 		"""obtain the number of rows in entryExps"""
 		self.cursExec("SELECT Count(*) FROM entryExps")
+		return self.curs.fetchall()[0][0]
+
+	def countByExp(self, idExp):
+		"""
+		Obtain the number of rows in entryExps which are associated with a given experiment
+
+		Parameters:
+			idExp: the id of the experiment
+
+		Output:
+			the number of matching records
+		"""
+		self.cursExec("SELECT Count(*) FROM entryExps WHERE idExp = :idExp", {"idExp": idExp, })
 		return self.curs.fetchall()[0][0]
 
 	def getOne(self, key, idExp):
@@ -2859,7 +2911,45 @@ class entries(physbiblioDBSub):
 		pBLogger.info("%d errors occurred"%err)
 		pBLogger.info("%d entries changed"%len(changed))
 		return num, err, changed
-	
+
+	def findCorruptedBibtexs(self, startFrom = 0, entries = None):
+		"""
+		Find bibtexs that cannot be read properly
+
+		Parameters:
+			startFrom (default 0): the index where to start from
+			entries: the list of entries to be considered. If None, the output of self.getAll
+
+		Output:
+			bibtexs: the list of problematic entries
+		"""
+		if entries is None:
+			try:
+				tot = self.count() - startFrom
+				self.fetchAll(saveQuery = False, limitTo = tot, limitOffset = startFrom, doFetch = False)
+				iterator = self.fetchCursor()
+			except TypeError:
+				pBLogger.exception("Invalid startFrom in cleanBibtexs")
+				return 0, 0, []
+		else:
+			iterator = entries
+			tot = len(entries)
+		bibtexs = []
+		self.runningFindBadBibtexs = True
+		pBLogger.info("findCorruptedBibtexs will process %d total entries"%tot)
+		db = bibtexparser.bibdatabase.BibDatabase()
+		for ix, e in enumerate(iterator):
+			if self.runningFindBadBibtexs:
+				pBLogger.info("%5d / %d (%5.2f%%) - processing: '%s'"%(ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
+				try:
+					element = bibtexparser.loads(e["bibtex"]).entries[0]
+					pBLogger.info("%s is readable.\n"%element["ID"])
+				except:
+					bibtexs.append(e["bibkey"])
+					pBLogger.warning("%s is NOT readable!\n"%e["bibkey"])
+		pBLogger.info("%d bad entries found:\n %s"%(len(bibtexs), bibtexs))
+		return bibtexs
+
 	def searchOAIUpdates(self, startFrom = 0, entries = None, force = False, reloadAll = False):
 		"""
 		Select unpublished papers and look for updates using inspireOAI
