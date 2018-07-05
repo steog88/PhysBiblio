@@ -8,6 +8,7 @@
 	* bug in right click menu when marks or inspireID is None
 	* solved bug in a test of default configuration
 	* bibkey not replaced if bibtex is edited in a non valid way
+	* catch SSLError in textFromUrl
 
 0.5.1 (2018-07-02):
 	* edit marks and entry types from right-click menu
