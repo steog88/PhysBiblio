@@ -21,10 +21,14 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 def askYesNo(message, title = "Question"):
-	reply = QMessageBox.question(None, title, message, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-	if reply == QMessageBox.Yes:
+	mbox = QMessageBox(QMessageBox.Question, title, message)
+	yesButton = mbox.addButton(QMessageBox.Yes)
+	noButton = mbox.addButton(QMessageBox.No)
+	mbox.setDefaultButton(noButton)
+	mbox.exec_()
+	if mbox.clickedButton() == yesButton:
 		return True
-	if reply == QMessageBox.No:
+	elif mbox.clickedButton() == noButton:
 		return False
 
 def askFileName(parent = None, title = "Filename to use:", filter = ""):
