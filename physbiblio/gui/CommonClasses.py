@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
+import time
 from PySide2.QtCore import Qt, Signal, QAbstractItemModel, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QThread, QUrl
 from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
 from PySide2.QtWidgets import QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, QTableWidget, QTableWidgetItem, QVBoxLayout
@@ -165,6 +166,10 @@ class MyThread(QThread):
 
 	def setStopFlag(self):
 		pass
+
+	def start(self, *args, **kwargs):
+		time.sleep(0.3)
+		QThread.start(self, *args, **kwargs)
 
 	finished = Signal()
 

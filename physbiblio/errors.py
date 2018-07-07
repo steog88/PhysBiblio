@@ -44,11 +44,11 @@ class pBErrorManagerClass():
 		fh.setFormatter(formatter)
 		self.logger.addHandler(fh)
 
-		sh = logging.StreamHandler()
-		sh.setLevel(min(logging.INFO, self.loglevel))
+		self.defaultStream = logging.StreamHandler()
+		self.defaultStream.setLevel(min(logging.INFO, self.loglevel))
 		formatter = logging.Formatter('[%(module)s.%(funcName)s] %(message)s')
-		sh.setFormatter(formatter)
-		self.logger.addHandler(sh)
+		self.defaultStream.setFormatter(formatter)
+		self.logger.addHandler(self.defaultStream)
 
 	def tempHandler(self, stream = sys.stdout, level = logging.INFO, format = '[%(module)s.%(funcName)s] %(message)s'):
 		"""
