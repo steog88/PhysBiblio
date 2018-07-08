@@ -20,32 +20,65 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
-def askYesNo(message, title = "Question"):
+def askYesNo(message, title = "Question", testing = False):
 	mbox = QMessageBox(QMessageBox.Question, title, message)
 	yesButton = mbox.addButton(QMessageBox.Yes)
 	noButton = mbox.addButton(QMessageBox.No)
 	mbox.setDefaultButton(noButton)
+	if testing:
+		return mbox, yesButton, noButton
 	mbox.exec_()
 	if mbox.clickedButton() == yesButton:
 		return True
 	elif mbox.clickedButton() == noButton:
 		return False
 
-def askFileName(parent = None, title = "Filename to use:", filter = ""):
-	reply = QFileDialog.getOpenFileName(parent, title, "", filter)
-	return reply[0]
+def askFileName(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
+	dialog = QFileDialog(parent, title, dir, filter)
+	dialog.setFileMode(QFileDialog.ExistingFile)
+	if testing:
+		return dialog
+	if dialog.exec_():
+		fileNames = dialog.selectedFiles()
+		return fileNames[0]
+	else:
+		return ""
 
-def askFileNames(parent = None, title = "Filename to use:", filter = ""):
-	reply = QFileDialog.getOpenFileNames(parent, title, "", filter)
-	return reply[0]
+def askFileNames(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
+	dialog = QFileDialog(parent, title, dir, filter)
+	dialog.setFileMode(QFileDialog.ExistingFiles)
+	dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
+	if testing:
+		return dialog
+	if dialog.exec_():
+		fileNames = dialog.selectedFiles()
+		return fileNames[0]
+	else:
+		return ""
 
-def askSaveFileName(parent = None, title = "Filename to use:", filter = "", dir = ""):
-	reply = QFileDialog.getSaveFileName(parent, title, dir, filter, options = QFileDialog.DontConfirmOverwrite)
-	return reply[0]
+def askSaveFileName(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
+	dialog = QFileDialog(parent, title, dir, filter)
+	dialog.setFileMode(QFileDialog.AnyFile)
+	dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
+	if testing:
+		return dialog
+	if dialog.exec_():
+		fileNames = dialog.selectedFiles()
+		return fileNames[0]
+	else:
+		return ""
 
-def askDirName(parent = None, title = "Directory to use:", dir = ""):
-	reply = QFileDialog.getExistingDirectory(parent, title, dir, options = QFileDialog.ShowDirsOnly)
-	return reply
+def askDirName(parent = None, title = "Directory to use:", dir = "", testing = False):
+	dialog = QFileDialog(parent, title, dir)
+	dialog.setFileMode(QFileDialog.Directory)
+	dialog.setOption(QFileDialog.ShowDirsOnly, True)
+	if testing:
+		return dialog
+	if dialog.exec_():
+		fileNames = dialog.selectedFiles()
+		return fileNames[0]
+	else:
+		return ""
 
 def askGenericText(message, title, parent = None):
 	reply = QInputDialog.getText(parent, title, message)

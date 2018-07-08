@@ -32,15 +32,52 @@ class TestDialogWindows(GUITestCase):
 	Test the functions in DialogWindows
 	"""
 	def test_askYesNo(self):
-		"""Test _entry_to_bibtex"""
-		win = QMessageBox(QMessageBox.Question, "title", "message")
-		yesButton = win.addButton(QMessageBox.Yes)
-		noButton = win.addButton(QMessageBox.No)
-		win.setDefaultButton(noButton)
+		"""Test askYesNo"""
+		win, yesButton, noButton = askYesNo("mymessage", "mytitle", True)
+		self.assertEqual(win.text(), "mymessage")
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.defaultButton(), noButton)
 		QTest.mouseClick(win.defaultButton(), Qt.LeftButton)
 		self.assertEqual(win.clickedButton(), noButton)
 		QTest.mouseClick(yesButton, Qt.LeftButton)
 		self.assertEqual(win.clickedButton(), yesButton)
+
+	def test_askFileName(self):
+		"""Test askFileName"""
+		win = askFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		self.assertEqual(win.fileMode(), QFileDialog.ExistingFile)
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.nameFilters(), ["test: *.txt"])
+		self.assertEqual(win.directory(), "/tmp")
+		self.assertEqual(win.selectedFiles(), [])
+
+	def test_askFileNames(self):
+		"""Test askFileNames"""
+		win = askFileNames(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		self.assertEqual(win.fileMode(), QFileDialog.ExistingFiles)
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.nameFilters(), ["test: *.txt"])
+		self.assertEqual(win.directory(), "/tmp")
+		self.assertEqual(win.selectedFiles(), [])
+
+	def test_askSaveFileName(self):
+		"""Test askSaveFileName"""
+		win = askSaveFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		self.assertEqual(win.fileMode(), QFileDialog.AnyFile)
+		self.assertEqual(win.options(), QFileDialog.DontConfirmOverwrite)
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.nameFilters(), ["test: *.txt"])
+		self.assertEqual(win.directory(), "/tmp")
+		self.assertEqual(win.selectedFiles(), [])
+
+	def test_askDirName(self):
+		"""Test askDirName"""
+		win = askDirName(None, title = "mytitle", dir = "/tmp", testing = True)
+		self.assertEqual(win.fileMode(), QFileDialog.Directory)
+		self.assertEqual(win.options(), QFileDialog.ShowDirsOnly)
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.directory(), "/tmp")
+		self.assertEqual(win.selectedFiles(), ["/tmp"])
 
 if __name__=='__main__':
 	unittest.main()
