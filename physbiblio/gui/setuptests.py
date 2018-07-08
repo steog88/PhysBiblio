@@ -24,8 +24,14 @@ except ImportError:
 
 skipGuiTests = False
 
+globalQApp = QApplication()
+
 class GUITestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		self.maxDiff = None
-		self.qapp = QApplication()
+		self.qapp = globalQApp
+
+	@classmethod
+	def tearDownClass(self):
+		del self.qapp
