@@ -17,21 +17,30 @@ class ErrorStream(StringIO):
 	def __init__(self, *args, **kwargs):
 		StringIO.__init__(self, *args, **kwargs)
 		self.priority = 1
+		self.lastMBox = None
 
 	def setPriority(self, prio):
 		self.priority = prio
 
-	def write(self, text):
+	def write(self, text, testing = False):
 		if text.strip() == "":
 			return
 		text = text.replace('\n', '<br>')
+		self.lastMBox = QMessageBox(QMessageBox.Information, "Information", "")
+		self.lastMBox.setText(text)
 		if self.priority == 0:
-			QMessageBox.information(None, "Information", text)
+			self.lastMBox.setIcon(QMessageBox.Information)
+			self.lastMBox.setWindowTitle("Information")
 		elif self.priority > 1:
-			QMessageBox.critical(None, "Error", text)
+			self.lastMBox.setIcon(QMessageBox.Critical)
+			self.lastMBox.setWindowTitle("Error")
 		else:
-			QMessageBox.warning(None, "Warning", text)
+			self.lastMBox.setIcon(QMessageBox.Warning)
+			self.lastMBox.setWindowTitle("Warning")
 		self.priority = 1
+		if testing:
+			return self.lastMBox
+		self.lastMBox.exec_()
 
 class pBErrorManagerClassGui(pBErrorManagerClass):
 	"""

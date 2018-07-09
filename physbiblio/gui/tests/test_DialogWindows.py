@@ -42,6 +42,12 @@ class TestDialogWindows(GUITestCase):
 		QTest.mouseClick(yesButton, Qt.LeftButton)
 		self.assertEqual(win.clickedButton(), yesButton)
 
+	def test_infoMessage(self):
+		"""Test infoMessage"""
+		win = infoMessage("mymessage", "mytitle", True)
+		self.assertEqual(win.text(), "mymessage")
+		self.assertEqual(win.windowTitle(), "mytitle")
+
 	def test_askFileName(self):
 		"""Test askFileName"""
 		win = askFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)

@@ -33,6 +33,22 @@ def askYesNo(message, title = "Question", testing = False):
 	elif mbox.clickedButton() == noButton:
 		return False
 
+def infoMessage(message, title = "Information", testing = False):
+	mbox = QMessageBox(QMessageBox.Information, title, message)
+	if testing:
+		return mbox
+	mbox.exec_()
+
+def askGenericText(message, title, parent = None, testing = False):
+	dialog = QInputDialog(parent)
+	dialog.setInputMode(QInputDialog.TextInput)
+	dialog.setWindowTitle(title)
+	dialog.setLabelText(message)
+	if testing:
+		return dialog
+	out = dialog.exec_()
+	return dialog.textValue(), out
+
 def askFileName(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
 	dialog = QFileDialog(parent, title, dir, filter)
 	dialog.setFileMode(QFileDialog.ExistingFile)
@@ -79,13 +95,6 @@ def askDirName(parent = None, title = "Directory to use:", dir = "", testing = F
 		return fileNames[0]
 	else:
 		return ""
-
-def askGenericText(message, title, parent = None):
-	reply = QInputDialog.getText(parent, title, message)
-	return reply
-
-def infoMessage(message, title = "Information"):
-	reply = QMessageBox.information(None, title, message)
 
 class configEditColumns(QDialog):
 	def __init__(self, parent = None, previous = None):

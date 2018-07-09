@@ -531,17 +531,22 @@ class MainWindow(QMainWindow):
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
 		mbox.exec_()
 
-	def showDBStats(self):
+	def showDBStats(self, testing = False):
 		"""
 		Function to show About Box
 		"""
 		dbStats(pBDB)
 		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
-		QMessageBox.about(self, "PhysBiblio database statistics",
+		mbox = QMessageBox(QMessageBox.Information, "PhysBiblio database statistics",
 			"The PhysBiblio database currently contains the following number of records:\n"+
 			"- {bibs} bibtex entries\n- {cats} categories\n- {exps} experiments,\n".format(**pBDB.stats)+
 			"- {catBib} bibtex entries to categories connections\n- {catExp} experiment to categories connections\n- {bibExp} bibtex entries to experiment connections.\n\n".format(**pBDB.stats)+
-			"The number of currently stored PDF files is %d."%onlyfiles)
+			"The number of currently stored PDF files is %d."%onlyfiles,
+			parent = self)
+		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
+		if testing:
+			return mbox
+		mbox.show()
 
 	def _runInThread(self, thread_func, title, *args, **kwargs):
 		def getDelKwargs(key):
