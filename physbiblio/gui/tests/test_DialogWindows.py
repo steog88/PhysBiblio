@@ -74,7 +74,7 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.nameFilters(), ["test: *.txt"])
 		self.assertEqual(win.directory(), "/tmp")
-		self.assertEqual(win.selectedFiles(), [])
+		self.assertEqual(win.selectedFiles(), ["/tmp"])
 
 	def test_askDirName(self):
 		"""Test askDirName"""
