@@ -8,6 +8,7 @@ import sys, traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
+from PySide2.QtWidgets import QInputDialog
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -48,6 +49,13 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.text(), "mymessage")
 		self.assertEqual(win.windowTitle(), "mytitle")
 
+	def test_askGenericText(self):
+		"""Test askGenericText"""
+		win = askGenericText("mymessage", "mytitle", testing = True)
+		self.assertEqual(win.text(), "mymessage")
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertEqual(win.inputMode(), QInputDialog.TextInput)
+
 	def test_askFileName(self):
 		"""Test askFileName"""
 		win = askFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
@@ -84,6 +92,21 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.directory(), "/tmp")
 		self.assertEqual(win.selectedFiles(), ["/tmp"])
+
+	def test_configEditColumns(self):
+		pass
+	def test_printText(self):
+		pass
+	def test_searchReplaceDialog(self):
+		pass
+	def test_advImportDialog(self):
+		pass
+	def test_advImportSelect(self):
+		pass
+	def test_arxivDailyDialog(self):
+		pass
+	def test_dailyArxivSelect(self):
+		pass
 
 if __name__=='__main__':
 	unittest.main()
