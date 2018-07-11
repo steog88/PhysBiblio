@@ -1,3 +1,8 @@
+"""
+Module with the class that manages errors when the GUI is active.
+
+This file is part of the physbiblio package.
+"""
 import sys
 import logging
 import traceback

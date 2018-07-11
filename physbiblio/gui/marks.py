@@ -1,3 +1,8 @@
+"""
+Module with the class that manages marks for the bibtex entries.
+
+This file is part of the physbiblio package.
+"""
 import sys
 from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 try:
@@ -6,7 +11,13 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class marks():
+	"""
+	Class that manages the marks of bibtex entries
+	"""
 	def __init__(self):
+		"""
+		Class constructor. Creates the 5 default marks.
+		"""
 		self.marks = {}
 		self.newMark("imp", "Important", "emblem-important-symbolic")
 		self.newMark("fav", "Favorite", "emblem-favorite-symbolic")
@@ -15,13 +26,35 @@ class marks():
 		self.newMark("new", "To be read", "unread-new")
 
 	def newMark(self, key, desc, icon):
+		"""
+		Add a new mark.
+
+		Parameters:
+			key: the key to be used in the self.marks dictionary
+			desc: the mark description
+			icon: the name of the icon file (omitting the .png extension), which must be present in ":/images/"
+		"""
 		self.marks[key] = {"desc": desc, "icon": ":/images/%s.png"%icon}
 
 	def getGroupbox(self, marksData, description = "Marks", radio = False, addAny = False):
+		"""
+		Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s for marks selection
+
+		Parameters:
+			marksData: a list containing the keys of the elements that must be checked at the beginning
+			description: the description/title of the `QGroupBox`
+			radio (boolean, optional, default False): if True, use `QRadioButton` instead of `QCheckBox`
+			addAny (boolean, optional, default False): add the "any" button to the `QGroupBox`
+
+		Output:
+			a list: (groupBox, markValues)
+			groupBox: the `QGroupBox` object
+			markValues: the list of `QCheckBox`s or `QRadioButton`s, for further values extraction
+		"""
 		groupBox = QGroupBox(description)
 		markValues = {}
 		groupBox.setFlat(True)
-		vbox = QHBoxLayout()
+		boxlayout = QHBoxLayout()
 		for m, cont in self.marks.items():
 			if radio:
 				markValues[m] = QRadioButton(cont["desc"])
@@ -29,12 +62,11 @@ class marks():
 				markValues[m] = QCheckBox(cont["desc"])
 			if marksData is not None and m in marksData:
 				markValues[m].setChecked(True)
-			vbox.addWidget(markValues[m])
+			boxlayout.addWidget(markValues[m])
 		if addAny:
 			markValues["any"] = QRadioButton("Any")
-			vbox.addWidget(markValues["any"])
-		# vbox.addStretch(1)
-		groupBox.setLayout(vbox)
+			boxlayout.addWidget(markValues["any"])
+		groupBox.setLayout(boxlayout)
 		return groupBox, markValues
 
 pBMarks = marks()
