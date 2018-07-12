@@ -4,7 +4,7 @@ Utilities for in the tests of the physbiblio modules.
 This file is part of the physbiblio package.
 """
 import sys, traceback, datetime, os
-from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication, QFileDialog
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -25,6 +25,11 @@ except ImportError:
 skipGuiTests = False
 
 globalQApp = QApplication()
+
+def fakeExec(x, string, out):
+	"""simulate the selection of some files and return True/False as if confirmed/canceled"""
+	QFileDialog.selectFile(x, string)
+	return out
 
 class GUITestCase(unittest.TestCase):
 	@classmethod

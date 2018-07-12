@@ -44,7 +44,11 @@ class authorStatsPlots(QDialog):
 		nlines = int(len(figs)/2)
 		self.layout().addWidget(QLabel("Click on the lines to have more information:"), nlines + 1, 0)
 
-		self.hIndex = QLabel("Author h index: %d"%self.parent.lastAuthorStats["h"])
+		try:
+			hIndex = "%d"%self.parent.lastAuthorStats["h"]
+		except AttributeError:
+			hIndex = "ND"
+		self.hIndex = QLabel("Author h index: %s"%hIndex)
 		largerFont = QFont("Times", 15, QFont.Bold)
 		self.hIndex.setFont(largerFont)
 		self.layout().addWidget(self.hIndex, nlines + 1, 1)
@@ -57,9 +61,12 @@ class authorStatsPlots(QDialog):
 		self.layout().addWidget(self.saveButton, nlines + 3, 0)
 
 		self.clButton = QPushButton('Close', self)
-		self.clButton.clicked.connect(self.close)
+		self.clButton.clicked.connect(self.onClose)
 		self.clButton.setAutoDefault(True)
 		self.layout().addWidget(self.clButton, nlines + 3, 1)
+
+	def onClose(self):
+		QDialog.close(self)
 
 	def saveAction(self):
 		savePath = askDirName(self, "Where do you want to save the plots of the stats?")
@@ -123,9 +130,12 @@ class paperStatsPlots(QDialog):
 		self.layout().addWidget(self.saveButton, nlines + 3, 0)
 
 		self.clButton = QPushButton('Close', self)
-		self.clButton.clicked.connect(self.close)
+		self.clButton.clicked.connect(self.onClose)
 		self.clButton.setAutoDefault(True)
 		self.layout().addWidget(self.clButton, nlines + 3, 1)
+
+	def onClose(self):
+		QDialog.close(self)
 
 	def saveAction(self):
 		savePath = askDirName(self, "Where do you want to save the plot of the stats?")
