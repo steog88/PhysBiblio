@@ -79,7 +79,7 @@ class authorStatsPlots(QDialog):
 		for i, f in enumerate(self.figs):
 			if f == ob.figure: ix = i
 		if isinstance(ob, Rectangle):
-			self.textBox.setText("%s in year %d is: %d"%(figTitles[ix], int(ob._x), int(ob._height)))
+			self.textBox.setText("%s in year %d is: %d"%(figTitles[ix], int(ob.get_x()), int(ob.get_height())))
 		elif isinstance(ob, Line2D):
 			xdata = ob.get_xdata()
 			ydata = ob.get_ydata()

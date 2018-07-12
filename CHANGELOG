@@ -1,3 +1,5 @@
+	* bug in inspireStatsGUI plot clicking
+
 0.5.2 (2018-07-05):
 	New features:
 	* tooltips show the number of entries and categories/experiments associated to each experiment/category
