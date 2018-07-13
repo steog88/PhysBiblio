@@ -101,12 +101,13 @@ class authorStatsPlots(QDialog):
 		if hasattr(self, "canvas"): del self.canvas
 		self.figs = figs
 		self.canvas = []
-		for i,fig in enumerate(figs):
+		for fig in figs:
 			if fig is not None:
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
 				self.canvas[-1].draw()
+				i += 1
 
 class paperStatsPlots(QDialog):
 	def __init__(self, fig, title = None, parent = None):
