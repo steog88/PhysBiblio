@@ -214,7 +214,7 @@ class inspireStatsLoader():
 			pBLogger.info("Done!")
 		return self.paperPlotInfo
 	
-	def plotStats(self, paper = False, author = False, show = False, save = False, path = ".", markPapers = False):
+	def plotStats(self, paper = False, author = False, show = False, save = False, path = ".", markPapers = False, pickVal = 6):
 		"""
 		Plot the collected information, using matplotlib.pyplot.
 
@@ -225,6 +225,7 @@ class inspireStatsLoader():
 			save (boolean, default False): True to save the plots into files.
 			path (string): where to save the plots
 			markPapers (boolean, default False): True to draw a vertical lines at the dates corresponding to a paper appearing
+			pickVal (float, default 6): the picker tolerance
 
 		Output:
 			False if paper==False and author==False,
@@ -235,7 +236,7 @@ class inspireStatsLoader():
 			if len(self.paperPlotInfo["citList"][0]) > 0:
 				pBLogger.info("Plotting for paper '%s'..."%self.paperPlotInfo["id"])
 				fig, ax = plt.subplots()
-				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1], picker=5)
+				plt.plot(self.paperPlotInfo["citList"][0], self.paperPlotInfo["citList"][1], picker = pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.paperPlotInfo["id"]+'.pdf'))
@@ -261,7 +262,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Paper number")
-				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1], picker=5)
+				plt.plot(self.authorPlotInfo["paLi"][0], self.authorPlotInfo["paLi"][1], picker = pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_papers.pdf'))
@@ -276,7 +277,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Papers per year")
 				ax.hist([int(q.strftime("%Y")) for q in self.authorPlotInfo["paLi"][0]],
-					bins=range(ymin,  ymax), picker=True)
+					bins=range(ymin,  ymax), picker = True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -291,7 +292,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
-				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1], picker=5)
+				plt.plot(self.authorPlotInfo["allLi"][0], self.authorPlotInfo["allLi"][1], picker = pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path, self.authorPlotInfo["name"]+'_allCit.pdf'))
@@ -306,7 +307,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Citations per year")
 				ax.hist([int(q.strftime("%Y")) for q in self.authorPlotInfo["allLi"][0]],
-					bins=range(ymin,  ymax), picker=True)
+					bins=range(ymin,  ymax), picker = True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -321,7 +322,7 @@ class inspireStatsLoader():
 			if len(self.authorPlotInfo["meanLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Mean citations")
-				plt.plot(self.authorPlotInfo["meanLi"][0], self.authorPlotInfo["meanLi"][1], picker=5)
+				plt.plot(self.authorPlotInfo["meanLi"][0], self.authorPlotInfo["meanLi"][1], picker = pickVal)
 				fig.autofmt_xdate()
 				if markPapers:
 					for q in self.authorPlotInfo["paLi"][0]:
