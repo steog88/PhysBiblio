@@ -8,7 +8,7 @@ import sys, traceback
 import os
 import logging
 import datetime
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QFont
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QLabel, QLineEdit, QMessageBox, QWidget
@@ -58,6 +58,8 @@ testData = {#data as of 180713
 pBStats.authorPlotInfo = testData
 testData["figs"] = pBStats.plotStats(author = True)
 
+fakepar = fakeParent()
+
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestAuthorStatsPlots(GUITestCase):
 	"""
@@ -76,7 +78,6 @@ class TestAuthorStatsPlots(GUITestCase):
 
 	def test_init(self):
 		"""Test __init__"""
-		parent = fakeParent()
 		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots.updatePlots") as _up:
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"])
 			_up.assert_called_once_with(["a", "b", "c", "d", "e", "f"])
@@ -107,18 +108,17 @@ class TestAuthorStatsPlots(GUITestCase):
 				QTest.mouseClick(asp.clButton, Qt.LeftButton)
 				_cl.assert_called_once()
 
-			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], parent = parent)
-			self.assertEqual(asp.parent, parent)
+			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], parent = fakepar)
+			self.assertEqual(asp.parent, fakepar)
 			self.assertIsInstance(asp.hIndex, QLabel)
 			self.assertEqual(asp.hIndex.text(), "Author h index: 999")
 			self.assertEqual(asp.windowTitle(), "")
 
-			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], title = "abcdef", parent = parent)
+			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], title = "abcdef", parent = fakepar)
 			self.assertEqual(asp.windowTitle(), "abcdef")
 
 	def test_saveAction(self):
 		"""Test """
-		fakepar = fakeParent()
 		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots.updatePlots") as _up:
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], parent = fakepar)
 			self.assertTrue(asp.saveButton.isEnabled())
@@ -137,12 +137,20 @@ class TestAuthorStatsPlots(GUITestCase):
 						self.assertEqual(fakepar.lastAuthorStats["figs"], "fakeval")
 
 	def test_pickEvent(self):
-		"""Test """
-		pass
+		"""Test pickEvent"""
+		asp = authorStatsPlots(testData["figs"], parent = fakepar)
+		QTest.mouseClick(asp.layout().itemAtPosition(1, 0).widget(), Qt.LeftButton,
+			pos = QPoint(0,0))
+		self.assertEqual(asp.textBox.text(), "Total citations in date 27/09/2016 is 75")
+		QTest.mouseClick(asp.layout().itemAtPosition(0, 1).widget(), Qt.LeftButton,
+			pos = QPoint(0,0))
+		self.assertEqual(asp.textBox.text(), "Papers per year in year 2015 is: 5")
+		QTest.mouseClick(asp.layout().itemAtPosition(2, 0).widget(), Qt.LeftButton,
+			pos = QPoint(0,0))
+		self.assertEqual(asp.textBox.text(), "Mean citations in date 08/09/2016 is 10.00")
 
 	def test_updatePlots(self):
 		"""Test updatePlots"""
-		fakepar = fakeParent()
 		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots.updatePlots") as _up:
 			asp = authorStatsPlots(testData["figs"], parent = fakepar)
 			_up.assert_called_once_with(testData["figs"])
