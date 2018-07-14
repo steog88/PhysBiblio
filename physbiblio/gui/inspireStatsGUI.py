@@ -75,7 +75,10 @@ class authorStatsPlots(QDialog):
 			infoMessage("Plots saved.")
 			self.saveButton.setDisabled(True)
 
-	def pickEvent(self,event):
+	def onPress(self, event):
+		print(event.xdata, event.ydata)
+
+	def pickEvent(self, event):
 		ob = event.artist
 		ix = -1
 		for i, f in enumerate(self.figs):
@@ -87,7 +90,7 @@ class authorStatsPlots(QDialog):
 			ydata = ob.get_ydata()
 			ind = event.ind
 			if ix == 4:
-				formatString = "%s in date %s is %f"
+				formatString = "%s in date %s is %.2f"
 			else:
 				formatString = "%s in date %s is %d"
 			self.textBox.setText(formatString%(figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
@@ -106,6 +109,7 @@ class authorStatsPlots(QDialog):
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
+				#self.canvas[-1].mpl_connect('button_press_event', self.onPress)
 				self.canvas[-1].draw()
 				i += 1
 
