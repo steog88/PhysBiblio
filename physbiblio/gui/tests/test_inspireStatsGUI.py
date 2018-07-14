@@ -176,20 +176,72 @@ class TestPaperStatsPlots(GUITestCase):
 	Test the functions in paperStatsPlots
 	"""
 	def test_init(self):
-		"""Test """
-		pass
+		"""Test init"""
+		asp = paperStatsPlots(testData['figs'][2])
+		self.assertIsInstance(asp.layout(), QGridLayout)
+		self.assertEqual(asp.layout().columnCount(), 2)
+		self.assertEqual(asp.layout().rowCount(), 5)
+		w20 = asp.layout().itemAtPosition(2, 0).widget()
+		self.assertIsInstance(w20, QLabel)
+		self.assertEqual(w20.text(), "Click on the line to have more information:")
+		self.assertIsInstance(asp.textBox, QLineEdit)
+		self.assertTrue(asp.textBox.isReadOnly())
+		self.assertEqual(asp.layout().itemAtPosition(3, 0).widget(), asp.textBox)
+		self.assertIsInstance(asp.saveButton, QPushButton)
+		self.assertEqual(asp.saveButton.text(), "Save")
+		self.assertEqual(asp.layout().itemAtPosition(4, 0).widget(), asp.saveButton)
+		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots.saveAction") as _sa:
+			QTest.mouseClick(asp.saveButton, Qt.LeftButton)
+			_sa.assert_called_once()
+		self.assertIsInstance(asp.clButton, QPushButton)
+		self.assertEqual(asp.clButton.text(), "Close")
+		self.assertTrue(asp.clButton.autoDefault())
+		self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(), asp.clButton)
+		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots.onClose") as _cl:
+			QTest.mouseClick(asp.clButton, Qt.LeftButton)
+			_cl.assert_called_once()
+
+		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
+		self.assertEqual(asp.parent, fakepar)
+		self.assertEqual(asp.windowTitle(), "")
+
+		asp = paperStatsPlots(testData['figs'][2], title = "abcdef", parent = fakepar)
+		self.assertEqual(asp.windowTitle(), "abcdef")
 
 	def test_saveAction(self):
-		"""Test """
-		pass
+		"""Test saveAction"""
+		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
+		self.assertTrue(asp.saveButton.isEnabled())
+		with patch("physbiblio.inspireStats.inspireStatsLoader.plotStats", return_value = "fakeval") as _ps:
+			with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "/tmp", False)):
+				asp.saveAction()
+				self.assertTrue(asp.saveButton.isEnabled())
+				_ps.assert_not_called()
+			with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "/tmp", True)):
+				with patch('PySide2.QtWidgets.QMessageBox.exec_') as _ex:
+					asp.saveAction()
+					self.assertFalse(asp.saveButton.isEnabled())
+					_ps.assert_called_once_with(paper = True, path = '/tmp', save = True)
+					_ex.assert_called_once()
+					self.assertEqual(fakepar.lastAuthorStats["figs"], "fakeval")
 
 	def test_pickEvent(self):
-		"""Test """
-		pass
+		"""Test pickEvent"""
+		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
+		QTest.mouseClick(asp.layout().itemAtPosition(0, 0).widget(), Qt.LeftButton,
+			pos = QPoint(0,0))
+		self.assertEqual(asp.textBox.text(), "Citations in date 27/09/2016 is 75")
 
 	def test_updatePlots(self):
-		"""Test """
-		pass
+		"""Test updatePlots"""
+		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots.updatePlots") as _up:
+			asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
+			_up.assert_called_once_with(testData["figs"][2])
+		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
+		self.assertEqual(asp.fig, testData["figs"][2])
+		self.assertIsInstance(asp.canvas, FigureCanvasQTAgg)
+		self.assertIsInstance(asp.layout().itemAtPosition(0, 0).widget(), FigureCanvasQTAgg)
+		self.assertEqual(asp.layout().itemAtPosition(0, 0).widget().figure, asp.fig)
 
 if __name__=='__main__':
 	unittest.main()
