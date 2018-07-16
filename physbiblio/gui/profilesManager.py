@@ -11,9 +11,9 @@ from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QDesktopWidget
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import *
-	from physbiblio.gui.ErrorManager import pBGUIErrorManager
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.CommonClasses import *
+	from physbiblio.gui.errorManager import pBGUIErrorManager
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

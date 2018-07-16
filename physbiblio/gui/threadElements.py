@@ -14,8 +14,8 @@ try:
 	from physbiblio.pdf import pBPDF
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.export import pBExport
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.CommonClasses import *
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

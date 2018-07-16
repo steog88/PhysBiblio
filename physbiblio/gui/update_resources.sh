@@ -1,3 +1,3 @@
 #!/bin/bash
-pyrcc5 -o Resources_pyside2.py Resources.qrc
-sed -i s#PyQt5#PySide2#g Resources_pyside2.py
+pyrcc5 -o resources_pyside2.py resources.qrc
+sed -i s#PyQt5#PySide2#g resources_pyside2.py

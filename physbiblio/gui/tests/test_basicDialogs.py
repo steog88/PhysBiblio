@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the physbiblio.gui.DialogWindows module.
+Test file for the physbiblio.gui.basicDialogs module.
 
 This file is part of the physbiblio package.
 """
@@ -20,7 +20,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
-	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.basicDialogs import *
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise

@@ -18,14 +18,14 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.parse_accents import *
-	from physbiblio.gui.ErrorManager import pBGUILogger
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.CommonClasses import *
-	from physbiblio.gui.ThreadElements import *
-	from physbiblio.gui.CatWindows import *
-	from physbiblio.gui.ExpWindows import *
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.threadElements import *
+	from physbiblio.gui.catWindows import *
+	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.marks import *
-	import physbiblio.gui.Resources_pyside2
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

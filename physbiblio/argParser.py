@@ -83,8 +83,8 @@ def call_gui(args = None):
 	try:
 		from physbiblio.errors import pBLogger
 		from physbiblio.database import pBDB
-		from physbiblio.gui.MainWindow import MainWindow
-		from physbiblio.gui.ErrorManager import pBGUIErrorManager
+		from physbiblio.gui.mainWindow import MainWindow
+		from physbiblio.gui.errorManager import pBGUIErrorManager
 	except ImportError:
 		print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 		raise

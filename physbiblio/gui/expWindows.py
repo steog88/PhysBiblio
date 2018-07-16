@@ -9,11 +9,11 @@ import operator
 try:
 	from physbiblio.database import *
 	from physbiblio.config import pbConfig
-	from physbiblio.gui.ErrorManager import pBGUILogger
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.CommonClasses import *
-	from physbiblio.gui.CatWindows import *
-	import physbiblio.gui.Resources_pyside2
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.catWindows import *
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

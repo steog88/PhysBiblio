@@ -21,20 +21,20 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
-	from physbiblio.gui.ErrorManager import pBGUILogger
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.BibWindows import *
-	from physbiblio.gui.CatWindows import *
-	from physbiblio.gui.UtilityWindows import *
-	from physbiblio.gui.ExpWindows import *
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.bibWindows import *
+	from physbiblio.gui.catWindows import *
+	from physbiblio.gui.utilityWindows import *
+	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.inspireStatsGUI import *
-	from physbiblio.gui.ProfilesManager import *
-	from physbiblio.gui.ThreadElements import *
+	from physbiblio.gui.profilesManager import *
+	from physbiblio.gui.threadElements import *
 except ImportError as e:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!", e)
 	print(traceback.format_exc())
 try:
-	import physbiblio.gui.Resources_pyside2
+	import physbiblio.gui.resources_pyside2
 except ImportError as e:
 	print("Missing Resources_pyside2: run script update_resources.sh", e)
 

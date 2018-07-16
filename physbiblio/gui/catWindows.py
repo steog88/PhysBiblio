@@ -8,10 +8,10 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
-	from physbiblio.gui.ErrorManager import pBGUILogger
-	from physbiblio.gui.DialogWindows import *
-	from physbiblio.gui.CommonClasses import *
-	import physbiblio.gui.Resources_pyside2
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
@@ -67,7 +67,7 @@ def deleteCategory(parent, statusBarObject, idCat, name):
 	except:
 		pass
 
-class CatsModel(TreeModel):
+class catsModel(TreeModel):
 	def __init__(self, cats, rootElements, parent = None, previous = [], multipleRecords = False):
 		self.cats = cats
 		self.rootElements = rootElements
@@ -231,7 +231,7 @@ class catsWindowList(QDialog):
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
-		self.root_model = CatsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous, multipleRecords = self.multipleRecords)
+		self.root_model = catsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous, multipleRecords = self.multipleRecords)
 		self.proxyModel = LeafFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)

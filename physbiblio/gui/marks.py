@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 try:
-	import physbiblio.gui.Resources_pyside2
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

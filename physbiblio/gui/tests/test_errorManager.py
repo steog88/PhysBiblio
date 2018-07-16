@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the physbiblio.gui.DialogWindows module.
+Test file for the physbiblio.gui.errorManager module.
 
 This file is part of the physbiblio package.
 """
@@ -22,7 +22,7 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
 	from physbiblio.errors import pBErrorManagerClass
-	from physbiblio.gui.ErrorManager import *
+	from physbiblio.gui.errorManager import *
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise
@@ -72,7 +72,7 @@ class TestGUIErrorManager(GUITestCase):
 
 	def test_objects(self):
 		"""test that the module contains the appropriate objects"""
-		import physbiblio.gui.ErrorManager as pgem
+		import physbiblio.gui.errorManager as pgem
 		self.assertIsInstance(pgem.pBGUIErrorManager, pgem.pBErrorManagerClassGui)
 		self.assertIsInstance(pgem.pBGUIErrorManager, pBErrorManagerClass)
 		self.assertIsInstance(pgem.pBGUILogger, logging.Logger)

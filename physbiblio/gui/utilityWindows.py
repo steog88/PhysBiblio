@@ -1,191 +1,21 @@
 #!/usr/bin/env python
 import sys
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QTextCursor
-from PySide2.QtWidgets import QCheckBox, QDesktopWidget, QDialog, QFileDialog, QGridLayout, QInputDialog, QLabel, QMessageBox, QProgressBar, QPushButton, QTableWidgetItem, QTextEdit
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout
+import subprocess
 import traceback
-
-if sys.version_info[0] < 3:
-	from StringIO import StringIO
-else:
-	from io import StringIO
+import ast
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.gui.CommonClasses import *
-	from physbiblio.errors import pBLogger, pBErrorManager
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.catWindows import *
 	from physbiblio.database import pBDB
-	from physbiblio.webimport.webInterf import physBiblioWeb
-	import physbiblio.gui.Resources_pyside2
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
-
-def askYesNo(message, title = "Question", testing = False):
-	"""
-	Uses `QMessageBox` to ask "Yes" or "No" for a given question.
-
-	Parameters:
-		message: the question to be displayed
-		title: the window title
-		testing (boolean, optional, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QMessageBox` object and the two buttons.
-
-	Output:
-		if testing is True, return the `QMessageBox` object and the "Yes" and "No" buttons
-		if testing is False, return True if the "Yes" button has been clicked, False otherwise
-	"""
-	mbox = QMessageBox(QMessageBox.Question, title, message)
-	yesButton = mbox.addButton(QMessageBox.Yes)
-	noButton = mbox.addButton(QMessageBox.No)
-	mbox.setDefaultButton(noButton)
-	if testing:
-		return mbox, yesButton, noButton
-	mbox.exec_()
-	if mbox.clickedButton() == yesButton:
-		return True
-	else:
-		return False
-
-def infoMessage(message, title = "Information", testing = False):
-	"""
-	Uses `QMessageBox` to show a simple message.
-
-	Parameters:
-		message: the question to be displayed
-		title: the window title
-		testing (boolean, optional, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QMessageBox` object
-
-	Output:
-		if testing is True, return the `QMessageBox` object
-	"""
-	mbox = QMessageBox(QMessageBox.Information, title, message)
-	if testing:
-		return mbox
-	mbox.exec_()
-
-def askGenericText(message, title, parent = None, testing = False):
-	"""
-	Uses `QInputDialog` to ask a text answer for a given question.
-
-	Parameters:
-		message: the question to be displayed
-		title: the window title
-		parent (optional, default None): the parent of the window
-		testing (boolean, optional, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QInputDialog` object
-
-	Output:
-		if testing is True, return the `QInputDialog` object
-		if testing is False, return a tuple containing the text as first element and True/False (depending if the user selected "Ok" or "Cancel") as the second element
-	"""
-	dialog = QInputDialog(parent)
-	dialog.setInputMode(QInputDialog.TextInput)
-	dialog.setWindowTitle(title)
-	dialog.setLabelText(message)
-	if testing:
-		return dialog
-	out = dialog.exec_()
-	return dialog.textValue(), out
-
-def askFileName(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
-	"""
-	Uses `QFileDialog` to ask the name of a single, existing file
-
-	Parameters (all optional):
-		parent (default None): the parent of the window
-		title: the window title
-		filter: the filter to be used when displaying files
-		dir: the initial directory
-		testing (boolean, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QFileDialog` object
-
-	Output:
-		if testing is True, return the `QFileDialog` object
-		if testing is False, return the filename or an empty string depending if the user selected "Ok" or "Cancel"
-	"""
-	dialog = QFileDialog(parent, title, dir, filter)
-	dialog.setFileMode(QFileDialog.ExistingFile)
-	if testing:
-		return dialog
-	if dialog.exec_():
-		fileNames = dialog.selectedFiles()
-		return fileNames[0]
-	else:
-		return ""
-
-def askFileNames(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a set of existing files
-
-	Parameters (all optional):
-		parent (default None): the parent of the window
-		title: the window title
-		filter: the filter to be used when displaying files
-		dir: the initial directory
-		testing (boolean, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QFileDialog` object
-
-	Output:
-		if testing is True, return the `QFileDialog` object
-		if testing is False, return the filenames list or an empty list depending if the user selected "Ok" or "Cancel"
-	"""
-	dialog = QFileDialog(parent, title, dir, filter)
-	dialog.setFileMode(QFileDialog.ExistingFiles)
-	dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
-	if testing:
-		return dialog
-	if dialog.exec_():
-		fileNames = dialog.selectedFiles()
-		return fileNames
-	else:
-		return []
-
-def askSaveFileName(parent = None, title = "Filename to use:", filter = "", dir = "", testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a single file where something will be saved (the file may not exist)
-
-	Parameters (all optional):
-		parent (default None): the parent of the window
-		title: the window title
-		filter: the filter to be used when displaying files
-		dir: the initial directory
-		testing (boolean, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QFileDialog` object
-
-	Output:
-		if testing is True, return the `QFileDialog` object
-		if testing is False, return the filename or an empty string depending if the user selected "Ok" or "Cancel"
-	"""
-	dialog = QFileDialog(parent, title, dir, filter)
-	dialog.setFileMode(QFileDialog.AnyFile)
-	dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
-	if testing:
-		return dialog
-	if dialog.exec_():
-		fileNames = dialog.selectedFiles()
-		return fileNames[0]
-	else:
-		return ""
-
-def askDirName(parent = None, title = "Directory to use:", dir = "", testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a single directory
-
-	Parameters (all optional):
-		parent (default None): the parent of the window
-		title: the window title
-		dir: the initial directory
-		testing (boolean, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QFileDialog` object
-
-	Output:
-		if testing is True, return the `QFileDialog` object
-		if testing is False, return the directory name or an empty string depending if the user selected "Ok" or "Cancel"
-	"""
-	dialog = QFileDialog(parent, title, dir)
-	dialog.setFileMode(QFileDialog.Directory)
-	dialog.setOption(QFileDialog.ShowDirsOnly, True)
-	if testing:
-		return dialog
-	if dialog.exec_():
-		fileNames = dialog.selectedFiles()
-		return fileNames[0]
-	else:
-		return ""
 
 class configEditColumns(QDialog):
 	def __init__(self, parent = None, previous = None):
@@ -239,6 +69,157 @@ class configEditColumns(QDialog):
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
 		self.layout.addWidget(self.cancelButton, 2, 1)
+
+class configWindow(QDialog):
+	"""create a window for editing the configuration settings"""
+	def __init__(self, parent = None):
+		super(configWindow, self).__init__(parent)
+		self.textValues = []
+		self.initUI()
+
+	def onCancel(self):
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		self.result	= True
+		self.close()
+
+	def editFolder(self, paramkey = "pdfFolder"):
+		ix = pbConfig.paramOrder.index(paramkey)
+		folder = askDirName(parent = None, dir = self.textValues[ix][1].text(), title = "Directory for saving PDF files:")
+		if folder.strip() != "":
+			self.textValues[ix][1].setText(str(folder))
+
+	def editFile(self, paramkey = "logFileName", text = "Name for the log file", filter = "*.log"):
+		ix = pbConfig.paramOrder.index(paramkey)
+		fname = askSaveFileName(parent = None, title = text, dir = self.textValues[ix][1].text(), filter = filter)
+		if fname.strip() != "":
+			self.textValues[ix][1].setText(str(fname))
+
+	def editColumns(self):
+		ix = pbConfig.paramOrder.index("bibtexListColumns")
+		window = configEditColumns(self, ast.literal_eval(self.textValues[ix][1].text().strip()))
+		window.exec_()
+		if window.result:
+			columns = window.selected
+			self.textValues[ix][1].setText(str(columns))
+
+	def editDefCats(self):
+		ix = pbConfig.paramOrder.index("defaultCategories")
+		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, previous = ast.literal_eval(self.textValues[ix][1].text().strip()))
+		selectCats.exec_()
+		if selectCats.result == "Ok":
+			self.textValues[ix][1].setText(str(self.selectedCats))
+
+	def initUI(self):
+		self.setWindowTitle('Configuration')
+
+		grid = QGridLayout()
+		grid.setSpacing(1)
+
+		i = 0
+		for k in pbConfig.paramOrder:
+			i += 1
+			val = pbConfig.params[k] if type(pbConfig.params[k]) is str else str(pbConfig.params[k])
+			grid.addWidget(QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)), i-1, 0, 1, 2)
+			if k == "bibtexListColumns":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editColumns)
+			elif k == "pdfFolder":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editFolder)
+			elif k == "loggingLevel":
+				try:
+					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(val)])])
+				except ValueError:
+					pBGUILogger.warning("Invalid string for 'loggingLevel' param. Reset to default")
+					self.textValues.append([k, MyComboBox(self, pbConfig.loggingLevels, pbConfig.loggingLevels[int(pbConfig.defaultsParams["loggingLevel"])])])
+			elif k == "logFileName":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editFile)
+			elif k == "defaultCategories":
+				self.textValues.append([k, QPushButton(val)])
+				self.textValues[-1][1].clicked.connect(self.editDefCats)
+			elif pbConfig.specialTypes[k] == "boolean":
+				self.textValues.append([k, MyTrueFalseCombo(self, val)])
+			else:
+				self.textValues.append([k, QLineEdit(val)])
+			grid.addWidget(self.textValues[i-1][1], i-1, 2, 1, 2)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		#width = self.acceptButton.fontMetrics().boundingRect('OK').width() + 7
+		#self.acceptButton.setMaximumWidth(width)
+		grid.addWidget(self.acceptButton, i, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		#width = self.cancelButton.fontMetrics().boundingRect('Cancel').width() + 7
+		#self.cancelButton.setMaximumWidth(width)
+		grid.addWidget(self.cancelButton, i, 1)
+
+		self.setGeometry(100,100,1000, 30*i)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+class LogFileContentDialog(QDialog):
+	"""create a window for the logFile content"""
+	def __init__(self, parent = None):
+		super(LogFileContentDialog, self).__init__(parent)
+		self.title = "Log File Content"
+		self.initUI()
+
+	def clearLog(self):
+		if askYesNo("Are you sure you want to clear the log file?"):
+			try:
+				open(pbConfig.params["logFileName"], "w").close()
+			except IOError:
+				pBGUILogger.exception("Impossible to clear log file!")
+			else:
+				infoMessage("Log file cleared.")
+				self.close()
+
+	def initUI(self):
+		self.setWindowTitle(self.title)
+
+		grid = QVBoxLayout()
+		grid.setSpacing(1)
+
+		grid.addWidget(QLabel("Reading %s"%pbConfig.params["logFileName"]))
+		try:
+			with open(pbConfig.params["logFileName"]) as r:
+				text = r.read()
+		except IOError:
+			text = "Impossible to read log file!"
+			pBLogger.exception(text)
+		self.textEdit = QPlainTextEdit(text)
+		self.textEdit.setReadOnly(True)
+		grid.addWidget(self.textEdit)
+
+		self.closeButton = QPushButton('Close', self)
+		self.closeButton.setAutoDefault(True)
+		self.closeButton.clicked.connect(self.close)
+		grid.addWidget(self.closeButton)
+
+		self.clearButton = QPushButton('Clear log file', self)
+		self.clearButton.clicked.connect(self.clearLog)
+		grid.addWidget(self.clearButton)
+
+		self.setGeometry(100, 100, 800, 800)
+		self.setLayout(grid)
+
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
 
 class printText(QDialog):
 	"""create a window for printing text of command line output"""

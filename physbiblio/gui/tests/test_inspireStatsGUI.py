@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the physbiblio.gui.DialogWindows module.
+Test file for the physbiblio.gui.inspireStatsGUI module.
 
 This file is part of the physbiblio package.
 """
@@ -24,7 +24,7 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.inspireStatsGUI import *
-	from physbiblio.gui.DialogWindows import askDirName
+	from physbiblio.gui.basicDialogs import askDirName
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise

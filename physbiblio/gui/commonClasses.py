@@ -10,9 +10,9 @@ try:
 	from physbiblio.errors import pBErrorManagerClass, pBLogger
 	from physbiblio.view import viewEntry
 	from physbiblio.pdf import pBPDF
-	from physbiblio.gui.DialogWindows import *
+	from physbiblio.gui.basicDialogs import *
 	from physbiblio.database import pBDB, catString
-	import physbiblio.gui.Resources_pyside2
+	import physbiblio.gui.resources_pyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
