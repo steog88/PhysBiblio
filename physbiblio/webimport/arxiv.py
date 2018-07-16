@@ -11,8 +11,8 @@ try:
 	from physbiblio.errors import pBLogger
 	from bibtexparser.bibdatabase import BibDatabase
 	from physbiblio.webimport.webInterf import *
-	from physbiblio.parse_accents import *
-	from physbiblio.bibtexwriter import pbWriter
+	from physbiblio.parseAccents import *
+	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())

@@ -20,7 +20,7 @@ try:
 	from physbiblio.errors import pBLogger, pBErrorManager
 	from physbiblio.database import pBDB
 	from physbiblio.webimport.webInterf import physBiblioWeb
-	import physbiblio.gui.resources_pyside2
+	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

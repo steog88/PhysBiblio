@@ -21,7 +21,7 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import *
 	from physbiblio.gui.commonClasses import *
-	import physbiblio.gui.resources_pyside2
+	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 

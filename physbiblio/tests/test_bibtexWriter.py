@@ -15,7 +15,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.config import pbConfig
-	from physbiblio.bibtexwriter import pbWriter
+	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
     print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
     raise

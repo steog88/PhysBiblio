@@ -34,7 +34,7 @@ except ImportError as e:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!", e)
 	print(traceback.format_exc())
 try:
-	import physbiblio.gui.resources_pyside2
+	import physbiblio.gui.resourcesPyside2
 except ImportError as e:
 	print("Missing Resources_pyside2: run script update_resources.sh", e)
 

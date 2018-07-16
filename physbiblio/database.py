@@ -15,10 +15,10 @@ import dictdiffer
 try:
 	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
 	from physbiblio.config import pbConfig, configurationDB
-	from physbiblio.bibtexwriter import pbWriter
+	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import physBiblioWeb
-	from physbiblio.parse_accents import *
+	from physbiblio.parseAccents import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())

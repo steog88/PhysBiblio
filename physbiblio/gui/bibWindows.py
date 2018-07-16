@@ -17,7 +17,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
-	from physbiblio.parse_accents import *
+	from physbiblio.parseAccents import *
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import *
 	from physbiblio.gui.commonClasses import *
@@ -25,7 +25,7 @@ try:
 	from physbiblio.gui.catWindows import *
 	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.marks import *
-	import physbiblio.gui.resources_pyside2
+	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
