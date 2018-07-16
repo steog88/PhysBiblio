@@ -25,7 +25,7 @@ try:
 	from physbiblio.gui.basicDialogs import *
 	from physbiblio.gui.bibWindows import *
 	from physbiblio.gui.catWindows import *
-	from physbiblio.gui.utilityWindows import *
+	from physbiblio.gui.dialogWindows import *
 	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.profilesManager import *
