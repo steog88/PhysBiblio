@@ -121,20 +121,5 @@ class TestDialogWindows(GUITestCase):
 			res = askDirName(dir = "/tmp")
 			self.assertEqual(res, "")
 
-	def test_configEditColumns(self):
-		pass
-	def test_printText(self):
-		pass
-	def test_searchReplaceDialog(self):
-		pass
-	def test_advImportDialog(self):
-		pass
-	def test_advImportSelect(self):
-		pass
-	def test_arxivDailyDialog(self):
-		pass
-	def test_dailyArxivSelect(self):
-		pass
-
 if __name__=='__main__':
 	unittest.main()

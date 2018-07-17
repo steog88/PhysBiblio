@@ -17,19 +17,39 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class MyLabelRight(QLabel):
+	"""Class that creates a right-aligned QLabel"""
 	def __init__(self, label):
+		"""
+		The constructor.
+
+		Parameter:
+			label: the text label to be passed to QLabel
+		"""
 		super(MyLabelRight, self).__init__(label)
 		self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
 class MyLabelCenter(QLabel):
+	"""Class that creates a center-aligned QLabel"""
 	def __init__(self, label):
+		"""
+		The constructor.
+
+		Parameter:
+			label: the text label to be passed to QLabel
+		"""
 		super(MyLabelCenter, self).__init__(label)
 		self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
 class objListWindow(QDialog):
-	"""create a window for printing the list of experiments"""
+	"""Create a window managing a list (of bibtexs or of experiments)"""
 	def __init__(self, parent = None, gridLayout = False):
-		"""init using parent class and create common definitions"""
+		"""
+		Init using parent class and create common definitions
+
+		Parameters:
+			parent: the parent object
+			gridLayout (boolean, default False): if True, use a QGridLayout, otherwise a QVBoxLayout
+		"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
 		self.proxyModel = None
@@ -41,18 +61,32 @@ class objListWindow(QDialog):
 		self.setLayout(self.currLayout)
 
 	def triggeredContextMenuEvent(self, row, col, event):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def handleItemEntered(self, index):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def cellClick(self, index):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def cellDoubleClick(self, index):
+		"""Not implemented: requires a subclass"""
+		raise NotImplementedError()
+
+	def createTable(self, *args, **kwargs):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def changeFilter(self, string):
+		"""
+		Change the filter of the current view.
+
+		Parameter:
+			string: the filter string to be matched
+		"""
 		self.proxyModel.setFilterRegExp(str(string))
 
 	def addFilterInput(self, placeholderText, gridPos = (1, 0)):
@@ -115,14 +149,18 @@ class objListWindow(QDialog):
 			self.currLayout.addWidget(self.tablewidget)
 
 	def cleanLayout(self):
-		"""delete previous table widget"""
+		"""
+		Delete previous table widget and other layout items
+		"""
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
 			o.widget().deleteLater()
 
 	def recreateTable(self):
-		"""delete previous table widget and create a new one"""
+		"""
+		Delete the previous table widget and other layout items, then create new ones
+		"""
 		self.cleanLayout()
 		self.createTable()
 
