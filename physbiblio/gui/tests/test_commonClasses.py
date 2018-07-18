@@ -101,9 +101,37 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.proxyModel.filterRegExp().pattern(), "123")
 
 	def test_addFilterInput(self):
-		pass
+		"""test addFilterInput"""
+		olw = objListWindow()
+		olw.addFilterInput("plch")
+		self.assertIsInstance(olw.filterInput, QLineEdit)
+		self.assertEqual(olw.filterInput.placeholderText(), "plch")
+		with patch("physbiblio.gui.commonClasses.objListWindow.changeFilter") as _cf:
+			olw.filterInput.textChanged.emit("sss")
+			_cf.assert_called_once_with("sss")
+
+		olw = objListWindow(gridLayout = True)
+		olw.addFilterInput("plch", gridPos = (4, 1))
+		self.assertEqual(olw.layout().itemAtPosition(4, 1).widget(), olw.filterInput)
+
 	def test_setProxyStuff(self):
-		pass
+		"""test setProxyStuff"""
+		olw = objListWindow()
+		olw.table_model = emptyTableModel()
+		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
+			olw.setProxyStuff(1, Qt.AscendingOrder)
+			_s.assert_called_once_with(1, Qt.AscendingOrder)
+		self.assertIsInstance(olw.proxyModel, QSortFilterProxyModel)
+		self.assertEqual(olw.proxyModel.filterCaseSensitivity(), Qt.CaseInsensitive)
+		self.assertEqual(olw.proxyModel.sortCaseSensitivity(), Qt.CaseInsensitive)
+		self.assertEqual(olw.proxyModel.filterKeyColumn(), -1)
+
+		self.assertIsInstance(olw.tablewidget, MyTableView)
+		self.assertEqual(olw.tablewidget.model(), olw.proxyModel)
+		self.assertTrue(olw.tablewidget.isSortingEnabled())
+		self.assertTrue(olw.tablewidget.hasMouseTracking())
+		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
+
 	def test_finalizeTable(self):
 		pass
 

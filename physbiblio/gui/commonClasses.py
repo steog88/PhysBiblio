@@ -90,6 +90,13 @@ class objListWindow(QDialog):
 		self.proxyModel.setFilterRegExp(str(string))
 
 	def addFilterInput(self, placeholderText, gridPos = (1, 0)):
+		"""
+		Add a `QLineEdit` to change the filter of the list.
+
+		Parameter:
+			placeholderText: the text to be shown when no filter is present
+			gridPos (tuple): if gridLayout is active, the position of the `QLineEdit` in the `QGridLayout`
+		"""
 		self.filterInput = QLineEdit("",  self)
 		self.filterInput.setPlaceholderText(placeholderText)
 		self.filterInput.textChanged.connect(self.changeFilter)
@@ -101,6 +108,13 @@ class objListWindow(QDialog):
 		self.filterInput.setFocus()
 
 	def setProxyStuff(self, sortColumn, sortOrder):
+		"""
+		Prepare the proxy model to filter and sort the view.
+
+		Parameter:
+			sortColumn: the index of the column to use for sorting at the beginning
+			sortOrder: the order for sorting (`Qt.AscendingOrder` or `Qt.DescendingOrder`)
+		"""
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.table_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -150,7 +164,7 @@ class objListWindow(QDialog):
 
 	def cleanLayout(self):
 		"""
-		Delete previous table widget and other layout items
+		Delete the previous table widget and other layout items
 		"""
 		while True:
 			o = self.layout().takeAt(0)
