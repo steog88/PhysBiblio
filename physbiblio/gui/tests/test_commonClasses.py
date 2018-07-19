@@ -8,14 +8,14 @@ import sys, traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QInputDialog
+from PySide2.QtWidgets import QInputDialog, QDesktopWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch
+	from mock import patch, call
 else:
 	import unittest
-	from unittest.mock import patch
+	from unittest.mock import patch, call
 
 try:
 	from physbiblio.setuptests import *
@@ -63,7 +63,7 @@ class TestLabels(GUITestCase):
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestObjListWindow(GUITestCase):
 	"""
-	Test the MyLabelRight and MyLabelCenter classes
+	Test the objListWindow class
 	"""
 	def test_init(self):
 		"""test the __init__ function"""
@@ -133,7 +133,48 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
 
 	def test_finalizeTable(self):
-		pass
+		"""Test finalizeTable"""
+		olw = objListWindow()
+		olw.table_model = emptyTableModel()
+		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
+			olw.setProxyStuff(1, Qt.AscendingOrder)
+		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents") as _rc:
+			with patch("PySide2.QtWidgets.QTableView.resizeRowsToContents") as _rr:
+				olw.finalizeTable()
+				_rc.assert_has_calls([call(), call()])
+				_rr.assert_called_once()
+		self.assertIsInstance(olw.tablewidget, MyTableView)
+		maxw = QDesktopWidget().availableGeometry().width()
+		self.assertEqual(olw.maximumHeight(), QDesktopWidget().availableGeometry().height())
+		self.assertEqual(olw.maximumWidth(), maxw)
+		hwidth = olw.tablewidget.horizontalHeader().length()
+		swidth = olw.tablewidget.style().pixelMetric(QStyle.PM_ScrollBarExtent)
+		fwidth = olw.tablewidget.frameWidth() * 2
+
+		if hwidth > maxw - (swidth + fwidth):
+			tW = maxw - (swidth + fwidth)
+		else:
+			tW = hwidth + swidth + fwidth
+		self.assertEqual(olw.tablewidget.width(), tW)
+		self.assertEqual(olw.minimumHeight(), 600)
+		ix = QModelIndex()
+		with patch("physbiblio.gui.commonClasses.objListWindow.handleItemEntered") as _f:
+			olw.tablewidget.entered.emit(ix)
+			_f.assert_called_once_with(ix)
+		with patch("physbiblio.gui.commonClasses.objListWindow.cellClick") as _f:
+			olw.tablewidget.clicked.emit(ix)
+			_f.assert_called_once_with(ix)
+		with patch("physbiblio.gui.commonClasses.objListWindow.cellDoubleClick") as _f:
+			olw.tablewidget.doubleClicked.emit(ix)
+			_f.assert_called_once_with(ix)
+		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
+
+		olw = objListWindow(gridLayout = True)
+		olw.table_model = emptyTableModel()
+		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
+			olw.setProxyStuff(1, Qt.AscendingOrder)
+		olw.finalizeTable(gridPos = (4, 1))
+		self.assertEqual(olw.layout().itemAtPosition(4, 1).widget(), olw.tablewidget)
 
 	def test_cleanLayout(self):
 		"""Test cleanLayout"""
@@ -152,6 +193,160 @@ class TestObjListWindow(GUITestCase):
 				olw.recreateTable()
 				_cl.assert_called_once()
 				_ct.assert_called_once()
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestEditObjectWindow(GUITestCase):
+	"""
+	Test the editObjectWindow class
+	"""
+	def test_init(self):
+		pass
+	def test_keyPressEvent(self):
+		pass
+	def test_onCancel(self):
+		pass
+	def test_onOk(self):
+		pass
+	def test_initUI(self):
+		pass
+	def test_centerWindow(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyThread(GUITestCase):
+	"""
+	Test the MyThread class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestWriteStream(GUITestCase):
+	"""
+	Test the WriteStream class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyComboBox(GUITestCase):
+	"""
+	Test the MyComboBox class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyAndOrCombo(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyTrueFalseCombo(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyTableWidget(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyTableView(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyTableModel(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestTreeNode(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestTreeModel(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestNamedElement(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestNamedNode(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestLeafFilterProxyModel(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyDDTableWidget(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyMenu(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestGuiViewEntry(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyImportedTableModel(GUITestCase):
+	"""
+	Test the  class
+	"""
+	def test_init(self):
+		pass
 
 if __name__=='__main__':
 	unittest.main()

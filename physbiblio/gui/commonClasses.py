@@ -129,7 +129,12 @@ class objListWindow(QDialog):
 		self.currLayout.addWidget(self.tablewidget)
 
 	def finalizeTable(self, gridPos = (1, 0)):
-		"""resize the table to fit the contents, connect click and doubleclick functions, add layout"""
+		"""
+		Resize the table to fit the contents, connect functions, add to layout
+
+		Parameter:
+			gridPos (tuple): if gridLayout is active, the position of the `QLineEdit` in the `QGridLayout`
+		"""
 		self.tablewidget.resizeColumnsToContents()
 
 		maxh = QDesktopWidget().availableGeometry().height()
