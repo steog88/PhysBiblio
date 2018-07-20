@@ -16,18 +16,17 @@ Please report any bug that you find [here](https://github.com/steog88/physBiblio
 ### Installation
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
-Unfortunately, `PySide2` has not yet been included in the PyPI repository, so it must be manually installed from the Qt website.
-Please note that at the moment `PySide2` is only available for `python` versions 2.7, 3.5 and 3.6.
+
+Please note that at the moment `PySide2` is only available for `python` versions 2.7+ and 3.5+.
+Other python versions are therefore not supported.
 
 #### Python2
 If you use `python 2+`, simply use (system-wide install)
 ```
-sudo pip install --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
 sudo pip install physbiblio
 ```
 or (user only install)
 ```
-pip install --user --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
 pip install --user physbiblio
 ```
 
@@ -39,11 +38,10 @@ Otherwise, use the same commands above but with `pip3` instead of `pip`.
 #### Conda
 Here you find a list of instructions to install and run `PhysBiblio` using `conda` and related commands.
 Note that the following commands have not (yet) been tested with `PySide2`.
-The part in the parenthesis in the first command is optional as long as the default python version is 2.7, 3.5 or 3.6.
+Remember to use a python version 2.7+ or 3.5+.
 ```
-conda create --name physbiblio (python=3.6)
+conda create --name physbiblio
 conda activate physbiblio
-pip install --user --index-url=https://download.qt.io/official_releases/QtForPython/ pyside2
 pip install physbiblio
 ```
 At this point, the installation is complete.
@@ -113,6 +111,7 @@ In particular, if you do not correctly set the web browser and the PDF reader, s
 
 ### Dependencies
 PhysBiblio depends on several python packages:
+
 * sqlite3 (for the database)
 * pyside2 (for the graphical interface)
 * appdirs (default paths)
@@ -185,16 +184,16 @@ An additional filtering is performed when trying to match the regular expression
 Two (regex) search and replace examples:
 
 * To move the letter from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
-  - from: "published", `(Phys. Rev. [A-Z]{1})([0-9]{2}).*`;
-  - To 1: "journal", `\1`;
-  - To 2: "volume", `\2`.
-  
-  To match "Phys. Rev. X" you will have to change `[0-9]{2}` to `[0-9]{1}` in the pattern string.  
-  If you want to match "J. Phys. G", change the first part of the pattern string accordingly (`J. Phys. [A-Z]{1}`).
+    - from: "published", `(Phys. Rev. [A-Z]{1})([0-9]{2}).*`;
+    - To 1: "journal", `\1`;
+    - To 2: "volume", `\2`.
+    
+    To match "Phys. Rev. X" you will have to change `[0-9]{2}` to `[0-9]{1}` in the pattern string.  
+    If you want to match "J. Phys. G", change the first part of the pattern string accordingly (`J. Phys. [A-Z]{1}`).
 
 * To remove the first two numbers from "volume" field of JHEP/JCAP entries, use:
-  - filter using ["jhep" or "jcap"] ("add another line" and use "OR") in "bibtex";
-  - replace `([0-9]{2})([0-9]{2})` in "volume" with `\2`.
+    - filter using ["jhep" or "jcap"] ("add another line" and use "OR") in "bibtex";
+    - replace `([0-9]{2})([0-9]{2})` in "volume" with `\2`.
 
 **New in 0.5.0**: you can now save the searches/replaces you use more frequently. They will be re-usable with two clicks in the new menu and shared among all the profiles.
 
@@ -229,6 +228,7 @@ The usage is simple:
 ```
 
 The list of available commands includes:
+
 * `gui`: run the graphical interface (default if no options are used).
 * `test`: execute the test suite.
 * `clean`: process all the bibtex entries in the database to remove bad characters and reformat them.
@@ -264,6 +264,7 @@ Both the directories are indicated at the beginning when launching `PhysBiblio` 
 The stored configuration includes a `profiles.db` file, containing the information on the existing profiles.
 
 The stored data include:
+
 * a `pdf/` subfolder, with the PDF for all the papers. This is usually shared among all the profiles, unless you set different paths in the configuration of each profile;
 * sets of `.db` and `.log` files, which contain the database and an error log for each profile.
 
