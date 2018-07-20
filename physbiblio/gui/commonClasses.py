@@ -370,6 +370,7 @@ class MyTableModel(QAbstractTableModel):
 		self.layoutChanged.emit()
 
 	def getIdentifier(self, element):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def prepareSelected(self):
@@ -421,6 +422,7 @@ class MyTableModel(QAbstractTableModel):
 			return 0
 
 	def data(self, index, role):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def flags(self, index):
@@ -437,6 +439,7 @@ class MyTableModel(QAbstractTableModel):
 		return None
 
 	def setData(self, index, value, role):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def sort(self, col = 1, order = Qt.AscendingOrder):
@@ -449,12 +452,23 @@ class MyTableModel(QAbstractTableModel):
 
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
 class TreeNode(object):
+	"""
+	Create an object that will work as a tree node
+	"""
 	def __init__(self, parent, row):
+		"""
+		Constructor, set basic properties
+
+		Parameters:
+			parent: the parent node
+			row: the content of the data row
+		"""
 		self.parent = parent
 		self.row = row
 		self.subnodes = self._getChildren()
 
 	def _getChildren(self):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 class TreeModel(QAbstractItemModel):
@@ -463,6 +477,7 @@ class TreeModel(QAbstractItemModel):
 		self.rootNodes = self._getRootNodes()
 
 	def _getRootNodes(self):
+		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
 	def index(self, row, column, parent):

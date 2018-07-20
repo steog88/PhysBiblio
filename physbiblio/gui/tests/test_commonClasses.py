@@ -361,53 +361,103 @@ class TestWriteStream(GUITestCase):
 	"""
 	Test the WriteStream class
 	"""
-	def test_init(self):
+	def test_methods(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableWidget(GUITestCase):
 	"""
-	Test the  class
+	Test the MyTableWidget class
 	"""
-	def test_init(self):
+	def test_methods(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableView(GUITestCase):
 	"""
-	Test the  class
+	Test the MyTableView class
 	"""
-	def test_init(self):
+	def test_methods(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableModel(GUITestCase):
 	"""
-	Test the  class
+	Test the MyTableModel class
 	"""
 	def test_init(self):
+		pass
+	def test_changeAsk(self):
+		pass
+	def test_getIdentifier(self):
+		# self.assertRaises(NotImplementedError, lambda: ())
+		pass
+	def test_prepareSelected(self):
+		pass
+	def test_selectAll(self):
+		pass
+	def test_unselectAll(self):
+		pass
+	def test_addImage(self):
+		pass
+	def test_addImages(self):
+		pass
+	def test_rowCount(self):
+		pass
+	def test_columnCount(self):
+		pass
+	def test_data(self):
+		# self.assertRaises(NotImplementedError, lambda: ())
+		pass
+	def test_flags(self):
+		pass
+	def test_headerData(self):
+		pass
+	def test_setData(self):
+		# self.assertRaises(NotImplementedError, lambda: ())
+		pass
+	def test_sort(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestTreeNode(GUITestCase):
 	"""
-	Test the  class
+	Test the TreeNode class
 	"""
-	def test_init(self):
-		pass
+	def test_methods(self):
+		"""test the __init__ and _getChildren methods"""
+		ew = QWidget()
+		with patch("physbiblio.gui.commonClasses.TreeNode._getChildren", return_value = "def") as _gc:
+			tn = TreeNode(ew, "abc")
+			self.assertEqual(tn.parent, ew)
+			self.assertEqual(tn.row, "abc")
+			self.assertEqual(tn.subnodes, "def")
+			_gc.assert_called_once_with()
+		self.assertRaises(NotImplementedError, lambda: tn._getChildren())
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestTreeModel(GUITestCase):
 	"""
-	Test the  class
+	Test the TreeModel class
 	"""
 	def test_init(self):
+		pass
+	def test_getRootNodes(self):
+		# self.assertRaises(NotImplementedError, lambda: ())
+		pass
+	def test_index(self):
+		pass
+	def test_parent(self):
+		pass
+	def test_reset(self):
+		pass
+	def test_rowCount(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestNamedElement(GUITestCase):
 	"""
-	Test the  class
+	Test the NamedElement class
 	"""
 	def test_init(self):
 		pass
@@ -415,49 +465,77 @@ class TestNamedElement(GUITestCase):
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestNamedNode(GUITestCase):
 	"""
-	Test the  class
+	Test the NamedNode class
 	"""
-	def test_init(self):
+	def test_methods(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestLeafFilterProxyModel(GUITestCase):
 	"""
-	Test the  class
+	Test the LeafFilterProxyModel class
 	"""
-	def test_init(self):
+	def test_init(self):#just check if it is instance of parent class
+		pass
+	def test_filterAcceptsRow(self):
+		pass
+	def test_filter_accept_row_itself(self):
+		pass
+	def test_filter_accepts_any_parent(self):
+		pass
+	def test_has_accepted_children(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyDDTableWidget(GUITestCase):
 	"""
-	Test the  class
+	Test the MyDDTableWidget class
 	"""
 	def test_init(self):
+		pass
+	def test_dropMimeData(self):
+		pass
+	def test_dropEvent(self):
+		pass
+	def test_getselectedRowsFast(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyMenu(GUITestCase):
 	"""
-	Test the  class
+	Test the MyMenu class
 	"""
 	def test_init(self):
+		pass
+	def test_fillMenu(self):
+		pass
+	def test_keyPressEvent(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestGuiViewEntry(GUITestCase):
 	"""
-	Test the  class
+	Test the GuiViewEntry class
 	"""
 	def test_init(self):
+		pass
+	def test_openLink(self):
 		pass
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyImportedTableModel(GUITestCase):
 	"""
-	Test the  class
+	Test the MyImportedTableModel class
 	"""
 	def test_init(self):
+		pass
+	def test_getIdentifier(self):
+		pass
+	def test_data(self):
+		pass
+	def test_setData(self):
+		pass
+	def test_flags(self):
 		pass
 
 if __name__=='__main__':
