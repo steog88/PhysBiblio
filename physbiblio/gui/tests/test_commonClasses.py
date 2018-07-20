@@ -337,8 +337,24 @@ class TestMyThread(GUITestCase):
 	"""
 	Test the MyThread class
 	"""
-	def test_init(self):
-		pass
+	def test_methods(self):
+		"""test all the methods in the class"""
+		with patch("PySide2.QtCore.QThread.__init__", autospec = True) as _in:
+			MyThread()
+			_in.assert_called_once()
+		mt = MyThread()
+		self.assertIsInstance(mt, QThread)
+		self.assertRaises(NotImplementedError, lambda: mt.run())
+		self.assertRaises(NotImplementedError, lambda: mt.setStopFlag())
+		self.assertIsInstance(mt.finished, Signal)
+		with patch("time.sleep", autospec = True) as _sl:
+			with patch("PySide2.QtCore.QThread.start", autospec = True) as _st:
+				mt.start()
+				_sl.assert_called_once_with(0.3)
+				_st.assert_called_once_with(mt)
+				_st.reset_mock()
+				mt.start(1, a = "try")
+				_st.assert_called_once_with(mt, 1, a = "try")
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestWriteStream(GUITestCase):

@@ -292,15 +292,26 @@ class editObjectWindow(QDialog):
 
 class MyThread(QThread):
 	def __init__(self,  parent = None):
+		"""
+		Construct the class using `QThread.__init__`
+
+		Parameters:
+			parent: the parent object (default None)
+		"""
 		QThread.__init__(self, parent)
 
 	def run(self):
-		pass
+		"""Not implemented: requires a subclass"""
+		raise NotImplementedError()
 
 	def setStopFlag(self):
-		pass
+		"""Not implemented: requires a subclass"""
+		raise NotImplementedError()
 
 	def start(self, *args, **kwargs):
+		"""
+		Wait 0.3s and then call `QThread.start` (pass all the arguments)
+		"""
 		time.sleep(0.3)
 		QThread.start(self, *args, **kwargs)
 
