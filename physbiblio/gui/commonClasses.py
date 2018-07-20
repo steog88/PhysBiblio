@@ -40,6 +40,56 @@ class MyLabelCenter(QLabel):
 		super(MyLabelCenter, self).__init__(label)
 		self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
+class MyComboBox(QComboBox):
+	"""
+	Personalize QComboBox for faster construction
+	"""
+	def __init__(self, parent, fields, current = None):
+		"""
+		Constructor.
+
+		Parameters:
+			parent: the parent widget
+			fields: the list of (string or printable) contents to be added to the QComboBox
+			current (default None): the value to be set as the initial value
+		"""
+		super(MyComboBox, self).__init__(parent)
+		for f in fields:
+			self.addItem("%s"%f)
+		if current is not None:
+			try:
+				self.setCurrentIndex(fields.index(current))
+			except ValueError:
+				pass
+
+class MyAndOrCombo(MyComboBox):
+	"""
+	Shortcut for generating a QComboBox with and/or
+	"""
+	def __init__(self, parent, current = None):
+		"""
+		Constructor.
+
+		Parameters:
+			parent: the parent widget
+			current (default None): the value to be set as selected at the beginning
+		"""
+		super(MyAndOrCombo, self).__init__(parent, ["AND", "OR"], current = current)
+
+class MyTrueFalseCombo(MyComboBox):
+	"""
+	Shortcut for generating a QComboBox with true/false
+	"""
+	def __init__(self, parent, current = None):
+		"""
+		Constructor.
+
+		Parameters:
+			parent: the parent widget
+			current (default None): the value to be set as selected at the beginning
+		"""
+		super(MyTrueFalseCombo, self).__init__(parent, ["True", "False"], current = current)
+
 class objListWindow(QDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
 	def __init__(self, parent = None, gridLayout = False):
@@ -184,31 +234,57 @@ class objListWindow(QDialog):
 		self.createTable()
 
 class editObjectWindow(QDialog):
-	"""create a window for editing or creating an experiment"""
+	"""
+	Create a window for editing or creating an experiment
+	"""
 	def __init__(self, parent = None):
+		"""
+		Constructor.
+
+		Parameter:
+			parent: the parent object
+		"""
 		super(editObjectWindow, self).__init__(parent)
 		self.parent = parent
 		self.textValues = {}
 		self.initUI()
 
-	def keyPressEvent(self, e):		
+	def keyPressEvent(self, e):
+		"""
+		Intercept press keys and exit if escape is pressed
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
+		"""
 		if e.key() == Qt.Key_Escape:
 			self.onCancel()
 
 	def onCancel(self):
+		"""
+		Set that the result should not be considered and exit
+		"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
+		"""
+		Set that the result should be considered and exit
+		"""
 		self.result	= True
 		self.close()
 
 	def initUI(self):
+		"""
+		Instantiate the `QGridLayout`
+		"""
 		self.currGrid = QGridLayout()
 		self.currGrid.setSpacing(1)
 		self.setLayout(self.currGrid)
 
 	def centerWindow(self):
+		"""
+		Use the `QDesktopWidget` to get the relevant information and center the widget in the screen.
+		"""
 		qr = self.frameGeometry()
 		cp = QDesktopWidget().availableGeometry().center()
 		qr.moveCenter(cp)
@@ -249,25 +325,6 @@ class WriteStream(MyThread):
 			text = self.queue.get()
 			self.mysignal.emit(text)
 		self.finished.emit()
-
-class MyComboBox(QComboBox):
-	def __init__(self, parent, fields, current = None):
-		super(MyComboBox, self).__init__(parent)
-		for f in fields:
-			self.addItem(f)
-		if current is not None:
-			try:
-				self.setCurrentIndex(fields.index(current))
-			except ValueError:
-				pass
-
-class MyAndOrCombo(MyComboBox):
-	def __init__(self, parent, current = None):
-		super(MyAndOrCombo, self).__init__(parent, ["AND", "OR"], current = current)
-
-class MyTrueFalseCombo(MyComboBox):
-	def __init__(self, parent, current = None):
-		super(MyTrueFalseCombo, self).__init__(parent, ["True", "False"], current = current)
 
 class MyTableWidget(QTableWidget):
 	def __init__(self, rows, cols, parent):

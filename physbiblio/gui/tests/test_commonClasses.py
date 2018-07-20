@@ -6,9 +6,9 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QPoint, QRect
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QInputDialog, QDesktopWidget
+from PySide2.QtWidgets import QInputDialog, QDesktopWidget, QLineEdit, QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -59,6 +59,76 @@ class TestLabels(GUITestCase):
 		self.assertIsInstance(l, QLabel)
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.alignment(), Qt.AlignCenter | Qt.AlignVCenter)
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyComboBox(GUITestCase):
+	"""
+	Test the MyComboBox class
+	"""
+	def test_init(self):
+		"""test the constructor"""
+		ew = QWidget()
+		mb = MyComboBox(ew, [])
+		self.assertIsInstance(mb, QComboBox)
+		self.assertEqual(mb.parentWidget(), ew)
+		self.assertEqual(mb.itemText(0), "")
+		mb = MyComboBox(ew, ["1", "2"])
+		self.assertEqual(mb.itemText(0), "1")
+		self.assertEqual(mb.itemText(1), "2")
+		self.assertEqual(mb.itemText(2), "")
+		self.assertEqual(mb.currentText(), "1")
+		mb = MyComboBox(ew, ["1", "2"],  "0")
+		self.assertEqual(mb.currentText(), "1")
+		mb = MyComboBox(ew, ["1", "2"],  "2")
+		self.assertEqual(mb.currentText(), "2")
+		mb = MyComboBox(ew, [1, 2])
+		self.assertEqual(mb.itemText(0), "1")
+		self.assertEqual(mb.itemText(1), "2")
+		self.assertEqual(mb.itemText(2), "")
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyAndOrCombo(GUITestCase):
+	"""
+	Test the MyAndOrCombo class
+	"""
+	def test_init(self):
+		"""test the constructor"""
+		mb = MyAndOrCombo(None)
+		self.assertIsInstance(mb, MyComboBox)
+		self.assertIsInstance(mb, QComboBox)
+		self.assertEqual(mb.parentWidget(), None)
+		self.assertEqual(mb.itemText(0), "AND")
+		self.assertEqual(mb.itemText(1), "OR")
+		self.assertEqual(mb.itemText(2), "")
+		self.assertEqual(mb.currentText(), "AND")
+		mb = MyAndOrCombo(None, "or")
+		self.assertEqual(mb.currentText(), "AND")
+		ew = QWidget()
+		mb = MyAndOrCombo(ew, "OR")
+		self.assertEqual(mb.parentWidget(), ew)
+		self.assertEqual(mb.currentText(), "OR")
+
+@unittest.skipIf(skipGuiTests, "GUI tests")
+class TestMyTrueFalseCombo(GUITestCase):
+	"""
+	Test the MyTrueFalseCombo class
+	"""
+	def test_init(self):
+		"""test the constructor"""
+		mb = MyTrueFalseCombo(None)
+		self.assertIsInstance(mb, MyComboBox)
+		self.assertIsInstance(mb, QComboBox)
+		self.assertEqual(mb.parentWidget(), None)
+		self.assertEqual(mb.itemText(0), "True")
+		self.assertEqual(mb.itemText(1), "False")
+		self.assertEqual(mb.itemText(2), "")
+		self.assertEqual(mb.currentText(), "True")
+		mb = MyTrueFalseCombo(None, "abc")
+		self.assertEqual(mb.currentText(), "True")
+		ew = QWidget()
+		mb = MyTrueFalseCombo(ew, "False")
+		self.assertEqual(mb.parentWidget(), ew)
+		self.assertEqual(mb.currentText(), "False")
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestObjListWindow(GUITestCase):
@@ -200,17 +270,67 @@ class TestEditObjectWindow(GUITestCase):
 	Test the editObjectWindow class
 	"""
 	def test_init(self):
-		pass
+		"""test constructor"""
+		ew = QWidget()
+		with patch("physbiblio.gui.commonClasses.editObjectWindow.initUI") as _iu:
+			eow = editObjectWindow(ew)
+			self.assertEqual(eow.parent, ew)
+			self.assertEqual(eow.textValues, {})
+			_iu.assert_called_once_with()
+
 	def test_keyPressEvent(self):
-		pass
+		"""test keyPressEvent"""
+		eow = editObjectWindow()
+		w = QLineEdit()
+		eow.currGrid.addWidget(w, 0, 0)
+		with patch("physbiblio.gui.commonClasses.editObjectWindow.onCancel") as _oc:
+			QTest.keyPress(w, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(w, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(w, Qt.Key_Escape)
+			_oc.assert_called_once()
+
 	def test_onCancel(self):
-		pass
+		"""test onCancel"""
+		eow = editObjectWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			eow.onCancel()
+			self.assertFalse(eow.result)
+			_c.assert_called_once()
+
 	def test_onOk(self):
-		pass
+		"""test onOk"""
+		eow = editObjectWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			eow.onOk()
+			self.assertTrue(eow.result)
+			_c.assert_called_once()
+
 	def test_initUI(self):
-		pass
+		"""test initUI"""
+		with patch("physbiblio.gui.commonClasses.editObjectWindow.initUI") as _iu:
+			eow = editObjectWindow()
+		self.assertFalse(hasattr(eow, "currGrid"))
+		eow = editObjectWindow()
+		self.assertIsInstance(eow.currGrid, QGridLayout)
+		self.assertEqual(eow.layout(), eow.currGrid)
+		self.assertEqual(eow.currGrid.spacing(), 1)
+
 	def test_centerWindow(self):
-		pass
+		"""test centerWindow"""
+		eow = editObjectWindow()
+		with patch("PySide2.QtWidgets.QDialog.frameGeometry", autospec = True, return_value = QRect()) as _fg:
+			with patch("PySide2.QtCore.QRect.center", autospec = True, return_value = QPoint()) as _ce:
+				with patch("PySide2.QtCore.QRect.moveCenter", autospec = True) as _mc:
+					with patch("PySide2.QtCore.QRect.topLeft", autospec = True, return_value = QPoint()) as _tl:
+						with patch("PySide2.QtWidgets.QDialog.move", autospec = True) as _mo:
+							eow.centerWindow()
+							_fg.assert_called_once()
+							_ce.assert_called_once()
+							_mc.assert_called_once()
+							_tl.assert_called_once()
+							_mo.assert_called_once()
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyThread(GUITestCase):
@@ -224,30 +344,6 @@ class TestMyThread(GUITestCase):
 class TestWriteStream(GUITestCase):
 	"""
 	Test the WriteStream class
-	"""
-	def test_init(self):
-		pass
-
-@unittest.skipIf(skipGuiTests, "GUI tests")
-class TestMyComboBox(GUITestCase):
-	"""
-	Test the MyComboBox class
-	"""
-	def test_init(self):
-		pass
-
-@unittest.skipIf(skipGuiTests, "GUI tests")
-class TestMyAndOrCombo(GUITestCase):
-	"""
-	Test the  class
-	"""
-	def test_init(self):
-		pass
-
-@unittest.skipIf(skipGuiTests, "GUI tests")
-class TestMyTrueFalseCombo(GUITestCase):
-	"""
-	Test the  class
 	"""
 	def test_init(self):
 		pass
