@@ -6,16 +6,20 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
+import time
 from PySide2.QtCore import Qt, QPoint, QRect
+from PySide2.QtGui import QContextMenuEvent
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QInputDialog, QDesktopWidget, QLineEdit, QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
 	from mock import patch, call
+	from Queue import Queue
 else:
 	import unittest
 	from unittest.mock import patch, call
+	from queue import Queue
 
 try:
 	from physbiblio.setuptests import *
@@ -26,6 +30,15 @@ except ImportError:
     raise
 except Exception:
 	print(traceback.format_exc())
+
+def fakeExec_writeStream_mys(x, text):
+	"""simulate WriteStream.run and set running=False"""
+	x.running = False
+	x.text = text
+def fakeExec_writeStream_fin(x):
+	"""probe that finished has been emitted"""
+	x.running = False
+	x.fin = True
 
 class emptyTableModel(QAbstractTableModel):
 	"""Used to do tests when a table model is needed"""
@@ -362,7 +375,41 @@ class TestWriteStream(GUITestCase):
 	Test the WriteStream class
 	"""
 	def test_methods(self):
-		pass
+		"""
+		Test __init__, write, run methods
+		"""
+		queue = Queue()
+		ws = WriteStream(queue)
+		self.assertIsInstance(ws, MyThread)
+		self.assertEqual(ws.queue, queue)
+		self.assertTrue(ws.running)
+		self.assertEqual(ws.parent, None)
+		self.assertIsInstance(ws.mysignal, Signal)
+		self.assertIsInstance(ws.finished, Signal)
+		ew = QWidget()
+		ws = WriteStream(queue, parent = ew)
+		self.assertEqual(ws.parent, ew)
+		ws.finished.connect(lambda: fakeExec_writeStream_fin(ws))
+		if sys.version_info[0] < 3:
+			with patch("Queue.Queue.put") as _put:
+				ws.write("abc")
+				_put.assert_called_once_with("abc")
+			with patch("Queue.Queue.get", return_value = "abc") as _get:
+				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
+				ws.run()
+				_get.assert_called_once()
+				self.assertEqual(ws.text, "abc")
+				self.assertTrue(ws.fin)
+		else:
+			with patch("queue.Queue.put") as _put:
+				ws.write("abc")
+				_put.assert_called_once_with("abc")
+			with patch("queue.Queue.get", return_value = "abc") as _get:
+				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
+				ws.run()
+				_get.assert_called_once()
+				self.assertEqual(ws.text, "abc")
+				self.assertTrue(ws.fin)
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableWidget(GUITestCase):
@@ -370,7 +417,28 @@ class TestMyTableWidget(GUITestCase):
 	Test the MyTableWidget class
 	"""
 	def test_methods(self):
-		pass
+		"""
+		Test __init__, contextMenuEvent methods
+		"""
+		p = objListWindow()
+		with patch("PySide2.QtWidgets.QTableWidget.__init__") as _i:
+			MyTableWidget(2, 2, p)
+			_i.assert_called_once_with(2, 2, p)
+		mtw = MyTableWidget(2, 2, p)
+		self.assertIsInstance(mtw, QTableWidget)
+		self.assertEqual(mtw.parent, p)
+		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
+		with patch("PySide2.QtGui.QContextMenuEvent.x", return_value = 12) as _x:
+			with patch("PySide2.QtGui.QContextMenuEvent.y", return_value = 24) as _y:
+				with patch("PySide2.QtWidgets.QTableWidget.rowAt", return_value = 0) as _r:
+					with patch("PySide2.QtWidgets.QTableWidget.columnAt", return_value = 1) as _c:
+						with patch("physbiblio.gui.commonClasses.objListWindow.triggeredContextMenuEvent") as _t:
+							mtw.contextMenuEvent(e)
+							_x.assert_called_once_with()
+							_y.assert_called_once_with()
+							_r.assert_called_once_with(24)
+							_c.assert_called_once_with(12)
+							_t.assert_called_once_with(0, 1, e)
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableView(GUITestCase):
@@ -378,7 +446,28 @@ class TestMyTableView(GUITestCase):
 	Test the MyTableView class
 	"""
 	def test_methods(self):
-		pass
+		"""
+		Test __init__, contextMenuEvent methods
+		"""
+		p = objListWindow()
+		with patch("PySide2.QtWidgets.QTableView.__init__") as _i:
+			MyTableView(p)
+			_i.assert_called_once_with(p)
+		mtw = MyTableView(p)
+		self.assertIsInstance(mtw, QTableView)
+		self.assertEqual(mtw.parent, p)
+		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
+		with patch("PySide2.QtGui.QContextMenuEvent.x", return_value = 12) as _x:
+			with patch("PySide2.QtGui.QContextMenuEvent.y", return_value = 24) as _y:
+				with patch("PySide2.QtWidgets.QTableView.rowAt", return_value = 0) as _r:
+					with patch("PySide2.QtWidgets.QTableView.columnAt", return_value = 1) as _c:
+						with patch("physbiblio.gui.commonClasses.objListWindow.triggeredContextMenuEvent") as _t:
+							mtw.contextMenuEvent(e)
+							_x.assert_called_once_with()
+							_y.assert_called_once_with()
+							_r.assert_called_once_with(24)
+							_c.assert_called_once_with(12)
+							_t.assert_called_once_with(0, 1, e)
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyTableModel(GUITestCase):

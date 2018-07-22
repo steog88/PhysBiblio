@@ -318,42 +318,94 @@ class MyThread(QThread):
 	finished = Signal()
 
 class WriteStream(MyThread):
+	"""
+	Class used to redirect prints to a window
+	"""
 	mysignal = Signal(str)
 	finished = Signal()
-	"""class used to redirect the stdout prints to a window"""
 	def __init__(self, queue, parent = None, *args, **kwargs):
+		"""
+		Constructor
+
+		Parameters:
+			queue: a Queue instance
+			parent (optional): the parent widget
+		"""
 		super(WriteStream, self).__init__(parent, *args, **kwargs)
 		self.queue = queue
 		self.running = True
 		self.parent = parent
 
 	def write(self, text):
-		"""output is sent to window but also copied to real stdout"""
+		"""
+		Write the given text
+
+		Parameters:
+			text: the text to send to the output stream
+		"""
 		self.queue.put(text)
 
 	def run(self):
+		"""
+		Run the thread
+		"""
 		while self.running:
 			text = self.queue.get()
 			self.mysignal.emit(text)
 		self.finished.emit()
 
 class MyTableWidget(QTableWidget):
+	"""
+	Extension of `QTableWidget`, used to define the contextMenuEvent
+	"""
 	def __init__(self, rows, cols, parent):
+		"""
+		Constructor, uses `QTableWidget.__init__`
+
+		Parameters:
+			rows: the number of rows of the table widget
+			cols: the number of columns of the table widget
+			parent: the parent widget
+		"""
 		super(MyTableWidget, self).__init__(rows, cols, parent)
 		self.parent = parent
 
 	def contextMenuEvent(self, event):
+		"""
+		Connect the context menu event to the parent function
+
+		Parameter:
+			event: the `PySide2.QtGui.QContextMenuEvent`
+		"""
 		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
 
 class MyTableView(QTableView):
+	"""
+	Extension of `QTableView`, used to define the contextMenuEvent
+	"""
 	def __init__(self, parent):
+		"""
+		Constructor, uses `QTableView.__init__`
+
+		Parameters:
+			parent: the parent widget
+		"""
 		super(MyTableView, self).__init__(parent)
 		self.parent = parent
 
 	def contextMenuEvent(self, event):
+		"""
+		Connect the context menu event to the parent function
+
+		Parameter:
+			event: the `PySide2.QtGui.QContextMenuEvent`
+		"""
 		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
 
 class MyTableModel(QAbstractTableModel):
+	"""
+	Extension of `QAbstractTableModel`, used for experiments and bibtex entries
+	"""
 	def __init__(self, parent, header, ask = False,  previous = [], *args):
 		QAbstractTableModel.__init__(self, parent, *args)
 		self.header = header
