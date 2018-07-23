@@ -7,7 +7,7 @@ This file is part of the physbiblio package.
 import sys, traceback
 import os
 import time
-from PySide2.QtCore import Qt, QPoint, QRect
+from PySide2.QtCore import Qt, QModelIndex, QPoint, QRect
 from PySide2.QtGui import QContextMenuEvent
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QInputDialog, QDesktopWidget, QLineEdit, QWidget
@@ -474,39 +474,220 @@ class TestMyTableModel(GUITestCase):
 	"""
 	Test the MyTableModel class
 	"""
+	@patch('sys.stdout', new_callable=StringIO)
+	def assert_in_stdout(self, function, expected_output, mock_stdout):
+		"""Catch and if test stdout of the function contains a string"""
+		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		function()
+		pBErrorManager.rmTempHandler()
+		self.assertIn(expected_output, mock_stdout.getvalue())
+
 	def test_init(self):
-		pass
+		"""test constructor"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertIsInstance(mtm, QAbstractTableModel)
+		self.assertEqual(mtm.header, ["a", "b"])
+		self.assertEqual(mtm.parentObj, p)
+		self.assertEqual(mtm.previous, [])
+		self.assertFalse(mtm.ask)
+		mtm = MyTableModel(p, ["a", "b"], ask = True, previous = [1])
+		self.assertEqual(mtm.previous, [1])
+		self.assertTrue(mtm.ask)
+
 	def test_changeAsk(self):
-		pass
+		"""Test changeAsk"""
+		def setAbout(cl):
+			cl.about = True
+		def setChanged(cl):
+			cl.changed = True
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		mtm.about = False
+		mtm.changed = False
+		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
+		mtm.layoutChanged.connect(lambda: setChanged(mtm))
+		self.assertFalse(mtm.about)
+		self.assertFalse(mtm.changed)
+		mtm.changeAsk()
+		self.assertTrue(mtm.about)
+		self.assertTrue(mtm.changed)
+		self.assertTrue(mtm.ask)
+		mtm.changeAsk()
+		self.assertFalse(mtm.ask)
+		mtm.changeAsk(False)
+		self.assertFalse(mtm.ask)
+		mtm.changeAsk(True)
+		self.assertTrue(mtm.ask)
+		mtm.changeAsk("a")#does nothing
+		self.assertTrue(mtm.ask)
+
 	def test_getIdentifier(self):
-		# self.assertRaises(NotImplementedError, lambda: ())
-		pass
+		"""Test that getIdentifier is not implemented"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertRaises(NotImplementedError, lambda: mtm.getIdentifier("a"))
+
 	def test_prepareSelected(self):
-		pass
-	def test_selectAll(self):
-		pass
-	def test_unselectAll(self):
-		pass
+		"""test prepareSelected"""
+		def setAbout(cl):
+			cl.about = True
+		def setChanged(cl):
+			cl.changed = True
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		mtm.about = False
+		mtm.changed = False
+		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
+		mtm.layoutChanged.connect(lambda: setChanged(mtm))
+		self.assertFalse(mtm.about)
+		self.assertFalse(mtm.changed)
+		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier", side_effect = [0, 1, 2]) as _gi:
+			mtm.prepareSelected()
+			_gi.assert_has_calls([call({"a": 1, "b": 3}), call({"a": 2, "b": 2}), call({"a": 3, "b": 1})])
+		self.assertEqual(mtm.selectedElements, {0: False, 1: False, 2: False})
+		mtm = MyTableModel(p, ["a", "b"], previous = [2])
+		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier", side_effect = [0, 1, 2]) as _gi:
+			mtm.prepareSelected()
+			_gi.assert_has_calls([call({"a": 1, "b": 3}), call({"a": 2, "b": 2}), call({"a": 3, "b": 1})])
+		self.assertEqual(mtm.selectedElements, {0: False, 1: False, 2: True})
+		mtm = MyTableModel(p, ["a", "b"], previous = [1, 5])
+		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier", side_effect = [0, 1, 2]) as _gi:
+			self.assert_in_stdout(mtm.prepareSelected, "Invalid identifier in previous selection: 5")
+			_gi.assert_has_calls([call({"a": 1, "b": 3}), call({"a": 2, "b": 2}), call({"a": 3, "b": 1})])
+		self.assertEqual(mtm.selectedElements, {0: False, 1: True, 2: False})
+		mtm = MyTableModel(p, ["a", "b"])
+		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier", side_effect = [0, 1, 2]) as _gi:
+			self.assert_in_stdout(mtm.prepareSelected, "dataList is not defined!")
+			_gi.assert_not_called()
+		self.assertEqual(mtm.selectedElements, {})
+
+	def test_un_selectAll(self):
+		"""test selectAll and unselectAll"""
+		def setAbout(cl):
+			cl.about = True
+		def setChanged(cl):
+			cl.changed = True
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		dl = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		mtm.dataList = dl
+		mtm.about = False
+		mtm.changed = False
+		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
+		mtm.layoutChanged.connect(lambda: setChanged(mtm))
+		self.assertFalse(mtm.about)
+		self.assertFalse(mtm.changed)
+		mtm.selectedElements = {0: False, 1: False, 2: False}
+		mtm.selectAll()
+		self.assertTrue(mtm.about)
+		self.assertTrue(mtm.changed)
+		self.assertEqual(mtm.selectedElements, {0: True, 1: True, 2: True})
+		mtm.about = False
+		mtm.changed = False
+		mtm.unselectAll()
+		self.assertTrue(mtm.about)
+		self.assertTrue(mtm.changed)
+		self.assertEqual(mtm.selectedElements, {0: False, 1: False, 2: False})
+
 	def test_addImage(self):
-		pass
+		"""Test addImage"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		img = mtm.addImage(":/images/edit.png", 51)
+		self.assertIsInstance(img, QPixmap)
+		self.assertEqual(img.height(), 51)
+		img = mtm.addImage(":/images/nonexistent", 51)
+		self.assertTrue(img.isNull())
+
 	def test_addImages(self):
-		pass
+		"""Test addImages"""
+		# p = objListWindow()
+		# mtm = MyTableModel(p, ["a", "b"])
+
 	def test_rowCount(self):
-		pass
+		"""Test columnCount"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertEqual(mtm.rowCount(), 0)
+		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		self.assertEqual(mtm.rowCount(), 3)
+		mtm = MyTableModel(p, 1)
+		self.assertEqual(mtm.rowCount(), 0)
+
 	def test_columnCount(self):
-		pass
+		"""Test columnCount"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertEqual(mtm.columnCount(), 2)
+		self.assertEqual(mtm.columnCount(p), 2)
+		mtm = MyTableModel(p, 1)
+		self.assertEqual(mtm.columnCount(), 0)
+
 	def test_data(self):
-		# self.assertRaises(NotImplementedError, lambda: ())
-		pass
+		"""Test that data is not implemented"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertRaises(NotImplementedError, lambda: mtm.data(1, 1))
+
 	def test_flags(self):
-		pass
+		"""test flags"""
+		idx = QModelIndex()
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertEqual(mtm.flags(idx), None)
+		with patch("PySide2.QtCore.QModelIndex.isValid", return_value = True) as _iv:
+			with patch("PySide2.QtCore.QModelIndex.column", return_value = 1) as _c:
+				self.assertEqual(mtm.flags(idx), Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			with patch("PySide2.QtCore.QModelIndex.column", return_value = 0) as _c:
+				self.assertEqual(mtm.flags(idx), Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			mtm.ask = True
+			with patch("PySide2.QtCore.QModelIndex.column", return_value = 0) as _c:
+				self.assertEqual(mtm.flags(idx), Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+
 	def test_headerData(self):
-		pass
+		"""test headerData"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertEqual(mtm.headerData(0, Qt.Vertical, Qt.DisplayRole), None)
+		self.assertEqual(mtm.headerData(0, Qt.Horizontal, Qt.EditRole), None)
+		self.assertEqual(mtm.headerData(0, Qt.Horizontal, Qt.DisplayRole), "a")
+
 	def test_setData(self):
-		# self.assertRaises(NotImplementedError, lambda: ())
-		pass
+		"""Test that setData is not implemented"""
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		self.assertRaises(NotImplementedError, lambda: mtm.setData(1, 1, 1))
+
 	def test_sort(self):
-		pass
+		"""test sort function"""
+		def setAbout(cl):
+			cl.about = True
+		def setChanged(cl):
+			cl.changed = True
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		dl = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
+		mtm.dataList = dl
+		mtm.about = False
+		mtm.changed = False
+		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
+		mtm.layoutChanged.connect(lambda: setChanged(mtm))
+		self.assertFalse(mtm.about)
+		self.assertFalse(mtm.changed)
+		self.assert_in_stdout(mtm.sort, "Wrong column name in `sort`: '1'!")
+		self.assertTrue(mtm.about)
+		self.assertTrue(mtm.changed)
+		self.assertEqual(mtm.dataList, dl)
+		mtm.sort("b")
+		self.assertEqual(mtm.dataList, [{"a": 3, "b": 1}, {"a": 2, "b": 2}, {"a": 1, "b": 3}])
+		mtm.sort("b", Qt.DescendingOrder)
+		self.assertEqual(mtm.dataList, dl)
+		mtm.sort("a")
+		self.assertEqual(mtm.dataList, dl)
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestTreeNode(GUITestCase):

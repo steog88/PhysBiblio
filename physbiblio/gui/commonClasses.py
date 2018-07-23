@@ -407,6 +407,15 @@ class MyTableModel(QAbstractTableModel):
 	Extension of `QAbstractTableModel`, used for experiments and bibtex entries
 	"""
 	def __init__(self, parent, header, ask = False,  previous = [], *args):
+		"""
+		Constructor, based on `QAbstractTableModel.__init__`
+
+		Parameters:
+			parent: the parent widget
+			header: the list of column names which constitute the table
+			ask (boolean, default False): when True, allow to select the lines with a checkbox
+			previous: the list of lines which must be selected at the beginning
+		"""
 		QAbstractTableModel.__init__(self, parent, *args)
 		self.header = header
 		self.parentObj = parent
@@ -414,6 +423,12 @@ class MyTableModel(QAbstractTableModel):
 		self.ask = ask
 
 	def changeAsk(self, new = None):
+		"""
+		Change the value of `self.ask` to show/hide checkboxes
+
+		Parameters:
+			new: `None` to just swap the current value of `self.ask`, `True` or `False` to set it to the desired value
+		"""
 		self.layoutAboutToBeChanged.emit()
 		if new is None:
 			self.ask = not self.ask
@@ -426,31 +441,53 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def prepareSelected(self):
+		"""
+		Fill the dictionary `self.selectedElements` according to previous selection
+		"""
 		self.layoutAboutToBeChanged.emit()
 		self.selectedElements = {}
-		for bib in self.dataList:
-			self.selectedElements[self.getIdentifier(bib)] = False
+		try:
+			for bib in self.dataList:
+				self.selectedElements[self.getIdentifier(bib)] = False
+		except AttributeError:
+			pBLogger.exception("dataList is not defined!")
 		for prevK in self.previous:
 			try:
-				self.selectedElements[prevK] = True
-			except IndexError:
-				pBLogger.exception("[%s] Invalid identifier in previous selection: %s"%(self.typeClass, prevK))
+				if self.selectedElements[prevK] == False:
+					self.selectedElements[prevK] = True
+			except (KeyError,IndexError):
+				pBLogger.exception("Invalid identifier in previous selection: %s"%(prevK))
 		self.layoutChanged.emit()
 
 	def selectAll(self):
+		"""
+		Select all the available rows
+		"""
 		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = True
 		self.layoutChanged.emit()
 
 	def unselectAll(self):
+		"""
+		Unselect all the available rows
+		"""
 		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = False
 		self.layoutChanged.emit()
 
 	def addImage(self, imagePath, height):
-		"""create a cell containing an image"""
+		"""
+		Create a cell containing an image
+
+		Parameters:
+			imagePath: the path of the image
+			height: the height to give to the image
+
+		Output:
+			a QPixmap
+		"""
 		return QPixmap(imagePath).scaledToHeight(height)
 
 	def addImages(self, imagePaths, outHeight, height = 48):
@@ -465,12 +502,33 @@ class MyTableModel(QAbstractTableModel):
 		return pm.scaledToHeight(outHeight)
 
 	def rowCount(self, parent = None):
-		return len(self.dataList)
+		"""
+		Count the rows of the given model based on the header
+
+		Parameter:
+			parent: `QModelIndex` (required by the parent signature)
+
+		Output:
+			the number od rows or zero (if error occurred)
+		"""
+		try:
+			return len(self.dataList)
+		except (TypeError, AttributeError):
+			return 0
 
 	def columnCount(self, parent = None):
+		"""
+		Count the columns of the given model based on the header
+
+		Parameter:
+			parent: `QModelIndex` (required by the parent signature)
+
+		Output:
+			the number of columns or zero (if error occurred)
+		"""
 		try:
 			return len(self.header)
-		except IndexError:
+		except TypeError:
 			return 0
 
 	def data(self, index, role):
@@ -478,6 +536,17 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def flags(self, index):
+		"""
+		Determine the flags of a given item
+
+		Parameter:
+			index: a `QModelIndex`
+
+		Output:
+			None if the index is not valid
+			if `self.ask` and first column, show checkboxes: Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+			all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		"""
 		if not index.isValid():
 			return None
 		if index.column() == 0 and self.ask:
@@ -486,6 +555,17 @@ class MyTableModel(QAbstractTableModel):
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
 	def headerData(self, col, orientation, role):
+		"""
+		Obtain column name if correctly asked
+
+		Parameters:
+			col: the column index in `self.header`
+			orientation: int from `Qt.Orientation`
+			role: int from `Qt.ItemDataRole`
+
+		Output:
+			the column name or `None`
+		"""
 		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
 			return self.header[col]
 		return None
@@ -495,11 +575,20 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def sort(self, col = 1, order = Qt.AscendingOrder):
-		"""sort table by given column number col"""
+		"""
+		Sort table by the given column, number `col`
+
+		Parameters:
+			col: the column name
+			order: int from `Qt.SortOrder`
+		"""
 		self.layoutAboutToBeChanged.emit()
-		self.dataList = sorted(self.dataList, key=operator.itemgetter(col) )
-		if order == Qt.DescendingOrder:
-			self.dataList.reverse()
+		try:
+			self.dataList = sorted(self.dataList, key = lambda x: x[col] )
+			if order == Qt.DescendingOrder:
+				self.dataList.reverse()
+		except KeyError:
+			pBLogger.warning("Wrong column name in `sort`: '%s'!"%col)
 		self.layoutChanged.emit()
 
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
