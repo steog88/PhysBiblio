@@ -491,14 +491,24 @@ class MyTableModel(QAbstractTableModel):
 		return QPixmap(imagePath).scaledToHeight(height)
 
 	def addImages(self, imagePaths, outHeight, height = 48):
-		"""create a cell containing multiple images"""
+		"""
+		Create a cell containing multiple images, using a `QPainter`
+
+		Parameters:
+			imagePaths: a list of image paths for creating the single `QPixmap`s
+			outHeight: the final height for rescaling the image
+			height (default 48): the height and width to be used when painting
+
+		Output:
+			a `QPixmap`
+		"""
 		width = len(imagePaths) * height
 		pm = QPixmap(width, height)
 		pm.fill(Qt.transparent)
-		painter = QPainter(pm)
+		self.painter = QPainter(pm)
 		for i, img in enumerate(imagePaths):
-			painter.drawPixmap(i * height, 0, QPixmap(img))
-		painter.end()
+			self.painter.drawPixmap(i * height, 0, QPixmap(img))
+		self.painter.end()
 		return pm.scaledToHeight(outHeight)
 
 	def rowCount(self, parent = None):

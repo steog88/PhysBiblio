@@ -605,8 +605,25 @@ class TestMyTableModel(GUITestCase):
 
 	def test_addImages(self):
 		"""Test addImages"""
-		# p = objListWindow()
-		# mtm = MyTableModel(p, ["a", "b"])
+		p = objListWindow()
+		mtm = MyTableModel(p, ["a", "b"])
+		qp = mtm.addImages([":/images/edit.png", ":/images/find.png"], 31)
+		self.assertIsInstance(qp, QPixmap)
+		self.assertEqual(qp.height(), 31)
+		basepixm = QPixmap(96, 48)
+		qpixm = QPixmap(":/images/edit.png")
+		painter = QPainter(basepixm)
+		with patch("physbiblio.gui.commonClasses.QPixmap",
+				side_effect = [basepixm, qpixm, qpixm]) as _qpm:
+			with patch("PySide2.QtGui.QPixmap.fill") as _fi:
+				with patch("physbiblio.gui.commonClasses.QPainter", return_value = painter) as _qpai:
+					with patch("PySide2.QtGui.QPainter.drawPixmap") as _drp:
+						qp = mtm.addImages([":/images/edit.png", ":/images/find.png"], 31)
+						_qpm.assert_has_calls([call(96, 48), call(":/images/edit.png"), call(":/images/find.png")])
+						_fi.assert_called_once_with(Qt.transparent)
+						_qpai.assert_called_once_with(basepixm)
+						_drp.assert_has_calls([call(0, 0, qpixm), call(48, 0, qpixm)])
+		self.assertFalse(mtm.painter.isActive())
 
 	def test_rowCount(self):
 		"""Test columnCount"""
