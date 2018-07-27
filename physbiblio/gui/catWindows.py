@@ -100,8 +100,8 @@ class catsModel(TreeModel):
 			return None
 		row = index.row()
 		column = index.column()
-		value = index.internalPointer().ref.text
-		idCat = index.internalPointer().ref.idCat
+		value = index.internalPointer().element.text
+		idCat = index.internalPointer().element.idCat
 		if role == Qt.DisplayRole and index.column() == 0:
 			return value
 
@@ -133,7 +133,7 @@ class catsModel(TreeModel):
 		return None
 
 	def setData(self, index, value, role):
-		idCat = index.internalPointer().ref.idCat
+		idCat = index.internalPointer().element.idCat
 		if role == Qt.CheckStateRole and index.column() == 0:
 			self.previousSaved[idCat] = False
 			if value == Qt.Checked:

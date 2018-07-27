@@ -623,7 +623,9 @@ class TreeNode(object):
 		raise NotImplementedError()
 
 class TreeModel(QAbstractItemModel):
+	"""Model for a tree structure."""
 	def __init__(self):
+		"""Class constructor. Calls `_getRootNodes` to build the tree structure"""
 		QAbstractItemModel.__init__(self)
 		self.rootNodes = self._getRootNodes()
 
@@ -633,9 +635,15 @@ class TreeModel(QAbstractItemModel):
 
 	def index(self, row, column, parent):
 		if not parent.isValid():
-			return self.createIndex(row, column, self.rootNodes[row])
+			try:
+				return self.createIndex(row, column, self.rootNodes[row])
+			except IndexError:
+				return QModelIndex()
 		parentNode = parent.internalPointer()
-		return self.createIndex(row, column, parentNode.subnodes[row])
+		try:
+			return self.createIndex(row, column, parentNode.subnodes[row])
+		except IndexError:
+			return QModelIndex()
 
 	def parent(self, index):
 		if not index.isValid():
@@ -646,73 +654,113 @@ class TreeModel(QAbstractItemModel):
 		else:
 			return self.createIndex(node.parent.row, 0, node.parent)
 
-	def reset(self):
-		self.rootNodes = self._getRootNodes()
-		QAbstractItemModel.reset(self)
-
 	def rowCount(self, parent):
 		if not parent.isValid():
 			return len(self.rootNodes)
 		node = parent.internalPointer()
 		return len(node.subnodes)
 
-class NamedElement(object): # your internal structure
+class NamedElement(object):
+	"""Basic object for the tree structure of categories"""
 	def __init__(self, idCat, name, subelements):
+		"""
+		Class constructor, set some element properties
+
+		Parameters:
+			idCat: the category id
+			name: the name of the category
+			subelements: the list of children elements
+		"""
 		self.idCat = idCat
 		self.name = name
 		self.text = catString(idCat, pBDB)
 		self.subelements = subelements
 
 class NamedNode(TreeNode):
-	def __init__(self, ref, parent, row):
-		self.ref = ref
+	"""Extend `TreeNode` to work with `NamedElement`"""
+	def __init__(self, element, parent, row):
+		"""
+		Define `self.element` and call `TreeNode.__init__`
+
+		Parameters:
+			element: the `NamedElement` of the object
+			parent: the parent node
+			row: the row index
+		"""
+		self.element = element
 		TreeNode.__init__(self, parent, row)
 
 	def _getChildren(self):
+		"""
+		Return a list of `NamedNode`s, containing the children nodes.
+		Overrides `TreeNode._getChildren`
+		"""
 		return [NamedNode(elem, self, index)
-			for index, elem in enumerate(self.ref.subelements)]
+			for index, elem in enumerate(self.element.subelements)]
 
 #http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
 class LeafFilterProxyModel(QSortFilterProxyModel):
-	''' Class to override the following behaviour:
-			If a parent item doesn't match the filter,
-			none of its children will be shown.
+	"""
+	Class to override the following behaviour:
+		If a parent item doesn't match the filter,
+		none of its children will be shown.
 
-		This Model matches items which are descendants
-		or ascendants of matching items.
-	'''
+	This Model matches items which are descendants
+	or ascendants of matching items.
+	"""
 
 	def filterAcceptsRow(self, row_num, source_parent):
-		''' Overriding the parent function '''
+		"""
+		Overriding the parent function
 
+		Parameters:
+			row_num: the row number
+			source_parent: the parent node in the tree
+		"""
 		# Check if the current row matches
-		if self.filter_accepts_row_itself(row_num, source_parent):
+		if self.filterAcceptsRowItself(row_num, source_parent):
 			return True
 
 		# Traverse up all the way to root and check if any of them match
-		if self.filter_accepts_any_parent(source_parent):
+		if self.filterAcceptsAnyParent(source_parent):
 			return True
 
 		# Finally, check if any of the children match
-		return self.has_accepted_children(row_num, source_parent)
+		return self.hasAcceptedChildren(row_num, source_parent)
 
-	def filter_accepts_row_itself(self, row_num, parent):
+	def filterAcceptsRowItself(self, row_num, parent):
+		"""
+		New name for the original `filterAcceptsRow`, which has been overridden
+
+		Parameters:
+			row_num: the row number
+			parent: the parent node in the tree
+		"""
 		return super(LeafFilterProxyModel, self).filterAcceptsRow(row_num, parent)
 
-	def filter_accepts_any_parent(self, parent):
-		''' Traverse to the root node and check if any of the
-			ancestors match the filter
-		'''
+	def filterAcceptsAnyParent(self, parent):
+		"""
+		Traverse to the root node and check if any of the
+		ancestors match the filter
+
+		Parameter:
+			parent: the parent node in the tree
+		"""
 		while parent.isValid():
-			if self.filter_accepts_row_itself(parent.row(), parent.parent()):
+			if self.filterAcceptsRowItself(parent.row(), parent.parent()):
 				return True
 			parent = parent.parent()
 		return False
 
-	def has_accepted_children(self, row_num, parent):
-		''' Starting from the current node as root, traverse all
-			the descendants and test if any of the children match
-		'''
+	def hasAcceptedChildren(self, row_num, parent):
+		"""
+		Starting from the current node as root, traverse all
+		the descendants and test if any of the children match
+
+		Parameters:
+			row_num: the row number
+			parent: the parent node in the tree
+		"""
 		model = self.sourceModel()
 		source_index = model.index(row_num, 0, parent)
 
