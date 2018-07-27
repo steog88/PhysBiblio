@@ -10,7 +10,7 @@ import time
 from PySide2.QtCore import Qt, QModelIndex, QPoint, QRect
 from PySide2.QtGui import QContextMenuEvent
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QInputDialog, QDesktopWidget, QLineEdit, QWidget
+from PySide2.QtWidgets import QAction, QDesktopWidget, QInputDialog, QLineEdit, QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -927,7 +927,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 			self.assertEqual(_its.call_count, 1)
 			self.assertEqual(_pa.call_count, 1)
 
-	def test_hasAcceptedChildren(self):
+	def test_hasAcceptedChildren(self):#probably could be improved a bit
 		"""test hasAcceptedChildren"""
 		el = NamedElement(1, "tags", [])
 		main = NamedElement(0, "main", [el])
@@ -968,11 +968,65 @@ class TestMyMenu(GUITestCase):
 	Test the MyMenu class
 	"""
 	def test_init(self):
-		pass
+		"""Test init"""
+		mm = MyMenu()
+		self.assertIsInstance(mm, QMenu)
+		self.assertEqual(mm.possibleActions, [])
+		self.assertFalse(mm.result)
+		with patch("physbiblio.gui.commonClasses.QMenu.__init__") as _in:
+			mm = MyMenu("abc")
+			_in.assert_called_once_with("abc")
+
 	def test_fillMenu(self):
-		pass
+		"""test fillMenu"""
+		mm = MyMenu()
+		acts = [
+			QAction("test1"),
+			"abc",
+			QAction("test2"),
+			None,
+			["submenu", [
+				QAction("Sub1"),
+				QAction("Sub2"),
+				["subsub", [
+					QAction("nest")
+					]
+				],
+				None
+				]
+			]
+		]
+		mm.possibleActions = acts
+		mm.fillMenu()
+		macts = mm.actions()
+		self.assertEqual(acts[0], macts[0])
+		self.assertEqual(acts[2], macts[1])
+		self.assertTrue(macts[2].isSeparator())
+		self.assertEqual(macts[0].menu(), None)
+		self.assertEqual(macts[1].menu(), None)
+		self.assertEqual(macts[2].menu(), None)
+		self.assertIsInstance(macts[3].menu(), QMenu)
+		subm = macts[3].menu()
+		self.assertEqual(subm.title(), acts[4][0])
+		sacts = subm.actions()
+		self.assertEqual(acts[4][1][0], sacts[0])
+		self.assertEqual(acts[4][1][1], sacts[1])
+		self.assertIsInstance(sacts[2].menu(), QMenu)
+		subsub = sacts[2].menu()
+		self.assertEqual(subsub.title(), acts[4][1][2][0])
+		self.assertEqual(subsub.actions()[0], acts[4][1][2][1][0])
+		self.assertTrue(sacts[3].isSeparator())
+
 	def test_keyPressEvent(self):
-		pass
+		"""test keyPressEvent"""
+		mm = MyMenu()
+		with patch("physbiblio.gui.commonClasses.QMenu.close") as _oc:
+			QTest.keyPress(mm, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(mm, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(mm, Qt.Key_Escape)
+			_oc.assert_called_once()
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestGuiViewEntry(GUITestCase):

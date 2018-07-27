@@ -2,7 +2,7 @@
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QDialog, QLabel, QLineEdit, QMenu, QPushButton, QTreeView, QVBoxLayout, QToolTip
+from PySide2.QtWidgets import QDialog, QLabel, QLineEdit, QPushButton, QTreeView, QVBoxLayout, QToolTip
 
 try:
 	from physbiblio.errors import pBLogger
@@ -311,15 +311,17 @@ class catsWindowList(QDialog):
 		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
 		idCat = idCat.strip()
 		
-		menu = QMenu()
-		titAct = menu.addAction("--Category: %s--"%catName).setDisabled(True)
-		menu.addSeparator()
-		bibAction = menu.addAction("Open list of corresponding entries")
-		menu.addSeparator()
-		modAction = menu.addAction("Modify")
-		delAction = menu.addAction("Delete")
-		menu.addSeparator()
-		subAction = menu.addAction("Add subcategory")
+		menu = MyMenu()
+		titAction = QAction("--Category: %s--"%catName)
+		titAction.setDisabled(True)
+		bibAction = QAction("Open list of corresponding entries")
+		modAction = QAction("Modify")
+		delAction = QAction("Delete")
+		subAction = QAction("Add subcategory")
+		menu.possibleActions = [
+			titAction, None, bibAction, None, modAction, delAction, None, subAction
+			]
+		menu.fillMenu()
 
 		action = menu.exec_(event.globalPos())
 		if action == bibAction:

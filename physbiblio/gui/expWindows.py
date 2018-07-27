@@ -2,7 +2,7 @@
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QLabel, QLineEdit, QMenu, QPushButton, QToolTip
+from PySide2.QtWidgets import QLabel, QLineEdit, QPushButton, QToolTip
 import traceback
 import operator
 
@@ -194,15 +194,17 @@ class ExpWindowList(objListWindow):
 			expName = str(self.proxyModel.sibling(row, 1, index).data())
 		except AttributeError:
 			return
-		menu = QMenu()
-		titAct = menu.addAction("--Experiment: %s--"%expName).setDisabled(True)
-		menu.addSeparator()
-		bibAction = menu.addAction("Open list of corresponding entries")
-		menu.addSeparator()
-		modAction = menu.addAction("Modify")
-		delAction = menu.addAction("Delete")
-		menu.addSeparator()
+		menu = MyMenu()
+		titAction = QAction("--Experiment: %s--"%expName)
+		titAction.setDisabled(True)
+		bibAction = QAction("Open list of corresponding entries")
+		modAction = QAction("Modify")
+		delAction = QAction("Delete")
 		catAction = menu.addAction("Categories")
+		menu.possibleActions = [
+			titAction, None, bibAction, None, modAction, delAction, None, catAction
+			]
+		menu.fillMenu()
 		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:

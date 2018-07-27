@@ -827,23 +827,44 @@ class MyDDTableWidget(QTableWidget):
 		return selectedRows
 
 class MyMenu(QMenu):
+	"""
+	Extend `QMenu` for faster menu build
+	"""
 	def __init__(self, parent = None):
+		"""
+		Construct the element defining some basic properties
+
+		Parameter:
+			parent: the parent widget
+		"""
 		super(MyMenu, self).__init__(parent)
 		self.possibleActions = []
 		self.result = False
 
 	def fillMenu(self):
+		"""
+		Add actions, separators or submenus according to the content
+		of `self.possibleActions` (recursively for submenus)
+		"""
 		for act in self.possibleActions:
 			if act is None:
 				self.addSeparator()
 			elif type(act) is list:
-				currmenu = self.addMenu(act[0])
-				for a in act[1]:
-					currmenu.addAction(a)
-			else:
+				submenu = MyMenu()
+				submenu.setTitle(act[0])
+				submenu.possibleActions = act[1]
+				submenu.fillMenu()
+				self.addMenu(submenu)
+			elif isinstance(act, QAction):
 				self.addAction(act)
 
 	def keyPressEvent(self, e):
+		"""
+		Intercept press keys and exit if escape is pressed
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
+		"""
 		if e.key() == Qt.Key_Escape:
 			self.close()
 

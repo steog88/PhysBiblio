@@ -7,7 +7,7 @@ os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
-from PySide2.QtWidgets import QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMenu, QPlainTextEdit, QPushButton, QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
+from PySide2.QtWidgets import QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
 import re
 from pyparsing import ParseException
 from pylatexenc.latex2text import LatexNodes2Text
@@ -539,41 +539,38 @@ class bibtexList(QFrame, objListWindow):
 		except IndexError:
 			pBGUILogger.exception("The entry cannot be found!")
 			return False
-		menu = QMenu()
-		titAct = menu.addAction("--Entry: %s--"%bibkey).setDisabled(True)
-		menu.addSeparator()
-		modAction = menu.addAction("Modify")
-		cleAction = menu.addAction("Clean")
-		delAction = menu.addAction("Delete")
-		menu.addSeparator()
+		menu = MyMenu()
+		titAct = QAction("--Entry: %s--"%bibkey)
+		titAct.setDisabled(True)
+		modAction = QAction("Modify")
+		cleAction = QAction("Clean")
+		delAction = QAction("Delete")
 
-		marksMenu = menu.addMenu("Marks")
 		marksActions = {}
-		for m in [ k for k in pBMarks.marks.keys() ]:
+		for m in pBMarks.marks.keys():
 			if m in initialRecord["marks"]:
-				marksActions[m] = marksMenu.addAction("Unmark as '%s'"%pBMarks.marks[m]["desc"])
+				marksActions[m] = QAction("Unmark as '%s'"%pBMarks.marks[m]["desc"])
 			else:
-				marksActions[m] = marksMenu.addAction("Mark as '%s'"%pBMarks.marks[m]["desc"])
-		typeMenu = menu.addMenu("Type")
+				marksActions[m] = QAction("Mark as '%s'"%pBMarks.marks[m]["desc"])
 		typeActions = {}
 		for k, v in convertType.items():
 			if initialRecord[k]:
-				typeActions[k] = typeMenu.addAction("Unset '%s'"%v)
+				typeActions[k] = QAction("Unset '%s'"%v)
 			else:
-				typeActions[k] = typeMenu.addAction("Set '%s'"%v)
+				typeActions[k] = QAction("Set '%s'"%v)
 
-		menu.addSeparator()
-		copyMenu = menu.addMenu("Copy to clipboard")
 		copyActions = {}
-		copyActions["bibkey"] = copyMenu.addAction("Copy key")
-		copyActions["cite"] = copyMenu.addAction(r"Copy \cite{key}")
-		copyActions["bibtex"] = copyMenu.addAction("Copy bibtex")
+		copyKeys = ["bibkey", "cite", "bibtex"]
+		copyActions["bibkey"] = QAction("Copy key")
+		copyActions["cite"] = QAction(r"Copy \cite{key}")
+		copyActions["bibtex"] = QAction("Copy bibtex")
 		if abstract is not None and abstract.strip() != "":
-			copyActions["abstract"] = copyMenu.addAction("Copy abstract")
+			copyKeys.append("abstract")
+			copyActions["abstract"] = QAction("Copy abstract")
 		if link is not None and link.strip() != "":
-			copyActions["link"] = copyMenu.addAction("Copy link")
+			copyKeys.append("link")
+			copyActions["link"] = QAction("Copy link")
 
-		pdfMenu = menu.addMenu("PDF")
 		try:
 			if inspireID.strip() == "" or inspireID is False:
 				inspireID = None
@@ -583,53 +580,75 @@ class bibtexList(QFrame, objListWindow):
 		arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
 		pdfDir = pBPDF.getFileDir(bibkey)
 		pdfActs={}
-		pdfActs["addPdf"] = pdfMenu.addAction("Add generic PDF")
-		pdfMenu.addSeparator()
+		pdfActs["addPdf"] = QAction("Add generic PDF")
+		pdfActsList = [pdfActs["addPdf"], None]
 		if arxivFile in files:
 			files.remove(arxivFile)
-			pdfActs["openArx"] = pdfMenu.addAction("Open arXiv PDF")
-			pdfActs["delArx"] = pdfMenu.addAction("Delete arXiv PDF")
-			pdfActs["copyArx"] = pdfMenu.addAction("Copy arXiv PDF")
+			pdfActs["openArx"] = QAction("Open arXiv PDF")
+			pdfActs["delArx"] = QAction("Delete arXiv PDF")
+			pdfActs["copyArx"] = QAction("Copy arXiv PDF")
+			pdfActsList += [pdfActs["openArx"], pdfActs["delArx"], pdfActs["copyArx"]]
 		elif arxiv is not None and arxiv != "":
-			pdfActs["downArx"] = pdfMenu.addAction("Download arXiv PDF")
-		pdfMenu.addSeparator()
+			pdfActs["downArx"] = QAction("Download arXiv PDF")
+			pdfActsList.append(pdfActs["downArx"])
+		pdfActsList.append(None)
 		doiFile = pBPDF.getFilePath(bibkey, "doi")
 		if doiFile in files:
 			files.remove(doiFile)
-			pdfActs["openDoi"] = pdfMenu.addAction("Open DOI PDF")
-			pdfActs["delDoi"] = pdfMenu.addAction("Delete DOI PDF")
-			pdfActs["copyDoi"] = pdfMenu.addAction("Copy DOI PDF")
+			pdfActs["openDoi"] = QAction("Open DOI PDF")
+			pdfActs["delDoi"] = QAction("Delete DOI PDF")
+			pdfActs["copyDoi"] = QAction("Copy DOI PDF")
+			pdfActsList += [pdfActs["openDoi"], pdfActs["delDoi"], pdfActs["copyDoi"]]
 		elif doi is not None and doi != "":
-			pdfActs["addDoi"] = pdfMenu.addAction("Assign DOI PDF")
-		pdfMenu.addSeparator()
+			pdfActs["addDoi"] = QAction("Assign DOI PDF")
+			pdfActsList.append(pdfActs["addDoi"])
+		pdfActsList.append(None)
 		pdfActs["openOtherPDF"] = [None for i in range(len(files))]
 		pdfActs["delOtherPDF"] = [None for i in range(len(files))]
 		pdfActs["copyOtherPDF"] = [None for i in range(len(files))]
 		for i,f in enumerate(files):
-			pdfActs["openOtherPDF"][i] = pdfMenu.addAction("Open %s"%f.replace(pdfDir+"/", ""))
-			pdfActs["delOtherPDF"][i] = pdfMenu.addAction("Delete %s"%f.replace(pdfDir+"/", ""))
-			pdfActs["copyOtherPDF"][i] = pdfMenu.addAction("Copy %s"%f.replace(pdfDir+"/", ""))
+			pdfActs["openOtherPDF"][i] = QAction("Open %s"%f.replace(pdfDir+"/", ""))
+			pdfActs["delOtherPDF"][i] = QAction("Delete %s"%f.replace(pdfDir+"/", ""))
+			pdfActs["copyOtherPDF"][i] = QAction("Copy %s"%f.replace(pdfDir+"/", ""))
+			pdfActsList += [pdfActs["openOtherPDF"][i], pdfActs["delOtherPDF"][i], pdfActs["copyOtherPDF"][i]]
 		
-		menu.addSeparator()
-		catAction = menu.addAction("Manage categories")
-		expAction = menu.addAction("Manage experiments")
-		menu.addSeparator()
-		opArxAct = menu.addAction("Open into arXiv")
-		opDoiAct = menu.addAction("Open DOI link")
-		opInsAct = menu.addAction("Open into INSPIRE-HEP")
-		menu.addSeparator()
-		insAction = menu.addAction("Complete info (from INSPIRE-HEP)")
-		updAction = menu.addAction("Update (from INSPIRE-HEP)")
-		relAction = menu.addAction("Reload (from INSPIRE-HEP)")
-		staAction = menu.addAction("Citation statistics (from INSPIRE-HEP)")
+		catAction = QAction("Manage categories")
+		expAction = QAction("Manage experiments")
+		opArxAct = QAction("Open into arXiv")
+		opDoiAct = QAction("Open DOI link")
+		opInsAct = QAction("Open into INSPIRE-HEP")
+		insAction = QAction("Complete info (from INSPIRE-HEP)")
+		updAction = QAction("Update (from INSPIRE-HEP)")
+		relAction = QAction("Reload (from INSPIRE-HEP)")
+		staAction = QAction("Citation statistics (from INSPIRE-HEP)")
 		if arxiv is not None and arxiv != "":
-			absAction = menu.addAction("Get abstract (from arXiv)")
-			arxAction = menu.addAction("Get info (from arXiv)")
+			absAction = QAction("Get abstract (from arXiv)")
+			arxAction = QAction("Get info (from arXiv)")
 		else:
 			absAction = "absAction"
 			arxAction = "arxAction"
-		menu.addSeparator()
 		
+		menu.possibleActions = [
+			titAct,
+			None,
+			modAction, cleAction, delAction,
+			None,
+			["Marks", [marksActions[k] for k in pBMarks.marks.keys()]],
+			["Type", [typeActions[k] for k in convertType.keys()]],
+			None,
+			["Copy to clipboard", [copyActions[k] for k in copyKeys]],
+			["PDF", pdfActsList],
+			None,
+			catAction, expAction,
+			None,
+			opArxAct, opDoiAct, opInsAct,
+			None,
+			insAction, updAction, relAction, staAction,
+			absAction, arxAction,
+			None,
+			]
+		menu.fillMenu()
+
 		action = menu.exec_(event.globalPos())
 		if action == delAction:
 			deleteBibtex(self.parent, self.parent, bibkey)
