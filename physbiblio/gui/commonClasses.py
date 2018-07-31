@@ -771,7 +771,16 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		return False
 
 class MyDDTableWidget(QTableWidget):
+	"""
+	Drag and drop extension of QTableWidget
+	"""
 	def __init__(self,  header):
+		"""
+		Set some properties and settings.
+
+		Parameters:
+			header: the title of the column
+		"""
 		super(MyDDTableWidget, self).__init__()
 		self.setColumnCount(1)
 		self.setHorizontalHeaderLabels([header])
@@ -782,6 +791,14 @@ class MyDDTableWidget(QTableWidget):
 
 	# Override this method to get the correct row index for insertion
 	def dropMimeData(self, row, col, mimeData, action):
+		"""
+		Overridden method to get the row index for insertion
+
+		Parameters:
+			row: the index of the dropped row
+			col, mimeData, action: not used params
+				(see the signature of `QTableWidget.dropMimeData`)
+		"""
 		self.last_drop_row = row
 		return True
 
@@ -819,10 +836,18 @@ class MyDDTableWidget(QTableWidget):
 		event.accept()
 
 	def getselectedRowsFast(self):
+		"""
+		Return the list of selected rows
+
+		Output:
+			a list with the row indexes of the selected rows
+		"""
 		selectedRows = []
 		for item in self.selectedItems():
-			if item.row() not in selectedRows and item.text() != "bibkey":
-				selectedRows.append(item.row())
+			row = item.row()
+			text = item.text()
+			if row not in selectedRows and text != "bibkey":
+				selectedRows.append(row)
 		selectedRows.sort()
 		return selectedRows
 
@@ -870,16 +895,22 @@ class MyMenu(QMenu):
 
 class guiViewEntry(viewEntry):
 	"""
-	Extends viewEntry class to work with QtGui.QDesktopServices
+	Extends the viewEntry class to work with QtGui.QDesktopServices
 	"""
-	def __init__(self):
-		"""
-		Init the class, storing the name of the external web application
-		and the base strings to build some links
-		"""
-		viewEntry.__init__(self)
-
 	def openLink(self, key, arg = "", fileArg = None):
+		"""
+		Use `QDesktopServices` to open an url using the system default applications
+
+		Parameters:
+			key: the entry key or the link (if `arg` == "link")
+			arg:
+				if `arg` == "file", `fileArg` must be the file name
+				if `arg` == "link", `key` must be the link to be opened
+				for any other values, the link will be generated using
+					the `physbiblio.view.viewWntry.getLink` method
+			fileArg: the file name if `arg` == "file", or
+				the argument passed to `physbiblio.view.viewWntry.getLink` if needed
+		"""
 		if type(key) is list:
 			for k in key:
 				self.openLink(k, arg, fileArg)
@@ -899,19 +930,45 @@ class guiViewEntry(viewEntry):
 pBGuiView = guiViewEntry()
 
 class MyImportedTableModel(MyTableModel):
-	def __init__(self, parent, biblist, header, idName = "ID", *args):
+	"""
+	Extend `MyTableModel` to manage the selection during the import of entries
+	"""
+	def __init__(self, parent, bibdict, header, idName = "ID", *args):
+		"""
+		Set some properties and settings
+
+		Parameters:
+			parent: the parent widget (pass to `MyTableModel.__init__`)
+			bibdict: a dictionary with the info of the imported bibtex entries.
+				It should contain dictionaries with two items: "bibpars", "exist"
+			header: the header names to be passed to `MyTableModel.__init__`
+			idName: the key of the field representing the unique ID of the item
+		"""
 		self.typeClass = "imports"
 		self.idName = idName
-		self.bibsOrder = [k for k in biblist.keys()]
-		self.dataList = [biblist[k]['bibpars'] for k in self.bibsOrder]
-		self.existList = [biblist[k]['exist'] for k in self.bibsOrder]
+		self.bibsOrder = [k for k in bibdict.keys()]
+		self.dataList = [bibdict[k]['bibpars'] for k in self.bibsOrder]
+		self.existList = [bibdict[k]['exist'] for k in self.bibsOrder]
 		MyTableModel.__init__(self, parent, header, *args)
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
+		"""
+		Return the unique identifier of the given element
+
+		Parameters:
+			element: a dictionary
+		"""
 		return element[self.idName]
 
 	def data(self, index, role):
+		"""
+		Return the data for the requested cell and role
+
+		Parameters:
+			index: a `QModelIndex`
+			role: the requested role for the given cell
+		"""
 		if not index.isValid():
 			return None
 		row = index.row()
@@ -919,6 +976,7 @@ class MyImportedTableModel(MyTableModel):
 		try:
 			value = self.dataList[row][self.header[column]]
 		except (IndexError, KeyError):
+			pBLogger.warning("Missing element", exc_info = True)
 			return None
 
 		if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
@@ -935,16 +993,31 @@ class MyImportedTableModel(MyTableModel):
 		return None
 
 	def setData(self, index, value, role):
+		"""
+		Set the selection data for a given index
+
+		Parameters:
+			index: a `QModelIndex`
+			value: `Qt.Checked` to set the row as selected
+			role: `Qt.CheckStateRole` for performing an action, or any other role
+		"""
+		if not index.isValid():
+			return False
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
 				self.selectedElements[self.dataList[index.row()][self.idName]] = True
 			else:
 				self.selectedElements[self.dataList[index.row()][self.idName]] = False
-
 		self.dataChanged.emit(index, index)
 		return True
 
 	def flags(self, index):
+		"""
+		Return the flags for the requested row
+
+		Parameters:
+			index: a `QModelIndex`
+		"""
 		if not index.isValid():
 			return None
 		if index.column() == 0 and self.existList[index.row()] is False:

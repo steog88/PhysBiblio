@@ -40,6 +40,9 @@ def fakeExec_writeStream_fin(x):
 	"""probe that finished has been emitted"""
 	x.running = False
 	x.fin = True
+def fakeExec_dataChanged(x, y):
+	"""probe that dataChanged has been emitted"""
+	assert x == y
 
 class emptyTableModel(QAbstractTableModel):
 	"""Used to do tests when a table model is needed"""
@@ -954,13 +957,40 @@ class TestMyDDTableWidget(GUITestCase):
 	Test the MyDDTableWidget class
 	"""
 	def test_init(self):
-		pass
+		"""test init"""
+		mddtw = MyDDTableWidget("head")
+		self.assertIsInstance(mddtw, QTableWidget)
+		self.assertEqual(mddtw.columnCount(), 1)
+		self.assertTrue(mddtw.dragEnabled())
+		self.assertTrue(mddtw.acceptDrops())
+		self.assertFalse(mddtw.dragDropOverwriteMode())
+		self.assertEqual(mddtw.selectionBehavior(), QAbstractItemView.SelectRows)
+		with patch("physbiblio.gui.commonClasses.QTableWidget.setHorizontalHeaderLabels") as _shl:
+			mddtw = MyDDTableWidget("head")
+			_shl.assert_called_once_with(["head"])
+
 	def test_dropMimeData(self):
-		pass
+		"""test dropMimeData"""
+		mddtw = MyDDTableWidget("head")
+		self.assertTrue(mddtw.dropMimeData(12, 0, None, None))
+		self.assertEqual(mddtw.last_drop_row, 12)
+
 	def test_dropEvent(self):
-		pass
+		raise NotImplementedError()
+
 	def test_getselectedRowsFast(self):
-		pass
+		"""test getselectedRowsFast"""
+		mddtw = MyDDTableWidget("head")
+		a = mddtw.getselectedRowsFast()
+		self.assertEqual(a, [])
+		with patch("PySide2.QtWidgets.QTableWidget.selectedItems",
+					return_value = [QTableWidgetItem() for i in range(5)]) as _si,\
+				patch("PySide2.QtWidgets.QTableWidgetItem.row",
+					side_effect = [1, 8, 3, 1, 2]) as _r,\
+				patch("PySide2.QtWidgets.QTableWidgetItem.text",
+					side_effect = ["de", "fg", "ab", "hi", "bibkey"]) as _t:
+			a = mddtw.getselectedRowsFast()
+			self.assertEqual(a, [1, 3, 8])
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyMenu(GUITestCase):
@@ -1033,10 +1063,45 @@ class TestGuiViewEntry(GUITestCase):
 	"""
 	Test the GuiViewEntry class
 	"""
-	def test_init(self):
-		pass
-	def test_openLink(self):
-		pass
+	def test_methods(self):
+		"""test that the object is instance of `viewEntry` and that openLink works"""
+		gve = guiViewEntry()
+		self.assertIsInstance(gve, viewEntry)
+		self.assertIsInstance(pBGuiView, guiViewEntry)
+
+		with patch("PySide2.QtGui.QDesktopServices.openUrl", return_value = True) as _ou,\
+				patch("logging.Logger.debug") as _db:
+			gve.openLink(["abc", "def"], "link")
+			_db.assert_has_calls([
+				call("Opening link 'abc' for entry 'abc' successful!"),
+				call("Opening link 'def' for entry 'def' successful!"),
+				])
+			_ou.assert_has_calls([
+				call(QUrl("abc")),
+				call(QUrl("def"))
+				])
+		with patch("PySide2.QtGui.QDesktopServices.openUrl", return_value = False) as _ou,\
+				patch("logging.Logger.warning") as _db:
+			gve.openLink(["abc", "def"], "link")
+			_db.assert_has_calls([
+				call("Opening link for 'abc' failed!"),
+				call("Opening link for 'def' failed!"),
+				])
+			_ou.assert_has_calls([
+				call(QUrl("abc")),
+				call(QUrl("def"))
+				])
+		with patch("PySide2.QtGui.QDesktopServices.openUrl", return_value = True) as _ou,\
+				patch("physbiblio.view.viewEntry.getLink", return_value = "mylink") as _gl:
+			gve.openLink("abc", arg = "somearg", fileArg = "somefilearg")
+			_gl.assert_called_once_with("abc", arg = "somearg", fileArg = "somefilearg")
+			_ou.assert_called_once_with(QUrl("mylink"))
+		with patch("PySide2.QtGui.QDesktopServices.openUrl", return_value = True) as _ou,\
+				patch("physbiblio.gui.commonClasses.QUrl.fromLocalFile",
+					return_value = QUrl("mylink")) as _fl:
+			gve.openLink("abc", arg = "file", fileArg = "/a/b/c")
+			_fl.assert_called_once_with("/a/b/c")
+			_ou.assert_called_once_with(QUrl("mylink"))
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestMyImportedTableModel(GUITestCase):
@@ -1044,15 +1109,149 @@ class TestMyImportedTableModel(GUITestCase):
 	Test the MyImportedTableModel class
 	"""
 	def test_init(self):
-		pass
+		"""test init"""
+		with patch("physbiblio.gui.commonClasses.MyTableModel.prepareSelected") as _ps:
+			mitm = MyImportedTableModel(QWidget(),
+				{
+				"a": {"exist": False, "bibpars": {"ID": "a"}},
+				"b": {"exist": False, "bibpars": {"ID": "b"}},
+				},
+				["key", "id"],
+				"bibkey")
+			_ps.assert_called_once()
+		self.assertIsInstance(mitm, MyTableModel)
+		self.assertEqual(mitm.typeClass, "imports")
+		self.assertEqual(mitm.idName, "bibkey")
+		self.assertEqual(mitm.bibsOrder, ["a", "b"])
+		self.assertEqual(mitm.dataList, [{"ID": "a"}, {"ID": "b"}])
+		self.assertEqual(mitm.existList, [False, False])
+
 	def test_getIdentifier(self):
-		pass
+		"""test getIdentifier"""
+		mitm = MyImportedTableModel(QWidget(),
+			{
+			"a": {"exist": False, "bibpars": {"ID": "a"}},
+			"b": {"exist": False, "bibpars": {"ID": "b"}},
+			},
+			["key", "id"])
+		self.assertEqual(mitm.getIdentifier(
+			{"id": "a", "bibkey": "b", "ID": "i"}),
+			"i")
+
 	def test_data(self):
-		pass
+		"""test data"""
+		mitm = MyImportedTableModel(QWidget(),
+			{
+			"a": {"exist": False, "bibpars": {"ID": "a", "key": "a"}},
+			"b": {"exist": False, "bibpars": {"ID": "b", "key": "b"}},
+			},
+			["key", "ID"])
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = False) as _iv:
+			self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole), None)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv:
+			with patch("PySide2.QtCore.QModelIndex.column",
+						return_value = 10) as _c,\
+					patch("PySide2.QtCore.QModelIndex.row",
+						return_value = 10) as _r:
+				self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole), None)
+			with patch("PySide2.QtCore.QModelIndex.column",
+						return_value = 0) as _c,\
+					patch("PySide2.QtCore.QModelIndex.row",
+						return_value = 0) as _r:
+				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
+					Qt.Unchecked)
+				self.assertTrue(mitm.setData(QModelIndex(), Qt.Checked, Qt.CheckStateRole))
+				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
+					Qt.Checked)
+			with patch("PySide2.QtCore.QModelIndex.column",
+						return_value = 0) as _c,\
+					patch("PySide2.QtCore.QModelIndex.row",
+						return_value = 0) as _r:
+				mitm.existList[0] = True
+				self.assertEqual(mitm.data(QModelIndex(), Qt.EditRole),
+					"a - already existing")
+				self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole),
+					"a - already existing")
+				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
+					None)
+			with patch("PySide2.QtCore.QModelIndex.column",
+						return_value = 1) as _c,\
+					patch("PySide2.QtCore.QModelIndex.row",
+						return_value = 0) as _r:
+				self.assertEqual(mitm.data(QModelIndex(), Qt.EditRole),
+					"a")
+				self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole),
+					"a")
+				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
+					None)
+
 	def test_setData(self):
-		pass
+		"""test setData"""
+		mitm = MyImportedTableModel(QWidget(),
+			{
+			"a": {"exist": False, "bibpars": {"ID": "a"}},
+			"b": {"exist": False, "bibpars": {"ID": "b"}},
+			},
+			["key", "id"])
+		mitm.dataChanged.connect(fakeExec_dataChanged)
+		ids = {"a": False, "b": False}
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv:
+			self.assertTrue(mitm.setData(QModelIndex(), "abc", Qt.DisplayRole))
+			self.assertEqual(ids, mitm.selectedElements)
+			with patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 1) as _c:
+				self.assertTrue(mitm.setData(QModelIndex(), "abc", Qt.CheckStateRole))
+				self.assertEqual(ids, mitm.selectedElements)
+			with patch("PySide2.QtCore.QModelIndex.column",
+						return_value = 0) as _c,\
+					patch("PySide2.QtCore.QModelIndex.row",
+						return_value = 0) as _r:
+				self.assertTrue(mitm.setData(QModelIndex(), Qt.Checked, Qt.CheckStateRole))
+				self.assertEqual({"a": True, "b": False}, mitm.selectedElements)
+				self.assertTrue(mitm.setData(QModelIndex(), Qt.Unchecked, Qt.CheckStateRole))
+				self.assertEqual({"a": False, "b": False}, mitm.selectedElements)
+				self.assertTrue(mitm.setData(QModelIndex(), Qt.Checked, Qt.CheckStateRole))
+				self.assertEqual({"a": True, "b": False}, mitm.selectedElements)
+				self.assertTrue(mitm.setData(QModelIndex(), "abc", Qt.CheckStateRole))
+				self.assertEqual({"a": False, "b": False}, mitm.selectedElements)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = False) as _iv:
+			self.assertFalse(mitm.setData(QModelIndex(), Qt.Checked, Qt.DisplayRole))
+
 	def test_flags(self):
-		pass
+		"""test flags"""
+		mitm = MyImportedTableModel(QWidget(),
+			{
+			"a": {"exist": False, "bibpars": {"ID": "a"}},
+			"b": {"exist": True, "bibpars": {"ID": "b"}},
+			},
+			["key", "id"])
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = False) as _iv:
+			self.assertEqual(mitm.flags(QModelIndex()), None)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv,\
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 1) as _c,\
+				patch("PySide2.QtCore.QModelIndex.row",
+					side_effect = [0, 1]) as _r:
+			self.assertEqual(mitm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			self.assertEqual(mitm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv,\
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 0) as _c,\
+				patch("PySide2.QtCore.QModelIndex.row",
+					side_effect = [0, 1]) as _r:
+			self.assertEqual(mitm.flags(QModelIndex()),
+				Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			self.assertEqual(mitm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 
 if __name__=='__main__':
 	unittest.main()
