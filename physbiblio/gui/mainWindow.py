@@ -23,6 +23,7 @@ try:
 	from physbiblio.view import pBView
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import *
+	from physbiblio.gui.commonClasses import *
 	from physbiblio.gui.bibWindows import *
 	from physbiblio.gui.catWindows import *
 	from physbiblio.gui.dialogWindows import *
@@ -570,7 +571,7 @@ class MainWindow(QMainWindow):
 		queue = Queue()
 		ws = WriteStream(queue)
 		ws.mysignal.connect(app.append_text)
-		thr = thread_func(queue, ws, *args, parent = self, **kwargs)
+		thr = thread_func(ws, *args, parent = self, **kwargs)
 
 		ws.finished.connect(ws.deleteLater)
 		thr.finished.connect(app.enableClose)

@@ -20,13 +20,25 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 
 class thread_checkUpdated(MyThread):
+	"""
+	Thread that checks if PhysBiblio is updated, using the `outdated` module
+	"""
 	result = Signal(bool, str)
 
 	def __init__(self, parent = None):
+		"""
+		Init the class, extending `MyThread.__init__`
+
+		Parameter:
+			parent: the parent widget
+		"""
 		super(thread_checkUpdated, self).__init__(parent)
 		self.parent = parent
 
 	def run(self):
+		"""
+		Run the thread, using `outdated.check_outdated` and checking for errors
+		"""
 		try:
 			outdated, newVersion = check_outdated('physbiblio', __version__)
 			self.result.emit(outdated, newVersion)
@@ -37,37 +49,61 @@ class thread_checkUpdated(MyThread):
 		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):
-	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None, force = False, reloadAll = False):
+	"""
+	Thread that uses `pBDB.bibs.searchOAIUpdates`
+	"""
+	def __init__(self, myrec, startFrom,
+			parent = None, useEntries = None, force = False, reloadAll = False):
+		"""
+		Initialize the thread and store the required settings
+
+		Parameters:
+			myrec: the receiver for the text (a `WriteStream` object)
+			startFrom: the index where to start from the update
+				(see `physbiblio.database.entries.searchOAIUpdates`)
+			parent: the parent widget
+			useEntries: the list of entries that must be updated
+				(see `physbiblio.database.entries.searchOAIUpdates`)
+			force: force the update of all entries
+				(see `physbiblio.database.entries.searchOAIUpdates`)
+			reloadAll:  reload the entry completely, without trying to simply update the existing one
+				(see `physbiblio.database.entries.searchOAIUpdates`)
+		"""
 		super(thread_updateAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 		self.useEntries = useEntries
 		self.force = force
 		self.reloadAll = reloadAll
 
 	def run(self):
-		self.my_receiver.start()
-		pBDB.bibs.searchOAIUpdates(self.startFrom, entries = self.useEntries, force = self.force, reloadAll = self.reloadAll)
+		"""
+		Start the receiver, run `pBDB.bibs.searchOAIUpdates` and finish
+		"""
+		self.receiver.start()
+		pBDB.bibs.searchOAIUpdates(self.startFrom,
+			entries = self.useEntries,
+			force = self.force,
+			reloadAll = self.reloadAll)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
+		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.runningOAIUpdates = False
 
 class thread_updateInspireInfo(MyThread):
-	def __init__(self, queue, myrec, bibkey, inspireID = None, parent = None):
+	def __init__(self, myrec, bibkey, inspireID = None, parent = None):
 		super(thread_updateInspireInfo, self).__init__(parent)
 		self.parent = parent
 		self.bibkey = bibkey
 		self.inspireID = inspireID
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		if self.inspireID is None:
 			eid = pBDB.bibs.updateInspireID(self.bibkey)
 			originalKey = None
@@ -76,7 +112,7 @@ class thread_updateInspireInfo(MyThread):
 			originalKey = self.bibkey
 		pBDB.bibs.updateInfoFromOAI(eid, verbose = 1, originalKey = originalKey)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
@@ -101,176 +137,166 @@ class thread_processLatex(MyThread):
 		self.passData.emit(images, text)
 
 class thread_authorStats(MyThread):
-	def __init__(self, queue, myrec, name, parent = None):
+	def __init__(self, myrec, name, parent = None):
 		super(thread_authorStats, self).__init__(parent)
 		self.parent = parent
 		self.authorName = name
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		self.parent.lastAuthorStats = pBStats.authorStats(self.authorName)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBStats.runningAuthorStats = False
 
 class thread_paperStats(MyThread):
-	def __init__(self, queue, myrec, inspireId, parent = None):
+	def __init__(self, myrec, inspireId, parent = None):
 		super(thread_paperStats, self).__init__(parent)
 		self.parent = parent
 		self.inspireId = inspireId
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		self.parent.lastPaperStats = pBStats.paperStats(self.inspireId)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 class thread_loadAndInsert(MyThread):
-	def __init__(self, queue, myrec, content, parent = None):
+	def __init__(self, myrec, content, parent = None):
 		super(thread_loadAndInsert, self).__init__(parent)
 		self.parent = parent
-		self.queue = queue
 		self.content = content
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		loadAndInsert = pBDB.bibs.loadAndInsert(self.content)
 		if loadAndInsert is False:
 			self.parent.loadedAndInserted = []
 		else:
 			self.parent.loadedAndInserted = pBDB.bibs.lastInserted
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBDB.bibs.runningLoadAndInsert = False
 
 class thread_cleanAllBibtexs(MyThread):
-	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None):
+	def __init__(self, myrec, startFrom, parent = None, useEntries = None):
 		super(thread_cleanAllBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 		self.useEntries = useEntries
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBDB.bibs.cleanBibtexs(self.startFrom, entries = self.useEntries)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBDB.bibs.runningCleanBibtexs = False
 
 class thread_findBadBibtexs(MyThread):
-	def __init__(self, queue, myrec, startFrom, parent = None, useEntries = None):
+	def __init__(self, myrec, startFrom, parent = None, useEntries = None):
 		super(thread_findBadBibtexs, self).__init__(parent)
 		self.parent = parent
 		self.startFrom = startFrom
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 		self.useEntries = useEntries
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		self.parent.badBibtexs = pBDB.bibs.findCorruptedBibtexs(self.startFrom, entries = self.useEntries)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBDB.bibs.runningFindBadBibtexs = False
 
 class thread_importFromBib(MyThread):
-	def __init__(self, queue, myrec, bibFile, complete, parent = None):
+	def __init__(self, myrec, bibFile, complete, parent = None):
 		super(thread_importFromBib, self).__init__(parent)
 		self.parent = parent
 		self.bibFile = bibFile
 		self.complete = complete
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBDB.bibs.importFromBib(self.bibFile, self.complete)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBDB.bibs.importFromBibFlag = False
 
 class thread_exportTexBib(MyThread):
-	def __init__(self, queue, myrec, texFile, outFName, parent = None):
+	def __init__(self, myrec, texFile, outFName, parent = None):
 		super(thread_exportTexBib, self).__init__(parent)
 		self.parent = parent
 		self.texFile = texFile
 		self.outFName = outFName
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBExport.exportForTexFile(self.texFile, self.outFName)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):
 		pBExport.exportForTexFlag = False
 
 class thread_cleanSpare(MyThread):
-	def __init__(self, queue, myrec, parent):
+	def __init__(self, myrec, parent):
 		super(thread_cleanSpare, self).__init__(parent)
 		self.parent = parent
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBDB.utils.cleanSpareEntries()
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 class thread_cleanSparePDF(MyThread):
-	def __init__(self, queue, myrec, parent):
+	def __init__(self, myrec, parent):
 		super(thread_cleanSparePDF, self).__init__(parent)
 		self.parent = parent
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBPDF.removeSparePDFFolders()
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 class thread_fieldsArxiv(MyThread):
-	def __init__(self, queue, myrec, entries, fields, parent = None):
+	def __init__(self, myrec, entries, fields, parent = None):
 		super(thread_fieldsArxiv, self).__init__(parent)
 		self.parent = parent
 		self.entries = entries
 		self.fields = fields
-		self.queue = queue
-		self.my_receiver = myrec
+		self.receiver = myrec
 
 	def run(self):
-		self.my_receiver.start()
+		self.receiver.start()
 		pBDB.bibs.getFieldsFromArxiv(self.entries, self.fields)
 		time.sleep(0.1)
-		self.my_receiver.running = False
+		self.receiver.running = False
 		self.finished.emit()
 
 	def setStopFlag(self):

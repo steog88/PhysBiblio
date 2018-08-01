@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test file for the physbiblio.gui.Marks module.
+Test file for the physbiblio.gui.marks module.
 
 This file is part of the physbiblio package.
 """
