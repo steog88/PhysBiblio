@@ -414,7 +414,6 @@ class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
 	def __init__(self, bibs = [], parent = None):
 		self.bibs = bibs
-		self.parent = parent
 		super(advImportSelect, self).__init__(parent, gridLayout = True)
 		self.checkBoxes = []
 		self.initUI()
@@ -589,5 +588,5 @@ class dailyArxivSelect(advImportSelect):
 		except AttributeError:
 			return
 		if self.abstractFormulas is not None:
-			a = self.abstractFormulas(self.parent, self.bibs[eprint]["bibpars"]["abstract"], customEditor = self.abstractArea, statusMessages = False)
+			a = self.abstractFormulas(self.parent(), self.bibs[eprint]["bibpars"]["abstract"], customEditor = self.abstractArea, statusMessages = False)
 			a.doText()

@@ -109,7 +109,7 @@ class TestAuthorStatsPlots(GUITestCase):
 				_cl.assert_called_once()
 
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"], parent = fakepar)
-			self.assertEqual(asp.parent, fakepar)
+			self.assertEqual(asp.parent(), fakepar)
 			self.assertIsInstance(asp.hIndex, QLabel)
 			self.assertEqual(asp.hIndex.text(), "Author h index: 999")
 			self.assertEqual(asp.windowTitle(), "")
@@ -202,7 +202,7 @@ class TestPaperStatsPlots(GUITestCase):
 			_cl.assert_called_once()
 
 		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
-		self.assertEqual(asp.parent, fakepar)
+		self.assertEqual(asp.parent(), fakepar)
 		self.assertEqual(asp.windowTitle(), "")
 
 		asp = paperStatsPlots(testData['figs'][2], title = "abcdef", parent = fakepar)

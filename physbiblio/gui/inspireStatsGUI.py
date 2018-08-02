@@ -48,7 +48,6 @@ class authorStatsPlots(QDialog):
 		super(authorStatsPlots, self).__init__(parent)
 		if title is not None:
 			self.setWindowTitle(title)
-		self.parent = parent
 		layout = QGridLayout(self)
 		layout.setSpacing(1)
 		self.setLayout(layout)
@@ -58,7 +57,7 @@ class authorStatsPlots(QDialog):
 		self.layout().addWidget(QLabel("Click on the lines to have more information:"), nlines + 1, 0)
 
 		try:
-			hIndex = "%d"%self.parent.lastAuthorStats["h"]
+			hIndex = "%d"%self.parent().lastAuthorStats["h"]
 		except AttributeError:
 			hIndex = "ND"
 		self.hIndex = QLabel("Author h index: %s"%hIndex)
@@ -87,7 +86,7 @@ class authorStatsPlots(QDialog):
 		savePath = askDirName(self, "Where do you want to save the plots of the stats?")
 		if savePath != "":
 			try:
-				self.parent.lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
+				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info = True)
 			infoMessage("Plots saved.")
@@ -164,7 +163,6 @@ class paperStatsPlots(QDialog):
 		super(paperStatsPlots, self).__init__(parent)
 		if title is not None:
 			self.setWindowTitle(title)
-		self.parent = parent
 		layout = QGridLayout(self)
 		layout.setSpacing(1)
 		self.setLayout(layout)
@@ -194,7 +192,7 @@ class paperStatsPlots(QDialog):
 		savePath = askDirName(self, "Where do you want to save the plot of the stats?")
 		if savePath != "":
 			try:
-				self.parent.lastPaperStats["fig"] = pBStats.plotStats(paper = True, save = True, path = savePath)
+				self.parent().lastPaperStats["fig"] = pBStats.plotStats(paper = True, save = True, path = savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info = True)
 			infoMessage("Plot saved.")

@@ -310,7 +310,7 @@ class TestEditObjectWindow(GUITestCase):
 		ew = QWidget()
 		with patch("physbiblio.gui.commonClasses.editObjectWindow.initUI") as _iu:
 			eow = editObjectWindow(ew)
-			self.assertEqual(eow.parent, ew)
+			self.assertEqual(eow.parent(), ew)
 			self.assertEqual(eow.textValues, {})
 			_iu.assert_called_once_with()
 
@@ -449,12 +449,11 @@ class TestMyTableWidget(GUITestCase):
 		Test __init__, contextMenuEvent methods
 		"""
 		p = objListWindow()
-		with patch("PySide2.QtWidgets.QTableWidget.__init__") as _i:
-			MyTableWidget(2, 2, p)
-			_i.assert_called_once_with(2, 2, p)
-		mtw = MyTableWidget(2, 2, p)
+		mtw = MyTableWidget(2, 3, p)
 		self.assertIsInstance(mtw, QTableWidget)
-		self.assertEqual(mtw.parent, p)
+		self.assertEqual(mtw.rowCount(), 2)
+		self.assertEqual(mtw.columnCount(), 3)
+		self.assertEqual(mtw.parent(), p)
 		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
 		with patch("PySide2.QtGui.QContextMenuEvent.x",
 					return_value = 12) as _x,\
@@ -482,12 +481,9 @@ class TestMyTableView(GUITestCase):
 		Test __init__, contextMenuEvent methods
 		"""
 		p = objListWindow()
-		with patch("PySide2.QtWidgets.QTableView.__init__") as _i:
-			MyTableView(p)
-			_i.assert_called_once_with(p)
 		mtw = MyTableView(p)
 		self.assertIsInstance(mtw, QTableView)
-		self.assertEqual(mtw.parent, p)
+		self.assertEqual(mtw.parent(), p)
 		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
 		with patch("PySide2.QtGui.QContextMenuEvent.x",
 					return_value = 12) as _x,\
@@ -753,7 +749,8 @@ class TestTreeNode(GUITestCase):
 		ew = QWidget()
 		with patch("physbiblio.gui.commonClasses.TreeNode._getChildren", return_value = "def") as _gc:
 			tn = TreeNode(ew, "abc")
-			self.assertEqual(tn.parent, ew)
+			self.assertEqual(tn.parent(), ew)
+			self.assertEqual(tn.parentObj, ew)
 			self.assertEqual(tn.row, "abc")
 			self.assertEqual(tn.subnodes, "def")
 			_gc.assert_called_once_with()

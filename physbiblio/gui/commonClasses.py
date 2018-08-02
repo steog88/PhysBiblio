@@ -245,7 +245,6 @@ class editObjectWindow(QDialog):
 			parent: the parent object
 		"""
 		super(editObjectWindow, self).__init__(parent)
-		self.parent = parent
 		self.textValues = {}
 		self.initUI()
 
@@ -357,18 +356,6 @@ class MyTableWidget(QTableWidget):
 	"""
 	Extension of `QTableWidget`, used to define the contextMenuEvent
 	"""
-	def __init__(self, rows, cols, parent):
-		"""
-		Constructor, uses `QTableWidget.__init__`
-
-		Parameters:
-			rows: the number of rows of the table widget
-			cols: the number of columns of the table widget
-			parent: the parent widget
-		"""
-		super(MyTableWidget, self).__init__(rows, cols, parent)
-		self.parent = parent
-
 	def contextMenuEvent(self, event):
 		"""
 		Connect the context menu event to the parent function
@@ -376,22 +363,12 @@ class MyTableWidget(QTableWidget):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
 
 class MyTableView(QTableView):
 	"""
 	Extension of `QTableView`, used to define the contextMenuEvent
 	"""
-	def __init__(self, parent):
-		"""
-		Constructor, uses `QTableView.__init__`
-
-		Parameters:
-			parent: the parent widget
-		"""
-		super(MyTableView, self).__init__(parent)
-		self.parent = parent
-
 	def contextMenuEvent(self, event):
 		"""
 		Connect the context menu event to the parent function
@@ -399,7 +376,7 @@ class MyTableView(QTableView):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent.triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
 
 class MyTableModel(QAbstractTableModel):
 	"""
@@ -420,6 +397,10 @@ class MyTableModel(QAbstractTableModel):
 		self.parentObj = parent
 		self.previous = previous
 		self.ask = ask
+
+	def parent(self):
+		"""Return the parent object"""
+		return self.parentObj
 
 	def changeAsk(self, new = None):
 		"""
@@ -613,9 +594,13 @@ class TreeNode(object):
 			parent: the parent node
 			row: the content of the data row
 		"""
-		self.parent = parent
+		self.parentObj = parent
 		self.row = row
 		self.subnodes = self._getChildren()
+
+	def parent(self):
+		"""Return the parent object"""
+		return self.parentObj
 
 	def _getChildren(self):
 		"""Not implemented: requires a subclass"""

@@ -70,7 +70,6 @@ def editProf(parent, statusBarObject):
 class selectProfiles(QDialog):
 	def __init__(self, parent = None, message = None):
 		super(selectProfiles, self).__init__(parent)
-		self.parent = parent
 		self.message = message
 		self.initUI()
 	
@@ -86,8 +85,8 @@ class selectProfiles(QDialog):
 			pbConfig.reInit(prof, newProfile)
 			pBDB.reOpenDB(pbConfig.currentDatabase)
 
-		self.parent.reloadConfig()
-		self.parent.reloadMainContent()
+		self.parent().reloadConfig()
+		self.parent().reloadMainContent()
 		self.close()
 
 	def initUI(self):
@@ -128,11 +127,14 @@ class myOrderPushButton(QPushButton):
 	def __init__(self, parent, data, icon, text):
 		QPushButton.__init__(self, icon, text)
 		self.data = data
-		self.parent = parent
+		self.parentObj = parent
 		self.clicked.connect(self.onClick)
 
 	def onClick(self):
-		self.parent.switchLines(self.data)
+		self.parentObj.switchLines(self.data)
+
+	def parent(self):
+		return self.parentObj
 
 class editProfile(editObjectWindow):
 	"""create a window for editing or creating a profile"""
