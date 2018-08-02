@@ -854,7 +854,7 @@ class MainWindow(QMainWindow):
 		self._runInThread(
 			thread_updateInspireInfo, "Update Info",
 			bibkey, inspireID,
-			minProgress = 0., stopFlag = True)
+			minProgress = 0., stopFlag = False)
 		self.refreshMainContent()
 
 	def authorStats(self):

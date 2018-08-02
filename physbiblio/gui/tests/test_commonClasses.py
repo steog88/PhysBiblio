@@ -411,12 +411,12 @@ class TestWriteStream(GUITestCase):
 		self.assertIsInstance(ws, MyThread)
 		self.assertEqual(ws.queue, queue)
 		self.assertTrue(ws.running)
-		self.assertEqual(ws.parent, None)
+		self.assertEqual(ws.parent(), None)
 		self.assertIsInstance(ws.mysignal, Signal)
 		self.assertIsInstance(ws.finished, Signal)
 		ew = QWidget()
 		ws = WriteStream(queue, parent = ew)
-		self.assertEqual(ws.parent, ew)
+		self.assertEqual(ws.parent(), ew)
 		ws.finished.connect(lambda: fakeExec_writeStream_fin(ws))
 		if sys.version_info[0] < 3:
 			with patch("Queue.Queue.put") as _put:

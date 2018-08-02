@@ -291,6 +291,8 @@ class editObjectWindow(QDialog):
 		self.move(qr.topLeft())
 
 class MyThread(QThread):
+	"""Extend `QThread`, but further extension is needed"""
+	finished = Signal()
 	def __init__(self,  parent = None):
 		"""
 		Construct the class using `QThread.__init__`
@@ -315,8 +317,6 @@ class MyThread(QThread):
 		time.sleep(0.3)
 		QThread.start(self, *args, **kwargs)
 
-	finished = Signal()
-
 class WriteStream(MyThread):
 	"""
 	Class used to redirect prints to a window
@@ -334,7 +334,6 @@ class WriteStream(MyThread):
 		super(WriteStream, self).__init__(parent, *args, **kwargs)
 		self.queue = queue
 		self.running = True
-		self.parent = parent
 
 	def write(self, text):
 		"""
