@@ -40,7 +40,7 @@ except ImportError as e:
 	print("Missing Resources_pyside2: run script update_resources.sh", e)
 
 class MainWindow(QMainWindow):
-	def __init__(self):
+	def __init__(self, testing = False):
 		QMainWindow.__init__(self)
 		availableWidth		= QDesktopWidget().availableGeometry().width()
 		availableHeight		= QDesktopWidget().availableGeometry().height() 
@@ -49,13 +49,15 @@ class MainWindow(QMainWindow):
 		self.setMinimumHeight(400)
 		self.setMinimumWidth(600)
 		self.myStatusBar = QStatusBar()
+		self.lastAuthorStats = None
+		self.lastPaperStats = None
+		if testing:
+			return
 		self.createActions()
 		self.createMenusAndToolBar()
 		self.createMainLayout()
 		self.setIcon()
 		self.CreateStatusBar()
-		self.lastAuthorStats = None
-		self.lastPaperStats = None
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -72,7 +74,7 @@ class MainWindow(QMainWindow):
 			pBLogger.info("No new versions available!")
 
 	def setIcon(self):
-		appIcon=QIcon(':/images/icon.png')
+		appIcon = QIcon(':/images/icon.png')
 		self.setWindowIcon(appIcon)
 		
 	def createActions(self):

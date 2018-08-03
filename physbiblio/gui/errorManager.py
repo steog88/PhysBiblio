@@ -17,6 +17,7 @@ try:
 	from physbiblio.errors import pBErrorManagerClass, pBLogger
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 
 class ErrorStream(StringIO):
 	"""

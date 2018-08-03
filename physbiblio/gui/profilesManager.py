@@ -5,7 +5,7 @@ import os
 import glob
 import shutil
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QPixmap
+from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QRadioButton
 
 try:
@@ -16,8 +16,10 @@ try:
 	from physbiblio.gui.commonClasses import *
 except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print(traceback.format_exc())
 
 def editProf(parent, statusBarObject):
+	"""function that"""
 	oldOrder = pbConfig.profileOrder
 	newProfWin = editProfile(parent)
 	newProfWin.exec_()
@@ -68,32 +70,47 @@ def editProf(parent, statusBarObject):
 		pass
 
 class selectProfiles(QDialog):
-	def __init__(self, parent = None, message = None):
+	"""Widget to change the profile"""
+	def __init__(self, parent, message = None):
+		"""
+		Instantiate the class
+
+		Parameters:
+			parent: the parent window (a `MainWindow` instance)
+			message: a message used as a description
+		"""
+		if not hasattr(parent, "reloadConfig"):
+			raise Exception("Cannot run selectProfiles: invalid parent")
 		super(selectProfiles, self).__init__(parent)
 		self.message = message
 		self.initUI()
 	
 	def onCancel(self):
+		"""Set result to False and close the window"""
 		self.result	= False
 		self.close()
 
 	def onLoad(self):
+		"""Get current selection and (eventually) load new profile"""
 		prof, desc = self.combo.currentText().split(" -- ")
 		newProfile = pbConfig.profiles[prof]
-		if newProfile != pbConfig.defaultProfileName:
-			print("[config] Changing profile...")
+		if prof != pbConfig.currentProfileName:
+			pBLogger.info("Changing profile...")
 			pbConfig.reInit(prof, newProfile)
 			pBDB.reOpenDB(pbConfig.currentDatabase)
-
-		self.parent().reloadConfig()
+			self.parent().reloadConfig()
 		self.parent().reloadMainContent()
 		self.close()
 
 	def initUI(self):
+		"""
+		Create a `QGridLayout` with the `MyComboBox` and
+		the two selection buttons
+		"""
 		self.setWindowTitle('Select profile')
 
 		grid = QGridLayout()
-		grid.setSpacing(1)
+		grid.setSpacing(10)
 
 		i = 0
 		if self.message is not None:
@@ -107,33 +124,45 @@ class selectProfiles(QDialog):
 		grid.addWidget(self.combo, i, 1)
 		i += 1
 
-		# cancel button
+		# Load and Cancel button
 		self.loadButton = QPushButton('Load', self)
 		self.loadButton.clicked.connect(self.onLoad)
-		grid.addWidget(self.loadButton, i+1, 0)
+		grid.addWidget(self.loadButton, i, 0)
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		grid.addWidget(self.cancelButton, i+1, 1)
+		grid.addWidget(self.cancelButton, i, 1)
 
 		self.setLayout(grid)
 
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
-
 class myOrderPushButton(QPushButton):
-	def __init__(self, parent, data, icon, text):
+	"""
+	Define a button to switch two form lines
+	"""
+	def __init__(self, parent, data, icon, text, testing = False):
+		"""
+		Extend `QPushButton.__init__`
+
+		Parameters:
+			parent: the parent object (an `editProfile` instance)
+			data: the index of the row that will be switched
+			icon: the `QPushButton` icon
+			text: the `QPushButton` text
+			testing (boolean, default False):
+				if True, do not connect the clicked signal
+		"""
 		QPushButton.__init__(self, icon, text)
 		self.data = data
 		self.parentObj = parent
-		self.clicked.connect(self.onClick)
+		if not testing:
+			self.clicked.connect(self.onClick)
 
 	def onClick(self):
+		"""Perform the switchLines action"""
 		self.parentObj.switchLines(self.data)
 
 	def parent(self):
+		"""Return the parent"""
 		return self.parentObj
 
 class editProfile(editObjectWindow):
