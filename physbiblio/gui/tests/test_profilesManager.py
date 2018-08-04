@@ -8,6 +8,7 @@ import sys, traceback
 import os
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtTest import QTest
+from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
@@ -196,8 +197,31 @@ class TestmyOrderPushButton(GUITestCase):
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestEditProfile(GUITestCase):
-	"""
-	"""
+	"""Test the editProfile class"""
+	@classmethod
+	def setUpClass(self):
+		"""set temporary pbConfig settings"""
+		self.oldProfileOrder = pbConfig.profileOrder
+		self.oldProfiles = pbConfig.profiles
+		self.oldCurrentProfileName = pbConfig.currentProfileName
+		self.oldCurrentProfile = pbConfig.currentProfile
+		pbConfig.profileOrder = ["test1", "test2", "test3"]
+		pbConfig.profiles = {
+			"test1": {'db': u'test1.db', 'd': u'test1', 'n': u'test1'},
+			"test2": {'db': u'test2.db', 'd': u'test2', 'n': u'test2'},
+			"test3": {'db': u'test3.db', 'd': u'test3', 'n': u'test3'},
+		}
+		pbConfig.currentProfileName = "test1"
+		pbConfig.currentProfile = pbConfig.profiles["test1"]
+
+	@classmethod
+	def tearDownClass(self):
+		"""restore previous pbConfig settings"""
+		pbConfig.profileOrder = self.oldProfileOrder
+		pbConfig.profiles = self.oldProfiles
+		pbConfig.currentProfileName = self.oldCurrentProfileName
+		pbConfig.currentProfile = self.oldCurrentProfile
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -208,19 +232,95 @@ class TestEditProfile(GUITestCase):
 			_s.assert_called_once_with()
 
 	def test_onOk(self):
-		pass
+		"""test onOk"""
+		p = QWidget()
+		ep = editProfile(p)
+		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+				patch("logging.Logger.info") as _i:
+			ep.onOk()
+			_c.assert_called_once_with()
+			_i.assert_not_called()
+			self.assertTrue(ep.result)
+		for n, f in [
+				["", "testA.db"],
+				["testA", ""],
+				]:
+			ep.elements[-1]["n"].setText(n)
+			ep.elements[-1]["f"].setCurrentText(f)
+			with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+					patch("logging.Logger.info") as _i:
+				ep.onOk()
+				_c.assert_not_called()
+				_i.assert_called_once_with(
+					"Cannot create a new profile if 'name' or 'filename' is empty.")
+		ep.elements[-1]["n"].setText("test1")
+		ep.elements[-1]["f"].setCurrentText("testA.db")
+		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+				patch("logging.Logger.info") as _i:
+			ep.onOk()
+			_c.assert_not_called()
+			_i.assert_called_once_with(
+				"Cannot create new profile: 'name' already in use.")
+		ep.elements[-1]["n"].setText("testA")
+		ep.elements[-1]["f"].setCurrentText("test1.db")
+		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+				patch("logging.Logger.info") as _i:
+			ep.onOk()
+			_c.assert_not_called()
+			_i.assert_called_once_with(
+				"Cannot create new profile: 'filename' already in use.")
 
 	def test_addButtons(self):
+		"""test addButtons"""
 		pass
 
 	def test_createForm(self):
+		"""test createForm"""
 		pass
 
 	def test_switchLines(self):
-		pass
+		"""Test switchLines"""
+		p = QWidget()
+		ep = editProfile(p)
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
+				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl:
+			self.assertTrue(ep.switchLines(0))
+			_cl.assert_called_once_with()
+			_cf.assert_called_once_with({
+				u'test1': {'x': False, 'r': False, 'db': u'test1.db', 'd': u'test1'},
+				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
+				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
+				},
+				[u'test2', u'test1', u'test3'],
+				{'r': False, 'db': u'', 'd': u'', 'n': u''})
+		ep.elements[-1]["n"].setText("testA")
+		ep.elements[-1]["f"].setCurrentText("testA.db")
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
+				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl:
+			self.assertTrue(ep.switchLines(1))
+			_cl.assert_called_once_with()
+			_cf.assert_called_once_with({
+				u'test1': {'x': False, 'r': False, 'db': u'test1.db', 'd': u'test1'},
+				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
+				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
+				},
+				[u'test1', u'test3', u'test2'],
+				{'r': False, 'db': u'testA.db', 'd': u'', 'n': u'testA'})
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
+				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl,\
+				patch("logging.Logger.warning") as _i:
+			self.assertFalse(ep.switchLines(2))
+			_i.assert_called_once_with("Impossible to switch lines: index out of range")
+			_cl.assert_not_called()
+			_cf.assert_not_called()
 
 	def test_cleanLayout(self):
-		pass
+		"""test cleanLayout"""
+		p = QWidget()
+		ep = editProfile(p)
+		self.assertEqual(ep.layout().count(), 36)
+		ep.cleanLayout()
+		self.assertEqual(ep.layout().count(), 0)
 
 if __name__=='__main__':
 	unittest.main()

@@ -11,7 +11,7 @@ from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QDesktopWidget
 try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import *
-	from physbiblio.gui.errorManager import pBGUIErrorManager
+	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
 	from physbiblio.gui.basicDialogs import *
 	from physbiblio.gui.commonClasses import *
 except ImportError:
@@ -19,7 +19,9 @@ except ImportError:
 	print(traceback.format_exc())
 
 def editProf(parent, statusBarObject):
-	"""function that"""
+	"""
+	...
+	"""
 	oldOrder = pbConfig.profileOrder
 	newProfWin = editProfile(parent)
 	newProfWin.exec_()
@@ -167,26 +169,43 @@ class myOrderPushButton(QPushButton):
 
 class editProfile(editObjectWindow):
 	"""create a window for editing or creating a profile"""
-
 	def __init__(self, parent = None):
+		"""Prepare instance and create form"""
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
 	def onOk(self):
-		if (self.elements[-1]["f"].currentText().strip() != "" and self.elements[-1]["n"].text().strip() == "") \
-				or (self.elements[-1]["f"].currentText().strip() == "" and self.elements[-1]["n"].text().strip() != ""):
-			pBGUIErrorManager.logger.info("Cannot create a new profile if 'name' or 'filename' is empty.")
+		"""
+		In case "Ok" is pressed, decide if the result is valid:
+			* if the name or filename of the new profile are empty, reject;
+			* if the name or filename of the new profile are already in use, reject;
+			* in all the other cases, accept and close the dialog.
+		"""
+		if (self.elements[-1]["f"].currentText().strip() != "" and \
+					self.elements[-1]["n"].text().strip() == "") \
+				or (self.elements[-1]["f"].currentText().strip() == "" and \
+					self.elements[-1]["n"].text().strip() != ""):
+			pBGUILogger.info("Cannot create a new profile if 'name' or 'filename' is empty.")
 			return
-		if self.elements[-1]["n"].text().strip() in [a["n"].text() for a in self.elements[:-1]]:
-			pBGUIErrorManager.logger.info("Cannot create new profile: 'name' already in use.")
+		if self.elements[-1]["n"].text().strip() in \
+				[a["n"].text() for a in self.elements[:-1]]:
+			pBGUILogger.info("Cannot create new profile: 'name' already in use.")
 			return
-		if (self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] + ".db").replace(".db.db", ".db") in [a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]]:
-			pBGUIErrorManager.logger.info("Cannot create new profile: 'filename' already in use.")
+		if (self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] \
+				+ ".db").replace(".db.db", ".db") in \
+				[a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]]:
+			pBGUILogger.info("Cannot create new profile: 'filename' already in use.")
 			return
 		self.result	= True
 		self.close()
 
-	def addButtons(self, profilesData = None, profileOrder = None, defaultProfile = None):
+	def addButtons(self,
+			profilesData = None,
+			profileOrder = None,
+			defaultProfile = None):
+		"""
+		...
+		"""
 		if profilesData is None:
 			profilesData = pbConfig.profiles
 		if profileOrder is None:
@@ -230,7 +249,14 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["x"], i, 6)
 			self.elements.append(tempEl)
 
-	def createForm(self, profilesData = None, profileOrder = None, defaultProfile = None, newLine = {"r": False, "n": "", "db": "", "d": ""}):
+	def createForm(self,
+			profilesData = None,
+			profileOrder = None,
+			defaultProfile = None,
+			newLine = {"r": False, "n": "", "db": "", "d": ""}):
+		"""
+		...
+		"""
 		if profilesData is None:
 			profilesData = pbConfig.profiles
 		if profileOrder is None:
@@ -294,6 +320,15 @@ class editProfile(editObjectWindow):
 		self.currGrid.addWidget(self.cancelButton, i+1, 2)
 
 	def switchLines(self, ix):
+		"""
+		Save the current form content,
+		switch the order of the rows as required,
+		create a new form with the new order.
+
+		Parameter:
+			ix: the index of the first of the two rows involved in the switch
+				(e.g., to switch the first and second rows, use ix = 0)
+		"""
 		currentValues = {}
 		currentOrder = []
 		for el in self.elements[:len(pbConfig.profiles)]:
@@ -311,13 +346,18 @@ class editProfile(editObjectWindow):
 			"d": self.elements[-1]["d"].text(),
 		}
 		tempOrder = list(currentOrder)
-		tempOrder[ix] = currentOrder[ix+1]
-		tempOrder[ix+1] = currentOrder[ix]
+		try:
+			tempOrder[ix] = currentOrder[ix+1]
+			tempOrder[ix+1] = currentOrder[ix]
+		except IndexError:
+			pBLogger.warning("Impossible to switch lines: index out of range")
+			return False
 		self.cleanLayout()
 		self.createForm(currentValues, tempOrder, newLine)
+		return True
 
 	def cleanLayout(self):
-		"""delete previous table widget"""
+		"""Delete all the existing items in the layout"""
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
