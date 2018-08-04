@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with the classes and functions that enter the profiles management.
 
+This file is part of the physbiblio package.
+"""
 import sys, time
 import os
 import glob

@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with many classes that are further extended in the other physbiblio.gui modules.
+
+This file is part of the physbiblio package.
+"""
 import sys
 import os
 import time

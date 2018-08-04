@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with the classes that are used to run threads.
 
+This file is part of the physbiblio package.
+"""
 import sys, time
 from PySide2.QtCore import Signal
 from outdated import check_outdated

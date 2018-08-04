@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with the classes and functions that manage the categories windows and panels.
+
+This file is part of the physbiblio package.
+"""
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor

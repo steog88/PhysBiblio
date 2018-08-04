@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with the classes and functions that manage the some dialog windows.
+
+This file is part of the physbiblio package.
+"""
 import sys
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout

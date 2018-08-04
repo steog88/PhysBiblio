@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+"""
+Module with the classes and functions that manage the entries windows and panels.
+
+This file is part of the physbiblio package.
+"""
 import sys
 import os
 import matplotlib

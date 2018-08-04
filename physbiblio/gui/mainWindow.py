@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+"""
+Module that contains the class for the main window of PhysBiblio.
 
+This file is part of the physbiblio package.
+"""
 import sys
 if sys.version_info[0] < 3:
 	from Queue import Queue
