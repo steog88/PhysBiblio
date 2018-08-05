@@ -24,18 +24,19 @@ try:
 	from physbiblio.gui.profilesManager import *
 	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProf(GUITestCase):
 	"""
 	Test the editProf function
 	"""
-	def test_editProf(self):
-		"""Test the editProf function"""
+	@classmethod
+	def setUpClass(self):
+		"""set temporary pbConfig settings"""
 		self.oldProfileOrder = pbConfig.profileOrder
 		self.oldProfiles = pbConfig.profiles
 		self.oldCurrentProfileName = pbConfig.currentProfileName
@@ -49,6 +50,17 @@ class TestEditProf(GUITestCase):
 		pbConfig.currentProfileName = "test1"
 		pbConfig.currentProfile = pbConfig.profiles["test1"]
 
+	@classmethod
+	def tearDownClass(self):
+		"""restore previous pbConfig settings"""
+		pbConfig.profileOrder = self.oldProfileOrder
+		pbConfig.profiles = self.oldProfiles
+		pbConfig.currentProfileName = self.oldCurrentProfileName
+		pbConfig.currentProfile = self.oldCurrentProfile
+
+	def test_editProf(self):
+		"""Test the editProf function"""
+		# first tests
 		p = QWidget()
 		mw = MainWindow(True)
 		ep = editProfile()
@@ -281,7 +293,7 @@ class TestEditProf(GUITestCase):
 				name = 'testNew')
 			_spo.assert_called_once_with(
 				['test1', 'test2', 'test3', "testNew"])
-			_w.assert_called_once_with('New profile created.\n')
+			_w.assert_called_with('New profile created.\n')
 			_copy.assert_not_called()
 
 		# test creation of new profile as copy of existing one
@@ -315,18 +327,12 @@ class TestEditProf(GUITestCase):
 				name = 'testNew')
 			_spo.assert_called_once_with(
 				['test1', 'test2', 'test3', "testNew"])
-			_w.assert_called_once_with('New profile created.\n')
+			_w.assert_called_with('New profile created.\n')
 			_copy.assert_called_once_with(
 				os.path.join(pbConfig.dataPath, 'test1.db'),
 				os.path.join(pbConfig.dataPath, 'testNew.db'))
 
-		pbConfig.profileOrder = self.oldProfileOrder
-		pbConfig.profiles = self.oldProfiles
-		pbConfig.currentProfileName = self.oldCurrentProfileName
-		pbConfig.currentProfile = self.oldCurrentProfile
-
-
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestSelectProfiles(GUITestCase):
 	"""Test the selectProfiles class"""
 	@classmethod
@@ -456,7 +462,7 @@ class TestSelectProfiles(GUITestCase):
 			QTest.mouseClick(sp.loadButton, Qt.LeftButton)
 			_f.assert_called_once_with()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestmyOrderPushButton(GUITestCase):
 	"""
 	Test the myOrderPushButton class
@@ -483,7 +489,7 @@ class TestmyOrderPushButton(GUITestCase):
 			opb = myOrderPushButton(p, 1, qi, "txt", True)
 			_i.assert_called_once_with(opb, qi, "txt")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProfile(GUITestCase):
 	"""Test the editProfile class"""
 	@classmethod

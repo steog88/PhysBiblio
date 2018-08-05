@@ -24,7 +24,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
@@ -33,7 +33,7 @@ fullRecordAde = {'bibkey': 'Ade:2013zuv', 'inspire': '1224741', 'arxiv': '1303.5
 fullRecordGariazzo = {'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583', 'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G', 'scholar': None, 'doi': '10.1088/0954-3899/43/3/033001', 'isbn': None, 'year': '2016', 'link': '%s10.1088/0954-3899/43/3/033001'%pbConfig.doiUrl, 'comments': None, 'old_keys': None, 'crossref': None, 'bibtex': '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}', 'firstdate': '2015-07-29', 'pubdate': '2016-01-13', 'exp_paper': 0, 'lecture': 0, 'phd_thesis': 0, 'review': 0, 'proceeding': 0, 'book': 0, 'noUpdate': 0, 'marks': '', 'abstract': None, 'bibtexDict': {'doi': '10.1088/0954-3899/43/3/033001', 'eprint': '1507.08204', 'primaryclass': 'hep-ph', 'archiveprefix': 'arXiv', 'pages': '033001', 'year': '2016', 'volume': 'G43', 'journal': 'J.Phys.', 'title': '{Light sterile neutrinos}', 'author': 'Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.', 'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '{Light sterile neutrinos}', 'journal': 'J.Phys.', 'volume': 'G43', 'number': '', 'pages': '033001', 'published': 'J.Phys. G43 (2016) 033001', 'author': 'Gariazzo, S. et al.'}
 tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestCreateTables(unittest.TestCase):
 	"""Test creation of tables"""
 	def test_createTables(self):
@@ -63,7 +63,7 @@ class TestCreateTables(unittest.TestCase):
 		if os.path.exists(tempFDBName):
 			os.remove(tempFDBName)
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 	"""Test main database class physbiblioDB and physbiblioDBSub structures"""
 	def test_operations(self):
@@ -123,7 +123,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("[test f]"), None)
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"), ["test g", "test h"])
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseLinks(DBTestCase):
 	"""Test subclasses connecting categories, experiments, entries"""
 	def test_catsEntries(self):
@@ -217,7 +217,7 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual(self.pBDB.bibExp.countByExp(1), 2)
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseExperiments(DBTestCase):
 	"""Tests for the methods in the experiments subclass"""
 	def checkNumberExperiments(self, number):
@@ -321,7 +321,7 @@ class TestDatabaseExperiments(DBTestCase):
 			[{'inspire': u'', 'comments': u'', 'name': u'exp1', 'bibkey': u'abc', 'idEnEx': 1, 'homepage': u'', 'idExp': 1},
 			{'inspire': u'', 'comments': u'', 'name': u'exp2', 'bibkey': u'defghi', 'idEnEx': 2, 'homepage': u'', 'idExp': 2}])
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseCategories(DBTestCase):
 	"""Tests for the methods in the categories subclass"""
 	def checkNumberCategories(self, number):
@@ -457,7 +457,7 @@ class TestDatabaseCategories(DBTestCase):
 		self.assert_stdout(lambda: self.pBDB.cats.printHier(replace = True, depth = 2),
 			"   0: Main\n        1: Tags\n             2: c\n             4: e\n")
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
 	def insert_three(self):
@@ -1375,7 +1375,7 @@ class TestDatabaseEntries(DBTestCase):
 
 		os.remove("tmpbib.bib")
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_loadAndInsert_online(self):
 		"""tests for loadAndInsert with online connection"""
 		self.assertTrue(self.pBDB.bibs.loadAndInsert(['Gariazzo:2015rra', 'Ade:2013zuv']))
@@ -1529,7 +1529,7 @@ class TestDatabaseEntries(DBTestCase):
 				_input.assert_called_once_with("categories for 'abc': ")
 				_mock.assert_called_once_with(self.pBDB.bibs, ["acb"], childProcess='yes', imposeKey=True, method='doi', number=1, returnBibtex=True)
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_getFieldsFromArxiv(self):
 		"""tests for getFieldsFromArxiv (online)"""
 		pbConfig.params["maxAuthorSave"] = 5
@@ -1544,7 +1544,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
 		self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_updateInspireID(self):
 		"""tests for updateInspireID (online)"""
 		self.pBDB.bibs.insertFromBibtex(u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
@@ -1553,7 +1553,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015", "Gariazzo:2015rra"))
 		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_searchOAIUpdates_online(self):
 		"""tests for searchOAIUpdates, with real connection"""
 		self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom = 1), (0, [], []))
@@ -1612,7 +1612,7 @@ class TestDatabaseEntries(DBTestCase):
 					self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
 						(2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]))#6
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_updateInfoFromOAI_online(self):
 		"""test updateInfoFromOAI, with online connection"""
 		expected = [fullRecordGariazzo]
@@ -1670,7 +1670,7 @@ class TestDatabaseEntries(DBTestCase):
 				self.assert_in_stdout(lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
 					"Key error")
 
-	@unittest.skipIf(skipOnlineTests, "Online tests")
+	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_updateFromOAI_online(self):
 		"""test updateFromOAI with online connection"""
 		expected = [fullRecordGariazzo]
@@ -1770,7 +1770,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertTrue(self.pBDB.bibs.updateField("def", "bibtex", u'@article{def,author = "me",title = "def"}'))
 		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseUtilities(DBTestCase):
 	"""Tests for the methods in the utilities subclass"""
 	def test_spare(self):

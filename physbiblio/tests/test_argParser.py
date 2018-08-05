@@ -21,7 +21,7 @@ try:
 	from physbiblio.argParser import *
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
@@ -156,6 +156,43 @@ class TestParser(unittest.TestCase):
 			for sub, options in tests:
 				with self.assertRaises(SystemExit):
 					args = parser.parse_args([sub] + options)		
+
+	def test_subcommand_tests(self):
+		"""Test that the options are recognised correctly"""
+		from physbiblio.setuptests import skipTestsSettings
+		if sys.version_info[0] < 3:
+			patchString = "unittest2.runner.TextTestRunner.run"
+		else:
+			patchString = "unittest.runner.TextTestRunner.run"
+		oldSettings = skipTestsSettings.copy()
+		parser = setParser()
+		tests = [
+			[["test"], False, False, False, False, False],
+			[["test", "-d"], True, False, False, False, False],
+			[["test", "--database"], True, False, False, False, False],
+			[["test", "-g"], False, True, False, False, False],
+			[["test", "--gui"], False, True, False, False, False],
+			[["test", "-l"], False, False, True, False, False],
+			[["test", "--long"], False, False, True, False, False],
+			[["test", "-o"], False, False, False, True, True],
+			[["test", "--online"], False, False, False, True, True],
+			[["test", "--online_oai"], False, False, False, True, False],
+			[["test", "-d", "--online"], True, False, False, True, True],
+		]
+		for options, _db, _gui, _lon, _oai, _onl in tests:
+			skipTestsSettings.default()
+			with patch(patchString) as _run:
+				args = parser.parse_args(options)
+				call_tests(args)
+				self.assertEqual(skipTestsSettings.db, _db)
+				self.assertEqual(skipTestsSettings.gui, _gui)
+				self.assertEqual(skipTestsSettings.long, _lon)
+				self.assertEqual(skipTestsSettings.oai, _oai)
+				self.assertEqual(skipTestsSettings.online, _onl)
+				_run.assert_called_once()
+		with self.assertRaises(SystemExit):
+			args = parser.parse_args(["test", "-a"])
+		skipTestsSettings = oldSettings
 
 if __name__=='__main__':
 	unittest.main()

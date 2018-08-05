@@ -22,12 +22,12 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.marks import *
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMarks(GUITestCase):
 	"""
 	Test the functions in marks.marks

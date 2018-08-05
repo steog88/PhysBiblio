@@ -40,7 +40,7 @@ try:
 	from bibtexparser.bibdatabase import BibDatabase
 	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
 

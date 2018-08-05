@@ -21,12 +21,12 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.inspireStats import pBStats
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipOnlineTests, "Online tests")
+@unittest.skipIf(skipTestsSettings.online, "Online tests")
 class TestInspireStatsMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.inspireStats"""
 	@patch('sys.stdout', new_callable=StringIO)

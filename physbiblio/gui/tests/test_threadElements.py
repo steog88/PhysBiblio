@@ -30,12 +30,12 @@ try:
 	from physbiblio.gui.threadElements import *
 	from physbiblio.gui.commonClasses import *
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_checkUpdated(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_checkUpdated
@@ -81,7 +81,7 @@ class Test_thread_checkUpdated(GUITestCase):
 			thr.run()
 			_w.assert_called_once_with('Error when trying to check new versions. Are you offline?', exc_info=True)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_updateAllBibtexs(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_updateAllBibtexs
@@ -129,7 +129,7 @@ class Test_thread_updateAllBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningOAIUpdates)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_updateInspireInfo(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_updateInspireInfo
@@ -181,7 +181,7 @@ class Test_thread_updateInspireInfo(GUITestCase):
 			_sl.assert_called_once_with(0.1)
 			h1.assert_called_once_with()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_downloadArxiv(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_downloadArxiv
@@ -206,7 +206,7 @@ class Test_thread_downloadArxiv(GUITestCase):
 			_fun.assert_called_once_with("Gariazzo:2015rra")
 			h1.assert_called_once_with()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_processLatex(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_processLatex
@@ -236,7 +236,7 @@ class Test_thread_processLatex(GUITestCase):
 			h1.assert_called_once_with()
 			h2.assert_called_once_with(["a", "b"], "text")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_authorStats(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_authorStats
@@ -287,7 +287,7 @@ class Test_thread_authorStats(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBStats.runningAuthorStats)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_paperStats(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_paperStats
@@ -328,7 +328,7 @@ class Test_thread_paperStats(GUITestCase):
 			h1.assert_called_once_with()
 			self.assertEqual(p.lastPaperStats, {"a": "b"})
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_loadAndInsert(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_loadAndInsert
@@ -381,7 +381,7 @@ class Test_thread_loadAndInsert(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningLoadAndInsert)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanAllBibtexs(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_cleanAllBibtexs
@@ -428,7 +428,7 @@ class Test_thread_cleanAllBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningCleanBibtexs)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_findBadBibtexs(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_findBadBibtexs
@@ -477,7 +477,7 @@ class Test_thread_findBadBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningFindBadBibtexs)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_importFromBib(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_importFromBib
@@ -524,7 +524,7 @@ class Test_thread_importFromBib(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.importFromBibFlag)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_exportTexBib(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_exportTexBib
@@ -571,7 +571,7 @@ class Test_thread_exportTexBib(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBExport.exportForTexFlag)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanSpare(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_cleanSpare
@@ -604,7 +604,7 @@ class Test_thread_cleanSpare(GUITestCase):
 			_st.assert_called_once_with()
 			h1.assert_called_once_with()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanSparePDF(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_cleanSparePDF
@@ -637,7 +637,7 @@ class Test_thread_cleanSparePDF(GUITestCase):
 			_st.assert_called_once_with()
 			h1.assert_called_once_with()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_fieldsArxiv(GUITestCase):
 	"""
 	Test the functions in threadElements.thread_fieldsArxiv

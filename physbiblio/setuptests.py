@@ -25,14 +25,40 @@ try:
 	from physbiblio.errors import pBErrorManager, pBLogger
 	from physbiblio.database import physbiblioDB
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
 
-skipOnlineTests = False
-skipOAITests    = False
-skipLongTests   = False
-skipDBTests     = False
+class skipTestsSettingsClass():
+	"""Store settings for deciding the tests to skip"""
+	def __init__(self):
+		"""Define non-gui skip settings"""
+		self.default()
+
+	def copy(self):
+		"""create a new instance, copy of the previous one"""
+		new = skipTestsSettingsClass()
+		new.db = bool(self.db)
+		new.gui = bool(self.gui)
+		new.long = bool(self.long)
+		new.oai = bool(self.oai)
+		new.online = bool(self.online)
+		return new
+
+	def default(self):
+		"""Default settings"""
+		self.db = False
+		self.gui = False
+		self.long = False
+		self.oai = False
+		self.online = False
+
+	def __str__(self):
+		"""print current settings"""
+		return "DB: %s\nGUI: %s\nlong: %s\nOnline: %s (OAI: %s)"%(
+			self.db, self.gui, self.long, self.online, self.oai)
+
+skipTestsSettings = skipTestsSettingsClass()
 
 pbConfig.params["logFileName"] = tempLogFileName
 logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])

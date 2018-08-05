@@ -35,7 +35,7 @@ try:
 	from physbiblio.gui.profilesManager import *
 	from physbiblio.gui.threadElements import *
 except ImportError as e:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!", e)
+	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())
 try:
 	import physbiblio.gui.resourcesPyside2

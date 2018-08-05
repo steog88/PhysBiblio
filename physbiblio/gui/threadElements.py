@@ -20,7 +20,7 @@ try:
 	from physbiblio.gui.basicDialogs import *
 	from physbiblio.gui.commonClasses import *
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
 class thread_checkUpdated(MyThread):

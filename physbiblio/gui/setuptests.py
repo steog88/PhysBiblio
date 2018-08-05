@@ -18,16 +18,17 @@ else:
 try:
 	from physbiblio.setuptests import *
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
-
-skipGuiTests = False
 
 globalQApp = QApplication()
 
 def fakeExec(x, string, out):
-	"""simulate the selection of some files and return True/False as if confirmed/canceled"""
+	"""
+	Simulate the selection of some files and
+	return True/False as if confirmed/canceled
+	"""
 	QFileDialog.selectFile(x, string)
 	return out
 

@@ -17,12 +17,12 @@ try:
 	from physbiblio.webimport.inspireoai import get_journal_ref_xml
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipOnlineTests, "Online tests")
+@unittest.skipIf(skipTestsSettings.online, "Online tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""
 	Test the functions that import entries from the web.
@@ -140,7 +140,7 @@ class TestWebImportMethods(unittest.TestCase):
 		self.assertEqual(physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex1),
 			(True, '@Article{abc,\n        author = "me",\n       journal = "J.Phys.",\n        volume = "G43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n}\n\n'))
 
-	@unittest.skipIf(skipOAITests, "Online tests with OAI")
+	@unittest.skipIf(skipTestsSettings.oai, "Online tests with OAI")
 	def test_inspireoai(self):
 		"""test retrieve daily data from inspireOAI"""
 		date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")

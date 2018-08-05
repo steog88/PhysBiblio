@@ -21,12 +21,12 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.export import pBExport
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipLongTests, "Long tests")
+@unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestExportMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.export"""
 	def test_backup(self):

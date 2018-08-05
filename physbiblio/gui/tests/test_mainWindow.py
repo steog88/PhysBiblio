@@ -21,7 +21,7 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.mainWindow import *
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())

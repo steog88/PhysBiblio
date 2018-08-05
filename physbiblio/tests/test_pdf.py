@@ -20,14 +20,14 @@ try:
 	from physbiblio.database import pBDB, physbiblioDB
 	from physbiblio.pdf import pBPDF
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
 pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s"%today_ymd)
 
-@unittest.skipIf(skipLongTests, "Long tests")
+@unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestPdfMethods(unittest.TestCase):
 	"""
 	Test the methods and functions in the pdf module
@@ -66,7 +66,7 @@ class TestPdfMethods(unittest.TestCase):
 			os.remove(os.path.join(pBPDF.pdfDir, "12345678.pdf"))
 			shutil.rmtree(pBPDF.getFileDir("abc.fed"))
 
-	@unittest.skipIf(skipOnlineTests, "Long tests")
+	@unittest.skipIf(skipTestsSettings.online, "Long tests")
 	def test_download(self):
 		"""Test downloadArxiv"""
 		with patch('physbiblio.database.entries.getField', return_value="1806.11344") as _mock:

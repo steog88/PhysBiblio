@@ -10,7 +10,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.pdf import pBPDF
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
 	

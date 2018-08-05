@@ -27,7 +27,7 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.commonClasses import *
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
@@ -77,7 +77,7 @@ class emptyTreeModel(TreeModel):
 	def data(self, index, role):
 		return None
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLabels(GUITestCase):
 	"""
 	Test the MyLabelRight and MyLabelCenter classes
@@ -96,7 +96,7 @@ class TestLabels(GUITestCase):
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.alignment(), Qt.AlignCenter | Qt.AlignVCenter)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyComboBox(GUITestCase):
 	"""
 	Test the MyComboBox class
@@ -122,7 +122,7 @@ class TestMyComboBox(GUITestCase):
 		self.assertEqual(mb.itemText(1), "2")
 		self.assertEqual(mb.itemText(2), "")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyAndOrCombo(GUITestCase):
 	"""
 	Test the MyAndOrCombo class
@@ -144,7 +144,7 @@ class TestMyAndOrCombo(GUITestCase):
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "OR")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTrueFalseCombo(GUITestCase):
 	"""
 	Test the MyTrueFalseCombo class
@@ -166,7 +166,7 @@ class TestMyTrueFalseCombo(GUITestCase):
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "False")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestObjListWindow(GUITestCase):
 	"""
 	Test the objListWindow class
@@ -300,7 +300,7 @@ class TestObjListWindow(GUITestCase):
 			_cl.assert_called_once()
 			_ct.assert_called_once()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditObjectWindow(GUITestCase):
 	"""
 	Test the editObjectWindow class
@@ -373,7 +373,7 @@ class TestEditObjectWindow(GUITestCase):
 			_tl.assert_called_once()
 			_mo.assert_called_once()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyThread(GUITestCase):
 	"""
 	Test the MyThread class
@@ -397,7 +397,7 @@ class TestMyThread(GUITestCase):
 			mt.start(1, a = "try")
 			_st.assert_called_once_with(mt, 1, a = "try")
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestWriteStream(GUITestCase):
 	"""
 	Test the WriteStream class
@@ -439,7 +439,7 @@ class TestWriteStream(GUITestCase):
 				self.assertEqual(ws.text, "abc")
 				self.assertTrue(ws.fin)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableWidget(GUITestCase):
 	"""
 	Test the MyTableWidget class
@@ -471,7 +471,7 @@ class TestMyTableWidget(GUITestCase):
 			_c.assert_called_once_with(12)
 			_t.assert_called_once_with(0, 1, e)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableView(GUITestCase):
 	"""
 	Test the MyTableView class
@@ -501,7 +501,7 @@ class TestMyTableView(GUITestCase):
 			_c.assert_called_once_with(12)
 			_t.assert_called_once_with(0, 1, e)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableModel(GUITestCase):
 	"""
 	Test the MyTableModel class
@@ -739,7 +739,7 @@ class TestMyTableModel(GUITestCase):
 		mtm.sort("a")
 		self.assertEqual(mtm.dataList, dl)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestTreeNode(GUITestCase):
 	"""
 	Test the TreeNode class
@@ -756,7 +756,7 @@ class TestTreeNode(GUITestCase):
 			_gc.assert_called_once_with()
 		self.assertRaises(NotImplementedError, lambda: tn._getChildren())
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestTreeModel(GUITestCase):
 	"""
 	Test the TreeModel class
@@ -790,7 +790,7 @@ class TestTreeModel(GUITestCase):
 		"""test the counting of rows"""
 		raise NotImplementedError()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestNamedElement(GUITestCase):
 	"""
 	Test the NamedElement class
@@ -806,7 +806,7 @@ class TestNamedElement(GUITestCase):
 		self.assertEqual(ne.text, "abcde")
 		self.assertEqual(ne.subelements, ["a", "b"])
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestNamedNode(GUITestCase):
 	"""
 	Test the NamedNode class
@@ -828,7 +828,7 @@ class TestNamedNode(GUITestCase):
 		self.assertEqual(len(nn._getChildren()), 1)
 		self.assertIsInstance(nn._getChildren()[0], NamedNode)
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLeafFilterProxyModel(GUITestCase):
 	"""
 	Test the LeafFilterProxyModel class
@@ -948,7 +948,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 				return_value = 1) as _rc:
 			self.assertFalse(lf.hasAcceptedChildren(1, QModelIndex()))
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyDDTableWidget(GUITestCase):
 	"""
 	Test the MyDDTableWidget class
@@ -989,7 +989,7 @@ class TestMyDDTableWidget(GUITestCase):
 			a = mddtw.getselectedRowsFast()
 			self.assertEqual(a, [1, 3, 8])
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyMenu(GUITestCase):
 	"""
 	Test the MyMenu class
@@ -1055,7 +1055,7 @@ class TestMyMenu(GUITestCase):
 			QTest.keyPress(mm, Qt.Key_Escape)
 			_oc.assert_called_once()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestGuiViewEntry(GUITestCase):
 	"""
 	Test the GuiViewEntry class
@@ -1100,7 +1100,7 @@ class TestGuiViewEntry(GUITestCase):
 			_fl.assert_called_once_with("/a/b/c")
 			_ou.assert_called_once_with(QUrl("mylink"))
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyImportedTableModel(GUITestCase):
 	"""
 	Test the MyImportedTableModel class

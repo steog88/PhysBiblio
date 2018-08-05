@@ -26,7 +26,7 @@ try:
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.basicDialogs import askDirName
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
@@ -60,7 +60,7 @@ testData["figs"] = pBStats.plotStats(author = True)
 
 fakepar = fakeParent()
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAuthorStatsPlots(GUITestCase):
 	"""
 	Test the functions in authorStatsPlots
@@ -170,7 +170,7 @@ class TestAuthorStatsPlots(GUITestCase):
 			for j in [0, 1]:
 				self.assertEqual(asp.layout().itemAtPosition(i, j).widget().figure, asp.figs[1 + i*2 + j])
 
-@unittest.skipIf(skipGuiTests, "GUI tests")
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPaperStatsPlots(GUITestCase):
 	"""
 	Test the functions in paperStatsPlots

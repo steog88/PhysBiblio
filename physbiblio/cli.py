@@ -18,7 +18,7 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
-	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
 

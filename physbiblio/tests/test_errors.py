@@ -20,7 +20,7 @@ try:
 	from physbiblio.errors import pBErrorManagerClass
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())

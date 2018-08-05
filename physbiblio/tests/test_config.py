@@ -19,7 +19,7 @@ try:
 	from physbiblio.databaseCore import physbiblioDBCore
 	from physbiblio.config import pbConfig, ConfigVars, config_defaults, configurationDB, globalDB
 except ImportError:
-    print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
+    print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
@@ -364,7 +364,7 @@ class TestProfilesDB(unittest.TestCase):
 		self.assertTrue(self.globalDb.deleteProfile("abc"))
 		self.assertEqual(self.globalDb.countProfiles(), 1)
 
-@unittest.skipIf(skipDBTests, "Database tests")
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestConfigDB(DBTestCase):
 	"""Test configurationDB"""
 	def test_configDB(self):
