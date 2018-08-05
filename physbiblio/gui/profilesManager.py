@@ -21,13 +21,23 @@ except ImportError:
 	print("Could not find physbiblio and its contents: configure your PYTHONPATH!")
 	print(traceback.format_exc())
 
-def editProf(parent, statusBarObject):
+def editProf(parent, statusBarObject, testing = False):
 	"""
-	...
+	Use `editProfile` and process the form output
+
+	Parameters:
+		parent: the parent object
+		statusBarObject: the object which has the function `StatusBarMessage`
+			(a `MainWindow` instance)
+		testing: if False, create the `editProfile` instance normally,
+			otherwise, use the passed object
 	"""
 	oldOrder = pbConfig.profileOrder
-	newProfWin = editProfile(parent)
-	newProfWin.exec_()
+	if testing is False:
+		newProfWin = editProfile(parent)
+		newProfWin.exec_()
+	else:
+		newProfWin = testing
 	data = {}
 	if newProfWin.result:
 		newProfiles = {}
@@ -41,37 +51,60 @@ def editProf(parent, statusBarObject):
 			if currEl["r"].isChecked() and name != "":
 				pbConfig.globalDb.setDefaultProfile(name)
 			if name in pbConfig.profiles.keys():
-				pbConfig.globalDb.updateProfileField(name, "description", currEl["d"].text())
+				pbConfig.globalDb.updateProfileField(
+					name,
+					"description",
+					currEl["d"].text())
 				if currEl["x"].isChecked() and \
-						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
+						askYesNo("Do you really want to cancel the" +
+							" profile '%s'?\n"%name +
+							"The action cannot be undone!\n" +
+							"The corresponding database will not be erased."):
 					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
-			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles.keys()]:
-				pbConfig.globalDb.updateProfileField(os.path.join(pbConfig.dataPath, fileName), "name", name, identifierField = "databasefile")
-				pbConfig.globalDb.updateProfileField(name, "description", currEl["d"].text())
+			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] \
+					for k in pbConfig.profiles.keys()]:
+				pbConfig.globalDb.updateProfileField(
+					os.path.join(pbConfig.dataPath, fileName),
+					"name",
+					name,
+					identifierField = "databasefile")
+				pbConfig.globalDb.updateProfileField(name,
+					"description",
+					currEl["d"].text())
 				if currEl["x"].isChecked() and \
-						askYesNo("Do you really want to cancel the profile '%s'?\nThe action cannot be undone!\nThe corresponding database will not be erased."%name):
+						askYesNo("Do you really want to cancel the " +
+							"profile '%s'?\n"%name +
+							"The action cannot be undone!\n" +
+							"The corresponding database will not be erased."):
 					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
 			else:
 				if name.strip() != "":
-					newFileName = os.path.join(pbConfig.dataPath, (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db"))
+					newFileName = os.path.join(pbConfig.dataPath,
+						(fileName.split(os.sep)[-1] + ".db").replace(
+							".db.db", ".db"))
 					pbConfig.globalDb.createProfile(
 						name = name,
 						description = currEl["d"].text(),
 						databasefile = newFileName,
 						)
 					if currEl["c"].currentText() != "None":
-						shutil.copy2(os.path.join(pbConfig.dataPath, currEl["c"].currentText()), newFileName)
-					pBGUIErrorManager.loggerPriority(0).info("New profile created.")
-		pbConfig.globalDb.setProfileOrder([e["n"].text() for e in newProfWin.elements if e["n"].text() != "" and e["n"].text() not in deleted])
+						shutil.copy2(os.path.join(pbConfig.dataPath,
+							currEl["c"].currentText()), newFileName)
+					pBGUIErrorManager.loggerPriority(0).info(
+						"New profile created.")
+		pbConfig.globalDb.setProfileOrder([e["n"].text() \
+			for e in newProfWin.elements \
+			if e["n"].text() != "" and e["n"].text() not in deleted])
 		pbConfig.loadProfiles()
+		message = "Profile management completed"
 	else:
 		pbConfig.profileOrder = oldOrder
 		message = "No modifications"
 	try:
 		statusBarObject.StatusBarMessage(message)
-	except:
+	except AttributeError:
 		pass
 
 class selectProfiles(QDialog):

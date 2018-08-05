@@ -36,7 +36,295 @@ class TestEditProf(GUITestCase):
 	"""
 	def test_editProf(self):
 		"""Test the editProf function"""
-		pass
+		self.oldProfileOrder = pbConfig.profileOrder
+		self.oldProfiles = pbConfig.profiles
+		self.oldCurrentProfileName = pbConfig.currentProfileName
+		self.oldCurrentProfile = pbConfig.currentProfile
+		pbConfig.profileOrder = ["test1", "test2", "test3"]
+		pbConfig.profiles = {
+			"test1": {'db': u'test1.db', 'd': u'test1', 'n': u'test1'},
+			"test2": {'db': u'test2.db', 'd': u'test2', 'n': u'test2'},
+			"test3": {'db': u'test3.db', 'd': u'test3', 'n': u'test3'},
+		}
+		pbConfig.currentProfileName = "test1"
+		pbConfig.currentProfile = pbConfig.profiles["test1"]
+
+		p = QWidget()
+		mw = MainWindow(True)
+		ep = editProfile()
+		ep.onCancel()
+		with patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				as _m:
+			editProf(p, mw, ep)
+			_m.assert_called_once_with("No modifications")
+		with patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				as _m:
+			editProf(p, p, ep)
+			_m.assert_not_called()
+
+		# test switch lines and some description
+		ep = editProfile()
+		ep.switchLines(0)
+		ep.elements[2]["d"].setText("descrip")
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test2', 'description', u'test2'),
+				call(u'test1', 'description', u'test1'),
+				call(u'test3', 'description', u'descrip'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test2', u'test1', u'test3'])
+			_copy.assert_not_called()
+
+		# test set new default
+		ep = editProfile()
+		ep.elements[1]["r"].setChecked(True)
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_called_once_with("test2")
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(u'test2', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test1', u'test2', u'test3'])
+			_copy.assert_not_called()
+
+		# test delete
+		ep = editProfile()
+		ep.elements[1]["x"].setChecked(True)
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("physbiblio.gui.profilesManager.askYesNo",
+					return_value = True) as _ayn,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(u'test2', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_called_once_with("test2")
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test1', u'test3'])
+			_ayn.assert_called_once_with("Do you really want to cancel the " +
+				"profile 'test2'?\n" +
+				"The action cannot be undone!\n" +
+				"The corresponding database will not be erased.")
+			_copy.assert_not_called()
+
+		# test rename existing
+		ep = editProfile()
+		ep.elements[1]["n"].setText("testA")
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(os.path.join(pbConfig.dataPath, 'test2.db'),
+					'name',
+					'testA',
+					identifierField = 'databasefile'),
+				call(u'testA', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test1', u'testA', u'test3'])
+			_copy.assert_not_called()
+
+		# test rename existing and delete
+		ep = editProfile()
+		ep.elements[1]["n"].setText("testA")
+		ep.elements[1]["x"].setChecked(True)
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.profilesManager.askYesNo",
+					return_value = True) as _ayn,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(os.path.join(pbConfig.dataPath, 'test2.db'),
+					'name',
+					'testA',
+					identifierField = 'databasefile'),
+				call(u'testA', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_called_once_with("testA")
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test1', u'test3'])
+			_ayn.assert_called_once_with("Do you really want to cancel the " +
+				"profile 'testA'?\n" +
+				"The action cannot be undone!\n" +
+				"The corresponding database will not be erased.")
+			_copy.assert_not_called()
+
+		# test rename existing and reject delete
+		ep = editProfile()
+		ep.elements[1]["n"].setText("testA")
+		ep.elements[1]["x"].setChecked(True)
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.profilesManager.askYesNo",
+					return_value = False) as _ayn,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(os.path.join(pbConfig.dataPath, 'test2.db'),
+					'name',
+					'testA',
+					identifierField = 'databasefile'),
+				call(u'testA', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_not_called()
+			_spo.assert_called_once_with([u'test1', u'testA', u'test3'])
+			_ayn.assert_called_once_with("Do you really want to cancel the " +
+				"profile 'testA'?\n" +
+				"The action cannot be undone!\n" +
+				"The corresponding database will not be erased.")
+			_copy.assert_not_called()
+
+		# test creation of new profile
+		ep = editProfile()
+		ep.elements[-1]["n"].setText("testNew")
+		ep.elements[-1]["f"].setCurrentText("testNew.db")
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(u'test2', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_called_once_with(
+				databasefile = os.path.join(pbConfig.dataPath, 'testNew.db'),
+				description = '',
+				name = 'testNew')
+			_spo.assert_called_once_with(
+				['test1', 'test2', 'test3', "testNew"])
+			_w.assert_called_once_with('New profile created.\n')
+			_copy.assert_not_called()
+
+		# test creation of new profile as copy of existing one
+		ep = editProfile()
+		ep.elements[-1]["n"].setText("testNew")
+		ep.elements[-1]["f"].setCurrentText("testNew.db")
+		ep.elements[-1]["c"].setCurrentText("test1.db")
+		ep.onOk()
+		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.globalDB.createProfile") as _cp,\
+				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
+				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+					as _m,\
+				patch("shutil.copy2") as _copy:
+			editProf(p, mw, ep)
+			_lp.assert_called_once_with()
+			_sdp.assert_not_called()
+			_upf.assert_has_calls([
+				call(u'test1', 'description', u'test1'),
+				call(u'test2', 'description', u'test2'),
+				call(u'test3', 'description', u'test3'),
+			])
+			_dp.assert_not_called()
+			_cp.assert_called_once_with(
+				databasefile = os.path.join(pbConfig.dataPath, 'testNew.db'),
+				description = '',
+				name = 'testNew')
+			_spo.assert_called_once_with(
+				['test1', 'test2', 'test3', "testNew"])
+			_w.assert_called_once_with('New profile created.\n')
+			_copy.assert_called_once_with(
+				os.path.join(pbConfig.dataPath, 'test1.db'),
+				os.path.join(pbConfig.dataPath, 'testNew.db'))
+
+		pbConfig.profileOrder = self.oldProfileOrder
+		pbConfig.profiles = self.oldProfiles
+		pbConfig.currentProfileName = self.oldCurrentProfileName
+		pbConfig.currentProfile = self.oldCurrentProfile
+
 
 @unittest.skipIf(skipGuiTests, "GUI tests")
 class TestSelectProfiles(GUITestCase):
