@@ -571,7 +571,8 @@ class TestEditProfile(GUITestCase):
 	def test_addButtons(self):
 		"""test addButtons"""
 		p = QWidget()
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _s:
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _s:
 			ep = editProfile(p)
 		ep.addButtons()
 		self.assertIsInstance(ep.def_group, QButtonGroup)
@@ -727,9 +728,10 @@ class TestEditProfile(GUITestCase):
 		with patch("logging.Logger.warning") as _w:
 			ep.addButtons(pdata, porder, pdefault)
 			_w.assert_has_calls([
-				call("Missing info: d in ['x', 'r', 'db', 'n']." +
+				call("Missing info: 'd' in ['x', 'r', 'db', 'n']." +
 					" Default to empty."),
-				call("Missing profile: test4 in ['test1', 'test3A', 'test2']"),
+				call("Missing profile: 'test4' in " +
+					"['test1', 'test3A', 'test2']"),
 				])
 		self.assertIsInstance(ep.def_group, QButtonGroup)
 		self.assertIsInstance(ep.elements, list)
@@ -791,7 +793,9 @@ class TestEditProfile(GUITestCase):
 				patch("glob.iglob",
 					return_value = ["old1.db", "test1.db"]) as _g:
 			ep.createForm()
-			_a.assert_called_once_with(pbConfig.profiles, pbConfig.profileOrder)
+			_a.assert_called_once_with(
+				pbConfig.profiles,
+				pbConfig.profileOrder)
 			_g.assert_called_once_with(os.path.join(pbConfig.dataPath, "*.db"))
 
 		# test labels and accept/cancel buttons
@@ -852,7 +856,8 @@ class TestEditProfile(GUITestCase):
 		with patch("physbiblio.gui.profilesManager.editProfile.onOk") as _o:
 			QTest.mouseClick(ep.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
-		with patch("physbiblio.gui.profilesManager.editProfile.onCancel") as _o:
+		with patch("physbiblio.gui.profilesManager.editProfile.onCancel") \
+				as _o:
 			QTest.mouseClick(ep.cancelButton, Qt.LeftButton)
 			_o.assert_called_once_with()
 
@@ -895,9 +900,7 @@ class TestEditProfile(GUITestCase):
 			"c": w6,
 			})
 
-		# # # # # # # # test custom arguments
-		# # # # # # # #test newLine input fields ("c"!)
-		#test custom arguments A
+		#test custom arguments
 		pdata = {
 			"test1": {
 				'db': u'test1.db',
@@ -934,7 +937,8 @@ class TestEditProfile(GUITestCase):
 				patch("logging.Logger.warning") as _w:
 			ep.createForm(pdata, porder, pdefault, pnew)
 			_a.assert_called_once_with(pdata, porder)
-			_w.assert_called_with("Missing field: d in ['c', 'r', 'db', 'n']" +
+			_w.assert_called_with("Missing field: 'd' in " +
+				"['c', 'r', 'db', 'n']" +
 				". Default to empty.")
 		ep.cleanLayout()
 		with patch("glob.iglob", return_value = ["old1.db", "test1.db"]) as _g:
@@ -984,35 +988,48 @@ class TestEditProfile(GUITestCase):
 		"""Test switchLines"""
 		p = QWidget()
 		ep = editProfile(p)
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
-				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl:
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _cf,\
+				patch("physbiblio.gui.profilesManager."+
+					"editProfile.cleanLayout") as _cl:
 			self.assertTrue(ep.switchLines(0))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
-				u'test1': {'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
-				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
-				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
+				u'test1':
+					{'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
+				u'test2':
+					{'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
+				u'test3':
+					{'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
 				},
 				[u'test2', u'test1', u'test3'],
 				{'r': False, 'db': u'', 'd': u'', 'n': u''})
 		ep.elements[-1]["n"].setText("testA")
 		ep.elements[-1]["f"].setCurrentText("testA.db")
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
-				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl:
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _cf,\
+				patch("physbiblio.gui.profilesManager." +
+					"editProfile.cleanLayout") as _cl:
 			self.assertTrue(ep.switchLines(1))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
-				u'test1': {'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
-				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
-				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
+				u'test1':
+					{'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
+				u'test2':
+					{'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
+				u'test3':
+					{'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
 				},
 				[u'test1', u'test3', u'test2'],
 				{'r': False, 'db': u'testA.db', 'd': u'', 'n': u'testA'})
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _cf,\
-				patch("physbiblio.gui.profilesManager.editProfile.cleanLayout") as _cl,\
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _cf,\
+				patch("physbiblio.gui.profilesManager." +
+					"editProfile.cleanLayout") as _cl,\
 				patch("logging.Logger.warning") as _i:
 			self.assertFalse(ep.switchLines(2))
-			_i.assert_called_once_with("Impossible to switch lines: index out of range")
+			_i.assert_called_once_with("Impossible to switch lines: " +
+				"index out of range")
 			_cl.assert_not_called()
 			_cf.assert_not_called()
 
