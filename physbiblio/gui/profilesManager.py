@@ -8,8 +8,10 @@ import os
 import glob
 import shutil
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QRadioButton
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, \
+	QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, \
+	QPushButton, QRadioButton
 
 try:
 	from physbiblio.config import pbConfig
@@ -157,8 +159,12 @@ class selectProfiles(QDialog):
 
 		grid.addWidget(QLabel("Available profiles: "), i, 0)
 		self.combo = MyComboBox(self,
-			["%s -- %s"%(p, pbConfig.profiles[p]["d"]) for p in pbConfig.profileOrder],
-			current = "%s -- %s"%(pbConfig.currentProfileName, pbConfig.currentProfile["d"]))
+			["%s -- %s"%(p, pbConfig.profiles[p]["d"])
+				for p in pbConfig.profileOrder],
+			current = "%s -- %s"%(
+				pbConfig.currentProfileName,
+				pbConfig.currentProfile["d"])
+				)
 		grid.addWidget(self.combo, i, 1)
 		i += 1
 
@@ -177,19 +183,20 @@ class myOrderPushButton(QPushButton):
 	"""
 	Define a button to switch two form lines
 	"""
-	def __init__(self, parent, data, icon, text, testing = False):
+	def __init__(self, parent, data, qicon, text, testing = False):
 		"""
 		Extend `QPushButton.__init__`
 
 		Parameters:
 			parent: the parent object (an `editProfile` instance)
 			data: the index of the row that will be switched
-			icon: the `QPushButton` icon
+			qicon: the `QIcon` that will be used to build the `QPushButton`
 			text: the `QPushButton` text
 			testing (boolean, default False):
 				if True, do not connect the clicked signal
 		"""
-		QPushButton.__init__(self, icon, text)
+		self.qicon = qicon
+		super(myOrderPushButton, self).__init__(self.qicon, text)
 		self.data = data
 		self.parentObj = parent
 		if not testing:
@@ -214,23 +221,27 @@ class editProfile(editObjectWindow):
 		"""
 		In case "Ok" is pressed, decide if the result is valid:
 			* if the name or filename of the new profile are empty, reject;
-			* if the name or filename of the new profile are already in use, reject;
+			* if the name or filename of the new profile are already in use,
+				reject;
 			* in all the other cases, accept and close the dialog.
 		"""
 		if (self.elements[-1]["f"].currentText().strip() != "" and \
 					self.elements[-1]["n"].text().strip() == "") \
 				or (self.elements[-1]["f"].currentText().strip() == "" and \
 					self.elements[-1]["n"].text().strip() != ""):
-			pBGUILogger.info("Cannot create a new profile if 'name' or 'filename' is empty.")
+			pBGUILogger.info("Cannot create a new profile if 'name' or " +
+				"'filename' is empty.")
 			return
 		if self.elements[-1]["n"].text().strip() in \
 				[a["n"].text() for a in self.elements[:-1]]:
-			pBGUILogger.info("Cannot create new profile: 'name' already in use.")
+			pBGUILogger.info("Cannot create new profile: " +
+				"'name' already in use.")
 			return
 		if (self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] \
 				+ ".db").replace(".db.db", ".db") in \
 				[a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]]:
-			pBGUILogger.info("Cannot create new profile: 'filename' already in use.")
+			pBGUILogger.info("Cannot create new profile: " +
+				"'filename' already in use.")
 			return
 		self.result	= True
 		self.close()
@@ -240,7 +251,24 @@ class editProfile(editObjectWindow):
 			profileOrder = None,
 			defaultProfile = None):
 		"""
-		...
+		Read profiles configuration and add `QLineEdits` and buttons
+		for the existing profiles, using previous form content if requested
+
+		Parameters:
+			profilesData (optional): a dictionary of dictionaries,
+				containing the information of each profile.
+				Each element has the profile name as key, and this structure:
+					"n": profile name
+					"d": description
+					"f": name of the database file
+					"r": True if the profile was marked as default in the form
+					"x": True if the profile was selected for deletion
+				If `None`, use `pbConfig.profiles`
+			profileOrder (optional): the list containing the order
+				of the profiles, by their name in the database.
+				If `None`, use `pbConfig.profileOrder`
+			defaultProfile (optional): the name of the default profile.
+				If `None`, use `pbConfig.defaultProfileName`
 		"""
 		if profilesData is None:
 			profilesData = pbConfig.profiles
@@ -253,16 +281,25 @@ class editProfile(editObjectWindow):
 		self.arrows = []
 		i = 0
 		j = 0
+		missing = []
 		for k in profileOrder:
-			prof = profilesData[k]
+			try:
+				prof = profilesData[k]
+			except KeyError:
+				pBLogger.warning("Missing profile: '%s' in %s"%(
+					k, profilesData.keys()))
+				missing.append(k)
+				continue
+			for f in ["db", "d"]:
+				if f not in prof.keys():
+					pBLogger.warning("Missing info: '%s' in %s. "%(
+						f, prof.keys()) + "Default to empty.")
+					prof[f] = ""
 			i += 1
 			tempEl = {}
 			tempEl["r"] = QRadioButton("")
 			self.def_group.addButton(tempEl["r"])
-			if defaultProfile == k or ("r" in prof.keys() and prof["r"]):
-				tempEl["r"].setChecked(True)
-			else:
-				tempEl["r"].setChecked(False)
+			tempEl["r"].setChecked(False)
 			self.currGrid.addWidget(tempEl["r"], i, 0)
 
 			tempEl["n"] = QLineEdit(k)
@@ -274,8 +311,10 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["d"], i, 3)
 			if i > 1:
 				self.arrows.append([
-					myOrderPushButton(self, j, QPixmap(":/images/arrow-down.png").scaledToHeight(48), ""),
-					myOrderPushButton(self, j, QPixmap(":/images/arrow-up.png").scaledToHeight(48), "")])
+					myOrderPushButton(self,
+						j, QIcon(":/images/arrow-down.png"), ""),
+					myOrderPushButton(self,
+						j, QIcon(":/images/arrow-up.png"), "")])
 				self.currGrid.addWidget(self.arrows[j][0], i-1, 5)
 				self.currGrid.addWidget(self.arrows[j][1], i, 4)
 				j += 1
@@ -285,13 +324,48 @@ class editProfile(editObjectWindow):
 			self.currGrid.addWidget(tempEl["x"], i, 6)
 			self.elements.append(tempEl)
 
+		# setChecked the radio of the default profile or
+		# of the previously selected one
+		profileOrder = [k for k in profileOrder if k not in missing]
+		for i, k in enumerate(profileOrder):
+			if defaultProfile == k:
+				self.elements[i]["r"].setChecked(True)
+		for i, k in enumerate(profileOrder):
+			if "r" in profilesData[k].keys() and profilesData[k]["r"] is True:
+				self.elements[i]["r"].setChecked(True)
+
 	def createForm(self,
 			profilesData = None,
 			profileOrder = None,
 			defaultProfile = None,
-			newLine = {"r": False, "n": "", "db": "", "d": ""}):
+			newLine = {"r": False, "n": "", "db": "", "d": "", "c": "None"}):
 		"""
-		...
+		Create the form for managing profiles,
+		using previous form content if requested.
+
+		Parameters:
+			profilesData (optional): a dictionary of dictionaries,
+				containing the information of each profile.
+				Each element has the profile name as key, and this structure:
+					"n": profile name
+					"d": description
+					"db": name of the database file
+					"r": True if the profile was marked as default in the form
+					"x": True if the profile was selected for deletion
+				If `None`, use `pbConfig.profiles`
+			profileOrder (optional): the list containing the order
+				of the profiles, by their name in the database.
+				If `None`, use `pbConfig.profileOrder`
+			defaultProfile (optional): the name of the default profile.
+				If `None`, use `pbConfig.defaultProfileName`
+			newLine (optional): the content of the line corresponding
+				to the potentially new profile.
+				It is a dictionary with the following fields:
+					"n": profile name
+					"d": description
+					"db": name of the database file
+					"r": True if the profile was marked as default in the form
+					"c": previous content of "Copy from:"
 		"""
 		if profilesData is None:
 			profilesData = pbConfig.profiles
@@ -302,7 +376,12 @@ class editProfile(editObjectWindow):
 
 		self.setWindowTitle('Edit profile')
 
-		labels = [ QLabel("Default"), QLabel("Short name"), QLabel("Filename"), QLabel("Description") ]
+		labels = [
+			QLabel("Default"),
+			QLabel("Short name"),
+			QLabel("Filename"),
+			QLabel("Description")
+			]
 		for i,e in enumerate(labels):
 			self.currGrid.addWidget(e, 0, i)
 		self.currGrid.addWidget(QLabel("Order"), 0, 4, 1, 2)
@@ -310,7 +389,12 @@ class editProfile(editObjectWindow):
 
 		self.addButtons(profilesData, profileOrder)
 
-		i = len(pbConfig.profiles) + 3
+		for f in ["c", "db", "d", "n", "r"]:
+			if f not in newLine.keys():
+				pBLogger.warning("Missing field: '%s' in %s. "%(
+					f, newLine.keys()) + "Default to empty.")
+				newLine[f] = ""
+		i = len(profilesData) + 3
 		self.currGrid.addWidget(QLabel(""), i-2, 0)
 		tempEl = {}
 		self.currGrid.addWidget(QLabel("Add new?"), i-1, 0)
@@ -327,9 +411,12 @@ class editProfile(editObjectWindow):
 
 		tempEl["f"] = QComboBox(self)
 		tempEl["f"].setEditable(True)
-		dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
-		registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
-		tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+		dbFiles = [f.split(os.sep)[-1] for f in \
+			list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
+		registeredDb = sorted([a["db"].split(os.sep)[-1] for a in \
+			profilesData.values()])
+		tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles \
+			if f not in registeredDb])
 		self.currGrid.addWidget(tempEl["f"], i, 2)
 
 		tempEl["d"] = QLineEdit(newLine["d"])
@@ -337,7 +424,10 @@ class editProfile(editObjectWindow):
 
 		self.currGrid.addWidget(QLabel("Copy from:"), i, 4, 1, 2)
 		tempEl["c"] = QComboBox(self)
-		tempEl["c"].addItems(["None"] + registeredDb)
+		copyElements = ["None"] + registeredDb
+		tempEl["c"].addItems(copyElements)
+		tempEl["c"].setCurrentIndex(copyElements.index(newLine["c"])
+			if newLine["c"] in copyElements else 0)
 		self.currGrid.addWidget(tempEl["c"], i, 6)
 
 		self.elements.append(tempEl)

@@ -471,23 +471,24 @@ class TestmyOrderPushButton(GUITestCase):
 		"""test init"""
 		self.max_diff = None
 		qi = QIcon(":/images/arrow-down.png")
-		qp = QPushButton()
 		p = editProfile(QWidget())
 		opb = myOrderPushButton(p, 1, qi, "txt")
 		self.assertIsInstance(opb, QPushButton)
 		self.assertEqual(opb.text(), "txt")
+		self.assertEqual(opb.qicon, qi)
 		self.assertEqual(opb.parent(), p)
 		self.assertEqual(opb.parentObj, p)
-		with patch("physbiblio.gui.profilesManager.editProfile.switchLines") as _s:
+		with patch("physbiblio.gui.profilesManager.editProfile.switchLines") \
+				as _s:
 			opb.onClick()
 			_s.assert_called_once_with(1)
 			_s.reset_mock()
 			QTest.mouseClick(opb, Qt.LeftButton)
 			_s.assert_called_once_with(1)
 		with patch("physbiblio.gui.profilesManager.QPushButton.__init__",
-				return_value = qp) as _i:
+				return_value = QPushButton()) as _i:
 			opb = myOrderPushButton(p, 1, qi, "txt", True)
-			_i.assert_called_once_with(opb, qi, "txt")
+			_i.assert_called_once_with(qi, "txt")
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProfile(GUITestCase):
@@ -499,6 +500,7 @@ class TestEditProfile(GUITestCase):
 		self.oldProfiles = pbConfig.profiles
 		self.oldCurrentProfileName = pbConfig.currentProfileName
 		self.oldCurrentProfile = pbConfig.currentProfile
+		self.olddefaultProfileName = pbConfig.defaultProfileName
 		pbConfig.profileOrder = ["test1", "test2", "test3"]
 		pbConfig.profiles = {
 			"test1": {'db': u'test1.db', 'd': u'test1', 'n': u'test1'},
@@ -506,6 +508,7 @@ class TestEditProfile(GUITestCase):
 			"test3": {'db': u'test3.db', 'd': u'test3', 'n': u'test3'},
 		}
 		pbConfig.currentProfileName = "test1"
+		pbConfig.defaultProfileName = "test1"
 		pbConfig.currentProfile = pbConfig.profiles["test1"]
 
 	@classmethod
@@ -515,6 +518,7 @@ class TestEditProfile(GUITestCase):
 		pbConfig.profiles = self.oldProfiles
 		pbConfig.currentProfileName = self.oldCurrentProfileName
 		pbConfig.currentProfile = self.oldCurrentProfile
+		pbConfig.defaultProfileName = self.olddefaultProfileName
 
 	def test_init(self):
 		"""test init"""
@@ -566,11 +570,415 @@ class TestEditProfile(GUITestCase):
 
 	def test_addButtons(self):
 		"""test addButtons"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _s:
+			ep = editProfile(p)
+		ep.addButtons()
+		self.assertIsInstance(ep.def_group, QButtonGroup)
+		self.assertIsInstance(ep.elements, list)
+		self.assertIsInstance(ep.arrows, list)
+		self.assertEqual(len(ep.elements), 3)
+		self.assertEqual(len(ep.def_group.buttons()), 3)
+		self.assertEqual(len(ep.arrows), 2)
+
+		for i, k in enumerate(pbConfig.profileOrder):
+			w0 = ep.layout().itemAtPosition(i + 1, 0).widget()
+			self.assertIsInstance(w0, QRadioButton)
+			if pbConfig.defaultProfileName == k:
+				self.assertTrue(w0.isChecked())
+			else:
+				self.assertFalse(w0.isChecked())
+			self.assertIn(w0, ep.def_group.buttons())
+
+			w1 = ep.layout().itemAtPosition(i + 1, 1).widget()
+			self.assertIsInstance(w1, QLineEdit)
+			self.assertEqual(w1.text(), k)
+			w2 = ep.layout().itemAtPosition(i + 1, 2).widget()
+			self.assertIsInstance(w2, QLineEdit)
+			self.assertEqual(w2.text(),
+				pbConfig.profiles[k]["db"].split(os.sep)[-1])
+			self.assertTrue(w2.isReadOnly())
+			w3 = ep.layout().itemAtPosition(i + 1, 3).widget()
+			self.assertIsInstance(w3, QLineEdit)
+			self.assertEqual(w3.text(), pbConfig.profiles[k]["d"])
+
+			if i > 1:
+				ad = ep.layout().itemAtPosition(i, 5).widget()
+				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertEqual(ad.data, i - 1)
+				self.assertEqual(ep.arrows[i - 1][0], ad)
+			if i < 2:
+				au = ep.layout().itemAtPosition(i + 2, 4).widget()
+				self.assertIsInstance(au, myOrderPushButton)
+				self.assertEqual(au.data, i)
+				self.assertEqual(ep.arrows[i][1], au)
+
+			w6 = ep.layout().itemAtPosition(i + 1, 6).widget()
+			self.assertIsInstance(w6, QCheckBox)
+			self.assertFalse(w6.isChecked())
+			self.assertEqual(ep.elements[i],
+				{
+				"r": w0,
+				"n": w1,
+				"f": w2,
+				"d": w3,
+				"x": w6
+				})
+
+		#test custom arguments A
+		pdata = {
+			"test1": {
+				'db': u'test1.db',
+				'd': u'new test1',
+				'n': u'test1',
+				'x': True,
+				},
+			"test2": {
+				'db': u'test2.db',
+				'd': u'test2',
+				'n': u'test2',
+				'x': False,
+				},
+			"test3A": {
+				'db': u'test3a.db',
+				'd': u'test3',
+				'n': u'test3A',
+				'x': False,
+				},
+		}
+		porder = ["test2", "test1", "test3A"]
+		pdefault = "test3A"
+		ep.cleanLayout()
+		ep.addButtons(pdata, porder, pdefault)
+		self.assertIsInstance(ep.def_group, QButtonGroup)
+		self.assertIsInstance(ep.elements, list)
+		self.assertIsInstance(ep.arrows, list)
+		self.assertEqual(len(ep.elements), 3)
+		self.assertEqual(len(ep.def_group.buttons()), 3)
+		self.assertEqual(len(ep.arrows), 2)
+
+		for i, k in enumerate(porder):
+			w0 = ep.layout().itemAtPosition(i + 1, 0).widget()
+			self.assertIsInstance(w0, QRadioButton)
+			self.assertEqual(w0.isChecked(), pdefault == k)
+			self.assertIn(w0, ep.def_group.buttons())
+
+			w1 = ep.layout().itemAtPosition(i + 1, 1).widget()
+			self.assertIsInstance(w1, QLineEdit)
+			self.assertEqual(w1.text(), k)
+			w2 = ep.layout().itemAtPosition(i + 1, 2).widget()
+			self.assertIsInstance(w2, QLineEdit)
+			self.assertEqual(w2.text(),
+				pdata[k]["db"].split(os.sep)[-1])
+			self.assertTrue(w2.isReadOnly())
+			w3 = ep.layout().itemAtPosition(i + 1, 3).widget()
+			self.assertIsInstance(w3, QLineEdit)
+			self.assertEqual(w3.text(), pdata[k]["d"])
+
+			if i > 1:
+				ad = ep.layout().itemAtPosition(i, 5).widget()
+				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertEqual(ad.data, i - 1)
+				self.assertEqual(ep.arrows[i - 1][0], ad)
+			if i < 2:
+				au = ep.layout().itemAtPosition(i + 2, 4).widget()
+				self.assertIsInstance(au, myOrderPushButton)
+				self.assertEqual(au.data, i)
+				self.assertEqual(ep.arrows[i][1], au)
+
+			w6 = ep.layout().itemAtPosition(i + 1, 6).widget()
+			self.assertIsInstance(w6, QCheckBox)
+			self.assertEqual(w6.isChecked(), pdata[k]["x"])
+			self.assertEqual(ep.elements[i],
+				{
+				"r": w0,
+				"n": w1,
+				"f": w2,
+				"d": w3,
+				"x": w6
+				})
+
+		#test custom arguments B
+		pdata = {
+			"test1": {
+				'db': u'test1.db',
+				'n': u'test1',
+				'x': True,
+				'r': True,
+				},
+			"test2": {
+				'db': u'test2.db',
+				'd': u'',
+				'n': u'test2',
+				'x': False,
+				'r': False,
+				},
+			"test3A": {
+				'db': u'test3a.db',
+				'd': u'test3',
+				'n': u'test3A',
+				'x': True,
+				'r': False,
+				},
+		}
+		porder = ["test2", "test1", "test3A", "test4"]
+		pdefault = "test3A"
+		ep.cleanLayout()
+		with patch("logging.Logger.warning") as _w:
+			ep.addButtons(pdata, porder, pdefault)
+			_w.assert_has_calls([
+				call("Missing info: d in ['x', 'r', 'db', 'n']." +
+					" Default to empty."),
+				call("Missing profile: test4 in ['test1', 'test3A', 'test2']"),
+				])
+		self.assertIsInstance(ep.def_group, QButtonGroup)
+		self.assertIsInstance(ep.elements, list)
+		self.assertIsInstance(ep.arrows, list)
+		self.assertEqual(len(ep.elements), 3)
+		self.assertEqual(len(ep.def_group.buttons()), 3)
+		self.assertEqual(len(ep.arrows), 2)
+
+		for i, k in enumerate(["test2", "test1", "test3A"]):
+			w0 = ep.layout().itemAtPosition(i + 1, 0).widget()
+			self.assertIsInstance(w0, QRadioButton)
+			self.assertEqual(w0.isChecked(), "test1" == k)
+			self.assertIn(w0, ep.def_group.buttons())
+
+			w1 = ep.layout().itemAtPosition(i + 1, 1).widget()
+			self.assertIsInstance(w1, QLineEdit)
+			self.assertEqual(w1.text(), k)
+			w2 = ep.layout().itemAtPosition(i + 1, 2).widget()
+			self.assertIsInstance(w2, QLineEdit)
+			self.assertEqual(w2.text(),
+				pdata[k]["db"].split(os.sep)[-1])
+			self.assertTrue(w2.isReadOnly())
+			w3 = ep.layout().itemAtPosition(i + 1, 3).widget()
+			self.assertIsInstance(w3, QLineEdit)
+			self.assertEqual(w3.text(), pdata[k]["d"])
+
+			if i > 1:
+				ad = ep.layout().itemAtPosition(i, 5).widget()
+				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertEqual(ad.data, i - 1)
+				self.assertEqual(ep.arrows[i - 1][0], ad)
+			if i < 2:
+				au = ep.layout().itemAtPosition(i + 2, 4).widget()
+				self.assertIsInstance(au, myOrderPushButton)
+				self.assertEqual(au.data, i)
+				self.assertEqual(ep.arrows[i][1], au)
+
+			w6 = ep.layout().itemAtPosition(i + 1, 6).widget()
+			self.assertIsInstance(w6, QCheckBox)
+			self.assertEqual(w6.isChecked(), pdata[k]["x"])
+			self.assertEqual(ep.elements[i],
+				{
+				"r": w0,
+				"n": w1,
+				"f": w2,
+				"d": w3,
+				"x": w6
+				})
 
 	def test_createForm(self):
 		"""test createForm"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _c:
+			ep = editProfile(p)
+		ep.addButtons()
+		with patch("physbiblio.gui.profilesManager.editProfile.addButtons") \
+				as _a,\
+				patch("glob.iglob",
+					return_value = ["old1.db", "test1.db"]) as _g:
+			ep.createForm()
+			_a.assert_called_once_with(pbConfig.profiles, pbConfig.profileOrder)
+			_g.assert_called_once_with(os.path.join(pbConfig.dataPath, "*.db"))
+
+		# test labels and accept/cancel buttons
+		self.assertEqual(ep.windowTitle(), 'Edit profile')
+		labels = [
+			[0, "Default"],
+			[1, "Short name"],
+			[2, "Filename"],
+			[3, "Description"],
+			[4, "Order"],
+			[6, "Delete?"],
+			]
+		for i, l in labels:
+			self.assertIsInstance(
+				ep.layout().itemAtPosition(0, i).widget(),
+				QLabel)
+			self.assertEqual(
+				ep.layout().itemAtPosition(0, i).widget().text(),
+				l)
+		i = len(pbConfig.profiles) + 3
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i - 2, 0).widget(),
+			QLabel)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i - 2, 0).widget().text(),
+			"")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i - 1, 0).widget(),
+			QLabel)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i - 1, 0).widget().text(),
+			"Add new?")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i + 1, 0).widget(),
+			QLabel)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i + 1, 0).widget().text(),
+			"")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i + 2, 1).widget(),
+			QPushButton)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i + 2, 1).widget(),
+			ep.acceptButton)
+		self.assertEqual(
+			ep.acceptButton.text(),
+			"OK")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i + 2, 2).widget(),
+			QPushButton)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i + 2, 2).widget(),
+			ep.cancelButton)
+		self.assertEqual(
+			ep.cancelButton.text(),
+			"Cancel")
+		self.assertTrue(ep.cancelButton.autoDefault())
+		with patch("physbiblio.gui.profilesManager.editProfile.onOk") as _o:
+			QTest.mouseClick(ep.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		with patch("physbiblio.gui.profilesManager.editProfile.onCancel") as _o:
+			QTest.mouseClick(ep.cancelButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+
+		w0 = ep.layout().itemAtPosition(i, 0).widget()
+		w1 = ep.layout().itemAtPosition(i, 1).widget()
+		w2 = ep.layout().itemAtPosition(i, 2).widget()
+		w3 = ep.layout().itemAtPosition(i, 3).widget()
+		w6 = ep.layout().itemAtPosition(i, 6).widget()
+		self.assertIsInstance(w0, QRadioButton)
+		self.assertFalse(w0.isChecked())
+		self.assertIn(w0, ep.def_group.buttons())
+		self.assertIsInstance(w1, QLineEdit)
+		self.assertEqual(w1.text(), "")
+		self.assertIsInstance(w2, QComboBox)
+		self.assertTrue(w2.isEditable())
+		self.assertEqual(w2.currentText(), "")
+		self.assertEqual(w2.count(), 2)
+		self.assertEqual(w2.itemText(1), "old1.db")
+		self.assertIsInstance(w3, QLineEdit)
+		self.assertEqual(w3.text(), "")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i, 4).widget(),
+			QLabel)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i, 4).widget().text(),
+			"Copy from:")
+		self.assertIsInstance(w6, QComboBox)
+		self.assertEqual(w6.count(), 4)
+		self.assertEqual(w6.currentText(), "None")
+		self.assertEqual(w6.itemText(0), "None")
+		self.assertEqual(w6.itemText(1), "test1.db")
+		self.assertEqual(w6.itemText(2), "test2.db")
+		self.assertEqual(w6.itemText(3), "test3.db")
+		self.assertEqual(ep.elements[-1],
+			{
+			"r": w0,
+			"n": w1,
+			"f": w2,
+			"d": w3,
+			"c": w6,
+			})
+
+		# # # # # # # # test custom arguments
+		# # # # # # # #test newLine input fields ("c"!)
+		#test custom arguments A
+		pdata = {
+			"test1": {
+				'db': u'test1.db',
+				'd': u'new test1',
+				'n': u'test1',
+				'x': True,
+				},
+			"test2": {
+				'db': u'test2.db',
+				'd': u'test2',
+				'n': u'test2',
+				'x': False,
+				},
+			"test3A": {
+				'db': u'test3.db',
+				'd': u'test3',
+				'n': u'test3A',
+				'x': False,
+				},
+		}
+		porder = ["test2", "test1", "test3A"]
+		pdefault = "test3A"
+		pnew = {
+				'db': u'new.db',
+				'n': u'testNew',
+				'r': True,
+				'c': "test1.db",
+				}
+		ep.cleanLayout()
+		with patch("physbiblio.gui.profilesManager.editProfile.addButtons") \
+				as _a,\
+				patch("glob.iglob",
+					return_value = ["old1.db", "test1.db"]) as _g,\
+				patch("logging.Logger.warning") as _w:
+			ep.createForm(pdata, porder, pdefault, pnew)
+			_a.assert_called_once_with(pdata, porder)
+			_w.assert_called_with("Missing field: d in ['c', 'r', 'db', 'n']" +
+				". Default to empty.")
+		ep.cleanLayout()
+		with patch("glob.iglob", return_value = ["old1.db", "test1.db"]) as _g:
+			ep.createForm(pdata, porder, pdefault, pnew)
+
+		w0 = ep.layout().itemAtPosition(i, 0).widget()
+		w1 = ep.layout().itemAtPosition(i, 1).widget()
+		w2 = ep.layout().itemAtPosition(i, 2).widget()
+		w3 = ep.layout().itemAtPosition(i, 3).widget()
+		w6 = ep.layout().itemAtPosition(i, 6).widget()
+		self.assertIsInstance(w0, QRadioButton)
+		self.assertTrue(w0.isChecked())
+		self.assertIn(w0, ep.def_group.buttons())
+		self.assertIsInstance(w1, QLineEdit)
+		self.assertEqual(w1.text(), pnew["n"])
+		self.assertIsInstance(w2, QComboBox)
+		self.assertTrue(w2.isEditable())
+		self.assertEqual(w2.currentText(), pnew["db"])
+		self.assertEqual(w2.count(), 2)
+		self.assertEqual(w2.itemText(0), pnew["db"])
+		self.assertEqual(w2.itemText(1), "old1.db")
+		self.assertIsInstance(w3, QLineEdit)
+		self.assertEqual(w3.text(), "")
+		self.assertIsInstance(
+			ep.layout().itemAtPosition(i, 4).widget(),
+			QLabel)
+		self.assertEqual(
+			ep.layout().itemAtPosition(i, 4).widget().text(),
+			"Copy from:")
+		self.assertIsInstance(w6, QComboBox)
+		self.assertEqual(w6.count(), 4)
+		self.assertEqual(w6.currentText(), pnew["c"])
+		self.assertEqual(w6.itemText(0), "None")
+		self.assertEqual(w6.itemText(1), "test1.db")
+		self.assertEqual(w6.itemText(2), "test2.db")
+		self.assertEqual(w6.itemText(3), "test3.db")
+		self.assertEqual(ep.elements[-1],
+			{
+			"r": w0,
+			"n": w1,
+			"f": w2,
+			"d": w3,
+			"c": w6,
+			})
 
 	def test_switchLines(self):
 		"""Test switchLines"""
@@ -581,7 +989,7 @@ class TestEditProfile(GUITestCase):
 			self.assertTrue(ep.switchLines(0))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
-				u'test1': {'x': False, 'r': False, 'db': u'test1.db', 'd': u'test1'},
+				u'test1': {'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
 				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
 				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
 				},
@@ -594,7 +1002,7 @@ class TestEditProfile(GUITestCase):
 			self.assertTrue(ep.switchLines(1))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
-				u'test1': {'x': False, 'r': False, 'db': u'test1.db', 'd': u'test1'},
+				u'test1': {'x': False, 'r': True, 'db': u'test1.db', 'd': u'test1'},
 				u'test2': {'x': False, 'r': False, 'db': u'test2.db', 'd': u'test2'},
 				u'test3': {'x': False, 'r': False, 'db': u'test3.db', 'd': u'test3'},
 				},
