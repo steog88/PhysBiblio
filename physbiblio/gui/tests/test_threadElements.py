@@ -72,14 +72,16 @@ class Test_thread_checkUpdated(GUITestCase):
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
-			_w.assert_called_once_with('Error when executing check_outdated. Maybe you are using a developing version', exc_info=True)
+			_w.assert_called_once_with('Error when executing check_outdated. ' +
+				'Maybe you are using a developing version', exc_info=True)
 		h1.assert_not_called()
 		h2.assert_called_once_with()
 		with patch("physbiblio.gui.threadElements.check_outdated",
 				new = fake_urlerror) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
-			_w.assert_called_once_with('Error when trying to check new versions. Are you offline?', exc_info=True)
+			_w.assert_called_once_with('Error when trying to check ' +
+				'new versions. Are you offline?', exc_info=True)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_updateAllBibtexs(GUITestCase):
@@ -113,7 +115,11 @@ class Test_thread_updateAllBibtexs(GUITestCase):
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
-			_sou.assert_called_once_with(123, entries = [[]], force = True, reloadAll = True)
+			_sou.assert_called_once_with(
+				123,
+				entries = [[]],
+				force = True,
+				reloadAll = True)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
@@ -160,7 +166,10 @@ class Test_thread_updateInspireInfo(GUITestCase):
 				MagicMock() as h1:
 			thr.finished.connect(h1)
 			thr.run()
-			_fun.assert_called_once_with(1385583, originalKey = 'Gariazzo:2015rra', verbose = 1)
+			_fun.assert_called_once_with(
+				1385583,
+				originalKey = 'Gariazzo:2015rra',
+				verbose = 1)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)

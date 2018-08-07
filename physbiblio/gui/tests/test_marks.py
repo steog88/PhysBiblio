@@ -42,17 +42,27 @@ class TestMarks(GUITestCase):
 		self.assertEqual(len(m.marks.keys()), 5)
 		for q in ["imp", "fav", "bad", "que", "new"]:
 			self.assertIn(q, m.marks.keys())
-		self.assertEqual(m.marks["imp"], {"desc": "Important", "icon": ":/images/emblem-important-symbolic.png"})
-		self.assertEqual(m.marks["fav"], {"desc": "Favorite", "icon": ":/images/emblem-favorite-symbolic.png"})
-		self.assertEqual(m.marks["bad"], {"desc": "Bad", "icon": ":/images/emblem-remove.png"})
-		self.assertEqual(m.marks["que"], {"desc": "Unclear", "icon": ":/images/emblem-question.png"})
-		self.assertEqual(m.marks["new"], {"desc": "To be read", "icon": ":/images/unread-new.png"})
+		self.assertEqual(m.marks["imp"],
+			{"desc": "Important",
+			"icon": ":/images/emblem-important-symbolic.png"})
+		self.assertEqual(m.marks["fav"],
+			{"desc": "Favorite",
+			"icon": ":/images/emblem-favorite-symbolic.png"})
+		self.assertEqual(m.marks["bad"],
+			{"desc": "Bad", "icon": ":/images/emblem-remove.png"})
+		self.assertEqual(m.marks["que"],
+			{"desc": "Unclear",
+			"icon": ":/images/emblem-question.png"})
+		self.assertEqual(m.marks["new"],
+			{"desc": "To be read",
+			"icon": ":/images/unread-new.png"})
 
 	def testNewMark(self):
 		"""tests for the marks.newMark function"""
 		m = marks()
 		m.newMark("abc", "desc", "icon")
-		self.assertEqual(m.marks["abc"], {"desc": "desc", "icon": ":/images/icon.png"})
+		self.assertEqual(m.marks["abc"],
+			{"desc": "desc", "icon": ":/images/icon.png"})
 
 	def testGetGroupbox(self):
 		"""tests for the marks.getGroupbox function"""

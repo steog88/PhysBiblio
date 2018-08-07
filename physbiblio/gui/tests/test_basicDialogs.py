@@ -55,54 +55,73 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.labelText(), "mymessage")
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.inputMode(), QInputDialog.TextInput)
-		with patch('PySide2.QtWidgets.QInputDialog.exec_', new=lambda x: QInputDialog.setTextValue(x, "foo")):
+		with patch('PySide2.QtWidgets.QInputDialog.exec_',
+				new=lambda x: QInputDialog.setTextValue(x, "foo")):
 			res = askGenericText("mymessage", "mytitle")
 			self.assertEqual(res[0], "foo")
 			self.assertEqual(res[1], None)
 
 	def test_askFileName(self):
 		"""Test askFileName"""
-		win = askFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		win = askFileName(None,
+			title = "mytitle",
+			dir = "/tmp",
+			filter = "test: *.txt",
+			testing = True)
 		self.assertEqual(win.fileMode(), QFileDialog.ExistingFile)
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.nameFilters(), ["test: *.txt"])
 		self.assertEqual(win.directory(), "/tmp")
 		self.assertEqual(win.selectedFiles(), [])
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar.txt", True)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar.txt", True)):
 			res = askFileName(dir = "/tmp")
 			self.assertEqual(res, "/tmp/foo/bar.txt")
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar.txt", False)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar.txt", False)):
 			res = askFileName(dir = "/tmp")
 			self.assertEqual(res, "")
 
 	def test_askFileNames(self):
 		"""Test askFileNames"""
-		win = askFileNames(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		win = askFileNames(None,
+			title = "mytitle",
+			dir = "/tmp",
+			filter = "test: *.txt",
+			testing = True)
 		self.assertEqual(win.fileMode(), QFileDialog.ExistingFiles)
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.nameFilters(), ["test: *.txt"])
 		self.assertEqual(win.directory(), "/tmp")
 		self.assertEqual(win.selectedFiles(), [])
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo.txt", True)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo.txt", True)):
 			res = askFileNames(dir = "/tmp")
 			self.assertEqual(res, ["/tmp/foo.txt"])
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo.txt", False)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo.txt", False)):
 			res = askFileNames(dir = "/tmp")
 			self.assertEqual(res, [])
 
 	def test_askSaveFileName(self):
 		"""Test askSaveFileName"""
-		win = askSaveFileName(None, title = "mytitle", dir = "/tmp", filter = "test: *.txt", testing = True)
+		win = askSaveFileName(None,
+			title = "mytitle",
+			dir = "/tmp",
+			filter = "test: *.txt",
+			testing = True)
 		self.assertEqual(win.fileMode(), QFileDialog.AnyFile)
 		self.assertEqual(win.options(), QFileDialog.DontConfirmOverwrite)
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.nameFilters(), ["test: *.txt"])
 		self.assertEqual(win.directory(), "/tmp")
 		self.assertEqual(win.selectedFiles(), ["/tmp"])
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar.txt", True)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar.txt", True)):
 			res = askSaveFileName(dir = "/tmp")
 			self.assertEqual(res, "/tmp/foo/bar.txt")
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar.txt", False)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar.txt", False)):
 			res = askSaveFileName(dir = "/tmp")
 			self.assertEqual(res, "")
 
@@ -114,10 +133,12 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertEqual(win.directory(), "/tmp")
 		self.assertEqual(win.selectedFiles(), ["/tmp"])
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar", True)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar", True)):
 			res = askDirName(dir = "/tmp")
 			self.assertEqual(res, "/tmp/foo/bar")
-		with patch('PySide2.QtWidgets.QFileDialog.exec_', new=lambda x: fakeExec(x, "foo/bar", False)):
+		with patch('PySide2.QtWidgets.QFileDialog.exec_',
+				new=lambda x: fakeExec(x, "foo/bar", False)):
 			res = askDirName(dir = "/tmp")
 			self.assertEqual(res, "")
 

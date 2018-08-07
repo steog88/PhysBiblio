@@ -361,7 +361,8 @@ class TestSelectProfiles(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = MainWindow(True)
-		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") as _iu:
+		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
+				as _iu:
 			self.assertRaises(Exception,
 				lambda: selectProfiles(None))
 			sp = selectProfiles(p)
@@ -374,7 +375,8 @@ class TestSelectProfiles(GUITestCase):
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") as _iu,\
+		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
+				as _iu,\
 				patch("physbiblio.gui.profilesManager.QDialog.close") as _c:
 			sp = selectProfiles(MainWindow(True))
 			sp.onCancel()
@@ -386,8 +388,10 @@ class TestSelectProfiles(GUITestCase):
 		p = MainWindow(True)
 		sp = selectProfiles(p)
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
-				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") as _rc,\
-				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent") as _rm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
+					as _rc,\
+				patch("physbiblio.gui.mainWindow.MainWindow." +
+					"reloadMainContent") as _rm,\
 				patch("physbiblio.config.ConfigVars.reInit") as _ri,\
 				patch("physbiblio.database.physbiblioDB.reOpenDB") as _ro:
 			sp.onLoad()
@@ -400,8 +404,10 @@ class TestSelectProfiles(GUITestCase):
 		sp.combo.setCurrentIndex(1)
 		pbConfig.currentDatabase = "test2.db"
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
-				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") as _rc,\
-				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent") as _rm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
+					as _rc,\
+				patch("physbiblio.gui.mainWindow.MainWindow." +
+					"reloadMainContent") as _rm,\
 				patch("physbiblio.config.ConfigVars.reInit") as _ri,\
 				patch("physbiblio.database.physbiblioDB.reOpenDB") as _ro:
 			sp.onLoad()
@@ -455,10 +461,12 @@ class TestSelectProfiles(GUITestCase):
 		self.assertEqual(sp.layout().itemAtPosition(1, 1).widget(),
 			sp.cancelButton)
 
-		with patch("physbiblio.gui.profilesManager.selectProfiles.onCancel") as _f:
+		with patch("physbiblio.gui.profilesManager.selectProfiles.onCancel") \
+				as _f:
 			QTest.mouseClick(sp.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()
-		with patch("physbiblio.gui.profilesManager.selectProfiles.onLoad") as _f:
+		with patch("physbiblio.gui.profilesManager.selectProfiles.onLoad") \
+				as _f:
 			QTest.mouseClick(sp.loadButton, Qt.LeftButton)
 			_f.assert_called_once_with()
 
@@ -523,7 +531,8 @@ class TestEditProfile(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") as _s:
+		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+				as _s:
 			ep = editProfile(p)
 			self.assertIsInstance(ep, editObjectWindow)
 			self.assertEqual(ep.parent(), p)
@@ -550,7 +559,8 @@ class TestEditProfile(GUITestCase):
 				ep.onOk()
 				_c.assert_not_called()
 				_i.assert_called_once_with(
-					"Cannot create a new profile if 'name' or 'filename' is empty.")
+					"Cannot create a new profile if 'name' or 'filename' " +
+					"is empty.")
 		ep.elements[-1]["n"].setText("test1")
 		ep.elements[-1]["f"].setCurrentText("testA.db")
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\

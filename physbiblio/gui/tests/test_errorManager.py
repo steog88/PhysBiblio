@@ -73,7 +73,8 @@ class TestGUIErrorManager(GUITestCase):
 	def test_objects(self):
 		"""test that the module contains the appropriate objects"""
 		import physbiblio.gui.errorManager as pgem
-		self.assertIsInstance(pgem.pBGUIErrorManager, pgem.pBErrorManagerClassGui)
+		self.assertIsInstance(pgem.pBGUIErrorManager,
+			pgem.pBErrorManagerClassGui)
 		self.assertIsInstance(pgem.pBGUIErrorManager, pBErrorManagerClass)
 		self.assertIsInstance(pgem.pBGUILogger, logging.Logger)
 		self.assertEqual(pgem.pBGUILogger, pgem.pBGUIErrorManager.logger)
