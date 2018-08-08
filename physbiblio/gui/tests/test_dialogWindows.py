@@ -8,6 +8,7 @@ import sys, traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
+from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -18,6 +19,8 @@ else:
 
 try:
 	from physbiblio.setuptests import *
+	from physbiblio.database import pBDB
+	from physbiblio.config import pbConfig, configuration_params
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.dialogWindows import *
 except ImportError:
@@ -34,28 +37,87 @@ class TestConfigEditColumns(GUITestCase):
 	@classmethod
 	def setUpClass(self):
 		"""set temporary settings"""
-		pass
+		self.oldColumns = pbConfig.params["bibtexListColumns"]
+		self.defCols = [a["default"] for a in configuration_params \
+			if a["name"] == "bibtexListColumns"][0]
+		pbConfig.params["bibtexListColumns"] = self.defCols
 
 	@classmethod
 	def tearDownClass(self):
 		"""restore previous settings"""
-		pass
+		pbConfig.params["bibtexListColumns"] = self.oldColumns
 
 	def test_init(self):
 		"""Test __init__"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows.configEditColumns.initUI") \
+				as _u:
+			cec = configEditColumns()
+			self.assertIsInstance(cec, QDialog)
+			self.assertEqual(cec.parent(), None)
+			_u.assert_called_once_with()
+			cec = configEditColumns(p)
+			self.assertIsInstance(cec, QDialog)
+			self.assertEqual(cec.parent(), p)
+			self.assertEqual(cec.excludeCols, [
+				"crossref", "bibtex", "exp_paper", "lecture",
+				"phd_thesis", "review", "proceeding", "book", "noUpdate"])
+			self.assertEqual(cec.moreCols, [
+				"title", "author", "journal", "volume", "pages",
+				"primaryclass", "booktitle", "reportnumber"])
+			self.assertEqual(cec.previousSelected,
+				self.defCols)
+			cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+			self.assertEqual(cec.previousSelected,
+				['bibkey', 'author', 'title'])
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		cec = configEditColumns()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			cec.onCancel()
+			self.assertFalse(cec.result)
+			_c.assert_called_once()
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		p = QWidget()
+		cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			cec.onOk()
+			self.assertTrue(cec.result)
+			_c.assert_called_once()
+		self.assertEqual(cec.selected,
+			['bibkey', 'author', 'title'])
+		item = QTableWidgetItem("arxiv")
+		cec.listSel.insertRow(3)
+		cec.listSel.setItem(3, 0, item)
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			cec.onOk()
+		self.assertEqual(cec.selected,
+			['bibkey', 'author', 'title', 'arxiv'])
 
 	def test_initUI(self):
 		"""test"""
-		pass
+		p = QWidget()
+		cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+		self.assertIsInstance(cec.layout(), QGridLayout)
+		self.assertEqual(cec.layout(), cec.gridlayout)
+		self.assertIsInstance(cec.items, list)
+		self.assertIsInstance(cec.allItems, list)
+		self.assertIsInstance(cec.selItems, list)
+		self.assertIsInstance(cec.listAll, MyDDTableWidget)
+		self.assertIsInstance(cec.listSel, MyDDTableWidget)
+		self.assertIsInstance(cec.layout().itemAtPosition(0, 0).widget(),
+			QLabel)
+		self.assertEqual(cec.layout().itemAtPosition(0, 0).widget().text(),
+			"Drag and drop items to order visible columns")
+		self.assertEqual(cec.layout().itemAtPosition(1, 0).widget(),
+			cec.listAll)
+		self.assertEqual(cec.layout().itemAtPosition(1, 1).widget(),
+			cec.listSel)
+		self.assertEqual(cec.allItems,
+			pBDB.descriptions["entries"].keys() + cec.moreCols)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigWindow(GUITestCase):

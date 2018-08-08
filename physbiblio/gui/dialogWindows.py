@@ -27,9 +27,15 @@ except ImportError:
 class configEditColumns(QDialog):
 	def __init__(self, parent = None, previous = None):
 		super(configEditColumns, self).__init__(parent)
-		self.excludeCols = ["crossref", "bibtex", "exp_paper", "lecture", "phd_thesis", "review", "proceeding", "book", "noUpdate"]
-		self.moreCols = ["title", "author", "journal", "volume", "pages", "primaryclass", "booktitle", "reportnumber"]
-		self.previousSelected = previous if previous is not None else pbConfig.params["bibtexListColumns"]
+		self.excludeCols = [
+			"crossref", "bibtex", "exp_paper", "lecture",
+			"phd_thesis", "review", "proceeding", "book", "noUpdate"]
+		self.moreCols = [
+			"title", "author", "journal", "volume", "pages",
+			"primaryclass", "booktitle", "reportnumber"]
+		self.previousSelected = previous \
+			if previous is not None \
+			else pbConfig.params["bibtexListColumns"]
 		self.initUI()
 
 	def onCancel(self):
@@ -44,14 +50,15 @@ class configEditColumns(QDialog):
 		self.close()
 
 	def initUI(self):
-		self.layout = QGridLayout()
-		self.setLayout(self.layout)
+		self.gridlayout = QGridLayout()
+		self.setLayout(self.gridlayout)
 
-		self.listAll = MyDDTableWidget("Available columns")
-		self.listSel = MyDDTableWidget("Selected columns")
-		self.layout.addWidget(QLabel("Drag and drop items to order visible columns"), 0, 0, 1, 2)
-		self.layout.addWidget(self.listAll, 1, 0)
-		self.layout.addWidget(self.listSel, 1, 1)
+		self.items = []
+		self.listAll = MyDDTableWidget(self, "Available columns")
+		self.listSel = MyDDTableWidget(self, "Selected columns")
+		self.gridlayout.addWidget(QLabel("Drag and drop items to order visible columns"), 0, 0, 1, 2)
+		self.gridlayout.addWidget(self.listAll, 1, 0)
+		self.gridlayout.addWidget(self.listSel, 1, 1)
 
 		self.allItems = pBDB.descriptions["entries"].keys() + self.moreCols
 		self.selItems = self.previousSelected
@@ -59,23 +66,25 @@ class configEditColumns(QDialog):
 		for col in self.allItems:
 			if col not in self.selItems and col not in self.excludeCols:
 				item = QTableWidgetItem(col)
+				self.items.append(item)
 				self.listAll.insertRow(i)
 				self.listAll.setItem(i, 0, item)
 				i += 1
 		for i, col in enumerate(self.selItems):
 			item = QTableWidgetItem(col)
+			self.items.append(item)
 			self.listSel.insertRow(i)
 			self.listSel.setItem(i, 0, item)
 
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.layout.addWidget(self.acceptButton, 2, 0)
+		self.gridlayout.addWidget(self.acceptButton, 2, 0)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.layout.addWidget(self.cancelButton, 2, 1)
+		self.gridlayout.addWidget(self.cancelButton, 2, 1)
 
 class configWindow(QDialog):
 	"""create a window for editing the configuration settings"""
