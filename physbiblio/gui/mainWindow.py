@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
 		self.dailyArxivAct = QAction("Browse last ar&Xiv listings", self,
 								shortcut="Ctrl+D",
 								statusTip="Browse most recent arXiv listings",
-								triggered=self.browseArxivDaily)
+								triggered=self.browseDailyArxiv)
 
 		self.cleanAllBibtexsAskAct = QAction("C&lean bibtexs (from ...)", self,
 								shortcut="Ctrl+Shift+L",
@@ -1084,8 +1084,8 @@ class MainWindow(QMainWindow):
 				totStr = "Thread_fieldsArxiv will process ", progrStr = "%) - processing: arxiv:",
 				minProgress = 0., stopFlag = True)
 
-	def browseArxivDaily(self):
-		bDA = arxivDailyDialog()
+	def browseDailyArxiv(self):
+		bDA = dailyArxivDialog()
 		bDA.exec_()
 		cat = bDA.comboCat.currentText().lower()
 		if bDA.result and cat != "":
@@ -1156,7 +1156,7 @@ class MainWindow(QMainWindow):
 						except:
 							pBLogger.warning("Failed in completing info for entry %s\n"%key)
 				QApplication.restoreOverrideCursor()
-				self.StatusBarMessage("[browseArxivDaily] Entries successfully imported: %s"%inserted)
+				self.StatusBarMessage("[browseDailyArxiv] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)
 			self.reloadMainContent()

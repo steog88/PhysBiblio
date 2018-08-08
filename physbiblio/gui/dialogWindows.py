@@ -5,7 +5,9 @@ This file is part of the physbiblio package.
 """
 import sys
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout
+from PySide2.QtWidgets import \
+	QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, \
+	QPlainTextEdit, QPushButton, QVBoxLayout
 import subprocess
 import traceback
 import ast
@@ -496,10 +498,10 @@ class advImportSelect(objListWindow):
 	def cellDoubleClick(self, index):
 		pass
 
-class arxivDailyDialog(QDialog):
+class dailyArxivDialog(QDialog):
 	"""create a window for the advanced import"""
 	def __init__(self, parent = None):
-		super(arxivDailyDialog, self).__init__(parent)
+		super(dailyArxivDialog, self).__init__(parent)
 		self.initUI()
 
 	def onCancel(self):
