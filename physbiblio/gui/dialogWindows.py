@@ -25,7 +25,16 @@ except ImportError:
 	print(traceback.format_exc())
 
 class configEditColumns(QDialog):
+	"""Extend `QDialog` to ask the columns that must appear in the main table"""
 	def __init__(self, parent = None, previous = None):
+		"""
+		Extend `QDialog.__init__` and create the form structure
+
+		Parameters:
+			parent: teh parent widget
+			previous: list of columns which must appear
+				as selected at the beginning
+		"""
 		super(configEditColumns, self).__init__(parent)
 		self.excludeCols = [
 			"crossref", "bibtex", "exp_paper", "lecture",
@@ -39,10 +48,12 @@ class configEditColumns(QDialog):
 		self.initUI()
 
 	def onCancel(self):
+		"""Reject the output"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
+		"""Accept the output and prepare `self.selected`"""
 		self.result = True
 		self.selected = []
 		for row in range(self.listSel.rowCount()):
@@ -50,37 +61,45 @@ class configEditColumns(QDialog):
 		self.close()
 
 	def initUI(self):
+		"""
+		Initialize the `MyDDTableWidget`s and their content,
+		plus the buttons and labels
+		"""
 		self.gridlayout = QGridLayout()
 		self.setLayout(self.gridlayout)
 
 		self.items = []
 		self.listAll = MyDDTableWidget(self, "Available columns")
 		self.listSel = MyDDTableWidget(self, "Selected columns")
-		self.gridlayout.addWidget(QLabel("Drag and drop items to order visible columns"), 0, 0, 1, 2)
+		self.gridlayout.addWidget(
+			QLabel("Drag and drop items to order visible columns"),
+			0, 0, 1, 2)
 		self.gridlayout.addWidget(self.listAll, 1, 0)
 		self.gridlayout.addWidget(self.listSel, 1, 1)
 
 		self.allItems = pBDB.descriptions["entries"].keys() + self.moreCols
 		self.selItems = self.previousSelected
-		i=0
-		for col in self.allItems:
-			if col not in self.selItems and col not in self.excludeCols:
-				item = QTableWidgetItem(col)
-				self.items.append(item)
-				self.listAll.insertRow(i)
-				self.listAll.setItem(i, 0, item)
-				i += 1
-		for i, col in enumerate(self.selItems):
+		isel = 0
+		iall = 0
+		for col in self.selItems + \
+				[i for i in self.allItems if i not in self.selItems]:
+			if col in self.excludeCols:
+				continue
 			item = QTableWidgetItem(col)
 			self.items.append(item)
-			self.listSel.insertRow(i)
-			self.listSel.setItem(i, 0, item)
+			if col in self.selItems:
+				self.listSel.insertRow(isel)
+				self.listSel.setItem(isel, 0, item)
+				isel += 1
+			else:
+				self.listAll.insertRow(iall)
+				self.listAll.setItem(iall, 0, item)
+				iall += 1
 
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
 		self.gridlayout.addWidget(self.acceptButton, 2, 0)
 
-		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)

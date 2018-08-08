@@ -118,6 +118,39 @@ class TestConfigEditColumns(GUITestCase):
 			cec.listSel)
 		self.assertEqual(cec.allItems,
 			pBDB.descriptions["entries"].keys() + cec.moreCols)
+		self.assertEqual(cec.selItems, cec.previousSelected)
+
+		self.assertEqual(cec.listSel.rowCount(), 3)
+		for ix, col in enumerate(['bibkey', 'author', 'title']):
+			item = cec.listSel.item(ix, 0)
+			self.assertEqual(item.text(), col)
+			self.assertIs(item, cec.items[ix])
+
+		allCols = [i for i in cec.allItems
+			if i not in cec.selItems and i not in cec.excludeCols]
+		self.assertEqual(cec.listAll.rowCount(), len(allCols))
+		for ix, col in enumerate(allCols):
+			item = cec.listAll.item(ix, 0)
+			self.assertEqual(item.text(), col)
+			self.assertIs(item, cec.items[ix + 3])
+
+		self.assertIsInstance(cec.acceptButton, QPushButton)
+		self.assertIsInstance(cec.cancelButton, QPushButton)
+		self.assertEqual(cec.acceptButton.text(), "OK")
+		self.assertEqual(cec.cancelButton.text(), "Cancel")
+		self.assertTrue(cec.cancelButton.autoDefault())
+		self.assertEqual(cec.layout().itemAtPosition(2, 0).widget(),
+			cec.acceptButton)
+		self.assertEqual(cec.layout().itemAtPosition(2, 1).widget(),
+			cec.cancelButton)
+		with patch("physbiblio.gui.dialogWindows.configEditColumns.onOk") \
+				as _f:
+			QTest.mouseClick(cec.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		with patch("physbiblio.gui.dialogWindows.configEditColumns.onCancel") \
+				as _f:
+			QTest.mouseClick(cec.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigWindow(GUITestCase):
