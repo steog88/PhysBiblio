@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
-from PySide2.QtCore import Qt, QPoint
+from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QWidget

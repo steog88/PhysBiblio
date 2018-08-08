@@ -1020,8 +1020,10 @@ class TestMyDDTableWidget(GUITestCase):
 	"""
 	def test_init(self):
 		"""test init"""
-		mddtw = MyDDTableWidget("head")
+		p = QWidget()
+		mddtw = MyDDTableWidget(p, "head")
 		self.assertIsInstance(mddtw, QTableWidget)
+		self.assertEqual(mddtw.parent(), p)
 		self.assertEqual(mddtw.columnCount(), 1)
 		self.assertTrue(mddtw.dragEnabled())
 		self.assertTrue(mddtw.acceptDrops())
@@ -1030,12 +1032,13 @@ class TestMyDDTableWidget(GUITestCase):
 			QAbstractItemView.SelectRows)
 		with patch("physbiblio.gui.commonClasses.QTableWidget." +
 				"setHorizontalHeaderLabels") as _shl:
-			mddtw = MyDDTableWidget("head")
+			mddtw = MyDDTableWidget(p, "head")
 			_shl.assert_called_once_with(["head"])
 
 	def test_dropMimeData(self):
 		"""test dropMimeData"""
-		mddtw = MyDDTableWidget("head")
+		p = QWidget()
+		mddtw = MyDDTableWidget(p, "head")
 		self.assertTrue(mddtw.dropMimeData(12, 0, None, None))
 		self.assertEqual(mddtw.last_drop_row, 12)
 
@@ -1044,7 +1047,8 @@ class TestMyDDTableWidget(GUITestCase):
 
 	def test_getselectedRowsFast(self):
 		"""test getselectedRowsFast"""
-		mddtw = MyDDTableWidget("head")
+		p = QWidget()
+		mddtw = MyDDTableWidget(p, "head")
 		a = mddtw.getselectedRowsFast()
 		self.assertEqual(a, [])
 		with patch("PySide2.QtWidgets.QTableWidget.selectedItems",

@@ -763,14 +763,14 @@ class MyDDTableWidget(QTableWidget):
 	"""
 	Drag and drop extension of QTableWidget
 	"""
-	def __init__(self,  header):
+	def __init__(self, parent, header):
 		"""
 		Set some properties and settings.
 
 		Parameters:
 			header: the title of the column
 		"""
-		super(MyDDTableWidget, self).__init__()
+		super(MyDDTableWidget, self).__init__(parent)
 		self.setColumnCount(1)
 		self.setHorizontalHeaderLabels([header])
 		self.setDragEnabled(True)
