@@ -242,13 +242,22 @@ class configWindow(QDialog):
 		self.setLayout(grid)
 
 class LogFileContentDialog(QDialog):
-	"""create a window for the logFile content"""
+	"""Create a window for showing the logFile content"""
 	def __init__(self, parent = None):
+		"""
+		Instantiate class and create its widgets
+
+		Parameter:
+			parent: the parent widget
+		"""
 		super(LogFileContentDialog, self).__init__(parent)
 		self.title = "Log File Content"
 		self.initUI()
 
 	def clearLog(self):
+		"""
+		Ask confirmation, then eventually clear the content of the log file
+		"""
 		if askYesNo("Are you sure you want to clear the log file?"):
 			try:
 				open(pbConfig.params["logFileName"], "w").close()
@@ -259,6 +268,10 @@ class LogFileContentDialog(QDialog):
 				self.close()
 
 	def initUI(self):
+		"""
+		Create window layout and buttons,
+		read log file content and print it in the `QPlainTextEdit`
+		"""
 		self.setWindowTitle(self.title)
 
 		grid = QVBoxLayout()
@@ -286,11 +299,6 @@ class LogFileContentDialog(QDialog):
 
 		self.setGeometry(100, 100, 800, 800)
 		self.setLayout(grid)
-
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
 
 class printText(QDialog):
 	"""create a window for printing text of command line output"""

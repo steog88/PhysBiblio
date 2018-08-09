@@ -221,7 +221,7 @@ class TestLogFileContentDialog(GUITestCase):
 	Test LogFileContentDialog
 	"""
 	def test_init(self):
-		"""test"""
+		"""test __init__"""
 		p = QWidget()
 		with patch("physbiblio.gui.dialogWindows." +
 				"LogFileContentDialog.initUI") as _u:
@@ -232,12 +232,68 @@ class TestLogFileContentDialog(GUITestCase):
 			_u.assert_called_once_with()
 
 	def test_clearLog(self):
-		"""test"""
-		pass
+		"""test clearLog"""
+		p = QWidget()
+		with open(pbConfig.params["logFileName"], "w") as _f:
+			_f.write("test content")
+		lf = LogFileContentDialog(p)
+		ayn_str = "physbiblio.gui.dialogWindows.askYesNo"
+		with patch(ayn_str, return_value = False) as _ayn:
+			lf.clearLog()
+			with open(pbConfig.params["logFileName"]) as _f:
+				text = _f.read()
+			self.assertEqual(text, "test content")
+		with patch(ayn_str, return_value = True) as _ayn,\
+				patch("physbiblio.gui.dialogWindows.infoMessage") as _in,\
+				patch("PySide2.QtWidgets.QDialog.close") as _c:
+			lf.clearLog()
+			with open(pbConfig.params["logFileName"]) as _f:
+				text = _f.read()
+			self.assertEqual(text, "")
+			_in.assert_called_once_with("Log file cleared.")
+			_c.assert_called_once_with()
+		if os.path.exists(pbConfig.params["logFileName"]):
+			os.remove(pbConfig.params["logFileName"])
+		with patch(ayn_str, return_value = True) as _ayn,\
+				patch("__builtin__.open", side_effect = IOError("fake")) as _op,\
+				patch("logging.Logger.exception") as _ex,\
+				patch("PySide2.QtWidgets.QDialog.close") as _c:
+			lf.clearLog()
+			_ex.assert_called_once_with("Impossible to clear log file!")
+			_c.assert_not_called()
 
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		p = QWidget()
+		if os.path.exists(pbConfig.params["logFileName"]):
+			os.remove(pbConfig.params["logFileName"])
+		with patch("logging.Logger.exception") as _ex:
+			lf = LogFileContentDialog(p)
+			_ex.assert_called_once_with("Impossible to read log file!")
+			self.assertIsInstance(lf.textEdit, QPlainTextEdit)
+			self.assertEqual(lf.textEdit.toPlainText(),
+				"Impossible to read log file!")
+		with open(pbConfig.params["logFileName"], "w") as _f:
+			_f.write("test content")
+		lf = LogFileContentDialog(p)
+		self.assertEqual(lf.windowTitle(), lf.title)
+		self.assertIsInstance(lf.layout(), QVBoxLayout)
+		self.assertEqual(lf.layout().spacing(), 1)
+		self.assertIsInstance(lf.layout().itemAt(0).widget(), QLabel)
+		self.assertEqual(lf.layout().itemAt(0).widget().text(),
+			"Reading %s"%pbConfig.params["logFileName"])
+		self.assertIsInstance(lf.textEdit, QPlainTextEdit)
+		self.assertTrue(lf.textEdit.isReadOnly())
+		self.assertEqual(lf.textEdit.toPlainText(), "test content")
+		self.assertIsInstance(lf.layout().itemAt(1).widget(), QPlainTextEdit)
+		self.assertEqual(lf.textEdit, lf.layout().itemAt(1).widget())
+		self.assertIsInstance(lf.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(lf.layout().itemAt(2).widget(), lf.closeButton)
+		self.assertTrue(lf.closeButton.autoDefault())
+		self.assertEqual(lf.closeButton.text(), "Close")
+		self.assertIsInstance(lf.layout().itemAt(3).widget(), QPushButton)
+		self.assertEqual(lf.layout().itemAt(3).widget(), lf.clearButton)
+		self.assertEqual(lf.clearButton.text(), "Clear log file")
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPrintText(GUITestCase):
