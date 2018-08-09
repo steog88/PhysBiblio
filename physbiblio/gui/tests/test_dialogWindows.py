@@ -67,6 +67,8 @@ class TestConfigEditColumns(GUITestCase):
 				"primaryclass", "booktitle", "reportnumber"])
 			self.assertEqual(cec.previousSelected,
 				self.defCols)
+			self.assertEqual(cec.selected,
+				self.defCols)
 			cec = configEditColumns(p, ['bibkey', 'author', 'title'])
 			self.assertEqual(cec.previousSelected,
 				['bibkey', 'author', 'title'])
@@ -98,7 +100,7 @@ class TestConfigEditColumns(GUITestCase):
 			['bibkey', 'author', 'title', 'arxiv'])
 
 	def test_initUI(self):
-		"""test"""
+		"""test initUI"""
 		p = QWidget()
 		cec = configEditColumns(p, ['bibkey', 'author', 'title'])
 		self.assertIsInstance(cec.layout(), QGridLayout)
@@ -169,15 +171,29 @@ class TestConfigWindow(GUITestCase):
 
 	def test_init(self):
 		"""Test __init__"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows.configWindow.initUI") as _iu:
+			cw = configWindow(p)
+			self.assertIsInstance(cw, QDialog)
+			self.assertEqual(cw.parent(), p)
+			self.assertEqual(cw.textValues, [])
+			_iu.assert_called_once_with()
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		cw = configWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			cw.onCancel()
+			self.assertFalse(cw.result)
+			_c.assert_called_once()
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		cw = configWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			cw.onOk()
+			self.assertTrue(cw.result)
+			_c.assert_called_once()
 
 	def test_editFolder(self):
 		"""test"""
@@ -206,7 +222,14 @@ class TestLogFileContentDialog(GUITestCase):
 	"""
 	def test_init(self):
 		"""test"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows." +
+				"LogFileContentDialog.initUI") as _u:
+			lf = LogFileContentDialog(p)
+			self.assertIsInstance(lf, QDialog)
+			self.assertEqual(lf.parent(), p)
+			self.assertEqual(lf.title, "Log File Content")
+			_u.assert_called_once_with()
 
 	def test_clearLog(self):
 		"""test"""
