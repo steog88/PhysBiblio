@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -23,6 +23,7 @@ try:
 	from physbiblio.config import pbConfig, configuration_params
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.dialogWindows import *
+	from physbiblio.gui.bibWindows import abstractFormulas
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -449,13 +450,92 @@ class TestDailyArxivSelect(GUITestCase):
 	"""
 	Test dailyArxivSelect
 	"""
+	def test_init(self):
+		"""test init"""
+		p = QWidget()
+		das = dailyArxivSelect({}, p)
+		self.assertIsInstance(das, advImportSelect)
+
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		p = QWidget()
+		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s,\
+				patch("physbiblio.gui.commonClasses." +
+					"objListWindow.finalizeTable") as _f:
+			das = dailyArxivSelect({}, p)
+			_s.assert_called_once_with(0, Qt.AscendingOrder)
+			_f.assert_called_once_with(gridPos = (2, 0, 1, 2))
+		das = dailyArxivSelect({}, p)
+		self.assertEqual(das.windowTitle(), 'ArXiv daily listing - results')
+		self.assertEqual(das.layout().spacing(), 1)
+		self.assertIsInstance(das.layout().itemAt(0).widget(), QLabel)
+		self.assertEqual(das.layout().itemAt(0).widget().text(),
+			"This is the list of elements found.\n" +
+				"Select the ones that you want to import:")
+		self.assertIsInstance(das.tableModel, MyImportedTableModel)
+		self.assertEqual(das.tableModel.header,
+			["eprint", "type", "title", "author", "primaryclass"])
+		self.assertEqual(das.tableModel.idName, "eprint")
+		self.assertIsInstance(das.layout().itemAt(1).widget(), QLineEdit)
+		self.assertEqual(das.layout().itemAt(1).widget(), das.filterInput)
+		self.assertIsInstance(das.layout().itemAt(2).widget(), MyTableView)
+		self.assertEqual(das.layout().itemAt(2).widget(), das.tablewidget)
+		self.assertIsInstance(das.askCats, QCheckBox)
+		self.assertEqual(das.askCats.text(), "Ask categories at the end?")
+		self.assertTrue(das.askCats.isChecked())
+		self.assertEqual(das.layout().itemAt(3).widget(), das.askCats)
+		self.assertIsInstance(
+			das.layout().itemAt(4).widget(),
+			QPushButton)
+		self.assertEqual(
+			das.layout().itemAt(4).widget(),
+			das.acceptButton)
+		self.assertEqual(
+			das.acceptButton.text(),
+			"OK")
+		self.assertIsInstance(
+			das.layout().itemAt(5).widget(),
+			QPushButton)
+		self.assertEqual(
+			das.layout().itemAt(5).widget(),
+			das.cancelButton)
+		self.assertEqual(
+			das.cancelButton.text(),
+			"Cancel")
+		self.assertTrue(das.cancelButton.autoDefault())
+		with patch("physbiblio.gui.dialogWindows.advImportSelect.onOk") as _o:
+			QTest.mouseClick(das.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		with patch("physbiblio.gui.dialogWindows.advImportSelect.onCancel") \
+				as _o:
+			QTest.mouseClick(das.cancelButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		self.assertIsInstance(
+			das.layout().itemAt(6).widget(),
+			QTextEdit)
+		self.assertEqual(
+			das.layout().itemAt(6).widget(),
+			das.abstractArea)
+		self.assertEqual(das.abstractArea.toPlainText(), "Abstract")
 
 	def test_cellClick(self):
-		"""test"""
-		pass
+		"""test cellClick"""
+		p = QWidget()
+		das = dailyArxivSelect({}, p)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = False) as _iv:
+			self.assertEqual(das.cellClick(QModelIndex()), None)
+		self.assertFalse(hasattr(das, "abstractFormulas"))
+		# print(das.tablewidget.indexAt(0, 0))
+		# QTest.mouseClick(das.tablewidget.indexAt(0, 0), Qt.LeftButton)
+		# with patch("PySide2.QtCore.QModelIndex.isValid",
+				# return_value = True) as _iv,\
+				# patch("PySide2.QtCore.QModelIndex.row",
+					# return_value = 0) as _iv:
+			# self.assertEqual(das.cellClick(QModelIndex()), None)
+		das.abstractFormulas = abstractFormulas
+		# with patch("physbiblio.gui.bibWindows.abstractFormulas.doText") as _d:
+			# _w.assert_called_once_with()
 
 if __name__=='__main__':
 	unittest.main()

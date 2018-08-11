@@ -151,7 +151,7 @@ class ExpWindowList(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = [idE for idE in self.table_model.selectedElements.keys() if self.table_model.selectedElements[idE] == True]
+		self.parent.selectedExps = [idE for idE in self.tableModel.selectedElements.keys() if self.tableModel.selectedElements[idE] == True]
 		self.result	= "Ok"
 		self.close()
 
@@ -171,7 +171,7 @@ class ExpWindowList(objListWindow):
 
 		self.exps = pBDB.exps.getAll()
 
-		self.table_model = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
+		self.tableModel = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
 		self.addFilterInput("Filter experiment")
 		self.setProxyStuff(1, Qt.AscendingOrder)
 

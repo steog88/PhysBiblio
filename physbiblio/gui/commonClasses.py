@@ -171,7 +171,7 @@ class objListWindow(QDialog):
 			sortOrder: the order for sorting (`Qt.AscendingOrder` or `Qt.DescendingOrder`)
 		"""
 		self.proxyModel = QSortFilterProxyModel(self)
-		self.proxyModel.setSourceModel(self.table_model)
+		self.proxyModel.setSourceModel(self.tableModel)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setFilterKeyColumn(-1)

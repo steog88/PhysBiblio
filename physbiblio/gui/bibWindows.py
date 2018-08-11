@@ -423,7 +423,7 @@ class bibtexList(QFrame, objListWindow):
 		self.colContents += [a.lower() for a in self.additionalCols]
 
 	def changeEnableActions(self):
-		status = self.table_model.ask
+		status = self.tableModel.ask
 		self.clearAct.setEnabled(status)
 		self.selAllAct.setEnabled(status)
 		self.unselAllAct.setEnabled(status)
@@ -442,23 +442,23 @@ class bibtexList(QFrame, objListWindow):
 		pBDB.bibs.updateField(bibkey, "marks", ",".join(marks))
 
 	def enableSelection(self):
-		self.table_model.changeAsk()
+		self.tableModel.changeAsk()
 		self.changeEnableActions()
 
 	def clearSelection(self):
-		self.table_model.previous = []
-		self.table_model.prepareSelected()
-		self.table_model.changeAsk(False)
+		self.tableModel.previous = []
+		self.tableModel.prepareSelected()
+		self.tableModel.changeAsk(False)
 		self.changeEnableActions()
 
 	def selectAll(self):
-		self.table_model.selectAll()
+		self.tableModel.selectAll()
 
 	def unselectAll(self):
-		self.table_model.unselectAll()
+		self.tableModel.unselectAll()
 
 	def onOk(self):
-		self.parent.selectedBibs = [key for key in self.table_model.selectedElements.keys() if self.table_model.selectedElements[key] == True]
+		self.parent.selectedBibs = [key for key in self.tableModel.selectedElements.keys() if self.tableModel.selectedElements[key] == True]
 		ask = askSelBibAction(self.parent, self.parent.selectedBibs)
 		ask.exec_(QCursor.pos())
 		if ask.result == "done":
@@ -492,7 +492,7 @@ class bibtexList(QFrame, objListWindow):
 
 		self.currLayout.addWidget(self.selectToolBar)
 
-		self.table_model = MyBibTableModel(self,
+		self.tableModel = MyBibTableModel(self,
 			self.bibs, self.columns + self.additionalCols,
 			self.columns, self.additionalCols,
 			askBibs = self.askBibs,

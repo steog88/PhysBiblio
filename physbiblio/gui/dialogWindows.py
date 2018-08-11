@@ -109,6 +109,9 @@ class configEditColumns(QDialog):
 class configWindow(QDialog):
 	"""Create a window for editing the configuration settings"""
 	def __init__(self, parent = None):
+		"""
+		Simple extension of `QDialog.__init__`
+		"""
 		super(configWindow, self).__init__(parent)
 		self.textValues = []
 		self.initUI()
@@ -491,7 +494,7 @@ class advImportDialog(QDialog):
 
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
-	def __init__(self, bibs = [], parent = None):
+	def __init__(self, bibs = {}, parent = None):
 		self.bibs = bibs
 		super(advImportSelect, self).__init__(parent, gridLayout = True)
 		self.checkBoxes = []
@@ -502,7 +505,7 @@ class advImportSelect(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.selected = self.table_model.selectedElements
+		self.selected = self.tableModel.selectedElements
 		self.result	= True
 		self.close()
 
@@ -536,7 +539,7 @@ class advImportSelect(objListWindow):
 					self.bibs[k]['bibpars'][f] = self.bibs[k]['bibpars'][f].replace("\n", " ")
 				except KeyError:
 					pass
-		self.table_model = MyImportedTableModel(self, self.bibs, headers)
+		self.tableModel = MyImportedTableModel(self, self.bibs, headers)
 		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
 
@@ -628,14 +631,20 @@ class dailyArxivDialog(QDialog):
 class dailyArxivSelect(advImportSelect):
 	"""create a window for the advanced import"""
 	def initUI(self):
+		"""Initialize the widget content, with the buttons and labels"""
 		self.setWindowTitle('ArXiv daily listing - results')
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:"))
+		self.currLayout.addWidget(
+			QLabel("This is the list of elements found.\n" +
+				"Select the ones that you want to import:"))
 
 		headers = ["eprint", "type", "title", "author", "primaryclass"]
-		self.table_model = MyImportedTableModel(self, self.bibs, headers, idName = "eprint")
+		self.tableModel = MyImportedTableModel(self,
+			self.bibs,
+			headers,
+			idName = "eprint")
 		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
 
@@ -657,15 +666,27 @@ class dailyArxivSelect(advImportSelect):
 		self.cancelButton.setAutoDefault(True)
 		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
-		self.abstractArea = QTextEdit('Abastract', self)
+		self.abstractArea = QTextEdit('Abstract', self)
 		self.currLayout.addWidget(self.abstractArea, i + 3, 0, 4, 2)
 
 	def cellClick(self, index):
+		"""
+		Click action
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
+		if not index.isValid():
+			return
 		row = index.row()
 		try:
 			eprint = str(self.proxyModel.sibling(row, 0, index).data())
 		except AttributeError:
+			pBLogger.debug("Data not valid", exc_info = True)
 			return
 		if self.abstractFormulas is not None:
-			a = self.abstractFormulas(self.parent(), self.bibs[eprint]["bibpars"]["abstract"], customEditor = self.abstractArea, statusMessages = False)
+			a = self.abstractFormulas(self.parent(),
+				self.bibs[eprint]["bibpars"]["abstract"],
+				customEditor = self.abstractArea,
+				statusMessages = False)
 			a.doText()

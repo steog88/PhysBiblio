@@ -203,7 +203,7 @@ class TestObjListWindow(GUITestCase):
 	def test_changeFilter(self):
 		"""test changeFilter"""
 		olw = objListWindow()
-		olw.table_model = emptyTableModel()
+		olw.tableModel = emptyTableModel()
 		olw.setProxyStuff(1, Qt.AscendingOrder)
 		olw.changeFilter("abc")
 		self.assertEqual(olw.proxyModel.filterRegExp().pattern(), "abc")
@@ -229,7 +229,7 @@ class TestObjListWindow(GUITestCase):
 	def test_setProxyStuff(self):
 		"""test setProxyStuff"""
 		olw = objListWindow()
-		olw.table_model = emptyTableModel()
+		olw.tableModel = emptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 			_s.assert_called_once_with(1, Qt.AscendingOrder)
@@ -249,7 +249,7 @@ class TestObjListWindow(GUITestCase):
 	def test_finalizeTable(self):
 		"""Test finalizeTable"""
 		olw = objListWindow()
-		olw.table_model = emptyTableModel()
+		olw.tableModel = emptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents") \
@@ -290,7 +290,7 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
 
 		olw = objListWindow(gridLayout = True)
-		olw.table_model = emptyTableModel()
+		olw.tableModel = emptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 		olw.finalizeTable(gridPos = (4, 1))
