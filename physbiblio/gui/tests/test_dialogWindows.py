@@ -30,6 +30,31 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+class fake_abstractFormulas():
+	"""Used to test `dailyArxivSelect.cellClick`"""
+	def __init__(self):
+		"""empty constructor"""
+		return
+
+	def __call__(self, p, abstract, customEditor = None, statusMessages = True):
+		"""
+		Save some attributes and return self.el
+
+		Parameters: (see also `physbiblio.gui.bibWindows.abstractFormulas`)
+			p: parent widget
+			ab: abstract
+			customEditor: widget where to store the processed text
+			statusMessages: print status messages
+		"""
+		self.par = p
+		self.abstract = abstract
+		self.ce = customEditor
+		self.sm = statusMessages
+		self.el = abstractFormulas(p, abstract,
+			customEditor = self.ce,
+			statusMessages = self.sm)
+		return self.el
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigEditColumns(GUITestCase):
 	"""
@@ -521,21 +546,57 @@ class TestDailyArxivSelect(GUITestCase):
 	def test_cellClick(self):
 		"""test cellClick"""
 		p = QWidget()
-		das = dailyArxivSelect({}, p)
+		bibs = {"1808.00000": {
+			"bibpars": {
+				"eprint": "1808.00000",
+				"type": "art",
+				"title": "empty",
+				"author": "me",
+				"primaryclass": "physics",
+				"abstract": "no text"
+			},
+			"exist": False
+			},
+			"1507.08204": {
+			"bibpars": {
+				"eprint": "1507.08204",
+				"type": "art",
+				"title": "Light sterile neutrinos",
+				"author": "SG",
+				"primaryclass": "hep-ph",
+				"abstract": "some text"
+			},
+			"exist": False
+			}}
+		das = dailyArxivSelect(bibs, p)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value = False) as _iv:
 			self.assertEqual(das.cellClick(QModelIndex()), None)
 		self.assertFalse(hasattr(das, "abstractFormulas"))
-		# print(das.tablewidget.indexAt(0, 0))
-		# QTest.mouseClick(das.tablewidget.indexAt(0, 0), Qt.LeftButton)
-		# with patch("PySide2.QtCore.QModelIndex.isValid",
-				# return_value = True) as _iv,\
-				# patch("PySide2.QtCore.QModelIndex.row",
-					# return_value = 0) as _iv:
-			# self.assertEqual(das.cellClick(QModelIndex()), None)
-		das.abstractFormulas = abstractFormulas
-		# with patch("physbiblio.gui.bibWindows.abstractFormulas.doText") as _d:
-			# _w.assert_called_once_with()
+		#the first row will contain the 1507.08204 entry,
+		#as the order is Qt.AscendingOrder on the first column (eprint)
+		ix = das.tablewidget.model().index(1, 0)
+		with patch("logging.Logger.debug") as _d:
+			das.cellClick(ix)
+			_d.assert_called_once_with("self.abstractFormulas not present " +
+				"in dailyArxivSelect. Eprint: 1808.00000")
+		with patch("PySide2.QtCore.QSortFilterProxyModel.sibling",
+					return_value = None) as _s,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(das.cellClick(ix), None)
+			_d.assert_called_once_with('Data not valid', exc_info=True)
+			_s.assert_called_once_with(1, 0, ix)
+		ix = das.tablewidget.model().index(0, 0)
+		das.abstractFormulas = fake_abstractFormulas()
+		with patch("physbiblio.gui.bibWindows.abstractFormulas.doText") as _d:
+			das.cellClick(ix)
+			self.assertIsInstance(das.abstractFormulas.el, abstractFormulas)
+			self.assertEqual(das.abstractFormulas.par, p)
+			self.assertEqual(das.abstractFormulas.abstract,
+				"some text")
+			self.assertEqual(das.abstractFormulas.ce, das.abstractArea)
+			self.assertEqual(das.abstractFormulas.sm, False)
+			_d.assert_called_once_with()
 
 if __name__=='__main__':
 	unittest.main()

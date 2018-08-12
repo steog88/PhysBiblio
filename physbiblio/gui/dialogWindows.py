@@ -684,9 +684,13 @@ class dailyArxivSelect(advImportSelect):
 		except AttributeError:
 			pBLogger.debug("Data not valid", exc_info = True)
 			return
-		if self.abstractFormulas is not None:
+		if hasattr(self, "abstractFormulas") and \
+				self.abstractFormulas is not None:
 			a = self.abstractFormulas(self.parent(),
 				self.bibs[eprint]["bibpars"]["abstract"],
 				customEditor = self.abstractArea,
 				statusMessages = False)
 			a.doText()
+		else:
+			pBLogger.debug("self.abstractFormulas not present in " +
+				"dailyArxivSelect. Eprint: %s"%eprint)
