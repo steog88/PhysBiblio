@@ -1,14 +1,20 @@
 """
-Module with many classes that are further extended in the other physbiblio.gui modules.
+Module with many classes that are further extended
+in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
 import sys
 import os
 import time
-from PySide2.QtCore import Qt, Signal, QAbstractItemModel, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QThread, QUrl
+from PySide2.QtCore import Qt, Signal, \
+	QAbstractItemModel, QAbstractTableModel, QModelIndex, \
+	QSortFilterProxyModel, QThread, QUrl
 from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
-from PySide2.QtWidgets import QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, QTableWidget, QTableWidgetItem, QVBoxLayout
+from PySide2.QtWidgets import \
+	QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, \
+	QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, \
+	QTableWidget, QTableWidgetItem, QVBoxLayout
 
 try:
 	from physbiblio.errors import pBErrorManagerClass, pBLogger
@@ -55,7 +61,8 @@ class MyComboBox(QComboBox):
 
 		Parameters:
 			parent: the parent widget
-			fields: the list of (string or printable) contents to be added to the QComboBox
+			fields: the list of (string or printable) contents
+				to be added to the QComboBox
 			current (default None): the value to be set as the initial value
 		"""
 		super(MyComboBox, self).__init__(parent)
@@ -77,9 +84,11 @@ class MyAndOrCombo(MyComboBox):
 
 		Parameters:
 			parent: the parent widget
-			current (default None): the value to be set as selected at the beginning
+			current (default None): the value to be set
+				as selected at the beginning
 		"""
-		super(MyAndOrCombo, self).__init__(parent, ["AND", "OR"], current = current)
+		super(MyAndOrCombo, self).__init__(parent,
+			["AND", "OR"], current = current)
 
 class MyTrueFalseCombo(MyComboBox):
 	"""
@@ -91,9 +100,11 @@ class MyTrueFalseCombo(MyComboBox):
 
 		Parameters:
 			parent: the parent widget
-			current (default None): the value to be set as selected at the beginning
+			current (default None): the value to be set as selected
+				at the beginning
 		"""
-		super(MyTrueFalseCombo, self).__init__(parent, ["True", "False"], current = current)
+		super(MyTrueFalseCombo, self).__init__(parent,
+			["True", "False"], current = current)
 
 class objListWindow(QDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
@@ -103,7 +114,8 @@ class objListWindow(QDialog):
 
 		Parameters:
 			parent: the parent object
-			gridLayout (boolean, default False): if True, use a QGridLayout, otherwise a QVBoxLayout
+			gridLayout (boolean, default False):
+				if True, use a QGridLayout, otherwise a QVBoxLayout
 		"""
 		super(objListWindow, self).__init__(parent)
 		self.tableWidth = None
@@ -150,7 +162,8 @@ class objListWindow(QDialog):
 
 		Parameter:
 			placeholderText: the text to be shown when no filter is present
-			gridPos (tuple): if gridLayout is active, the position of the `QLineEdit` in the `QGridLayout`
+			gridPos (tuple): if gridLayout is active,
+				the position of the `QLineEdit` in the `QGridLayout`
 		"""
 		self.filterInput = QLineEdit("",  self)
 		self.filterInput.setPlaceholderText(placeholderText)
@@ -167,8 +180,10 @@ class objListWindow(QDialog):
 		Prepare the proxy model to filter and sort the view.
 
 		Parameter:
-			sortColumn: the index of the column to use for sorting at the beginning
-			sortOrder: the order for sorting (`Qt.AscendingOrder` or `Qt.DescendingOrder`)
+			sortColumn: the index of the column to use
+				for sorting at the beginning
+			sortOrder: the order for sorting
+				(`Qt.AscendingOrder` or `Qt.DescendingOrder`)
 		"""
 		self.proxyModel = QSortFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.tableModel)
@@ -188,7 +203,8 @@ class objListWindow(QDialog):
 		Resize the table to fit the contents, connect functions, add to layout
 
 		Parameter:
-			gridPos (tuple): if gridLayout is active, the position of the `QLineEdit` in the `QGridLayout`
+			gridPos (tuple): if gridLayout is active,
+			the position of the `QLineEdit` in the `QGridLayout`
 		"""
 		self.tablewidget.resizeColumnsToContents()
 
@@ -233,7 +249,8 @@ class objListWindow(QDialog):
 
 	def recreateTable(self):
 		"""
-		Delete the previous table widget and other layout items, then create new ones
+		Delete the previous table widget and other layout items,
+		then create new ones
 		"""
 		self.cleanLayout()
 		self.createTable()
@@ -287,7 +304,8 @@ class editObjectWindow(QDialog):
 
 	def centerWindow(self):
 		"""
-		Use the `QDesktopWidget` to get the relevant information and center the widget in the screen.
+		Use the `QDesktopWidget` to get the relevant information
+		and center the widget in the screen.
 		"""
 		qr = self.frameGeometry()
 		cp = QDesktopWidget().availableGeometry().center()
@@ -368,7 +386,8 @@ class MyTableWidget(QTableWidget):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
+			self.columnAt(event.x()), event)
 
 class MyTableView(QTableView):
 	"""
@@ -381,7 +400,8 @@ class MyTableView(QTableView):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()), self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
+			self.columnAt(event.x()), event)
 
 class MyTableModel(QAbstractTableModel):
 	"""
@@ -394,7 +414,8 @@ class MyTableModel(QAbstractTableModel):
 		Parameters:
 			parent: the parent widget
 			header: the list of column names which constitute the table
-			ask (boolean, default False): when True, allow to select the lines with a checkbox
+			ask (boolean, default False):
+				when True, allow to select the lines with a checkbox
 			previous: the list of lines which must be selected at the beginning
 		"""
 		QAbstractTableModel.__init__(self, parent, *args)
@@ -412,7 +433,8 @@ class MyTableModel(QAbstractTableModel):
 		Change the value of `self.ask` to show/hide checkboxes
 
 		Parameters:
-			new: `None` to just swap the current value of `self.ask`, `True` or `False` to set it to the desired value
+			new: `None` to just swap the current value of `self.ask`,
+				`True` or `False` to set it to the desired value
 		"""
 		self.layoutAboutToBeChanged.emit()
 		if new is None:
@@ -427,7 +449,8 @@ class MyTableModel(QAbstractTableModel):
 
 	def prepareSelected(self):
 		"""
-		Fill the dictionary `self.selectedElements` according to previous selection
+		Fill the dictionary `self.selectedElements`
+		according to previous selection
 		"""
 		self.layoutAboutToBeChanged.emit()
 		self.selectedElements = {}
@@ -441,7 +464,8 @@ class MyTableModel(QAbstractTableModel):
 				if self.selectedElements[prevK] == False:
 					self.selectedElements[prevK] = True
 			except (KeyError,IndexError):
-				pBLogger.exception("Invalid identifier in previous selection: %s"%(prevK))
+				pBLogger.exception(
+					"Invalid identifier in previous selection: %s"%(prevK))
 		self.layoutChanged.emit()
 
 	def selectAll(self):
@@ -539,13 +563,16 @@ class MyTableModel(QAbstractTableModel):
 
 		Output:
 			None if the index is not valid
-			if `self.ask` and first column, show checkboxes: Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+			if `self.ask` and first column, show checkboxes:
+			Qt.ItemIsUserCheckable | Qt.ItemIsEditable | 
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 			all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		"""
 		if not index.isValid():
 			return None
 		if index.column() == 0 and self.ask:
-			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		else:
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
@@ -614,7 +641,10 @@ class TreeNode(object):
 class TreeModel(QAbstractItemModel):
 	"""Model for a tree structure."""
 	def __init__(self):
-		"""Class constructor. Calls `_getRootNodes` to build the tree structure"""
+		"""
+		Class constructor. Calls `_getRootNodes`
+		to build the tree structure
+		"""
 		QAbstractItemModel.__init__(self)
 		self.rootNodes = self._getRootNodes()
 
@@ -725,7 +755,8 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 			row_num: the row number
 			parent: the parent node in the tree
 		"""
-		return super(LeafFilterProxyModel, self).filterAcceptsRow(row_num, parent)
+		return super(LeafFilterProxyModel, self).filterAcceptsRow(
+			row_num, parent)
 
 	def filterAcceptsAnyParent(self, parent):
 		"""
@@ -795,7 +826,8 @@ class MyDDTableWidget(QTableWidget):
 		# The QTableWidget from which selected rows will be moved
 		sender = event.source()
 
-		# Default dropEvent method fires dropMimeData with appropriate parameters (we're interested in the row index).
+		# Default dropEvent method fires dropMimeData
+		# with appropriate parameters (we're interested in the row index).
 		super(MyDDTableWidget, self).dropEvent(event)
 		# Now we know where to insert selected row(s)
 		dropRow = self.last_drop_row
@@ -806,9 +838,13 @@ class MyDDTableWidget(QTableWidget):
 		for _ in selectedRows:
 			self.insertRow(dropRow)
 
-		# if sender == receiver (self), after creating new empty rows selected rows might change their locations
-		sel_rows_offsets = [0 if self != sender or srow < dropRow else len(selectedRows) for srow in selectedRows]
-		selectedRows = [row + offset for row, offset in zip(selectedRows, sel_rows_offsets)]
+		# if sender == receiver (self),
+		# after creating new empty rows selected rows might change
+		# their locations
+		sel_rows_offsets = [0 if self != sender or srow < dropRow \
+			else len(selectedRows) for srow in selectedRows]
+		selectedRows = [row + offset for row, offset \
+			in zip(selectedRows, sel_rows_offsets)]
 
 		# copy content of selected rows into empty ones
 		for i, srow in enumerate(selectedRows):
@@ -888,7 +924,8 @@ class guiViewEntry(viewEntry):
 	"""
 	def openLink(self, key, arg = "", fileArg = None):
 		"""
-		Use `QDesktopServices` to open an url using the system default applications
+		Use `QDesktopServices` to open an url using
+		the system default applications
 
 		Parameters:
 			key: the entry key or the link (if `arg` == "link")
@@ -898,7 +935,8 @@ class guiViewEntry(viewEntry):
 				for any other values, the link will be generated using
 					the `physbiblio.view.viewWntry.getLink` method
 			fileArg: the file name if `arg` == "file", or
-				the argument passed to `physbiblio.view.viewWntry.getLink` if needed
+				the argument passed to `physbiblio.view.viewWntry.getLink`
+				if needed
 		"""
 		if type(key) is list:
 			for k in key:
@@ -912,7 +950,8 @@ class guiViewEntry(viewEntry):
 				link = self.getLink(key, arg = arg, fileArg = fileArg)
 				url = QUrl(link)
 			if QDesktopServices.openUrl(url):
-				pBLogger.debug("Opening link '%s' for entry '%s' successful!"%(url.toString(), key))
+				pBLogger.debug("Opening link '%s' for entry '%s' successful!"%(
+					url.toString(), key))
 			else:
 				pBLogger.warning("Opening link for '%s' failed!"%key)
 
@@ -929,7 +968,8 @@ class MyImportedTableModel(MyTableModel):
 		Parameters:
 			parent: the parent widget (pass to `MyTableModel.__init__`)
 			bibdict: a dictionary with the info of the imported bibtex entries.
-				It should contain dictionaries with two items: "bibpars", "exist"
+				It should contain dictionaries with two items:
+					"bibpars", "exist"
 			header: the header names to be passed to `MyTableModel.__init__`
 			idName: the key of the field representing the unique ID of the item
 		"""
@@ -968,12 +1008,14 @@ class MyImportedTableModel(MyTableModel):
 			pBLogger.warning("Missing element", exc_info = True)
 			return None
 
-		if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
+		if role == Qt.CheckStateRole and column == 0 and \
+				self.existList[row] is False:
 			if self.selectedElements[self.dataList[row][self.idName]] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
-		if role in [Qt.EditRole, Qt.DisplayRole] and column == 0 and self.existList[row] is True:
+		if role in [Qt.EditRole, Qt.DisplayRole] and column == 0 \
+				and self.existList[row] is True:
 			return value + " - already existing"
 		if role == Qt.EditRole:
 			return value
@@ -988,15 +1030,18 @@ class MyImportedTableModel(MyTableModel):
 		Parameters:
 			index: a `QModelIndex`
 			value: `Qt.Checked` to set the row as selected
-			role: `Qt.CheckStateRole` for performing an action, or any other role
+			role: `Qt.CheckStateRole` for performing an action,
+				or any other role
 		"""
 		if not index.isValid():
 			return False
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedElements[self.dataList[index.row()][self.idName]] = True
+				self.selectedElements[self.dataList[index.row()][self.idName]] \
+					= True
 			else:
-				self.selectedElements[self.dataList[index.row()][self.idName]] = False
+				self.selectedElements[self.dataList[index.row()][self.idName]] \
+					= False
 		self.dataChanged.emit(index, index)
 		return True
 
@@ -1010,6 +1055,7 @@ class MyImportedTableModel(MyTableModel):
 		if not index.isValid():
 			return None
 		if index.column() == 0 and self.existList[index.row()] is False:
-			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		else:
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
