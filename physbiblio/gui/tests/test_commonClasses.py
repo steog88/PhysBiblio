@@ -7,8 +7,9 @@ This file is part of the physbiblio package.
 import sys, traceback
 import os
 import time
-from PySide2.QtCore import Qt, QModelIndex, QPoint, QRect
-from PySide2.QtGui import QContextMenuEvent
+from PySide2.QtCore import Qt, \
+	QItemSelectionModel, QMimeData, QModelIndex, QPoint, QPointF, QRect
+from PySide2.QtGui import QContextMenuEvent, QDropEvent
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import \
 	QAction, QDesktopWidget, QInputDialog, QLineEdit, QWidget
@@ -1043,7 +1044,64 @@ class TestMyDDTableWidget(GUITestCase):
 		self.assertEqual(mddtw.last_drop_row, 12)
 
 	def test_dropEvent(self):
-		raise NotImplementedError()
+		"""test dropEvent"""
+		p = QWidget()
+		sender = MyDDTableWidget(p, "head")
+		item = QTableWidgetItem("source1")
+		sender.insertRow(0)
+		sender.setItem(0, 0, item)
+		item = QTableWidgetItem("source2")
+		sender.insertRow(1)
+		sender.setItem(1, 0, item)
+		sender.selectionModel().select(
+			sender.model().index(0, 0),
+			QItemSelectionModel.Select)
+
+		mddtw = MyDDTableWidget(p, "head")
+		item = QTableWidgetItem("test1")
+		mddtw.insertRow(0)
+		mddtw.setItem(0, 0, item)
+		item = QTableWidgetItem("test2")
+		mddtw.insertRow(1)
+		mddtw.setItem(1, 0, item)
+
+		mimedata = QMimeData()
+		mimedata.setData("application/x-qabstractitemmodeldatalist", "source1")
+		ev = QDropEvent(QPointF(1, 1),
+			Qt.DropActions(Qt.MoveAction),
+			mimedata,
+			Qt.MouseButtons(Qt.LeftButton),
+			Qt.KeyboardModifiers(Qt.NoModifier))
+		with patch("PySide2.QtGui.QDropEvent.source",
+				return_value = sender) as _s:
+			mddtw.dropEvent(ev)
+			_s.assert_called_once_with()
+		self.assertEqual(sender.rowCount(), 1)
+		self.assertEqual(mddtw.rowCount(), 3)
+		self.assertEqual(sender.item(0, 0).text(), "source2")
+		self.assertEqual(mddtw.item(0, 0).text(), "source1")
+		self.assertEqual(mddtw.item(1, 0).text(), "test1")
+		self.assertEqual(mddtw.item(2, 0).text(), "test2")
+
+		mddtw.selectionModel().select(
+			mddtw.model().index(1, 0),
+			QItemSelectionModel.Select)
+		mimedata.setData("application/x-qabstractitemmodeldatalist", "test1")
+		ev = QDropEvent(QPointF(1, 1),
+			Qt.DropActions(Qt.MoveAction),
+			mimedata,
+			Qt.MouseButtons(Qt.LeftButton),
+			Qt.KeyboardModifiers(Qt.NoModifier))
+		with patch("PySide2.QtGui.QDropEvent.source",
+				return_value = mddtw) as _s:
+			mddtw.dropEvent(ev)
+			_s.assert_called_once_with()
+		self.assertEqual(sender.rowCount(), 1)
+		self.assertEqual(mddtw.rowCount(), 3)
+		self.assertEqual(sender.item(0, 0).text(), "source2")
+		self.assertEqual(mddtw.item(0, 0).text(), "test1")
+		self.assertEqual(mddtw.item(1, 0).text(), "source1")
+		self.assertEqual(mddtw.item(2, 0).text(), "test2")
 
 	def test_getselectedRowsFast(self):
 		"""test getselectedRowsFast"""

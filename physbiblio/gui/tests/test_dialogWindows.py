@@ -256,6 +256,8 @@ class TestLogFileContentDialog(GUITestCase):
 			self.assertEqual(lf.parent(), p)
 			self.assertEqual(lf.title, "Log File Content")
 			_u.assert_called_once_with()
+		if os.path.exists(pbConfig.params["logFileName"]):
+			os.remove(pbConfig.params["logFileName"])
 
 	def test_clearLog(self):
 		"""test clearLog"""
@@ -287,6 +289,8 @@ class TestLogFileContentDialog(GUITestCase):
 			lf.clearLog()
 			_ex.assert_called_once_with("Impossible to clear log file!")
 			_c.assert_not_called()
+		if os.path.exists(pbConfig.params["logFileName"]):
+			os.remove(pbConfig.params["logFileName"])
 
 	def test_initUI(self):
 		"""test initUI"""
@@ -320,6 +324,8 @@ class TestLogFileContentDialog(GUITestCase):
 		self.assertIsInstance(lf.layout().itemAt(3).widget(), QPushButton)
 		self.assertEqual(lf.layout().itemAt(3).widget(), lf.clearButton)
 		self.assertEqual(lf.clearButton.text(), "Clear log file")
+		if os.path.exists(pbConfig.params["logFileName"]):
+			os.remove(pbConfig.params["logFileName"])
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPrintText(GUITestCase):
@@ -451,16 +457,29 @@ class TestDailyArxivDialog(GUITestCase):
 	Test dailyArxivDialog
 	"""
 	def test_init(self):
-		"""test"""
-		pass
+		"""Test __init__"""
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.initUI") as _iu:
+			dad = dailyArxivDialog(p)
+			self.assertIsInstance(dad, QDialog)
+			self.assertEqual(dad.parent(), p)
+			_iu.assert_called_once_with()
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		dad = dailyArxivDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			dad.onCancel()
+			self.assertFalse(dad.result)
+			_c.assert_called_once()
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		dad = dailyArxivDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			dad.onOk()
+			self.assertTrue(dad.result)
+			_c.assert_called_once()
 
 	def test_updateCat(self):
 		"""test"""

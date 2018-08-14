@@ -823,6 +823,12 @@ class MyDDTableWidget(QTableWidget):
 		return True
 
 	def dropEvent(self, event):
+		"""
+		Accept dropEvent and move the selected item to the new position
+
+		Parameter:
+			event: a `QDropEvent`
+		"""
 		# The QTableWidget from which selected rows will be moved
 		sender = event.source()
 
