@@ -308,6 +308,8 @@ class printText(QDialog):
 	stopped = Signal()
 
 	def __init__(self, parent = None, title = "", progressBar = True, totStr = None, progrStr = None, noStopButton = False):
+		"""
+		"""
 		super(printText, self).__init__(parent)
 		self.message = None
 		if title != "":
@@ -322,12 +324,16 @@ class printText(QDialog):
 		self.initUI()
 
 	def closeEvent(self, evnt):
+		"""
+		"""
 		if self._want_to_close:
 			super(printText, self).closeEvent(evnt)
 		else:
 			evnt.ignore()
 
 	def initUI(self):
+		"""
+		"""
 		self.setWindowTitle(self.title)
 
 		grid = QGridLayout()
@@ -366,6 +372,8 @@ class printText(QDialog):
 		self.move(qr.topLeft())
 
 	def append_text(self,text):
+		"""
+		"""
 		if self.setProgressBar:
 			if self.totString in text:
 				tot = [int(s) for s in text.split() if s.isdigit()][0]
@@ -377,69 +385,28 @@ class printText(QDialog):
 		self.textEdit.insertPlainText( text )
 
 	def progressBarMin(self, minimum):
+		"""
+		"""
 		if self.setProgressBar:
 			self.progressBar.setMinimum(minimum)
 
 	def progressBarMax(self, maximum):
+		"""
+		"""
 		if self.setProgressBar:
 			self.progressBar.setMaximum(maximum)
 
 	def stopExec(self):
+		"""
+		"""
 		self.cancelButton.setDisabled(True)
 		self.stopped.emit()
 
 	def enableClose(self):
+		"""
+		"""
 		self._want_to_close = True
 		self.closeButton.setEnabled(True)
-
-class searchReplaceDialog(QDialog):
-	"""create a window for search and replace"""
-	def __init__(self, parent = None):
-		super(searchReplaceDialog, self).__init__(parent)
-		self.initUI()
-
-	def onCancel(self):
-		self.result	= False
-		self.close()
-
-	def onOk(self):
-		self.result	= True
-		self.close()
-
-	def initUI(self):
-		self.setWindowTitle('Search and replace')
-
-		grid = QGridLayout()
-		grid.setSpacing(1)
-
-		#search
-		grid.addWidget(QLabel("Search: "), 0, 0)
-		self.searchEdit = QLineEdit("")
-		grid.addWidget(self.searchEdit, 0, 1)
-
-		#replace
-		grid.addWidget(QLabel("Replace with: "), 1, 0)
-		self.replaceEdit = QLineEdit("")
-		grid.addWidget(self.replaceEdit, 1, 1)
-
-		# OK button
-		self.acceptButton = QPushButton('OK', self)
-		self.acceptButton.clicked.connect(self.onOk)
-		grid.addWidget(self.acceptButton, 2, 0)
-
-		# cancel button
-		self.cancelButton = QPushButton('Cancel', self)
-		self.cancelButton.clicked.connect(self.onCancel)
-		self.cancelButton.setAutoDefault(True)
-		grid.addWidget(self.cancelButton, 2, 1)
-
-		self.setGeometry(100,100,400, 100)
-		self.setLayout(grid)
-
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
 
 class advImportDialog(QDialog):
 	"""create a window for the advanced import"""
@@ -512,11 +479,15 @@ class advImportSelect(objListWindow):
 		self.close()
 
 	def keyPressEvent(self, e):
+		"""
+		"""
 		if e.key() == Qt.Key_Escape:
 			self.result	= False
 			self.close()
 
 	def changeFilter(self, string):
+		"""
+		"""
 		self.proxyModel.setFilterRegExp(str(string))
 
 	def initUI(self):
@@ -565,15 +536,19 @@ class advImportSelect(objListWindow):
 		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
 	def triggeredContextMenuEvent(self, row, col, event):
+		"""Does nothing"""
 		pass
 
 	def handleItemEntered(self, index):
+		"""Does nothing"""
 		pass
 
 	def cellClick(self, index):
+		"""Does nothing"""
 		pass
 
 	def cellDoubleClick(self, index):
+		"""Does nothing"""
 		pass
 
 class dailyArxivDialog(QDialog):

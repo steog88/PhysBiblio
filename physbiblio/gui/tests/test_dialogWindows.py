@@ -365,27 +365,6 @@ class TestPrintText(GUITestCase):
 		pass
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestSearchReplaceDialog(GUITestCase):
-	"""
-	Test searchReplaceDialog
-	"""
-	def test_init(self):
-		"""test"""
-		pass
-
-	def test_onCancel(self):
-		"""test"""
-		pass
-
-	def test_onOk(self):
-		"""test"""
-		pass
-
-	def test_initUI(self):
-		"""test"""
-		pass
-
-@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportDialog(GUITestCase):
 	"""
 	Test advImportDialog
