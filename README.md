@@ -82,8 +82,11 @@ python3 /path/to/PhysBiblio test
 ```
 
 The entire suite of tests will check that all the functions work properly and should complete without errors and failures in a few minutes, depending on the internet connection speed.  
-A failure may be due to missing packages or missing internet connection (or bugs).
-If you are not sure which is your case, please ask help  [here](https://github.com/steog88/physBiblio/issues).
+A failure may be due to missing packages, incompatible package versions, particular inconsistencies due to specific operating systems and package versions, or missing internet connection (or bugs).
+If you are not sure which is your case, and in any case to report any problem you find, please go [here](https://github.com/steog88/physBiblio/issues).
+
+In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio test -h`).
+As an example, `PhysBiblio test -o` will skip all the online tests.
 
 ### Usage
 To run the program, execute `PhysBiblio` that have been installed.
