@@ -813,6 +813,19 @@ class TestTreeModel(GUITestCase):
 	"""
 	Test the TreeModel class
 	"""
+	def createTm(self):
+		"""Create a model structure for tests"""
+		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes"):
+			tm = TreeModel()
+		tm.rootElements = [
+			NamedElement(0, "main", [
+				NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
+				NamedElement(3, "test3", []),
+				])
+			]
+		tm.rootNodes = [NamedNode(tm.rootElements[0], None, 0)]
+		return tm
+
 	def test_init(self):
 		"""test the constructor"""
 		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes",
@@ -832,15 +845,7 @@ class TestTreeModel(GUITestCase):
 
 	def test_index(self):
 		"""Test the function that returns the object index"""
-		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes"):
-			tm = TreeModel()
-		tm.rootElements = [
-			NamedElement(0, "main", [
-				NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
-				NamedElement(3, "test3", []),
-				])
-			]
-		tm.rootNodes = [NamedNode(tm.rootElements[0], None, 0)]
+		tm = self.createTm()
 		with patch("logging.Logger.debug") as _d:
 			qmi = tm.index(0, 0, None)
 			self.assertIsInstance(qmi, QModelIndex)
@@ -884,11 +889,58 @@ class TestTreeModel(GUITestCase):
 
 	def test_parent(self):
 		"""Test the function that returns the parent object"""
-		raise NotImplementedError()
+		tm = self.createTm()
+		mn = tm.index(0, 0)
+		t1 = tm.index(0, 0, parent = mn)
+		t2 = tm.index(0, 0, parent = t1)
+		t3 = tm.index(1, 0, parent = mn)
+
+		with patch("logging.Logger.debug") as _d:
+			qmi = tm.parent(None)
+			self.assertIsInstance(qmi, QModelIndex)
+			self.assertFalse(qmi.isValid())
+			_d.assert_called_once_with(
+				"Invalid index 'None' in TreeModel.parent",
+				exc_info = True)
+		qmi = tm.parent(tm.index(3, 0))
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
+
+		qmi = tm.parent(mn)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
+		qmi = tm.parent(t1)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "main")
+		qmi = tm.parent(t3)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "main")
+		qmi = tm.parent(t2)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "test1")
 
 	def test_rowCount(self):
 		"""test the counting of rows"""
-		raise NotImplementedError()
+		tm = self.createTm()
+		mn = tm.index(0, 0)
+		t1 = tm.index(0, 0, parent = mn)
+		t2 = tm.index(0, 0, parent = t1)
+		t3 = tm.index(1, 0, parent = mn)
+		with patch("logging.Logger.debug") as _d:
+			rc = tm.rowCount(None)
+			self.assertEqual(rc, 1)
+			_d.assert_called_once_with(
+				"Invalid parent 'None' in TreeModel.rowCount",
+				exc_info = True)
+		self.assertEqual(tm.rowCount(), 1)
+		self.assertEqual(tm.rowCount(tm.index(5, 0)), 1)
+		self.assertEqual(tm.rowCount(mn), 2)
+		self.assertEqual(tm.rowCount(t1), 1)
+		self.assertEqual(tm.rowCount(t2), 0)
+		self.assertEqual(tm.rowCount(t3), 0)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestNamedElement(GUITestCase):

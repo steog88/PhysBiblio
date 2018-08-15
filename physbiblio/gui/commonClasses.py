@@ -680,15 +680,42 @@ class TreeModel(QAbstractItemModel):
 			return QModelIndex()
 
 	def parent(self, index):
+		"""
+		Retrieve the `QModelIndex` of the parent of the requested object,
+		if it exists, or an empty `QModelIndex` instead
+
+		Parameters:
+			index: the `QModelIndex` of the node
+
+		Output:
+			A `QModelIndex` instance
+		"""
+		if not isinstance(index, QModelIndex):
+			pBLogger.debug("Invalid index '%s' in TreeModel.parent"%index,
+				exc_info = True)
+			return QModelIndex()
 		if not index.isValid():
 			return QModelIndex()
-		node = index.internalPointer()
-		if node.parent is None:
+		nodeParent = index.internalPointer().parent()
+		if nodeParent is None:
 			return QModelIndex()
 		else:
-			return self.createIndex(node.parent.row, 0, node.parent)
+			return self.createIndex(nodeParent.row, 0, nodeParent)
 
-	def rowCount(self, parent):
+	def rowCount(self, parent = QModelIndex()):
+		"""
+		Count the rows in a given tree branch
+
+		Parameter:
+			parent: the `QModelIndex` of the branch parent
+
+		Output:
+			the line number
+		"""
+		if not isinstance(parent, QModelIndex):
+			pBLogger.debug("Invalid parent '%s' in TreeModel.rowCount"%parent,
+				exc_info = True)
+			return len(self.rootNodes)
 		if not parent.isValid():
 			return len(self.rootNodes)
 		node = parent.internalPointer()
