@@ -652,7 +652,22 @@ class TreeModel(QAbstractItemModel):
 		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
-	def index(self, row, column, parent):
+	def index(self, row, column, parent = QModelIndex()):
+		"""
+		Retrieve the `QModelIndex` of the requested object
+
+		Parameters:
+			row (int): the row index
+			column (int): the column index
+			parent: the parent `QModelIndex`
+
+		Output:
+			A `QModelIndex` instance
+		"""
+		if not isinstance(parent, QModelIndex):
+			pBLogger.debug("Invalid parent '%s' in TreeModel.index"%parent,
+				exc_info = True)
+			return QModelIndex()
 		if not parent.isValid():
 			try:
 				return self.createIndex(row, column, self.rootNodes[row])

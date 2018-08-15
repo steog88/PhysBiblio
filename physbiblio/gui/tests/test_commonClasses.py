@@ -70,13 +70,14 @@ class emptyTreeModel(TreeModel):
 		return [NamedNode(elem, None, index)
 			for index, elem in enumerate(self.rootElements)]
 
-	def rowCount(self, a = None):
-		return 2
-
 	def columnCount(self, a = None):
 		return 1
 
 	def data(self, index, role):
+		if not index.isValid():
+			return None
+		if role == Qt.DisplayRole and index.column() == 0:
+			return index.internalPointer().element.text
 		return None
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -831,7 +832,55 @@ class TestTreeModel(GUITestCase):
 
 	def test_index(self):
 		"""Test the function that returns the object index"""
-		raise NotImplementedError()
+		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes"):
+			tm = TreeModel()
+		tm.rootElements = [
+			NamedElement(0, "main", [
+				NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
+				NamedElement(3, "test3", []),
+				])
+			]
+		tm.rootNodes = [NamedNode(tm.rootElements[0], None, 0)]
+		with patch("logging.Logger.debug") as _d:
+			qmi = tm.index(0, 0, None)
+			self.assertIsInstance(qmi, QModelIndex)
+			self.assertFalse(qmi.isValid())
+			_d.assert_called_once_with(
+				"Invalid parent 'None' in TreeModel.index",
+				exc_info = True)
+		qmi = tm.index(0, 0)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "main")
+		qmi = tm.index(1, 0)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
+		p = tm.index(0, 0)
+		qmi = tm.index(0, 0, parent = p)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "test1")
+		qmi = tm.index(1, 0, parent = p)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "test3")
+		qmi = tm.index(2, 0, parent = p)
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
+		qmi = tm.index(0, 0, parent = tm.index(1, 0, parent = p))
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
+		qmi = tm.index(0, 0, parent = tm.index(0, 0, parent = p))
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "test2")
+		qmi = tm.index(0, 0, parent = tm.index(5, 0))
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertTrue(qmi.isValid())
+		self.assertEqual(qmi.internalPointer().element.name, "main")
+		qmi = tm.index(3, 0, parent = tm.index(5, 0))
+		self.assertIsInstance(qmi, QModelIndex)
+		self.assertFalse(qmi.isValid())
 
 	def test_parent(self):
 		"""Test the function that returns the parent object"""
@@ -946,9 +995,10 @@ class TestLeafFilterProxyModel(GUITestCase):
 	def test_filterAcceptsAnyParent(self):
 		"""test filterAcceptsAnyParent"""
 		el = NamedElement(1, "tags", [])
+		ot = NamedElement(2, "other", [])
 		main = NamedElement(0, "main", [el])
 		lf = LeafFilterProxyModel()
-		tm = emptyTreeModel([main])
+		tm = emptyTreeModel([main, ot])
 		lf.setSourceModel(tm)
 		self.assertTrue(lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 		self.assertTrue(lf.filterAcceptsAnyParent(lf.index(1,0,QModelIndex())))
