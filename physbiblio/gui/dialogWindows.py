@@ -501,10 +501,12 @@ class advImportSelect(objListWindow):
 		self.initUI()
 
 	def onCancel(self):
+		"""Reject the output (set self.result to False and close)"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
+		"""Accept the output (set self.result to True and close)"""
 		self.selected = self.tableModel.selectedElements
 		self.result	= True
 		self.close()
@@ -576,28 +578,41 @@ class advImportSelect(objListWindow):
 class dailyArxivDialog(QDialog):
 	"""create a window for the advanced import"""
 	def __init__(self, parent = None):
+		"""Simple extension of `QDialog.__init__`"""
 		super(dailyArxivDialog, self).__init__(parent)
 		self.initUI()
 
 	def onCancel(self):
+		"""Reject the output (set self.result to False and close)"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
+		"""Accept the output (set self.result to True and close)"""
 		self.result	= True
 		self.close()
 
 	def updateCat(self, category):
+		"""
+		Replace the current content of the `self.comboSub` combobox
+		with the new list of subcategories of the given category
+
+		Parameter:
+			category: the name of the category in the
+				`physBiblioWeb.webSearch["arxiv"].categories` dictionary
+		"""
 		self.comboSub.clear()
-		self.comboSub.addItems(["--"] + physBiblioWeb.webSearch["arxiv"].categories[category])
+		self.comboSub.addItems(["--"] + \
+			physBiblioWeb.webSearch["arxiv"].categories[category])
 
 	def initUI(self):
+		"""Create and fill the `QGridLayout`"""
 		self.setWindowTitle('Browse arxiv daily')
 
 		self.grid = QGridLayout()
 		self.grid.setSpacing(1)
 
-		##search
+		##combo boxes
 		self.grid.addWidget(QLabel("Select category: "), 0, 0)
 		self.comboCat = MyComboBox(self,
 			[""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys()))
@@ -605,8 +620,7 @@ class dailyArxivDialog(QDialog):
 		self.grid.addWidget(self.comboCat, 0, 1)
 
 		self.grid.addWidget(QLabel("Subcategory: "), 1, 0)
-		self.comboSub = MyComboBox(self,
-			[""])
+		self.comboSub = MyComboBox(self, [""])
 		self.grid.addWidget(self.comboSub, 1, 1)
 
 		# OK button
@@ -620,13 +634,8 @@ class dailyArxivDialog(QDialog):
 		self.cancelButton.setAutoDefault(True)
 		self.grid.addWidget(self.cancelButton, 2, 1)
 
-		self.setGeometry(100,100,400, 100)
+		self.setGeometry(100, 100, 400, 100)
 		self.setLayout(self.grid)
-
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
 
 class dailyArxivSelect(advImportSelect):
 	"""create a window for the advanced import"""

@@ -482,12 +482,73 @@ class TestDailyArxivDialog(GUITestCase):
 			_c.assert_called_once()
 
 	def test_updateCat(self):
-		"""test"""
-		pass
+		"""test updateCat"""
+		dad = dailyArxivDialog()
+		self.assertEqual(dad.comboSub.count(), 1)
+		self.assertEqual(dad.comboSub.itemText(0), "")
+		for c in physBiblioWeb.webSearch["arxiv"].categories.keys():
+			dad.updateCat(c)
+			self.assertEqual(dad.comboSub.count(),
+				1 + len(physBiblioWeb.webSearch["arxiv"].categories[c]))
+			self.assertEqual(dad.comboSub.itemText(0), "--")
+			for ix, sc in enumerate(
+					physBiblioWeb.webSearch["arxiv"].categories[c]):
+				self.assertEqual(dad.comboSub.itemText(ix + 1), sc)
 
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		dad = dailyArxivDialog()
+		self.assertEqual(dad.windowTitle(), 'Browse arxiv daily')
+		self.assertIsInstance(dad.layout(), QGridLayout)
+		self.assertEqual(dad.grid, dad.layout())
+		self.assertEqual(dad.grid.spacing(), 1)
+
+		self.assertIsInstance(dad.grid.itemAtPosition(0, 0).widget(), QLabel)
+		self.assertEqual(dad.grid.itemAtPosition(0, 0).widget().text(),
+			"Select category: ")
+		self.assertIsInstance(dad.grid.itemAtPosition(1, 0).widget(), QLabel)
+		self.assertEqual(dad.grid.itemAtPosition(1, 0).widget().text(),
+			"Subcategory: ")
+
+		cc = dad.grid.itemAtPosition(0, 1).widget()
+		self.assertIsInstance(cc, MyComboBox)
+		self.assertEqual(cc, dad.comboCat)
+		self.assertEqual(cc.count(),
+			len(physBiblioWeb.webSearch["arxiv"].categories) + 1)
+		self.assertEqual(cc.itemText(0), "")
+		for ix, c in enumerate(sorted(
+				physBiblioWeb.webSearch["arxiv"].categories.keys())):
+			self.assertEqual(cc.itemText(ix + 1), c)
+		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.updateCat") \
+				as _cic:
+			dad.comboCat.setCurrentText("hep-ph")
+			_cic.assert_called_once_with("hep-ph")
+		cs = dad.grid.itemAtPosition(1, 1).widget()
+		self.assertIsInstance(cs, MyComboBox)
+		self.assertEqual(cs, dad.comboSub)
+		self.assertEqual(cs.count(), 1)
+		self.assertEqual(cs.itemText(0), "")
+
+		self.assertIsInstance(dad.grid.itemAtPosition(2, 0).widget(),
+			QPushButton)
+		self.assertEqual(dad.grid.itemAtPosition(2, 0).widget(),
+			dad.acceptButton)
+		self.assertEqual(dad.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.onOk") \
+				as _o:
+			QTest.mouseClick(dad.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+
+		self.assertIsInstance(dad.grid.itemAtPosition(2, 1).widget(),
+			QPushButton)
+		self.assertEqual(dad.grid.itemAtPosition(2, 1).widget(),
+			dad.cancelButton)
+		self.assertEqual(dad.cancelButton.text(), "Cancel")
+		self.assertTrue(dad.cancelButton.autoDefault())
+		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.onCancel") \
+				as _c:
+			QTest.mouseClick(dad.cancelButton, Qt.LeftButton)
+			_c.assert_called_once_with()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivSelect(GUITestCase):
