@@ -444,33 +444,38 @@ class searchReplaceDialog(QDialog):
 class advImportDialog(QDialog):
 	"""create a window for the advanced import"""
 	def __init__(self, parent = None):
+		"""Simple extension of `QDialog.__init__`"""
 		super(advImportDialog, self).__init__(parent)
 		self.initUI()
 
 	def onCancel(self):
+		"""Reject the output (set self.result to False and close)"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
+		"""Accept the output (set self.result to True and close)"""
 		self.result	= True
 		self.close()
 
 	def initUI(self):
+		"""Create and fill the `QGridLayout`"""
 		self.setWindowTitle('Advanced import')
 
 		grid = QGridLayout()
+		self.grid = grid
 		grid.setSpacing(1)
 
 		##search
-		grid.addWidget(QLabel("Select method: "), 0, 0)
+		grid.addWidget(QLabel("Search string: "), 0, 0)
+		self.searchStr = QLineEdit("")
+		grid.addWidget(self.searchStr, 0, 1)
+
+		grid.addWidget(QLabel("Select method: "), 1, 0)
 		self.comboMethod = MyComboBox(self,
 			["INSPIRE-HEP", "arXiv", "DOI", "ISBN"],
 			current = "INSPIRE-HEP")
-		grid.addWidget(self.comboMethod, 0, 1)
-
-		grid.addWidget(QLabel("Search string: "), 1, 0)
-		self.searchStr = QLineEdit("")
-		grid.addWidget(self.searchStr, 1, 1)
+		grid.addWidget(self.comboMethod, 1, 1)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
@@ -486,11 +491,6 @@ class advImportDialog(QDialog):
 		self.setGeometry(100,100,400, 100)
 		self.setLayout(grid)
 		self.searchStr.setFocus()
-
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
 
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
@@ -520,6 +520,7 @@ class advImportSelect(objListWindow):
 		self.proxyModel.setFilterRegExp(str(string))
 
 	def initUI(self):
+		"""Create and fill the `QGridLayout`"""
 		self.setWindowTitle('Advanced import - results')
 
 		self.currLayout.setSpacing(1)

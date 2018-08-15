@@ -391,20 +391,80 @@ class TestAdvImportDialog(GUITestCase):
 	Test advImportDialog
 	"""
 	def test_init(self):
-		"""test"""
-		pass
+		"""Test __init__"""
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows.advImportDialog.initUI") \
+				as _iu:
+			aid = advImportDialog(p)
+			self.assertIsInstance(aid, QDialog)
+			self.assertEqual(aid.parent(), p)
+			_iu.assert_called_once_with()
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		aid = advImportDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			aid.onCancel()
+			self.assertFalse(aid.result)
+			_c.assert_called_once()
 
-	def test_onOK(self):
-		"""test"""
-		pass
+	def test_onOk(self):
+		"""test onOk"""
+		aid = advImportDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			aid.onOk()
+			self.assertTrue(aid.result)
+			_c.assert_called_once()
 
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		aid = advImportDialog()
+		self.assertEqual(aid.windowTitle(), 'Advanced import')
+		self.assertIsInstance(aid.layout(), QGridLayout)
+		self.assertEqual(aid.grid, aid.layout())
+		self.assertEqual(aid.grid.spacing(), 1)
+
+		self.assertIsInstance(aid.grid.itemAtPosition(0, 0).widget(), QLabel)
+		self.assertEqual(aid.grid.itemAtPosition(0, 0).widget().text(),
+			"Search string: ")
+		self.assertIsInstance(aid.grid.itemAtPosition(1, 0).widget(), QLabel)
+		self.assertEqual(aid.grid.itemAtPosition(1, 0).widget().text(),
+			"Select method: ")
+
+		le = aid.grid.itemAtPosition(0, 1).widget()
+		self.assertIsInstance(le, QLineEdit)
+		self.assertEqual(le, aid.searchStr)
+		self.assertEqual(le.text(), "")
+		cm = aid.grid.itemAtPosition(1, 1).widget()
+		self.assertIsInstance(cm, MyComboBox)
+		self.assertEqual(cm, aid.comboMethod)
+		self.assertEqual(cm.count(), 4)
+		self.assertEqual(cm.itemText(0), "INSPIRE-HEP")
+		self.assertEqual(cm.currentText(), "INSPIRE-HEP")
+		self.assertEqual(cm.itemText(1), "arXiv")
+		self.assertEqual(cm.itemText(2), "DOI")
+		self.assertEqual(cm.itemText(3), "ISBN")
+
+		self.assertIsInstance(aid.grid.itemAtPosition(2, 0).widget(),
+			QPushButton)
+		self.assertEqual(aid.grid.itemAtPosition(2, 0).widget(),
+			aid.acceptButton)
+		self.assertEqual(aid.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.dialogWindows.advImportDialog.onOk") \
+				as _o:
+			QTest.mouseClick(aid.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+
+		self.assertIsInstance(aid.grid.itemAtPosition(2, 1).widget(),
+			QPushButton)
+		self.assertEqual(aid.grid.itemAtPosition(2, 1).widget(),
+			aid.cancelButton)
+		self.assertEqual(aid.cancelButton.text(), "Cancel")
+		self.assertTrue(aid.cancelButton.autoDefault())
+		with patch("physbiblio.gui.dialogWindows.advImportDialog.onCancel") \
+				as _c:
+			QTest.mouseClick(aid.cancelButton, Qt.LeftButton)
+			_c.assert_called_once_with()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportSelect(GUITestCase):
@@ -459,7 +519,8 @@ class TestDailyArxivDialog(GUITestCase):
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.initUI") as _iu:
+		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.initUI") \
+				as _iu:
 			dad = dailyArxivDialog(p)
 			self.assertIsInstance(dad, QDialog)
 			self.assertEqual(dad.parent(), p)
