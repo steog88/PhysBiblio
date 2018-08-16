@@ -304,11 +304,32 @@ class LogFileContentDialog(QDialog):
 		self.setLayout(grid)
 
 class printText(QDialog):
-	"""create a window for printing text of command line output"""
+	"""Create a window for printing text of command line output"""
 	stopped = Signal()
 
-	def __init__(self, parent = None, title = "", progressBar = True, totStr = None, progrStr = None, noStopButton = False):
+	def __init__(self,
+			parent = None,
+			title = "",
+			progressBar = True,
+			totStr = None,
+			progrStr = None,
+			noStopButton = False):
 		"""
+		Constructor. Set some properties and create the GUI of the dialog
+
+		Parameters:
+			parent: the parent widget
+			title: the window title. If an empty string,
+				"Redirect print" will be used
+			progressBar: True (default) if the widget must have a progress bar
+			totStr: string to be searched in the printed text in order to
+				obtain the number of total iterations to be processed.
+				Used to set the progress bar value appropriately.
+			progrStr: string to be searched in the printed text in order
+				to obtain the iteration number.
+				Used to set the progress bar value appropriately.
+			noStopButton (default False): True if the widget must have
+				a "stop" button to stop the iterations
 		"""
 		super(printText, self).__init__(parent)
 		self.message = None
@@ -318,18 +339,24 @@ class printText(QDialog):
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
 		self.noStopButton = noStopButton
-		self._want_to_close = False
+		self._wantToClose = False
 		self.totString = totStr if totStr is not None else "emptyString"
-		self.progressString = progrStr if progrStr is not None else "emptyString"
+		self.progressString = progrStr if progrStr is not None \
+			else "emptyString"
 		self.initUI()
 
-	def closeEvent(self, evnt):
+	def closeEvent(self, event):
 		"""
+		Manage the `closeEvent` of the dialog.
+		Reject unless `self._wantToClose` is True
+
+		Parameter:
+			event: a `QEvent`
 		"""
-		if self._want_to_close:
-			super(printText, self).closeEvent(evnt)
+		if self._wantToClose:
+			super(printText, self).closeEvent(event)
 		else:
-			evnt.ignore()
+			event.ignore()
 
 	def initUI(self):
 		"""
@@ -366,11 +393,6 @@ class printText(QDialog):
 		self.setGeometry(100,100,600, 600)
 		self.setLayout(grid)
 
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
-
 	def append_text(self,text):
 		"""
 		"""
@@ -386,26 +408,35 @@ class printText(QDialog):
 
 	def progressBarMin(self, minimum):
 		"""
+		Set the minimum value for the progress bar
+
+		Parameter:
+			minimum (int or float): the value
 		"""
 		if self.setProgressBar:
 			self.progressBar.setMinimum(minimum)
 
 	def progressBarMax(self, maximum):
 		"""
+		Set the maximum value for the progress bar
+
+		Parameter:
+			maximum (int or float): the value
 		"""
 		if self.setProgressBar:
 			self.progressBar.setMaximum(maximum)
 
 	def stopExec(self):
 		"""
+		Stop the iterations through the `stopped` Signal
+		and disable the `cancelButton`
 		"""
 		self.cancelButton.setDisabled(True)
 		self.stopped.emit()
 
 	def enableClose(self):
-		"""
-		"""
-		self._want_to_close = True
+		"""Enable the close button and set `self._wantToClose` to True"""
+		self._wantToClose = True
 		self.closeButton.setEnabled(True)
 
 class advImportDialog(QDialog):

@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
-from PySide2.QtCore import Qt, QModelIndex
+from PySide2.QtCore import Qt, QEvent, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -333,36 +333,87 @@ class TestPrintText(GUITestCase):
 	Test printText
 	"""
 	def test_init(self):
-		"""test"""
-		pass
+		"""test init"""
+		with patch("physbiblio.gui.dialogWindows.printText.initUI") as _u:
+			pt = printText()
+			_u.assert_called_once_with()
+		self.assertIsInstance(pt, QDialog)
+		self.assertIsInstance(pt.stopped, Signal)
+		self.assertEqual(pt.parent(), None)
+		self.assertEqual(pt.title, "Redirect print")
+		self.assertEqual(pt.setProgressBar, True)
+		self.assertEqual(pt.totString, "emptyString")
+		self.assertEqual(pt.progressString, "emptyString")
+		self.assertEqual(pt.noStopButton, False)
+		self.assertEqual(pt._wantToClose, False)
+		self.assertEqual(pt.message, None)
+
+		p = QWidget()
+		pt = printText(p, "title", False, "some tot string",
+			"some progr string", True)
+		self.assertEqual(pt.parent(), p)
+		self.assertEqual(pt.title, "title")
+		self.assertEqual(pt.setProgressBar, False)
+		self.assertEqual(pt.totString, "some tot string")
+		self.assertEqual(pt.progressString, "some progr string")
+		self.assertEqual(pt.noStopButton, True)
 
 	def test_closeEvent(self):
-		"""test"""
-		pass
+		"""test closeEvent"""
+		p = QWidget()
+		pt = printText(p)
+		e = QEvent(QEvent.Close)
+		with patch("PySide2.QtCore.QEvent.ignore") as _i:
+			pt.closeEvent(e)
+			_i.assert_called_once_with()
+		pt._wantToClose = True
+		with patch("PySide2.QtWidgets.QDialog.closeEvent") as _c:
+			pt.closeEvent(e)
+			_c.assert_called_once_with(e)
 
 	def test_initUI(self):
-		"""test"""
+		"""test initUI"""
 		pass
 
 	def test_append_text(self):
-		"""test"""
+		"""test append_text"""
 		pass
 
 	def test_progressBarMin(self):
-		"""test"""
-		pass
+		"""test progressBarMin"""
+		pt = printText()
+		self.assertIsInstance(pt.progressBar, QProgressBar)
+		pt.progressBarMin(1234.)
+		self.assertEqual(pt.progressBar.minimum(), 1234.)
 
 	def test_progressBarMax(self):
-		"""test"""
-		pass
+		"""test progressBarMax"""
+		pt = printText()
+		self.assertIsInstance(pt.progressBar, QProgressBar)
+		pt.progressBarMax(1234)
+		self.assertEqual(pt.progressBar.maximum(), 1234)
 
 	def test_stopExec(self):
-		"""test"""
-		pass
+		"""test stopExec"""
+		self.stop = False
+		def stoppedAct(a = self):
+			a.stop = True
+		pt = printText()
+		pt.stopped.connect(stoppedAct)
+		self.assertTrue(pt.cancelButton.isEnabled())
+		self.assertFalse(self.stop)
+		pt.stopExec()
+		self.assertFalse(pt.cancelButton.isEnabled())
+		self.assertTrue(self.stop)
 
 	def test_enableClose(self):
-		"""test"""
-		pass
+		"""test enableClose"""
+		pt = printText()
+		self.assertFalse(pt.closeButton.isEnabled())
+		self.assertFalse(pt._wantToClose)
+		pt.enableClose()
+		self.assertTrue(pt.closeButton.isEnabled())
+		self.assertTrue(pt._wantToClose)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportDialog(GUITestCase):
