@@ -575,7 +575,7 @@ class MainWindow(QMainWindow):
 			app.progressBarMin(minProgress)
 		queue = Queue()
 		ws = WriteStream(queue)
-		ws.mysignal.connect(app.append_text)
+		ws.mysignal.connect(app.appendText)
 		thr = thread_func(ws, *args, parent = self, **kwargs)
 
 		ws.finished.connect(ws.deleteLater)
@@ -1171,9 +1171,9 @@ class MainWindow(QMainWindow):
 
 if __name__=='__main__':
 	try:
-		myApp=QApplication(sys.argv)
+		myApp = QApplication(sys.argv)
 		myApp.setAttribute(Qt.AA_X11InitThreads)
-		myWindow=MainWindow()
+		myWindow = MainWindow()
 		myWindow.show()
 		sys.exit(myApp.exec_())
 	except NameError:

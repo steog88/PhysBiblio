@@ -339,24 +339,25 @@ class TestPrintText(GUITestCase):
 			_u.assert_called_once_with()
 		self.assertIsInstance(pt, QDialog)
 		self.assertIsInstance(pt.stopped, Signal)
+		self.assertEqual(pt._wantToClose, False)
 		self.assertEqual(pt.parent(), None)
 		self.assertEqual(pt.title, "Redirect print")
 		self.assertEqual(pt.setProgressBar, True)
 		self.assertEqual(pt.totString, "emptyString")
 		self.assertEqual(pt.progressString, "emptyString")
 		self.assertEqual(pt.noStopButton, False)
-		self.assertEqual(pt._wantToClose, False)
 		self.assertEqual(pt.message, None)
 
 		p = QWidget()
 		pt = printText(p, "title", False, "some tot string",
-			"some progr string", True)
+			"some progr string", True, "mymessage")
 		self.assertEqual(pt.parent(), p)
 		self.assertEqual(pt.title, "title")
 		self.assertEqual(pt.setProgressBar, False)
 		self.assertEqual(pt.totString, "some tot string")
 		self.assertEqual(pt.progressString, "some progr string")
 		self.assertEqual(pt.noStopButton, True)
+		self.assertEqual(pt.message, "mymessage")
 
 	def test_closeEvent(self):
 		"""test closeEvent"""
@@ -373,11 +374,113 @@ class TestPrintText(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		pass
+		p = QWidget()
+		pt = printText(p, progressBar = False, noStopButton = True)
+		self.assertEqual(pt.windowTitle(), "Redirect print")
+		self.assertIsInstance(pt.layout(), QGridLayout)
+		self.assertEqual(pt.layout(), pt.grid)
+		self.assertEqual(pt.grid.spacing(), 1)
+		self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(),
+			QTextEdit)
+		self.assertEqual(pt.grid.itemAtPosition(0, 0).widget(),
+			pt.textEdit)
+		self.assertEqual(pt.textEdit.toPlainText(), "")
+		self.assertIsInstance(pt.grid.itemAtPosition(1, 0).widget(),
+			QPushButton)
+		self.assertEqual(pt.grid.itemAtPosition(1, 0).widget(),
+			pt.closeButton)
+		self.assertEqual(pt.closeButton.text(), "Close")
+		self.assertFalse(pt.closeButton.isEnabled())
 
-	def test_append_text(self):
-		"""test append_text"""
-		pass
+		pt = printText(p, "title", True, "some tot string",
+			"some progr string", False, "mymessage")
+		self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(),
+			QLabel)
+		self.assertEqual(pt.grid.itemAtPosition(0, 0).widget().text(),
+			pt.message)
+		self.assertIsInstance(pt.grid.itemAtPosition(1, 0).widget(),
+			QTextEdit)
+		self.assertEqual(pt.grid.itemAtPosition(1, 0).widget(),
+			pt.textEdit)
+		self.assertEqual(pt.textEdit.toPlainText(), "")
+		self.assertIsInstance(pt.grid.itemAtPosition(2, 0).widget(),
+			QProgressBar)
+		self.assertEqual(pt.grid.itemAtPosition(2, 0).widget(),
+			pt.progressBar)
+		self.assertEqual(pt.progressBar.value(), -1)
+		self.assertEqual(pt.progressBar.minimum(), 0)
+		self.assertEqual(pt.progressBar.maximum(), 100)
+		self.assertIsInstance(pt.grid.itemAtPosition(3, 0).widget(),
+			QPushButton)
+		self.assertEqual(pt.grid.itemAtPosition(3, 0).widget(),
+			pt.cancelButton)
+		self.assertEqual(pt.cancelButton.text(), "Stop")
+		self.assertTrue(pt.cancelButton.autoDefault())
+		with patch("physbiblio.gui.dialogWindows.printText.stopExec") as _s:
+			QTest.mouseClick(pt.cancelButton, Qt.LeftButton)
+			_s.assert_called_once_with()
+		self.assertIsInstance(pt.grid.itemAtPosition(4, 0).widget(),
+			QPushButton)
+		self.assertEqual(pt.grid.itemAtPosition(4, 0).widget(),
+			pt.closeButton)
+		self.assertEqual(pt.closeButton.text(), "Close")
+		self.assertFalse(pt.closeButton.isEnabled())
+		with patch("PySide2.QtWidgets.QDialog.reject") as _s:
+			QTest.mouseClick(pt.closeButton, Qt.LeftButton)
+			_s.assert_not_called()
+			pt.enableClose()
+			self.assertTrue(pt.closeButton.isEnabled())
+			QTest.mouseClick(pt.closeButton, Qt.LeftButton, delay = 10)
+			_s.assert_called_once_with()
+
+	def test_appendText(self):
+		"""test appendText"""
+		p = QWidget()
+		pt = printText(p)
+		self.assertEqual(pt.textEdit.toPlainText(), "")
+		pt.appendText("abcd")
+		self.assertEqual(pt.textEdit.toPlainText(), "abcd")
+		pt.textEdit.moveCursor(QTextCursor.Start)
+		pt.appendText("\nefgh")
+		self.assertEqual(pt.textEdit.toPlainText(), "abcd\nefgh")
+
+		pt = printText(p,
+			progressBar = True,
+			totStr = "process events: ",
+			progrStr = "step: ")
+		self.assertEqual(pt.progressBar.value(), -1)
+		self.assertEqual(pt.progressBar.maximum(), 100)
+		self.assertEqual(pt.textEdit.toPlainText(), "")
+		pt.appendText("process events: 123 45.6\n")
+		self.assertEqual(pt.textEdit.toPlainText(),
+			"process events: 123 45.6\n")
+		self.assertEqual(pt.progressBar.maximum(), 123)
+		with patch("logging.Logger.warning") as _l:
+			pt.appendText("process events: 45.6\n")
+			_l.assert_called_once_with(
+				'printText.progressBar cannot work with float numbers')
+		self.assertEqual(pt.textEdit.toPlainText(),
+			"process events: 123 45.6\n" +
+			"process events: 45.6\n")
+		self.assertEqual(pt.progressBar.maximum(), 123)
+		self.assertEqual(pt.progressBar.value(), -1)
+		pt.appendText("step: 98.7 6 54\n")
+		self.assertEqual(pt.textEdit.toPlainText(),
+			"process events: 123 45.6\n" +
+			"process events: 45.6\n" +
+			"step: 98.7 6 54\n")
+		self.assertEqual(pt.progressBar.value(), 6)
+		with patch("logging.Logger.warning") as _l:
+			pt.appendText("step: 98.7\n")
+			_l.assert_called_once_with(
+				'printText.progressBar cannot work with float numbers')
+		self.assertEqual(pt.textEdit.toPlainText(),
+			"process events: 123 45.6\n" +
+			"process events: 45.6\n" +
+			"step: 98.7 6 54\n"+
+			"step: 98.7\n")
+		self.assertEqual(pt.progressBar.value(), 6)
+		self.assertEqual(pt.progressBar.maximum(), 123)
 
 	def test_progressBarMin(self):
 		"""test progressBarMin"""

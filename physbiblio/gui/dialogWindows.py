@@ -313,7 +313,8 @@ class printText(QDialog):
 			progressBar = True,
 			totStr = None,
 			progrStr = None,
-			noStopButton = False):
+			noStopButton = False,
+			message = None):
 		"""
 		Constructor. Set some properties and create the GUI of the dialog
 
@@ -330,19 +331,20 @@ class printText(QDialog):
 				Used to set the progress bar value appropriately.
 			noStopButton (default False): True if the widget must have
 				a "stop" button to stop the iterations
+			message: a text to be inserted as a `QLabel` in the dialog
 		"""
 		super(printText, self).__init__(parent)
-		self.message = None
+		self._wantToClose = False
 		if title != "":
 			self.title = title
 		else:
 			self.title = "Redirect print"
 		self.setProgressBar = progressBar
-		self.noStopButton = noStopButton
-		self._wantToClose = False
 		self.totString = totStr if totStr is not None else "emptyString"
 		self.progressString = progrStr if progrStr is not None \
 			else "emptyString"
+		self.noStopButton = noStopButton
+		self.message = message
 		self.initUI()
 
 	def closeEvent(self, event):
@@ -359,19 +361,16 @@ class printText(QDialog):
 			event.ignore()
 
 	def initUI(self):
-		"""
-		"""
+		"""Create the main `QTextEdit`, the buttons and the `QProgressBar`"""
 		self.setWindowTitle(self.title)
 
 		grid = QGridLayout()
+		self.grid = grid
 		grid.setSpacing(1)
 
-		i = 0
-		if self.message is not None:
-			grid.addWidget(QLabel("%s"%self.message), 0, 0)
-			i += 1
+		if self.message is not None and self.message.strip() != "":
+			grid.addWidget(QLabel("%s"%self.message))
 
-		#main text
 		self.textEdit = QTextEdit()
 		grid.addWidget(self.textEdit)
 
@@ -386,25 +385,37 @@ class printText(QDialog):
 			self.cancelButton.setAutoDefault(True)
 			grid.addWidget(self.cancelButton)
 		self.closeButton = QPushButton('Close', self)
-		self.closeButton.clicked.connect(self.reject)
+		self.closeButton.clicked.connect(
+			lambda: self.reject())
 		self.closeButton.setDisabled(True)
 		grid.addWidget(self.closeButton)
 
-		self.setGeometry(100,100,600, 600)
+		self.setGeometry(100, 100, 600, 600)
 		self.setLayout(grid)
 
-	def append_text(self,text):
+	def appendText(self, text):
 		"""
+		Add the given text to the end of the `self.textEdit` content.
+		If a `self.progressBar` is set, try to obtain
+		the maximum and the current value,
+		looking for the expected `self.totString` and `self.progressString` 
+
+		Parameter:
+			text: the string to be appended
 		"""
 		if self.setProgressBar:
-			if self.totString in text:
-				tot = [int(s) for s in text.split() if s.isdigit()][0]
-				self.progressBarMax(tot)
-			elif self.progressString in text:
-				curr = [int(s) for s in text.split() if s.isdigit()][0]
-				self.progressBar.setValue(curr)
+			try:
+				if self.totString in text:
+					tot = [int(s) for s in text.split() if s.isdigit()][0]
+					self.progressBarMax(tot)
+				elif self.progressString in text:
+					curr = [int(s) for s in text.split() if s.isdigit()][0]
+					self.progressBar.setValue(curr)
+			except IndexError:
+				pBLogger.warning(
+					"printText.progressBar cannot work with float numbers")
 		self.textEdit.moveCursor(QTextCursor.End)
-		self.textEdit.insertPlainText( text )
+		self.textEdit.insertPlainText(text)
 
 	def progressBarMin(self, minimum):
 		"""
