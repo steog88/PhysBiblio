@@ -605,44 +605,158 @@ class TestAdvImportSelect(GUITestCase):
 	Test advImportSelect
 	"""
 	def test_init(self):
-		"""test"""
-		pass
+		"""test init"""
+		p = QWidget()
+		with patch("physbiblio.gui.dialogWindows.advImportSelect.initUI") as _i:
+			ais = advImportSelect({"abc": "def"}, p)
+			_i.assert_called_once_with()
+		self.assertIsInstance(ais, objListWindow)
+		self.assertEqual(ais.bibs, {"abc": "def"})
+		self.assertEqual(ais.parent(), p)
+		self.assertEqual(ais.checkBoxes, [])
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		ais = advImportSelect()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			ais.onCancel()
+			self.assertFalse(ais.result)
+			_c.assert_called_once()
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		ais = advImportSelect()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			ais.onOk()
+			self.assertTrue(ais.result)
+			_c.assert_called_once()
 
 	def test_keyPressEvent(self):
-		"""test"""
-		pass
-
-	def test_changeFilter(self):
-		"""test"""
-		pass
+		"""test keyPressEvent"""
+		ais = advImportSelect()
+		ais.result = True
+		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
+			QTest.keyPress(ais, "a")
+			_oc.assert_not_called()
+			self.assertTrue(ais.result)
+			QTest.keyPress(ais, Qt.Key_Enter)
+			_oc.assert_not_called()
+			self.assertTrue(ais.result)
+			QTest.keyPress(ais, Qt.Key_Escape)
+			_oc.assert_called_once()
+			self.assertFalse(ais.result)
 
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		p = QWidget()
+		ais = advImportSelect({
+			"abc": {
+				"exist": True,
+				"bibpars": {
+					"ID": "abc",
+					"title": "Abc",
+					"authors": "s\ng",
+					"eprint": "1807.15000",
+					"doi": "1/2/3",
+				}},
+			"def": {
+				"exist": False,
+				"bibpars": {
+					"ID": "def",
+					"title": "De\nf",
+					"author": "SG",
+					"arxiv": "1807.16000",
+					"doi": "3/2/1",
+				}},
+			}, p)
+		self.assertEqual(ais.windowTitle(), 'Advanced import - results')
+		self.assertEqual(ais.layout(), ais.currLayout)
+		self.assertEqual(ais.currLayout.spacing(), 1)
+		self.assertIsInstance(ais.layout().itemAtPosition(0, 0).widget(),
+			QLabel)
+		self.assertEqual(ais.layout().itemAtPosition(0, 0).widget().text(),
+			"This is the list of elements found." +
+			"\nSelect the ones that you want to import:")
+		self.assertIsInstance(ais.tableModel, MyImportedTableModel)
+		self.assertEqual(ais.tableModel.header,
+			["ID", "title", "author", "eprint", "doi"])
+		self.assertEqual(ais.tableModel.bibsOrder, ["abc", "def"])
+		self.assertEqual(ais.tableModel.dataList,
+			[{
+				"ID": "abc",
+				"title": "Abc",
+				"authors": "s\ng",
+				"author": "s g",
+				"eprint": "1807.15000",
+				"doi": "1/2/3",
+			},
+			{
+				"ID": "def",
+				"title": "De f",
+				"author": "SG",
+				"eprint": "1807.16000",
+				"arxiv": "1807.16000",
+				"doi": "3/2/1",
+			}])
+		self.assertEqual(ais.tableModel.existList,
+			[True, False])
 
-	def test_triggeredContextMenuEvent(self):
-		"""test"""
-		pass
+		self.assertIsInstance(ais.layout().itemAtPosition(3, 0).widget(),
+			QCheckBox)
+		self.assertEqual(ais.layout().itemAtPosition(3, 0).widget().text(),
+			"Ask categories at the end?")
+		self.assertEqual(ais.layout().itemAtPosition(3, 0).widget(),
+			ais.askCats)
+		self.assertTrue(ais.layout().itemAtPosition(3, 0).widget().isChecked())
+		self.assertIsInstance(
+			ais.layout().itemAtPosition(4, 0).widget(),
+			QPushButton)
+		self.assertEqual(
+			ais.layout().itemAtPosition(4, 0).widget(),
+			ais.acceptButton)
+		self.assertEqual(
+			ais.acceptButton.text(),
+			"OK")
+		self.assertIsInstance(
+			ais.layout().itemAtPosition(5, 0).widget(),
+			QPushButton)
+		self.assertEqual(
+			ais.layout().itemAtPosition(5, 0).widget(),
+			ais.cancelButton)
+		self.assertEqual(
+			ais.cancelButton.text(),
+			"Cancel")
+		self.assertTrue(ais.cancelButton.autoDefault())
+		with patch("physbiblio.gui.dialogWindows.advImportSelect.onOk") as _o:
+			QTest.mouseClick(ais.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		with patch("physbiblio.gui.dialogWindows.advImportSelect.onCancel") \
+				as _o:
+			QTest.mouseClick(ais.cancelButton, Qt.LeftButton)
+			_o.assert_called_once_with()
 
-	def test_handleItemEntered(self):
-		"""test"""
-		pass
+		with patch("physbiblio.gui.commonClasses.objListWindow." +
+				"addFilterInput") as _afi,\
+				patch("physbiblio.gui.commonClasses.objListWindow." +
+					"setProxyStuff") as _sps,\
+				patch("physbiblio.gui.commonClasses.objListWindow." +
+					"finalizeTable") as _ft:
+			ais.initUI()
+			_afi.assert_called_once_with("Filter entries", gridPos = (1, 0))
+			_sps.assert_called_once_with(0, Qt.AscendingOrder)
+			_ft.assert_called_once_with(gridPos = (2, 0, 1, 2))
 
-	def test_cellClick(self):
-		"""test"""
-		pass
-
-	def test_cellDoubleClick(self):
-		"""test"""
-		pass
+	def test_more(self):
+		"""test some empty functions"""
+		ais = advImportSelect()
+		self.assertEqual(None,
+			ais.triggeredContextMenuEvent(0, 0, QEvent(QEvent.ContextMenu)))
+		self.assertEqual(None,
+			ais.handleItemEntered(QModelIndex()))
+		self.assertEqual(None,
+			ais.cellClick(QModelIndex()))
+		self.assertEqual(None,
+			ais.cellDoubleClick(QModelIndex()))
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivDialog(GUITestCase):

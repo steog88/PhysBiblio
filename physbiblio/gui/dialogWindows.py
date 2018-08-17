@@ -398,7 +398,7 @@ class printText(QDialog):
 		Add the given text to the end of the `self.textEdit` content.
 		If a `self.progressBar` is set, try to obtain
 		the maximum and the current value,
-		looking for the expected `self.totString` and `self.progressString` 
+		looking for the expected `self.totString` and `self.progressString`
 
 		Parameter:
 			text: the string to be appended
@@ -504,6 +504,17 @@ class advImportDialog(QDialog):
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
 	def __init__(self, bibs = {}, parent = None):
+		"""
+		Set some properties and call `initUI`
+
+		Parameters:
+			bibs: a dictionary containing the imported bibtex entries.
+				Each element should be a dictionary containing at least
+				a "bibpars" item, a dictionary with at least the keys
+				["ID", "title", "author", "eprint", "doi"],
+				and a boolean "exist" item.
+			parent: the parent widget
+		"""
 		self.bibs = bibs
 		super(advImportSelect, self).__init__(parent, gridLayout = True)
 		self.checkBoxes = []
@@ -522,15 +533,14 @@ class advImportSelect(objListWindow):
 
 	def keyPressEvent(self, e):
 		"""
+		Intercept press keys and exit if escape is pressed
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
 		"""
 		if e.key() == Qt.Key_Escape:
 			self.result	= False
 			self.close()
-
-	def changeFilter(self, string):
-		"""
-		"""
-		self.proxyModel.setFilterRegExp(str(string))
 
 	def initUI(self):
 		"""Create and fill the `QGridLayout`"""
@@ -538,27 +548,30 @@ class advImportSelect(objListWindow):
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(QLabel("This is the list of elements found.\nSelect the ones that you want to import:"))
+		self.currLayout.addWidget(QLabel("This is the list of elements found." +
+			"\nSelect the ones that you want to import:"))
 
 		headers = ["ID", "title", "author", "eprint", "doi"]
 		for k in self.bibs.keys():
 			try:
-				self.bibs[k]['bibpars']["eprint"] = self.bibs[k]['bibpars']["arxiv"]
+				self.bibs[k]['bibpars']["eprint"] = \
+					self.bibs[k]['bibpars']["arxiv"]
 			except KeyError:
 				pass
 			try:
-				self.bibs[k]['bibpars']["author"] = self.bibs[k]['bibpars']["authors"]
+				self.bibs[k]['bibpars']["author"] = \
+					self.bibs[k]['bibpars']["authors"]
 			except KeyError:
 				pass
 			for f in headers:
 				try:
-					self.bibs[k]['bibpars'][f] = self.bibs[k]['bibpars'][f].replace("\n", " ")
+					self.bibs[k]['bibpars'][f] = \
+						self.bibs[k]['bibpars'][f].replace("\n", " ")
 				except KeyError:
 					pass
 		self.tableModel = MyImportedTableModel(self, self.bibs, headers)
 		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
-
 		self.finalizeTable(gridPos = (2, 0, 1, 2))
 
 		i = 3
