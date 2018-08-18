@@ -25,8 +25,9 @@ try:
 	from physbiblio.gui.dialogWindows import *
 	from physbiblio.gui.bibWindows import abstractFormulas
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	print(traceback.format_exc())
+	raise
 except Exception:
 	print(traceback.format_exc())
 
@@ -222,12 +223,58 @@ class TestConfigWindow(GUITestCase):
 			_c.assert_called_once()
 
 	def test_editFolder(self):
-		"""test"""
-		pass
+		"""test editFolder"""
+		cw = configWindow()
+		ix = pbConfig.paramOrder.index("pdfFolder")
+		self.assertEqual(cw.textValues[ix][1].text(),
+			pbConfig.params["pdfFolder"])
+		with patch("physbiblio.gui.dialogWindows.askDirName",
+				return_value = "/some/new/folder/") as _adn:
+			cw.editFolder()
+			self.assertEqual(cw.textValues[ix][1].text(),
+				"/some/new/folder/")
+			_adn.assert_called_once_with(parent = None,
+				dir = pbConfig.params["pdfFolder"],
+				title = "Directory for saving PDF files:")
+		with patch("physbiblio.gui.dialogWindows.askDirName",
+				return_value = "") as _adn:
+			cw.editFolder()
+			self.assertEqual(cw.textValues[ix][1].text(),
+				"/some/new/folder/")
+			_adn.assert_called_once_with(parent = None,
+				dir = "/some/new/folder/",
+				title = "Directory for saving PDF files:")
+		with patch("logging.Logger.warning") as _w:
+			cw.editFolder("someField")
+			_w.assert_called_once_with("Invalid paramkey: 'someField'")
 
 	def test_editFile(self):
-		"""test"""
-		pass
+		"""test editFile"""
+		cw = configWindow()
+		ix = pbConfig.paramOrder.index("logFileName")
+		self.assertEqual(cw.textValues[ix][1].text(),
+			pbConfig.params["logFileName"])
+		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
+				return_value = "/some/new/folder/file.log") as _adn:
+			cw.editFile()
+			self.assertEqual(cw.textValues[ix][1].text(),
+				"/some/new/folder/file.log")
+			_adn.assert_called_once_with(parent = None,
+				title = "Name for the log file",
+				dir = pbConfig.params["logFileName"],
+				filter = "*.log")
+		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
+				return_value = "  ") as _adn:
+			cw.editFile(text = "Name", filter = "*.txt")
+			self.assertEqual(cw.textValues[ix][1].text(),
+				"/some/new/folder/file.log")
+			_adn.assert_called_once_with(parent = None,
+				title = "Name",
+				dir = "/some/new/folder/file.log",
+				filter = "*.txt")
+		with patch("logging.Logger.warning") as _w:
+			cw.editFile("someField")
+			_w.assert_called_once_with("Invalid paramkey: 'someField'")
 
 	def test_editColumns(self):
 		"""test"""

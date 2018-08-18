@@ -4,21 +4,28 @@ Module with the classes and functions that manage the some dialog windows.
 This file is part of the physbiblio package.
 """
 import sys
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtGui import QTextCursor
 from PySide2.QtWidgets import \
-	QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, \
-	QPlainTextEdit, QPushButton, QVBoxLayout
+	QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, \
+	QLineEdit, QPlainTextEdit, QProgressBar, QPushButton, QTableWidgetItem, \
+	QTextEdit, QVBoxLayout
 import subprocess
 import traceback
 import ast
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.gui.errorManager import pBGUILogger
-	from physbiblio.gui.commonClasses import *
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.catWindows import *
+	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB
+	from physbiblio.webimport.webInterf import physBiblioWeb
+	from physbiblio.gui.errorManager import pBGUILogger
+	from physbiblio.gui.basicDialogs import \
+		askDirName, askSaveFileName, askYesNo, infoMessage
+	from physbiblio.gui.commonClasses import \
+		MyComboBox, MyDDTableWidget, MyImportedTableModel, MyTableView, \
+		MyTrueFalseCombo, objListWindow
+	from physbiblio.gui.catWindows import catsWindowList
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -128,7 +135,16 @@ class configWindow(QDialog):
 
 	def editFolder(self, paramkey = "pdfFolder"):
 		"""
+		Open a dialog to select a new folder name
+		for a configuration parameter, and save the result
+		in the `configWindow` interface
+
+		Parameter:
+			paramkey: the parameter name in the configuration dictionary
 		"""
+		if paramkey not in pbConfig.paramOrder:
+			pBLogger.warning("Invalid paramkey: '%s'"%paramkey)
+			return
 		ix = pbConfig.paramOrder.index(paramkey)
 		folder = askDirName(
 			parent = None,
@@ -142,7 +158,18 @@ class configWindow(QDialog):
 			text = "Name for the log file",
 			filter = "*.log"):
 		"""
+		Open a dialog to select a new file name
+		for a configuration parameter, and save the result
+		in the `configWindow` interface
+
+		Parameters:
+			paramkey: the parameter name in the configuration dictionary
+			text: description in the file dialog
+			filter: filter the folder content in the file dialog
 		"""
+		if paramkey not in pbConfig.paramOrder:
+			pBLogger.warning("Invalid paramkey: '%s'"%paramkey)
+			return
 		ix = pbConfig.paramOrder.index(paramkey)
 		fname = askSaveFileName(
 			parent = None,
@@ -154,6 +181,9 @@ class configWindow(QDialog):
 
 	def editColumns(self):
 		"""
+		Open a dialog to select and/or reorder the list of columns
+		to show in the entries list, and save the result
+		in the `configWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		window = configEditColumns(self,
@@ -165,6 +195,9 @@ class configWindow(QDialog):
 
 	def editDefCats(self):
 		"""
+		Open a dialog to select a the default categories
+		for the imported entries, and save the result
+		in the `configWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		selectCats = catsWindowList(
@@ -177,9 +210,7 @@ class configWindow(QDialog):
 			self.textValues[ix][1].setText(str(self.selectedCats))
 
 	def initUI(self):
-		"""
-		Create and fill the `QGridLayout`
-		"""
+		"""Create and fill the `QGridLayout`"""
 		self.setWindowTitle('Configuration')
 
 		grid = QGridLayout()
@@ -241,7 +272,7 @@ class configWindow(QDialog):
 		#self.cancelButton.setMaximumWidth(width)
 		grid.addWidget(self.cancelButton, i, 1)
 
-		self.setGeometry(100,100,1000, 30*i)
+		self.setGeometry(100, 100, 1000, 30*i)
 		self.setLayout(grid)
 
 class LogFileContentDialog(QDialog):
