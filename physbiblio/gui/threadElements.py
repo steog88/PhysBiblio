@@ -13,12 +13,13 @@ else:
 
 try:
 	from physbiblio import __version__
-	from physbiblio.database import *
+	from physbiblio.errors import pBLogger
+	from physbiblio.database import pBDB
 	from physbiblio.pdf import pBPDF
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.export import pBExport
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.commonClasses import \
+		MyThread, WriteStream
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -90,8 +91,8 @@ class thread_updateInspireInfo(MyThread):
 	"""
 	Thread that uses `physbiblio.database.entries.updateInfoFromOAI`
 	to update the entry record.
-	If the inspireID is missing, use `physbiblio.database.entries.updateInspireID`
-	to retrieve it.
+	If the inspireID is missing,
+	use `physbiblio.database.entries.updateInspireID` to retrieve it.
 	"""
 	def __init__(self, myrec, bibkey, inspireID = None, parent = None):
 		"""

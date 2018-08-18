@@ -33,24 +33,34 @@ class marks():
 		Parameters:
 			key: the key to be used in the self.marks dictionary
 			desc: the mark description
-			icon: the name of the icon file (omitting the .png extension), which must be present in ":/images/"
+			icon: the name of the icon file (omitting the .png extension),
+				which must be present in ":/images/"
 		"""
 		self.marks[key] = {"desc": desc, "icon": ":/images/%s.png"%icon}
 
-	def getGroupbox(self, marksData, description = "Marks", radio = False, addAny = False):
+	def getGroupbox(self,
+			marksData,
+			description = "Marks",
+			radio = False,
+			addAny = False):
 		"""
-		Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s for marks selection
+		Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s
+		for marks selection
 
 		Parameters:
-			marksData: a list containing the keys of the elements that must be checked at the beginning
+			marksData: a list containing the keys of the elements
+				that must be checked at the beginning
 			description: the description/title of the `QGroupBox`
-			radio (boolean, optional, default False): if True, use `QRadioButton` instead of `QCheckBox`
-			addAny (boolean, optional, default False): add the "any" button to the `QGroupBox`
+			radio (boolean, optional, default False):
+				if True, use `QRadioButton` instead of `QCheckBox`
+			addAny (boolean, optional, default False):
+				add the "any" button to the `QGroupBox`
 
 		Output:
 			a list: (groupBox, markValues)
 			groupBox: the `QGroupBox` object
-			markValues: the list of `QCheckBox`s or `QRadioButton`s, for further values extraction
+			markValues: the list of `QCheckBox`s or `QRadioButton`s,
+				for further values extraction
 		"""
 		groupBox = QGroupBox(description)
 		markValues = {}

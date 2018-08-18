@@ -28,7 +28,6 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.threadElements import *
-	from physbiblio.gui.commonClasses import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

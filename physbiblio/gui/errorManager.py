@@ -21,11 +21,13 @@ except ImportError:
 
 class ErrorStream(StringIO):
 	"""
-	Define a stream based on StringIO, which opens a `QMessageBox` when `write` is called
+	Define a stream based on StringIO, which opens a `QMessageBox`
+	when `write` is called
 	"""
 	def __init__(self, *args, **kwargs):
 		"""
-		The constructor, which passes the `*args, **kwargs` method to StringIO.__init__.
+		The constructor, which passes the `*args, **kwargs` method
+		to `StringIO.__init__`.
 		"""
 		StringIO.__init__(self, *args, **kwargs)
 		self.priority = 1
@@ -36,18 +38,22 @@ class ErrorStream(StringIO):
 		Set the priority level to be adopted when opening the `QMessageBox`.
 
 		Parameter:
-			prio: the priority level. 0, 1, 2+ correspond to `Information`, `Warning`, `Error`
+			prio: the priority level. 0, 1, 2+ correspond
+				to `Information`, `Warning`, `Error`
 		"""
 		self.priority = prio
 
 	def write(self, text, testing = False):
 		"""
-		Override the `write` method of `StringIO` to show a `QMessageBox`, with icon according to the current priority.
+		Override the `write` method of `StringIO` to show a `QMessageBox`,
+		with icon according to the current priority.
 		The priority is set to 1 after execution.
 
 		Parameters:
 			text: the text to display. "\n" is replaced with "<br>".
-			testing (boolean, optional, default False): when doing tests, interrupt the execution before `exec_` is run and return the `QMessageBox` object.
+			testing (boolean, optional, default False): when doing tests,
+				interrupt the execution before `exec_` is run and
+				return the `QMessageBox` object.
 
 		Output:
 			if text is empty or testing is False, return None
@@ -79,22 +85,28 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 	"""
 	def __init__(self):
 		"""
-		Init the class, using pBErrorManagerClass.__init__ and the gui logger name,
+		Init the class, using pBErrorManagerClass.__init__ and
+		the gui logger name,
 		then add a new handler which uses ErrorStream
 		"""
 		pBErrorManagerClass.__init__(self, "physbiblioguilog")
 		self.guiStream = ErrorStream()
-		self.tempHandler(self.guiStream, level = logging.DEBUG, format = '%(message)s')
+		self.tempHandler(self.guiStream,
+			level = logging.DEBUG,
+			format = '%(message)s')
 
 	def loggerPriority(self, prio):
 		"""
-		Define the priority level that must be used by the `ErrorStream` class in the first call of its `write` method.
+		Define the priority level that must be used by
+		the `ErrorStream` class in the first call of its `write` method.
 
 		Parameter:
-			prio: the priority level. 0, 1, 2+ correspond to Information, Warning, Error
+			prio: the priority level. 0, 1, 2+ correspond
+				to Information, Warning, Error
 
 		Output:
-			the logger [so it can be used as `pBGUIErrorManager.loggerPriority(prio).info(message)`]
+			the logger [so it can be used as
+				`pBGUIErrorManager.loggerPriority(prio).info(message)`]
 		"""
 		self.guiStream.priority = prio
 		return self.logger

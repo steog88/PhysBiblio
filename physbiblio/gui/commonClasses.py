@@ -20,7 +20,6 @@ try:
 	from physbiblio.errors import pBErrorManagerClass, pBLogger
 	from physbiblio.view import viewEntry
 	from physbiblio.pdf import pBPDF
-	from physbiblio.gui.basicDialogs import *
 	from physbiblio.database import pBDB, catString
 	import physbiblio.gui.resourcesPyside2
 except ImportError:

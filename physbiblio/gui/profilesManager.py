@@ -15,10 +15,12 @@ from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, \
 
 try:
 	from physbiblio.config import pbConfig
-	from physbiblio.database import *
+	from physbiblio.errors import pBLogger
+	from physbiblio.database import pBDB
 	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.basicDialogs import askYesNo
+	from physbiblio.gui.commonClasses import \
+		editObjectWindow, MyComboBox
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())

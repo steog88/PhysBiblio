@@ -16,11 +16,10 @@ from matplotlib.patches import Rectangle
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 try:
-	from physbiblio.database import *
+	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.inspireStats import pBStats
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.basicDialogs import askDirName, infoMessage
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
