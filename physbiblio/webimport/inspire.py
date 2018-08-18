@@ -15,7 +15,10 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches"""
+	"""
+	Subclass of webInterf that can connect
+	to INSPIRE-HEP to perform searches
+	"""
 	def __init__(self):
 		"""
 		Initializes the class variables using the webInterf constructor.
@@ -34,7 +37,9 @@ class webSearch(webInterf):
 			"rg": "250",
 			"sc": "0",
 			"eb": "B",
-			"of": "hx"#for bibtex format ---- hb for standard format, for retrieving inspireid
+			"of": "hx"
+				# for bibtex format ---- hb for standard format,
+				# for retrieving inspireid
 			}
 		
 	def retrieveUrlFirst(self, string):
@@ -84,18 +89,22 @@ class webSearch(webInterf):
 				bibtex = text[i1 + 5 : i2]
 			else:
 				bibtex = ""
-			return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
+			return parse_accents_str(
+				bibtex.replace("<pre>", "").replace("</pre>", ""))
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
 		"""
-		Read the fetched content for a given entry to obtain its INSPIRE-HEP ID
+		Read the fetched content for a given entry
+		to obtain its INSPIRE-HEP ID
 
 		Parameters:
 			string: the search string
-			number (optional): the integer corresponding to the desired entry in the list, if more than one is present
+			number (optional): the integer corresponding
+				to the desired entry in the list,
+				if more than one is present
 		"""
 		i = 0
 		self.urlArgs["p"] = string.replace(" ", "+")
@@ -108,7 +117,9 @@ class webSearch(webInterf):
 			pBLogger.warning("An error occurred. Empty text obtained")
 			return ""
 		try:
-			searchID = re.compile('titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">')
+			searchID = re.compile(
+				'titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">'
+				)
 			inspireID = ""
 			for q in searchID.finditer(text):
 				if len(q.group()) > 0:

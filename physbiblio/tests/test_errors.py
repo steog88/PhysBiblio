@@ -57,8 +57,10 @@ class TestErrors(unittest.TestCase):
 		except Exception as e:
 			self.pBErrorManager.logger.critical(str(e))
 		log_new = self.readLogFile()
-		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
-		self.assertIn("CRITICAL : [test_errors.test_critical] Fake error", log_new)
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+			log_new)
+		self.assertIn("CRITICAL : [test_errors.test_critical] Fake error",
+			log_new)
 		self.assertNotIn("Traceback (most recent call last):", log_new)
 		try:
 			raise Exception("Fake error")
@@ -79,9 +81,12 @@ class TestErrors(unittest.TestCase):
 		except Exception as e:
 			self.pBErrorManager.logger.error(str(e))
 		log_new = self.readLogFile()
-		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
-		self.assertIn("ERROR : [test_errors.test_exception] Fake error", log_new)
-		self.assertIn("ERROR : [test_errors.test_exception] New fake error", log_new)
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+			log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] Fake error",
+			log_new)
+		self.assertIn("ERROR : [test_errors.test_exception] New fake error",
+			log_new)
 		self.assertIn("Traceback (most recent call last):", log_new)
 
 	def test_warning(self):
@@ -92,15 +97,18 @@ class TestErrors(unittest.TestCase):
 		except Exception as e:
 			self.pBErrorManager.logger.warning(str(e))
 		log_new = self.readLogFile()
-		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
-		self.assertIn("WARNING : [test_errors.test_warning] Fake warning", log_new)
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+			log_new)
+		self.assertIn("WARNING : [test_errors.test_warning] Fake warning",
+			log_new)
 
 	def test_info(self):
 		"""Test pBLogger.info"""
 		self.resetLogFile()
 		self.pBErrorManager.logger.info("Some info")
 		log_new = self.readLogFile()
-		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), log_new)
+		self.assertIn(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+			log_new)
 		self.assertIn("INFO : [test_errors.test_info] Some info", log_new)
 
 	def test_tempHandler(self):
@@ -108,7 +116,8 @@ class TestErrors(unittest.TestCase):
 		self.assertEqual(self.pBErrorManager.tempsh, [])
 		self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
 		with patch('sys.stdout', new_callable=StringIO) as _mock:
-			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
+				format = '%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
 			self.assertEqual(len(self.pBErrorManager.tempsh), 1)
 			self.reset(_mock)
@@ -122,11 +131,14 @@ class TestErrors(unittest.TestCase):
 			self.assertEqual(_mock.getvalue(), "")
 			self.pBErrorManager.logger.critical("Fake critical")
 			self.assertEqual(_mock.getvalue(), "")
-			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
+				format = '%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
-			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
+				format = '%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 4)
-			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout, format = '%(message)s'))
+			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
+				format = '%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 5)
 			self.assertEqual(len(self.pBErrorManager.tempsh), 3)
 			self.pBErrorManager.rmTempHandler()

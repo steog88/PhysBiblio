@@ -15,7 +15,10 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to doi.org to perform searches"""
+	"""
+	Subclass of webInterf that can connect
+	to doi.org to perform searches
+	"""
 	def __init__(self):
 		"""
 		Initializes the class variables using the webInterf constructor.
@@ -32,13 +35,15 @@ class webSearch(webInterf):
 		"""
 		Joins the base url and the search string to get the full url.
 
-		(DOI.org url Behaves differently than other APIs in the modules of this subpackage)
+		(DOI.org url Behaves differently than other APIs
+		in the modules of this subpackage)
 		"""
 		return self.url + doi
 		
 	def retrieveUrlFirst(self, string):
 		"""
-		Retrieves the first (only) result from the content of the given web page.
+		Retrieves the first (only) result from the content
+		of the given web page.
 
 		Parameters:
 			string: the search string (the DOI)
@@ -57,6 +62,7 @@ class webSearch(webInterf):
 		
 	def retrieveUrlAll(self, string):
 		"""
-		Alias for retrieveUrlFirst (no more than one object should match a doi)
+		Alias for retrieveUrlFirst
+		(no more than one object should match a doi)
 		"""
 		return self.retrieveUrlFirst(string)

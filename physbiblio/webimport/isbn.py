@@ -14,7 +14,10 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to ISBN2Bibtex to perform searches"""
+	"""
+	Subclass of webInterf that can connect to ISBN2Bibtex
+	to perform searches
+	"""
 	def __init__(self):
 		"""
 		Initializes the class variables using the webInterf constructor.
@@ -29,7 +32,8 @@ class webSearch(webInterf):
 		
 	def retrieveUrlFirst(self,string):
 		"""
-		Retrieves the first (only) result from the content of the given web page.
+		Retrieves the first (only) result from the content
+		of the given web page.
 
 		Parameters:
 			string: the search string (the ISBN)
