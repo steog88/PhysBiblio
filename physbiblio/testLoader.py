@@ -1,5 +1,6 @@
 """
-Adapting the code from setuptools.command.test:ScanningLoader, which is not finding tests in python3.
+Adapting the code from setuptools.command.test:ScanningLoader,
+which is not finding tests in python3.
 
 This file is part of the physbiblio package.
 """
@@ -12,7 +13,10 @@ else:
 from pkg_resources import (resource_listdir, resource_exists)
 
 class MyScanningLoader(TestLoader):
-	"""Custom ScanningLoader implementation to be used when calling `setup.py test` """
+	"""
+	Custom ScanningLoader implementation to be used
+	when calling `setup.py test`
+	"""
 
 	def __init__(self):
 		TestLoader.__init__(self)
@@ -36,7 +40,8 @@ class MyScanningLoader(TestLoader):
 
 		if hasattr(module, '__path__'):
 			if "tests" in resource_listdir(module.__name__, ''):
-				tests.append(self.loadTestsFromName(module.__name__ + '.' + "tests"))
+				tests.append(self.loadTestsFromName(
+					module.__name__ + '.' + "tests"))
 			for file in resource_listdir(module.__name__, ''):
 				if file != "tests" or file != "tmp":
 					continue

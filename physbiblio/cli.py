@@ -1,5 +1,6 @@
 """
-Module that creates a command line interface to manually run the PhysBiblio internal commands.
+Module that creates a command line interface to manually run
+the PhysBiblio internal commands.
 
 This file is part of the physbiblio package.
 """

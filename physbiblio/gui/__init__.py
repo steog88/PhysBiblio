@@ -10,4 +10,7 @@ import physbiblio
 __version__ = physbiblio.__version__
 __version_date__ = physbiblio.__version_date__
 
-__all__ = ["basicDialogs", "bibWindows", "catWindows", "commonClasses", "dialogWindows", "errorManager", "expWindows", "inspireStatsGUI", "mainWindow", "marks", "profilesManager", "resourcesPyside2", "setuptests", "threadElements"]
+__all__ = ["basicDialogs", "bibWindows", "catWindows", "commonClasses",
+	"dialogWindows", "errorManager", "expWindows", "inspireStatsGUI",
+	"mainWindow", "marks", "profilesManager", "resourcesPyside2",
+	"setuptests", "threadElements"]
