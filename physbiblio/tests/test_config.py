@@ -17,7 +17,8 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.databaseCore import physbiblioDBCore
-	from physbiblio.config import pbConfig, ConfigVars, config_defaults, configurationDB, globalDB
+	from physbiblio.config import \
+		pbConfig, ConfigVars, config_defaults, configurationDB, globalDB
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -47,11 +48,13 @@ class TestConfigMethods(unittest.TestCase):
 			os.remove(tempCfgName)
 		newConfParamsDict = dict(config_defaults)
 		with patch("physbiblio.config.ConfigVars.readProfiles",
-				return_value = ("tmp", {"tmp": {"db": tempCfgName, "d":""}}, ["tmp"])) as _mock_readprof:
+				return_value = ("tmp", {"tmp": {"db": tempCfgName, "d":""}},
+				["tmp"])) as _mock_readprof:
 			self.assertFalse(os.path.exists(tempCfgName))
 			tempPbConfig = ConfigVars()
 			tempPbConfig.prepareLogger("physbibliotestlog")
-			tempDb = physbiblioDBCore(tempCfgName, tempPbConfig.logger, info = False)
+			tempDb = physbiblioDBCore(tempCfgName,
+				tempPbConfig.logger, info = False)
 			configDb = configurationDB(tempDb)
 
 			self.assertTrue(os.path.exists(tempCfgName))
@@ -93,18 +96,23 @@ class TestConfigMethods(unittest.TestCase):
 				"d": u"",
 				"f": u"",
 				"n": u"default",
-				"db": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))}})
+				"db": str(os.path.join(pbConfig.dataPath,
+				config_defaults["mainDatabaseName"].replace("PBDATA", "")))}})
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
 
-		tempProfName1 = os.path.join(pbConfig.dataPath, "tests_profiles1_%s.db"%today_ymd)
-		self.assertTrue(tempPbConfig.globalDb.createProfile("temp", "none", tempProfName1))
+		tempProfName1 = os.path.join(pbConfig.dataPath,
+			"tests_profiles1_%s.db"%today_ymd)
+		self.assertTrue(tempPbConfig.globalDb.createProfile("temp",
+			"none", tempProfName1))
 		self.assertTrue(tempPbConfig.globalDb.setDefaultProfile("temp"))
 		self.assertEqual(tempPbConfig.defaultProfileName, "default")
-		self.assertEqual([e["n"] for e in tempPbConfig.profiles.values()], ["default"])
+		self.assertEqual([e["n"] for e in tempPbConfig.profiles.values()],
+			["default"])
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
 		self.assertEqual(tempPbConfig.currentProfileName, "default")
 		self.assertEqual(tempPbConfig.currentDatabase,
-			str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))))
+			str(os.path.join(pbConfig.dataPath,
+			config_defaults["mainDatabaseName"].replace("PBDATA", ""))))
 		tempParams = tempPbConfig.params
 
 		default, profiles, ordered = tempPbConfig.readProfiles()
@@ -114,7 +122,8 @@ class TestConfigMethods(unittest.TestCase):
 				"d": u"",
 				"f": u"",
 				"n": u"default",
-				"db": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")))},
+				"db": str(os.path.join(pbConfig.dataPath,
+				config_defaults["mainDatabaseName"].replace("PBDATA", "")))},
 			u"temp": {
 				"d": u"none",
 				"f": u"",
@@ -125,18 +134,25 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.params, config_defaults)
 
 		tempProfName2 = tempProfName1.replace("profiles1", "profiles2")
-		self.assertTrue(tempPbConfig.globalDb.createProfile("other", "none1", tempProfName2))
+		self.assertTrue(tempPbConfig.globalDb.createProfile("other",
+			"none1", tempProfName2))
 		tempPbConfig.reloadProfiles()
 		self.assertEqual(tempPbConfig.defaultProfileName, "temp")
-		self.assertEqual(sorted([e["n"] for e in tempPbConfig.profiles.values()]), ["default", "other", "temp"])
-		self.assertEqual(tempPbConfig.profileOrder, ["default", "other", "temp"])
+		self.assertEqual(sorted(
+			[e["n"] for e in tempPbConfig.profiles.values()]),
+			["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.profileOrder,
+			["default", "other", "temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "temp")
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 
 		tempPbConfig.reInit("other")
 		self.assertEqual(tempPbConfig.defaultProfileName, "temp")
-		self.assertEqual(sorted([e["n"] for e in tempPbConfig.profiles.values()]), ["default", "other", "temp"])
-		self.assertEqual(tempPbConfig.profileOrder, ["default", "other", "temp"])
+		self.assertEqual(sorted(
+			[e["n"] for e in tempPbConfig.profiles.values()]),
+			["default", "other", "temp"])
+		self.assertEqual(tempPbConfig.profileOrder,
+			["default", "other", "temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "other")
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName2)
 
@@ -153,7 +169,8 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 		self.assertEqual(tempPbConfig.params, tempParams)
 
-		tempDb = physbiblioDBCore(tempProfName1, tempPbConfig.logger, info = False)
+		tempDb = physbiblioDBCore(tempProfName1,
+			tempPbConfig.logger, info = False)
 		configDb = configurationDB(tempDb)
 		configDb.insert("defaultCategories", "[0")
 		configDb.commit()
@@ -197,7 +214,8 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 		self.assertTrue(tempPbConfig.globalDb.insertSearch(
-			"testname", 123, {"field": "value"}, ["a", "b", "c", "d", "e"], True, True, 21, 321))
+			"testname", 123, {"field": "value"},
+			["a", "b", "c", "d", "e"], True, True, 21, 321))
 		self.assertEqual(tempPbConfig.globalDb.countSearches(), 1)
 		search = tempPbConfig.globalDb.getSearchByID(1)[0]
 		self.assertEqual(search["name"], "testname")
@@ -222,32 +240,43 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertTrue(tempPbConfig.globalDb.insertSearch(
 			"test5", 122, {}, [], False, True))
 		self.assertEqual(tempPbConfig.globalDb.countSearches(), 6)
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getAllSearches()],
+		self.assertEqual(
+			[e["name"] for e in tempPbConfig.globalDb.getAllSearches()],
 			["test4", "test2", "test1", "test3", "test5", "testname"])
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList()],
+		self.assertEqual(
+			[e["name"] for e in tempPbConfig.globalDb.getSearchList()],
 			[])
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList(True)],
+		self.assertEqual(
+			[e["name"] for e in tempPbConfig.globalDb.getSearchList(True)],
 			["test1"])
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList(False, True)],
+		self.assertEqual(
+			[e["name"] for e in \
+				tempPbConfig.globalDb.getSearchList(False, True)],
 			["test4", "test3", "test5"])
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList(True, True)],
+		self.assertEqual(
+			[e["name"] for e in \
+				tempPbConfig.globalDb.getSearchList(True, True)],
 			["test2", "testname"])
 
 		pbConfig.params["maxSavedSearches"] = 5
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList(False, True)],
+		self.assertEqual([e["name"] for e in \
+			tempPbConfig.globalDb.getSearchList(False, True)],
 			["test4", "test3"])
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getSearchList(False, True)],
+		self.assertEqual([e["name"] for e in \
+			tempPbConfig.globalDb.getSearchList(False, True)],
 			["test4"])
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in tempPbConfig.globalDb.getAllSearches()],
+		self.assertEqual([e["name"] for e in \
+			tempPbConfig.globalDb.getAllSearches()],
 			["test2", "test1", "test4", "testname"])
 
 		self.assertTrue(tempPbConfig.globalDb.insertSearch(
 			"testA", 1, {}, [], False, False))
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(False))
-		self.assertEqual([e["count"] for e in tempPbConfig.globalDb.getSearchList(False, False)], [2])
+		self.assertEqual([e["count"] for e in \
+			tempPbConfig.globalDb.getSearchList(False, False)], [2])
 
 		self.assertEqual(tempPbConfig.globalDb.countSearches(), 5)
 		for idS in [e["idS"] for e in tempPbConfig.globalDb.getAllSearches()]:
@@ -268,7 +297,8 @@ class TestProfilesDB(unittest.TestCase):
 		"""Test database for profiles"""
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
-		self.globalDb = globalDB(tempProfName, pbConfig.logger, pbConfig.dataPath, info = False)
+		self.globalDb = globalDB(tempProfName,
+			pbConfig.logger, pbConfig.dataPath, info = False)
 		self.assertEqual(self.globalDb.countProfiles(), 1)
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
@@ -277,10 +307,12 @@ class TestProfilesDB(unittest.TestCase):
 		with self.assertRaises(SystemExit):
 			self.assertFalse(self.globalDb.createProfile("default1"))
 		with self.assertRaises(SystemExit):
-			self.assertFalse(self.globalDb.createProfile(databasefile = "database1.db"))
+			self.assertFalse(self.globalDb.createProfile(
+				databasefile = "database1.db"))
 
 		self.assertEqual(self.globalDb.countProfiles(), 1)
-		self.assertTrue(self.globalDb.createProfile("temp1", "d", "somefile.db", "old"))
+		self.assertTrue(self.globalDb.createProfile("temp1",
+			"d", "somefile.db", "old"))
 		self.assertEqual(self.globalDb.countProfiles(), 2)
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "temp1"])
@@ -292,30 +324,40 @@ class TestProfilesDB(unittest.TestCase):
 			"isDefault": 0,
 			"ord": 100}
 		self.assertEqual(dict(self.globalDb.getProfile("temp1")), output)
-		self.assertTrue(self.globalDb.updateProfileField("temp1", "description", "desc"))
+		self.assertTrue(self.globalDb.updateProfileField("temp1",
+			"description", "desc"))
 		output["description"] = "desc"
 		self.assertEqual(dict(self.globalDb.getProfile("temp1")), output)
-		self.assertTrue(self.globalDb.updateProfileField("somefile.db", "name", "temp", "databasefile"))
+		self.assertTrue(self.globalDb.updateProfileField("somefile.db",
+			"name", "temp", "databasefile"))
 		output["name"] = "temp"
 
 		self.assertEqual(dict(self.globalDb.getProfile("temp")), output)
-		self.assertEqual(dict(self.globalDb.getProfile(filename = "somefile.db")), output)
+		self.assertEqual(dict(self.globalDb.getProfile(
+			filename = "somefile.db")), output)
 		self.assertEqual(dict(self.globalDb.getProfile()), {})
-		self.assertEqual(dict(self.globalDb.getProfile("temp", "somefile.db")), {})
+		self.assertEqual(dict(self.globalDb.getProfile("temp", "somefile.db")),
+			{})
 
-		self.assertFalse(self.globalDb.updateProfileField("tmp", "name", "temp", "name"))
-		self.assertFalse(self.globalDb.updateProfileField("tmp", "databasefile", "temp", "isDefault"))
-		self.assertFalse(self.globalDb.updateProfileField("tmp", "name", "temp", "isDefault"))
-		self.assertFalse(self.globalDb.updateProfileField("tmp", "name1", "temp"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp",
+			"name", "temp", "name"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp",
+			"databasefile", "temp", "isDefault"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp",
+			"name", "temp", "isDefault"))
+		self.assertFalse(self.globalDb.updateProfileField("tmp",
+			"name1", "temp"))
 
-		self.assertTrue(self.globalDb.updateProfileField(1, "description", "newsomething", "isDefault"))
+		self.assertTrue(self.globalDb.updateProfileField(1,
+			"description", "newsomething", "isDefault"))
 		output["name"] = "temp"
 		self.assertEqual(dict(self.globalDb.getProfile("temp")), output)
 
 		output = [dict(e) for e in self.globalDb.getProfiles()]
 		self.assertEqual(output, [{"name": u"default",
 			"description": u"newsomething",
-			"databasefile": str(os.path.join(pbConfig.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))),
+			"databasefile": str(os.path.join(pbConfig.dataPath,
+				config_defaults["mainDatabaseName"].replace("PBDATA", ""))),
 			"oldCfg": u"",
 			"isDefault": 1,
 			"ord": 100},
@@ -326,21 +368,26 @@ class TestProfilesDB(unittest.TestCase):
 			"isDefault": 0,
 			"ord": 100}])
 
-		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "temp"])
-		self.assertTrue(self.globalDb.updateProfileField("somefile.db", "name", "abc", "databasefile"))
+		self.assertEqual(self.globalDb.getProfileOrder(),
+			["default", "temp"])
+		self.assertTrue(self.globalDb.updateProfileField(
+			"somefile.db", "name", "abc", "databasefile"))
 		self.assertEqual(self.globalDb.getProfileOrder(), ["abc", "default"])
 		self.assertTrue(self.globalDb.setProfileOrder(["default", "abc"]))
 		self.assertEqual(self.globalDb.getProfileOrder(), ["default", "abc"])
 		self.assertFalse(self.globalDb.setProfileOrder())
 		self.assert_in_stdout(self.globalDb.setProfileOrder, "No order given!")
 		self.assertFalse(self.globalDb.setProfileOrder(["default", "temp"]))
-		self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(["default", "temp"]),
+		self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
+			["default", "temp"]),
 			"List of profile names does not match existing profiles!")
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
 				side_effect = [True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
-			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(["abc", "default"]),
-				"Something went wrong when setting new profile order. Undoing...")
+			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
+				["abc", "default"]),
+				"Something went wrong when setting new profile order. " +
+				"Undoing...")
 
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 		self.assertTrue(self.globalDb.setDefaultProfile("abc"))
@@ -354,8 +401,10 @@ class TestProfilesDB(unittest.TestCase):
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
 				side_effect = [True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setDefaultProfile("abc"))
-			self.assert_in_stdout(lambda: self.globalDb.setDefaultProfile("abc"),
-				"Something went wrong when setting new default profile. Undoing...")
+			self.assert_in_stdout(
+				lambda: self.globalDb.setDefaultProfile("abc"),
+				"Something went wrong when setting new default profile. " +
+				"Undoing...")
 		self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
 
 		self.assertFalse(self.globalDb.deleteProfile(""))
@@ -385,7 +434,8 @@ class TestConfigDB(DBTestCase):
 				["test1", "somevalueA"],
 				["test2", "somevalue"]]:
 			self.assertEqual(self.pBDB.config.getByName(n)[0]["value"], v)
-		self.assertEqual({e["name"]: e["value"] for e in self.pBDB.config.getAll()},
+		self.assertEqual({e["name"]: e["value"] for e in \
+			self.pBDB.config.getAll()},
 			{"test": "somevalue1",
 			"test1": "somevalueA",
 			"test2": "somevalue"})
