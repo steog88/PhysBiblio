@@ -38,12 +38,11 @@ class fake_abstractFormulas():
 		return
 
 	def __call__(self, p, abstract, customEditor = None, statusMessages = True):
-		"""
-		Save some attributes and return self.el
+		"""Save some attributes and return self.el
 
 		Parameters: (see also `physbiblio.gui.bibWindows.abstractFormulas`)
 			p: parent widget
-			ab: abstract
+			abstract: the abstract
 			customEditor: widget where to store the processed text
 			statusMessages: print status messages
 		"""
@@ -58,9 +57,7 @@ class fake_abstractFormulas():
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigEditColumns(GUITestCase):
-	"""
-	Test configEditColumns
-	"""
+	"""Test configEditColumns"""
 	@classmethod
 	def setUpClass(self):
 		"""set temporary settings"""
@@ -183,19 +180,7 @@ class TestConfigEditColumns(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigWindow(GUITestCase):
-	"""
-	Test configWindow
-	"""
-	@classmethod
-	def setUpClass(self):
-		"""set temporary settings"""
-		pass
-
-	@classmethod
-	def tearDownClass(self):
-		"""restore previous settings"""
-		pass
-
+	"""Test configWindow"""
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -277,22 +262,190 @@ class TestConfigWindow(GUITestCase):
 			_w.assert_called_once_with("Invalid paramkey: 'someField'")
 
 	def test_editColumns(self):
-		"""test"""
-		pass
+		"""test editColumns"""
+		cw = configWindow()
+		ix = pbConfig.paramOrder.index("bibtexListColumns")
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			pbConfig.params["bibtexListColumns"])
+		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec.onCancel()
+		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
+				return_value = None) as _cec:
+			cw.editColumns(cec)
+			_cec.assert_called_once_with(cw,
+				pbConfig.params["bibtexListColumns"])
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			pbConfig.params["bibtexListColumns"])
+		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec.onOk()
+		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
+				return_value = None) as _cec:
+			cw.editColumns(cec)
+			_cec.assert_called_once_with(cw,
+				pbConfig.params["bibtexListColumns"])
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			['bibkey', 'author', 'title'])
 
 	def test_editDefCats(self):
-		"""test"""
-		pass
+		"""test editDefCats"""
+		cw = configWindow()
+		ix = pbConfig.paramOrder.index("defaultCategories")
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			pbConfig.params["defaultCategories"])
+		cwl = catsWindowList(parent = cw,
+			askCats = True,
+			expButton = False,
+			previous = ['1'])
+		cwl.onCancel()
+		with patch("physbiblio.gui.catWindows.catsWindowList.__init__",
+				return_value = None) as _cwl:
+			cw.editDefCats(cwl)
+			_cwl.assert_called_once_with(parent = cw,
+				askCats = True,
+				expButton = False,
+				previous = pbConfig.params["defaultCategories"])
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			pbConfig.params["defaultCategories"])
+		cwl = catsWindowList(parent = cw,
+			askCats = True,
+			expButton = False,
+			previous = ['1'])
+		cwl.onOk()
+		with patch("physbiblio.gui.catWindows.catsWindowList.__init__",
+				return_value = None) as _cwl:
+			cw.editDefCats(cwl)
+			_cwl.assert_called_once_with(parent = cw,
+				askCats = True,
+				expButton = False,
+				previous = pbConfig.params["defaultCategories"])
+		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
+			['1'])
 
 	def test_initUI(self):
-		"""test"""
-		pass
+		"""test initUI"""
+		cw = configWindow()
+		self.assertEqual(cw.windowTitle(), 'Configuration')
+		self.assertIsInstance(cw.layout(), QGridLayout)
+		self.assertEqual(cw.layout(), cw.grid)
+		self.assertEqual(cw.grid.spacing(), 1)
+
+		for ix, k in enumerate(pbConfig.paramOrder):
+			self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(),
+				QLabel)
+			self.assertEqual(cw.layout().itemAtPosition(ix, 0).widget().text(),
+				"%s (<i>%s</i>)"%(pbConfig.descriptions[k], k))
+			if k == "bibtexListColumns":
+				currClass = QPushButton
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
+				with patch("physbiblio.gui.dialogWindows.configWindow." +
+						"editColumns") as _f:
+					QTest.mouseClick(currWidget, Qt.LeftButton)
+					_f.assert_called_once_with(False)
+			elif k == "pdfFolder":
+				currClass = QPushButton
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
+				with patch("physbiblio.gui.dialogWindows.configWindow." +
+						"editFolder") as _f:
+					QTest.mouseClick(currWidget, Qt.LeftButton)
+					_f.assert_called_once_with(False)
+			elif k == "loggingLevel":
+				currClass = MyComboBox
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.currentText(),
+					pbConfig.loggingLevels[int(pbConfig.params[k])])
+				self.assertEqual(currWidget.count(),
+					len(pbConfig.loggingLevels))
+				for j, l in enumerate(pbConfig.loggingLevels):
+					self.assertEqual(currWidget.itemText(j),
+						pbConfig.loggingLevels[j])
+			elif k == "logFileName":
+				currClass = QPushButton
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
+				with patch("physbiblio.gui.dialogWindows.configWindow." +
+						"editFile") as _f:
+					QTest.mouseClick(currWidget, Qt.LeftButton)
+					_f.assert_called_once_with()
+			elif k == "defaultCategories":
+				currClass = QPushButton
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
+				with patch("physbiblio.gui.dialogWindows.configWindow." +
+						"editDefCats") as _f:
+					QTest.mouseClick(currWidget, Qt.LeftButton)
+					_f.assert_called_once_with(False)
+			elif pbConfig.specialTypes[k] == "boolean":
+				currClass = MyTrueFalseCombo
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.currentText(),
+					"%s"%pbConfig.params[k])
+			else:
+				currClass = QLineEdit
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
+			self.assertIsInstance(cw.layout().itemAtPosition(ix, 2).widget(),
+				currClass)
+			self.assertEqual(cw.layout().itemAtPosition(ix, 2).widget(),
+				currWidget)
+
+		self.assertIsInstance(cw.acceptButton, QPushButton)
+		self.assertIsInstance(cw.cancelButton, QPushButton)
+		self.assertEqual(cw.acceptButton.text(), "OK")
+		self.assertEqual(cw.cancelButton.text(), "Cancel")
+		self.assertTrue(cw.cancelButton.autoDefault())
+		ix = len(pbConfig.paramOrder)
+		self.assertEqual(cw.layout().itemAtPosition(ix, 0).widget(),
+			cw.acceptButton)
+		self.assertEqual(cw.layout().itemAtPosition(ix, 1).widget(),
+			cw.cancelButton)
+		with patch("physbiblio.gui.dialogWindows.configWindow.onOk") \
+				as _f:
+			QTest.mouseClick(cw.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		with patch("physbiblio.gui.dialogWindows.configWindow.onCancel") \
+				as _f:
+			QTest.mouseClick(cw.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		# test non valid value for loggingLevel
+		oldLevel = pbConfig.params["loggingLevel"]
+		pbConfig.params["loggingLevel"] = "10"
+		with patch("logging.Logger.warning") as _w:
+			cw = configWindow()
+			_w.assert_called_once_with("Invalid string for 'loggingLevel' " +
+				"param. Reset to default")
+		pbConfig.params["loggingLevel"] = "abc"
+		with patch("logging.Logger.warning") as _w:
+			cw = configWindow()
+			_w.assert_called_once_with("Invalid string for 'loggingLevel' " +
+				"param. Reset to default")
+		for ix, k in enumerate(pbConfig.paramOrder):
+			if k == "loggingLevel":
+				currClass = MyComboBox
+				currWidget = cw.textValues[ix][1]
+				self.assertIsInstance(currWidget, currClass)
+				self.assertEqual(currWidget.currentText(),
+					pbConfig.loggingLevels[
+						int(pbConfig.defaultsParams["loggingLevel"])])
+				self.assertEqual(currWidget.count(),
+					len(pbConfig.loggingLevels))
+				for j, l in enumerate(pbConfig.loggingLevels):
+					self.assertEqual(currWidget.itemText(j),
+						pbConfig.loggingLevels[j])
+		pbConfig.params["loggingLevel"] = oldLevel
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLogFileContentDialog(GUITestCase):
-	"""
-	Test LogFileContentDialog
-	"""
+	"""Test LogFileContentDialog"""
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -376,9 +529,7 @@ class TestLogFileContentDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPrintText(GUITestCase):
-	"""
-	Test printText
-	"""
+	"""Test printText"""
 	def test_init(self):
 		"""test init"""
 		with patch("physbiblio.gui.dialogWindows.printText.initUI") as _u:
@@ -567,9 +718,7 @@ class TestPrintText(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportDialog(GUITestCase):
-	"""
-	Test advImportDialog
-	"""
+	"""Test advImportDialog"""
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -648,9 +797,7 @@ class TestAdvImportDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportSelect(GUITestCase):
-	"""
-	Test advImportSelect
-	"""
+	"""Test advImportSelect"""
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -807,9 +954,7 @@ class TestAdvImportSelect(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivDialog(GUITestCase):
-	"""
-	Test dailyArxivDialog
-	"""
+	"""Test dailyArxivDialog"""
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -907,9 +1052,7 @@ class TestDailyArxivDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivSelect(GUITestCase):
-	"""
-	Test dailyArxivSelect
-	"""
+	"""Test dailyArxivSelect"""
 	def test_init(self):
 		"""test init"""
 		p = QWidget()

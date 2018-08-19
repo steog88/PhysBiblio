@@ -1,5 +1,5 @@
-"""
-Module with the classes and functions that manage the some dialog windows.
+"""Module with the classes and functions
+that manage the some dialog windows.
 
 This file is part of the physbiblio package.
 """
@@ -34,8 +34,7 @@ except ImportError:
 class configEditColumns(QDialog):
 	"""Extend `QDialog` to ask the columns that must appear in the main table"""
 	def __init__(self, parent = None, previous = None):
-		"""
-		Extend `QDialog.__init__` and create the form structure
+		"""Extend `QDialog.__init__` and create the form structure
 
 		Parameters:
 			parent: teh parent widget
@@ -69,8 +68,7 @@ class configEditColumns(QDialog):
 		self.close()
 
 	def initUI(self):
-		"""
-		Initialize the `MyDDTableWidget`s and their content,
+		"""Initialize the `MyDDTableWidget`s and their content,
 		plus the buttons and labels
 		"""
 		self.gridlayout = QGridLayout()
@@ -116,9 +114,7 @@ class configEditColumns(QDialog):
 class configWindow(QDialog):
 	"""Create a window for editing the configuration settings"""
 	def __init__(self, parent = None):
-		"""
-		Simple extension of `QDialog.__init__`
-		"""
+		"""Simple extension of `QDialog.__init__`"""
 		super(configWindow, self).__init__(parent)
 		self.textValues = []
 		self.initUI()
@@ -134,8 +130,7 @@ class configWindow(QDialog):
 		self.close()
 
 	def editFolder(self, paramkey = "pdfFolder"):
-		"""
-		Open a dialog to select a new folder name
+		"""Open a dialog to select a new folder name
 		for a configuration parameter, and save the result
 		in the `configWindow` interface
 
@@ -157,8 +152,7 @@ class configWindow(QDialog):
 			paramkey = "logFileName",
 			text = "Name for the log file",
 			filter = "*.log"):
-		"""
-		Open a dialog to select a new file name
+		"""Open a dialog to select a new file name
 		for a configuration parameter, and save the result
 		in the `configWindow` interface
 
@@ -179,25 +173,38 @@ class configWindow(QDialog):
 		if fname.strip() != "":
 			self.textValues[ix][1].setText(str(fname))
 
-	def editColumns(self):
-		"""
-		Open a dialog to select and/or reorder the list of columns
+	def editColumns(self, testing = False):
+		"""Open a dialog to select and/or reorder the list of columns
 		to show in the entries list, and save the result
 		in the `configWindow` interface
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `configEditColumns` instance,
+				it will use the custom dialog instead of run `exec_`
 		"""
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		window = configEditColumns(self,
 			ast.literal_eval(self.textValues[ix][1].text().strip()))
-		window.exec_()
+		if not testing:
+			window.exec_()
+		else:
+			window = testing
 		if window.result:
 			columns = window.selected
 			self.textValues[ix][1].setText(str(columns))
 
-	def editDefCats(self):
-		"""
-		Open a dialog to select a the default categories
+	def editDefCats(self, testing = False):
+		"""Open a dialog to select a the default categories
 		for the imported entries, and save the result
 		in the `configWindow` interface
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `catsWindowList` instance,
+				it will use the custom dialog instead of run `exec_`
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		selectCats = catsWindowList(
@@ -205,7 +212,10 @@ class configWindow(QDialog):
 			askCats = True,
 			expButton = False,
 			previous = ast.literal_eval(self.textValues[ix][1].text().strip()))
-		selectCats.exec_()
+		if not testing:
+			selectCats.exec_()
+		else:
+			selectCats = testing
 		if selectCats.result == "Ok":
 			self.textValues[ix][1].setText(str(self.selectedCats))
 
@@ -214,6 +224,7 @@ class configWindow(QDialog):
 		self.setWindowTitle('Configuration')
 
 		grid = QGridLayout()
+		self.grid = grid
 		grid.setSpacing(1)
 
 		i = 0
@@ -236,7 +247,7 @@ class configWindow(QDialog):
 						pbConfig.loggingLevels,
 						pbConfig.loggingLevels[int(val)])
 						])
-				except ValueError:
+				except (IndexError, ValueError):
 					pBGUILogger.warning("Invalid string for 'loggingLevel' " +
 						"param. Reset to default")
 					self.textValues.append([k,
@@ -278,8 +289,7 @@ class configWindow(QDialog):
 class LogFileContentDialog(QDialog):
 	"""Create a window for showing the logFile content"""
 	def __init__(self, parent = None):
-		"""
-		Instantiate class and create its widgets
+		"""Instantiate class and create its widgets
 
 		Parameter:
 			parent: the parent widget
@@ -289,8 +299,8 @@ class LogFileContentDialog(QDialog):
 		self.initUI()
 
 	def clearLog(self):
-		"""
-		Ask confirmation, then eventually clear the content of the log file
+		"""Ask confirmation, then eventually clear
+		the content of the log file
 		"""
 		if askYesNo("Are you sure you want to clear the log file?"):
 			try:
@@ -302,8 +312,7 @@ class LogFileContentDialog(QDialog):
 				self.close()
 
 	def initUI(self):
-		"""
-		Create window layout and buttons,
+		"""Create window layout and buttons,
 		read log file content and print it in the `QPlainTextEdit`
 		"""
 		self.setWindowTitle(self.title)
@@ -346,8 +355,8 @@ class printText(QDialog):
 			progrStr = None,
 			noStopButton = False,
 			message = None):
-		"""
-		Constructor. Set some properties and create the GUI of the dialog
+		"""Constructor.
+		Set some properties and create the GUI of the dialog
 
 		Parameters:
 			parent: the parent widget
@@ -379,8 +388,7 @@ class printText(QDialog):
 		self.initUI()
 
 	def closeEvent(self, event):
-		"""
-		Manage the `closeEvent` of the dialog.
+		"""Manage the `closeEvent` of the dialog.
 		Reject unless `self._wantToClose` is True
 
 		Parameter:
@@ -425,8 +433,7 @@ class printText(QDialog):
 		self.setLayout(grid)
 
 	def appendText(self, text):
-		"""
-		Add the given text to the end of the `self.textEdit` content.
+		"""Add the given text to the end of the `self.textEdit` content.
 		If a `self.progressBar` is set, try to obtain
 		the maximum and the current value,
 		looking for the expected `self.totString` and `self.progressString`
@@ -449,8 +456,7 @@ class printText(QDialog):
 		self.textEdit.insertPlainText(text)
 
 	def progressBarMin(self, minimum):
-		"""
-		Set the minimum value for the progress bar
+		"""Set the minimum value for the progress bar
 
 		Parameter:
 			minimum (int or float): the value
@@ -459,8 +465,7 @@ class printText(QDialog):
 			self.progressBar.setMinimum(minimum)
 
 	def progressBarMax(self, maximum):
-		"""
-		Set the maximum value for the progress bar
+		"""Set the maximum value for the progress bar
 
 		Parameter:
 			maximum (int or float): the value
@@ -469,8 +474,7 @@ class printText(QDialog):
 			self.progressBar.setMaximum(maximum)
 
 	def stopExec(self):
-		"""
-		Stop the iterations through the `stopped` Signal
+		"""Stop the iterations through the `stopped` Signal
 		and disable the `cancelButton`
 		"""
 		self.cancelButton.setDisabled(True)
@@ -535,8 +539,7 @@ class advImportDialog(QDialog):
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
 	def __init__(self, bibs = {}, parent = None):
-		"""
-		Set some properties and call `initUI`
+		"""Set some properties and call `initUI`
 
 		Parameters:
 			bibs: a dictionary containing the imported bibtex entries.
@@ -563,8 +566,7 @@ class advImportSelect(objListWindow):
 		self.close()
 
 	def keyPressEvent(self, e):
-		"""
-		Intercept press keys and exit if escape is pressed
+		"""Intercept press keys and exit if escape is pressed
 
 		Parameters:
 			e: the `PySide2.QtGui.QKeyEvent`
@@ -655,8 +657,7 @@ class dailyArxivDialog(QDialog):
 		self.close()
 
 	def updateCat(self, category):
-		"""
-		Replace the current content of the `self.comboSub` combobox
+		"""Replace the current content of the `self.comboSub` combobox
 		with the new list of subcategories of the given category
 
 		Parameter:
@@ -741,8 +742,7 @@ class dailyArxivSelect(advImportSelect):
 		self.currLayout.addWidget(self.abstractArea, i + 3, 0, 4, 2)
 
 	def cellClick(self, index):
-		"""
-		Click action
+		"""Click action
 
 		Parameter:
 			index: a `QModelIndex` instance
