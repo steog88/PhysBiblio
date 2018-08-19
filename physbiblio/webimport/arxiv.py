@@ -5,13 +5,15 @@ Uses feedparser module to read the page content.
 
 This file is part of the physbiblio package.
 """
+import sys
 import re, traceback
 import feedparser
 try:
+	from physbiblio.config import pbConfig
 	from physbiblio.errors import pBLogger
 	from bibtexparser.bibdatabase import BibDatabase
-	from physbiblio.webimport.webInterf import *
-	from physbiblio.parseAccents import *
+	from physbiblio.webimport.webInterf import webInterf, physBiblioWeb
+	from physbiblio.parseAccents import parse_accents_str
 	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -19,7 +21,10 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to arxiv.org to perform searches"""
+	"""
+	Subclass of webInterf that can connect to arxiv.org
+	to perform searches
+	"""
 	def __init__(self):
 		"""
 		Initializes the class variables using the webInterf constructor.

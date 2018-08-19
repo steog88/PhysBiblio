@@ -15,13 +15,6 @@ else:
 	from unittest.mock import patch
 	from io import StringIO
 
-try:
-	from physbiblio.setuptests import *
-except ImportError:
-	print("Could not find physbiblio and its modules!")
-	print(traceback.format_exc())
-	raise
-
 globalQApp = QApplication()
 
 def fakeExec(x, string, out):

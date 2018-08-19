@@ -6,8 +6,8 @@ This file is part of the physbiblio package.
 import traceback
 try:
 	from physbiblio.errors import pBLogger
-	from physbiblio.webimport.webInterf import *
-	from physbiblio.parseAccents import *
+	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.parseAccents import parse_accents_str
 	from physbiblio.config import pbConfig
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -55,7 +55,7 @@ class webSearch(webInterf):
 		pBLogger.info("Search '%s' -> %s"%(string, url))
 		text = self.textFromUrl(url, self.headers)
 		try:
-			return text[:]
+			return parse_accents_str(text[:])
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""

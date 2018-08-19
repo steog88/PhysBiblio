@@ -7,8 +7,8 @@ import traceback
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
-	from physbiblio.webimport.webInterf import *
-	from physbiblio.parseAccents import *
+	from physbiblio.webimport.webInterf import webInterf, physBiblioWeb
+	from physbiblio.parseAccents import parse_accents_str
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())

@@ -18,7 +18,7 @@ try:
 	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import physBiblioWeb
-	from physbiblio.parseAccents import *
+	from physbiblio.parseAccents import parse_accents_str
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())

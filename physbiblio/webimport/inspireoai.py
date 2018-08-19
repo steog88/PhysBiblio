@@ -36,8 +36,8 @@ from oaipmh import metadata
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
-	from physbiblio.webimport.webInterf import *
-	from physbiblio.parseAccents import *
+	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.parseAccents import parse_accents_str
 	from bibtexparser.bibdatabase import BibDatabase
 	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
