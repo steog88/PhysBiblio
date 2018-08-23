@@ -26,5 +26,121 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestFunctions(GUITestCase):
+	"""test editCategory and deleteCategory"""
+	def test_editCategory(self):
+		"""test"""
+		pass
+
+	def test_deleteCategory(self):
+		"""test"""
+		pass
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestCatsModel(GUITestCase):
+	"""test the catsModel class"""
+	def test_init(self):
+		"""test init"""
+		pass
+
+	def test_getRootNodes(self):
+		"""test"""
+		pass
+
+	def test_columnCount(self):
+		"""test"""
+		pass
+
+	def test_data(self):
+		"""test"""
+		pass
+
+	def test_flags(self):
+		"""test"""
+		pass
+
+	def test_headerData(self):
+		"""test"""
+		pass
+
+	def test_setData(self):
+		"""test"""
+		pass
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestCatsWindowList(GUITestCase):
+	"""test the catsWindowList class"""
+	def test_init(self):
+		"""test init"""
+		pass
+
+	def test_populateAskCats(self):
+		"""test"""
+		pass
+
+	def test_onCancel(self):
+		"""test"""
+		pass
+
+	def test_onOk(self):
+		"""test"""
+		pass
+
+	def test_change_filter(self):
+		"""test"""
+		pass
+
+	def test_onAskExps(self):
+		"""test"""
+		pass
+
+	def test_onNewCat(self):
+		"""test"""
+		pass
+
+	def test_keyPressEvent(self):
+		"""test"""
+		pass
+
+	def test_fillTree(self):
+		"""test"""
+		pass
+
+	def test_populateTree(self):
+		"""test"""
+		pass
+
+	def test_handleItemEntered(self):
+		"""test"""
+		pass
+
+	def test_contextMenuEvent(self):
+		"""test"""
+		pass
+
+	def test_cleanLayout(self):
+		"""test"""
+		pass
+
+	def test_recreateTable(self):
+		"""test"""
+		pass
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestEditCategoryDialog(GUITestCase):
+	"""test the editCategoryDialog class"""
+	def test_init(self):
+		"""test init"""
+		pass
+
+	def test_onAskParent(self):
+		"""test"""
+		pass
+
+	def test_createForm(self):
+		"""test"""
+		pass
+
 if __name__=='__main__':
 	unittest.main()

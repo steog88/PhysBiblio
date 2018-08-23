@@ -11,12 +11,13 @@ import traceback
 import operator
 
 try:
-	from physbiblio.database import *
+	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.errorManager import pBGUILogger
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
-	from physbiblio.gui.catWindows import *
+	from physbiblio.gui.basicDialogs import askYesNo
+	from physbiblio.gui.commonClasses import \
+		editObjectWindow, MyTableModel, objListWindow
+	from physbiblio.gui.catWindows import catsWindowList
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -51,7 +52,7 @@ def editExperiment(parent, statusBarObject, editIdExp = None):
 	else:
 		message = "No modifications to experiments"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		statusBarObject.statusBarMessage(message)
 	except:
 		pass
 
@@ -67,7 +68,7 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 	else:
 		message = "Nothing changed"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		statusBarObject.statusBarMessage(message)
 	except:
 		pass
 
@@ -231,7 +232,7 @@ class ExpWindowList(objListWindow):
 				for c in cats:
 					if c not in previous:
 						pBDB.catExp.insert(c, idExp)
-				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%expName)
+				self.parent.statusBarMessage("categories for '%s' successfully inserted"%expName)
 
 	def handleItemEntered(self, index):
 		if index.isValid():

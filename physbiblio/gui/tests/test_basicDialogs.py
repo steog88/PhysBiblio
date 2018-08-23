@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.basicDialogs module.
+"""Test file for the physbiblio.gui.basicDialogs module.
 
 This file is part of the physbiblio package.
 """
@@ -29,9 +28,7 @@ except Exception:
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDialogWindows(GUITestCase):
-	"""
-	Test the functions in DialogWindows
-	"""
+	"""Test the functions in DialogWindows"""
 	def test_askYesNo(self):
 		"""Test askYesNo"""
 		win, yesButton, noButton = askYesNo("mymessage", "mytitle", True)

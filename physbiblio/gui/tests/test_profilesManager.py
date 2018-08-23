@@ -65,11 +65,11 @@ class TestEditProf(GUITestCase):
 		mw = MainWindow(True)
 		ep = editProfile()
 		ep.onCancel()
-		with patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 				as _m:
 			editProf(p, mw, ep)
 			_m.assert_called_once_with("No modifications")
-		with patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 				as _m:
 			editProf(p, p, ep)
 			_m.assert_not_called()
@@ -85,7 +85,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -111,7 +111,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -137,7 +137,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value = True) as _ayn,\
@@ -169,7 +169,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -202,7 +202,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value = True) as _ayn,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -239,7 +239,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value = False) as _ayn,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -275,7 +275,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)
@@ -309,7 +309,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
-				patch("physbiblio.gui.mainWindow.MainWindow.StatusBarMessage") \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
 			editProf(p, mw, ep)

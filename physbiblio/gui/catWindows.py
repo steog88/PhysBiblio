@@ -1,31 +1,41 @@
-"""
-Module with the classes and functions that manage the categories windows and panels.
+"""Module with the classes and functions that manage
+the categories windows and panels.
 
 This file is part of the physbiblio package.
 """
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QDialog, QLabel, QLineEdit, QPushButton, QTreeView, QVBoxLayout, QToolTip
+from PySide2.QtWidgets import \
+	QDialog, QLabel, QLineEdit, QPushButton, QTreeView, QVBoxLayout, QToolTip
 
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
 	from physbiblio.gui.errorManager import pBGUILogger
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
+	from physbiblio.gui.basicDialogs import \
+		askYesNo
+	from physbiblio.gui.commonClasses import \
+		editObjectWindow, LeafFilterProxyModel, MyMenu, \
+		NamedElement, NamedNode, TreeModel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
-def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
+def editCategory(parentObject,
+		mainWinObject,
+		editIdCat = None,
+		useParent = None):
+	"""Open a dialog (`editCategoryDialog`) to edit a category and process
+	"""
 	if editIdCat is not None:
 		edit = pBDB.cats.getDictByID(editIdCat)
 	else:
 		edit = None
-	newCatWin = editCat(parent, cat = edit, useParent = useParent)
+	newCatWin = editCategoryDialog(parentObject,
+		cat = edit, useParent = useParent)
 	newCatWin.exec_()
 	data = {}
 	if newCatWin.result:
@@ -45,35 +55,43 @@ def editCategory(parent, statusBarObject, editIdCat = None, useParent = None):
 			else:
 				pBDB.cats.insert(data)
 			message = "Category saved"
-			statusBarObject.setWindowTitle("PhysBiblio*")
+			mainWinObject.setWindowTitle("PhysBiblio*")
 			try:
-				parent.recreateTable()
-			except:
-				pass
+				parentObject.recreateTable()
+			except AttributeError:
+				pBLogger.debug("parentObject has no attribute 'recreateTable'",
+					exc_info = True)
 		else:
 			message = "ERROR: empty category name"
 	else:
 		message = "No modifications to categories"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		mainWinObject.statusBarMessage(message)
 	except:
-		pass
+		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
+			exc_info = True)
 
-def deleteCategory(parent, statusBarObject, idCat, name):
-	if askYesNo("Do you really want to delete this category (ID = '%s', name = '%s')?"%(idCat, name)):
+def deleteCategory(parent, mainWinObject, idCat, name):
+	if askYesNo("Do you really want to delete this category " +
+			"(ID = '%s', name = '%s')?"%(idCat, name)):
 		pBDB.cats.delete(int(idCat))
-		statusBarObject.setWindowTitle("PhysBiblio*")
+		mainWinObject.setWindowTitle("PhysBiblio*")
 		message = "Category deleted"
 		parent.recreateTable()
 	else:
 		message = "Nothing changed"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		mainWinObject.statusBarMessage(message)
 	except:
 		pass
 
 class catsModel(TreeModel):
-	def __init__(self, cats, rootElements, parent = None, previous = [], multipleRecords = False):
+	def __init__(self,
+			cats,
+			rootElements,
+			parent = None,
+			previous = [],
+			multipleRecords = False):
 		self.cats = cats
 		self.rootElements = rootElements
 		TreeModel.__init__(self)
@@ -351,10 +369,10 @@ class catsWindowList(QDialog):
 		self.cleanLayout()
 		self.fillTree()
 
-class editCat(editObjectWindow):
+class editCategoryDialog(editObjectWindow):
 	"""create a window for editing or creating a category"""
 	def __init__(self, parent = None, cat = None, useParent = None):
-		super(editCat, self).__init__(parent)
+		super(editCategoryDialog, self).__init__(parent)
 		if cat is None:
 			self.data = {}
 			for k in pBDB.tableCols["categories"]:

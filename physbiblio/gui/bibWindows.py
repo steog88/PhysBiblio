@@ -11,7 +11,10 @@ os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
-from PySide2.QtWidgets import QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
+from PySide2.QtWidgets import \
+	QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, \
+	QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, \
+	QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
 import re
 from pyparsing import ParseException
 from pylatexenc.latex2text import LatexNodes2Text
@@ -21,14 +24,18 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
-	from physbiblio.parseAccents import *
+	from physbiblio.parseAccents import texToHtml
 	from physbiblio.gui.errorManager import pBGUILogger
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
-	from physbiblio.gui.threadElements import *
-	from physbiblio.gui.catWindows import *
-	from physbiblio.gui.expWindows import *
-	from physbiblio.gui.marks import *
+	from physbiblio.gui.marks import pBMarks
+	from physbiblio.gui.basicDialogs import \
+		askDirName, askFileName, askYesNo, infoMessage
+	from physbiblio.gui.commonClasses import \
+		editObjectWindow, MyAndOrCombo, MyComboBox, MyLabelCenter, \
+		MyLabelRight, MyMenu, MyTableModel, objListWindow
+	from physbiblio.gui.threadElements import \
+		thread_downloadArxiv, thread_processLatex
+	from physbiblio.gui.catWindows import catsWindowList
+	from physbiblio.gui.expWindows import ExpWindowList
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -153,12 +160,12 @@ class abstractFormulas():
 				QUrl("mydata://image%d.png"%i), image)
 		self.editor.insertHtml(text)
 		if self.statusMessages:
-			self.mainWin.StatusBarMessage("Latex processing done!")
+			self.mainWin.statusBarMessage("Latex processing done!")
 
 def writeAbstract(mainWin, entry):
 	a = abstractFormulas(mainWin, entry["abstract"])
 	if a.hasLatex():
-		mainWin.StatusBarMessage("Parsing LaTeX...")
+		mainWin.statusBarMessage("Parsing LaTeX...")
 	a.doText()
 
 def editBibtex(parent, statusBarObject, editKey = None):
@@ -218,7 +225,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 	else:
 		message = "No modifications to bibtex entry"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		statusBarObject.statusBarMessage(message)
 	except:
 		pass
 
@@ -234,7 +241,7 @@ def deleteBibtex(parent, statusBarObject, bibkey):
 	else:
 		message = "Nothing changed"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		statusBarObject.statusBarMessage(message)
 	except:
 		pass
 
@@ -434,6 +441,7 @@ class bibtexList(QFrame, objListWindow):
 			initialMarks = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]["marks"]
 		except IndexError:
 			pBGUILogger.exception("Entry '%s' not found!"%bibkey)
+			return
 		marks = initialMarks.split(",")
 		if mark in marks:
 			marks.remove(mark)
@@ -508,7 +516,7 @@ class bibtexList(QFrame, objListWindow):
 	def triggeredContextMenuEvent(self, row, col, event):
 		def deletePdfFile(bibkey, fileType, fdesc, custom = None):
 			if askYesNo("Do you really want to delete the %s file for entry %s?"%(fdesc, bibkey)):
-				self.parent.StatusBarMessage("deleting %s file..."%fdesc)
+				self.parent.statusBarMessage("deleting %s file..."%fdesc)
 				if custom is not None:
 					pBPDF.removeFile(bibkey, "", fileName = custom)
 				else:
@@ -697,7 +705,7 @@ class bibtexList(QFrame, objListWindow):
 				for c in cats:
 					if c not in previous:
 						pBDB.catBib.insert(c, bibkey)
-				self.parent.StatusBarMessage("categories for '%s' successfully inserted"%bibkey)
+				self.parent.statusBarMessage("categories for '%s' successfully inserted"%bibkey)
 		#experiments
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
@@ -711,7 +719,7 @@ class bibtexList(QFrame, objListWindow):
 				for e in exps:
 					if e not in previous:
 						pBDB.bibExp.insert(bibkey, e)
-				self.parent.StatusBarMessage("experiments for '%s' successfully inserted"%bibkey)
+				self.parent.statusBarMessage("experiments for '%s' successfully inserted"%bibkey)
 		#open functions
 		elif action == opArxAct:
 			pBGuiView.openLink(bibkey, "arxiv")
@@ -742,13 +750,13 @@ class bibtexList(QFrame, objListWindow):
 					pBGUILogger.warning("getFieldsFromArxiv failed")
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
-			self.parent.StatusBarMessage("opening arxiv PDF...")
+			self.parent.statusBarMessage("opening arxiv PDF...")
 			pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 		elif "openDoi" in pdfActs.keys() and action == pdfActs["openDoi"]:
-			self.parent.StatusBarMessage("opening doi PDF...")
+			self.parent.statusBarMessage("opening doi PDF...")
 			pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "doi"))
 		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
-			self.parent.StatusBarMessage("downloading PDF from arxiv...")
+			self.parent.statusBarMessage("downloading PDF from arxiv...")
 			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent)
 			self.downArxiv_thr.finished.connect(self.downloadArxivDone)
 			self.downArxiv_thr.start()
@@ -776,7 +784,7 @@ class bibtexList(QFrame, objListWindow):
 			for i, act in enumerate(pdfActs["openOtherPDF"]):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
-					self.parent.StatusBarMessage("opening %s..."%fn)
+					self.parent.statusBarMessage("opening %s..."%fn)
 					pBGuiView.openLink(bibkey, "file", fileArg = fn)
 			for i, act in enumerate(pdfActs["delOtherPDF"]):
 				if action == act:
@@ -823,20 +831,20 @@ class bibtexList(QFrame, objListWindow):
 		elif self.colContents[col] == "pdf":
 			pdfFiles = pBPDF.getExisting(bibkey, fullPath = True)
 			if len(pdfFiles) == 1:
-				self.parent.StatusBarMessage("opening PDF...")
+				self.parent.statusBarMessage("opening PDF...")
 				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
-					self.parent.StatusBarMessage("opening arxiv PDF...")
+					self.parent.statusBarMessage("opening arxiv PDF...")
 					pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 				elif ask.result == "openDoi":
-					self.parent.StatusBarMessage("opening doi PDF...")
+					self.parent.statusBarMessage("opening doi PDF...")
 					pBGuiView.openLink(bibkey, "file", fileArg = pBPDF.getFilePath(bibkey, "doi"))
 				elif type(ask.result) is str and "openOther_" in ask.result:
 					filename = ask.result.replace("openOther_", "")
-					self.parent.StatusBarMessage("opening %s..."%filename)
+					self.parent.statusBarMessage("opening %s..."%filename)
 					pBGuiView.openLink(bibkey, "file", fileArg = os.path.join(pBPDF.getFileDir(bibkey), filename))
 
 	def downloadArxivDone(self):
@@ -1136,7 +1144,7 @@ class askSelBibAction(MyMenu):
 		self.downArxiv_thr = []
 		for entry in self.entries:
 			if entry["arxiv"] is not None:
-				self.parent.StatusBarMessage("downloading PDF for arxiv:%s..."%entry["arxiv"])
+				self.parent.statusBarMessage("downloading PDF for arxiv:%s..."%entry["arxiv"])
 				self.downArxiv_thr.append(thread_downloadArxiv(entry["bibkey"], self.parent))
 				self.downArxiv_thr[-1].finished.connect(self.parent.bibtexList.downloadArxivDone)
 				self.downArxiv_thr[-1].start()
@@ -1174,7 +1182,7 @@ class askSelBibAction(MyMenu):
 				if c not in self.parent.selectedCats:
 					pBDB.catBib.delete(c, self.keys)
 			pBDB.catBib.insert(self.parent.selectedCats, self.keys)
-			self.parent.StatusBarMessage("categories successfully inserted")
+			self.parent.statusBarMessage("categories successfully inserted")
 		self.close()
 
 	def onExp(self):
@@ -1183,7 +1191,7 @@ class askSelBibAction(MyMenu):
 		selectExps.exec_()
 		if selectExps.result == "Ok":
 			pBDB.bibExp.insert(self.keys, self.parent.selectedExps)
-			self.parent.StatusBarMessage("experiments successfully inserted")
+			self.parent.statusBarMessage("experiments successfully inserted")
 		self.close()
 
 class searchBibsWindow(editObjectWindow):

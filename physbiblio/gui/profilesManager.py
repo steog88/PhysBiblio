@@ -31,7 +31,7 @@ def editProf(parent, statusBarObject, testing = False):
 
 	Parameters:
 		parent: the parent object
-		statusBarObject: the object which has the function `StatusBarMessage`
+		statusBarObject: the object which has the function `statusBarMessage`
 			(a `MainWindow` instance)
 		testing: if False, create the `editProfile` instance normally,
 			otherwise, use the passed object
@@ -107,7 +107,7 @@ def editProf(parent, statusBarObject, testing = False):
 		pbConfig.profileOrder = oldOrder
 		message = "No modifications"
 	try:
-		statusBarObject.StatusBarMessage(message)
+		statusBarObject.statusBarMessage(message)
 	except AttributeError:
 		pass
 

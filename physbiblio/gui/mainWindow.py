@@ -18,22 +18,27 @@ import glob
 
 try:
 	from physbiblio.errors import pBErrorManager, pBLogger
-	from physbiblio.database import *
+	from physbiblio.database import pBDB
 	from physbiblio.export import pBExport
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
 	from physbiblio.gui.errorManager import pBGUILogger
-	from physbiblio.gui.basicDialogs import *
-	from physbiblio.gui.commonClasses import *
-	from physbiblio.gui.bibWindows import *
-	from physbiblio.gui.catWindows import *
-	from physbiblio.gui.dialogWindows import *
-	from physbiblio.gui.expWindows import *
-	from physbiblio.gui.inspireStatsGUI import *
-	from physbiblio.gui.profilesManager import *
-	from physbiblio.gui.threadElements import *
+	from physbiblio.gui.basicDialogs import \
+		askFileName, askFileNames, askGenericText, askSaveFileName, askYesNo, infoMessage
+	from physbiblio.gui.commonClasses import \
+		MyComboBox, WriteStream
+	from physbiblio.gui.bibWindows import \
+		fieldsFromArxiv, searchBibsWindow, editBibtex, bibtexList, bibtexInfo, bibtexWindow
+	from physbiblio.gui.catWindows import catsWindowList, editCategory
+	from physbiblio.gui.dialogWindows import \
+		configWindow, LogFileContentDialog, printText, advImportDialog, advImportSelect, dailyArxivDialog, dailyArxivSelect
+	from physbiblio.gui.expWindows import ExpWindowList, editExperiment
+	from physbiblio.gui.inspireStatsGUI import authorStatsPlots, paperStatsPlots
+	from physbiblio.gui.profilesManager import selectProfiles, editProf
+	from physbiblio.gui.threadElements import \
+		thread_authorStats, thread_cleanSpare, thread_cleanSparePDF, thread_updateAllBibtexs, thread_exportTexBib, thread_importFromBib, thread_updateInspireInfo, thread_paperStats, thread_loadAndInsert, thread_cleanAllBibtexs, thread_findBadBibtexs, thread_fieldsArxiv
 except ImportError as e:
 	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())
@@ -60,7 +65,7 @@ class MainWindow(QMainWindow):
 		self.createMenusAndToolBar()
 		self.createMainLayout()
 		self.setIcon()
-		self.CreateStatusBar()
+		self.createStatusBar()
 
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -453,13 +458,13 @@ class MainWindow(QMainWindow):
 
 	def refreshMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one, using last used query"""
-		self.StatusBarMessage("Reloading main table...")
+		self.statusBarMessage("Reloading main table...")
 		self.bibtexList.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
 		self.done()
 
 	def reloadMainContent(self, bibs = None):
 		"""delete previous table widget and create a new one"""
-		self.StatusBarMessage("Reloading main table...")
+		self.statusBarMessage("Reloading main table...")
 		self.bibtexList.recreateTable(bibs)
 		self.done()
 
@@ -497,16 +502,16 @@ class MainWindow(QMainWindow):
 				pbConfig.readConfig()
 				self.reloadConfig()
 				self.refreshMainContent()
-				self.StatusBarMessage("Configuration saved")
+				self.statusBarMessage("Configuration saved")
 		else:
-			self.StatusBarMessage("Changes discarded")
+			self.statusBarMessage("Changes discarded")
 
 	def logfile(self):
 		logfileWin = LogFileContentDialog(self)
 		logfileWin.exec_()
 
 	def reloadConfig(self):
-		self.StatusBarMessage("Reloading configuration...")
+		self.statusBarMessage("Reloading configuration...")
 		pBView.webApp = pbConfig.params["webApplication"]
 		pBPDF.pdfApp = pbConfig.params["pdfApplication"]
 		if pbConfig.params["pdfFolder"][0] == "/":
@@ -592,7 +597,7 @@ class MainWindow(QMainWindow):
 		pBLogger.info("Closing...")
 		pBErrorManager.rmTempHandler()
 		if outMessage:
-			self.StatusBarMessage(outMessage)
+			self.statusBarMessage(outMessage)
 		else:
 			self.done()
 
@@ -603,14 +608,14 @@ class MainWindow(QMainWindow):
 		if askYesNo("Do you really want to delete the unassociated PDF folders?\nThere may be some (unlikely) accidental deletion of files."):
 			self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
 
-	def CreateStatusBar(self):
+	def createStatusBar(self):
 		"""
 		Function to create Status Bar
 		"""
 		self.myStatusBar.showMessage('Ready', 0)
 		self.setStatusBar(self.myStatusBar)
 		
-	def StatusBarMessage(self, message = "abc", time = 4000):
+	def statusBarMessage(self, message = "abc", time = 4000):
 		pBLogger.info(message)
 		self.myStatusBar.showMessage(message, time)
 
@@ -618,9 +623,9 @@ class MainWindow(QMainWindow):
 		if askYesNo("Do you really want to save?"):
 			pBDB.commit()
 			self.setWindowTitle("PhysBiblio")
-			self.StatusBarMessage("Changes saved")
+			self.statusBarMessage("Changes saved")
 		else:
-			self.StatusBarMessage("Nothing saved")
+			self.statusBarMessage("Nothing saved")
 
 	def importFromBib(self):
 		filename = askFileName(self, title = "From where do you want to import?", filter = "Bibtex (*.bib)")
@@ -630,26 +635,26 @@ class MainWindow(QMainWindow):
 				filename, askYesNo("Do you want to use INSPIRE to find more information about the imported entries?"),
 				totStr = "Entries to be processed: ", progrStr = "%), processing entry ",
 				minProgress=0,  stopFlag = True, outMessage = "All entries into %s have been imported"%filename)
-			self.StatusBarMessage("File %s imported!"%filename)
+			self.statusBarMessage("File %s imported!"%filename)
 			self.reloadMainContent()
 		else:
-			self.StatusBarMessage("Empty filename given!")
+			self.statusBarMessage("Empty filename given!")
 
 	def export(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			pBExport.exportLast(filename)
-			self.StatusBarMessage("Last fetched entries exported into %s"%filename)
+			self.statusBarMessage("Last fetched entries exported into %s"%filename)
 		else:
-			self.StatusBarMessage("Empty filename given!")
+			self.statusBarMessage("Empty filename given!")
 
 	def exportSelection(self, entries):
 		filename = askSaveFileName(self, title = "Where do you want to export the selected entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			pBExport.exportSelected(filename, entries)
-			self.StatusBarMessage("Current selection exported into %s"%filename)
+			self.statusBarMessage("Current selection exported into %s"%filename)
 		else:
-			self.StatusBarMessage("Empty filename given!")
+			self.statusBarMessage("Empty filename given!")
 
 	def exportFile(self):
 		outFName = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
@@ -661,29 +666,29 @@ class MainWindow(QMainWindow):
 					texFile, outFName,
 					minProgress=0,  stopFlag = True, outMessage = "All entries saved into %s"%outFName)
 			else:
-				self.StatusBarMessage("Empty input filename/folder!")
+				self.statusBarMessage("Empty input filename/folder!")
 		else:
-			self.StatusBarMessage("Empty output filename!")
+			self.statusBarMessage("Empty output filename!")
 
 	def exportUpdate(self):
 		filename = askSaveFileName(self, title = "File to update?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			overwrite = askYesNo("Do you want to overwrite the existing .bib file?", "Overwrite")
 			pBExport.updateExportedBib(filename, overwrite = overwrite)
-			self.StatusBarMessage("File %s updated"%filename)
+			self.statusBarMessage("File %s updated"%filename)
 		else:
-			self.StatusBarMessage("Empty output filename!")
+			self.statusBarMessage("Empty output filename!")
 
 	def exportAll(self):
 		filename = askSaveFileName(self, title = "Where do you want to export the entries?", filter = "Bibtex (*.bib)")
 		if filename != "":
 			pBExport.exportAll(filename)
-			self.StatusBarMessage("All entries saved into %s"%filename)
+			self.statusBarMessage("All entries saved into %s"%filename)
 		else:
-			self.StatusBarMessage("Empty output filename!")
+			self.statusBarMessage("Empty output filename!")
 	
 	def categories(self):
-		self.StatusBarMessage("categories triggered")
+		self.statusBarMessage("categories triggered")
 		catListWin = catsWindowList(self)
 		catListWin.show()
 
@@ -691,7 +696,7 @@ class MainWindow(QMainWindow):
 		editCategory(self, self)
 	
 	def experimentList(self):
-		self.StatusBarMessage("experiments triggered")
+		self.statusBarMessage("experiments triggered")
 		expListWin = ExpWindowList(self)
 		expListWin.show()
 
@@ -846,7 +851,7 @@ class MainWindow(QMainWindow):
 		self.updateAllBibtexs(startFrom, force = force)
 
 	def updateAllBibtexs(self, startFrom = pbConfig.params["defaultUpdateFrom"], useEntries = None, force = False, reloadAll = False):
-		self.StatusBarMessage("Starting update of bibtexs from %s..."%startFrom)
+		self.statusBarMessage("Starting update of bibtexs from %s..."%startFrom)
 		self._runInThread(
 			thread_updateAllBibtexs, "Update Bibtexs",
 			startFrom, useEntries = useEntries, force = force, reloadAll = reloadAll,
@@ -855,7 +860,7 @@ class MainWindow(QMainWindow):
 		self.refreshMainContent()
 
 	def updateInspireInfo(self, bibkey, inspireID = None):
-		self.StatusBarMessage("Starting generic info update from INSPIRE-HEP...")
+		self.statusBarMessage("Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
 			thread_updateInspireInfo, "Update Info",
 			bibkey, inspireID,
@@ -877,7 +882,7 @@ class MainWindow(QMainWindow):
 			except SyntaxError:
 				pBGUILogger.exception("Cannot recognize the list sintax. Missing quotes in the string?")
 				return False
-		self.StatusBarMessage("Starting computing author stats from INSPIRE...")
+		self.statusBarMessage("Starting computing author stats from INSPIRE...")
 
 		self._runInThread(
 			thread_authorStats, "Author Stats",
@@ -915,7 +920,7 @@ class MainWindow(QMainWindow):
 			pBGUILogger.warning("Empty string! cannot proceed.")
 			return False
 		self.loadedAndInserted = []
-		self.StatusBarMessage("Starting import from INSPIRE...")
+		self.statusBarMessage("Starting import from INSPIRE...")
 		if "," in queryStr:
 			try:
 				queryStr = ast.literal_eval("[" + queryStr.strip() + "]")
@@ -944,14 +949,14 @@ class MainWindow(QMainWindow):
 			if selectCats.result in ["Ok", "Exps"]:
 				cats = self.selectedCats
 				pBDB.catBib.insert(cats, entry)
-				self.StatusBarMessage("categories for '%s' successfully inserted"%entry)
+				self.statusBarMessage("categories for '%s' successfully inserted"%entry)
 			if selectCats.result == "Exps":
 				selectExps = ExpWindowList(parent = self, askExps = True, askForBib = entry)
 				selectExps.exec_()
 				if selectExps.result == "Ok":
 					exps = self.selectedExps
 					pBDB.bibExp.insert(entry, exps)
-					self.StatusBarMessage("experiments for '%s' successfully inserted"%entry)
+					self.statusBarMessage("experiments for '%s' successfully inserted"%entry)
 
 	def inspireLoadAndInsertWithCats(self):
 		if self.inspireLoadAndInsert(doReload = False) and len(self.loadedAndInserted) > 0:
@@ -1022,7 +1027,7 @@ class MainWindow(QMainWindow):
 						inserted.append(key)
 					except:
 						pBLogger.warning("Failed in completing info for entry %s\n"%key)
-				self.StatusBarMessage("[advancedImport] Entries successfully imported: %s"%inserted)
+				self.statusBarMessage("[advancedImport] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					for key in inserted:
 						pBDB.catBib.delete(pbConfig.params["defaultCategories"], key)
@@ -1045,7 +1050,7 @@ class MainWindow(QMainWindow):
 		self.cleanAllBibtexs(startFrom)
 
 	def cleanAllBibtexs(self, startFrom = 0, useEntries = None):
-		self.StatusBarMessage("Starting cleaning of bibtexs...")
+		self.statusBarMessage("Starting cleaning of bibtexs...")
 		self._runInThread(
 			thread_cleanAllBibtexs, "Clean Bibtexs",
 			startFrom, useEntries = useEntries,
@@ -1053,7 +1058,7 @@ class MainWindow(QMainWindow):
 			minProgress = 0., stopFlag = True)
 
 	def findBadBibtexs(self, startFrom = 0, useEntries = None):
-		self.StatusBarMessage("Starting checking bibtexs...")
+		self.statusBarMessage("Starting checking bibtexs...")
 		self.badBibtexs = []
 		self._runInThread(
 			thread_findBadBibtexs, "Check Bibtexs",
@@ -1077,7 +1082,7 @@ class MainWindow(QMainWindow):
 		askFieldsWin = fieldsFromArxiv()
 		askFieldsWin.exec_()
 		if askFieldsWin.result:
-			self.StatusBarMessage("Starting importing info from arxiv...")
+			self.statusBarMessage("Starting importing info from arxiv...")
 			self._runInThread(
 				thread_fieldsArxiv, "Get info from arXiv",
 				[e["bibkey"] for e in iterator], askFieldsWin.output,
@@ -1156,7 +1161,7 @@ class MainWindow(QMainWindow):
 						except:
 							pBLogger.warning("Failed in completing info for entry %s\n"%key)
 				QApplication.restoreOverrideCursor()
-				self.StatusBarMessage("[browseDailyArxiv] Entries successfully imported: %s"%inserted)
+				self.statusBarMessage("[browseDailyArxiv] Entries successfully imported: %s"%inserted)
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)
 			self.reloadMainContent()
@@ -1167,7 +1172,7 @@ class MainWindow(QMainWindow):
 		infoMessage(message)
 
 	def done(self):
-		self.StatusBarMessage("...done!")
+		self.statusBarMessage("...done!")
 
 if __name__=='__main__':
 	try:
