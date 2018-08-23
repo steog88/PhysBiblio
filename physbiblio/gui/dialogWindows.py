@@ -25,7 +25,7 @@ try:
 	from physbiblio.gui.commonClasses import \
 		MyComboBox, MyDDTableWidget, MyImportedTableModel, MyTableView, \
 		MyTrueFalseCombo, objListWindow
-	from physbiblio.gui.catWindows import catsWindowList
+	from physbiblio.gui.catWindows import categoriesTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -203,11 +203,11 @@ class configWindow(QDialog):
 		Parameter:
 			testing (default False):
 				if evaluates to True it must be
-				a `catsWindowList` instance,
+				a `categoriesTreeWindow` instance,
 				it will use the custom dialog instead of run `exec_`
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
-		selectCats = catsWindowList(
+		selectCats = categoriesTreeWindow(
 			parent = self,
 			askCats = True,
 			expButton = False,

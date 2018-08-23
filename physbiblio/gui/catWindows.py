@@ -27,15 +27,26 @@ except ImportError:
 def editCategory(parentObject,
 		mainWinObject,
 		editIdCat = None,
-		useParent = None):
-	"""Open a dialog (`editCategoryDialog`) to edit a category and process
+		useParentCat = None):
+	"""Open a dialog (`editCategoryDialog`) to edit a category
+	and process the output.
+
+	Parameters:
+		parentObject: the parent widget
+		mainWinObject: the object which has
+			the `statusBarMessage` and `setWindowTitle` methods
+		editIdCat: the id of the category to be edited,
+			or `None` to create a new category
+		useParentCat: the parent category (if any)
+			of the one to be edited
 	"""
 	if editIdCat is not None:
 		edit = pBDB.cats.getDictByID(editIdCat)
 	else:
 		edit = None
 	newCatWin = editCategoryDialog(parentObject,
-		cat = edit, useParent = useParent)
+		cat = edit,
+		useParentCat = useParentCat)
 	newCatWin.exec_()
 	data = {}
 	if newCatWin.result:
@@ -71,21 +82,36 @@ def editCategory(parentObject,
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info = True)
 
-def deleteCategory(parent, mainWinObject, idCat, name):
+def deleteCategory(parentObject, mainWinObject, idCat, name):
+	"""Ask confirmation and eventually delete the selected category
+
+	Parameters:
+		parentObject: the parent widget
+		mainWinObject: the object which has
+			the `statusBarMessage` and `setWindowTitle` methods
+		idCat: the id of the category to be deleted
+		name: the name of the category to be deleted
+	"""
 	if askYesNo("Do you really want to delete this category " +
 			"(ID = '%s', name = '%s')?"%(idCat, name)):
 		pBDB.cats.delete(int(idCat))
 		mainWinObject.setWindowTitle("PhysBiblio*")
 		message = "Category deleted"
-		parent.recreateTable()
+		try:
+			parentObject.recreateTable()
+		except AttributeError:
+			pBLogger.debug("parentObject has no attribute 'recreateTable'",
+				exc_info = True)
 	else:
 		message = "Nothing changed"
 	try:
 		mainWinObject.statusBarMessage(message)
-	except:
-		pass
+	except AttributeError:
+		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
+			exc_info = True)
 
 class catsModel(TreeModel):
+	"""Model for the categories Tree"""
 	def __init__(self,
 			cats,
 			rootElements,
@@ -109,7 +135,8 @@ class catsModel(TreeModel):
 				else:
 					self.selectedCats[prevIx] = True
 			except IndexError:
-				pBLogger.warning("Invalid idCat in previous selection: %s"%prevIx)
+				pBLogger.warning("Invalid idCat in previous selection: " +
+					"%s"%prevIx)
 
 	def _getRootNodes(self):
 		return [NamedNode(elem, None, index)
@@ -128,8 +155,11 @@ class catsModel(TreeModel):
 		if role == Qt.DisplayRole and index.column() == 0:
 			return value
 
-		if role == Qt.CheckStateRole and self.parentObj.askCats and column == 0:
-			if self.previousSaved[idCat] == True and self.selectedCats[idCat] == "p":
+		if role == Qt.CheckStateRole and \
+				self.parentObj.askCats and \
+				column == 0:
+			if self.previousSaved[idCat] == True and \
+					self.selectedCats[idCat] == "p":
 				return Qt.PartiallyChecked
 			elif self.selectedCats[idCat] == False:
 				return Qt.Unchecked
@@ -145,7 +175,8 @@ class catsModel(TreeModel):
 		if not index.isValid():
 			return None
 		if index.column() == 0 and self.parentObj.askCats:
-			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		else:
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
@@ -166,9 +197,18 @@ class catsModel(TreeModel):
 		self.dataChanged.emit(index, index)
 		return True
 
-class catsWindowList(QDialog):
-	def __init__(self, parent = None, askCats = False, askForBib = None, askForExp = None, expButton = True, previous = [], single = False, multipleRecords = False):
-		super(catsWindowList, self).__init__(parent)
+class categoriesTreeWindow(QDialog):
+	"""W"""
+	def __init__(self,
+			parent = None,
+			askCats = False,
+			askForBib = None,
+			askForExp = None,
+			expButton = True,
+			previous = [],
+			single = False,
+			multipleRecords = False):
+		super(categoriesTreeWindow, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
@@ -188,17 +228,23 @@ class catsWindowList(QDialog):
 	def populateAskCat(self):
 		if self.askCats:
 			if self.askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery = False)[0]
+				bibitem = pBDB.bibs.getByBibkey(self.askForBib,
+					saveQuery = False)[0]
 				try:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
+					bibtext = QLabel("Mark categories for the following " +
+						"entry:\n    key:\n%s\n"%self.askForBib +
+						"    author(s):\n%s\n"%bibitem["author"] +
+						"    title:\n%s\n"%bibitem["title"])
 				except:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
+					bibtext = QLabel("Mark categories for " +
+						"the following entry:\n    key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForExp is not None:
 				pass
 			else:
 				if self.single:
-					comment = QLabel("Select the desired category (only the first one will be considered):")
+					comment = QLabel("Select the desired category " +
+						"(only the first one will be considered):")
 				else:
 					comment = QLabel("Select the desired categories:")
 				self.currLayout.addWidget(comment)
@@ -210,10 +256,16 @@ class catsWindowList(QDialog):
 		self.close()
 
 	def onOk(self, exps = False):
-		self.parent.selectedCats = [idC for idC in self.root_model.selectedCats.keys() if self.root_model.selectedCats[idC] == True]
-		self.parent.previousUnchanged = [idC for idC in self.root_model.previousSaved.keys() if self.root_model.previousSaved[idC] == True]
+		self.parent.selectedCats = [idC \
+			for idC in self.root_model.selectedCats.keys() \
+			if self.root_model.selectedCats[idC] == True]
+		self.parent.previousUnchanged = [idC \
+			for idC in self.root_model.previousSaved.keys() \
+			if self.root_model.previousSaved[idC] == True]
 
-		if self.single and len(self.parent.selectedCats) > 1 and self.parent.selectedCats[0] == 0:
+		if self.single and \
+				len(self.parent.selectedCats) > 1 and \
+				self.parent.selectedCats[0] == 0:
 			self.parent.selectedCats.pop(0)
 		if exps:
 			self.result	= "Exps"
@@ -254,7 +306,11 @@ class catsWindowList(QDialog):
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
-		self.root_model = catsModel(pBDB.cats.getAll(), [catsNamedTree], self, self.previous, multipleRecords = self.multipleRecords)
+		self.root_model = catsModel(pBDB.cats.getAll(),
+			[catsNamedTree],
+			self,
+			self.previous,
+			multipleRecords = self.multipleRecords)
 		self.proxyModel = LeafFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -300,7 +356,8 @@ class catsWindowList(QDialog):
 			row = index.row()
 		else:
 			return
-		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
+		idCat, catName = self.proxyModel.sibling(row, 0, index) \
+			.data().split(": ")
 		idCat = idCat.strip()
 		try:
 			self.timerA.stop()
@@ -317,21 +374,27 @@ class catsWindowList(QDialog):
 		self.timerA.setSingleShot(True)
 		self.timerA.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
-			"{idC}: {cat}\nCorresponding entries: {en}\nAssociated experiments: {ex}".format(
-				idC = idCat, cat = catData["name"], en = pBDB.catBib.countByCat(idCat), ex = pBDB.catExp.countByCat(idCat)),
+			"{idC}: {cat}\nCorresponding entries: ".format(
+				idC = idCat,
+				cat = catData["name"]) +
+			"{en}\nAssociated experiments: {ex}".format(
+				en = pBDB.catBib.countByCat(idCat),
+				ex = pBDB.catExp.countByCat(idCat)),
 			self.tree.viewport(),
 			self.tree.visualRect(index)
 		))
 		self.timerA.start(500)
 		self.timerB = QTimer(self)
 		self.timerB.setSingleShot(True)
-		self.timerB.timeout.connect(lambda: QToolTip.showText(QCursor.pos(), "", self.tree.viewport()))
+		self.timerB.timeout.connect(lambda: QToolTip.showText(
+			QCursor.pos(), "", self.tree.viewport()))
 		self.timerB.start(3500)
 
 	def contextMenuEvent(self, event):
 		index = self.tree.selectedIndexes()[0]
 		row = index.row()
-		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
+		idCat, catName = self.proxyModel.sibling(row, 0, index) \
+			.data().split(": ")
 		idCat = idCat.strip()
 		
 		menu = MyMenu()
@@ -342,14 +405,18 @@ class catsWindowList(QDialog):
 		delAction = QAction("Delete")
 		subAction = QAction("Add subcategory")
 		menu.possibleActions = [
-			titAction, None, bibAction, None, modAction, delAction, None, subAction
+			titAction, None,
+			bibAction, None,
+			modAction, delAction, None,
+			subAction
 			]
 		menu.fillMenu()
 
 		action = menu.exec_(event.globalPos())
 		if action == bibAction:
 			searchDict = {"cats": {"id": [idCat], "operator": "and"}}
-			self.parent.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+			self.parent.reloadMainContent(
+				pBDB.bibs.fetchFromDict(searchDict).lastFetched)
 		elif action == modAction:
 			editCategory(self, self.parent, idCat)
 		elif action == delAction:
@@ -370,8 +437,8 @@ class catsWindowList(QDialog):
 		self.fillTree()
 
 class editCategoryDialog(editObjectWindow):
-	"""create a window for editing or creating a category"""
-	def __init__(self, parent = None, cat = None, useParent = None):
+	"""Create a window for editing or creating a category"""
+	def __init__(self, parent = None, cat = None, useParentCat = None):
 		super(editCategoryDialog, self).__init__(parent)
 		if cat is None:
 			self.data = {}
@@ -379,9 +446,9 @@ class editCategoryDialog(editObjectWindow):
 				self.data[k] = ""
 		else:
 			self.data = cat
-		if useParent is not None:
-			self.data["parentCat"] = useParent
-			self.selectedCats = [useParent]
+		if useParentCat is not None:
+			self.data["parentCat"] = useParentCat
+			self.selectedCats = [useParentCat]
 		elif cat is not None:
 			try:
 				self.selectedCats = [pBDB.cats.getParent(cat["idCat"])[0][0]]
@@ -392,12 +459,17 @@ class editCategoryDialog(editObjectWindow):
 		self.createForm()
 
 	def onAskParent(self):
-		selectCats = catsWindowList(parent = self, askCats = True, expButton = False, single = True, previous = self.selectedCats)
+		selectCats = categoriesTreeWindow(parent = self,
+			askCats = True,
+			expButton = False,
+			single = True,
+			previous = self.selectedCats)
 		selectCats.exec_()
 		if selectCats.result == "Ok":
 			try:
 				val = self.selectedCats[0]
-				self.textValues["parentCat"].setText("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]))
+				self.textValues["parentCat"].setText(
+					"%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]))
 			except IndexError:
 				self.textValues["parentCat"].setText("Select parent")
 
@@ -409,12 +481,15 @@ class editCategoryDialog(editObjectWindow):
 			val = self.data[k]
 			if k != "idCat" or (k == "idCat" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(QLabel(pBDB.descriptions["categories"][k]), i*2-1, 0)
+				self.currGrid.addWidget(QLabel(
+					pBDB.descriptions["categories"][k]), i*2-1, 0)
 				self.currGrid.addWidget(QLabel("(%s)"%k), i*2-1, 1)
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]
-						self.textValues[k] = QPushButton("%s - %s"%(str(val), pBDB.cats.getByID(val)[0]["name"]), self)
+						self.textValues[k] = QPushButton(
+							"%s - %s"%(str(val),
+								pBDB.cats.getByID(val)[0]["name"]), self)
 					except IndexError:
 						self.textValues[k] = QPushButton("Select parent", self)
 					self.textValues[k].clicked.connect(self.onAskParent)

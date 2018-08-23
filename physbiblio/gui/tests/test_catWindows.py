@@ -69,8 +69,8 @@ class TestCatsModel(GUITestCase):
 		pass
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestCatsWindowList(GUITestCase):
-	"""test the catsWindowList class"""
+class TestCategoriesTreeWindow(GUITestCase):
+	"""test the categoriesTreeWindow class"""
 	def test_init(self):
 		"""test init"""
 		pass
