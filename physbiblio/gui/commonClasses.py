@@ -679,9 +679,9 @@ class TreeModel(QAbstractItemModel):
 			return QModelIndex()
 
 	def parent(self, index):
-		"""
-		Retrieve the `QModelIndex` of the parent of the requested object,
-		if it exists, or an empty `QModelIndex` instead
+		"""Retrieve the `QModelIndex` of the parent of
+		the item with the given index, if it exists,
+		or an invalid `QModelIndex` instead
 
 		Parameters:
 			index: the `QModelIndex` of the node

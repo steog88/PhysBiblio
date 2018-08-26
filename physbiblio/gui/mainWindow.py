@@ -38,7 +38,7 @@ try:
 	from physbiblio.gui.inspireStatsGUI import authorStatsPlots, paperStatsPlots
 	from physbiblio.gui.profilesManager import selectProfiles, editProf
 	from physbiblio.gui.threadElements import \
-		thread_authorStats, thread_cleanSpare, thread_cleanSparePDF, thread_updateAllBibtexs, thread_exportTexBib, thread_importFromBib, thread_updateInspireInfo, thread_paperStats, thread_loadAndInsert, thread_cleanAllBibtexs, thread_findBadBibtexs, thread_fieldsArxiv
+		thread_authorStats, thread_cleanSpare, thread_cleanSparePDF, thread_updateAllBibtexs, thread_exportTexBib, thread_importFromBib, thread_updateInspireInfo, thread_paperStats, thread_loadAndInsert, thread_cleanAllBibtexs, thread_findBadBibtexs, thread_fieldsArxiv, thread_checkUpdated
 except ImportError as e:
 	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())

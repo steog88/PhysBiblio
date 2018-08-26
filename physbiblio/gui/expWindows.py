@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QLabel, QLineEdit, QPushButton, QToolTip
+from PySide2.QtWidgets import QAction, QLabel, QLineEdit, QPushButton, QToolTip
 import traceback
 import operator
 
@@ -16,7 +16,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyTableModel, objListWindow
+		editObjectWindow, MyMenu, MyTableModel, objListWindow
 	from physbiblio.gui.catWindows import categoriesTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
