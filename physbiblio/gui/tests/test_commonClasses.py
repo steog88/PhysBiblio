@@ -92,6 +92,8 @@ class TestLabels(GUITestCase):
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.textInteractionFlags(),
 			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
+		self.assertEqual(l.textFormat(), Qt.RichText)
+		self.assertEqual(l.openExternalLinks(), True)
 
 	def test_myLabelRight(self):
 		"""Test MyLabelRight"""

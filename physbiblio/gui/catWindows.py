@@ -14,6 +14,7 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.database import pBDB, cats_alphabetical
 	from physbiblio.config import pbConfig
+	from physbiblio.view import pBView
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import \
 		askYesNo
@@ -326,29 +327,46 @@ class categoriesTreeWindow(QDialog):
 						"is not in the database!", exc_info = True)
 					return
 				try:
+					if pBDB.bibs.getField(self.askForBib, "inspire") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "inspire"),
+							self.askForBib)
+					elif pBDB.bibs.getField(self.askForBib, "arxiv") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "arxiv"),
+							self.askForBib)
+					elif pBDB.bibs.getField(self.askForBib, "doi") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "doi"),
+							self.askForBib)
+					else:
+						link = self.askForBib
 					bibtext = MyLabel("Mark categories for the following " +
-						"entry:\n    key:\n%s\n"%self.askForBib +
-						"    author(s):\n%s\n"%bibitem["author"] +
-						"    title:\n%s\n"%bibitem["title"])
+						"entry</b>:<br><b>key</b>:<br>%s<br>"%link +
+						"<b>author(s)</b>:<br>%s<br>"%bibitem["author"] +
+						"<b>title</b>:<br>%s<br>"%bibitem["title"])
 				except KeyError:
-					bibtext = MyLabel("Mark categories for " +
-						"the following entry:\n    key:\n%s\n"%(self.askForBib))
+					bibtext = MyLabel("Mark categories for the following " +
+						"entry:<br><b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForExp is not None:
 				try:
 					expitem = pBDB.exps.getByID(self.askForExp)[0]
 				except IndexError:
-					pBGUILogger.warning("The experiment ID %s "%self.askForExp +
-						"is not in the database!", exc_info = True)
+					pBGUILogger.warning("The experiment ID %s"%self.askForExp +
+						" is not in the database!", exc_info = True)
 					return
 				try:
 					exptext = MyLabel("Mark categories for the following " +
-						"experiment:\n    id:\n%s\n"%self.askForExp +
-						"    name:\n%s\n"%expitem["name"] +
-						"    comments:\n%s\n"%expitem["comments"])
+						"experiment:<br><b>id</b>:<br>%s<br>"%self.askForExp +
+						"<b>name</b>:<br>%s<br>"%expitem["name"] +
+						"<b>comments</b>:<br>%s<br>"%expitem["comments"])
 				except KeyError:
 					exptext = MyLabel("Mark categories for the following " +
-						"experiment:\n    id:\n%s\n"%(self.askForExp))
+						"experiment:<br><b>id</b>:<br>%s<br>"%(self.askForExp))
 				self.currLayout.addWidget(exptext)
 			else:
 				if self.single:

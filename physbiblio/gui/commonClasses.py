@@ -35,6 +35,8 @@ class MyLabel(QLabel):
 		to allow text selection with the mouse
 		"""
 		QLabel.__init__(self, *args, **kwargs)
+		self.setTextFormat(Qt.RichText)
+		self.setOpenExternalLinks(True)
 		self.setTextInteractionFlags(
 			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
 
