@@ -1,4 +1,14 @@
+	New features:
+	* now runs with PySide2 (based on Qt5)
+	* `Physbiblio test` options through command line
+	* filter of arxiv daily imports also considers the abstract text
+	* text selection with the mouse is allowed for all the labels in the widgets
+
+	Improvements/bug fixes:
 	* bug in inspireStatsGUI plot clicking
+	* several functions improved
+	* several performance improvements
+	* many possible bugs fixed during code review for test writing
 
 0.5.2 (2018-07-05):
 	New features:

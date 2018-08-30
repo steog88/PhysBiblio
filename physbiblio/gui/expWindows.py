@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QAction, QLabel, QLineEdit, QPushButton, QToolTip
+from PySide2.QtWidgets import QAction, QLineEdit, QPushButton, QToolTip
 import traceback
 import operator
 
@@ -16,7 +16,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyMenu, MyTableModel, objListWindow
+		editObjectWindow, MyLabel, MyMenu, MyTableModel, objListWindow
 	from physbiblio.gui.catWindows import categoriesTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -138,9 +138,9 @@ class ExpWindowList(objListWindow):
 			if self.askForBib is not None:
 				bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery = False)[0]
 				try:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
+					bibtext = MyLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
 				except:
-					bibtext = QLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
+					bibtext = MyLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForCat is not None:
 				pass
@@ -313,8 +313,8 @@ class editExp(editObjectWindow):
 			val = self.data[k]
 			if k != "idExp" or (k == "idExp" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(QLabel(k), i*2-1, 0)
-				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
+				self.currGrid.addWidget(MyLabel(k), i*2-1, 0)
+				self.currGrid.addWidget(MyLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "idExp":
 					self.textValues[k].setEnabled(False)

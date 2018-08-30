@@ -4,6 +4,7 @@ Module with the classes and functions that manage the entries windows and panels
 This file is part of the physbiblio package.
 """
 import sys
+import traceback
 import os
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -13,7 +14,7 @@ from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide2.QtWidgets import \
 	QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, \
-	QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, \
+	QHBoxLayout, QLineEdit, QPlainTextEdit, QPushButton, \
 	QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
 import re
 from pyparsing import ParseException
@@ -30,8 +31,9 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyAndOrCombo, MyComboBox, MyLabelCenter, \
-		MyLabelRight, MyMenu, MyTableModel, objListWindow
+		editObjectWindow, MyAndOrCombo, MyComboBox, MyLabel, \
+		MyLabelCenter, MyLabelRight, MyMenu, MyTableModel, \
+		objListWindow
 	from physbiblio.gui.threadElements import \
 		thread_downloadArxiv, thread_processLatex
 	from physbiblio.gui.catWindows import categoriesTreeWindow
@@ -480,7 +482,7 @@ class bibtexList(QFrame, objListWindow):
 		commentStr = "Last query to bibtex database: \t%s\t\t"%(pBDB.bibs.lastQuery)
 		if len(pBDB.bibs.lastVals)>0 :
 			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
-		self.currLayout.addWidget(QLabel(commentStr))
+		self.currLayout.addWidget(MyLabel(commentStr))
 
 		self.selectToolBar = QToolBar('Bibs toolbar')
 		self.selectToolBar.addAction(self.selAct)
@@ -489,7 +491,7 @@ class bibtexList(QFrame, objListWindow):
 		self.selectToolBar.addAction(self.selAllAct)
 		self.selectToolBar.addAction(self.unselAllAct)
 		self.selectToolBar.addAction(self.okAct)
-		self.selectToolBar.addWidget(QLabel("(Select exactly two entries to enable merging them)"))
+		self.selectToolBar.addWidget(MyLabel("(Select exactly two entries to enable merging them)"))
 		self.selectToolBar.addSeparator()
 
 		self.filterInput = QLineEdit("",  self)
@@ -932,8 +934,8 @@ class editBibtexEntry(editObjectWindow):
 			val = self.data[k] if self.data[k] is not None else ""
 			if k != "bibtex" and k != "marks" and k != "abstract" and k not in self.checkboxes:
 				i += 1
-				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
-				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
+				self.currGrid.addWidget(MyLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
+				self.currGrid.addWidget(MyLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "bibkey" and val != "":
 					self.textValues[k].setReadOnly(True)
@@ -951,8 +953,8 @@ class editBibtexEntry(editObjectWindow):
 		#bibtex text editor
 		i += 1 + i%2
 		k = "bibtex"
-		self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
-		self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
+		self.currGrid.addWidget(MyLabel(k), int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
+		self.currGrid.addWidget(MyLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
 		self.textValues[k] = QPlainTextEdit(self.data[k])
 		self.textValues["bibtex"].textChanged.connect(self.updateBibkey)
 		self.currGrid.addWidget(self.textValues[k], int((i+1-(i+i)%2)/2)*2, 0, self.bibtexEditLines, 2)
@@ -962,8 +964,8 @@ class editBibtexEntry(editObjectWindow):
 			val = self.data[k]
 			if k in self.checkboxes:
 				j += 2
-				self.currGrid.addWidget(QLabel(k), int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
-				self.currGrid.addWidget(QLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
+				self.currGrid.addWidget(MyLabel(k), int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
+				self.currGrid.addWidget(MyLabel("(%s)"%pBDB.descriptions["entries"][k]),  int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
 				self.checkValues[k] = QCheckBox("", self)
 				if val == 1:
 					self.checkValues[k].toggle()
@@ -1377,7 +1379,7 @@ class searchBibsWindow(editObjectWindow):
 		groupBox.setLayout(vbox)
 		self.currGrid.addWidget(groupBox, 5, 2, 1, 5)
 
-		self.currGrid.addWidget(QLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 7, 0, 1, 7)
+		self.currGrid.addWidget(MyLabel("Select more: the operator to use, the field to match, (exact match vs contains) and the content to match"), 7, 0, 1, 7)
 		firstFields = 8
 		self.currGrid.setRowMinimumHeight(6, spaceRowHeight)
 
@@ -1418,7 +1420,7 @@ class searchBibsWindow(editObjectWindow):
 
 		i += 2
 		if self.replace:
-			self.currGrid.addWidget(QLabel("Replace:"), i - 1, 0)
+			self.currGrid.addWidget(MyLabel("Replace:"), i - 1, 0)
 			self.currGrid.addWidget(MyLabelRight("regex:"), i - 1, 2)
 			self.replRegex = QCheckBox("", self)
 			self.currGrid.addWidget(self.replRegex, i - 1, 3)

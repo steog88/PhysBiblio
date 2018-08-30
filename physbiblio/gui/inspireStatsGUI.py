@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QLineEdit, QPushButton
+from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 import numpy as np
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -20,6 +20,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import askDirName, infoMessage
+	from physbiblio.gui.commonClasses import MyLabel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -54,13 +55,13 @@ class authorStatsPlots(QDialog):
 		self.updatePlots(figs)
 
 		nlines = int(len(figs)/2)
-		self.layout().addWidget(QLabel("Click on the lines to have more information:"), nlines + 1, 0)
+		self.layout().addWidget(MyLabel("Click on the lines to have more information:"), nlines + 1, 0)
 
 		try:
 			hIndex = "%d"%self.parent().lastAuthorStats["h"]
 		except AttributeError:
 			hIndex = "ND"
-		self.hIndex = QLabel("Author h index: %s"%hIndex)
+		self.hIndex = MyLabel("Author h index: %s"%hIndex)
 		largerFont = QFont("Times", 15, QFont.Bold)
 		self.hIndex.setFont(largerFont)
 		self.layout().addWidget(self.hIndex, nlines + 1, 1)
@@ -150,7 +151,9 @@ class authorStatsPlots(QDialog):
 				i += 1
 
 class paperStatsPlots(QDialog):
-	"""Class that constructs a window to show the results of `paperStats`"""
+	"""Class that constructs a window
+	to show the results of `paperStats`
+	"""
 	def __init__(self, fig, title = None, parent = None):
 		"""
 		Constructor.
@@ -158,7 +161,8 @@ class paperStatsPlots(QDialog):
 		Parameters:
 			fig: the figure to be shown
 			title (optional): the window title
-			parent (default None): the parent object, which should have a property lastPaperStats
+			parent (default None): the parent object,
+				which should have a property lastPaperStats
 		"""
 		super(paperStatsPlots, self).__init__(parent)
 		if title is not None:
@@ -169,7 +173,8 @@ class paperStatsPlots(QDialog):
 		self.updatePlots(fig)
 
 		nlines = 1
-		self.layout().addWidget(QLabel("Click on the line to have more information:"), nlines + 1, 0)
+		self.layout().addWidget(MyLabel(
+			"Click on the line to have more information:"), nlines + 1, 0)
 
 		self.textBox = QLineEdit("")
 		self.textBox.setReadOnly(True)

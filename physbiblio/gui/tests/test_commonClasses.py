@@ -85,6 +85,14 @@ class TestLabels(GUITestCase):
 	"""
 	Test the MyLabelRight and MyLabelCenter classes
 	"""
+	def test_myLabel(self):
+		"""Test MyLabel"""
+		l = MyLabel("label")
+		self.assertIsInstance(l, QLabel)
+		self.assertEqual(l.text(), "label")
+		self.assertEqual(l.textInteractionFlags(),
+			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
+
 	def test_myLabelRight(self):
 		"""Test MyLabelRight"""
 		l = MyLabelRight("label")

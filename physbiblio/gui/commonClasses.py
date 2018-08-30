@@ -26,7 +26,19 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
-class MyLabelRight(QLabel):
+class MyLabel(QLabel):
+	"""Extension of `QLabel` with text interaction flags
+	which enable text selection with the mouse
+	"""
+	def __init__(self, *args, **kwargs):
+		"""Extend `QLabel.__init__` and call `setTextInteractionFlags`
+		to allow text selection with the mouse
+		"""
+		QLabel.__init__(self, *args, **kwargs)
+		self.setTextInteractionFlags(
+			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
+
+class MyLabelRight(MyLabel):
 	"""Class that creates a right-aligned QLabel"""
 	def __init__(self, label):
 		"""
@@ -38,7 +50,7 @@ class MyLabelRight(QLabel):
 		super(MyLabelRight, self).__init__(label)
 		self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
-class MyLabelCenter(QLabel):
+class MyLabelCenter(MyLabel):
 	"""Class that creates a center-aligned QLabel"""
 	def __init__(self, label):
 		"""

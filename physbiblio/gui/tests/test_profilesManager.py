@@ -426,11 +426,11 @@ class TestSelectProfiles(GUITestCase):
 		self.assertIsInstance(sp.layout(), QGridLayout)
 		self.assertEqual(sp.layout().spacing(), 10)
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(sp.layout().itemAtPosition(0, 0).widget().text(),
 			"message")
 		self.assertIsInstance(sp.layout().itemAtPosition(1, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(sp.layout().itemAtPosition(1, 0).widget().text(),
 			"Available profiles: ")
 		mcb = sp.layout().itemAtPosition(1, 1).widget()
@@ -451,7 +451,7 @@ class TestSelectProfiles(GUITestCase):
 
 		sp = selectProfiles(p)
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(sp.layout().itemAtPosition(0, 0).widget().text(),
 			"Available profiles: ")
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 1).widget(),
@@ -821,26 +821,26 @@ class TestEditProfile(GUITestCase):
 		for i, l in labels:
 			self.assertIsInstance(
 				ep.layout().itemAtPosition(0, i).widget(),
-				QLabel)
+				MyLabel)
 			self.assertEqual(
 				ep.layout().itemAtPosition(0, i).widget().text(),
 				l)
 		i = len(pbConfig.profiles) + 3
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i - 2, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i - 2, 0).widget().text(),
 			"")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i - 1, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i - 1, 0).widget().text(),
 			"Add new?")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i + 1, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i + 1, 0).widget().text(),
 			"")
@@ -890,7 +890,7 @@ class TestEditProfile(GUITestCase):
 		self.assertEqual(w3.text(), "")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i, 4).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i, 4).widget().text(),
 			"Copy from:")
@@ -974,7 +974,7 @@ class TestEditProfile(GUITestCase):
 		self.assertEqual(w3.text(), "")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i, 4).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i, 4).widget().text(),
 			"Copy from:")

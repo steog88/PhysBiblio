@@ -7,7 +7,7 @@ import sys
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import \
-	QAction, QDialog, QLabel, QLineEdit, QPushButton, QTreeView, \
+	QAction, QDialog, QLineEdit, QPushButton, QTreeView, \
 	QVBoxLayout, QToolTip
 
 try:
@@ -18,7 +18,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, LeafFilterProxyModel, MyMenu, \
+		editObjectWindow, LeafFilterProxyModel, MyLabel, MyMenu, \
 		NamedElement, NamedNode, TreeModel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -326,12 +326,12 @@ class categoriesTreeWindow(QDialog):
 						"is not in the database!", exc_info = True)
 					return
 				try:
-					bibtext = QLabel("Mark categories for the following " +
+					bibtext = MyLabel("Mark categories for the following " +
 						"entry:\n    key:\n%s\n"%self.askForBib +
 						"    author(s):\n%s\n"%bibitem["author"] +
 						"    title:\n%s\n"%bibitem["title"])
 				except KeyError:
-					bibtext = QLabel("Mark categories for " +
+					bibtext = MyLabel("Mark categories for " +
 						"the following entry:\n    key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForExp is not None:
@@ -342,20 +342,20 @@ class categoriesTreeWindow(QDialog):
 						"is not in the database!", exc_info = True)
 					return
 				try:
-					exptext = QLabel("Mark categories for the following " +
+					exptext = MyLabel("Mark categories for the following " +
 						"experiment:\n    id:\n%s\n"%self.askForExp +
 						"    name:\n%s\n"%expitem["name"] +
 						"    comments:\n%s\n"%expitem["comments"])
 				except KeyError:
-					exptext = QLabel("Mark categories for the following " +
+					exptext = MyLabel("Mark categories for the following " +
 						"experiment:\n    id:\n%s\n"%(self.askForExp))
 				self.currLayout.addWidget(exptext)
 			else:
 				if self.single:
-					comment = QLabel("Select the desired category " +
+					comment = MyLabel("Select the desired category " +
 						"(only the first one will be considered):")
 				else:
-					comment = QLabel("Select the desired categories:")
+					comment = MyLabel("Select the desired categories:")
 				self.currLayout.addWidget(comment)
 			self.marked = []
 			self.parent().selectedCats = []
@@ -652,9 +652,9 @@ class editCategoryDialog(editObjectWindow):
 			val = self.data[k]
 			if k != "idCat" or (k == "idCat" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(QLabel(
+				self.currGrid.addWidget(MyLabel(
 					pBDB.descriptions["categories"][k]), i*2-1, 0)
-				self.currGrid.addWidget(QLabel("(%s)"%k), i*2-1, 1)
+				self.currGrid.addWidget(MyLabel("(%s)"%k), i*2-1, 1)
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]

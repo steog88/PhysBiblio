@@ -15,6 +15,7 @@ from PySide2.QtWidgets import QAction, QApplication, QDesktopWidget, QFrame, QMa
 import signal
 import ast
 import glob
+import bibtexparser
 
 try:
 	from physbiblio.errors import pBErrorManager, pBLogger
@@ -24,6 +25,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
+	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import \
 		askFileName, askFileNames, askGenericText, askSaveFileName, askYesNo, infoMessage

@@ -135,7 +135,7 @@ class TestConfigEditColumns(GUITestCase):
 		self.assertIsInstance(cec.listAll, MyDDTableWidget)
 		self.assertIsInstance(cec.listSel, MyDDTableWidget)
 		self.assertIsInstance(cec.layout().itemAtPosition(0, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(cec.layout().itemAtPosition(0, 0).widget().text(),
 			"Drag and drop items to order visible columns")
 		self.assertEqual(cec.layout().itemAtPosition(1, 0).widget(),
@@ -331,7 +331,7 @@ class TestConfigWindow(GUITestCase):
 
 		for ix, k in enumerate(pbConfig.paramOrder):
 			self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(),
-				QLabel)
+				MyLabel)
 			self.assertEqual(cw.layout().itemAtPosition(ix, 0).widget().text(),
 				"%s (<i>%s</i>)"%(pbConfig.descriptions[k], k))
 			if k == "bibtexListColumns":
@@ -509,7 +509,7 @@ class TestLogFileContentDialog(GUITestCase):
 		self.assertEqual(lf.windowTitle(), lf.title)
 		self.assertIsInstance(lf.layout(), QVBoxLayout)
 		self.assertEqual(lf.layout().spacing(), 1)
-		self.assertIsInstance(lf.layout().itemAt(0).widget(), QLabel)
+		self.assertIsInstance(lf.layout().itemAt(0).widget(), MyLabel)
 		self.assertEqual(lf.layout().itemAt(0).widget().text(),
 			"Reading %s"%pbConfig.params["logFileName"])
 		self.assertIsInstance(lf.textEdit, QPlainTextEdit)
@@ -593,7 +593,7 @@ class TestPrintText(GUITestCase):
 		pt = printText(p, "title", True, "some tot string",
 			"some progr string", False, "mymessage")
 		self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(pt.grid.itemAtPosition(0, 0).widget().text(),
 			pt.message)
 		self.assertIsInstance(pt.grid.itemAtPosition(1, 0).widget(),
@@ -753,10 +753,10 @@ class TestAdvImportDialog(GUITestCase):
 		self.assertEqual(aid.grid, aid.layout())
 		self.assertEqual(aid.grid.spacing(), 1)
 
-		self.assertIsInstance(aid.grid.itemAtPosition(0, 0).widget(), QLabel)
+		self.assertIsInstance(aid.grid.itemAtPosition(0, 0).widget(), MyLabel)
 		self.assertEqual(aid.grid.itemAtPosition(0, 0).widget().text(),
 			"Search string: ")
-		self.assertIsInstance(aid.grid.itemAtPosition(1, 0).widget(), QLabel)
+		self.assertIsInstance(aid.grid.itemAtPosition(1, 0).widget(), MyLabel)
 		self.assertEqual(aid.grid.itemAtPosition(1, 0).widget().text(),
 			"Select method: ")
 
@@ -867,7 +867,7 @@ class TestAdvImportSelect(GUITestCase):
 		self.assertEqual(ais.layout(), ais.currLayout)
 		self.assertEqual(ais.currLayout.spacing(), 1)
 		self.assertIsInstance(ais.layout().itemAtPosition(0, 0).widget(),
-			QLabel)
+			MyLabel)
 		self.assertEqual(ais.layout().itemAtPosition(0, 0).widget().text(),
 			"This is the list of elements found." +
 			"\nSelect the ones that you want to import:")
@@ -1003,10 +1003,10 @@ class TestDailyArxivDialog(GUITestCase):
 		self.assertEqual(dad.grid, dad.layout())
 		self.assertEqual(dad.grid.spacing(), 1)
 
-		self.assertIsInstance(dad.grid.itemAtPosition(0, 0).widget(), QLabel)
+		self.assertIsInstance(dad.grid.itemAtPosition(0, 0).widget(), MyLabel)
 		self.assertEqual(dad.grid.itemAtPosition(0, 0).widget().text(),
 			"Select category: ")
-		self.assertIsInstance(dad.grid.itemAtPosition(1, 0).widget(), QLabel)
+		self.assertIsInstance(dad.grid.itemAtPosition(1, 0).widget(), MyLabel)
 		self.assertEqual(dad.grid.itemAtPosition(1, 0).widget().text(),
 			"Subcategory: ")
 
@@ -1071,13 +1071,13 @@ class TestDailyArxivSelect(GUITestCase):
 		das = dailyArxivSelect({}, p)
 		self.assertEqual(das.windowTitle(), 'ArXiv daily listing - results')
 		self.assertEqual(das.layout().spacing(), 1)
-		self.assertIsInstance(das.layout().itemAt(0).widget(), QLabel)
+		self.assertIsInstance(das.layout().itemAt(0).widget(), MyLabel)
 		self.assertEqual(das.layout().itemAt(0).widget().text(),
 			"This is the list of elements found.\n" +
 				"Select the ones that you want to import:")
 		self.assertIsInstance(das.tableModel, MyImportedTableModel)
 		self.assertEqual(das.tableModel.header,
-			["eprint", "type", "title", "author", "primaryclass"])
+			["eprint", "type", "title", "author", "primaryclass", "abstract"])
 		self.assertEqual(das.tableModel.idName, "eprint")
 		self.assertIsInstance(das.layout().itemAt(1).widget(), QLineEdit)
 		self.assertEqual(das.layout().itemAt(1).widget(), das.filterInput)

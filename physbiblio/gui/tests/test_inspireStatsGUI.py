@@ -11,7 +11,7 @@ import datetime
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QFont
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QLabel, QLineEdit, QMessageBox, QWidget
+from PySide2.QtWidgets import QLineEdit, QMessageBox, QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -25,6 +25,7 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.basicDialogs import askDirName
+	from physbiblio.gui.commonClasses import MyLabel
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -922,10 +923,10 @@ class TestAuthorStatsPlots(GUITestCase):
 			self.assertEqual(asp.layout().columnCount(), 2)
 			self.assertEqual(asp.layout().rowCount(), 7)
 			w40 = asp.layout().itemAtPosition(4, 0).widget()
-			self.assertIsInstance(w40, QLabel)
+			self.assertIsInstance(w40, MyLabel)
 			self.assertEqual(w40.text(),
 				"Click on the lines to have more information:")
-			self.assertIsInstance(asp.hIndex, QLabel)
+			self.assertIsInstance(asp.hIndex, MyLabel)
 			self.assertEqual(asp.hIndex.font(), QFont("Times", 15, QFont.Bold))
 			self.assertEqual(asp.hIndex.text(), "Author h index: ND")
 			self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(),
@@ -955,7 +956,7 @@ class TestAuthorStatsPlots(GUITestCase):
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent = fakepar)
 			self.assertEqual(asp.parent(), fakepar)
-			self.assertIsInstance(asp.hIndex, QLabel)
+			self.assertIsInstance(asp.hIndex, MyLabel)
 			self.assertEqual(asp.hIndex.text(), "Author h index: 999")
 			self.assertEqual(asp.windowTitle(), "")
 
@@ -1051,7 +1052,7 @@ class TestPaperStatsPlots(GUITestCase):
 		self.assertEqual(asp.layout().columnCount(), 2)
 		self.assertEqual(asp.layout().rowCount(), 5)
 		w20 = asp.layout().itemAtPosition(2, 0).widget()
-		self.assertIsInstance(w20, QLabel)
+		self.assertIsInstance(w20, MyLabel)
 		self.assertEqual(w20.text(),
 			"Click on the line to have more information:")
 		self.assertIsInstance(asp.textBox, QLineEdit)

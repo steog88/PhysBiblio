@@ -10,7 +10,7 @@ import shutil
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, \
-	QDesktopWidget, QDialog, QGridLayout, QLabel, QLineEdit, \
+	QDesktopWidget, QDialog, QGridLayout, QLineEdit, \
 	QPushButton, QRadioButton
 
 try:
@@ -20,7 +20,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyComboBox
+		editObjectWindow, MyComboBox, MyLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -156,10 +156,10 @@ class selectProfiles(QDialog):
 
 		i = 0
 		if self.message is not None:
-			grid.addWidget(QLabel("%s"%self.message), 0, 0)
+			grid.addWidget(MyLabel("%s"%self.message), 0, 0)
 			i += 1
 
-		grid.addWidget(QLabel("Available profiles: "), i, 0)
+		grid.addWidget(MyLabel("Available profiles: "), i, 0)
 		self.combo = MyComboBox(self,
 			["%s -- %s"%(p, pbConfig.profiles[p]["d"])
 				for p in pbConfig.profileOrder],
@@ -379,15 +379,15 @@ class editProfile(editObjectWindow):
 		self.setWindowTitle('Edit profile')
 
 		labels = [
-			QLabel("Default"),
-			QLabel("Short name"),
-			QLabel("Filename"),
-			QLabel("Description")
+			MyLabel("Default"),
+			MyLabel("Short name"),
+			MyLabel("Filename"),
+			MyLabel("Description")
 			]
 		for i,e in enumerate(labels):
 			self.currGrid.addWidget(e, 0, i)
-		self.currGrid.addWidget(QLabel("Order"), 0, 4, 1, 2)
-		self.currGrid.addWidget(QLabel("Delete?"), 0, 6)
+		self.currGrid.addWidget(MyLabel("Order"), 0, 4, 1, 2)
+		self.currGrid.addWidget(MyLabel("Delete?"), 0, 6)
 
 		self.addButtons(profilesData, profileOrder)
 
@@ -397,9 +397,9 @@ class editProfile(editObjectWindow):
 					f, newLine.keys()) + "Default to empty.")
 				newLine[f] = ""
 		i = len(profilesData) + 3
-		self.currGrid.addWidget(QLabel(""), i-2, 0)
+		self.currGrid.addWidget(MyLabel(""), i-2, 0)
 		tempEl = {}
-		self.currGrid.addWidget(QLabel("Add new?"), i-1, 0)
+		self.currGrid.addWidget(MyLabel("Add new?"), i-1, 0)
 		tempEl["r"] = QRadioButton("")
 		self.def_group.addButton(tempEl["r"])
 		if newLine["r"]:
@@ -424,7 +424,7 @@ class editProfile(editObjectWindow):
 		tempEl["d"] = QLineEdit(newLine["d"])
 		self.currGrid.addWidget(tempEl["d"], i, 3)
 
-		self.currGrid.addWidget(QLabel("Copy from:"), i, 4, 1, 2)
+		self.currGrid.addWidget(MyLabel("Copy from:"), i, 4, 1, 2)
 		tempEl["c"] = QComboBox(self)
 		copyElements = ["None"] + registeredDb
 		tempEl["c"].addItems(copyElements)
@@ -435,7 +435,7 @@ class editProfile(editObjectWindow):
 		self.elements.append(tempEl)
 
 		i += 1
-		self.currGrid.addWidget(QLabel(""), i, 0)
+		self.currGrid.addWidget(MyLabel(""), i, 0)
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)

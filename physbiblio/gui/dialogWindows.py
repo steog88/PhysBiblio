@@ -7,7 +7,7 @@ import sys
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QTextCursor
 from PySide2.QtWidgets import \
-	QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, QLabel, \
+	QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, \
 	QLineEdit, QPlainTextEdit, QProgressBar, QPushButton, QTableWidgetItem, \
 	QTextEdit, QVBoxLayout
 import subprocess
@@ -23,8 +23,8 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askSaveFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		MyComboBox, MyDDTableWidget, MyImportedTableModel, MyTableView, \
-		MyTrueFalseCombo, objListWindow
+		MyComboBox, MyDDTableWidget, MyImportedTableModel, MyLabel, \
+		MyTableView, MyTrueFalseCombo, objListWindow
 	from physbiblio.gui.catWindows import categoriesTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -78,7 +78,7 @@ class configEditColumns(QDialog):
 		self.listAll = MyDDTableWidget(self, "Available columns")
 		self.listSel = MyDDTableWidget(self, "Selected columns")
 		self.gridlayout.addWidget(
-			QLabel("Drag and drop items to order visible columns"),
+			MyLabel("Drag and drop items to order visible columns"),
 			0, 0, 1, 2)
 		self.gridlayout.addWidget(self.listAll, 1, 0)
 		self.gridlayout.addWidget(self.listSel, 1, 1)
@@ -233,7 +233,7 @@ class configWindow(QDialog):
 			val = pbConfig.params[k] if type(pbConfig.params[k]) is str \
 				else str(pbConfig.params[k])
 			grid.addWidget(
-				QLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)),
+				MyLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)),
 				i-1, 0, 1, 2)
 			if k == "bibtexListColumns":
 				self.textValues.append([k, QPushButton(val)])
@@ -320,7 +320,7 @@ class LogFileContentDialog(QDialog):
 		grid = QVBoxLayout()
 		grid.setSpacing(1)
 
-		grid.addWidget(QLabel("Reading %s"%pbConfig.params["logFileName"]))
+		grid.addWidget(MyLabel("Reading %s"%pbConfig.params["logFileName"]))
 		try:
 			with open(pbConfig.params["logFileName"]) as r:
 				text = r.read()
@@ -371,7 +371,7 @@ class printText(QDialog):
 				Used to set the progress bar value appropriately.
 			noStopButton (default False): True if the widget must have
 				a "stop" button to stop the iterations
-			message: a text to be inserted as a `QLabel` in the dialog
+			message: a text to be inserted as a `MyLabel` in the dialog
 		"""
 		super(printText, self).__init__(parent)
 		self._wantToClose = False
@@ -408,7 +408,7 @@ class printText(QDialog):
 		grid.setSpacing(1)
 
 		if self.message is not None and self.message.strip() != "":
-			grid.addWidget(QLabel("%s"%self.message))
+			grid.addWidget(MyLabel("%s"%self.message))
 
 		self.textEdit = QTextEdit()
 		grid.addWidget(self.textEdit)
@@ -511,11 +511,11 @@ class advImportDialog(QDialog):
 		grid.setSpacing(1)
 
 		##search
-		grid.addWidget(QLabel("Search string: "), 0, 0)
+		grid.addWidget(MyLabel("Search string: "), 0, 0)
 		self.searchStr = QLineEdit("")
 		grid.addWidget(self.searchStr, 0, 1)
 
-		grid.addWidget(QLabel("Select method: "), 1, 0)
+		grid.addWidget(MyLabel("Select method: "), 1, 0)
 		self.comboMethod = MyComboBox(self,
 			["INSPIRE-HEP", "arXiv", "DOI", "ISBN"],
 			current = "INSPIRE-HEP")
@@ -581,7 +581,7 @@ class advImportSelect(objListWindow):
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(QLabel("This is the list of elements found." +
+		self.currLayout.addWidget(MyLabel("This is the list of elements found." +
 			"\nSelect the ones that you want to import:"))
 
 		headers = ["ID", "title", "author", "eprint", "doi"]
@@ -676,13 +676,13 @@ class dailyArxivDialog(QDialog):
 		self.grid.setSpacing(1)
 
 		##combo boxes
-		self.grid.addWidget(QLabel("Select category: "), 0, 0)
+		self.grid.addWidget(MyLabel("Select category: "), 0, 0)
 		self.comboCat = MyComboBox(self,
 			[""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys()))
 		self.comboCat.currentIndexChanged[str].connect(self.updateCat)
 		self.grid.addWidget(self.comboCat, 0, 1)
 
-		self.grid.addWidget(QLabel("Subcategory: "), 1, 0)
+		self.grid.addWidget(MyLabel("Subcategory: "), 1, 0)
 		self.comboSub = MyComboBox(self, [""])
 		self.grid.addWidget(self.comboSub, 1, 1)
 
@@ -709,7 +709,7 @@ class dailyArxivSelect(advImportSelect):
 		self.currLayout.setSpacing(1)
 
 		self.currLayout.addWidget(
-			QLabel("This is the list of elements found.\n" +
+			MyLabel("This is the list of elements found.\n" +
 				"Select the ones that you want to import:"))
 
 		headers = ["eprint", "type", "title", "author", "primaryclass"]
