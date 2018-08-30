@@ -30,7 +30,7 @@ try:
 	from physbiblio.gui.commonClasses import \
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
-		fieldsFromArxiv, searchBibsWindow, editBibtex, bibtexList, bibtexInfo, bibtexWindow
+		abstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, bibtexList, bibtexInfo, bibtexWindow
 	from physbiblio.gui.catWindows import categoriesTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, advImportSelect, dailyArxivDialog, dailyArxivSelect
@@ -1098,7 +1098,8 @@ class MainWindow(QMainWindow):
 			try:
 				physBiblioWeb.webSearch["arxiv"].categories[cat]
 			except KeyError:
-				pBLogger.warning("Non-existent category! %s"%cat)
+				pBGUILogger.warning("Non-existent category! %s"%cat)
+				return
 			QApplication.setOverrideCursor(Qt.WaitCursor)
 			content = physBiblioWeb.webSearch["arxiv"].arxivDaily(cat if sub == "--" else "%s.%s"%(cat, sub))
 			found = {}

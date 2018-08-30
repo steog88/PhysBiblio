@@ -501,8 +501,10 @@ class bibtexList(QFrame, objListWindow):
 		self.currLayout.addWidget(self.selectToolBar)
 
 		self.tableModel = MyBibTableModel(self,
-			self.bibs, self.columns + self.additionalCols,
-			self.columns, self.additionalCols,
+			self.bibs,
+			self.columns + self.additionalCols,
+			self.columns,
+			self.additionalCols,
 			askBibs = self.askBibs,
 			mainWin = self.parent,
 			previous = self.previous)

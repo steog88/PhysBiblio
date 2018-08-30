@@ -715,7 +715,7 @@ class dailyArxivSelect(advImportSelect):
 		headers = ["eprint", "type", "title", "author", "primaryclass"]
 		self.tableModel = MyImportedTableModel(self,
 			self.bibs,
-			headers,
+			headers + ["abstract"],
 			idName = "eprint")
 		self.addFilterInput("Filter entries", gridPos = (1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
