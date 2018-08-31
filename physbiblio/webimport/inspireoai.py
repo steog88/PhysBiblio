@@ -1,11 +1,12 @@
-"""
-Use INSPIRE-HEP OAI API to collect information on single papers
+"""Use INSPIRE-HEP OAI API to collect information on single papers
 (given the identifier) or to harvest updates in a given time period.
 
 This file is part of the physbiblio package.
 """
-import sys, time
+import sys
+import time
 import codecs
+import re
 
 if sys.version_info[0] < 3:
 	#needed to set utf-8 as encoding
@@ -46,8 +47,7 @@ except ImportError:
 	raise
 
 def safe_list_get(l, idx, default = ""):
-	"""
-	Safely get an element from a list.
+	"""Safely get an element from a list.
 	No error if it doesn't exist...
 	"""
 	if l is not None:
@@ -59,9 +59,7 @@ def safe_list_get(l, idx, default = ""):
 		return default
 		
 def get_journal_ref_xml(marcxml):
-	"""
-	Read the marcxml record and write the info on the publication
-	"""
+	"""Read the marcxml record and write the info on the publication"""
 	p = []
 	y = []
 	v = []
@@ -72,16 +70,21 @@ def get_journal_ref_xml(marcxml):
 	w = []
 	if marcxml["773"] is not None:
 		for q in marcxml.get_fields("773"):
-			p.append(parse_accents_str(q["p"]))	#journal name (even if submitted to only)
+			#journal name (even if submitted to only)
+			p.append(parse_accents_str(q["p"]))
 			v.append(parse_accents_str(q["v"]))	#volume
 			y.append(parse_accents_str(q["y"]))	#year
 			c.append(parse_accents_str(q["c"]))	#pages
-			
-			m.append(parse_accents_str(q["m"]))	#Erratum, Addendum, Publisher note
-			
-			x.append(parse_accents_str(q["x"]))	#freetext journal/book info
-			t.append(parse_accents_str(q["t"]))	#for conf papers: presented at etc, freetext or KB?
-			w.append(parse_accents_str(q["w"]))	#for conf papers: conference code
+
+			#Erratum, Addendum, Publisher note
+			m.append(parse_accents_str(q["m"]))
+
+			#freetext journal/book info
+			x.append(parse_accents_str(q["x"]))
+			#for conf papers: presented at etc, freetext or KB?
+			t.append(parse_accents_str(q["t"]))
+			#for conf papers: conference code
+			w.append(parse_accents_str(q["w"]))
 	return p, v, y, c, m, x, t, w
 
 class MARCXMLReader(object):
@@ -89,9 +92,11 @@ class MARCXMLReader(object):
 	def __call__(self, element):
 		handler = marcxml.XmlHandler()
 		if sys.version_info[0] < 3:
-			marcxml.parse_xml(StringIO(tostring(element[0], encoding='UTF-8')), handler)
+			marcxml.parse_xml(StringIO(tostring(element[0], encoding='UTF-8')),
+				handler)
 		else:
-			marcxml.parse_xml(StringIO(tostring(element[0], encoding=str)), handler)
+			marcxml.parse_xml(StringIO(tostring(element[0], encoding=str)),
+				handler)
 		return handler.records[0]
 
 marcxml_reader = MARCXMLReader()
@@ -100,12 +105,15 @@ registry = metadata.MetadataRegistry()
 registry.registerReader('marcxml', marcxml_reader)
 
 class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to INSPIRE-HEP to perform searches using the OAI API"""
+	"""Subclass of webInterf that can connect to INSPIRE-HEP
+	to perform searches using the OAI API
+	"""
 	def __init__(self):
-		"""
-		Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables using
+		the webInterf constructor.
 
-		Define additional specific parameters for the INSPIRE-HEP OAI API.
+		Define additional specific parameters
+		for the INSPIRE-HEP OAI API.
 		"""
 		webInterf.__init__(self)
 		self.name = "inspireoai"
@@ -133,22 +141,24 @@ class webSearch(webInterf):
 			"school", "reportnumber", "booktitle", "collaboration"]
 		
 	def retrieveUrlFirst(self, string):
-		"""
-		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
+		"""The OAI interface is not for string searches:
+		use the retrieveOAIData function if you have the INSPIRE ID
+		of the desired record
 		"""
 		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
 		
 	def retrieveUrlAll(self, string):
-		"""
-		The OAI interface is not for string searches: use the retrieveOAIData function if you have the INSPIRE ID of the desired record
+		"""The OAI interface is not for string searches:
+		use the retrieveOAIData function if you have the INSPIRE ID
+		of the desired record
 		"""
 		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
 		
 	def readRecord(self, record, readConferenceTitle = False):
-		"""
-		Read the content of a marcxml record to return a bibtex string
+		"""Read the content of a marcxml record
+		to return a bibtex string
 		"""
 		tmpDict = {}
 		record.to_unicode = True
@@ -224,7 +234,8 @@ class webSearch(webInterf):
 			tmpDict["author"] = ""
 		try:
 			addAuthors = 0
-			if len(record.get_fields("700")) > pbConfig.params["maxAuthorSave"] - 1:
+			if (len(record.get_fields("700")) >
+					pbConfig.params["maxAuthorSave"] - 1):
 				tmpDict["author"] += " and others"
 			else:
 				for r in record.get_fields("700"):
@@ -253,10 +264,13 @@ class webSearch(webInterf):
 					tmpDict["reportnumber"] = q["a"]
 		except:
 			pass
-		if tmpDict["arxiv"] != tmpDict["eprint"] and tmpDict["eprint"] is not None:
+		if tmpDict["arxiv"] != tmpDict["eprint"] and \
+				tmpDict["eprint"] is not None:
 			tmpDict["arxiv"] = tmpDict["eprint"]
-		if tmpDict["eprint"] is not None and tmpDict["year"] is None:
-			tmpDict["year"] = physBiblioWeb.webSearch["arxiv"].getYear(tmpDict["eprint"])
+		if tmpDict["eprint"] is not None and \
+				tmpDict["year"] is None:
+			tmpDict["year"] = physBiblioWeb.webSearch["arxiv"].getYear(
+				tmpDict["eprint"])
 		try:
 			tmpDict["title"] = record["245"]["a"]
 		except TypeError:
@@ -266,11 +280,15 @@ class webSearch(webInterf):
 		except TypeError:
 			tmpDict["isbn"] = None
 		if conferenceCode is not None and readConferenceTitle:
-			url = pbConfig.inspireSearchBase + "?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3AProceedings&of=xe"%(conferenceCode, conferenceCode.replace("-", "%2F"))
+			url = pbConfig.inspireSearchBase \
+				+ "?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3A"%(
+					conferenceCode, conferenceCode.replace("-", "%2F")) \
+				+ "Proceedings&of=xe"
 			text = parse_accents_str(self.textFromUrl(url))
 			title = re.compile('<title>(.*)</title>', re.MULTILINE)
 			try:
-				tmpDict["booktitle"] = [m.group(1) for m in title.finditer(text)][0]
+				tmpDict["booktitle"] = [m.group(1) for m in title.finditer(
+					text)][0]
 			except IndexError:
 				tmpDict["booktitle"] = None
 		if tmpDict["isbn"] is not None:
@@ -310,10 +328,12 @@ class webSearch(webInterf):
 			pass
 		bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
 		for k in self.bibtexFields:
-			if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] is not "":
+			if k in tmpDict.keys() and tmpDict[k] is not None and \
+					tmpDict[k] is not "":
 				bibtexDict[k] = tmpDict[k]
 		try:
-			if bibtexDict["arxiv"] == bibtexDict["eprint"] and bibtexDict["eprint"] is not None:
+			if bibtexDict["arxiv"] == bibtexDict["eprint"] and \
+					bibtexDict["eprint"] is not None:
 				del bibtexDict["arxiv"]
 		except:
 			pass
@@ -322,23 +342,32 @@ class webSearch(webInterf):
 		tmpDict["bibtex"] = pbWriter.write(db)
 		return tmpDict
 	
-	def retrieveOAIData(self, inspireID, bibtex = None, verbose = 0, readConferenceTitle = False):
-		"""
-		Get the marcxml entry for a given record
+	def retrieveOAIData(self,
+			inspireID,
+			bibtex = None,
+			verbose = 0,
+			readConferenceTitle = False):
+		"""Get the marcxml entry for a given record
 
 		Parameters:
-			inspireID: the INSPIRE-HEP identifier (a number) of the desired entry
-			bibtex (default None): whether the bibtex should be included in the output dictionary
+			inspireID: the INSPIRE-HEP identifier (a number)
+				of the desired entry
+			bibtex (default None): whether the bibtex should be
+				included in the output dictionary
 			verbose (default 0): increase the output level
-			readConferenceTitle (boolean, default False): try to read the conference title if dealing with a proceeding
+			readConferenceTitle (boolean, default False):
+				try to read the conference title if dealing
+				with a proceeding
 
 		Output:
 			the dictionary containing the bibtex information
 		"""
 		try:
-			record = self.oai.getRecord(metadataPrefix = 'marcxml', identifier = "oai:inspirehep.net:" + inspireID)
+			record = self.oai.getRecord(metadataPrefix = 'marcxml',
+				identifier = "oai:inspirehep.net:" + inspireID)
 		except (URLError, ErrorBase, IncompleteRead):
-			pBLogger.exception("Impossible to get marcxml for entry %s"%inspireID)
+			pBLogger.exception(
+				"Impossible to get marcxml for entry %s"%inspireID)
 			return False
 		nhand = 0
 		if verbose > 0:
@@ -346,7 +375,8 @@ class webSearch(webInterf):
 		try:
 			if record[1] is None:
 				raise ValueError("Empty record!")
-			res = self.readRecord(record[1], readConferenceTitle = readConferenceTitle)
+			res = self.readRecord(record[1],
+				readConferenceTitle = readConferenceTitle)
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				outcome, bibtex = self.updateBibtex(res, bibtex)
@@ -354,43 +384,53 @@ class webSearch(webInterf):
 				pBLogger.info("Done.")
 			return res
 		except Exception:
-			pBLogger.exception("Impossible to read marcxml for entry %s"%inspireID)
+			pBLogger.exception(
+				"Impossible to read marcxml for entry %s"%inspireID)
 			return False
 
 	def updateBibtex(self, res, bibtex):
-		"""use OAI data to update the (existing) bibtex information of an entry"""
+		"""use OAI data to update the (existing) bibtex information
+		of an entry
+		"""
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
 		except:
 			pBLogger.warning("Invalid bibtex!\n%s"%bibtex)
 			return False, bibtex
 		if res["journal"] is None:
-			pBLogger.warning("'journal' from OAI is missing or not a string (recid:%s)"%res["id"])
+			pBLogger.warning(
+				"'journal' from OAI is missing or not a string (recid:%s)"%(
+					res["id"])
+				)
 			return False, bibtex
 		try:
 			for k in ["doi", "volume", "pages", "year", "journal"]:
 				if res[k] != "" and res[k] is not None:
 					element[k] = res[k]
 		except KeyError:
-			pBLogger.warning("Something from OAI is missing (recid:%s)"%res["id"])
+			pBLogger.warning("Something from OAI is missing (recid:%s)"%(
+				res["id"]))
 			return False, bibtex
 		db = BibDatabase()
 		db.entries = [element]
 		return True, pbWriter.write(db)
 
 	def retrieveOAIUpdates(self, date1, date2):
-		"""
-		Harvest the OAI API to get all the updates and new occurrences between two dates
+		"""Harvest the OAI API to get all the updates
+		and new occurrences between two dates
 
 		Parameters:
-			date1, date2: dates that define the time interval to be searched
+			date1, date2: dates that define
+				the time interval to be searched
 
 		Output:
 			a list of dictionaries containing the bibtex information
 		"""
-		recs = self.oai.listRecords(metadataPrefix = 'marcxml', from_ = date1, until = date2, set = "INSPIRE:HEP")
+		recs = self.oai.listRecords(metadataPrefix = 'marcxml',
+			from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
-		pBLogger.info("\nSTARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
+		pBLogger.info("\nSTARTING OAI harvester --- " + \
+			time.strftime("%c") + "\n\n")
 		foundObjects = []
 		for count, rec in enumerate(recs):
 			id = rec[0].identifier()
