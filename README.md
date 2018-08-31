@@ -186,13 +186,12 @@ An additional filtering is performed when trying to match the regular expression
 
 Two (regex) search and replace examples:
 
-* To move the letter from "volume" to "journal" for the journals of the "Phys. Rev." series, use:
-    - from: "published", `(Phys. Rev. [A-Z]{1})([0-9]{2}).*`;
+* To move the letter from "volume" to "journal" for the journals of the "Phys.Rev." series, use:
+    - from: "published", `(Phys.Rev. [A-Z]{1})([0-9]{1,3}) .*`;
     - To 1: "journal", `\1`;
     - To 2: "volume", `\2`.
     
-    To match "Phys. Rev. X" you will have to change `[0-9]{2}` to `[0-9]{1}` in the pattern string.  
-    If you want to match "J. Phys. G", change the first part of the pattern string accordingly (`J. Phys. [A-Z]{1}`).
+    If you want to match "J.Phys. G" or other journals, change the first part of the pattern string accordingly (e.g. `J.Phys. [A-Z]{1}`).
 
 * To remove the first two numbers from "volume" field of JHEP/JCAP entries, use:
     - filter using ["jhep" or "jcap"] ("add another line" and use "OR") in "bibtex";
