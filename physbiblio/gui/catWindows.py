@@ -645,14 +645,24 @@ class editCategoryDialog(editObjectWindow):
 			self.selectedCats = [0]
 		self.createForm()
 
-	def onAskParent(self):
-		"""Open a `categoriesTreeWindow` and process its output"""
+	def onAskParent(self, testing = False):
+		"""Open a `categoriesTreeWindow` and process its output
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `categoriesTreeWindow` instance,
+				it will use the custom dialog instead of run `exec_`
+		"""
 		selectCats = categoriesTreeWindow(parent = self,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = self.selectedCats)
-		selectCats.exec_()
+		if not testing:
+			selectCats.exec_()
+		else:
+			selectCats = testing
 		if selectCats.result == "Ok":
 			try:
 				val = self.selectedCats[0]
@@ -671,8 +681,8 @@ class editCategoryDialog(editObjectWindow):
 			if k != "idCat" or (k == "idCat" and self.data[k] != ""):
 				i += 1
 				self.currGrid.addWidget(MyLabel(
-					pBDB.descriptions["categories"][k]), i*2-1, 0)
-				self.currGrid.addWidget(MyLabel("(%s)"%k), i*2-1, 1)
+					pBDB.descriptions["categories"][k]), i*2 - 1, 0)
+				self.currGrid.addWidget(MyLabel("(%s)"%k), i*2 - 1, 1)
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]
@@ -691,13 +701,13 @@ class editCategoryDialog(editObjectWindow):
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i*2+1, 1)
+		self.currGrid.addWidget(self.acceptButton, i*2 + 1, 1)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i*2+1, 0)
+		self.currGrid.addWidget(self.cancelButton, i*2 + 1, 0)
 
-		self.setGeometry(100,100,400, 50*i)
+		self.setGeometry(100, 100, 400, 50*i)
 		self.centerWindow()
