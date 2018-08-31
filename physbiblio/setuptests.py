@@ -19,7 +19,8 @@ tempLogFileName = "tests_%s.log"%today_ymd
 
 try:
 	from physbiblio.config import pbConfig
-	pbConfig.overWritelogFileName = os.path.join(pbConfig.dataPath, tempLogFileName)
+	pbConfig.overWritelogFileName = os.path.join(
+		pbConfig.dataPath, tempLogFileName)
 	pbConfig.prepareLogger("physbibliotestlog")
 	pbConfig.reloadProfiles()
 	from physbiblio.errors import pBErrorManager, pBLogger

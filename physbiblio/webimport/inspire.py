@@ -1,9 +1,9 @@
-"""
-Module that deals with importing info from the INSPIRE-HEP API.
+"""Module that deals with importing info from the INSPIRE-HEP API.
 
 This file is part of the physbiblio package.
 """
 import traceback
+import re
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
@@ -15,13 +15,12 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""
-	Subclass of webInterf that can connect
+	"""Subclass of webInterf that can connect
 	to INSPIRE-HEP to perform searches
 	"""
 	def __init__(self):
-		"""
-		Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables
+		using the webInterf constructor.
 
 		Define additional specific parameters for the INSPIRE-HEP API.
 		"""
@@ -43,8 +42,8 @@ class webSearch(webInterf):
 			}
 		
 	def retrieveUrlFirst(self, string):
-		"""
-		Retrieves the first result from the content of the given web page.
+		"""Retrieves the first result
+		from the content of the given web page.
 
 		Parameters:
 			string: the search string
@@ -69,8 +68,8 @@ class webSearch(webInterf):
 			return ""
 		
 	def retrieveUrlAll(self, string):
-		"""
-		Retrieves all the result from the content of the given web page.
+		"""Retrieves all the result
+		from the content of the given web page.
 
 		Parameters:
 			string: the search string
@@ -96,8 +95,7 @@ class webSearch(webInterf):
 			return ""
 	
 	def retrieveInspireID(self, string, number = None):
-		"""
-		Read the fetched content for a given entry
+		"""Read the fetched content for a given entry
 		to obtain its INSPIRE-HEP ID
 
 		Parameters:

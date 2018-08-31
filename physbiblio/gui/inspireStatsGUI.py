@@ -1,5 +1,5 @@
-"""
-Module with the classes that manage the authorStats and paperStats plots.
+"""Module with the classes that manage the authorStats
+and paperStats plots.
 
 This file is part of the physbiblio package.
 """
@@ -13,7 +13,8 @@ matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import \
+	FigureCanvasQTAgg as FigureCanvas
 
 try:
 	from physbiblio.database import pBDB
@@ -36,15 +37,17 @@ figTitles = [
 ]
 
 class authorStatsPlots(QDialog):
-	"""Class that constructs a window to show the results of `authorStats`"""
+	"""Class that constructs a window to show
+	the results of `authorStats`
+	"""
 	def __init__(self, figs, title = None, parent = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameters:
 			figs: the list of figures
 			title (optional): the window title
-			parent (default None): the parent object, which should have a property `lastAuthorStats`
+			parent (default None): the parent object,
+				which should have a property `lastAuthorStats`
 		"""
 		super(authorStatsPlots, self).__init__(parent)
 		if title is not None:
@@ -55,7 +58,8 @@ class authorStatsPlots(QDialog):
 		self.updatePlots(figs)
 
 		nlines = int(len(figs)/2)
-		self.layout().addWidget(MyLabel("Click on the lines to have more information:"), nlines + 1, 0)
+		self.layout().addWidget(MyLabel(
+			"Click on the lines to have more information:"), nlines + 1, 0)
 
 		try:
 			hIndex = "%d"%self.parent().lastAuthorStats["h"]
@@ -83,19 +87,23 @@ class authorStatsPlots(QDialog):
 		QDialog.close(self)
 
 	def saveAction(self):
-		"""Save the plot into a file, after asking the directory where to save them"""
-		savePath = askDirName(self, "Where do you want to save the plots of the stats?")
+		"""Save the plot into a file,
+		after asking the directory where to save them
+		"""
+		savePath = askDirName(self,
+			"Where do you want to save the plots of the stats?")
 		if savePath != "":
 			try:
-				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(author = True, save = True, path = savePath)
+				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(
+					author = True, save = True, path = savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info = True)
 			infoMessage("Plots saved.")
 			self.saveButton.setDisabled(True)
 
 	def onPress(self, event):
-		"""
-		Print the plot coordinates where a click was performed. To be connected through `mpl_connect`.
+		"""Print the plot coordinates where a click was performed.
+		To be connected through `mpl_connect`.
 		Used for testing.
 
 		Parameter:
@@ -104,8 +112,8 @@ class authorStatsPlots(QDialog):
 		print(event.xdata, event.ydata)
 
 	def pickEvent(self, event):
-		"""
-		Save into `self.textBox` the coordinates of the clicked object (`Line2D` or `Rectangle`) in the plot.
+		"""Save into `self.textBox` the coordinates
+		of the clicked object (`Line2D` or `Rectangle`) in the plot.
 
 		Parameter:
 			a `matplotlib.backend_bases.Event`
@@ -115,7 +123,8 @@ class authorStatsPlots(QDialog):
 		for i, f in enumerate(self.figs):
 			if f == ob.figure: ix = i
 		if isinstance(ob, Rectangle):
-			self.textBox.setText("%s in year %d is: %d"%(figTitles[ix], int(ob.get_x()), int(ob.get_height())))
+			self.textBox.setText("%s in year %d is: %d"%(
+				figTitles[ix], int(ob.get_x()), int(ob.get_height())))
 		elif isinstance(ob, Line2D):
 			xdata = ob.get_xdata()
 			ydata = ob.get_ydata()
@@ -124,11 +133,13 @@ class authorStatsPlots(QDialog):
 				formatString = "%s in date %s is %.2f"
 			else:
 				formatString = "%s in date %s is %d"
-			self.textBox.setText(formatString%(figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
+			self.textBox.setText(formatString%(
+				figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"),
+				np.take(ydata, ind)[0]))
 
 	def updatePlots(self, figs):
-		"""
-		Reset the dialog window removing all the previous items and create new canvas for the figures.
+		"""Reset the dialog window removing all the previous items
+		and create new canvas for the figures.
 
 		Parameter:
 			figs: the list of figures to be inserted in the dialog
@@ -146,7 +157,8 @@ class authorStatsPlots(QDialog):
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
-				#self.canvas[-1].mpl_connect('button_press_event', self.onPress)
+				#self.canvas[-1].mpl_connect(
+					#'button_press_event', self.onPress)
 				self.canvas[-1].draw()
 				i += 1
 
@@ -155,8 +167,7 @@ class paperStatsPlots(QDialog):
 	to show the results of `paperStats`
 	"""
 	def __init__(self, fig, title = None, parent = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameters:
 			fig: the figure to be shown
@@ -193,19 +204,23 @@ class paperStatsPlots(QDialog):
 		QDialog.close(self)
 
 	def saveAction(self):
-		"""Save the plot into a file, after asking the directory where to save them"""
-		savePath = askDirName(self, "Where do you want to save the plot of the stats?")
+		"""Save the plot into a file,
+		after asking the directory where to save them
+		"""
+		savePath = askDirName(self,
+			"Where do you want to save the plot of the stats?")
 		if savePath != "":
 			try:
-				self.parent().lastPaperStats["fig"] = pBStats.plotStats(paper = True, save = True, path = savePath)
+				self.parent().lastPaperStats["fig"] = pBStats.plotStats(
+					paper = True, save = True, path = savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info = True)
 			infoMessage("Plot saved.")
 			self.saveButton.setDisabled(True)
 
 	def pickEvent(self,event):
-		"""
-		Save into `self.textBox` the coordinates of the clicked object (`Line2D`) in the plot.
+		"""Save into `self.textBox` the coordinates
+		of the clicked object (`Line2D`) in the plot.
 
 		Parameter:
 			a `matplotlib.backend_bases.Event`
@@ -217,11 +232,12 @@ class paperStatsPlots(QDialog):
 			ydata = ob.get_ydata()
 			ind = event.ind
 			formatString = "%s in date %s is %d"
-			self.textBox.setText(formatString%("Citations", np.take(xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
+			self.textBox.setText(formatString%("Citations", np.take(
+				xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
 
 	def updatePlots(self, fig):
-		"""
-		Reset the dialog window removing all the previous items and create a new canvas for the figure.
+		"""Reset the dialog window removing all the previous items
+		and create a new canvas for the figure.
 
 		Parameter:
 			fig: the figure to be inserted in the dialog

@@ -28,7 +28,7 @@ except Exception:
 tempOldCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg"%today_ymd)
 tempCfgName = os.path.join(pbConfig.dataPath, "tests_cfg_%s.db"%today_ymd)
 tempCfgName1 = os.path.join(pbConfig.dataPath, "tests_cfg1_%s.db"%today_ymd)
-tempProfName = os.path.join(pbConfig.dataPath, "tests_profiles_%s.db"%today_ymd)
+tempProfName = os.path.join(pbConfig.dataPath, "tests_prof_%s.db"%today_ymd)
 
 class TestConfigMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.config"""
@@ -101,7 +101,7 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profileOrder, ["default"])
 
 		tempProfName1 = os.path.join(pbConfig.dataPath,
-			"tests_profiles1_%s.db"%today_ymd)
+			"tests_prof1_%s.db"%today_ymd)
 		self.assertTrue(tempPbConfig.globalDb.createProfile("temp",
 			"none", tempProfName1))
 		self.assertTrue(tempPbConfig.globalDb.setDefaultProfile("temp"))
@@ -133,7 +133,7 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig.reloadProfiles()
 		self.assertEqual(tempPbConfig.params, config_defaults)
 
-		tempProfName2 = tempProfName1.replace("profiles1", "profiles2")
+		tempProfName2 = tempProfName1.replace("prof1", "prof2")
 		self.assertTrue(tempPbConfig.globalDb.createProfile("other",
 			"none1", tempProfName2))
 		tempPbConfig.reloadProfiles()

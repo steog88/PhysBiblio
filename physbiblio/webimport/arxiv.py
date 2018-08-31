@@ -1,5 +1,4 @@
-"""
-Module that deals with importing info from the arXiv API.
+"""Module that deals with importing info from the arXiv API.
 
 Uses feedparser module to read the page content.
 
@@ -21,13 +20,12 @@ except ImportError:
 	raise
 
 class webSearch(webInterf):
-	"""
-	Subclass of webInterf that can connect to arxiv.org
+	"""Subclass of webInterf that can connect to arxiv.org
 	to perform searches
 	"""
 	def __init__(self):
-		"""
-		Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables using
+		the webInterf constructor.
 
 		Define additional specific parameters for the arxiv.org API.
 		"""
@@ -40,8 +38,13 @@ class webSearch(webInterf):
 			"start":"0"}
 		self.categories = {
 			"astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
-			"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other", "quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
-			"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV", "CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL", "GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM", "MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO", "SC", "SD", "SE", "SI", "SY"],
+			"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other",
+				"quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
+			"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV",
+				"CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL",
+				"GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM",
+				"MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO",
+				"SC", "SD", "SE", "SI", "SY"],
 			"econ": ["EM"],
 			"eess": ["AS", "IV", "SP"],
 			"gr-qc": [],
@@ -49,22 +52,27 @@ class webSearch(webInterf):
 			"hep-lat": [],
 			"hep-ph": [],
 			"hep-th": [],
-			"math": ["AC", "AG", "AP", "AT", "CA", "CO", "CT", "CV", "DG", "DS", "FA", "GM", "GN", "GR", "GT", "HO", "IT", "KT", "LO", "MG", "MP", "NA", "NT", "OA", "OC", "PR", "QA", "RA", "RT", "SG", "SP", "ST"],
+			"math": ["AC", "AG", "AP", "AT", "CA", "CO", "CT", "CV", "DG",
+				"DS", "FA", "GM", "GN", "GR", "GT", "HO", "IT", "KT", "LO",
+				"MG", "MP", "NA", "NT", "OA", "OC", "PR", "QA", "RA", "RT",
+				"SG", "SP", "ST"],
 			"math-ph": [],
 			"nlin": ["AO", "CD", "CG", "PS", "SI"],
 			"nucl-ex": [],
 			"nucl-th": [],
-			"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph", "bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an", "ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det", "med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph", "space-ph"],
-			"q-bio": ["BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
+			"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph",
+				"bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an",
+				"ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det",
+				"med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph", "space-ph"],
+			"q-bio": [
+				"BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
 			"q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
 			"quant-ph": [],
 			"stat": ["AP", "CO", "ME", "ML", "OT", "TH"]
 			}
 
 	def getYear(self, string):
-		"""
-		Use the arxiv id to compute the year
-		"""
+		"""Use the arxiv id to compute the year"""
 		identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
 		try:
 			for t in identif.finditer(string):
@@ -79,8 +87,8 @@ class webSearch(webInterf):
 			return None
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
-		"""
-		Retrieves the first result from the content of the given web page.
+		"""Retrieves the first result from the content
+		of the given web page.
 		The function calls arxivRetriever which will do the job.
 
 		Parameters:
@@ -90,11 +98,12 @@ class webSearch(webInterf):
 		Output:
 			returns the bibtex string built from arxivRetriever
 		"""
-		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results":"1"}, **kwargs)
+		return self.arxivRetriever(string,
+			searchType, additionalArgs = {"max_results":"1"}, **kwargs)
 
 	def retrieveUrlAll(self, string, searchType = "all", **kwargs):
-		"""
-		Retrieves all the results from the content of the given web page.
+		"""Retrieves all the results from the content
+		of the given web page.
 		The function calls arxivRetriever which will do the job.
 
 		Parameters:
@@ -104,15 +113,24 @@ class webSearch(webInterf):
 		Output:
 			returns the bibtex string built from arxivRetriever
 		"""
-		return self.arxivRetriever(string, searchType, additionalArgs = {"max_results": pbConfig.params["maxArxivResults"]}, **kwargs)
+		return self.arxivRetriever(string,
+			searchType,
+			additionalArgs = {
+				"max_results": pbConfig.params["maxArxivResults"]},
+			**kwargs)
 
-	def arxivRetriever(self, string, searchType = "all", additionalArgs = None, fullDict = False):
-		"""
-		Reads the feed content got from arxiv into a dictionary, used to return a bibtex.
+	def arxivRetriever(self,
+			string,
+			searchType = "all",
+			additionalArgs = None,
+			fullDict = False):
+		"""Reads the feed content got from arxiv into a dictionary,
+		used to return a bibtex.
 
 		Parameters:
 			string: the search string
-			searchType: the search method in arxiv API (default 'all'). The possible values are:
+			searchType: the search method in arxiv API (default 'all').
+			The possible values are:
 				ti->	Title
 				au	->	Author
 				abs	->	Abstract
@@ -122,8 +140,10 @@ class webSearch(webInterf):
 				rn	->	Report Number
 				id	->	Id (use id_list instead)
 				all	->	All of the above
-			additionalArgs: a dictionary of additional arguments that can be passed to self.urlArgs (default None)
-			fullDict (logical): return the bibtex dictionary in addition to the bibtex text (default False)
+			additionalArgs: a dictionary of additional arguments
+				that can be passed to self.urlArgs (default None)
+			fullDict (logical): return the bibtex dictionary in addition
+				to the bibtex text (default False)
 
 		Output:
 			the bibtex text
@@ -143,7 +163,9 @@ class webSearch(webInterf):
 			dictionaries = []
 			for entry in data['entries']:
 				dictionary = {}
-				idArx = entry['id'].replace("http://arxiv.org/abs/", "").replace("https://arxiv.org/abs/", "")
+				idArx = entry['id'].replace(
+					"http://arxiv.org/abs/", "").replace(
+					"https://arxiv.org/abs/", "")
 				pos = idArx.find("v")
 				if pos >= 0:
 					idArx = idArx[0:pos]
@@ -157,8 +179,10 @@ class webSearch(webInterf):
 				except KeyError as e:
 					pBLogger.debug("KeyError: %s"%e)
 				dictionary["abstract"] = entry['summary'].replace("\n", " ")
-				dictionary["authors"] = " and ".join([ au["name"] for au in entry['authors']])
-				dictionary["primaryclass"] = entry['arxiv_primary_category']['term']
+				dictionary["authors"] = " and ".join([ au["name"] \
+					for au in entry['authors']])
+				dictionary["primaryclass"] = \
+					entry['arxiv_primary_category']['term']
 				year = self.getYear(dictionary["arxiv"])
 				if year is not None:
 					dictionary["year"] = year
@@ -180,9 +204,7 @@ class webSearch(webInterf):
 				return ""
 
 	def arxivDaily(self, category):
-		"""
-		Read daily RSS feed for a given category
-		"""
+		"""Read daily RSS feed for a given category"""
 		if "." in category:
 			main, sub = category.split(".")
 		else:
@@ -205,7 +227,8 @@ class webSearch(webInterf):
 			pBLogger.warning("Url is empty!")
 			return False
 		author = re.compile('(>|&gt;)([^/]*)(</a>|&lt;/a&gt;)')
-		additionalInfo = re.compile(' \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)')
+		additionalInfo = re.compile(
+			' \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)')
 		if sys.version_info[0] < 3:
 			text = text.decode("utf-8")
 		try:
@@ -214,17 +237,28 @@ class webSearch(webInterf):
 			for element in data.entries:
 				tmp = {}
 				tmp["eprint"] = element["id"].split("/")[-1]
-				tmp["abstract"] = element["summary"].replace("\n", " ").replace("<p>", "").replace("</p>", "")
-				tmp["authors"] = [ m.group(2) for m in author.finditer(element["authors"][0]["name"]) if m != "" ]
-				tmp["author"] = " and ".join(tmp["authors"]) if len(tmp["authors"]) < pbConfig.params["maxAuthorNames"] else " and ".join(tmp["authors"][0:pbConfig.params["maxAuthorNames"]] + ["others"])
+				tmp["abstract"] = element["summary"].replace(
+					"\n", " ").replace("<p>", "").replace("</p>", "")
+				tmp["authors"] = [ m.group(2) for m in author.finditer(
+					element["authors"][0]["name"]) if m != "" ]
+				tmp["author"] = " and ".join(tmp["authors"]) if len(
+					tmp["authors"]) < pbConfig.params["maxAuthorNames"] \
+					else " and ".join(
+						tmp["authors"][0:pbConfig.params["maxAuthorNames"]] \
+						+ ["others"])
 				tmp["replacement"] = "UPDATED" in element["title"]
-				tmp["primaryclass"] = [m.group(2) for m in additionalInfo.finditer(element["title"]) if m != ""][0]
-				tmp["cross"] = "CROSS LISTED" in element["title"] or category.lower() not in tmp["primaryclass"].lower()
-				tmp["version"] = [m.group(1) for m in additionalInfo.finditer(element["title"]) if m != ""][0]
-				parenthesis = [m.group() for m in additionalInfo.finditer(element["title"]) if m != ""][0]
+				tmp["primaryclass"] = [m.group(2) for m in \
+					additionalInfo.finditer(element["title"]) if m != ""][0]
+				tmp["cross"] = "CROSS LISTED" in element["title"] or \
+					category.lower() not in tmp["primaryclass"].lower()
+				tmp["version"] = [m.group(1) for m in additionalInfo.finditer(
+					element["title"]) if m != ""][0]
+				parenthesis = [m.group() for m in additionalInfo.finditer(
+					element["title"]) if m != ""][0]
 				tmp["title"] = element["title"].replace(parenthesis, "")
 				entries.append(tmp)
 			return entries
 		except Exception:
-			pBLogger.error("Cannot parse arxiv RSS feed:\n%s"%text, exc_info = True)
+			pBLogger.error("Cannot parse arxiv RSS feed:\n%s"%text,
+				exc_info = True)
 			return False

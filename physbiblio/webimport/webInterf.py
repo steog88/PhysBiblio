@@ -1,5 +1,5 @@
-"""
-Module that creates the base class webInterf, which will be used by other modules in this package.
+"""Module that creates the base class webInterf,
+which will be used by other modules in this package.
 
 Uses urllib to download url content.
 
@@ -25,39 +25,39 @@ pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
 class webInterf():
-	"""
-	This is the main class for the web search methods.
+	"""This is the main class for the web search methods.
 
-	It contains a constructor, a function to create an appropriate url and to retrieve text from the url,
+	It contains a constructor, a function to create an appropriate url
+	and to retrieve text from the url,
 	a function to load other webinterfaces
 	"""
 	def __init__(self):
-		"""
-		Initializes the class variables.
-		"""
+		"""Initializes the class variables."""
 		self.url = None
 		self.urlArgs = None
 		self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
 		#save the names of the available web search interfaces
-		self.interfaces = [ a for a in webInterfaces if a != "webInterf" and a != "tests" ]
+		self.interfaces = [ a for a in webInterfaces if a != "webInterf" \
+			and a != "tests" ]
 		self.webSearch = {}
 		self.loaded = False
 		
 	def createUrl(self):
-		"""
-		Joins the arguments of the GET query to get the full url.
+		"""Joins the arguments of the GET query to get the full url.
 
-		Uses the self.urlArgs dictionary to generate the list of HTTP GET parameters.
+		Uses the self.urlArgs dictionary to generate the list
+		of HTTP GET parameters.
 		"""
-		return self.url + "?" + "&".join(["%s=%s"%(a, b) for a, b in self.urlArgs.items()])
+		return self.url + "?" + "&".join(
+			["%s=%s"%(a, b) for a, b in self.urlArgs.items()])
 		
 	def textFromUrl(self, url, headers = None):
-		"""
-		Use urllib to get the html content of the given url.
+		"""Use urllib to get the html content of the given url.
 
 		Parameters:
 			url: the url to be opened
-			headers (default None): the additional headers to be passed to urllib.Request
+			headers (default None): the additional headers
+				to be passed to urllib.Request
 
 		Output:
 			text: the content of the url
@@ -70,7 +70,8 @@ class webInterf():
 			response = urlopen(req, timeout = self.urlTimeout)
 			data = response.read()
 		except URLError:
-			pBLogger.warning("[%s] -> Error in retrieving data from url"%self.name)
+			pBLogger.warning(
+				"[%s] -> Error in retrieving data from url"%self.name)
 			return ""
 		except HTTPError:
 			pBLogger.warning("[%s] -> %s not found"%url)
@@ -81,36 +82,40 @@ class webInterf():
 		try:
 			text = data.decode('utf-8')
 		except Exception:
-			pBLogger.warning("[%s] -> Bad codification, utf-8 decode failed"%self.name)
+			pBLogger.warning(
+				"[%s] -> Bad codification, utf-8 decode failed"%self.name)
 			return ""
 		return text
 	
 	def retrieveUrlFirst(self, search):
-		"""
-		Retrieves the first bibtexs that the search gives, using the subclass specific instructions.
+		"""Retrieves the first bibtexs that the search gives,
+		using the subclass specific instructions.
 
 		Parameter:
 			search: the string to be searched
 
 		Output:
-			returns None in the default implementation (must be subclassed)
+			returns None in the default implementation
+				(must be subclassed)
 		"""
 		return None
+
 	def retrieveUrlAll(self, search):
-		"""
-		Retrieves all the bibtexs that the search gives, using the subclass specific instructions
+		"""Retrieves all the bibtexs that the search gives,
+		using the subclass specific instructions
 
 		Parameter:
 			search: the string to be searched
 
 		Output:
-			returns None in the default implementation (must be subclassed)
+			returns None in the default implementation
+				(must be subclassed)
 		"""
 		return None
-	
+
 	def loadInterfaces(self):
-		"""
-		Load the subclasses that will interface with the main websites to search bibtex info
+		"""Load the subclasses that will interface
+		with the main websites to search bibtex info
 		and saves them into a dictionary (`self.webSearch`).
 
 		The subclasses are read scanning the package directory.
@@ -119,15 +124,17 @@ class webInterf():
 			return
 		for method in self.interfaces:
 			try:
-				_temp = __import__("physbiblio.webimport." + method, globals(), locals(), ["webSearch"])
+				_temp = __import__("physbiblio.webimport." + method,
+					globals(), locals(), ["webSearch"])
 				self.webSearch[method] = getattr(_temp, "webSearch")()
 			except Exception:
-				pBLogger.exception("Error importing physbiblio.webimport.%s"%method)
+				pBLogger.exception(
+					"Error importing physbiblio.webimport.%s"%method)
 		self.loaded = True
 	
 	def retrieveUrlFirstFrom(self, search, method):
-		"""
-		Calls the function retrieveUrlFirst given the subclass method.
+		"""Calls the function retrieveUrlFirst
+		given the subclass method.
 
 		Parameters:
 			search: the search string
@@ -143,8 +150,7 @@ class webInterf():
 			return ""
 		
 	def retrieveUrlAllFrom(self, search, method):
-		"""
-		Calls the function retrieveUrlAll given the subclass method.
+		"""Calls the function retrieveUrlAll given the subclass method.
 
 		Parameters:
 			search: the search string
