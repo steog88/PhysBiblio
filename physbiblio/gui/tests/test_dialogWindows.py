@@ -292,12 +292,12 @@ class TestConfigWindow(GUITestCase):
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = categoriesTreeWindow(parent = cw,
+		cwl = catsTreeWindow(parent = cw,
 			askCats = True,
 			expButton = False,
 			previous = ['1'])
 		cwl.onCancel()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _cwl:
 			cw.editDefCats(cwl)
 			_cwl.assert_called_once_with(parent = cw,
@@ -306,12 +306,12 @@ class TestConfigWindow(GUITestCase):
 				previous = pbConfig.params["defaultCategories"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = categoriesTreeWindow(parent = cw,
+		cwl = catsTreeWindow(parent = cw,
 			askCats = True,
 			expButton = False,
 			previous = ['1'])
 		cwl.onOk()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _cwl:
 			cw.editDefCats(cwl)
 			_cwl.assert_called_once_with(parent = cw,

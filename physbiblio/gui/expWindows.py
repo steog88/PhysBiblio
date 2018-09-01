@@ -17,7 +17,7 @@ try:
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
 		editObjectWindow, MyLabel, MyMenu, MyTableModel, objListWindow
-	from physbiblio.gui.catWindows import categoriesTreeWindow
+	from physbiblio.gui.catWindows import catsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -222,7 +222,7 @@ class ExpWindowList(objListWindow):
 			deleteExperiment(self, self.parent, idExp, expName)
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
-			selectCats = categoriesTreeWindow(parent = self.parent, askCats = True, askForExp = idExp, expButton = False, previous = previous)
+			selectCats = catsTreeWindow(parent = self.parent, askCats = True, askForExp = idExp, expButton = False, previous = previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
 				cats = self.parent.selectedCats

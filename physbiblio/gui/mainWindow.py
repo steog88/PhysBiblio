@@ -33,7 +33,7 @@ try:
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
 		abstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, bibtexList, bibtexInfo, bibtexWindow
-	from physbiblio.gui.catWindows import categoriesTreeWindow, editCategory
+	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, advImportSelect, dailyArxivDialog, dailyArxivSelect
 	from physbiblio.gui.expWindows import ExpWindowList, editExperiment
@@ -691,7 +691,7 @@ class MainWindow(QMainWindow):
 	
 	def categories(self):
 		self.statusBarMessage("categories triggered")
-		catListWin = categoriesTreeWindow(self)
+		catListWin = catsTreeWindow(self)
 		catListWin.show()
 
 	def newCategory(self):
@@ -946,7 +946,7 @@ class MainWindow(QMainWindow):
 
 	def askCatsForEntries(self, entriesList):
 		for entry in entriesList:
-			selectCats = categoriesTreeWindow(parent = self, askCats = True, askForBib = entry, previous = [a[0] for a in pBDB.cats.getByEntry(entry)])
+			selectCats = catsTreeWindow(parent = self, askCats = True, askForBib = entry, previous = [a[0] for a in pBDB.cats.getByEntry(entry)])
 			selectCats.exec_()
 			if selectCats.result in ["Ok", "Exps"]:
 				cats = self.selectedCats

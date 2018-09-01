@@ -36,7 +36,7 @@ try:
 		objListWindow
 	from physbiblio.gui.threadElements import \
 		thread_downloadArxiv, thread_processLatex
-	from physbiblio.gui.catWindows import categoriesTreeWindow
+	from physbiblio.gui.catWindows import catsTreeWindow
 	from physbiblio.gui.expWindows import ExpWindowList
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -699,7 +699,7 @@ class bibtexList(QFrame, objListWindow):
 		#categories
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByEntry(bibkey)]
-			selectCats = categoriesTreeWindow(parent = self.parent, askCats = True, askForBib = bibkey, expButton = False, previous = previous)
+			selectCats = catsTreeWindow(parent = self.parent, askCats = True, askForBib = bibkey, expButton = False, previous = previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
 				cats = self.parent.selectedCats
@@ -1176,7 +1176,7 @@ class askSelBibAction(MyMenu):
 
 	def onCat(self):
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
-		selectCats = categoriesTreeWindow(parent = self.parent, askCats = True, expButton = False, previous = previousAll, multipleRecords = True)
+		selectCats = catsTreeWindow(parent = self.parent, askCats = True, expButton = False, previous = previousAll, multipleRecords = True)
 		selectCats.exec_()
 		if selectCats.result == "Ok":
 			for c in self.parent.previousUnchanged:
@@ -1265,7 +1265,7 @@ class searchBibsWindow(editObjectWindow):
 		self.onOk()
 
 	def onAskCats(self):
-		selectCats = categoriesTreeWindow(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
+		selectCats = catsTreeWindow(parent = self, askCats = True, expButton = False, previous = self.values["cats"])
 		selectCats.exec_()
 		if selectCats.result == "Ok":
 			self.values["cats"] = self.selectedCats

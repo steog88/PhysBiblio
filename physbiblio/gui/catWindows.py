@@ -215,7 +215,8 @@ class catsModel(TreeModel):
 		"""
 		if not index.isValid():
 			return None
-		if index.column() == 0 and self.parentObj.askCats:
+		if index.column() == 0 and (hasattr(self.parentObj, "askCats")
+				and self.parentObj.askCats):
 			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		else:
@@ -259,7 +260,7 @@ class catsModel(TreeModel):
 		self.dataChanged.emit(index, index)
 		return True
 
-class categoriesTreeWindow(QDialog):
+class catsTreeWindow(QDialog):
 	"""Extension of `QDialog` that shows the categories tree"""
 	def __init__(self,
 			parent = None,
@@ -296,7 +297,7 @@ class categoriesTreeWindow(QDialog):
 				checkbox for the initial list of categories, which are
 				typically not the same for all the elements in the list
 		"""
-		super(categoriesTreeWindow, self).__init__(parent)
+		super(catsTreeWindow, self).__init__(parent)
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
 		self.askCats = askCats
@@ -646,15 +647,15 @@ class editCategoryDialog(editObjectWindow):
 		self.createForm()
 
 	def onAskParent(self, testing = False):
-		"""Open a `categoriesTreeWindow` and process its output
+		"""Open a `catsTreeWindow` and process its output
 
 		Parameter:
 			testing (default False):
 				if evaluates to True it must be
-				a `categoriesTreeWindow` instance,
+				a `catsTreeWindow` instance,
 				it will use the custom dialog instead of run `exec_`
 		"""
-		selectCats = categoriesTreeWindow(parent = self,
+		selectCats = catsTreeWindow(parent = self,
 			askCats = True,
 			expButton = False,
 			single = True,

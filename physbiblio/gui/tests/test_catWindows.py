@@ -5,7 +5,7 @@ This file is part of the physbiblio package.
 """
 import sys, traceback
 import os
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -21,6 +21,7 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.catWindows import *
+	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -31,102 +32,265 @@ except Exception:
 class TestFunctions(GUITestCase):
 	"""test editCategory and deleteCategory"""
 	def test_editCategory(self):
-		"""test"""
-		pass
+		"""test editCategory"""
+		raise NotImplementedError()
 
 	def test_deleteCategory(self):
-		"""test"""
-		pass
+		"""test deleteCategory"""
+		p = QWidget()
+		m = MainWindow(testing = True)
+		with patch("physbiblio.gui.catWindows.askYesNo",
+				return_value = False) as _a, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s:
+			deleteCategory(p, m, 15, "mycat")
+			_a.assert_called_once_with(
+				"Do you really want to delete this category "
+				+ "(ID = '15', name = 'mycat')?")
+			_s.assert_called_once_with("Nothing changed")
+
+		with patch("physbiblio.gui.catWindows.askYesNo",
+				return_value = False) as _a, \
+				patch("logging.Logger.debug") as _d:
+			deleteCategory(p, p, 15, "mycat")
+			_a.assert_called_once_with(
+				"Do you really want to delete this category "
+				+ "(ID = '15', name = 'mycat')?")
+			_d.assert_called_once_with(
+				"mainWinObject has no attribute 'statusBarMessage'",
+				exc_info = True)
+
+		with patch("physbiblio.gui.catWindows.askYesNo",
+				return_value = True) as _a, \
+				patch("physbiblio.database.categories.delete") as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s, \
+				patch("logging.Logger.debug") as _d:
+			deleteCategory(p, m, 15, "mycat")
+			_a.assert_called_once_with(
+				"Do you really want to delete this category "
+				+ "(ID = '15', name = 'mycat')?")
+			_c.assert_called_once_with(15)
+			_t.assert_called_once_with("PhysBiblio*")
+			_s.assert_called_once_with("Category deleted")
+			_d.assert_called_once_with(
+				"parentObject has no attribute 'recreateTable'",
+				exc_info = True)
+
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.gui.catWindows.askYesNo",
+				return_value = True) as _a, \
+				patch("physbiblio.database.categories.delete") as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s, \
+				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
+					) as _r:
+			deleteCategory(ctw, m, 15, "mycat")
+			_a.assert_called_once_with(
+				"Do you really want to delete this category "
+				+ "(ID = '15', name = 'mycat')?")
+			_c.assert_called_once_with(15)
+			_t.assert_called_once_with("PhysBiblio*")
+			_s.assert_called_once_with("Category deleted")
+			_r.assert_called_once_with()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCatsModel(GUITestCase):
 	"""test the catsModel class"""
 	def test_init(self):
 		"""test init"""
-		pass
+		cm = catsModel([], [])
+		# tm.rootElements = [
+			# NamedElement(0, "main", [
+				# NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
+				# NamedElement(3, "test3", []),
+				# ])
+			# ]
+		raise NotImplementedError()
 
 	def test_getRootNodes(self):
-		"""test"""
-		pass
+		"""test _getRootNodes"""
+		raise NotImplementedError()
 
 	def test_columnCount(self):
-		"""test"""
-		pass
+		"""test columnCount"""
+		cm = catsModel([], [])
+		self.assertEqual(cm.columnCount("a"), 1)
 
 	def test_data(self):
-		"""test"""
-		pass
+		"""test data"""
+		raise NotImplementedError()
 
 	def test_flags(self):
-		"""test"""
-		pass
+		"""test flags"""
+		cm = catsModel([], [])
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = False) as _iv:
+			self.assertEqual(cm.flags(QModelIndex()), None)
+			_iv.assert_called_once_with()
+
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv, \
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 1) as _c:
+			self.assertEqual(cm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			_iv.assert_called_once_with()
+			_c.assert_called_once_with()
+
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv, \
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 0) as _c:
+			self.assertEqual(cm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			_iv.assert_called_once_with()
+			_c.assert_called_once_with()
+
+		p = QWidget()
+		p.askCats = False
+		cm = catsModel([], [], p)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv, \
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 0) as _c:
+			self.assertEqual(cm.flags(QModelIndex()),
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			_iv.assert_called_once_with()
+			_c.assert_called_once_with()
+
+		p = QWidget()
+		p.askCats = True
+		cm = catsModel([], [], p)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+				return_value = True) as _iv, \
+				patch("PySide2.QtCore.QModelIndex.column",
+					return_value = 0) as _c:
+			self.assertEqual(cm.flags(QModelIndex()),
+				Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
+				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+			_iv.assert_called_once_with()
+			_c.assert_called_once_with()
 
 	def test_headerData(self):
-		"""test"""
-		pass
+		"""test headerData"""
+		cm = catsModel([], [])
+		self.assertEqual(cm.headerData(0, Qt.Horizontal, Qt.DisplayRole),
+			"Name")
+		self.assertEqual(cm.headerData(1, Qt.Horizontal, Qt.DisplayRole),
+			None)
+		self.assertEqual(cm.headerData(0, Qt.Vertical, Qt.DisplayRole),
+			None)
+		self.assertEqual(cm.headerData(0, Qt.Horizontal, Qt.EditRole),
+			None)
 
 	def test_setData(self):
-		"""test"""
-		pass
+		"""test setData"""
+		raise NotImplementedError()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCategoriesTreeWindow(GUITestCase):
-	"""test the categoriesTreeWindow class"""
+	"""test the catsTreeWindow class"""
 	def test_init(self):
 		"""test init"""
-		pass
+		p = QWidget()
+		ctw = catsTreeWindow(p)
+		raise NotImplementedError()
 
 	def test_populateAskCats(self):
-		"""test"""
-		pass
+		"""test populateAskCats"""
+		raise NotImplementedError()
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		ctw = catsTreeWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			ctw.onCancel()
+		self.assertFalse(ctw.result)
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		raise NotImplementedError()
 
-	def test_change_filter(self):
-		"""test"""
-		pass
+	def test_changeFilter(self):
+		"""test changeFilter"""
+		p = QWidget()
+		ctw = catsTreeWindow(p)
+		with patch("PySide2.QtWidgets.QTreeView.expandAll") as _e:
+			ctw.changeFilter("abc")
+			_e.assert_called_once_with()
+		self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "abc")
+		with patch("PySide2.QtWidgets.QTreeView.expandAll") as _e:
+			ctw.changeFilter(123)
+			_e.assert_called_once_with()
+		self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "123")
 
 	def test_onAskExps(self):
-		"""test"""
-		pass
+		"""test onAskExps"""
+		p = QWidget()
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.onOk"
+				) as _oo:
+			ctw.onAskExps()
+			_oo.assert_called_once_with(exps = True)
 
 	def test_onNewCat(self):
-		"""test"""
-		pass
+		"""test onNewCat"""
+		p = QWidget()
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.gui.catWindows.editCategory") as _ec, \
+				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
+					) as _rt:
+			ctw.onNewCat()
+			_ec.assert_called_once_with(p, p)
+			_rt.assert_called_once()
 
 	def test_keyPressEvent(self):
-		"""test"""
-		pass
+		"""test keyPressEvent"""
+		ctw = catsTreeWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
+			QTest.keyPress(ctw, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(ctw, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(ctw, Qt.Key_Escape)
+			_oc.assert_called_once()
 
-	def test_fillTree(self):
-		"""test"""
-		pass
+	def test_createForm(self):
+		"""test createForm"""
+		raise NotImplementedError()
 
 	def test_populateTree(self):
-		"""test"""
-		pass
+		"""test _populateTree"""
+		raise NotImplementedError()
 
 	def test_handleItemEntered(self):
-		"""test"""
-		pass
+		"""test handleItemEntered"""
+		raise NotImplementedError()
 
 	def test_contextMenuEvent(self):
-		"""test"""
-		pass
+		"""test contextMenuEvent"""
+		raise NotImplementedError()
 
 	def test_cleanLayout(self):
-		"""test"""
-		pass
+		"""test cleanLayout"""
+		ctw = catsTreeWindow()
+		self.assertEqual(ctw.layout().count(), 3)
+		ctw.cleanLayout()
+		self.assertEqual(ctw.layout().count(), 0)
 
 	def test_recreateTable(self):
-		"""test"""
-		pass
+		"""test recreateTable"""
+		ctw = catsTreeWindow()
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.cleanLayout"
+				) as _c1, \
+				patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+					) as _c2:
+			ctw.recreateTable()
+			_c1.assert_called_once_with()
+			_c2.assert_called_once_with()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditCategoryDialog(GUITestCase):
@@ -182,14 +346,14 @@ class TestEditCategoryDialog(GUITestCase):
 		"""test onAskParents"""
 		p = QWidget()
 		ecd = editCategoryDialog(p)
-		sc = categoriesTreeWindow(parent = ecd,
+		sc = catsTreeWindow(parent = ecd,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = [0])
 		sc.onCancel()
 		txt = ecd.textValues["parentCat"].text()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _i:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
@@ -200,13 +364,13 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"0 - Main")
 
-		sc = categoriesTreeWindow(parent = ecd,
+		sc = catsTreeWindow(parent = ecd,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = [1])
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _i:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
@@ -217,13 +381,13 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"1 - Tags")
 
-		sc = categoriesTreeWindow(parent = ecd,
+		sc = catsTreeWindow(parent = ecd,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = [0, 1])
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _i:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
@@ -234,13 +398,13 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"1 - Tags")
 
-		sc = categoriesTreeWindow(parent = ecd,
+		sc = catsTreeWindow(parent = ecd,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = [])
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _i:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
@@ -251,13 +415,13 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"Select parent")
 
-		sc = categoriesTreeWindow(parent = ecd,
+		sc = catsTreeWindow(parent = ecd,
 			askCats = True,
 			expButton = False,
 			single = True,
 			previous = [9999])
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.categoriesTreeWindow.__init__",
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _i:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
