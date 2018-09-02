@@ -1,5 +1,4 @@
-"""
-This module manages the saved PDF files and opens them if required.
+"""This module manages the saved PDF files and opens them if required.
 
 This file is part of the physbiblio package.
 """
@@ -23,20 +22,17 @@ except ImportError:
 	raise
 	
 class localPDF():
-	"""
-	Class with functions to manage the PDF folder content and the stored material
+	"""Class with functions to manage the PDF folder content
+	and the stored material
 	"""
 	def __init__(self):
-		"""
-		Init the class and set some default variables
-		"""
+		"""Init the class and set some default variables"""
 		self.pdfDir = pbConfig.params["pdfFolder"]
 		self.badFNameCharacters = r'\/:*?"<>|' + "'"
 		self.pdfApp = pbConfig.params["pdfApplication"]
 		
 	def badFName(self, filename):
-		"""
-		Clean the filename substituting the bad characters with '_'
+		"""Clean the filename substituting the bad characters with '_'
 
 		Parameters:
 			filename (string): the string containing the file name
@@ -61,48 +57,55 @@ class localPDF():
 			key (string): the bibtex key of the entry
 
 		Output:
-			the (cleaned) absolute path for the PDF files associated with the entry
+			the (cleaned) absolute path for the PDF files
+				associated with the entry
 		"""
 		return osp.join(self.pdfDir, self.badFName(key))
 		
 	def getFilePath(self, key, fileType):
-		"""
-		Obtain the file path for a given file type (arxiv, doi, ...) of a given entry.
-		It reads the field from the database in order to generate the file name.
+		"""Obtain the file path for a given file type (arxiv, doi, ...)
+		of a given entry.
+		It reads the field from the database in order
+		to generate the file name.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+			fileType (string in
+				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+				basically the field in the database
+				from which the name must be taken
 
 		Output:
 			the (cleaned) absolute path for the PDF file
 		"""
-		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+		if fileType not in ["arxiv", "inspire", "isbn",
+				"doi", "ads", "scholar"]:
 			pBLogger.warning("Required field does not exist or is not valid")
 			return ""
 		filename = pBDB.bibs.getField(key, fileType)
 		if filename is None:
-			pBLogger.warning("Impossible to get the type '%s' filename for entry %s"%(fileType, key))
+			pBLogger.warning("Impossible to get the type '%s' "%fileType
+				+ "filename for entry %s"%key)
 			return ""
 		else:
 			filename = self.badFName(filename)
 			return osp.join(self.getFileDir(key), filename + '.pdf')
 		
 	def createFolder(self, key, noCheck = False):
-		"""
-		Create the PDF folder for a given entry.
+		"""Create the PDF folder for a given entry.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			noCheck (bool): True to avoid checking if the directory exists. Default False
+			noCheck (bool): True to avoid checking
+				if the directory exists. Default False
 		"""
 		directory = self.getFileDir(key)
 		if noCheck or not osp.exists(directory):
 			os.makedirs(directory)
 
 	def renameFolder(self, oldkey, newkey):
-		"""
-		Rename the PDF folder for a given entry for which the bibtex key has been changed.
+		"""Rename the PDF folder for a given entry
+		for which the bibtex key has been changed.
 
 		Parameters:
 			oldkey (string): the old bibtex key of the entry
@@ -116,15 +119,25 @@ class localPDF():
 		else:
 			return False
 
-	def copyNewFile(self, key, origFileName, fileType = None, customName = None):
-		"""
-		Copy a file in any place of the filesystem into the directory corresponding to the given entry
+	def copyNewFile(self,
+			key,
+			origFileName,
+			fileType = None,
+			customName = None):
+		"""Copy a file in any place of the filesystem
+		into the directory corresponding to the given entry
 
 		Parameters:
 			key (string): the bibtex key of the entry
 			origFileName (string): the name of the file to be copied
-			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken. customName can be given instead.
-			customName (string): a completely independent name for the file. It may be given instead of fileType.
+			fileType (string in
+				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+				basically the field in the database
+				from which the name must be taken.
+				`customName` can be given instead.
+			customName (string):
+				a completely independent name for the file.
+				It may be given instead of fileType.
 		"""
 		if not osp.exists(self.getFileDir(key)):
 			self.createFolder(key, True)
@@ -133,58 +146,72 @@ class localPDF():
 		elif fileType is not None:
 			newFileName = self.getFilePath(key, fileType)
 		else:
-			pBLogger.warning("You should supply a fileType ('doi' or 'arxiv') or a customName!")
+			pBLogger.warning("You should supply a fileType "
+				+ "('doi' or 'arxiv') or a customName!")
 			return False
 		try:
 			shutil.copy2(origFileName, newFileName)
 			pBLogger.info("%s copied to %s"%(origFileName, newFileName))
 			return True
 		except:
-			pBLogger.exception("Impossible to copy %s to %s"%(origFileName, newFileName))
+			pBLogger.exception("Impossible to copy %s to %s"%(
+				origFileName, newFileName))
 			return False
 
 	def copyToDir(self, outFolder, key, fileType = None, customName = None):
-		"""
-		Copy a file from the directory corresponding to the given entry to the a directory in the filesystem.
+		"""Copy a file from the directory corresponding
+		to the given entry to the a directory in the filesystem.
 
 		Parameters:
 			outFolder (string): the name of the destination folder
 			key (string): the bibtex key of the entry
-			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken. customName can be given instead.
-			customName (string): a completely independent name for the file. It may be given instead of fileType.
+			fileType (string in
+				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+				basically the field in the database from which
+				the name must be taken. customName can be given instead.
+			customName (string):
+				a completely independent name for the file.
+				It may be given instead of fileType.
 		"""
 		if customName is not None:
 			origFile = osp.join(self.getFileDir(key), customName)
 		elif fileType is not None:
 			origFile = self.getFilePath(key, fileType)
 		else:
-			pBLogger.warning("You should supply a fileType ('doi' or 'arxiv') or a customName!")
+			pBLogger.warning("You should supply a fileType "
+				+ "('doi' or 'arxiv') or a customName!")
 			return False
 		try:
 			shutil.copy2(origFile, outFolder)
 			pBLogger.info("%s copied to %s"%(origFile, outFolder))
 			return True
 		except:
-			pBLogger.exception("Impossible to copy %s to %s"%(origFile, outFolder))
+			pBLogger.exception("Impossible to copy %s to %s"%(
+				origFile, outFolder))
 			return False
 		
 	def downloadArxiv(self, key, force = False):
-		"""
-		Download the PDF file from arXiv for a given entry and save it in the proper folder.
+		"""Download the PDF file from arXiv for a given entry
+		and save it in the proper folder.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			force (boolean, optional, default False): force the replacement of the file if it already exists. If False and there is a PDF with the same name, no action is performed.
+			force (boolean, optional, default False):
+				force the replacement of the file if it already exists.
+				If False and there is a PDF with the same name,
+				no action is performed.
 		"""
 		filename = self.getFilePath(key, "arxiv")
 		if osp.exists(filename) and not force:
-			pBLogger.info("There is already a pdf and overwrite not requested.")
+			pBLogger.info(
+				"There is already a pdf and overwrite not requested.")
 			return True
 		try:
 			self.createFolder(key)
 			url = pBDB.bibs.getArxivUrl(key, 'pdf')
 			if url is False:
-				pBLogger.warning("Invalid arXiv PDF url for '%s', probably the field is empty."%key)
+				pBLogger.warning("Invalid arXiv PDF url for '%s',"%key
+					+ " probably the field is empty.")
 				return False
 			pBLogger.info("Downloading arXiv PDF from %s"%url)
 			response = urlopen(url)
@@ -192,25 +219,36 @@ class localPDF():
 				newF.write(response.read())
 			pBLogger.info("File saved to %s"%filename)
 		except HTTPError:
-			pBLogger.exception("ArXiv PDF for '%s' not found (404 error on url: %s)"%(key, url))
+			pBLogger.exception("ArXiv PDF for '%s' not found "%key
+				+ "(404 error on url: %s)"%url)
 			return False
 		except:
-			pBLogger.exception("Impossible to download the arXiv PDF for '%s'"%key)
+			pBLogger.exception(
+				"Impossible to download the arXiv PDF for '%s'"%key)
 			return False
 		else:
 			return os.path.exists(filename)
 	
-	def openFile(self, key, arg = None, fileType = None, fileNum = None, fileName = None):
-		"""
-		Open a PDF file in an external application (if defined in the configuration).
+	def openFile(self,
+			key,
+			arg = None,
+			fileType = None,
+			fileNum = None,
+			fileName = None):
+		"""Open a PDF file in an external application
+		(if defined in the configuration).
 		Does nothing if there is self.pdfApp is empty.
 
 		Parameters:
 			key (string): the bibtex key of the entry
 			at least one of the following (they are considered in this order):
 				arg: used to guess the fileType, fileNum or fileName
-				fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
-				fileNum: the number of the desired PDF in the list of existing PDF files for the considered entry
+				fileType (string in
+					["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+					basically the field in the database
+					from which the name must be taken
+				fileNum: the number of the desired PDF
+					in the list of existing PDF files for the considered entry
 				filaName: the specific file name
 		"""
 		try:
@@ -229,38 +267,47 @@ class localPDF():
 			elif fileName is not None:
 				fName = osp.join(self.getFileDir(key), fileName)
 			else:
-				pBLogger.warning("Invalid selection. One among fileType, fileNum or fileName must be given!")
+				pBLogger.warning("Invalid selection. "
+					+ "One among fileType, fileNum or fileName must be given!")
 				return
 			if self.pdfApp != "":
 				pBLogger.info("Opening '%s'..."%fName)
-				subprocess.Popen([self.pdfApp, fName], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+				subprocess.Popen([self.pdfApp, fName],
+					stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
 			pBLogger.exception("Opening PDF for '%s' failed!"%key)
 	
 	def checkFile(self, key, fileType):
-		"""
-		Check if a file of a given type (arxiv, doi, ...) and a given entry exists.
+		"""Check if a file of a given type (arxiv, doi, ...)
+		and a given entry exists.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
+			fileType (string in
+				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+				basically the field in the database
+				from which the name must be taken
 
 		Output:
 			boolean (if the arguments are valid) or None (if fileType is bad)
 		"""
-		if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+		if fileType not in ["arxiv", "inspire", "isbn",
+				"doi", "ads", "scholar"]:
 			pBLogger.warning("Invalid argument to checkFile!")
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))
 
 	def removeFile(self, key, fileType, fileName = None):
-		"""
-		Delete a PDF file.
+		"""Delete a PDF file.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			fileType (string in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]): basically the field in the database from which the name must be taken
-			fileName (optional): specify the file name instead of computing it from the database information
+			fileType (string in
+				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+				basically the field in the database
+				from which the name must be taken
+			fileName (optional): specify the file name instead
+				of computing it from the database information
 
 		Output:
 			True if successful, False if exception occurred
@@ -276,42 +323,48 @@ class localPDF():
 			return False
 			
 	def getExisting(self, key, fullPath = False):
-		"""
-		Obtain the list of existing files for a given entry.
+		"""Obtain the list of existing files for a given entry.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			fullPath (boolean, default False): return the list with absolute paths
+			fullPath (boolean, default False):
+				return the list with absolute paths
 		"""
 		fileDir = self.getFileDir(key)
 		try:
 			if fullPath:
-				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
+				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) \
+					if e[-4:] == ".pdf" ]
 			else:
 				return [ e for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
 		except:
 			return []
 			
 	def printExisting(self, key, fullPath = False):
-		"""
-		Print the list of existing files for a given entry, using self.getExisting to get it.
+		"""Print the list of existing files for a given entry,
+		using self.getExisting to get it.
 		Same parameters as self.getExisting.
 		"""
-		pBLogger.info("Listing file for entry '%s', located in %s:"%(key, self.getFileDir(key)))
+		pBLogger.info("Listing file for entry '%s', located in %s:"%(
+			key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
 			pBLogger.info("%2d: %s"%(i, e))
 	
 	def printAllExisting(self, entries = None, fullPath = False):
-		"""
-		Print the complete list of all the existing PDF files in the PDF folder, given all the entries in the database or a specific subset
+		"""Print the complete list of all the existing PDF files
+		in the PDF folder, given all the entries in the database
+		or a specific subset
 
 		Parameters:
-			entries (list, optional): the list of bibtex keys to consider. If None, get all the database content
-			fullPath (boolean, default False): print the list with absolute paths
+			entries (list, optional): the list of bibtex keys to consider.
+				If None, get all the database content
+			fullPath (boolean, default False):
+				print the list with absolute paths
 		"""
 		iterator = entries
 		if entries is None:
-			pBDB.bibs.fetchAll(orderBy = "firstdate", saveQuery = False, doFetch = False)
+			pBDB.bibs.fetchAll(orderBy = "firstdate",
+				saveQuery = False, doFetch = False)
 			iterator = pBDB.bibs.fetchCursor()
 		for e in iterator:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
@@ -319,9 +372,10 @@ class localPDF():
 				pBLogger.info("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
 	def removeSparePDFFolders(self):
-		"""
-		Scans the PDF folder in order to find single unassociated directories (their name is not matched by any database entry).
-		The unassociated directories are removed without asking any additional confirmation. Be careful!
+		"""Scans the PDF folder in order to find single unassociated
+		directories (their name is not matched by any database entry).
+		The unassociated directories are removed without asking any
+		additional confirmation. Be careful!
 		"""
 		pBDB.bibs.fetchAll(doFetch = False)
 		folders = os.listdir(self.pdfDir)
@@ -331,7 +385,9 @@ class localPDF():
 			if cleaned in folders:
 				del folders[folders.index(cleaned)]
 		if len(folders) > 0:
-			pBLogger.info("Spare PDF folders found: %d\n%s\nThey will be removed now."%(len(folders), folders))
+			pBLogger.info("Spare PDF folders found: %d\n%s\n"%(
+				len(folders), folders)
+				+ "They will be removed now.")
 			for f in folders:
 				shutil.rmtree(osp.join(self.pdfDir, f))
 			pBLogger.info("Done!")

@@ -1,5 +1,4 @@
-"""
-Manages the configuration of PhysBiblio, from saving to reading.
+"""Manages the configuration of PhysBiblio, from saving to reading.
 
 This file is part of the physbiblio package.
 """
@@ -23,7 +22,8 @@ configuration_params = [
 	"special": None},
 {"name": "loggingLevel",
 	"default": 1,
-	"description": 'How many messages to save in the log file (will have effects only after closing the application)',
+	"description": 'How many messages to save in the log file ' \
+		+ '(will have effects only after closing the application)',
 	"special": 'int'},
 {"name": "logFileName",
 	"default": 'PBDATAparams.log',
@@ -35,7 +35,8 @@ configuration_params = [
 	"special": None},
 {"name": "pdfApplication",
 	"default": '',
-	"description": 'Application for opening PDF files (used only via command line)',
+	"description": 'Application for opening PDF files ' \
+		+ '(used only via command line)',
 	"special": None},
 {"name": "webApplication",
 	"default": '',
@@ -51,11 +52,13 @@ configuration_params = [
 	"special": 'boolean'},
 {"name": "defaultLimitBibtexs",
 	"default": 100,
-	"description": 'Number of bibtex entries in the initial view of the main table',
+	"description": 'Number of bibtex entries in the initial view ' \
+		+ 'of the main table',
 	"special": 'int'},
 {"name": "defaultUpdateFrom",
 	"default": 0,
-	"description": 'Index of bibtex entries (firstdate ASC) from which I should start when using "Update bibtexs"',
+	"description": 'Index of bibtex entries (firstdate ASC) ' \
+		+ 'from which I should start when using "Update bibtexs"',
 	"special": 'int'},
 {"name": "maxAuthorNames",
 	"default": 3,
@@ -63,15 +66,18 @@ configuration_params = [
 	"special": 'int'},
 {"name": "maxAuthorSave",
 	"default": 6,
-	"description": 'Max number of authors to be saved when adding info from arXiv',
+	"description": 'Max number of authors to be saved ' \
+		+ 'when adding info from arXiv',
 	"special": 'int'},
 {"name": "maxArxivResults",
 	"default": 10,
-	"description": 'Max number of entries per page when reading arxiv API results',
+	"description": 'Max number of entries per page ' \
+		+ 'when reading arxiv API results',
 	"special": 'int'},
 {"name": "fetchAbstract",
 	"default": False,
-	"description": 'Automatically fetch the abstract from arXiv if an arxiv number is present',
+	"description": 'Automatically fetch the abstract ' \
+		+ 'from arXiv if an arxiv number is present',
 	"special": 'boolean'},
 {"name": "defaultCategories",
 	"default": [],
@@ -79,15 +85,18 @@ configuration_params = [
 	"special": 'list'},
 {"name": "bibListFontSize",
 	"default": 9,
-	"description": 'Font size in the list of bibtex entries and companion boxes',
+	"description": 'Font size in the list of bibtex entries ' \
+		+ 'and companion boxes',
 	"special": 'float'},
 {"name": "bibtexListColumns",
-	"default": ["bibkey", "author", "title", "year", "firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
+	"default": ["bibkey", "author", "title", "year",
+		"firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
 	"description": 'The columns to be shown in the entries list',
 	"special": 'list'},
 {"name": "maxSavedSearches",
 	"default": 5,
-	"description": 'Max number of automatically saved search/replace arguments',
+	"description": 'Max number of automatically saved ' \
+		+ 'search/replace arguments',
 	"special": 'int'},
 ]
 
@@ -98,7 +107,8 @@ loggingLevels = [
 	"3 - all"
 ]
 
-config_paramOrder = [ p["name"] for p in configuration_params if p["name"] != "mainDatabaseName"]
+config_paramOrder = [ p["name"] for p in configuration_params \
+	if p["name"] != "mainDatabaseName"]
 config_defaults = {}
 config_descriptions = {}
 config_special = {}
@@ -108,12 +118,11 @@ for p in configuration_params:
 	config_special[p["name"]] = p["special"]
 
 class globalDB(physbiblioDBCore):
-	"""
-	Class that manages the operations on the global DB: profiles and frequent searches/replaces
+	"""Class that manages the operations on the global DB:
+	profiles and frequent searches/replaces
 	"""
 	def __init__(self, dbname, logger, datapath, info = True):
-		"""
-		Class constructor
+		"""Class constructor
 
 		Parameters:
 			dbname: the name of the database to open
@@ -134,14 +143,13 @@ class globalDB(physbiblioDBCore):
 			self.createProfile()
 
 	def createTables(self, existing):
-		"""
-		Create the profiles table
-		"""
+		"""Create the profiles table"""
 		if "profiles" not in existing:
 			command = "CREATE TABLE profiles (\n"
 			for el in profilesSettingsTable:
 				command += " ".join(el) + ",\n"
-			command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
+			command += "CONSTRAINT unique_databasefile " \
+				+ "UNIQUE (databasefile)\n);"
 			self.logger.info(command+"\n")
 			if not self.connExec(command):
 				self.logger.critical("Create profiles table failed")
@@ -165,8 +173,7 @@ class globalDB(physbiblioDBCore):
 		return True
 
 	def countProfiles(self):
-		"""
-		Obtain the number of profiles in the database
+		"""Obtain the number of profiles in the database
 
 		Output:
 			the number of profiles
@@ -179,22 +186,27 @@ class globalDB(physbiblioDBCore):
 			description = "",
 			databasefile = None,
 			oldCfg = ""):
-		"""
-		Create a new profile
+		"""Create a new profile
 
 		Parameters:
 			name: the name of the profile
 			description: a short description of the profile
-			databasefile: the name of the database file which will contain data
-			oldCfg: the name of the old .cfg file (backwards compatibility only)
+			databasefile: the name of the database file
+				which will contain data
+			oldCfg: the name of the old .cfg file
+				(backwards compatibility only)
 
 		Output:
 			True if successful, sys.exit(1) otherwise
 		"""
 		if databasefile is None:
-			databasefile = os.path.join(self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", ""))
-		command = "INSERT into profiles (name, description, databasefile, oldCfg, isDefault, ord) " + \
-			'values (:name, :description, :databasefile, :oldCfg, :isDefault, :ord)'
+			databasefile = os.path.join(
+				self.dataPath,
+				config_defaults["mainDatabaseName"].replace("PBDATA", ""))
+		command = "INSERT into profiles " \
+			+ "(name, description, databasefile, oldCfg, isDefault, ord) " \
+			+ 'values (:name, :description, :databasefile, ' \
+			+ ':oldCfg, :isDefault, :ord)'
 		data = {
 			"name": name,
 			"description": description,
@@ -209,28 +221,41 @@ class globalDB(physbiblioDBCore):
 		self.commit(verbose = False)
 		return True
 
-	def updateProfileField(self, identifier, field, value, identifierField = "name"):
-		"""
-		Update a field of an existing profile
+	def updateProfileField(self,
+			identifier,
+			field,
+			value,
+			identifierField = "name"):
+		"""Update a field of an existing profile
 
 		Parameters:
-			identifier: the identifier of the profile. It may be 1 if `identifierField` == "isDefault", the name of the profile or the database filename if `identifierField` == "name" or "databasefile", respectively.
+			identifier: the identifier of the profile.
+				It may be 1 if `identifierField` == "isDefault",
+				the name of the profile or the database filename
+				if `identifierField` == "name" or "databasefile",
+				respectively.
 			field: the name of the field to update.
 			value: the new vallue of the field
-			identifierField: "name", "databasefile" or "isDefault". It must be "databasefile" if you want to change the dprofile name and "name" if you want to change the databasefile (discouraged, however)
+			identifierField: "name", "databasefile" or "isDefault".
+				It must be "databasefile" if you want to change
+				the profile name and "name" if you want to change
+				the databasefile (discouraged, however)
 		
 		Output:
 			True if successful, False otherwise
 		"""
-		if (field == "databasefile" and identifierField != "name") or \
-				(field == "name" and identifierField != "databasefile") or \
-				(identifierField == "isDefault" and identifier != 1) or \
-				identifierField not in ["name", "databasefile", "isDefault"] or \
-				field not in [e[0] for e in profilesSettingsTable]:
-			self.logger.error("Invalid field or identifierField: %s, %s"%(field, identifierField))
+		if (field == "databasefile" and identifierField != "name") \
+				or (field == "name" and identifierField != "databasefile") \
+				or (identifierField == "isDefault" and identifier != 1) \
+				or identifierField not in [
+					"name", "databasefile", "isDefault"] \
+				or field not in [e[0] for e in profilesSettingsTable]:
+			self.logger.error(
+				"Invalid field or identifierField: %s, %s"%(
+					field, identifierField))
 			return False
-		command = "update profiles set %s = :val "%field + \
-			' where %s = :iden\n'%identifierField
+		command = "update profiles set %s = :val "%field \
+			+ ' where %s = :iden\n'%identifierField
 		data = {
 			"val": value,
 			"iden": identifier,
@@ -243,8 +268,7 @@ class globalDB(physbiblioDBCore):
 		return True
 
 	def deleteProfile(self, name):
-		"""
-		Delete a profile given the name
+		"""Delete a profile given the name
 
 		Parameters:
 			name: the profile name
@@ -264,8 +288,7 @@ class globalDB(physbiblioDBCore):
 		return True
 
 	def getProfiles(self):
-		"""
-		Get the list of profiles
+		"""Get the list of profiles
 
 		Output:
 			the list of `sqlite3.Row` objects
@@ -274,8 +297,8 @@ class globalDB(physbiblioDBCore):
 		return self.curs.fetchall()
 
 	def getProfile(self, name = "", filename = ""):
-		"""
-		Get a profile given its name or the name of the database file. Note that only one of the two may be given
+		"""Get a profile given its name or the name of the database file.
+		Note that only one of the two may be given
 
 		Parameters:
 			name: the name of the profile
@@ -285,18 +308,20 @@ class globalDB(physbiblioDBCore):
 			the `sqlite3.Row` object
 		"""
 		if name.strip() == "" and filename.strip() == "":
-			self.logger.warning("You should specify the name or the filename associated with the profile")
+			self.logger.warning("You should specify the name or the filename"
+				+ "associated with the profile")
 			return {}
 		if name.strip() != "" and filename.strip() != "":
-			self.logger.warning("You should specify only the name or only the filename associated with the profile")
+			self.logger.warning("You should specify only the name "
+				+ "or only the filename associated with the profile")
 			return {}
-		self.cursExec("SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
+		self.cursExec("SELECT * FROM profiles WHERE name = :name "
+			+ "or databasefile = :file\n",
 			{"name": name, "file": filename})
 		return self.curs.fetchall()[0]
 
 	def getProfileOrder(self):
-		"""
-		Obtain the order of profiles
+		"""Obtain the order of profiles
 
 		Output:
 			a list with the names of the ordered profiles
@@ -308,8 +333,7 @@ class globalDB(physbiblioDBCore):
 		return [e["name"] for e in self.curs.fetchall()]
 
 	def setProfileOrder(self, order = []):
-		"""
-		Set the new order of profiles
+		"""Set the new order of profiles
 
 		Parameters:
 			order: the ordered list of profile names
@@ -323,22 +347,26 @@ class globalDB(physbiblioDBCore):
 		if sorted(order) != sorted([e["name"] for e in self.getProfiles()]):
 			self.logger.info(sorted(order))
 			self.logger.info(sorted([e["name"] for e in self.getProfiles()]))
-			self.logger.warning("List of profile names does not match existing profiles!")
+			self.logger.warning(
+				"List of profile names does not match existing profiles!")
 			return False
 		failed = False
 		for ix, profName in enumerate(order):
-			if not self.connExec("update profiles set ord=:ord where name=:name\n", {"name": profName, "ord": ix}):
+			if not self.connExec(
+					"update profiles set ord=:ord where name=:name\n",
+					{"name": profName, "ord": ix}):
 				failed = True
 		if not failed:
 			self.commit(verbose = False)
 		else:
-			self.logger.error("Something went wrong when setting new profile order. Undoing...")
+			self.logger.error(
+				"Something went wrong when setting new profile order."
+				+ " Undoing...")
 			self.undo(verbose = False)
 		return (not failed)
 
 	def getDefaultProfile(self):
-		"""
-		Obtain the name of the default profile
+		"""Obtain the name of the default profile
 
 		Output:
 			the `sqlite3.Row` objects
@@ -350,8 +378,7 @@ class globalDB(physbiblioDBCore):
 		return [e["name"] for e in self.curs.fetchall()][0]
 
 	def setDefaultProfile(self, name = None):
-		"""
-		Set the new default profile
+		"""Set the new default profile
 
 		Parameters:
 			name: the profile name
@@ -362,14 +389,19 @@ class globalDB(physbiblioDBCore):
 		if name is None or name.strip() == "":
 			self.logger.warning("No name given!")
 			return False
-		self.cursExec("SELECT * FROM profiles WHERE name = :name\n", {"name": name})
+		self.cursExec("SELECT * FROM profiles WHERE name = :name\n",
+			{"name": name})
 		if len(self.curs.fetchall()) == 1:
-			if self.connExec("update profiles set isDefault=0 where 1\n") and \
-					self.connExec("update profiles set isDefault=1 where name = :name\n", {"name": name}):
+			if self.connExec("update profiles set isDefault=0 where 1\n") \
+					and self.connExec(
+					"update profiles set isDefault=1 where name = :name\n",
+					{"name": name}):
 				self.commit(verbose = False)
 				return True
 			else:
-				self.logger.error("Something went wrong when setting new default profile. Undoing...")
+				self.logger.error(
+					"Something went wrong when setting new default profile."
+					+ " Undoing...")
 				self.undo(verbose = False)
 				return False
 		else:
@@ -377,8 +409,7 @@ class globalDB(physbiblioDBCore):
 			return False
 
 	def countSearches(self):
-		"""
-		Obtain the number of searches in the table
+		"""Obtain the number of searches in the table
 
 		Output:
 			the number of searches
@@ -386,14 +417,22 @@ class globalDB(physbiblioDBCore):
 		self.cursExec("SELECT Count(*) FROM searches")
 		return self.curs.fetchall()[0][0]
 
-	def insertSearch(self, name = "", count = 0, searchDict = {}, replaceFields = [], manual = False, replacement = False, limit = 0, offset = 0):
-		"""
-		Insert a new search/replace
+	def insertSearch(self,
+			name = "",
+			count = 0,
+			searchDict = {},
+			replaceFields = [],
+			manual = False,
+			replacement = False,
+			limit = 0,
+			offset = 0):
+		"""Insert a new search/replace
 
 		Parameters:
 			name: the config name
 			count: the order in the cronology or in the menu
-			searchDict: the dictionary which is meant to be passed to fetchByDict
+			searchDict: the dictionary which is meant
+				to be passed to fetchByDict
 			replaceFields: the replace fields used in searchAndReplace
 			manual (boolean, default False): manually saved entry
 			replacement (boolean, default False): replace or simple search
@@ -405,7 +444,10 @@ class globalDB(physbiblioDBCore):
 		"""
 		if limit == 0:
 			limit = pbConfig.params["defaultLimitBibtexs"]
-		output = self.connExec("INSERT into searches (name, count, searchDict, limitNum, offsetNum, replaceFields, manual, isReplace) values (:name, :count, :searchDict, :limit, :offset, :replaceFields, :manual, :isReplace)\n",
+		output = self.connExec("INSERT into searches "
+			+ "(name, count, searchDict, limitNum, offsetNum, replaceFields,"
+			+ " manual, isReplace) values (:name, :count, :searchDict,"
+			+ " :limit, :offset, :replaceFields, :manual, :isReplace)\n",
 			{"name": name,
 			"count": count,
 			"searchDict": "%s"%searchDict,
@@ -419,8 +461,7 @@ class globalDB(physbiblioDBCore):
 		return output
 
 	def deleteSearch(self, idS):
-		"""
-		Delete a search/replace given the id.
+		"""Delete a search/replace given the id.
 
 		Parameters:
 			idS: the unique identifier
@@ -433,31 +474,30 @@ class globalDB(physbiblioDBCore):
 		return output
 
 	def getAllSearches(self):
-		"""
-		Get all the searches
+		"""Get all the searches
 
 		Output:
-			the list of `sqlite3.Row` objects with all the searches in the database
+			the list of `sqlite3.Row` objects
+				with all the searches in the database
 		"""
 		self.cursExec("select * from searches order by count asc\n")
 		return self.curs.fetchall()
 
 	def getSearchByID(self, idS):
-		"""
-		Get a search given its name
+		"""Get a search given its name
 
 		Parameters:
 			idS: the name of the search/replace
 
 		Output:
-			the list (len = 1) of `sqlite3.Row` objects with all the matching searches
+			the list (len = 1) of `sqlite3.Row` objects
+				with all the matching searches
 		"""
 		self.cursExec("select * from searches where idS=?\n", (idS, ))
 		return self.curs.fetchall()
 
 	def getSearchByName(self, name):
-		"""
-		Get a search given its name
+		"""Get a search given its name
 
 		Parameters:
 			name: the name of the search/replace
@@ -469,8 +509,7 @@ class globalDB(physbiblioDBCore):
 		return self.curs.fetchall()
 
 	def getSearchList(self, manual = False, replacement = False):
-		"""
-		Get searches or replaces which were not manually saved
+		"""Get searches or replaces which were not manually saved
 
 		Parameters:
 			manual (boolean, default False): manually saved entry
@@ -479,14 +518,15 @@ class globalDB(physbiblioDBCore):
 		Output:
 			the list of `sqlite3.Row` objects with all the matching searches
 		"""
-		self.cursExec("select * from searches where manual=? and isReplace=? order by count ASC\n", (
+		self.cursExec("select * from searches where manual=? "
+			+ "and isReplace=? order by count ASC\n", (
 			1 if manual else 0,
 			1 if replacement else 0))
 		return self.curs.fetchall()
 
 	def updateSearchOrder(self, replacement = False):
-		"""
-		Update the cronology order for searches or replaces which were not manually saved
+		"""Update the cronology order for searches or replaces
+		which were not manually saved
 
 		Parameters:
 			replacement (boolean, default False): replace or simple search
@@ -494,11 +534,14 @@ class globalDB(physbiblioDBCore):
 		Output:
 			True if successfull, False if some sum failed
 		"""
-		self.cursExec("select * from searches where manual=? and isReplace=?\n", (0, 1 if replacement else 0))
+		self.cursExec("select * from searches "
+			+ "where manual=? and isReplace=?\n",
+			(0, 1 if replacement else 0))
 		for e in self.curs.fetchall():
 			if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
 				self.deleteSearch(e["idS"])
-			if not self.connExec("update searches set count = :count where idS=:idS\n",
+			if not self.connExec("update searches set "
+					+ "count = :count where idS=:idS\n",
 					{"idS": e["idS"], "count": e["count"] + 1}):
 				self.undo()
 				return False
@@ -506,12 +549,9 @@ class globalDB(physbiblioDBCore):
 		return True
 
 class configurationDB(physbiblioDBSub):
-	"""
-	Subclass that manages the functions for the categories.
-	"""
+	"""Subclass that manages the functions for the categories."""
 	def count(self):
-		"""
-		Obtain the number of settings in the table
+		"""Obtain the number of settings in the table
 
 		Output:
 			the number of settings
@@ -520,8 +560,7 @@ class configurationDB(physbiblioDBSub):
 		return self.curs.fetchall()[0][0]
 
 	def insert(self, name, value):
-		"""
-		Insert a new setting. If already existing, update it
+		"""Insert a new setting. If already existing, update it
 
 		Parameters:
 			name: the config name
@@ -532,15 +571,16 @@ class configurationDB(physbiblioDBSub):
 		"""
 		self.cursExec("select * from settings where name=?\n", (name,))
 		if len(self.curs.fetchall()) > 0:
-			self.mainDB.logger.info("An entry with the same name is already present. Updating it")
+			self.mainDB.logger.info(
+				"An entry with the same name is already present. Updating it")
 			return self.update(name, value)
 		else:
-			return self.connExec("INSERT into settings (name, value) values (:name, :value)\n",
+			return self.connExec(
+				"INSERT into settings (name, value) values (:name, :value)\n",
 				{"name": name, "value": value})
 
 	def update(self, name, value):
-		"""
-		Update an existing setting
+		"""Update an existing setting
 
 		Parameters:
 			name: the config name
@@ -551,15 +591,16 @@ class configurationDB(physbiblioDBSub):
 		"""
 		self.cursExec("select * from settings where name=?\n", (name,))
 		if len(self.curs.fetchall()) == 0:
-			self.mainDB.logger.info("No settings found with this name. Inserting it")
+			self.mainDB.logger.info(
+				"No settings found with this name. Inserting it")
 			return self.insert(name, value)
 		else:
-			return self.connExec("update settings set value = :value where name = :name\n",
+			return self.connExec(
+				"update settings set value = :value where name = :name\n",
 				{"name": name, "value": value})
 
 	def delete(self, name):
-		"""
-		Delete a setting.
+		"""Delete a setting.
 
 		Parameters:
 			name: the setting name
@@ -570,39 +611,41 @@ class configurationDB(physbiblioDBSub):
 		return self.cursExec("delete from settings where name=?\n", (name, ))
 
 	def getAll(self):
-		"""
-		Get all the settings
+		"""Get all the settings
 
 		Output:
-			the list of `sqlite3.Row` objects with all the settings in the database
+			the list of `sqlite3.Row` objects with
+				all the settings in the database
 		"""
 		self.cursExec("select * from settings\n")
 		return self.curs.fetchall()
 
 	def getByName(self, name):
-		"""
-		Get a setting given its name
+		"""Get a setting given its name
 
 		Parameters:
 			name: the name of the setting
 
 		Output:
-			the list (len = 1) of `sqlite3.Row` objects with all the matching settings
+			the list (len = 1) of `sqlite3.Row` objects
+			with all the matching settings
 		"""
 		self.cursExec("select * from settings where name=?\n", (name, ))
 		return self.curs.fetchall()
 
 class ConfigVars():
-	"""
-	Contains all the common settings, the information on the profiles and their configuration.
+	"""Contains all the common settings, the information on the profiles
+	and their configuration.
 	"""
 	def __init__(self, profileFileName = "profiles.db"):
-		"""
-		Initialize the configuration.
-		Check the profiles first, then load the default profile and its configuration.
+		"""Initialize the configuration.
+		Check the profiles first, then load the default profile
+		and its configuration.
 		"""
 		#needed because the main logger will be loaded later!
-		logging.basicConfig(format = '[%(module)s.%(funcName)s] %(message)s', level = logging.INFO)
+		logging.basicConfig(
+			format = '[%(module)s.%(funcName)s] %(message)s',
+			level = logging.INFO)
 		self.prepareLogger("physbibliolog")
 		self.defaultDirs = AppDirs("PhysBiblio")
 
@@ -629,7 +672,8 @@ class ConfigVars():
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
 		self.globalDbFile = os.path.join(self.configPath, profileFileName)
-		self.globalDb = globalDB(self.globalDbFile, self.logger, self.dataPath, info = False)
+		self.globalDb = globalDB(self.globalDbFile,
+			self.logger, self.dataPath, info = False)
 
 		self.checkOldProfiles()
 		self.loadProfiles()
@@ -641,8 +685,7 @@ class ConfigVars():
 		self.inspireSearchBase = "https://inspirehep.net/search"
 
 	def prepareLogger(self, string):
-		"""
-		Replace the logger used by this module
+		"""Replace the logger used by this module
 
 		Parameters:
 			string: the string used in getLogger
@@ -651,50 +694,55 @@ class ConfigVars():
 		self.logger = logging.getLogger(self.loggerString)
 
 	def loadProfiles(self):
-		"""
-		Load the information from the profile database
-		"""
+		"""Load the information from the profile database"""
 		try:
-			self.defaultProfileName, self.profiles, self.profileOrder = self.readProfiles()
+			self.defaultProfileName, self.profiles, self.profileOrder = \
+				self.readProfiles()
 		except (IOError, ValueError, SyntaxError) as e:
 			self.logger.warning(e)
 			self.globalDb.createProfile()
 
 	def reloadProfiles(self, useProfile = None):
-		"""
-		Load the information from the profile database, reset the default and current profile and the settings
+		"""Load the information from the profile database,
+		reset the default and current profile and the settings
 
 		Parameters:
-			useProfile (optional): the name of the profile to be used instead of the default one
+			useProfile (optional): the name of the profile
+				to be used instead of the default one
 		"""
 		self.loadProfiles()
 
-		self.currentProfileName = self.defaultProfileName if useProfile is None else useProfile
+		self.currentProfileName = self.defaultProfileName \
+			if useProfile is None else useProfile
 		try:
 			self.currentProfile = self.profiles[self.currentProfileName]
 		except KeyError:
-			self.logger.critical("The profile '%s' does not exist! Back to the default one ('%s')"%(useProfile, self.defaultProfileName))
+			self.logger.critical(
+				"The profile '%s' does not exist!"%useProfile
+				+ " Back to the default one ('%s')"%self.defaultProfileName)
 			self.currentProfileName = self.defaultProfileName
 			self.currentProfile = self.profiles[self.currentProfileName]
 		self.currentDatabase = self.currentProfile["db"]
-		self.logger.info("Starting with profile '%s', database: %s"%(self.currentProfileName, self.currentDatabase))
+		self.logger.info("Starting with profile '%s', database: %s"%(
+			self.currentProfileName, self.currentDatabase))
 
 		self.readConfig()
 
 	def checkOldProfiles(self):
-		"""
-		Intended for backwards compatibility.
+		"""Intended for backwards compatibility.
 		Check if there is a profiles.dat file in the self.configPath folder.
 		If yes, move it and the related information into the databases.
 		"""
 		if os.path.isfile(self.configProfilesFile):
-			self.logger.info("Moving info from profiles.dat into the profiles.db")
+			self.logger.info(
+				"Moving info from profiles.dat into the profiles.db")
 			for k in self.globalDb.getProfileOrder():
 				self.globalDb.deleteProfile(k)
 			defProf, profiles, profileOrder = self.oldReadProfiles()
 			for k in profiles.keys():
 				self.oldReInit(k, profiles[k])
-				tempDb = physbiblioDBCore(self.params["mainDatabaseName"], self.logger)
+				tempDb = physbiblioDBCore(
+					self.params["mainDatabaseName"], self.logger)
 				configDb = configurationDB(tempDb)
 
 				self.globalDb.createProfile(
@@ -711,15 +759,18 @@ class ConfigVars():
 				tempDb.closeDB()
 				oldfile = os.path.join(self.configPath, profiles[k]["f"])
 				os.rename(oldfile, oldfile + "_bck")
-				self.logger.info("Old '%s' renamed to '%s'."%(oldfile, oldfile + "_bck"))
+				self.logger.info(
+					"Old '%s' renamed to '%s'."%(oldfile, oldfile + "_bck"))
 			self.globalDb.setProfileOrder(profileOrder)
 			self.logger.info([dict(e) for e in self.globalDb.getProfiles()])
-			os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
-			self.logger.info("Old '%s' renamed to '%s'."%(self.configProfilesFile, self.configProfilesFile + "_bck"))
+			os.rename(self.configProfilesFile,
+				self.configProfilesFile + "_bck")
+			self.logger.info("Old '%s' renamed to '%s'."%(
+				self.configProfilesFile, self.configProfilesFile + "_bck"))
 
 	def oldReadProfiles(self):
-		"""
-		Reads the list of profiles and the related parameters from the profiles.dat file.
+		"""Reads the list of profiles and the related parameters
+		from the profiles.dat file.
 		"""
 		with open(self.configProfilesFile) as r:
 			txtarr = r.readlines()
@@ -730,11 +781,12 @@ class ConfigVars():
 		return parsed
 
 	def readProfiles(self):
-		"""
-		Reads the list of profiles and the related parameters from the profiles database.
+		"""Reads the list of profiles and the related parameters
+		from the profiles database.
 
 		Output:
-			the name of the default profile, the dictionary with the profiles and the list of ordered profile names
+			the name of the default profile, the dictionary
+				with the profiles and the list of ordered profile names
 		"""
 		allProf = self.globalDb.getProfiles()
 		profiles = {}
@@ -745,11 +797,11 @@ class ConfigVars():
 				"f": e["oldCfg"],
 				"db": e["databasefile"],
 			}
-		return self.globalDb.getDefaultProfile(), profiles, self.globalDb.getProfileOrder()
+		return self.globalDb.getDefaultProfile(), \
+			profiles, self.globalDb.getProfileOrder()
 
 	def reInit(self, newShort, newProfile = None):
-		"""
-		Used when changing profile.
+		"""Used when changing profile.
 		Reload all the configuration given the new profile name.
 
 		Parameters:
@@ -767,12 +819,12 @@ class ConfigVars():
 		self.params = {}
 		for k, v in config_defaults.items():
 			self.params[k] = v
-		self.logger.info("Restarting with profile '%s', database: %s"%(self.currentProfileName, self.currentProfile["db"]))
+		self.logger.info("Restarting with profile '%s', database: %s"%(
+			self.currentProfileName, self.currentProfile["db"]))
 		self.readConfig()
 
 	def readConfig(self):
-		"""
-		Read the configuration from the current database.
+		"""Read the configuration from the current database.
 		Parses the various parameters given their declared type.
 		"""
 		self.logger.debug("Reading configuration.\n")
@@ -782,7 +834,8 @@ class ConfigVars():
 			if type(v) is str and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
-		tempDb = physbiblioDBCore(self.currentDatabase, self.logger, info = False)
+		tempDb = physbiblioDBCore(self.currentDatabase,
+			self.logger, info = False)
 		configDb = configurationDB(tempDb)
 		try:
 			for k in config_defaults.keys():
@@ -808,19 +861,22 @@ class ConfigVars():
 						self.params[k] = ast.literal_eval(v.strip())
 					else:
 						if type(v) is str and "PBDATA" in v:
-							v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
+							v = os.path.join(self.dataPath,
+								v.replace("PBDATA", ""))
 						self.params[k] = v
 				except Exception:
-					self.logger.warning("Failed in reading parameter '%s'."%k, exc_info = True)
+					self.logger.warning(
+						"Failed in reading parameter '%s'."%k, exc_info = True)
 					self.params[k] = config_defaults[k]
 		except Exception:
-			self.logger.error("ERROR: reading config from '%s' failed."%self.currentProfile["db"])
+			self.logger.error(
+				"ERROR: reading config from '%s' failed."%(
+					self.currentProfile["db"]))
 		tempDb.closeDB(info = False)
 		self.logger.debug("Configuration loaded.\n")
 
 	def oldReInit(self, newShort, newProfile):
-		"""
-		Old function used when changing profile.
+		"""Old function used when changing profile.
 		Reloads all the configuration from scratch given the new profile name.
 
 		Parameters:
@@ -832,14 +888,16 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			self.params[k] = v
 		self.currentProfile = newProfile
-		self.logger.info("Starting with configuration in '%s'"%self.currentProfile["f"])
-		self.configMainFile = os.path.join(self.configPath, self.currentProfile["f"])
+		self.logger.info(
+			"Starting with configuration in '%s'"%self.currentProfile["f"])
+		self.configMainFile = os.path.join(self.configPath,
+			self.currentProfile["f"])
 		self.params = {}
 		self.oldReadConfigFile()
 
 	def oldReadConfigFile(self):
-		"""
-		Read the configuration from a file, whose name is stored in self.configMainFile.
+		"""Read the configuration from a file,
+		whose name is stored in self.configMainFile.
 		Parses the various parameters given their declared type.
 		"""
 		for k, v in config_defaults.items():
@@ -867,14 +925,18 @@ class ConfigVars():
 						self.params[k] = ast.literal_eval(v.strip())
 					else:
 						if type(v) is str and "PBDATA" in v:
-							v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
+							v = os.path.join(self.dataPath,
+								v.replace("PBDATA", ""))
 						self.params[k] = v
 				except Exception:
-					self.logger.warning("Failed in reading parameter", exc_info = True)
+					self.logger.warning(
+						"Failed in reading parameter", exc_info = True)
 					self.params[k] = v
 		except IOError:
-			self.logger.warning("ERROR: config file %s do not exist."%self.configMainFile)
+			self.logger.warning(
+				"ERROR: config file %s do not exist."%self.configMainFile)
 		except Exception:
-			self.logger.error("ERROR: reading %s file failed."%self.configMainFile)
+			self.logger.error(
+				"ERROR: reading %s file failed."%self.configMainFile)
 
 pbConfig = ConfigVars()

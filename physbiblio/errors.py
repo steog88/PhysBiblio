@@ -1,5 +1,4 @@
-"""
-Module that contains the pBErrorManager and pBLogger definitions.
+"""Module that contains the pBErrorManager and pBLogger definitions.
 
 This file is part of the physbiblio package.
 """
@@ -15,10 +14,15 @@ except ImportError:
 	raise
 
 class pBErrorManagerClass():
-	"""Class that manages the output of the errors and stores the messages into a log file"""
+	"""Class that manages the output of the errors and
+	stores the messages into a log file
+	"""
 	def __init__(self, loggerString = "physbibliolog"):
-		"""
-		Constructor for PBErrorManagerClass.
+		"""Constructor for PBErrorManagerClass.
+
+		Parameter:
+			loggerString: the `Logger` identifier string to use
+				(default = "physbibliolog")
 		"""
 		self.tempsh = []
 		if pbConfig.params["loggingLevel"] == 0:
@@ -36,11 +40,19 @@ class pBErrorManagerClass():
 		self.logger.setLevel(min(logging.INFO, self.loglevel))
 
 		try:
-			fh = logging.handlers.RotatingFileHandler(pbConfig.overWritelogFileName, maxBytes=5. * 2**20, backupCount=5)
+			fh = logging.handlers.RotatingFileHandler(
+				pbConfig.overWritelogFileName,
+				maxBytes=5. * 2**20,
+				backupCount=5)
 		except AttributeError:
-			fh = logging.handlers.RotatingFileHandler(pbConfig.params["logFileName"], maxBytes=5. * 2**20, backupCount=5)
+			fh = logging.handlers.RotatingFileHandler(
+				pbConfig.params["logFileName"],
+				maxBytes=5. * 2**20,
+				backupCount=5)
 		fh.setLevel(self.loglevel)
-		formatter = logging.Formatter('%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s')
+		formatter = logging.Formatter(
+			'%(asctime)s %(levelname)10s : '
+			+ '[%(module)s.%(funcName)s] %(message)s')
 		fh.setFormatter(formatter)
 		self.logger.addHandler(fh)
 
@@ -50,15 +62,19 @@ class pBErrorManagerClass():
 		self.defaultStream.setFormatter(formatter)
 		self.logger.addHandler(self.defaultStream)
 
-	def tempHandler(self, stream = sys.stdout, level = logging.INFO, format = '[%(module)s.%(funcName)s] %(message)s'):
-		"""
-		Set a temporary StreamHandler for the logger, given the stream, with default level logging.INFO.
+	def tempHandler(self,
+			stream = sys.stdout,
+			level = logging.INFO,
+			format = '[%(module)s.%(funcName)s] %(message)s'):
+		"""Set a temporary StreamHandler for the logger,
+		given the stream, with default level logging.INFO.
 		Useful when redirecting stdout
 
 		Parameters:
 			stream: the stream to be used (default: sys.stdout)
 			level: the level to be used (default: logging.INFO)
-			format: the format, using the logging syntax (default: '[%(module)s.%(funcName)s] %(message)s')
+			format: the format, using the logging syntax
+				(default: '[%(module)s.%(funcName)s] %(message)s')
 		"""
 		try:
 			self.tempsh.append(logging.StreamHandler(stream))
@@ -83,7 +99,14 @@ class pBErrorManagerClass():
 		self.tempsh = []
 
 	def excepthook(self, cls, exception, trcbk):
-		self.logger.error("Unhandled exception", exc_info = (cls, exception, trcbk))
+		"""Function that will replace `sys.excepthook` to log
+		any error that occurs
+
+		Parameters:
+			cls, exception, trcbk as in `sys.excepthook`
+		"""
+		self.logger.error("Unhandled exception",
+			exc_info = (cls, exception, trcbk))
 
 pBErrorManager = pBErrorManagerClass(pbConfig.loggerString)
 pBLogger = pBErrorManager.logger

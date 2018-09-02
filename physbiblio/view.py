@@ -1,5 +1,4 @@
-"""
-Module that opens the external links.
+"""Module that opens the external links.
 
 This file is part of the physbiblio package.
 """
@@ -15,12 +14,10 @@ except ImportError:
 	raise
 	
 class viewEntry():
-	"""
-	Contains methods to print or open a web link to the entry
-	"""
+	"""Contains methods to print or open a web link to the entry"""
 	def __init__(self):
-		"""
-		Init the class, storing the name of the external web application
+		"""Init the class, storing the name of
+		the external web application
 		and the base strings to build some links
 		"""
 		self.webApp = pbConfig.params["webApplication"]
@@ -29,17 +26,22 @@ class viewEntry():
 		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 		
 	def getLink(self, key, arg = "arxiv", fileArg = None):
-		"""
-		Uses database information to construct and print the web link,
-		or the pdf module to open a pdf
+		"""Uses database information to construct and
+		print the web link, or the pdf module to open a pdf
 
 		Parameters:
-			key: the bibtex identifier as stored in the database. It may be a list (calls recursively itself)
-			arg: the string defining the type of link/action ("arxiv", "doi", "inspire", "file")
-			fileArg: additional argument for the PDF module, used only if arg == "file"
+			key: the bibtex identifier as stored in the database.
+				It may be a list (calls recursively itself)
+			arg: the string defining the type of link/action
+				("arxiv", "doi", "inspire", "file")
+			fileArg: additional argument for the PDF module,
+				used only if arg == "file"
 
 		Output:
-			link: the string of the web link if arg in ("arxiv", "doi", "inspire"), True if arg == "file", False if arg is invalid
+			link: the string of the web link
+				if arg in ("arxiv", "doi", "inspire"),
+				True if arg == "file",
+				False if arg is invalid
 		"""
 		if type(key) is list:
 			links = []
@@ -66,14 +68,17 @@ class viewEntry():
 			pBPDF.openFile(key, fileArg)
 			return fileArg
 		else:
-			pBLogger.warning("Invalid selection or missing information.\nUse one of (arxiv|doi|inspire|file) and check that all the information is available for entry '%s'."%key)
+			pBLogger.warning("Invalid selection or missing information.\n"
+				+ "Use one of (arxiv|doi|inspire|file) and "
+				+ "check that all the information is available "
+				+ "for entry '%s'."%key)
 			return False
 
 		return link
 
 	def openLink(self, key, arg = "arxiv", fileArg = None):
-		"""
-		Uses the getLink method to generate the web link and opens it in an external application
+		"""Uses the getLink method to generate the web link
+		and opens it in an external application
 
 		Parameters:
 			key, arg, fileArg as in the getLink method
@@ -93,10 +98,13 @@ class viewEntry():
 				try:
 					if self.webApp != "":
 						pBLogger.info("Opening '%s'..."%link)
-						subprocess.Popen([self.webApp, link], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+						subprocess.Popen([self.webApp, link],
+							stdout = subprocess.PIPE,
+							stderr = subprocess.STDOUT)
 				except OSError:
 					pBLogger.warning("Opening link for '%s' failed!"%key)
 			else:
-				pBLogger.warning("Impossible to get the '%s' link for entry '%s'"%(arg, key))
+				pBLogger.warning("Impossible to get the '%s'"%arg
+					+ " link for entry '%s'"%key)
 
 pBView = viewEntry()

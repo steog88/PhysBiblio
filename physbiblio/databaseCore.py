@@ -1,10 +1,10 @@
-"""
-Module that manages the actions on the database (and few more).
+"""Module that manages the actions on the database (and few more).
 
 This file is part of the physbiblio package.
 """
 import sqlite3
-from sqlite3 import OperationalError, ProgrammingError, DatabaseError, InterfaceError
+from sqlite3 import \
+	OperationalError, ProgrammingError, DatabaseError, InterfaceError
 import os
 import ast
 
@@ -18,13 +18,12 @@ except ImportError:
 encoding_default = 'iso-8859-15'
 
 class physbiblioDBCore():
-	"""
-	Contains most of the basic functions on the database.
+	"""Contains most of the basic functions on the database.
 	Will be subclassed to do everything else.
 	"""
 	def __init__(self, dbname, logger, noOpen = False, info = True):
-		"""
-		Initialize database class (column names, descriptions) and opens the database.
+		"""Initialize database class (column names, descriptions)
+		and opens the database.
 
 		Parameters:
 			dbname: the name of the database to be opened
@@ -50,7 +49,8 @@ class physbiblioDBCore():
 		if not noOpen:
 			self.openDB(info = info)
 			if db_is_new or self.checkExistingTables():
-				self.logger.info("-------New database or missing tables. Creating them!\n\n")
+				self.logger.info("-------New database or missing tables."
+					+ "Creating them!\n\n")
 				self.createTables()
 
 		self.lastFetched = None
@@ -59,8 +59,8 @@ class physbiblioDBCore():
 		self.loadSubClasses()
 
 	def openDB(self, info = True):
-		"""
-		Open the database and creates the self.conn (connection) and self.curs (cursor) objects.
+		"""Open the database and creates the self.conn (connection)
+		and self.curs (cursor) objects.
 
 		Parameters:
 			info (boolean, default True): show some output when opening DB
@@ -79,14 +79,11 @@ class physbiblioDBCore():
 		return True
 
 	def reOpenDB(self):
-		"""
-		Not defined at this stage. Present in subclass physbiblioDB
-		"""
+		"""Not defined at this stage. Present in subclass physbiblioDB"""
 		pass
 
 	def closeDB(self, info = True):
-		"""
-		Close the database.
+		"""Close the database.
 
 		Parameters:
 			info (boolean, default True): show some output when opening DB
@@ -109,11 +106,11 @@ class physbiblioDBCore():
 		return self.dbChanged
 
 	def commit(self, verbose = True):
-		"""
-		Commit the changes.
+		"""Commit the changes.
 
 		Parameters:
-			verbose (boolean, default True): show some output when opening DB
+			verbose (boolean, default True):
+				show some output when opening DB
 
 		Output:
 			True if successfull, False if an exception occurred
@@ -129,11 +126,12 @@ class physbiblioDBCore():
 			return False
 
 	def undo(self, verbose = True):
-		"""
-		Undo the uncommitted changes and roll back to the last commit.
+		"""Undo the uncommitted changes
+		and roll back to the last commit.
 
 		Parameters:
-			verbose (boolean, default True): show some output when opening DB
+			verbose (boolean, default True):
+				show some output when opening DB
 
 		Output:
 			True if successfull, False if an exception occurred
@@ -149,12 +147,12 @@ class physbiblioDBCore():
 			return False
 		
 	def connExec(self, query, data = None):
-		"""
-		Execute connection.
+		"""Execute connection.
 
 		Parameters:
 			query (string): the query to be executed
-			data (dictionary or list): the values of the parameters in the query
+			data (dictionary or list):
+				the values of the parameters in the query
 
 		Output:
 			True if successfull, False if an exception occurred
@@ -164,64 +162,69 @@ class physbiblioDBCore():
 				self.conn.execute(query,data)
 			else:
 				self.conn.execute(query)
-		except (OperationalError, ProgrammingError, DatabaseError, InterfaceError) as err:
-			self.logger.exception('Connection error: %s\nquery: %s'%(err, query))
+		except (OperationalError, ProgrammingError,
+				DatabaseError, InterfaceError) as err:
+			self.logger.exception('Connection error: %s\nquery: %s'%(
+				err, query))
 			return False
 		except IntegrityError as err:
-			self.logger.exception('Cannot insert/update: ID exists!\n%s\nquery: %s'%(err, query))
+			self.logger.exception(
+				'Cannot insert/update: ID exists!\n%s\nquery: %s'%(err, query))
 			return False
 		else:
 			self.dbChanged = True
 			return True
 
 	def cursExec(self, query, data = None):
-		"""
-		Execute cursor.
+		"""Execute cursor.
 
 		Parameters:
 			query (string): the query to be executed
-			data (dictionary or list): the values of the parameters in the query
+			data (dictionary or list):
+				the values of the parameters in the query
 
 		Output:
 			True if successfull, False if an exception occurred
 		"""
 		try:
 			if data:
-				self.curs.execute(query,data)
+				self.curs.execute(query, data)
 			else:
 				self.curs.execute(query)
 		except Exception as err:
-			self.logger.exception('Cursor error: %s\nThe query was: "%s"\n and the parameters: %s'%(err, query, data))
+			self.logger.exception('Cursor error: %s\n'%err
+				+ 'The query was: "%s"\n'%query
+				+ ' and the parameters: %s'%(data,))
 			return False
 		else:
 			return True
 
 	def cursor(self):
-		"""
-		Function wrapper that returns the default cursor
-		"""
+		"""Function wrapper that returns the default cursor"""
 		return self.curs
 
 	def loadSubClasses(self):
-		"""
-		Not defined at this stage. Present in subclass physbiblioDB
-		"""
+		"""Not defined at this stage. Present in subclass physbiblioDB"""
 		pass
 
-	def checkExistingTables(self, wantedTables = ["categories", "entries", "entryCats", "entryExps", "expCats", "experiments", "settings"]):
-		"""
-		Check that all the required tables are present in the database
+	def checkExistingTables(self,
+			wantedTables = ["categories", "entries",
+				"entryCats", "entryExps", "expCats",
+				"experiments", "settings"]):
+		"""Check that all the required tables
+		are present in the database
 		"""
 		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
 		tables = [name[0] for name in self.curs]
 		return not all(t in tables for t in wantedTables)
 
 	def createTables(self, fieldsDict = None):
-		"""
-		Create tables for the database (and insert the default categories), if it is missing.
+		"""Create tables for the database
+		(and insert the default categories), if it is missing.
 
 		Parameters:
-			fieldsDict (default None): the structure of the tables (see physbiblio.tablesDef)
+			fieldsDict (default None):
+				the structure of the tables (see physbiblio.tablesDef)
 		"""
 		if fieldsDict is None:
 			fieldsDict = self.tableFields
@@ -242,26 +245,29 @@ class physbiblioDBCore():
 			self.logger.info(command + "\n")
 			if not self.connExec(command):
 				self.logger.critical("Create %s failed"%q)
-		self.cursExec("select * from categories where idCat = 0 or idCat = 1\n")
+		self.cursExec("select * from categories where "
+			+ "idCat = 0 or idCat = 1\n")
 		if len(self.curs.fetchall()) < 2:
-			command="""
-			INSERT into categories (idCat, name, description, parentCat, ord)
-				values (0,"Main","This is the main category. All the other ones are subcategories of this one",0,0),
-				(1,"Tags","Use this category to store tags (such as: ongoing projects, temporary cats,...)",0,0)
-				"""
+			command = 'INSERT into categories ' \
+				+ '(idCat, name, description, parentCat, ord) values ' \
+				+ '(0,"Main","This is the main category. ' \
+				+ 'All the other ones are subcategories of this one",0,0), ' \
+				+ '(1,"Tags","Use this category to store tags ' \
+				+ '(such as: ongoing projects, temporary cats,...)",0,0)\n'
 			self.logger.info(command + "\n")
 			if not self.connExec(command):
 				self.logger.error("Insert main categories failed")
 		self.commit()
 
 class physbiblioDBSub():
-	"""
-	Uses physbiblioDB instance 'self.mainDB = parent' to act on the database.
-	All the subcategories of physbiblioDB are defined starting from this one.
+	"""Uses physbiblioDB instance 'self.mainDB = parent'
+	to act on the database.
+	All the subcategories of physbiblioDB are defined
+	starting from this one.
 	"""
 	def __init__(self, parent):
-		"""
-		Initialize DB class, connecting to the main physbiblioDB instance (parent).
+		"""Initialize DB class, connecting to
+		the main physbiblioDB instance (parent).
 		"""
 		self.mainDB = parent
 		#structure of the tables
@@ -279,8 +285,7 @@ class physbiblioDBSub():
 		self.catsHier = None
 
 	def literal_eval(self, string):
-		"""
-		Wrapper for ast.literal_eval
+		"""Wrapper for ast.literal_eval
 
 		Parameters:
 			string: the string to evaluate
@@ -296,35 +301,26 @@ class physbiblioDBSub():
 			else:
 				return string.strip()
 		except SyntaxError:
-			self.mainDB.logger.warning("Error in literal_eval with string '%s'"%string)
+			self.mainDB.logger.warning(
+				"Error in literal_eval with string '%s'"%string)
 			return None
 
 	def closeDB(self):
-		"""
-		Close the database (using physbiblioDB.close)
-		"""
+		"""Close the database (using physbiblioDB.close)"""
 		self.mainDB.closeDB()
 
 	def commit(self):
-		"""
-		Commit the changes (using physbiblioDB.commit)
-		"""
+		"""Commit the changes (using physbiblioDB.commit)"""
 		self.mainDB.commit()
 
 	def connExec(self,query,data=None):
-		"""
-		Execute connection (see physbiblioDB.connExec)
-		"""
+		"""Execute connection (see physbiblioDB.connExec)"""
 		return self.mainDB.connExec(query, data = data)
 
 	def cursExec(self, query, data = None):
-		"""
-		Execute cursor (see physbiblioDB.cursExec)
-		"""
+		"""Execute cursor (see physbiblioDB.cursExec)"""
 		return self.mainDB.cursExec(query, data = data)
 
 	def cursor(self):
-		"""
-		Return the cursor
-		"""
+		"""Return the cursor"""
 		return self.mainDB.cursor()

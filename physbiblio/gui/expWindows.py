@@ -1,5 +1,5 @@
-"""
-Module with the classes and functions that manage the experiments windows and panels.
+"""Module with the classes and functions that manage
+the experiments windows and panels.
 
 This file is part of the physbiblio package.
 """
@@ -57,7 +57,8 @@ def editExperiment(parent, statusBarObject, editIdExp = None):
 		pass
 
 def deleteExperiment(parent, statusBarObject, idExp, name):
-	if askYesNo("Do you really want to delete this experiment (ID = '%s', name = '%s')?"%(idExp, name)):
+	if askYesNo("Do you really want to delete this experiment "
+			+ "(ID = '%s', name = '%s')?"%(idExp, name)):
 		pBDB.exps.delete(int(idExp))
 		statusBarObject.setWindowTitle("PhysBiblio*")
 		message = "Experiment deleted"
@@ -73,7 +74,13 @@ def deleteExperiment(parent, statusBarObject, idExp, name):
 		pass
 
 class MyExpTableModel(MyTableModel):
-	def __init__(self, parent, exp_list, header, askExps = False, previous = [], *args):
+	def __init__(self,
+			parent,
+			exp_list,
+			header,
+			askExps = False,
+			previous = [],
+			*args):
 		self.typeClass = "Exps"
 		self.dataList = exp_list
 		MyTableModel.__init__(self, parent, header, askExps, previous, *args)
@@ -115,8 +122,17 @@ class MyExpTableModel(MyTableModel):
 
 class ExpWindowList(objListWindow):
 	"""create a window for printing the list of experiments"""
-	def __init__(self, parent = None, askExps = False, askForBib = None, askForCat = None, previous = []):
+	def __init__(self,
+			parent = None,
+			askExps = False,
+			askForBib = None,
+			askForCat = None,
+			previous = []):
+		"""Constructor
 
+		Parameters:
+			parent
+		"""
 		#table dimensions
 		self.colcnt = len(pBDB.tableCols["experiments"])
 		self.colContents = []
@@ -136,11 +152,17 @@ class ExpWindowList(objListWindow):
 	def populateAskExp(self):
 		if self.askExps:
 			if self.askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery = False)[0]
+				bibitem = pBDB.bibs.getByBibkey(
+					self.askForBib, saveQuery = False)[0]
 				try:
-					bibtext = MyLabel("Mark categories for the following entry:\n    key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(self.askForBib, bibitem["author"], bibitem["title"]))
+					bibtext = MyLabel(
+						"Mark categories for the following entry:\n    "
+						+ "key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(
+						self.askForBib, bibitem["author"], bibitem["title"]))
 				except:
-					bibtext = MyLabel("Mark categories for the following entry:\n    key:\n%s\n"%(self.askForBib))
+					bibtext = MyLabel(
+						"Mark categories for the following entry:\n    "
+						+ "key:\n%s\n"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForCat is not None:
 				pass
@@ -152,7 +174,9 @@ class ExpWindowList(objListWindow):
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = [idE for idE in self.tableModel.selectedElements.keys() if self.tableModel.selectedElements[idE] == True]
+		self.parent.selectedExps = [
+			idE for idE in self.tableModel.selectedElements.keys() \
+			if self.tableModel.selectedElements[idE] == True]
 		self.result	= "Ok"
 		self.close()
 
@@ -172,7 +196,11 @@ class ExpWindowList(objListWindow):
 
 		self.exps = pBDB.exps.getAll()
 
-		self.tableModel = MyExpTableModel(self, self.exps, pBDB.tableCols["experiments"], askExps = self.askExps, previous = self.previous)
+		self.tableModel = MyExpTableModel(self,
+			self.exps,
+			pBDB.tableCols["experiments"],
+			askExps = self.askExps,
+			previous = self.previous)
 		self.addFilterInput("Filter experiment")
 		self.setProxyStuff(1, Qt.AscendingOrder)
 
@@ -208,21 +236,29 @@ class ExpWindowList(objListWindow):
 		delAction = QAction("Delete")
 		catAction = menu.addAction("Categories")
 		menu.possibleActions = [
-			titAction, None, bibAction, None, modAction, delAction, None, catAction
+			titAction, None,
+			bibAction, None,
+			modAction, delAction, None, catAction
 			]
 		menu.fillMenu()
 		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
 			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
-			self.parent.reloadMainContent(pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+			self.parent.reloadMainContent(
+				pBDB.bibs.fetchFromDict(searchDict).lastFetched)
 		elif action == modAction:
 			editExperiment(self, self.parent, idExp)
 		elif action == delAction:
 			deleteExperiment(self, self.parent, idExp, expName)
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
-			selectCats = catsTreeWindow(parent = self.parent, askCats = True, askForExp = idExp, expButton = False, previous = previous)
+			selectCats = catsTreeWindow(
+				parent = self.parent,
+				askCats = True,
+				askForExp = idExp,
+				expButton = False,
+				previous = previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
 				cats = self.parent.selectedCats
@@ -232,7 +268,8 @@ class ExpWindowList(objListWindow):
 				for c in cats:
 					if c not in previous:
 						pBDB.catExp.insert(c, idExp)
-				self.parent.statusBarMessage("categories for '%s' successfully inserted"%expName)
+				self.parent.statusBarMessage(
+					"categories for '%s' successfully inserted"%expName)
 
 	def handleItemEntered(self, index):
 		if index.isValid():
@@ -255,15 +292,21 @@ class ExpWindowList(objListWindow):
 		self.timerA.setSingleShot(True)
 		self.timerA.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
-			"{idE}: {exp}\nCorresponding entries: {en}\nAssociated categories: {ca}".format(
-				idE = idExp, exp = expData["name"], en = pBDB.bibExp.countByExp(idExp), ca = pBDB.catExp.countByExp(idExp)),
+			"{idE}: {exp}\nCorresponding entries: {en}\n".format(
+				idE = idExp,
+				exp = expData["name"],
+				en = pBDB.bibExp.countByExp(idExp))
+			+ "Associated categories: {ca}".format(
+				ca = pBDB.catExp.countByExp(idExp)),
 			self.tablewidget.viewport(),
 			self.tablewidget.visualRect(index)
 		))
 		self.timerA.start(500)
 		self.timerB = QTimer(self)
 		self.timerB.setSingleShot(True)
-		self.timerB.timeout.connect(lambda: QToolTip.showText(QCursor.pos(), "", self.tablewidget.viewport()))
+		self.timerB.timeout.connect(
+			lambda: QToolTip.showText(QCursor.pos(), "",
+			self.tablewidget.viewport()))
 		self.timerB.start(3500)
 
 	def cellClick(self, index):
@@ -280,7 +323,8 @@ class ExpWindowList(objListWindow):
 		else:
 			return
 		idExp = str(self.proxyModel.sibling(row, 0, index).data())
-		if self.colContents[col] == "inspire" or self.colContents[col] == "homepage":
+		if self.colContents[col] == "inspire" or \
+				self.colContents[col] == "homepage":
 			link = self.proxyModel.sibling(row, col, index).data()
 			if link == "":
 				return
@@ -313,8 +357,10 @@ class editExp(editObjectWindow):
 			val = self.data[k]
 			if k != "idExp" or (k == "idExp" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(MyLabel(k), i*2-1, 0)
-				self.currGrid.addWidget(MyLabel("(%s)"%pBDB.descriptions["experiments"][k]), i*2-1, 1)
+				self.currGrid.addWidget(MyLabel(k), i*2 - 1, 0)
+				self.currGrid.addWidget(
+					MyLabel("(%s)"%pBDB.descriptions["experiments"][k]),
+					i*2 - 1, 1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "idExp":
 					self.textValues[k].setEnabled(False)
@@ -323,13 +369,13 @@ class editExp(editObjectWindow):
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i*2+1, 0)
+		self.currGrid.addWidget(self.acceptButton, i*2 + 1, 0)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i*2+1, 1)
+		self.currGrid.addWidget(self.cancelButton, i*2 + 1, 1)
 
-		self.setGeometry(100,100,400, 50*i)
+		self.setGeometry(100, 100, 400, 50*i)
 		self.centerWindow()
