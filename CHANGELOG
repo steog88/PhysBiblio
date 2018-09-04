@@ -6,10 +6,15 @@
 	* link to the entry web page in the category selection dialog
 
 	Improvements/bug fixes:
-	* bug in inspireStatsGUI plot clicking
 	* several functions improved
 	* several performance improvements
 	* many possible bugs fixed during code review for test writing
+
+0.5.3 (2018-09-04):
+	* update arXiv "econ" subcategories
+	* improved tooltips in categories and experiments
+	* bug in inspireStatsGUI plot clicking
+	* typos
 
 0.5.2 (2018-07-05):
 	New features:

@@ -5,7 +5,8 @@ Uses feedparser module to read the page content.
 This file is part of the physbiblio package.
 """
 import sys
-import re, traceback
+import re
+import traceback
 import feedparser
 try:
 	from physbiblio.config import pbConfig
@@ -45,7 +46,7 @@ class webSearch(webInterf):
 				"GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM",
 				"MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO",
 				"SC", "SD", "SE", "SI", "SY"],
-			"econ": ["EM"],
+			"econ": ["EM", "GN", "TH"],
 			"eess": ["AS", "IV", "SP"],
 			"gr-qc": [],
 			"hep-ex": [],
