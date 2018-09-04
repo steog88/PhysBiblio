@@ -37,7 +37,7 @@ class webSearch(webInterf):
 			"astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
 			"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other", "quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
 			"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV", "CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL", "GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM", "MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO", "SC", "SD", "SE", "SI", "SY"],
-			"econ": ["EM"],
+			"econ": ["EM", "GN", "TH"],
 			"eess": ["AS", "IV", "SP"],
 			"gr-qc": [],
 			"hep-ex": [],

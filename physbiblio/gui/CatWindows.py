@@ -284,18 +284,37 @@ class catsWindowList(QDialog):
 			return
 		idCat, catName = self.proxyModel.sibling(row, 0, index).data().split(": ")
 		idCat = idCat.strip()
+		idCat = idCat.strip()
+		try:
+			self.timerA.stop()
+			self.timerB.stop()
+			QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
+		except AttributeError:
+			pass
 		try:
 			catData = pBDB.cats.getByID(idCat)[0]
 		except IndexError:
 			pBGUILogger.exception("Failed in finding category")
 			return
-		QToolTip.showText(
+		self.timerA = QTimer(self)
+		self.timerA.setSingleShot(True)
+		self.timerA.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
-			"{idC}: {cat}\nCorresponding entries: {en}\nAssociated experiments: {ex}".format(
-				idC = idCat, cat = catData["name"], en = pBDB.catBib.countByCat(idCat), ex = pBDB.catExp.countByCat(idCat)),
+			"{idC}: {cat}\nCorresponding entries: ".format(
+				idC = idCat,
+				cat = catData["name"]) +
+			"{en}\nAssociated experiments: {ex}".format(
+				en = pBDB.catBib.countByCat(idCat),
+				ex = pBDB.catExp.countByCat(idCat)),
 			self.tree.viewport(),
 			self.tree.visualRect(index)
-		)
+		))
+		self.timerA.start(500)
+		self.timerB = QTimer(self)
+		self.timerB.setSingleShot(True)
+		self.timerB.timeout.connect(lambda: QToolTip.showText(
+			QCursor.pos(), "", self.tree.viewport()))
+		self.timerB.start(3500)
 
 	def contextMenuEvent(self, event):
 		index = self.tree.selectedIndexes()[0]

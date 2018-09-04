@@ -238,17 +238,36 @@ class ExpWindowList(objListWindow):
 			return
 		idExp = str(self.proxyModel.sibling(row, 0, index).data())
 		try:
+			self.timerA.stop()
+			self.timerB.stop()
+			QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
+		except AttributeError:
+			pass
+		try:
 			expData = pBDB.exps.getByID(idExp)[0]
 		except IndexError:
 			pBGUILogger.exception("Failed in finding experiment")
 			return
-		QToolTip.showText(
+		self.timerA = QTimer(self)
+		self.timerA.setSingleShot(True)
+		self.timerA.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
-			"{idE}: {exp}\nCorresponding entries: {en}\nAssociated categories: {ca}".format(
-				idE = idExp, exp = expData["name"], en = pBDB.bibExp.countByExp(idExp), ca = pBDB.catExp.countByExp(idExp)),
+			"{idE}: {exp}\nCorresponding entries: {en}\n".format(
+				idE = idExp,
+				exp = expData["name"],
+				en = pBDB.bibExp.countByExp(idExp))
+			+ "Associated categories: {ca}".format(
+				ca = pBDB.catExp.countByExp(idExp)),
 			self.tablewidget.viewport(),
 			self.tablewidget.visualRect(index)
-		)
+		))
+		self.timerA.start(500)
+		self.timerB = QTimer(self)
+		self.timerB.setSingleShot(True)
+		self.timerB.timeout.connect(
+			lambda: QToolTip.showText(QCursor.pos(), "",
+			self.tablewidget.viewport()))
+		self.timerB.start(3500)
 
 	def cellClick(self, index):
 		if index.isValid():

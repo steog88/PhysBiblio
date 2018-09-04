@@ -467,7 +467,7 @@ class dailyArxivSelect(advImportSelect):
 		self.cancelButton.setAutoDefault(True)
 		self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
-		self.abstractArea = QTextEdit('Abastract', self)
+		self.abstractArea = QTextEdit('Abstract', self)
 		self.currLayout.addWidget(self.abstractArea, i + 3, 0, 4, 2)
 
 	def cellClick(self, index):

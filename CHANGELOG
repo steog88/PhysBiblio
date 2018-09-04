@@ -1,4 +1,8 @@
+0.5.3 (2018-09-04):
+	* update arXiv "econ" subcategories
+	* improved tooltips in categories and experiments
 	* bug in inspireStatsGUI plot clicking
+	* typos
 
 0.5.2 (2018-07-05):
 	New features:
