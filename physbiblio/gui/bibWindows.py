@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import bibtexparser
 from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide2.QtWidgets import \
