@@ -47,7 +47,7 @@ def editCategory(parentObject,
 	else:
 		edit = None
 	newCatWin = editCategoryDialog(parentObject,
-		cat = edit,
+		category = edit,
 		useParentCat = useParentCat)
 	newCatWin.exec_()
 	data = {}

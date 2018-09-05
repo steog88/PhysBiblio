@@ -20,6 +20,21 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+def getYear(string):
+	"""Use the arxiv id to compute the year"""
+	identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
+	try:
+		for t in identif.finditer(string):
+			if len(t.group()) > 0:
+				a = t.group(1)
+				if int(a) > 90:
+					return "19" + a
+				else:
+					return "20" + a
+	except Exception:
+		pBLogger.warning("Error in converting year from '%s'"%string)
+		return None
+
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to arxiv.org
 	to perform searches
@@ -74,18 +89,7 @@ class webSearch(webInterf):
 
 	def getYear(self, string):
 		"""Use the arxiv id to compute the year"""
-		identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
-		try:
-			for t in identif.finditer(string):
-				if len(t.group()) > 0:
-					a = t.group(1)
-					if int(a) > 90:
-						return "19" + a
-					else:
-						return "20" + a
-		except Exception:
-			pBLogger.warning("Error in converting year from '%s'"%string)
-			return None
+		return getYear(self, string)
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
 		"""Retrieves the first result from the content

@@ -38,6 +38,7 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
 	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.webimport.arxiv import getYear
 	from physbiblio.parseAccents import parse_accents_str
 	from bibtexparser.bibdatabase import BibDatabase
 	from physbiblio.bibtexWriter import pbWriter
@@ -269,8 +270,7 @@ class webSearch(webInterf):
 			tmpDict["arxiv"] = tmpDict["eprint"]
 		if tmpDict["eprint"] is not None and \
 				tmpDict["year"] is None:
-			tmpDict["year"] = physBiblioWeb.webSearch["arxiv"].getYear(
-				tmpDict["eprint"])
+			tmpDict["year"] = getYear(tmpDict["eprint"])
 		try:
 			tmpDict["title"] = record["245"]["a"]
 		except TypeError:
