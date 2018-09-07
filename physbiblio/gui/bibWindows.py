@@ -28,6 +28,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.pdf import pBPDF
 	from physbiblio.parseAccents import texToHtml
+	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.marks import pBMarks
 	from physbiblio.gui.basicDialogs import \
