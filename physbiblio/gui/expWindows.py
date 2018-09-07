@@ -11,8 +11,9 @@ import traceback
 import operator
 
 try:
-	from physbiblio.database import pBDB
 	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
+	from physbiblio.view import pBView
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
@@ -155,14 +156,32 @@ class ExpWindowList(objListWindow):
 				bibitem = pBDB.bibs.getByBibkey(
 					self.askForBib, saveQuery = False)[0]
 				try:
+					if pBDB.bibs.getField(self.askForBib, "inspire") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "inspire"),
+							self.askForBib)
+					elif pBDB.bibs.getField(self.askForBib, "arxiv") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "arxiv"),
+							self.askForBib)
+					elif pBDB.bibs.getField(self.askForBib, "doi") \
+							is not None:
+						link = "<a href='%s'>%s</a>"%(
+							pBView.getLink(self.askForBib, "doi"),
+							self.askForBib)
+					else:
+						link = self.askForBib
 					bibtext = MyLabel(
-						"Mark categories for the following entry:\n    "
-						+ "key:\n%s\n    author(s):\n%s\n    title:\n%s\n"%(
-						self.askForBib, bibitem["author"], bibitem["title"]))
-				except:
+						"Mark experiments for the following entry:<br>"
+						+ "<b>key</b>:<br>%s<br>"%link
+						+ "<b>author(s)</b>:<br>%s<br>"%bibitem["author"]
+						+ "<b>title</b>:<br>%s<br>"%bibitem["title"])
+				except KeyError:
 					bibtext = MyLabel(
-						"Mark categories for the following entry:\n    "
-						+ "key:\n%s\n"%(self.askForBib))
+						"Mark experiments for the following entry:<br>"
+						+ "<b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForCat is not None:
 				pass

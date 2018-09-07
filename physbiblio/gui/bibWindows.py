@@ -34,7 +34,7 @@ try:
 	from physbiblio.gui.commonClasses import \
 		editObjectWindow, MyAndOrCombo, MyComboBox, MyLabel, \
 		MyLabelCenter, MyLabelRight, MyMenu, MyTableModel, \
-		objListWindow
+		objListWindow, pBGuiView
 	from physbiblio.gui.threadElements import \
 		thread_downloadArxiv, thread_processLatex
 	from physbiblio.gui.catWindows import catsTreeWindow

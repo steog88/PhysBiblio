@@ -345,13 +345,13 @@ class catsTreeWindow(QDialog):
 							self.askForBib)
 					else:
 						link = self.askForBib
-					bibtext = MyLabel("Mark categories for the following " +
-						"entry</b>:<br><b>key</b>:<br>%s<br>"%link +
-						"<b>author(s)</b>:<br>%s<br>"%bibitem["author"] +
-						"<b>title</b>:<br>%s<br>"%bibitem["title"])
+					bibtext = MyLabel("Mark categories for the following "
+						+ "entry:<br><b>key</b>:<br>%s<br>"%link
+						+ "<b>author(s)</b>:<br>%s<br>"%bibitem["author"]
+						+ "<b>title</b>:<br>%s<br>"%bibitem["title"])
 				except KeyError:
-					bibtext = MyLabel("Mark categories for the following " +
-						"entry:<br><b>key</b>:<br>%s<br>"%(self.askForBib))
+					bibtext = MyLabel("Mark categories for the following "
+						+ "entry:<br><b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForExp is not None:
 				try:
