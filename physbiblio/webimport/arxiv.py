@@ -89,7 +89,7 @@ class webSearch(webInterf):
 
 	def getYear(self, string):
 		"""Use the arxiv id to compute the year"""
-		return getYear(self, string)
+		return getYear(string)
 		
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
 		"""Retrieves the first result from the content
