@@ -1,12 +1,12 @@
-"""
-Module with the classes and functions that manage many generic
+"""Module with the classes and functions that manage many generic
 simple dialog windows of the PhysBiblio application.
 
 This file is part of the physbiblio package.
 """
 import sys
 from PySide2.QtWidgets import \
-	QFileDialog, QInputDialog, QMessageBox
+	QDialog, QFileDialog, QGridLayout, QInputDialog, QMessageBox, \
+	QTextEdit, QPushButton
 import traceback
 
 if sys.version_info[0] < 3:
@@ -15,8 +15,7 @@ else:
 	from io import StringIO
 
 def askYesNo(message, title = "Question", testing = False):
-	"""
-	Uses `QMessageBox` to ask "Yes" or "No" for a given question.
+	"""Uses `QMessageBox` to ask "Yes" or "No" for a given question.
 
 	Parameters:
 		message: the question to be displayed
@@ -44,8 +43,7 @@ def askYesNo(message, title = "Question", testing = False):
 		return False
 
 def infoMessage(message, title = "Information", testing = False):
-	"""
-	Uses `QMessageBox` to show a simple message.
+	"""Uses `QMessageBox` to show a simple message.
 
 	Parameters:
 		message: the question to be displayed
@@ -62,9 +60,35 @@ def infoMessage(message, title = "Information", testing = False):
 		return mbox
 	mbox.exec_()
 
+class longInfoMessage(QDialog):
+	"""`infoMessage` version when a long text is expected"""
+	def __init__(self, message, title = "Information", testing = False):
+		"""Class constructor.
+
+		Parameters:
+			message: the question to be displayed
+			title: the window title
+			testing (boolean, optional, default False):
+				when doing tests, interrupt the execution
+				before `exec_` is run
+				and return the `QMessageBox` object
+		"""
+		QDialog.__init__(self)
+		self.setWindowTitle(title)
+		self.gridlayout = QGridLayout()
+		self.textarea = QTextEdit(message)
+		self.textarea.setReadOnly(True)
+		self.gridlayout.addWidget(self.textarea, 0, 0, 1, 2)
+		self.okbutton = QPushButton("OK", self)
+		self.okbutton.clicked.connect(lambda: QDialog.close(self))
+		self.gridlayout.addWidget(self.okbutton, 1, 1)
+		self.setLayout(self.gridlayout)
+		self.setGeometry(100, 100, 600, 400)
+		if not testing:
+			self.exec_()
+
 def askGenericText(message, title, parent = None, testing = False):
-	"""
-	Uses `QInputDialog` to ask a text answer for a given question.
+	"""Uses `QInputDialog` to ask a text answer for a given question.
 
 	Parameters:
 		message: the question to be displayed
@@ -95,8 +119,7 @@ def askFileName(parent = None,
 		filter = "",
 		dir = "",
 		testing = False):
-	"""
-	Uses `QFileDialog` to ask the name of a single, existing file
+	"""Uses `QFileDialog` to ask the name of a single, existing file
 
 	Parameters (all optional):
 		parent (default None): the parent of the window
@@ -127,8 +150,7 @@ def askFileNames(parent = None,
 		filter = "",
 		dir = "",
 		testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a set of existing files
+	"""Uses `QFileDialog` to ask the names of a set of existing files
 
 	Parameters (all optional):
 		parent (default None): the parent of the window
@@ -160,8 +182,7 @@ def askSaveFileName(parent = None,
 		filter = "",
 		dir = "",
 		testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a single file
+	"""Uses `QFileDialog` to ask the names of a single file
 	where something will be saved (the file may not exist)
 
 	Parameters (all optional):
@@ -193,8 +214,7 @@ def askDirName(parent = None,
 		title = "Directory to use:",
 		dir = "",
 		testing = False):
-	"""
-	Uses `QFileDialog` to ask the names of a single directory
+	"""Uses `QFileDialog` to ask the names of a single directory
 
 	Parameters (all optional):
 		parent (default None): the parent of the window

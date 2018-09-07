@@ -46,6 +46,28 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.text(), "mymessage")
 		self.assertEqual(win.windowTitle(), "mytitle")
 
+	def test_longInfoMessage(self):
+		"""Test longInfoMessage"""
+		win = longInfoMessage("mymessage", "mytitle", True)
+		self.assertIsInstance(win, QDialog)
+		self.assertEqual(win.windowTitle(), "mytitle")
+		self.assertIsInstance(win.layout(), QGridLayout)
+		self.assertEqual(win.layout(), win.gridlayout)
+		self.assertIsInstance(win.layout().itemAtPosition(0, 0).widget(),
+			QTextEdit)
+		self.assertEqual(win.layout().itemAtPosition(0, 0).widget(),
+			win.textarea)
+		self.assertEqual(win.textarea.isReadOnly(), True)
+		self.assertEqual(win.textarea.toPlainText(), "mymessage")
+		self.assertIsInstance(win.layout().itemAtPosition(1, 1).widget(),
+			QPushButton)
+		self.assertEqual(win.layout().itemAtPosition(1, 1).widget(),
+			win.okbutton)
+		self.assertEqual(win.okbutton.text(), "OK")
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			QTest.mouseClick(win.okbutton, Qt.LeftButton)
+			_c.assert_called_once_with(win)
+
 	def test_askGenericText(self):
 		"""Test askGenericText"""
 		win = askGenericText("mymessage", "mytitle", testing = True)
