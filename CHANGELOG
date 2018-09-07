@@ -6,6 +6,7 @@
 	* link to the entry web page in the category selection dialog
 
 	Improvements/bug fixes:
+	* database.entries.replace is running a bit faster now
 	* several functions improved
 	* several performance improvements
 	* many bugs fixed during code review for test writing

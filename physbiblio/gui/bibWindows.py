@@ -7,6 +7,7 @@ import sys
 import traceback
 import os
 import matplotlib
+import ast
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -1246,7 +1247,9 @@ class searchBibsWindow(editObjectWindow):
 		try:
 			replaceFields = ast.literal_eval(replace)
 		except:
-			pBLogger.warning("Something went wrong when processing the saved search/replace:\n%s\n%s"%replace)
+			pBLogger.warning("Something went wrong when processing "
+				+ "the saved search/replace:\n%s"%replace,
+				exc_info = True)
 			replaceFields = []
 		return (searchDict, replaceFields, limit, offset)
 
