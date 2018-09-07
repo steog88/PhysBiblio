@@ -1312,7 +1312,8 @@ class entries(physbiblioDBSub):
 			orderType = "ASC",
 			limitTo = None,
 			limitOffset = None,
-			saveQuery = True):
+			saveQuery = True,
+			doFetch = True):
 		"""Fetch entries using a number of criterions
 
 		Parameters:
@@ -1346,6 +1347,9 @@ class entries(physbiblioDBSub):
 				If None, use 0
 			saveQuery (boolean, default True):
 				if True, save the query for future reuse
+			doFetch (boolean, default True):
+				use self.curs.fetchall and store all the rows in a list.
+				Set to False to directly use the iterator on self.curs.
 
 		Output:
 			self
@@ -1446,20 +1450,25 @@ class entries(physbiblioDBSub):
 			if limitTo is None:
 				query += " LIMIT 100000"
 			query += " OFFSET %s"%(str(limitOffset))
-		if saveQuery:
+		if saveQuery and doFetch:
 			self.lastQuery = query
 			self.lastVals  = vals
+		if doFetch:
+			cursor = self.curs
+		else:
+			cursor = self.fetchCurs
 		pBLogger.info("Using query:\n%s\nvalues: %s"%(query, vals))
 		try:
 			if len(vals) > 0:
-				self.cursExec(query, vals)
+				cursor.execute(query, vals)
 			else:
-				self.cursExec(query)
+				cursor.execute(query)
 		except:
 			pBLogger.exception("Query failed: %s\nvalues: %s"%(query, vals))
 			return self
-		fetched_in = self.curs.fetchall()
-		self.lastFetched = self.completeFetched(fetched_in)
+		if doFetch:
+			fetched_in = self.curs.fetchall()
+			self.lastFetched = self.completeFetched(fetched_in)
 		return self
 
 	def fetchAll(self,
@@ -2335,9 +2344,10 @@ class entries(physbiblioDBSub):
 		success = []
 		changed = []
 		failed = []
-		for entry in iterator:
+		for ix, entry in enumerate(iterator):
 			if not "bibtexDict" in entry.keys():
 				entry = self.completeFetched([entry])[0]
+			pBLogger.info("processing (%d): %s"%(ix, entry["bibkey"]))
 			try:
 				if not fiOld in entry["bibtexDict"].keys() \
 						and not fiOld in entry.keys():
