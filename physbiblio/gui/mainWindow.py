@@ -36,7 +36,7 @@ try:
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
 		abstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, \
-		bibtexList, bibtexInfo, bibtexWindow
+		bibtexList, bibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, \
@@ -463,7 +463,7 @@ class MainWindow(QMainWindow):
 		self.bibtexList.setFrameShape(QFrame.StyledPanel)
 
 		#will contain the bibtex code:
-		self.bottomLeft = bibtexWindow(self)
+		self.bottomLeft = bibtexInfo(self)
 		self.bottomLeft.setFrameShape(QFrame.StyledPanel)
 
 		#will contain the abstract of the bibtex entry:
