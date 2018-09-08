@@ -3,7 +3,8 @@
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt, QModelIndex
 from PySide2.QtTest import QTest
@@ -436,7 +437,8 @@ class TestCatsTreeWindow(GUITestCase):
 			]
 		self.cathier = {0: {1: {2: {}}, 3: {}}}
 		with patch("physbiblio.gui.commonClasses.catString",
-				side_effect = ["test2S", "test1S", "test3S", "mainS"]):
+				side_effect = [" 2: test2S", " 1: test1S",
+					" 3: test3S", " 0: mainS"]):
 			self.rootElements = [
 				NamedElement(0, "main", [
 					NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
@@ -739,6 +741,15 @@ class TestCatsTreeWindow(GUITestCase):
 
 	def test_createForm(self):
 		"""test createForm"""
+		p = QWidget()
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _gh,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt:
+			ctw = catsTreeWindow(p)
 		raise NotImplementedError()
 
 	def test_populateTree(self):
@@ -785,7 +796,61 @@ class TestCatsTreeWindow(GUITestCase):
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
-		raise NotImplementedError()
+		p = QWidget()
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _gh,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt:
+			ctw = catsTreeWindow(p)
+		ix = ctw.proxyModel.index(0, 0)
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.categories.getByID",
+					return_value=[]) as _gbi:
+			self.assertEqual(ctw.handleItemEntered(ix), None)
+			_l.assert_called_once_with("Failed in finding category")
+			_gbi.assert_called_once_with('0')
+			_st.assert_not_called()
+			_sh.assert_not_called()
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.categories.getByID",
+					return_value=[{"idCat": 0, "name": "main"}]) as _gbi,\
+				patch("physbiblio.database.catsEntries.countByCat",
+					return_value=33) as _cb,\
+				patch("physbiblio.database.catsExps.countByCat",
+					return_value=12) as _ce:
+			self.assertEqual(ctw.handleItemEntered(ix), None)
+			_l.assert_not_called()
+			self.assertIsInstance(ctw.timer, QTimer)
+			self.assertTrue(ctw.timer.isSingleShot())
+			_gbi.assert_called_once_with('0')
+			_st.assert_called_once_with(500)
+			_sh.assert_not_called()
+			ctw.timer.timeout.emit()
+			_sh.assert_called_once_with(QCursor.pos(),
+				'0: main\nCorresponding entries: 33\n'
+				+ 'Associated experiments: 12',
+				ctw.tree.viewport(),
+				ctw.tree.visualRect(ix),
+				3000)
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.categories.getByID",
+					return_value=[{"idCat": 0, "name": "main"}]) as _gbi,\
+				patch("physbiblio.database.catsEntries.countByCat",
+					return_value=33) as _cb,\
+				patch("physbiblio.database.catsExps.countByCat",
+					return_value=12) as _ce:
+			self.assertEqual(ctw.handleItemEntered(ix), None)
+			_sh.assert_called_once_with(
+				QCursor.pos(), '', ctw.tree.viewport())
 
 	def test_contextMenuEvent(self):
 		"""test contextMenuEvent"""

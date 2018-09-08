@@ -543,8 +543,7 @@ class catsTreeWindow(QDialog):
 			.data().split(": ")
 		idCat = idCat.strip()
 		try:
-			self.timerA.stop()
-			self.timerB.stop()
+			self.timer.stop()
 			QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
 		except AttributeError:
 			pass
@@ -553,9 +552,9 @@ class catsTreeWindow(QDialog):
 		except IndexError:
 			pBGUILogger.exception("Failed in finding category")
 			return
-		self.timerA = QTimer(self)
-		self.timerA.setSingleShot(True)
-		self.timerA.timeout.connect(lambda: QToolTip.showText(
+		self.timer = QTimer(self)
+		self.timer.setSingleShot(True)
+		self.timer.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
 			"{idC}: {cat}\nCorresponding entries: ".format(
 				idC = idCat,
@@ -564,14 +563,9 @@ class catsTreeWindow(QDialog):
 				en = pBDB.catBib.countByCat(idCat),
 				ex = pBDB.catExp.countByCat(idCat)),
 			self.tree.viewport(),
-			self.tree.visualRect(index)
-		))
-		self.timerA.start(500)
-		self.timerB = QTimer(self)
-		self.timerB.setSingleShot(True)
-		self.timerB.timeout.connect(lambda: QToolTip.showText(
-			QCursor.pos(), "", self.tree.viewport()))
-		self.timerB.start(3500)
+			self.tree.visualRect(index),
+			3000))
+		self.timer.start(500)
 
 	def contextMenuEvent(self, event):
 		"""Create a right click menu with few actions
