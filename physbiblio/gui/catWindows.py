@@ -308,6 +308,7 @@ class catsTreeWindow(QDialog):
 		super(catsTreeWindow, self).__init__(parent)
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
+		self.setLayout(self.currLayout)
 		self.askCats = askCats
 		self.askForBib = askForBib
 		self.askForExp = askForExp
@@ -336,18 +337,18 @@ class catsTreeWindow(QDialog):
 						"is not in the database!", exc_info = True)
 					return
 				try:
-					if pBDB.bibs.getField(self.askForBib, "inspire") \
-							is not None:
+					if bibitem["inspire"] != "" and \
+							bibitem["inspire"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "inspire"),
 							self.askForBib)
-					elif pBDB.bibs.getField(self.askForBib, "arxiv") \
-							is not None:
+					elif bibitem["arxiv"] != "" and \
+							bibitem["arxiv"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "arxiv"),
 							self.askForBib)
-					elif pBDB.bibs.getField(self.askForBib, "doi") \
-							is not None:
+					elif bibitem["doi"] != "" and \
+							bibitem["doi"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "doi"),
 							self.askForBib)
@@ -365,27 +366,28 @@ class catsTreeWindow(QDialog):
 				try:
 					expitem = pBDB.exps.getByID(self.askForExp)[0]
 				except IndexError:
-					pBGUILogger.warning("The experiment ID %s"%self.askForExp +
-						" is not in the database!", exc_info = True)
+					pBGUILogger.warning("The experiment ID %s"%self.askForExp
+						+ " is not in the database!", exc_info = True)
 					return
 				try:
-					exptext = MyLabel("Mark categories for the following " +
-						"experiment:<br><b>id</b>:<br>%s<br>"%self.askForExp +
-						"<b>name</b>:<br>%s<br>"%expitem["name"] +
-						"<b>comments</b>:<br>%s<br>"%expitem["comments"])
+					exptext = MyLabel("Mark categories for the following "
+						+ "experiment:<br><b>id</b>:<br>%s<br>"%self.askForExp
+						+ "<b>name</b>:<br>%s<br>"%expitem["name"]
+						+ "<b>comments</b>:<br>%s<br>"%expitem["comments"])
 				except KeyError:
-					exptext = MyLabel("Mark categories for the following " +
-						"experiment:<br><b>id</b>:<br>%s<br>"%(self.askForExp))
+					exptext = MyLabel("Mark categories for the following "
+						+ "experiment:<br><b>id</b>:<br>%s<br>"%(self.askForExp))
 				self.currLayout.addWidget(exptext)
 			else:
 				if self.single:
-					comment = MyLabel("Select the desired category " +
-						"(only the first one will be considered):")
+					comment = MyLabel("Select the desired category "
+						+ "(only the first one will be considered):")
 				else:
 					comment = MyLabel("Select the desired categories:")
 				self.currLayout.addWidget(comment)
 			self.marked = []
 			self.parent().selectedCats = []
+		return True
 
 	def onCancel(self):
 		"""Reject the dialog content and close the window"""
@@ -585,6 +587,7 @@ class catsTreeWindow(QDialog):
 		idCat = idCat.strip()
 		
 		menu = MyMenu()
+		self.menu = menu
 		titAction = QAction("--Category: %s--"%catName)
 		titAction.setDisabled(True)
 		bibAction = QAction("Open list of corresponding entries")

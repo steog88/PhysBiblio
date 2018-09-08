@@ -77,7 +77,7 @@ class TestFunctions(GUITestCase):
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g:
-			editCategory(p, m, 15, testing = ncw)
+			editCategory(p, m, editIdCat=15, testing = ncw)
 			_i.assert_called_once_with(p, category="abc", useParentCat=None)
 			_g.assert_called_once_with(15)
 			_s.assert_called_once_with("ERROR: empty category name")
@@ -154,8 +154,8 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.info") as _l,\
 				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
 					) as _r:
-			editCategory(ctw, m, 15, testing = ncw)
-			_i.assert_called_once_with(ctw, category="abc", useParentCat=None)
+			editCategory(ctw, m, 15, useParentCat=0, testing=ncw)
+			_i.assert_called_once_with(ctw, category="abc", useParentCat=0)
 			_g.assert_called_once_with(15)
 			_n.assert_called_once_with(
 				{'idCat': u'15', 'ord': u'0', 'description': u'desc',
@@ -273,7 +273,8 @@ class TestCatsModel(GUITestCase):
 		self.assertEqual(cm.previousSaved,
 			{0: False, 1: False, 2: False, 3: False})
 
-		cm = catsModel(self.cats, self.rootElements, p, [1, 3], True)
+		cm = catsModel(self.cats, self.rootElements,
+			parent=p, previous=[1, 3], multipleRecords=True)
 		self.assertEqual(cm.previousSaved,
 			{0: False, 1: True, 2: False, 3: True})
 		self.assertEqual(cm.selectedCats,
@@ -423,17 +424,263 @@ class TestCatsModel(GUITestCase):
 		self.assertEqual(cm.selectedCats[0], False)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestCategoriesTreeWindow(GUITestCase):
+class TestCatsTreeWindow(GUITestCase):
 	"""test the catsTreeWindow class"""
+	def setUp(self):
+		"""define common parameters for test use"""
+		self.cats = [
+			{"idCat": 0, "name": "main"},
+			{"idCat": 1, "name": "test1"},
+			{"idCat": 2, "name": "test2"},
+			{"idCat": 3, "name": "test3"},
+			]
+		self.cathier = {0: {1: {2: {}}, 3: {}}}
+		with patch("physbiblio.gui.commonClasses.catString",
+				side_effect = ["test2S", "test1S", "test3S", "mainS"]):
+			self.rootElements = [
+				NamedElement(0, "main", [
+					NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
+					NamedElement(3, "test3", []),
+					])
+				]
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		ctw = catsTreeWindow(p)
-		raise NotImplementedError()
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(p)
+			_c.assert_called_once_with()
+		self.assertIsInstance(ctw, QDialog)
+		self.assertEqual(ctw.windowTitle(), "Categories")
+		self.assertIsInstance(ctw.layout(), QVBoxLayout)
+		self.assertEqual(ctw.layout(), ctw.currLayout)
+		self.assertEqual(ctw.askCats, False)
+		self.assertEqual(ctw.askForBib, None)
+		self.assertEqual(ctw.askForExp, None)
+		self.assertEqual(ctw.expButton, True)
+		self.assertEqual(ctw.previous, [])
+		self.assertEqual(ctw.single, False)
+		self.assertEqual(ctw.multipleRecords, False)
+		self.assertEqual(ctw.minimumWidth(), 400)
+		self.assertEqual(ctw.minimumHeight(), 600)
+
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats="ac",
+				askForBib="bib", askForExp="exp", expButton="eb",
+				previous="pr", single="s", multipleRecords="mr")
+			_c.assert_called_once_with()
+		self.assertIsInstance(ctw, QDialog)
+		self.assertEqual(ctw.windowTitle(), "Categories")
+		self.assertIsInstance(ctw.layout(), QVBoxLayout)
+		self.assertEqual(ctw.layout(), ctw.currLayout)
+		self.assertEqual(ctw.askCats, "ac")
+		self.assertEqual(ctw.askForBib, "bib")
+		self.assertEqual(ctw.askForExp, "exp")
+		self.assertEqual(ctw.expButton, "eb")
+		self.assertEqual(ctw.previous, "pr")
+		self.assertEqual(ctw.single, "s")
+		self.assertEqual(ctw.multipleRecords, "mr")
+		self.assertEqual(ctw.minimumWidth(), 400)
+		self.assertEqual(ctw.minimumHeight(), 600)
 
 	def test_populateAskCats(self):
 		"""test populateAskCats"""
-		raise NotImplementedError()
+		p = QWidget()
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats=False)
+
+		#test with askCats = False (nothing happens)
+		self.assertTrue(ctw.populateAskCat())
+		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertFalse(hasattr(p, "selectedCats"))
+		self.assertEqual(ctw.currLayout.count(), 0)
+
+		#test with askCats = True and askForBib
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats=True, askForBib="bib")
+		# bibkey not in db
+		with patch("physbiblio.database.entries.getByBibkey",
+				return_value = []) as _gbb,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(ctw.populateAskCat(), None)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_w.assert_called_once_with(
+				"The entry 'bib' is not in the database!",
+				exc_info=True)
+		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertFalse(hasattr(p, "selectedCats"))
+		self.assertEqual(ctw.currLayout.count(), 0)
+		# dict has no "title" or "author"
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"inspire": None, "doi": None, "arxiv": None}]
+					]) as _gbb:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "entry:<br><b>key</b>:<br>bib<br>")
+		self.assertTrue(hasattr(ctw, "marked"))
+		self.assertEqual(ctw.marked, [])
+		self.assertTrue(hasattr(p, "selectedCats"))
+		self.assertEqual(p.selectedCats, [])
+		# no link exists
+		ctw.cleanLayout()
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": None, "arxiv": None}]
+					]) as _gbb:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "entry:<br><b>key</b>:<br>bib<br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		# inspire exists
+		ctw.cleanLayout()
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": "1234", "doi": "1/2/3", "arxiv": "123456"}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="inspirelink") as _l:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "inspire")
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "entry:<br><b>key</b>:<br><a href='inspirelink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		ctw.cleanLayout()
+		# arxiv exists
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": "1/2/3", "arxiv": "123456"}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="arxivlink") as _l:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "arxiv")
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "entry:<br><b>key</b>:<br><a href='arxivlink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		ctw.cleanLayout()
+		# doi exists
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": "1/2/3", "arxiv": ""}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="doilink") as _l:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "doi")
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "entry:<br><b>key</b>:<br><a href='doilink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+
+		#test with askCats = True and askForExp
+		p = QWidget()
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats=True, askForExp="exp")
+		# idExp not in db
+		with patch("physbiblio.database.experiments.getByID",
+				return_value = []) as _gbi,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(ctw.populateAskCat(), None)
+			_gbi.assert_called_once_with("exp")
+			_w.assert_called_once_with(
+				"The experiment ID exp is not in the database!",
+				exc_info=True)
+		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertFalse(hasattr(p, "selectedCats"))
+		self.assertEqual(ctw.currLayout.count(), 0)
+		# dict has no "name" or "comments"
+		with patch("physbiblio.database.experiments.getByID",
+				return_value = [
+					{"name": "name", "idExp": 9999}
+					]) as _gbi:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbi.assert_called_once_with("exp")
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "experiment:<br><b>id</b>:<br>exp<br>")
+		self.assertTrue(hasattr(ctw, "marked"))
+		self.assertEqual(ctw.marked, [])
+		self.assertTrue(hasattr(p, "selectedCats"))
+		self.assertEqual(p.selectedCats, [])
+		# full string
+		ctw.cleanLayout()
+		with patch("physbiblio.database.experiments.getByID",
+				return_value = [
+					{"name": "name", "idExp": 9999, "comments": "comm"}
+					]) as _gbi:
+			self.assertEqual(ctw.populateAskCat(), True)
+			_gbi.assert_called_once_with("exp")
+			self.assertEqual(ctw.currLayout.count(), 1)
+			self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+				"Mark categories for the following "
+				+ "experiment:<br><b>id</b>:<br>exp<br>"
+				+ "<b>name</b>:<br>name<br>"
+				+ "<b>comments</b>:<br>comm<br>")
+
+		#test with no askForBib, askForExp
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats=True, single=True)
+		self.assertEqual(ctw.populateAskCat(), True)
+		self.assertEqual(ctw.currLayout.count(), 1)
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+			MyLabel)
+		self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+			"Select the desired category "
+			+ "(only the first one will be considered):")
+
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"
+				) as _c:
+			ctw = catsTreeWindow(parent=p, askCats=True, single=False)
+		self.assertEqual(ctw.populateAskCat(), True)
+		self.assertEqual(ctw.currLayout.count(), 1)
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(),
+			MyLabel)
+		self.assertEqual(ctw.layout().itemAt(0).widget().text(),
+			"Select the desired categories:")
 
 	def test_onCancel(self):
 		"""test onCancel"""
@@ -496,7 +743,45 @@ class TestCategoriesTreeWindow(GUITestCase):
 
 	def test_populateTree(self):
 		"""test _populateTree"""
-		raise NotImplementedError()
+		p = QWidget()
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.database.categories.getByID",
+				side_effect = [
+					[{"idCat": 0, "name": "main"}],
+					[{"idCat": 1, "name": "test1"}],
+					[{"idCat": 3, "name": "test3"}],
+					[{"idCat": 1, "name": "test1"}],
+					[{"idCat": 2, "name": "test2"}],
+					[{"idCat": 2, "name": "test2"}],
+					[{"idCat": 2, "name": "test2"}],
+					[{"idCat": 1, "name": "test1"}],
+					[{"idCat": 3, "name": "test3"}],
+					[{"idCat": 3, "name": "test3"}],
+					[{"idCat": 0, "name": "test0"}],
+					[{"idCat": 0, "name": "test0"}],
+					]):
+			pt = ctw._populateTree(self.cathier[0], 0)
+		self.assertIsInstance(pt, NamedElement)
+		self.assertEqual(pt.name, "main")
+		self.assertEqual(pt.idCat, 0)
+		self.assertIsInstance(pt.subelements, list)
+		self.assertEqual(len(pt.subelements), 2)
+		self.assertIsInstance(pt.subelements[0], NamedElement)
+		self.assertEqual(pt.subelements[0].name, "test1")
+		self.assertEqual(pt.subelements[0].idCat, 1)
+		self.assertIsInstance(pt.subelements[0].subelements, list)
+		self.assertEqual(len(pt.subelements[0].subelements), 1)
+		self.assertIsInstance(pt.subelements[1], NamedElement)
+		self.assertEqual(pt.subelements[1].name, "test3")
+		self.assertEqual(pt.subelements[1].idCat, 3)
+		self.assertIsInstance(pt.subelements[1].subelements, list)
+		self.assertEqual(len(pt.subelements[1].subelements), 0)
+		self.assertIsInstance(pt.subelements[0].subelements[0], NamedElement)
+		self.assertEqual(pt.subelements[0].subelements[0].name, "test2")
+		self.assertEqual(pt.subelements[0].subelements[0].idCat, 2)
+		self.assertIsInstance(pt.subelements[0].subelements[0].subelements,
+			list)
+		self.assertEqual(len(pt.subelements[0].subelements[0].subelements), 0)
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
@@ -564,7 +849,7 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.selectedCats, [1])
 		with patch("physbiblio.database.categories.getParent",
 				return_value = 1) as _p:
-			ecd = editCategoryDialog(p, cat, 14)
+			ecd = editCategoryDialog(parent=p, category=cat, useParentCat=14)
 			_p._assert_not_called()
 		for k in pBDB.tableCols["categories"]:
 			if k != "parentCat":

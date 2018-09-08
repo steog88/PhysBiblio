@@ -311,6 +311,7 @@ class TestConfigWindow(GUITestCase):
 			expButton = False,
 			previous = ['1'])
 		cwl.onOk()
+		cw.selectedCats = ['1']
 		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 				return_value = None) as _cwl:
 			cw.editDefCats(cwl)
