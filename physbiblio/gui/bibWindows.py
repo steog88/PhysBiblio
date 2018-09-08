@@ -238,7 +238,7 @@ def editBibtex(parent, statusBarObject, editKey = None):
 							data["bibkey"] = editKey
 					else:
 						data["bibkey"] = editKey
-				pBGUILogger.info(
+				pBLogger.info(
 					"Updating bibtex '%s'..."%data["bibkey"])
 				pBDB.bibs.update(data, data["bibkey"])
 			else:

@@ -29,7 +29,8 @@ except ImportError:
 def editCategory(parentObject,
 		mainWinObject,
 		editIdCat = None,
-		useParentCat = None):
+		useParentCat = None,
+		testing = False):
 	"""Open a dialog (`editCategoryDialog`) to edit a category
 	and process the output.
 
@@ -41,6 +42,9 @@ def editCategory(parentObject,
 			or `None` to create a new category
 		useParentCat: the parent category (if any)
 			of the one to be edited
+		testing (default False): when doing tests,
+			interrupt the execution before `exec_` and
+			replace `newCatWin` with the passed object.
 	"""
 	if editIdCat is not None:
 		edit = pBDB.cats.getDictByID(editIdCat)
@@ -49,9 +53,12 @@ def editCategory(parentObject,
 	newCatWin = editCategoryDialog(parentObject,
 		category = edit,
 		useParentCat = useParentCat)
-	newCatWin.exec_()
-	data = {}
+	if testing:
+		newCatWin = testing
+	else:
+		newCatWin.exec_()
 	if newCatWin.result:
+		data = {}
 		for k, v in newCatWin.textValues.items():
 			if k == "parentCat":
 				try:
@@ -63,7 +70,7 @@ def editCategory(parentObject,
 			data[k] = s
 		if data["name"].strip() != "":
 			if "idCat" in data.keys():
-				print("[GUI] Updating category %s..."%data["idCat"])
+				pBLogger.info("Updating category %s..."%data["idCat"])
 				pBDB.cats.update(data, data["idCat"])
 			else:
 				pBDB.cats.insert(data)
@@ -143,13 +150,13 @@ class catsModel(TreeModel):
 			self.selectedCats[cat["idCat"]] = False
 			self.previousSaved[cat["idCat"]] = False
 		for prevIx in previous:
-			try:
+			if prevIx in [cat["idCat"] for cat in self.cats]:
 				if multipleRecords:
 					self.previousSaved[prevIx] = True
 					self.selectedCats[prevIx] = "p"
 				else:
 					self.selectedCats[prevIx] = True
-			except IndexError:
+			else:
 				pBLogger.warning("Invalid idCat in previous selection: " +
 					"%s"%prevIx)
 
@@ -184,12 +191,10 @@ class catsModel(TreeModel):
 		column = index.column()
 		value = index.internalPointer().element.text
 		idCat = index.internalPointer().element.idCat
-		if role == Qt.DisplayRole and index.column() == 0:
-			return value
-
 		if role == Qt.CheckStateRole and \
-				self.parentObj.askCats and \
-				column == 0:
+				column == 0 and \
+				hasattr(self.parentObj, "askCats") and \
+				self.parentObj.askCats:
 			if self.previousSaved[idCat] == True and \
 					self.selectedCats[idCat] == "p":
 				return Qt.PartiallyChecked
@@ -248,8 +253,11 @@ class catsModel(TreeModel):
 			role: the desired Qt role for the data
 
 		Output:
-			True if correctly completed
+			True if correctly completed,
+			False if the `index` is not valid
 		"""
+		if not index.isValid():
+			return False
 		idCat = index.internalPointer().element.idCat
 		if role == Qt.CheckStateRole and index.column() == 0:
 			self.previousSaved[idCat] = False

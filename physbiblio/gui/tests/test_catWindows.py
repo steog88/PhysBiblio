@@ -33,7 +33,136 @@ class TestFunctions(GUITestCase):
 	"""test editCategory and deleteCategory"""
 	def test_editCategory(self):
 		"""test editCategory"""
-		raise NotImplementedError()
+		p = QWidget()
+		m = MainWindow(testing=True)
+		ncw = editCategoryDialog(p)
+		ncw.onCancel()
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i:
+			editCategory(p, m, testing = ncw)
+			_i.assert_called_once_with(p, category=None, useParentCat=None)
+			_s.assert_called_once_with("No modifications to categories")
+
+		with patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("logging.Logger.debug") as _l:
+			editCategory(p, p, testing = ncw)
+			_i.assert_called_once_with(p, category=None, useParentCat=None)
+			_l.assert_called_once_with(
+				"mainWinObject has no attribute 'statusBarMessage'",
+				exc_info = True)
+
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.database.categories.getDictByID",
+					return_value="abc") as _g:
+			editCategory(p, m, 15, testing = ncw)
+			_i.assert_called_once_with(p, category="abc", useParentCat=None)
+			_g.assert_called_once_with(15)
+			_s.assert_called_once_with("No modifications to categories")
+
+		ncw = editCategoryDialog(p)
+		ncw.selectedCats = [18]
+		ncw.textValues["ord"].setText("0")
+		ncw.textValues["comments"].setText("comm")
+		ncw.textValues["description"].setText("desc")
+		ncw.onOk()
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.database.categories.getDictByID",
+					return_value="abc") as _g:
+			editCategory(p, m, 15, testing = ncw)
+			_i.assert_called_once_with(p, category="abc", useParentCat=None)
+			_g.assert_called_once_with(15)
+			_s.assert_called_once_with("ERROR: empty category name")
+
+		ncw.textValues["name"].setText("mycat")
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.database.categories.getDictByID",
+					return_value="abc") as _g,\
+				patch("physbiblio.database.categories.insert",
+					return_value="abc") as _n,\
+				patch("logging.Logger.debug") as _l:
+			editCategory(p, m, 15, testing = ncw)
+			_i.assert_called_once_with(p, category="abc", useParentCat=None)
+			_g.assert_called_once_with(15)
+			_n.assert_called_once_with(
+				{'ord': u'0', 'description': u'desc',
+				'parentCat': '18', 'comments': u'comm', 'name': u'mycat'})
+			_s.assert_called_once_with("Category saved")
+			_l.assert_called_once_with(
+				"parentObject has no attribute 'recreateTable'", exc_info=True)
+
+		ncw.textValues["name"].setText("mycat")
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.database.categories.getDictByID",
+					return_value="abc") as _g,\
+				patch("physbiblio.database.categories.insert",
+					return_value="abc") as _n,\
+				patch("logging.Logger.debug") as _l,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
+					) as _r:
+			editCategory(ctw, m, 15, testing = ncw)
+			_i.assert_called_once_with(ctw, category="abc", useParentCat=None)
+			_g.assert_called_once_with(15)
+			_n.assert_called_once_with(
+				{'ord': u'0', 'description': u'desc',
+				'parentCat': '18', 'comments': u'comm', 'name': u'mycat'})
+			_s.assert_called_once_with("Category saved")
+			_l.assert_not_called()
+			_r.assert_called_once_with()
+
+		cat = {
+			'idCat': 15,
+			'parentCat': 1,
+			'description': "desc",
+			'comments': "no comment",
+			'ord': 0,
+			'name': "mycat"
+		}
+		with patch("physbiblio.database.categories.getParent",
+				return_value = [[1]]) as _p:
+			ncw = editCategoryDialog(p, cat)
+		ncw.selectedCats = []
+		ncw.textValues["ord"].setText("0")
+		ncw.textValues["name"].setText("mycat")
+		ncw.textValues["comments"].setText("comm")
+		ncw.textValues["description"].setText("desc")
+		ncw.onOk()
+		ctw = catsTreeWindow(p)
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog."
+					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.database.categories.getDictByID",
+					return_value="abc") as _g,\
+				patch("physbiblio.database.categories.update",
+					return_value="abc") as _n,\
+				patch("logging.Logger.info") as _l,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
+					) as _r:
+			editCategory(ctw, m, 15, testing = ncw)
+			_i.assert_called_once_with(ctw, category="abc", useParentCat=None)
+			_g.assert_called_once_with(15)
+			_n.assert_called_once_with(
+				{'idCat': u'15', 'ord': u'0', 'description': u'desc',
+				'parentCat': '0', 'comments': u'comm', 'name': u'mycat'}, '15')
+			_s.assert_called_once_with("Category saved")
+			_l.assert_called_once_with("Updating category 15...")
+			_r.assert_called_once_with()
 
 	def test_deleteCategory(self):
 		"""test deleteCategory"""
@@ -99,20 +228,68 @@ class TestFunctions(GUITestCase):
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCatsModel(GUITestCase):
 	"""test the catsModel class"""
+	def setUp(self):
+		"""define common parameters for test use"""
+		self.cats = [
+			{"idCat": 0, "name": "main"},
+			{"idCat": 1, "name": "test1"},
+			{"idCat": 2, "name": "test2"},
+			{"idCat": 3, "name": "test3"},
+			]
+		with patch("physbiblio.gui.commonClasses.catString",
+				side_effect = ["test2S", "test1S", "test3S", "mainS"]):
+			self.rootElements = [
+				NamedElement(0, "main", [
+					NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
+					NamedElement(3, "test3", []),
+					])
+				]
+
 	def test_init(self):
 		"""test init"""
-		cm = catsModel([], [])
-		# tm.rootElements = [
-			# NamedElement(0, "main", [
-				# NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
-				# NamedElement(3, "test3", []),
-				# ])
-			# ]
-		raise NotImplementedError()
+		p = QWidget()
+		cm = catsModel(self.cats, self.rootElements, p)
+		self.assertIsInstance(cm, TreeModel)
+		self.assertEqual(cm.cats, self.cats)
+		self.assertEqual(cm.rootElements, self.rootElements)
+		self.assertEqual(cm.parentObj, p)
+		self.assertIsInstance(cm.selectedCats, dict)
+		self.assertIsInstance(cm.previousSaved, dict)
+		self.assertEqual(cm.selectedCats,
+			{0: False, 1: False, 2: False, 3: False})
+		self.assertEqual(cm.previousSaved,
+			{0: False, 1: False, 2: False, 3: False})
+
+		with patch("logging.Logger.warning") as _l:
+			cm = catsModel(self.cats, self.rootElements, p, [15])
+			_l.assert_called_once_with(
+				"Invalid idCat in previous selection: 15")
+
+		with patch("logging.Logger.warning") as _l:
+			cm = catsModel(self.cats, self.rootElements, p, [1, 3])
+			_l.assert_not_called()
+		self.assertEqual(cm.selectedCats,
+			{0: False, 1: True, 2: False, 3: True})
+		self.assertEqual(cm.previousSaved,
+			{0: False, 1: False, 2: False, 3: False})
+
+		cm = catsModel(self.cats, self.rootElements, p, [1, 3], True)
+		self.assertEqual(cm.previousSaved,
+			{0: False, 1: True, 2: False, 3: True})
+		self.assertEqual(cm.selectedCats,
+			{0: False, 1: "p", 2: False, 3: "p"})
 
 	def test_getRootNodes(self):
 		"""test _getRootNodes"""
-		raise NotImplementedError()
+		p = QWidget()
+		cm = catsModel(self.cats, self.rootElements, p)
+		par = cm._getRootNodes()
+		self.assertIsInstance(par, list)
+		self.assertEqual(len(par), 1)
+		self.assertIsInstance(par[0], NamedNode)
+		self.assertEqual(par[0].element, self.rootElements[0])
+		self.assertEqual(par[0].row, 0)
+		self.assertEqual(par[0].parentObj, None)
 
 	def test_columnCount(self):
 		"""test columnCount"""
@@ -121,7 +298,35 @@ class TestCatsModel(GUITestCase):
 
 	def test_data(self):
 		"""test data"""
-		raise NotImplementedError()
+		cm = catsModel(self.cats, self.rootElements)
+		ix = cm.index(10, 0)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), None)
+		ix = cm.index(0, 0)
+		self.assertEqual(cm.data(ix, Qt.DisplayRole), "mainS")
+		self.assertEqual(cm.data(ix, Qt.EditRole), "mainS")
+		self.assertEqual(cm.data(ix, Qt.DecorationRole), None)
+
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), None)
+		p = QWidget()
+		p.askCats = False
+		cm = catsModel(self.cats, self.rootElements, p)
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole), None)
+		p.askCats = True
+		cm = catsModel(self.cats, self.rootElements, p)
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
+			Qt.Unchecked)
+		cm = catsModel(self.cats, self.rootElements, p, [0])
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
+			Qt.Checked)
+		cm = catsModel(self.cats, self.rootElements, p, [0], True)
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
+			Qt.PartiallyChecked)
+		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
+			Qt.Unchecked)
+		self.assertEqual(cm.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
+		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
+			Qt.Checked)
 
 	def test_flags(self):
 		"""test flags"""
@@ -188,7 +393,34 @@ class TestCatsModel(GUITestCase):
 
 	def test_setData(self):
 		"""test setData"""
-		raise NotImplementedError()
+		def connectEmit(ix1, ix2):
+			"""used to test dataChanged.emit"""
+			self.newEmit = ix1
+		cm = catsModel(self.cats, self.rootElements)
+		ix = cm.index(10, 0)
+		self.newEmit = False
+		cm.dataChanged.connect(connectEmit)
+		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), False)
+		self.assertEqual(self.newEmit, False)
+		ix = cm.index(0, 0)
+		self.assertEqual(cm.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
+		self.assertEqual(cm.previousSaved[0], False)
+		self.assertEqual(cm.selectedCats[0], True)
+		self.assertEqual(self.newEmit, ix)
+		self.newEmit = False
+		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
+		self.assertEqual(cm.previousSaved[0], False)
+		self.assertEqual(cm.selectedCats[0], False)
+		self.assertEqual(self.newEmit, ix)
+
+		cm = catsModel(self.cats, self.rootElements, None, [0], True)
+		ix = cm.index(0, 0)
+		self.assertEqual(cm.setData(ix, "abc", Qt.EditRole), True)
+		self.assertEqual(cm.previousSaved[0], True)
+		self.assertEqual(cm.selectedCats[0], "p")
+		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
+		self.assertEqual(cm.previousSaved[0], False)
+		self.assertEqual(cm.selectedCats[0], False)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCategoriesTreeWindow(GUITestCase):
@@ -415,14 +647,18 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"Select parent")
 
-		sc = catsTreeWindow(parent = ecd,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = [9999])
+		with patch("logging.Logger.warning") as _l:
+			sc = catsTreeWindow(parent = ecd,
+				askCats = True,
+				expButton = False,
+				single = True,
+				previous = [9999])
+			_l.assert_called_once_with(
+				'Invalid idCat in previous selection: 9999')
 		sc.onOk()
 		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i:
+				return_value = None) as _i, \
+				patch("logging.Logger.warning") as _l:
 			ecd.onAskParent(sc)
 			_i.assert_called_once_with(parent = ecd,
 				askCats = True,
