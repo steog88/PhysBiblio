@@ -4,6 +4,7 @@ Module that contains the class for the main window of PhysBiblio.
 This file is part of the physbiblio package.
 """
 import sys
+import traceback
 if sys.version_info[0] < 3:
 	from Queue import Queue
 else:
@@ -41,7 +42,7 @@ try:
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, \
 		advImportSelect, dailyArxivDialog, dailyArxivSelect
-	from physbiblio.gui.expWindows import ExpWindowList, editExperiment
+	from physbiblio.gui.expWindows import expsListWindow, editExperimentDialog
 	from physbiblio.gui.inspireStatsGUI import \
 		authorStatsPlots, paperStatsPlots
 	from physbiblio.gui.profilesManager import selectProfiles, editProf
@@ -782,11 +783,11 @@ class MainWindow(QMainWindow):
 	
 	def experimentList(self):
 		self.statusBarMessage("experiments triggered")
-		expListWin = ExpWindowList(self)
+		expListWin = expsListWindow(self)
 		expListWin.show()
 
 	def newExperiment(self):
-		editExperiment(self, self)
+		editExperimentDialogeriment(self, self)
 
 	def newBibtex(self):
 		editBibtex(self, self)
@@ -1138,7 +1139,7 @@ class MainWindow(QMainWindow):
 				self.statusBarMessage(
 					"categories for '%s' successfully inserted"%entry)
 			if selectCats.result == "Exps":
-				selectExps = ExpWindowList(parent = self,
+				selectExps = expsListWindow(parent = self,
 					askExps = True, askForBib = entry)
 				selectExps.exec_()
 				if selectExps.result == "Ok":

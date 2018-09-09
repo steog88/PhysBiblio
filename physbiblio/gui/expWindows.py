@@ -14,6 +14,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB
 	from physbiblio.view import pBView
+	from physbiblio.errors import pBLogger
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
@@ -24,84 +25,147 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
-def editExperiment(parent, statusBarObject, editIdExp = None):
+def editExperiment(parentObject,
+		mainWinObject,
+		editIdExp=None,
+		testing=False):
+	"""Open a dialog (`editExperimentDialog`) to edit an experiment
+	and process the output.
+
+	Parameters:
+		parentObject: the parent widget
+		mainWinObject: the object which has
+			the `statusBarMessage` and `setWindowTitle` methods
+		editIdCat: the id of the experiment to be edited,
+			or `None` to create a new one
+		testing (default False): when doing tests,
+			interrupt the execution before `exec_` and
+			replace `newCatWin` with the passed object.
+	"""
 	if editIdExp is not None:
 		edit = pBDB.exps.getDictByID(editIdExp)
 	else:
 		edit = None
-	newExpWin = editExp(parent, exp = edit)
-	newExpWin.exec_()
-	data = {}
+	newExpWin = editExperimentDialog(parentObject, experiment=edit)
+	if testing:
+		newExpWin = testing
+	else:
+		newExpWin.exec_()
 	if newExpWin.result:
+		data = {}
 		for k, v in newExpWin.textValues.items():
 			s = "%s"%v.text()
 			data[k] = s
 		if data["name"].strip() != "":
 			if "idExp" in data.keys():
-				print("[GUI] Updating experiment %s..."%data["idExp"])
+				pBLogger.info("Updating experiment %s..."%data["idExp"])
 				pBDB.exps.update(data, data["idExp"])
 			else:
 				pBDB.exps.insert(data)
 			message = "Experiment saved"
-			statusBarObject.setWindowTitle("PhysBiblio*")
+			mainWinObject.setWindowTitle("PhysBiblio*")
 			try:
-				parent.recreateTable()
-			except:
-				pass
+				parentObject.recreateTable()
+			except AttributeError:
+				pBLogger.debug("parentObject has no attribute 'recreateTable'",
+					exc_info=True)
 		else:
 			message = "ERROR: empty experiment name"
 	else:
 		message = "No modifications to experiments"
 	try:
-		statusBarObject.statusBarMessage(message)
-	except:
-		pass
+		mainWinObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
+			exc_info=True)
 
-def deleteExperiment(parent, statusBarObject, idExp, name):
+def deleteExperiment(parentObject, mainWinObject, idExp, name):
+	"""Ask confirmation and eventually delete the selected experiment
+
+	Parameters:
+		parentObject: the parent widget
+		mainWinObject: the object which has
+			the `statusBarMessage` and `setWindowTitle` methods
+		idExp: the id of the experiment to be deleted
+		name: the name of the experiment to be deleted
+	"""
 	if askYesNo("Do you really want to delete this experiment "
 			+ "(ID = '%s', name = '%s')?"%(idExp, name)):
 		pBDB.exps.delete(int(idExp))
-		statusBarObject.setWindowTitle("PhysBiblio*")
+		mainWinObject.setWindowTitle("PhysBiblio*")
 		message = "Experiment deleted"
 		try:
-			parent.recreateTable()
-		except:
-			pass
+			parentObject.recreateTable()
+		except AttributeError:
+			pBLogger.debug("parentObject has no attribute 'recreateTable'",
+				exc_info=True)
 	else:
 		message = "Nothing changed"
 	try:
-		statusBarObject.statusBarMessage(message)
-	except:
-		pass
+		mainWinObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
+			exc_info=True)
 
-class MyExpTableModel(MyTableModel):
+class ExpTableModel(MyTableModel):
+	"""Model for the experiment list"""
 	def __init__(self,
 			parent,
 			exp_list,
 			header,
-			askExps = False,
-			previous = [],
+			askExps=False,
+			previous=[],
 			*args):
+		"""Extension of `MyTableModel`
+		Initialize the model, save the data and the initial selection
+
+		Parameters:
+			parent: the parent widget
+			exp_list: the list of experiments records from the database
+			header: the names of the column fields
+			askExps (default False): if True, enable checkboxes for
+				selection of experiments
+			previous: the list of previously selected experiments
+				(default: an empty list)
+		"""
 		self.typeClass = "Exps"
 		self.dataList = exp_list
-		MyTableModel.__init__(self, parent, header, askExps, previous, *args)
+		super(ExpTableModel, self).__init__(
+			parent, header, askExps, previous, *args)
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
+		"""Get the string that identifies the given element
+		in the database
+
+		Parameter:
+			element: the database record
+		"""
 		return element["idExp"]
 
 	def data(self, index, role):
+		"""Return the cell data for the given index and role
+
+		Parameters:
+			index: the `QModelIndex` for which the data are required
+			role: the desired Qt role for the data
+
+		Output:
+			None if the index or the role are not valid,
+			the cell content of properties otherwise
+		"""
 		if not index.isValid():
 			return None
 		row = index.row()
 		column = index.column()
 		try:
-			value = self.dataList[row][column]
+			value = self.dataList[row][self.header[column]]
 		except IndexError:
 			return None
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
-			if self.selectedElements[self.dataList[row][0]] == False:
+			if self.selectedElements[self.dataList[row][self.header[0]]
+					] == False:
 				return Qt.Unchecked
 			else:
 				return Qt.Checked
@@ -112,23 +176,38 @@ class MyExpTableModel(MyTableModel):
 		return None
 
 	def setData(self, index, value, role):
+		"""Set the cell data for the given index and role
+
+		Parameters:
+			index: the `QModelIndex` for which the data are required
+			value: the new data value
+			role: the desired Qt role for the data
+
+		Output:
+			True if correctly completed,
+			False if the `index` is not valid
+		"""
+		if not index.isValid():
+			return False
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedElements[self.dataList[index.row()][0]] = True
+				self.selectedElements[self.dataList[index.row()]["idExp"]] \
+					= True
 			else:
-				self.selectedElements[self.dataList[index.row()][0]] = False
+				self.selectedElements[self.dataList[index.row()]["idExp"]] \
+					= False
 
 		self.dataChanged.emit(index, index)
 		return True
 
-class ExpWindowList(objListWindow):
+class expsListWindow(objListWindow):
 	"""create a window for printing the list of experiments"""
 	def __init__(self,
-			parent = None,
-			askExps = False,
-			askForBib = None,
-			askForCat = None,
-			previous = []):
+			parent=None,
+			askExps=False,
+			askForBib=None,
+			askForCat=None,
+			previous=[]):
 		"""Constructor
 
 		Parameters:
@@ -144,7 +223,7 @@ class ExpWindowList(objListWindow):
 		self.askForCat = askForCat
 		self.previous = previous
 
-		super(ExpWindowList, self).__init__(parent)
+		super(expsListWindow, self).__init__(parent)
 		self.parent = parent
 		self.setWindowTitle('List of experiments')
 
@@ -154,7 +233,7 @@ class ExpWindowList(objListWindow):
 		if self.askExps:
 			if self.askForBib is not None:
 				bibitem = pBDB.bibs.getByBibkey(
-					self.askForBib, saveQuery = False)[0]
+					self.askForBib, saveQuery=False)[0]
 				try:
 					if pBDB.bibs.getField(self.askForBib, "inspire") \
 							is not None:
@@ -215,11 +294,11 @@ class ExpWindowList(objListWindow):
 
 		self.exps = pBDB.exps.getAll()
 
-		self.tableModel = MyExpTableModel(self,
+		self.tableModel = ExpTableModel(self,
 			self.exps,
 			pBDB.tableCols["experiments"],
-			askExps = self.askExps,
-			previous = self.previous)
+			askExps=self.askExps,
+			previous=self.previous)
 		self.addFilterInput("Filter experiment")
 		self.setProxyStuff(1, Qt.AscendingOrder)
 
@@ -273,11 +352,11 @@ class ExpWindowList(objListWindow):
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
 			selectCats = catsTreeWindow(
-				parent = self.parent,
-				askCats = True,
-				askForExp = idExp,
-				expButton = False,
-				previous = previous)
+				parent=self.parent,
+				askCats=True,
+				askForExp=idExp,
+				expButton=False,
+				previous=previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
 				cats = self.parent.selectedCats
@@ -311,11 +390,11 @@ class ExpWindowList(objListWindow):
 		self.timer.timeout.connect(lambda: QToolTip.showText(
 			QCursor.pos(),
 			"{idE}: {exp}\nCorresponding entries: {en}\n".format(
-				idE = idExp,
-				exp = expData["name"],
-				en = pBDB.bibExp.countByExp(idExp))
+				idE=idExp,
+				exp=expData["name"],
+				en=pBDB.bibExp.countByExp(idExp))
 			+ "Associated categories: {ca}".format(
-				ca = pBDB.catExp.countByExp(idExp)),
+				ca=pBDB.catExp.countByExp(idExp)),
 			self.tablewidget.viewport(),
 			self.tablewidget.visualRect(index),
 			3000))
@@ -349,16 +428,16 @@ class ExpWindowList(objListWindow):
 			except:
 				print("[GUI] opening link '%s' failed!"%link)
 
-class editExp(editObjectWindow):
+class editExperimentDialog(editObjectWindow):
 	"""create a window for editing or creating an experiment"""
-	def __init__(self, parent = None, exp = None):
-		super(editExp, self).__init__(parent)
-		if exp is None:
+	def __init__(self, parent=None, experiment=None):
+		super(editExperimentDialog, self).__init__(parent)
+		if experiment is None:
 			self.data = {}
 			for k in pBDB.tableCols["experiments"]:
 				self.data[k] = ""
 		else:
-			self.data = exp
+			self.data = experiment
 		self.createForm()
 
 	def createForm(self):

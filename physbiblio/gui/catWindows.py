@@ -87,7 +87,7 @@ def editCategory(parentObject,
 		message = "No modifications to categories"
 	try:
 		mainWinObject.statusBarMessage(message)
-	except:
+	except AttributeError:
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info=True)
 
@@ -120,7 +120,7 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
 			exc_info=True)
 
 class catsModel(TreeModel):
-	"""Model for the categories Tree"""
+	"""Model for the categories tree"""
 	def __init__(self,
 			cats,
 			rootElements,
