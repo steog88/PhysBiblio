@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
-from PySide2.QtCore import Qt, QModelIndex
+from PySide2.QtCore import Qt, QModelIndex, QPoint, QEvent
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -693,7 +693,51 @@ class TestCatsTreeWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		raise NotImplementedError()
+		p = QWidget()
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _gh,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+ "_populateTree",
+					return_value=self.rootElements[0]) as _pt:
+			ctw = catsTreeWindow(p)
+		self.assertFalse(hasattr(p, "selectedCats"))
+		self.assertFalse(hasattr(p, "previousUnchanged"))
+		ctw.root_model.selectedCats[0] = True
+		ctw.root_model.selectedCats[3] = True
+		ctw.root_model.previousSaved[0] = True
+		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+			ctw.onOk()
+			_c.assert_called_once_with()
+		self.assertEqual(hasattr(p, "selectedCats"), True)
+		self.assertEqual(p.selectedCats, [0, 3])
+		self.assertEqual(p.previousUnchanged, [0])
+		self.assertEqual(ctw.result, "Ok")
+
+		p = QWidget()
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _gh,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt:
+			ctw = catsTreeWindow(p, single=True)
+		self.assertFalse(hasattr(p, "selectedCats"))
+		self.assertFalse(hasattr(p, "previousUnchanged"))
+		ctw.root_model.selectedCats[0] = True
+		ctw.root_model.selectedCats[1] = False
+		ctw.root_model.selectedCats[2] = False
+		ctw.root_model.previousSaved[1] = False
+		ctw.root_model.previousSaved[2] = False
+		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+			ctw.onOk(exps=True)
+			_c.assert_called_once_with()
+		self.assertEqual(hasattr(p, "selectedCats"), True)
+		self.assertEqual(p.selectedCats, [0])
+		self.assertEqual(p.previousUnchanged, [])
+		self.assertEqual(ctw.result, "Exps")
 
 	def test_changeFilter(self):
 		"""test changeFilter"""
@@ -854,7 +898,94 @@ class TestCatsTreeWindow(GUITestCase):
 
 	def test_contextMenuEvent(self):
 		"""test contextMenuEvent"""
-		raise NotImplementedError()
+		p = MainWindow(testing=True)
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _gh,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt:
+			ctw = catsTreeWindow(p)
+		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
+				return_value=[QModelIndex()]) as _si,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.catWindows.editCategory") as _ec,\
+				patch("physbiblio.gui.catWindows.deleteCategory") as _dc:
+			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), True)
+			self.assertFalse(hasattr(ctw, "menu"))
+		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
+				return_value=[ctw.tree.indexAt(QPoint(0, 0))]) as _si,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.catWindows.editCategory") as _ec,\
+				patch("physbiblio.gui.catWindows.deleteCategory") as _dc,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
+			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), True)
+			_f.assert_called_once_with()
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+
+			self.assertIsInstance(ctw.menu, MyMenu)
+			self.assertIsInstance(ctw.menu.possibleActions, list)
+			self.assertEqual(len(ctw.menu.possibleActions), 8)
+			self.assertEqual(ctw.menu.possibleActions[1], None)
+			self.assertEqual(ctw.menu.possibleActions[3], None)
+			self.assertEqual(ctw.menu.possibleActions[6], None)
+
+			for ix, tit, en in [
+					[0, "--Category: mainS--", False],
+					[2, "Open list of corresponding entries", True],
+					[4, "Modify", True],
+					[5, "Delete", True],
+					[7, "Add subcategory", True],
+					]:
+				act = ctw.menu.possibleActions[ix]
+				self.assertIsInstance(act, QAction)
+				self.assertEqual(act.text(), tit)
+				self.assertEqual(act.isEnabled(), en)
+
+			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 0)
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+
+			pBDB.bibs.lastFetched = ["a"]
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 2)
+				_ffd.assert_called_once_with(
+					{'cats': {'operator': 'and', 'id': [u'0']}})
+			_rmc.assert_called_once_with(["a"])
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+			_rmc.reset_mock()
+
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 4)
+			_rmc.assert_not_called()
+			_ec.assert_called_once_with(ctw, p, '0')
+			_dc.assert_not_called()
+			_ec.reset_mock()
+
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 5)
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_called_once_with(ctw, p, '0', 'mainS')
+			_dc.reset_mock()
+
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 7)
+			_rmc.assert_not_called()
+			_ec.assert_called_once_with(ctw, p, useParent='0')
+			_dc.assert_not_called()
+
 
 	def test_cleanLayout(self):
 		"""test cleanLayout"""

@@ -394,7 +394,7 @@ class catsTreeWindow(QDialog):
 		self.result	= False
 		self.close()
 
-	def onOk(self, exps = False):
+	def onOk(self, exps=False):
 		"""Accept the dialog content
 		(update the list of selected categories)
 		and close the window.
@@ -416,6 +416,7 @@ class catsTreeWindow(QDialog):
 				len(self.parent().selectedCats) > 1 and \
 				self.parent().selectedCats[0] == 0:
 			self.parent().selectedCats.pop(0)
+			self.parent().selectedCats = [self.parent().selectedCats[0]]
 		if exps:
 			self.result	= "Exps"
 		else:
@@ -567,15 +568,22 @@ class catsTreeWindow(QDialog):
 			3000))
 		self.timer.start(500)
 
-	def contextMenuEvent(self, event):
+	def contextMenuEvent(self, event, testing=False):
 		"""Create a right click menu with few actions
 		on the selected category
 
 		Parameter:
 			event: a `QEvent`
+			testing (default False): avoid `menu.exec_` during tests.
+				If it is a number,
+				it is the index of the `action` to test,
+				otherwise `action` will be `None`
 		"""
 		index = self.tree.selectedIndexes()[0]
-		row = index.row()
+		if index.isValid():
+			row = index.row()
+		else:
+			return
 		idCat, catName = self.proxyModel.sibling(row, 0, index) \
 			.data().split(": ")
 		idCat = idCat.strip()
@@ -596,7 +604,14 @@ class catsTreeWindow(QDialog):
 			]
 		menu.fillMenu()
 
-		action = menu.exec_(event.globalPos())
+		if testing is not False:
+			if ("%s"%testing).isdigit():
+				action = menu.possibleActions[testing]
+			else:
+				action = None
+		else:
+			action = menu.exec_(event.globalPos())
+
 		if action == bibAction:
 			searchDict = {"cats": {"id": [idCat], "operator": "and"}}
 			self.parent().reloadMainContent(
@@ -606,7 +621,7 @@ class catsTreeWindow(QDialog):
 		elif action == delAction:
 			deleteCategory(self, self.parent(), idCat, catName)
 		elif action == subAction:
-			editCategory(self, self.parent(), useParent = idCat)
+			editCategory(self, self.parent(), useParent=idCat)
 
 	def cleanLayout(self):
 		"""Delete the previous widgets"""
