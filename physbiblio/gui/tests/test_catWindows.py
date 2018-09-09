@@ -786,15 +786,181 @@ class TestCatsTreeWindow(GUITestCase):
 	def test_createForm(self):
 		"""test createForm"""
 		p = QWidget()
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"):
+			ctw = catsTreeWindow(p)
 		with patch("physbiblio.database.categories.getHier",
 				return_value=self.cathier) as _gh,\
 				patch("physbiblio.database.categories.getAll",
-					return_value=self.cats) as _gh,\
+					return_value=self.cats) as _ga,\
 				patch("physbiblio.gui.catWindows.catsTreeWindow."
 					+"_populateTree",
-					return_value=self.rootElements[0]) as _pt:
-			ctw = catsTreeWindow(p)
-		raise NotImplementedError()
+					return_value=self.rootElements[0]) as _pt,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+ "populateAskCat") as _pac,\
+				patch("PySide2.QtWidgets.QTreeView.expandAll") as _ea:
+			ctw.createForm()
+			_pac.assert_called_once_with()
+			_gh.assert_called_once_with()
+			_ga.assert_called_once_with()
+			_pt.assert_called_once_with({1: {2: {}}, 3: {}}, 0)
+			_ea.assert_called_once_with()
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(ctw.layout().count(), 3)
+		self.assertEqual(ctw.filterInput, ctw.layout().itemAt(0).widget())
+		self.assertEqual(ctw.filterInput.placeholderText(),
+			"Filter categories")
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "changeFilter") as _cf:
+			ctw.filterInput.textChanged.emit("a")
+			_cf.assert_called_once_with("a")
+
+		self.assertIsInstance(ctw.tree, QTreeView)
+		self.assertIsInstance(ctw.layout().itemAt(1).widget(), QTreeView)
+		self.assertEqual(ctw.tree, ctw.layout().itemAt(1).widget())
+		self.assertTrue(ctw.tree.hasMouseTracking())
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "handleItemEntered") as _f:
+			ctw.tree.entered.emit(QModelIndex())
+			_f.assert_called_once_with(QModelIndex())
+
+		self.assertIsInstance(ctw.root_model, catsModel)
+		self.assertEqual(ctw.root_model.cats, self.cats)
+		self.assertEqual(ctw.root_model.rootElements, self.rootElements)
+		self.assertEqual(ctw.root_model.parentObj, ctw)
+		self.assertEqual(ctw.root_model.selectedCats,
+			{0: False, 1: False, 2: False, 3: False})
+		self.assertIsInstance(ctw.proxyModel, LeafFilterProxyModel)
+		self.assertEqual(ctw.proxyModel.sourceModel(), ctw.root_model)
+		self.assertEqual(ctw.proxyModel.filterCaseSensitivity(),
+			Qt.CaseInsensitive)
+		self.assertEqual(ctw.proxyModel.sortCaseSensitivity(),
+			Qt.CaseInsensitive)
+		self.assertEqual(ctw.proxyModel.filterKeyColumn(), -1)
+		self.assertEqual(ctw.tree.model(), ctw.proxyModel)
+		self.assertEqual(ctw.tree.isHeaderHidden(), True)
+		self.assertIsInstance(ctw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(2).widget(), ctw.newCatButton)
+		self.assertEqual(ctw.newCatButton.text(), "Add new category")
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "onNewCat") as _f:
+			QTest.mouseClick(ctw.newCatButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		#repeat with askCats
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"):
+			ctw = catsTreeWindow(p, askCats=True)
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _ga,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+ "populateAskCat") as _pac,\
+				patch("PySide2.QtWidgets.QTreeView.expandAll") as _ea:
+			ctw.createForm()
+			_pac.assert_called_once_with()
+			_gh.assert_called_once_with()
+			_ga.assert_called_once_with()
+			_pt.assert_called_once_with({1: {2: {}}, 3: {}}, 0)
+			_ea.assert_called_once_with()
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(ctw.layout().count(), 6)
+		self.assertEqual(ctw.layout().itemAt(0).widget(), ctw.filterInput)
+		self.assertIsInstance(ctw.layout().itemAt(1).widget(), QTreeView)
+		self.assertEqual(ctw.layout().itemAt(1).widget(), ctw.tree)
+		self.assertIsInstance(ctw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(2).widget(), ctw.newCatButton)
+		self.assertIsInstance(ctw.layout().itemAt(3).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(3).widget(), ctw.acceptButton)
+		self.assertEqual(ctw.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "onOk") as _f:
+			QTest.mouseClick(ctw.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with(False)
+		self.assertIsInstance(ctw.layout().itemAt(4).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(4).widget(), ctw.expsButton)
+		self.assertEqual(ctw.expsButton.text(), "Ask experiments")
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "onAskExps") as _f:
+			QTest.mouseClick(ctw.expsButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		self.assertIsInstance(ctw.layout().itemAt(5).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(5).widget(), ctw.cancelButton)
+		self.assertEqual(ctw.cancelButton.text(), "Cancel")
+		self.assertTrue(ctw.cancelButton.autoDefault())
+		with patch("physbiblio.gui.catWindows.catsTreeWindow."
+				+ "onCancel") as _f:
+			QTest.mouseClick(ctw.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		#repeat without expButton
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"):
+			ctw = catsTreeWindow(p, askCats=True, expButton=False)
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _ga,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+ "populateAskCat") as _pac,\
+				patch("PySide2.QtWidgets.QTreeView.expandAll") as _ea:
+			ctw.createForm()
+			_pac.assert_called_once_with()
+			_gh.assert_called_once_with()
+			_ga.assert_called_once_with()
+			_pt.assert_called_once_with({1: {2: {}}, 3: {}}, 0)
+			_ea.assert_called_once_with()
+		self.assertEqual(ctw.layout().count(), 5)
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(ctw.layout().itemAt(0).widget(), ctw.filterInput)
+		self.assertIsInstance(ctw.layout().itemAt(1).widget(), QTreeView)
+		self.assertEqual(ctw.layout().itemAt(1).widget(), ctw.tree)
+		self.assertIsInstance(ctw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(2).widget(), ctw.newCatButton)
+		self.assertIsInstance(ctw.layout().itemAt(3).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(3).widget(), ctw.acceptButton)
+		self.assertIsInstance(ctw.layout().itemAt(4).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(4).widget(), ctw.cancelButton)
+
+		#repeat with previous and multipleRecords
+		with patch("physbiblio.gui.catWindows.catsTreeWindow.createForm"):
+			ctw = catsTreeWindow(p, askCats=True, expButton=False,
+				previous=[1, 2], multipleRecords=True)
+		with patch("physbiblio.database.categories.getHier",
+				return_value=self.cathier) as _gh,\
+				patch("physbiblio.database.categories.getAll",
+					return_value=self.cats) as _ga,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+"_populateTree",
+					return_value=self.rootElements[0]) as _pt,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow."
+					+ "populateAskCat") as _pac,\
+				patch("PySide2.QtWidgets.QTreeView.expandAll") as _ea:
+			ctw.createForm()
+			_pac.assert_called_once_with()
+			_gh.assert_called_once_with()
+			_ga.assert_called_once_with()
+			_pt.assert_called_once_with({1: {2: {}}, 3: {}}, 0)
+			_ea.assert_called_once_with()
+		self.assertEqual(ctw.root_model.selectedCats,
+			{0: False, 1: "p", 2: "p", 3: False})
+		self.assertEqual(ctw.root_model.previousSaved,
+			{0: False, 1: True, 2: True, 3: False})
+		self.assertEqual(ctw.layout().count(), 5)
+		self.assertIsInstance(ctw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(ctw.layout().itemAt(0).widget(), ctw.filterInput)
+		self.assertIsInstance(ctw.layout().itemAt(1).widget(), QTreeView)
+		self.assertEqual(ctw.layout().itemAt(1).widget(), ctw.tree)
+		self.assertIsInstance(ctw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(2).widget(), ctw.newCatButton)
+		self.assertIsInstance(ctw.layout().itemAt(3).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(3).widget(), ctw.acceptButton)
+		self.assertIsInstance(ctw.layout().itemAt(4).widget(), QPushButton)
+		self.assertEqual(ctw.layout().itemAt(4).widget(), ctw.cancelButton)
 
 	def test_populateTree(self):
 		"""test _populateTree"""
@@ -985,7 +1151,6 @@ class TestCatsTreeWindow(GUITestCase):
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(ctw, p, useParent='0')
 			_dc.assert_not_called()
-
 
 	def test_cleanLayout(self):
 		"""test cleanLayout"""
