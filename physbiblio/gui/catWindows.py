@@ -28,9 +28,9 @@ except ImportError:
 
 def editCategory(parentObject,
 		mainWinObject,
-		editIdCat = None,
-		useParentCat = None,
-		testing = False):
+		editIdCat=None,
+		useParentCat=None,
+		testing=False):
 	"""Open a dialog (`editCategoryDialog`) to edit a category
 	and process the output.
 
@@ -51,8 +51,8 @@ def editCategory(parentObject,
 	else:
 		edit = None
 	newCatWin = editCategoryDialog(parentObject,
-		category = edit,
-		useParentCat = useParentCat)
+		category=edit,
+		useParentCat=useParentCat)
 	if testing:
 		newCatWin = testing
 	else:
@@ -80,7 +80,7 @@ def editCategory(parentObject,
 				parentObject.recreateTable()
 			except AttributeError:
 				pBLogger.debug("parentObject has no attribute 'recreateTable'",
-					exc_info = True)
+					exc_info=True)
 		else:
 			message = "ERROR: empty category name"
 	else:
@@ -89,7 +89,7 @@ def editCategory(parentObject,
 		mainWinObject.statusBarMessage(message)
 	except:
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
-			exc_info = True)
+			exc_info=True)
 
 def deleteCategory(parentObject, mainWinObject, idCat, name):
 	"""Ask confirmation and eventually delete the selected category
@@ -110,23 +110,23 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
 			parentObject.recreateTable()
 		except AttributeError:
 			pBLogger.debug("parentObject has no attribute 'recreateTable'",
-				exc_info = True)
+				exc_info=True)
 	else:
 		message = "Nothing changed"
 	try:
 		mainWinObject.statusBarMessage(message)
 	except AttributeError:
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
-			exc_info = True)
+			exc_info=True)
 
 class catsModel(TreeModel):
 	"""Model for the categories Tree"""
 	def __init__(self,
 			cats,
 			rootElements,
-			parent = None,
-			previous = [],
-			multipleRecords = False):
+			parent=None,
+			previous=[],
+			multipleRecords=False):
 		"""Initialize the model, save the data and the initial selection
 
 		Parameters:
@@ -271,14 +271,14 @@ class catsModel(TreeModel):
 class catsTreeWindow(QDialog):
 	"""Extension of `QDialog` that shows the categories tree"""
 	def __init__(self,
-			parent = None,
-			askCats = False,
-			askForBib = None,
-			askForExp = None,
-			expButton = True,
-			previous = [],
-			single = False,
-			multipleRecords = False):
+			parent=None,
+			askCats=False,
+			askForBib=None,
+			askForExp=None,
+			expButton=True,
+			previous=[],
+			single=False,
+			multipleRecords=False):
 		"""Initialize instance parameters and call the function that
 		creates the layout.
 
@@ -331,10 +331,10 @@ class catsTreeWindow(QDialog):
 			if self.askForBib is not None:
 				try:
 					bibitem = pBDB.bibs.getByBibkey(self.askForBib,
-						saveQuery = False)[0]
+						saveQuery=False)[0]
 				except IndexError:
-					pBGUILogger.warning("The entry '%s' "%self.askForBib +
-						"is not in the database!", exc_info = True)
+					pBGUILogger.warning("The entry '%s' "%self.askForBib
+						+ "is not in the database!", exc_info=True)
 					return
 				try:
 					if bibitem["inspire"] != "" and \
@@ -367,7 +367,7 @@ class catsTreeWindow(QDialog):
 					expitem = pBDB.exps.getByID(self.askForExp)[0]
 				except IndexError:
 					pBGUILogger.warning("The experiment ID %s"%self.askForExp
-						+ " is not in the database!", exc_info = True)
+						+ " is not in the database!", exc_info=True)
 					return
 				try:
 					exptext = MyLabel("Mark categories for the following "
@@ -376,7 +376,8 @@ class catsTreeWindow(QDialog):
 						+ "<b>comments</b>:<br>%s<br>"%expitem["comments"])
 				except KeyError:
 					exptext = MyLabel("Mark categories for the following "
-						+ "experiment:<br><b>id</b>:<br>%s<br>"%(self.askForExp))
+						+ "experiment:<br><b>id</b>:<br>%s<br>"%(
+							self.askForExp))
 				self.currLayout.addWidget(exptext)
 			else:
 				if self.single:
@@ -480,7 +481,7 @@ class catsTreeWindow(QDialog):
 			[catsNamedTree],
 			self,
 			self.previous,
-			multipleRecords = self.multipleRecords)
+			multipleRecords=self.multipleRecords)
 		self.proxyModel = LeafFilterProxyModel(self)
 		self.proxyModel.setSourceModel(self.root_model)
 		self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -637,7 +638,7 @@ class catsTreeWindow(QDialog):
 
 class editCategoryDialog(editObjectWindow):
 	"""Create a window for editing or creating a category"""
-	def __init__(self, parent = None, category = None, useParentCat = None):
+	def __init__(self, parent=None, category=None, useParentCat=None):
 		"""Set some properties and create the form content
 
 		Parameters:
@@ -666,7 +667,7 @@ class editCategoryDialog(editObjectWindow):
 			self.selectedCats = [0]
 		self.createForm()
 
-	def onAskParent(self, testing = False):
+	def onAskParent(self, testing=False):
 		"""Open a `catsTreeWindow` and process its output
 
 		Parameter:
@@ -675,11 +676,11 @@ class editCategoryDialog(editObjectWindow):
 				a `catsTreeWindow` instance,
 				it will use the custom dialog instead of run `exec_`
 		"""
-		selectCats = catsTreeWindow(parent = self,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = self.selectedCats)
+		selectCats = catsTreeWindow(parent=self,
+			askCats=True,
+			expButton=False,
+			single=True,
+			previous=self.selectedCats)
 		if not testing:
 			selectCats.exec_()
 		else:

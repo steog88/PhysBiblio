@@ -1420,7 +1420,7 @@ class searchBibsWindow(editObjectWindow):
 		except:
 			pBLogger.warning("Something went wrong when processing "
 				+ "the saved search/replace:\n%s"%replace,
-				exc_info = True)
+				exc_info=True)
 			replaceFields = []
 		return (searchDict, replaceFields, limit, offset)
 

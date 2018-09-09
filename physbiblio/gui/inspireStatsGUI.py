@@ -97,7 +97,7 @@ class authorStatsPlots(QDialog):
 				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(
 					author = True, save = True, path = savePath)
 			except AttributeError:
-				pBLogger.warning("", exc_info = True)
+				pBLogger.warning("", exc_info=True)
 			infoMessage("Plots saved.")
 			self.saveButton.setDisabled(True)
 
@@ -214,7 +214,7 @@ class paperStatsPlots(QDialog):
 				self.parent().lastPaperStats["fig"] = pBStats.plotStats(
 					paper = True, save = True, path = savePath)
 			except AttributeError:
-				pBLogger.warning("", exc_info = True)
+				pBLogger.warning("", exc_info=True)
 			infoMessage("Plot saved.")
 			self.saveButton.setDisabled(True)
 

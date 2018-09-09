@@ -65,7 +65,7 @@ class TestErrors(unittest.TestCase):
 		try:
 			raise Exception("Fake error")
 		except Exception as e:
-			self.pBErrorManager.logger.critical(str(e), exc_info = True)
+			self.pBErrorManager.logger.critical(str(e), exc_info=True)
 		log_new = self.readLogFile()
 		self.assertIn("Traceback (most recent call last):", log_new)
 

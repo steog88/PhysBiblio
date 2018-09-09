@@ -265,5 +265,5 @@ class webSearch(webInterf):
 			return entries
 		except Exception:
 			pBLogger.error("Cannot parse arxiv RSS feed:\n%s"%text,
-				exc_info = True)
+				exc_info=True)
 			return False

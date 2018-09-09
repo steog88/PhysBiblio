@@ -172,7 +172,7 @@ class webSearch(webInterf):
 				if q["2"] == "DOI":
 					tmpDict["doi"] = q["a"]
 		except Exception as e:
-			pBLogger.warning("Error in readRecord!", exc_info = True)
+			pBLogger.warning("Error in readRecord!", exc_info=True)
 		try:
 			tmpDict["arxiv"]  = None
 			tmpDict["bibkey"] = None
@@ -194,7 +194,7 @@ class webSearch(webInterf):
 					if q["a"] is not None:
 						tmpDict["ads"] = q["a"]
 		except (IndexError, TypeError) as e:
-			pBLogger.warning("Error in readRecord!", exc_info = True)
+			pBLogger.warning("Error in readRecord!", exc_info=True)
 		if tmpDict["bibkey"] is None and len(tmpOld) > 0:
 			tmpDict["bibkey"] = tmpOld[0]
 			tmpOld = []

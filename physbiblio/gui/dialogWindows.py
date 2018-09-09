@@ -753,7 +753,7 @@ class dailyArxivSelect(advImportSelect):
 		try:
 			eprint = str(self.proxyModel.sibling(row, 0, index).data())
 		except AttributeError:
-			pBLogger.debug("Data not valid", exc_info = True)
+			pBLogger.debug("Data not valid", exc_info=True)
 			return
 		if hasattr(self, "abstractFormulas") and \
 				self.abstractFormulas is not None:

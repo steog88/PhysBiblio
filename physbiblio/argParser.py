@@ -120,7 +120,7 @@ def call_gui(args = None):
 		mainWin.raise_()
 		sys.exit(app.exec_())
 	except NameError:
-		pBLogger.critical("NameError:", exc_info = True)
+		pBLogger.critical("NameError:", exc_info=True)
 	except SystemExit:
 		pBDB.closeDB()
 		pBLogger.info("Closing main window...")

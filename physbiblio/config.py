@@ -866,7 +866,7 @@ class ConfigVars():
 						self.params[k] = v
 				except Exception:
 					self.logger.warning(
-						"Failed in reading parameter '%s'."%k, exc_info = True)
+						"Failed in reading parameter '%s'."%k, exc_info=True)
 					self.params[k] = config_defaults[k]
 		except Exception:
 			self.logger.error(
@@ -930,7 +930,7 @@ class ConfigVars():
 						self.params[k] = v
 				except Exception:
 					self.logger.warning(
-						"Failed in reading parameter", exc_info = True)
+						"Failed in reading parameter", exc_info=True)
 					self.params[k] = v
 		except IOError:
 			self.logger.warning(

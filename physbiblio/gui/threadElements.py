@@ -37,10 +37,10 @@ class thread_checkUpdated(MyThread):
 			self.result.emit(outdated, newVersion)
 		except ValueError:
 			pBLogger.warning("Error when executing check_outdated. "
-				+ "Maybe you are using a developing version", exc_info = True)
+				+ "Maybe you are using a developing version", exc_info=True)
 		except URLError:
 			pBLogger.warning("Error when trying to check new versions. "
-				+ "Are you offline?", exc_info = True)
+				+ "Are you offline?", exc_info=True)
 		self.finished.emit()
 
 class thread_updateAllBibtexs(MyThread):

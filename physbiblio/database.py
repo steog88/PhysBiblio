@@ -1256,7 +1256,7 @@ class entries(physbiblioDBSub):
 				pBLogger.warning(
 					"Problem in parsing the following bibtex code:\n%s"%(
 						el["bibtex"]),
-					exc_info = True)
+					exc_info=True)
 				tmp["bibtexDict"] = {}
 			try:
 				tmp["year"] = tmp["bibtexDict"]["year"]
@@ -2081,7 +2081,7 @@ class entries(physbiblioDBSub):
 			else:
 				return False
 		except:
-			pBLogger.warning("Impossible to update bibkey", exc_info = True)
+			pBLogger.warning("Impossible to update bibkey", exc_info=True)
 			return False
 			
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
@@ -2586,7 +2586,7 @@ class entries(physbiblioDBSub):
 					exist = (exist or (len(temp) > 0))
 					existing += temp
 				except KeyError:
-					pBLogger.debug("Error", exc_info = True)
+					pBLogger.debug("Error", exc_info=True)
 			if existing:
 				return printExisting(entry, existing)
 			if method == "bibtex":
@@ -2635,7 +2635,7 @@ class entries(physbiblioDBSub):
 						exist = (exist or (len(temp) > 0))
 						existing += temp
 				except (AttributeError, KeyError):
-					pBLogger.debug("Error", exc_info = True)
+					pBLogger.debug("Error", exc_info=True)
 			if existing:
 				return printExisting(key, existing)
 			pBLogger.info("Entry will have key: '%s'"%key)
@@ -3150,7 +3150,7 @@ class entries(physbiblioDBSub):
 				except (ValueError, ParseException):
 					pBLogger.warning(
 						"Error while cleaning entry '%s'"%e["bibkey"],
-						exc_info = True)
+						exc_info=True)
 					err += 1
 		pBLogger.info("%d entries processed"%num)
 		pBLogger.info("%d errors occurred"%err)

@@ -862,7 +862,7 @@ class TestTreeModel(GUITestCase):
 			self.assertFalse(qmi.isValid())
 			_d.assert_called_once_with(
 				"Invalid parent 'None' in TreeModel.index",
-				exc_info = True)
+				exc_info=True)
 		qmi = tm.index(0, 0)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
@@ -911,7 +911,7 @@ class TestTreeModel(GUITestCase):
 			self.assertFalse(qmi.isValid())
 			_d.assert_called_once_with(
 				"Invalid index 'None' in TreeModel.parent",
-				exc_info = True)
+				exc_info=True)
 		qmi = tm.parent(tm.index(3, 0))
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertFalse(qmi.isValid())
@@ -944,7 +944,7 @@ class TestTreeModel(GUITestCase):
 			self.assertEqual(rc, 1)
 			_d.assert_called_once_with(
 				"Invalid parent 'None' in TreeModel.rowCount",
-				exc_info = True)
+				exc_info=True)
 		self.assertEqual(tm.rowCount(), 1)
 		self.assertEqual(tm.rowCount(tm.index(5, 0)), 1)
 		self.assertEqual(tm.rowCount(mn), 2)

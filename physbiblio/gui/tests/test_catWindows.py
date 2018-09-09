@@ -53,7 +53,7 @@ class TestFunctions(GUITestCase):
 			_i.assert_called_once_with(p, category=None, useParentCat=None)
 			_l.assert_called_once_with(
 				"mainWinObject has no attribute 'statusBarMessage'",
-				exc_info = True)
+				exc_info=True)
 
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
@@ -188,7 +188,7 @@ class TestFunctions(GUITestCase):
 				+ "(ID = '15', name = 'mycat')?")
 			_d.assert_called_once_with(
 				"mainWinObject has no attribute 'statusBarMessage'",
-				exc_info = True)
+				exc_info=True)
 
 		with patch("physbiblio.gui.catWindows.askYesNo",
 				return_value = True) as _a, \
@@ -206,7 +206,7 @@ class TestFunctions(GUITestCase):
 			_s.assert_called_once_with("Category deleted")
 			_d.assert_called_once_with(
 				"parentObject has no attribute 'recreateTable'",
-				exc_info = True)
+				exc_info=True)
 
 		ctw = catsTreeWindow(p)
 		with patch("physbiblio.gui.catWindows.askYesNo",

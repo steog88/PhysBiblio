@@ -679,7 +679,7 @@ class TreeModel(QAbstractItemModel):
 		"""
 		if not isinstance(parent, QModelIndex):
 			pBLogger.debug("Invalid parent '%s' in TreeModel.index"%parent,
-				exc_info = True)
+				exc_info=True)
 			return QModelIndex()
 		if not parent.isValid():
 			try:
@@ -705,7 +705,7 @@ class TreeModel(QAbstractItemModel):
 		"""
 		if not isinstance(index, QModelIndex):
 			pBLogger.debug("Invalid index '%s' in TreeModel.parent"%index,
-				exc_info = True)
+				exc_info=True)
 			return QModelIndex()
 		if not index.isValid():
 			return QModelIndex()
@@ -727,7 +727,7 @@ class TreeModel(QAbstractItemModel):
 		"""
 		if not isinstance(parent, QModelIndex):
 			pBLogger.debug("Invalid parent '%s' in TreeModel.rowCount"%parent,
-				exc_info = True)
+				exc_info=True)
 			return len(self.rootNodes)
 		if not parent.isValid():
 			return len(self.rootNodes)
@@ -1066,7 +1066,7 @@ class MyImportedTableModel(MyTableModel):
 		try:
 			value = self.dataList[row][self.header[column]]
 		except (IndexError, KeyError):
-			pBLogger.warning("Missing element", exc_info = True)
+			pBLogger.warning("Missing element", exc_info=True)
 			return None
 
 		if role == Qt.CheckStateRole and column == 0 and \
