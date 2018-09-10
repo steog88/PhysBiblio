@@ -244,21 +244,26 @@ class ExpsListWindow(objListWindow):
 		"""
 		if self.askExps:
 			if self.askForBib is not None:
-				bibitem = pBDB.bibs.getByBibkey(
-					self.askForBib, saveQuery=False)[0]
 				try:
-					if pBDB.bibs.getField(self.askForBib, "inspire") \
-							is not None:
+					bibitem = pBDB.bibs.getByBibkey(
+						self.askForBib, saveQuery=False)[0]
+				except IndexError:
+					pBGUILogger.warning("The entry '%s' "%self.askForBib
+						+ "is not in the database!", exc_info=True)
+					return
+				try:
+					if bibitem["inspire"] != "" and \
+							bibitem["inspire"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "inspire"),
 							self.askForBib)
-					elif pBDB.bibs.getField(self.askForBib, "arxiv") \
-							is not None:
+					elif bibitem["arxiv"] != "" and \
+							bibitem["arxiv"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "arxiv"),
 							self.askForBib)
-					elif pBDB.bibs.getField(self.askForBib, "doi") \
-							is not None:
+					elif bibitem["doi"] != "" and \
+							bibitem["doi"] is not None:
 						link = "<a href='%s'>%s</a>"%(
 							pBView.getLink(self.askForBib, "doi"),
 							self.askForBib)
@@ -332,9 +337,9 @@ class ExpsListWindow(objListWindow):
 
 		self.finalizeTable()
 
-		self.addExpButton = QPushButton('Add new experiment', self)
-		self.addExpButton.clicked.connect(self.onNewExp)
-		self.currLayout.addWidget(self.addExpButton)
+		self.newExpButton = QPushButton('Add new experiment', self)
+		self.newExpButton.clicked.connect(self.onNewExp)
+		self.currLayout.addWidget(self.newExpButton)
 
 		if self.askExps:
 			self.acceptButton = QPushButton('OK', self)

@@ -21,6 +21,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
+	from physbiblio.gui.commonClasses import MyTableView
 	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
@@ -380,7 +381,154 @@ class TestExpsListWindow(GUITestCase):
 
 	def test_populateAskExp(self):
 		"""test populateAskExp"""
-		raise NotImplementedError()
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _c:
+			elw = ExpsListWindow(p)
+		#test with askCats = False (nothing happens)
+		self.assertTrue(elw.populateAskExp())
+		self.assertFalse(hasattr(elw, "marked"))
+		self.assertFalse(hasattr(p, "selectedExps"))
+		self.assertEqual(elw.currLayout.count(), 0)
+
+		#test with askCats = True and askForBib
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _c:
+			elw = ExpsListWindow(p, askExps=True, askForBib="bib")
+		# bibkey not in db
+		with patch("physbiblio.database.entries.getByBibkey",
+				return_value = []) as _gbb,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(elw.populateAskExp(), None)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_w.assert_called_once_with(
+				"The entry 'bib' is not in the database!",
+				exc_info=True)
+		self.assertFalse(hasattr(elw, "marked"))
+		self.assertFalse(hasattr(p, "selectedExps"))
+		self.assertEqual(elw.currLayout.count(), 0)
+		# dict has no "title" or "author"
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"inspire": None, "doi": None, "arxiv": None}]
+					]) as _gbb:
+			self.assertEqual(elw.populateAskExp(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			self.assertEqual(elw.currLayout.count(), 1)
+			self.assertIsInstance(elw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(elw.layout().itemAt(0).widget().text(),
+				"Mark experiments for the following "
+				+ "entry:<br><b>key</b>:<br>bib<br>")
+		self.assertTrue(hasattr(elw, "marked"))
+		self.assertEqual(elw.marked, [])
+		self.assertTrue(hasattr(p, "selectedExps"))
+		self.assertEqual(p.selectedExps, [])
+		# no link exists
+		elw.cleanLayout()
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": None, "arxiv": None}]
+					]) as _gbb:
+			self.assertEqual(elw.populateAskExp(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			self.assertEqual(elw.currLayout.count(), 1)
+			self.assertIsInstance(elw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(elw.layout().itemAt(0).widget().text(),
+				"Mark experiments for the following "
+				+ "entry:<br><b>key</b>:<br>bib<br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		# inspire exists
+		elw.cleanLayout()
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": "1234", "doi": "1/2/3", "arxiv": "123456"}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="inspirelink") as _l:
+			self.assertEqual(elw.populateAskExp(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "inspire")
+			self.assertEqual(elw.currLayout.count(), 1)
+			self.assertIsInstance(elw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(elw.layout().itemAt(0).widget().text(),
+				"Mark experiments for the following "
+				+ "entry:<br><b>key</b>:<br><a href='inspirelink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		elw.cleanLayout()
+		# arxiv exists
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": "1/2/3", "arxiv": "123456"}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="arxivlink") as _l:
+			self.assertEqual(elw.populateAskExp(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "arxiv")
+			self.assertEqual(elw.currLayout.count(), 1)
+			self.assertIsInstance(elw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(elw.layout().itemAt(0).widget().text(),
+				"Mark experiments for the following "
+				+ "entry:<br><b>key</b>:<br><a href='arxivlink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+		elw.cleanLayout()
+		# doi exists
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[
+					[{"author": "sg", "title": "title",
+					"inspire": None, "doi": "1/2/3", "arxiv": ""}]
+					]) as _gbb, \
+				patch("physbiblio.view.viewEntry.getLink",
+					return_value="doilink") as _l:
+			self.assertEqual(elw.populateAskExp(), True)
+			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_l.assert_called_once_with("bib", "doi")
+			self.assertEqual(elw.currLayout.count(), 1)
+			self.assertIsInstance(elw.layout().itemAt(0).widget(),
+				MyLabel)
+			self.assertEqual(elw.layout().itemAt(0).widget().text(),
+				"Mark experiments for the following "
+				+ "entry:<br><b>key</b>:<br><a href='doilink'>bib</a><br>"
+				+ "<b>author(s)</b>:<br>sg<br>"
+				+ "<b>title</b>:<br>title<br>")
+
+		#test with askCats = True and askForExp
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _c:
+			elw = ExpsListWindow(p, askExps=True, askForCat="cat")
+			with self.assertRaises(NotImplementedError):
+				elw.populateAskExp()
+
+		# #test with no askForBib, askForExp
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _c:
+			elw = ExpsListWindow(p, askExps=True)
+		self.assertEqual(elw.populateAskExp(), True)
+		self.assertEqual(elw.currLayout.count(), 1)
+		self.assertIsInstance(elw.layout().itemAt(0).widget(),
+			MyLabel)
+		self.assertEqual(elw.layout().itemAt(0).widget().text(),
+			"Select the desired experiments:")
 
 	def test_onCancel(self):
 		"""test onCancel"""
@@ -391,31 +539,20 @@ class TestExpsListWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		raise NotImplementedError()
 		p = QWidget()
 		with patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
-		# with patch("physbiblio.database.categories.getHier",
-				# return_value=self.cathier) as _gh,\
-				# patch("physbiblio.database.categories.getAll",
-					# return_value=self.cats) as _gh,\
-				# patch("physbiblio.gui.catWindows.catsTreeWindow."
-					# + "_populateTree",
-					# return_value=self.rootElements[0]) as _pt:
-			# ctw = catsTreeWindow(p)
-		# self.assertFalse(hasattr(p, "selectedCats"))
-		# self.assertFalse(hasattr(p, "previousUnchanged"))
-		# ctw.root_model.selectedCats[0] = True
-		# ctw.root_model.selectedCats[3] = True
-		# ctw.root_model.previousSaved[0] = True
-		# with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
-			# ctw.onOk()
-			# _c.assert_called_once_with()
-		# self.assertEqual(hasattr(p, "selectedCats"), True)
-		# self.assertEqual(p.selectedCats, [0, 3])
-		# self.assertEqual(p.previousUnchanged, [0])
-		# self.assertEqual(ctw.result, "Ok")
+		self.assertFalse(hasattr(p, "selectedExps"))
+		elw.tableModel.selectedElements[0] = True
+		elw.tableModel.selectedElements[2] = False
+		elw.tableModel.selectedElements[3] = True
+		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+			elw.onOk()
+			_c.assert_called_once_with()
+		self.assertEqual(hasattr(p, "selectedExps"), True)
+		self.assertEqual(p.selectedExps, [0, 3])
+		self.assertEqual(elw.result, "Ok")
 
 	def test_onNewExp(self):
 		"""test onNewExp"""
@@ -442,15 +579,102 @@ class TestExpsListWindow(GUITestCase):
 	def test_createTable(self):
 		"""test createTable"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+		with patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+				) as _c:
 			elw = ExpsListWindow(p)
-		raise NotImplementedError()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
+					) as _pae,\
+				patch("physbiblio.gui.expWindows.ExpTableModel.__init__",
+					return_value = None) as _etm,\
+				patch("physbiblio.gui.commonClasses.objListWindow."
+					+ "addFilterInput") as _afi,\
+				patch("physbiblio.gui.commonClasses.objListWindow."
+					+ "setProxyStuff") as _sps,\
+				patch("physbiblio.gui.commonClasses.objListWindow."
+					+ "finalizeTable") as _ft:
+			elw.createTable()
+			_pae.assert_called_once_with()
+			_gh.assert_called_once_with()
+			_afi.assert_called_once_with("Filter experiment")
+			_sps.assert_called_once_with(1, Qt.AscendingOrder)
+			_ft.assert_called_once_with()
+			_etm.assert_called_once_with(elw, self.exps,
+				pBDB.tableCols["experiments"], askExps=False, previous=[])
+		elw.cleanLayout()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh:
+			elw.createTable()
+		self.assertEqual(self.exps, elw.exps)
+		self.assertIsInstance(elw.tableModel, ExpTableModel)
+		self.assertEqual(elw.layout().count(), 3)
+		self.assertIsInstance(elw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(elw.layout().itemAt(0).widget(), elw.filterInput)
+		self.assertEqual(elw.filterInput.placeholderText(),
+			"Filter experiment")
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "changeFilter") as _cf:
+			elw.filterInput.textChanged.emit("a")
+			_cf.assert_called_once_with("a")
+		self.assertIsInstance(elw.layout().itemAt(1).widget(),
+			MyTableView)
+		self.assertEqual(elw.layout().itemAt(1).widget(),
+			elw.tablewidget)
+		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
+		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "onNewExp") as _f:
+			QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		#repeat with askExps=True, but ignore populateAskExp
+		with patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
+				) as _c:
+			elw = ExpsListWindow(p, askExps=True)
+		self.assertEqual(elw.layout().count(), 5)
+		self.assertIsInstance(elw.layout().itemAt(0).widget(), QLineEdit)
+		self.assertEqual(elw.layout().itemAt(0).widget(), elw.filterInput)
+		self.assertEqual(elw.filterInput.placeholderText(),
+			"Filter experiment")
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "changeFilter") as _cf:
+			elw.filterInput.textChanged.emit("a")
+			_cf.assert_called_once_with("a")
+		self.assertIsInstance(elw.layout().itemAt(1).widget(),
+			MyTableView)
+		self.assertEqual(elw.layout().itemAt(1).widget(),
+			elw.tablewidget)
+		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
+		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
+		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "onNewExp") as _f:
+			QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		self.assertIsInstance(elw.layout().itemAt(3).widget(), QPushButton)
+		self.assertEqual(elw.layout().itemAt(3).widget(), elw.acceptButton)
+		self.assertEqual(elw.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "onOk") as _f:
+			QTest.mouseClick(elw.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		self.assertIsInstance(elw.layout().itemAt(4).widget(), QPushButton)
+		self.assertEqual(elw.layout().itemAt(4).widget(), elw.cancelButton)
+		self.assertEqual(elw.cancelButton.text(), "Cancel")
+		self.assertTrue(elw.cancelButton.autoDefault())
+		with patch("physbiblio.gui.expWindows.ExpsListWindow."
+				+ "onCancel") as _f:
+			QTest.mouseClick(elw.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
 		p = QWidget()
 		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.database.experiments.getAll",
 					return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		raise NotImplementedError()
@@ -459,7 +683,7 @@ class TestExpsListWindow(GUITestCase):
 		"""test handleItemEntered"""
 		p = QWidget()
 		with patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		ix = elw.proxyModel.index(0, 0)
 		with patch("logging.Logger.exception") as _l,\
@@ -512,7 +736,7 @@ class TestExpsListWindow(GUITestCase):
 		"""test cellClick"""
 		p = QWidget()
 		with patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		raise NotImplementedError()
 
@@ -520,7 +744,7 @@ class TestExpsListWindow(GUITestCase):
 		"""test cellDoubleClick"""
 		p = QWidget()
 		with patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		raise NotImplementedError()
 
