@@ -40,7 +40,7 @@ try:
 	from physbiblio.gui.threadElements import \
 		thread_downloadArxiv, thread_processLatex
 	from physbiblio.gui.catWindows import catsTreeWindow
-	from physbiblio.gui.expWindows import expsListWindow
+	from physbiblio.gui.expWindows import ExpsListWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -787,7 +787,7 @@ class bibtexList(QFrame, objListWindow):
 		#experiments
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
-			selectExps = expsListWindow(parent = self.parent,
+			selectExps = ExpsListWindow(parent = self.parent,
 				askExps = True,
 				askForBib = bibkey,
 				previous = previous)
@@ -1360,7 +1360,7 @@ class askSelBibAction(MyMenu):
 	def onExp(self):
 		infoMessage("Warning: you can just add experiments "
 			+ "to the selected entries, not delete!")
-		selectExps = expsListWindow(parent = self.parent,
+		selectExps = ExpsListWindow(parent = self.parent,
 			askExps = True, previous = [])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
@@ -1447,7 +1447,7 @@ class searchBibsWindow(editObjectWindow):
 			self.values["cats"] = self.selectedCats
 
 	def onAskExps(self):
-		selectExps = expsListWindow(parent = self.parent,
+		selectExps = ExpsListWindow(parent = self.parent,
 			askExps = True, previous = self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":

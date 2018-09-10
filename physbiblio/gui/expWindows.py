@@ -29,7 +29,7 @@ def editExperiment(parentObject,
 		mainWinObject,
 		editIdExp=None,
 		testing=False):
-	"""Open a dialog (`editExperimentDialog`) to edit an experiment
+	"""Open a dialog (`EditExperimentDialog`) to edit an experiment
 	and process the output.
 
 	Parameters:
@@ -46,7 +46,7 @@ def editExperiment(parentObject,
 		edit = pBDB.exps.getDictByID(editIdExp)
 	else:
 		edit = None
-	newExpWin = editExperimentDialog(parentObject, experiment=edit)
+	newExpWin = EditExperimentDialog(parentObject, experiment=edit)
 	if testing:
 		newExpWin = testing
 	else:
@@ -200,7 +200,7 @@ class ExpTableModel(MyTableModel):
 		self.dataChanged.emit(index, index)
 		return True
 
-class expsListWindow(objListWindow):
+class ExpsListWindow(objListWindow):
 	"""create a window for printing the list of experiments"""
 	def __init__(self,
 			parent=None,
@@ -208,28 +208,40 @@ class expsListWindow(objListWindow):
 			askForBib=None,
 			askForCat=None,
 			previous=[]):
-		"""Constructor
+		"""Constructor, extends `objListWindow.__init__`
+		with more settings and parameters
 
 		Parameters:
-			parent
+			parent: the parent widget
+			askExps: if True, checkboxes will be used
+			askForBib: the key identifying the bibtex entry for which
+				the experiments are asked
+			askForCat: the ID identifying the category for which
+				the experiments are asked
+			previous: the list (default empty) of initially selected
+				experiments
 		"""
-		#table dimensions
+		#table dimensions and column names
 		self.colcnt = len(pBDB.tableCols["experiments"])
 		self.colContents = []
 		for j in range(self.colcnt):
 			self.colContents.append(pBDB.tableCols["experiments"][j])
+
 		self.askExps = askExps
 		self.askForBib = askForBib
 		self.askForCat = askForCat
 		self.previous = previous
 
-		super(expsListWindow, self).__init__(parent)
-		self.parent = parent
+		super(ExpsListWindow, self).__init__(parent)
 		self.setWindowTitle('List of experiments')
 
 		self.createTable()
 
 	def populateAskExp(self):
+		"""If selection of experiments is allowed, add some information
+		on the bibtex/category for which the experiments are requested
+		and a simple message, then create few required empty lists
+		"""
 		if self.askExps:
 			if self.askForBib is not None:
 				bibitem = pBDB.bibs.getByBibkey(
@@ -263,33 +275,49 @@ class expsListWindow(objListWindow):
 						+ "<b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForCat is not None:
-				pass
+				raise NotImplementedError("This feature is not implemented")
+			else:
+				self.currLayout.addWidget(
+					MyLabel("Select the desired experiments:"))
 			self.marked = []
-			self.parent.selectedExps = []
+			self.parent().selectedExps = []
+		return True
 
 	def onCancel(self):
+		"""Reject the dialog content and close the window"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
-		self.parent.selectedExps = [
+		"""Accept the dialog content
+		(update the list of selected experiments)
+		and close the window.
+		"""
+		self.parent().selectedExps = [
 			idE for idE in self.tableModel.selectedElements.keys() \
 			if self.tableModel.selectedElements[idE] == True]
 		self.result	= "Ok"
 		self.close()
 
 	def onNewExp(self):
-		editExperiment(self.parent, self.parent)
+		"""Action to perform when the creation
+		of a new experiment is requested
+		"""
+		editExperiment(self.parent(), self.parent())
 		self.recreateTable()
 
-	def keyPressEvent(self, e):		
+	def keyPressEvent(self, e):
+		"""Manage the key press events.
+		Do nothing unless `Esc` is pressed:
+		in this case close the dialog
+		"""
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
-	def changeFilter(self, string):
-		self.proxyModel.setFilterRegExp(str(string))
-
 	def createTable(self):
+		"""Create the dialog content, connect the model to the view
+		and eventually add the buttons at the end
+		"""
 		self.populateAskExp()
 
 		self.exps = pBDB.exps.getAll()
@@ -343,33 +371,39 @@ class expsListWindow(objListWindow):
 
 		if action == bibAction:
 			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
-			self.parent.reloadMainContent(
+			self.parent().reloadMainContent(
 				pBDB.bibs.fetchFromDict(searchDict).lastFetched)
 		elif action == modAction:
-			editExperiment(self, self.parent, idExp)
+			editExperiment(self, self.parent(), idExp)
 		elif action == delAction:
-			deleteExperiment(self, self.parent, idExp, expName)
+			deleteExperiment(self, self.parent(), idExp, expName)
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
 			selectCats = catsTreeWindow(
-				parent=self.parent,
+				parent=self.parent(),
 				askCats=True,
 				askForExp=idExp,
 				expButton=False,
 				previous=previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
-				cats = self.parent.selectedCats
+				cats = self.parent().selectedCats
 				for p in previous:
 					if p not in cats:
 						pBDB.catExp.delete(p, idExp)
 				for c in cats:
 					if c not in previous:
 						pBDB.catExp.insert(c, idExp)
-				self.parent.statusBarMessage(
+				self.parent().statusBarMessage(
 					"categories for '%s' successfully inserted"%expName)
 
 	def handleItemEntered(self, index):
+		"""Process event when mouse enters an item and
+		create a `QTooltip` which describes the category, with a timer
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
 		if index.isValid():
 			row = index.row()
 		else:
@@ -377,7 +411,7 @@ class expsListWindow(objListWindow):
 		idExp = str(self.proxyModel.sibling(row, 0, index).data())
 		try:
 			self.timer.stop()
-			QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
+			QToolTip.showText(QCursor.pos(), "", self.tablewidget.viewport())
 		except AttributeError:
 			pass
 		try:
@@ -428,10 +462,18 @@ class expsListWindow(objListWindow):
 			except:
 				print("[GUI] opening link '%s' failed!"%link)
 
-class editExperimentDialog(editObjectWindow):
+class EditExperimentDialog(editObjectWindow):
 	"""create a window for editing or creating an experiment"""
 	def __init__(self, parent=None, experiment=None):
-		super(editExperimentDialog, self).__init__(parent)
+		"""Extend `editObjectWindow.__init__` to define self.data
+		and call createForm
+
+		Parameters:
+			parent: the parent widget
+			experiment: the database record or dictionary which
+				contains the experiment information
+		"""
+		super(EditExperimentDialog, self).__init__(parent)
 		if experiment is None:
 			self.data = {}
 			for k in pBDB.tableCols["experiments"]:
@@ -441,6 +483,7 @@ class editExperimentDialog(editObjectWindow):
 		self.createForm()
 
 	def createForm(self):
+		"""Create the form labels, fields, buttons"""
 		self.setWindowTitle('Edit experiment')
 
 		i = 0

@@ -42,7 +42,7 @@ try:
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, \
 		advImportSelect, dailyArxivDialog, dailyArxivSelect
-	from physbiblio.gui.expWindows import expsListWindow, editExperimentDialog
+	from physbiblio.gui.expWindows import ExpsListWindow, EditExperimentDialog
 	from physbiblio.gui.inspireStatsGUI import \
 		authorStatsPlots, paperStatsPlots
 	from physbiblio.gui.profilesManager import selectProfiles, editProf
@@ -783,11 +783,11 @@ class MainWindow(QMainWindow):
 	
 	def experimentList(self):
 		self.statusBarMessage("experiments triggered")
-		expListWin = expsListWindow(self)
+		expListWin = ExpsListWindow(self)
 		expListWin.show()
 
 	def newExperiment(self):
-		editExperimentDialogeriment(self, self)
+		EditExperimentDialogeriment(self, self)
 
 	def newBibtex(self):
 		editBibtex(self, self)
@@ -1139,7 +1139,7 @@ class MainWindow(QMainWindow):
 				self.statusBarMessage(
 					"categories for '%s' successfully inserted"%entry)
 			if selectCats.result == "Exps":
-				selectExps = expsListWindow(parent = self,
+				selectExps = ExpsListWindow(parent = self,
 					askExps = True, askForBib = entry)
 				selectExps.exec_()
 				if selectExps.result == "Ok":

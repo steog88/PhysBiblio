@@ -442,7 +442,7 @@ class catsTreeWindow(QDialog):
 		self.onOk(exps = True)
 
 	def onNewCat(self):
-		"""Action to perform when a the creation
+		"""Action to perform when the creation
 		of a new category is requested
 		"""
 		editCategory(self.parent(), self.parent())

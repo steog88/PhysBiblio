@@ -36,17 +36,17 @@ class TestFunctions(GUITestCase):
 		"""test editExperiment"""
 		p = QWidget()
 		m = MainWindow(testing=True)
-		ncw = editExperimentDialog(p)
+		ncw = EditExperimentDialog(p)
 		ncw.onCancel()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i:
 			editExperiment(p, m, testing=ncw)
 			_i.assert_called_once_with(p, experiment=None)
 			_s.assert_called_once_with("No modifications to experiments")
 
-		with patch("physbiblio.gui.expWindows.editExperimentDialog."
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("logging.Logger.debug") as _l:
 			editExperiment(p, p, testing=ncw)
@@ -57,7 +57,7 @@ class TestFunctions(GUITestCase):
 
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g:
@@ -66,7 +66,7 @@ class TestFunctions(GUITestCase):
 			_g.assert_called_once_with(9999)
 			_s.assert_called_once_with("No modifications to experiments")
 
-		ncw = editExperimentDialog(p)
+		ncw = EditExperimentDialog(p)
 		ncw.selectedExps = [9999]
 		ncw.textValues["homepage"].setText("www.some.thing.com")
 		ncw.textValues["comments"].setText("comm")
@@ -74,7 +74,7 @@ class TestFunctions(GUITestCase):
 		ncw.onOk()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g:
@@ -86,7 +86,7 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["name"].setText("myexp")
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
@@ -104,17 +104,17 @@ class TestFunctions(GUITestCase):
 				"parentObject has no attribute 'recreateTable'", exc_info=True)
 
 		ncw.textValues["name"].setText("myexp")
-		ctw = expsListWindow(p)
+		ctw = ExpsListWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.experiments.insert",
 					return_value="abc") as _n,\
 				patch("logging.Logger.debug") as _l,\
-				patch("physbiblio.gui.expWindows.expsListWindow.recreateTable"
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
 					) as _r:
 			editExperiment(ctw, m, 9999, testing=ncw)
 			_i.assert_called_once_with(ctw, experiment="abc")
@@ -133,24 +133,24 @@ class TestFunctions(GUITestCase):
 			'inspire': "1234",
 			'name': "myexp"
 		}
-		ncw = editExperimentDialog(p, exp)
+		ncw = EditExperimentDialog(p, exp)
 		ncw.selectedCats = []
 		ncw.textValues["inspire"].setText("4321")
 		ncw.textValues["name"].setText("myexp1")
 		ncw.textValues["comments"].setText("comm")
 		ncw.textValues["homepage"].setText("www.page.com")
 		ncw.onOk()
-		ctw = expsListWindow(p)
+		ctw = ExpsListWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.editExperimentDialog."
+				patch("physbiblio.gui.expWindows.EditExperimentDialog."
 					+ "__init__", return_value=None) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.experiments.update",
 					return_value="abc") as _n,\
 				patch("logging.Logger.info") as _l,\
-				patch("physbiblio.gui.expWindows.expsListWindow.recreateTable"
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
 					) as _r:
 			editExperiment(ctw, m, 9999, testing=ncw)
 			_i.assert_called_once_with(ctw, experiment="abc")
@@ -206,14 +206,14 @@ class TestFunctions(GUITestCase):
 				"parentObject has no attribute 'recreateTable'",
 				exc_info=True)
 
-		elw = expsListWindow(p)
+		elw = ExpsListWindow(p)
 		with patch("physbiblio.gui.expWindows.askYesNo",
 				return_value = True) as _a, \
 				patch("physbiblio.database.experiments.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s, \
-				patch("physbiblio.gui.expWindows.expsListWindow.recreateTable"
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
 					) as _r:
 			deleteExperiment(elw, m, 9999, "myexp")
 			_a.assert_called_once_with(
@@ -323,65 +323,398 @@ class TestExpTableModel(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestExpsListWindow(GUITestCase):
-	"""Test expsListWindow"""
+	"""Test ExpsListWindow"""
+	def setUp(self):
+		"""define common parameters for test use"""
+		self.exps = [
+			{"idExp": 0, "name": "test0",
+				"homepage": "", "comments": "", "inspire": ""},
+			{"idExp": 1, "name": "test1",
+				"homepage": "", "comments": "", "inspire": ""},
+			{"idExp": 2, "name": "test2",
+				"homepage": "", "comments": "", "inspire": ""},
+			{"idExp": 3, "name": "test3",
+				"homepage": "", "comments": "", "inspire": ""},
+			]
+
 	def test_init(self):
-		"""test"""
-		pass
+		"""test init"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _cf:
+			elw = ExpsListWindow(p)
+			_cf.assert_called_once_with()
+		self.assertIsInstance(elw, objListWindow)
+		self.assertEqual(elw.parent(), p)
+		self.assertEqual(elw.colcnt, 5)
+		self.assertEqual(elw.colContents,
+			['idExp', 'name', 'comments', 'homepage', 'inspire'])
+		self.assertEqual(elw.askExps, False)
+		self.assertEqual(elw.askForBib, None)
+		self.assertEqual(elw.askForCat, None)
+		self.assertEqual(elw.previous, [])
+		self.assertEqual(elw.windowTitle(), 'List of experiments')
+
+		with patch("physbiblio.database.experiments.getAll",
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
+					) as _cf:
+			elw = ExpsListWindow(parent=p,
+				askExps=True,
+				askForBib="mybib",
+				askForCat="mycat",
+				previous=[9999])
+			_cf.assert_called_once_with()
+		self.assertIsInstance(elw, objListWindow)
+		self.assertEqual(elw.parent(), p)
+		self.assertEqual(elw.colcnt, 5)
+		self.assertEqual(elw.colContents,
+			['idExp', 'name', 'comments', 'homepage', 'inspire'])
+		self.assertEqual(elw.askExps, True)
+		self.assertEqual(elw.askForBib, "mybib")
+		self.assertEqual(elw.askForCat, "mycat")
+		self.assertEqual(elw.previous, [9999])
+		self.assertEqual(elw.windowTitle(), 'List of experiments')
 
 	def test_populateAskExp(self):
-		"""test"""
-		pass
+		"""test populateAskExp"""
+		raise NotImplementedError()
 
 	def test_onCancel(self):
-		"""test"""
-		pass
+		"""test onCancel"""
+		elw = ExpsListWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			elw.onCancel()
+		self.assertFalse(elw.result)
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		raise NotImplementedError()
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		# with patch("physbiblio.database.categories.getHier",
+				# return_value=self.cathier) as _gh,\
+				# patch("physbiblio.database.categories.getAll",
+					# return_value=self.cats) as _gh,\
+				# patch("physbiblio.gui.catWindows.catsTreeWindow."
+					# + "_populateTree",
+					# return_value=self.rootElements[0]) as _pt:
+			# ctw = catsTreeWindow(p)
+		# self.assertFalse(hasattr(p, "selectedCats"))
+		# self.assertFalse(hasattr(p, "previousUnchanged"))
+		# ctw.root_model.selectedCats[0] = True
+		# ctw.root_model.selectedCats[3] = True
+		# ctw.root_model.previousSaved[0] = True
+		# with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+			# ctw.onOk()
+			# _c.assert_called_once_with()
+		# self.assertEqual(hasattr(p, "selectedCats"), True)
+		# self.assertEqual(p.selectedCats, [0, 3])
+		# self.assertEqual(p.previousUnchanged, [0])
+		# self.assertEqual(ctw.result, "Ok")
 
 	def test_onNewExp(self):
-		"""test"""
-		pass
+		"""test onNewExp"""
+		p = QWidget()
+		elw = ExpsListWindow(p)
+		with patch("physbiblio.gui.expWindows.editExperiment") as _ec, \
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
+					) as _rt:
+			elw.onNewExp()
+			_ec.assert_called_once_with(p, p)
+			_rt.assert_called_once()
 
 	def test_keyPressEvent(self):
-		"""test"""
-		pass
-
-	def test_changeFilter(self):
-		"""test"""
-		pass
+		"""test keyPressEvent"""
+		elw = ExpsListWindow()
+		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
+			QTest.keyPress(elw, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(elw, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(elw, Qt.Key_Escape)
+			_oc.assert_called_once()
 
 	def test_createTable(self):
-		"""test"""
-		pass
+		"""test createTable"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		raise NotImplementedError()
 
 	def test_triggeredContextMenuEvent(self):
-		"""test"""
-		pass
+		"""test triggeredContextMenuEvent"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		raise NotImplementedError()
 
 	def test_handleItemEntered(self):
-		"""test"""
-		pass
+		"""test handleItemEntered"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		ix = elw.proxyModel.index(0, 0)
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.experiments.getByID",
+					return_value=[]) as _gbi:
+			self.assertEqual(elw.handleItemEntered(ix), None)
+			_l.assert_called_once_with("Failed in finding experiment")
+			_gbi.assert_called_once_with('0')
+			_st.assert_not_called()
+			_sh.assert_not_called()
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.experiments.getByID",
+					return_value=[self.exps[0]]) as _gbi,\
+				patch("physbiblio.database.entryExps.countByExp",
+					return_value=33) as _cb,\
+				patch("physbiblio.database.catsExps.countByExp",
+					return_value=12) as _ce:
+			self.assertEqual(elw.handleItemEntered(ix), None)
+			_l.assert_not_called()
+			self.assertIsInstance(elw.timer, QTimer)
+			self.assertTrue(elw.timer.isSingleShot())
+			_gbi.assert_called_once_with('0')
+			_st.assert_called_once_with(500)
+			_sh.assert_not_called()
+			elw.timer.timeout.emit()
+			_sh.assert_called_once_with(QCursor.pos(),
+				'0: test0\nCorresponding entries: 33\n'
+				+ 'Associated categories: 12',
+				elw.tablewidget.viewport(),
+				elw.tablewidget.visualRect(ix),
+				3000)
+		with patch("logging.Logger.exception") as _l,\
+				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("physbiblio.database.experiments.getByID",
+					return_value=[self.exps[0]]) as _gbi,\
+				patch("physbiblio.database.entryExps.countByExp",
+					return_value=33) as _cb,\
+				patch("physbiblio.database.catsExps.countByExp",
+					return_value=12) as _ce:
+			self.assertEqual(elw.handleItemEntered(ix), None)
+			_sh.assert_called_once_with(
+				QCursor.pos(), '', elw.tablewidget.viewport())
 
 	def test_cellClick(self):
-		"""test"""
-		pass
+		"""test cellClick"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		raise NotImplementedError()
 
 	def test_cellDoubleClick(self):
-		"""test"""
-		pass
+		"""test cellDoubleClick"""
+		p = QWidget()
+		with patch("physbiblio.database.experiments.getAll",
+					return_value=self.exps) as _gh:
+			elw = ExpsListWindow(p)
+		raise NotImplementedError()
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditExperimentDialog(GUITestCase):
-	"""Test editExperimentDialog"""
+	"""Test EditExperimentDialog"""
 	def test_init(self):
-		"""test"""
-		pass
+		"""test init"""
+		p = QWidget()
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm"
+				) as _cf:
+			eed = EditExperimentDialog(p)
+			_cf.assert_called_once_with()
+		self.assertIsInstance(eed, editObjectWindow)
+		self.assertEqual(eed.parent(), p)
+		self.assertIsInstance(eed.data, dict)
+		self.assertEqual(eed.data, {"idExp": "",
+			"name": "", "homepage": "", "inspire": "", "comments": ""})
+		exp = {"idExp": "9999", "name": "myexp", "homepage": "www.some.exp",
+			"inspire": "1234", "comments": "no comments"}
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm"
+				) as _cf:
+			eed = EditExperimentDialog(parent=p, experiment=exp)
+			_cf.assert_called_once_with()
+		self.assertEqual(eed.data, exp)
 
 	def test_createForm(self):
-		"""test"""
-		pass
+		"""test createForm"""
+		p = QWidget()
+		eed = EditExperimentDialog(p)
+		self.assertEqual(eed.windowTitle(), 'Edit experiment')
+
+		self.assertIsInstance(eed.layout().itemAtPosition(1, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(1, 0).widget().text(),
+			"name")
+		self.assertIsInstance(eed.layout().itemAtPosition(1, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(1, 1).widget().text(),
+			"(Name of the experiment)")
+		self.assertIsInstance(eed.layout().itemAtPosition(2, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(2, 0).widget(),
+			eed.textValues["name"])
+		self.assertEqual(eed.textValues["name"].text(), "")
+		self.assertEqual(eed.textValues["name"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(3, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(3, 0).widget().text(),
+			"comments")
+		self.assertIsInstance(eed.layout().itemAtPosition(3, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(3, 1).widget().text(),
+			"(Description or comments)")
+		self.assertIsInstance(eed.layout().itemAtPosition(4, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(4, 0).widget(),
+			eed.textValues["comments"])
+		self.assertEqual(eed.textValues["comments"].text(), "")
+		self.assertEqual(eed.textValues["comments"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(5, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(5, 0).widget().text(),
+			"homepage")
+		self.assertIsInstance(eed.layout().itemAtPosition(5, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(5, 1).widget().text(),
+			"(Web link to the experiment homepage)")
+		self.assertIsInstance(eed.layout().itemAtPosition(6, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(6, 0).widget(),
+			eed.textValues["homepage"])
+		self.assertEqual(eed.textValues["homepage"].text(), "")
+		self.assertEqual(eed.textValues["homepage"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(7, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(7, 0).widget().text(),
+			"inspire")
+		self.assertIsInstance(eed.layout().itemAtPosition(7, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(7, 1).widget().text(),
+			"(INSPIRE-HEP ID of the experiment record)")
+		self.assertIsInstance(eed.layout().itemAtPosition(8, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(8, 0).widget(),
+			eed.textValues["inspire"])
+		self.assertEqual(eed.textValues["inspire"].text(), "")
+		self.assertEqual(eed.textValues["inspire"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(9, 0).widget(),
+			QPushButton)
+		self.assertEqual(eed.layout().itemAtPosition(9, 0).widget(),
+			eed.acceptButton)
+		self.assertEqual(eed.acceptButton.text(), "OK")
+		self.assertIsInstance(eed.layout().itemAtPosition(9, 1).widget(),
+			QPushButton)
+		self.assertEqual(eed.layout().itemAtPosition(9, 1).widget(),
+			eed.cancelButton)
+		self.assertEqual(eed.cancelButton.text(), "Cancel")
+		self.assertTrue(eed.cancelButton.autoDefault())
+		with patch("physbiblio.gui.commonClasses.editObjectWindow.onOk"
+				) as _f:
+			QTest.mouseClick(eed.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		with patch("physbiblio.gui.commonClasses.editObjectWindow.onCancel"
+				) as _f:
+			QTest.mouseClick(eed.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		exp = {"idExp": "9999", "name": "myexp", "homepage": "www.some.exp",
+			"inspire": "1234", "comments": "no comments"}
+		eed = EditExperimentDialog(parent=p, experiment=exp)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(1, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(1, 0).widget().text(),
+			"idExp")
+		self.assertIsInstance(eed.layout().itemAtPosition(1, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(1, 1).widget().text(),
+			"(Unique ID that identifies the experiment)")
+		self.assertIsInstance(eed.layout().itemAtPosition(2, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(2, 0).widget(),
+			eed.textValues["idExp"])
+		self.assertEqual(eed.textValues["idExp"].text(), "9999")
+		self.assertEqual(eed.textValues["idExp"].isEnabled(), False)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(3, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(3, 0).widget().text(),
+			"name")
+		self.assertIsInstance(eed.layout().itemAtPosition(3, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(3, 1).widget().text(),
+			"(Name of the experiment)")
+		self.assertIsInstance(eed.layout().itemAtPosition(4, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(4, 0).widget(),
+			eed.textValues["name"])
+		self.assertEqual(eed.textValues["name"].text(), "myexp")
+		self.assertEqual(eed.textValues["name"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(5, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(5, 0).widget().text(),
+			"comments")
+		self.assertIsInstance(eed.layout().itemAtPosition(5, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(5, 1).widget().text(),
+			"(Description or comments)")
+		self.assertIsInstance(eed.layout().itemAtPosition(6, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(6, 0).widget(),
+			eed.textValues["comments"])
+		self.assertEqual(eed.textValues["comments"].text(), "no comments")
+		self.assertEqual(eed.textValues["comments"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(7, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(7, 0).widget().text(),
+			"homepage")
+		self.assertIsInstance(eed.layout().itemAtPosition(7, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(7, 1).widget().text(),
+			"(Web link to the experiment homepage)")
+		self.assertIsInstance(eed.layout().itemAtPosition(8, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(8, 0).widget(),
+			eed.textValues["homepage"])
+		self.assertEqual(eed.textValues["homepage"].text(), "www.some.exp")
+		self.assertEqual(eed.textValues["homepage"].isEnabled(), True)
+
+		self.assertIsInstance(eed.layout().itemAtPosition(9, 0).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(9, 0).widget().text(),
+			"inspire")
+		self.assertIsInstance(eed.layout().itemAtPosition(9, 1).widget(),
+			MyLabel)
+		self.assertEqual(eed.layout().itemAtPosition(9, 1).widget().text(),
+			"(INSPIRE-HEP ID of the experiment record)")
+		self.assertIsInstance(eed.layout().itemAtPosition(10, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eed.layout().itemAtPosition(10, 0).widget(),
+			eed.textValues["inspire"])
+		self.assertEqual(eed.textValues["inspire"].text(), "1234")
+		self.assertEqual(eed.textValues["inspire"].isEnabled(), True)
+		self.assertEqual(eed.layout().itemAtPosition(11, 0).widget(),
+			eed.acceptButton)
+		self.assertEqual(eed.layout().itemAtPosition(11, 1).widget(),
+			eed.cancelButton)
 
 if __name__=='__main__':
 	unittest.main()
