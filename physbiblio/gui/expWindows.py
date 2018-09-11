@@ -18,7 +18,8 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyLabel, MyMenu, MyTableModel, objListWindow
+		editObjectWindow, MyLabel, MyMenu, MyTableModel, \
+		objListWindow, pBGuiView
 	from physbiblio.gui.catWindows import catsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -352,14 +353,34 @@ class ExpsListWindow(objListWindow):
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
 
-	def triggeredContextMenuEvent(self, row, col, event):
-		index = self.tablewidget.model().index(row, col)
+	def triggeredContextMenuEvent(self, row, col, event, testing=False):
+		"""Process event when mouse right-clicks an item.
+		Opens a menu with a number of actions
+
+		Parameter:
+			row: the row number
+			col: a the column number
+			event: a `QEvent` instance, used to obtain the mouse
+				position where to open the menu
+			testing (default False): avoid `menu.exec_` during tests.
+				If it is a list, the first argument must be a number
+				used to determine the action, while the second is used
+				if `action==catAction` to avoid `catsTreeWindow.exec_`
+				If it is a number,
+				it is the index of the `action` to test,
+				otherwise `action` will be `None`
+		"""
+		index = self.proxyModel.index(row, col)
+		if not index.isValid():
+			return
 		try:
 			idExp = str(self.proxyModel.sibling(row, 0, index).data())
 			expName = str(self.proxyModel.sibling(row, 1, index).data())
 		except AttributeError:
 			return
+
 		menu = MyMenu()
+		self.menu = menu
 		titAction = QAction("--Experiment: %s--"%expName)
 		titAction.setDisabled(True)
 		bibAction = QAction("Open list of corresponding entries")
@@ -369,10 +390,21 @@ class ExpsListWindow(objListWindow):
 		menu.possibleActions = [
 			titAction, None,
 			bibAction, None,
-			modAction, delAction, None, catAction
+			modAction, delAction, None,
+			catAction
 			]
 		menu.fillMenu()
-		action = menu.exec_(event.globalPos())
+
+		if testing is not False:
+			if type(testing) is list:
+				action = menu.possibleActions[testing[0]]
+				testing = testing[1]
+			elif ("%s"%testing).isdigit():
+				action = menu.possibleActions[testing]
+			else:
+				action = None
+		else:
+			action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
 			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
@@ -383,14 +415,17 @@ class ExpsListWindow(objListWindow):
 		elif action == delAction:
 			deleteExperiment(self, self.parent(), idExp, expName)
 		elif action == catAction:
-			previous = [a[0] for a in pBDB.cats.getByExp(idExp)]
+			previous = [a["idCat"] for a in pBDB.cats.getByExp(idExp)]
 			selectCats = catsTreeWindow(
 				parent=self.parent(),
 				askCats=True,
 				askForExp=idExp,
 				expButton=False,
 				previous=previous)
-			selectCats.exec_()
+			if not testing:
+				selectCats.exec_()
+			else:
+				selectCats = testing
 			if selectCats.result == "Ok":
 				cats = self.parent().selectedCats
 				for p in previous:
@@ -400,7 +435,8 @@ class ExpsListWindow(objListWindow):
 					if c not in previous:
 						pBDB.catExp.insert(c, idExp)
 				self.parent().statusBarMessage(
-					"categories for '%s' successfully inserted"%expName)
+					"Categories for '%s' successfully inserted"%expName)
+		return True
 
 	def handleItemEntered(self, index):
 		"""Process event when mouse enters an item and
@@ -440,13 +476,26 @@ class ExpsListWindow(objListWindow):
 		self.timer.start(500)
 
 	def cellClick(self, index):
+		"""Process event when mouse clicks an item.
+		Currently not used
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
 		if index.isValid():
 			row = index.row()
 		else:
 			return
 		idExp = str(self.proxyModel.sibling(row, 0, index).data())
+		return True
 
 	def cellDoubleClick(self, index):
+		"""Process event when mouse double clicks an item.
+		Opens a link if some columns
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
 		if index.isValid():
 			row = index.row()
 			col = index.column()
@@ -456,16 +505,18 @@ class ExpsListWindow(objListWindow):
 		if self.colContents[col] == "inspire" or \
 				self.colContents[col] == "homepage":
 			link = self.proxyModel.sibling(row, col, index).data()
-			if link == "":
+			if link == "" or link is None:
 				return
 			if self.colContents[col] == "inspire":
 				link = pbConfig.inspireRecord + link
-			print("will open '%s' "%link)
 			try:
-				print("[GUI] opening '%s'..."%link)
+				pBLogger.debug("Opening '%s'..."%link)
 				pBGuiView.openLink(link, "link")
-			except:
-				print("[GUI] opening link '%s' failed!"%link)
+			except Exception:
+				pBLogger.warning("Opening link '%s' failed!"%link,
+					exc_info=True)
+			return True
+		return None
 
 class EditExperimentDialog(editObjectWindow):
 	"""create a window for editing or creating an experiment"""

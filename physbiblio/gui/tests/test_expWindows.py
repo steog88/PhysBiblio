@@ -7,7 +7,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QEvent, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -331,7 +331,7 @@ class TestExpsListWindow(GUITestCase):
 			{"idExp": 0, "name": "test0",
 				"homepage": "", "comments": "", "inspire": ""},
 			{"idExp": 1, "name": "test1",
-				"homepage": "", "comments": "", "inspire": ""},
+				"homepage": "", "comments": "", "inspire": "1234"},
 			{"idExp": 2, "name": "test2",
 				"homepage": "", "comments": "", "inspire": ""},
 			{"idExp": 3, "name": "test3",
@@ -671,13 +671,122 @@ class TestExpsListWindow(GUITestCase):
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
-		p = QWidget()
+		p = MainWindow(testing=True)
 		with patch("physbiblio.database.experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.database.experiments.getAll",
-					return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
-		raise NotImplementedError()
+		self.assertEqual(elw.triggeredContextMenuEvent(
+			9999, 0, QEvent(QEvent.ContextMenu), False),
+			None)
+		self.assertFalse(hasattr(elw, "menu"))
+		with patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.expWindows.editExperiment") as _ec,\
+				patch("physbiblio.gui.expWindows.deleteExperiment") as _dc,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
+			self.assertEqual(elw.triggeredContextMenuEvent(
+				0, 0, QEvent(QEvent.ContextMenu), True),
+				True)
+			_f.assert_called_once_with()
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+
+			self.assertIsInstance(elw.menu, MyMenu)
+			self.assertIsInstance(elw.menu.possibleActions, list)
+			self.assertEqual(len(elw.menu.possibleActions), 8)
+			self.assertEqual(elw.menu.possibleActions[1], None)
+			self.assertEqual(elw.menu.possibleActions[3], None)
+			self.assertEqual(elw.menu.possibleActions[6], None)
+
+			for ix, tit, en in [
+					[0, "--Experiment: test0--", False],
+					[2, "Open list of corresponding entries", True],
+					[4, "Modify", True],
+					[5, "Delete", True],
+					[7, "Categories", True],
+					]:
+				act = elw.menu.possibleActions[ix]
+				self.assertIsInstance(act, QAction)
+				self.assertEqual(act.text(), tit)
+				self.assertEqual(act.isEnabled(), en)
+
+			self.assertEqual(elw.triggeredContextMenuEvent(
+				0, 0, QEvent(QEvent.ContextMenu), 0),
+				True)
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+
+			pBDB.bibs.lastFetched = ["a"]
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				self.assertEqual(elw.triggeredContextMenuEvent(
+					0, 0, QEvent(QEvent.ContextMenu), 2),
+					True)
+				_ffd.assert_called_once_with(
+					{'exps': {'operator': 'and', 'id': [u'0']}})
+			_rmc.assert_called_once_with(["a"])
+			_ec.assert_not_called()
+			_dc.assert_not_called()
+			_rmc.reset_mock()
+
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				self.assertEqual(elw.triggeredContextMenuEvent(
+					0, 0, QEvent(QEvent.ContextMenu), 4),
+					True)
+			_rmc.assert_not_called()
+			_ec.assert_called_once_with(elw, p, '0')
+			_dc.assert_not_called()
+			_ec.reset_mock()
+
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd:
+				self.assertEqual(elw.triggeredContextMenuEvent(
+					0, 0, QEvent(QEvent.ContextMenu), 5),
+					True)
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_called_once_with(elw, p, '0', 'test0')
+			_dc.reset_mock()
+
+			with patch("physbiblio.database.experiments.getByID",
+					return_value=[self.exps[0]]) as _gbi,\
+					patch("physbiblio.gui.catWindows.catsTreeWindow."
+						+ "createForm") as _cf:
+				sc = catsTreeWindow(
+					parent=p,
+					askCats=True,
+					askForExp=0,
+					expButton=False,
+					previous=[0, 13])
+			sc.result = "Ok"
+			p.selectedCats = [9, 13]
+			with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB.bibs) as _ffd,\
+					patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+						return_value=None) as _i,\
+					patch("physbiblio.gui.mainWindow.MainWindow."
+						+ "statusBarMessage") as _sbm,\
+					patch("physbiblio.database.catsExps.delete") as _d,\
+					patch("physbiblio.database.catsExps.insert") as _a,\
+					patch("physbiblio.database.categories.getByExp",
+						return_value=[{"idCat": 0}, {"idCat": 13}]) as _gbe:
+				self.assertEqual(elw.triggeredContextMenuEvent(
+					0, 0, QEvent(QEvent.ContextMenu), [7, sc]),
+					True)
+				_ffd.assert_not_called()
+				_gbe.assert_called_once_with('0')
+				_i.assert_called_once_with(parent=p, previous=[0, 13],
+					askCats=True, askForExp='0', expButton=False)
+				_d.assert_called_once_with(0, '0')
+				_a.assert_called_once_with(9, '0')
+				_sbm.assert_called_once_with(
+					"Categories for 'test0' successfully inserted")
+			_rmc.assert_not_called()
+			_ec.assert_not_called()
+			_dc.assert_not_called()
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
@@ -738,15 +847,57 @@ class TestExpsListWindow(GUITestCase):
 		with patch("physbiblio.database.experiments.getAll",
 				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
-		raise NotImplementedError()
+		self.assertEqual(elw.cellClick(QModelIndex()), None)
+		self.assertEqual(elw.cellClick(elw.tableModel.index(0, 0)), True)
 
 	def test_cellDoubleClick(self):
 		"""test cellDoubleClick"""
 		p = QWidget()
+		exps = [
+			{"idExp": 0, "name": "test0",
+				"homepage": "", "comments": "", "inspire": ""},
+			{"idExp": 1, "name": "test1",
+				"homepage": "www.some.com", "comments": "", "inspire": "1234"}]
 		with patch("physbiblio.database.experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=exps) as _gh:
 			elw = ExpsListWindow(p)
-		raise NotImplementedError()
+		self.assertEqual(elw.cellDoubleClick(QModelIndex()), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 0)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 1)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 2)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 3)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 4)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 0)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 1)), None)
+		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 2)), None)
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("logging.Logger.debug") as _l:
+			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 3)),
+				True)
+			_ol.assert_called_once_with('www.some.com', 'link')
+			_l.assert_called_once_with("Opening 'www.some.com'...")
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("logging.Logger.debug") as _l:
+			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)),
+				True)
+			_ol.assert_called_once_with(
+				pbConfig.inspireRecord + '1234', 'link')
+			_l.assert_called_once_with("Opening '%s'..."%(
+				pbConfig.inspireRecord + '1234'))
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink",
+				side_effect=Exception("some error")) as _ol,\
+				patch("logging.Logger.debug") as _l,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)),
+				True)
+			_ol.assert_called_once_with(
+				pbConfig.inspireRecord + '1234', 'link')
+			_l.assert_called_once_with("Opening '%s'..."%(
+				pbConfig.inspireRecord + '1234'))
+			_w.assert_called_once_with("Opening link '%s' failed!"%(
+				pbConfig.inspireRecord + '1234'), exc_info=True)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditExperimentDialog(GUITestCase):
