@@ -3,6 +3,7 @@
 This file is part of the physbiblio package.
 """
 import sys
+import traceback
 import ast
 import os
 import logging

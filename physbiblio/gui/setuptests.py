@@ -3,9 +3,6 @@
 This file is part of the physbiblio package.
 """
 import sys
-import traceback
-import datetime
-import os
 from PySide2.QtWidgets import QApplication, QFileDialog
 
 if sys.version_info[0] < 3:
@@ -19,12 +16,14 @@ else:
 
 globalQApp = QApplication()
 
+
 def fakeExec(x, string, out):
 	"""Simulate the selection of some files and
 	return True/False as if confirmed/canceled
 	"""
 	QFileDialog.selectFile(x, string)
 	return out
+
 
 class GUITestCase(unittest.TestCase):
 	"""Class that manages GUI tests"""

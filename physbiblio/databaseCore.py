@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+import traceback
 import sqlite3
 from sqlite3 import \
 	OperationalError, ProgrammingError, DatabaseError, InterfaceError

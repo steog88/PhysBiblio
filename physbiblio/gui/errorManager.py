@@ -1,5 +1,4 @@
-"""
-Module with the class that manages errors when the GUI is active.
+"""Module with the class that manages errors when the GUI is active.
 
 This file is part of the physbiblio package.
 """
@@ -19,14 +18,14 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 class ErrorStream(StringIO):
-	"""
-	Define a stream based on StringIO, which opens a `QMessageBox`
+	"""Define a stream based on StringIO, which opens a `QMessageBox`
 	when `write` is called
 	"""
+
 	def __init__(self, *args, **kwargs):
-		"""
-		The constructor, which passes the `*args, **kwargs` method
+		"""The constructor, which passes the `*args, **kwargs` method
 		to `StringIO.__init__`.
 		"""
 		StringIO.__init__(self, *args, **kwargs)
@@ -34,8 +33,8 @@ class ErrorStream(StringIO):
 		self.lastMBox = None
 
 	def setPriority(self, prio):
-		"""
-		Set the priority level to be adopted when opening the `QMessageBox`.
+		"""Set the priority level to be adopted
+		when opening the `QMessageBox`.
 
 		Parameter:
 			prio: the priority level. 0, 1, 2+ correspond
@@ -44,8 +43,8 @@ class ErrorStream(StringIO):
 		self.priority = prio
 
 	def write(self, text, testing = False):
-		"""
-		Override the `write` method of `StringIO` to show a `QMessageBox`,
+		"""Override the `write` method of `StringIO`
+		to show a `QMessageBox`,
 		with icon according to the current priority.
 		The priority is set to 1 after execution.
 
@@ -79,13 +78,14 @@ class ErrorStream(StringIO):
 		self.lastMBox.exec_()
 		return
 
+
 class pBErrorManagerClassGui(pBErrorManagerClass):
+	"""Extends the error manager class to show
+	gui messages through ErrorStream
 	"""
-	Extends the error manager class to show gui messages through ErrorStream
-	"""
+
 	def __init__(self):
-		"""
-		Init the class, using pBErrorManagerClass.__init__ and
+		"""Init the class, using pBErrorManagerClass.__init__ and
 		the gui logger name,
 		then add a new handler which uses ErrorStream
 		"""
@@ -96,8 +96,7 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 			format = '%(message)s')
 
 	def loggerPriority(self, prio):
-		"""
-		Define the priority level that must be used by
+		"""Define the priority level that must be used by
 		the `ErrorStream` class in the first call of its `write` method.
 
 		Parameter:
@@ -110,6 +109,7 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 		"""
 		self.guiStream.priority = prio
 		return self.logger
+
 
 pBGUIErrorManager = pBErrorManagerClassGui()
 pBGUILogger = pBGUIErrorManager.logger

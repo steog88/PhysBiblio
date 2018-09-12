@@ -3,7 +3,8 @@
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
@@ -26,9 +27,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDialogWindows(GUITestCase):
 	"""Test the functions in DialogWindows"""
+
 	def test_askYesNo(self):
 		"""Test askYesNo"""
 		win, yesButton, noButton = askYesNo("mymessage", "mytitle", True)
@@ -160,6 +163,7 @@ class TestDialogWindows(GUITestCase):
 				new=lambda x: fakeExec(x, "foo/bar", False)):
 			res = askDirName(dir = "/tmp")
 			self.assertEqual(res, "")
+
 
 if __name__=='__main__':
 	unittest.main()

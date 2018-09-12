@@ -4,7 +4,6 @@ This file is part of the physbiblio package.
 """
 import sys
 import traceback
-import os
 import logging
 import logging.handlers
 

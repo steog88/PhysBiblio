@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.database module.
+"""Test file for the physbiblio.database module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import six
 import datetime
 

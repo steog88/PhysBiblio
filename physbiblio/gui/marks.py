@@ -1,9 +1,8 @@
-"""
-Module with the class that manages marks for the bibtex entries.
+"""Module with the class that manages marks for the bibtex entries.
 
 This file is part of the physbiblio package.
 """
-import sys
+import traceback
 from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 try:
 	import physbiblio.gui.resourcesPyside2
@@ -11,14 +10,12 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 class marks():
-	"""
-	Class that manages the marks of bibtex entries
-	"""
+	"""Class that manages the marks of bibtex entries"""
+
 	def __init__(self):
-		"""
-		Class constructor. Creates the 5 default marks.
-		"""
+		"""Class constructor. Creates the 5 default marks."""
 		self.marks = {}
 		self.newMark("imp", "Important", "emblem-important-symbolic")
 		self.newMark("fav", "Favorite", "emblem-favorite-symbolic")
@@ -27,8 +24,7 @@ class marks():
 		self.newMark("new", "To be read", "unread-new")
 
 	def newMark(self, key, desc, icon):
-		"""
-		Add a new mark.
+		"""Add a new mark.
 
 		Parameters:
 			key: the key to be used in the self.marks dictionary
@@ -43,8 +39,7 @@ class marks():
 			description = "Marks",
 			radio = False,
 			addAny = False):
-		"""
-		Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s
+		"""Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s
 		for marks selection
 
 		Parameters:
@@ -79,5 +74,6 @@ class marks():
 			boxlayout.addWidget(markValues["any"])
 		groupBox.setLayout(boxlayout)
 		return groupBox, markValues
+
 
 pBMarks = marks()

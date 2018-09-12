@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.inspireStatsGUI module.
+"""Test file for the physbiblio.gui.inspireStatsGUI module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 import logging
 import datetime
@@ -33,12 +33,15 @@ except Exception:
 	print(traceback.format_exc())
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
+
 class fakeParent(QWidget):
 	"""used to substitute the parent in the inspireStatsGUI classes"""
+
 	def __init__(self):
 		QWidget.__init__(self)
 		self.lastAuthorStats = {"h": 999}
 		self.lastPaperStats = {}
+
 
 testData = {#data as of 180713
 	'allLi': [
@@ -897,11 +900,11 @@ testData["figs"] = pBStats.plotStats(author = True)
 
 fakepar = fakeParent()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAuthorStatsPlots(GUITestCase):
-	"""
-	Test the functions in authorStatsPlots
-	"""
+	"""Test the functions in authorStatsPlots"""
+
 	def test_figTitles(self):
 		"""test figTitles"""
 		self.assertEqual(figTitles, [
@@ -1040,11 +1043,11 @@ class TestAuthorStatsPlots(GUITestCase):
 					asp.layout().itemAtPosition(i, j).widget().figure,
 					asp.figs[1 + i*2 + j])
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPaperStatsPlots(GUITestCase):
-	"""
-	Test the functions in paperStatsPlots
-	"""
+	"""Test the functions in paperStatsPlots"""
+
 	def test_init(self):
 		"""Test init"""
 		asp = paperStatsPlots(testData['figs'][2])
@@ -1133,6 +1136,7 @@ class TestPaperStatsPlots(GUITestCase):
 			FigureCanvasQTAgg)
 		self.assertEqual(asp.layout().itemAtPosition(0, 0).widget().figure,
 			asp.fig)
+
 
 if __name__=='__main__':
 	unittest.main()

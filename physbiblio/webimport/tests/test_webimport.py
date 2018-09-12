@@ -3,7 +3,10 @@
 
 This file is part of the physbiblio package.
 """
-import sys, datetime, traceback, os
+import sys
+import datetime
+import traceback
+import os
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest

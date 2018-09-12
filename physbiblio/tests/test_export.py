@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.export module.
+"""Test file for the physbiblio.export module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, os
+import sys
+import traceback
+import os
 from stat import S_IREAD, S_IRGRP, S_IROTH
 import bibtexparser
 
@@ -57,8 +58,7 @@ class TestExportMethods(unittest.TestCase):
 			emptyFileName + pBExport.backupExtension))
 
 	def test_offlineExports(self):
-		"""
-		Test of offline export functions exportSelected,
+		"""Test of offline export functions exportSelected,
 		updateExportedBib
 		"""
 		testBibName = os.path.join(pbConfig.dataPath,

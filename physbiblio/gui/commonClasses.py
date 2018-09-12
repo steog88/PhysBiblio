@@ -1,11 +1,9 @@
-"""
-Module with many classes that are further extended
+"""Module with many classes that are further extended
 in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
-import sys
-import os
+import traceback
 import time
 from PySide2.QtCore import Qt, Signal, \
 	QAbstractItemModel, QAbstractTableModel, QModelIndex, \
@@ -26,10 +24,12 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 class MyLabel(QLabel):
 	"""Extension of `QLabel` with text interaction flags
 	which enable text selection with the mouse
 	"""
+
 	def __init__(self, *args, **kwargs):
 		"""Extend `QLabel.__init__` and call `setTextInteractionFlags`
 		to allow text selection with the mouse
@@ -40,11 +40,12 @@ class MyLabel(QLabel):
 		self.setTextInteractionFlags(
 			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
 
+
 class MyLabelRight(MyLabel):
 	"""Class that creates a right-aligned QLabel"""
+
 	def __init__(self, label):
-		"""
-		The constructor.
+		"""The constructor.
 
 		Parameter:
 			label: the text label to be passed to QLabel
@@ -52,11 +53,12 @@ class MyLabelRight(MyLabel):
 		super(MyLabelRight, self).__init__(label)
 		self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
+
 class MyLabelCenter(MyLabel):
 	"""Class that creates a center-aligned QLabel"""
+
 	def __init__(self, label):
-		"""
-		The constructor.
+		"""The constructor.
 
 		Parameter:
 			label: the text label to be passed to QLabel
@@ -64,13 +66,12 @@ class MyLabelCenter(MyLabel):
 		super(MyLabelCenter, self).__init__(label)
 		self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
+
 class MyComboBox(QComboBox):
-	"""
-	Personalize QComboBox for faster construction
-	"""
+	"""Personalize QComboBox for faster construction"""
+
 	def __init__(self, parent, fields, current = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameters:
 			parent: the parent widget
@@ -87,13 +88,12 @@ class MyComboBox(QComboBox):
 			except ValueError:
 				pass
 
+
 class MyAndOrCombo(MyComboBox):
-	"""
-	Shortcut for generating a QComboBox with and/or
-	"""
+	"""Shortcut for generating a QComboBox with and/or"""
+
 	def __init__(self, parent, current = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameters:
 			parent: the parent widget
@@ -103,13 +103,12 @@ class MyAndOrCombo(MyComboBox):
 		super(MyAndOrCombo, self).__init__(parent,
 			["AND", "OR"], current = current)
 
+
 class MyTrueFalseCombo(MyComboBox):
-	"""
-	Shortcut for generating a QComboBox with true/false
-	"""
+	"""Shortcut for generating a QComboBox with true/false"""
+
 	def __init__(self, parent, current = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameters:
 			parent: the parent widget
@@ -119,11 +118,12 @@ class MyTrueFalseCombo(MyComboBox):
 		super(MyTrueFalseCombo, self).__init__(parent,
 			["True", "False"], current = current)
 
+
 class objListWindow(QDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
+
 	def __init__(self, parent = None, gridLayout = False):
-		"""
-		Init using parent class and create common definitions
+		"""Init using parent class and create common definitions
 
 		Parameters:
 			parent: the parent object
@@ -161,8 +161,7 @@ class objListWindow(QDialog):
 		raise NotImplementedError()
 
 	def changeFilter(self, string):
-		"""
-		Change the filter of the current view.
+		"""Change the filter of the current view.
 
 		Parameter:
 			string: the filter string to be matched
@@ -170,11 +169,11 @@ class objListWindow(QDialog):
 		self.proxyModel.setFilterRegExp(str(string))
 
 	def addFilterInput(self, placeholderText, gridPos = (1, 0)):
-		"""
-		Add a `QLineEdit` to change the filter of the list.
+		"""Add a `QLineEdit` to change the filter of the list.
 
 		Parameter:
-			placeholderText: the text to be shown when no filter is present
+			placeholderText: the text to be shown
+				when no filter is present
 			gridPos (tuple): if gridLayout is active,
 				the position of the `QLineEdit` in the `QGridLayout`
 		"""
@@ -189,8 +188,7 @@ class objListWindow(QDialog):
 		self.filterInput.setFocus()
 
 	def setProxyStuff(self, sortColumn, sortOrder):
-		"""
-		Prepare the proxy model to filter and sort the view.
+		"""Prepare the proxy model to filter and sort the view.
 
 		Parameter:
 			sortColumn: the index of the column to use
@@ -212,8 +210,8 @@ class objListWindow(QDialog):
 		self.currLayout.addWidget(self.tablewidget)
 
 	def finalizeTable(self, gridPos = (1, 0)):
-		"""
-		Resize the table to fit the contents, connect functions, add to layout
+		"""Resize the table to fit the contents,
+		connect functions, add to layout
 
 		Parameter:
 			gridPos (tuple): if gridLayout is active,
@@ -252,29 +250,25 @@ class objListWindow(QDialog):
 			self.currLayout.addWidget(self.tablewidget)
 
 	def cleanLayout(self):
-		"""
-		Delete the previous table widget and other layout items
-		"""
+		"""Delete the previous table widget and other layout items"""
 		while True:
 			o = self.layout().takeAt(0)
 			if o is None: break
 			o.widget().deleteLater()
 
 	def recreateTable(self):
-		"""
-		Delete the previous table widget and other layout items,
+		"""Delete the previous table widget and other layout items,
 		then create new ones
 		"""
 		self.cleanLayout()
 		self.createTable()
 
+
 class editObjectWindow(QDialog):
-	"""
-	Create a window for editing or creating an experiment
-	"""
+	"""Create a window for editing or creating an experiment"""
+
 	def __init__(self, parent = None):
-		"""
-		Constructor.
+		"""Constructor.
 
 		Parameter:
 			parent: the parent object
@@ -284,8 +278,7 @@ class editObjectWindow(QDialog):
 		self.initUI()
 
 	def keyPressEvent(self, e):
-		"""
-		Intercept press keys and exit if escape is pressed
+		"""Intercept press keys and exit if escape is pressed
 
 		Parameters:
 			e: the `PySide2.QtGui.QKeyEvent`
@@ -294,30 +287,23 @@ class editObjectWindow(QDialog):
 			self.onCancel()
 
 	def onCancel(self):
-		"""
-		Set that the result should not be considered and exit
-		"""
+		"""Set that the result should not be considered and exit"""
 		self.result	= False
 		self.close()
 
 	def onOk(self):
-		"""
-		Set that the result should be considered and exit
-		"""
+		"""Set that the result should be considered and exit"""
 		self.result	= True
 		self.close()
 
 	def initUI(self):
-		"""
-		Instantiate the `QGridLayout`
-		"""
+		"""Instantiate the `QGridLayout`"""
 		self.currGrid = QGridLayout()
 		self.currGrid.setSpacing(1)
 		self.setLayout(self.currGrid)
 
 	def centerWindow(self):
-		"""
-		Use the `QDesktopWidget` to get the relevant information
+		"""Use the `QDesktopWidget` to get the relevant information
 		and center the widget in the screen.
 		"""
 		qr = self.frameGeometry()
@@ -325,12 +311,14 @@ class editObjectWindow(QDialog):
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
 
+
 class MyThread(QThread):
 	"""Extend `QThread`, but further extension is needed"""
+
 	finished = Signal()
+
 	def __init__(self,  parent = None):
-		"""
-		Construct the class using `QThread.__init__`
+		"""Construct the class using `QThread.__init__`
 
 		Parameters:
 			parent: the parent object (default None)
@@ -346,21 +334,22 @@ class MyThread(QThread):
 		raise NotImplementedError()
 
 	def start(self, *args, **kwargs):
-		"""
-		Wait 0.3s and then call `QThread.start` (pass all the arguments)
+		"""Wait 0.3s and then call `QThread.start`
+		(pass all the arguments)
 		"""
 		time.sleep(0.3)
 		QThread.start(self, *args, **kwargs)
 
+
 class WriteStream(MyThread):
-	"""
-	Class used to redirect prints to a window
-	"""
+	"""Class used to redirect prints to a window"""
+
 	mysignal = Signal(str)
+
 	finished = Signal()
+
 	def __init__(self, queue, parent = None, *args, **kwargs):
-		"""
-		Constructor
+		"""Constructor
 
 		Parameters:
 			queue: a Queue instance
@@ -371,8 +360,7 @@ class WriteStream(MyThread):
 		self.running = True
 
 	def write(self, text):
-		"""
-		Write the given text
+		"""Write the given text
 
 		Parameters:
 			text: the text to send to the output stream
@@ -380,35 +368,31 @@ class WriteStream(MyThread):
 		self.queue.put(text)
 
 	def run(self):
-		"""
-		Run the thread
-		"""
+		"""Run the thread"""
 		while self.running:
 			text = self.queue.get()
 			self.mysignal.emit(text)
 		self.finished.emit()
 
+
 class MyTableWidget(QTableWidget):
-	"""
-	Extension of `QTableWidget`, used to define the contextMenuEvent
-	"""
+	"""Extension of `QTableWidget`, used to define the contextMenuEvent"""
+
 	def contextMenuEvent(self, event):
-		"""
-		Connect the context menu event to the parent function
+		"""Connect the context menu event to the parent function
 
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
 		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
 			self.columnAt(event.x()), event)
+
 
 class MyTableView(QTableView):
-	"""
-	Extension of `QTableView`, used to define the contextMenuEvent
-	"""
+	"""Extension of `QTableView`, used to define the contextMenuEvent"""
+
 	def contextMenuEvent(self, event):
-		"""
-		Connect the context menu event to the parent function
+		"""Connect the context menu event to the parent function
 
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
@@ -416,13 +400,14 @@ class MyTableView(QTableView):
 		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
 			self.columnAt(event.x()), event)
 
+
 class MyTableModel(QAbstractTableModel):
+	"""Extension of `QAbstractTableModel`,
+	used for experiments and bibtex entries
 	"""
-	Extension of `QAbstractTableModel`, used for experiments and bibtex entries
-	"""
+
 	def __init__(self, parent, header, ask = False,  previous = [], *args):
-		"""
-		Constructor, based on `QAbstractTableModel.__init__`
+		"""Constructor, based on `QAbstractTableModel.__init__`
 
 		Parameters:
 			parent: the parent widget
@@ -442,8 +427,7 @@ class MyTableModel(QAbstractTableModel):
 		return self.parentObj
 
 	def changeAsk(self, new = None):
-		"""
-		Change the value of `self.ask` to show/hide checkboxes
+		"""Change the value of `self.ask` to show/hide checkboxes
 
 		Parameters:
 			new: `None` to just swap the current value of `self.ask`,
@@ -461,8 +445,7 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def prepareSelected(self):
-		"""
-		Fill the dictionary `self.selectedElements`
+		"""Fill the dictionary `self.selectedElements`
 		according to previous selection
 		"""
 		self.layoutAboutToBeChanged.emit()
@@ -482,26 +465,21 @@ class MyTableModel(QAbstractTableModel):
 		self.layoutChanged.emit()
 
 	def selectAll(self):
-		"""
-		Select all the available rows
-		"""
+		"""Select all the available rows"""
 		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = True
 		self.layoutChanged.emit()
 
 	def unselectAll(self):
-		"""
-		Unselect all the available rows
-		"""
+		"""Unselect all the available rows"""
 		self.layoutAboutToBeChanged.emit()
 		for key in self.selectedElements.keys():
 			self.selectedElements[key] = False
 		self.layoutChanged.emit()
 
 	def addImage(self, imagePath, height):
-		"""
-		Create a cell containing an image
+		"""Create a cell containing an image
 
 		Parameters:
 			imagePath: the path of the image
@@ -513,13 +491,14 @@ class MyTableModel(QAbstractTableModel):
 		return QPixmap(imagePath).scaledToHeight(height)
 
 	def addImages(self, imagePaths, outHeight, height = 48):
-		"""
-		Create a cell containing multiple images, using a `QPainter`
+		"""Create a cell containing multiple images, using a `QPainter`
 
 		Parameters:
-			imagePaths: a list of image paths for creating the single `QPixmap`s
+			imagePaths: a list of image paths
+				for creating the single `QPixmap`s
 			outHeight: the final height for rescaling the image
-			height (default 48): the height and width to be used when painting
+			height (default 48): the height and width
+				to be used when painting
 
 		Output:
 			a `QPixmap`
@@ -534,8 +513,7 @@ class MyTableModel(QAbstractTableModel):
 		return pm.scaledToHeight(outHeight)
 
 	def rowCount(self, parent = None):
-		"""
-		Count the rows of the given model based on the header
+		"""Count the rows of the given model based on the header
 
 		Parameter:
 			parent: `QModelIndex` (required by the parent signature)
@@ -549,8 +527,7 @@ class MyTableModel(QAbstractTableModel):
 			return 0
 
 	def columnCount(self, parent = None):
-		"""
-		Count the columns of the given model based on the header
+		"""Count the columns of the given model based on the header
 
 		Parameter:
 			parent: `QModelIndex` (required by the parent signature)
@@ -568,8 +545,7 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def flags(self, index):
-		"""
-		Determine the flags of a given item
+		"""Determine the flags of a given item
 
 		Parameter:
 			index: a `QModelIndex`
@@ -577,7 +553,7 @@ class MyTableModel(QAbstractTableModel):
 		Output:
 			None if the index is not valid
 			if `self.ask` and first column, show checkboxes:
-			Qt.ItemIsUserCheckable | Qt.ItemIsEditable | 
+			Qt.ItemIsUserCheckable | Qt.ItemIsEditable |
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 			all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		"""
@@ -590,8 +566,7 @@ class MyTableModel(QAbstractTableModel):
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
 	def headerData(self, col, orientation, role):
-		"""
-		Obtain column name if correctly asked
+		"""Obtain column name if correctly asked
 
 		Parameters:
 			col: the column index in `self.header`
@@ -610,8 +585,7 @@ class MyTableModel(QAbstractTableModel):
 		raise NotImplementedError()
 
 	def sort(self, col = 1, order = Qt.AscendingOrder):
-		"""
-		Sort table by the given column, number `col`
+		"""Sort table by the given column, number `col`
 
 		Parameters:
 			col: the column name
@@ -626,14 +600,13 @@ class MyTableModel(QAbstractTableModel):
 			pBLogger.warning("Wrong column name in `sort`: '%s'!"%col)
 		self.layoutChanged.emit()
 
+
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
 class TreeNode(object):
-	"""
-	Create an object that will work as a tree node
-	"""
+	"""Create an object that will work as a tree node"""
+
 	def __init__(self, parent, row):
-		"""
-		Constructor, set basic properties
+		"""Constructor, set basic properties
 
 		Parameters:
 			parent: the parent node
@@ -651,11 +624,12 @@ class TreeNode(object):
 		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
+
 class TreeModel(QAbstractItemModel):
 	"""Model for a tree structure."""
+
 	def __init__(self):
-		"""
-		Class constructor. Calls `_getRootNodes`
+		"""Class constructor. Calls `_getRootNodes`
 		to build the tree structure
 		"""
 		QAbstractItemModel.__init__(self)
@@ -666,8 +640,7 @@ class TreeModel(QAbstractItemModel):
 		raise NotImplementedError()
 
 	def index(self, row, column, parent = QModelIndex()):
-		"""
-		Retrieve the `QModelIndex` of the requested object
+		"""Retrieve the `QModelIndex` of the requested object
 
 		Parameters:
 			row (int): the row index
@@ -716,8 +689,7 @@ class TreeModel(QAbstractItemModel):
 			return self.createIndex(nodeParent.row, 0, nodeParent)
 
 	def rowCount(self, parent = QModelIndex()):
-		"""
-		Count the rows in a given tree branch
+		"""Count the rows in a given tree branch
 
 		Parameter:
 			parent: the `QModelIndex` of the branch parent
@@ -734,11 +706,12 @@ class TreeModel(QAbstractItemModel):
 		node = parent.internalPointer()
 		return len(node.subnodes)
 
+
 class NamedElement(object):
 	"""Basic object for the tree structure of categories"""
+
 	def __init__(self, idCat, name, subelements):
-		"""
-		Class constructor, set some element properties
+		"""Class constructor, set some element properties
 
 		Parameters:
 			idCat: the category id
@@ -750,11 +723,12 @@ class NamedElement(object):
 		self.text = catString(idCat, pBDB)
 		self.subelements = subelements
 
+
 class NamedNode(TreeNode):
 	"""Extend `TreeNode` to work with `NamedElement`"""
+
 	def __init__(self, element, parent, row):
-		"""
-		Define `self.element` and call `TreeNode.__init__`
+		"""Define `self.element` and call `TreeNode.__init__`
 
 		Parameters:
 			element: the `NamedElement` of the object
@@ -765,17 +739,16 @@ class NamedNode(TreeNode):
 		TreeNode.__init__(self, parent, row)
 
 	def _getChildren(self):
-		"""
-		Return a list of `NamedNode`s, containing the children nodes.
+		"""Return a list of `NamedNode`s, containing the children nodes.
 		Overrides `TreeNode._getChildren`
 		"""
 		return [NamedNode(elem, self, index)
 			for index, elem in enumerate(self.element.subelements)]
 
+
 #http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
 class LeafFilterProxyModel(QSortFilterProxyModel):
-	"""
-	Class to override the following behaviour:
+	"""Class to override the following behaviour:
 		If a parent item doesn't match the filter,
 		none of its children will be shown.
 
@@ -784,8 +757,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 	"""
 
 	def filterAcceptsRow(self, row_num, source_parent):
-		"""
-		Overriding the parent function
+		"""Overriding the parent function
 
 		Parameters:
 			row_num: the row number
@@ -803,8 +775,8 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		return self.hasAcceptedChildren(row_num, source_parent)
 
 	def filterAcceptsRowItself(self, row_num, parent):
-		"""
-		New name for the original `filterAcceptsRow`, which has been overridden
+		"""New name for the original `filterAcceptsRow`,
+		which has been overridden
 
 		Parameters:
 			row_num: the row number
@@ -814,8 +786,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 			row_num, parent)
 
 	def filterAcceptsAnyParent(self, parent):
-		"""
-		Traverse to the root node and check if any of the
+		"""Traverse to the root node and check if any of the
 		ancestors match the filter
 
 		Parameter:
@@ -828,8 +799,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		return False
 
 	def hasAcceptedChildren(self, row_num, parent):
-		"""
-		Starting from the current node as root, traverse all
+		"""Starting from the current node as root, traverse all
 		the descendants and test if any of the children match
 
 		Parameters:
@@ -845,13 +815,12 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 				return True
 		return False
 
+
 class MyDDTableWidget(QTableWidget):
-	"""
-	Drag and drop extension of QTableWidget
-	"""
+	"""Drag and drop extension of QTableWidget"""
+
 	def __init__(self, parent, header):
-		"""
-		Set some properties and settings.
+		"""Set some properties and settings.
 
 		Parameters:
 			header: the title of the column
@@ -866,8 +835,7 @@ class MyDDTableWidget(QTableWidget):
 
 	# Override this method to get the correct row index for insertion
 	def dropMimeData(self, row, col, mimeData, action):
-		"""
-		Overridden method to get the row index for insertion
+		"""Overridden method to get the row index for insertion
 
 		Parameters:
 			row: the index of the dropped row
@@ -878,8 +846,8 @@ class MyDDTableWidget(QTableWidget):
 		return True
 
 	def dropEvent(self, event):
-		"""
-		Accept dropEvent and move the selected item to the new position
+		"""Accept dropEvent and move the selected item
+		to the new position
 
 		Parameter:
 			event: a `QDropEvent`
@@ -922,8 +890,7 @@ class MyDDTableWidget(QTableWidget):
 		event.accept()
 
 	def getselectedRowsFast(self):
-		"""
-		Return the list of selected rows
+		"""Return the list of selected rows
 
 		Output:
 			a list with the row indexes of the selected rows
@@ -937,13 +904,12 @@ class MyDDTableWidget(QTableWidget):
 		selectedRows.sort()
 		return selectedRows
 
+
 class MyMenu(QMenu):
-	"""
-	Extend `QMenu` for faster menu build
-	"""
+	"""Extend `QMenu` for faster menu build"""
+
 	def __init__(self, parent = None):
-		"""
-		Construct the element defining some basic properties
+		"""Construct the element defining some basic properties
 
 		Parameter:
 			parent: the parent widget
@@ -953,8 +919,7 @@ class MyMenu(QMenu):
 		self.result = False
 
 	def fillMenu(self):
-		"""
-		Add actions, separators or submenus according to the content
+		"""Add actions, separators or submenus according to the content
 		of `self.possibleActions` (recursively for submenus)
 		"""
 		for act in self.possibleActions:
@@ -970,8 +935,7 @@ class MyMenu(QMenu):
 				self.addAction(act)
 
 	def keyPressEvent(self, e):
-		"""
-		Intercept press keys and exit if escape is pressed
+		"""Intercept press keys and exit if escape is pressed
 
 		Parameters:
 			e: the `PySide2.QtGui.QKeyEvent`
@@ -979,13 +943,12 @@ class MyMenu(QMenu):
 		if e.key() == Qt.Key_Escape:
 			self.close()
 
+
 class guiViewEntry(viewEntry):
-	"""
-	Extends the viewEntry class to work with QtGui.QDesktopServices
-	"""
+	"""Extends the viewEntry class to work with QtGui.QDesktopServices"""
+
 	def openLink(self, key, arg = "", fileArg = None):
-		"""
-		Use `QDesktopServices` to open an url using
+		"""Use `QDesktopServices` to open an url using
 		the system default applications
 
 		Parameters:
@@ -1016,23 +979,28 @@ class guiViewEntry(viewEntry):
 			else:
 				pBLogger.warning("Opening link for '%s' failed!"%key)
 
+
 pBGuiView = guiViewEntry()
 
+
 class MyImportedTableModel(MyTableModel):
+	"""Extend `MyTableModel` to manage the selection
+	during the import of entries
 	"""
-	Extend `MyTableModel` to manage the selection during the import of entries
-	"""
+
 	def __init__(self, parent, bibdict, header, idName = "ID", *args):
-		"""
-		Set some properties and settings
+		"""Set some properties and settings
 
 		Parameters:
 			parent: the parent widget (pass to `MyTableModel.__init__`)
-			bibdict: a dictionary with the info of the imported bibtex entries.
+			bibdict: a dictionary with the info
+				of the imported bibtex entries.
 				It should contain dictionaries with two items:
 					"bibpars", "exist"
-			header: the header names to be passed to `MyTableModel.__init__`
-			idName: the key of the field representing the unique ID of the item
+			header: the header names to be passed
+				to `MyTableModel.__init__`
+			idName: the key of the field representing
+				the unique ID of the item
 		"""
 		self.typeClass = "imports"
 		self.idName = idName
@@ -1043,8 +1011,7 @@ class MyImportedTableModel(MyTableModel):
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
-		"""
-		Return the unique identifier of the given element
+		"""Return the unique identifier of the given element
 
 		Parameters:
 			element: a dictionary
@@ -1052,8 +1019,7 @@ class MyImportedTableModel(MyTableModel):
 		return element[self.idName]
 
 	def data(self, index, role):
-		"""
-		Return the data for the requested cell and role
+		"""Return the data for the requested cell and role
 
 		Parameters:
 			index: a `QModelIndex`
@@ -1085,8 +1051,7 @@ class MyImportedTableModel(MyTableModel):
 		return None
 
 	def setData(self, index, value, role):
-		"""
-		Set the selection data for a given index
+		"""Set the selection data for a given index
 
 		Parameters:
 			index: a `QModelIndex`
@@ -1107,8 +1072,7 @@ class MyImportedTableModel(MyTableModel):
 		return True
 
 	def flags(self, index):
-		"""
-		Return the flags for the requested row
+		"""Return the flags for the requested row
 
 		Parameters:
 			index: a `QModelIndex`

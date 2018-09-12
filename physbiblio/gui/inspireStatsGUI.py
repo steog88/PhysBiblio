@@ -3,10 +3,7 @@ and paperStats plots.
 
 This file is part of the physbiblio package.
 """
-import sys
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
+import traceback
 import numpy as np
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -15,6 +12,9 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.backends.backend_qt5agg import \
 	FigureCanvasQTAgg as FigureCanvas
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 
 try:
 	from physbiblio.database import pBDB
@@ -36,10 +36,12 @@ figTitles = [
 "Citations for each paper"
 ]
 
+
 class authorStatsPlots(QDialog):
 	"""Class that constructs a window to show
 	the results of `authorStats`
 	"""
+
 	def __init__(self, figs, title = None, parent = None):
 		"""Constructor.
 
@@ -162,12 +164,15 @@ class authorStatsPlots(QDialog):
 				self.canvas[-1].draw()
 				i += 1
 
+
 class paperStatsPlots(QDialog):
 	"""Class that constructs a window
 	to show the results of `paperStats`
 	"""
+
 	def __init__(self, fig, title = None, parent = None):
 		"""Constructor.
+		Defines some properties and buttons
 
 		Parameters:
 			fig: the figure to be shown

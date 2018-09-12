@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.mainWindow module.
+"""Test file for the physbiblio.gui.mainWindow module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
@@ -26,9 +26,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMainWindow(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -252,6 +254,7 @@ class TestMainWindow(GUITestCase):
 	def test_done(self):
 		"""test"""
 		pass
+
 
 if __name__=='__main__':
 	unittest.main()

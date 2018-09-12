@@ -3,12 +3,10 @@ the experiments windows and panels.
 
 This file is part of the physbiblio package.
 """
-import sys
+import traceback
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import QAction, QLineEdit, QPushButton, QToolTip
-import traceback
-import operator
 
 try:
 	from physbiblio.config import pbConfig
@@ -25,6 +23,7 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
+
 
 def editExperiment(parentObject,
 		mainWinObject,
@@ -80,6 +79,7 @@ def editExperiment(parentObject,
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info=True)
 
+
 def deleteExperiment(parentObject, mainWinObject, idExp, name):
 	"""Ask confirmation and eventually delete the selected experiment
 
@@ -108,8 +108,10 @@ def deleteExperiment(parentObject, mainWinObject, idExp, name):
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info=True)
 
+
 class ExpTableModel(MyTableModel):
 	"""Model for the experiment list"""
+
 	def __init__(self,
 			parent,
 			exp_list,
@@ -201,8 +203,10 @@ class ExpTableModel(MyTableModel):
 		self.dataChanged.emit(index, index)
 		return True
 
+
 class ExpsListWindow(objListWindow):
 	"""create a window for printing the list of experiments"""
+
 	def __init__(self,
 			parent=None,
 			askExps=False,
@@ -346,7 +350,7 @@ class ExpsListWindow(objListWindow):
 			self.acceptButton = QPushButton('OK', self)
 			self.acceptButton.clicked.connect(self.onOk)
 			self.currLayout.addWidget(self.acceptButton)
-			
+
 			# cancel button
 			self.cancelButton = QPushButton('Cancel', self)
 			self.cancelButton.clicked.connect(self.onCancel)
@@ -518,8 +522,10 @@ class ExpsListWindow(objListWindow):
 			return True
 		return None
 
+
 class EditExperimentDialog(editObjectWindow):
 	"""create a window for editing or creating an experiment"""
+
 	def __init__(self, parent=None, experiment=None):
 		"""Extend `editObjectWindow.__init__` to define self.data
 		and call createForm

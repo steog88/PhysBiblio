@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.errorManager module.
+"""Test file for the physbiblio.gui.errorManager module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 import logging
 from PySide2.QtCore import Qt
@@ -29,11 +29,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestGUIErrorManager(GUITestCase):
-	"""
-	Test the functions in ErrorManager
-	"""
+	"""Test the functions in ErrorManager"""
+
 	def test_ErrorStream(self):
 		"""Test functions in ErrorStream"""
 		es = ErrorStream()
@@ -78,6 +78,7 @@ class TestGUIErrorManager(GUITestCase):
 		self.assertIsInstance(pgem.pBGUIErrorManager, pBErrorManagerClass)
 		self.assertIsInstance(pgem.pBGUILogger, logging.Logger)
 		self.assertEqual(pgem.pBGUILogger, pgem.pBGUIErrorManager.logger)
+
 
 if __name__=='__main__':
 	unittest.main()

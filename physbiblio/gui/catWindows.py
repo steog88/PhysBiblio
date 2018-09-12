@@ -3,7 +3,7 @@ the categories windows and panels.
 
 This file is part of the physbiblio package.
 """
-import sys
+import traceback
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import \
@@ -25,6 +25,7 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
+
 
 def editCategory(parentObject,
 		mainWinObject,
@@ -91,6 +92,7 @@ def editCategory(parentObject,
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info=True)
 
+
 def deleteCategory(parentObject, mainWinObject, idCat, name):
 	"""Ask confirmation and eventually delete the selected category
 
@@ -101,8 +103,8 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
 		idCat: the id of the category to be deleted
 		name: the name of the category to be deleted
 	"""
-	if askYesNo("Do you really want to delete this category " +
-			"(ID = '%s', name = '%s')?"%(idCat, name)):
+	if askYesNo("Do you really want to delete this category "
+			+ "(ID = '%s', name = '%s')?"%(idCat, name)):
 		pBDB.cats.delete(int(idCat))
 		mainWinObject.setWindowTitle("PhysBiblio*")
 		message = "Category deleted"
@@ -119,8 +121,10 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
 		pBLogger.debug("mainWinObject has no attribute 'statusBarMessage'",
 			exc_info=True)
 
+
 class catsModel(TreeModel):
 	"""Model for the categories tree"""
+
 	def __init__(self,
 			cats,
 			rootElements,
@@ -157,8 +161,8 @@ class catsModel(TreeModel):
 				else:
 					self.selectedCats[prevIx] = True
 			else:
-				pBLogger.warning("Invalid idCat in previous selection: " +
-					"%s"%prevIx)
+				pBLogger.warning("Invalid idCat in previous selection: "
+					+ "%s"%prevIx)
 
 	def _getRootNodes(self):
 		"""Obtain the list of named nodes which represent the root
@@ -268,8 +272,10 @@ class catsModel(TreeModel):
 		self.dataChanged.emit(index, index)
 		return True
 
+
 class catsTreeWindow(QDialog):
 	"""Extension of `QDialog` that shows the categories tree"""
+
 	def __init__(self,
 			parent=None,
 			askCats=False,
@@ -497,12 +503,12 @@ class catsTreeWindow(QDialog):
 		self.newCatButton = QPushButton('Add new category', self)
 		self.newCatButton.clicked.connect(self.onNewCat)
 		self.currLayout.addWidget(self.newCatButton)
-		
+
 		if self.askCats:
 			self.acceptButton = QPushButton('OK', self)
 			self.acceptButton.clicked.connect(self.onOk)
 			self.currLayout.addWidget(self.acceptButton)
-			
+
 			if self.expButton:
 				self.expsButton = QPushButton('Ask experiments', self)
 				self.expsButton.clicked.connect(self.onAskExps)
@@ -560,8 +566,8 @@ class catsTreeWindow(QDialog):
 			QCursor.pos(),
 			"{idC}: {cat}\nCorresponding entries: ".format(
 				idC = idCat,
-				cat = catData["name"]) +
-			"{en}\nAssociated experiments: {ex}".format(
+				cat = catData["name"])
+			+ "{en}\nAssociated experiments: {ex}".format(
 				en = pBDB.catBib.countByCat(idCat),
 				ex = pBDB.catExp.countByCat(idCat)),
 			self.tree.viewport(),
@@ -588,7 +594,7 @@ class catsTreeWindow(QDialog):
 		idCat, catName = self.proxyModel.sibling(row, 0, index) \
 			.data().split(": ")
 		idCat = idCat.strip()
-		
+
 		menu = MyMenu()
 		self.menu = menu
 		titAction = QAction("--Category: %s--"%catName)
@@ -636,8 +642,10 @@ class catsTreeWindow(QDialog):
 		self.cleanLayout()
 		self.createForm()
 
+
 class editCategoryDialog(editObjectWindow):
 	"""Create a window for editing or creating a category"""
+
 	def __init__(self, parent=None, category=None, useParentCat=None):
 		"""Set some properties and create the form content
 

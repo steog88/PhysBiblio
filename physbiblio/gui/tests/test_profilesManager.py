@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.profilesManager module.
+"""Test file for the physbiblio.gui.profilesManager module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
@@ -29,11 +29,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProf(GUITestCase):
-	"""
-	Test the editProf function
-	"""
+	"""Test the editProf function"""
+
 	@classmethod
 	def setUpClass(self):
 		"""set temporary pbConfig settings"""
@@ -332,9 +332,11 @@ class TestEditProf(GUITestCase):
 				os.path.join(pbConfig.dataPath, 'test1.db'),
 				os.path.join(pbConfig.dataPath, 'testNew.db'))
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestSelectProfiles(GUITestCase):
 	"""Test the selectProfiles class"""
+
 	@classmethod
 	def setUpClass(self):
 		"""set temporary pbConfig settings"""
@@ -470,11 +472,11 @@ class TestSelectProfiles(GUITestCase):
 			QTest.mouseClick(sp.loadButton, Qt.LeftButton)
 			_f.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestmyOrderPushButton(GUITestCase):
-	"""
-	Test the myOrderPushButton class
-	"""
+	"""Test the myOrderPushButton class"""
+
 	def test_init(self):
 		"""test init"""
 		self.max_diff = None
@@ -498,9 +500,11 @@ class TestmyOrderPushButton(GUITestCase):
 			opb = myOrderPushButton(p, 1, qi, "txt", True)
 			_i.assert_called_once_with(qi, "txt")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProfile(GUITestCase):
 	"""Test the editProfile class"""
+
 	@classmethod
 	def setUpClass(self):
 		"""set temporary pbConfig settings"""
@@ -1050,6 +1054,7 @@ class TestEditProfile(GUITestCase):
 		self.assertEqual(ep.layout().count(), 36)
 		ep.cleanLayout()
 		self.assertEqual(ep.layout().count(), 0)
+
 
 if __name__=='__main__':
 	unittest.main()

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.dialogWindows module.
+"""Test file for the physbiblio.gui.dialogWindows module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt, QEvent, QModelIndex
 from PySide2.QtTest import QTest
@@ -28,11 +28,11 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
-except Exception:
-	print(traceback.format_exc())
+
 
 class fake_abstractFormulas():
 	"""Used to test `dailyArxivSelect.cellClick`"""
+
 	def __init__(self):
 		"""empty constructor"""
 		return
@@ -55,9 +55,11 @@ class fake_abstractFormulas():
 			statusMessages = self.sm)
 		return self.el
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigEditColumns(GUITestCase):
 	"""Test configEditColumns"""
+
 	@classmethod
 	def setUpClass(self):
 		"""set temporary settings"""
@@ -178,9 +180,11 @@ class TestConfigEditColumns(GUITestCase):
 			QTest.mouseClick(cec.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigWindow(GUITestCase):
 	"""Test configWindow"""
+
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -444,9 +448,11 @@ class TestConfigWindow(GUITestCase):
 						pbConfig.loggingLevels[j])
 		pbConfig.params["loggingLevel"] = oldLevel
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLogFileContentDialog(GUITestCase):
 	"""Test LogFileContentDialog"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -528,9 +534,11 @@ class TestLogFileContentDialog(GUITestCase):
 		if os.path.exists(pbConfig.params["logFileName"]):
 			os.remove(pbConfig.params["logFileName"])
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPrintText(GUITestCase):
 	"""Test printText"""
+
 	def test_init(self):
 		"""test init"""
 		with patch("physbiblio.gui.dialogWindows.printText.initUI") as _u:
@@ -717,9 +725,11 @@ class TestPrintText(GUITestCase):
 		self.assertTrue(pt.closeButton.isEnabled())
 		self.assertTrue(pt._wantToClose)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportDialog(GUITestCase):
 	"""Test advImportDialog"""
+
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -796,9 +806,11 @@ class TestAdvImportDialog(GUITestCase):
 			QTest.mouseClick(aid.cancelButton, Qt.LeftButton)
 			_c.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportSelect(GUITestCase):
 	"""Test advImportSelect"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -953,9 +965,11 @@ class TestAdvImportSelect(GUITestCase):
 		self.assertEqual(None,
 			ais.cellDoubleClick(QModelIndex()))
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivDialog(GUITestCase):
 	"""Test dailyArxivDialog"""
+
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -1051,9 +1065,11 @@ class TestDailyArxivDialog(GUITestCase):
 			QTest.mouseClick(dad.cancelButton, Qt.LeftButton)
 			_c.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivSelect(GUITestCase):
 	"""Test dailyArxivSelect"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -1176,6 +1192,7 @@ class TestDailyArxivSelect(GUITestCase):
 			self.assertEqual(das.abstractFormulas.ce, das.abstractArea)
 			self.assertEqual(das.abstractFormulas.sm, False)
 			_d.assert_called_once_with()
+
 
 if __name__=='__main__':
 	unittest.main()

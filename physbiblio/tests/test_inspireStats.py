@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.inspireStats module.
+"""Test file for the physbiblio.inspireStats module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, os, datetime
+import sys
+import traceback
+import os
+import datetime
 import matplotlib
 
 if sys.version_info[0] < 3:

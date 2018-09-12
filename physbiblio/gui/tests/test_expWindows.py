@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.expWindows module.
+"""Test file for the physbiblio.gui.expWindows module.
 
 This file is part of the physbiblio package.
 """
@@ -30,9 +29,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestFunctions(GUITestCase):
 	"""Test the editExperiment and deleteExperiment functions"""
+
 	def test_editExperiment(self):
 		"""test editExperiment"""
 		p = QWidget()
@@ -225,9 +226,11 @@ class TestFunctions(GUITestCase):
 			_s.assert_called_once_with("Experiment deleted")
 			_r.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestExpTableModel(GUITestCase):
 	"""Test ExpTableModel"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -322,9 +325,11 @@ class TestExpTableModel(GUITestCase):
 		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
 		self.assertEqual(cm.selectedElements[0], False)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestExpsListWindow(GUITestCase):
 	"""Test ExpsListWindow"""
+
 	def setUp(self):
 		"""define common parameters for test use"""
 		self.exps = [
@@ -899,9 +904,11 @@ class TestExpsListWindow(GUITestCase):
 			_w.assert_called_once_with("Opening link '%s' failed!"%(
 				pbConfig.inspireRecord + '1234'), exc_info=True)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditExperimentDialog(GUITestCase):
 	"""Test EditExperimentDialog"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -1090,6 +1097,7 @@ class TestEditExperimentDialog(GUITestCase):
 			eed.acceptButton)
 		self.assertEqual(eed.layout().itemAtPosition(11, 1).widget(),
 			eed.cancelButton)
+
 
 if __name__=='__main__':
 	unittest.main()

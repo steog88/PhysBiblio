@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.pdf module.
+"""Test file for the physbiblio.pdf module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, os
+import sys
+import traceback
+import os
 import shutil
 
 if sys.version_info[0] < 3:
@@ -29,9 +30,7 @@ pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s"%today_ymd)
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestPdfMethods(unittest.TestCase):
-	"""
-	Test the methods and functions in the pdf module
-	"""
+	"""Test the methods and functions in the pdf module"""
 	def test_fnames(self):
 		"""Test names of folders and directories"""
 		self.assertEqual(pBPDF.badFName(r'a\b/c:d*e?f"g<h>i|' + "j'"),

@@ -7,12 +7,12 @@ import sys
 from PySide2.QtWidgets import \
 	QDialog, QFileDialog, QGridLayout, QInputDialog, QMessageBox, \
 	QTextEdit, QPushButton
-import traceback
 
 if sys.version_info[0] < 3:
 	from StringIO import StringIO
 else:
 	from io import StringIO
+
 
 def askYesNo(message, title = "Question", testing = False):
 	"""Uses `QMessageBox` to ask "Yes" or "No" for a given question.
@@ -42,6 +42,7 @@ def askYesNo(message, title = "Question", testing = False):
 	else:
 		return False
 
+
 def infoMessage(message, title = "Information", testing = False):
 	"""Uses `QMessageBox` to show a simple message.
 
@@ -60,8 +61,10 @@ def infoMessage(message, title = "Information", testing = False):
 		return mbox
 	mbox.exec_()
 
+
 class longInfoMessage(QDialog):
 	"""`infoMessage` version when a long text is expected"""
+
 	def __init__(self, message, title = "Information", testing = False):
 		"""Class constructor.
 
@@ -86,6 +89,7 @@ class longInfoMessage(QDialog):
 		self.setGeometry(100, 100, 600, 400)
 		if not testing:
 			self.exec_()
+
 
 def askGenericText(message, title, parent = None, testing = False):
 	"""Uses `QInputDialog` to ask a text answer for a given question.
@@ -113,6 +117,7 @@ def askGenericText(message, title, parent = None, testing = False):
 		return dialog
 	out = dialog.exec_()
 	return dialog.textValue(), out
+
 
 def askFileName(parent = None,
 		title = "Filename to use:",
@@ -144,6 +149,7 @@ def askFileName(parent = None,
 		return fileNames[0]
 	else:
 		return ""
+
 
 def askFileNames(parent = None,
 		title = "Filename to use:",
@@ -177,6 +183,7 @@ def askFileNames(parent = None,
 	else:
 		return []
 
+
 def askSaveFileName(parent = None,
 		title = "Filename to use:",
 		filter = "",
@@ -209,6 +216,7 @@ def askSaveFileName(parent = None,
 		return fileNames[0]
 	else:
 		return ""
+
 
 def askDirName(parent = None,
 		title = "Directory to use:",

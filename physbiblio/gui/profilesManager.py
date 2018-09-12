@@ -1,9 +1,9 @@
-"""
-Module with the classes and functions that enter the profiles management.
+"""Module with the classes and functions
+that enter the profiles management.
 
 This file is part of the physbiblio package.
 """
-import sys, time
+import traceback
 import os
 import glob
 import shutil
@@ -25,9 +25,9 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 def editProf(parent, statusBarObject, testing = False):
-	"""
-	Use `editProfile` and process the form output
+	"""Use `editProfile` and process the form output
 
 	Parameters:
 		parent: the parent object
@@ -60,10 +60,10 @@ def editProf(parent, statusBarObject, testing = False):
 					"description",
 					currEl["d"].text())
 				if currEl["x"].isChecked() and \
-						askYesNo("Do you really want to cancel the" +
-							" profile '%s'?\n"%name +
-							"The action cannot be undone!\n" +
-							"The corresponding database will not be erased."):
+						askYesNo("Do you really want to cancel the"
+							+ " profile '%s'?\n"%name
+							+ "The action cannot be undone!\n"
+							+ "The corresponding database will not be erased."):
 					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
 			elif fileName in [pbConfig.profiles[k]["db"].split(os.sep)[-1] \
@@ -77,10 +77,10 @@ def editProf(parent, statusBarObject, testing = False):
 					"description",
 					currEl["d"].text())
 				if currEl["x"].isChecked() and \
-						askYesNo("Do you really want to cancel the " +
-							"profile '%s'?\n"%name +
-							"The action cannot be undone!\n" +
-							"The corresponding database will not be erased."):
+						askYesNo("Do you really want to cancel the "
+							+ "profile '%s'?\n"%name
+							+ "The action cannot be undone!\n"
+							+ "The corresponding database will not be erased."):
 					pbConfig.globalDb.deleteProfile(name)
 					deleted.append(name)
 			else:
@@ -111,11 +111,12 @@ def editProf(parent, statusBarObject, testing = False):
 	except AttributeError:
 		pass
 
+
 class selectProfiles(QDialog):
 	"""Widget to change the profile"""
+
 	def __init__(self, parent, message = None):
-		"""
-		Instantiate the class
+		"""Instantiate the class
 
 		Parameters:
 			parent: the parent window (a `MainWindow` instance)
@@ -126,7 +127,7 @@ class selectProfiles(QDialog):
 		super(selectProfiles, self).__init__(parent)
 		self.message = message
 		self.initUI()
-	
+
 	def onCancel(self):
 		"""Set result to False and close the window"""
 		self.result	= False
@@ -145,8 +146,7 @@ class selectProfiles(QDialog):
 		self.close()
 
 	def initUI(self):
-		"""
-		Create a `QGridLayout` with the `MyComboBox` and
+		"""Create a `QGridLayout` with the `MyComboBox` and
 		the two selection buttons
 		"""
 		self.setWindowTitle('Select profile')
@@ -181,13 +181,12 @@ class selectProfiles(QDialog):
 
 		self.setLayout(grid)
 
+
 class myOrderPushButton(QPushButton):
-	"""
-	Define a button to switch two form lines
-	"""
+	"""Define a button to switch two form lines"""
+
 	def __init__(self, parent, data, qicon, text, testing = False):
-		"""
-		Extend `QPushButton.__init__`
+		"""Extend `QPushButton.__init__`
 
 		Parameters:
 			parent: the parent object (an `editProfile` instance)
@@ -212,16 +211,17 @@ class myOrderPushButton(QPushButton):
 		"""Return the parent"""
 		return self.parentObj
 
+
 class editProfile(editObjectWindow):
 	"""create a window for editing or creating a profile"""
+
 	def __init__(self, parent = None):
 		"""Prepare instance and create form"""
 		super(editProfile, self).__init__(parent)
 		self.createForm()
 
 	def onOk(self):
-		"""
-		In case "Ok" is pressed, decide if the result is valid:
+		"""In case "Ok" is pressed, decide if the result is valid:
 			* if the name or filename of the new profile are empty, reject;
 			* if the name or filename of the new profile are already in use,
 				reject;
@@ -231,19 +231,19 @@ class editProfile(editObjectWindow):
 					self.elements[-1]["n"].text().strip() == "") \
 				or (self.elements[-1]["f"].currentText().strip() == "" and \
 					self.elements[-1]["n"].text().strip() != ""):
-			pBGUILogger.info("Cannot create a new profile if 'name' or " +
-				"'filename' is empty.")
+			pBGUILogger.info("Cannot create a new profile if 'name' or "
+				+ "'filename' is empty.")
 			return
 		if self.elements[-1]["n"].text().strip() in \
 				[a["n"].text() for a in self.elements[:-1]]:
-			pBGUILogger.info("Cannot create new profile: " +
-				"'name' already in use.")
+			pBGUILogger.info("Cannot create new profile: "
+				+ "'name' already in use.")
 			return
 		if (self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] \
 				+ ".db").replace(".db.db", ".db") in \
 				[a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]]:
-			pBGUILogger.info("Cannot create new profile: " +
-				"'filename' already in use.")
+			pBGUILogger.info("Cannot create new profile: "
+				+ "'filename' already in use.")
 			return
 		self.result	= True
 		self.close()
@@ -252,8 +252,7 @@ class editProfile(editObjectWindow):
 			profilesData = None,
 			profileOrder = None,
 			defaultProfile = None):
-		"""
-		Read profiles configuration and add `QLineEdits` and buttons
+		"""Read profiles configuration and add `QLineEdits` and buttons
 		for the existing profiles, using previous form content if requested
 
 		Parameters:
@@ -341,8 +340,7 @@ class editProfile(editObjectWindow):
 			profileOrder = None,
 			defaultProfile = None,
 			newLine = {"r": False, "n": "", "db": "", "d": "", "c": "None"}):
-		"""
-		Create the form for managing profiles,
+		"""Create the form for managing profiles,
 		using previous form content if requested.
 
 		Parameters:
@@ -448,8 +446,7 @@ class editProfile(editObjectWindow):
 		self.currGrid.addWidget(self.cancelButton, i+1, 2)
 
 	def switchLines(self, ix):
-		"""
-		Save the current form content,
+		"""Save the current form content,
 		switch the order of the rows as required,
 		create a new form with the new order.
 

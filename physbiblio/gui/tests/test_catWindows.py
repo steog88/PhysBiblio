@@ -29,9 +29,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestFunctions(GUITestCase):
 	"""test editCategory and deleteCategory"""
+
 	def test_editCategory(self):
 		"""test editCategory"""
 		p = QWidget()
@@ -226,9 +228,11 @@ class TestFunctions(GUITestCase):
 			_s.assert_called_once_with("Category deleted")
 			_r.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCatsModel(GUITestCase):
 	"""test the catsModel class"""
+
 	def setUp(self):
 		"""define common parameters for test use"""
 		self.cats = [
@@ -424,9 +428,11 @@ class TestCatsModel(GUITestCase):
 		self.assertEqual(cm.previousSaved[0], False)
 		self.assertEqual(cm.selectedCats[0], False)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestCatsTreeWindow(GUITestCase):
 	"""test the catsTreeWindow class"""
+
 	def setUp(self):
 		"""define common parameters for test use"""
 		self.cats = [
@@ -1170,9 +1176,11 @@ class TestCatsTreeWindow(GUITestCase):
 			_c1.assert_called_once_with()
 			_c2.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditCategoryDialog(GUITestCase):
 	"""test the editCategoryDialog class"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -1461,6 +1469,7 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.textValues["parentCat"].text(), "Select parent")
 		self.assertEqual(ecd.textValues["comments"].text(), "no comment")
 		self.assertEqual(ecd.textValues["ord"].text(), "0")
+
 
 if __name__=='__main__':
 	unittest.main()

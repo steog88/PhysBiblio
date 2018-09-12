@@ -2,7 +2,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys, time
+import sys
+import traceback
+import time
 from PySide2.QtCore import Signal
 from outdated import check_outdated
 if sys.version_info[0] < 3:
@@ -23,11 +25,14 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 class thread_checkUpdated(MyThread):
 	"""Thread that checks if PhysBiblio is updated,
 	using the `outdated` package
 	"""
+
 	result = Signal(bool, str)
+
 	def run(self):
 		"""Run the thread, using `outdated.check_outdated`
 		and checking for errors
@@ -43,8 +48,10 @@ class thread_checkUpdated(MyThread):
 				+ "Are you offline?", exc_info=True)
 		self.finished.emit()
 
+
 class thread_updateAllBibtexs(MyThread):
 	"""Thread that uses `pBDB.bibs.searchOAIUpdates`"""
+
 	def __init__(self,
 			myrec,
 			startFrom,
@@ -91,12 +98,14 @@ class thread_updateAllBibtexs(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.runningOAIUpdates = False
 
+
 class thread_updateInspireInfo(MyThread):
 	"""Thread that uses `physbiblio.database.entries.updateInfoFromOAI`
 	to update the entry record.
 	If the inspireID is missing,
 	use `physbiblio.database.entries.updateInspireID` to retrieve it.
 	"""
+
 	def __init__(self, myrec, bibkey, inspireID = None, parent = None):
 		"""Initialize the thread and store the required settings
 
@@ -130,12 +139,14 @@ class thread_updateInspireInfo(MyThread):
 		self.receiver.running = False
 		self.finished.emit()
 
+
 class thread_downloadArxiv(MyThread):
 	"""Use `physbiblio.pdf.localPDF.downloadArxiv`
 	to download the article PDF from arXiv.
 	A valid arXiv number must be present
 	in the database record for the entry.
 	"""
+
 	def __init__(self, bibkey, parent = None):
 		"""Initialize the object.
 
@@ -150,11 +161,14 @@ class thread_downloadArxiv(MyThread):
 		pBPDF.downloadArxiv(self.bibkey)
 		self.finished.emit()
 
+
 class thread_processLatex(MyThread):
 	"""Thread the function that processes the presence
 	of maths in the abstracts
 	"""
+
 	passData = Signal(list, str)
+
 	def __init__(self, func, parent = None):
 		"""Instantiate object.
 
@@ -175,11 +189,13 @@ class thread_processLatex(MyThread):
 		self.passData.emit(images, text)
 		self.finished.emit()
 
+
 class thread_authorStats(MyThread):
 	"""Thread using
 	`physbiblio.inspireStats.inspireStatsLoader.authorStats`
 	for downloading the author citation statistics
 	"""
+
 	def __init__(self, myrec, name, parent):
 		"""Initialize the object
 
@@ -209,10 +225,12 @@ class thread_authorStats(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBStats.runningAuthorStats = False
 
+
 class thread_paperStats(MyThread):
 	"""Thread using `physbiblio.inspireStats.inspireStatsLoader.paperStats`
 	for downloading the paper citation statistics
 	"""
+
 	def __init__(self, myrec, inspireId, parent):
 		"""Initialize the object
 
@@ -237,8 +255,10 @@ class thread_paperStats(MyThread):
 		self.receiver.running = False
 		self.finished.emit()
 
+
 class thread_loadAndInsert(MyThread):
 	"""Thread the execution of `pBDB.bibs.loadAndInsert`"""
+
 	def __init__(self, myrec, content, parent):
 		"""Instantiate object.
 
@@ -271,10 +291,12 @@ class thread_loadAndInsert(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.runningLoadAndInsert = False
 
+
 class thread_cleanAllBibtexs(MyThread):
 	"""Thread the execution
 	of `physbiblio.database.entries.cleanBibtexs`
 	"""
+
 	def __init__(self, myrec, startFrom, parent = None, useEntries = None):
 		"""Instantiate the object
 
@@ -304,10 +326,12 @@ class thread_cleanAllBibtexs(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.runningCleanBibtexs = False
 
+
 class thread_findBadBibtexs(MyThread):
 	"""Thread the execution of
 	`physbiblio.database.entries.findCorruptedBibtexs`
 	"""
+
 	def __init__(self, myrec, startFrom, parent, useEntries = None):
 		"""Instantiate the object
 
@@ -345,10 +369,12 @@ class thread_findBadBibtexs(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.runningFindBadBibtexs = False
 
+
 class thread_importFromBib(MyThread):
 	"""Thread the execution of
 	`physbiblio.database.entries.importFromBib`
 	"""
+
 	def __init__(self, myrec, bibFile, complete, parent = None):
 		"""Instantiate the object
 
@@ -379,10 +405,12 @@ class thread_importFromBib(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.importFromBibFlag = False
 
+
 class thread_exportTexBib(MyThread):
 	"""Thread the execution of
 	`physbiblio.export.pbExport.exportForTexFile`
 	"""
+
 	def __init__(self, myrec, texFiles, outFName, parent = None):
 		"""Instantiate the object
 
@@ -412,10 +440,12 @@ class thread_exportTexBib(MyThread):
 		"""Set the stop flag for the threaded process"""
 		pBExport.exportForTexFlag = False
 
+
 class thread_cleanSpare(MyThread):
 	"""Thread the execution of
 	`physbiblio.database.utilities.cleanSpareEntries`
 	"""
+
 	def __init__(self, myrec, parent):
 		"""Instantiate the object
 
@@ -436,10 +466,12 @@ class thread_cleanSpare(MyThread):
 		self.receiver.running = False
 		self.finished.emit()
 
+
 class thread_cleanSparePDF(MyThread):
 	"""Thread the execution of
 	`physbiblio.pdf.localPDF.removeSparePDFFolders`
 	"""
+
 	def __init__(self, myrec, parent = None):
 		"""Instantiate the object
 
@@ -460,10 +492,12 @@ class thread_cleanSparePDF(MyThread):
 		self.receiver.running = False
 		self.finished.emit()
 
+
 class thread_fieldsArxiv(MyThread):
 	"""Thread the execution of
 	`physbiblio.database.entries.getFieldsFromArxiv`
 	"""
+
 	def __init__(self, myrec, entries, fields, parent = None):
 		"""Instantiate the object
 

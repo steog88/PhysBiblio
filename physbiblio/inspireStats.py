@@ -5,7 +5,6 @@ Uses matplotlib to do plots.
 
 This file is part of the physbiblio package.
 """
-import sys
 import time
 import os
 import traceback

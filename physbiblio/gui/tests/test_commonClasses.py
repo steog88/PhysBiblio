@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.commonClasses module.
+"""Test file for the physbiblio.gui.commonClasses module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 import time
 from PySide2.QtCore import Qt, \
@@ -34,20 +34,27 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 def fakeExec_writeStream_mys(x, text):
 	"""simulate WriteStream.run and set running=False"""
 	x.running = False
 	x.text = text
+
+
 def fakeExec_writeStream_fin(x):
 	"""probe that finished has been emitted"""
 	x.running = False
 	x.fin = True
+
+
 def fakeExec_dataChanged(x, y):
 	"""probe that dataChanged has been emitted"""
 	assert x == y
 
+
 class emptyTableModel(QAbstractTableModel):
 	"""Used to do tests when a table model is needed"""
+
 	def __init__(self, *args):
 		QAbstractTableModel.__init__(self, *args)
 
@@ -60,8 +67,10 @@ class emptyTableModel(QAbstractTableModel):
 	def data(self, index, role):
 		return None
 
+
 class emptyTreeModel(TreeModel):
 	"""Used to do tests when a tree model is needed"""
+
 	def __init__(self, elements, *args):
 		self.rootElements = elements
 		TreeModel.__init__(self, *args)
@@ -80,11 +89,11 @@ class emptyTreeModel(TreeModel):
 			return index.internalPointer().element.text
 		return None
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLabels(GUITestCase):
-	"""
-	Test the MyLabelRight and MyLabelCenter classes
-	"""
+	"""Test the MyLabelRight and MyLabelCenter classes"""
+
 	def test_myLabel(self):
 		"""Test MyLabel"""
 		l = MyLabel("label")
@@ -109,11 +118,11 @@ class TestLabels(GUITestCase):
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.alignment(), Qt.AlignCenter | Qt.AlignVCenter)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyComboBox(GUITestCase):
-	"""
-	Test the MyComboBox class
-	"""
+	"""Test the MyComboBox class"""
+
 	def test_init(self):
 		"""test the constructor"""
 		ew = QWidget()
@@ -135,11 +144,11 @@ class TestMyComboBox(GUITestCase):
 		self.assertEqual(mb.itemText(1), "2")
 		self.assertEqual(mb.itemText(2), "")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyAndOrCombo(GUITestCase):
-	"""
-	Test the MyAndOrCombo class
-	"""
+	"""Test the MyAndOrCombo class"""
+
 	def test_init(self):
 		"""test the constructor"""
 		mb = MyAndOrCombo(None)
@@ -157,11 +166,11 @@ class TestMyAndOrCombo(GUITestCase):
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "OR")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTrueFalseCombo(GUITestCase):
-	"""
-	Test the MyTrueFalseCombo class
-	"""
+	"""Test the MyTrueFalseCombo class"""
+
 	def test_init(self):
 		"""test the constructor"""
 		mb = MyTrueFalseCombo(None)
@@ -179,11 +188,11 @@ class TestMyTrueFalseCombo(GUITestCase):
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "False")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestObjListWindow(GUITestCase):
-	"""
-	Test the objListWindow class
-	"""
+	"""Test the objListWindow class"""
+
 	def test_init(self):
 		"""test the __init__ function"""
 		olw = objListWindow()
@@ -329,11 +338,11 @@ class TestObjListWindow(GUITestCase):
 			_cl.assert_called_once()
 			_ct.assert_called_once()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditObjectWindow(GUITestCase):
-	"""
-	Test the editObjectWindow class
-	"""
+	"""Test the editObjectWindow class"""
+
 	def test_init(self):
 		"""test constructor"""
 		ew = QWidget()
@@ -405,11 +414,11 @@ class TestEditObjectWindow(GUITestCase):
 			_tl.assert_called_once()
 			_mo.assert_called_once()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyThread(GUITestCase):
-	"""
-	Test the MyThread class
-	"""
+	"""Test the MyThread class"""
+
 	def test_methods(self):
 		"""test all the methods in the class"""
 		with patch("PySide2.QtCore.QThread.__init__", autospec = True) as _in:
@@ -429,15 +438,13 @@ class TestMyThread(GUITestCase):
 			mt.start(1, a = "try")
 			_st.assert_called_once_with(mt, 1, a = "try")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestWriteStream(GUITestCase):
-	"""
-	Test the WriteStream class
-	"""
+	"""Test the WriteStream class"""
+
 	def test_methods(self):
-		"""
-		Test __init__, write, run methods
-		"""
+		"""Test __init__, write, run methods"""
 		queue = Queue()
 		ws = WriteStream(queue)
 		self.assertIsInstance(ws, MyThread)
@@ -471,15 +478,13 @@ class TestWriteStream(GUITestCase):
 				self.assertEqual(ws.text, "abc")
 				self.assertTrue(ws.fin)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableWidget(GUITestCase):
-	"""
-	Test the MyTableWidget class
-	"""
+	"""Test the MyTableWidget class"""
+
 	def test_methods(self):
-		"""
-		Test __init__, contextMenuEvent methods
-		"""
+		"""Test __init__, contextMenuEvent methods"""
 		p = objListWindow()
 		mtw = MyTableWidget(2, 3, p)
 		self.assertIsInstance(mtw, QTableWidget)
@@ -504,15 +509,13 @@ class TestMyTableWidget(GUITestCase):
 			_c.assert_called_once_with(12)
 			_t.assert_called_once_with(0, 1, e)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableView(GUITestCase):
-	"""
-	Test the MyTableView class
-	"""
+	"""Test the MyTableView class"""
+
 	def test_methods(self):
-		"""
-		Test __init__, contextMenuEvent methods
-		"""
+		"""Test __init__, contextMenuEvent methods"""
 		p = objListWindow()
 		mtw = MyTableView(p)
 		self.assertIsInstance(mtw, QTableView)
@@ -535,11 +538,11 @@ class TestMyTableView(GUITestCase):
 			_c.assert_called_once_with(12)
 			_t.assert_called_once_with(0, 1, e)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyTableModel(GUITestCase):
-	"""
-	Test the MyTableModel class
-	"""
+	"""Test the MyTableModel class"""
+
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
@@ -800,11 +803,11 @@ class TestMyTableModel(GUITestCase):
 		mtm.sort("a")
 		self.assertEqual(mtm.dataList, dl)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestTreeNode(GUITestCase):
-	"""
-	Test the TreeNode class
-	"""
+	"""Test the TreeNode class"""
+
 	def test_methods(self):
 		"""test the __init__ and _getChildren methods"""
 		ew = QWidget()
@@ -818,11 +821,11 @@ class TestTreeNode(GUITestCase):
 			_gc.assert_called_once_with()
 		self.assertRaises(NotImplementedError, lambda: tn._getChildren())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestTreeModel(GUITestCase):
-	"""
-	Test the TreeModel class
-	"""
+	"""Test the TreeModel class"""
+
 	def createTm(self):
 		"""Create a model structure for tests"""
 		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes"):
@@ -952,11 +955,11 @@ class TestTreeModel(GUITestCase):
 		self.assertEqual(tm.rowCount(t2), 0)
 		self.assertEqual(tm.rowCount(t3), 0)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestNamedElement(GUITestCase):
-	"""
-	Test the NamedElement class
-	"""
+	"""Test the NamedElement class"""
+
 	def test_init(self):
 		"""test the constructor"""
 		with patch("physbiblio.gui.commonClasses.catString",
@@ -968,11 +971,11 @@ class TestNamedElement(GUITestCase):
 		self.assertEqual(ne.text, "abcde")
 		self.assertEqual(ne.subelements, ["a", "b"])
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestNamedNode(GUITestCase):
-	"""
-	Test the NamedNode class
-	"""
+	"""Test the NamedNode class"""
+
 	def test_methods(self):
 		"""test __init__ and _getChildren"""
 		el = NamedElement(1, "tags", [])
@@ -992,11 +995,11 @@ class TestNamedNode(GUITestCase):
 		self.assertEqual(len(nn._getChildren()), 1)
 		self.assertIsInstance(nn._getChildren()[0], NamedNode)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLeafFilterProxyModel(GUITestCase):
-	"""
-	Test the LeafFilterProxyModel class
-	"""
+	"""Test the LeafFilterProxyModel class"""
+
 	def test_init(self):
 		"""just check that the created object is an instance of parent class"""
 		lf = LeafFilterProxyModel()
@@ -1126,11 +1129,11 @@ class TestLeafFilterProxyModel(GUITestCase):
 					"emptyTreeModel.rowCount", return_value = 1) as _rc:
 			self.assertFalse(lf.hasAcceptedChildren(1, QModelIndex()))
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyDDTableWidget(GUITestCase):
-	"""
-	Test the MyDDTableWidget class
-	"""
+	"""Test the MyDDTableWidget class"""
+
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
@@ -1230,11 +1233,11 @@ class TestMyDDTableWidget(GUITestCase):
 			a = mddtw.getselectedRowsFast()
 			self.assertEqual(a, [1, 3, 8])
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyMenu(GUITestCase):
-	"""
-	Test the MyMenu class
-	"""
+	"""Test the MyMenu class"""
+
 	def test_init(self):
 		"""Test init"""
 		mm = MyMenu()
@@ -1296,15 +1299,15 @@ class TestMyMenu(GUITestCase):
 			QTest.keyPress(mm, Qt.Key_Escape)
 			_oc.assert_called_once()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestGuiViewEntry(GUITestCase):
-	"""
-	Test the GuiViewEntry class
-	"""
+	"""Test the GuiViewEntry class"""
+
 	def test_methods(self):
+		"""Test that the object is instance of `viewEntry`
+		and that openLink works
 		"""
-		Test that the object is instance of `viewEntry`
-		and that openLink works"""
 		gve = guiViewEntry()
 		self.assertIsInstance(gve, viewEntry)
 		self.assertIsInstance(pBGuiView, guiViewEntry)
@@ -1350,11 +1353,11 @@ class TestGuiViewEntry(GUITestCase):
 			_fl.assert_called_once_with("/a/b/c")
 			_ou.assert_called_once_with(QUrl("mylink"))
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyImportedTableModel(GUITestCase):
-	"""
-	Test the MyImportedTableModel class
-	"""
+	"""Test the MyImportedTableModel class"""
+
 	def test_init(self):
 		"""test init"""
 		with patch("physbiblio.gui.commonClasses.MyTableModel." +
@@ -1520,6 +1523,7 @@ class TestMyImportedTableModel(GUITestCase):
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			self.assertEqual(mitm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+
 
 if __name__=='__main__':
 	unittest.main()

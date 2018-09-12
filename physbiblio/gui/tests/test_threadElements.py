@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.threadElements module.
+"""Test file for the physbiblio.gui.threadElements module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtTest import QTest
@@ -34,11 +34,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_checkUpdated(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_checkUpdated
-	"""
+	"""Test the functions in threadElements.thread_checkUpdated"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -82,11 +82,11 @@ class Test_thread_checkUpdated(GUITestCase):
 			_w.assert_called_once_with('Error when trying to check ' +
 				'new versions. Are you offline?', exc_info=True)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_updateAllBibtexs(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_updateAllBibtexs
-	"""
+	"""Test the functions in threadElements.thread_updateAllBibtexs"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -134,11 +134,11 @@ class Test_thread_updateAllBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningOAIUpdates)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_updateInspireInfo(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_updateInspireInfo
-	"""
+	"""Test the functions in threadElements.thread_updateInspireInfo"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -189,11 +189,11 @@ class Test_thread_updateInspireInfo(GUITestCase):
 			_sl.assert_called_once_with(0.1)
 			h1.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_downloadArxiv(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_downloadArxiv
-	"""
+	"""Test the functions in threadElements.thread_downloadArxiv"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -214,11 +214,11 @@ class Test_thread_downloadArxiv(GUITestCase):
 			_fun.assert_called_once_with("Gariazzo:2015rra")
 			h1.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_processLatex(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_processLatex
-	"""
+	"""Test the functions in threadElements.thread_processLatex"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -244,11 +244,11 @@ class Test_thread_processLatex(GUITestCase):
 			h1.assert_called_once_with()
 			h2.assert_called_once_with(["a", "b"], "text")
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_authorStats(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_authorStats
-	"""
+	"""Test the functions in threadElements.thread_authorStats"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -295,11 +295,11 @@ class Test_thread_authorStats(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBStats.runningAuthorStats)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_paperStats(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_paperStats
-	"""
+	"""Test the functions in threadElements.thread_paperStats"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -336,11 +336,11 @@ class Test_thread_paperStats(GUITestCase):
 			h1.assert_called_once_with()
 			self.assertEqual(p.lastPaperStats, {"a": "b"})
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_loadAndInsert(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_loadAndInsert
-	"""
+	"""Test the functions in threadElements.thread_loadAndInsert"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -389,11 +389,11 @@ class Test_thread_loadAndInsert(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningLoadAndInsert)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanAllBibtexs(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_cleanAllBibtexs
-	"""
+	"""Test the functions in threadElements.thread_cleanAllBibtexs"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -436,11 +436,11 @@ class Test_thread_cleanAllBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningCleanBibtexs)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_findBadBibtexs(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_findBadBibtexs
-	"""
+	"""Test the functions in threadElements.thread_findBadBibtexs"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -485,11 +485,11 @@ class Test_thread_findBadBibtexs(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.runningFindBadBibtexs)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_importFromBib(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_importFromBib
-	"""
+	"""Test the functions in threadElements.thread_importFromBib"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -532,11 +532,11 @@ class Test_thread_importFromBib(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.importFromBibFlag)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_exportTexBib(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_exportTexBib
-	"""
+	"""Test the functions in threadElements.thread_exportTexBib"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -579,11 +579,11 @@ class Test_thread_exportTexBib(GUITestCase):
 		thr.setStopFlag()
 		self.assertFalse(pBExport.exportForTexFlag)
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanSpare(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_cleanSpare
-	"""
+	"""Test the functions in threadElements.thread_cleanSpare"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -612,11 +612,11 @@ class Test_thread_cleanSpare(GUITestCase):
 			_st.assert_called_once_with()
 			h1.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_cleanSparePDF(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_cleanSparePDF
-	"""
+	"""Test the functions in threadElements.thread_cleanSparePDF"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -645,11 +645,11 @@ class Test_thread_cleanSparePDF(GUITestCase):
 			_st.assert_called_once_with()
 			h1.assert_called_once_with()
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_fieldsArxiv(GUITestCase):
-	"""
-	Test the functions in threadElements.thread_fieldsArxiv
-	"""
+	"""Test the functions in threadElements.thread_fieldsArxiv"""
+
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
@@ -691,6 +691,7 @@ class Test_thread_fieldsArxiv(GUITestCase):
 		self.assertTrue(pBDB.bibs.getArxivFieldsFlag)
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.getArxivFieldsFlag)
+
 
 if __name__=='__main__':
 	unittest.main()

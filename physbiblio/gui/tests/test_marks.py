@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.marks module.
+"""Test file for the physbiblio.gui.marks module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
@@ -27,11 +27,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMarks(GUITestCase):
-	"""
-	Test the functions in marks.marks
-	"""
+	"""Test the functions in marks.marks"""
+
 	def test_pbmarks(self):
 		"""test that pBMarks exists"""
 		self.assertIsInstance(pBMarks, marks)
@@ -101,6 +101,7 @@ class TestMarks(GUITestCase):
 		for q, qcb in mv.items():
 			self.assertIsInstance(mv[q], QRadioButton)
 			self.assertFalse(qcb.isChecked())
+
 
 if __name__=='__main__':
 	unittest.main()

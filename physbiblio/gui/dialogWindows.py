@@ -3,16 +3,14 @@ that manage the some dialog windows.
 
 This file is part of the physbiblio package.
 """
-import sys
+import traceback
+import ast
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QTextCursor
 from PySide2.QtWidgets import \
 	QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, \
 	QLineEdit, QPlainTextEdit, QProgressBar, QPushButton, QTableWidgetItem, \
 	QTextEdit, QVBoxLayout
-import subprocess
-import traceback
-import ast
 
 try:
 	from physbiblio.config import pbConfig
@@ -31,8 +29,12 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
+
 class configEditColumns(QDialog):
-	"""Extend `QDialog` to ask the columns that must appear in the main table"""
+	"""Extend `QDialog` to ask the columns
+	that must appear in the main table
+	"""
+
 	def __init__(self, parent = None, previous = None):
 		"""Extend `QDialog.__init__` and create the form structure
 
@@ -87,8 +89,8 @@ class configEditColumns(QDialog):
 		self.selItems = self.previousSelected
 		isel = 0
 		iall = 0
-		for col in self.selItems + \
-				[i for i in self.allItems if i not in self.selItems]:
+		for col in self.selItems \
+				+ [i for i in self.allItems if i not in self.selItems]:
 			if col in self.excludeCols:
 				continue
 			item = QTableWidgetItem(col)
@@ -111,8 +113,10 @@ class configEditColumns(QDialog):
 		self.cancelButton.setAutoDefault(True)
 		self.gridlayout.addWidget(self.cancelButton, 2, 1)
 
+
 class configWindow(QDialog):
 	"""Create a window for editing the configuration settings"""
+
 	def __init__(self, parent = None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(configWindow, self).__init__(parent)
@@ -248,8 +252,8 @@ class configWindow(QDialog):
 						pbConfig.loggingLevels[int(val)])
 						])
 				except (IndexError, ValueError):
-					pBGUILogger.warning("Invalid string for 'loggingLevel' " +
-						"param. Reset to default")
+					pBGUILogger.warning("Invalid string for 'loggingLevel' "
+						+ "param. Reset to default")
 					self.textValues.append([k,
 						MyComboBox(self,
 							pbConfig.loggingLevels,
@@ -286,8 +290,10 @@ class configWindow(QDialog):
 		self.setGeometry(100, 100, 1000, 30*i)
 		self.setLayout(grid)
 
+
 class LogFileContentDialog(QDialog):
 	"""Create a window for showing the logFile content"""
+
 	def __init__(self, parent = None):
 		"""Instantiate class and create its widgets
 
@@ -343,8 +349,10 @@ class LogFileContentDialog(QDialog):
 		self.setGeometry(100, 100, 800, 800)
 		self.setLayout(grid)
 
+
 class printText(QDialog):
 	"""Create a window for printing text of command line output"""
+
 	stopped = Signal()
 
 	def __init__(self,
@@ -485,8 +493,10 @@ class printText(QDialog):
 		self._wantToClose = True
 		self.closeButton.setEnabled(True)
 
+
 class advImportDialog(QDialog):
 	"""create a window for the advanced import"""
+
 	def __init__(self, parent = None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(advImportDialog, self).__init__(parent)
@@ -536,8 +546,10 @@ class advImportDialog(QDialog):
 		self.setLayout(grid)
 		self.searchStr.setFocus()
 
+
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
+
 	def __init__(self, bibs = {}, parent = None):
 		"""Set some properties and call `initUI`
 
@@ -581,8 +593,8 @@ class advImportSelect(objListWindow):
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(MyLabel("This is the list of elements found." +
-			"\nSelect the ones that you want to import:"))
+		self.currLayout.addWidget(MyLabel("This is the list of elements found."
+			+ "\nSelect the ones that you want to import:"))
 
 		headers = ["ID", "title", "author", "eprint", "doi"]
 		for k in self.bibs.keys():
@@ -639,8 +651,10 @@ class advImportSelect(objListWindow):
 		"""Does nothing"""
 		pass
 
+
 class dailyArxivDialog(QDialog):
 	"""create a window for the advanced import"""
+
 	def __init__(self, parent = None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(dailyArxivDialog, self).__init__(parent)
@@ -665,8 +679,8 @@ class dailyArxivDialog(QDialog):
 				`physBiblioWeb.webSearch["arxiv"].categories` dictionary
 		"""
 		self.comboSub.clear()
-		self.comboSub.addItems(["--"] + \
-			physBiblioWeb.webSearch["arxiv"].categories[category])
+		self.comboSub.addItems(["--"] \
+			+ physBiblioWeb.webSearch["arxiv"].categories[category])
 
 	def initUI(self):
 		"""Create and fill the `QGridLayout`"""
@@ -700,8 +714,10 @@ class dailyArxivDialog(QDialog):
 		self.setGeometry(100, 100, 400, 100)
 		self.setLayout(self.grid)
 
+
 class dailyArxivSelect(advImportSelect):
 	"""create a window for the advanced import"""
+
 	def initUI(self):
 		"""Initialize the widget content, with the buttons and labels"""
 		self.setWindowTitle('ArXiv daily listing - results')
@@ -709,8 +725,8 @@ class dailyArxivSelect(advImportSelect):
 		self.currLayout.setSpacing(1)
 
 		self.currLayout.addWidget(
-			MyLabel("This is the list of elements found.\n" +
-				"Select the ones that you want to import:"))
+			MyLabel("This is the list of elements found.\n"
+				+ "Select the ones that you want to import:"))
 
 		headers = ["eprint", "type", "title", "author", "primaryclass"]
 		self.tableModel = MyImportedTableModel(self,
@@ -763,5 +779,5 @@ class dailyArxivSelect(advImportSelect):
 				statusMessages = False)
 			a.doText()
 		else:
-			pBLogger.debug("self.abstractFormulas not present in " +
-				"dailyArxivSelect. Eprint: %s"%eprint)
+			pBLogger.debug("self.abstractFormulas not present in "
+				+ "dailyArxivSelect. Eprint: %s"%eprint)

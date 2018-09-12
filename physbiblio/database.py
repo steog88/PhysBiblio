@@ -2,14 +2,12 @@
 
 This file is part of the physbiblio package.
 """
-import sqlite3
 from sqlite3 import \
 	OperationalError, ProgrammingError, DatabaseError, InterfaceError
 import os
 import re
 import traceback
 import datetime
-import ast
 import bibtexparser
 import six.moves
 from pyparsing import ParseException
@@ -3216,8 +3214,7 @@ class entries(physbiblioDBSub):
 
 	def searchOAIUpdates(self,
 			startFrom = 0, entries = None, force = False, reloadAll = False):
-		"""
-		Select unpublished papers and look for updates using inspireOAI
+		"""Select unpublished papers and look for updates using inspireOAI
 
 		Parameters:
 			startFrom (default 0): the index in the list of entries

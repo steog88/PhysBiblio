@@ -5,6 +5,10 @@ This file is part of the physbiblio package.
 """
 import sys
 import traceback
+import signal
+import ast
+import glob
+import bibtexparser
 if sys.version_info[0] < 3:
 	from Queue import Queue
 else:
@@ -15,10 +19,6 @@ from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtWidgets import \
 	QAction, QApplication, QDesktopWidget, QFrame, QMainWindow, \
 	QMessageBox, QSplitter, QStatusBar
-import signal
-import ast
-import glob
-import bibtexparser
 
 try:
 	from physbiblio.errors import pBErrorManager, pBLogger
@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
 	def __init__(self, testing = False):
 		QMainWindow.__init__(self)
 		availableWidth		= QDesktopWidget().availableGeometry().width()
-		availableHeight		= QDesktopWidget().availableGeometry().height() 
+		availableHeight		= QDesktopWidget().availableGeometry().height()
 		self.setWindowTitle('PhysBiblio')
 		#x,y of topleft corner, width, height
 		self.setGeometry(0, 0, availableWidth, availableHeight)
@@ -100,11 +100,9 @@ class MainWindow(QMainWindow):
 	def setIcon(self):
 		appIcon = QIcon(':/images/icon.png')
 		self.setWindowIcon(appIcon)
-		
+
 	def createActions(self):
-		"""
-		Create Qt actions used in GUI.
-		"""
+		"""Create Qt actions used in GUI."""
 		self.profilesAct = QAction(QIcon(":/images/profiles.png"),
 			"&Profiles", self,
 			shortcut="Ctrl+P",
@@ -139,7 +137,7 @@ class MainWindow(QMainWindow):
 			#shortcut="Ctrl+P",
 			statusTip="Export last query as *.bib",
 			triggered=self.export)
-								
+				
 		self.exportAllAct = QAction(QIcon(":/images/export-table.png"),
 			"Export &all as *.bib", self,
 			shortcut="Ctrl+A",
@@ -325,9 +323,7 @@ class MainWindow(QMainWindow):
 			event.accept()
 
 	def createMenusAndToolBar(self):
-		"""
-		Create Qt menus.
-		"""
+		"""Create Qt menus."""
 		self.fileMenu = self.menuBar().clear()
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.undoAct)
@@ -369,12 +365,12 @@ class MainWindow(QMainWindow):
 		self.catMenu = self.menuBar().addMenu("&Categories")
 		self.catMenu.addAction(self.CatAct)
 		self.catMenu.addAction(self.newCatAct)
-		
+
 		self.menuBar().addSeparator()
 		self.expMenu = self.menuBar().addMenu("&Experiments")
 		self.expMenu.addAction(self.ExpAct)
 		self.expMenu.addAction(self.newExpAct)
-		
+
 		self.menuBar().addSeparator()
 		self.toolMenu = self.menuBar().addMenu("&Tools")
 		self.toolMenu.addAction(self.dailyArxivAct)
@@ -567,9 +563,7 @@ class MainWindow(QMainWindow):
 		self.bibtexList.reloadColumnContents()
 
 	def showAbout(self):
-		"""
-		Function to show About Box
-		"""
+		"""Function to show About Box"""
 		mbox = QMessageBox(QMessageBox.Information,
 			"About PhysBiblio",
 			"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>"
@@ -596,9 +590,7 @@ class MainWindow(QMainWindow):
 		mbox.exec_()
 
 	def showDBStats(self, testing = False):
-		"""
-		Function to show About Box
-		"""
+		"""Function to show About Box"""
 		dbStats(pBDB)
 		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
 		mbox = QMessageBox(QMessageBox.Information,
@@ -673,12 +665,10 @@ class MainWindow(QMainWindow):
 			self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
 
 	def createStatusBar(self):
-		"""
-		Function to create Status Bar
-		"""
+		"""Function to create Status Bar"""
 		self.myStatusBar.showMessage('Ready', 0)
 		self.setStatusBar(self.myStatusBar)
-		
+
 	def statusBarMessage(self, message = "abc", time = 4000):
 		pBLogger.info(message)
 		self.myStatusBar.showMessage(message, time)
@@ -772,7 +762,7 @@ class MainWindow(QMainWindow):
 			self.statusBarMessage("All entries saved into %s"%filename)
 		else:
 			self.statusBarMessage("Empty output filename!")
-	
+
 	def categories(self):
 		self.statusBarMessage("categories triggered")
 		catListWin = catsTreeWindow(self)
@@ -780,7 +770,7 @@ class MainWindow(QMainWindow):
 
 	def newCategory(self):
 		editCategory(self, self)
-	
+
 	def experimentList(self):
 		self.statusBarMessage("experiments triggered")
 		expListWin = ExpsListWindow(self)
@@ -974,8 +964,8 @@ class MainWindow(QMainWindow):
 			fiOld, fiNew, old, new,
 			entries = pBDB.bibs.fetchCursor(), regex = regex)
 		QApplication.restoreOverrideCursor()
-		longInfoMessage("Replace completed.<br><br>" +
-			"%d elements successfully processed "%len(success)
+		longInfoMessage("Replace completed.<br><br>"
+			+ "%d elements successfully processed "%len(success)
 			+ "(of which %d changed), "%len(changed)
 			+ "%d failures (see below)."%len(failed)
 			+ "<br><br><b>Changed</b>: %s"%changed
