@@ -1,5 +1,4 @@
-"""
-The package that contains the tests for the `physbiblio.gui` subpackage.
+"""The package that contains the tests for the `physbiblio.gui` subpackage.
 
 This file is part of the physbiblio package.
 """
@@ -22,4 +21,5 @@ __all__ = [
 	"test_mainWindow",
 	"test_marks",
 	"test_profilesManager",
-	"test_threadElements"]
+	"test_threadElements",
+	]

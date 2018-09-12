@@ -1,5 +1,4 @@
-"""
-Adapting the code from setuptools.command.test:ScanningLoader,
+"""Adapting the code from setuptools.command.test:ScanningLoader,
 which is not finding tests in python3.
 
 This file is part of the physbiblio package.
@@ -10,11 +9,11 @@ if sys.version_info[0] < 3:
 else:
 	from unittest import TestLoader
 
-from pkg_resources import (resource_listdir, resource_exists)
+from pkg_resources import resource_listdir, resource_exists
+
 
 class MyScanningLoader(TestLoader):
-	"""
-	Custom ScanningLoader implementation to be used
+	"""Custom ScanningLoader implementation to be used
 	when calling `setup.py test`
 	"""
 

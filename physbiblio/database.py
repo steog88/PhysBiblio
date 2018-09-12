@@ -5,7 +5,10 @@ This file is part of the physbiblio package.
 import sqlite3
 from sqlite3 import \
 	OperationalError, ProgrammingError, DatabaseError, InterfaceError
-import os, re, traceback, datetime
+import os
+import re
+import traceback
+import datetime
 import ast
 import bibtexparser
 import six.moves
@@ -24,10 +27,12 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class physbiblioDB(physbiblioDBCore):
 	"""Subclassing physbiblioDBCore to add reOpenDB
 	and loadSubClasses implementations.
 	"""
+
 	def __init__(self, *args, **kwargs):
 		"""Wrapper for physbiblioDBCore.__init__"""
 		physbiblioDBCore.__init__(self, *args, **kwargs)
@@ -88,8 +93,10 @@ class physbiblioDB(physbiblioDBCore):
 		self.config = configurationDB(self)
 		return True
 
+
 class categories(physbiblioDBSub):
 	"""Subclass that manages the functions for the categories."""
+
 	def count(self):
 		"""Obtain the number of categories in the table"""
 		self.cursExec("SELECT Count(*) FROM categories")
@@ -134,9 +141,9 @@ class categories(physbiblioDBSub):
 			the output of self.connExec
 		"""
 		data["idCat"] = idCat
-		query = "replace into categories (" +\
-					", ".join(data.keys()) + ") values (:" + \
-					", :".join(data.keys()) + ")\n"
+		query = "replace into categories (" \
+			+ ", ".join(data.keys()) + ") values (:" \
+			+ ", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
 
 	def updateField(self, idCat, field, value):
@@ -413,8 +420,10 @@ class categories(physbiblioDBSub):
 			+ "where expCats.idExp=?\n", (idExp,))
 		return self.curs.fetchall()
 
+
 class catsEntries(physbiblioDBSub):
 	"""Functions for connecting categories and entries"""
+
 	def count(self):
 		"""obtain the number of rows in entryCats"""
 		self.cursExec("SELECT Count(*) FROM entryCats")
@@ -561,8 +570,10 @@ class catsEntries(physbiblioDBSub):
 				pBLogger.warning(
 					"Something failed in reading your input '%s'"%string)
 
+
 class catsExps(physbiblioDBSub):
 	"""Functions for connecting categories and experiments"""
+
 	def count(self):
 		"""obtain the number of rows in expCats"""
 		self.cursExec("SELECT Count(*) FROM expCats")
@@ -708,8 +719,10 @@ class catsExps(physbiblioDBSub):
 				pBLogger.warning(
 					"Something failed in reading your input '%s'"%string)
 
+
 class entryExps(physbiblioDBSub):
 	"""Functions for connecting entries and experiments"""
+
 	def count(self):
 		"""obtain the number of rows in entryExps"""
 		self.cursExec("SELECT Count(*) FROM entryExps")
@@ -858,8 +871,10 @@ class entryExps(physbiblioDBSub):
 				pBLogger.warning(
 					"Something failed in reading your input '%s'"%string)
 
+
 class experiments(physbiblioDBSub):
 	"""Functions to manage the experiments"""
+
 	def count(self):
 		"""obtain the number of experiments in the table"""
 		self.cursExec("SELECT Count(*) FROM experiments")
@@ -890,9 +905,9 @@ class experiments(physbiblioDBSub):
 			the output of self.connExec
 		"""
 		data["idExp"] = idExp
-		query = "replace into experiments (" +\
-					", ".join(data.keys()) + ") values (:" + \
-					", :".join(data.keys()) + ")\n"
+		query = "replace into experiments (" \
+			+ ", ".join(data.keys()) + ") values (:" \
+			+ ", :".join(data.keys()) + ")\n"
 		return self.connExec(query, data)
 
 	def updateField(self, idExp, field, value):
@@ -1193,8 +1208,10 @@ class experiments(physbiblioDBSub):
 			+ "\n", keys)
 		return self.curs.fetchall()
 
+
 class entries(physbiblioDBSub):
 	"""Functions to manage the bibtex entries"""
+
 	def __init__(self, parent):
 		"""Call parent __init__ and create an empty lastFetched & c."""
 		physbiblioDBSub.__init__(self, parent)
@@ -1570,7 +1587,7 @@ class entries(physbiblioDBSub):
 			fetched_in = self.curs.fetchall()
 			self.lastFetched = self.completeFetched(fetched_in)
 		return self
-	
+
 	def getAll(self,
 			params = None,
 			connection = "and",
@@ -1615,7 +1632,7 @@ class entries(physbiblioDBSub):
 		else:
 			return self.fetchAll(params = {"bibkey": bibkey},
 				saveQuery = saveQuery)
-		
+
 	def getByBibkey(self, bibkey, saveQuery = True):
 		"""Use self.fetchByBibkey and returns
 		the dictionary of fetched entries
@@ -1782,9 +1799,9 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		return self.connExec("INSERT into entries (" +
-			", ".join(self.tableCols["entries"]) + ") values (:" +
-			", :".join(self.tableCols["entries"]) + ")\n",
+		return self.connExec("INSERT into entries ("
+			+ ", ".join(self.tableCols["entries"]) + ") values (:"
+			+ ", :".join(self.tableCols["entries"]) + ")\n",
 			data)
 
 	def insertFromBibtex(self, bibtex):
@@ -1810,9 +1827,9 @@ class entries(physbiblioDBSub):
 			the output of self.connExec
 		"""
 		data["bibkey"] = oldkey
-		return self.connExec("replace into entries (" +\
-			", ".join(data.keys()) + ") values (:" + \
-			", :".join(data.keys()) + ")\n", data)
+		return self.connExec("replace into entries (" \
+			+ ", ".join(data.keys()) + ") values (:" \
+			+ ", :".join(data.keys()) + ")\n", data)
 
 	def prepareInsert(self,
 			bibtex,
@@ -1922,7 +1939,7 @@ class entries(physbiblioDBSub):
 		data["firstdate"] = firstdate if firstdate \
 			else datetime.date.today().strftime("%Y-%m-%d")
 		return data
-		
+
 	def prepareUpdateByKey(self, key_old, key_new):
 		"""Get an entry bibtex and prepare an update,
 		using the new bibtex from another database entry
@@ -1937,7 +1954,7 @@ class entries(physbiblioDBSub):
 		u = self.prepareUpdate(self.getField(key_old, "bibtex"),
 			self.getField(key_new, "bibtex"))
 		return self.prepareInsert(u)
-	
+
 	def prepareUpdateByBibtex(self, key_old, bibtex_new):
 		"""Get an entry bibtex and prepare an update,
 		using the new bibtex passed as an argument
@@ -1951,7 +1968,7 @@ class entries(physbiblioDBSub):
 		"""
 		u = self.prepareUpdate(self.getField(key_old, "bibtex"), bibtex_new)
 		return self.prepareInsert(u)
-		
+
 	def prepareUpdate(self, bibtexOld, bibtexNew):
 		"""Prepare the update of an entry, comparing two bibtexs.
 		Uses the fields from the old bibtex,
@@ -2013,7 +2030,7 @@ class entries(physbiblioDBSub):
 				return False
 		else:
 			return False
-	
+
 	def updateField(self, key, field, value, verbose = 1):
 		"""Update a single field of an entry
 
@@ -2041,7 +2058,7 @@ class entries(physbiblioDBSub):
 					"Non-existing field or unappropriated value: "
 					+ "(%s, %s, %s)"%(key, field, value))
 			return False
-	
+
 	def updateBibkey(self, oldKey, newKey):
 		"""Update the bibtex key of an entry
 
@@ -2083,7 +2100,7 @@ class entries(physbiblioDBSub):
 		except:
 			pBLogger.warning("Impossible to update bibkey", exc_info=True)
 			return False
-			
+
 	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
 		"""Use inspire OAI webinterface to get updated information
 		on the entries between two dates
@@ -2230,7 +2247,7 @@ class entries(physbiblioDBSub):
 			pBLogger.exception("Something missing in entry %s"%inspireID)
 			return False
 		return True
-	
+
 	def updateFromOAI(self, entry, verbose = 0):
 		"""Update an entry from inspire OAI.
 		If inspireID is missing, look for it before
@@ -2703,7 +2720,7 @@ class entries(physbiblioDBSub):
 		else:
 			pBLogger.error("Invalid arguments!")
 			return False
-			
+
 	def loadAndInsertWithCats(self,
 			entry,
 			method = "inspire",
@@ -2901,7 +2918,7 @@ class entries(physbiblioDBSub):
 				self.setNoUpdate(q, value)
 		else:
 			return self.updateField(key, "noUpdate", value, 0)
-			
+
 	def printAllBibtexs(self, entriesIn = None):
 		"""Print the bibtex codes for all the entries
 		(or for a given subset)
@@ -2923,7 +2940,7 @@ class entries(physbiblioDBSub):
 				_print(i, e)
 				total += 1
 		pBLogger.info("%d elements found"%total)
-			
+
 	def printAllBibkeys(self, entriesIn = None):
 		"""Print the bibtex keys for all the entries
 		(or for a given subset)
@@ -2945,7 +2962,7 @@ class entries(physbiblioDBSub):
 				_print(i, e)
 				total += 1
 		pBLogger.info("%d elements found"%total)
-			
+
 	def printAllInfo(self,
 			entriesIn = None,
 			orderBy = "firstdate",
@@ -3290,8 +3307,10 @@ class entries(physbiblioDBSub):
 			pBLogger.info(changed)
 		return num, err, changed
 
+
 class utilities(physbiblioDBSub):
 	"""Adds some more useful functions to the database management"""
+
 	def cleanSpareEntries(self):
 		"""Find and delete connections
 		(bibtex-category, bibtex-experiment, category-experiment)
@@ -3317,7 +3336,7 @@ class utilities(physbiblioDBSub):
 		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.fetchCursor() ]
 		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
 		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
-		
+
 		deletePresent(bibkeys, idExps,
 			[ [e["bibkey"], e["idExp"]] for e in self.mainDB.bibExp.getAll()],
 			self.mainDB.bibExp.delete)
@@ -3327,7 +3346,7 @@ class utilities(physbiblioDBSub):
 		deletePresent(idCats, idExps,
 			[ [e["idCat"], e["idExp"]] for e in self.mainDB.catExp.getAll()],
 			self.mainDB.catExp.delete)
-	
+
 	def cleanAllBibtexs(self, verbose = 0):
 		"""Remove newlines, non-standard characters
 		and comments from the bibtex of all the entries in the database
@@ -3343,6 +3362,7 @@ class utilities(physbiblioDBSub):
 			t = parse_accents_str(t)
 			t = b.rmBibtexACapo(t)
 			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
+
 
 def catString(idCat, db, withDesc = False):
 	"""Return the string describing the category
@@ -3367,6 +3387,7 @@ def catString(idCat, db, withDesc = False):
 	else:
 		return '%4d: %s'%(cat['idCat'], cat['name'])
 
+
 def cats_alphabetical(listId, db):
 	"""Sort the categories in the given list in alphabetical order
 
@@ -3386,10 +3407,11 @@ def cats_alphabetical(listId, db):
 	decorated.sort()
 	return [ x[1]["idCat"] for x in decorated ]
 
+
 def dbStats(db):
 	"""Get statistics on the number of entries
 	in the various database tables
-	
+
 	Parameters:
 		db: the database (instance of physbiblioDB)
 	"""
@@ -3400,5 +3422,6 @@ def dbStats(db):
 	db.stats["catBib"] = db.catBib.count()
 	db.stats["catExp"] = db.catExp.count()
 	db.stats["bibExp"] = db.bibExp.count()
+
 
 pBDB = physbiblioDB(pbConfig.currentDatabase, pBLogger)

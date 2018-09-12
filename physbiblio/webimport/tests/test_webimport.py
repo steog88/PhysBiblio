@@ -280,8 +280,10 @@ class TestWebImportMethods(unittest.TestCase):
 		self.assertEqual(type(result), list)
 		print(len(result), result[0])
 
+
 class TestWebImportOffline(unittest.TestCase):
 	"""Offline test for some functions of the webImport package."""
+
 	def test_arxivYear(self):
 		"""test the arxivDaily method in the arxiv module"""
 		self.assertEqual(physBiblioWeb.webSearch["arxiv"].getYear("abc"), None)
@@ -458,6 +460,7 @@ as force and matter fields.
 					u'Joannis Papavassiliou', u'Craig D. Roberts',
 					u'Hong-Shi Zong'],
 				'replacement': True})
+
 
 if __name__=='__main__':
 	unittest.main()

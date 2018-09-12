@@ -3,10 +3,12 @@ of the database entries into .bib files.
 
 This file is part of the physbiblio package.
 """
-import os, codecs, re
-import bibtexparser
+import os
+import re
 import shutil
 import traceback
+import codecs
+import bibtexparser
 
 try:
 	from physbiblio.errors import pBLogger
@@ -18,8 +20,10 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class pbExport():
 	"""Class that contains the export functions and related."""
+
 	def __init__(self):
 		"""Initialize the class instance and set some default variables."""
 		self.exportForTexFlag = True
@@ -200,8 +204,8 @@ class pbExport():
 			if len(nKeys.keys()) > 0:
 				pBLogger.info(
 					"Possible non-matching keys in %d entries:\n"%len(
-						nKeys.keys()) + \
-					"\n".join(["'%s' => '%s'"%(k, n) \
+						nKeys.keys()) \
+					+ "\n".join(["'%s' => '%s'"%(k, n) \
 						for k, n in nKeys.items() ] ) )
 			pBLogger.info("     %s warning(s) occurred!"%warn)
 
@@ -517,5 +521,6 @@ class pbExport():
 		if overwrite:
 			self.rmBackupCopy(fileName)
 		return True
+
 
 pBExport = pbExport()

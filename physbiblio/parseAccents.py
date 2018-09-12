@@ -17,6 +17,7 @@ except ImportError:
 
 accents_changed = []
 
+
 def parse_accents_str(string):
 	"""Function that reads a string and translates
 	all the known unicode characters into latex commands.
@@ -30,6 +31,7 @@ def parse_accents_str(string):
 	if string is not None and string is not "":
 		string = utf8tolatex(string, non_ascii_only=True)
 	return string
+
 
 def parse_accents_record(record):
 	"""Function that reads the fields inside a bibtex dictionary
@@ -65,9 +67,9 @@ latex_replace = [
 	["text", "rm"],
 ]
 
+
 def texToHtml(text):
-	"""
-	Function that converts some Latex commands into HTML commands.
+	"""Function that converts some Latex commands into HTML commands.
 
 	Parameters:
 		text: the string to be processed

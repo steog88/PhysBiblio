@@ -2,7 +2,8 @@
 
 This file is part of the physbiblio package.
 """
-import subprocess, traceback
+import subprocess
+import traceback
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
@@ -12,9 +13,11 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
-	
+
+
 class viewEntry():
 	"""Contains methods to print or open a web link to the entry"""
+
 	def __init__(self):
 		"""Init the class, storing the name of
 		the external web application
@@ -24,7 +27,7 @@ class viewEntry():
 
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
-		
+
 	def getLink(self, key, arg = "arxiv", fileArg = None):
 		"""Uses database information to construct and
 		print the web link, or the pdf module to open a pdf
@@ -106,5 +109,6 @@ class viewEntry():
 			else:
 				pBLogger.warning("Impossible to get the '%s'"%arg
 					+ " link for entry '%s'"%key)
+
 
 pBView = viewEntry()

@@ -1,9 +1,11 @@
-"""
-Utilities for in the tests of the physbiblio modules.
+"""Utilities for in the tests of the physbiblio modules.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, datetime, os
+import sys
+import traceback
+import datetime
+import os
 from PySide2.QtWidgets import QApplication, QFileDialog
 
 if sys.version_info[0] < 3:
@@ -18,19 +20,22 @@ else:
 globalQApp = QApplication()
 
 def fakeExec(x, string, out):
-	"""
-	Simulate the selection of some files and
+	"""Simulate the selection of some files and
 	return True/False as if confirmed/canceled
 	"""
 	QFileDialog.selectFile(x, string)
 	return out
 
 class GUITestCase(unittest.TestCase):
+	"""Class that manages GUI tests"""
+
 	@classmethod
 	def setUpClass(self):
+		"""Assign a temporary QApplication to the class instance"""
 		self.maxDiff = None
 		self.qapp = globalQApp
 
 	@classmethod
 	def tearDownClass(self):
+		"""Remove a temporary QApplication from the class instance"""
 		del self.qapp

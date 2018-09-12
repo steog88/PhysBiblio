@@ -979,7 +979,7 @@ class TestNamedNode(GUITestCase):
 		main = NamedElement(0, "main", [el])
 		nn = NamedNode(main, None, 0)
 		self.assertIsInstance(nn, TreeNode)
-		with patch("physbiblio.gui.commonClasses.TreeNode.__init__", 
+		with patch("physbiblio.gui.commonClasses.TreeNode.__init__",
 				return_value = None) as _in:
 			nn = NamedNode(main, None, 0)
 			_in.assert_called_once_with(nn, None, 0)

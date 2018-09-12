@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Main file for the PhysBiblio application,
+"""Main file for the PhysBiblio application,
 a bibliography manager written in Python.
 
 This file is part of the physbiblio package.

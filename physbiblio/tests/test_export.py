@@ -66,8 +66,8 @@ class TestExportMethods(unittest.TestCase):
 		sampleList = [
 			{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'},
 			{"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
-		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' + \
-			'@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
+		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' \
+			+ '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
 		pBDB.bibs.lastFetched = sampleList
 		pBExport.exportLast(testBibName)
 		with open(testBibName) as f:
@@ -100,8 +100,8 @@ class TestExportMethods(unittest.TestCase):
 		sampleList = [
 			{"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'},
 			{"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
-		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' + \
-			'@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
+		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' \
+			+ '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
 		with patch('physbiblio.database.entries.fetchCursor',
 				return_value = sampleList) as _curs:
 			pBExport.exportAll(testBibName)
@@ -113,15 +113,15 @@ class TestExportMethods(unittest.TestCase):
 		"""test exportForTexFile function with a fake tex and database"""
 		testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib"%today_ymd)
 		testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex"%today_ymd)
-		texString = "\cite{empty,prova, empty2}\citep{empty2}" + \
-			"\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+		texString = "\cite{empty,prova, empty2}\citep{empty2}" \
+			+ "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
 		with open(testTexName, "w") as f:
 			f.write(texString)
 		with open(testTexName) as f:
 			self.assertEqual(f.read(), texString)
 		sampleList = [{"bibkey": "empty", "bibtex":
-			'@Article{empty,\n        author = "me",\n         ' +
-			'title = "{no}",\n}'},
+			'@Article{empty,\n        author = "me",\n         '
+			+ 'title = "{no}",\n}'},
 			{"bibkey": "empty2", "bibtex":
 				'@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 
@@ -134,27 +134,27 @@ class TestExportMethods(unittest.TestCase):
 						'@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
 					[],
 					[{"bibkey": "Gariazzo:2015rra", "bibtexDict": {},
-					"bibtex": '@article{Gariazzo:2015rra,\nauthor= ' +
-					'"Gariazzo, S. and others",\ntitle=' +
-					'"{Light sterile neutrinos}",\n}'}],
+					"bibtex": '@article{Gariazzo:2015rra,\nauthor= '
+					+ '"Gariazzo, S. and others",\ntitle='
+					+ '"{Light sterile neutrinos}",\n}'}],
 					[{"bibkey": "empty2", "bibtexDict": {}, "bibtex":
 						'@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}],
 					[],
 					[{"bibkey": "Gariazzo:2015rra", "bibtexDict": {},
-					"bibtex": '@article{Gariazzo:2015rra,\nauthor= ' +
-					'"Gariazzo, S. and others",\ntitle=' +
-					'"{Light sterile neutrinos}",\n}'}],
+					"bibtex": '@article{Gariazzo:2015rra,\nauthor= '
+					+ '"Gariazzo, S. and others",\ntitle='
+					+ '"{Light sterile neutrinos}",\n}'}],
 					[],
 					[],
 					]) as _getbbibt:
 				with patch('physbiblio.database.entries.loadAndInsert',
 						side_effect = [
-						'@article{Gariazzo:2015rra,\nauthor= ' +
-						'"Gariazzo, S. and others",\ntitle=' +
-						'"{Light sterile neutrinos}",\n}',
-						'@article{Gariazzo:2015rra,\nauthor= ' +
-						'"Gariazzo, S. and others",\ntitle=' +
-						'"{Light sterile neutrinos}",\n}',
+						'@article{Gariazzo:2015rra,\nauthor= '
+						+ '"Gariazzo, S. and others",\ntitle='
+						+ '"{Light sterile neutrinos}",\n}',
+						'@article{Gariazzo:2015rra,\nauthor= '
+						+ '"Gariazzo, S. and others",\ntitle='
+						+ '"{Light sterile neutrinos}",\n}',
 						'']) as _mock:
 					output = pBExport.exportForTexFile(
 						testTexName, testBibName, overwrite = True,
@@ -174,16 +174,16 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{empty,\n        author = "me",\n         title = ' +
-					'"{no}",\n}\n\n',
-				'@Article{prova,\n        author = "Gariazzo, S. and others",' +
-					'\n         title = "{Light sterile neutrinos}",' +
-					'\n}\n\n',
-				'@Article{empty2,\n        author = "me2",\n         title = ' +
-					'"{yes}",\n}\n\n',
-				'@Article{Gariazzo:2015rra,\n        author = ' +
-					'"Gariazzo, S. and others",\n         title = ' +
-					'"{Light sterile neutrinos}",\n}\n\n']:
+				'@Article{empty,\n        author = "me",\n         title = '
+					+ '"{no}",\n}\n\n',
+				'@Article{prova,\n        author = "Gariazzo, S. and others",'
+					+ '\n         title = "{Light sterile neutrinos}",'
+					+ '\n}\n\n',
+				'@Article{empty2,\n        author = "me2",\n         title = '
+					+ '"{yes}",\n}\n\n',
+				'@Article{Gariazzo:2015rra,\n        author = '
+					+ '"Gariazzo, S. and others",\n         title = '
+					+ '"{Light sterile neutrinos}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "a") as f:
@@ -196,13 +196,13 @@ class TestExportMethods(unittest.TestCase):
 					[],
 					[],
 					[{"bibkey": "newcite", "bibtexDict": {}, "bibtex":
-						'@article{newcite,\nauthor= "myself",\ntitle=' +
-						'"{some paper}",\n}'}],
+						'@article{newcite,\nauthor= "myself",\ntitle='
+						+ '"{some paper}",\n}'}],
 					]) as _getbbibt,\
 				patch('physbiblio.database.entries.loadAndInsert',
 					side_effect = ['',
-					'@article{newcite,\nauthor= "myself",\ntitle=' +
-						'"{some paper}",\n}']) as _mock:
+					'@article{newcite,\nauthor= "myself",\ntitle='
+						+ '"{some paper}",\n}']) as _mock:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave = False)
 		self.assertEqual(output[0],
@@ -218,25 +218,25 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{empty,\n        author = "me",\n         title = ' +
-					'"{no}",\n}\n\n',
-				'@Article{prova,\n        author = "Gariazzo, S. and others"' +
-					',\n         title = "{Light sterile neutrinos}",\n}\n\n',
-				'@Article{empty2,\n        author = "me2",\n         title = ' +
-					'"{yes}",\n}\n\n',
-				'@Article{Gariazzo:2015rra,\n        author = ' +
-					'"Gariazzo, S. and others",\n         title = ' +
-					'"{Light sterile neutrinos}",\n}\n\n',
-				'@Article{newcite,\n        author = "myself",' +
-					'\n         title = "{some paper}",\n}\n\n']:
+				'@Article{empty,\n        author = "me",\n         title = '
+					+ '"{no}",\n}\n\n',
+				'@Article{prova,\n        author = "Gariazzo, S. and others"'
+					+ ',\n         title = "{Light sterile neutrinos}",\n}\n\n',
+				'@Article{empty2,\n        author = "me2",\n         title = '
+					+ '"{yes}",\n}\n\n',
+				'@Article{Gariazzo:2015rra,\n        author = '
+					+ '"Gariazzo, S. and others",\n         title = '
+					+ '"{Light sterile neutrinos}",\n}\n\n',
+				'@Article{newcite,\n        author = "myself",'
+					+ '\n         title = "{some paper}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
 			f.write("\cite{newcite}")
 		with patch('physbiblio.database.entries.getByBibtex', side_effect = [
 				[{"bibkey": "newcite", "bibtexDict": {},
-				"bibtex": '@article{newcite,\nauthor= "myself",\ntitle=' +
-					'"{some paper}",\n}'}],
+				"bibtex": '@article{newcite,\nauthor= "myself",\ntitle='
+					+ '"{some paper}",\n}'}],
 				]) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, overwrite = True, autosave = False)
@@ -252,16 +252,16 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite,\n        author = "myself",\n         ' +
-					'title = "{some paper}",\n}\n\n']:
+				'@Article{newcite,\n        author = "myself",\n         '
+					+ 'title = "{some paper}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
 			f.write("\cite{newcite}\cite{bib1}\cite{bib2}")
-		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' + \
-			'"{newtitle}"\n}'
-		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' + \
-			'"{Light sterile neutrinos}",\n}'
+		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' \
+			+ '"{newtitle}"\n}'
+		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
+			+ '"{Light sterile neutrinos}",\n}'
 		bibtex3 = '@Article{bib2,\nauthor="me",\ntitle="title"\n}'
 		with patch('physbiblio.database.entries.getByBibtex', side_effect = [
 				[{"bibkey": "newcite", "bibtexDict":
@@ -289,20 +289,20 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite,\n        author = "S. Gariazzo",' +
-					'\n         title = "{newtitle}",\n}\n\n',
-				'@Article{bib1,\n        author = "SG",\n         title = ' +
-					'"{Light sterile neutrinos}",\n}\n\n',
-				'@Article{bib2,\n        author = "me",\n         title = ' +
-					'"{title}",\n}\n\n']:
+				'@Article{newcite,\n        author = "S. Gariazzo",'
+					+ '\n         title = "{newtitle}",\n}\n\n',
+				'@Article{bib1,\n        author = "SG",\n         title = '
+					+ '"{Light sterile neutrinos}",\n}\n\n',
+				'@Article{bib2,\n        author = "me",\n         title = '
+					+ '"{title}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
 			f.write("\cite{newcite}\cite{bib1}")
-		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' + \
-			'"{newtitle}"\n}'
-		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' + \
-			'"{Light sterile neutrinos}",\n}'
+		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' \
+			+ '"{newtitle}"\n}'
+		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
+			+ '"{Light sterile neutrinos}",\n}'
 		with patch('physbiblio.database.entries.getByBibtex', side_effect = [
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
@@ -326,16 +326,16 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite,\n        author = "S. Gariazzo",' +
-					'\n         title = "{newtitle}",\n}\n\n',
-				'@Article{bib1,\n        author = "SG",\n         ' +
-					'title = "{Light sterile neutrinos}",\n}\n\n']:
+				'@Article{newcite,\n        author = "S. Gariazzo",'
+					+ '\n         title = "{newtitle}",\n}\n\n',
+				'@Article{bib1,\n        author = "SG",\n         '
+					+ 'title = "{Light sterile neutrinos}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
 			f.write("\cite{newcite}")
-		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",' + \
-			'\ntitle="{title}"\n}'
+		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",' \
+			+ '\ntitle="{title}"\n}'
 		with patch('physbiblio.database.entries.getByBibtex', side_effect = [
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
@@ -356,8 +356,8 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite,\n        author = "S. Gariazzo",' +
-				'\n         title = "{title}",\n}\n\n']:
+				'@Article{newcite,\n        author = "S. Gariazzo",'
+				+ '\n         title = "{title}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		os.remove(testBibName)

@@ -2,7 +2,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, os
+import sys
+import traceback
+import os
 import logging
 import logging.handlers
 
@@ -13,10 +15,12 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class pBErrorManagerClass():
 	"""Class that manages the output of the errors and
 	stores the messages into a log file
 	"""
+
 	def __init__(self, loggerString = "physbibliolog"):
 		"""Constructor for PBErrorManagerClass.
 
@@ -107,6 +111,7 @@ class pBErrorManagerClass():
 		"""
 		self.logger.error("Unhandled exception",
 			exc_info = (cls, exception, trcbk))
+
 
 pBErrorManager = pBErrorManagerClass(pbConfig.loggerString)
 pBLogger = pBErrorManager.logger

@@ -1,5 +1,4 @@
-"""
-Module that deals with importing info from the ISBN2Bibtex API.
+"""Module that deals with importing info from the ISBN2Bibtex API.
 
 This file is part of the physbiblio package.
 """
@@ -13,14 +12,15 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class webSearch(webInterf):
-	"""
-	Subclass of webInterf that can connect to ISBN2Bibtex
+	"""Subclass of webInterf that can connect to ISBN2Bibtex
 	to perform searches
 	"""
+
 	def __init__(self):
-		"""
-		Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables
+		using the webInterf constructor.
 
 		Define additional specific parameters for the ISBN2Bibtex API.
 		"""
@@ -29,10 +29,9 @@ class webSearch(webInterf):
 		self.description = "ISBN to bibtex"
 		self.url = "http://www.ebook.de/de/tools/isbn2bibtex"
 		self.urlArgs = {}
-		
+
 	def retrieveUrlFirst(self,string):
-		"""
-		Retrieves the first (only) result from the content
+		"""Retrieves the first (only) result from the content
 		of the given web page.
 
 		Parameters:
@@ -50,10 +49,8 @@ class webSearch(webInterf):
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""
-		
+
 	def retrieveUrlAll(self,string):
-		"""
-		Alias for retrieveUrlFirst
-		"""
+		"""Alias for retrieveUrlFirst"""
 		return self.retrieveUrlFirst(string)
 

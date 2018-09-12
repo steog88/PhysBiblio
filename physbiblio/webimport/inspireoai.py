@@ -18,8 +18,8 @@ else:
 	from http.client import IncompleteRead
 	from urllib.request import URLError
 
-
-import datetime, traceback
+import datetime
+import traceback
 
 import bibtexparser
 from oaipmh.client import Client
@@ -47,9 +47,15 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 def safe_list_get(l, idx, default = ""):
 	"""Safely get an element from a list.
 	No error if it doesn't exist...
+
+	Parameters:
+		l: the list from which to get the element
+		idx: the index
+		default: the default return value if `l[idx]` does not exist
 	"""
 	if l is not None:
 		try:
@@ -58,9 +64,14 @@ def safe_list_get(l, idx, default = ""):
 			return default
 	else:
 		return default
-		
+
+
 def get_journal_ref_xml(marcxml):
-	"""Read the marcxml record and write the info on the publication"""
+	"""Read the marcxml record and write the info on the publication
+
+	Parameter:
+		marcxml: the marcxml record to read
+	"""
 	p = []
 	y = []
 	v = []
@@ -88,9 +99,16 @@ def get_journal_ref_xml(marcxml):
 			w.append(parse_accents_str(q["w"]))
 	return p, v, y, c, m, x, t, w
 
+
 class MARCXMLReader(object):
 	"""Returns the PyMARC record from the OAI structure for MARC XML"""
+
 	def __call__(self, element):
+		"""Call the xml parser and return the records
+
+		Parameter:
+			element: the xml text to read
+		"""
 		handler = marcxml.XmlHandler()
 		if sys.version_info[0] < 3:
 			marcxml.parse_xml(StringIO(tostring(element[0], encoding='UTF-8')),
@@ -100,15 +118,18 @@ class MARCXMLReader(object):
 				handler)
 		return handler.records[0]
 
+
 marcxml_reader = MARCXMLReader()
 
 registry = metadata.MetadataRegistry()
 registry.registerReader('marcxml', marcxml_reader)
 
+
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to INSPIRE-HEP
 	to perform searches using the OAI API
 	"""
+
 	def __init__(self):
 		"""Initializes the class variables using
 		the webInterf constructor.
@@ -140,7 +161,7 @@ class webSearch(webInterf):
 			"arxiv", "primaryclass", "archiveprefix", "eprint",
 			"doi", "isbn",
 			"school", "reportnumber", "booktitle", "collaboration"]
-		
+
 	def retrieveUrlFirst(self, string):
 		"""The OAI interface is not for string searches:
 		use the retrieveOAIData function if you have the INSPIRE ID
@@ -148,7 +169,7 @@ class webSearch(webInterf):
 		"""
 		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
-		
+
 	def retrieveUrlAll(self, string):
 		"""The OAI interface is not for string searches:
 		use the retrieveOAIData function if you have the INSPIRE ID
@@ -156,10 +177,18 @@ class webSearch(webInterf):
 		"""
 		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
-		
+
 	def readRecord(self, record, readConferenceTitle = False):
 		"""Read the content of a marcxml record
 		to return a bibtex string
+
+		Parameters:
+			record: the marcxml record to read
+			readConferenceTitle (default False): if True, look for
+				the proceedings info to get the title of the conference
+
+		Output:
+			a dictionary with the obtained fields
 		"""
 		tmpDict = {}
 		record.to_unicode = True
@@ -341,7 +370,7 @@ class webSearch(webInterf):
 		db.entries = [bibtexDict]
 		tmpDict["bibtex"] = pbWriter.write(db)
 		return tmpDict
-	
+
 	def retrieveOAIData(self,
 			inspireID,
 			bibtex = None,
@@ -391,6 +420,13 @@ class webSearch(webInterf):
 	def updateBibtex(self, res, bibtex):
 		"""use OAI data to update the (existing) bibtex information
 		of an entry
+
+		Parameters:
+			res: the recent search results
+			bibtex: the old bibtex to be updated
+
+		Output:
+			True/False and a string containing the bibtex of the entry
 		"""
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
@@ -429,8 +465,8 @@ class webSearch(webInterf):
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml',
 			from_ = date1, until = date2, set = "INSPIRE:HEP")
 		nhand = 0
-		pBLogger.info("\nSTARTING OAI harvester --- " + \
-			time.strftime("%c") + "\n\n")
+		pBLogger.info("\nSTARTING OAI harvester --- " \
+			+ time.strftime("%c") + "\n\n")
 		foundObjects = []
 		for count, rec in enumerate(recs):
 			id = rec[0].identifier()

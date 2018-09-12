@@ -10,6 +10,7 @@
 	* several functions improved
 	* several performance improvements
 	* many bugs fixed during code review for test writing
+	* moving towards PEP 8
 
 0.5.3 (2018-09-04):
 	* update arXiv "econ" subcategories
@@ -142,7 +143,7 @@
 	* default paths with appdirs
 	* logging
 	* several optimizations/adjustments/improvements/speed-ups/bugfixes
-	
+
 	New features:
 	* import from bibtex file
 	* command line usage of main executable

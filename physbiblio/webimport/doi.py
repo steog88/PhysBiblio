@@ -1,5 +1,4 @@
-"""
-Module that deals with importing info from the DOI.org API.
+"""Module that deals with importing info from the DOI.org API.
 
 This file is part of the physbiblio package.
 """
@@ -14,14 +13,14 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class webSearch(webInterf):
-	"""
-	Subclass of webInterf that can connect
+	"""Subclass of webInterf that can connect
 	to doi.org to perform searches
 	"""
+
 	def __init__(self):
-		"""
-		Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables using the webInterf constructor.
 
 		Define additional specific parameters for the DOI.org API.
 		"""
@@ -30,19 +29,17 @@ class webSearch(webInterf):
 		self.description = "Doi fetcher"
 		self.url = pbConfig.doiUrl
 		self.headers = {'accept': 'application/x-bibtex'}
-		
+
 	def createUrl(self, doi):
-		"""
-		Joins the base url and the search string to get the full url.
+		"""Joins the base url and the search string to get the full url.
 
 		(DOI.org url Behaves differently than other APIs
 		in the modules of this subpackage)
 		"""
 		return self.url + doi
-		
+
 	def retrieveUrlFirst(self, string):
-		"""
-		Retrieves the first (only) result from the content
+		"""Retrieves the first (only) result from the content
 		of the given web page.
 
 		Parameters:
@@ -59,10 +56,9 @@ class webSearch(webInterf):
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""
-		
+
 	def retrieveUrlAll(self, string):
-		"""
-		Alias for retrieveUrlFirst
+		"""Alias for retrieveUrlFirst
 		(no more than one object should match a doi)
 		"""
 		return self.retrieveUrlFirst(string)

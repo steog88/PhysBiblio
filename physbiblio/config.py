@@ -2,7 +2,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys, ast, os
+import sys
+import ast
+import os
 import logging
 from appdirs import AppDirs
 
@@ -117,10 +119,12 @@ for p in configuration_params:
 	config_descriptions[p["name"]] = p["description"]
 	config_special[p["name"]] = p["special"]
 
+
 class globalDB(physbiblioDBCore):
 	"""Class that manages the operations on the global DB:
 	profiles and frequent searches/replaces
 	"""
+
 	def __init__(self, dbname, logger, datapath, info = True):
 		"""Class constructor
 
@@ -240,7 +244,7 @@ class globalDB(physbiblioDBCore):
 				It must be "databasefile" if you want to change
 				the profile name and "name" if you want to change
 				the databasefile (discouraged, however)
-		
+
 		Output:
 			True if successful, False otherwise
 		"""
@@ -548,8 +552,10 @@ class globalDB(physbiblioDBCore):
 		self.commit()
 		return True
 
+
 class configurationDB(physbiblioDBSub):
 	"""Subclass that manages the functions for the categories."""
+
 	def count(self):
 		"""Obtain the number of settings in the table
 
@@ -633,10 +639,12 @@ class configurationDB(physbiblioDBSub):
 		self.cursExec("select * from settings where name=?\n", (name, ))
 		return self.curs.fetchall()
 
+
 class ConfigVars():
 	"""Contains all the common settings, the information on the profiles
 	and their configuration.
 	"""
+
 	def __init__(self, profileFileName = "profiles.db"):
 		"""Initialize the configuration.
 		Check the profiles first, then load the default profile
@@ -938,5 +946,6 @@ class ConfigVars():
 		except Exception:
 			self.logger.error(
 				"ERROR: reading %s file failed."%self.configMainFile)
+
 
 pbConfig = ConfigVars()

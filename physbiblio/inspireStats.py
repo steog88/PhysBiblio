@@ -5,19 +5,22 @@ Uses matplotlib to do plots.
 
 This file is part of the physbiblio package.
 """
-import sys, time
+import sys
+import time
 import os
 import traceback
 import os.path as osp
 import json
 import requests
-import dateutil, datetime
+import dateutil
+import datetime
 import matplotlib
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.backends.backend_pdf import PdfPages
+
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
@@ -26,10 +29,12 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class inspireStatsLoader():
 	"""Class that contains the methods
 	to collect information from INSPIRE-HEP
 	"""
+
 	def __init__(self):
 		"""The class constructor,
 		defines some constants and search options
@@ -249,7 +254,7 @@ class inspireStatsLoader():
 		if verbose > 0:
 			pBLogger.info("Done!")
 		return self.paperPlotInfo
-	
+
 	def plotStats(self,
 			paper = False,
 			author = False,
@@ -258,8 +263,7 @@ class inspireStatsLoader():
 			path = ".",
 			markPapers = False,
 			pickVal = 6):
-		"""
-		Plot the collected information, using matplotlib.pyplot.
+		"""Plot the collected information, using matplotlib.pyplot.
 
 		Parameters:
 			paper (boolean, default False): plot statistics
@@ -335,7 +339,7 @@ class inspireStatsLoader():
 					plt.show()
 				plt.close()
 				figs.append(fig)
-			
+
 			if len(self.authorPlotInfo["paLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Papers per year")
@@ -353,7 +357,7 @@ class inspireStatsLoader():
 					plt.show()
 				plt.close()
 				figs.append(fig)
-			
+
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
@@ -369,7 +373,7 @@ class inspireStatsLoader():
 					plt.show()
 				plt.close()
 				figs.append(fig)
-			
+
 			if len(self.authorPlotInfo["allLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Citations per year")
@@ -387,7 +391,7 @@ class inspireStatsLoader():
 					plt.show()
 				plt.close()
 				figs.append(fig)
-			
+
 			if len(self.authorPlotInfo["meanLi"][0]) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Mean citations")
@@ -410,7 +414,7 @@ class inspireStatsLoader():
 					plt.show()
 				plt.close()
 				figs.append(fig)
-			
+
 			if len(self.authorPlotInfo["aI"].keys()) > 0:
 				fig, ax = plt.subplots()
 				plt.title("Citations for each paper")
@@ -438,5 +442,6 @@ class inspireStatsLoader():
 		else:
 			pBLogger.info("Nothing to plot...")
 			return False
+
 
 pBStats = inspireStatsLoader()

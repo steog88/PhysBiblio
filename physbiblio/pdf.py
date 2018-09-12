@@ -2,7 +2,8 @@
 
 This file is part of the physbiblio package.
 """
-import sys, shutil
+import sys
+import shutil
 import traceback
 if sys.version_info[0] < 3:
 	from urllib2 import urlopen, HTTPError
@@ -20,17 +21,19 @@ except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
-	
+
+
 class localPDF():
 	"""Class with functions to manage the PDF folder content
 	and the stored material
 	"""
+
 	def __init__(self):
 		"""Init the class and set some default variables"""
 		self.pdfDir = pbConfig.params["pdfFolder"]
 		self.badFNameCharacters = r'\/:*?"<>|' + "'"
 		self.pdfApp = pbConfig.params["pdfApplication"]
-		
+
 	def badFName(self, filename):
 		"""Clean the filename substituting the bad characters with '_'
 
@@ -47,10 +50,9 @@ class localPDF():
 			else:
 				newFilename += "_"
 		return newFilename
-		
+
 	def getFileDir(self, key):
-		"""
-		Obtain the name of the directory for a given entry.
+		"""Obtain the name of the directory for a given entry.
 		The name is cleaned and the absolute path is generated.
 
 		Parameters:
@@ -61,7 +63,7 @@ class localPDF():
 				associated with the entry
 		"""
 		return osp.join(self.pdfDir, self.badFName(key))
-		
+
 	def getFilePath(self, key, fileType):
 		"""Obtain the file path for a given file type (arxiv, doi, ...)
 		of a given entry.
@@ -90,7 +92,7 @@ class localPDF():
 		else:
 			filename = self.badFName(filename)
 			return osp.join(self.getFileDir(key), filename + '.pdf')
-		
+
 	def createFolder(self, key, noCheck = False):
 		"""Create the PDF folder for a given entry.
 
@@ -189,7 +191,7 @@ class localPDF():
 			pBLogger.exception("Impossible to copy %s to %s"%(
 				origFile, outFolder))
 			return False
-		
+
 	def downloadArxiv(self, key, force = False):
 		"""Download the PDF file from arXiv for a given entry
 		and save it in the proper folder.
@@ -228,7 +230,7 @@ class localPDF():
 			return False
 		else:
 			return os.path.exists(filename)
-	
+
 	def openFile(self,
 			key,
 			arg = None,
@@ -276,7 +278,7 @@ class localPDF():
 					stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 		except:
 			pBLogger.exception("Opening PDF for '%s' failed!"%key)
-	
+
 	def checkFile(self, key, fileType):
 		"""Check if a file of a given type (arxiv, doi, ...)
 		and a given entry exists.
@@ -321,7 +323,7 @@ class localPDF():
 		except OSError:
 			pBLogger.exception("Impossible to remove file: %s"%fileName)
 			return False
-			
+
 	def getExisting(self, key, fullPath = False):
 		"""Obtain the list of existing files for a given entry.
 
@@ -339,7 +341,7 @@ class localPDF():
 				return [ e for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
 		except:
 			return []
-			
+
 	def printExisting(self, key, fullPath = False):
 		"""Print the list of existing files for a given entry,
 		using self.getExisting to get it.
@@ -349,7 +351,7 @@ class localPDF():
 			key, self.getFileDir(key)))
 		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
 			pBLogger.info("%2d: %s"%(i, e))
-	
+
 	def printAllExisting(self, entries = None, fullPath = False):
 		"""Print the complete list of all the existing PDF files
 		in the PDF folder, given all the entries in the database
@@ -393,5 +395,6 @@ class localPDF():
 			pBLogger.info("Done!")
 		else:
 			pBLogger.warning("Nothing found.")
+
 
 pBPDF = localPDF()

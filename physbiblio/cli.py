@@ -1,10 +1,10 @@
-"""
-Module that creates a command line interface to manually run
+"""Module that creates a command line interface to manually run
 the PhysBiblio internal commands.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import readline # optional, will allow Up/Down/History in the console
 import code
 
@@ -23,16 +23,17 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
-def cli():
-	"""
-	Open a command line interface.
 
-	Many imports allow the user to automatically access the useful classes.
+def cli():
+	"""Open a command line interface.
+
+	Many initial imports allow the user
+	to automatically access the useful classes.
 	"""
 	vars = globals().copy()
 	vars.update(locals())
 	shell = code.InteractiveConsole(vars)
-	shell.interact("[CLI] Activating CommandLineInterface\n" + \
-		"Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).")
+	shell.interact("[CLI] Activating CommandLineInterface\n" \
+		+ "Write a command and press Enter ('Ctrl+D' or 'exit()' to exit).")
 	pBDB.closeDB()
 	pBLogger.info("CommandLineInterface closed.")

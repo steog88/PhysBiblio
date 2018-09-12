@@ -613,7 +613,7 @@ testData = {#data as of 180713
 			'date': datetime.datetime(2013, 4, 22, 4, 52, 23),
 			'infoDict': {
 				1345462: {'date': datetime.datetime(2015, 2, 23, 4, 40, 55)}},
-			'citingPapersList': [[datetime.datetime(2013, 4, 22, 4, 52, 23), 
+			'citingPapersList': [[datetime.datetime(2013, 4, 22, 4, 52, 23),
 				datetime.datetime(2015, 2, 23, 4, 40, 55),
 				datetime.date(2018, 7, 13)],
 				[1, 2, 2]]},

@@ -14,10 +14,12 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect
 	to INSPIRE-HEP to perform searches
 	"""
+
 	def __init__(self):
 		"""Initializes the class variables
 		using the webInterf constructor.
@@ -40,7 +42,7 @@ class webSearch(webInterf):
 				# for bibtex format ---- hb for standard format,
 				# for retrieving inspireid
 			}
-		
+
 	def retrieveUrlFirst(self, string):
 		"""Retrieves the first result
 		from the content of the given web page.
@@ -66,7 +68,7 @@ class webSearch(webInterf):
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""
-		
+
 	def retrieveUrlAll(self, string):
 		"""Retrieves all the result
 		from the content of the given web page.
@@ -93,7 +95,7 @@ class webSearch(webInterf):
 		except Exception:
 			pBLogger.exception("Impossible to get results")
 			return ""
-	
+
 	def retrieveInspireID(self, string, number = None):
 		"""Read the fetched content for a given entry
 		to obtain its INSPIRE-HEP ID

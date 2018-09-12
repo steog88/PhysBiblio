@@ -206,7 +206,7 @@ class TestParser(unittest.TestCase):
 		with patch("physbiblio.database.physbiblioDB.commit") as _comm_mock:
 			for sub, options in tests:
 				with self.assertRaises(SystemExit):
-					args = parser.parse_args([sub] + options)		
+					args = parser.parse_args([sub] + options)
 
 	def test_subcommand_tests(self):
 		"""Test that the options are recognised correctly"""

@@ -5,12 +5,17 @@ Uses urllib to download url content.
 
 This file is part of the physbiblio package.
 """
-import sys, os, socket, pkgutil, traceback
+import sys
+import os
+import socket
+import pkgutil
+import traceback
 import ssl
 if sys.version_info[0] < 3:
 	from urllib2 import Request, urlopen, URLError, HTTPError
 else:
 	from urllib.request import Request, urlopen, URLError, HTTPError
+
 try:
 	from physbiblio.errors import pBLogger
 	import physbiblio.webimport as wi
@@ -24,6 +29,7 @@ except ImportError:
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
+
 class webInterf():
 	"""This is the main class for the web search methods.
 
@@ -31,6 +37,7 @@ class webInterf():
 	and to retrieve text from the url,
 	a function to load other webinterfaces
 	"""
+
 	def __init__(self):
 		"""Initializes the class variables."""
 		self.url = None
@@ -41,7 +48,7 @@ class webInterf():
 			and a != "tests" ]
 		self.webSearch = {}
 		self.loaded = False
-		
+
 	def createUrl(self):
 		"""Joins the arguments of the GET query to get the full url.
 
@@ -50,7 +57,7 @@ class webInterf():
 		"""
 		return self.url + "?" + "&".join(
 			["%s=%s"%(a, b) for a, b in self.urlArgs.items()])
-		
+
 	def textFromUrl(self, url, headers = None):
 		"""Use urllib to get the html content of the given url.
 
@@ -86,7 +93,7 @@ class webInterf():
 				"[%s] -> Bad codification, utf-8 decode failed"%self.name)
 			return ""
 		return text
-	
+
 	def retrieveUrlFirst(self, search):
 		"""Retrieves the first bibtexs that the search gives,
 		using the subclass specific instructions.
@@ -131,7 +138,7 @@ class webInterf():
 				pBLogger.exception(
 					"Error importing physbiblio.webimport.%s"%method)
 		self.loaded = True
-	
+
 	def retrieveUrlFirstFrom(self, search, method):
 		"""Calls the function retrieveUrlFirst
 		given the subclass method.
@@ -148,7 +155,7 @@ class webInterf():
 		except KeyError:
 			pBLogger.warning("The method '%s' is not available!"%method)
 			return ""
-		
+
 	def retrieveUrlAllFrom(self, search, method):
 		"""Calls the function retrieveUrlAll given the subclass method.
 
@@ -164,6 +171,7 @@ class webInterf():
 		except KeyError:
 			pBLogger.warning("The method '%s' is not available!"%method)
 			return ""
+
 
 physBiblioWeb = webInterf()
 physBiblioWeb.loadInterfaces()

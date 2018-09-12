@@ -1,5 +1,4 @@
-"""
-Tests for the `physbiblio.webimport` package.
+"""Tests for the `physbiblio.webimport` package.
 
 This file is part of the physbiblio package.
 """

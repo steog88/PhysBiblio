@@ -1,5 +1,4 @@
-"""
-Static definitions of the structure (column names and content)
+"""Static definitions of the structure (column names and content)
 for the tables of the database.
 
 This file is part of the physbiblio package.
@@ -110,8 +109,8 @@ fieldsDescriptions["entries"] = {
 	"review":	 "(T/F) The entry is a review",
 	"proceeding":"(T/F) The entry is a proceeding",
 	"book":		 "(T/F) The entry is a book",
-	"noUpdate":  "(T/F) The entry has been created/modified by the user " +
-		"and/or should not be updated",
+	"noUpdate":  "(T/F) The entry has been created/modified by the user "
+		+ "and/or should not be updated",
 	"marks":	 "Mark the record",
 	"abstract":	 "Abstract of the record"}
 fieldsDescriptions["categories"] = {

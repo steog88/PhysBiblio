@@ -20,6 +20,7 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 def getYear(string):
 	"""Use the arxiv id to compute the year"""
 	identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
@@ -35,10 +36,12 @@ def getYear(string):
 		pBLogger.warning("Error in converting year from '%s'"%string)
 		return None
 
+
 class webSearch(webInterf):
 	"""Subclass of webInterf that can connect to arxiv.org
 	to perform searches
 	"""
+
 	def __init__(self):
 		"""Initializes the class variables using
 		the webInterf constructor.
@@ -90,7 +93,7 @@ class webSearch(webInterf):
 	def getYear(self, string):
 		"""Use the arxiv id to compute the year"""
 		return getYear(string)
-		
+
 	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
 		"""Retrieves the first result from the content
 		of the given web page.
@@ -209,7 +212,11 @@ class webSearch(webInterf):
 				return ""
 
 	def arxivDaily(self, category):
-		"""Read daily RSS feed for a given category"""
+		"""Read daily RSS feed for a given category
+
+		Parameter:
+			category: the selected category (see `self.categories)
+		"""
 		if "." in category:
 			main, sub = category.split(".")
 		else:

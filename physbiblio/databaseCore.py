@@ -17,10 +17,12 @@ except ImportError:
 
 encoding_default = 'iso-8859-15'
 
+
 class physbiblioDBCore():
 	"""Contains most of the basic functions on the database.
 	Will be subclassed to do everything else.
 	"""
+
 	def __init__(self, dbname, logger, noOpen = False, info = True):
 		"""Initialize database class (column names, descriptions)
 		and opens the database.
@@ -96,8 +98,7 @@ class physbiblioDBCore():
 		return True
 
 	def checkUncommitted(self):
-		"""
-		Check if there are uncommitted changes.
+		"""Check if there are uncommitted changes.
 
 		Output:
 			True/False
@@ -145,7 +146,7 @@ class physbiblioDBCore():
 		except Exception:
 			self.logger.exception("Impossible to rollback!")
 			return False
-		
+
 	def connExec(self, query, data = None):
 		"""Execute connection.
 
@@ -259,12 +260,14 @@ class physbiblioDBCore():
 				self.logger.error("Insert main categories failed")
 		self.commit()
 
+
 class physbiblioDBSub():
 	"""Uses physbiblioDB instance 'self.mainDB = parent'
 	to act on the database.
 	All the subcategories of physbiblioDB are defined
 	starting from this one.
 	"""
+
 	def __init__(self, parent):
 		"""Initialize DB class, connecting to
 		the main physbiblioDB instance (parent).

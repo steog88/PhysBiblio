@@ -1,9 +1,11 @@
-"""
-Utilities for in the tests of the physbiblio modules.
+"""Utilities for in the tests of the physbiblio modules.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback, datetime, os
+import sys
+import traceback
+import datetime
+import os
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -30,8 +32,10 @@ except ImportError:
 	print(traceback.format_exc())
 	raise
 
+
 class skipTestsSettingsClass():
 	"""Store settings for deciding the tests to skip"""
+
 	def __init__(self):
 		"""Define non-gui skip settings"""
 		self.default()
@@ -68,13 +72,18 @@ tempDBName = os.path.join(pbConfig.dataPath, "tests_%s.db"%today_ymd)
 if os.path.exists(tempDBName):
 	os.remove(tempDBName)
 
+
 class DBTestCase(unittest.TestCase):
+	"""define the class that will be used for database tests"""
+
 	@classmethod
 	def setUpClass(self):
+		"""Create a temporary database"""
 		self.maxDiff = None
 		self.pBDB = physbiblioDB(tempDBName, pBLogger)
 
 	def tearDown(self):
+		"""Clean temporary database"""
 		self.pBDB.undo(verbose = False)
 
 	@patch('sys.stdout', new_callable=StringIO)
@@ -93,6 +102,8 @@ class DBTestCase(unittest.TestCase):
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
 
+
 def tearDownModule():
+	"""Clean temporary logfile at the end"""
 	if os.path.exists(logFileName):
 		os.remove(logFileName)

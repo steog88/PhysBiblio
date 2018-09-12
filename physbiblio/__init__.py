@@ -1,5 +1,4 @@
-"""
-The package that contains all the modules used by the PhysBiblio,
+"""The package that contains all the modules used by the PhysBiblio,
 including the `gui` subpackage.
 
 This file is part of the physbiblio package.
@@ -10,6 +9,20 @@ __email__ = "stefano.gariazzo@gmail.com"
 __version__ = "0.5.3"
 __version_date__ = "04/09/2018"
 
-__all__ = ["bibtexWriter", "cli", "config", "databaseCore", "database",
-	"errors", "export", "inspireStats", "parseAccents", "pdf", "tablesDef",
-	"tests", "view", "gui", "webimport"]
+__all__ = [
+	"bibtexWriter",
+	"cli",
+	"config",
+	"databaseCore",
+	"database",
+	"errors",
+	"export",
+	"inspireStats",
+	"parseAccents",
+	"pdf",
+	"tablesDef",
+	"view",
+	"tests",
+	"gui",
+	"webimport",
+	]
