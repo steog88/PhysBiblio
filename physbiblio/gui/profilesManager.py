@@ -26,19 +26,20 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-def editProf(parent, statusBarObject, testing = False):
-	"""Use `editProfile` and process the form output
+def editProfile(parentObject, testing = False):
+	"""Use `editProfileWindow` and process the form output
 
 	Parameters:
-		parent: the parent object
-		statusBarObject: the object which has the function `statusBarMessage`
+		parentObject: the parent object,
+			which has the function `statusBarMessage`
 			(a `MainWindow` instance)
-		testing: if False, create the `editProfile` instance normally,
+		testing: if False, create
+			the `editProfileWindow` instance normally,
 			otherwise, use the passed object
 	"""
 	oldOrder = pbConfig.profileOrder
 	if testing is False:
-		newProfWin = editProfile(parent)
+		newProfWin = editProfileWindow(parentObject)
 		newProfWin.exec_()
 	else:
 		newProfWin = testing
@@ -107,9 +108,10 @@ def editProf(parent, statusBarObject, testing = False):
 		pbConfig.profileOrder = oldOrder
 		message = "No modifications"
 	try:
-		statusBarObject.statusBarMessage(message)
+		parentObject.statusBarMessage(message)
 	except AttributeError:
-		pass
+		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
+			exc_info=True)
 
 
 class selectProfiles(QDialog):
@@ -189,7 +191,7 @@ class myOrderPushButton(QPushButton):
 		"""Extend `QPushButton.__init__`
 
 		Parameters:
-			parent: the parent object (an `editProfile` instance)
+			parent: the parent object (an `editProfileWindow` instance)
 			data: the index of the row that will be switched
 			qicon: the `QIcon` that will be used to build the `QPushButton`
 			text: the `QPushButton` text
@@ -212,12 +214,12 @@ class myOrderPushButton(QPushButton):
 		return self.parentObj
 
 
-class editProfile(editObjectWindow):
+class editProfileWindow(editObjectWindow):
 	"""create a window for editing or creating a profile"""
 
 	def __init__(self, parent = None):
 		"""Prepare instance and create form"""
-		super(editProfile, self).__init__(parent)
+		super(editProfileWindow, self).__init__(parent)
 		self.createForm()
 
 	def onOk(self):

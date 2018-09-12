@@ -37,15 +37,16 @@ try:
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
 		abstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, \
-		bibtexList, bibtexInfo
+		bibtexListWindow, bibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, \
 		advImportSelect, dailyArxivDialog, dailyArxivSelect
-	from physbiblio.gui.expWindows import ExpsListWindow, EditExperimentDialog
+	from physbiblio.gui.expWindows import \
+		editExperiment, ExpsListWindow, EditExperimentDialog
 	from physbiblio.gui.inspireStatsGUI import \
 		authorStatsPlots, paperStatsPlots
-	from physbiblio.gui.profilesManager import selectProfiles, editProf
+	from physbiblio.gui.profilesManager import selectProfiles, editProfile
 	from physbiblio.gui.threadElements import \
 		thread_authorStats, thread_cleanSpare, thread_cleanSparePDF, \
 		thread_updateAllBibtexs, thread_exportTexBib, thread_importFromBib, \
@@ -60,7 +61,10 @@ try:
 except ImportError as e:
 	print("Missing Resources_pyside2: run script update_resources.sh", e)
 
+
 class MainWindow(QMainWindow):
+	"""W"""
+
 	def __init__(self, testing = False):
 		QMainWindow.__init__(self)
 		availableWidth		= QDesktopWidget().availableGeometry().width()
@@ -109,11 +113,11 @@ class MainWindow(QMainWindow):
 			statusTip="Manage profiles",
 			triggered=self.manageProfiles)
 
-		self.editProfilesAct = QAction(
+		self.editProfileWindowsAct = QAction(
 			"&Edit profiles", self,
 			shortcut="Ctrl+Alt+P",
 			statusTip="Edit profiles",
-			triggered=self.editProfiles)
+			triggered=self.editProfile)
 
 		self.undoAct = QAction(QIcon(":/images/edit-undo.png"),
 			"&Undo", self,
@@ -177,7 +181,7 @@ class MainWindow(QMainWindow):
 		self.ExpAct = QAction("&Experiments", self,
 			shortcut="Ctrl+E",
 			statusTip="List of Experiments",
-			triggered=self.experimentList)
+			triggered=self.experiments)
 
 		self.newExpAct = QAction("&New Experiment", self,
 			shortcut="Ctrl+Shift+E",
@@ -335,7 +339,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportUpdateAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.profilesAct)
-		self.fileMenu.addAction(self.editProfilesAct)
+		self.fileMenu.addAction(self.editProfileWindowsAct)
 		self.fileMenu.addAction(self.configAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
@@ -456,8 +460,8 @@ class MainWindow(QMainWindow):
 
 	def createMainLayout(self):
 		#will contain the list of bibtex entries
-		self.bibtexList = bibtexList(self)
-		self.bibtexList.setFrameShape(QFrame.StyledPanel)
+		self.bibtexListWindow = bibtexListWindow(self)
+		self.bibtexListWindow.setFrameShape(QFrame.StyledPanel)
 
 		#will contain the bibtex code:
 		self.bottomLeft = bibtexInfo(self)
@@ -472,7 +476,7 @@ class MainWindow(QMainWindow):
 		self.bottomRight.setFrameShape(QFrame.StyledPanel)
 
 		splitter = QSplitter(Qt.Vertical)
-		splitter.addWidget(self.bibtexList)
+		splitter.addWidget(self.bibtexListWindow)
 		splitterBottom = QSplitter(Qt.Horizontal)
 		splitterBottom.addWidget(self.bottomLeft)
 		splitterBottom.addWidget(self.bottomCenter)
@@ -492,18 +496,18 @@ class MainWindow(QMainWindow):
 		self.setWindowTitle('PhysBiblio')
 		self.reloadMainContent()
 
-	def refreshMainContent(self, bibs = None):
+	def refreshMainContent(self, bibs=None):
 		"""delete previous table widget and create a new one,
 		using last used query
 		"""
 		self.statusBarMessage("Reloading main table...")
-		self.bibtexList.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
+		self.bibtexListWindow.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
 		self.done()
 
-	def reloadMainContent(self, bibs = None):
+	def reloadMainContent(self, bibs=None):
 		"""delete previous table widget and create a new one"""
 		self.statusBarMessage("Reloading main table...")
-		self.bibtexList.recreateTable(bibs)
+		self.bibtexListWindow.recreateTable(bibs)
 		self.done()
 
 	def manageProfiles(self):
@@ -511,8 +515,8 @@ class MainWindow(QMainWindow):
 		profilesWin = selectProfiles(self)
 		profilesWin.exec_()
 
-	def editProfiles(self):
-		editProf(self, self)
+	def editProfile(self):
+		editProfile(self)
 
 	def config(self):
 		cfgWin = configWindow(self)
@@ -560,7 +564,7 @@ class MainWindow(QMainWindow):
 			pBPDF.pdfDir = os.path.join(os.path.split(
 				os.path.abspath(sys.argv[0]))[0],
 				pbConfig.params["pdfFolder"])
-		self.bibtexList.reloadColumnContents()
+		self.bibtexListWindow.reloadColumnContents()
 
 	def showAbout(self):
 		"""Function to show About Box"""
@@ -771,16 +775,16 @@ class MainWindow(QMainWindow):
 	def newCategory(self):
 		editCategory(self, self)
 
-	def experimentList(self):
+	def experiments(self):
 		self.statusBarMessage("experiments triggered")
 		expListWin = ExpsListWindow(self)
 		expListWin.show()
 
 	def newExperiment(self):
-		EditExperimentDialogeriment(self, self)
+		editExperiment(self, self)
 
 	def newBibtex(self):
-		editBibtex(self, self)
+		editBibtex(self)
 
 	def searchBiblio(self, replace = False):
 		newSearchWin = searchBibsWindow(self, replace = replace)
@@ -1268,7 +1272,7 @@ class MainWindow(QMainWindow):
 					+ "Do you want to fix them one by one?"%len(
 						self.badBibtexs)):
 				for bibkey in self.badBibtexs:
-					editBibtex(self, self, bibkey)
+					editBibtex(self, bibkey)
 			else:
 				infoMessage("These are the bibtex keys corresponding "
 					+ "to invalid records:\n%s\n\nNo action will be "
@@ -1390,6 +1394,7 @@ class MainWindow(QMainWindow):
 
 	def done(self):
 		self.statusBarMessage("...done!")
+
 
 if __name__=='__main__':
 	try:

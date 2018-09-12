@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
-Test file for the physbiblio.gui.bibWindows module.
+"""Test file for the physbiblio.gui.bibWindows module.
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
+from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -20,38 +21,120 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.bibWindows import *
+	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestFunctions(GUITestCase):
-	"""test"""
+	"""Test various functions:
+	copyToClipboard, writeBibtexInfo, writeAbstract,
+	editBibtex, deleteBibtex
+	"""
+
 	def test_copyToClipboard(self):
-		"""test"""
-		pass
+		"""test copyToClipboard"""
+		with patch("logging.Logger.info") as _l:
+			copyToClipboard("some text")
+			_l.assert_called_once_with("Copying to clipboard: 'some text'")
+		self.assertEqual(QApplication.clipboard().text(), "some text")
 
 	def test_writeBibtexInfo(self):
-		"""test"""
+		"""test writeBibtexInfo"""
 		pass
 
 	def test_writeAbstract(self):
-		"""test"""
-		pass
+		"""test writeAbstract"""
+		p = MainWindow(testing=True)
+		p.bottomCenter = bibtexInfo(p)
+		entry = {"abstract": "some random text"}
+		with patch("physbiblio.gui.bibWindows.abstractFormulas.__init__",
+				return_value=None) as _af:
+			with self.assertRaises(AttributeError):
+				writeAbstract(p, entry)
+			_af.assert_called_once_with(p, "some random text")
+		with patch("physbiblio.gui.bibWindows.abstractFormulas.doText"
+				) as _dt:
+			writeAbstract(p, entry)
+			_dt.assert_called_once_with()
 
 	def test_editBibtex(self):
-		"""test"""
+		"""test editBibtex"""
 		pass
 
 	def test_deleteBibtex(self):
-		"""test"""
-		pass
+		"""test deleteBibtex"""
+		p = QWidget()
+		m = MainWindow(testing = True)
+		m.bibtexListWindow = bibtexListWindow(m)
+		with patch("physbiblio.gui.bibWindows.askYesNo",
+				return_value = False) as _a, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s:
+			deleteBibtex(m, "mykey")
+			_a.assert_called_once_with(
+				"Do you really want to delete this bibtex entry "
+				+ "(bibkey = 'mykey')?")
+			_s.assert_called_once_with("Nothing changed")
+
+		with patch("physbiblio.gui.bibWindows.askYesNo",
+				return_value = False) as _a, \
+				patch("logging.Logger.debug") as _d:
+			deleteBibtex(p, "mykey")
+			_a.assert_called_once_with(
+				"Do you really want to delete this bibtex entry "
+				+ "(bibkey = 'mykey')?")
+			_d.assert_called_once_with(
+				"parentObject has no attribute 'statusBarMessage'",
+				exc_info=True)
+
+		with patch("physbiblio.gui.bibWindows.askYesNo",
+				return_value = True) as _a, \
+				patch("physbiblio.database.entries.delete") as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s, \
+				patch("logging.Logger.debug") as _d:
+			deleteBibtex(p, "mykey")
+			_a.assert_called_once_with(
+				"Do you really want to delete this bibtex entry "
+				+ "(bibkey = 'mykey')?")
+			_c.assert_called_once_with("mykey")
+			_t.assert_not_called()
+			_s.assert_not_called()
+			_d.assert_has_calls([
+				call("parentObject has no attribute 'recreateTable'",
+					exc_info=True),
+				call("parentObject has no attribute 'statusBarMessage'",
+					exc_info=True)
+				])
+
+		with patch("physbiblio.gui.bibWindows.askYesNo",
+				return_value = True) as _a, \
+				patch("physbiblio.database.entries.delete") as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s, \
+				patch("physbiblio.gui.mainWindow.bibtexListWindow."
+					+ "recreateTable") as _r:
+			deleteBibtex(m, "mykey")
+			_a.assert_called_once_with(
+				"Do you really want to delete this bibtex entry "
+				+ "(bibkey = 'mykey')?")
+			_c.assert_called_once_with("mykey")
+			_t.assert_called_once_with("PhysBiblio*")
+			_s.assert_called_once_with("Bibtex entry deleted")
+			_r.assert_called_once_with()
+
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestabstractFormulas(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -76,23 +159,21 @@ class TestabstractFormulas(GUITestCase):
 		"""test"""
 		pass
 
-@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestBibtexWindow(GUITestCase):
-	"""test"""
-	def test_init(self):
-		"""test"""
-		pass
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestBibtexInfo(GUITestCase):
-	"""test"""
+	"""test bibtexInfo"""
+
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		p = QWidget()
+		bi = bibtexInfo(p)
+
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyBibTableModel(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -121,9 +202,11 @@ class TestMyBibTableModel(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestBibtexList(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -196,9 +279,11 @@ class TestBibtexList(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TesteditBibtexEntry(GUITestCase):
+class TesteditBibtexDialog(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -215,9 +300,11 @@ class TesteditBibtexEntry(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyPdfAction(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -226,9 +313,11 @@ class TestMyPdfAction(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestaskPdfAction(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -245,9 +334,11 @@ class TestaskPdfAction(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestaskSelBibAction(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -308,9 +399,11 @@ class TestaskSelBibAction(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestsearchBibsWindow(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -375,9 +468,11 @@ class TestsearchBibsWindow(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestmergeBibtexs(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -394,9 +489,11 @@ class TestmergeBibtexs(GUITestCase):
 		"""test"""
 		pass
 
+
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestfieldsFromArxiv(GUITestCase):
 	"""test"""
+
 	def test_init(self):
 		"""test"""
 		pass
@@ -408,6 +505,7 @@ class TestfieldsFromArxiv(GUITestCase):
 	def test_onCancel(self):
 		"""test"""
 		pass
+
 
 if __name__=='__main__':
 	unittest.main()

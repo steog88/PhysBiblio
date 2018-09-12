@@ -32,7 +32,7 @@ except Exception:
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProf(GUITestCase):
-	"""Test the editProf function"""
+	"""Test the editProfile function"""
 
 	@classmethod
 	def setUpClass(self):
@@ -59,23 +59,23 @@ class TestEditProf(GUITestCase):
 		pbConfig.currentProfile = self.oldCurrentProfile
 
 	def test_editProf(self):
-		"""Test the editProf function"""
+		"""Test the editProfile function"""
 		# first tests
 		p = QWidget()
 		mw = MainWindow(True)
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.onCancel()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 				as _m:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_m.assert_called_once_with("No modifications")
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 				as _m:
-			editProf(p, p, ep)
+			editProfile(p, ep)
 			_m.assert_not_called()
 
 		# test switch lines and some description
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.switchLines(0)
 		ep.elements[2]["d"].setText("descrip")
 		ep.onOk()
@@ -88,7 +88,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -102,7 +102,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test set new default
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[1]["r"].setChecked(True)
 		ep.onOk()
 		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
@@ -114,7 +114,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_called_once_with("test2")
 			_upf.assert_has_calls([
@@ -128,7 +128,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test delete
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[1]["x"].setChecked(True)
 		ep.onOk()
 		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
@@ -142,7 +142,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value = True) as _ayn,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -160,7 +160,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test rename existing
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
 		ep.onOk()
 		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
@@ -172,7 +172,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -190,7 +190,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test rename existing and delete
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
 		ep.elements[1]["x"].setChecked(True)
 		ep.onOk()
@@ -205,7 +205,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -227,7 +227,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test rename existing and reject delete
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
 		ep.elements[1]["x"].setChecked(True)
 		ep.onOk()
@@ -242,7 +242,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -264,7 +264,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test creation of new profile
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[-1]["n"].setText("testNew")
 		ep.elements[-1]["f"].setCurrentText("testNew.db")
 		ep.onOk()
@@ -278,7 +278,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -297,7 +297,7 @@ class TestEditProf(GUITestCase):
 			_copy.assert_not_called()
 
 		# test creation of new profile as copy of existing one
-		ep = editProfile()
+		ep = editProfileWindow()
 		ep.elements[-1]["n"].setText("testNew")
 		ep.elements[-1]["f"].setCurrentText("testNew.db")
 		ep.elements[-1]["c"].setCurrentText("test1.db")
@@ -312,7 +312,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProf(p, mw, ep)
+			editProfile(mw, ep)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -481,14 +481,14 @@ class TestmyOrderPushButton(GUITestCase):
 		"""test init"""
 		self.max_diff = None
 		qi = QIcon(":/images/arrow-down.png")
-		p = editProfile(QWidget())
+		p = editProfileWindow(QWidget())
 		opb = myOrderPushButton(p, 1, qi, "txt")
 		self.assertIsInstance(opb, QPushButton)
 		self.assertEqual(opb.text(), "txt")
 		self.assertEqual(opb.qicon, qi)
 		self.assertEqual(opb.parent(), p)
 		self.assertEqual(opb.parentObj, p)
-		with patch("physbiblio.gui.profilesManager.editProfile.switchLines") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.switchLines") \
 				as _s:
 			opb.onClick()
 			_s.assert_called_once_with(1)
@@ -503,7 +503,7 @@ class TestmyOrderPushButton(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditProfile(GUITestCase):
-	"""Test the editProfile class"""
+	"""Test the editProfileWindow class"""
 
 	@classmethod
 	def setUpClass(self):
@@ -535,9 +535,9 @@ class TestEditProfile(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _s:
-			ep = editProfile(p)
+			ep = editProfileWindow(p)
 			self.assertIsInstance(ep, editObjectWindow)
 			self.assertEqual(ep.parent(), p)
 			_s.assert_called_once_with()
@@ -545,7 +545,7 @@ class TestEditProfile(GUITestCase):
 	def test_onOk(self):
 		"""test onOk"""
 		p = QWidget()
-		ep = editProfile(p)
+		ep = editProfileWindow(p)
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
 				patch("logging.Logger.info") as _i:
 			ep.onOk()
@@ -585,9 +585,9 @@ class TestEditProfile(GUITestCase):
 	def test_addButtons(self):
 		"""test addButtons"""
 		p = QWidget()
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _s:
-			ep = editProfile(p)
+			ep = editProfileWindow(p)
 		ep.addButtons()
 		self.assertIsInstance(ep.def_group, QButtonGroup)
 		self.assertIsInstance(ep.elements, list)
@@ -798,11 +798,11 @@ class TestEditProfile(GUITestCase):
 	def test_createForm(self):
 		"""test createForm"""
 		p = QWidget()
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _c:
-			ep = editProfile(p)
+			ep = editProfileWindow(p)
 		ep.addButtons()
-		with patch("physbiblio.gui.profilesManager.editProfile.addButtons") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.addButtons") \
 				as _a,\
 				patch("glob.iglob",
 					return_value = ["old1.db", "test1.db"]) as _g:
@@ -867,10 +867,10 @@ class TestEditProfile(GUITestCase):
 			ep.cancelButton.text(),
 			"Cancel")
 		self.assertTrue(ep.cancelButton.autoDefault())
-		with patch("physbiblio.gui.profilesManager.editProfile.onOk") as _o:
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.onOk") as _o:
 			QTest.mouseClick(ep.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
-		with patch("physbiblio.gui.profilesManager.editProfile.onCancel") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.onCancel") \
 				as _o:
 			QTest.mouseClick(ep.cancelButton, Qt.LeftButton)
 			_o.assert_called_once_with()
@@ -944,7 +944,7 @@ class TestEditProfile(GUITestCase):
 				'c': "test1.db",
 				}
 		ep.cleanLayout()
-		with patch("physbiblio.gui.profilesManager.editProfile.addButtons") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.addButtons") \
 				as _a,\
 				patch("glob.iglob",
 					return_value = ["old1.db", "test1.db"]) as _g,\
@@ -1001,11 +1001,11 @@ class TestEditProfile(GUITestCase):
 	def test_switchLines(self):
 		"""Test switchLines"""
 		p = QWidget()
-		ep = editProfile(p)
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		ep = editProfileWindow(p)
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _cf,\
 				patch("physbiblio.gui.profilesManager."+
-					"editProfile.cleanLayout") as _cl:
+					"editProfileWindow.cleanLayout") as _cl:
 			self.assertTrue(ep.switchLines(0))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
@@ -1020,10 +1020,10 @@ class TestEditProfile(GUITestCase):
 				{'r': False, 'db': u'', 'd': u'', 'n': u''})
 		ep.elements[-1]["n"].setText("testA")
 		ep.elements[-1]["f"].setCurrentText("testA.db")
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _cf,\
 				patch("physbiblio.gui.profilesManager." +
-					"editProfile.cleanLayout") as _cl:
+					"editProfileWindow.cleanLayout") as _cl:
 			self.assertTrue(ep.switchLines(1))
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with({
@@ -1036,10 +1036,10 @@ class TestEditProfile(GUITestCase):
 				},
 				[u'test1', u'test3', u'test2'],
 				{'r': False, 'db': u'testA.db', 'd': u'', 'n': u'testA'})
-		with patch("physbiblio.gui.profilesManager.editProfile.createForm") \
+		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _cf,\
 				patch("physbiblio.gui.profilesManager." +
-					"editProfile.cleanLayout") as _cl,\
+					"editProfileWindow.cleanLayout") as _cl,\
 				patch("logging.Logger.warning") as _i:
 			self.assertFalse(ep.switchLines(2))
 			_i.assert_called_once_with("Impossible to switch lines: " +
@@ -1050,7 +1050,7 @@ class TestEditProfile(GUITestCase):
 	def test_cleanLayout(self):
 		"""test cleanLayout"""
 		p = QWidget()
-		ep = editProfile(p)
+		ep = editProfileWindow(p)
 		self.assertEqual(ep.layout().count(), 36)
 		ep.cleanLayout()
 		self.assertEqual(ep.layout().count(), 0)

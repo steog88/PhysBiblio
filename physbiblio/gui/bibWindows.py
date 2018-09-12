@@ -3,7 +3,6 @@ the entries windows and panels.
 
 This file is part of the physbiblio package.
 """
-import sys
 import traceback
 import os
 import matplotlib
@@ -12,15 +11,15 @@ matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import bibtexparser
+import re
+from pyparsing import ParseException
+from pylatexenc.latex2text import LatexNodes2Text
 from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide2.QtWidgets import \
 	QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, \
 	QHBoxLayout, QLineEdit, QPlainTextEdit, QPushButton, \
 	QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
-import re
-from pyparsing import ParseException
-from pylatexenc.latex2text import LatexNodes2Text
 
 try:
 	from physbiblio.errors import pBLogger
@@ -55,11 +54,17 @@ convertType = {
 	"exp_paper": "Experimental paper",
 }
 
+
 def copyToClipboard(text):
-	"""copy the given text to the clipboard"""
+	"""Copy the given text to the clipboard
+
+	Parameter:
+		text: the string to be copied to clipboard
+	"""
 	pBLogger.info("Copying to clipboard: '%s'"%text)
 	clipboard = QApplication.clipboard()
 	clipboard.setText(text)
+
 
 def writeBibtexInfo(entry):
 	infoText = ""
@@ -100,7 +105,10 @@ def writeBibtexInfo(entry):
 		", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
 	return infoText
 
+
 class abstractFormulas():
+	"""a"""
+
 	def __init__(self,
 			mainWin,
 			text,
@@ -123,7 +131,8 @@ class abstractFormulas():
 		return "$" in self.text
 
 	def doText(self):
-		if "$" in self.text:
+		if self.hasLatex():
+			self.mainWin.statusBarMessage("Parsing LaTeX...")
 			self.editor.insertHtml(
 				"%sProcessing LaTeX formulas..."%self.abstractTitle)
 			self.thr = thread_processLatex(self.prepareText, self.mainWin)
@@ -185,19 +194,39 @@ class abstractFormulas():
 		if self.statusMessages:
 			self.mainWin.statusBarMessage("Latex processing done!")
 
+
 def writeAbstract(mainWin, entry):
+	"""Process and write the abstract to the dedicated mainWindow panel
+
+	Parameters:
+		mainWin: the `mainWindow` instance where to write the abstract
+		entry: the database record of the entry
+	"""
 	a = abstractFormulas(mainWin, entry["abstract"])
-	if a.hasLatex():
-		mainWin.statusBarMessage("Parsing LaTeX...")
 	a.doText()
 
-def editBibtex(parent, statusBarObject, editKey = None):
+
+def editBibtex(parentObject, editKey = None):
+	"""Open a dialog (`editBibtexDialog`) to edit a bibtex entry
+	and process the output.
+
+	Parameters:
+		parentObject: the parent widget
+		editKey: the key of the entry to be edited,
+			or `None` to create a new one
+		testing (default False): when doing tests,
+			interrupt the execution before `exec_` and
+			replace `newBibWin` with the passed object.
+	"""
 	if editKey is not None:
 		edit = pBDB.bibs.getByKey(editKey, saveQuery = False)[0]
 	else:
 		edit = None
-	newBibWin = editBibtexEntry(parent, bib = edit)
-	newBibWin.exec_()
+	newBibWin = editBibtexDialog(parentObject, bib = edit)
+	if testing:
+		newBibWin = testing
+	else:
+		newBibWin.exec_()
 	data = {}
 	if newBibWin.result is True:
 		for k, v in newBibWin.textValues.items():
@@ -244,39 +273,65 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			else:
 				pBDB.bibs.insert(data)
 			message = "Bibtex entry saved"
-			statusBarObject.setWindowTitle("PhysBiblio*")
+			parentObject.setWindowTitle("PhysBiblio*")
+			pBDB.bibs.fetchFromLast()
 			try:
-				parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
-			except:
-				pass
+				parentObject.reloadMainContent(
+					pBDB.bibs.lastFetched)
+			except AttributeError:
+				pBLogger.debug(
+					"parentObject has no attribute 'reloadMainContent'",
+					exc_info=True)
 		else:
 			infoMessage("ERROR: empty bibtex and/or bibkey!")
 	else:
 		message = "No modifications to bibtex entry"
 	try:
-		statusBarObject.statusBarMessage(message)
-	except:
-		pass
+		parentObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
+			exc_info=True)
 
-def deleteBibtex(parent, statusBarObject, bibkey):
-	if askYesNo("Do you really want to delete these bibtex entries "
-			+ "(bibkeys = '%s')?"%(bibkey)):
+
+def deleteBibtex(parentObject, bibkey):
+	"""Ask confirmation and eventually delete the selected bibtex entry
+
+	Parameters:
+		parentObject: the parent object, which has
+			the `statusBarMessage` and `setWindowTitle` methods
+			and a `bibtexListWindow` attribute
+		bibkey: the bibtex key of the entry to be deleted
+	"""
+	if askYesNo("Do you really want to delete this bibtex entry "
+			+ "(bibkey = '%s')?"%(bibkey)):
 		pBDB.bibs.delete(bibkey)
-		statusBarObject.setWindowTitle("PhysBiblio*")
+		parentObject.setWindowTitle("PhysBiblio*")
 		message = "Bibtex entry deleted"
 		try:
-			parent.bibtexList.recreateTable()
-		except:
-			pass
+			parentObject.bibtexListWindow.recreateTable()
+		except AttributeError:
+			pBLogger.debug("parentObject has no attribute 'recreateTable'",
+				exc_info=True)
 	else:
 		message = "Nothing changed"
 	try:
-		statusBarObject.statusBarMessage(message)
-	except:
-		pass
+		parentObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
+			exc_info=True)
+
 
 class bibtexInfo(QFrame):
+	"""`QFrame` extension to create a panel where to write
+	some info about the selected bibtex entry"""
+
 	def __init__(self, parent = None):
+		"""Extension of `QFrame.__init__`, also adds a layout
+		and a QTextEdit to the frame
+
+		Parameter:
+			parent: the parent widget
+		"""
 		super(bibtexInfo, self).__init__(parent)
 		self.parent = parent
 
@@ -291,7 +346,10 @@ class bibtexInfo(QFrame):
 
 		self.currLayout.addWidget(self.text)
 
+
 class MyBibTableModel(MyTableModel):
+	"""Model"""
+
 	def __init__(self,
 			parent,
 			bib_list,
@@ -407,7 +465,10 @@ class MyBibTableModel(MyTableModel):
 		self.dataChanged.emit(index, index)
 		return True
 
-class bibtexList(QFrame, objListWindow):
+
+class bibtexListWindow(QFrame, objListWindow):
+	"""W"""
+
 	def __init__(self,
 			parent = None,
 			bibs = None,
@@ -690,7 +751,7 @@ class bibtexList(QFrame, objListWindow):
 				pdfActs["openOtherPDF"][i],
 				pdfActs["delOtherPDF"][i],
 				pdfActs["copyOtherPDF"][i]]
-		
+
 		catAction = QAction("Manage categories")
 		expAction = QAction("Manage experiments")
 		opArxAct = QAction("Open into arXiv")
@@ -706,7 +767,7 @@ class bibtexList(QFrame, objListWindow):
 		else:
 			absAction = "absAction"
 			arxAction = "arxAction"
-		
+
 		menu.possibleActions = [
 			titAct,
 			None,
@@ -730,9 +791,9 @@ class bibtexList(QFrame, objListWindow):
 
 		action = menu.exec_(event.globalPos())
 		if action == delAction:
-			deleteBibtex(self.parent, self.parent, bibkey)
+			deleteBibtex(self.parent, bibkey)
 		elif action == modAction:
-			editBibtex(self.parent, self.parent, bibkey)
+			editBibtex(self.parent, bibkey)
 		elif action == cleAction:
 			self.parent.cleanAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
@@ -998,10 +1059,12 @@ class bibtexList(QFrame, objListWindow):
 		self.createTable()
 		QApplication.restoreOverrideCursor()
 
-class editBibtexEntry(editObjectWindow):
+
+class editBibtexDialog(editObjectWindow):
 	"""create a window for editing or creating a bibtex entry"""
+
 	def __init__(self, parent = None, bib = None):
-		super(editBibtexEntry, self).__init__(parent)
+		super(editBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		if bib is None:
 			self.data = {}
@@ -1118,7 +1181,10 @@ class editBibtexEntry(editObjectWindow):
 		self.setGeometry(100,100,400, 25*i)
 		self.centerWindow()
 
+
 class MyPdfAction(QAction):
+	"""Action"""
+
 	def __init__(self, filename, parentMenu, *args, **kwargs):
 		QAction.__init__(self,
 			*args,
@@ -1131,7 +1197,10 @@ class MyPdfAction(QAction):
 		self.parentMenu.result = "openOther_%s"%self.filename
 		self.parentMenu.close()
 
+
 class askPdfAction(MyMenu):
+	"""Menu"""
+
 	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
 		super(askPdfAction, self).__init__(parent)
 		self.message = "What PDF of this entry (%s) do you want to open?"%(key)
@@ -1163,7 +1232,10 @@ class askPdfAction(MyMenu):
 		self.result	= "openDoi"
 		self.close()
 
+
 class askSelBibAction(MyMenu):
+	"""Menu"""
+
 	def __init__(self, parent = None, keys = []):
 		super(askSelBibAction, self).__init__(parent)
 		self.keys = keys
@@ -1287,14 +1359,13 @@ class askSelBibAction(MyMenu):
 		self.close()
 
 	def onDelete(self):
-		deleteBibtex(self.parent, self.parent,
-			[e["bibkey"] for e in self.entries])
+		deleteBibtex(self.parent, [e["bibkey"] for e in self.entries])
 		self.close()
 
 	def onAbs(self):
 		infoMessage("Starting the abstract download process, please wait...")
 		for entry in self.entries:
-			self.parent.bibtexList.arxivAbstract(entry["arxiv"],
+			self.parent.bibtexListWindow.arxivAbstract(entry["arxiv"],
 				entry["bibkey"], message = False)
 		infoMessage("Done!")
 		self.close()
@@ -1312,7 +1383,7 @@ class askSelBibAction(MyMenu):
 				self.downArxiv_thr.append(
 					thread_downloadArxiv(entry["bibkey"], self.parent))
 				self.downArxiv_thr[-1].finished.connect(
-					self.parent.bibtexList.downloadArxivDone)
+					self.parent.bibtexListWindow.downloadArxivDone)
 				self.downArxiv_thr[-1].start()
 		self.close()
 
@@ -1368,8 +1439,10 @@ class askSelBibAction(MyMenu):
 			self.parent.statusBarMessage("experiments successfully inserted")
 		self.close()
 
+
 class searchBibsWindow(editObjectWindow):
-	"""create a window for editing or creating a bibtex entry"""
+	"""create a window for searching a bibtex entry"""
+
 	def __init__(self, parent = None, bib = None, replace = False):
 		super(searchBibsWindow, self).__init__(parent)
 		self.textValues = []
@@ -1724,9 +1797,12 @@ class searchBibsWindow(editObjectWindow):
 
 		self.currGrid.setColumnStretch(6, 1)
 
-class mergeBibtexs(editBibtexEntry):
+
+class mergeBibtexs(editBibtexDialog):
+	"""W"""
+
 	def __init__(self, bib1, bib2, parent = None):
-		super(editBibtexEntry, self).__init__(parent)
+		super(editBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		self.bibtexWidth = 330
 		self.dataOld = {"0": bib1, "1": bib2}
@@ -1881,7 +1957,10 @@ class mergeBibtexs(editBibtexEntry):
 		self.setGeometry(100,100,3*self.bibtexWidth+50, 25*i)
 		self.centerWindow()
 
+
 class fieldsFromArxiv(QDialog):
+	"""W"""
+
 	def __init__(self, parent = None):
 		super(fieldsFromArxiv, self).__init__(parent)
 		self.setWindowTitle("Import fields from arXiv")
