@@ -2208,7 +2208,20 @@ class TestDatabaseEntries(DBTestCase):
 			"1385583")
 		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo 2015",
 			"Gariazzo:2015rra", number = 3), "1385583")
-		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015",
+		self.pBDB.bibs.delete("Gariazzo:2015rra")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\narxiv="1507.08204"\n}')
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"),
+			"1385583")
+		self.pBDB.bibs.delete("Gariazzo:2015")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"\n}')
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"),
+			"1385583")
+		self.pBDB.bibs.delete("Gariazzo:2015")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}')
+		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015r",
 			"Gariazzo:2015rra"))
 		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 

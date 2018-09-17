@@ -2003,7 +2003,9 @@ class entries(physbiblioDBSub):
 
 	def updateInspireID(self, string, key = None, number = None):
 		"""Use inspire websearch module to get and
-		update the inspire ID of an entry
+		update the inspire ID of an entry.
+		If the given string is cannot be matched, uses arxiv and doi
+		fields from the database (if the key is valid)
 
 		Parameters:
 			string: the string so be searched
@@ -2027,7 +2029,34 @@ class entries(physbiblioDBSub):
 				pBLogger.warning("Something went wrong in updateInspireID")
 				return False
 		else:
-			return False
+			arxiv = self.getField(key, "arxiv")
+			if arxiv is not "" and arxiv is not None:
+				newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
+					"eprint+%s"%arxiv, number = 0)
+				if newid is not "":
+					if self.connExec("update entries set inspire=:inspire " \
+							+ "where bibkey=:bibkey\n",
+							{"inspire": newid, "bibkey": key}):
+						return newid
+					else:
+						pBLogger.warning("Something went wrong in updateInspireID")
+						return False
+			else:
+				doi = self.getField(key, "doi")
+				if doi is not "" and doi is not None:
+					newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
+						"doi+%s"%doi, number = 0)
+					if newid is not "":
+						if self.connExec("update entries set inspire=:inspire " \
+								+ "where bibkey=:bibkey\n",
+								{"inspire": newid, "bibkey": key}):
+							return newid
+						else:
+							pBLogger.warning(
+								"Something went wrong in updateInspireID")
+							return False
+				else:
+					return False
 
 	def updateField(self, key, field, value, verbose = 1):
 		"""Update a single field of an entry

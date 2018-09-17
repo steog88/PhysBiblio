@@ -206,7 +206,7 @@ def writeAbstract(mainWin, entry):
 	a.doText()
 
 
-def editBibtex(parentObject, editKey = None):
+def editBibtex(parentObject, editKey=None, testing=False):
 	"""Open a dialog (`editBibtexDialog`) to edit a bibtex entry
 	and process the output.
 
