@@ -1899,8 +1899,21 @@ class TestDatabaseEntries(DBTestCase):
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
 			"tmpbib.bib", completeInfo = False),
 			"Impossible to parse text:")
-		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], [])
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+			["abc"])
 
+		self.pBDB.undo(verbose = 0)
+		with open("tmpbib.bib", "w") as f:
+			f.write(u'@article{abc,\nauthor = "me",\n' \
+			+ 'month = jan,\n}\n@article{def,\n}\n')
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
+			"tmpbib.bib", completeInfo = False),
+			"Impossible to parse text:")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+			["abc"])
+
+		self.pBDB.undo(verbose = 0)
 		#test with completeInfo
 		pbConfig.params["fetchAbstract"] = True
 		pbConfig.params["defaultCategories"] = 1

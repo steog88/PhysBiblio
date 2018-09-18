@@ -2793,14 +2793,39 @@ class entries(physbiblioDBSub):
 		self.lastInserted = []
 		exist = []
 		errors = []
+
+		def parseSingle(text):
+			"""Parse the text corresponding to an entry and returns
+			the list of parsed entries from `bibtexparser`.
+			If an exception occurs, return an empty list
+
+			Parameter:
+				text: the text to be processed
+
+			Output:
+				a list
+			"""
+			pBLogger.debug("Processing:\n%s"%text)
+			bp = bibtexparser.bparser.BibTexParser(common_strings=True)
+			try:
+				return bp.parse(text).entries
+			except ParseException:
+				errors.append(text)
+				pBLogger.exception("Impossible to parse text:\n%s"%text)
+				return []
+
 		pBLogger.info("Importing from file bib: %s"%filename)
 		with open(filename) as r:
-			bibText = r.read()
-		try:
-			elements = bibtexparser.loads(bibText).entries
-		except ParseException:
-			pBLogger.exception("Impossible to parse text:\n%s"%bibText)
-			return
+			bibTextLines = r.readlines()
+		bibText = ""
+		elements = []
+		for line in bibTextLines:
+			if "@" in line:
+				elements += parseSingle(bibText)
+				bibText = line
+			else:
+				bibText += line
+		elements += parseSingle(bibText)
 		db = bibtexparser.bibdatabase.BibDatabase()
 		self.importFromBibFlag = True
 		pBLogger.info("Entries to be processed: %d"%len(elements))
