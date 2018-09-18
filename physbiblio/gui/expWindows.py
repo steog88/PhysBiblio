@@ -313,8 +313,7 @@ class ExpsListWindow(objListWindow):
 		"""Action to perform when the creation
 		of a new experiment is requested
 		"""
-		editExperiment(self.parent(), self.parent())
-		self.recreateTable()
+		editExperiment(self, self.parent())
 
 	def keyPressEvent(self, e):
 		"""Manage the key press events.

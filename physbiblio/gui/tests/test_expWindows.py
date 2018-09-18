@@ -563,12 +563,9 @@ class TestExpsListWindow(GUITestCase):
 		"""test onNewExp"""
 		p = QWidget()
 		elw = ExpsListWindow(p)
-		with patch("physbiblio.gui.expWindows.editExperiment") as _ec, \
-				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
-					) as _rt:
+		with patch("physbiblio.gui.expWindows.editExperiment") as _ec:
 			elw.onNewExp()
-			_ec.assert_called_once_with(p, p)
-			_rt.assert_called_once()
+			_ec.assert_called_once_with(elw, p)
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
