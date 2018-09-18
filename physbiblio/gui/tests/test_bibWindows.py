@@ -45,7 +45,213 @@ class TestFunctions(GUITestCase):
 
 	def test_writeBibtexInfo(self):
 		"""test writeBibtexInfo"""
-		pass
+		entry = {
+			"bibkey": "mykey",
+			"review": 0,
+			"proceeding": 0,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			"bibtexDict": {
+				"author": "sg",
+				"title": "some title",
+				"journal": "AB",
+				"volume": "12",
+				"year": "2018",
+				"pages": "1",
+			},
+			"ads": "",
+			"isbn": "",
+			"arxiv": "1234.5678",
+			"doi": "a/b/12",
+			"inspire": "1234",
+			}
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[]) as _gc,\
+				patch("physbiblio.database.experiments.getByEntry",
+					return_value=[]) as _ge,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(writeBibtexInfo(entry),
+				"<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<b>sg</b><br/>\nsome title<br/>\n<i>AB 12 (2018) 1</i>"
+				+ "<br/>\n<br/>DOI of the record: <u>a/b/12</u><br/>"
+				+ "arXiv ID of the record: <u>1234.5678</u><br/>"
+				+ "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
+				+ "Categories: <i>None</i>\n<br/>Experiments: <i>None</i>")
+			_d.assert_not_called()
+
+		entry = {
+			"bibkey": "mykey",
+			"review": 0,
+			"proceeding": 0,
+			"book": 1,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			"bibtexDict": {
+				"author": "sg",
+				"title": "some title",
+				"volume": "12",
+				"year": "2018",
+				"pages": "1",
+			},
+			"isbn": "123456789",
+			"arxiv": "",
+			"doi": "a/b/12",
+			"inspire": "1234",
+			}
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[{"name": "Main"}]) as _gc,\
+				patch("physbiblio.database.experiments.getByEntry",
+					return_value=[]) as _ge,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(writeBibtexInfo(entry),
+				"(Book) <u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<b>sg</b><br/>\nsome title<br/>\n"
+				+ "<br/>ISBN code of the record: <u>123456789</u><br/>"
+				+ "DOI of the record: <u>a/b/12</u><br/>"
+				+ "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
+				+ "Categories: <i>Main</i>\n<br/>Experiments: <i>None</i>")
+			_d.assert_has_calls([
+				call("KeyError: 'journal', 'volume', 'year' or 'pages' "
+					+ "not in ['author', 'pages', 'title', 'volume', 'year']"),
+				call("KeyError: 'ads' not in "
+					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+					+ "'exp_paper', 'inspire', 'isbn', 'lecture', "
+					+ "'phd_thesis', 'proceeding', 'review']"),
+				])
+
+		entry = {
+			"bibkey": "mykey",
+			"review": 1,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			"bibtexDict": {
+				"author": "sg",
+				"journal": "AB",
+				"volume": "12",
+				"year": "2018",
+				"pages": "1",
+			},
+			"arxiv": "",
+			"doi": "a/b/12",
+			"inspire": "1234",
+			}
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[{"name": "Main"}]) as _gc,\
+				patch("physbiblio.database.experiments.getByEntry",
+					return_value=[]) as _ge,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(writeBibtexInfo(entry),
+				"(Review) <u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
+				+ "DOI of the record: <u>a/b/12</u><br/>"
+				+ "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
+				+ "Categories: <i>Main</i>\n<br/>Experiments: <i>None</i>")
+			_d.assert_has_calls([
+				call("KeyError: 'proceeding' not in "
+					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+					+ "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+					+ "'review']"),
+				call("KeyError: 'title' not in "
+					+ "['author', 'journal', 'pages', 'volume', 'year']"),
+				call("KeyError: 'isbn' not in "
+					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+					+ "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+					+ "'review']"),
+				call("KeyError: 'ads' not in "
+					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+					+ "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+					+ "'review']"),
+				])
+
+		entry = {
+			"bibkey": "mykey",
+			"review": 1,
+			"book": 0,
+			"phd_thesis": 1,
+			"lecture": 0,
+			"exp_paper": 1,
+			"bibtexDict": {
+				"title": "some title",
+				"journal": "AB",
+				"volume": "12",
+				"year": "2018",
+				"pages": "1",
+			},
+			"arxiv": "",
+			"ads": "",
+			"isbn": "",
+			"doi": "",
+			"inspire": "",
+			}
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[{"name": "Main"}, {"name": "second"}]) as _gc,\
+				patch("physbiblio.database.experiments.getByEntry",
+					return_value=[{"name": "myexp"}]) as _ge,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(writeBibtexInfo(entry),
+				"(Review) (PhD thesis) (Experimental paper) "
+				+ "<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
+				+ "\n<br/>"
+				+ "Categories: <i>Main, second</i>\n"
+				+ "<br/>Experiments: <i>myexp</i>")
+			_d.assert_has_calls([
+				call("KeyError: 'proceeding' not in "
+					+ "['ads', 'arxiv', 'bibkey', 'bibtexDict', 'book', "
+					+ "'doi', 'exp_paper', 'inspire', 'isbn', "
+					+ "'lecture', 'phd_thesis', 'review']"),
+				call("KeyError: 'author' not in "
+					+ "['journal', 'pages', 'title', 'volume', 'year']"),
+				])
+
+		entry = {
+			"bibkey": "mykey",
+			"review": 0,
+			"proceeding": 1,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 1,
+			"exp_paper": 0,
+			"bibtexDict": {
+				"title": "some title",
+				"author": "sg",
+				"journal": "AB",
+				"volume": "12",
+				"year": "2018",
+				"pages": "1",
+			},
+			"arxiv": None,
+			"ads": None,
+			"isbn": None,
+			"doi": None,
+			"inspire": None,
+			}
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[{"name": "Main"}, {"name": "second"}]) as _gc,\
+				patch("physbiblio.database.experiments.getByEntry",
+					return_value=[{"name": "exp1"}, {"name": "exp2"}]) as _ge,\
+				patch("logging.Logger.debug") as _d,\
+				patch("pylatexenc.latex2text.LatexNodes2Text.latex_to_text",
+					return_value="parsed") as _ltt,\
+				patch("pylatexenc.latex2text.LatexNodes2Text.__init__",
+					return_value=None) as _i:
+			self.assertEqual(writeBibtexInfo(entry),
+				"(Proceeding) (Lecture) "
+				+ "<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<b>parsed</b><br/>\nparsed<br/>\n"
+				+ "<i>AB 12 (2018) 1</i><br/>\n<br/>"
+				+ "\n<br/>"
+				+ "Categories: <i>Main, second</i>\n"
+				+ "<br/>Experiments: <i>exp1, exp2</i>")
+			_d.assert_not_called()
+			_i.assert_called_once_with(
+				keep_inline_math=True, keep_comments=False)
+			_ltt.assert_has_calls([call("sg"), call("some title")])
 
 	def test_writeAbstract(self):
 		"""test writeAbstract"""

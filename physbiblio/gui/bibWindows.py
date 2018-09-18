@@ -46,8 +46,8 @@ except ImportError:
 	print(traceback.format_exc())
 
 convertType = {
-	"review":  "Review",
-	"proceeding":  "Proceeding",
+	"review": "Review",
+	"proceeding": "Proceeding",
 	"book": "Book",
 	"phd_thesis": "PhD thesis",
 	"lecture": "Lecture",
@@ -67,41 +67,66 @@ def copyToClipboard(text):
 
 
 def writeBibtexInfo(entry):
+	"""Use the database information in order to write a short text
+	that contains some relevant info on the bibtex entry,
+	such as type, title, authors, journal and identification info.
+
+	Parameter:
+		entry: the database record from which to extract the info
+
+	Output:
+		a string
+	"""
 	infoText = ""
 	for t in convertType.keys():
-		if entry[t] == 1:
-			infoText += "(%s) "%convertType[t]
-	infoText += "<u>%s</u>  (use with '<u>\cite{%s}</u>')<br/>"%(
+		try:
+			if entry[t] == 1:
+				infoText += "(%s) "%convertType[t]
+		except KeyError:
+			pBLogger.debug("KeyError: '%s' not in %s"%(
+				t, sorted(entry.keys())))
+	infoText += "<u>%s</u> (use with '<u>\cite{%s}</u>')<br/>\n"%(
 		entry["bibkey"], entry["bibkey"])
 	latexToText = LatexNodes2Text(
-		keep_inline_math = True, keep_comments = False)
+		keep_inline_math=True, keep_comments=False)
 	try:
-		infoText += "<b>%s</b><br/>%s<br/>"%(
-			latexToText.latex_to_text(entry["bibtexDict"]["author"]),
+		infoText += "<b>%s</b><br/>\n"%(
+			latexToText.latex_to_text(entry["bibtexDict"]["author"]))
+	except KeyError:
+		pBLogger.debug(
+			"KeyError: 'author' not in %s"%(
+				sorted(entry["bibtexDict"].keys())))
+	try:
+		infoText += "%s<br/>\n"%(
 			latexToText.latex_to_text(entry["bibtexDict"]["title"]))
 	except KeyError:
-		pass
+		pBLogger.debug(
+			"KeyError: 'title' not in %s"%(
+				sorted(entry["bibtexDict"].keys())))
 	try:
-		infoText +=  "<i>%s %s (%s) %s</i><br/>"%(
+		infoText += "<i>%s %s (%s) %s</i><br/>\n"%(
 			entry["bibtexDict"]["journal"],
 			entry["bibtexDict"]["volume"],
 			entry["bibtexDict"]["year"],
 			entry["bibtexDict"]["pages"])
 	except KeyError:
-		pass
+		pBLogger.debug(
+			"KeyError: 'journal', 'volume', 'year' or 'pages' not in %s"%(
+				sorted(entry["bibtexDict"].keys())))
 	infoText += "<br/>"
 	for k in ["isbn", "doi", "arxiv", "ads", "inspire"]:
 		try:
 			infoText += "%s: <u>%s</u><br/>"%(
 				pBDB.descriptions["entries"][k], entry[k]) \
-					if entry[k] is not None else ""
+					if (entry[k] is not None and entry[k] != "") else ""
 		except KeyError:
-			pass
+			pBLogger.debug("KeyError: '%s' not in %s"%(k,
+				sorted(entry.keys())))
 	cats = pBDB.cats.getByEntry(entry["bibkey"])
-	infoText += "<br/>Categories: <i>%s</i>"%(
+	infoText += "\n<br/>Categories: <i>%s</i>"%(
 		", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None")
 	exps = pBDB.exps.getByEntry(entry["bibkey"])
-	infoText += "<br/>Experiments: <i>%s</i>"%(
+	infoText += "\n<br/>Experiments: <i>%s</i>"%(
 		", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
 	return infoText
 
