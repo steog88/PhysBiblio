@@ -332,7 +332,7 @@ class pbExport():
 
 		# if there is a list of tex files, run this function
 		# for each of them...no updateExisting and removeUnused!
-		if type(texFileName) is list:
+		if isinstance(texFileName, list):
 			if len(texFileName) == 0:
 				return False
 			elif len(texFileName) == 1:

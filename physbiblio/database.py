@@ -178,7 +178,7 @@ class categories(physbiblioDBSub):
 		Output:
 			False if id ==0 or ==1, True otherwise
 		"""
-		if type(idCat) is list:
+		if isinstance(idCat, list):
 			for c in idCat:
 				self.delete(c)
 		else:
@@ -477,10 +477,10 @@ class catsEntries(physbiblioDBSub):
 			False if the connection is already present,
 				the output of self.connExec otherwise
 		"""
-		if type(idCat) is list:
+		if isinstance(idCat, list):
 			for q in idCat:
 				self.insert(q, key)
-		elif type(key) is list:
+		elif isinstance(key, list):
 			for q in key:
 				self.insert(idCat, q)
 		else:
@@ -505,10 +505,10 @@ class catsEntries(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		if type(idCat) is list:
+		if isinstance(idCat, list):
 			for q in idCat:
 				self.delete(q, key)
-		elif type(key) is list:
+		elif isinstance(key, list):
 			for q in key:
 				self.delete(idCat, q)
 		else:
@@ -539,7 +539,7 @@ class catsEntries(physbiblioDBSub):
 		Parameters:
 			keys: a single key or a list of bibtex keys
 		"""
-		if type(keys) is not list:
+		if not isinstance(keys, list):
 			keys = [keys]
 		for k in keys:
 			string = six.moves.input("categories for '%s': "%k)
@@ -557,7 +557,7 @@ class catsEntries(physbiblioDBSub):
 		Parameters:
 			cats: a single id or a list of categories
 		"""
-		if type(cats) is not list:
+		if not isinstance(cats, list):
 			cats = [cats]
 		for c in cats:
 			string = six.moves.input("entries for '%d': "%c)
@@ -641,10 +641,10 @@ class catsExps(physbiblioDBSub):
 			False if the connection is already present,
 				the output of self.connExec otherwise
 		"""
-		if type(idCat) is list:
+		if isinstance(idCat, list):
 			for q in idCat:
 				self.insert(q, idExp)
-		elif type(idExp) is list:
+		elif isinstance(idExp, list):
 			for q in idExp:
 				self.insert(idCat, q)
 		else:
@@ -670,10 +670,10 @@ class catsExps(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		if type(idCat) is list:
+		if isinstance(idCat, list):
 			for q in idCat:
 				self.delete(q, idExp)
-		elif type(idExp) is list:
+		elif isinstance(idExp, list):
 			for q in idExp:
 				self.delete(idCat, q)
 		else:
@@ -688,7 +688,7 @@ class catsExps(physbiblioDBSub):
 		Parameters:
 			exps: a single id or a list of experiment ids
 		"""
-		if type(exps) is not list:
+		if not isinstance(exps, list):
 			exps = [exps]
 		for e in exps:
 			string = six.moves.input("categories for '%d': "%e)
@@ -706,7 +706,7 @@ class catsExps(physbiblioDBSub):
 		Parameters:
 			cats: a single id or a list of category ids
 		"""
-		if type(cats) is not list:
+		if not isinstance(cats, list):
 			cats = [cats]
 		for c in cats:
 			string = six.moves.input("experiments for '%d': "%c)
@@ -776,10 +776,10 @@ class entryExps(physbiblioDBSub):
 			False if the connection is already present,
 				the output of self.connExec otherwise
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.insert(q, idExp)
-		elif type(idExp) is list:
+		elif isinstance(idExp, list):
 			for q in idExp:
 				self.insert(key, q)
 		else:
@@ -807,10 +807,10 @@ class entryExps(physbiblioDBSub):
 		Output:
 			the output of self.connExec
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.delete(q, idExp)
-		elif type(idExp) is list:
+		elif isinstance(idExp, list):
 			for q in idExp:
 				self.delete(key, q)
 		else:
@@ -840,7 +840,7 @@ class entryExps(physbiblioDBSub):
 		Parameters:
 			keys: a single key or a list of bibtex keys
 		"""
-		if type(keys) is not list:
+		if not isinstance(keys, list):
 			keys = [keys]
 		for k in keys:
 			string = six.moves.input("experiments for '%s': "%k)
@@ -858,7 +858,7 @@ class entryExps(physbiblioDBSub):
 		Parameters:
 			exps: a single id or a list of experiment ids
 		"""
-		if type(exps) is not list:
+		if not isinstance(exps, list):
 			exps = [exps]
 		for e in exps:
 			string = six.moves.input("entries for '%d': "%e)
@@ -935,7 +935,7 @@ class experiments(physbiblioDBSub):
 		Parameters:
 			idExp: the experiment ID
 		"""
-		if type(idExp) is list:
+		if isinstance(idExp, list):
 			for e in idExp:
 				self.delete(e)
 		else:
@@ -1237,7 +1237,7 @@ class entries(physbiblioDBSub):
 		Parameters:
 			key: the bibtex key (or a list)
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for k in key:
 				self.delete(k)
 		else:
@@ -1399,7 +1399,7 @@ class entries(physbiblioDBSub):
 			joinStr = ""
 			whereStr = ""
 			valsTmp = tuple()
-			if type(queryDict[tp]["id"]) is list:
+			if isinstance(queryDict[tp]["id"], list):
 				if queryDict[tp]["operator"] == "or":
 					joinStr += " left join %s on entries.bibkey=%s.bibkey"%(
 						tabName, tabName)
@@ -1542,7 +1542,7 @@ class entries(physbiblioDBSub):
 			query += " where "
 			first = True
 			for k, v in params.items():
-				if type(v) is list:
+				if isinstance(v, list):
 					for v1 in v:
 						if first:
 							first = False
@@ -1624,7 +1624,7 @@ class entries(physbiblioDBSub):
 		Output:
 			self
 		"""
-		if type(bibkey) is list:
+		if isinstance(bibkey, list):
 			return self.fetchAll(params = {"bibkey": bibkey},
 				connection = "or", saveQuery = saveQuery)
 		else:
@@ -1655,7 +1655,7 @@ class entries(physbiblioDBSub):
 		Output:
 			self
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			strings = ["%%%s%%"%q for q in key]
 			return self.fetchAll(
 				params = {"bibkey": strings,
@@ -1696,7 +1696,7 @@ class entries(physbiblioDBSub):
 		Output:
 			self
 		"""
-		if type(string) is list:
+		if isinstance(string, list):
 			return self.fetchAll(
 				params = {"bibtex":["%%%s%%"%q for q in string]},
 				connection = "or",
@@ -2289,7 +2289,7 @@ class entries(physbiblioDBSub):
 			for a list of entries, a list with the output
 				of self.updateInfoFromOAI for each entry
 		"""
-		if type(entry) is list:
+		if isinstance(entry, list):
 			output = []
 			for e in entry:
 				output.append(self.updateFromOAI(e, verbose = verbose))
@@ -2377,7 +2377,7 @@ class entries(physbiblioDBSub):
 				line = line.replace(old, new)
 			return line
 
-		if type(fiNews) is not list or type(news) is not list:
+		if not isinstance(fiNews, list) or not isinstance(news, list):
 			pBLogger.warning("Invalid 'fiNews' or 'news' (they must be lists)")
 			return [], [], []
 		if entries is None:
@@ -2490,7 +2490,7 @@ class entries(physbiblioDBSub):
 			the lists of successfully processed entryes
 				and failures when considering a list
 		"""
-		if type(bibkey) is list:
+		if isinstance(bibkey, list):
 			tot = len(bibkey)
 			self.getArxivFieldsFlag = True
 			success = []
@@ -2512,7 +2512,7 @@ class entries(physbiblioDBSub):
 				"%d entries processed, "%len(success+fail)
 				+ "of which these %d generated errors:\n%s"%(len(fail), fail))
 			return success, fail
-		if type(fields) is not list:
+		if not isinstance(fields, list):
 			fields = [fields]
 		bibtex = self.getField(bibkey, "bibtex")
 		arxiv = str(self.getField(bibkey, "arxiv"))
@@ -2611,7 +2611,7 @@ class entries(physbiblioDBSub):
 			Output:
 				the output, increased with the new elements
 			"""
-			if type(a) is list:
+			if isinstance(a, list):
 				for el in a:
 					out = returnListIfSub(el, out)
 				return out
@@ -2620,7 +2620,7 @@ class entries(physbiblioDBSub):
 				return out
 		if not childProcess:
 			self.lastInserted = []
-		if entry is not None and not type(entry) is list:
+		if entry is not None and not isinstance(entry, list):
 			existing = self.getByBibkey(entry, saveQuery = False)
 			exist = (len(existing) > 0)
 			for f in ["arxiv", "doi"]:
@@ -2673,7 +2673,9 @@ class entries(physbiblioDBSub):
 			exist = (len(existing) > 0)
 			for f in ["arxiv", "doi"]:
 				try:
-					if data[f].strip() != "":
+					if data[f] is not None \
+							and isinstance(data[f], str) \
+							and data[f].strip() != "":
 						temp = self.fetchAll(params = {f: data[f]},
 							saveQuery = False).lastFetched
 						exist = (exist or (len(temp) > 0))
@@ -2719,7 +2721,7 @@ class entries(physbiblioDBSub):
 				pBLogger.warning(
 					"Failed in completing info for entry %s\n"%entry)
 				return False
-		elif entry is not None and type(entry) is list:
+		elif entry is not None and isinstance(entry, list):
 			failed = []
 			entry = returnListIfSub(entry, [])
 			self.runningLoadAndInsert = True
@@ -2727,7 +2729,7 @@ class entries(physbiblioDBSub):
 			pBLogger.info("LoadAndInsert will process %d total entries"%tot)
 			ix = 0
 			for e in entry:
-				if type(e) is float:
+				if isinstance(e, float):
 					e = str(e)
 				if self.runningLoadAndInsert:
 					pBLogger.info(
@@ -2860,7 +2862,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setBook(q, value)
 		else:
@@ -2876,7 +2878,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setLecture(q, value)
 		else:
@@ -2892,7 +2894,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setPhdThesis(q, value)
 		else:
@@ -2908,7 +2910,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setProceeding(q, value)
 		else:
@@ -2924,7 +2926,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setReview(q, value)
 		else:
@@ -2940,7 +2942,7 @@ class entries(physbiblioDBSub):
 		Output:
 			the output of self.updateField
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for q in key:
 				self.setNoUpdate(q, value)
 		else:
@@ -3036,7 +3038,7 @@ class entries(physbiblioDBSub):
 			print(orderDate + "%7s "%typeStr + bibKeyStr + moreStr)
 			if addFields is not None:
 				try:
-					if type(addFields) is list:
+					if isinstance(addFields, list):
 						for f in addFields:
 							try:
 								print("   %s: %s"%(f, e[f]))

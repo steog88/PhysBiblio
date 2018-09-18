@@ -925,7 +925,7 @@ class MyMenu(QMenu):
 		for act in self.possibleActions:
 			if act is None:
 				self.addSeparator()
-			elif type(act) is list:
+			elif isinstance(act, list):
 				submenu = MyMenu()
 				submenu.setTitle(act[0])
 				submenu.possibleActions = act[1]
@@ -962,7 +962,7 @@ class guiViewEntry(viewEntry):
 				the argument passed to `physbiblio.view.viewWntry.getLink`
 				if needed
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for k in key:
 				self.openLink(k, arg, fileArg)
 		else:

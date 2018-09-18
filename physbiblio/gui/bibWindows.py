@@ -1006,7 +1006,8 @@ class bibtexListWindow(QFrame, objListWindow):
 					self.parent.statusBarMessage("opening doi PDF...")
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = pBPDF.getFilePath(bibkey, "doi"))
-				elif type(ask.result) is str and "openOther_" in ask.result:
+				elif isinstance(ask.result, str) \
+						and "openOther_" in ask.result:
 					filename = ask.result.replace("openOther_", "")
 					self.parent.statusBarMessage("opening %s..."%filename)
 					pBGuiView.openLink(bibkey, "file",

@@ -127,7 +127,7 @@ class inspireStatsLoader():
 			self.allInfo = {}
 			self.authorPapersList = [[],[]]
 			self.allCitations = []
-		if type(authorName) is list:
+		if isinstance(authorName, list):
 			for a in authorName:
 				self.authorStats(a, reset = False)
 			self.authorPlotInfo["name"] = authorName

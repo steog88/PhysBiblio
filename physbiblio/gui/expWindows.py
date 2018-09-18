@@ -399,7 +399,7 @@ class ExpsListWindow(objListWindow):
 		menu.fillMenu()
 
 		if testing is not False:
-			if type(testing) is list:
+			if isinstance(testing, list):
 				action = menu.possibleActions[testing[0]]
 				testing = testing[1]
 			elif ("%s"%testing).isdigit():

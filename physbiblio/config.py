@@ -673,7 +673,7 @@ class ConfigVars():
 		self.loggingLevels = loggingLevels
 		self.params = {}
 		for k, v in config_defaults.items():
-			if type(v) is str and "PBDATA" in v:
+			if isinstance(v, str) and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 				config_defaults[k] = v
 			self.params[k] = v
@@ -840,7 +840,7 @@ class ConfigVars():
 		for k, v in config_defaults.items():
 			if k == "mainDatabaseName":
 				continue
-			if type(v) is str and "PBDATA" in v:
+			if isinstance(v, str) and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
 		tempDb = physbiblioDBCore(self.currentDatabase,
@@ -869,7 +869,7 @@ class ConfigVars():
 					elif config_special[k] == 'list':
 						self.params[k] = ast.literal_eval(v.strip())
 					else:
-						if type(v) is str and "PBDATA" in v:
+						if isinstance(v, str) and "PBDATA" in v:
 							v = os.path.join(self.dataPath,
 								v.replace("PBDATA", ""))
 						self.params[k] = v
@@ -910,7 +910,7 @@ class ConfigVars():
 		Parses the various parameters given their declared type.
 		"""
 		for k, v in config_defaults.items():
-			if type(v) is str and "PBDATA" in v:
+			if isinstance(v, str) and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
 		try:
@@ -933,7 +933,7 @@ class ConfigVars():
 					elif config_special[k] == 'list':
 						self.params[k] = ast.literal_eval(v.strip())
 					else:
-						if type(v) is str and "PBDATA" in v:
+						if isinstance(v, str) and "PBDATA" in v:
 							v = os.path.join(self.dataPath,
 								v.replace("PBDATA", ""))
 						self.params[k] = v

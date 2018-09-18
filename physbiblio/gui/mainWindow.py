@@ -733,8 +733,8 @@ class MainWindow(QMainWindow):
 			texFile = askFileNames(self,
 				title = "Which is/are the *.tex file(s) you want to compile?",
 				filter = "Latex (*.tex)")
-			if (type(texFile) is not list and texFile != "") or (
-					type(texFile) is list and len(texFile)>0):
+			if (not isinstance(texFile, list) and texFile != "") or (
+					isinstance(texFile, list) and len(texFile)>0):
 				self._runInThread(
 					thread_exportTexBib, "Exporting...",
 					texFile, outFName,

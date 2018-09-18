@@ -46,7 +46,7 @@ class viewEntry():
 				True if arg == "file",
 				False if arg is invalid
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			links = []
 			for k in key:
 				if arg is not "file":
@@ -86,7 +86,7 @@ class viewEntry():
 		Parameters:
 			key, arg, fileArg as in the getLink method
 		"""
-		if type(key) is list:
+		if isinstance(key, list):
 			for k in key:
 				self.openLink(k, arg, fileArg)
 		else:

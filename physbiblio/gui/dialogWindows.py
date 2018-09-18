@@ -234,7 +234,7 @@ class configWindow(QDialog):
 		i = 0
 		for k in pbConfig.paramOrder:
 			i += 1
-			val = pbConfig.params[k] if type(pbConfig.params[k]) is str \
+			val = pbConfig.params[k] if isinstance(pbConfig.params[k], str) \
 				else str(pbConfig.params[k])
 			grid.addWidget(
 				MyLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)),
