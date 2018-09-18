@@ -2816,10 +2816,10 @@ class entries(physbiblioDBSub):
 
 		pBLogger.info("Importing from file bib: %s"%filename)
 		with open(filename) as r:
-			bibTextLines = r.readlines()
+			fullBibText = r.read()
 		bibText = ""
 		elements = []
-		for line in bibTextLines:
+		for line in fullBibText:
 			if "@" in line:
 				elements += parseSingle(bibText)
 				bibText = line

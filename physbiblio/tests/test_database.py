@@ -1886,7 +1886,7 @@ class TestDatabaseEntries(DBTestCase):
 	def test_importFromBib(self):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = ' \
-			+ '"abc",}\n@article{def,\nauthor = "me",\ntitle = "def",}\n')
+			+ '"abc",}@article{def,\nauthor = "me",\ntitle = "def",}')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc", "def"])
