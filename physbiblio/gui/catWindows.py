@@ -451,8 +451,7 @@ class catsTreeWindow(QDialog):
 		"""Action to perform when the creation
 		of a new category is requested
 		"""
-		editCategory(self.parent(), self.parent())
-		self.recreateTable()
+		editCategory(self, self.parent())
 
 	def keyPressEvent(self, e):
 		"""Manage the key press events.

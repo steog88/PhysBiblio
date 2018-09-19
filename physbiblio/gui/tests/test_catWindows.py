@@ -771,12 +771,9 @@ class TestCatsTreeWindow(GUITestCase):
 		"""test onNewCat"""
 		p = QWidget()
 		ctw = catsTreeWindow(p)
-		with patch("physbiblio.gui.catWindows.editCategory") as _ec, \
-				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
-					) as _rt:
+		with patch("physbiblio.gui.catWindows.editCategory") as _ec:
 			ctw.onNewCat()
-			_ec.assert_called_once_with(p, p)
-			_rt.assert_called_once()
+			_ec.assert_called_once_with(ctw, p)
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
