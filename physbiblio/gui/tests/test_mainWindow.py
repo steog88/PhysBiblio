@@ -41,6 +41,10 @@ class TestMainWindow(GUITestCase):
 		"""test"""
 		pass
 
+	def test_mainWindowTitle(self):
+		"""test"""
+		pass
+
 	def test_printNewVersion(self):
 		"""test"""
 		pass

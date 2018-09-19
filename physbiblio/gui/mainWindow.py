@@ -93,6 +93,11 @@ class MainWindow(QMainWindow):
 		self.checkUpdated.result.connect(self.printNewVersion)
 		self.checkUpdated.start()
 
+	def mainWindowTitle(self, title):
+		"""Set the window title
+		"""
+		self.setWindowTitle(title)
+
 	def printNewVersion(self, outdated, newVersion):
 		if outdated:
 			pBGUILogger.warning("New version available (%s)!\n"%newVersion
@@ -493,7 +498,7 @@ class MainWindow(QMainWindow):
 
 	def undoDB(self):
 		pBDB.undo()
-		self.setWindowTitle('PhysBiblio')
+		self.mainWindowTitle('PhysBiblio')
 		self.reloadMainContent()
 
 	def refreshMainContent(self, bibs=None):
@@ -680,7 +685,7 @@ class MainWindow(QMainWindow):
 	def save(self):
 		if askYesNo("Do you really want to save?"):
 			pBDB.commit()
-			self.setWindowTitle("PhysBiblio")
+			self.mainWindowTitle("PhysBiblio")
 			self.statusBarMessage("Changes saved")
 		else:
 			self.statusBarMessage("Nothing saved")
