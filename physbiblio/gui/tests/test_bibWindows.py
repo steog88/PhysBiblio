@@ -73,7 +73,7 @@ class TestFunctions(GUITestCase):
 					return_value=[]) as _ge,\
 				patch("logging.Logger.debug") as _d:
 			self.assertEqual(writeBibtexInfo(entry),
-				"<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				"<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
 				+ "<b>sg</b><br/>\nsome title<br/>\n<i>AB 12 (2018) 1</i>"
 				+ "<br/>\n<br/>DOI of the record: <u>a/b/12</u><br/>"
 				+ "arXiv ID of the record: <u>1234.5678</u><br/>"
@@ -107,7 +107,7 @@ class TestFunctions(GUITestCase):
 					return_value=[]) as _ge,\
 				patch("logging.Logger.debug") as _d:
 			self.assertEqual(writeBibtexInfo(entry),
-				"(Book) <u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				"(Book) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
 				+ "<b>sg</b><br/>\nsome title<br/>\n"
 				+ "<br/>ISBN code of the record: <u>123456789</u><br/>"
 				+ "DOI of the record: <u>a/b/12</u><br/>"
@@ -146,7 +146,7 @@ class TestFunctions(GUITestCase):
 					return_value=[]) as _ge,\
 				patch("logging.Logger.debug") as _d:
 			self.assertEqual(writeBibtexInfo(entry),
-				"(Review) <u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				"(Review) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
 				+ "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
 				+ "DOI of the record: <u>a/b/12</u><br/>"
 				+ "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
@@ -195,7 +195,7 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.debug") as _d:
 			self.assertEqual(writeBibtexInfo(entry),
 				"(Review) (PhD thesis) (Experimental paper) "
-				+ "<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
 				+ "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
 				+ "\n<br/>"
 				+ "Categories: <i>Main, second</i>\n"
@@ -242,7 +242,7 @@ class TestFunctions(GUITestCase):
 					return_value=None) as _i:
 			self.assertEqual(writeBibtexInfo(entry),
 				"(Proceeding) (Lecture) "
-				+ "<u>mykey</u>  (use with '<u>\cite{mykey}</u>')<br/>\n"
+				+ "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
 				+ "<b>parsed</b><br/>\nparsed<br/>\n"
 				+ "<i>AB 12 (2018) 1</i><br/>\n<br/>"
 				+ "\n<br/>"
@@ -270,7 +270,500 @@ class TestFunctions(GUITestCase):
 
 	def test_editBibtex(self):
 		"""test editBibtex"""
-		pass
+		pBDB.bibs.lastFetched = ["fake"]
+		testentry = {'bibkey': 'Gariazzo:2015rra', 'inspire': None,
+			'arxiv': '1507.08204', 'ads': None, 'scholar': None,
+			'doi': None, 'isbn': None, 'year': 2015,
+			'link': '%s/abs/1507.08204'%pbConfig.arxivUrl,
+			'comments': None, 'old_keys': None, 'crossref': None,
+			'bibtex': '@Article{Gariazzo:2015rra,\n         ' \
+			+ 'arxiv = "1507.08204",\n}', 'firstdate': "2018-09-01",
+			'pubdate': '', 'exp_paper': 0, 'lecture': 0,
+			'phd_thesis': 0, 'review': 0, 'proceeding': 0,
+			'book': 0, 'noUpdate': 0, 'marks': '',
+			'abstract': None, 'bibtexDict': {'arxiv': '1507.08204',
+			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
+			'title': '', 'journal': '', 'volume': '', 'number': '',
+			'pages': '', 'published': '  (2015) ', 'author': ''}
+		p = QDialog()
+		m = MainWindow(testing=True)
+		ebd = editBibtexDialog(m, bib=None)
+		ebd.onCancel()
+		with patch("logging.Logger.debug") as _ld,\
+				patch("physbiblio.database.entries.getByKey") as _gbk,\
+				patch("physbiblio.gui.bibWindows.editBibtexDialog.__init__",
+					return_value=None) as _i:
+			editBibtex(p, editKey=None, testing=ebd)
+			_i.assert_called_once_with(p, bib=None)
+			_ld.assert_called_once_with(
+				"parentObject has no attribute 'statusBarMessage'",
+				exc_info=True)
+			_gbk.assert_not_called()
+		with patch("logging.Logger.debug") as _ld,\
+				patch("physbiblio.database.entries.getByKey") as _gbk,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm:
+			editBibtex(m, editKey=None, testing=ebd)
+			_sbm.assert_called_once_with("No modifications to bibtex entry")
+			_ld.assert_not_called()
+			_gbk.assert_not_called()
+
+		ebd = editBibtexDialog(m, bib=None)
+		ebd.onCancel()
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value={"bibkey": "", "bibtex": ""}) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.editBibtexDialog.__init__",
+					return_value=None) as _i:
+			editBibtex(p, editKey='Gariazzo:2015rra', testing=ebd)
+			_ld.assert_called_once_with(
+				"parentObject has no attribute 'statusBarMessage'",
+				exc_info=True)
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_gbk.assert_called_once_with('Gariazzo:2015rra', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_not_called()
+			_ffl.assert_not_called()
+			_i.assert_called_once_with(p, bib=testentry)
+
+		#test creation of entry, empty bibtex
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["bibtex"].setPlainText("")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value={"bibkey": "", "bibtex": "test"}) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm:
+			editBibtex(m, editKey=None, testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_gbk.assert_not_called()
+			_pi.assert_not_called()
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_not_called()
+			_im.assert_called_once_with("ERROR: empty bibtex!")
+			_sbm.assert_called_once_with("ERROR: empty bibtex!")
+
+		#test creation of entry, empty bibkey inserted
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["bibkey"].setText("")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value={"bibkey": "", "bibtex": "test"}) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm:
+			editBibtex(m, editKey=None, testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_gbk.assert_not_called()
+			_pi.assert_called_once_with(testentry["bibtex"])
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_not_called()
+			_im.assert_called_once_with("ERROR: empty bibkey!")
+			_sbm.assert_called_once_with("ERROR: empty bibkey!")
+
+		#test creation of entry, new bibtex
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["bibkey"].setText("")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(p, editKey=None, testing=ebd)
+			_ld.assert_has_calls([
+				call("parentObject has no attribute 'mainWindowTitle'",
+					exc_info=True),
+				call("parentObject has no attribute 'reloadMainContent'",
+					exc_info=True),
+				call("parentObject has no attribute 'statusBarMessage'",
+					exc_info=True)])
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_gbk.assert_not_called()
+			_pi.assert_called_once_with(testentry["bibtex"])
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_called_once_with(testentry)
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_not_called()
+			_rmc.assert_not_called()
+			_swt.assert_not_called()
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey=None, testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_gbk.assert_not_called()
+			_pi.assert_called_once_with(testentry["bibtex"])
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_called_once_with(testentry)
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
+
+		#test edit with various field contents
+		#* no change bibkey: fix code?
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["comments"].setText("some text")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey="Gariazzo:2015rra", testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_called_once_with(
+				"Updating bibtex 'Gariazzo:2015rra'...")
+			_gbk.assert_called_once_with('Gariazzo:2015rra', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_not_called()
+			_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'some text', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u''},
+				u'Gariazzo:2015rra')
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
+
+		#* invalid key
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["bibkey"].setText("not valid bibtex!")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey="testkey", testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_has_calls([
+				call("Updating bibtex 'testkey'...")])
+			_gbk.assert_called_once_with('testkey', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_not_called()
+			_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u''},
+				u'testkey')
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
+
+		#* with update bibkey, updateBibkey successful
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["old_keys"].setText("old")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey="testkey", testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_not_called()
+			_li.assert_has_calls([
+				call("New bibtex key (Gariazzo:2015rra) for "
+					+ "element 'testkey'..."),
+				call("Updating bibtex 'Gariazzo:2015rra'...")])
+			_gbk.assert_called_once_with('testkey', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
+			_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'old testkey'},
+				u'Gariazzo:2015rra')
+			_ins.assert_not_called()
+			_rf.assert_called_once_with('testkey', u'Gariazzo:2015rra')
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
+
+		#* with update bibkey, updateBibkey unsuccessful
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=False) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey="testkey", testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_called_once_with("Cannot update bibtex key: "
+				+ "already present. Restoring previous one.")
+			_li.assert_has_calls([
+				call("New bibtex key (Gariazzo:2015rra) for "
+					+ "element 'testkey'..."),
+				call("Updating bibtex 'testkey'...")])
+			_gbk.assert_called_once_with('testkey', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
+			_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{testkey,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey'},
+				u'testkey')
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
+
+		#* with update bibkey, old_keys existing
+		ebd = editBibtexDialog(m, bib=testentry)
+		ebd.onOk()
+		ebd.textValues["old_keys"].setText("testkey")
+		with patch("logging.Logger.debug") as _ld,\
+				patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("physbiblio.database.entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.entries.updateBibkey",
+					return_value=False) as _ub,\
+				patch("physbiblio.database.entries.update") as _u,\
+				patch("physbiblio.database.entries.insert") as _ins,\
+				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt:
+			editBibtex(m, editKey="testkey", testing=ebd)
+			_ld.assert_not_called()
+			_lw.assert_called_once_with("Cannot update bibtex key: "
+				+ "already present. Restoring previous one.")
+			_li.assert_has_calls([
+				call("New bibtex key (Gariazzo:2015rra) for "
+					+ "element 'testkey'..."),
+				call("Updating bibtex 'testkey'...")])
+			_gbk.assert_called_once_with('testkey', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
+			_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{testkey,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey'},
+				u'testkey')
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Bibtex entry saved')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_called_once_with("PhysBiblio*")
 
 	def test_deleteBibtex(self):
 		"""test deleteBibtex"""

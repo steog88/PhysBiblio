@@ -244,10 +244,10 @@ def editBibtex(parentObject, editKey=None, testing=False):
 			replace `newBibWin` with the passed object.
 	"""
 	if editKey is not None:
-		edit = pBDB.bibs.getByKey(editKey, saveQuery = False)[0]
+		edit = pBDB.bibs.getByKey(editKey, saveQuery=False)[0]
 	else:
 		edit = None
-	newBibWin = editBibtexDialog(parentObject, bib = edit)
+	newBibWin = editBibtexDialog(parentObject, bib=edit)
 	if testing:
 		newBibWin = testing
 	else:
@@ -269,46 +269,59 @@ def editBibtex(parentObject, editKey=None, testing=False):
 		for m, ckb in newBibWin.markValues.items():
 			if ckb.isChecked():
 				data["marks"] += "'%s',"%m
-		if data["bibkey"].strip() == "" and data["bibtex"].strip() != "":
-			data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
-		if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
-			if "bibkey" in data.keys():
-				if editKey is not None and data["bibkey"].strip() != editKey:
-					if data["bibkey"].strip() != "not valid bibtex!":
-						pBLogger.info(
-							"New bibtex key (%s) for element '%s'..."%(
-								data["bibkey"], editKey))
-						if editKey not in data["old_keys"]:
-							data["old_keys"] += " " + editKey
-							data["old_keys"] = data["old_keys"].strip()
-						if pBDB.bibs.updateBibkey(
-								editKey, data["bibkey"].strip()):
-							pBPDF.renameFolder(editKey, data["bibkey"].strip())
+		if data["bibtex"].strip() != "":
+			if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
+				data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
+			if data["bibkey"].strip() != "":
+				if editKey is not None:
+					if data["bibkey"].strip() != editKey:
+						if data["bibkey"].strip() != "not valid bibtex!":
+							pBLogger.info(
+								"New bibtex key (%s) for element '%s'..."%(
+									data["bibkey"], editKey))
+							if editKey not in data["old_keys"]:
+								data["old_keys"] += " " + editKey
+								data["old_keys"] = data["old_keys"].strip()
+							if pBDB.bibs.updateBibkey(
+									editKey, data["bibkey"].strip()):
+								pBPDF.renameFolder(editKey,
+									data["bibkey"].strip())
+							else:
+								pBGUILogger.warning(
+									"Cannot update bibtex key: "
+									+ "already present. "
+									+ "Restoring previous one.")
+								data["bibtex"] = data["bibtex"].replace(
+									data["bibkey"], editKey)
+								data["bibkey"] = editKey
 						else:
-							pBGUILogger.warning("Cannot update bibtex key: "
-								+ "already present. Restoring previous one.")
-							data["bibtex"] = data["bibtex"].replace(
-								data["bibkey"], editKey)
 							data["bibkey"] = editKey
-					else:
-						data["bibkey"] = editKey
-				pBLogger.info(
-					"Updating bibtex '%s'..."%data["bibkey"])
-				pBDB.bibs.update(data, data["bibkey"])
+					pBLogger.info(
+						"Updating bibtex '%s'..."%data["bibkey"])
+					pBDB.bibs.update(data, data["bibkey"])
+				else:
+					pBDB.bibs.insert(data)
+				message = "Bibtex entry saved"
+				try:
+					parentObject.mainWindowTitle("PhysBiblio*")
+				except AttributeError:
+					pBLogger.debug(
+						"parentObject has no attribute 'mainWindowTitle'",
+						exc_info=True)
+				pBDB.bibs.fetchFromLast()
+				try:
+					parentObject.reloadMainContent(
+						pBDB.bibs.lastFetched)
+				except AttributeError:
+					pBLogger.debug(
+						"parentObject has no attribute 'reloadMainContent'",
+						exc_info=True)
 			else:
-				pBDB.bibs.insert(data)
-			message = "Bibtex entry saved"
-			parentObject.setWindowTitle("PhysBiblio*")
-			pBDB.bibs.fetchFromLast()
-			try:
-				parentObject.reloadMainContent(
-					pBDB.bibs.lastFetched)
-			except AttributeError:
-				pBLogger.debug(
-					"parentObject has no attribute 'reloadMainContent'",
-					exc_info=True)
+				message = "ERROR: empty bibkey!"
+				infoMessage(message)
 		else:
-			infoMessage("ERROR: empty bibtex and/or bibkey!")
+			message = "ERROR: empty bibtex!"
+			infoMessage(message)
 	else:
 		message = "No modifications to bibtex entry"
 	try:
