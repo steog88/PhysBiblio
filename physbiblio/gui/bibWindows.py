@@ -132,15 +132,31 @@ def writeBibtexInfo(entry):
 
 
 class abstractFormulas():
-	"""a"""
+	"""Class that manages the transformation of the math formulas
+	which appear in the abstract into images"""
 
 	def __init__(self,
 			mainWin,
 			text,
-			fontsize = pbConfig.params["bibListFontSize"],
-			abstractTitle = "<b>Abstract:</b><br/>",
-			customEditor = None,
-			statusMessages = True):
+			fontsize=pbConfig.params["bibListFontSize"],
+			abstractTitle="<b>Abstract:</b><br/>",
+			customEditor=None,
+			statusMessages=True):
+		"""Prepare the settings and the given text
+
+		Parameters:
+			mainWin: the main window object
+			text: the text to be processed
+			fontsize: the size of the font used to write the text
+				(default: taken from the configuration parameters)
+			abstractTitle: a title which will be written before
+				the processed abstract
+				(default: "<b>Abstract:</b><br/>")
+			customEditor: the place where to save the text
+				(default: `mainWin.bottomCenter.text`)
+			statusMessages: if True (default), write messages
+				in the statusbar
+		"""
 		self.fontsize = fontsize
 		self.mainWin = mainWin
 		self.statusMessages = statusMessages
@@ -153,9 +169,18 @@ class abstractFormulas():
 		self.text = abstractTitle + texToHtml(text).replace("\n", " ")
 
 	def hasLatex(self):
+		"""Return a boolean which indicates if there is math
+		in the abstract, based on the presence of "$" in the text
+
+		Output:
+			a boolean
+		"""
 		return "$" in self.text
 
 	def doText(self):
+		"""Convert the text using the `thread_processLatex` thread
+		to perform the conversion without freezing the main process
+		"""
 		if self.hasLatex():
 			self.mainWin.statusBarMessage("Parsing LaTeX...")
 			self.editor.insertHtml(
@@ -167,6 +192,15 @@ class abstractFormulas():
 			self.editor.insertHtml(self.text)
 
 	def mathTex_to_QPixmap(self, mathTex):
+		"""Create a `matplotlib` figure with the equation
+		that is given as a parameter
+
+		Parameter:
+			mathTex: the text to be converted into an image
+
+		Output:
+			a `QImage`
+		"""
 		fig = matplotlib.figure.Figure()
 		fig.patch.set_facecolor('none')
 		fig.set_canvas(FigureCanvasAgg(fig))
@@ -176,7 +210,7 @@ class abstractFormulas():
 		ax.axis('off')
 		ax.patch.set_facecolor('none')
 		t = ax.text(0, 0, mathTex,
-			ha='left', va='bottom', fontsize = self.fontsize)
+			ha='left', va='bottom', fontsize=self.fontsize)
 
 		fwidth, fheight = fig.get_size_inches()
 		fig_bbox = fig.get_window_extent(renderer)
@@ -198,7 +232,10 @@ class abstractFormulas():
 		return qimage
 
 	def prepareText(self):
-		textList = self.text.split("$")
+		"""Split the text into regular text and formulas
+		and prepare the the images which will be inserted
+		in the `QTextEdit` instead of the formulas
+		"""
 		matchFormula = re.compile('\$.*?\$', re.MULTILINE)
 		mathTexts = [ q.group() for q in matchFormula.finditer(self.text) ]
 
@@ -210,8 +247,9 @@ class abstractFormulas():
 		return images, text
 
 	def submitText(self, imgs, text):
-		self.document = QTextDocument()
-		self.editor.setDocument(self.document)
+		"""Prepare the `QTextDocument` with all the processed images
+		and insert them in the `QTextEdit`
+		"""
 		for i, image in enumerate(imgs):
 			self.document.addResource(QTextDocument.ImageResource,
 				QUrl("mydata://image%d.png"%i), image)
@@ -363,7 +401,7 @@ class bibtexInfo(QFrame):
 	"""`QFrame` extension to create a panel where to write
 	some info about the selected bibtex entry"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Extension of `QFrame.__init__`, also adds a layout
 		and a QTextEdit to the frame
 
@@ -371,7 +409,6 @@ class bibtexInfo(QFrame):
 			parent: the parent widget
 		"""
 		super(bibtexInfo, self).__init__(parent)
-		self.parent = parent
 
 		self.currLayout = QHBoxLayout()
 		self.setLayout(self.currLayout)

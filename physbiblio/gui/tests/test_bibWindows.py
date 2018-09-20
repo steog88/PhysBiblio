@@ -832,31 +832,156 @@ class TestFunctions(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestabstractFormulas(GUITestCase):
-	"""test"""
+	"""test the abstractFormulas class"""
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		m = MainWindow(testing = True)
+		m.bottomCenter = bibtexInfo(m)
+		af = abstractFormulas(m, "test text")
+		self.assertEqual(af.fontsize, pbConfig.params["bibListFontSize"])
+		self.assertEqual(af.mainWin, m)
+		self.assertEqual(af.statusMessages, True)
+		self.assertEqual(af.editor, m.bottomCenter.text)
+		self.assertIsInstance(af.document, QTextDocument)
+		self.assertEqual(af.editor.document(), af.document)
+		self.assertEqual(af.abstractTitle, "<b>Abstract:</b><br/>")
+		self.assertEqual(af.text, "<b>Abstract:</b><br/>test text")
+
+		bi = bibtexInfo()
+		af = abstractFormulas(m, "test text",
+			fontsize = 99,
+			abstractTitle="Title",
+			customEditor=bi.text,
+			statusMessages="a")
+		self.assertEqual(af.fontsize, 99)
+		self.assertEqual(af.mainWin, m)
+		self.assertEqual(af.statusMessages, "a")
+		self.assertEqual(af.editor, bi.text)
+		self.assertIsInstance(af.document, QTextDocument)
+		self.assertEqual(af.editor.document(), af.document)
+		self.assertEqual(af.abstractTitle, "Title")
+		self.assertEqual(af.text, "Titletest text")
 
 	def test_hasLatex(self):
-		"""test"""
-		pass
+		"""test hasLatex"""
+		m = MainWindow(testing = True)
+		m.bottomCenter = bibtexInfo(m)
+		af = abstractFormulas(m, "test text")
+		self.assertEqual(af.hasLatex(), False)
+		af = abstractFormulas(m, "test tex $f_e$ equation")
+		self.assertEqual(af.hasLatex(), True)
 
 	def test_doText(self):
-		"""test"""
-		pass
+		"""test doText"""
+		m = MainWindow(testing = True)
+		bi = bibtexInfo(m)
+		af = abstractFormulas(m, "test text", customEditor=bi.text)
+		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm:
+			af.doText()
+			_ih.assert_called_once_with(af.text)
+			_sbm.assert_not_called()
+
+		af = abstractFormulas(m, "test text with $f_e$ equation",
+			customEditor=bi.text)
+		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.threadElements.thread_processLatex."
+					+ "__init__", return_value=None) as _pl:
+			with self.assertRaises(AttributeError):
+				af.doText()
+			_sbm.assert_called_once_with("Parsing LaTeX...")
+			_ih.assert_called_once_with(
+				"%sProcessing LaTeX formulas..."%af.abstractTitle)
+			_pl.assert_called_once_with(af.prepareText, m)
+		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.commonClasses.MyThread.start") as _s,\
+				patch("physbiblio.gui.bibWindows.abstractFormulas."
+					+ "submitText") as _st:
+			af.doText()
+			_sbm.assert_called_once_with("Parsing LaTeX...")
+			_ih.assert_called_once_with(
+				"%sProcessing LaTeX formulas..."%af.abstractTitle)
+			_s.assert_called_once_with()
+			self.assertIsInstance(af.thr, thread_processLatex)
+			images, text = af.prepareText()
+			_st.assert_not_called()
+			af.thr.passData.emit(images, text)
+			_st.assert_called_once_with(images, text)
 
 	def test_mathTexToQPixmap(self):
-		"""test"""
-		pass
+		"""test mathTex_to_QPixmap"""
+		m = MainWindow(testing = True)
+		bi = bibtexInfo(m)
+		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+			customEditor=bi.text)
+		qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
+		self.assertIsInstance(qi, QImage)
+		with patch("matplotlib.figure.Figure.__init__",
+				return_value=None) as _fi,\
+				self.assertRaises(AttributeError):
+			qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
+			_fi.assert_called_once_with()
+		with patch("matplotlib.axes.Axes.text",
+				return_value=None) as _t,\
+				self.assertRaises(AttributeError):
+			qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
+			_t.assert_called_once_with(0, 0, r"$\nu_\mu$",
+				ha='left', va='bottom',
+				fontsize=pbConfig.params["bibListFontSize"])
+		with patch("matplotlib.backends.backend_agg."
+				+ "FigureCanvasAgg.print_to_buffer",
+					return_value=("buf", ["size0", "size1"])) as _ptb,\
+				patch("PySide2.QtGui.QImage.__init__",
+					return_value=None) as _qii,\
+				self.assertRaises(AttributeError):
+			qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
+			_ptb.assert_called_once_with()
+			_qii.assert_calle_once_with("buf",
+				"size0", "size1", QImage.Format_ARGB32)
 
 	def test_prepareText(self):
-		"""test"""
-		pass
+		"""test prepareText"""
+		m = MainWindow(testing = True)
+		bi = bibtexInfo(m)
+		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+			customEditor=bi.text)
+		with patch("physbiblio.gui.bibWindows.abstractFormulas."
+				+ "mathTex_to_QPixmap", side_effect=["a", "b"]) as _mq:
+			i, t = af.prepareText()
+			self.assertEqual(i, ["a", "b"])
+			self.assertEqual(t,
+				"<b>Abstract:</b><br/>"
+				+ "test <img src=\"mydata://image0.png\" /> "
+				+ "with <img src=\"mydata://image1.png\" /> equation")
+			_mq.assert_has_calls([
+				call(r"$\nu_\mu$"),
+				call("$f_e$")])
 
 	def test_submitText(self):
-		"""test"""
-		pass
+		"""test submitText"""
+		m = MainWindow(testing = True)
+		bi = bibtexInfo(m)
+		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+			customEditor=bi.text)
+		images, text = af.prepareText()
+		with patch("PySide2.QtGui.QTextDocument.addResource") as _ar,\
+				patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm:
+			af.submitText(images, text)
+			_ar.assert_has_calls([
+				call(QTextDocument.ImageResource,
+					QUrl("mydata://image0.png"), images[0]),
+				call(QTextDocument.ImageResource,
+					QUrl("mydata://image1.png"), images[1])])
+			_ih.assert_called_once_with(text)
+			_sbm.assert_called_once_with("Latex processing done!")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -866,7 +991,20 @@ class TestBibtexInfo(GUITestCase):
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
-		bi = bibtexInfo(p)
+		bi = bibtexInfo()
+		self.assertEqual(bi.parent(), None)
+
+		bi = bibtexInfo(parent=p)
+		self.assertIsInstance(bi, QFrame)
+		self.assertEqual(bi.parent(), p)
+		self.assertIsInstance(bi.layout(), QHBoxLayout)
+		self.assertIsInstance(bi.text, QTextEdit)
+		self.assertIsInstance(bi.text.font(), QFont)
+		self.assertEqual(bi.text.font().pointSize(),
+			pbConfig.params["bibListFontSize"])
+		self.assertEqual(bi.text.isReadOnly(), True)
+		self.assertEqual(bi.layout().itemAt(0).widget(),
+			bi.text)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
