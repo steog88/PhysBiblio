@@ -70,7 +70,7 @@ class MyLabelCenter(MyLabel):
 class MyComboBox(QComboBox):
 	"""Personalize QComboBox for faster construction"""
 
-	def __init__(self, parent, fields, current = None):
+	def __init__(self, parent, fields, current=None):
 		"""Constructor.
 
 		Parameters:
@@ -92,7 +92,7 @@ class MyComboBox(QComboBox):
 class MyAndOrCombo(MyComboBox):
 	"""Shortcut for generating a QComboBox with and/or"""
 
-	def __init__(self, parent, current = None):
+	def __init__(self, parent, current=None):
 		"""Constructor.
 
 		Parameters:
@@ -101,13 +101,13 @@ class MyAndOrCombo(MyComboBox):
 				as selected at the beginning
 		"""
 		super(MyAndOrCombo, self).__init__(parent,
-			["AND", "OR"], current = current)
+			["AND", "OR"], current=current)
 
 
 class MyTrueFalseCombo(MyComboBox):
 	"""Shortcut for generating a QComboBox with true/false"""
 
-	def __init__(self, parent, current = None):
+	def __init__(self, parent, current=None):
 		"""Constructor.
 
 		Parameters:
@@ -116,13 +116,13 @@ class MyTrueFalseCombo(MyComboBox):
 				at the beginning
 		"""
 		super(MyTrueFalseCombo, self).__init__(parent,
-			["True", "False"], current = current)
+			["True", "False"], current=current)
 
 
 class objListWindow(QDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
 
-	def __init__(self, parent = None, gridLayout = False):
+	def __init__(self, parent=None, gridLayout=False):
 		"""Init using parent class and create common definitions
 
 		Parameters:
@@ -168,7 +168,7 @@ class objListWindow(QDialog):
 		"""
 		self.proxyModel.setFilterRegExp(str(string))
 
-	def addFilterInput(self, placeholderText, gridPos = (1, 0)):
+	def addFilterInput(self, placeholderText, gridPos=(1, 0)):
 		"""Add a `QLineEdit` to change the filter of the list.
 
 		Parameter:
@@ -209,7 +209,7 @@ class objListWindow(QDialog):
 		self.proxyModel.sort(sortColumn, sortOrder)
 		self.currLayout.addWidget(self.tablewidget)
 
-	def finalizeTable(self, gridPos = (1, 0)):
+	def finalizeTable(self, gridPos=(1, 0)):
 		"""Resize the table to fit the contents,
 		connect functions, add to layout
 
@@ -267,7 +267,7 @@ class objListWindow(QDialog):
 class editObjectWindow(QDialog):
 	"""Create a window for editing or creating an experiment"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Constructor.
 
 		Parameter:
@@ -317,7 +317,7 @@ class MyThread(QThread):
 
 	finished = Signal()
 
-	def __init__(self,  parent = None):
+	def __init__(self,  parent=None):
 		"""Construct the class using `QThread.__init__`
 
 		Parameters:
@@ -348,7 +348,7 @@ class WriteStream(MyThread):
 
 	finished = Signal()
 
-	def __init__(self, queue, parent = None, *args, **kwargs):
+	def __init__(self, queue, parent=None, *args, **kwargs):
 		"""Constructor
 
 		Parameters:
@@ -406,7 +406,7 @@ class MyTableModel(QAbstractTableModel):
 	used for experiments and bibtex entries
 	"""
 
-	def __init__(self, parent, header, ask = False,  previous = [], *args):
+	def __init__(self, parent, header, ask=False,  previous=[], *args):
 		"""Constructor, based on `QAbstractTableModel.__init__`
 
 		Parameters:
@@ -426,7 +426,7 @@ class MyTableModel(QAbstractTableModel):
 		"""Return the parent object"""
 		return self.parentObj
 
-	def changeAsk(self, new = None):
+	def changeAsk(self, new=None):
 		"""Change the value of `self.ask` to show/hide checkboxes
 
 		Parameters:
@@ -584,7 +584,7 @@ class MyTableModel(QAbstractTableModel):
 		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
-	def sort(self, col = 1, order = Qt.AscendingOrder):
+	def sort(self, col=1, order=Qt.AscendingOrder):
 		"""Sort table by the given column, number `col`
 
 		Parameters:
@@ -639,7 +639,7 @@ class TreeModel(QAbstractItemModel):
 		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
-	def index(self, row, column, parent = QModelIndex()):
+	def index(self, row, column, parent=QModelIndex()):
 		"""Retrieve the `QModelIndex` of the requested object
 
 		Parameters:
@@ -688,7 +688,7 @@ class TreeModel(QAbstractItemModel):
 		else:
 			return self.createIndex(nodeParent.row, 0, nodeParent)
 
-	def rowCount(self, parent = QModelIndex()):
+	def rowCount(self, parent=QModelIndex()):
 		"""Count the rows in a given tree branch
 
 		Parameter:
@@ -908,7 +908,7 @@ class MyDDTableWidget(QTableWidget):
 class MyMenu(QMenu):
 	"""Extend `QMenu` for faster menu build"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Construct the element defining some basic properties
 
 		Parameter:
@@ -947,7 +947,7 @@ class MyMenu(QMenu):
 class guiViewEntry(viewEntry):
 	"""Extends the viewEntry class to work with QtGui.QDesktopServices"""
 
-	def openLink(self, key, arg = "", fileArg = None):
+	def openLink(self, key, arg="", fileArg=None):
 		"""Use `QDesktopServices` to open an url using
 		the system default applications
 
@@ -988,7 +988,7 @@ class MyImportedTableModel(MyTableModel):
 	during the import of entries
 	"""
 
-	def __init__(self, parent, bibdict, header, idName = "ID", *args):
+	def __init__(self, parent, bibdict, header, idName="ID", *args):
 		"""Set some properties and settings
 
 		Parameters:
