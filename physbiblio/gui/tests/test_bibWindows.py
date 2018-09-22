@@ -1626,17 +1626,72 @@ class TestfieldsFromArxiv(GUITestCase):
 	"""test"""
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		p = QWidget()
+		ffa = fieldsFromArxiv()
+		self.assertEqual(ffa.parent(), None)
+
+		ffa = fieldsFromArxiv(p)
+		self.assertIsInstance(ffa, QDialog)
+		self.assertEqual(ffa.parent(), p)
+		self.assertEqual(ffa.windowTitle(), "Import fields from arXiv")
+		self.assertEqual(ffa.arxivDict,
+			["authors", "title", "doi", "primaryclass", "archiveprefix"])
+		self.assertIsInstance(ffa.layout(), QVBoxLayout)
+
+		for i, k in enumerate(
+				["authors", "title", "doi", "primaryclass", "archiveprefix"]):
+			self.assertIsInstance(ffa.layout().itemAt(i).widget(),
+				QCheckBox)
+			self.assertEqual(ffa.layout().itemAt(i).widget(),
+				ffa.checkBoxes[k])
+			self.assertEqual(ffa.layout().itemAt(i).widget().text(), k)
+			self.assertEqual(ffa.layout().itemAt(i).widget().isChecked(),
+				True)
+
+		self.assertIsInstance(ffa.layout().itemAt(5).widget(),
+			QPushButton)
+		self.assertEqual(ffa.layout().itemAt(5).widget(),
+			ffa.acceptButton)
+		self.assertEqual(ffa.layout().itemAt(5).widget().text(), "OK")
+		with patch("physbiblio.gui.bibWindows.fieldsFromArxiv.onOk") as _c:
+			QTest.mouseClick(ffa.acceptButton, Qt.LeftButton)
+			_c.assert_called_once_with()
+
+		self.assertIsInstance(ffa.layout().itemAt(6).widget(),
+			QPushButton)
+		self.assertEqual(ffa.layout().itemAt(6).widget(),
+			ffa.cancelButton)
+		self.assertEqual(ffa.layout().itemAt(6).widget().autoDefault(), True)
+		self.assertEqual(ffa.layout().itemAt(6).widget().text(), "Cancel")
+		with patch("physbiblio.gui.bibWindows.fieldsFromArxiv.onCancel") as _c:
+			QTest.mouseClick(ffa.cancelButton, Qt.LeftButton)
+			_c.assert_called_once_with()
 
 	def test_onOk(self):
-		"""test"""
-		pass
+		"""test onOk"""
+		p = QWidget()
+		ffa = fieldsFromArxiv(p)
+		ffa.checkBoxes["doi"].setChecked(False)
+		ffa.checkBoxes["title"].setChecked(False)
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			ffa.onOk()
+			_c.assert_called_once()
+		self.assertTrue(ffa.result)
+		self.assertTrue(hasattr(ffa, "output"))
+		self.assertIsInstance(ffa.output, list)
+		self.assertEqual(ffa.output,
+			['archiveprefix', 'primaryclass', 'authors'])
 
 	def test_onCancel(self):
-		"""test"""
-		pass
-
+		"""test onCancel"""
+		p = QWidget()
+		ffa = fieldsFromArxiv(p)
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			ffa.onCancel()
+			_c.assert_called_once()
+		self.assertFalse(ffa.result)
+		self.assertFalse(hasattr(ffa, "output"))
 
 if __name__=='__main__':
 	unittest.main()

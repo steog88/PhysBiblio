@@ -2119,12 +2119,17 @@ class mergeBibtexs(editBibtexDialog):
 
 
 class fieldsFromArxiv(QDialog):
-	"""W"""
+	"""Dialog windows used to ask which fields should be imported
+	from the arXiv record of the field"""
 
 	def __init__(self, parent = None):
+		"""Initialize the properties and the layout of the widget
+
+		Parameter:
+			parent: the parent widget
+		"""
 		super(fieldsFromArxiv, self).__init__(parent)
 		self.setWindowTitle("Import fields from arXiv")
-		self.parent = parent
 		self.checkBoxes = {}
 		self.arxivDict = [
 			"authors", "title", "doi", "primaryclass", "archiveprefix"]
@@ -2143,6 +2148,7 @@ class fieldsFromArxiv(QDialog):
 		self.setLayout(vbox)
 
 	def onOk(self):
+		"""Accept the dialog output and prepare self.output"""
 		self.output = []
 		for k in self.checkBoxes.keys():
 			if self.checkBoxes[k].isChecked():
@@ -2151,5 +2157,6 @@ class fieldsFromArxiv(QDialog):
 		self.close()
 
 	def onCancel(self):
+		"""Reject the dialog output"""
 		self.result = False
 		self.close()
