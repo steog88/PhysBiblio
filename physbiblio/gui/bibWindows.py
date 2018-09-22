@@ -397,7 +397,7 @@ def deleteBibtex(parentObject, bibkey):
 			exc_info=True)
 
 
-class bibtexInfo(QFrame):
+class BibtexInfo(QFrame):
 	"""`QFrame` extension to create a panel where to write
 	some info about the selected bibtex entry"""
 
@@ -408,7 +408,7 @@ class bibtexInfo(QFrame):
 		Parameter:
 			parent: the parent widget
 		"""
-		super(bibtexInfo, self).__init__(parent)
+		super(BibtexInfo, self).__init__(parent)
 
 		self.currLayout = QHBoxLayout()
 		self.setLayout(self.currLayout)
@@ -1154,7 +1154,7 @@ class bibtexListWindow(QFrame, objListWindow):
 				self.parent().statusBarMessage("opening PDF...")
 				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
 			elif len(pdfFiles) > 1:
-				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
+				ask = AskPDFAction(bibkey, self)
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
 					self.parent().statusBarMessage("opening arxiv PDF...")
@@ -1341,10 +1341,17 @@ class editBibtexDialog(editObjectWindow):
 		self.centerWindow()
 
 
-class MyPdfAction(QAction):
-	"""Action"""
+class MyPDFAction(QAction):
+	"""Action used when asking which file to open"""
 
 	def __init__(self, filename, parentMenu, *args, **kwargs):
+		"""Extend `QAction.__init__` with few default properties
+
+		Parameters:
+			filename: the name of the file corresponding to this action
+			parentMenu: the menu of which this action is part
+			additional *args, **kwargs as in `QAction.__init__`
+		"""
 		QAction.__init__(self,
 			*args,
 			triggered = self.returnFileName,
@@ -1353,41 +1360,51 @@ class MyPdfAction(QAction):
 		self.parentMenu = parentMenu
 
 	def returnFileName(self):
+		"""Define the result of the parentMenu
+		to later open the file self.filename
+		"""
 		self.parentMenu.result = "openOther_%s"%self.filename
 		self.parentMenu.close()
 
 
-class askPdfAction(MyMenu):
-	"""Menu"""
+class AskPDFAction(MyMenu):
+	"""Menu used to ask which PDF file must be opened"""
 
-	def __init__(self, parent = None, key = "", arxiv = None, doi = None):
-		super(askPdfAction, self).__init__(parent)
+	def __init__(self, key, parent=None):
+		"""Prepare the menu, reading the list of existing PDF files
+		and creating an action for each of them
+
+		Parameters:
+			key: the bibtex key of the item to consider
+			parent (default None): the parent widget
+		"""
+		super(AskPDFAction, self).__init__(parent)
 		self.message = "What PDF of this entry (%s) do you want to open?"%(key)
 		self.possibleActions = []
-		files = pBPDF.getExisting(key, fullPath = True)
-		if pBPDF.getFilePath(key, "arxiv") in files:
-			self.possibleActions.append(
-				QAction("Open arxiv PDF", self, triggered = self.onOpenArxiv))
-			files.remove(pBPDF.getFilePath(key, "arxiv"))
-		if pBPDF.getFilePath(key, "doi") in files:
+		files = pBPDF.getExisting(key, fullPath=True)
+		doiFile = pBPDF.getFilePath(key, "doi")
+		arxivFile = pBPDF.getFilePath(key, "arxiv")
+		if doiFile != "" and doiFile in files:
 			self.possibleActions.append(
 				QAction("Open DOI PDF", self, triggered = self.onOpenDoi))
-			files.remove(pBPDF.getFilePath(key, "doi"))
+			files.remove(doiFile)
+		if arxivFile != "" and arxivFile in files:
+			self.possibleActions.append(
+				QAction("Open arxiv PDF", self, triggered = self.onOpenArxiv))
+			files.remove(arxivFile)
 		for f in files:
 			self.possibleActions.append(
-				MyPdfAction(f, self, "Open %s"%f.split(os.sep)[-1], self))
-
+				MyPDFAction(f, self, "Open %s"%f.split(os.sep)[-1],
+					parent=self))
 		self.fillMenu()
 
-	def onOpenOther(self, filename):
-		self.result = "openOther_%s"%filename
-		self.close()
-
 	def onOpenArxiv(self):
+		"""Set the result for opening the arXiv PDF"""
 		self.result	= "openArxiv"
 		self.close()
 
 	def onOpenDoi(self):
+		"""Set the result for opening the DOI PDF"""
 		self.result	= "openDoi"
 		self.close()
 

@@ -44,6 +44,9 @@ class localPDF():
 			the cleaned filename
 		"""
 		newFilename = ""
+		if not (isinstance(filename, str) or isinstance(filename, unicode)):
+			pBLogger.warning("Wrong filename type! %s"%filename)
+			return ""
 		for i in filename:
 			if i not in self.badFNameCharacters:
 				newFilename += i

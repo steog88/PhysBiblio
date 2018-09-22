@@ -35,6 +35,7 @@ class TestPdfMethods(unittest.TestCase):
 		"""Test names of folders and directories"""
 		self.assertEqual(pBPDF.badFName(r'a\b/c:d*e?f"g<h>i|' + "j'"),
 			"a_b_c_d_e_f_g_h_i_j_")
+		self.assertEqual(pBPDF.badFName(True), "")
 		self.assertEqual(pBPDF.getFileDir(r'a\b/c:d*e?f"g<h>i|' + "j'"),
 			os.path.join(pBPDF.pdfDir, "a_b_c_d_e_f_g_h_i_j_"))
 		testPaperFolder = pBPDF.getFileDir("abc.def")

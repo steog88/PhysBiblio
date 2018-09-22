@@ -257,7 +257,7 @@ class TestFunctions(GUITestCase):
 	def test_writeAbstract(self):
 		"""test writeAbstract"""
 		p = MainWindow(testing=True)
-		p.bottomCenter = bibtexInfo(p)
+		p.bottomCenter = BibtexInfo(p)
 		entry = {"abstract": "some random text"}
 		with patch("physbiblio.gui.bibWindows.abstractFormulas.__init__",
 				return_value=None) as _af:
@@ -838,7 +838,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_init(self):
 		"""test __init__"""
 		m = MainWindow(testing = True)
-		m.bottomCenter = bibtexInfo(m)
+		m.bottomCenter = BibtexInfo(m)
 		af = abstractFormulas(m, "test text")
 		self.assertEqual(af.fontsize, pbConfig.params["bibListFontSize"])
 		self.assertEqual(af.mainWin, m)
@@ -849,7 +849,7 @@ class TestabstractFormulas(GUITestCase):
 		self.assertEqual(af.abstractTitle, "<b>Abstract:</b><br/>")
 		self.assertEqual(af.text, "<b>Abstract:</b><br/>test text")
 
-		bi = bibtexInfo()
+		bi = BibtexInfo()
 		af = abstractFormulas(m, "test text",
 			fontsize = 99,
 			abstractTitle="Title",
@@ -867,7 +867,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_hasLatex(self):
 		"""test hasLatex"""
 		m = MainWindow(testing = True)
-		m.bottomCenter = bibtexInfo(m)
+		m.bottomCenter = BibtexInfo(m)
 		af = abstractFormulas(m, "test text")
 		self.assertEqual(af.hasLatex(), False)
 		af = abstractFormulas(m, "test tex $f_e$ equation")
@@ -876,7 +876,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_doText(self):
 		"""test doText"""
 		m = MainWindow(testing = True)
-		bi = bibtexInfo(m)
+		bi = BibtexInfo(m)
 		af = abstractFormulas(m, "test text", customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -918,7 +918,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_mathTexToQPixmap(self):
 		"""test mathTex_to_QPixmap"""
 		m = MainWindow(testing = True)
-		bi = bibtexInfo(m)
+		bi = BibtexInfo(m)
 		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
@@ -949,7 +949,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_prepareText(self):
 		"""test prepareText"""
 		m = MainWindow(testing = True)
-		bi = bibtexInfo(m)
+		bi = BibtexInfo(m)
 		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		with patch("physbiblio.gui.bibWindows.abstractFormulas."
@@ -967,7 +967,7 @@ class TestabstractFormulas(GUITestCase):
 	def test_submitText(self):
 		"""test submitText"""
 		m = MainWindow(testing = True)
-		bi = bibtexInfo(m)
+		bi = BibtexInfo(m)
 		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		images, text = af.prepareText()
@@ -987,15 +987,15 @@ class TestabstractFormulas(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestBibtexInfo(GUITestCase):
-	"""test bibtexInfo"""
+	"""test BibtexInfo"""
 
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
-		bi = bibtexInfo()
+		bi = BibtexInfo()
 		self.assertEqual(bi.parent(), None)
 
-		bi = bibtexInfo(parent=p)
+		bi = BibtexInfo(parent=p)
 		self.assertIsInstance(bi, QFrame)
 		self.assertEqual(bi.parent(), p)
 		self.assertIsInstance(bi.layout(), QHBoxLayout)
@@ -1433,37 +1433,107 @@ class TesteditBibtexDialog(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyPdfAction(GUITestCase):
-	"""test"""
+class TestMyPDFAction(GUITestCase):
+	"""test the MyPDFAction class"""
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test init"""
+		m = MyMenu()
+		pa = MyPDFAction("fname", m)
+		self.assertIsInstance(pa, QAction)
+		self.assertEqual(pa.filename, "fname")
+		self.assertEqual(pa.parentMenu, m)
+		with patch("physbiblio.gui.bibWindows.MyPDFAction.returnFileName"
+				) as _r:
+			pa.triggered.emit()
+			_r.assert_called_once_with()
+
+		pa = MyPDFAction("fname", m, "title")
+		self.assertEqual(pa.text(), "title")
 
 	def test_returnFileName(self):
-		"""test"""
-		pass
+		"""test returnFileName"""
+		m = MyMenu()
+		pa = MyPDFAction("fname", m)
+		with patch("PySide2.QtWidgets.QMenu.close") as _c:
+			pa.returnFileName()
+			self.assertEqual(m.result, "openOther_fname")
+			_c.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestaskPdfAction(GUITestCase):
-	"""test"""
+class TestAskPDFAction(GUITestCase):
+	"""test AskPDFAction"""
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		p = QWidget()
+		with patch("physbiblio.pdf.localPDF.getExisting",
+				return_value=[]) as _ge,\
+				patch("physbiblio.pdf.localPDF.getFilePath",
+					side_effect=["", ""]) as _gp,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
+			apa = AskPDFAction("improbablekey", p)
+			_ge.assert_called_once_with("improbablekey", fullPath=True)
+			_gp.assert_has_calls([
+				call("improbablekey", "doi"),
+				call("improbablekey", "arxiv")])
+			_fm.assert_called_once_with()
+		self.assertEqual(apa.message,
+			"What PDF of this entry (improbablekey) do you want to open?")
+		self.assertEqual(apa.possibleActions, [])
 
-	def test_onOpenOther(self):
-		"""test"""
-		pass
+		with patch("physbiblio.pdf.localPDF.getExisting",
+				return_value=["a", "b", "d", "e"]) as _ge,\
+				patch("physbiblio.pdf.localPDF.getFilePath",
+					side_effect=["d", "a"]) as _gp,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
+			apa = AskPDFAction("improbablekey", p)
+			_ge.assert_called_once_with("improbablekey", fullPath=True)
+			_gp.assert_has_calls([
+				call("improbablekey", "doi"),
+				call("improbablekey", "arxiv")])
+			_fm.assert_called_once_with()
+		self.assertEqual(apa.message,
+			"What PDF of this entry (improbablekey) do you want to open?")
+		self.assertIsInstance(apa.possibleActions, list)
+		self.assertEqual(len(apa.possibleActions), 4)
+		self.assertIsInstance(apa.possibleActions[0], QAction)
+		self.assertIsInstance(apa.possibleActions[1], QAction)
+		self.assertIsInstance(apa.possibleActions[2], MyPDFAction)
+		self.assertIsInstance(apa.possibleActions[3], MyPDFAction)
+		self.assertEqual(apa.possibleActions[0].text(), "Open DOI PDF")
+		self.assertEqual(apa.possibleActions[1].text(), "Open arxiv PDF")
+		self.assertEqual(apa.possibleActions[2].text(), "Open b")
+		self.assertEqual(apa.possibleActions[3].text(), "Open e")
+		with patch("physbiblio.gui.bibWindows.AskPDFAction.onOpenDoi"
+				) as _r:
+			apa.possibleActions[0].triggered.emit()
+			_r.assert_called_once_with()
+		with patch("physbiblio.gui.bibWindows.AskPDFAction.onOpenArxiv"
+				) as _r:
+			apa.possibleActions[1].triggered.emit()
+			_r.assert_called_once_with()
 
 	def test_onOpenArxiv(self):
-		"""test"""
-		pass
+		"""test onOpenArxiv"""
+		p = QWidget()
+		with patch("PySide2.QtWidgets.QMenu.close") as _c,\
+				patch("logging.Logger.warning") as _w:
+			apa = AskPDFAction("improbablekey", p)
+			apa.onOpenArxiv()
+			self.assertEqual(apa.result, "openArxiv")
+			_c.assert_called_once_with()
 
 	def test_onOpenDoi(self):
-		"""test"""
-		pass
+		"""test onOpenDoi"""
+		p = QWidget()
+		with patch("PySide2.QtWidgets.QMenu.close") as _c,\
+				patch("logging.Logger.warning") as _w:
+			apa = AskPDFAction("improbablekey", p)
+			apa.onOpenDoi()
+			self.assertEqual(apa.result, "openDoi")
+			_c.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
