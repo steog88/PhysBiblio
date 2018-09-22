@@ -1327,8 +1327,8 @@ class entries(physbiblioDBSub):
 			orderType = "ASC",
 			limitTo = None,
 			limitOffset = None,
-			saveQuery = True,
-			doFetch = True):
+			saveQuery=True,
+			doFetch=True):
 		"""Fetch entries using a number of criterions
 
 		Parameters:
@@ -1494,8 +1494,8 @@ class entries(physbiblioDBSub):
 			orderType = "ASC",
 			limitTo = None,
 			limitOffset = None,
-			saveQuery = True,
-			doFetch = True):
+			saveQuery=True,
+			doFetch=True):
 		"""Fetch entries using a number of criterions.
 		Simpler than self.fetchFromDict.
 
@@ -1594,7 +1594,7 @@ class entries(physbiblioDBSub):
 			orderType = "ASC",
 			limitTo = None,
 			limitOffset = None,
-			saveQuery = True):
+			saveQuery=True):
 		"""Use self.fetchAll and returns the dictionary of fetched entries
 
 		Parameters: see self.fetchAll
@@ -1610,9 +1610,9 @@ class entries(physbiblioDBSub):
 			limitTo = limitTo,
 			limitOffset = limitOffset,
 			saveQuery = saveQuery,
-			doFetch = True).lastFetched
+			doFetch=True).lastFetched
 
-	def fetchByBibkey(self, bibkey, saveQuery = True):
+	def fetchByBibkey(self, bibkey, saveQuery=True):
 		"""Use self.fetchAll with a match on the bibtex key
 		and returns the dictionary of fetched entries
 
@@ -1631,7 +1631,7 @@ class entries(physbiblioDBSub):
 			return self.fetchAll(params = {"bibkey": bibkey},
 				saveQuery = saveQuery)
 
-	def getByBibkey(self, bibkey, saveQuery = True):
+	def getByBibkey(self, bibkey, saveQuery=True):
 		"""Use self.fetchByBibkey and returns
 		the dictionary of fetched entries
 
@@ -1642,7 +1642,7 @@ class entries(physbiblioDBSub):
 		"""
 		return self.fetchByBibkey(bibkey, saveQuery = saveQuery).lastFetched
 
-	def fetchByKey(self, key, saveQuery = True):
+	def fetchByKey(self, key, saveQuery=True):
 		"""Use self.fetchAll with a match
 		on the bibtex key in the bibkey, bibtex or old_keys fields
 		and returns the dictionary of fetched entries
@@ -1673,7 +1673,7 @@ class entries(physbiblioDBSub):
 				operator = " like ",
 				saveQuery = saveQuery)
 
-	def getByKey(self, key, saveQuery = True):
+	def getByKey(self, key, saveQuery=True):
 		"""Use self.fetchByKey and returns
 		the dictionary of fetched entries
 
@@ -1684,7 +1684,7 @@ class entries(physbiblioDBSub):
 		"""
 		return self.fetchByKey(key, saveQuery = saveQuery).lastFetched
 
-	def fetchByBibtex(self, string, saveQuery = True):
+	def fetchByBibtex(self, string, saveQuery=True):
 		"""Use self.fetchAll with a match on the bibtex content
 		and returns the dictionary of fetched entries
 
@@ -1708,7 +1708,7 @@ class entries(physbiblioDBSub):
 				operator = " like ",
 				saveQuery = saveQuery)
 
-	def getByBibtex(self, string, saveQuery = True):
+	def getByBibtex(self, string, saveQuery=True):
 		"""Use self.fetchByBibtex and returns
 		the dictionary of fetched entries
 
@@ -1732,7 +1732,7 @@ class entries(physbiblioDBSub):
 			the output of self.getByBibkey otherwise
 		"""
 		try:
-			return self.getByBibkey(key, saveQuery = False)[0][field]
+			return self.getByBibkey(key, saveQuery=False)[0][field]
 		except IndexError:
 			pBLogger.warning(
 				"Error in getEntryField('%s', '%s'): no element found?"%(
@@ -2155,7 +2155,7 @@ class entries(physbiblioDBSub):
 			try:
 				key = e["bibkey"]
 				pBLogger.info(key)
-				old = self.getByBibkey(key, saveQuery = False)
+				old = self.getByBibkey(key, saveQuery=False)
 				if len(old) > 0 and old[0]["noUpdate"] == 0:
 					outcome, bibtex = physBiblioWeb.webSearch["inspireoai"]\
 						.updateBibtex(e, old[0]["bibtex"])
@@ -2244,7 +2244,7 @@ class entries(physbiblioDBSub):
 				key = result["bibkey"]
 				self.newKey = result["bibkey"]
 			if not reloadAll:
-				old = self.getByBibkey(key, saveQuery = False)
+				old = self.getByBibkey(key, saveQuery=False)
 			else:
 				old = [{k: "" for x, k in \
 					physBiblioWeb.webSearch["inspireoai"].correspondences}]
@@ -2381,7 +2381,7 @@ class entries(physbiblioDBSub):
 			pBLogger.warning("Invalid 'fiNews' or 'news' (they must be lists)")
 			return [], [], []
 		if entries is None:
-			self.fetchAll(saveQuery = False, doFetch = False)
+			self.fetchAll(saveQuery=False, doFetch=False)
 			iterator = self.fetchCursor()
 		else:
 			iterator = entries
@@ -2621,12 +2621,12 @@ class entries(physbiblioDBSub):
 		if not childProcess:
 			self.lastInserted = []
 		if entry is not None and not isinstance(entry, list):
-			existing = self.getByBibkey(entry, saveQuery = False)
+			existing = self.getByBibkey(entry, saveQuery=False)
 			exist = (len(existing) > 0)
 			for f in ["arxiv", "doi"]:
 				try:
 					temp = self.fetchAll(params = {f: entry},
-						saveQuery = False).lastFetched
+						saveQuery=False).lastFetched
 					exist = (exist or (len(temp) > 0))
 					existing += temp
 				except KeyError:
@@ -2669,7 +2669,7 @@ class entries(physbiblioDBSub):
 					"Impossible to insert an entry with empty bibkey!\n"
 					+ "%s\n"%entry)
 				return False
-			existing = self.getByBibkey(key, saveQuery = False)
+			existing = self.getByBibkey(key, saveQuery=False)
 			exist = (len(existing) > 0)
 			for f in ["arxiv", "doi"]:
 				try:
@@ -2677,7 +2677,7 @@ class entries(physbiblioDBSub):
 							and isinstance(data[f], str) \
 							and data[f].strip() != "":
 						temp = self.fetchAll(params = {f: data[f]},
-							saveQuery = False).lastFetched
+							saveQuery=False).lastFetched
 						exist = (exist or (len(temp) > 0))
 						existing += temp
 				except (AttributeError, KeyError):
@@ -2839,7 +2839,7 @@ class entries(physbiblioDBSub):
 				key = data["bibkey"]
 				pBLogger.info("%5d / %d (%5.2f%%), processing entry %s"%(
 					ie+1, tot, 100.*(ie+1.)/tot, key))
-				existing = self.getByBibkey(key, saveQuery = False)
+				existing = self.getByBibkey(key, saveQuery=False)
 				if existing:
 					printExisting(key)
 					exist.append(key)
@@ -2989,7 +2989,7 @@ class entries(physbiblioDBSub):
 				_print(i, e)
 				total += 1
 		else:
-			self.fetchAll(orderBy = "firstdate", doFetch = False)
+			self.fetchAll(orderBy = "firstdate", doFetch=False)
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
@@ -3011,7 +3011,7 @@ class entries(physbiblioDBSub):
 				_print(i, e)
 				total += 1
 		else:
-			self.fetchAll(orderBy = "firstdate", doFetch = False)
+			self.fetchAll(orderBy = "firstdate", doFetch=False)
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
@@ -3035,7 +3035,7 @@ class entries(physbiblioDBSub):
 		if entriesIn is not None:
 			iterator = entriesIn
 		else:
-			self.fetchAll(orderBy = orderBy, doFetch = False)
+			self.fetchAll(orderBy = orderBy, doFetch=False)
 			iterator = self.fetchCursor()
 		total = 0
 		for i, e in enumerate(iterator):
@@ -3185,8 +3185,8 @@ class entries(physbiblioDBSub):
 		if entries is None:
 			try:
 				tot = self.count() - startFrom
-				self.fetchAll(saveQuery = False,
-					limitTo = tot, limitOffset = startFrom, doFetch = False)
+				self.fetchAll(saveQuery=False,
+					limitTo = tot, limitOffset = startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in cleanBibtexs")
@@ -3242,8 +3242,8 @@ class entries(physbiblioDBSub):
 		if entries is None:
 			try:
 				tot = self.count() - startFrom
-				self.fetchAll(saveQuery = False,
-					limitTo = tot, limitOffset = startFrom, doFetch = False)
+				self.fetchAll(saveQuery=False,
+					limitTo = tot, limitOffset = startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in cleanBibtexs")
@@ -3291,8 +3291,8 @@ class entries(physbiblioDBSub):
 		if entries is None:
 			try:
 				tot = self.count() - startFrom
-				self.fetchAll(saveQuery = False,
-					limitTo = tot, limitOffset = startFrom, doFetch = False)
+				self.fetchAll(saveQuery=False,
+					limitTo = tot, limitOffset = startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in searchOAIUpdates")
@@ -3331,13 +3331,13 @@ class entries(physbiblioDBSub):
 					err.append(e["bibkey"])
 				else:
 					try:
-						new = self.getByKey(e["bibkey"], saveQuery = False)[0]
+						new = self.getByKey(e["bibkey"], saveQuery=False)[0]
 					except IndexError:
 						try:
 							e["bibkey"] = self.newKey
 							del self.newKey
 							new = self.getByKey(e["bibkey"],
-								saveQuery = False)[0]
+								saveQuery=False)[0]
 						except (AttributeError, IndexError):
 							pBLogger.exception(
 								"Something wrong here. "
@@ -3385,7 +3385,7 @@ class utilities(physbiblioDBSub):
 					pBLogger.info("Cleaning (%s, %s)"%(e[0], e[1]))
 					func(e[0], e[1])
 
-		self.mainDB.bibs.fetchAll(saveQuery = False, doFetch = False)
+		self.mainDB.bibs.fetchAll(saveQuery=False, doFetch=False)
 		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.fetchCursor() ]
 		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
 		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
@@ -3408,7 +3408,7 @@ class utilities(physbiblioDBSub):
 			verbose: print more messages
 		"""
 		b = self.mainDB.bibs
-		b.fetchAll(doFetch = False)
+		b.fetchAll(doFetch=False)
 		for e in b.fetchCursor():
 			t = e["bibtex"]
 			t = b.rmBibtexComments(t)

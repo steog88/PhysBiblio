@@ -155,7 +155,7 @@ class ExpTableModel(MyTableModel):
 
 		Output:
 			None if the index or the role are not valid,
-			the cell content of properties otherwise
+			the cell content or properties otherwise
 		"""
 		if not index.isValid():
 			return None

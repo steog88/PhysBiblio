@@ -101,7 +101,7 @@ class pbExport():
 		Parameters:
 			fileName: the name of the output bibtex file
 		"""
-		pBDB.bibs.fetchAll(saveQuery = False, doFetch = False)
+		pBDB.bibs.fetchAll(saveQuery=False, doFetch=False)
 		self.exportRows(fileName, pBDB.bibs.fetchCursor())
 
 	def exportSelected(self, fileName, rows):
@@ -311,7 +311,7 @@ class pbExport():
 		if updateExisting:
 			#update entry from DB if existing
 			for k, v in existingBibsDict.items():
-				e = pBDB.bibs.getByBibtex(k, saveQuery = False)
+				e = pBDB.bibs.getByBibtex(k, saveQuery=False)
 				if len(e)>0 and e[0]["bibtexDict"] != v:
 					existingBibsDict[k] = e[0]["bibtexDict"]
 					if existingBibsDict[k]["ID"].lower() != k.lower():
@@ -435,7 +435,7 @@ class pbExport():
 				pBLogger.info(
 					"Key '%s' missing, trying to import it from Web"%m)
 				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
-				newCheck = pBDB.bibs.getByBibtex(m, saveQuery = False)
+				newCheck = pBDB.bibs.getByBibtex(m, saveQuery=False)
 
 				#if the import worked, insert the entry
 				if len(newCheck) > 0:
@@ -505,7 +505,7 @@ class pbExport():
 		db.entries = []
 		for b in biblist.entries:
 			key = b["ID"]
-			element = pBDB.bibs.getByBibkey(key, saveQuery = False)
+			element = pBDB.bibs.getByBibkey(key, saveQuery=False)
 			if len(element)>0:
 				db.entries.append(element[0]["bibtexDict"])
 			else:

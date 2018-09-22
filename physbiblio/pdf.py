@@ -366,7 +366,7 @@ class localPDF():
 		iterator = entries
 		if entries is None:
 			pBDB.bibs.fetchAll(orderBy = "firstdate",
-				saveQuery = False, doFetch = False)
+				saveQuery=False, doFetch=False)
 			iterator = pBDB.bibs.fetchCursor()
 		for e in iterator:
 			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
@@ -379,7 +379,7 @@ class localPDF():
 		The unassociated directories are removed without asking any
 		additional confirmation. Be careful!
 		"""
-		pBDB.bibs.fetchAll(doFetch = False)
+		pBDB.bibs.fetchAll(doFetch=False)
 		folders = os.listdir(self.pdfDir)
 		for e in pBDB.bibs.fetchCursor():
 			k = e["bibkey"]

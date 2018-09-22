@@ -1216,7 +1216,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual([e["bibkey"] for e in \
 			self.pBDB.bibs.fetchFromDict(
 			{"exps": {"operator": "and", "id": 0}},
-			saveQuery = False).lastFetched],
+			saveQuery=False).lastFetched],
 			["abc", "def"])
 		self.assertEqual(self.pBDB.bibs.lastQuery,
 			"select * from entries  where  bibkey like ?  " \
@@ -1315,9 +1315,9 @@ class TestDatabaseEntries(DBTestCase):
 			"select * from entries  order by firstdate ASC")
 		#saveQuery
 		self.pBDB.bibs.lastQuery = ""
-		self.pBDB.bibs.getAll(saveQuery = False)
+		self.pBDB.bibs.getAll(saveQuery=False)
 		self.assertEqual(self.pBDB.bibs.lastQuery, "")
-		self.pBDB.bibs.fetchAll(saveQuery = False)
+		self.pBDB.bibs.fetchAll(saveQuery=False)
 		self.assertEqual(self.pBDB.bibs.lastQuery, "")
 		#limitTo
 		self.assertEqual([e["bibkey"] for e in \
@@ -1457,7 +1457,7 @@ class TestDatabaseEntries(DBTestCase):
 
 		#test different cursors
 		self.pBDB.bibs.lastFetched = "test"
-		self.pBDB.bibs.fetchAll(doFetch = False)
+		self.pBDB.bibs.fetchAll(doFetch=False)
 		self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchCurs],
 			["abc", "def", "ghi"])
@@ -1469,7 +1469,7 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'author = "me",\n         title = "{def}",\n}\n' \
 			+ '@Article{ghi,\n        author = "me",\n         ' \
 			+ 'title = "{ghi}",\n}\n'
-		self.pBDB.bibs.fetchAll(doFetch = False)
+		self.pBDB.bibs.fetchAll(doFetch=False)
 		with patch('physbiblio.database.entries.fetchCursor',
 				return_value = self.pBDB.bibs.fetchCursor()) as _curs:
 			pBExport.exportAll(testBibName)
@@ -1505,10 +1505,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.lastQuery = ""
 		self.pBDB.bibs.lastVals = ()
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey(
-			"abc", saveQuery = False).lastFetched],
+			"abc", saveQuery=False).lastFetched],
 			["abc"])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibkey(
-			"abc", saveQuery = False)],
+			"abc", saveQuery=False)],
 			["abc"])
 		self.assertEqual(self.pBDB.bibs.lastQuery, "")
 		self.assertEqual(self.pBDB.bibs.lastVals, ())
@@ -1549,10 +1549,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.lastQuery = ""
 		self.pBDB.bibs.lastVals = ()
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByKey(
-			"abc", saveQuery = False).lastFetched],
+			"abc", saveQuery=False).lastFetched],
 			["abc", "ghi"])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey(
-			"abc", saveQuery = False)],
+			"abc", saveQuery=False)],
 			["abc", "ghi"])
 		self.assertEqual(self.pBDB.bibs.lastQuery, "")
 		self.assertEqual(self.pBDB.bibs.lastVals, ())
@@ -1587,10 +1587,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.lastQuery = ""
 		self.pBDB.bibs.lastVals = ()
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex(
-			"abc", saveQuery = False).lastFetched],
+			"abc", saveQuery=False).lastFetched],
 			["abc"])
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByBibtex(
-			"abc", saveQuery = False)],
+			"abc", saveQuery=False)],
 			["abc"])
 		self.assertEqual(self.pBDB.bibs.lastQuery, "")
 		self.assertEqual(self.pBDB.bibs.lastVals, ())

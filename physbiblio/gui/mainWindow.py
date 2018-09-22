@@ -895,7 +895,7 @@ class MainWindow(QMainWindow):
 				noLim = pBDB.bibs.fetchFromDict(
 					searchDict.copy(),
 					limitOffset = offs,
-					doFetch = False)
+					doFetch=False)
 				return (newSearchWin.replOldField.currentText(),
 					fieldsNew,
 					newSearchWin.replOld.text(),
@@ -1177,13 +1177,13 @@ class MainWindow(QMainWindow):
 					except KeyError:
 						pass
 					exist = (len(pBDB.bibs.getByBibkey(el["ID"],
-						saveQuery = False) ) > 0)
+						saveQuery=False) ) > 0)
 					for f in ["arxiv", "doi"]:
 						try:
 							exist = (exist or
 								(el[f].strip() != "" and len(
 									pBDB.bibs.fetchAll(params = {f: el[f]},
-										saveQuery = False).lastFetched) > 0))
+										saveQuery=False).lastFetched) > 0))
 						except KeyError:
 							pBLogger.debug("KeyError '%s', entry: %s"%(
 								f, el["ID"]))
@@ -1288,7 +1288,7 @@ class MainWindow(QMainWindow):
 	def infoFromArxiv(self, useEntries = None):
 		iterator = useEntries
 		if useEntries is None:
-			pBDB.bibs.fetchAll(doFetch = False)
+			pBDB.bibs.fetchAll(doFetch=False)
 			iterator = pBDB.bibs.fetchCursor()
 		askFieldsWin = fieldsFromArxiv()
 		askFieldsWin.exec_()
@@ -1324,7 +1324,7 @@ class MainWindow(QMainWindow):
 					el["type"] += "[cross-listed]"
 				found[el["eprint"]] = {"bibpars": el, "exist": len(
 					pBDB.bibs.getByBibkey(el["eprint"],
-						saveQuery = False) ) > 0}
+						saveQuery=False) ) > 0}
 			if len(found) == 0:
 				infoMessage("No results obtained.")
 				return False
