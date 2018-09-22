@@ -259,12 +259,12 @@ class TestFunctions(GUITestCase):
 		p = MainWindow(testing=True)
 		p.bottomCenter = BibtexInfo(p)
 		entry = {"abstract": "some random text"}
-		with patch("physbiblio.gui.bibWindows.abstractFormulas.__init__",
+		with patch("physbiblio.gui.bibWindows.AbstractFormulas.__init__",
 				return_value=None) as _af:
 			with self.assertRaises(AttributeError):
 				writeAbstract(p, entry)
 			_af.assert_called_once_with(p, "some random text")
-		with patch("physbiblio.gui.bibWindows.abstractFormulas.doText"
+		with patch("physbiblio.gui.bibWindows.AbstractFormulas.doText"
 				) as _dt:
 			writeAbstract(p, entry)
 			_dt.assert_called_once_with()
@@ -833,13 +833,13 @@ class TestFunctions(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestabstractFormulas(GUITestCase):
-	"""test the abstractFormulas class"""
+	"""test the AbstractFormulas class"""
 
 	def test_init(self):
 		"""test __init__"""
 		m = MainWindow(testing = True)
 		m.bottomCenter = BibtexInfo(m)
-		af = abstractFormulas(m, "test text")
+		af = AbstractFormulas(m, "test text")
 		self.assertEqual(af.fontsize, pbConfig.params["bibListFontSize"])
 		self.assertEqual(af.mainWin, m)
 		self.assertEqual(af.statusMessages, True)
@@ -850,7 +850,7 @@ class TestabstractFormulas(GUITestCase):
 		self.assertEqual(af.text, "<b>Abstract:</b><br/>test text")
 
 		bi = BibtexInfo()
-		af = abstractFormulas(m, "test text",
+		af = AbstractFormulas(m, "test text",
 			fontsize = 99,
 			abstractTitle="Title",
 			customEditor=bi.text,
@@ -868,16 +868,16 @@ class TestabstractFormulas(GUITestCase):
 		"""test hasLatex"""
 		m = MainWindow(testing = True)
 		m.bottomCenter = BibtexInfo(m)
-		af = abstractFormulas(m, "test text")
+		af = AbstractFormulas(m, "test text")
 		self.assertEqual(af.hasLatex(), False)
-		af = abstractFormulas(m, "test tex $f_e$ equation")
+		af = AbstractFormulas(m, "test tex $f_e$ equation")
 		self.assertEqual(af.hasLatex(), True)
 
 	def test_doText(self):
 		"""test doText"""
 		m = MainWindow(testing = True)
 		bi = BibtexInfo(m)
-		af = abstractFormulas(m, "test text", customEditor=bi.text)
+		af = AbstractFormulas(m, "test text", customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
@@ -885,7 +885,7 @@ class TestabstractFormulas(GUITestCase):
 			_ih.assert_called_once_with(af.text)
 			_sbm.assert_not_called()
 
-		af = abstractFormulas(m, "test text with $f_e$ equation",
+		af = AbstractFormulas(m, "test text with $f_e$ equation",
 			customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -902,7 +902,7 @@ class TestabstractFormulas(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm,\
 				patch("physbiblio.gui.commonClasses.MyThread.start") as _s,\
-				patch("physbiblio.gui.bibWindows.abstractFormulas."
+				patch("physbiblio.gui.bibWindows.AbstractFormulas."
 					+ "submitText") as _st:
 			af.doText()
 			_sbm.assert_called_once_with("Parsing LaTeX...")
@@ -919,7 +919,7 @@ class TestabstractFormulas(GUITestCase):
 		"""test mathTex_to_QPixmap"""
 		m = MainWindow(testing = True)
 		bi = BibtexInfo(m)
-		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
 		self.assertIsInstance(qi, QImage)
@@ -950,9 +950,9 @@ class TestabstractFormulas(GUITestCase):
 		"""test prepareText"""
 		m = MainWindow(testing = True)
 		bi = BibtexInfo(m)
-		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
-		with patch("physbiblio.gui.bibWindows.abstractFormulas."
+		with patch("physbiblio.gui.bibWindows.AbstractFormulas."
 				+ "mathTex_to_QPixmap", side_effect=["a", "b"]) as _mq:
 			i, t = af.prepareText()
 			self.assertEqual(i, ["a", "b"])
@@ -968,7 +968,7 @@ class TestabstractFormulas(GUITestCase):
 		"""test submitText"""
 		m = MainWindow(testing = True)
 		bi = BibtexInfo(m)
-		af = abstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		images, text = af.prepareText()
 		with patch("PySide2.QtGui.QTextDocument.addResource") as _ar,\

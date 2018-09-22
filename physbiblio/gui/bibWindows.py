@@ -131,7 +131,7 @@ def writeBibtexInfo(entry):
 	return infoText
 
 
-class abstractFormulas():
+class AbstractFormulas():
 	"""Class that manages the transformation of the math formulas
 	which appear in the abstract into images"""
 
@@ -265,7 +265,7 @@ def writeAbstract(mainWin, entry):
 		mainWin: the `mainWindow` instance where to write the abstract
 		entry: the database record of the entry
 	"""
-	a = abstractFormulas(mainWin, entry["abstract"])
+	a = AbstractFormulas(mainWin, entry["abstract"])
 	a.doText()
 
 

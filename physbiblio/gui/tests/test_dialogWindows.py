@@ -23,7 +23,7 @@ try:
 	from physbiblio.config import pbConfig, configuration_params
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.dialogWindows import *
-	from physbiblio.gui.bibWindows import abstractFormulas
+	from physbiblio.gui.bibWindows import AbstractFormulas
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -40,7 +40,7 @@ class fake_abstractFormulas():
 	def __call__(self, p, abstract, customEditor = None, statusMessages = True):
 		"""Save some attributes and return self.el
 
-		Parameters: (see also `physbiblio.gui.bibWindows.abstractFormulas`)
+		Parameters: (see also `physbiblio.gui.bibWindows.AbstractFormulas`)
 			p: parent widget
 			abstract: the abstract
 			customEditor: widget where to store the processed text
@@ -50,7 +50,7 @@ class fake_abstractFormulas():
 		self.abstract = abstract
 		self.ce = customEditor
 		self.sm = statusMessages
-		self.el = abstractFormulas(p, abstract,
+		self.el = AbstractFormulas(p, abstract,
 			customEditor = self.ce,
 			statusMessages = self.sm)
 		return self.el
@@ -1183,9 +1183,9 @@ class TestDailyArxivSelect(GUITestCase):
 			_s.assert_called_once_with(1, 0, ix)
 		ix = das.tablewidget.model().index(0, 0)
 		das.abstractFormulas = fake_abstractFormulas()
-		with patch("physbiblio.gui.bibWindows.abstractFormulas.doText") as _d:
+		with patch("physbiblio.gui.bibWindows.AbstractFormulas.doText") as _d:
 			das.cellClick(ix)
-			self.assertIsInstance(das.abstractFormulas.el, abstractFormulas)
+			self.assertIsInstance(das.abstractFormulas.el, AbstractFormulas)
 			self.assertEqual(das.abstractFormulas.par, p)
 			self.assertEqual(das.abstractFormulas.abstract,
 				"some text")

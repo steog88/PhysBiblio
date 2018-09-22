@@ -36,7 +36,7 @@ try:
 	from physbiblio.gui.commonClasses import \
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
-		abstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, \
+		AbstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, \
 		bibtexListWindow, BibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
@@ -1331,7 +1331,7 @@ class MainWindow(QMainWindow):
 
 			QApplication.restoreOverrideCursor()
 			selImpo = dailyArxivSelect(found, self)
-			selImpo.abstractFormulas = abstractFormulas
+			selImpo.abstractFormulas = AbstractFormulas
 			selImpo.exec_()
 			if selImpo.result == True:
 				newFound = {}
