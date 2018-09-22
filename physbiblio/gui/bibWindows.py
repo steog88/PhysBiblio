@@ -638,7 +638,6 @@ class bibtexListWindow(QFrame, objListWindow):
 		self.colcnt = len(self.columns)
 		self.colContents = []
 		self.previous = previous
-		self.parent = parent
 		self.askBibs = askBibs
 		self.additionalCols = ["Type", "PDF"]
 		for j in range(self.colcnt):
@@ -727,10 +726,10 @@ class bibtexListWindow(QFrame, objListWindow):
 		self.tableModel.unselectAll()
 
 	def onOk(self):
-		self.parent.selectedBibs = [ \
+		self.parent().selectedBibs = [ \
 			key for key in self.tableModel.selectedElements.keys() \
 			if self.tableModel.selectedElements[key] == True]
-		ask = askSelBibAction(self.parent, self.parent.selectedBibs)
+		ask = askSelBibAction(self.parent(), self.parent().selectedBibs)
 		ask.exec_(QCursor.pos())
 		if ask.result == "done":
 			self.clearSelection()
@@ -772,7 +771,7 @@ class bibtexListWindow(QFrame, objListWindow):
 			self.columns,
 			self.additionalCols,
 			askBibs=self.askBibs,
-			mainWin=self.parent,
+			mainWin=self.parent(),
 			previous=self.previous)
 
 		self.changeEnableActions()
@@ -787,12 +786,12 @@ class bibtexListWindow(QFrame, objListWindow):
 			if askYesNo(
 					"Do you really want to delete the %s file for entry %s?"%(
 						fdesc, bibkey)):
-				self.parent.statusBarMessage("deleting %s file..."%fdesc)
+				self.parent().statusBarMessage("deleting %s file..."%fdesc)
 				if custom is not None:
 					pBPDF.removeFile(bibkey, "", fileName = custom)
 				else:
 					pBPDF.removeFile(bibkey, fileType)
-				self.parent.reloadMainContent(
+				self.parent().reloadMainContent(
 					pBDB.bibs.fetchFromLast().lastFetched)
 
 		def copyPdfFile(bibkey, fileType, custom = None):
@@ -950,18 +949,18 @@ class bibtexListWindow(QFrame, objListWindow):
 
 		action = menu.exec_(event.globalPos())
 		if action == delAction:
-			deleteBibtex(self.parent, bibkey)
+			deleteBibtex(self.parent(), bibkey)
 		elif action == modAction:
-			editBibtex(self.parent, bibkey)
+			editBibtex(self.parent(), bibkey)
 		elif action == cleAction:
-			self.parent.cleanAllBibtexs(
+			self.parent().cleanAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery=False))
 		#marks
 		elif action in marksActions.values():
 			for m, a in marksActions.items():
 				if a == action:
 					self.addMark(bibkey, m)
-					self.parent.reloadMainContent(
+					self.parent().reloadMainContent(
 						pBDB.bibs.fetchFromLast().lastFetched)
 		#types
 		elif action in typeActions.values():
@@ -969,7 +968,7 @@ class bibtexListWindow(QFrame, objListWindow):
 				if a == action:
 					pBDB.bibs.updateField(
 						bibkey, k, 0 if initialRecord[k] else 1, 0)
-					self.parent.reloadMainContent(
+					self.parent().reloadMainContent(
 						pBDB.bibs.fetchFromLast().lastFetched)
 		#copy functions
 		elif "bibkey" in copyActions.keys() \
@@ -988,39 +987,39 @@ class bibtexListWindow(QFrame, objListWindow):
 		#categories
 		elif action == catAction:
 			previous = [a[0] for a in pBDB.cats.getByEntry(bibkey)]
-			selectCats = catsTreeWindow(parent = self.parent,
+			selectCats = catsTreeWindow(parent = self.parent(),
 				askCats = True,
 				askForBib = bibkey,
 				expButton = False,
 				previous = previous)
 			selectCats.exec_()
 			if selectCats.result == "Ok":
-				cats = self.parent.selectedCats
+				cats = self.parent().selectedCats
 				for p in previous:
 					if p not in cats:
 						pBDB.catBib.delete(p, bibkey)
 				for c in cats:
 					if c not in previous:
 						pBDB.catBib.insert(c, bibkey)
-				self.parent.statusBarMessage(
+				self.parent().statusBarMessage(
 					"categories for '%s' successfully inserted"%bibkey)
 		#experiments
 		elif action == expAction:
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
-			selectExps = ExpsListWindow(parent = self.parent,
+			selectExps = ExpsListWindow(parent = self.parent(),
 				askExps = True,
 				askForBib = bibkey,
 				previous = previous)
 			selectExps.exec_()
 			if selectExps.result == "Ok":
-				exps = self.parent.selectedExps
+				exps = self.parent().selectedExps
 				for p in previous:
 					if p not in exps:
 						pBDB.bibExp.delete(bibkey, p)
 				for e in exps:
 					if e not in previous:
 						pBDB.bibExp.insert(bibkey, e)
-				self.parent.statusBarMessage(
+				self.parent().statusBarMessage(
 					"experiments for '%s' successfully inserted"%bibkey)
 		#open functions
 		elif action == opArxAct:
@@ -1031,19 +1030,19 @@ class bibtexListWindow(QFrame, objListWindow):
 			pBGuiView.openLink(bibkey, "inspire")
 		#online information
 		elif action == insAction:
-			self.parent.updateInspireInfo(bibkey, inspireID = inspireID)
+			self.parent().updateInspireInfo(bibkey, inspireID = inspireID)
 		elif action == updAction:
-			self.parent.updateAllBibtexs(
+			self.parent().updateAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey,
 					saveQuery=False),
 				force = True)
 		elif action == relAction:
-			self.parent.updateAllBibtexs(
+			self.parent().updateAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey,
 					saveQuery=False),
 				force = True, reloadAll = True)
 		elif action == staAction:
-			self.parent.getInspireStats(inspireID)
+			self.parent().getInspireStats(inspireID)
 		elif action == absAction:
 			self.arxivAbstract(arxiv, bibkey)
 		elif action == arxAction:
@@ -1059,16 +1058,16 @@ class bibtexListWindow(QFrame, objListWindow):
 					pBGUILogger.warning("getFieldsFromArxiv failed")
 		#actions for PDF
 		elif "openArx" in pdfActs.keys() and action == pdfActs["openArx"]:
-			self.parent.statusBarMessage("opening arxiv PDF...")
+			self.parent().statusBarMessage("opening arxiv PDF...")
 			pBGuiView.openLink(bibkey, "file",
 				fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 		elif "openDoi" in pdfActs.keys() and action == pdfActs["openDoi"]:
-			self.parent.statusBarMessage("opening doi PDF...")
+			self.parent().statusBarMessage("opening doi PDF...")
 			pBGuiView.openLink(bibkey, "file",
 				fileArg = pBPDF.getFilePath(bibkey, "doi"))
 		elif "downArx" in pdfActs.keys() and action == pdfActs["downArx"]:
-			self.parent.statusBarMessage("downloading PDF from arxiv...")
-			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent)
+			self.parent().statusBarMessage("downloading PDF from arxiv...")
+			self.downArxiv_thr = thread_downloadArxiv(bibkey, self.parent())
 			self.downArxiv_thr.finished.connect(self.downloadArxivDone)
 			self.downArxiv_thr.start()
 		elif "delArx" in pdfActs.keys() and action == pdfActs["delArx"]:
@@ -1097,7 +1096,7 @@ class bibtexListWindow(QFrame, objListWindow):
 			for i, act in enumerate(pdfActs["openOtherPDF"]):
 				if action == act:
 					fn = files[i].replace(pdfDir+"/", "")
-					self.parent.statusBarMessage("opening %s..."%fn)
+					self.parent().statusBarMessage("opening %s..."%fn)
 					pBGuiView.openLink(bibkey, "file", fileArg = fn)
 			for i, act in enumerate(pdfActs["delOtherPDF"]):
 				if action == act:
@@ -1120,11 +1119,11 @@ class bibtexListWindow(QFrame, objListWindow):
 		except AttributeError:
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
-		self.parent.bottomLeft.text.setText(entry["bibtex"])
-		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
+		self.parent().bottomLeft.text.setText(entry["bibtex"])
+		self.parent().bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.currentAbstractKey != bibkey:
 			self.currentAbstractKey = bibkey
-			writeAbstract(self.parent, entry)
+			writeAbstract(self.parent(), entry)
 
 	def cellDoubleClick(self, index):
 		row = index.row()
@@ -1135,8 +1134,8 @@ class bibtexListWindow(QFrame, objListWindow):
 		except AttributeError:
 			return
 		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
-		self.parent.bottomLeft.text.setText(entry["bibtex"])
-		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
+		self.parent().bottomLeft.text.setText(entry["bibtex"])
+		self.parent().bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "doi" \
 				and entry["doi"] is not None \
 				and entry["doi"] != "":
@@ -1152,33 +1151,33 @@ class bibtexListWindow(QFrame, objListWindow):
 		elif self.colContents[col] == "pdf":
 			pdfFiles = pBPDF.getExisting(bibkey, fullPath = True)
 			if len(pdfFiles) == 1:
-				self.parent.statusBarMessage("opening PDF...")
+				self.parent().statusBarMessage("opening PDF...")
 				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = askPdfAction(self, bibkey, entry["arxiv"], entry["doi"])
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
-					self.parent.statusBarMessage("opening arxiv PDF...")
+					self.parent().statusBarMessage("opening arxiv PDF...")
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 				elif ask.result == "openDoi":
-					self.parent.statusBarMessage("opening doi PDF...")
+					self.parent().statusBarMessage("opening doi PDF...")
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = pBPDF.getFilePath(bibkey, "doi"))
 				elif isinstance(ask.result, str) \
 						and "openOther_" in ask.result:
 					filename = ask.result.replace("openOther_", "")
-					self.parent.statusBarMessage("opening %s..."%filename)
+					self.parent().statusBarMessage("opening %s..."%filename)
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = os.path.join(
 							pBPDF.getFileDir(bibkey), filename))
 
 	def downloadArxivDone(self):
-		self.parent.sendMessage(
+		self.parent().sendMessage(
 			"Arxiv download execution completed! "
 			+ "Please check that it worked...")
-		self.parent.done()
-		self.parent.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+		self.parent().done()
+		self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 	def arxivAbstract(self, arxiv, bibkey, message = True):
 		if arxiv:
@@ -1402,7 +1401,6 @@ class askSelBibAction(MyMenu):
 		self.entries = []
 		for k in keys:
 			self.entries.append(pBDB.bibs.getByBibkey(k)[0])
-		self.parent = parent
 		self.result = "done"
 		if len(keys) == 2:
 			self.possibleActions.append(
@@ -1453,7 +1451,8 @@ class askSelBibAction(MyMenu):
 		copyToClipboard("\n\n".join([e["bibtex"] for e in self.entries]))
 
 	def onMerge(self):
-		mergewin = mergeBibtexs(self.entries[0], self.entries[1], self.parent)
+		mergewin = mergeBibtexs(
+			self.entries[0], self.entries[1], self.parent())
 		mergewin.exec_()
 		if mergewin.result is True:
 			data = {}
@@ -1500,9 +1499,9 @@ class askSelBibAction(MyMenu):
 						pBGUILogger.error("Cannot insert new item!")
 						pBDB.undo()
 					else:
-						self.parent.setWindowTitle("PhysBiblio*")
+						self.parent().setWindowTitle("PhysBiblio*")
 						try:
-							self.parent.reloadMainContent(
+							self.parent().reloadMainContent(
 								pBDB.bibs.fetchFromLast().lastFetched)
 						except:
 							pBLogger.warning("Impossible to reload content.")
@@ -1511,44 +1510,44 @@ class askSelBibAction(MyMenu):
 		self.close()
 
 	def onClean(self):
-		self.parent.cleanAllBibtexs(self, useEntries = self.entries)
+		self.parent().cleanAllBibtexs(self, useEntries = self.entries)
 		self.close()
 
 	def onUpdate(self):
-		self.parent.updateAllBibtexs(self, useEntries = self.entries)
+		self.parent().updateAllBibtexs(self, useEntries = self.entries)
 		self.close()
 
 	def onDelete(self):
-		deleteBibtex(self.parent, [e["bibkey"] for e in self.entries])
+		deleteBibtex(self.parent(), [e["bibkey"] for e in self.entries])
 		self.close()
 
 	def onAbs(self):
 		infoMessage("Starting the abstract download process, please wait...")
 		for entry in self.entries:
-			self.parent.bibtexListWindow.arxivAbstract(entry["arxiv"],
+			self.parent().bibtexListWindow.arxivAbstract(entry["arxiv"],
 				entry["bibkey"], message = False)
 		infoMessage("Done!")
 		self.close()
 
 	def onArx(self):
-		self.parent.infoFromArxiv(self.entries)
+		self.parent().infoFromArxiv(self.entries)
 		self.close()
 
 	def onDown(self):
 		self.downArxiv_thr = []
 		for entry in self.entries:
 			if entry["arxiv"] is not None:
-				self.parent.statusBarMessage(
+				self.parent().statusBarMessage(
 					"downloading PDF for arxiv:%s..."%entry["arxiv"])
 				self.downArxiv_thr.append(
-					thread_downloadArxiv(entry["bibkey"], self.parent))
+					thread_downloadArxiv(entry["bibkey"], self.parent()))
 				self.downArxiv_thr[-1].finished.connect(
-					self.parent.bibtexListWindow.downloadArxivDone)
+					self.parent().bibtexListWindow.downloadArxivDone)
 				self.downArxiv_thr[-1].start()
 		self.close()
 
 	def onExport(self):
-		self.parent.exportSelection(self.entries)
+		self.parent().exportSelection(self.entries)
 		self.close()
 
 	def copyAllPdf(self):
@@ -1571,32 +1570,32 @@ class askSelBibAction(MyMenu):
 
 	def onCat(self):
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
-		selectCats = catsTreeWindow(parent = self.parent,
+		selectCats = catsTreeWindow(parent = self.parent(),
 			askCats = True,
 			expButton = False,
 			previous = previousAll,
 			multipleRecords = True)
 		selectCats.exec_()
 		if selectCats.result == "Ok":
-			for c in self.parent.previousUnchanged:
+			for c in self.parent().previousUnchanged:
 				if c in previousAll:
 					del previousAll[previousAll.index(c)]
 			for c in previousAll:
-				if c not in self.parent.selectedCats:
+				if c not in self.parent().selectedCats:
 					pBDB.catBib.delete(c, self.keys)
-			pBDB.catBib.insert(self.parent.selectedCats, self.keys)
-			self.parent.statusBarMessage("categories successfully inserted")
+			pBDB.catBib.insert(self.parent().selectedCats, self.keys)
+			self.parent().statusBarMessage("categories successfully inserted")
 		self.close()
 
 	def onExp(self):
 		infoMessage("Warning: you can just add experiments "
 			+ "to the selected entries, not delete!")
-		selectExps = ExpsListWindow(parent = self.parent,
+		selectExps = ExpsListWindow(parent = self.parent(),
 			askExps = True, previous = [])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
-			pBDB.bibExp.insert(self.keys, self.parent.selectedExps)
-			self.parent.statusBarMessage("experiments successfully inserted")
+			pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
+			self.parent().statusBarMessage("experiments successfully inserted")
 		self.close()
 
 
@@ -1680,11 +1679,11 @@ class searchBibsWindow(editObjectWindow):
 			self.values["cats"] = self.selectedCats
 
 	def onAskExps(self):
-		selectExps = ExpsListWindow(parent = self.parent,
+		selectExps = ExpsListWindow(parent = self.parent(),
 			askExps = True, previous = self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
-			self.values["exps"] = self.parent.selectedExps
+			self.values["exps"] = self.parent().selectedExps
 
 	def onComboCatsChange(self, text):
 		self.values["catsOperator"] = text
