@@ -8,6 +8,7 @@ import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
+from PySide2.QtGui import QPixmap
 from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
@@ -1009,35 +1010,328 @@ class TestBibtexInfo(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMyBibTableModel(GUITestCase):
-	"""test"""
+	"""test the `MyBibTableModel` methods"""
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		p = QWidget()
+		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
+		header = ["A", "B", "C"]
+		tm = MyBibTableModel(p, biblist, header)
+		self.assertIsInstance(tm, MyTableModel)
+		self.assertEqual(tm.mainWin, None)
+		self.assertIsInstance(tm.latexToText, LatexNodes2Text)
+		self.assertEqual(tm.typeClass, "Bibs")
+		self.assertEqual(tm.dataList, biblist)
+		self.assertEqual(tm.stdCols, [])
+		self.assertEqual(tm.addCols, ["bibtex"])
+		self.assertEqual(tm.lenStdCols, 0)
+		self.assertEqual(tm.header, header + ["bibtex"])
+		self.assertEqual(tm.parentObj, p)
+		self.assertEqual(tm.previous, [])
+		self.assertEqual(tm.ask, False)
+
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.prepareSelected"
+				) as _ps,\
+				patch("pylatexenc.latex2text.LatexNodes2Text.__init__",
+					return_value=None) as _il:
+			tm = MyBibTableModel(p, biblist, header,
+				stdCols=["s1", "s2"],
+				addCols=["a1", "a2"],
+				askBibs=True,
+				previous=[1, 2, 3],
+				mainWin="m")
+			_il.assert_called_once_with(
+				keep_inline_math=False, keep_comments=False)
+			_ps.assert_called_once_with()
+		self.assertIsInstance(tm, MyTableModel)
+		self.assertEqual(tm.mainWin, "m")
+		self.assertIsInstance(tm.latexToText, LatexNodes2Text)
+		self.assertEqual(tm.typeClass, "Bibs")
+		self.assertEqual(tm.dataList, biblist)
+		self.assertEqual(tm.stdCols, ["s1", "s2"])
+		self.assertEqual(tm.addCols, ["a1", "a2", "bibtex"])
+		self.assertEqual(tm.lenStdCols, 2)
+		self.assertEqual(tm.header, header + ["bibtex"])
+		self.assertEqual(tm.parentObj, p)
+		self.assertEqual(tm.previous, [1, 2, 3])
+		self.assertEqual(tm.ask, True)
 
 	def test_getIdentifier(self):
-		"""test"""
-		pass
+		"""test getIdentifier"""
+		p = QWidget()
+		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
+		header = ["A", "B", "C"]
+		tm = MyBibTableModel(p, biblist, header)
+		self.assertEqual(tm.getIdentifier(biblist[0]), "a")
+		self.assertEqual(tm.getIdentifier(biblist[1]), "b")
 
 	def test_addTypeCell(self):
-		"""test"""
-		pass
+		"""test addTypeCell"""
+		p = QWidget()
+		biblist = [{
+			"bibkey": "a",
+			"review": 1,
+			"proceeding": 1,
+			"book": 1,
+			"phd_thesis": 1,
+			"lecture": 1,
+			"exp_paper": 1,
+			}]
+		header = ["A", "B", "C"]
+		tm = MyBibTableModel(p, biblist, header)
+		self.assertEqual(tm.addTypeCell(biblist[0]),
+			"Book, Experimental paper, Lecture, "
+			+ "PhD thesis, Proceeding, Review")
 
-	def test_addPdfCell(self):
-		"""test"""
-		pass
+		biblist = [{
+			"bibkey": "a",
+			"review": 1,
+			"proceeding": 0,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			}]
+		self.assertEqual(tm.addTypeCell(biblist[0]), "Review")
+
+		biblist = [{
+			"bibkey": "a",
+			"review": 0,
+			"proceeding": 0,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			}]
+		self.assertEqual(tm.addTypeCell(biblist[0]), "")
+
+		biblist = [{
+			"bibkey": "a",
+			"review": 0,
+			"proceeding": 0,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			}]
+		with patch("logging.Logger.debug") as _d:
+			self.assertEqual(tm.addTypeCell(biblist[0]), "")
+			_d.assert_called_once_with(
+				"Key not present: 'book'\nin ['bibkey', 'exp_paper', "
+				+ "'lecture', 'phd_thesis', 'proceeding', 'review']")
+
+	def test_addPDFCell(self):
+		"""test addPDFCell"""
+		biblist = [{"bibkey": "a"}]
+		header = ["A", "B", "C"]
+		m = bibtexListWindow(bibs=[])
+		tm = MyBibTableModel(m, biblist, header)
+		with patch("physbiblio.pdf.localPDF.getExisting",
+				return_value=[]) as _ge:
+			self.assertEqual(tm.addPDFCell("a"),
+				(False, "no PDF"))
+			_ge.assert_called_once_with("a")
+		with patch("physbiblio.pdf.localPDF.getExisting",
+				return_value=["a"]) as _ge,\
+				patch("physbiblio.gui.commonClasses.MyTableModel.addImage",
+					return_value="image") as _ai:
+			self.assertEqual(tm.addPDFCell("a"),
+				(True, "image"))
+			_ge.assert_called_once_with("a")
+			_ai.assert_called_once_with(
+				":/images/application-pdf.png",
+				m.tablewidget.rowHeight(0)*0.9)
 
 	def test_addMarksCell(self):
-		"""test"""
-		pass
+		"""test addMarksCell"""
+		m = bibtexListWindow(bibs=[{"bibkey": "a",
+			"title": "my title A",
+			"author": r"St{\'e}",
+			"marks": "",
+			"bibtex": "@article{A}",
+			"arxiv": "1809.00000"}])
+		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
+		header = ["A", "B", "C"]
+		tm = MyBibTableModel(m, biblist, header)
+		self.assertEqual(tm.addMarksCell(None),
+			(False, ""))
+		self.assertEqual(tm.addMarksCell(123),
+			(False, ""))
+		self.assertEqual(tm.addMarksCell("r a n d o m s t r i n g"),
+			(False, ""))
+		with patch("physbiblio.gui.commonClasses.MyTableModel.addImages",
+				return_value="called") as _ai:
+			self.assertEqual(tm.addMarksCell("new,imp"),
+				(True, "called"))
+			_ai.assert_called_once_with(
+				[':/images/emblem-important-symbolic.png',
+				':/images/unread-new.png'],
+				m.tablewidget.rowHeight(0)*0.9)
+		with patch("physbiblio.gui.commonClasses.MyTableModel.addImage",
+				return_value="called") as _ai:
+			self.assertEqual(tm.addMarksCell(u"new"),
+				(True, "called"))
+			_ai.assert_called_once_with(':/images/unread-new.png',
+				m.tablewidget.rowHeight(0)*0.9)
 
 	def test_data(self):
-		"""test"""
-		pass
+		"""test data"""
+		m = bibtexListWindow(bibs=[{"bibkey": "a",
+			"title": "my title A",
+			"author": r"St{\'e}",
+			"marks": "",
+			"bibtex": "@article{A}",
+			"arxiv": "1809.00000"}])
+		biblist = [
+			{"bibkey": "a",
+			"title": "my title A",
+			"author": r"St{\'e}",
+			"marks": "",
+			"bibtex": "@article{A}",
+			"arxiv": "1809.00000"},
+			{"bibkey": "b",
+			"title": "my title {\mu}",
+			"author": "Gar",
+			"bibtex": "@article{B}",
+			"book": 1,
+			"marks": "new,imp"}]
+		header = ["bibkey", "marks", "title", "author", "arxiv"]
+		addCols = ["Type", "PDF"]
+		tm = MyBibTableModel(m, biblist, header+addCols,
+			header, addCols, previous=["b"], askBibs=True)
+		ix = tm.index(10, 0)
+		self.assertEqual(tm.data(ix, Qt.CheckStateRole), None)
+		ix = tm.index(0, 0)
+		self.assertEqual(tm.data(ix, Qt.CheckStateRole), Qt.Unchecked)
+		self.assertEqual(tm.data(ix, Qt.DisplayRole), "a")
+		self.assertEqual(tm.data(ix, Qt.EditRole), "a")
+		self.assertEqual(tm.data(ix, Qt.DecorationRole), None)
+		ix = tm.index(1, 0)
+		self.assertEqual(tm.data(ix, Qt.CheckStateRole), Qt.Checked)
+		self.assertEqual(tm.data(tm.index(0, 2), Qt.DisplayRole), "my title A")
+		self.assertEqual(tm.data(tm.index(0, 3), Qt.DisplayRole), u'St\xe9')
+		self.assertEqual(tm.data(tm.index(0, 4), Qt.DisplayRole), "1809.00000")
+		self.assertEqual(tm.data(tm.index(1, 2), Qt.DisplayRole),
+			u'my title \u03bc')
+		self.assertEqual(tm.data(tm.index(1, 3), Qt.DisplayRole), "Gar")
+		self.assertEqual(tm.data(tm.index(1, 3), Qt.CheckStateRole), None)
+		self.assertEqual(tm.data(tm.index(1, 4), Qt.DisplayRole), "")
+
+		#check marks
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addMarksCell",
+				return_value=(False, "")) as _m:
+			self.assertEqual(tm.data(tm.index(0, 1), Qt.DisplayRole),
+				"")
+			_m.assert_called_once_with("")
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addMarksCell",
+				return_value=(False, "")) as _m:
+			self.assertEqual(tm.data(tm.index(1, 1), Qt.DisplayRole),
+				"")
+			_m.assert_called_once_with('new,imp')
+		self.assertEqual(tm.data(tm.index(0, 1), Qt.DisplayRole),
+			"")
+		self.assertEqual(tm.data(tm.index(0, 1), Qt.DecorationRole),
+			None)
+		self.assertEqual(tm.data(tm.index(1, 1), Qt.DisplayRole),
+			None)
+		self.assertIsInstance(tm.data(tm.index(1, 1), Qt.DecorationRole),
+			QPixmap)
+
+		#check type
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addTypeCell",
+				return_value="type A") as _m:
+			self.assertEqual(tm.data(tm.index(0, 5), Qt.DisplayRole),
+				"type A")
+			_m.assert_called_once_with(biblist[0])
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addTypeCell",
+				return_value="type B") as _m:
+			self.assertEqual(tm.data(tm.index(1, 5), Qt.DisplayRole),
+				"type B")
+			_m.assert_called_once_with(biblist[1])
+		self.assertEqual(tm.data(tm.index(0, 5), Qt.DisplayRole),
+			"")
+		self.assertEqual(tm.data(tm.index(0, 5), Qt.DecorationRole),
+			None)
+		self.assertEqual(tm.data(tm.index(1, 5), Qt.DisplayRole),
+			"Book")
+		self.assertEqual(tm.data(tm.index(1, 5), Qt.DecorationRole),
+			None)
+
+		#check pdf
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addPDFCell",
+				return_value=(False, "no PDF")) as _m:
+			self.assertEqual(tm.data(tm.index(0, 6), Qt.DisplayRole),
+				"no PDF")
+			_m.assert_called_once_with("a")
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addPDFCell",
+				return_value=(False, "no PDF")) as _m:
+			self.assertEqual(tm.data(tm.index(1, 6), Qt.DisplayRole),
+				"no PDF")
+			_m.assert_called_once_with("b")
+		with patch("physbiblio.pdf.localPDF.getExisting",
+				side_effect=[[], [], ["b"], ["b"]]) as _ge:
+			self.assertEqual(tm.data(tm.index(0, 6), Qt.DisplayRole),
+				"no PDF")
+			_ge.assert_called_once_with("a")
+			self.assertEqual(tm.data(tm.index(0, 6), Qt.DecorationRole),
+				None)
+			_ge.reset_mock()
+			self.assertEqual(tm.data(tm.index(1, 6), Qt.DisplayRole),
+				None)
+			_ge.assert_called_once_with("b")
+			self.assertIsInstance(tm.data(tm.index(1, 6), Qt.DecorationRole),
+				QPixmap)
+
+		tm = MyBibTableModel(m, biblist, header+addCols,
+			header, addCols, previous=[], askBibs=False)
+		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), None)
+		tm = MyBibTableModel(m, biblist, header+addCols,
+			header, addCols, previous=[], askBibs=True)
+		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
+			Qt.Unchecked)
+		tm = MyBibTableModel(m, biblist, header+addCols,
+			header, addCols, previous=["a"], askBibs=True)
+		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
+			Qt.Checked)
+		self.assertEqual(
+			tm.setData(tm.index(0, 0), "abc", Qt.CheckStateRole), True)
+		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
+			Qt.Unchecked)
+		self.assertEqual(
+			tm.setData(tm.index(0, 0), Qt.Checked, Qt.CheckStateRole), True)
+		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
+			Qt.Checked)
 
 	def test_setData(self):
-		"""test"""
-		pass
+		"""test setData"""
+		p = QWidget()
+		def connectEmit(ix1, ix2):
+			"""used to test dataChanged.emit"""
+			self.newEmit = ix1
+		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
+		header = ["A", "B", "C"]
+		tm = MyBibTableModel(p, biblist, header)
+		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
+		ix = tm.index(10, 0)
+		self.newEmit = False
+		tm.dataChanged.connect(connectEmit)
+		self.assertEqual(tm.setData(ix, "abc", Qt.CheckStateRole), False)
+		self.assertEqual(self.newEmit, False)
+		ix = tm.index(0, 0)
+		self.assertEqual(tm.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
+		self.assertEqual(tm.selectedElements, {"a": True, "b": False})
+		self.assertEqual(self.newEmit, ix)
+		self.newEmit = False
+		self.assertEqual(tm.setData(ix, "abc", Qt.CheckStateRole), True)
+		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
+		self.assertEqual(self.newEmit, ix)
+
+		tm = MyBibTableModel(p, biblist, header)
+		ix = tm.index(1, 0)
+		self.assertEqual(tm.setData(ix, "abc", Qt.EditRole), True)
+		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
+		self.assertEqual(tm.setData(ix, "abc", Qt.CheckStateRole), True)
+		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

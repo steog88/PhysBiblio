@@ -423,22 +423,40 @@ class bibtexInfo(QFrame):
 
 
 class MyBibTableModel(MyTableModel):
-	"""Model"""
+	"""The model (based on `MyTableModel`)
+	which manages the list of bibtex entries
+	"""
 
 	def __init__(self,
 			parent,
 			bib_list,
 			header,
-			stdCols = [],
-			addCols = [],
-			askBibs = False,
-			previous = [],
-			mainWin = None,
+			stdCols=[],
+			addCols=[],
+			askBibs=False,
+			previous=[],
+			mainWin=None,
 			*args):
-		self.parent = parent
+		"""Constructor of the model, defines some properties
+		and uses `MyTableModel.__init__`
+
+		Parameters:
+			parent: the parent widget
+			bib_list: the list of bibtex entries in the model
+			header: the names of the columns to be used
+			stdCols (default []): the list of standard columns
+				(the ones that are also fields in the database table)
+			addCols (default []): the list of non-standard columns
+				(the ones that are not fields in the database table,
+				as "Type" or "PDF")
+			askBibs: if True (default False),
+				enable the checkboxes for selection
+			previous (default []): the list of initially selected items
+			mainWin: None (default) or a MainWindow instance
+		"""
 		self.mainWin = mainWin
 		self.latexToText = LatexNodes2Text(
-			keep_inline_math = False, keep_comments = False)
+			keep_inline_math=False, keep_comments=False)
 		self.typeClass = "Bibs"
 		self.dataList = bib_list
 		MyTableModel.__init__(self,
@@ -449,20 +467,51 @@ class MyBibTableModel(MyTableModel):
 		self.prepareSelected()
 
 	def getIdentifier(self, element):
+		"""Get the bibkey that uniquely identifies an element
+
+		Parameter:
+			element: the database record of the bibtex entry
+
+		Output:
+			the bibtex key
+		"""
 		return element["bibkey"]
 
 	def addTypeCell(self, data):
+		"""Create cell for describing the type of an entry
+
+		Parameter:
+			data: the database record of the entry
+
+		Output:
+			a string with the list of types
+		"""
 		someType = False
 		string = ""
-		for t in convertType.keys():
-			if data[t] == 1:
-				if someType:
-					string += ", "
-				string += convertType[t]
+		for t in sorted(convertType.keys()):
+			try:
+				if data[t] == 1:
+					if someType:
+						string += ", "
+					string += convertType[t]
+					someType = True
+			except KeyError:
+				pBLogger.debug("Key not present: '%s'\nin %s"%(
+					t, sorted(data.keys())))
 		return string
 
-	def addPdfCell(self, key):
-		"""create cell for PDF file"""
+	def addPDFCell(self, key):
+		"""Create cell for the PDF file
+
+		Parameter:
+			key: the database key of the entry
+
+		Output:
+			a tuple, containing:
+				True and an image
+				or
+				False and the string "no PDF"
+		"""
 		if len(pBPDF.getExisting(key))>0:
 			return True, self.addImage(
 				":/images/application-pdf.png",
@@ -471,8 +520,19 @@ class MyBibTableModel(MyTableModel):
 			return False, "no PDF"
 
 	def addMarksCell(self, marks):
-		"""create cell for marks"""
-		if marks is not None:
+		"""Create a cell for the marks
+
+		Parameter:
+			marks: the marks of the given entry
+
+		Output:
+			a tuple, containing:
+				True and an image or a list of images
+				or
+				False and ""
+		"""
+		if marks is not None and (
+				isinstance(marks, str) or isinstance(marks, unicode)):
 			marks = [ k for k in pBMarks.marks.keys() if k in marks ]
 			if len(marks)>1:
 				return True, self.addImages(
@@ -483,52 +543,76 @@ class MyBibTableModel(MyTableModel):
 					pBMarks.marks[marks[0]]["icon"],
 					self.parentObj.tablewidget.rowHeight(0)*0.9)
 			else:
-				return False, ("", "")
+				return False, ""
 		else:
-			return False, ("", "")
+			return False, ""
 
 	def data(self, index, role):
+		"""Return the cell data for the given index and role
+
+		Parameters:
+			index: the `QModelIndex` for which the data are required
+			role: the desired Qt role for the data
+
+		Output:
+			None if the index or the role are not valid,
+			the cell content or properties otherwise
+		"""
 		if not index.isValid():
 			return None
-		img = False
+		hasImg = False
 		row = index.row()
 		column = index.column()
 		try:
-			if "marks" in self.stdCols \
-					and column == self.stdCols.index("marks"):
-				img, value = self.addMarksCell(self.dataList[row]["marks"])
-			elif column < self.lenStdCols:
-				try:
-					value = self.dataList[row][self.stdCols[column]]
-					if self.stdCols[column] in ["title", "author"]:
-						value = self.latexToText.latex_to_text(value)
-				except KeyError:
-					value = ""
-			else:
-				if self.addCols[column - self.lenStdCols] == "Type":
-					value = self.addTypeCell(self.dataList[row])
-				elif self.addCols[column - self.lenStdCols] == "PDF":
-					img, value = self.addPdfCell(self.dataList[row]["bibkey"])
-				else:
-					value = self.dataList[row]["bibtex"]
+			rowData = self.dataList[row]
 		except IndexError:
 			pBGUILogger.exception("MyBibTableModel.data(): invalid index")
 			return None
+		if "marks" in self.stdCols \
+				and column == self.stdCols.index("marks"):
+			hasImg, value = self.addMarksCell(rowData["marks"])
+		elif column < self.lenStdCols:
+			try:
+				value = rowData[self.stdCols[column]]
+				if self.stdCols[column] in ["title", "author"]:
+					value = self.latexToText.latex_to_text(value)
+			except KeyError:
+				value = ""
+		else:
+			if self.addCols[column - self.lenStdCols] == "Type":
+				value = self.addTypeCell(rowData)
+			elif self.addCols[column - self.lenStdCols] == "PDF":
+				hasImg, value = self.addPDFCell(rowData["bibkey"])
+			else:
+				value = rowData["bibtex"]
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
-			if self.selectedElements[self.dataList[row]["bibkey"]] == True:
+			if self.selectedElements[rowData["bibkey"]] == True:
 				return Qt.Checked
 			else:
 				return Qt.Unchecked
 		if role == Qt.EditRole:
 			return value
-		if role == Qt.DecorationRole and img:
+		if role == Qt.DecorationRole and hasImg:
 			return value
-		if role == Qt.DisplayRole and not img:
+		if role == Qt.DisplayRole and not hasImg:
 			return value
 		return None
 
 	def setData(self, index, value, role):
+		"""Set the cell data for the given index and role
+
+		Parameters:
+			index: the `QModelIndex` for which the data are required
+			value: the new data value
+			role: the desired Qt role for the data
+
+		Output:
+			True if correctly completed,
+			False if the `index` is not valid
+		"""
+		if not index.isValid():
+			return False
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
 				self.selectedElements[
@@ -615,7 +699,7 @@ class bibtexListWindow(QFrame, objListWindow):
 	def addMark(self, bibkey, mark):
 		try:
 			initialMarks = pBDB.bibs.getByBibkey(
-				bibkey, saveQuery = False)[0]["marks"]
+				bibkey, saveQuery=False)[0]["marks"]
 		except IndexError:
 			pBGUILogger.exception("Entry '%s' not found!"%bibkey)
 			return
@@ -687,9 +771,9 @@ class bibtexListWindow(QFrame, objListWindow):
 			self.columns + self.additionalCols,
 			self.columns,
 			self.additionalCols,
-			askBibs = self.askBibs,
-			mainWin = self.parent,
-			previous = self.previous)
+			askBibs=self.askBibs,
+			mainWin=self.parent,
+			previous=self.previous)
 
 		self.changeEnableActions()
 		self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
@@ -731,7 +815,7 @@ class bibtexListWindow(QFrame, objListWindow):
 			pBLogger.exception("Error in reading table content")
 			return
 		try:
-			initialRecord = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+			initialRecord = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
 			if initialRecord["marks"] is None:
 				initialRecord["marks"] = ""
 				pBDB.bibs.updateField(bibkey, "marks", "")
@@ -871,7 +955,7 @@ class bibtexListWindow(QFrame, objListWindow):
 			editBibtex(self.parent, bibkey)
 		elif action == cleAction:
 			self.parent.cleanAllBibtexs(
-				useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery = False))
+				useEntries = pBDB.bibs.getByBibkey(bibkey, saveQuery=False))
 		#marks
 		elif action in marksActions.values():
 			for m, a in marksActions.items():
@@ -951,12 +1035,12 @@ class bibtexListWindow(QFrame, objListWindow):
 		elif action == updAction:
 			self.parent.updateAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey,
-					saveQuery = False),
+					saveQuery=False),
 				force = True)
 		elif action == relAction:
 			self.parent.updateAllBibtexs(
 				useEntries = pBDB.bibs.getByBibkey(bibkey,
-					saveQuery = False),
+					saveQuery=False),
 				force = True, reloadAll = True)
 		elif action == staAction:
 			self.parent.getInspireStats(inspireID)
@@ -1035,7 +1119,7 @@ class bibtexListWindow(QFrame, objListWindow):
 				row, self.columns.index("bibkey"), index).data())
 		except AttributeError:
 			return
-		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.currentAbstractKey != bibkey:
@@ -1050,7 +1134,7 @@ class bibtexListWindow(QFrame, objListWindow):
 				row, self.columns.index("bibkey"), index).data())
 		except AttributeError:
 			return
-		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery = False)[0]
+		entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
 		self.parent.bottomLeft.text.setText(entry["bibtex"])
 		self.parent.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.colContents[col] == "doi" \
