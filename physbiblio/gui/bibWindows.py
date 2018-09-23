@@ -131,6 +131,145 @@ def writeBibtexInfo(entry):
 	return infoText
 
 
+def writeAbstract(mainWin, entry):
+	"""Process and write the abstract to the dedicated mainWindow panel
+
+	Parameters:
+		mainWin: the `mainWindow` instance where to write the abstract
+		entry: the database record of the entry
+	"""
+	a = AbstractFormulas(mainWin, entry["abstract"])
+	a.doText()
+
+
+def editBibtex(parentObject, editKey=None, testing=False):
+	"""Open a dialog (`EditBibtexDialog`) to edit a bibtex entry
+	and process the output.
+
+	Parameters:
+		parentObject: the parent widget
+		editKey: the key of the entry to be edited,
+			or `None` to create a new one
+		testing (default False): when doing tests,
+			interrupt the execution before `exec_` and
+			replace `newBibWin` with the passed object.
+	"""
+	if editKey is not None:
+		edit = pBDB.bibs.getByKey(editKey, saveQuery=False)[0]
+	else:
+		edit = None
+	newBibWin = EditBibtexDialog(parentObject, bib=edit)
+	if testing:
+		newBibWin = testing
+	else:
+		newBibWin.exec_()
+	data = {}
+	if newBibWin.result is True:
+		for k, v in newBibWin.textValues.items():
+			try:
+				s = "%s"%v.text()
+			except AttributeError:
+				s = "%s"%v.toPlainText()
+			data[k] = s
+		for k, v in newBibWin.checkValues.items():
+			if v.isChecked():
+				data[k] = 1
+			else:
+				data[k] = 0
+		data["marks"] = ""
+		for m, ckb in newBibWin.markValues.items():
+			if ckb.isChecked():
+				data["marks"] += "'%s',"%m
+		if data["bibtex"].strip() != "":
+			if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
+				data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
+			if data["bibkey"].strip() != "":
+				if editKey is not None:
+					if data["bibkey"].strip() != editKey:
+						if data["bibkey"].strip() != "not valid bibtex!":
+							pBLogger.info(
+								"New bibtex key (%s) for element '%s'..."%(
+									data["bibkey"], editKey))
+							if editKey not in data["old_keys"]:
+								data["old_keys"] += " " + editKey
+								data["old_keys"] = data["old_keys"].strip()
+							if pBDB.bibs.updateBibkey(
+									editKey, data["bibkey"].strip()):
+								pBPDF.renameFolder(editKey,
+									data["bibkey"].strip())
+							else:
+								pBGUILogger.warning(
+									"Cannot update bibtex key: "
+									+ "already present. "
+									+ "Restoring previous one.")
+								data["bibtex"] = data["bibtex"].replace(
+									data["bibkey"], editKey)
+								data["bibkey"] = editKey
+						else:
+							data["bibkey"] = editKey
+					pBLogger.info(
+						"Updating bibtex '%s'..."%data["bibkey"])
+					pBDB.bibs.update(data, data["bibkey"])
+				else:
+					pBDB.bibs.insert(data)
+				message = "Bibtex entry saved"
+				try:
+					parentObject.mainWindowTitle("PhysBiblio*")
+				except AttributeError:
+					pBLogger.debug(
+						"parentObject has no attribute 'mainWindowTitle'",
+						exc_info=True)
+				pBDB.bibs.fetchFromLast()
+				try:
+					parentObject.reloadMainContent(
+						pBDB.bibs.lastFetched)
+				except AttributeError:
+					pBLogger.debug(
+						"parentObject has no attribute 'reloadMainContent'",
+						exc_info=True)
+			else:
+				message = "ERROR: empty bibkey!"
+				infoMessage(message)
+		else:
+			message = "ERROR: empty bibtex!"
+			infoMessage(message)
+	else:
+		message = "No modifications to bibtex entry"
+	try:
+		parentObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
+			exc_info=True)
+
+
+def deleteBibtex(parentObject, bibkey):
+	"""Ask confirmation and eventually delete the selected bibtex entry
+
+	Parameters:
+		parentObject: the parent object, which has
+			the `statusBarMessage` and `setWindowTitle` methods
+			and a `bibtexListWindow` attribute
+		bibkey: the bibtex key of the entry to be deleted
+	"""
+	if askYesNo("Do you really want to delete this bibtex entry "
+			+ "(bibkey = '%s')?"%(bibkey)):
+		pBDB.bibs.delete(bibkey)
+		parentObject.setWindowTitle("PhysBiblio*")
+		message = "Bibtex entry deleted"
+		try:
+			parentObject.bibtexListWindow.recreateTable()
+		except AttributeError:
+			pBLogger.debug("parentObject has no attribute 'recreateTable'",
+				exc_info=True)
+	else:
+		message = "Nothing changed"
+	try:
+		parentObject.statusBarMessage(message)
+	except AttributeError:
+		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
+			exc_info=True)
+
+
 class AbstractFormulas():
 	"""Class that manages the transformation of the math formulas
 	which appear in the abstract into images"""
@@ -256,145 +395,6 @@ class AbstractFormulas():
 		self.editor.insertHtml(text)
 		if self.statusMessages:
 			self.mainWin.statusBarMessage("Latex processing done!")
-
-
-def writeAbstract(mainWin, entry):
-	"""Process and write the abstract to the dedicated mainWindow panel
-
-	Parameters:
-		mainWin: the `mainWindow` instance where to write the abstract
-		entry: the database record of the entry
-	"""
-	a = AbstractFormulas(mainWin, entry["abstract"])
-	a.doText()
-
-
-def editBibtex(parentObject, editKey=None, testing=False):
-	"""Open a dialog (`editBibtexDialog`) to edit a bibtex entry
-	and process the output.
-
-	Parameters:
-		parentObject: the parent widget
-		editKey: the key of the entry to be edited,
-			or `None` to create a new one
-		testing (default False): when doing tests,
-			interrupt the execution before `exec_` and
-			replace `newBibWin` with the passed object.
-	"""
-	if editKey is not None:
-		edit = pBDB.bibs.getByKey(editKey, saveQuery=False)[0]
-	else:
-		edit = None
-	newBibWin = editBibtexDialog(parentObject, bib=edit)
-	if testing:
-		newBibWin = testing
-	else:
-		newBibWin.exec_()
-	data = {}
-	if newBibWin.result is True:
-		for k, v in newBibWin.textValues.items():
-			try:
-				s = "%s"%v.text()
-			except AttributeError:
-				s = "%s"%v.toPlainText()
-			data[k] = s
-		for k, v in newBibWin.checkValues.items():
-			if v.isChecked():
-				data[k] = 1
-			else:
-				data[k] = 0
-		data["marks"] = ""
-		for m, ckb in newBibWin.markValues.items():
-			if ckb.isChecked():
-				data["marks"] += "'%s',"%m
-		if data["bibtex"].strip() != "":
-			if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
-				data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
-			if data["bibkey"].strip() != "":
-				if editKey is not None:
-					if data["bibkey"].strip() != editKey:
-						if data["bibkey"].strip() != "not valid bibtex!":
-							pBLogger.info(
-								"New bibtex key (%s) for element '%s'..."%(
-									data["bibkey"], editKey))
-							if editKey not in data["old_keys"]:
-								data["old_keys"] += " " + editKey
-								data["old_keys"] = data["old_keys"].strip()
-							if pBDB.bibs.updateBibkey(
-									editKey, data["bibkey"].strip()):
-								pBPDF.renameFolder(editKey,
-									data["bibkey"].strip())
-							else:
-								pBGUILogger.warning(
-									"Cannot update bibtex key: "
-									+ "already present. "
-									+ "Restoring previous one.")
-								data["bibtex"] = data["bibtex"].replace(
-									data["bibkey"], editKey)
-								data["bibkey"] = editKey
-						else:
-							data["bibkey"] = editKey
-					pBLogger.info(
-						"Updating bibtex '%s'..."%data["bibkey"])
-					pBDB.bibs.update(data, data["bibkey"])
-				else:
-					pBDB.bibs.insert(data)
-				message = "Bibtex entry saved"
-				try:
-					parentObject.mainWindowTitle("PhysBiblio*")
-				except AttributeError:
-					pBLogger.debug(
-						"parentObject has no attribute 'mainWindowTitle'",
-						exc_info=True)
-				pBDB.bibs.fetchFromLast()
-				try:
-					parentObject.reloadMainContent(
-						pBDB.bibs.lastFetched)
-				except AttributeError:
-					pBLogger.debug(
-						"parentObject has no attribute 'reloadMainContent'",
-						exc_info=True)
-			else:
-				message = "ERROR: empty bibkey!"
-				infoMessage(message)
-		else:
-			message = "ERROR: empty bibtex!"
-			infoMessage(message)
-	else:
-		message = "No modifications to bibtex entry"
-	try:
-		parentObject.statusBarMessage(message)
-	except AttributeError:
-		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
-			exc_info=True)
-
-
-def deleteBibtex(parentObject, bibkey):
-	"""Ask confirmation and eventually delete the selected bibtex entry
-
-	Parameters:
-		parentObject: the parent object, which has
-			the `statusBarMessage` and `setWindowTitle` methods
-			and a `bibtexListWindow` attribute
-		bibkey: the bibtex key of the entry to be deleted
-	"""
-	if askYesNo("Do you really want to delete this bibtex entry "
-			+ "(bibkey = '%s')?"%(bibkey)):
-		pBDB.bibs.delete(bibkey)
-		parentObject.setWindowTitle("PhysBiblio*")
-		message = "Bibtex entry deleted"
-		try:
-			parentObject.bibtexListWindow.recreateTable()
-		except AttributeError:
-			pBLogger.debug("parentObject has no attribute 'recreateTable'",
-				exc_info=True)
-	else:
-		message = "Nothing changed"
-	try:
-		parentObject.statusBarMessage(message)
-	except AttributeError:
-		pBLogger.debug("parentObject has no attribute 'statusBarMessage'",
-			exc_info=True)
 
 
 class BibtexInfo(QFrame):
@@ -653,6 +653,8 @@ class CommonBibActions():
 				a selection of entries. If False, for a single entry
 		"""
 		menu = MyMenu(self.parent())
+		if len(self.keys) == 0 or len(self.bibs) == 0:
+			return
 
 		if not selection:
 			self.bibs = [self.bibs[0]]
@@ -720,11 +722,11 @@ class CommonBibActions():
 			if abstract is not None and abstract.strip() != "":
 				menuC.append(
 					QAction("abstract", menu,
-						triggered=lambda t=abstract: self.onCopyText(t)))
+						triggered=lambda t=abstract: copyToClipboard(t)))
 			if link is not None and link.strip() != "":
 				menuC.append(
 					QAction("link", menu,
-						triggered=lambda t=link: self.onCopyText(t)))
+						triggered=lambda t=link: copyToClipboard(t)))
 		menu.possibleActions.append(["Copy to clipboard", menuC])
 
 		if not selection:
@@ -852,22 +854,33 @@ class CommonBibActions():
 		self.menu = menu
 		return menu
 
-	def onAddPDF(self, generic=True):
+	def onAddPDF(self, ftype="generic"):
+		"""Ask and copy in the proper folder a new PDF
+
+		Parameter:
+			ftype (default "generic"): if "generic", add a generic PDF
+				and keep its initial name.
+				Otherwise, it may be e.g. "doi"
+				(see `pdf.LocalPDF.copyNewFile:fileType`)
+		"""
 		bibkey = self.keys[0]
-		newPdf = askFileName(self,
+		newPdf = askFileName(self.parent(),
 			"Where is the PDF located?", filter = "PDF (*.pdf)")
 		if newPdf != "" and os.path.isfile(newPdf):
-			if generic:
+			if ftype == "generic":
 				newName = newPdf.split("/")[-1]
 				outcome = pBPDF.copyNewFile(bibkey, newPdf,
 					customName = newName)
 			else:
-				outcome = pBPDF.copyNewFile(bibkey, newpdf, generic)
+				outcome = pBPDF.copyNewFile(bibkey, newPdf, ftype)
 			if outcome:
 				infoMessage("PDF successfully copied!")
+			else:
+				pBGUILogger.error("Could not copy the new file!")
 
 	def onAbs(self, message=True):
-		infoMessage("Starting the abstract download process, please wait...")
+		if message:
+			infoMessage("Starting the abstract download process, please wait...")
 		for e in self.bibs:
 			arxiv = e["arxiv"]
 			bibkey = e["bibkey"]
@@ -880,11 +893,14 @@ class CommonBibActions():
 					infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
 			else:
 				infoMessage("No arxiv number for entry '%s'!"%bibkey)
-		infoMessage("Done!")
+		if message:
+			infoMessage("Done!")
 
 	def onArx(self):
+		"""Action to be performed when asking arXiv info.
+		Call `gui.mainWindow.MainWindow.infoFromArxiv`
+		"""
 		self.parent().infoFromArxiv(self.bibs)
-		self.menu.close()
 
 	def onCat(self):
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
@@ -930,25 +946,31 @@ class CommonBibActions():
 		self.menu.close()
 
 	def onClean(self):
-		self.parent().cleanAllBibtexs(self, useEntries = self.bibs)
-		self.menu.close()
+		"""Action to be performed when cleaning bibtexs.
+		Call `gui.mainWindow.MainWindow.cleanAllBibtexs`
+		"""
+		self.parent().cleanAllBibtexs(useEntries=self.bibs)
 
 	def onComplete(self):
-		# self.parent().updateInspireInfo(bibkey, inspireID = inspireID)
-		self.menu.close()
+		"""Action to be performed when updating info from INSPIRE-HEP.
+		Call `gui.mainWindow.MainWindow.updateInspireInfo`
+		"""
+		bibkey = self.bibs[0]["bibkey"]
+		inspireID = self.bibs[0]["inspire"]
+		self.parent().updateInspireInfo(bibkey, inspireID=inspireID)
 
 	def onCopyBibtexs(self):
+		"""Copy all the bibtexs to the keyboard"""
 		copyToClipboard("\n\n".join([e["bibtex"] for e in self.bibs]))
 
 	def onCopyCites(self):
+		"""Copy '\cite{all the keys}' to the keyboard"""
 		copyToClipboard("\cite{%s}"%",".join(
 			[e["bibkey"] for e in self.bibs]))
 
 	def onCopyKeys(self):
+		"""Copy all the keys to the keyboard"""
 		copyToClipboard(",".join([e["bibkey"] for e in self.bibs]))
-
-	def onCopyText(self, text):
-		copyToClipboard(text)
 
 	def onCopyPDFFile(self, bibkey, fileType, custom = None):
 		""""""
@@ -976,11 +998,10 @@ class CommonBibActions():
 						for ex in existing:
 							pBPDF.copyToDir(outFolder,
 								entry, "", customName = ex)
-		self.menu.close()
 
 	def onDelete(self):
-		deleteBibtex(self.parent(), [e["bibkey"] for e in self.entries])
-		self.menu.close()
+		"""Call `deleteBibtex` on all the entries"""
+		deleteBibtex(self.parent(), self.keys)
 
 	def onDeletePDFFile(self, bibkey, fileType, fdesc, custom = None):
 		""""""
@@ -1043,14 +1064,15 @@ class CommonBibActions():
 				pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
 				self.parent().statusBarMessage(
 					"experiments successfully inserted")
-		self.menu.close()
 
 	def onExport(self):
-		self.parent().exportSelection(self.entries)
-		self.menu.close()
+		"""Action to be performed when exporting bibtexs.
+		Call `gui.mainWindow.MainWindow.exportSelection`
+		"""
+		self.parent().exportSelection(self.bibs)
 
 	def onMerge(self):
-		mergewin = mergeBibtexs(
+		mergewin = MergeBibtexs(
 			self.entries[0], self.entries[1], self.parent())
 		mergewin.exec_()
 		if mergewin.result is True:
@@ -1106,13 +1128,25 @@ class CommonBibActions():
 							pBLogger.warning("Impossible to reload content.")
 			else:
 				pBGUILogger.error("Empty bibtex and/or bibkey!")
-		self.menu.close()
 
 	def onModify(self):
+		"""Action to be performed when modifying bibtexs.
+		Call `editBibtex`
+		"""
 		editBibtex(self.parent(), self.bibs[0]["bibkey"])
 
 	def onUpdate(self, force=False, reloadAll=False):
-		self.parent().updateAllBibtexs(self,
+		"""Action to be performed when updating bibtexs.
+		Call `gui.mainWindow.MainWindow.updateAllBibtexs`
+
+		Parameters:
+			force (default False): if True, force update also when
+				bibliographic information is already present
+			reloadAll (default False): if True,
+				completely reload the bibtexs
+				instead of updating them
+		"""
+		self.parent().updateAllBibtexs(startFrom=0,
 			useEntries=self.bibs,
 			force=force,
 			reloadAll=reloadAll)
@@ -1404,11 +1438,11 @@ class BibtexListWindow(QFrame, objListWindow):
 		QApplication.restoreOverrideCursor()
 
 
-class editBibtexDialog(editObjectWindow):
+class EditBibtexDialog(editObjectWindow):
 	"""create a window for editing or creating a bibtex entry"""
 
 	def __init__(self, parent = None, bib = None):
-		super(editBibtexDialog, self).__init__(parent)
+		super(EditBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		if bib is None:
 			self.data = {}
@@ -1594,11 +1628,11 @@ class AskPDFAction(MyMenu):
 		self.close()
 
 
-class searchBibsWindow(editObjectWindow):
+class SearchBibsWindow(editObjectWindow):
 	"""create a window for searching a bibtex entry"""
 
 	def __init__(self, parent = None, bib = None, replace = False):
-		super(searchBibsWindow, self).__init__(parent)
+		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
 		self.save = False
@@ -1952,11 +1986,11 @@ class searchBibsWindow(editObjectWindow):
 		self.currGrid.setColumnStretch(6, 1)
 
 
-class mergeBibtexs(editBibtexDialog):
+class MergeBibtexs(EditBibtexDialog):
 	"""W"""
 
 	def __init__(self, bib1, bib2, parent = None):
-		super(editBibtexDialog, self).__init__(parent)
+		super(EditBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		self.bibtexWidth = 330
 		self.dataOld = {"0": bib1, "1": bib2}

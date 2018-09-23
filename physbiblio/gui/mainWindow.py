@@ -36,7 +36,7 @@ try:
 	from physbiblio.gui.commonClasses import \
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
-		AbstractFormulas, FieldsFromArxiv, searchBibsWindow, editBibtex, \
+		AbstractFormulas, FieldsFromArxiv, SearchBibsWindow, editBibtex, \
 		BibtexListWindow, BibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
@@ -792,7 +792,7 @@ class MainWindow(QMainWindow):
 		editBibtex(self)
 
 	def searchBiblio(self, replace = False):
-		newSearchWin = searchBibsWindow(self, replace = replace)
+		newSearchWin = SearchBibsWindow(self, replace = replace)
 		newSearchWin.exec_()
 		searchDict = {}
 		if newSearchWin.result is True:

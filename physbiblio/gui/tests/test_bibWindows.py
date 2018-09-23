@@ -288,11 +288,11 @@ class TestFunctions(GUITestCase):
 			'pages': '', 'published': '  (2015) ', 'author': ''}
 		p = QDialog()
 		m = MainWindow(testing=True)
-		ebd = editBibtexDialog(m, bib=None)
+		ebd = EditBibtexDialog(m, bib=None)
 		ebd.onCancel()
 		with patch("logging.Logger.debug") as _ld,\
 				patch("physbiblio.database.entries.getByKey") as _gbk,\
-				patch("physbiblio.gui.bibWindows.editBibtexDialog.__init__",
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog.__init__",
 					return_value=None) as _i:
 			editBibtex(p, editKey=None, testing=ebd)
 			_i.assert_called_once_with(p, bib=None)
@@ -309,7 +309,7 @@ class TestFunctions(GUITestCase):
 			_ld.assert_not_called()
 			_gbk.assert_not_called()
 
-		ebd = editBibtexDialog(m, bib=None)
+		ebd = EditBibtexDialog(m, bib=None)
 		ebd.onCancel()
 		with patch("logging.Logger.debug") as _ld,\
 				patch("logging.Logger.warning") as _lw,\
@@ -324,7 +324,7 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.database.entries.insert") as _ins,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
-				patch("physbiblio.gui.bibWindows.editBibtexDialog.__init__",
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog.__init__",
 					return_value=None) as _i:
 			editBibtex(p, editKey='Gariazzo:2015rra', testing=ebd)
 			_ld.assert_called_once_with(
@@ -341,7 +341,7 @@ class TestFunctions(GUITestCase):
 			_i.assert_called_once_with(p, bib=testentry)
 
 		#test creation of entry, empty bibtex
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibtex"].setPlainText("")
 		with patch("logging.Logger.debug") as _ld,\
@@ -376,7 +376,7 @@ class TestFunctions(GUITestCase):
 			_sbm.assert_called_once_with("ERROR: empty bibtex!")
 
 		#test creation of entry, empty bibkey inserted
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("")
 		with patch("logging.Logger.debug") as _ld,\
@@ -411,7 +411,7 @@ class TestFunctions(GUITestCase):
 			_sbm.assert_called_once_with("ERROR: empty bibkey!")
 
 		#test creation of entry, new bibtex
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("")
 		with patch("logging.Logger.debug") as _ld,\
@@ -495,7 +495,7 @@ class TestFunctions(GUITestCase):
 
 		#test edit with various field contents
 		#* no change bibkey: fix code?
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["comments"].setText("some text")
 		with patch("logging.Logger.debug") as _ld,\
@@ -548,7 +548,7 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* invalid key
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("not valid bibtex!")
 		with patch("logging.Logger.debug") as _ld,\
@@ -601,7 +601,7 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, updateBibkey successful
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("old")
 		with patch("logging.Logger.debug") as _ld,\
@@ -656,7 +656,7 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, updateBibkey unsuccessful
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		with patch("logging.Logger.debug") as _ld,\
 				patch("logging.Logger.warning") as _lw,\
@@ -711,7 +711,7 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, old_keys existing
-		ebd = editBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("testkey")
 		with patch("logging.Logger.debug") as _ld,\
@@ -832,7 +832,7 @@ class TestFunctions(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestabstractFormulas(GUITestCase):
+class TestAbstractFormulas(GUITestCase):
 	"""test the AbstractFormulas class"""
 
 	def test_init(self):
@@ -1338,9 +1338,19 @@ class TestMyBibTableModel(GUITestCase):
 class TestCommonBibActions(GUITestCase):
 	"""test CommonBibActions"""
 
+	@classmethod
+	def setUpClass(self):
+		"""Define useful things"""
+		super(TestCommonBibActions, self).setUpClass()
+		self.mainW = MainWindow(testing=True)
+
 	def test_init(self):
 		"""test init (and `parent`)"""
 		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}])
+		self.assertEqual(c.parentObj, None)
+		c = CommonBibActions([{"bibkey": "abc"}], parent=p)
+		self.assertEqual(c.parentObj, p)
 		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
 		self.assertEqual(c.parentObj, p)
 		self.assertEqual(c.parent(), p)
@@ -1374,170 +1384,292 @@ class TestCommonBibActions(GUITestCase):
 
 		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
 		m = c.createContextMenu(selection=True)
+		raise NotImplementedError
 
 	def test_onAddPDF(self):
-		"""test"""
-		pass
+		"""test onAddPDF"""
+		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}], p)
+		with patch("physbiblio.pdf.LocalPDF.copyNewFile",
+				return_value=True) as _cp,\
+				patch("physbiblio.gui.bibWindows.askFileName",
+					return_value="/h/c/file.pdf") as _afn,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("os.path.isfile", return_value=True) as _if:
+			c.onAddPDF()
+			_cp.assert_called_once_with('abc',
+				'/h/c/file.pdf', customName='file.pdf')
+			_afn.assert_called_once_with(p,
+				"Where is the PDF located?", filter = "PDF (*.pdf)")
+			_im.assert_called_once_with("PDF successfully copied!")
+			_if.assert_called_once_with("/h/c/file.pdf")
+
+		with patch("physbiblio.pdf.LocalPDF.copyNewFile",
+				return_value=True) as _cp,\
+				patch("physbiblio.gui.bibWindows.askFileName",
+					return_value="/h/c/file.pdf") as _afn,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("os.path.isfile", return_value=True) as _if:
+			c.onAddPDF(ftype="doi")
+			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
+			_afn.assert_called_once_with(p,
+				"Where is the PDF located?", filter = "PDF (*.pdf)")
+			_im.assert_called_once_with("PDF successfully copied!")
+			_if.assert_called_once_with("/h/c/file.pdf")
+
+		with patch("physbiblio.pdf.LocalPDF.copyNewFile",
+				return_value=False) as _cp,\
+				patch("physbiblio.gui.bibWindows.askFileName",
+					return_value="/h/c/file.pdf") as _afn,\
+				patch("logging.Logger.error") as _e,\
+				patch("os.path.isfile", return_value=True) as _if:
+			c.onAddPDF("doi")
+			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
+			_afn.assert_called_once_with(p,
+				"Where is the PDF located?", filter = "PDF (*.pdf)")
+			_e.assert_called_once_with("Could not copy the new file!")
+			_if.assert_called_once_with("/h/c/file.pdf")
+
+		with patch("physbiblio.pdf.LocalPDF.copyNewFile",
+				return_value=True) as _cp,\
+				patch("physbiblio.gui.bibWindows.askFileName",
+					return_value="") as _afn,\
+				patch("os.path.isfile", return_value=True) as _if:
+			c.onAddPDF()
+			_cp.assert_not_called()
+			_if.assert_not_called()
+
+		with patch("physbiblio.pdf.LocalPDF.copyNewFile",
+				return_value=True) as _cp,\
+				patch("physbiblio.gui.bibWindows.askFileName",
+					return_value="s") as _afn,\
+				patch("os.path.isfile", return_value=False) as _if:
+			c.onAddPDF()
+			_cp.assert_not_called()
+			_if.assert_called_once_with("s")
 
 	def test_onAbs(self):
-		"""test"""
+		"""test onAbs"""
 		pass
 
 	def test_onArx(self):
-		"""test"""
-		pass
+		"""test onArx"""
+		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}],
+			self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.infoFromArxiv"
+				) as _i:
+			c.onArx()
+			_i.assert_called_once_with([{"bibkey": "abc"}, {"bibkey": "def"}])
 
 	def test_onCat(self):
-		"""test"""
+		"""test onCat"""
 		pass
 
 	def test_onCitations(self):
-		"""test"""
+		"""test onCitations"""
 		pass
 
 	def test_onClean(self):
-		"""test"""
-		pass
+		"""test onClean"""
+		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}],
+			self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.cleanAllBibtexs"
+				) as _c:
+			c.onClean()
+			_c.assert_called_once_with(
+				useEntries=[{"bibkey": "abc"}, {"bibkey": "def"}])
 
 	def test_onComplete(self):
-		"""test"""
-		pass
+		"""test onComplete"""
+		c = CommonBibActions([
+			{"bibkey": "abc", "inspire": "1234"},
+			{"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.updateInspireInfo"
+				) as _u:
+			c.onComplete()
+			_u.assert_called_once_with("abc", inspireID="1234")
 
 	def test_onCopyBibtexs(self):
-		"""test"""
-		pass
+		"""test onCopyBibtexs"""
+		c = CommonBibActions([
+			{"bibkey": "abc", "bibtex": "bibtex 1"},
+			{"bibkey": "def", "bibtex": "bibtex 2"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.copyToClipboard"
+				) as _cp:
+			c.onCopyBibtexs()
+			_cp.assert_called_once_with("bibtex 1\n\nbibtex 2")
 
 	def test_onCopyCites(self):
-		"""test"""
-		pass
+		"""test onCopyCites"""
+		c = CommonBibActions([
+			{"bibkey": "abc", "bibtex": "bibtex 1"},
+			{"bibkey": "def", "bibtex": "bibtex 2"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.copyToClipboard"
+				) as _cp:
+			c.onCopyCites()
+			_cp.assert_called_once_with("\cite{abc,def}")
 
 	def test_onCopyKeys(self):
-		"""test"""
-		pass
-
-	def test_onCopyText(self):
-		"""test"""
-		pass
+		"""test onCopyKeys"""
+		c = CommonBibActions([
+			{"bibkey": "abc", "bibtex": "bibtex 1"},
+			{"bibkey": "def", "bibtex": "bibtex 2"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.copyToClipboard"
+				) as _cp:
+			c.onCopyKeys()
+			_cp.assert_called_once_with("abc,def")
 
 	def test_onCopyPDFFile(self):
-		"""test"""
+		"""test onCopyPDFFile"""
 		pass
 
 	def test_onCopyAllPDF(self):
-		"""test"""
+		"""test onCopyAllPDF"""
 		pass
 
 	def test_onDelete(self):
-		"""test"""
-		pass
+		"""test onDelete"""
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.deleteBibtex"
+				) as _d:
+			c.onDelete()
+			_d.assert_called_once_with(self.mainW, ["abc", "def"])
 
 	def test_onDeletePDFFile(self):
-		"""test"""
+		"""test onDeletePDFFile"""
 		pass
 
 	def test_onDown(self):
-		"""test"""
+		"""test onDown"""
 		pass
 
 	def test_onDownloadArxivDone(self):
-		"""test"""
+		"""test onDownloadArxivDone"""
 		pass
 
 	def test_onExp(self):
-		"""test"""
+		"""test onExp"""
 		pass
 
 	def test_onExport(self):
-		"""test"""
-		pass
+		"""test onExport"""
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.exportSelection"
+				) as _e:
+			c.onExport()
+			_e.assert_called_once_with([{"bibkey": "abc"}, {"bibkey": "def"}])
 
 	def test_onMerge(self):
-		"""test"""
+		"""test onMerge"""
 		pass
 
 	def test_onModify(self):
-		"""test"""
-		pass
+		"""test onModify"""
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.editBibtex"
+				) as _e:
+			c.onModify()
+			_e.assert_called_once_with(self.mainW, "abc")
 
 	def test_onUpdate(self):
-		"""test"""
-		pass
+		"""test onUpdate"""
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.updateAllBibtexs"
+				) as _u:
+			c.onUpdate()
+			_u.assert_called_once_with(
+				force=False, reloadAll=False, startFrom=0,
+				useEntries=[{'bibkey': 'abc'}, {'bibkey': 'def'}])
+			_u.reset_mock()
+			c.onUpdate(force=True)
+			_u.assert_called_once_with(
+				force=True, reloadAll=False, startFrom=0,
+				useEntries=[{'bibkey': 'abc'}, {'bibkey': 'def'}])
+			_u.reset_mock()
+			c.onUpdate(reloadAll=True)
+			_u.assert_called_once_with(
+				force=False, reloadAll=True, startFrom=0,
+				useEntries=[{'bibkey': 'abc'}, {'bibkey': 'def'}])
 
 	def test_onUpdateMark(self):
-		"""test"""
+		"""test onUpdateMark"""
 		pass
 
 	def test_onUpdateType(self):
-		"""test"""
+		"""test onUpdateType"""
 		pass
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestBibtexListWindow(GUITestCase):
-	"""test"""
+	"""test BibtexListWindow"""
 
 	def test_init(self):
-		"""test"""
+		"""test __init__"""
 		pass
 
 	def test_reloadColumnContents(self):
-		"""test"""
+		"""test reloadColumnContents"""
 		pass
 
 	def test_changeEnableActions(self):
-		"""test"""
+		"""test changeEnableActions"""
 		pass
 
 	def test_addMark(self):
-		"""test"""
-		pass
-
-	def test_enableSelection(self):
-		"""test"""
+		"""test addMark"""
 		pass
 
 	def test_clearSelection(self):
-		"""test"""
+		"""test clearSelection"""
+		pass
+
+	def test_enableSelection(self):
+		"""test enableSelection"""
 		pass
 
 	def test_selectAll(self):
-		"""test"""
+		"""test selectAll"""
 		pass
 
 	def test_unselectAll(self):
-		"""test"""
+		"""test unselectAll"""
 		pass
 
 	def test_onOk(self):
-		"""test"""
+		"""test onOk"""
 		pass
 
 	def test_createTable(self):
-		"""test"""
+		"""test createTable"""
+		pass
+
+	def test_updateInfo(self):
+		"""test updateInfo"""
+		pass
+
+	def test_getEventEntry(self):
+		"""test getEventEntry"""
 		pass
 
 	def test_triggeredContextMenuEvent(self):
-		"""test"""
+		"""test triggeredContextMenuEvent"""
 		pass
 
 	def test_handleItemEntered(self):
-		"""test"""
+		"""test handleItemEntered"""
 		pass
 
 	def test_cellClick(self):
-		"""test"""
+		"""test cellClick"""
 		pass
 
 	def test_cellDoubleClick(self):
-		"""test"""
-		pass
-
-	def test_downloadArxivDone(self):
-		"""test"""
-		pass
-
-	def test_arxivAbstract(self):
-		"""test"""
+		"""test cellDoubleClick"""
 		pass
 
 	def test_finalizeTable(self):
@@ -1550,23 +1682,23 @@ class TestBibtexListWindow(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TesteditBibtexDialog(GUITestCase):
-	"""test"""
+class TestEditBibtexDialog(GUITestCase):
+	"""test the EditBibtexDialog class"""
 
 	def test_init(self):
-		"""test"""
+		"""test __init__"""
 		pass
 
 	def test_onOk(self):
-		"""test"""
+		"""test onOk"""
 		pass
 
 	def test_updateBibkey(self):
-		"""test"""
+		"""test updateBibkey"""
 		pass
 
 	def test_createForm(self):
-		"""test"""
+		"""test createForm"""
 		pass
 
 
@@ -1675,7 +1807,7 @@ class TestAskPDFAction(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestsearchBibsWindow(GUITestCase):
+class TestSearchBibsWindow(GUITestCase):
 	"""test"""
 
 	def test_init(self):
@@ -1744,29 +1876,29 @@ class TestsearchBibsWindow(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestmergeBibtexs(GUITestCase):
-	"""test"""
+class TestMergeBibtexs(GUITestCase):
+	"""test the MergeBibtexs class"""
 
 	def test_init(self):
-		"""test"""
+		"""test __init__"""
 		pass
 
 	def test_radioToggled(self):
-		"""test"""
+		"""test radioToggled"""
 		pass
 
 	def test_textModified(self):
-		"""test"""
+		"""test textModified"""
 		pass
 
 	def test_createForm(self):
-		"""test"""
+		"""test createForm"""
 		pass
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestFieldsFromArxiv(GUITestCase):
-	"""test"""
+	"""test the FieldsFromArxiv class"""
 
 	def test_init(self):
 		"""test __init__"""
