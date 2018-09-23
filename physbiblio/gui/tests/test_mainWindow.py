@@ -84,7 +84,7 @@ class TestMainWindow(GUITestCase):
 		"""test refreshMainContent"""
 		pBDB.bibs.lastFetched = []
 		with patch("physbiblio.gui.mainWindow.MainWindow.done") as _d,\
-				patch("physbiblio.gui.bibWindows.bibtexListWindow."
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "recreateTable") as _rt,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm,\
@@ -99,7 +99,7 @@ class TestMainWindow(GUITestCase):
 	def test_reloadMainContent(self):
 		"""test reloadMainContent"""
 		with patch("physbiblio.gui.mainWindow.MainWindow.done") as _d,\
-				patch("physbiblio.gui.bibWindows.bibtexListWindow."
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "recreateTable") as _rt,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:

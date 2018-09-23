@@ -23,7 +23,7 @@ except ImportError:
 	raise
 
 
-class localPDF():
+class LocalPDF():
 	"""Class with functions to manage the PDF folder content
 	and the stored material
 	"""
@@ -400,4 +400,4 @@ class localPDF():
 			pBLogger.warning("Nothing found.")
 
 
-pBPDF = localPDF()
+pBPDF = LocalPDF()

@@ -384,8 +384,10 @@ class MyTableWidget(QTableWidget):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
-			self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(
+			self.rowAt(event.y()),
+			self.columnAt(event.x()),
+			event)
 
 
 class MyTableView(QTableView):
@@ -397,8 +399,10 @@ class MyTableView(QTableView):
 		Parameter:
 			event: the `PySide2.QtGui.QContextMenuEvent`
 		"""
-		self.parent().triggeredContextMenuEvent(self.rowAt(event.y()),
-			self.columnAt(event.x()), event)
+		self.parent().triggeredContextMenuEvent(
+			self.rowAt(event.y()),
+			self.columnAt(event.x()),
+			event)
 
 
 class MyTableModel(QAbstractTableModel):

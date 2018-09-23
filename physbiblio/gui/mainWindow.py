@@ -36,8 +36,8 @@ try:
 	from physbiblio.gui.commonClasses import \
 		MyComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
-		AbstractFormulas, fieldsFromArxiv, searchBibsWindow, editBibtex, \
-		bibtexListWindow, BibtexInfo
+		AbstractFormulas, FieldsFromArxiv, searchBibsWindow, editBibtex, \
+		BibtexListWindow, BibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		configWindow, LogFileContentDialog, printText, advImportDialog, \
@@ -465,7 +465,7 @@ class MainWindow(QMainWindow):
 
 	def createMainLayout(self):
 		#will contain the list of bibtex entries
-		self.bibtexListWindow = bibtexListWindow(self)
+		self.bibtexListWindow = BibtexListWindow(parent=self)
 		self.bibtexListWindow.setFrameShape(QFrame.StyledPanel)
 
 		#will contain the bibtex code:
@@ -1290,7 +1290,7 @@ class MainWindow(QMainWindow):
 		if useEntries is None:
 			pBDB.bibs.fetchAll(doFetch=False)
 			iterator = pBDB.bibs.fetchCursor()
-		askFieldsWin = fieldsFromArxiv()
+		askFieldsWin = FieldsFromArxiv()
 		askFieldsWin.exec_()
 		if askFieldsWin.result:
 			self.statusBarMessage("Starting importing info from arxiv...")

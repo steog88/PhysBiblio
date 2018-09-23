@@ -2058,7 +2058,7 @@ class entries(physbiblioDBSub):
 				else:
 					return False
 
-	def updateField(self, key, field, value, verbose = 1):
+	def updateField(self, key, field, value, verbose=1):
 		"""Update a single field of an entry
 
 		Parameters:

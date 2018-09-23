@@ -207,7 +207,7 @@ class Test_thread_downloadArxiv(GUITestCase):
 		"""test run"""
 		p = QWidget()
 		thr = thread_downloadArxiv("Gariazzo:2015rra", p)
-		with patch("physbiblio.pdf.localPDF.downloadArxiv") as _fun,\
+		with patch("physbiblio.pdf.LocalPDF.downloadArxiv") as _fun,\
 				MagicMock() as h1:
 			thr.finished.connect(h1)
 			thr.run()
@@ -635,7 +635,7 @@ class Test_thread_cleanSparePDF(GUITestCase):
 		ws = WriteStream(q)
 		thr = thread_cleanSparePDF(ws, p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.pdf.localPDF.removeSparePDFFolders") as _fun,\
+		with patch("physbiblio.pdf.LocalPDF.removeSparePDFFolders") as _fun,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
 				MagicMock() as h1:
 			thr.finished.connect(h1)

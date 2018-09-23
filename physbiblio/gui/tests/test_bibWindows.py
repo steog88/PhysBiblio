@@ -355,7 +355,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -390,7 +390,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -425,7 +425,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -467,7 +467,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -509,7 +509,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -562,7 +562,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -615,7 +615,7 @@ class TestFunctions(GUITestCase):
 					return_value=True) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -669,7 +669,7 @@ class TestFunctions(GUITestCase):
 					return_value=False) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -725,7 +725,7 @@ class TestFunctions(GUITestCase):
 					return_value=False) as _ub,\
 				patch("physbiblio.database.entries.update") as _u,\
 				patch("physbiblio.database.entries.insert") as _ins,\
-				patch("physbiblio.pdf.localPDF.renameFolder") as _rf,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
@@ -770,7 +770,7 @@ class TestFunctions(GUITestCase):
 		"""test deleteBibtex"""
 		p = QWidget()
 		m = MainWindow(testing = True)
-		m.bibtexListWindow = bibtexListWindow(m)
+		m.bibtexListWindow = BibtexListWindow(m)
 		with patch("physbiblio.gui.bibWindows.askYesNo",
 				return_value = False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -819,7 +819,7 @@ class TestFunctions(GUITestCase):
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s, \
-				patch("physbiblio.gui.mainWindow.bibtexListWindow."
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "recreateTable") as _r:
 			deleteBibtex(m, "mykey")
 			_a.assert_called_once_with(
@@ -1124,14 +1124,14 @@ class TestMyBibTableModel(GUITestCase):
 		"""test addPDFCell"""
 		biblist = [{"bibkey": "a"}]
 		header = ["A", "B", "C"]
-		m = bibtexListWindow(bibs=[])
+		m = BibtexListWindow(bibs=[])
 		tm = MyBibTableModel(m, biblist, header)
-		with patch("physbiblio.pdf.localPDF.getExisting",
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=[]) as _ge:
 			self.assertEqual(tm.addPDFCell("a"),
 				(False, "no PDF"))
 			_ge.assert_called_once_with("a")
-		with patch("physbiblio.pdf.localPDF.getExisting",
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=["a"]) as _ge,\
 				patch("physbiblio.gui.commonClasses.MyTableModel.addImage",
 					return_value="image") as _ai:
@@ -1144,7 +1144,7 @@ class TestMyBibTableModel(GUITestCase):
 
 	def test_addMarksCell(self):
 		"""test addMarksCell"""
-		m = bibtexListWindow(bibs=[{"bibkey": "a",
+		m = BibtexListWindow(bibs=[{"bibkey": "a",
 			"title": "my title A",
 			"author": r"St{\'e}",
 			"marks": "",
@@ -1176,7 +1176,7 @@ class TestMyBibTableModel(GUITestCase):
 
 	def test_data(self):
 		"""test data"""
-		m = bibtexListWindow(bibs=[{"bibkey": "a",
+		m = BibtexListWindow(bibs=[{"bibkey": "a",
 			"title": "my title A",
 			"author": r"St{\'e}",
 			"marks": "",
@@ -1268,7 +1268,7 @@ class TestMyBibTableModel(GUITestCase):
 			self.assertEqual(tm.data(tm.index(1, 6), Qt.DisplayRole),
 				"no PDF")
 			_m.assert_called_once_with("b")
-		with patch("physbiblio.pdf.localPDF.getExisting",
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				side_effect=[[], [], ["b"], ["b"]]) as _ge:
 			self.assertEqual(tm.data(tm.index(0, 6), Qt.DisplayRole),
 				"no PDF")
@@ -1335,7 +1335,145 @@ class TestMyBibTableModel(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestBibtexList(GUITestCase):
+class TestCommonBibActions(GUITestCase):
+	"""test CommonBibActions"""
+
+	def test_init(self):
+		"""test init (and `parent`)"""
+		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
+		self.assertEqual(c.parentObj, p)
+		self.assertEqual(c.parent(), p)
+		self.assertEqual(c.bibs, [{"bibkey": "abc"}, {"bibkey": "def"}])
+		self.assertEqual(c.keys, ["abc", "def"])
+
+	def test_createContextMenu(self):
+		"""test createContextMenu"""
+		p = QWidget()
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"marks": "new,imp",
+			"abstract": "few words on abc",
+			"arxiv": "1809.00000",
+			"bibtex": '@article{abc, author="me", title="abc"}',
+			"inspire": "9999999",
+			"doi": "1/2/3/4",
+			"link": "http://some.link.com",
+			"review": 0,
+			"proceeding": 0,
+			"book": 1,
+			"phd_thesis": 0,
+			"lecture": 0,
+			"exp_paper": 0,
+			}], p)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=[]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=[[],[],[]]) as _ge:
+			m = c.createContextMenu()
+
+		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
+		m = c.createContextMenu(selection=True)
+
+	def test_onAddPDF(self):
+		"""test"""
+		pass
+
+	def test_onAbs(self):
+		"""test"""
+		pass
+
+	def test_onArx(self):
+		"""test"""
+		pass
+
+	def test_onCat(self):
+		"""test"""
+		pass
+
+	def test_onCitations(self):
+		"""test"""
+		pass
+
+	def test_onClean(self):
+		"""test"""
+		pass
+
+	def test_onComplete(self):
+		"""test"""
+		pass
+
+	def test_onCopyBibtexs(self):
+		"""test"""
+		pass
+
+	def test_onCopyCites(self):
+		"""test"""
+		pass
+
+	def test_onCopyKeys(self):
+		"""test"""
+		pass
+
+	def test_onCopyText(self):
+		"""test"""
+		pass
+
+	def test_onCopyPDFFile(self):
+		"""test"""
+		pass
+
+	def test_onCopyAllPDF(self):
+		"""test"""
+		pass
+
+	def test_onDelete(self):
+		"""test"""
+		pass
+
+	def test_onDeletePDFFile(self):
+		"""test"""
+		pass
+
+	def test_onDown(self):
+		"""test"""
+		pass
+
+	def test_onDownloadArxivDone(self):
+		"""test"""
+		pass
+
+	def test_onExp(self):
+		"""test"""
+		pass
+
+	def test_onExport(self):
+		"""test"""
+		pass
+
+	def test_onMerge(self):
+		"""test"""
+		pass
+
+	def test_onModify(self):
+		"""test"""
+		pass
+
+	def test_onUpdate(self):
+		"""test"""
+		pass
+
+	def test_onUpdateMark(self):
+		"""test"""
+		pass
+
+	def test_onUpdateType(self):
+		"""test"""
+		pass
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestBibtexListWindow(GUITestCase):
 	"""test"""
 
 	def test_init(self):
@@ -1468,9 +1606,9 @@ class TestAskPDFAction(GUITestCase):
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
-		with patch("physbiblio.pdf.localPDF.getExisting",
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=[]) as _ge,\
-				patch("physbiblio.pdf.localPDF.getFilePath",
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
 					side_effect=["", ""]) as _gp,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
 			apa = AskPDFAction("improbablekey", p)
@@ -1483,9 +1621,9 @@ class TestAskPDFAction(GUITestCase):
 			"What PDF of this entry (improbablekey) do you want to open?")
 		self.assertEqual(apa.possibleActions, [])
 
-		with patch("physbiblio.pdf.localPDF.getExisting",
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=["a", "b", "d", "e"]) as _ge,\
-				patch("physbiblio.pdf.localPDF.getFilePath",
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
 					side_effect=["d", "a"]) as _gp,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
 			apa = AskPDFAction("improbablekey", p)
@@ -1534,71 +1672,6 @@ class TestAskPDFAction(GUITestCase):
 			apa.onOpenDoi()
 			self.assertEqual(apa.result, "openDoi")
 			_c.assert_called_once_with()
-
-
-@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestaskSelBibAction(GUITestCase):
-	"""test"""
-
-	def test_init(self):
-		"""test"""
-		pass
-
-	def test_onCopyKeys(self):
-		"""test"""
-		pass
-
-	def test_onCopyCites(self):
-		"""test"""
-		pass
-
-	def test_onCopyBibtexs(self):
-		"""test"""
-		pass
-
-	def test_onMerge(self):
-		"""test"""
-		pass
-
-	def test_onClean(self):
-		"""test"""
-		pass
-
-	def test_onUpdate(self):
-		"""test"""
-		pass
-
-	def test_onDelete(self):
-		"""test"""
-		pass
-
-	def test_onAbs(self):
-		"""test"""
-		pass
-
-	def test_onArx(self):
-		"""test"""
-		pass
-
-	def test_onDown(self):
-		"""test"""
-		pass
-
-	def test_onExport(self):
-		"""test"""
-		pass
-
-	def test_copyAllPdf(self):
-		"""test"""
-		pass
-
-	def test_onCat(self):
-		"""test"""
-		pass
-
-	def test_onExp(self):
-		"""test"""
-		pass
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -1692,16 +1765,16 @@ class TestmergeBibtexs(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestfieldsFromArxiv(GUITestCase):
+class TestFieldsFromArxiv(GUITestCase):
 	"""test"""
 
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
-		ffa = fieldsFromArxiv()
+		ffa = FieldsFromArxiv()
 		self.assertEqual(ffa.parent(), None)
 
-		ffa = fieldsFromArxiv(p)
+		ffa = FieldsFromArxiv(p)
 		self.assertIsInstance(ffa, QDialog)
 		self.assertEqual(ffa.parent(), p)
 		self.assertEqual(ffa.windowTitle(), "Import fields from arXiv")
@@ -1724,7 +1797,7 @@ class TestfieldsFromArxiv(GUITestCase):
 		self.assertEqual(ffa.layout().itemAt(5).widget(),
 			ffa.acceptButton)
 		self.assertEqual(ffa.layout().itemAt(5).widget().text(), "OK")
-		with patch("physbiblio.gui.bibWindows.fieldsFromArxiv.onOk") as _c:
+		with patch("physbiblio.gui.bibWindows.FieldsFromArxiv.onOk") as _c:
 			QTest.mouseClick(ffa.acceptButton, Qt.LeftButton)
 			_c.assert_called_once_with()
 
@@ -1734,14 +1807,14 @@ class TestfieldsFromArxiv(GUITestCase):
 			ffa.cancelButton)
 		self.assertEqual(ffa.layout().itemAt(6).widget().autoDefault(), True)
 		self.assertEqual(ffa.layout().itemAt(6).widget().text(), "Cancel")
-		with patch("physbiblio.gui.bibWindows.fieldsFromArxiv.onCancel") as _c:
+		with patch("physbiblio.gui.bibWindows.FieldsFromArxiv.onCancel") as _c:
 			QTest.mouseClick(ffa.cancelButton, Qt.LeftButton)
 			_c.assert_called_once_with()
 
 	def test_onOk(self):
 		"""test onOk"""
 		p = QWidget()
-		ffa = fieldsFromArxiv(p)
+		ffa = FieldsFromArxiv(p)
 		ffa.checkBoxes["doi"].setChecked(False)
 		ffa.checkBoxes["title"].setChecked(False)
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
@@ -1756,7 +1829,7 @@ class TestfieldsFromArxiv(GUITestCase):
 	def test_onCancel(self):
 		"""test onCancel"""
 		p = QWidget()
-		ffa = fieldsFromArxiv(p)
+		ffa = FieldsFromArxiv(p)
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ffa.onCancel()
 			_c.assert_called_once()

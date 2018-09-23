@@ -141,7 +141,7 @@ class thread_updateInspireInfo(MyThread):
 
 
 class thread_downloadArxiv(MyThread):
-	"""Use `physbiblio.pdf.localPDF.downloadArxiv`
+	"""Use `physbiblio.pdf.LocalPDF.downloadArxiv`
 	to download the article PDF from arXiv.
 	A valid arXiv number must be present
 	in the database record for the entry.
@@ -157,7 +157,7 @@ class thread_downloadArxiv(MyThread):
 		self.bibkey = bibkey
 
 	def run(self):
-		"""Run `physbiblio.pdf.localPDF.downloadArxiv`"""
+		"""Run `physbiblio.pdf.LocalPDF.downloadArxiv`"""
 		pBPDF.downloadArxiv(self.bibkey)
 		self.finished.emit()
 
@@ -469,7 +469,7 @@ class thread_cleanSpare(MyThread):
 
 class thread_cleanSparePDF(MyThread):
 	"""Thread the execution of
-	`physbiblio.pdf.localPDF.removeSparePDFFolders`
+	`physbiblio.pdf.LocalPDF.removeSparePDFFolders`
 	"""
 
 	def __init__(self, myrec, parent = None):
