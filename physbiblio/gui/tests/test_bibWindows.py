@@ -1450,7 +1450,7 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onAbs(self):
 		"""test onAbs"""
-		pass
+		raise NotImplementedError
 
 	def test_onArx(self):
 		"""test onArx"""
@@ -1463,11 +1463,11 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onCat(self):
 		"""test onCat"""
-		pass
+		raise NotImplementedError
 
 	def test_onCitations(self):
 		"""test onCitations"""
-		pass
+		raise NotImplementedError
 
 	def test_onClean(self):
 		"""test onClean"""
@@ -1521,11 +1521,11 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onCopyPDFFile(self):
 		"""test onCopyPDFFile"""
-		pass
+		raise NotImplementedError
 
 	def test_onCopyAllPDF(self):
 		"""test onCopyAllPDF"""
-		pass
+		raise NotImplementedError
 
 	def test_onDelete(self):
 		"""test onDelete"""
@@ -1538,19 +1538,64 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onDeletePDFFile(self):
 		"""test onDeletePDFFile"""
-		pass
+		raise NotImplementedError
 
 	def test_onDown(self):
 		"""test onDown"""
-		pass
+		c = CommonBibActions(
+			[{"bibkey": "abc", "arxiv": "1"},
+			{"bibkey": "def", "arxiv": ""}], self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.threadElements.thread_downloadArxiv."
+					+ "__init__", return_value=None) as _i:
+			with self.assertRaises(AttributeError):
+				c.onDown()
+			_s.assert_called_once_with("downloading PDF for arxiv:1...")
+			_i.assert_called_once_with("abc", self.mainW)
+		self.assertIsInstance(c.downArxiv_thr, list)
+		self.assertEqual(len(c.downArxiv_thr), 1)
+		c = CommonBibActions(
+			[{"bibkey": "abc", "arxiv": "1"},
+			{"bibkey": "def", "arxiv": "2"}], self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("PySide2.QtCore.QThread.start") as _s:
+			c.onDown()
+			self.assertEqual(_s.call_count, 2)
+		self.assertIsInstance(c.downArxiv_thr[0], thread_downloadArxiv)
+		self.assertIsInstance(c.downArxiv_thr[1], thread_downloadArxiv)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onDownloadArxivDone") as _d:
+			c.downArxiv_thr[0].finished.emit()
+			_d.assert_called_once_with("1")
+			c.downArxiv_thr[1].finished.emit()
+			_d.assert_has_calls([call("2")])
 
 	def test_onDownloadArxivDone(self):
 		"""test onDownloadArxivDone"""
-		pass
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.gui.mainWindow.MainWindow.done"
+				) as _d,\
+				patch("physbiblio.gui.mainWindow.MainWindow.sendMessage"
+					) as _m,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _l,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _r:
+			c.onDownloadArxivDone("1809.00000")
+			_m.assert_called_once_with(
+				"Download of PDF for arXiv:1809.00000 completed! "
+				+ "Please check that it worked...")
+			_d.assert_called_once_with()
+			_l.assert_called_once_with()
+			_r.assert_called_once_with(["abc", "def"])
 
 	def test_onExp(self):
 		"""test onExp"""
-		pass
+		raise NotImplementedError
 
 	def test_onExport(self):
 		"""test onExport"""
@@ -1563,7 +1608,7 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onMerge(self):
 		"""test onMerge"""
-		pass
+		raise NotImplementedError
 
 	def test_onModify(self):
 		"""test onModify"""
@@ -1597,11 +1642,97 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onUpdateMark(self):
 		"""test onUpdateMark"""
-		pass
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"marks": "imp",
+			},
+			{"bibkey": "def",
+			"marks": "imp,new",
+			}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.database.entries.updateField") as _uf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _l,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _r:
+			c.onUpdateMark("new")
+			_uf.assert_has_calls([
+				call('abc', 'marks', "imp,new", verbose=0),
+				call('def', 'marks', "imp", verbose=0)])
+			_r.assert_called_once_with(['abc', 'def'])
+			_l.assert_called_once_with()
+			_uf.reset_mock()
+			c.onUpdateMark("bad")
+			_uf.assert_has_calls([
+				call('abc', 'marks', "bad,imp", verbose=0),
+				call('def', 'marks', "bad,imp,new", verbose=0)])
+			_uf.reset_mock()
+			c.onUpdateMark("imp")
+			_uf.assert_has_calls([
+				call('abc', 'marks', "", verbose=0),
+				call('def', 'marks', "new", verbose=0)])
+		with patch("logging.Logger.warning") as _w:
+			c.onUpdateMark("mark")
+			_w.assert_called_once_with("Invalid mark: 'mark'")
 
 	def test_onUpdateType(self):
 		"""test onUpdateType"""
-		pass
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"marks": "new,imp",
+			"abstract": "few words on abc",
+			"arxiv": "1809.00000",
+			"bibtex": '@article{abc, author="me", title="abc"}',
+			"inspire": "9999999",
+			"doi": "1/2/3/4",
+			"link": "http://some.link.com",
+			"review": 0,
+			"proceeding": 0,
+			"book": 1,
+			"phd_thesis": 0,
+			"lecture": 1,
+			"exp_paper": 0,
+			},
+			{"bibkey": "def",
+			"marks": "new,imp",
+			"abstract": "few words on abc",
+			"arxiv": "1809.00000",
+			"bibtex": '@article{abc, author="me", title="abc"}',
+			"inspire": "9999999",
+			"doi": "1/2/3/4",
+			"link": "http://some.link.com",
+			"review": 0,
+			"proceeding": 1,
+			"book": 0,
+			"phd_thesis": 0,
+			"lecture": 1,
+			"exp_paper": 0,
+			}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.database.entries.updateField") as _uf,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _l,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _r:
+			c.onUpdateType("book")
+			_uf.assert_has_calls([
+				call('abc', 'book', 0, verbose=0),
+				call('def', 'book', 1, verbose=0)])
+			_r.assert_called_once_with(['abc', 'def'])
+			_l.assert_called_once_with()
+			_uf.reset_mock()
+			c.onUpdateType("proceeding")
+			_uf.assert_has_calls([
+				call('abc', 'proceeding', 1, verbose=0),
+				call('def', 'proceeding', 0, verbose=0)])
+			_uf.reset_mock()
+			c.onUpdateType("phd_thesis")
+			_uf.assert_has_calls([
+				call('abc', 'phd_thesis', 1, verbose=0),
+				call('def', 'phd_thesis', 1, verbose=0)])
+		with patch("logging.Logger.warning") as _w:
+			c.onUpdateType("books")
+			_w.assert_called_once_with("Invalid type: 'books'")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

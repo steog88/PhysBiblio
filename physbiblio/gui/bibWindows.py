@@ -1017,9 +1017,10 @@ class CommonBibActions():
 				pBDB.bibs.fetchFromLast().lastFetched)
 
 	def onDown(self):
+		"""Download the arXiv PDF for each given entry"""
 		self.downArxiv_thr = []
 		for entry in self.bibs:
-			if entry["arxiv"] is not None:
+			if entry["arxiv"] is not None and entry["arxiv"] != "":
 				self.parent().statusBarMessage(
 					"downloading PDF for arxiv:%s..."%entry["arxiv"])
 				self.downArxiv_thr.append(
@@ -1029,6 +1030,11 @@ class CommonBibActions():
 				self.downArxiv_thr[-1].start()
 
 	def onDownloadArxivDone(self, e):
+		"""Send a message at the end of the arXiv PDF download
+
+		Parameter:
+			e: the arXiv identifier of the entry
+		"""
 		self.parent().sendMessage(
 			"Download of PDF for arXiv:%s completed! "%e
 			+ "Please check that it worked...")
@@ -1152,17 +1158,39 @@ class CommonBibActions():
 			reloadAll=reloadAll)
 
 	def onUpdateMark(self, mark):
+		"""Update (set or unset) 'mark' for the given entries and
+		reload the main table content
+
+		Parameter:
+			mark: one of the allowed marks
+		"""
+		if mark not in pBMarks.marks.keys():
+			pBLogger.warning("Invalid mark: '%s'"%mark)
+			return
 		for e in self.bibs:
 			marks = e["marks"].split(",")
+			marks = [m for m in marks if m.strip() != ""]
 			if mark in marks:
 				marks.remove(mark)
 			else:
 				marks.append(mark)
-			pBDB.bibs.updateField(e["bibkey"], "marks", ",".join(marks))
+			marks = sorted(marks)
+			pBDB.bibs.updateField(e["bibkey"], "marks", ",".join(marks),
+				verbose=0)
 		self.parent().reloadMainContent(
 			pBDB.bibs.fetchFromLast().lastFetched)
 
 	def onUpdateType(self, type_):
+		"""Toggle the field 'type_' for the given entries and
+		reload the main table content
+
+		Parameter:
+			type_: one among "review", "proceeding", "book",
+				"phd_thesis", "lecture", "exp_paper"
+		"""
+		if type_ not in convertType.keys():
+			pBLogger.warning("Invalid type: '%s'"%type_)
+			return
 		for e in self.bibs:
 			pBDB.bibs.updateField(
 				e["bibkey"], type_, 0 if e[type_] else 1, verbose=0)
