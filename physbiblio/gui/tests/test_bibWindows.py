@@ -1521,11 +1521,87 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onCopyPDFFile(self):
 		"""test onCopyPDFFile"""
-		raise NotImplementedError
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.gui.bibWindows.askDirName",
+				side_effect=["", "/non/exist", "/non/exist"]) as _a,\
+				patch("physbiblio.pdf.LocalPDF.copyToDir") as _cp,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="/h/e/f.pdf") as _fp:
+			c.onCopyPDFFile("abc", "arxiv")
+			_a.assert_called_once_with(self.mainW,
+				title='Where do you want to save the PDF /h/e/f.pdf?')
+			_fp.assert_called_once_with("abc", "arxiv")
+			_cp.assert_not_called()
+			_a.reset_mock()
+			_fp.reset_mock()
+			c.onCopyPDFFile("abc", "arxiv")
+			_a.assert_called_once_with(self.mainW,
+				title='Where do you want to save the PDF /h/e/f.pdf?')
+			_fp.assert_called_once_with("abc", "arxiv")
+			_cp.assert_called_once_with('/non/exist', 'abc',
+				fileType='arxiv', customName=None)
+			_a.reset_mock()
+			_cp.reset_mock()
+			_fp.reset_mock()
+			c.onCopyPDFFile("abc", "new.pdf", "/h/e/new.pdf")
+			_a.assert_called_once_with(self.mainW,
+				title='Where do you want to save the PDF /h/e/new.pdf?')
+			_fp.assert_not_called()
+			_cp.assert_called_once_with('/non/exist', 'abc',
+				fileType='new.pdf', customName='/h/e/new.pdf')
 
 	def test_onCopyAllPDF(self):
 		"""test onCopyAllPDF"""
-		raise NotImplementedError
+		c = CommonBibActions(
+			[{"bibkey": "abc"}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.gui.bibWindows.askDirName",
+				return_value="") as _a,\
+				patch("physbiblio.pdf.LocalPDF.checkFile") as _ch:
+			c.onCopyAllPDF()
+			_a.assert_called_once_with(self.mainW,
+				title='Where do you want to save the PDF files?')
+			_ch.assert_not_called()
+		with patch("physbiblio.gui.bibWindows.askDirName",
+				return_value="/non/exist") as _a,\
+				patch("physbiblio.pdf.LocalPDF.copyToDir") as _cp,\
+				patch("physbiblio.pdf.LocalPDF.getExisting",
+					return_value=["a.pdf", "b.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.checkFile",
+					side_effect=[True, False, True, False, False]) as _ch:
+			c.onCopyAllPDF()
+			_ch.assert_called_once_with('abc', 'doi')
+			_cp.assert_called_once_with('/non/exist', 'abc', fileType='doi')
+			_ge.assert_not_called()
+			_ch.reset_mock()
+			_cp.reset_mock()
+			c.onCopyAllPDF()
+			_ch.assert_has_calls([call('abc', 'doi'), call('abc', 'arxiv')])
+			_cp.assert_called_once_with('/non/exist', 'abc', fileType='arxiv')
+			_ge.assert_not_called()
+			_ch.reset_mock()
+			_cp.reset_mock()
+			c.onCopyAllPDF()
+			_ch.assert_has_calls([call('abc', 'doi'), call('abc', 'arxiv')])
+			_ge.assert_called_once_with("abc")
+			_cp.assert_has_calls([
+				call('/non/exist', 'abc', "", customName='a.pdf'),
+				call('/non/exist', 'abc', "", customName='b.pdf')])
+
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		with patch("physbiblio.gui.bibWindows.askDirName",
+				return_value="/non/exist") as _a,\
+				patch("physbiblio.pdf.LocalPDF.copyToDir") as _cp,\
+				patch("physbiblio.pdf.LocalPDF.checkFile",
+					return_value=True) as _ch:
+			c.onCopyAllPDF()
+			_ch.assert_has_calls([call('abc', 'doi'), call('def', 'doi')])
+			_cp.assert_has_calls([
+				call('/non/exist', 'abc', fileType='doi'),
+				call('/non/exist', 'def', fileType='doi')])
 
 	def test_onDelete(self):
 		"""test onDelete"""
@@ -1538,7 +1614,34 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onDeletePDFFile(self):
 		"""test onDeletePDFFile"""
-		raise NotImplementedError
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		pBDB.bibs.lastFetched = ["abc", "def"]
+		with patch("physbiblio.gui.bibWindows.askYesNo",
+				side_effect=[False, True, True]) as _a,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _s,\
+				patch("physbiblio.pdf.LocalPDF.removeFile") as _rm,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _l,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _r:
+			c.onDeletePDFFile("abc", "arxiv", "arxiv PDF")
+			_a.assert_called_once_with(
+				"Do you really want to delete the %s file for entry %s?"%(
+					"arxiv PDF", "abc"))
+			_s.assert_not_called()
+			_rm.assert_not_called()
+			c.onDeletePDFFile("abc", "arxiv", "arxiv PDF")
+			_s.assert_called_once_with("deleting arxiv PDF file...")
+			_rm.assert_called_once_with("abc", "arxiv")
+			_r.assert_called_once_with(['abc', 'def'])
+			_l.assert_called_once_with()
+			_rm.reset_mock()
+			_s.reset_mock()
+			c.onDeletePDFFile("abc", "test.pdf", "test.pdf", "/h/test.pdf")
+			_s.assert_called_once_with("deleting test.pdf file...")
+			_rm.assert_called_once_with("abc", "", fileName="/h/test.pdf")
 
 	def test_onDown(self):
 		"""test onDown"""

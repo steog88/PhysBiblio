@@ -972,45 +972,61 @@ class CommonBibActions():
 		"""Copy all the keys to the keyboard"""
 		copyToClipboard(",".join([e["bibkey"] for e in self.bibs]))
 
-	def onCopyPDFFile(self, bibkey, fileType, custom = None):
-		""""""
+	def onCopyPDFFile(self, bibkey, fileType, custom=None):
+		"""Ask where and eventually copy a PDF file
+
+		Parameters:
+			bibkey: the key of the involved entry
+			fileType: the file type or the filename of the custom PDF
+			custom (default None): the full path of the custom PDF
+		"""
 		pdfName = os.path.join(pBPDF.getFileDir(bibkey), custom) \
 			if custom is not None else pBPDF.getFilePath(bibkey, fileType)
-		outFolder = askDirName(self,
-			title = "Where do you want to save the PDF %s?"%pdfName)
+		outFolder = askDirName(self.parent(),
+			title="Where do you want to save the PDF %s?"%pdfName)
 		if outFolder.strip() != "":
 			pBPDF.copyToDir(outFolder, bibkey,
-				fileType = fileType, customName = custom)
+				fileType=fileType, customName=custom)
 
 	def onCopyAllPDF(self):
-		outFolder = askDirName(self,
-			title = "Where do you want to save the PDF files?")
+		"""Ask the destination and copy there all the PDF files
+		for the given entries
+		"""
+		outFolder = askDirName(self.parent(),
+			title="Where do you want to save the PDF files?")
 		if outFolder.strip() != "":
-			for entryDict in self.entries:
-				entry = entryDict["bibkey"]
-				if pBPDF.checkFile(entry, "doi"):
-					pBPDF.copyToDir(outFolder, entry, fileType = "doi")
-				elif pBPDF.checkFile(entry, "arxiv"):
-					pBPDF.copyToDir(outFolder, entry, fileType = "arxiv")
+			for entry in self.bibs:
+				key = entry["bibkey"]
+				if pBPDF.checkFile(key, "doi"):
+					pBPDF.copyToDir(outFolder, key, fileType="doi")
+				elif pBPDF.checkFile(key, "arxiv"):
+					pBPDF.copyToDir(outFolder, key, fileType="arxiv")
 				else:
-					existing = pBPDF.getExisting(entry)
+					existing = pBPDF.getExisting(key)
 					if len(existing) > 0:
 						for ex in existing:
 							pBPDF.copyToDir(outFolder,
-								entry, "", customName = ex)
+								key, "", customName=ex)
 
 	def onDelete(self):
 		"""Call `deleteBibtex` on all the entries"""
 		deleteBibtex(self.parent(), self.keys)
 
-	def onDeletePDFFile(self, bibkey, fileType, fdesc, custom = None):
-		""""""
+	def onDeletePDFFile(self, bibkey, fileType, fdesc, custom=None):
+		"""Ask and eventually delete a PDF file
+
+		Parameters:
+			bibkey: the key of the involved entry
+			fileType: the file type or the filename of the custom PDF
+			fdesc: a short description of the file type
+			custom (default None): the full path of the custom PDF
+		"""
 		if askYesNo(
 				"Do you really want to delete the %s file for entry %s?"%(
 					fdesc, bibkey)):
 			self.parent().statusBarMessage("deleting %s file..."%fdesc)
 			if custom is not None:
-				pBPDF.removeFile(bibkey, "", fileName = custom)
+				pBPDF.removeFile(bibkey, "", fileName=custom)
 			else:
 				pBPDF.removeFile(bibkey, fileType)
 			self.parent().reloadMainContent(

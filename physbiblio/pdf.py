@@ -302,16 +302,16 @@ class LocalPDF():
 			return
 		return os.path.isfile(self.getFilePath(key, fileType))
 
-	def removeFile(self, key, fileType, fileName = None):
+	def removeFile(self, key, fileType, fileName=None):
 		"""Delete a PDF file.
 
 		Parameters:
 			key (string): the bibtex key of the entry
-			fileType (string in
+			fileType (any string if fileName is not None or string in
 				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
 				basically the field in the database
 				from which the name must be taken
-			fileName (optional): specify the file name instead
+			fileName (default None): specify the file name instead
 				of computing it from the database information
 
 		Output:
@@ -321,11 +321,11 @@ class LocalPDF():
 			fileName = self.getFilePath(key, fileType)
 		try:
 			os.remove(fileName)
-			pBLogger.info("File %s removed"%fileName)
-			return True
 		except OSError:
 			pBLogger.exception("Impossible to remove file: %s"%fileName)
 			return False
+		pBLogger.info("File %s removed"%fileName)
+		return True
 
 	def getExisting(self, key, fullPath = False):
 		"""Obtain the list of existing files for a given entry.
