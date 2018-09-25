@@ -174,12 +174,12 @@ class MainWindow(QMainWindow):
 			triggered=self.close)
 
 		self.CatAct = QAction("&Categories", self,
-			shortcut="Ctrl+C",
+			shortcut="Alt+C",
 			statusTip="Manage Categories",
 			triggered=self.categories)
 
 		self.newCatAct = QAction("Ne&w Category", self,
-			shortcut="Ctrl+Shift+C",
+			shortcut="Alt+Shift+C",
 			statusTip="New Category",
 			triggered=self.newCategory)
 

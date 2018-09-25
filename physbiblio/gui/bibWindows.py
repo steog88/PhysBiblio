@@ -820,7 +820,8 @@ class CommonBibActions():
 			triggered=lambda r=True: self.onUpdate(force=r)))
 		menuI.append(
 			QAction("Reload bibtex", menu,
-			triggered=lambda r=True: self.onUpdate(reloadAll=r)))
+			triggered=lambda f=(not selection), r=True:
+				self.onUpdate(force=f, reloadAll=r)))
 		menuI.append(
 			QAction("Citation statistics", menu,
 			triggered=self.onCitations))
@@ -1361,8 +1362,8 @@ class BibtexListWindow(QFrame, objListWindow):
 	def updateInfo(self, entry):
 		self.mainWin.bottomLeft.text.setText(entry["bibtex"])
 		self.mainWin.bottomRight.text.setText(writeBibtexInfo(entry))
-		if self.currentAbstractKey != bibkey:
-			self.currentAbstractKey = bibkey
+		if self.currentAbstractKey != entry["bibkey"]:
+			self.currentAbstractKey = entry["bibkey"]
 			writeAbstract(self.mainWin, entry)
 
 	def getEventEntry(self, index):
