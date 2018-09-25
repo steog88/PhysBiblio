@@ -1450,7 +1450,41 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onAbs(self):
 		"""test onAbs"""
-		raise NotImplementedError
+		c = CommonBibActions([
+			{"bibkey": "abc", "arxiv": "1234.85583"},
+			{"bibkey": "def", "arxiv": ""}],
+			self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _s,\
+				patch("physbiblio.gui.mainWindow.MainWindow.done"
+					) as _d,\
+				patch("physbiblio.webimport.arxiv.webSearch.retrieveUrlAll",
+					return_value=("text", {"abstract": "some text"})) as _a,\
+				patch("physbiblio.database.entries.updateField") as _u,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _i:
+			c.onAbs()
+			_i.assert_has_calls([
+				call('some text', title='Abstract of arxiv:1234.85583'),
+				call("No arxiv number for entry 'def'!")])
+			_s.assert_called_once_with(
+				'Starting the abstract download process, please wait...')
+			_d.assert_called_once_with()
+			_a.assert_called_once_with(
+				'1234.85583', fullDict=True, searchType='id')
+			_u.assert_called_once_with('abc', 'abstract', 'some text')
+			_i.reset_mock()
+			_s.reset_mock()
+			_d.reset_mock()
+			_a.reset_mock()
+			_u.reset_mock()
+			c.onAbs(message=False)
+			_i.assert_called_once_with("No arxiv number for entry 'def'!")
+			_s.assert_called_once_with(
+				'Starting the abstract download process, please wait...')
+			_d.assert_called_once_with()
+			_a.assert_called_once_with(
+				'1234.85583', fullDict=True, searchType='id')
+			_u.assert_called_once_with('abc', 'abstract', 'some text')
 
 	def test_onArx(self):
 		"""test onArx"""

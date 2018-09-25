@@ -880,22 +880,27 @@ class CommonBibActions():
 				pBGUILogger.error("Could not copy the new file!")
 
 	def onAbs(self, message=True):
-		if message:
-			infoMessage("Starting the abstract download process, please wait...")
+		"""Action performed when the download of
+		the abstract is required
+
+		Parameter:
+			message (default True): if False, suppress some infoMessages
+		"""
+		self.parent().statusBarMessage(
+			"Starting the abstract download process, please wait...")
 		for e in self.bibs:
 			arxiv = e["arxiv"]
 			bibkey = e["bibkey"]
 			if arxiv:
 				bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
-					arxiv, searchType = "id", fullDict = True)
+					arxiv, searchType="id", fullDict=True)
 				abstract = full["abstract"]
 				pBDB.bibs.updateField(bibkey, "abstract", abstract)
 				if message:
-					infoMessage(abstract, title = "Abstract of arxiv:%s"%arxiv)
+					infoMessage(abstract, title="Abstract of arxiv:%s"%arxiv)
 			else:
 				infoMessage("No arxiv number for entry '%s'!"%bibkey)
-		if message:
-			infoMessage("Done!")
+		self.parent().done()
 
 	def onArx(self):
 		"""Action to be performed when asking arXiv info.
@@ -903,7 +908,17 @@ class CommonBibActions():
 		"""
 		self.parent().infoFromArxiv(self.bibs)
 
-	def onCat(self):
+	def onCat(self, testing=False):
+		"""Open a `catsTreeWindow` to ask the changes to the categories,
+		then perform the database changes
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `catsTreeWindow` instance,
+				the provided dialog will be used
+				instead of running `exec_`
+		"""
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
 		if len(self.keys) == 1:
 			bibkey = self.keys[0]
@@ -918,7 +933,10 @@ class CommonBibActions():
 				expButton=False,
 				previous=previousAll,
 				multipleRecords=True)
-		selectCats.exec_()
+		if testing:
+			selectCats = testing
+		else:
+			selectCats.exec_()
 		if selectCats.result == "Ok":
 			if len(self.keys) == 1:
 				cats = self.parent().selectedCats
@@ -1060,7 +1078,18 @@ class CommonBibActions():
 		self.parent().done()
 		self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-	def onExp(self):
+	def onExp(self, testing=False):
+		"""Open a `ExpsListWindow` window to obtain the list of
+		experiments to be added (also deleted, if for a single entry)
+		and perform the database changes
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `ExpsListWindow` instance,
+				the provided dialog will be used
+				instead of running `exec_`
+		"""
 		if len(self.keys) == 1:
 			bibkey = self.keys[0]
 			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
@@ -1068,7 +1097,10 @@ class CommonBibActions():
 				askExps = True,
 				askForBib = bibkey,
 				previous = previous)
-			selectExps.exec_()
+			if testing:
+				selectExps = testing
+			else:
+				selectExps.exec_()
 			if selectExps.result == "Ok":
 				exps = self.parent().selectedExps
 				for p in previous:
@@ -1084,7 +1116,10 @@ class CommonBibActions():
 				+ "to the selected entries, not delete!")
 			selectExps = ExpsListWindow(parent = self.parent(),
 				askExps = True, previous = [])
-			selectExps.exec_()
+			if testing:
+				selectExps = testing
+			else:
+				selectExps.exec_()
 			if selectExps.result == "Ok":
 				pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
 				self.parent().statusBarMessage(
@@ -1096,10 +1131,24 @@ class CommonBibActions():
 		"""
 		self.parent().exportSelection(self.bibs)
 
-	def onMerge(self):
+	def onMerge(self, testing=False):
+		"""Open a `MergeBibtexs` window to configure the merging,
+		then perform the requested changes, merge the entries and
+		delete the previous ones
+
+		Parameter:
+			testing (default False):
+				if evaluates to True it must be
+				a `MergeBibtexs` instance,
+				the provided dialog will be used
+				instead of running `exec_`
+		"""
 		mergewin = MergeBibtexs(
 			self.entries[0], self.entries[1], self.parent())
-		mergewin.exec_()
+		if testing:
+			mergewin = testing
+		else:
+			mergewin.exec_()
 		if mergewin.result is True:
 			data = {}
 			for k, v in mergewin.textValues.items():

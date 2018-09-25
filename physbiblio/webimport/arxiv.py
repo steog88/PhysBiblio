@@ -94,7 +94,7 @@ class webSearch(webInterf):
 		"""Use the arxiv id to compute the year"""
 		return getYear(string)
 
-	def retrieveUrlFirst(self, string, searchType = "all", **kwargs):
+	def retrieveUrlFirst(self, string, searchType="all", **kwargs):
 		"""Retrieves the first result from the content
 		of the given web page.
 		The function calls arxivRetriever which will do the job.
@@ -107,9 +107,9 @@ class webSearch(webInterf):
 			returns the bibtex string built from arxivRetriever
 		"""
 		return self.arxivRetriever(string,
-			searchType, additionalArgs = {"max_results":"1"}, **kwargs)
+			searchType, additionalArgs={"max_results":"1"}, **kwargs)
 
-	def retrieveUrlAll(self, string, searchType = "all", **kwargs):
+	def retrieveUrlAll(self, string, searchType="all", **kwargs):
 		"""Retrieves all the results from the content
 		of the given web page.
 		The function calls arxivRetriever which will do the job.
@@ -129,9 +129,9 @@ class webSearch(webInterf):
 
 	def arxivRetriever(self,
 			string,
-			searchType = "all",
-			additionalArgs = None,
-			fullDict = False):
+			searchType="all",
+			additionalArgs=None,
+			fullDict=False):
 		"""Reads the feed content got from arxiv into a dictionary,
 		used to return a bibtex.
 
@@ -187,7 +187,7 @@ class webSearch(webInterf):
 				except KeyError as e:
 					pBLogger.debug("KeyError: %s"%e)
 				dictionary["abstract"] = entry['summary'].replace("\n", " ")
-				dictionary["authors"] = " and ".join([ au["name"] \
+				dictionary["authors"] = " and ".join([au["name"] \
 					for au in entry['authors']])
 				dictionary["primaryclass"] = \
 					entry['arxiv_primary_category']['term']
