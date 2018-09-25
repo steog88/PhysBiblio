@@ -34,7 +34,7 @@ class TestInspireStatsMethods(unittest.TestCase):
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
 		function()
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
@@ -43,7 +43,8 @@ class TestInspireStatsMethods(unittest.TestCase):
 		"""Test paperStats function downloading real and fake data"""
 		#not a valid record (it was cancelled):
 		self.assertEqual(pBStats.paperStats("1358853"),
-			{'aI': {}, 'citList': [[datetime.date.today()], [0]],
+			{'aI': {}, 'citList': [[datetime.datetime.fromordinal(
+				datetime.date.today().toordinal())], [0]],
 				'id': '1358853'})
 
 		#needs multiple pages to load all the content
@@ -56,7 +57,7 @@ class TestInspireStatsMethods(unittest.TestCase):
 			len(testGood["citList"][1]))
 		self.assertFalse("fig" in testGood.keys())
 
-		testGood = pBStats.paperStats("1385583", plot = True)
+		testGood = pBStats.paperStats("1385583", plot=True)
 		self.assertTrue(testGood["id"], "1385583")
 		self.assertTrue(len(testGood["aI"])>120)
 		self.assertEqual(len(testGood["aI"]) + 1,
@@ -64,6 +65,10 @@ class TestInspireStatsMethods(unittest.TestCase):
 		self.assertEqual(len(testGood["citList"][0]),
 			len(testGood["citList"][1]))
 		self.assertIsInstance(testGood["fig"], matplotlib.figure.Figure)
+
+		testGood = pBStats.paperStats(["1358853", "1385583"])
+		self.assertTrue(testGood["id"], ["1358853", "1385583"])
+		self.assertTrue(len(testGood["aI"]) > 120)
 
 	def test_authorStats(self):
 		"""Test paperStats function downloading real and fake data"""
@@ -82,13 +87,13 @@ class TestInspireStatsMethods(unittest.TestCase):
 				datetime.datetime(2018, 3, 26, 3, 25, 34),
 				datetime.datetime(2018, 3, 29, 5, 8, 58),
 				datetime.date(2018, 4, 16)], [1, 2, 3, 4, 5, 5]]}) as _mock:
-			testGood = pBStats.authorStats("E.M.Zavanin.1", plot = True)
+			testGood = pBStats.authorStats("E.M.Zavanin.1", plot=True)
 			for i in ['1229039', '1345462', '1366180',
 					'1385583', '1387736', '1404176',
 					'1460832', '1519902']:
 				self.assertIn(i, testGood["aI"].keys())
 			_mock.assert_has_calls(
-				[call(i, paperDate = testGood["aI"][i]["date"], verbose = 0)
+				[call(i, paperDate=testGood["aI"][i]["date"], verbose=0)
 					for i in sorted(testGood["aI"].keys())])
 			self.assertTrue(testGood.keys(),
 				['meanLi', 'allLi', 'aI', 'paLi', 'h', 'name'])

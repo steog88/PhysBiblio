@@ -54,7 +54,7 @@ class inspireStatsLoader():
 			wantBackend: a string that defines the wanted backend
 		"""
 		if wantBackend != matplotlib.get_backend():
-			matplotlib.use(wantBackend, warn = False, force = True)
+			matplotlib.use(wantBackend, warn=False, force=True)
 			from matplotlib import pyplot as plt
 			pBLogger.info("Changed backend to %s"%matplotlib.get_backend())
 
@@ -69,7 +69,7 @@ class inspireStatsLoader():
 			the json object generated from the url content
 		"""
 		def getSeries(url):
-			response = requests.get(url, timeout = self.timeout)
+			response = requests.get(url, timeout=self.timeout)
 			try:
 				return json.loads(response.content.decode("utf-8"))
 			except ValueError:
@@ -89,7 +89,7 @@ class inspireStatsLoader():
 				complete += temp
 				ser += 1
 
-	def authorStats(self, authorName, plot = False, reset = True):
+	def authorStats(self, authorName, plot=False, reset=True):
 		"""Function that gets the data and
 		constructs the statistics for a given author.
 
@@ -124,12 +124,12 @@ class inspireStatsLoader():
 			}
 		"""
 		if reset:
-			self.allInfo = {}
+			self.allInfoA = {}
 			self.authorPapersList = [[],[]]
 			self.allCitations = []
 		if isinstance(authorName, list):
 			for a in authorName:
-				self.authorStats(a, reset = False)
+				self.authorStats(a, reset=False)
 			self.authorPlotInfo["name"] = authorName
 			return self.authorPlotInfo
 		pBLogger.info("Stats for author '%s'"%authorName)
@@ -149,18 +149,18 @@ class inspireStatsLoader():
 				break
 			if tot > 20:
 				time.sleep(1)
-			if p in self.allInfo.keys(): continue
-			self.allInfo[p] = {}
-			self.allInfo[p]["date"] = dateutil.parser.parse(
+			if p in self.allInfoA.keys(): continue
+			self.allInfoA[p] = {}
+			self.allInfoA[p]["date"] = dateutil.parser.parse(
 				data[i]["creation_date"])
-			self.authorPapersList[0].append(self.allInfo[p]["date"])
+			self.authorPapersList[0].append(self.allInfoA[p]["date"])
 			pBLogger.info("%5d / %d (%5.2f%%) - looking for paper: '%s'"%(
 				i+1, tot, 100.*(i+1)/tot, p))
 			paperInfo = self.paperStats(p,
-				verbose = 0, paperDate = self.allInfo[p]["date"])
-			self.allInfo[p]["infoDict"] = paperInfo["aI"]
-			self.allInfo[p]["citingPapersList"] = paperInfo["citList"]
-			for c,v in self.allInfo[p]["infoDict"].items():
+				verbose=0, paperDate=self.allInfoA[p]["date"])
+			self.allInfoA[p]["infoDict"] = paperInfo["aI"]
+			self.allInfoA[p]["citingPapersList"] = paperInfo["citList"]
+			for c,v in self.allInfoA[p]["infoDict"].items():
 				self.allCitations.append(v["date"])
 			pBLogger.info("")
 		self.authorPapersList[1] = []
@@ -180,24 +180,25 @@ class inspireStatsLoader():
 			meanCitList[0].append(d)
 			meanCitList[1].append((i+1.)/self.authorPapersList[1][currPaper])
 		hind = 0
-		citations = [len(self.allInfo[k]["citingPapersList"][0]) - 2 \
-			for k in self.allInfo.keys()]
+		citations = [len(self.allInfoA[k]["citingPapersList"][0]) - 2 \
+			for k in self.allInfoA.keys()]
 		for h in range(len(citations)):
 			if len([a for a in citations if a >= h]) >= h:
 				hind = h
 		self.authorPlotInfo = {
 			"name": authorName,
-			"aI": self.allInfo,
+			"aI": self.allInfoA,
 			"paLi": self.authorPapersList,
 			"allLi": allCitList,
 			"meanLi": meanCitList,
 			"h": hind}
 		if plot:
-			self.authorPlotInfo["figs"] = self.plotStats(author = True)
+			self.authorPlotInfo["figs"] = self.plotStats(author=True)
 		pBLogger.info("Stats for author '%s' completed!"%authorName)
 		return self.authorPlotInfo
 
-	def paperStats(self, paperID, plot = False, verbose = 1, paperDate = None):
+	def paperStats(self, paperID,
+			plot=False, verbose=1, paperDate=None, reset=True):
 		"""Function that gets the data and
 		constructs the statistics for a given paper.
 
@@ -208,6 +209,9 @@ class inspireStatsLoader():
 			verbose (int, default 1): increase the verbosity level
 			paperDate (datetime, optional): the date of at which
 				the paper was published
+			reset (boolean, default False): True to delete
+				all previous existing data
+				(used as False when processing a list of IDs)
 
 		Output:
 			a dictionary containing all the desired information.
@@ -221,47 +225,54 @@ class inspireStatsLoader():
 					See self.plotStats
 			}
 		"""
+		if reset:
+			self.allInfoP = {}
+			self.citingPapersList = [[],[]]
+		if isinstance(paperID, list):
+			for a in paperID:
+				self.paperStats(a, reset=False)
+			self.paperPlotInfo["id"] = paperID
+			return self.paperPlotInfo
 		if verbose > 0:
 			pBLogger.info("Stats for paper '%s'"%paperID)
 		url = pbConfig.inspireSearchBase + "?p=refersto:recid:" \
 			+ paperID + self.paperStatsOpts
 		data = self.JsonFromUrl(url)
 		recid_citingPapers = [ a["recid"] for a in data ]
-		allInfo = {}
-		citingPapersList = [[],[]]
 		if paperDate is not None:
-			citingPapersList[0].append(paperDate)
+			self.citingPapersList[0].append(paperDate)
 		for i,p in enumerate(recid_citingPapers):
-			allInfo[p] = {}
-			allInfo[p]["date"] = dateutil.parser.parse(
+			self.allInfoP[p] = {}
+			self.allInfoP[p]["date"] = dateutil.parser.parse(
 				data[i]["creation_date"])
-			citingPapersList[0].append(allInfo[p]["date"])
-		for i,p in enumerate(sorted(citingPapersList[0])):
-			citingPapersList[0][i] = p
-			citingPapersList[1].append(i+1)
-		citingPapersList[0].append(datetime.date.today())
+			self.citingPapersList[0].append(self.allInfoP[p]["date"])
+		for i,p in enumerate(sorted(self.citingPapersList[0])):
+			self.citingPapersList[0][i] = p
+			self.citingPapersList[1].append(i+1)
+		self.citingPapersList[0].append(
+			datetime.datetime.fromordinal(datetime.date.today().toordinal()))
 		try:
-			citingPapersList[1].append(citingPapersList[1][-1])
+			self.citingPapersList[1].append(self.citingPapersList[1][-1])
 		except IndexError:
-			citingPapersList[1].append(0)
+			self.citingPapersList[1].append(0)
 		self.paperPlotInfo = {
 			"id": paperID,
-			"aI": allInfo,
-			"citList": citingPapersList}
+			"aI": self.allInfoP,
+			"citList": self.citingPapersList}
 		if plot:
-			self.paperPlotInfo["fig"] = self.plotStats(paper = True)
+			self.paperPlotInfo["fig"] = self.plotStats(paper=True)
 		if verbose > 0:
 			pBLogger.info("Done!")
 		return self.paperPlotInfo
 
 	def plotStats(self,
-			paper = False,
-			author = False,
-			show = False,
-			save = False,
-			path = ".",
-			markPapers = False,
-			pickVal = 6):
+			paper=False,
+			author=False,
+			show=False,
+			save=False,
+			path=".",
+			markPapers=False,
+			pickVal=6):
 		"""Plot the collected information, using matplotlib.pyplot.
 
 		Parameters:
@@ -291,7 +302,7 @@ class inspireStatsLoader():
 					"Plotting for paper '%s'..."%self.paperPlotInfo["id"])
 				fig, ax = plt.subplots()
 				plt.plot(self.paperPlotInfo["citList"][0],
-					self.paperPlotInfo["citList"][1], picker = pickVal)
+					self.paperPlotInfo["citList"][1], picker=pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(
@@ -327,7 +338,7 @@ class inspireStatsLoader():
 				plt.title("Paper number")
 				plt.plot(self.authorPlotInfo["paLi"][0],
 					self.authorPlotInfo["paLi"][1],
-					picker = pickVal)
+					picker=pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(
@@ -344,7 +355,7 @@ class inspireStatsLoader():
 				plt.title("Papers per year")
 				ax.hist([int(q.strftime("%Y")) \
 					for q in self.authorPlotInfo["paLi"][0]],
-					bins=range(ymin,  ymax), picker = True)
+					bins=range(ymin,  ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -361,7 +372,7 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Total citations")
 				plt.plot(self.authorPlotInfo["allLi"][0],
-					self.authorPlotInfo["allLi"][1], picker = pickVal)
+					self.authorPlotInfo["allLi"][1], picker=pickVal)
 				fig.autofmt_xdate()
 				if save:
 					pdf = PdfPages(osp.join(path,
@@ -378,7 +389,7 @@ class inspireStatsLoader():
 				plt.title("Citations per year")
 				ax.hist([int(q.strftime("%Y")) \
 					for q in self.authorPlotInfo["allLi"][0]],
-					bins=range(ymin,  ymax), picker = True)
+					bins=range(ymin,  ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -395,15 +406,15 @@ class inspireStatsLoader():
 				fig, ax = plt.subplots()
 				plt.title("Mean citations")
 				plt.plot(self.authorPlotInfo["meanLi"][0],
-					self.authorPlotInfo["meanLi"][1], picker = pickVal)
+					self.authorPlotInfo["meanLi"][1], picker=pickVal)
 				fig.autofmt_xdate()
 				if markPapers:
 					for q in self.authorPlotInfo["paLi"][0]:
 						plt.axvline(datetime.datetime(int(q.strftime("%Y")),
 							int(q.strftime("%m")),
 							int(q.strftime("%d"))),
-							color = 'k',
-							ls = '--')
+							color='k',
+							ls='--')
 				if save:
 					pdf = PdfPages(osp.join(path,
 						self.authorPlotInfo["name"]+'_meanCit.pdf'))

@@ -943,8 +943,10 @@ class CommonBibActions():
 		self.menu.close()
 
 	def onCitations(self):
-		# self.parent().getInspireStats(inspireID)
-		self.menu.close()
+		"""Call `inspireStats.inspireStatsLoader.plotStats`
+		to obtain the citation info of one or more papers
+		"""
+		self.parent().getInspireStats([e["inspire"] for e in self.bibs])
 
 	def onClean(self):
 		"""Action to be performed when cleaning bibtexs.

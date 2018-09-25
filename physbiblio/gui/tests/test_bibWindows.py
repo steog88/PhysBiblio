@@ -1467,7 +1467,14 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onCitations(self):
 		"""test onCitations"""
-		raise NotImplementedError
+		c = CommonBibActions([
+			{"bibkey": "abc", "inspire": "1385583"},
+			{"bibkey": "def", "inspire": "1358853"}],
+			self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.getInspireStats"
+				) as _i:
+			c.onCitations()
+			_i.assert_called_once_with(["1385583", "1358853"])
 
 	def test_onClean(self):
 		"""test onClean"""
