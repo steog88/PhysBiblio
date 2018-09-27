@@ -941,18 +941,18 @@ class CommonBibActions():
 					if c not in previousAll:
 						pBDB.catBib.insert(c, bibkey)
 				self.parent().statusBarMessage(
-					"categories for '%s' successfully inserted"%bibkey)
+					"Categories for '%s' successfully inserted"%bibkey)
 			else:
+				prevAll = list(previousAll)
 				for c in self.parent().previousUnchanged:
-					if c in previousAll:
-						del previousAll[previousAll.index(c)]
-				for c in previousAll:
+					if c in prevAll:
+						del prevAll[prevAll.index(c)]
+				for c in prevAll:
 					if c not in self.parent().selectedCats:
 						pBDB.catBib.delete(c, self.keys)
 				pBDB.catBib.insert(self.parent().selectedCats, self.keys)
 				self.parent().statusBarMessage(
-					"categories successfully inserted")
-		self.menu.close()
+					"Categories successfully inserted")
 
 	def onCitations(self):
 		"""Call `inspireStats.inspireStatsLoader.plotStats`

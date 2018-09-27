@@ -1498,7 +1498,144 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onCat(self):
 		"""test onCat"""
-		raise NotImplementedError
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		self.mainW.selectedCats = []
+		self.mainW.previousUnchanged = []
+		sc = catsTreeWindow(parent=self.mainW,
+			askCats=True,
+			expButton=False,
+			previous=[],
+			multipleRecords=True)
+		self.assertEqual(self.mainW.selectedCats, [])
+		with patch("physbiblio.database.categories.getByEntries",
+				return_value=[]) as _gc,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+					return_value=None) as _cwi,\
+				patch("physbiblio.database.catsEntries.insert") as _cei,\
+				patch("physbiblio.database.catsEntries.delete") as _ced,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onCat(testing=sc)
+			_cwi.assert_called_once_with(parent=self.mainW,
+				askCats=True,
+				expButton=False,
+				previous=[],
+				multipleRecords=True)
+			_gc.assert_called_once_with(["abc", "def"])
+			_cei.assert_not_called()
+			_ced.assert_not_called()
+			_m.assert_not_called()
+
+		sc = catsTreeWindow(parent=self.mainW,
+			askCats=True,
+			expButton=False,
+			previous=[],
+			multipleRecords=True)
+		self.mainW.selectedCats = [999, 1000]
+		sc.result = "Ok"
+		with patch("physbiblio.database.categories.getByEntries",
+				return_value=[]) as _gc,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+					return_value=None) as _cwi,\
+				patch("physbiblio.database.catsEntries.insert") as _cei,\
+				patch("physbiblio.database.catsEntries.delete") as _ced,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onCat(testing=sc)
+			_cwi.assert_called_once_with(parent=self.mainW,
+				askCats=True,
+				expButton=False,
+				previous=[],
+				multipleRecords=True)
+			_gc.assert_called_once_with(["abc", "def"])
+			_cei.assert_called_once_with([999, 1000], ['abc', 'def'])
+			_ced.assert_not_called()
+			_m.assert_called_once_with("Categories successfully inserted")
+
+		sc = catsTreeWindow(parent=self.mainW,
+			askCats=True,
+			expButton=False,
+			previous=[],
+			multipleRecords=True)
+		self.mainW.selectedCats = [999, 1000]
+		self.mainW.previousUnchanged = [1002]
+		sc.result = "Ok"
+		with patch("physbiblio.database.categories.getByEntries",
+				return_value=[{"idCat": 1000}, {"idCat": 1001},
+					{"idCat": 1002}]) as _gc,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+					return_value=None) as _cwi,\
+				patch("physbiblio.database.catsEntries.insert") as _cei,\
+				patch("physbiblio.database.catsEntries.delete") as _ced,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onCat(testing=sc)
+			_cwi.assert_called_once_with(parent=self.mainW,
+				askCats=True,
+				expButton=False,
+				previous=[1000, 1001, 1002],
+				multipleRecords=True)
+			_gc.assert_called_once_with(["abc", "def"])
+			_cei.assert_called_once_with([999, 1000], ['abc', 'def'])
+			_ced.assert_called_once_with(1001, ['abc', 'def'])
+			_m.assert_called_once_with("Categories successfully inserted")
+
+		c = CommonBibActions(
+			[{"bibkey": "abc"}], self.mainW)
+		self.mainW.selectedCats = []
+		self.mainW.previousUnchanged = []
+		sc = catsTreeWindow(parent=self.mainW,
+			askCats=True,
+			expButton=False,
+			previous=[])
+		self.assertEqual(self.mainW.selectedCats, [])
+		with patch("physbiblio.database.categories.getByEntries",
+				return_value=[]) as _gc,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+					return_value=None) as _cwi,\
+				patch("physbiblio.database.catsEntries.insert") as _cei,\
+				patch("physbiblio.database.catsEntries.delete") as _ced,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onCat(testing=sc)
+			_cwi.assert_called_once_with(parent=self.mainW,
+				askCats=True,
+				askForBib="abc",
+				expButton=False,
+				previous=[])
+			_gc.assert_called_once_with(["abc"])
+			_cei.assert_not_called()
+			_ced.assert_not_called()
+			_m.assert_not_called()
+
+		sc = catsTreeWindow(parent=self.mainW,
+			askCats=True,
+			expButton=False,
+			previous=[])
+		self.mainW.selectedCats = [999, 1000]
+		self.mainW.previousUnchanged = [1002]
+		sc.result = "Ok"
+		with patch("physbiblio.database.categories.getByEntries",
+				return_value=[{"idCat": 1000}, {"idCat": 1001},
+					{"idCat": 1002}]) as _gc,\
+				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
+					return_value=None) as _cwi,\
+				patch("physbiblio.database.catsEntries.insert") as _cei,\
+				patch("physbiblio.database.catsEntries.delete") as _ced,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onCat(testing=sc)
+			_cwi.assert_called_once_with(parent=self.mainW,
+				askCats=True,
+				askForBib="abc",
+				expButton=False,
+				previous=[1000, 1001, 1002])
+			_gc.assert_called_once_with(["abc"])
+			_cei.assert_called_once_with(999, "abc")
+			_ced.assert_has_calls([call(1001, "abc"), call(1002, "abc")])
+			_m.assert_called_once_with(
+				"Categories for 'abc' successfully inserted")
 
 	def test_onCitations(self):
 		"""test onCitations"""
