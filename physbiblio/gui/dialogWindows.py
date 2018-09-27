@@ -771,6 +771,8 @@ class dailyArxivSelect(advImportSelect):
 		except AttributeError:
 			pBLogger.debug("Data not valid", exc_info=True)
 			return
+		if "already existing" in eprint:
+			eprint = eprint.replace(" - already existing", "")
 		if hasattr(self, "abstractFormulas") and \
 				self.abstractFormulas is not None:
 			a = self.abstractFormulas(self.parent(),

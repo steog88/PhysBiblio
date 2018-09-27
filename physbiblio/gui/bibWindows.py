@@ -322,13 +322,13 @@ class AbstractFormulas():
 		"""
 		if self.hasLatex():
 			self.mainWin.statusBarMessage("Parsing LaTeX...")
-			self.editor.insertHtml(
+			self.editor.setHtml(
 				"%sProcessing LaTeX formulas..."%self.abstractTitle)
 			self.thr = thread_processLatex(self.prepareText, self.mainWin)
 			self.thr.passData.connect(self.submitText)
 			self.thr.start()
 		else:
-			self.editor.insertHtml(self.text)
+			self.editor.setHtml(self.text)
 
 	def mathTex_to_QPixmap(self, mathTex):
 		"""Create a `matplotlib` figure with the equation
@@ -392,7 +392,7 @@ class AbstractFormulas():
 		for i, image in enumerate(imgs):
 			self.document.addResource(QTextDocument.ImageResource,
 				QUrl("mydata://image%d.png"%i), image)
-		self.editor.insertHtml(text)
+		self.editor.setHtml(text)
 		if self.statusMessages:
 			self.mainWin.statusBarMessage("Latex processing done!")
 
@@ -815,35 +815,29 @@ class CommonBibActions():
 		menuI.append(
 			QAction("Complete info (ID and auxiliary info)", menu,
 			triggered=self.onComplete))
-		menuI.append(
-			QAction("Update bibtex", menu,
-			triggered=lambda r=True: self.onUpdate(force=r)))
-		menuI.append(
-			QAction("Reload bibtex", menu,
-			triggered=lambda f=(not selection), r=True:
-				self.onUpdate(force=f, reloadAll=r)))
-		menuI.append(
-			QAction("Citation statistics", menu,
-			triggered=self.onCitations))
+		if selection or (
+				not selection and (inspireID != "" and inspireID is not None)):
+			menuI.append(
+				QAction("Update bibtex", menu,
+				triggered=lambda r=True: self.onUpdate(force=r)))
+			menuI.append(
+				QAction("Reload bibtex", menu,
+				triggered=lambda f=(not selection), r=True:
+					self.onUpdate(force=f, reloadAll=r)))
+			menuI.append(
+				QAction("Citation statistics", menu,
+				triggered=self.onCitations))
 		menuA = []
 		menuA.append(
 			QAction("Load abstract", menu, triggered=self.onAbs))
 		menuA.append(
 			QAction("Get more fields", menu, triggered=self.onArx))
-		if not selection:
-			one = False
-			if (inspireID != "" and inspireID is not None):
-				menu.possibleActions.append(["INSPIRE-HEP", menuI])
-				one = True
-			if (arxiv != "" and arxiv is not None):
-				menu.possibleActions.append(["arXiv", menuA])
-				one = True
-			if one:
-				menu.possibleActions.append(None)
-		else:
-			menu.possibleActions.append(["INSPIRE-HEP", menuI])
+		menu.possibleActions.append(["INSPIRE-HEP", menuI])
+		if selection or (
+				not selection and (arxiv != "" and arxiv is not None)):
 			menu.possibleActions.append(["arXiv", menuA])
-			menu.possibleActions.append(None)
+			one = True
+		menu.possibleActions.append(None)
 		menu.possibleActions.append(
 			QAction("Export entries in a .bib file", menu,
 			triggered=self.onExport))
@@ -1354,13 +1348,15 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.tableModel.unselectAll()
 
 	def onOk(self):
+		position = QCursor.pos()
 		self.mainWin.selectedBibs = [ \
 			key for key in self.tableModel.selectedElements.keys() \
 			if self.tableModel.selectedElements[key] == True]
 		commonActions = CommonBibActions(
-			self.mainWin.selectedBibs, self.mainWin)
+			[pBDB.bibs.getByKey(k)[0] for k in self.mainWin.selectedBibs],
+			self.mainWin)
 		ask = commonActions.createContextMenu(selection=True)
-		ask.exec_(QCursor.pos())
+		ask.exec_(position)
 		self.clearSelection()
 
 	def createTable(self):
@@ -1484,23 +1480,23 @@ class BibtexListWindow(QFrame, objListWindow):
 		elif self.colContents[col] == "pdf":
 			pdfFiles = pBPDF.getExisting(bibkey, fullPath = True)
 			if len(pdfFiles) == 1:
-				self.parent().statusBarMessage("opening PDF...")
+				self.mainWin.statusBarMessage("opening PDF...")
 				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = AskPDFAction(bibkey, self)
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
-					self.parent().statusBarMessage("opening arxiv PDF...")
+					self.mainWin.statusBarMessage("opening arxiv PDF...")
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
 				elif ask.result == "openDoi":
-					self.parent().statusBarMessage("opening doi PDF...")
+					self.mainWin.statusBarMessage("opening doi PDF...")
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = pBPDF.getFilePath(bibkey, "doi"))
 				elif isinstance(ask.result, str) \
 						and "openOther_" in ask.result:
 					filename = ask.result.replace("openOther_", "")
-					self.parent().statusBarMessage("opening %s..."%filename)
+					self.mainWin.statusBarMessage("opening %s..."%filename)
 					pBGuiView.openLink(bibkey, "file",
 						fileArg = os.path.join(
 							pBPDF.getFileDir(bibkey), filename))

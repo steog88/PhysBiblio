@@ -878,7 +878,7 @@ class TestAbstractFormulas(GUITestCase):
 		m = MainWindow(testing = True)
 		bi = BibtexInfo(m)
 		af = AbstractFormulas(m, "test text", customEditor=bi.text)
-		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
 			af.doText()
@@ -887,7 +887,7 @@ class TestAbstractFormulas(GUITestCase):
 
 		af = AbstractFormulas(m, "test text with $f_e$ equation",
 			customEditor=bi.text)
-		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm,\
 				patch("physbiblio.gui.threadElements.thread_processLatex."
@@ -898,7 +898,7 @@ class TestAbstractFormulas(GUITestCase):
 			_ih.assert_called_once_with(
 				"%sProcessing LaTeX formulas..."%af.abstractTitle)
 			_pl.assert_called_once_with(af.prepareText, m)
-		with patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm,\
 				patch("physbiblio.gui.commonClasses.MyThread.start") as _s,\
@@ -972,7 +972,7 @@ class TestAbstractFormulas(GUITestCase):
 			customEditor=bi.text)
 		images, text = af.prepareText()
 		with patch("PySide2.QtGui.QTextDocument.addResource") as _ar,\
-				patch("PySide2.QtWidgets.QTextEdit.insertHtml") as _ih,\
+				patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
 			af.submitText(images, text)
@@ -1144,12 +1144,13 @@ class TestMyBibTableModel(GUITestCase):
 
 	def test_addMarksCell(self):
 		"""test addMarksCell"""
-		m = BibtexListWindow(bibs=[{"bibkey": "a",
-			"title": "my title A",
-			"author": r"St{\'e}",
-			"marks": "",
-			"bibtex": "@article{A}",
-			"arxiv": "1809.00000"}])
+		with patch("logging.Logger.debug") as _d:
+			m = BibtexListWindow(bibs=[{"bibkey": "a",
+				"title": "my title A",
+				"author": r"St{\'e}",
+				"marks": "",
+				"bibtex": "@article{A}",
+				"arxiv": "1809.00000"}])
 		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
 		header = ["A", "B", "C"]
 		tm = MyBibTableModel(m, biblist, header)
