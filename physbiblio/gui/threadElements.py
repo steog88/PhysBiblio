@@ -46,7 +46,6 @@ class thread_checkUpdated(MyThread):
 		except URLError:
 			pBLogger.warning("Error when trying to check new versions. "
 				+ "Are you offline?", exc_info=True)
-		self.finished.emit()
 
 
 class thread_updateAllBibtexs(MyThread):
@@ -55,10 +54,10 @@ class thread_updateAllBibtexs(MyThread):
 	def __init__(self,
 			myrec,
 			startFrom,
-			parent = None,
-			useEntries = None,
-			force = False,
-			reloadAll = False):
+			parent=None,
+			useEntries=None,
+			force=False,
+			reloadAll=False):
 		"""Initialize the thread and store the required settings
 
 		Parameters:
@@ -87,12 +86,11 @@ class thread_updateAllBibtexs(MyThread):
 		"""
 		self.receiver.start()
 		pBDB.bibs.searchOAIUpdates(self.startFrom,
-			entries = self.useEntries,
-			force = self.force,
-			reloadAll = self.reloadAll)
+			entries=self.useEntries,
+			force=self.force,
+			reloadAll=self.reloadAll)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -106,7 +104,7 @@ class thread_updateInspireInfo(MyThread):
 	use `physbiblio.database.entries.updateInspireID` to retrieve it.
 	"""
 
-	def __init__(self, myrec, bibkey, inspireID = None, parent = None):
+	def __init__(self, myrec, bibkey, inspireID=None, parent=None):
 		"""Initialize the thread and store the required settings
 
 		Parameters:
@@ -134,10 +132,9 @@ class thread_updateInspireInfo(MyThread):
 			eid = self.inspireID
 			originalKey = self.bibkey
 		pBDB.bibs.updateInfoFromOAI(eid,
-			verbose = 1, originalKey = originalKey)
+			verbose=1, originalKey=originalKey)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 
 class thread_downloadArxiv(MyThread):
@@ -147,7 +144,7 @@ class thread_downloadArxiv(MyThread):
 	in the database record for the entry.
 	"""
 
-	def __init__(self, bibkey, parent = None):
+	def __init__(self, bibkey, parent=None):
 		"""Initialize the object.
 
 		Parameter:
@@ -159,7 +156,6 @@ class thread_downloadArxiv(MyThread):
 	def run(self):
 		"""Run `physbiblio.pdf.LocalPDF.downloadArxiv`"""
 		pBPDF.downloadArxiv(self.bibkey)
-		self.finished.emit()
 
 
 class thread_processLatex(MyThread):
@@ -169,7 +165,7 @@ class thread_processLatex(MyThread):
 
 	passData = Signal(list, str)
 
-	def __init__(self, func, parent = None):
+	def __init__(self, func, parent=None):
 		"""Instantiate object.
 
 		Parameters:
@@ -187,7 +183,6 @@ class thread_processLatex(MyThread):
 		"""
 		images, text = self.func()
 		self.passData.emit(images, text)
-		self.finished.emit()
 
 
 class thread_authorStats(MyThread):
@@ -219,7 +214,6 @@ class thread_authorStats(MyThread):
 		self.parent().lastAuthorStats = pBStats.authorStats(self.authorName)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -253,7 +247,6 @@ class thread_paperStats(MyThread):
 		self.parent().lastPaperStats = pBStats.paperStats(self.inspireId)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 
 class thread_loadAndInsert(MyThread):
@@ -285,7 +278,6 @@ class thread_loadAndInsert(MyThread):
 			self.parent().loadedAndInserted = pBDB.bibs.lastInserted
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -297,7 +289,7 @@ class thread_cleanAllBibtexs(MyThread):
 	of `physbiblio.database.entries.cleanBibtexs`
 	"""
 
-	def __init__(self, myrec, startFrom, parent = None, useEntries = None):
+	def __init__(self, myrec, startFrom, parent=None, useEntries=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -317,10 +309,9 @@ class thread_cleanAllBibtexs(MyThread):
 	def run(self):
 		"""Start the receiver, run `pBDB.bibs.cleanBibtexs` and finish"""
 		self.receiver.start()
-		pBDB.bibs.cleanBibtexs(self.startFrom, entries = self.useEntries)
+		pBDB.bibs.cleanBibtexs(self.startFrom, entries=self.useEntries)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -332,7 +323,7 @@ class thread_findBadBibtexs(MyThread):
 	`physbiblio.database.entries.findCorruptedBibtexs`
 	"""
 
-	def __init__(self, myrec, startFrom, parent, useEntries = None):
+	def __init__(self, myrec, startFrom, parent, useEntries=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -360,10 +351,9 @@ class thread_findBadBibtexs(MyThread):
 		"""
 		self.receiver.start()
 		self.parent().badBibtexs = pBDB.bibs.findCorruptedBibtexs(
-			self.startFrom, entries = self.useEntries)
+			self.startFrom, entries=self.useEntries)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -375,7 +365,7 @@ class thread_importFromBib(MyThread):
 	`physbiblio.database.entries.importFromBib`
 	"""
 
-	def __init__(self, myrec, bibFile, complete, parent = None):
+	def __init__(self, myrec, bibFile, complete, parent=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -399,7 +389,6 @@ class thread_importFromBib(MyThread):
 		pBDB.bibs.importFromBib(self.bibFile, self.complete)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -411,7 +400,7 @@ class thread_exportTexBib(MyThread):
 	`physbiblio.export.pbExport.exportForTexFile`
 	"""
 
-	def __init__(self, myrec, texFiles, outFName, parent = None):
+	def __init__(self, myrec, texFiles, outFName, parent=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -434,7 +423,6 @@ class thread_exportTexBib(MyThread):
 		pBExport.exportForTexFile(self.texFiles, self.outFName)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
@@ -464,7 +452,6 @@ class thread_cleanSpare(MyThread):
 		self.receiver.start()
 		pBDB.utils.cleanSpareEntries()
 		self.receiver.running = False
-		self.finished.emit()
 
 
 class thread_cleanSparePDF(MyThread):
@@ -472,7 +459,7 @@ class thread_cleanSparePDF(MyThread):
 	`physbiblio.pdf.LocalPDF.removeSparePDFFolders`
 	"""
 
-	def __init__(self, myrec, parent = None):
+	def __init__(self, myrec, parent=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -490,7 +477,6 @@ class thread_cleanSparePDF(MyThread):
 		self.receiver.start()
 		pBPDF.removeSparePDFFolders()
 		self.receiver.running = False
-		self.finished.emit()
 
 
 class thread_fieldsArxiv(MyThread):
@@ -498,7 +484,7 @@ class thread_fieldsArxiv(MyThread):
 	`physbiblio.database.entries.getFieldsFromArxiv`
 	"""
 
-	def __init__(self, myrec, entries, fields, parent = None):
+	def __init__(self, myrec, entries, fields, parent=None):
 		"""Instantiate the object
 
 		Parameters:
@@ -522,7 +508,6 @@ class thread_fieldsArxiv(MyThread):
 		pBDB.bibs.getFieldsFromArxiv(self.entries, self.fields)
 		time.sleep(0.1)
 		self.receiver.running = False
-		self.finished.emit()
 
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""

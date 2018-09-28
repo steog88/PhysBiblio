@@ -53,19 +53,15 @@ class Test_thread_checkUpdated(GUITestCase):
 		def fake_urlerror(x, y):
 			raise URLError("no connection")
 		p = QWidget()
-		thr = thread_checkUpdated(p)
 		h1 = MagicMock()
+		thr = thread_checkUpdated(p)
 		thr.result.connect(h1)
-		h2 = MagicMock()
-		thr.finished.connect(h2)
 		with patch("physbiblio.gui.threadElements.check_outdated",
 				return_value = (False, __version__)) as _cho:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
 		h1.assert_called_once_with(False, __version__)
-		h2.assert_called_once_with()
 		h1.reset_mock()
-		h2.reset_mock()
 		with patch("physbiblio.gui.threadElements.check_outdated",
 				return_value = ()) as _cho,\
 				patch("logging.Logger.warning") as _w:
@@ -74,7 +70,6 @@ class Test_thread_checkUpdated(GUITestCase):
 			_w.assert_called_once_with('Error when executing check_outdated. ' +
 				'Maybe you are using a developing version', exc_info=True)
 		h1.assert_not_called()
-		h2.assert_called_once_with()
 		with patch("physbiblio.gui.threadElements.check_outdated",
 				new = fake_urlerror) as _cho,\
 				patch("logging.Logger.warning") as _w:
@@ -108,8 +103,6 @@ class Test_thread_updateAllBibtexs(GUITestCase):
 		ws = WriteStream(q)
 		thr = thread_updateAllBibtexs(ws, 123, p, [[]], True, True)
 		self.assertTrue(ws.running)
-		h1 = MagicMock()
-		thr.finished.connect(h1)
 		with patch("physbiblio.database.entries.searchOAIUpdates") as _sou,\
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
@@ -122,7 +115,6 @@ class Test_thread_updateAllBibtexs(GUITestCase):
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
@@ -161,9 +153,7 @@ class Test_thread_updateInspireInfo(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.entries.updateInfoFromOAI") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(
 				1385583,
@@ -172,22 +162,18 @@ class Test_thread_updateInspireInfo(GUITestCase):
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 		thr = thread_updateInspireInfo(ws, "Gariazzo:2015rra", None, p)
 		with patch("physbiblio.database.entries.updateInfoFromOAI") as _fun,\
 				patch("physbiblio.database.entries.updateInspireID",
 					return_value= 1385) as _uiid,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_uiid.assert_called_once_with('Gariazzo:2015rra')
 			_fun.assert_called_once_with(1385, originalKey = None, verbose = 1)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -207,12 +193,9 @@ class Test_thread_downloadArxiv(GUITestCase):
 		"""test run"""
 		p = QWidget()
 		thr = thread_downloadArxiv("Gariazzo:2015rra", p)
-		with patch("physbiblio.pdf.LocalPDF.downloadArxiv") as _fun,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+		with patch("physbiblio.pdf.LocalPDF.downloadArxiv") as _fun:
 			thr.run()
 			_fun.assert_called_once_with("Gariazzo:2015rra")
-			h1.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -235,14 +218,11 @@ class Test_thread_processLatex(GUITestCase):
 		p = QWidget()
 		func = MagicMock(return_value = (["a", "b"], "text"))
 		thr = thread_processLatex(func, p)
-		with MagicMock() as h1,\
-				MagicMock() as h2:
-			thr.finished.connect(h1)
-			thr.passData.connect(h2)
+		with MagicMock() as h1:
+			thr.passData.connect(h1)
 			thr.run()
 			func.assert_called_once_with()
-			h1.assert_called_once_with()
-			h2.assert_called_once_with(["a", "b"], "text")
+			h1.assert_called_once_with(["a", "b"], "text")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -273,15 +253,12 @@ class Test_thread_authorStats(GUITestCase):
 		with patch("physbiblio.inspireStats.inspireStatsLoader.authorStats",
 					return_value = {"a": "b"}) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with("Stefano.Gariazzo.1")
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 			self.assertEqual(p.lastAuthorStats, {"a": "b"})
 
 	def test_setStopFlag(self):
@@ -325,15 +302,12 @@ class Test_thread_paperStats(GUITestCase):
 		with patch("physbiblio.inspireStats.inspireStatsLoader.paperStats",
 					return_value = {"a": "b"}) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(1385583)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 			self.assertEqual(p.lastPaperStats, {"a": "b"})
 
 
@@ -365,15 +339,12 @@ class Test_thread_loadAndInsert(GUITestCase):
 		with patch("physbiblio.database.entries.loadAndInsert",
 					side_effect = [True, False]) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with("Gariazzo:2015rra")
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 			self.assertEqual(p.loadedAndInserted, ["def"])
 			thr.run()
 			self.assertEqual(p.loadedAndInserted, [])
@@ -415,15 +386,12 @@ class Test_thread_cleanAllBibtexs(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.entries.cleanBibtexs") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(123, entries = [[]])
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
@@ -464,15 +432,12 @@ class Test_thread_findBadBibtexs(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.entries.findCorruptedBibtexs") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(123, entries = [[]])
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
@@ -511,15 +476,12 @@ class Test_thread_importFromBib(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.entries.importFromBib") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with("tmp.bib", False)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
@@ -558,15 +520,12 @@ class Test_thread_exportTexBib(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.export.pbExport.exportForTexFile") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(["main.tex"], "biblio.bib")
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
@@ -603,14 +562,11 @@ class Test_thread_cleanSpare(GUITestCase):
 		thr = thread_cleanSpare(ws, p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.utilities.cleanSpareEntries") as _fun,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with()
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
-			h1.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -636,14 +592,11 @@ class Test_thread_cleanSparePDF(GUITestCase):
 		thr = thread_cleanSparePDF(ws, p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.pdf.LocalPDF.removeSparePDFFolders") as _fun,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with()
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
-			h1.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -671,15 +624,12 @@ class Test_thread_fieldsArxiv(GUITestCase):
 		self.assertTrue(ws.running)
 		with patch("physbiblio.database.entries.getFieldsFromArxiv") as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st,\
-				MagicMock() as h1:
-			thr.finished.connect(h1)
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_fun.assert_called_once_with(["a", "b"], ["abstract", "arxiv"])
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
-			h1.assert_called_once_with()
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
