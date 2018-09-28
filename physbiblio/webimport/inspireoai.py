@@ -373,9 +373,9 @@ class webSearch(webInterf):
 
 	def retrieveOAIData(self,
 			inspireID,
-			bibtex = None,
-			verbose = 0,
-			readConferenceTitle = False):
+			bibtex=None,
+			verbose=0,
+			readConferenceTitle=False):
 		"""Get the marcxml entry for a given record
 
 		Parameters:
@@ -405,7 +405,7 @@ class webSearch(webInterf):
 			if record[1] is None:
 				raise ValueError("Empty record!")
 			res = self.readRecord(record[1],
-				readConferenceTitle = readConferenceTitle)
+				readConferenceTitle=readConferenceTitle)
 			res["id"] = inspireID
 			if bibtex is not None and res["pages"] is not None:
 				outcome, bibtex = self.updateBibtex(res, bibtex)
@@ -463,7 +463,7 @@ class webSearch(webInterf):
 			a list of dictionaries containing the bibtex information
 		"""
 		recs = self.oai.listRecords(metadataPrefix = 'marcxml',
-			from_ = date1, until = date2, set = "INSPIRE:HEP")
+			from_=date1, until=date2, set="INSPIRE:HEP")
 		nhand = 0
 		pBLogger.info("\nSTARTING OAI harvester --- " \
 			+ time.strftime("%c") + "\n\n")

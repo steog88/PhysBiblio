@@ -1640,7 +1640,7 @@ class entries(physbiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchByBibkey(bibkey, saveQuery = saveQuery).lastFetched
+		return self.fetchByBibkey(bibkey, saveQuery=saveQuery).lastFetched
 
 	def fetchByKey(self, key, saveQuery=True):
 		"""Use self.fetchAll with a match
@@ -2101,7 +2101,7 @@ class entries(physbiblioDBSub):
 		try:
 			query = "update entries set bibkey=:new where bibkey=:old\n"
 			if self.connExec(query, {"new": newKey, "old": oldKey}):
-				entry = self.getByBibkey(newKey)[0]
+				entry = self.getByBibkey(newKey, saveQuery=False)[0]
 				try:
 					oldkeys = entry["old_keys"].split(",")
 					if oldkeys == [""]:
@@ -2175,7 +2175,7 @@ class entries(physbiblioDBSub):
 							else:
 								pBLogger.info("-- %s, '%s' -> '%s'"%(
 									d, old[0][d], e[o]))
-							self.updateField(key, d, e[o], verbose = 0)
+							self.updateField(key, d, e[o], verbose=0)
 							if len(changed) == 0 or changed[-1] != key:
 								changed.append(key)
 			except:
@@ -2187,7 +2187,7 @@ class entries(physbiblioDBSub):
 	def updateInfoFromOAI(self,
 			inspireID,
 			bibtex = None,
-			verbose = 0,
+			verbose=0,
 			readConferenceTitle = False,
 			reloadAll = False,
 			originalKey = None):
@@ -2224,14 +2224,14 @@ class entries(physbiblioDBSub):
 		if not reloadAll:
 			result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(
 				inspireID,
-				bibtex = bibtex,
-				verbose = verbose,
-				readConferenceTitle = readConferenceTitle)
+				bibtex=bibtex,
+				verbose=verbose,
+				readConferenceTitle=readConferenceTitle)
 		else:
 			result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(
 				inspireID,
-				verbose = verbose,
-				readConferenceTitle = readConferenceTitle)
+				verbose=verbose,
+				readConferenceTitle=readConferenceTitle)
 		if verbose > 1:
 			pBLogger.info(result)
 		if result is False:
@@ -2262,10 +2262,10 @@ class entries(physbiblioDBSub):
 								self.updateField(key, d,
 									self.rmBibtexComments(
 										self.rmBibtexACapo(result[o].strip())),
-									verbose = 0)
+									verbose=0)
 							else:
 								self.updateField(key, d, result[o],
-									verbose = 0)
+									verbose=0)
 					except KeyError:
 						pBLogger.exception("Key error: (%s, %s)"%(o,d))
 			if verbose > 0:
@@ -2275,7 +2275,7 @@ class entries(physbiblioDBSub):
 			return False
 		return True
 
-	def updateFromOAI(self, entry, verbose = 0):
+	def updateFromOAI(self, entry, verbose=0):
 		"""Update an entry from inspire OAI.
 		If inspireID is missing, look for it before
 
@@ -2292,17 +2292,17 @@ class entries(physbiblioDBSub):
 		if isinstance(entry, list):
 			output = []
 			for e in entry:
-				output.append(self.updateFromOAI(e, verbose = verbose))
+				output.append(self.updateFromOAI(e, verbose=verbose))
 			return output
 		elif entry.isdigit():
-			return self.updateInfoFromOAI(entry, verbose = verbose)
+			return self.updateInfoFromOAI(entry, verbose=verbose)
 		else:
 			inspireID = self.getField(entry, "inspire")
 			if inspireID is not None:
-				return self.updateInfoFromOAI(inspireID, verbose = verbose)
+				return self.updateInfoFromOAI(inspireID, verbose=verbose)
 			else:
 				inspireID = self.updateInspireID(entry, entry)
-				return self.updateInfoFromOAI(inspireID, verbose = verbose)
+				return self.updateInfoFromOAI(inspireID, verbose=verbose)
 
 	def replaceInBibtex(self, old, new):
 		"""Replace a string with a new one,
@@ -2420,14 +2420,14 @@ class entries(physbiblioDBSub):
 						entry["bibtex"] = self.rmBibtexComments(
 							self.rmBibtexACapo(pbWriter.write(db).strip()))
 						self.updateField(entry["bibkey"],
-							"bibtex", entry["bibtex"], verbose = 0)
+							"bibtex", entry["bibtex"], verbose=0)
 					if fiNew in entry.keys():
 						bef.append(entry[fiNew])
 						after  = myReplace(before, new,
 							previous = entry[fiNew])
 						aft.append(after)
 						self.updateField(entry["bibkey"],
-							fiNew, after, verbose = 0)
+							fiNew, after, verbose=0)
 			except KeyError:
 				pBLogger.exception("Something wrong in replace")
 				failed.append(entry["bibkey"])
@@ -3324,7 +3324,7 @@ class entries(physbiblioDBSub):
 					ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 				if not self.updateInfoFromOAI(e["inspire"],
 						bibtex = e["bibtex"],
-						verbose = 0,
+						verbose=0,
 						readConferenceTitle = (e["proceeding"] == 1 and force),
 						reloadAll = reloadAll,
 						originalKey = e["bibkey"]):
@@ -3400,7 +3400,7 @@ class utilities(physbiblioDBSub):
 			[ [e["idCat"], e["idExp"]] for e in self.mainDB.catExp.getAll()],
 			self.mainDB.catExp.delete)
 
-	def cleanAllBibtexs(self, verbose = 0):
+	def cleanAllBibtexs(self, verbose=0):
 		"""Remove newlines, non-standard characters
 		and comments from the bibtex of all the entries in the database
 
@@ -3414,7 +3414,7 @@ class utilities(physbiblioDBSub):
 			t = b.rmBibtexComments(t)
 			t = parse_accents_str(t)
 			t = b.rmBibtexACapo(t)
-			b.updateField(e["bibkey"], "bibtex", t, verbose = verbose)
+			b.updateField(e["bibkey"], "bibtex", t, verbose=verbose)
 
 
 def catString(idCat, db, withDesc = False):

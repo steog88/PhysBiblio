@@ -1005,28 +1005,28 @@ class MainWindow(QMainWindow):
 		self.updateAllBibtexs(startFrom, force = force)
 
 	def updateAllBibtexs(self,
-			startFrom = pbConfig.params["defaultUpdateFrom"],
-			useEntries = None,
-			force = False,
-			reloadAll = False):
+			startFrom=pbConfig.params["defaultUpdateFrom"],
+			useEntries=None,
+			force=False,
+			reloadAll=False):
 		self.statusBarMessage(
 			"Starting update of bibtexs from %s..."%startFrom)
 		self._runInThread(
 			thread_updateAllBibtexs, "Update Bibtexs",
-			startFrom, useEntries = useEntries,
-			force = force, reloadAll = reloadAll,
-			totStr = "SearchOAIUpdates will process ",
-			progrStr = "%) - looking for update: ",
-			minProgress = 0., stopFlag = True)
+			startFrom, useEntries=useEntries,
+			force=force, reloadAll=reloadAll,
+			totStr="SearchOAIUpdates will process ",
+			progrStr="%) - looking for update: ",
+			minProgress=0., stopFlag=True)
 		self.refreshMainContent()
 
-	def updateInspireInfo(self, bibkey, inspireID = None):
+	def updateInspireInfo(self, bibkey, inspireID=None):
 		self.statusBarMessage(
 			"Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
 			thread_updateInspireInfo, "Update Info",
 			bibkey, inspireID,
-			minProgress = 0., stopFlag = False)
+			minProgress=0., stopFlag=False)
 		self.refreshMainContent()
 
 	def authorStats(self):
