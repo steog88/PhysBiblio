@@ -2853,32 +2853,302 @@ class TestCommonBibActions(GUITestCase):
 	def test_onMerge(self):
 		"""test onMerge"""
 		c = CommonBibActions(
-			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
-		se = ExpsListWindow(parent=self.mainW,
-			askExps=True,
-			previous=[])
-		self.mainW.selectedExps = [999, 1000]
-		with patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
-					return_value=None) as _ewi,\
-				patch("physbiblio.database.entryExps.insert") as _eei,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _m:
-			c.onExp(testing=se)
-			_im.assert_called_once_with(
-				"Warning: you can just add experiments "
-				+ "to the selected entries, not delete!")
-			_ewi.assert_called_once_with(parent=self.mainW,
-				askExps=True,
-				previous=[])
-			_eei.assert_not_called()
+			[{"bibkey": "abc",
+			"bibtex": '@article{abc, title="abc"}',
+			"doi": "1/2/3",
+			"old_keys": "",
+			"year": "2018"},
+			{"bibkey": "def",
+			"bibtex": '@article{def, title="def"}',
+			"doi": "1/2/3",
+			"old_keys": "",
+			"year": 2018}],
+			self.mainW)
+		e = {"bibkey": "new",
+			"bibtex": '@article{new, title="new"}',
+			"doi": "1/2/3",
+			"old_keys": "",
+			"year": "2018"}
+		with patch("logging.Logger.warning") as _w:
+			mb = MergeBibtexs(e, e, self.mainW)
+		mb.onCancel()
+		#non accepted MergeBibtex form
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("logging.Logger.warning") as _w:
+			c.onMerge(testing=mb)
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_m.assert_called_once_with('Nothing to do')
+		mb.result = True
+		pBDB.bibs.lastFetched = ["last"]
+		#empty bibtex or bibkey
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rl,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
+					return_value=[]) as _c,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
+					return_value=[]) as _u,\
+				patch("physbiblio.database.entries.prepareInsert",
+					side_effect=[
+						{"bibkey": "merged", "bibtex": ""},
+						{"bibkey": "", "bibtex": "new bibtex"}
+						]) as _pi,\
+				patch("physbiblio.database.entries.delete",
+					return_value=[]) as _de,\
+				patch("physbiblio.database.entries.insert",
+					return_value=[]) as _in,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _fl,\
+				patch("logging.Logger.warning") as _w,\
+				patch("logging.Logger.error") as _e:
+			c.onMerge(testing=mb)
 			_m.assert_not_called()
-			se.result = "Ok"
-			c.onExp(testing=se)
-			_eei.assert_called_once_with(["abc", "def"], [999, 1000])
-			_m.assert_called_once_with("Experiments successfully inserted")
+			_rl.assert_not_called()
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_c.assert_not_called()
+			_u.assert_not_called()
+			_pi.assert_called_once_with(
+				bibkey=u'new',
+				bibtex=u'@article{new, title="new"}',
+				book=0,
+				doi=u'1/2/3',
+				exp_paper=0,
+				lecture=0,
+				marks='',
+				noUpdate=0,
+				old_keys='abc, def',
+				phd_thesis=0,
+				proceeding=0,
+				review=0,
+				year=u'2018')
+			_de.assert_not_called()
+			_in.assert_not_called()
+			_fl.assert_not_called()
+			_w.assert_not_called()
+			_e.assert_called_once_with("Empty bibtex and/or bibkey!")
 
-		raise NotImplementedError
+			_e.reset_mock()
+			c.onMerge(testing=mb)
+			_e.assert_called_once_with("Empty bibtex and/or bibkey!")
+
+		e = {"bibkey": "new",
+			"bibtex": '@article{new, title="new"}',
+			"doi": "1/2/3",
+			"old_keys": "",
+			"book": 1,
+			"year": "2018"}
+		with patch("logging.Logger.warning") as _w:
+			mb = MergeBibtexs(e, e, self.mainW)
+		mb.result = True
+		#cannot delete
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rl,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
+					return_value=[]) as _c,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
+					return_value=[]) as _u,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=
+						{"bibkey": "merged", "bibtex": "new bibtex"}
+						) as _pi,\
+				patch("physbiblio.database.entries.delete",
+					side_effect=Exception("error")) as _de,\
+				patch("physbiblio.database.entries.insert",
+					return_value=False) as _in,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _fl,\
+				patch("logging.Logger.warning") as _w,\
+				patch("logging.Logger.error") as _er,\
+				patch("logging.Logger.exception") as _ex:
+			c.onMerge(testing=mb)
+			_m.assert_not_called()
+			_rl.assert_not_called()
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_c.assert_called_once_with()
+			_u.assert_called_once_with()
+			_pi.assert_called_once_with(
+				bibkey=u'new',
+				bibtex=u'@article{new, title="new"}',
+				book=0,
+				doi=u'1/2/3',
+				exp_paper=0,
+				lecture=0,
+				marks='',
+				noUpdate=0,
+				old_keys='abc, def',
+				phd_thesis=0,
+				proceeding=0,
+				review=0,
+				year=u'2018')
+			_de.assert_called_once_with("abc")
+			_in.assert_not_called()
+			_fl.assert_not_called()
+			_w.assert_not_called()
+			_er.assert_not_called()
+			_ex.assert_called_once_with("Cannot delete old items!")
+		#cannot insert
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rl,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
+					return_value=[]) as _c,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
+					return_value=[]) as _u,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=
+						{"bibkey": "merged", "bibtex": "new bibtex"}
+						) as _pi,\
+				patch("physbiblio.database.entries.delete",
+					return_value=True) as _de,\
+				patch("physbiblio.database.entries.insert",
+					return_value=False) as _in,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _fl,\
+				patch("logging.Logger.warning") as _w,\
+				patch("logging.Logger.error") as _er,\
+				patch("logging.Logger.exception") as _ex:
+			c.onMerge(testing=mb)
+			_m.assert_not_called()
+			_rl.assert_not_called()
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_c.assert_called_once_with()
+			_u.assert_called_once_with()
+			_pi.assert_called_once_with(
+				bibkey=u'new',
+				bibtex=u'@article{new, title="new"}',
+				book=0,
+				doi=u'1/2/3',
+				exp_paper=0,
+				lecture=0,
+				marks='',
+				noUpdate=0,
+				old_keys='abc, def',
+				phd_thesis=0,
+				proceeding=0,
+				review=0,
+				year=u'2018')
+			_de.assert_has_calls([call("abc"), call("def")])
+			_in.assert_called_once_with(
+				{'bibkey': 'merged', 'bibtex': 'new bibtex'})
+			_fl.assert_not_called()
+			_w.assert_not_called()
+			_er.assert_called_once_with('Cannot insert new item!')
+			_ex.assert_not_called()
+		#cannot reload
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent",
+					side_effect=Exception("error")) as _rl,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
+					return_value=[]) as _c,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
+					return_value=[]) as _u,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=
+						{"bibkey": "merged", "bibtex": "new bibtex"}
+						) as _pi,\
+				patch("physbiblio.database.entries.delete",
+					return_value=True) as _de,\
+				patch("physbiblio.database.entries.insert",
+					return_value=True) as _in,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _fl,\
+				patch("logging.Logger.warning") as _w,\
+				patch("logging.Logger.error") as _er,\
+				patch("logging.Logger.exception") as _ex:
+			c.onMerge(testing=mb)
+			_m.assert_not_called()
+			_rl.assert_called_once_with(["last"])
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_c.assert_called_once_with()
+			_u.assert_not_called()
+			_pi.assert_called_once_with(
+				bibkey=u'new',
+				bibtex=u'@article{new, title="new"}',
+				book=0,
+				doi=u'1/2/3',
+				exp_paper=0,
+				lecture=0,
+				marks='',
+				noUpdate=0,
+				old_keys='abc, def',
+				phd_thesis=0,
+				proceeding=0,
+				review=0,
+				year=u'2018')
+			_de.assert_has_calls([call("abc"), call("def")])
+			_in.assert_called_once_with(
+				{'bibkey': 'merged', 'bibtex': 'new bibtex'})
+			_fl.assert_called_once_with()
+			_w.assert_called_once_with("Impossible to reload content.")
+			_er.assert_not_called()
+			_ex.assert_not_called()
+		#working
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rl,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
+					return_value=None) as _mbi,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
+					return_value=[]) as _c,\
+				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
+					return_value=[]) as _u,\
+				patch("physbiblio.database.entries.prepareInsert",
+					return_value=
+						{"bibkey": "merged", "bibtex": "new bibtex"}
+						) as _pi,\
+				patch("physbiblio.database.entries.delete",
+					return_value=True) as _de,\
+				patch("physbiblio.database.entries.insert",
+					return_value=True) as _in,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB.bibs) as _fl,\
+				patch("logging.Logger.warning") as _w,\
+				patch("logging.Logger.error") as _er,\
+				patch("logging.Logger.exception") as _ex:
+			c.onMerge(testing=mb)
+			_m.assert_not_called()
+			_rl.assert_called_once_with(["last"])
+			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+			_c.assert_called_once_with()
+			_u.assert_not_called()
+			_pi.assert_called_once_with(
+				bibkey=u'new',
+				bibtex=u'@article{new, title="new"}',
+				book=0,
+				doi=u'1/2/3',
+				exp_paper=0,
+				lecture=0,
+				marks='',
+				noUpdate=0,
+				old_keys='abc, def',
+				phd_thesis=0,
+				proceeding=0,
+				review=0,
+				year=u'2018')
+			_de.assert_has_calls([call("abc"), call("def")])
+			_in.assert_called_once_with(
+				{'bibkey': 'merged', 'bibtex': 'new bibtex'})
+			_fl.assert_called_once_with()
+			_w.assert_not_called()
+			_er.assert_not_called()
+			_ex.assert_not_called()
 
 	def test_onModify(self):
 		"""test onModify"""

@@ -1249,14 +1249,14 @@ class CommonBibActions():
 					self.entries[1]["bibkey"]])
 			else:
 				data["old_keys"] = ", ".join(
-					[self.entries[0]["bibkey"],
-					self.entries[1]["bibkey"]])
+					[self.bibs[0]["bibkey"],
+					self.bibs[1]["bibkey"]])
 			data = pBDB.bibs.prepareInsert(**data)
 			if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
 				pBDB.commit()
 				try:
-					for key in [self.entries[0]["bibkey"],
-							self.entries[1]["bibkey"]]:
+					for key in [self.bibs[0]["bibkey"],
+							self.bibs[1]["bibkey"]]:
 						pBDB.bibs.delete(key)
 				except:
 					pBGUILogger.exception("Cannot delete old items!")
@@ -1274,6 +1274,8 @@ class CommonBibActions():
 							pBLogger.warning("Impossible to reload content.")
 			else:
 				pBGUILogger.error("Empty bibtex and/or bibkey!")
+		else:
+			self.parent().statusBarMessage("Nothing to do")
 
 	def onModify(self):
 		"""Action to be performed when modifying bibtexs.
@@ -1634,7 +1636,7 @@ class EditBibtexDialog(editObjectWindow):
 			pBGUILogger.error(
 				"Invalid form contents: bibtex key will be taken from bibtex!")
 			return False
-		self.result	= True
+		self.result = True
 		self.close()
 
 	def updateBibkey(self):
@@ -2225,6 +2227,11 @@ class MergeBibtexs(EditBibtexDialog):
 
 		i = 0
 		for k in self.generic:
+			try:
+				self.dataOld["0"][k] == self.dataOld["1"][k]
+			except KeyError:
+				pBLogger.warning("Key missing: %s"%k)
+				continue
 			if self.dataOld["0"][k] == self.dataOld["1"][k]:
 				self.textValues[k] = QLineEdit(str(self.dataOld["0"][k]))
 				self.textValues[k].hide()
@@ -2275,7 +2282,10 @@ class MergeBibtexs(EditBibtexDialog):
 		i += 1
 		addFieldOld("0", k, i, 0)
 		addFieldOld("1", k, i, 4)
-		self.textValues[k] = QLineEdit("")
+		if self.dataOld["0"][k] == self.dataOld["1"][k]:
+			self.textValues[k] = QLineEdit(str(self.dataOld["0"][k]))
+		else:
+			self.textValues[k] = QLineEdit("")
 		self.textValues[k].setReadOnly(True)
 		self.currGrid.addWidget(self.textValues[k], i, 2)
 		i += 1
@@ -2288,6 +2298,8 @@ class MergeBibtexs(EditBibtexDialog):
 		addBibtexOld("1", i, 4)
 		addRadio("1", k, i, 3)
 		#radio and connection
+		if self.dataOld["0"][k] == self.dataOld["1"][k]:
+			self.data[k] = self.dataOld["0"][k]
 		self.textValues[k] = QPlainTextEdit(
 			str(self.data[k] if self.data[k] is not None else ""))
 		self.textValues[k].textChanged.connect(self.updateBibkey)
@@ -2310,7 +2322,7 @@ class MergeBibtexs(EditBibtexDialog):
 		self.cancelButton.setAutoDefault(True)
 		self.currGrid.addWidget(self.cancelButton, i, 3, 1, 2)
 
-		self.setGeometry(100,100,3*self.bibtexWidth+50, 25*i)
+		self.setGeometry(100, 100, 3*self.bibtexWidth+50, 25*i)
 		self.centerWindow()
 
 
