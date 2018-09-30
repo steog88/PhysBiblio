@@ -1358,6 +1358,733 @@ class TestCommonBibActions(GUITestCase):
 		self.assertEqual(c.bibs, [{"bibkey": "abc"}, {"bibkey": "def"}])
 		self.assertEqual(c.keys, ["abc", "def"])
 
+	def test_createMenuArxiv(self):
+		"""test _createMenuMarkType"""
+		c = CommonBibActions([
+			{"bibkey": "abc", "arxiv": "1809.00000"}], self.mainW)
+		c.menu = MyMenu(self.mainW)
+		c._createMenuArxiv(False, "")
+		self.assertEqual(c.menu.possibleActions, [])
+		c._createMenuArxiv(False, None)
+		self.assertEqual(c.menu.possibleActions, [])
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onAbs") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onArx") as _b:
+			c._createMenuArxiv(False, "1809.00000")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "arXiv")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Load abstract")
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"Get more fields")
+			c.menu.possibleActions[0][1][1].trigger()
+			_b.assert_called_once_with()
+
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onAbs") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onArx") as _b:
+			c._createMenuArxiv(True, "")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "arXiv")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Load abstract")
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"Get more fields")
+			c.menu.possibleActions[0][1][1].trigger()
+			_a.assert_called_once_with()
+
+	def test_createMenuCopy(self):
+		"""test _createMenuCopy"""
+		p = QWidget()
+		c = CommonBibActions([
+			{"bibkey": "abc", "abstract": "", "link": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		c._createMenuCopy(True, c.bibs[0])
+		self.assertIsInstance(c.menu.possibleActions[0], list)
+		self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
+		self.assertIsInstance(c.menu.possibleActions[0][1], list)
+		self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+		for a in c.menu.possibleActions[0][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+			"key(s)")
+		self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+			"\cite{key(s)}")
+		self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+			"bibtex(s)")
+
+		c = CommonBibActions([
+			{"bibkey": "abc", "abstract": "", "link": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		c._createMenuCopy(False, c.bibs[0])
+		self.assertIsInstance(c.menu.possibleActions[0], list)
+		self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
+		self.assertIsInstance(c.menu.possibleActions[0][1], list)
+		self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+		for a in c.menu.possibleActions[0][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+			"key(s)")
+		self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+			"\cite{key(s)}")
+		self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+			"bibtex(s)")
+
+		c = CommonBibActions([
+			{"bibkey": "abc", "abstract": "abc", "link": "def"}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onCopyKeys") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyCites") as _b,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyBibtexs") as _c,\
+				patch("physbiblio.gui.bibWindows."
+					+ "copyToClipboard") as _d:
+			c._createMenuCopy(False, c.bibs[0])
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"key(s)")
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"\cite{key(s)}")
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"bibtex(s)")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"abstract")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"link")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][1].trigger()
+			_b.assert_called_once_with()
+			_c.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_c.assert_called_once_with()
+			_d.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_d.assert_called_once_with("abc")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][4].trigger()
+			_d.assert_called_once_with("def")
+
+	def test_createMenuInspire(self):
+		"""test _createMenuInspire"""
+		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onComplete") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onUpdate") as _b,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCitations") as _c:
+			c._createMenuInspire(True, "")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 4)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Complete info (ID and auxiliary info)")
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"Update bibtex")
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Reload bibtex")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Citation statistics")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][1].trigger()
+			_b.assert_called_once_with(force=True)
+			_b.reset_mock()
+			c.menu.possibleActions[0][1][2].trigger()
+			_b.assert_called_once_with(force=False, reloadAll=True)
+			_c.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_c.assert_called_once_with()
+
+		c.menu = MyMenu(self.mainW)
+		c._createMenuInspire(False, "")
+		self.assertIsInstance(c.menu.possibleActions[0], list)
+		self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
+		self.assertIsInstance(c.menu.possibleActions[0][1], list)
+		self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+		for a in c.menu.possibleActions[0][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+			"Complete info (ID and auxiliary info)")
+
+		c.menu = MyMenu(self.mainW)
+		c._createMenuInspire(False, None)
+		self.assertIsInstance(c.menu.possibleActions[0], list)
+		self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
+		self.assertIsInstance(c.menu.possibleActions[0][1], list)
+		self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+		for a in c.menu.possibleActions[0][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+			"Complete info (ID and auxiliary info)")
+
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onComplete") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onUpdate") as _b,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCitations") as _c:
+			c._createMenuInspire(False, "123")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 4)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Complete info (ID and auxiliary info)")
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"Update bibtex")
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Reload bibtex")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Citation statistics")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][1].trigger()
+			_b.assert_called_once_with(force=True)
+			_b.reset_mock()
+			c.menu.possibleActions[0][1][2].trigger()
+			_b.assert_called_once_with(force=True, reloadAll=True)
+			_c.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_c.assert_called_once_with()
+
+	def test_createMenuLinks(self):
+		"""test _createMenuLinks"""
+		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}], p)
+		c.menu = MyMenu(self.mainW)
+		c._createMenuLinks("abc", "", "", "")
+		self.assertEqual(c.menu.possibleActions, [])
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink") as _l:
+			c._createMenuLinks("abc", "123", "", "")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Links")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Open into arXiv")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_l.assert_called_once_with("abc", "arxiv")
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink") as _l:
+			c._createMenuLinks("abc", "", "123", "")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Links")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Open DOI link")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_l.assert_called_once_with("abc", "doi")
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink") as _l:
+			c._createMenuLinks("abc", "", "", "123")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Links")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Open into INSPIRE-HEP")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_l.assert_called_once_with("abc", "inspire")
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink") as _l:
+			c._createMenuLinks("abc", "123.456", "1/2/3", "123")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Links")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+			for a in c.menu.possibleActions[0][1]:
+				self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Open into arXiv")
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"Open DOI link")
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open into INSPIRE-HEP")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_l.assert_called_once_with("abc", "arxiv")
+			_l.reset_mock()
+			c.menu.possibleActions[0][1][1].trigger()
+			_l.assert_called_once_with("abc", "doi")
+			_l.reset_mock()
+			c.menu.possibleActions[0][1][2].trigger()
+			_l.assert_called_once_with("abc", "inspire")
+
+	def test_createMenuMarkType(self):
+		"""test _createMenuMarkType"""
+		p = QWidget()
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"marks": "imp,new",
+			"review": 0,
+			"proceeding": 0,
+			"book": 1,
+			"phd_thesis": 1,
+			"lecture": 0,
+			"exp_paper": 0,
+			}], p)
+		c.menu = MyMenu(self.mainW)
+		c._createMenuMarkType(c.bibs[0])
+		self.assertIsInstance(c.menu.possibleActions[0], list)
+		self.assertEqual(c.menu.possibleActions[0][0], "Marks")
+		self.assertIsInstance(c.menu.possibleActions[0][1], list)
+		for a in c.menu.possibleActions[0][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertIsInstance(c.menu.possibleActions[1], list)
+		self.assertEqual(c.menu.possibleActions[1][0], "Type")
+		self.assertIsInstance(c.menu.possibleActions[1][1], list)
+		for a in c.menu.possibleActions[1][1]:
+			self.assertIsInstance(a, QAction)
+		self.assertEqual(c.menu.possibleActions[2], None)
+		for i, m in enumerate(sorted(pBMarks.marks.keys())):
+			with patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onUpdateMark") as _a:
+				c.menu.possibleActions[0][1][i].trigger()
+				_a.assert_called_once_with(m)
+		self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+			"Mark as 'Bad'")
+		self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+			"Mark as 'Favorite'")
+		self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+			"Unmark as 'Important'")
+		self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+			"Unmark as 'To be read'")
+		self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+			"Mark as 'Unclear'")
+		for i, (k, v) in enumerate(sorted(convertType.items())):
+			with patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onUpdateType") as _a:
+				c.menu.possibleActions[1][1][i].trigger()
+				_a.assert_called_once_with(k)
+		self.assertEqual(c.menu.possibleActions[1][1][0].text(),
+			"Unset 'Book'")
+		self.assertEqual(c.menu.possibleActions[1][1][1].text(),
+			"Set 'Experimental paper'")
+		self.assertEqual(c.menu.possibleActions[1][1][2].text(),
+			"Set 'Lecture'")
+		self.assertEqual(c.menu.possibleActions[1][1][3].text(),
+			"Unset 'PhD thesis'")
+		self.assertEqual(c.menu.possibleActions[1][1][4].text(),
+			"Set 'Proceeding'")
+		self.assertEqual(c.menu.possibleActions[1][1][5].text(),
+			"Set 'Review'")
+
+	def test_createMenuPDF(self):
+		"""test _createMenuPDF"""
+		#selection True
+		p = QWidget()
+		c = CommonBibActions([{"bibkey": "abc"}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onDown") as _a:
+			c._createMenuPDF(True, c.bibs[0])
+			self.assertEqual(len(c.menu.possibleActions), 1)
+			self.assertIsInstance(c.menu.possibleActions[0], QAction)
+			self.assertEqual(c.menu.possibleActions[0].text(),
+				"Download PDF from arXiv")
+			_a.assert_not_called()
+			c.menu.possibleActions[0].trigger()
+			_a.assert_called_once_with()
+
+		#no arxiv, no doi
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=[]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="") as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onAddPDF") as _a:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+
+		#only arxiv, w/o file
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "1809.00000",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=[]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="") as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDown") as _b:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Download arXiv PDF")
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_b.assert_called_once_with()
+
+		#only arxiv, w file
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["arxiv.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["arxiv.pdf", ""]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/fd") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDeletePDFFile") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyPDFFile") as _b,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry."
+					+ "openLink") as _l:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Delete arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Copy arXiv PDF")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_l.assert_called_once_with('abc', 'file', fileArg='arxiv.pdf')
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_a.assert_called_once_with('abc', 'arxiv', 'arxiv PDF')
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][4].trigger()
+			_b.assert_called_once_with('abc', 'arxiv')
+
+		#only doi, w/o file
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": "1/2/3"}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=[]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="") as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onAddPDF") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDown") as _b,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onAddPDF") as _a:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Assign DOI PDF")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_a.assert_called_once_with("doi")
+
+		#only doi, w file
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["doi.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["", "doi.pdf"]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/fd") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDeletePDFFile") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyPDFFile") as _b,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry."
+					+ "openLink") as _l:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Delete DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Copy DOI PDF")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_l.assert_called_once_with('abc', 'file', fileArg='doi.pdf')
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_a.assert_called_once_with('abc', 'doi', 'DOI PDF')
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][4].trigger()
+			_b.assert_called_once_with('abc', 'doi')
+
+		#both, w files, no extra
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["arxiv.pdf", "doi.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["arxiv.pdf", "doi.pdf"]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/fd") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDeletePDFFile") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyPDFFile") as _b,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry."
+					+ "openLink") as _l:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 9)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Delete arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Copy arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][5], None)
+			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+				"Open DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+				"Delete DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][8].text(),
+				"Copy DOI PDF")
+
+		#no arxiv, no doi, some extra
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "",
+			"doi": ""}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["a.pdf", "/fd/b.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["", ""]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/fd") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDeletePDFFile") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyPDFFile") as _b,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry."
+					+ "openLink") as _l:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 8)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Delete a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Copy a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
+				"Open b.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+				"Delete b.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+				"Copy b.pdf")
+			_l.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_l.assert_called_once_with('abc', 'file', fileArg='a.pdf')
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][3].trigger()
+			_a.assert_called_once_with('abc', 'a.pdf', 'a.pdf', 'a.pdf')
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][4].trigger()
+			_b.assert_called_once_with('abc', 'a.pdf', 'a.pdf')
+			_l.reset_mock()
+			c.menu.possibleActions[0][1][5].trigger()
+			_l.assert_called_once_with('abc', 'file', fileArg='b.pdf')
+			_a.reset_mock()
+			c.menu.possibleActions[0][1][6].trigger()
+			_a.assert_called_once_with('abc', 'b.pdf', 'b.pdf', '/fd/b.pdf')
+			_b.reset_mock()
+			c.menu.possibleActions[0][1][7].trigger()
+			_b.assert_called_once_with('abc', 'b.pdf', '/fd/b.pdf')
+
+		#arxiv, doi, extra
+		c = CommonBibActions([
+			{"bibkey": "abc",
+			"arxiv": "1809.00000",
+			"doi": "1/2/3"}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["arxiv.pdf", "doi.pdf",
+					"a.pdf", "/fd/b.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["arxiv.pdf", "doi.pdf"]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/fd") as _gd,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDeletePDFFile") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyPDFFile") as _b,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry."
+					+ "openLink") as _l:
+			c._createMenuPDF(False, c.bibs[0])
+			_ge.assert_called_once_with("abc", fullPath=True)
+			_gf.assert_has_calls([call("abc", "arxiv"), call("abc", "doi")])
+			_gd.assert_called_once_with("abc")
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 16)
+			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][1], None)
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"Open arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Delete arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Copy arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][5], None)
+			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+				"Open DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+				"Delete DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][8].text(),
+				"Copy DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][9], None)
+			self.assertEqual(c.menu.possibleActions[0][1][10].text(),
+				"Open a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][11].text(),
+				"Delete a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][12].text(),
+				"Copy a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][13].text(),
+				"Open b.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][14].text(),
+				"Delete b.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][15].text(),
+				"Copy b.pdf")
+
 	def test_createContextMenu(self):
 		"""test createContextMenu"""
 		p = QWidget()
@@ -1877,7 +2604,79 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onExp(self):
 		"""test onExp"""
-		raise NotImplementedError
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		se = ExpsListWindow(parent=self.mainW,
+			askExps=True,
+			previous=[])
+		self.mainW.selectedExps = [999, 1000]
+		with patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
+					return_value=None) as _ewi,\
+				patch("physbiblio.database.entryExps.insert") as _eei,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onExp(testing=se)
+			_im.assert_called_once_with(
+				"Warning: you can just add experiments "
+				+ "to the selected entries, not delete!")
+			_ewi.assert_called_once_with(parent=self.mainW,
+				askExps=True,
+				previous=[])
+			_eei.assert_not_called()
+			_m.assert_not_called()
+			se.result = "Ok"
+			c.onExp(testing=se)
+			_eei.assert_called_once_with(["abc", "def"], [999, 1000])
+			_m.assert_called_once_with("Experiments successfully inserted")
+
+		c = CommonBibActions([{"bibkey": "abc"}], self.mainW)
+		se = ExpsListWindow(parent=self.mainW,
+			askExps=True,
+			previous=[])
+		self.mainW.selectedExps = [999, 1000]
+		with patch("physbiblio.database.experiments.getByEntry",
+				return_value=[]) as _ge,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
+					return_value=None) as _ewi,\
+				patch("physbiblio.database.entryExps.insert") as _eei,\
+				patch("physbiblio.database.entryExps.delete") as _eed,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onExp(testing=se)
+			_ge.assert_called_once_with("abc")
+			_ewi.assert_called_once_with(parent=self.mainW,
+				askExps=True,
+				askForBib="abc",
+				previous=[])
+			_eei.assert_not_called()
+			_eed.assert_not_called()
+			_m.assert_not_called()
+			se.result = "Ok"
+			c.onExp(testing=se)
+			_eed.assert_not_called()
+			_eei.assert_has_calls([call("abc", 999), call("abc", 1000)])
+			_m.assert_called_once_with(
+				"Experiments for 'abc' successfully inserted")
+
+		with patch("physbiblio.database.experiments.getByEntry",
+				return_value=[{"idExp": 1000}, {"idExp": 1001}]) as _ge,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
+					return_value=None) as _ewi,\
+				patch("physbiblio.database.entryExps.insert") as _eei,\
+				patch("physbiblio.database.entryExps.delete") as _eed,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onExp(testing=se)
+			_ge.assert_called_once_with("abc")
+			_ewi.assert_called_once_with(parent=self.mainW,
+				askExps=True,
+				askForBib="abc",
+				previous=[1000, 1001])
+			_eed.assert_called_once_with("abc", 1001)
+			_eei.assert_called_once_with("abc", 999)
+			_m.assert_called_once_with(
+				"Experiments for 'abc' successfully inserted")
 
 	def test_onExport(self):
 		"""test onExport"""
@@ -1890,6 +2689,32 @@ class TestCommonBibActions(GUITestCase):
 
 	def test_onMerge(self):
 		"""test onMerge"""
+		c = CommonBibActions(
+			[{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+		se = ExpsListWindow(parent=self.mainW,
+			askExps=True,
+			previous=[])
+		self.mainW.selectedExps = [999, 1000]
+		with patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
+					return_value=None) as _ewi,\
+				patch("physbiblio.database.entryExps.insert") as _eei,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			c.onExp(testing=se)
+			_im.assert_called_once_with(
+				"Warning: you can just add experiments "
+				+ "to the selected entries, not delete!")
+			_ewi.assert_called_once_with(parent=self.mainW,
+				askExps=True,
+				previous=[])
+			_eei.assert_not_called()
+			_m.assert_not_called()
+			se.result = "Ok"
+			c.onExp(testing=se)
+			_eei.assert_called_once_with(["abc", "def"], [999, 1000])
+			_m.assert_called_once_with("Experiments successfully inserted")
+
 		raise NotImplementedError
 
 	def test_onModify(self):

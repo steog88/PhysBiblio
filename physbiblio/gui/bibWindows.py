@@ -645,6 +645,211 @@ class CommonBibActions():
 		"""Return the parent widget"""
 		return self.parentObj
 
+	def _createMenuArxiv(self, selection, arxiv):
+		"""Create part of the right click menu,
+		concerning the arXiv-related functions
+
+		Parameters:
+			selection: if the menu is for a multiple entries selection
+				or for a right-click event on a single entry
+			arxiv: the arxiv number of the bibtex record
+		"""
+		if selection or (
+				not selection and (arxiv != "" and arxiv is not None)):
+			menuA = []
+			menuA.append(
+				QAction("Load abstract", self.menu, triggered=self.onAbs))
+			menuA.append(
+				QAction("Get more fields", self.menu, triggered=self.onArx))
+			self.menu.possibleActions.append(["arXiv", menuA])
+
+	def _createMenuCopy(self, selection, initialRecord):
+		"""Create part of the right click menu,
+		concerning the copy to clipboard functions
+
+		Parameters:
+			selection: if the menu is for a multiple entries selection
+				or for a right-click event on a single entry
+			initialRecord: the bibtex record to be used
+		"""
+		menuC = [
+			QAction("key(s)", self.menu, triggered=self.onCopyKeys),
+			QAction("\cite{key(s)}", self.menu, triggered=self.onCopyCites),
+			QAction("bibtex(s)", self.menu, triggered=self.onCopyBibtexs)
+			]
+		if not selection:
+			abstract = initialRecord["abstract"]
+			link = initialRecord["link"]
+			if abstract is not None and abstract.strip() != "":
+				menuC.append(
+					QAction("abstract", self.menu,
+						triggered=lambda t=abstract: copyToClipboard(t)))
+			if link is not None and link.strip() != "":
+				menuC.append(
+					QAction("link", self.menu,
+						triggered=lambda t=link: copyToClipboard(t)))
+		self.menu.possibleActions.append(["Copy to clipboard", menuC])
+
+	def _createMenuInspire(self, selection, inspireID):
+		"""Create part of the right click menu,
+		concerning the INSPIRE-HEP-related functions
+
+		Parameters:
+			selection: if the menu is for a multiple entries selection
+				or for a right-click event on a single entry
+			inspireID: the inspire ID of the bibtex record
+		"""
+		menuI = []
+		menuI.append(
+			QAction("Complete info (ID and auxiliary info)", self.menu,
+			triggered=self.onComplete))
+		if selection or (
+				not selection and (inspireID != "" and inspireID is not None)):
+			menuI.append(
+				QAction("Update bibtex", self.menu,
+				triggered=lambda r=True: self.onUpdate(force=r)))
+			menuI.append(
+				QAction("Reload bibtex", self.menu,
+				triggered=lambda f=(not selection), r=True:
+					self.onUpdate(force=f, reloadAll=r)))
+			menuI.append(
+				QAction("Citation statistics", self.menu,
+				triggered=self.onCitations))
+		self.menu.possibleActions.append(["INSPIRE-HEP", menuI])
+
+	def _createMenuLinks(self, bibkey, arxiv, doi, inspireID):
+		"""Create part of the right click menu,
+		concerning the links-related functions
+
+		Parameters:
+			bibkey: the key of the bibtex record
+			arxiv: the arXiv ID of the bibtex record
+			doi: the DOI of the bibtex record
+			inspireID: the inspire ID of the bibtex record
+		"""
+		menuL = []
+		if arxiv is not None and arxiv != "":
+			menuL.append(QAction("Open into arXiv", self.menu,
+				triggered=lambda l=bibkey, t="arxiv":
+					pBGuiView.openLink(l, t)))
+		if doi is not None and doi != "":
+			menuL.append(QAction("Open DOI link", self.menu,
+				triggered=lambda l=bibkey, t="doi":
+					pBGuiView.openLink(l, t)))
+		if inspireID is not None and inspireID != "":
+			menuL.append(QAction("Open into INSPIRE-HEP", self.menu,
+				triggered=lambda l=bibkey, t="inspire":
+					pBGuiView.openLink(l, t)))
+		if len(menuL) > 0:
+			self.menu.possibleActions.append(["Links", menuL])
+
+	def _createMenuMarkType(self, initialRecord):
+		"""Create part of the right click menu,
+		concerning marks and types
+
+		Parameter:
+			initialRecord: the bibtex record to be used
+		"""
+		menuM = []
+		for m in sorted(pBMarks.marks.keys()):
+			if m in initialRecord["marks"]:
+				menuM.append(QAction(
+					"Unmark as '%s'"%pBMarks.marks[m]["desc"], self.menu,
+					triggered=lambda m=m: self.onUpdateMark(m)))
+			else:
+				menuM.append(QAction(
+					"Mark as '%s'"%pBMarks.marks[m]["desc"], self.menu,
+					triggered=lambda m=m: self.onUpdateMark(m)))
+		menuT = []
+		for k, v in sorted(convertType.items()):
+			if initialRecord[k]:
+				menuT.append(QAction(
+					"Unset '%s'"%v, self.menu,
+					triggered=lambda t=k: self.onUpdateType(t)))
+			else:
+				menuT.append(QAction(
+					"Set '%s'"%v, self.menu,
+					triggered=lambda t=k: self.onUpdateType(t)))
+		self.menu.possibleActions.append(["Marks", menuM])
+		self.menu.possibleActions.append(["Type", menuT])
+		self.menu.possibleActions.append(None)
+
+	def _createMenuPDF(self, selection, initialRecord):
+		"""Create part of the right click menu,
+		concerning the PDF functions
+
+		Parameters:
+			selection: if the menu is for a multiple entries selection
+				or for a right-click event on a single entry
+			initialRecord: the bibtex record to be used
+		"""
+		if not selection:
+			bibkey = initialRecord["bibkey"]
+			arxiv = initialRecord["arxiv"]
+			doi = initialRecord["doi"]
+			menuP = []
+			files = pBPDF.getExisting(bibkey, fullPath=True)
+			arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
+			doiFile = pBPDF.getFilePath(bibkey, "doi")
+			pdfDir = pBPDF.getFileDir(bibkey)
+			menuP.append(
+				QAction("Add generic PDF", self.menu,
+					triggered=self.onAddPDF))
+			if (len(files) > 0 and arxivFile in files) \
+					or (arxiv is not None and arxiv != ""):
+				menuP.append(None)
+			if arxivFile in files:
+				files.remove(arxivFile)
+				menuP.append(QAction("Open arXiv PDF", self.menu,
+					triggered=lambda k=bibkey, t="file", f=arxivFile:
+						pBGuiView.openLink(k, t, fileArg = f)))
+				menuP.append(QAction("Delete arXiv PDF", self.menu,
+					triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF":
+						self.onDeletePDFFile(k, a, t)))
+				menuP.append(QAction("Copy arXiv PDF", self.menu,
+					triggered=lambda k=bibkey, a="arxiv":
+						self.onCopyPDFFile(k, a)))
+			elif arxiv is not None and arxiv != "":
+				menuP.append(
+					QAction("Download arXiv PDF", self.menu,
+						triggered=self.onDown))
+			if (len(files) > 0 and doiFile in files) \
+					or (doi is not None and doi != ""):
+				menuP.append(None)
+			if doiFile in files:
+				files.remove(doiFile)
+				menuP.append(QAction("Open DOI PDF", self.menu,
+					triggered=lambda k=bibkey, t="file", f=doiFile:
+						pBGuiView.openLink(k, t, fileArg = f)))
+				menuP.append(QAction("Delete DOI PDF", self.menu,
+					triggered=lambda k=bibkey, a="doi", t="DOI PDF":
+						self.onDeletePDFFile(k, a, t)))
+				menuP.append(QAction("Copy DOI PDF", self.menu,
+					triggered=lambda k=bibkey, a="doi":
+						self.onCopyPDFFile(k, a)))
+			elif doi is not None and doi != "":
+				menuP.append(
+					QAction("Assign DOI PDF", self.menu,
+						triggered=lambda g="doi": self.onAddPDF(g)))
+			if len(files) > 0:
+				menuP.append(None)
+			for i,f in enumerate(files):
+				fn = f.replace(pdfDir+"/", "")
+				menuP.append(QAction("Open %s"%fn, self.menu,
+					triggered=lambda k=bibkey, t="file", f=fn:
+						pBGuiView.openLink(k, t, fileArg = f)))
+				menuP.append(QAction("Delete %s"%fn, self.menu,
+					triggered=lambda k=bibkey, a=fn, t=f:
+						self.onDeletePDFFile(k, a, a, t)))
+				menuP.append(QAction("Copy %s"%fn, self.menu,
+					triggered=lambda k=bibkey, a=fn, t=f:
+						self.onCopyPDFFile(k, a, t)))
+			self.menu.possibleActions.append(["PDF", menuP])
+		else:
+			self.menu.possibleActions.append(
+				QAction("Download PDF from arXiv", self.menu,
+				triggered=self.onDown))
+
 	def createContextMenu(self, selection=False):
 		"""Create a context menu event, for one or multiple entries
 
@@ -653,8 +858,11 @@ class CommonBibActions():
 				a selection of entries. If False, for a single entry
 		"""
 		menu = MyMenu(self.parent())
+		self.menu = menu
 		if len(self.keys) == 0 or len(self.bibs) == 0:
 			return
+		if not selection and (len(self.keys) > 1 or len(self.bibs) > 1):
+			selection = True
 
 		if not selection:
 			self.bibs = [self.bibs[0]]
@@ -664,12 +872,10 @@ class CommonBibActions():
 			if initialRecord["marks"] is None:
 				initialRecord["marks"] = ""
 				pBDB.bibs.updateField(bibkey, "marks", "")
-			abstract = initialRecord["abstract"]
 			arxiv = initialRecord["arxiv"]
 			bibtex = initialRecord["bibtex"]
 			doi = initialRecord["doi"]
 			inspireID = initialRecord["inspire"]
-			link = initialRecord["link"]
 
 			titAct = QAction("--Entry: %s--"%bibkey, menu)
 			titAct.setDisabled(True)
@@ -678,6 +884,9 @@ class CommonBibActions():
 			menu.possibleActions.append(
 				QAction("Modify", menu, triggered=self.onModify))
 		else:
+			initialRecord = None
+			arxiv = None
+			inspireID = None
 			if len(self.keys) == 2:
 				menu.possibleActions.append(
 					QAction("Merge", menu, triggered=self.onMerge))
@@ -689,120 +898,13 @@ class CommonBibActions():
 		menu.possibleActions.append(None)
 
 		if not selection:
-			menuM = []
-			for m in pBMarks.marks.keys():
-				if m in initialRecord["marks"]:
-					menuM.append(QAction(
-						"Unmark as '%s'"%pBMarks.marks[m]["desc"], menu,
-						triggered=lambda m=m: self.onUpdateMark(m)))
-				else:
-					menuM.append(QAction(
-						"Mark as '%s'"%pBMarks.marks[m]["desc"], menu,
-						triggered=lambda m=m: self.onUpdateMark(m)))
-			menu.possibleActions.append(["Marks", menuM])
-			menuT = []
-			for k, v in convertType.items():
-				if initialRecord[k]:
-					menuT.append(QAction(
-						"Unset '%s'"%v, menu,
-						triggered=lambda t=k: self.onUpdateType(t)))
-				else:
-					menuT.append(QAction(
-						"Set '%s'"%v, menu,
-						triggered=lambda t=k: self.onUpdateType(t)))
-			menu.possibleActions.append(["Type", menuT])
-			menu.possibleActions.append(None)
+			self._createMenuMarkType(initialRecord)
 
-		menuC = [
-			QAction("key(s)", menu, triggered=self.onCopyKeys),
-			QAction("\cite{key(s)}", menu, triggered=self.onCopyCites),
-			QAction("bibtex(s)", menu, triggered=self.onCopyBibtexs)
-			]
-		if not selection:
-			if abstract is not None and abstract.strip() != "":
-				menuC.append(
-					QAction("abstract", menu,
-						triggered=lambda t=abstract: copyToClipboard(t)))
-			if link is not None and link.strip() != "":
-				menuC.append(
-					QAction("link", menu,
-						triggered=lambda t=link: copyToClipboard(t)))
-		menu.possibleActions.append(["Copy to clipboard", menuC])
+		menuC = self._createMenuCopy(selection, initialRecord)
 
+		self._createMenuPDF(selection, initialRecord)
 		if not selection:
-			try:
-				if inspireID.strip() == "" or inspireID is False:
-					inspireID = None
-			except AttributeError:
-				inspireID = None
-			menuP = []
-			files = pBPDF.getExisting(bibkey, fullPath=True)
-			arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
-			doiFile = pBPDF.getFilePath(bibkey, "doi")
-			pdfDir = pBPDF.getFileDir(bibkey)
-			menuP.append(
-				QAction("Add generic PDF", menu,
-					triggered=self.onAddPDF))
-			menuP.append(None)
-			if arxivFile in files:
-				files.remove(arxivFile)
-				menuP.append(QAction("Open arXiv PDF", menu,
-					triggered=lambda k=bibkey, t="file", f=arxivFile:
-						pBGuiView.openLink(k, t, fileArg = f)))
-				menuP.append(QAction("Delete arXiv PDF", menu,
-					triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF":
-						self.onDeletePDFFile(k, a, t)))
-				menuP.append(QAction("Copy arXiv PDF", menu,
-					triggered=lambda k=bibkey, a="arxiv":
-						self.onCopyPDFFile(k, a)))
-			elif arxiv is not None and arxiv != "":
-				menuP.append(
-					QAction("Download arXiv PDF", menu,
-						triggered=self.onDown))
-			menuP.append(None)
-			if doiFile in files:
-				files.remove(doiFile)
-				menuP.append(QAction("Open DOI PDF", menu,
-					triggered=lambda k=bibkey, t="file", f=doiFile:
-						pBGuiView.openLink(k, t, fileArg = f)))
-				menuP.append(QAction("Delete DOI PDF", menu,
-					triggered=lambda k=bibkey, a="doi", t="DOI PDF":
-						self.onDeletePDFFile(k, a, t)))
-				menuP.append(QAction("Copy DOI PDF", menu,
-					triggered=lambda k=bibkey, a="doi":
-						self.onCopyPDFFile(k, a)))
-			elif doi is not None and doi != "":
-				menuP.append(
-					QAction("Assign DOI PDF", menu,
-						triggered=lambda g="doi": self.onAddPDF(g)))
-			menuP.append(None)
-			for i,f in enumerate(files):
-				fn = f.replace(pdfDir+"/", "")
-				menuP.append(QAction("Open %s"%fn, menu,
-					triggered=lambda k=bibkey, t="file", f=fn:
-						pBGuiView.openLink(k, t, fileArg = f)))
-				menuP.append(QAction("Delete %s"%fn, menu,
-					triggered=lambda k=bibkey, a=fn, t=f:
-						self.onDeletePDFFile(k, a, a, t)))
-				menuP.append(QAction("Copy %s"%fn, menu,
-					triggered=lambda k=bibkey, a=fn, t=f:
-						self.onCopyPDFFile(k, a, t)))
-			menu.possibleActions.append(["PDF", menuP])
-			menuL = []
-			menuL.append(QAction("Open into arXiv", menu,
-				triggered=lambda l=bibkey, t="arxiv":
-					pBGuiView.openLink(l, t)))
-			menuL.append(QAction("Open DOI link", menu,
-				triggered=lambda l=bibkey, t="doi":
-					pBGuiView.openLink(l, t)))
-			menuL.append(QAction("Open into INSPIRE-HEP", menu,
-				triggered=lambda l=bibkey, t="inspire":
-					pBGuiView.openLink(l, t)))
-			menu.possibleActions.append(["Links", menuL])
-		else:
-			menu.possibleActions.append(
-				QAction("Download PDF from arXiv", menu,
-				triggered=self.onDown))
+			self._createMenuLinks(bibkey, arxiv, doi, inspireID)
 		menu.possibleActions.append(None)
 
 		menu.possibleActions.append(
@@ -811,33 +913,10 @@ class CommonBibActions():
 			QAction("Select experiments", menu, triggered=self.onExp))
 		menu.possibleActions.append(None)
 
-		menuI = []
-		menuI.append(
-			QAction("Complete info (ID and auxiliary info)", menu,
-			triggered=self.onComplete))
-		if selection or (
-				not selection and (inspireID != "" and inspireID is not None)):
-			menuI.append(
-				QAction("Update bibtex", menu,
-				triggered=lambda r=True: self.onUpdate(force=r)))
-			menuI.append(
-				QAction("Reload bibtex", menu,
-				triggered=lambda f=(not selection), r=True:
-					self.onUpdate(force=f, reloadAll=r)))
-			menuI.append(
-				QAction("Citation statistics", menu,
-				triggered=self.onCitations))
-		menuA = []
-		menuA.append(
-			QAction("Load abstract", menu, triggered=self.onAbs))
-		menuA.append(
-			QAction("Get more fields", menu, triggered=self.onArx))
-		menu.possibleActions.append(["INSPIRE-HEP", menuI])
-		if selection or (
-				not selection and (arxiv != "" and arxiv is not None)):
-			menu.possibleActions.append(["arXiv", menuA])
-			one = True
+		self._createMenuInspire(selection, inspireID)
+		self._createMenuArxiv(selection, arxiv)
 		menu.possibleActions.append(None)
+
 		menu.possibleActions.append(
 			QAction("Export entries in a .bib file", menu,
 			triggered=self.onExport))
@@ -846,7 +925,6 @@ class CommonBibActions():
 			triggered=self.onCopyAllPDF))
 
 		menu.fillMenu()
-		self.menu = menu
 		return menu
 
 	def onAddPDF(self, ftype="generic"):
@@ -1086,11 +1164,11 @@ class CommonBibActions():
 		"""
 		if len(self.keys) == 1:
 			bibkey = self.keys[0]
-			previous = [a[0] for a in pBDB.exps.getByEntry(bibkey)]
-			selectExps = ExpsListWindow(parent = self.parent(),
-				askExps = True,
-				askForBib = bibkey,
-				previous = previous)
+			previous = [a["idExp"] for a in pBDB.exps.getByEntry(bibkey)]
+			selectExps = ExpsListWindow(parent=self.parent(),
+				askExps=True,
+				askForBib=bibkey,
+				previous=previous)
 			if testing:
 				selectExps = testing
 			else:
@@ -1104,12 +1182,12 @@ class CommonBibActions():
 					if e not in previous:
 						pBDB.bibExp.insert(bibkey, e)
 				self.parent().statusBarMessage(
-					"experiments for '%s' successfully inserted"%bibkey)
+					"Experiments for '%s' successfully inserted"%bibkey)
 		else:
 			infoMessage("Warning: you can just add experiments "
 				+ "to the selected entries, not delete!")
-			selectExps = ExpsListWindow(parent = self.parent(),
-				askExps = True, previous = [])
+			selectExps = ExpsListWindow(parent=self.parent(),
+				askExps=True, previous=[])
 			if testing:
 				selectExps = testing
 			else:
@@ -1117,7 +1195,7 @@ class CommonBibActions():
 			if selectExps.result == "Ok":
 				pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
 				self.parent().statusBarMessage(
-					"experiments successfully inserted")
+					"Experiments successfully inserted")
 
 	def onExport(self):
 		"""Action to be performed when exporting bibtexs.
@@ -1138,7 +1216,7 @@ class CommonBibActions():
 				instead of running `exec_`
 		"""
 		mergewin = MergeBibtexs(
-			self.entries[0], self.entries[1], self.parent())
+			self.bibs[0], self.bibs[1], self.parent())
 		if testing:
 			mergewin = testing
 		else:
@@ -1284,31 +1362,7 @@ class BibtexListWindow(QFrame, objListWindow):
 		objListWindow.__init__(self, parent)
 		self.mainWin = parent
 
-		self.selAct = QAction(QIcon(":/images/edit-node.png"),
-			"&Select entries", self,
-			#shortcut="Ctrl+S",
-			statusTip="Select entries from the list",
-			triggered=self.enableSelection)
-		self.okAct = QAction(QIcon(":/images/dialog-ok-apply.png"),
-			"Selection &completed", self,
-			#shortcut="Ctrl+S",
-			statusTip="Selection of elements completed",
-			triggered=self.onOk)
-		self.clearAct = QAction(QIcon(":/images/edit-clear.png"),
-			"&Clear selection", self,
-			#shortcut="Ctrl+S",
-			statusTip="Discard the current selection and hide checkboxes",
-			triggered=self.clearSelection)
-		self.selAllAct = QAction(QIcon(":/images/edit-select-all.png"),
-			"&Select all", self,
-			#shortcut="Ctrl+S",
-			statusTip="Select all the elements",
-			triggered=self.selectAll)
-		self.unselAllAct = QAction(QIcon(":/images/edit-unselect-all.png"),
-			"&Unselect all", self,
-			#shortcut="Ctrl+S",
-			statusTip="Unselect all the elements",
-			triggered=self.unselectAll)
+		self.createActions()
 
 		if bibs is not None:
 			self.bibs = bibs
@@ -1336,6 +1390,28 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.tableModel.prepareSelected()
 		self.tableModel.changeAsk(False)
 		self.changeEnableActions()
+
+	def createActions(self):
+		self.selAct = QAction(QIcon(":/images/edit-node.png"),
+			"&Select entries", self,
+			statusTip="Select entries from the list",
+			triggered=self.enableSelection)
+		self.okAct = QAction(QIcon(":/images/dialog-ok-apply.png"),
+			"Selection &completed", self,
+			statusTip="Selection of elements completed",
+			triggered=self.onOk)
+		self.clearAct = QAction(QIcon(":/images/edit-clear.png"),
+			"&Clear selection", self,
+			statusTip="Discard the current selection and hide checkboxes",
+			triggered=self.clearSelection)
+		self.selAllAct = QAction(QIcon(":/images/edit-select-all.png"),
+			"&Select all", self,
+			statusTip="Select all the elements",
+			triggered=self.selectAll)
+		self.unselAllAct = QAction(QIcon(":/images/edit-unselect-all.png"),
+			"&Unselect all", self,
+			statusTip="Unselect all the elements",
+			triggered=self.unselectAll)
 
 	def enableSelection(self):
 		self.tableModel.changeAsk()

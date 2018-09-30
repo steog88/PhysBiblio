@@ -334,6 +334,9 @@ class LocalPDF():
 			key (string): the bibtex key of the entry
 			fullPath (boolean, default False):
 				return the list with absolute paths
+
+		Output:
+			a list, possibly empty
 		"""
 		fileDir = self.getFileDir(key)
 		try:
