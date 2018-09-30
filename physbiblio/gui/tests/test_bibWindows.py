@@ -3279,37 +3279,207 @@ class TestCommonBibActions(GUITestCase):
 class TestBibtexListWindow(GUITestCase):
 	"""test BibtexListWindow"""
 
+	@classmethod
+	def setUpClass(self):
+		"""Define useful things"""
+		super(TestBibtexListWindow, self).setUpClass()
+		self.mainW = MainWindow(testing=True)
+
 	def test_init(self):
 		"""test __init__"""
-		pass
+		with patch("PySide2.QtWidgets.QFrame.__init__",
+				return_value=None) as _fi,\
+				patch("physbiblio.gui.commonClasses.objListWindow."
+					+ "__init__", return_value=None) as _oi,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createActions") as _ca,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createTable") as _ct:
+			bw = BibtexListWindow(parent=self.mainW)
+			_fi.assert_called_once_with(bw, self.mainW)
+			_oi.assert_called_once_with(bw, self.mainW)
+			_ca.assert_called_once_with()
+			_ct.assert_called_once_with()
+
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createActions") as _ca,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createTable") as _ct:
+			bw = BibtexListWindow()
+			self.assertIsInstance(bw, QFrame)
+			self.assertIsInstance(bw, objListWindow)
+			self.assertEqual(bw.parent(), None)
+			self.assertEqual(bw.mainWin, None)
+			self.assertEqual(bw.bibs, None)
+			self.assertEqual(bw.askBibs, False)
+			self.assertEqual(bw.previous, [])
+			self.assertEqual(bw.currentAbstractKey, None)
+			self.assertEqual(bw.columns, pbConfig.params["bibtexListColumns"])
+			self.assertEqual(bw.colcnt, len(bw.columns))
+			self.assertEqual(bw.additionalCols, ["Type", "PDF"])
+			self.assertIsInstance(bw.colContents, list)
+			self.assertEqual(bw.colContents,
+				pbConfig.params["bibtexListColumns"] + ["type", "pdf"])
+
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createTable") as _ct:
+			bw = BibtexListWindow(parent=self.mainW,
+				bibs=[{"bibkey": "abc"}],
+				askBibs=True,
+				previous=["abc"])
+		self.assertIsInstance(bw, QFrame)
+		self.assertIsInstance(bw, objListWindow)
+		self.assertEqual(bw.parent(), self.mainW)
+		self.assertEqual(bw.mainWin, self.mainW)
+		self.assertEqual(bw.bibs, [{"bibkey": "abc"}])
+		self.assertEqual(bw.askBibs, True)
+		self.assertEqual(bw.previous, ["abc"])
 
 	def test_reloadColumnContents(self):
 		"""test reloadColumnContents"""
-		pass
+		bw = BibtexListWindow()
+		bw.columns = ["no"]
+		bw.colcnt = 1
+		bw.reloadColumnContents()
+		self.assertEqual(bw.columns, pbConfig.params["bibtexListColumns"])
+		self.assertEqual(bw.colcnt, len(bw.columns))
+		self.assertEqual(bw.additionalCols, ["Type", "PDF"])
+		self.assertIsInstance(bw.colContents, list)
+		self.assertEqual(bw.colContents,
+			pbConfig.params["bibtexListColumns"] + ["type", "pdf"])
 
 	def test_changeEnableActions(self):
 		"""test changeEnableActions"""
-		pass
+		bw = BibtexListWindow()
+		self.assertFalse(bw.clearAct.isEnabled())
+		self.assertFalse(bw.selAllAct.isEnabled())
+		self.assertFalse(bw.unselAllAct.isEnabled())
+		self.assertFalse(bw.okAct.isEnabled())
+		self.assertFalse(bw.tableModel.ask)
+		bw.tableModel.ask = True
+		bw.changeEnableActions()
+		self.assertTrue(bw.clearAct.isEnabled())
+		self.assertTrue(bw.selAllAct.isEnabled())
+		self.assertTrue(bw.unselAllAct.isEnabled())
+		self.assertTrue(bw.okAct.isEnabled())
 
 	def test_clearSelection(self):
 		"""test clearSelection"""
-		pass
+		bw = BibtexListWindow()
+		bw.tableModel.previous = ["abc"]
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+				+ "prepareSelected") as _ps,\
+				patch("physbiblio.gui.bibWindows.MyBibTableModel."
+					+ "changeAsk") as _ca,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "changeEnableActions") as _ea:
+			bw.clearSelection()
+			self.assertEqual(bw.tableModel.previous, [])
+			_ps.assert_called_once_with()
+			_ca.assert_called_once_with(False)
+			_ea.assert_called_once_with()
 
 	def test_createActions(self):
 		"""test createActions"""
-		pass
+		bw = BibtexListWindow()
+		images = [
+			QImage(":/images/edit-node.png"
+				).convertToFormat(QImage.Format_ARGB32_Premultiplied),
+			QImage(":/images/dialog-ok-apply.png"
+				).convertToFormat(QImage.Format_ARGB32_Premultiplied),
+			QImage(":/images/edit-clear.png"
+				).convertToFormat(QImage.Format_ARGB32_Premultiplied),
+			QImage(":/images/edit-select-all.png"
+				).convertToFormat(QImage.Format_ARGB32_Premultiplied),
+			QImage(":/images/edit-unselect-all.png"
+				).convertToFormat(QImage.Format_ARGB32_Premultiplied)
+			]
+		self.assertIsInstance(bw.selAct, QAction)
+		self.assertEqual(bw.selAct.text(), "&Select entries")
+		self.assertEqual(bw.selAct.parent(), bw)
+		self.assertEqual(images[0],
+			bw.selAct.icon().pixmap(images[0].size()).toImage())
+		self.assertEqual(bw.selAct.statusTip(),
+			"Select entries from the list")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "enableSelection") as _f:
+			bw.selAct.trigger()
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(bw.okAct, QAction)
+		self.assertEqual(bw.okAct.text(), "Selection &completed")
+		self.assertEqual(bw.okAct.parent(), bw)
+		self.assertEqual(images[1],
+			bw.okAct.icon().pixmap(images[1].size()).toImage())
+		self.assertEqual(bw.okAct.statusTip(),
+			"Selection of elements completed")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "onOk") as _f:
+			bw.okAct.trigger()
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(bw.clearAct, QAction)
+		self.assertEqual(bw.clearAct.text(), "&Clear selection")
+		self.assertEqual(bw.clearAct.parent(), bw)
+		self.assertEqual(images[2],
+			bw.clearAct.icon().pixmap(images[2].size()).toImage())
+		self.assertEqual(bw.clearAct.statusTip(),
+			"Discard the current selection and hide checkboxes")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "clearSelection") as _f:
+			bw.clearAct.trigger()
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(bw.selAllAct, QAction)
+		self.assertEqual(bw.selAllAct.text(), "&Select all")
+		self.assertEqual(bw.selAllAct.parent(), bw)
+		self.assertEqual(images[3],
+			bw.selAllAct.icon().pixmap(images[3].size()).toImage())
+		self.assertEqual(bw.selAllAct.statusTip(),
+			"Select all the elements")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "selectAll") as _f:
+			bw.selAllAct.trigger()
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(bw.unselAllAct, QAction)
+		self.assertEqual(bw.unselAllAct.text(), "&Unselect all")
+		self.assertEqual(bw.unselAllAct.parent(), bw)
+		self.assertEqual(images[4],
+			bw.unselAllAct.icon().pixmap(images[4].size()).toImage())
+		self.assertEqual(bw.unselAllAct.statusTip(),
+			"Unselect all the elements")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "unselectAll") as _f:
+			bw.unselAllAct.trigger()
+			_f.assert_called_once_with()
 
 	def test_enableSelection(self):
 		"""test enableSelection"""
-		pass
+		bw = BibtexListWindow()
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+				+ "changeAsk") as _a,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "changeEnableActions") as _e:
+			bw.enableSelection()
+			_a.assert_called_once_with()
+			_e.assert_called_once_with()
 
 	def test_selectAll(self):
 		"""test selectAll"""
-		pass
+		bw = BibtexListWindow()
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+				+ "selectAll") as _f:
+			bw.selectAll()
+			_f.assert_called_once_with()
 
 	def test_unselectAll(self):
 		"""test unselectAll"""
-		pass
+		bw = BibtexListWindow()
+		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+				+ "unselectAll") as _f:
+			bw.unselectAll()
+			_f.assert_called_once_with()
 
 	def test_onOk(self):
 		"""test onOk"""

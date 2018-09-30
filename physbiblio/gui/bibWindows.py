@@ -1341,38 +1341,49 @@ class CommonBibActions():
 
 
 class BibtexListWindow(QFrame, objListWindow):
-	"""W"""
+	"""Class that constructs the main bibtex table"""
 
 	def __init__(self,
-			parent = None,
-			bibs = None,
-			askBibs = False,
-			previous = []):
-		#table dimensions
+			parent=None,
+			bibs=None,
+			askBibs=False,
+			previous=[]):
+		"""Define some properties and create the table
+
+		Parameters:
+			parent (default None): the parent widget
+			bibs (default None): list of bibtex entries to display.
+				if None, database information will be retrieved later
+			askBibs (default False): if True, activate checkboxes
+				for selecting the entries
+			previous (default []): list with the initial selection
+				of entries (used if askBibs is True)
+		"""
+		#table dimensions)
+		self.mainWin = parent
+		self.bibs = bibs
+		self.askBibs = askBibs
+		self.previous = previous
+
+		self.currentAbstractKey = None
 		self.columns = pbConfig.params["bibtexListColumns"]
 		self.colcnt = len(self.columns)
-		self.colContents = []
-		self.previous = previous
-		self.askBibs = askBibs
 		self.additionalCols = ["Type", "PDF"]
+		self.colContents = []
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
-		self.currentAbstractKey = None
 
 		QFrame.__init__(self, parent)
 		objListWindow.__init__(self, parent)
-		self.mainWin = parent
 
 		self.createActions()
-
-		if bibs is not None:
-			self.bibs = bibs
-		else:
-			self.bibs = None
 		self.createTable()
 
 	def reloadColumnContents(self):
+		"""Reload the list of column names
+		(it may have been changed if a profile change occurred)
+		"""
 		self.columns = pbConfig.params["bibtexListColumns"]
 		self.colcnt = len(self.columns)
 		self.colContents = []
@@ -1381,6 +1392,9 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.colContents += [a.lower() for a in self.additionalCols]
 
 	def changeEnableActions(self):
+		"""Enable or disable the buttons related
+		to the bibtex selection
+		"""
 		status = self.tableModel.ask
 		self.clearAct.setEnabled(status)
 		self.selAllAct.setEnabled(status)
@@ -1388,12 +1402,14 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.okAct.setEnabled(status)
 
 	def clearSelection(self):
+		"""Clear the current selection of bibtex entries"""
 		self.tableModel.previous = []
 		self.tableModel.prepareSelected()
 		self.tableModel.changeAsk(False)
 		self.changeEnableActions()
 
 	def createActions(self):
+		"""Create a number of `QAction`s related to bibtex selection"""
 		self.selAct = QAction(QIcon(":/images/edit-node.png"),
 			"&Select entries", self,
 			statusTip="Select entries from the list",
@@ -1416,13 +1432,16 @@ class BibtexListWindow(QFrame, objListWindow):
 			triggered=self.unselectAll)
 
 	def enableSelection(self):
+		"""Enable the selection of entries"""
 		self.tableModel.changeAsk()
 		self.changeEnableActions()
 
 	def selectAll(self):
+		"""Select all the available entries"""
 		self.tableModel.selectAll()
 
 	def unselectAll(self):
+		"""Unselect all the available entries"""
 		self.tableModel.unselectAll()
 
 	def onOk(self):
