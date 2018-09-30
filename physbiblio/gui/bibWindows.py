@@ -918,10 +918,10 @@ class CommonBibActions():
 		menu.possibleActions.append(None)
 
 		menu.possibleActions.append(
-			QAction("Export entries in a .bib file", menu,
+			QAction("Export in a .bib file", menu,
 			triggered=self.onExport))
 		menu.possibleActions.append(
-			QAction("Copy all the (existing) PDF", menu,
+			QAction("Copy all the corresponding PDF", menu,
 			triggered=self.onCopyAllPDF))
 
 		menu.fillMenu()

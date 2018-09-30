@@ -2088,6 +2088,10 @@ class TestCommonBibActions(GUITestCase):
 	def test_createContextMenu(self):
 		"""test createContextMenu"""
 		p = QWidget()
+		c = CommonBibActions([], p)
+		m = c.createContextMenu()
+		self.assertEqual(m, None)
+
 		c = CommonBibActions([
 			{"bibkey": "abc",
 			"marks": "new,imp",
@@ -2104,15 +2108,174 @@ class TestCommonBibActions(GUITestCase):
 			"lecture": 0,
 			"exp_paper": 0,
 			}], p)
-		with patch("physbiblio.pdf.LocalPDF.getExisting",
-				return_value=[]) as _ge,\
-				patch("physbiblio.pdf.LocalPDF.getFilePath",
-					side_effect=[[],[],[]]) as _ge:
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "_createMenuArxiv") as _c1,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuCopy") as _c2,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuInspire") as _c3,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuLinks") as _c4,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuMarkType") as _c5,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuPDF") as _c6,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onModify") as _mod,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onClean") as _cle,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDelete") as _del,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCat") as _cat,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onExp") as _exp,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onExport") as _ext,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyAllPDF") as _cap,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
 			m = c.createContextMenu()
+			self.assertIsInstance(m, MyMenu)
+			self.assertEqual(m.parent(), p)
+			self.assertIsInstance(m.possibleActions[0], QAction)
+			self.assertEqual(m.possibleActions[0].text(), "--Entry: abc--")
+			self.assertEqual(m.possibleActions[0].isEnabled(), False)
+			self.assertEqual(m.possibleActions[1], None)
+			self.assertIsInstance(m.possibleActions[2], QAction)
+			self.assertEqual(m.possibleActions[2].text(), "Modify")
+			_mod.assert_not_called()
+			m.possibleActions[2].trigger()
+			_mod.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[3], QAction)
+			self.assertEqual(m.possibleActions[3].text(), "Clean")
+			_cle.assert_not_called()
+			m.possibleActions[3].trigger()
+			_cle.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[4], QAction)
+			self.assertEqual(m.possibleActions[4].text(), "Delete")
+			_del.assert_not_called()
+			m.possibleActions[4].trigger()
+			_del.assert_called_once_with()
+			self.assertEqual(m.possibleActions[5], None)
+			_c5.assert_called_once_with(c.bibs[0])
+			_c2.assert_called_once_with(False, c.bibs[0])
+			_c6.assert_called_once_with(False, c.bibs[0])
+			_c4.assert_called_once_with(
+				'abc', '1809.00000', '1/2/3/4', '9999999')
+			self.assertEqual(m.possibleActions[6], None)
+			self.assertIsInstance(m.possibleActions[7], QAction)
+			self.assertEqual(m.possibleActions[7].text(), "Select categories")
+			_cat.assert_not_called()
+			m.possibleActions[7].trigger()
+			_cat.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[8], QAction)
+			self.assertEqual(m.possibleActions[8].text(), "Select experiments")
+			_exp.assert_not_called()
+			m.possibleActions[8].trigger()
+			_exp.assert_called_once_with()
+			self.assertEqual(m.possibleActions[9], None)
+			_c3.assert_called_once_with(False, "9999999")
+			_c1.assert_called_once_with(False, "1809.00000")
+			self.assertEqual(m.possibleActions[10], None)
+			self.assertIsInstance(m.possibleActions[11], QAction)
+			self.assertEqual(m.possibleActions[11].text(),
+				"Export in a .bib file")
+			_ext.assert_not_called()
+			m.possibleActions[11].trigger()
+			_ext.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[12], QAction)
+			self.assertEqual(m.possibleActions[12].text(),
+				"Copy all the corresponding PDF")
+			_cap.assert_not_called()
+			m.possibleActions[12].trigger()
+			_cap.assert_called_once_with()
+			_f.assert_called_once_with()
 
 		c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "_createMenuArxiv") as _c1,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuCopy") as _c2,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuInspire") as _c3,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuLinks") as _c4,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuMarkType") as _c5,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "_createMenuPDF") as _c6,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onMerge") as _mer,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onClean") as _cle,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onDelete") as _del,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCat") as _cat,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onExp") as _exp,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onExport") as _ext,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyAllPDF") as _cap,\
+				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
+			m = c.createContextMenu(selection=True)
+			self.assertIsInstance(m, MyMenu)
+			self.assertEqual(m.parent(), p)
+			self.assertIsInstance(m.possibleActions[0], QAction)
+			self.assertEqual(m.possibleActions[0].text(), "Merge")
+			_mer.assert_not_called()
+			m.possibleActions[0].trigger()
+			_mer.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[1], QAction)
+			self.assertEqual(m.possibleActions[1].text(), "Clean")
+			_cle.assert_not_called()
+			m.possibleActions[1].trigger()
+			_cle.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[2], QAction)
+			self.assertEqual(m.possibleActions[2].text(), "Delete")
+			_del.assert_not_called()
+			m.possibleActions[2].trigger()
+			_del.assert_called_once_with()
+			self.assertEqual(m.possibleActions[3], None)
+			_c5.assert_not_called()
+			_c2.assert_called_once_with(True, None)
+			_c6.assert_called_once_with(True, None)
+			_c4.assert_not_called()
+			self.assertEqual(m.possibleActions[4], None)
+			self.assertIsInstance(m.possibleActions[5], QAction)
+			self.assertEqual(m.possibleActions[5].text(), "Select categories")
+			_cat.assert_not_called()
+			m.possibleActions[5].trigger()
+			_cat.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[6], QAction)
+			self.assertEqual(m.possibleActions[6].text(), "Select experiments")
+			_exp.assert_not_called()
+			m.possibleActions[6].trigger()
+			_exp.assert_called_once_with()
+			self.assertEqual(m.possibleActions[7], None)
+			_c3.assert_called_once_with(True, None)
+			_c1.assert_called_once_with(True, None)
+			self.assertEqual(m.possibleActions[8], None)
+			self.assertIsInstance(m.possibleActions[9], QAction)
+			self.assertEqual(m.possibleActions[9].text(),
+				"Export in a .bib file")
+			_ext.assert_not_called()
+			m.possibleActions[9].trigger()
+			_ext.assert_called_once_with()
+			self.assertIsInstance(m.possibleActions[10], QAction)
+			self.assertEqual(m.possibleActions[10].text(),
+				"Copy all the corresponding PDF")
+			_cap.assert_not_called()
+			m.possibleActions[10].trigger()
+			_cap.assert_called_once_with()
+			_f.assert_called_once_with()
+
+		c = CommonBibActions([
+			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}], p)
 		m = c.createContextMenu(selection=True)
-		raise NotImplementedError
+		self.assertEqual(m.possibleActions[0].text(), "Clean")
 
 	def test_onAddPDF(self):
 		"""test onAddPDF"""
@@ -2128,7 +2291,7 @@ class TestCommonBibActions(GUITestCase):
 			_cp.assert_called_once_with('abc',
 				'/h/c/file.pdf', customName='file.pdf')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter = "PDF (*.pdf)")
+				"Where is the PDF located?", filter="PDF (*.pdf)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2141,7 +2304,7 @@ class TestCommonBibActions(GUITestCase):
 			c.onAddPDF(ftype="doi")
 			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter = "PDF (*.pdf)")
+				"Where is the PDF located?", filter="PDF (*.pdf)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2154,7 +2317,7 @@ class TestCommonBibActions(GUITestCase):
 			c.onAddPDF("doi")
 			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter = "PDF (*.pdf)")
+				"Where is the PDF located?", filter="PDF (*.pdf)")
 			_e.assert_called_once_with("Could not copy the new file!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2858,12 +3021,12 @@ class TestBibtexListWindow(GUITestCase):
 		"""test changeEnableActions"""
 		pass
 
-	def test_addMark(self):
-		"""test addMark"""
-		pass
-
 	def test_clearSelection(self):
 		"""test clearSelection"""
+		pass
+
+	def test_createActions(self):
+		"""test createActions"""
 		pass
 
 	def test_enableSelection(self):
