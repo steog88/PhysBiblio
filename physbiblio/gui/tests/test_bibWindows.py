@@ -3548,18 +3548,22 @@ class TestBibtexListWindow(GUITestCase):
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "getEventEntry",
 					return_value=(0, 0, "abc", {"bibkey": "abc"})) as _ge,\
-				patch("logging.Logger.warning") as _w,\
-				patch.object(CommonBibActions, "createContextMenu") as _cm,\
-				patch("physbiblio.gui.bibWindows.CommonBibActions",
+				patch("logging.Logger.warning") as _w:
+			with patch("physbiblio.gui.bibWindows.CommonBibActions",
 					autospec=True) as _ci:
-			self.assertEqual(bw.triggeredContextMenuEvent(
-				9999, 101, QEvent(QEvent.ContextMenu), True),
-				None)
+				self.assertEqual(bw.triggeredContextMenuEvent(
+					9999, 101, QEvent(QEvent.ContextMenu), True),
+					None)
+				_ci.assert_called_once_with([{"bibkey": "abc"}], self.mainW)
 			_w.assert_not_called()
 			_ix.assert_called_once_with(9999, 101)
 			_ge.assert_called_once_with("index")
-			_ci.assert_called_once_with([{"bibkey": "abc"}], self.mainW)
-			_cm.assert_called_once_with()
+			with patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "createContextMenu") as _cm:
+				self.assertEqual(bw.triggeredContextMenuEvent(
+					9999, 101, QEvent(QEvent.ContextMenu), True),
+					None)
+				_cm.assert_called_once_with()
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
