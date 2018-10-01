@@ -1445,6 +1445,10 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.tableModel.unselectAll()
 
 	def onOk(self):
+		"""Used when a selection of entries is completed.
+		Show the right click menu, then clean the selection
+		independently on which action has been chosen
+		"""
 		position = QCursor.pos()
 		self.mainWin.selectedBibs = [ \
 			key for key in self.tableModel.selectedElements.keys() \
@@ -1457,6 +1461,11 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.clearSelection()
 
 	def createTable(self):
+		"""Create the table model, the toolbar for the selection,
+		the filter input box, set some properties.
+		Retrieve the list of bibtex entries from the database
+		if not already given.
+		"""
 		if self.bibs is None:
 			self.bibs = pBDB.bibs.getAll(orderType = "DESC",
 				limitTo = pbConfig.params["defaultLimitBibtexs"])
@@ -1504,6 +1513,11 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.finalizeTable()
 
 	def updateInfo(self, entry):
+		"""Update the info about the current entry on the bottom panels
+
+		Parameter:
+			entry: the bibtex entry to be processed
+		"""
 		self.mainWin.bottomLeft.text.setText(entry["bibtex"])
 		self.mainWin.bottomRight.text.setText(writeBibtexInfo(entry))
 		if self.currentAbstractKey != entry["bibkey"]:
@@ -1511,7 +1525,11 @@ class BibtexListWindow(QFrame, objListWindow):
 			writeAbstract(self.mainWin, entry)
 
 	def getEventEntry(self, index):
-		"""Use index to return bibkey and entry record"""
+		"""Use the model index to return bibkey and entry record
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
 		if not index.isValid():
 			return
 		row = index.row()
@@ -1531,8 +1549,17 @@ class BibtexListWindow(QFrame, objListWindow):
 			return
 		return row, col, bibkey, entry
 
-	def triggeredContextMenuEvent(self, row, col, event):
-		""""""
+	def triggeredContextMenuEvent(self, row, col, event, testing=False):
+		"""Process event when mouse right-clicks an item.
+		Opens a menu with a number of actions
+
+		Parameter:
+			row: the row number
+			col: a the column number
+			event: a `QEvent` instance, used to obtain the mouse
+				position where to open the menu
+			testing (default False): avoid `menu.exec_` during tests.
+		"""
 		index = self.tablewidget.model().index(row, col)
 		try:
 			row, col, bibkey, entry = self.getEventEntry(index)
@@ -1542,12 +1569,24 @@ class BibtexListWindow(QFrame, objListWindow):
 
 		commonActions = CommonBibActions([entry], self.mainWin)
 		menu = commonActions.createContextMenu()
-		menu.exec_(event.globalPos())
+		if not testing:
+			menu.exec_(event.globalPos())
 
 	def handleItemEntered(self, index):
-		pass
+		"""Currently does nothing
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
+		return
 
 	def cellClick(self, index):
+		"""Process event when mouse clicks an item.
+		Currently not used
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
 		try:
 			row, col, bibkey, entry = self.getEventEntry(index)
 		except TypeError:
@@ -1555,7 +1594,14 @@ class BibtexListWindow(QFrame, objListWindow):
 			return
 		self.updateInfo(entry)
 
-	def cellDoubleClick(self, index):
+	def cellDoubleClick(self, index, testing=False):
+		"""Process event when mouse double clicks an item.
+		Opens a link if some columns
+
+		Parameters:
+			index: a `QModelIndex` instance
+			testing (default False):
+		"""
 		try:
 			row, col, bibkey, entry = self.getEventEntry(index)
 		except TypeError:
@@ -1599,8 +1645,8 @@ class BibtexListWindow(QFrame, objListWindow):
 							pBPDF.getFileDir(bibkey), filename))
 
 	def finalizeTable(self):
-		"""resize the table to fit the contents, connect click
-		and doubleclick functions, add layout
+		"""Set the font size, resize the table to fit the contents,
+		connect click and doubleclick functions, add layout
 		"""
 		font = QFont()
 		font.setPointSize(pbConfig.params["bibListFontSize"])
@@ -1614,14 +1660,20 @@ class BibtexListWindow(QFrame, objListWindow):
 
 		self.currLayout.addWidget(self.tablewidget)
 
-	def recreateTable(self, bibs = None):
-		"""delete previous table widget and create a new one"""
+	def recreateTable(self, bibs=None):
+		"""Call `self.cleanLayout` and `self.createTable`
+		to renew the main table content.
+
+		Parameter:
+			bibs (default None): the list of bibtex entries to use.
+				if None, use `getAll` on the database
+		"""
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		if bibs is not None:
 			self.bibs = bibs
 		else:
-			self.bibs = pBDB.bibs.getAll(orderType = "DESC",
-				limitTo = pbConfig.params["defaultLimitBibtexs"])
+			self.bibs = pBDB.bibs.getAll(orderType="DESC",
+				limitTo=pbConfig.params["defaultLimitBibtexs"])
 		self.cleanLayout()
 		self.createTable()
 		QApplication.restoreOverrideCursor()

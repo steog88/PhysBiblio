@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtGui import QPixmap
 from PySide2.QtWidgets import QWidget
@@ -769,10 +769,10 @@ class TestFunctions(GUITestCase):
 	def test_deleteBibtex(self):
 		"""test deleteBibtex"""
 		p = QWidget()
-		m = MainWindow(testing = True)
-		m.bibtexListWindow = BibtexListWindow(m)
+		m = MainWindow(testing=True)
+		m.bibtexListWindow = BibtexListWindow(m, bibs=[])
 		with patch("physbiblio.gui.bibWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s:
 			deleteBibtex(m, "mykey")
@@ -782,7 +782,7 @@ class TestFunctions(GUITestCase):
 			_s.assert_called_once_with("Nothing changed")
 
 		with patch("physbiblio.gui.bibWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("logging.Logger.debug") as _d:
 			deleteBibtex(p, "mykey")
 			_a.assert_called_once_with(
@@ -793,7 +793,7 @@ class TestFunctions(GUITestCase):
 				exc_info=True)
 
 		with patch("physbiblio.gui.bibWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.entries.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -814,7 +814,7 @@ class TestFunctions(GUITestCase):
 				])
 
 		with patch("physbiblio.gui.bibWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.entries.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -837,7 +837,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_init(self):
 		"""test __init__"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		m.bottomCenter = BibtexInfo(m)
 		af = AbstractFormulas(m, "test text")
 		self.assertEqual(af.fontsize, pbConfig.params["bibListFontSize"])
@@ -851,7 +851,7 @@ class TestAbstractFormulas(GUITestCase):
 
 		bi = BibtexInfo()
 		af = AbstractFormulas(m, "test text",
-			fontsize = 99,
+			fontsize=99,
 			abstractTitle="Title",
 			customEditor=bi.text,
 			statusMessages="a")
@@ -866,7 +866,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_hasLatex(self):
 		"""test hasLatex"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		m.bottomCenter = BibtexInfo(m)
 		af = AbstractFormulas(m, "test text")
 		self.assertEqual(af.hasLatex(), False)
@@ -875,7 +875,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_doText(self):
 		"""test doText"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		bi = BibtexInfo(m)
 		af = AbstractFormulas(m, "test text", customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
@@ -917,7 +917,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_mathTexToQPixmap(self):
 		"""test mathTex_to_QPixmap"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		bi = BibtexInfo(m)
 		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
@@ -948,7 +948,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_prepareText(self):
 		"""test prepareText"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		bi = BibtexInfo(m)
 		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
@@ -966,7 +966,7 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_submitText(self):
 		"""test submitText"""
-		m = MainWindow(testing = True)
+		m = MainWindow(testing=True)
 		bi = BibtexInfo(m)
 		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
@@ -3284,6 +3284,9 @@ class TestBibtexListWindow(GUITestCase):
 		"""Define useful things"""
 		super(TestBibtexListWindow, self).setUpClass()
 		self.mainW = MainWindow(testing=True)
+		self.mainW.bottomLeft = BibtexInfo(self.mainW)
+		self.mainW.bottomCenter = BibtexInfo(self.mainW)
+		self.mainW.bottomRight = BibtexInfo(self.mainW)
 
 	def test_init(self):
 		"""test __init__"""
@@ -3295,7 +3298,7 @@ class TestBibtexListWindow(GUITestCase):
 					+ "createActions") as _ca,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "createTable") as _ct:
-			bw = BibtexListWindow(parent=self.mainW)
+			bw = BibtexListWindow(parent=self.mainW, bibs=[])
 			_fi.assert_called_once_with(bw, self.mainW)
 			_oi.assert_called_once_with(bw, self.mainW)
 			_ca.assert_called_once_with()
@@ -3305,12 +3308,12 @@ class TestBibtexListWindow(GUITestCase):
 					+ "createActions") as _ca,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "createTable") as _ct:
-			bw = BibtexListWindow()
+			bw = BibtexListWindow(bibs=[])
 			self.assertIsInstance(bw, QFrame)
 			self.assertIsInstance(bw, objListWindow)
 			self.assertEqual(bw.parent(), None)
 			self.assertEqual(bw.mainWin, None)
-			self.assertEqual(bw.bibs, None)
+			self.assertEqual(bw.bibs, [])
 			self.assertEqual(bw.askBibs, False)
 			self.assertEqual(bw.previous, [])
 			self.assertEqual(bw.currentAbstractKey, None)
@@ -3337,7 +3340,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_reloadColumnContents(self):
 		"""test reloadColumnContents"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		bw.columns = ["no"]
 		bw.colcnt = 1
 		bw.reloadColumnContents()
@@ -3350,7 +3353,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_changeEnableActions(self):
 		"""test changeEnableActions"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		self.assertFalse(bw.clearAct.isEnabled())
 		self.assertFalse(bw.selAllAct.isEnabled())
 		self.assertFalse(bw.unselAllAct.isEnabled())
@@ -3365,7 +3368,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_clearSelection(self):
 		"""test clearSelection"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		bw.tableModel.previous = ["abc"]
 		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
 				+ "prepareSelected") as _ps,\
@@ -3381,7 +3384,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_createActions(self):
 		"""test createActions"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		images = [
 			QImage(":/images/edit-node.png"
 				).convertToFormat(QImage.Format_ARGB32_Premultiplied),
@@ -3456,7 +3459,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_enableSelection(self):
 		"""test enableSelection"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
 				+ "changeAsk") as _a,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
@@ -3467,7 +3470,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_selectAll(self):
 		"""test selectAll"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
 				+ "selectAll") as _f:
 			bw.selectAll()
@@ -3475,7 +3478,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_unselectAll(self):
 		"""test unselectAll"""
-		bw = BibtexListWindow()
+		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
 				+ "unselectAll") as _f:
 			bw.unselectAll()
@@ -3483,43 +3486,152 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		pass
+		raise NotImplementedError
 
 	def test_createTable(self):
 		"""test createTable"""
-		pass
+		raise NotImplementedError
 
 	def test_updateInfo(self):
 		"""test updateInfo"""
-		pass
+		bw = BibtexListWindow(parent=self.mainW, bibs=[])
+		self.assertEqual(bw.currentAbstractKey, None)
+		with patch("PySide2.QtWidgets.QTextEdit.setText") as _st,\
+				patch("physbiblio.gui.bibWindows.writeAbstract") as _wa,\
+				patch("physbiblio.gui.bibWindows.writeBibtexInfo",
+					return_value="info") as _wb:
+			bw.updateInfo({"bibkey": "abc", "bibtex": "text"})
+			_wb.assert_called_once_with({"bibkey": "abc", "bibtex": "text"})
+			_st.assert_has_calls([
+				call("text"),
+				call("info")])
+			_wa.assert_called_once_with(self.mainW,
+				{"bibkey": "abc", "bibtex": "text"})
+			self.assertEqual(bw.currentAbstractKey, "abc")
+		with patch("PySide2.QtWidgets.QTextEdit.setText") as _st,\
+				patch("physbiblio.gui.bibWindows.writeAbstract") as _wa,\
+				patch("physbiblio.gui.bibWindows.writeBibtexInfo",
+					return_value="info") as _wb:
+			bw.updateInfo({"bibkey": "abc", "bibtex": "text"})
+			_wb.assert_called_once_with({"bibkey": "abc", "bibtex": "text"})
+			_st.assert_has_calls([
+				call("text"),
+				call("info")])
+			_wa.assert_not_called()
+			self.assertEqual(bw.currentAbstractKey, "abc")
+			bw.updateInfo({"bibkey": "def", "bibtex": "text"})
+			_wa.assert_called_once_with(self.mainW,
+				{"bibkey": "def", "bibtex": "text"})
+			self.assertEqual(bw.currentAbstractKey, "def")
 
 	def test_getEventEntry(self):
 		"""test getEventEntry"""
-		pass
+		raise NotImplementedError
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
-		pass
+		bw = BibtexListWindow(parent=self.mainW,
+			bibs=[{"bibtex": "text", "bibkey": "abc", "marks": ""}])
+		with patch("PySide2.QtCore.QSortFilterProxyModel.index",
+				return_value="index") as _ix,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry", return_value=None) as _ge,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(bw.triggeredContextMenuEvent(
+				9999, 101, QEvent(QEvent.ContextMenu)),
+				None)
+			_w.assert_called_once_with("The index is not valid!")
+			_ix.assert_called_once_with(9999, 101)
+			_ge.assert_called_once_with("index")
+		with patch("PySide2.QtCore.QSortFilterProxyModel.index",
+				return_value="index") as _ix,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, 0, "abc", {"bibkey": "abc"})) as _ge,\
+				patch("logging.Logger.warning") as _w,\
+				patch.object(CommonBibActions, "createContextMenu") as _cm,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions",
+					autospec=True) as _ci:
+			self.assertEqual(bw.triggeredContextMenuEvent(
+				9999, 101, QEvent(QEvent.ContextMenu), True),
+				None)
+			_w.assert_not_called()
+			_ix.assert_called_once_with(9999, 101)
+			_ge.assert_called_once_with("index")
+			_ci.assert_called_once_with([{"bibkey": "abc"}], self.mainW)
+			_cm.assert_called_once_with()
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
-		pass
+		bw = BibtexListWindow(bibs=[])
+		self.assertEqual(bw.handleItemEntered(QModelIndex()), None)
 
 	def test_cellClick(self):
 		"""test cellClick"""
-		pass
+		bw = BibtexListWindow(parent=self.mainW, bibs=[])
+		ix = QModelIndex()
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+				return_value=None) as _ge,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(bw.cellClick(ix), None)
+			_w.assert_called_once_with("The index is not valid!")
+			_ge.assert_called_once_with(ix)
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+				return_value=(0, 0, "abc", {"bibkey": "abc"})) as _ge,\
+				patch("logging.Logger.warning") as _w,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			self.assertEqual(bw.cellClick(ix), None)
+			_ui.assert_called_once_with({"bibkey": "abc"})
+			_ge.assert_called_once_with(ix)
 
 	def test_cellDoubleClick(self):
 		"""test cellDoubleClick"""
-		pass
+		bw = BibtexListWindow(bibs=[])
+		raise NotImplementedError
 
 	def test_finalizeTable(self):
-		"""test"""
-		pass
+		"""test finalizeTable"""
+		bw = BibtexListWindow(bibs=[])
+		raise NotImplementedError
 
 	def test_recreateTable(self):
-		"""test"""
-		pass
+		"""test recreateTable"""
+		bw = BibtexListWindow(bibs=[])
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "cleanLayout") as _cl,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createTable") as _ct,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch("physbiblio.database.entries.getAll") as _ga:
+			bw.recreateTable(bibs="bibs")
+			_ga.assert_not_called()
+			_cl.assert_called_once_with()
+			_ct.assert_called_once_with()
+			_rc.assert_called_once_with()
+			_sc.assert_called_once_with(Qt.WaitCursor)
+			self.assertEqual(bw.bibs, "bibs")
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "cleanLayout") as _cl,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "createTable") as _ct,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch("physbiblio.database.entries.getAll",
+					return_value="getall") as _ga:
+			bw.recreateTable()
+			_ga.assert_called_once_with(orderType="DESC",
+				limitTo=pbConfig.params["defaultLimitBibtexs"])
+			_cl.assert_called_once_with()
+			_ct.assert_called_once_with()
+			_rc.assert_called_once_with()
+			_sc.assert_called_once_with(Qt.WaitCursor)
+			self.assertEqual(bw.bibs, "getall")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
