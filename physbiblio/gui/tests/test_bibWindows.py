@@ -8,15 +8,15 @@ import traceback
 import os
 from PySide2.QtCore import Qt, QModelIndex
 from PySide2.QtTest import QTest
-from PySide2.QtGui import QPixmap
-from PySide2.QtWidgets import QWidget
+from PySide2.QtGui import QMouseEvent, QPixmap
+from PySide2.QtWidgets import QMenu, QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -3486,11 +3486,109 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		raise NotImplementedError
+		bw = BibtexListWindow(parent=self.mainW, bibs=[])
+		self.assertFalse(hasattr(self.mainW, "selectedBibs"))
+		bw.tableModel.selectedElements = {
+			"abc": False, "def": True, "ghi": True}
+		tmp = MagicMock()
+		tmp.exec_ = MagicMock()
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "clearSelection") as _cl,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions",
+					autospec=True) as _ci,\
+				patch("physbiblio.database.entries.getByKey",
+					side_effect=[[{"bibkey": "def"}], [{"bibkey": "ghi"}]]
+					) as _g:
+			bw.onOk()
+			_cl.assert_called_once_with()
+			_g.assert_has_calls([call("def"), call("ghi")])
+			_ci.assert_called_once_with(
+				[{"bibkey": "def"}, {"bibkey": "ghi"}],
+				self.mainW)
+			self.assertEqual(self.mainW.selectedBibs, ["def", "ghi"])
+		bw.tableModel.selectedElements = {
+			"abc": False, "def": False, "ghi": False}
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "clearSelection") as _cl,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "createContextMenu", return_value=tmp) as _cm,\
+				patch("physbiblio.database.entries.getByKey",
+					side_effect=[]) as _g:
+			bw.onOk()
+			_cl.assert_called_once_with()
+			_cm.assert_called_once_with(selection=True)
+			_g.assert_not_called()
+			tmp.exec_.assert_called_once_with(QCursor.pos())
+			self.assertEqual(self.mainW.selectedBibs, [])
 
 	def test_createTable(self):
 		"""test createTable"""
-		raise NotImplementedError
+		bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
+		bw.cleanLayout()
+		pBDB.bibs.lastQuery = "myquery"
+		pBDB.bibs.lastVals = (1, 2, 3)
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "changeEnableActions") as _cea,\
+				patch("physbiblio.gui.commonClasses.objListWindow."
+					+ "setProxyStuff") as _sps,\
+				patch("PySide2.QtWidgets.QTableView.hideColumn") as _hc,\
+				patch("PySide2.QtWidgets.QToolBar.addAction") as _aa,\
+				patch("PySide2.QtWidgets.QToolBar.addWidget") as _aw,\
+				patch("physbiblio.gui.bibWindows.MyBibTableModel",
+					autospec=True) as _tm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "finalizeTable") as _ft:
+			bw.createTable()
+			_tm.assert_called_once_with(bw,
+				bw.bibs,
+				bw.columns + bw.additionalCols,
+				bw.columns,
+				bw.additionalCols,
+				askBibs=bw.askBibs,
+				mainWin=bw.mainWin,
+				previous=bw.previous)
+			_cea.assert_called_once_with()
+			_sps.assert_called_once_with(bw.columns.index("firstdate"),
+				Qt.DescendingOrder)
+			_hc.assert_called_once_with(
+				len(bw.columns) + len(bw.additionalCols))
+			_ft.assert_called_once_with()
+		# check mylabel in widget 0
+		self.assertIsInstance(bw.lastLabel, MyLabel)
+		self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.lastLabel)
+		self.assertEqual(bw.lastLabel.text(),
+			"Last query to bibtex database: \tmyquery\t\t"
+			+ " - arguments:\t(1, 2, 3)")
+		self.assertIsInstance(bw.mergeLabel, MyLabel)
+		self.assertEqual(bw.mergeLabel.text(),
+			"(Select exactly two entries to enable merging them)")
+		# check toolbar content
+		self.assertIsInstance(bw.selectToolBar, QToolBar)
+		self.assertEqual(bw.selectToolBar.windowTitle(), 'Bibs toolbar')
+		self.assertEqual(bw.currLayout.itemAt(1).widget(), bw.selectToolBar)
+		_aa.assert_has_calls([
+			call(bw.selAct),
+			call(bw.clearAct),
+			call(bw.selAllAct),
+			call(bw.unselAllAct),
+			call(bw.okAct)])
+		_aw.assert_has_calls([
+			call(bw.mergeLabel),
+			call(bw.filterInput)])
+		# check filterinput
+		self.assertIsInstance(bw.filterInput, QLineEdit)
+		self.assertEqual(bw.filterInput.placeholderText(),
+			"Filter bibliography")
+		with patch("physbiblio.gui.commonClasses.objListWindow."
+				+ "changeFilter") as _cf:
+			bw.filterInput.textChanged.emit("abc")
+			_cf.assert_called_once_with("abc")
+		bw.bibs = None
+		with patch("physbiblio.database.entries.getAll",
+				return_value=[{"bibkey": "xyz"}]) as _ga:
+			bw.createTable()
+			_ga.assert_called_once_with(orderType="DESC",
+				limitTo=pbConfig.params["defaultLimitBibtexs"])
 
 	def test_updateInfo(self):
 		"""test updateInfo"""
@@ -3526,19 +3624,42 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_getEventEntry(self):
 		"""test getEventEntry"""
-		raise NotImplementedError
+		bw = BibtexListWindow(bibs=[
+			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}])
+		with patch("physbiblio.database.entries.getByBibkey",
+				side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []]) as _gbb,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 0)),
+				(0, 0, "abc", "Rabc"))
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 3)),
+				(0, 3, "abc", "Rabc"))
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(1, 0)),
+				(1, 0, "def", "Rdef"))
+			#will fail because of no DB correspondence:
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(1, 0)),
+				None)
+			_d.assert_called_once_with("The entry cannot be found!")
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(2, 0)),
+				None)
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(12, 0)),
+				None)
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
 		bw = BibtexListWindow(parent=self.mainW,
 			bibs=[{"bibtex": "text", "bibkey": "abc", "marks": ""}])
+		ev = QMouseEvent(QEvent.MouseButtonPress,
+			QCursor.pos(),
+			Qt.RightButton,
+			Qt.NoButton,
+			Qt.NoModifier)
 		with patch("PySide2.QtCore.QSortFilterProxyModel.index",
 				return_value="index") as _ix,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "getEventEntry", return_value=None) as _ge,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(bw.triggeredContextMenuEvent(
-				9999, 101, QEvent(QEvent.ContextMenu)),
+				9999, 101, ev),
 				None)
 			_w.assert_called_once_with("The index is not valid!")
 			_ix.assert_called_once_with(9999, 101)
@@ -3552,7 +3673,7 @@ class TestBibtexListWindow(GUITestCase):
 			with patch("physbiblio.gui.bibWindows.CommonBibActions",
 					autospec=True) as _ci:
 				self.assertEqual(bw.triggeredContextMenuEvent(
-					9999, 101, QEvent(QEvent.ContextMenu), True),
+					9999, 101, ev),
 					None)
 				_ci.assert_called_once_with([{"bibkey": "abc"}], self.mainW)
 			_w.assert_not_called()
@@ -3561,8 +3682,16 @@ class TestBibtexListWindow(GUITestCase):
 			with patch("physbiblio.gui.bibWindows.CommonBibActions."
 					+ "createContextMenu") as _cm:
 				self.assertEqual(bw.triggeredContextMenuEvent(
-					9999, 101, QEvent(QEvent.ContextMenu), True),
+					9999, 101, ev),
 					None)
+				_cm.assert_called_once_with()
+			tmp = MagicMock()
+			tmp.exec_ = MagicMock()
+			with patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "createContextMenu", return_value=tmp) as _cm:
+				bw.triggeredContextMenuEvent(
+					9999, 101, ev)
+				tmp.exec_.assert_called_once_with(QCursor.pos())
 				_cm.assert_called_once_with()
 
 	def test_handleItemEntered(self):
@@ -3591,13 +3720,224 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_cellDoubleClick(self):
 		"""test cellDoubleClick"""
-		bw = BibtexListWindow(bibs=[])
-		raise NotImplementedError
+		bw = BibtexListWindow(parent=self.mainW,
+			bibs=[{"bibtex": "text", "bibkey": "abc"}])
+		ix = QModelIndex()
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry", return_value=None) as _ge,\
+				patch("logging.Logger.warning") as _w:
+			self.assertEqual(bw.cellDoubleClick(ix), None)
+			_w.assert_called_once_with("The index is not valid!")
+
+		currentry = {"bibkey": "abc",
+			"doi": "1/2/3",
+			"arxiv": "1234.56789",
+			"inspire": "9876543"}
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("doi"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ge.assert_called_once_with(ix)
+			_ui.assert_called_once_with(currentry)
+			_ol.assert_called_once_with("abc", "doi")
+		currentry["doi"] = ""
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("doi"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+		currentry["doi"] = None
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("doi"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("arxiv"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ge.assert_called_once_with(ix)
+			_ui.assert_called_once_with(currentry)
+			_ol.assert_called_once_with("abc", "arxiv")
+		currentry["arxiv"] = ""
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("arxiv"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+		currentry["arxiv"] = None
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("arxiv"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("inspire"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ge.assert_called_once_with(ix)
+			_ui.assert_called_once_with(currentry)
+			_ol.assert_called_once_with("abc", "inspire")
+		currentry["inspire"] = ""
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("inspire"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+		currentry["inspire"] = None
+		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+				) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("inspire"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui:
+			bw.cellDoubleClick(ix)
+			_ol.assert_not_called()
+
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["/tmp/file.pdf"]) as _gf,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("pdf"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m:
+			bw.cellDoubleClick(ix)
+			_gf.assert_called_once_with("abc", fullPath=True)
+			_ol.assert_called_once_with("abc", "file", fileArg="/tmp/file.pdf")
+			_m.assert_called_once_with("opening PDF...")
+
+		tmp = MagicMock()
+		tmp.exec_ = MagicMock()
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"]) as _gf,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("pdf"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m,\
+				patch("physbiblio.gui.bibWindows.AskPDFAction",
+					return_value=tmp) as _apa:
+			bw.cellDoubleClick(ix)
+			_gf.assert_called_once_with("abc", fullPath=True)
+			_ol.assert_not_called()
+			_m.assert_not_called()
+			_apa.assert_called_once_with("abc", bw)
+			tmp.exec_.assert_called_once_with(QCursor.pos())
+		tmp.result = "openArxiv"
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"]) as _gf,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["/tmp/arxiv.pdf", "/tmp/doi.pdf"]) as _gp,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/tmp") as _gd,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "getEventEntry",
+					return_value=(0, bw.colContents.index("pdf"),
+						"abc", currentry)) as _ge,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "updateInfo") as _ui,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m,\
+				patch("physbiblio.gui.bibWindows.AskPDFAction",
+					return_value=tmp) as _apa:
+			bw.cellDoubleClick(ix)
+			_gp.assert_called_once_with("abc", "arxiv")
+			_ol.assert_called_once_with("abc", "file",
+				fileArg="/tmp/arxiv.pdf")
+			_m.assert_called_once_with("opening arXiv PDF...")
+			tmp.result = "openDoi"
+			bw.cellDoubleClick(ix)
+			_gp.assert_called_with("abc", "doi")
+			_ol.assert_called_with("abc", "file",
+				fileArg="/tmp/doi.pdf")
+			_m.assert_called_with("opening DOI PDF...")
+			tmp.result = "openOther_file1.pdf"
+			bw.cellDoubleClick(ix)
+			_gd.assert_called_with("abc")
+			_ol.assert_called_with("abc", "file",
+				fileArg="/tmp/file1.pdf")
+			_m.assert_called_with("opening file1.pdf...")
 
 	def test_finalizeTable(self):
 		"""test finalizeTable"""
 		bw = BibtexListWindow(bibs=[])
-		raise NotImplementedError
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "cellClick") as _f:
+			bw.tablewidget.clicked.emit(QModelIndex())
+			_f.assert_called_once()
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "cellDoubleClick") as _f:
+			bw.tablewidget.doubleClicked.emit(QModelIndex())
+			_f.assert_called_once()
+		bw.cleanLayout()
+		with patch("PySide2.QtGui.QFont.setPointSize") as _sps,\
+				patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents"
+					) as _rc,\
+				patch("PySide2.QtWidgets.QTableView.resizeRowsToContents"
+					) as _rr:
+			bw.finalizeTable()
+			_rc.assert_called_once_with()
+			_rr.assert_called_once_with()
+			self.assertIsInstance(bw.tablewidget.font(), QFont)
+			self.assertEqual(bw.tablewidget.font().pointSize(),
+				pbConfig.params["bibListFontSize"])
+			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tablewidget)
 
 	def test_recreateTable(self):
 		"""test recreateTable"""

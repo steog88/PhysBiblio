@@ -570,7 +570,11 @@ class MyBibTableModel(MyTableModel):
 			return None
 		if "marks" in self.stdCols \
 				and column == self.stdCols.index("marks"):
-			hasImg, value = self.addMarksCell(rowData["marks"])
+			try:
+				hasImg, value = self.addMarksCell(rowData["marks"])
+			except KeyError:
+				pBLogger.debug("missing key: 'marks' in %s"%rowData.keys())
+				hasImg, value = self.addMarksCell("")
 		elif column < self.lenStdCols:
 			try:
 				value = rowData[self.stdCols[column]]
@@ -1450,9 +1454,9 @@ class BibtexListWindow(QFrame, objListWindow):
 		independently on which action has been chosen
 		"""
 		position = QCursor.pos()
-		self.mainWin.selectedBibs = [ \
+		self.mainWin.selectedBibs = sorted([ \
 			key for key in self.tableModel.selectedElements.keys() \
-			if self.tableModel.selectedElements[key] == True]
+			if self.tableModel.selectedElements[key] == True])
 		commonActions = CommonBibActions(
 			[pBDB.bibs.getByKey(k)[0] for k in self.mainWin.selectedBibs],
 			self.mainWin)
@@ -1467,15 +1471,16 @@ class BibtexListWindow(QFrame, objListWindow):
 		if not already given.
 		"""
 		if self.bibs is None:
-			self.bibs = pBDB.bibs.getAll(orderType = "DESC",
-				limitTo = pbConfig.params["defaultLimitBibtexs"])
+			self.bibs = pBDB.bibs.getAll(orderType="DESC",
+				limitTo=pbConfig.params["defaultLimitBibtexs"])
 		rowcnt = len(self.bibs)
 
 		commentStr = "Last query to bibtex database: \t%s\t\t"%(
 			pBDB.bibs.lastQuery)
 		if len(pBDB.bibs.lastVals)>0 :
 			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
-		self.currLayout.addWidget(MyLabel(commentStr))
+		self.lastLabel = MyLabel(commentStr)
+		self.currLayout.addWidget(self.lastLabel)
 
 		self.selectToolBar = QToolBar('Bibs toolbar')
 		self.selectToolBar.addAction(self.selAct)
@@ -1484,8 +1489,9 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.selectToolBar.addAction(self.selAllAct)
 		self.selectToolBar.addAction(self.unselAllAct)
 		self.selectToolBar.addAction(self.okAct)
-		self.selectToolBar.addWidget(MyLabel(
-			"(Select exactly two entries to enable merging them)"))
+		self.mergeLabel = MyLabel(
+			"(Select exactly two entries to enable merging them)")
+		self.selectToolBar.addWidget(self.mergeLabel)
 		self.selectToolBar.addSeparator()
 
 		self.filterInput = QLineEdit("",  self)
@@ -1549,7 +1555,7 @@ class BibtexListWindow(QFrame, objListWindow):
 			return
 		return row, col, bibkey, entry
 
-	def triggeredContextMenuEvent(self, row, col, event, testing=False):
+	def triggeredContextMenuEvent(self, row, col, event):
 		"""Process event when mouse right-clicks an item.
 		Opens a menu with a number of actions
 
@@ -1558,7 +1564,6 @@ class BibtexListWindow(QFrame, objListWindow):
 			col: a the column number
 			event: a `QEvent` instance, used to obtain the mouse
 				position where to open the menu
-			testing (default False): avoid `menu.exec_` during tests.
 		"""
 		index = self.tablewidget.model().index(row, col)
 		try:
@@ -1569,8 +1574,7 @@ class BibtexListWindow(QFrame, objListWindow):
 
 		commonActions = CommonBibActions([entry], self.mainWin)
 		menu = commonActions.createContextMenu()
-		if not testing:
-			menu.exec_(event.globalPos())
+		menu.exec_(event.globalPos())
 
 	def handleItemEntered(self, index):
 		"""Currently does nothing
@@ -1594,13 +1598,12 @@ class BibtexListWindow(QFrame, objListWindow):
 			return
 		self.updateInfo(entry)
 
-	def cellDoubleClick(self, index, testing=False):
+	def cellDoubleClick(self, index):
 		"""Process event when mouse double clicks an item.
 		Opens a link if some columns
 
 		Parameters:
 			index: a `QModelIndex` instance
-			testing (default False):
 		"""
 		try:
 			row, col, bibkey, entry = self.getEventEntry(index)
@@ -1621,27 +1624,27 @@ class BibtexListWindow(QFrame, objListWindow):
 				and entry["inspire"] != "":
 			pBGuiView.openLink(bibkey, "inspire")
 		elif self.colContents[col] == "pdf":
-			pdfFiles = pBPDF.getExisting(bibkey, fullPath = True)
+			pdfFiles = pBPDF.getExisting(bibkey, fullPath=True)
 			if len(pdfFiles) == 1:
 				self.mainWin.statusBarMessage("opening PDF...")
-				pBGuiView.openLink(bibkey, "file", fileArg = pdfFiles[0])
+				pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
 			elif len(pdfFiles) > 1:
 				ask = AskPDFAction(bibkey, self)
 				ask.exec_(QCursor.pos())
 				if ask.result == "openArxiv":
-					self.mainWin.statusBarMessage("opening arxiv PDF...")
+					self.mainWin.statusBarMessage("opening arXiv PDF...")
 					pBGuiView.openLink(bibkey, "file",
-						fileArg = pBPDF.getFilePath(bibkey, "arxiv"))
+						fileArg=pBPDF.getFilePath(bibkey, "arxiv"))
 				elif ask.result == "openDoi":
-					self.mainWin.statusBarMessage("opening doi PDF...")
+					self.mainWin.statusBarMessage("opening DOI PDF...")
 					pBGuiView.openLink(bibkey, "file",
-						fileArg = pBPDF.getFilePath(bibkey, "doi"))
+						fileArg=pBPDF.getFilePath(bibkey, "doi"))
 				elif isinstance(ask.result, str) \
 						and "openOther_" in ask.result:
 					filename = ask.result.replace("openOther_", "")
 					self.mainWin.statusBarMessage("opening %s..."%filename)
 					pBGuiView.openLink(bibkey, "file",
-						fileArg = os.path.join(
+						fileArg=os.path.join(
 							pBPDF.getFileDir(bibkey), filename))
 
 	def finalizeTable(self):
