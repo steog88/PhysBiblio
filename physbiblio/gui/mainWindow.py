@@ -1,5 +1,4 @@
-"""
-Module that contains the class for the main window of PhysBiblio.
+"""Module that contains the class for the main window of PhysBiblio.
 
 This file is part of the physbiblio package.
 """

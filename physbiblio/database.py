@@ -1625,11 +1625,11 @@ class entries(physbiblioDBSub):
 			self
 		"""
 		if isinstance(bibkey, list):
-			return self.fetchAll(params = {"bibkey": bibkey},
-				connection = "or", saveQuery = saveQuery)
+			return self.fetchAll(params={"bibkey": bibkey},
+				connection="or", saveQuery=saveQuery)
 		else:
-			return self.fetchAll(params = {"bibkey": bibkey},
-				saveQuery = saveQuery)
+			return self.fetchAll(params={"bibkey": bibkey},
+				saveQuery=saveQuery)
 
 	def getByBibkey(self, bibkey, saveQuery=True):
 		"""Use self.fetchByBibkey and returns
@@ -1661,17 +1661,17 @@ class entries(physbiblioDBSub):
 				params = {"bibkey": strings,
 					"old_keys": strings,
 					"bibtex": strings},
-				connection = "or ",
-				operator = " like ",
-				saveQuery = saveQuery)
+				connection="or ",
+				operator=" like ",
+				saveQuery=saveQuery)
 		else:
 			return self.fetchAll(
 				params = {"bibkey": "%%%s%%"%key,
 					"old_keys": "%%%s%%"%key,
 					"bibtex": "%%%s%%"%key},
-				connection = "or ",
-				operator = " like ",
-				saveQuery = saveQuery)
+				connection="or ",
+				operator=" like ",
+				saveQuery=saveQuery)
 
 	def getByKey(self, key, saveQuery=True):
 		"""Use self.fetchByKey and returns
@@ -1682,7 +1682,7 @@ class entries(physbiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchByKey(key, saveQuery = saveQuery).lastFetched
+		return self.fetchByKey(key, saveQuery=saveQuery).lastFetched
 
 	def fetchByBibtex(self, string, saveQuery=True):
 		"""Use self.fetchAll with a match on the bibtex content
@@ -1698,15 +1698,15 @@ class entries(physbiblioDBSub):
 		"""
 		if isinstance(string, list):
 			return self.fetchAll(
-				params = {"bibtex":["%%%s%%"%q for q in string]},
-				connection = "or",
-				operator = " like ",
-				saveQuery = saveQuery)
+				params={"bibtex":["%%%s%%"%q for q in string]},
+				connection="or",
+				operator=" like ",
+				saveQuery=saveQuery)
 		else:
 			return self.fetchAll(
-				params = {"bibtex":"%%%s%%"%string},
-				operator = " like ",
-				saveQuery = saveQuery)
+				params={"bibtex":"%%%s%%"%string},
+				operator=" like ",
+				saveQuery=saveQuery)
 
 	def getByBibtex(self, string, saveQuery=True):
 		"""Use self.fetchByBibtex and returns
@@ -1717,7 +1717,7 @@ class entries(physbiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchByBibtex(string, saveQuery = saveQuery).lastFetched
+		return self.fetchByBibtex(string, saveQuery=saveQuery).lastFetched
 
 	def getField(self, key, field):
 		"""Extract the content of one field
@@ -2001,7 +2001,7 @@ class entries(physbiblioDBSub):
 		db.entries.append(keep)
 		return pbWriter.write(db)
 
-	def updateInspireID(self, string, key = None, number = None):
+	def updateInspireID(self, string, key=None, number=None):
 		"""Use inspire websearch module to get and
 		update the inspire ID of an entry.
 		If the given string is cannot be matched, uses arxiv and doi
@@ -2017,7 +2017,7 @@ class entries(physbiblioDBSub):
 			the id or False if empty
 		"""
 		newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-			string, number = number)
+			string, number=number)
 		if key is None:
 			key = string
 		if newid is not "":
@@ -2032,7 +2032,7 @@ class entries(physbiblioDBSub):
 			arxiv = self.getField(key, "arxiv")
 			if arxiv is not "" and arxiv is not None:
 				newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-					"eprint+%s"%arxiv, number = 0)
+					"eprint+%s"%arxiv, number=0)
 				if newid is not "":
 					if self.connExec("update entries set inspire=:inspire " \
 							+ "where bibkey=:bibkey\n",
@@ -2045,7 +2045,7 @@ class entries(physbiblioDBSub):
 				doi = self.getField(key, "doi")
 				if doi is not "" and doi is not None:
 					newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-						"doi+%s"%doi, number = 0)
+						"doi+%s"%doi, number=0)
 					if newid is not "":
 						if self.connExec("update entries set inspire=:inspire " \
 								+ "where bibkey=:bibkey\n",

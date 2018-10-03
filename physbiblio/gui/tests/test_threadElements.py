@@ -12,12 +12,12 @@ from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, MagicMock
+	from mock import call, patch, MagicMock
 	from urllib2 import URLError
 	from Queue import Queue
 else:
 	import unittest
-	from unittest.mock import patch, MagicMock
+	from unittest.mock import call, patch, MagicMock
 	from urllib.request import URLError
 	from queue import Queue
 
@@ -157,8 +157,8 @@ class Test_thread_updateInspireInfo(GUITestCase):
 			thr.run()
 			_fun.assert_called_once_with(
 				1385583,
-				originalKey = 'Gariazzo:2015rra',
-				verbose = 1)
+				originalKey='Gariazzo:2015rra',
+				verbose=1)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
@@ -170,11 +170,30 @@ class Test_thread_updateInspireInfo(GUITestCase):
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
 			_uiid.assert_called_once_with('Gariazzo:2015rra')
-			_fun.assert_called_once_with(1385, originalKey = None, verbose = 1)
+			_fun.assert_called_once_with(1385, originalKey=None, verbose=1)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
 
+		ws = WriteStream(q)
+		thr = thread_updateInspireInfo(ws,
+			["Gariazzo:2015rra", "Gariazzo:2018mwd"], [1385583, None], p)
+		self.assertTrue(ws.running)
+		with patch("physbiblio.database.entries.updateInfoFromOAI") as _fun,\
+				patch("physbiblio.database.entries.updateInspireID",
+					return_value= 1385) as _uiid,\
+				patch("time.sleep") as _sl,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+			thr.run()
+			_fun.assert_has_calls([
+				call(1385583,
+				originalKey='Gariazzo:2015rra',
+				verbose=1),
+				call(1385, originalKey=None, verbose=1)])
+			_uiid.assert_called_once_with('Gariazzo:2018mwd')
+			self.assertFalse(ws.running)
+			_st.assert_called_once_with()
+			_sl.assert_called_once_with(0.1)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_thread_downloadArxiv(GUITestCase):
@@ -216,7 +235,7 @@ class Test_thread_processLatex(GUITestCase):
 	def test_run(self):
 		"""test run"""
 		p = QWidget()
-		func = MagicMock(return_value = (["a", "b"], "text"))
+		func = MagicMock(return_value=(["a", "b"], "text"))
 		thr = thread_processLatex(func, p)
 		with MagicMock() as h1:
 			thr.passData.connect(h1)
@@ -251,7 +270,7 @@ class Test_thread_authorStats(GUITestCase):
 		thr = thread_authorStats(ws, "Stefano.Gariazzo.1", p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.inspireStats.inspireStatsLoader.authorStats",
-					return_value = {"a": "b"}) as _fun,\
+					return_value={"a": "b"}) as _fun,\
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
@@ -300,7 +319,7 @@ class Test_thread_paperStats(GUITestCase):
 		thr = thread_paperStats(ws, 1385583, p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.inspireStats.inspireStatsLoader.paperStats",
-					return_value = {"a": "b"}) as _fun,\
+					return_value={"a": "b"}) as _fun,\
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
@@ -337,7 +356,7 @@ class Test_thread_loadAndInsert(GUITestCase):
 		self.assertTrue(ws.running)
 		pBDB.bibs.lastInserted = ["def"]
 		with patch("physbiblio.database.entries.loadAndInsert",
-					side_effect = [True, False]) as _fun,\
+					side_effect=[True, False]) as _fun,\
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
@@ -388,7 +407,7 @@ class Test_thread_cleanAllBibtexs(GUITestCase):
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
-			_fun.assert_called_once_with(123, entries = [[]])
+			_fun.assert_called_once_with(123, entries=[[]])
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
@@ -434,7 +453,7 @@ class Test_thread_findBadBibtexs(GUITestCase):
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
-			_fun.assert_called_once_with(123, entries = [[]])
+			_fun.assert_called_once_with(123, entries=[[]])
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)

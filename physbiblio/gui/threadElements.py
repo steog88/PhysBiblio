@@ -125,14 +125,26 @@ class thread_updateInspireInfo(MyThread):
 		run `pBDB.bibs.searchOAIUpdates` and finish
 		"""
 		self.receiver.start()
-		if self.inspireID is None:
-			eid = pBDB.bibs.updateInspireID(self.bibkey)
-			originalKey = None
+		if isinstance(self.bibkey, list):
+			for i, k in enumerate(self.bibkey):
+				inspireID = self.inspireID[i]
+				if inspireID is None or inspireID == "":
+					eid = pBDB.bibs.updateInspireID(k)
+					originalKey = None
+				else:
+					eid = inspireID
+					originalKey = k
+				pBDB.bibs.updateInfoFromOAI(eid,
+					verbose=1, originalKey=originalKey)
 		else:
-			eid = self.inspireID
-			originalKey = self.bibkey
-		pBDB.bibs.updateInfoFromOAI(eid,
-			verbose=1, originalKey=originalKey)
+			if self.inspireID is None:
+				eid = pBDB.bibs.updateInspireID(self.bibkey)
+				originalKey = None
+			else:
+				eid = self.inspireID
+				originalKey = self.bibkey
+			pBDB.bibs.updateInfoFromOAI(eid,
+				verbose=1, originalKey=originalKey)
 		time.sleep(0.1)
 		self.receiver.running = False
 

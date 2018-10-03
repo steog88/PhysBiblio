@@ -1052,8 +1052,18 @@ class CommonBibActions():
 		"""Action to be performed when updating info from INSPIRE-HEP.
 		Call `gui.mainWindow.MainWindow.updateInspireInfo`
 		"""
-		bibkey = self.bibs[0]["bibkey"]
-		inspireID = self.bibs[0]["inspire"]
+		if len(self.bibs) == 1:
+			bibkey = self.bibs[0]["bibkey"]
+			inspireID = self.bibs[0]["inspire"]
+		else:
+			bibkey = []
+			inspireID = []
+			for e in self.bibs:
+				bibkey.append(e["bibkey"])
+				try:
+					inspireID.append(e["inspire"])
+				except KeyError:
+					inspireID.append(None)
 		self.parent().updateInspireInfo(bibkey, inspireID=inspireID)
 
 	def onCopyBibtexs(self):
@@ -1458,7 +1468,8 @@ class BibtexListWindow(QFrame, objListWindow):
 			key for key in self.tableModel.selectedElements.keys() \
 			if self.tableModel.selectedElements[key] == True])
 		commonActions = CommonBibActions(
-			[pBDB.bibs.getByKey(k)[0] for k in self.mainWin.selectedBibs],
+			[pBDB.bibs.getByKey(k, saveQuery=False)[0]
+				for k in self.mainWin.selectedBibs],
 			self.mainWin)
 		ask = commonActions.createContextMenu(selection=True)
 		ask.exec_(position)

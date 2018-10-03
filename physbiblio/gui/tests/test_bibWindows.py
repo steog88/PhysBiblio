@@ -2551,12 +2551,20 @@ class TestCommonBibActions(GUITestCase):
 	def test_onComplete(self):
 		"""test onComplete"""
 		c = CommonBibActions([
+			{"bibkey": "abc", "inspire": "1234"}],
+			self.mainW)
+		with patch("physbiblio.gui.mainWindow.MainWindow.updateInspireInfo"
+				) as _u:
+			c.onComplete()
+			_u.assert_called_once_with("abc", inspireID="1234")
+		c = CommonBibActions([
 			{"bibkey": "abc", "inspire": "1234"},
 			{"bibkey": "def"}], self.mainW)
 		with patch("physbiblio.gui.mainWindow.MainWindow.updateInspireInfo"
 				) as _u:
 			c.onComplete()
-			_u.assert_called_once_with("abc", inspireID="1234")
+			_u.assert_called_once_with(["abc", "def"],
+				inspireID=["1234", None])
 
 	def test_onCopyBibtexs(self):
 		"""test onCopyBibtexs"""
@@ -3501,7 +3509,8 @@ class TestBibtexListWindow(GUITestCase):
 					) as _g:
 			bw.onOk()
 			_cl.assert_called_once_with()
-			_g.assert_has_calls([call("def"), call("ghi")])
+			_g.assert_has_calls([
+				call("def", saveQuery=False), call("ghi", saveQuery=False)])
 			_ci.assert_called_once_with(
 				[{"bibkey": "def"}, {"bibkey": "ghi"}],
 				self.mainW)

@@ -4,6 +4,7 @@
 	* filter of arxiv daily imports also considers the abstract text
 	* text selection with the mouse is allowed for all the labels in the widgets
 	* link to the entry web page in the category selection dialog
+	* complete info from INSPIRE works with multiple entries
 
 	Improvements/bug fixes:
 	* database.entries.replace is running a bit faster now
