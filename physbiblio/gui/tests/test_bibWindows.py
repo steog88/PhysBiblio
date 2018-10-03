@@ -285,7 +285,9 @@ class TestFunctions(GUITestCase):
 			'abstract': None, 'bibtexDict': {'arxiv': '1507.08204',
 			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 			'title': '', 'journal': '', 'volume': '', 'number': '',
-			'pages': '', 'published': '  (2015) ', 'author': ''}
+			'pages': '', 'published': '  (2015) ', 'author': '',
+			'bibdict': "%s"%{'arxiv': '1507.08204',
+			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}}
 		p = QDialog()
 		m = MainWindow(testing=True)
 		ebd = EditBibtexDialog(m, bib=None)

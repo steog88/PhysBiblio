@@ -575,40 +575,41 @@ class MyBibTableModel(MyTableModel):
 		try:
 			rowData = self.dataList[row]
 		except IndexError:
-			pBGUILogger.exception("MyBibTableModel.data(): invalid index")
+			pBGUILogger.exception("MyBibTableModel.data(): invalid row")
 			return None
-		if "marks" in self.stdCols \
-				and column == self.stdCols.index("marks"):
+		try:
+			colName = self.header[column]
+		except IndexError:
+			pBGUILogger.exception("MyBibTableModel.data(): invalid column")
+			return None
+		if colName == "marks":
 			try:
 				hasImg, value = self.addMarksCell(rowData["marks"])
 			except KeyError:
 				pBLogger.debug("missing key: 'marks' in %s"%rowData.keys())
 				hasImg, value = self.addMarksCell("")
-		elif column < self.lenStdCols:
+		elif colName == "Type":
+			value = self.addTypeCell(rowData)
+		elif colName == "PDF":
+			hasImg, value = self.addPDFCell(rowData["bibkey"])
+		else:
 			try:
-				value = rowData[self.stdCols[column]]
-				if self.stdCols[column] in ["title", "author"]:
+				value = rowData[colName]
+				if colName in ["title", "author"]:
 					value = self.latexToText.latex_to_text(value)
 			except KeyError:
 				value = ""
-		else:
-			if self.addCols[column - self.lenStdCols] == "Type":
-				value = self.addTypeCell(rowData)
-			elif self.addCols[column - self.lenStdCols] == "PDF":
-				hasImg, value = self.addPDFCell(rowData["bibkey"])
-			else:
-				value = rowData["bibtex"]
 
 		if role == Qt.CheckStateRole and self.ask and column == 0:
 			if self.selectedElements[rowData["bibkey"]] == True:
 				return Qt.Checked
 			else:
 				return Qt.Unchecked
-		if role == Qt.EditRole:
+		elif role == Qt.EditRole:
 			return value
-		if role == Qt.DecorationRole and hasImg:
+		elif role == Qt.DecorationRole and hasImg:
 			return value
-		if role == Qt.DisplayRole and not hasImg:
+		elif role == Qt.DisplayRole and not hasImg:
 			return value
 		return None
 

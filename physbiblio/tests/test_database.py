@@ -7,6 +7,7 @@ import sys
 import traceback
 import six
 import datetime
+import ast
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
@@ -793,7 +794,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.prepareInsert(
 			u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "mytit",}\n@article{def,\nauthor = "you",\n' \
-			+ 'title = "other",}', number = 1)["bibkey"], "def")
+			+ 'title = "other",}', number=1)["bibkey"], "def")
 
 		#different fields
 		bibtex = u'@article{abc,\nauthor = "me",\n' \
@@ -801,11 +802,14 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex,
 			bibkey = "def")["bibkey"], "def")
 		self.assertIn("rticle{def,",
-			self.pBDB.bibs.prepareInsert(bibtex, bibkey = "def")["bibtex"])
+			self.pBDB.bibs.prepareInsert(bibtex, bibkey="def")["bibtex"])
 
 		data = self.pBDB.bibs.prepareInsert(bibtex)
 		self.assertEqual(data["bibkey"], "abc")
 		self.assertEqual(data["arxiv"], "1801.00000")
+		self.assertEqual(ast.literal_eval(data["bibdict"]),
+			{'ENTRYTYPE': 'article', 'ID': 'abc', 'arxiv': '1801.00000',
+			'author': 'me', 'title': '{mytit}'})
 
 		#test simple fields
 		bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
@@ -886,8 +890,12 @@ class TestDatabaseEntries(DBTestCase):
 		#test abstract
 		bibtex = u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "mytit",\nabstract="try",\n}'
-		self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["abstract"],
+		data = self.pBDB.bibs.prepareInsert(bibtex)
+		self.assertEqual(data["abstract"],
 			"try")
+		self.assertEqual(ast.literal_eval(data["bibdict"]),
+			{'ENTRYTYPE': 'article', 'ID': 'abc', 'abstract': '{try}',
+			'author': 'me', 'title': '{mytit}'})
 
 		#empty bibtex
 		self.assertEqual(self.pBDB.bibs.prepareInsert(""), {"bibkey": ""})
@@ -960,21 +968,21 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
 		self.assertTrue(self.pBDB.bibs.updateField(
-			"def", "inspire", "1234", verbose = 0))
+			"def", "inspire", "1234", verbose=0))
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField(
 			"def", "inspire", "1234"),
 			"Updating 'inspire' for entry 'def'\n")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"],
 			'1234')
 		self.assertFalse(self.pBDB.bibs.updateField(
-			"def", "inspires", "1234", verbose = 0))
+			"def", "inspires", "1234", verbose=0))
 		self.assertFalse(self.pBDB.bibs.updateField(
-			"def", "inspire", None, verbose = 0))
+			"def", "inspire", None, verbose=0))
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField(
 			"def", "inspires", "1234"),
 			"Updating 'inspires' for entry 'def'\n")
 		self.assert_stdout(lambda: self.pBDB.bibs.updateField(
-			"def", "inspires", "1234", verbose = 2),
+			"def", "inspires", "1234", verbose=2),
 			"Updating 'inspires' for entry 'def'\nNon-existing field " \
 			+ "or unappropriated value: (def, inspires, 1234)\n")
 
@@ -987,7 +995,26 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"],
 			'abc,def')
 
-		self.pBDB.bibs.delete("abc")
+		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
+			self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+		self.assertTrue(self.pBDB.bibs.updateField(
+			"def", "bibdict", "{}", verbose=0))
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), "{}")
+		self.assertTrue(self.pBDB.bibs.updateField(
+			"def", "bibtex",
+			'@Article{abc,\nauthor = "me",\ntitle = "{abc}",\n}',
+			verbose=0))
+		self.assertEqual(ast.literal_eval(
+			self.pBDB.bibs.getField("def", "bibdict")),
+			{'ENTRYTYPE': 'article', 'ID': 'abc',
+			'author': 'me', 'title': '{abc}'})
+		self.assertTrue(self.pBDB.bibs.updateField(
+			"def", "bibtex",
+			'@Article{abc,\nauthor = "me",\ntitle = ',
+			verbose=0))
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), "{}")
+
+		self.pBDB.bibs.delete("def")
 		self.insert_three()
 		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
 			self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
@@ -1112,7 +1139,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
 		self.assertEqual(self.pBDB.bibs.replace("published",
 			["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-			[r'\1', r'\2'], regex = True),
+			[r'\1', r'\2'], regex=True),
 			(["abc", "def"], ["def"], []))
 		self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
 
@@ -1160,6 +1187,7 @@ class TestDatabaseEntries(DBTestCase):
 			"Something wrong in replace")
 
 	def test_completeFetched(self):
+		self.maxDiff = None
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(
 			u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "abc",\njournal="jcap",\nvolume="3",\n' \
@@ -1173,6 +1201,8 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed["year"], "2018")
 		self.assertEqual(completed["pages"], "1")
 		self.assertEqual(completed["published"], "jcap 3 (2018) 1")
+		self.assertEqual(ast.literal_eval(completed["bibdict"]),
+			completed["bibtexDict"])
 
 		self.pBDB.undo(verbose = 0)
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(
@@ -1187,6 +1217,8 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed["year"], "")
 		self.assertEqual(completed["pages"], "")
 		self.assertEqual(completed["published"], "")
+		self.assertEqual(ast.literal_eval(completed["bibdict"]),
+			completed["bibtexDict"])
 
 		data = self.pBDB.bibs.prepareInsert(
 			u'@article{def,\nauthor = "me",\ntitle = "def",}')
@@ -1200,6 +1232,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed[1]["bibtexDict"],
 			{'ENTRYTYPE': u'article', u'author': u'me',
 			'ID': u'def', u'title': u'{def}'})
+		self.assertEqual(ast.literal_eval(completed[0]["bibdict"]),
+			completed[0]["bibtexDict"])
+		self.assertEqual(ast.literal_eval(completed[1]["bibdict"]),
+			completed[1]["bibtexDict"])
 
 	def test_fetchFromLast(self):
 		"""Test the function fetchFromLast for the DB entries"""
