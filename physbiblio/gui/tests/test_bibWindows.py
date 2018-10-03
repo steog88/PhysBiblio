@@ -379,8 +379,7 @@ class TestFunctions(GUITestCase):
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("")
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -397,7 +396,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
 			editBibtex(m, editKey=None, testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_not_called()
 			_gbk.assert_not_called()
@@ -456,8 +454,7 @@ class TestFunctions(GUITestCase):
 			_sbm.assert_not_called()
 			_rmc.assert_not_called()
 			_swt.assert_not_called()
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -478,7 +475,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey=None, testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_not_called()
 			_gbk.assert_not_called()
@@ -498,8 +494,7 @@ class TestFunctions(GUITestCase):
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["comments"].setText("some text")
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -520,7 +515,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey="Gariazzo:2015rra", testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_called_once_with(
 				"Updating bibtex 'Gariazzo:2015rra'...")
@@ -537,7 +531,9 @@ class TestFunctions(GUITestCase):
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
 					+ '= "1507.08204",\n}',
-				'firstdate': u'2018-09-01', 'old_keys': u''},
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
 				u'Gariazzo:2015rra')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -551,8 +547,7 @@ class TestFunctions(GUITestCase):
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("not valid bibtex!")
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -573,7 +568,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey="testkey", testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_has_calls([
 				call("Updating bibtex 'testkey'...")])
@@ -590,7 +584,9 @@ class TestFunctions(GUITestCase):
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
 					+ '= "1507.08204",\n}',
-				'firstdate': u'2018-09-01', 'old_keys': u''},
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -604,8 +600,7 @@ class TestFunctions(GUITestCase):
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("old")
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -626,7 +621,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey="testkey", testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_has_calls([
 				call("New bibtex key (Gariazzo:2015rra) for "
@@ -645,7 +639,9 @@ class TestFunctions(GUITestCase):
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
 					+ '= "1507.08204",\n}',
-				'firstdate': u'2018-09-01', 'old_keys': u'old testkey'},
+				'firstdate': u'2018-09-01', 'old_keys': u'old testkey',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
 				u'Gariazzo:2015rra')
 			_ins.assert_not_called()
 			_rf.assert_called_once_with('testkey', u'Gariazzo:2015rra')
@@ -658,8 +654,7 @@ class TestFunctions(GUITestCase):
 		#* with update bibkey, updateBibkey unsuccessful
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -680,7 +675,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey="testkey", testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_called_once_with("Cannot update bibtex key: "
 				+ "already present. Restoring previous one.")
 			_li.assert_has_calls([
@@ -700,7 +694,9 @@ class TestFunctions(GUITestCase):
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
 					+ '= "1507.08204",\n}',
-				'firstdate': u'2018-09-01', 'old_keys': u'testkey'},
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -714,8 +710,7 @@ class TestFunctions(GUITestCase):
 		ebd = EditBibtexDialog(m, bib=testentry)
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("testkey")
-		with patch("logging.Logger.debug") as _ld,\
-				patch("logging.Logger.warning") as _lw,\
+		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
 				patch("physbiblio.database.entries.getByKey",
 					return_value=[testentry]) as _gbk,\
@@ -736,7 +731,6 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
 					) as _swt:
 			editBibtex(m, editKey="testkey", testing=ebd)
-			_ld.assert_not_called()
 			_lw.assert_called_once_with("Cannot update bibtex key: "
 				+ "already present. Restoring previous one.")
 			_li.assert_has_calls([
@@ -756,7 +750,9 @@ class TestFunctions(GUITestCase):
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
 					+ '= "1507.08204",\n}',
-				'firstdate': u'2018-09-01', 'old_keys': u'testkey'},
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()

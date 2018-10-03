@@ -1747,6 +1747,8 @@ class EditBibtexDialog(editObjectWindow):
 
 		i = 0
 		for k in pBDB.tableCols["entries"]:
+			if k == "bibdict":
+				continue
 			val = self.data[k] if self.data[k] is not None else ""
 			if k != "bibtex" \
 					and k != "marks" \
@@ -1791,6 +1793,8 @@ class EditBibtexDialog(editObjectWindow):
 
 		j = 0
 		for k in pBDB.tableCols["entries"]:
+			if k == "bibdict":
+				continue
 			val = self.data[k]
 			if k in self.checkboxes:
 				j += 2

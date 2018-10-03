@@ -1197,7 +1197,9 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed[0]["bibtexDict"],
 			{'ENTRYTYPE': 'article', 'ID': 'abc',
 			'author': 'me and you and him and them', 'title': '{abc}'})
-		self.assertEqual(completed[1]["bibtexDict"], {})
+		self.assertEqual(completed[1]["bibtexDict"],
+			{'ENTRYTYPE': u'article', u'author': u'me',
+			'ID': u'def', u'title': u'{def}'})
 
 	def test_fetchFromLast(self):
 		"""Test the function fetchFromLast for the DB entries"""
