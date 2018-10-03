@@ -35,7 +35,7 @@ class configEditColumns(QDialog):
 	that must appear in the main table
 	"""
 
-	def __init__(self, parent = None, previous = None):
+	def __init__(self, parent=None, previous=None):
 		"""Extend `QDialog.__init__` and create the form structure
 
 		Parameters:
@@ -117,7 +117,7 @@ class configEditColumns(QDialog):
 class configWindow(QDialog):
 	"""Create a window for editing the configuration settings"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(configWindow, self).__init__(parent)
 		self.textValues = []
@@ -133,7 +133,7 @@ class configWindow(QDialog):
 		self.result	= True
 		self.close()
 
-	def editFolder(self, paramkey = "pdfFolder"):
+	def editFolder(self, paramkey="pdfFolder"):
 		"""Open a dialog to select a new folder name
 		for a configuration parameter, and save the result
 		in the `configWindow` interface
@@ -146,16 +146,16 @@ class configWindow(QDialog):
 			return
 		ix = pbConfig.paramOrder.index(paramkey)
 		folder = askDirName(
-			parent = None,
-			dir = self.textValues[ix][1].text(),
-			title = "Directory for saving PDF files:")
+			parent=None,
+			dir=self.textValues[ix][1].text(),
+			title="Directory for saving PDF files:")
 		if folder.strip() != "":
 			self.textValues[ix][1].setText(str(folder))
 
 	def editFile(self,
-			paramkey = "logFileName",
-			text = "Name for the log file",
-			filter = "*.log"):
+			paramkey="logFileName",
+			text="Name for the log file",
+			filter="*.log"):
 		"""Open a dialog to select a new file name
 		for a configuration parameter, and save the result
 		in the `configWindow` interface
@@ -170,14 +170,14 @@ class configWindow(QDialog):
 			return
 		ix = pbConfig.paramOrder.index(paramkey)
 		fname = askSaveFileName(
-			parent = None,
-			title = text,
-			dir = self.textValues[ix][1].text(),
-			filter = filter)
+			parent=None,
+			title=text,
+			dir=self.textValues[ix][1].text(),
+			filter=filter)
 		if fname.strip() != "":
 			self.textValues[ix][1].setText(str(fname))
 
-	def editColumns(self, testing = False):
+	def editColumns(self, testing=False):
 		"""Open a dialog to select and/or reorder the list of columns
 		to show in the entries list, and save the result
 		in the `configWindow` interface
@@ -199,7 +199,7 @@ class configWindow(QDialog):
 			columns = window.selected
 			self.textValues[ix][1].setText(str(columns))
 
-	def editDefCats(self, testing = False):
+	def editDefCats(self, testing=False):
 		"""Open a dialog to select a the default categories
 		for the imported entries, and save the result
 		in the `configWindow` interface
@@ -212,10 +212,10 @@ class configWindow(QDialog):
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		selectCats = catsTreeWindow(
-			parent = self,
-			askCats = True,
-			expButton = False,
-			previous = ast.literal_eval(self.textValues[ix][1].text().strip()))
+			parent=self,
+			askCats=True,
+			expButton=False,
+			previous=ast.literal_eval(self.textValues[ix][1].text().strip()))
 		if not testing:
 			selectCats.exec_()
 		else:
@@ -294,7 +294,7 @@ class configWindow(QDialog):
 class LogFileContentDialog(QDialog):
 	"""Create a window for showing the logFile content"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Instantiate class and create its widgets
 
 		Parameter:
@@ -356,13 +356,13 @@ class printText(QDialog):
 	stopped = Signal()
 
 	def __init__(self,
-			parent = None,
-			title = "",
-			progressBar = True,
-			totStr = None,
-			progrStr = None,
-			noStopButton = False,
-			message = None):
+			parent=None,
+			title="",
+			progressBar=True,
+			totStr=None,
+			progrStr=None,
+			noStopButton=False,
+			message=None):
 		"""Constructor.
 		Set some properties and create the GUI of the dialog
 
@@ -439,6 +439,16 @@ class printText(QDialog):
 
 		self.setGeometry(100, 100, 600, 600)
 		self.setLayout(grid)
+		self.centerWindow()
+
+	def centerWindow(self):
+		"""Use the `QDesktopWidget` to get the relevant information
+		and center the widget in the screen.
+		"""
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
 
 	def appendText(self, text):
 		"""Add the given text to the end of the `self.textEdit` content.
@@ -497,7 +507,7 @@ class printText(QDialog):
 class advImportDialog(QDialog):
 	"""create a window for the advanced import"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(advImportDialog, self).__init__(parent)
 		self.initUI()
@@ -528,7 +538,7 @@ class advImportDialog(QDialog):
 		grid.addWidget(MyLabel("Select method: "), 1, 0)
 		self.comboMethod = MyComboBox(self,
 			["INSPIRE-HEP", "arXiv", "DOI", "ISBN"],
-			current = "INSPIRE-HEP")
+			current="INSPIRE-HEP")
 		grid.addWidget(self.comboMethod, 1, 1)
 
 		# OK button
@@ -550,7 +560,7 @@ class advImportDialog(QDialog):
 class advImportSelect(objListWindow):
 	"""create a window for the advanced import"""
 
-	def __init__(self, bibs = {}, parent = None):
+	def __init__(self, bibs={}, parent=None):
 		"""Set some properties and call `initUI`
 
 		Parameters:
@@ -562,7 +572,7 @@ class advImportSelect(objListWindow):
 			parent: the parent widget
 		"""
 		self.bibs = bibs
-		super(advImportSelect, self).__init__(parent, gridLayout = True)
+		super(advImportSelect, self).__init__(parent, gridLayout=True)
 		self.checkBoxes = []
 		self.initUI()
 
@@ -615,9 +625,9 @@ class advImportSelect(objListWindow):
 				except KeyError:
 					pass
 		self.tableModel = MyImportedTableModel(self, self.bibs, headers)
-		self.addFilterInput("Filter entries", gridPos = (1, 0))
+		self.addFilterInput("Filter entries", gridPos=(1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
-		self.finalizeTable(gridPos = (2, 0, 1, 2))
+		self.finalizeTable(gridPos=(2, 0, 1, 2))
 
 		i = 3
 		self.askCats = QCheckBox("Ask categories at the end?", self)
@@ -655,7 +665,7 @@ class advImportSelect(objListWindow):
 class dailyArxivDialog(QDialog):
 	"""create a window for the advanced import"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
 		super(dailyArxivDialog, self).__init__(parent)
 		self.initUI()
@@ -732,11 +742,11 @@ class dailyArxivSelect(advImportSelect):
 		self.tableModel = MyImportedTableModel(self,
 			self.bibs,
 			headers + ["abstract"],
-			idName = "eprint")
-		self.addFilterInput("Filter entries", gridPos = (1, 0))
+			idName="eprint")
+		self.addFilterInput("Filter entries", gridPos=(1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
 
-		self.finalizeTable(gridPos = (2, 0, 1, 2))
+		self.finalizeTable(gridPos=(2, 0, 1, 2))
 
 		i = 3
 		self.askCats = QCheckBox("Ask categories at the end?", self)
@@ -777,8 +787,8 @@ class dailyArxivSelect(advImportSelect):
 				self.abstractFormulas is not None:
 			a = self.abstractFormulas(self.parent(),
 				self.bibs[eprint]["bibpars"]["abstract"],
-				customEditor = self.abstractArea,
-				statusMessages = False)
+				customEditor=self.abstractArea,
+				statusMessages=False)
 			a.doText()
 		else:
 			pBLogger.debug("self.abstractFormulas not present in "

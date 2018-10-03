@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
-from PySide2.QtCore import Qt, QEvent, QModelIndex
+from PySide2.QtCore import Qt, QEvent, QModelIndex, QPoint, QRect
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
@@ -37,7 +37,7 @@ class fake_abstractFormulas():
 		"""empty constructor"""
 		return
 
-	def __call__(self, p, abstract, customEditor = None, statusMessages = True):
+	def __call__(self, p, abstract, customEditor=None, statusMessages=True):
 		"""Save some attributes and return self.el
 
 		Parameters: (see also `physbiblio.gui.bibWindows.AbstractFormulas`)
@@ -222,17 +222,17 @@ class TestConfigWindow(GUITestCase):
 			cw.editFolder()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/")
-			_adn.assert_called_once_with(parent = None,
-				dir = pbConfig.params["pdfFolder"],
-				title = "Directory for saving PDF files:")
+			_adn.assert_called_once_with(parent=None,
+				dir=pbConfig.params["pdfFolder"],
+				title="Directory for saving PDF files:")
 		with patch("physbiblio.gui.dialogWindows.askDirName",
-				return_value = "") as _adn:
+				return_value="") as _adn:
 			cw.editFolder()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/")
-			_adn.assert_called_once_with(parent = None,
-				dir = "/some/new/folder/",
-				title = "Directory for saving PDF files:")
+			_adn.assert_called_once_with(parent=None,
+				dir="/some/new/folder/",
+				title="Directory for saving PDF files:")
 		with patch("logging.Logger.warning") as _w:
 			cw.editFolder("someField")
 			_w.assert_called_once_with("Invalid paramkey: 'someField'")
@@ -244,23 +244,23 @@ class TestConfigWindow(GUITestCase):
 		self.assertEqual(cw.textValues[ix][1].text(),
 			pbConfig.params["logFileName"])
 		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
-				return_value = "/some/new/folder/file.log") as _adn:
+				return_value="/some/new/folder/file.log") as _adn:
 			cw.editFile()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/file.log")
-			_adn.assert_called_once_with(parent = None,
-				title = "Name for the log file",
-				dir = pbConfig.params["logFileName"],
-				filter = "*.log")
+			_adn.assert_called_once_with(parent=None,
+				title="Name for the log file",
+				dir=pbConfig.params["logFileName"],
+				filter="*.log")
 		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
-				return_value = "  ") as _adn:
-			cw.editFile(text = "Name", filter = "*.txt")
+				return_value="  ") as _adn:
+			cw.editFile(text="Name", filter="*.txt")
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/file.log")
-			_adn.assert_called_once_with(parent = None,
-				title = "Name",
-				dir = "/some/new/folder/file.log",
-				filter = "*.txt")
+			_adn.assert_called_once_with(parent=None,
+				title="Name",
+				dir="/some/new/folder/file.log",
+				filter="*.txt")
 		with patch("logging.Logger.warning") as _w:
 			cw.editFile("someField")
 			_w.assert_called_once_with("Invalid paramkey: 'someField'")
@@ -274,7 +274,7 @@ class TestConfigWindow(GUITestCase):
 		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
 		cec.onCancel()
 		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
-				return_value = None) as _cec:
+				return_value=None) as _cec:
 			cw.editColumns(cec)
 			_cec.assert_called_once_with(cw,
 				pbConfig.params["bibtexListColumns"])
@@ -283,7 +283,7 @@ class TestConfigWindow(GUITestCase):
 		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
 		cec.onOk()
 		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
-				return_value = None) as _cec:
+				return_value=None) as _cec:
 			cw.editColumns(cec)
 			_cec.assert_called_once_with(cw,
 				pbConfig.params["bibtexListColumns"])
@@ -296,33 +296,33 @@ class TestConfigWindow(GUITestCase):
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = catsTreeWindow(parent = cw,
-			askCats = True,
-			expButton = False,
-			previous = ['1'])
+		cwl = catsTreeWindow(parent=cw,
+			askCats=True,
+			expButton=False,
+			previous=['1'])
 		cwl.onCancel()
 		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _cwl:
+				return_value=None) as _cwl:
 			cw.editDefCats(cwl)
-			_cwl.assert_called_once_with(parent = cw,
-				askCats = True,
-				expButton = False,
-				previous = pbConfig.params["defaultCategories"])
+			_cwl.assert_called_once_with(parent=cw,
+				askCats=True,
+				expButton=False,
+				previous=pbConfig.params["defaultCategories"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = catsTreeWindow(parent = cw,
-			askCats = True,
-			expButton = False,
-			previous = ['1'])
+		cwl = catsTreeWindow(parent=cw,
+			askCats=True,
+			expButton=False,
+			previous=['1'])
 		cwl.onOk()
 		cw.selectedCats = ['1']
 		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _cwl:
+				return_value=None) as _cwl:
 			cw.editDefCats(cwl)
-			_cwl.assert_called_once_with(parent = cw,
-				askCats = True,
-				expButton = False,
-				previous = pbConfig.params["defaultCategories"])
+			_cwl.assert_called_once_with(parent=cw,
+				askCats=True,
+				expButton=False,
+				previous=pbConfig.params["defaultCategories"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			['1'])
 
@@ -473,12 +473,12 @@ class TestLogFileContentDialog(GUITestCase):
 			_f.write("test content")
 		lf = LogFileContentDialog(p)
 		ayn_str = "physbiblio.gui.dialogWindows.askYesNo"
-		with patch(ayn_str, return_value = False) as _ayn:
+		with patch(ayn_str, return_value=False) as _ayn:
 			lf.clearLog()
 			with open(pbConfig.params["logFileName"]) as _f:
 				text = _f.read()
 			self.assertEqual(text, "test content")
-		with patch(ayn_str, return_value = True) as _ayn,\
+		with patch(ayn_str, return_value=True) as _ayn,\
 				patch("physbiblio.gui.dialogWindows.infoMessage") as _in,\
 				patch("PySide2.QtWidgets.QDialog.close") as _c:
 			lf.clearLog()
@@ -489,8 +489,8 @@ class TestLogFileContentDialog(GUITestCase):
 			_c.assert_called_once_with()
 		if os.path.exists(pbConfig.params["logFileName"]):
 			os.remove(pbConfig.params["logFileName"])
-		with patch(ayn_str, return_value = True) as _ayn,\
-				patch("__builtin__.open", side_effect = IOError("fake")) as _op,\
+		with patch(ayn_str, return_value=True) as _ayn,\
+				patch("__builtin__.open", side_effect=IOError("fake")) as _op,\
 				patch("logging.Logger.exception") as _ex,\
 				patch("PySide2.QtWidgets.QDialog.close") as _c:
 			lf.clearLog()
@@ -582,7 +582,7 @@ class TestPrintText(GUITestCase):
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
-		pt = printText(p, progressBar = False, noStopButton = True)
+		pt = printText(p, progressBar=False, noStopButton=True)
 		self.assertEqual(pt.windowTitle(), "Redirect print")
 		self.assertIsInstance(pt.layout(), QGridLayout)
 		self.assertEqual(pt.layout(), pt.grid)
@@ -637,8 +637,34 @@ class TestPrintText(GUITestCase):
 			_s.assert_not_called()
 			pt.enableClose()
 			self.assertTrue(pt.closeButton.isEnabled())
-			QTest.mouseClick(pt.closeButton, Qt.LeftButton, delay = 10)
+			QTest.mouseClick(pt.closeButton, Qt.LeftButton, delay=10)
 			_s.assert_called_once_with()
+		
+		with patch("physbiblio.gui.dialogWindows.printText.centerWindow"
+				) as _c:
+			pt.initUI()
+			_c.assert_called_once_with()
+
+	def test_centerWindow(self):
+		"""test centerWindow"""
+		p = QWidget()
+		pt = printText(p)
+		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
+					autospec=True, return_value=QRect()) as _fg,\
+				patch("PySide2.QtCore.QRect.center",
+					autospec=True, return_value=QPoint()) as _ce,\
+				patch("PySide2.QtCore.QRect.moveCenter",
+					autospec=True) as _mc,\
+				patch("PySide2.QtCore.QRect.topLeft",
+					autospec=True, return_value=QPoint()) as _tl,\
+				patch("PySide2.QtWidgets.QDialog.move",
+					autospec=True) as _mo:
+			pt.centerWindow()
+			_fg.assert_called_once()
+			_ce.assert_called_once()
+			_mc.assert_called_once()
+			_tl.assert_called_once()
+			_mo.assert_called_once()
 
 	def test_appendText(self):
 		"""test appendText"""
@@ -652,9 +678,9 @@ class TestPrintText(GUITestCase):
 		self.assertEqual(pt.textEdit.toPlainText(), "abcd\nefgh")
 
 		pt = printText(p,
-			progressBar = True,
-			totStr = "process events: ",
-			progrStr = "step: ")
+			progressBar=True,
+			totStr="process events: ",
+			progrStr="step: ")
 		self.assertEqual(pt.progressBar.value(), -1)
 		self.assertEqual(pt.progressBar.maximum(), 100)
 		self.assertEqual(pt.textEdit.toPlainText(), "")
@@ -706,7 +732,7 @@ class TestPrintText(GUITestCase):
 	def test_stopExec(self):
 		"""test stopExec"""
 		self.stop = False
-		def stoppedAct(a = self):
+		def stoppedAct(a=self):
 			a.stop = True
 		pt = printText()
 		pt.stopped.connect(stoppedAct)
@@ -949,9 +975,9 @@ class TestAdvImportSelect(GUITestCase):
 				patch("physbiblio.gui.commonClasses.objListWindow." +
 					"finalizeTable") as _ft:
 			ais.initUI()
-			_afi.assert_called_once_with("Filter entries", gridPos = (1, 0))
+			_afi.assert_called_once_with("Filter entries", gridPos=(1, 0))
 			_sps.assert_called_once_with(0, Qt.AscendingOrder)
-			_ft.assert_called_once_with(gridPos = (2, 0, 1, 2))
+			_ft.assert_called_once_with(gridPos=(2, 0, 1, 2))
 
 	def test_more(self):
 		"""test some empty functions"""
@@ -1084,7 +1110,7 @@ class TestDailyArxivSelect(GUITestCase):
 					"objListWindow.finalizeTable") as _f:
 			das = dailyArxivSelect({}, p)
 			_s.assert_called_once_with(0, Qt.AscendingOrder)
-			_f.assert_called_once_with(gridPos = (2, 0, 1, 2))
+			_f.assert_called_once_with(gridPos=(2, 0, 1, 2))
 		das = dailyArxivSelect({}, p)
 		self.assertEqual(das.windowTitle(), 'ArXiv daily listing - results')
 		self.assertEqual(das.layout().spacing(), 1)
@@ -1165,7 +1191,7 @@ class TestDailyArxivSelect(GUITestCase):
 			}}
 		das = dailyArxivSelect(bibs, p)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = False) as _iv:
+				return_value=False) as _iv:
 			self.assertEqual(das.cellClick(QModelIndex()), None)
 		self.assertFalse(hasattr(das, "abstractFormulas"))
 		#the first row will contain the 1507.08204 entry,
@@ -1176,7 +1202,7 @@ class TestDailyArxivSelect(GUITestCase):
 			_d.assert_called_once_with("self.abstractFormulas not present " +
 				"in dailyArxivSelect. Eprint: 1808.00000")
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sibling",
-					return_value = None) as _s,\
+					return_value=None) as _s,\
 				patch("logging.Logger.debug") as _d:
 			self.assertEqual(das.cellClick(ix), None)
 			_d.assert_called_once_with('Data not valid', exc_info=True)

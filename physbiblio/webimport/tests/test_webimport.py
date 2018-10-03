@@ -226,7 +226,6 @@ class TestWebImportMethods(unittest.TestCase):
 			+ '"arXiv",\n  primaryclass = "hep-ph",\n        eprint = ' \
 			+ '"1507.08204",\n           doi = ' \
 			+ '"10.1088/0954-3899/43/3/033001",\n}\n\n'})
-		print("\n\n\n\n\n\n")
 		dict2 = physBiblioWeb.webSearch["inspireoai"].readRecord(
 			marcxmlRecord2, readConferenceTitle = True)
 		self.assertEqual(dict2,
