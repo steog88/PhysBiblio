@@ -57,7 +57,8 @@ tableFields["entries"] = [
 	["book",		"integer", "default 0"],
 	["noUpdate",	"integer", "default 0"],
 	["marks", 		"text", ""],
-	["abstract", 	"text", ""]];
+	["abstract", 	"text", ""],
+	["bibdict", 	"text", ""]];
 tableFields["categories"] = [
 	["idCat", 		"integer", "primary key"],
 	["name", 		"text", "not null"],
@@ -112,7 +113,8 @@ fieldsDescriptions["entries"] = {
 	"noUpdate":  "(T/F) The entry has been created/modified by the user "
 		+ "and/or should not be updated",
 	"marks":	 "Mark the record",
-	"abstract":	 "Abstract of the record"}
+	"abstract":	 "Abstract of the record",
+	"bibdict":   "Dictionary with fields of the bibtex entry from bibtexparser"}
 fieldsDescriptions["categories"] = {
 	"idCat": 		"Unique ID that identifies the category",
 	"name": 		"Name of the category",

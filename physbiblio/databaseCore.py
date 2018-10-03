@@ -24,7 +24,7 @@ class physbiblioDBCore():
 	Will be subclassed to do everything else.
 	"""
 
-	def __init__(self, dbname, logger, noOpen = False, info = True):
+	def __init__(self, dbname, logger, noOpen=False, info=True):
 		"""Initialize database class (column names, descriptions)
 		and opens the database.
 
@@ -50,18 +50,19 @@ class physbiblioDBCore():
 		db_is_new = not os.path.exists(self.dbname)
 
 		if not noOpen:
-			self.openDB(info = info)
+			self.openDB(info=info)
 			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database or missing tables."
 					+ "Creating them!\n\n")
 				self.createTables()
+			self.checkCols()
 
 		self.lastFetched = None
 		self.catsHier = None
 
 		self.loadSubClasses()
 
-	def openDB(self, info = True):
+	def openDB(self, info=True):
 		"""Open the database and creates the self.conn (connection)
 		and self.curs (cursor) objects.
 
@@ -85,7 +86,7 @@ class physbiblioDBCore():
 		"""Not defined at this stage. Present in subclass physbiblioDB"""
 		pass
 
-	def closeDB(self, info = True):
+	def closeDB(self, info=True):
 		"""Close the database.
 
 		Parameters:
@@ -107,7 +108,7 @@ class physbiblioDBCore():
 		#return self.conn.in_transaction() #works only with sqlite > 3.2...
 		return self.dbChanged
 
-	def commit(self, verbose = True):
+	def commit(self, verbose=True):
 		"""Commit the changes.
 
 		Parameters:
@@ -127,7 +128,7 @@ class physbiblioDBCore():
 			self.logger.exception("Impossible to commit!")
 			return False
 
-	def undo(self, verbose = True):
+	def undo(self, verbose=True):
 		"""Undo the uncommitted changes
 		and roll back to the last commit.
 
@@ -148,7 +149,7 @@ class physbiblioDBCore():
 			self.logger.exception("Impossible to rollback!")
 			return False
 
-	def connExec(self, query, data = None):
+	def connExec(self, query, data=None):
 		"""Execute connection.
 
 		Parameters:
@@ -177,7 +178,7 @@ class physbiblioDBCore():
 			self.dbChanged = True
 			return True
 
-	def cursExec(self, query, data = None):
+	def cursExec(self, query, data=None):
 		"""Execute cursor.
 
 		Parameters:
@@ -210,7 +211,7 @@ class physbiblioDBCore():
 		pass
 
 	def checkExistingTables(self,
-			wantedTables = ["categories", "entries",
+			wantedTables=["categories", "entries",
 				"entryCats", "entryExps", "expCats",
 				"experiments", "settings"]):
 		"""Check that all the required tables
@@ -220,7 +221,7 @@ class physbiblioDBCore():
 		tables = [name[0] for name in self.curs]
 		return not all(t in tables for t in wantedTables)
 
-	def createTables(self, fieldsDict = None):
+	def createTables(self, fieldsDict=None):
 		"""Create tables for the database
 		(and insert the default categories), if it is missing.
 
@@ -261,6 +262,22 @@ class physbiblioDBCore():
 				self.logger.error("Insert main categories failed")
 		self.commit()
 
+	def checkCols(self):
+		"""Run when new columns are added to the database with respect
+		to previous versions of the software
+		Check if bibdict column is present in entries table
+		"""
+		entryFields = self.cursExec("PRAGMA table_info(entries);")
+		entriesCols = [name[1] for name in self.curs]
+		if "bibdict" not in entriesCols:
+			if self.connExec(
+					"ALTER TABLE entries ADD COLUMN bibdict text;"):
+				self.logger.info("New column in table 'entries': "
+					+ "'bibdict' (text).")
+				self.commit()
+			else:
+				pBLogger.error("Cannot alter table 'entries'!")
+				self.undo()
 
 class physbiblioDBSub():
 	"""Uses physbiblioDB instance 'self.mainDB = parent'
@@ -319,11 +336,11 @@ class physbiblioDBSub():
 
 	def connExec(self,query,data=None):
 		"""Execute connection (see physbiblioDB.connExec)"""
-		return self.mainDB.connExec(query, data = data)
+		return self.mainDB.connExec(query, data=data)
 
-	def cursExec(self, query, data = None):
+	def cursExec(self, query, data=None):
 		"""Execute cursor (see physbiblioDB.cursExec)"""
-		return self.mainDB.cursExec(query, data = data)
+		return self.mainDB.cursExec(query, data=data)
 
 	def cursor(self):
 		"""Return the cursor"""

@@ -84,7 +84,16 @@ fullRecordAde = {
 	'number': '',
 	'pages': 'A16',
 	'published': 'Astron.Astrophys. 571 (2014) A16',
-	'author': 'Ade, P.A.R. and others'}
+	'author': 'Ade, P.A.R. and others',
+	'bibdict': "{u'doi': u'10.1051/0004-6361/201321591', u'author': "
+		+ "u'Ade, P.A.R. and others', 'ENTRYTYPE': u'article', "
+		+ "u'collaboration': u'Planck', u'title': "
+		+ "u'{Planck 2013 results. XVI. Cosmological parameters}', "
+		+ "u'pages': u'A16', u'volume': u'571', u'reportnumber': "
+		+ "u'CERN-PH-TH-2013-129', u'eprint': u'1303.5076', "
+		+ "u'primaryclass': u'astro-ph.CO', u'year': u'2014', "
+		+ "'ID': u'Ade:2013zuv', u'archiveprefix': u'arXiv', "
+		+ "u'journal': u'Astron.Astrophys.'}"}
 fullRecordGariazzo = {
 	'bibkey': 'Gariazzo:2015rra',
 	'inspire': '1385583',
@@ -137,7 +146,15 @@ fullRecordGariazzo = {
 	'number': '',
 	'pages': '033001',
 	'published': 'J.Phys. G43 (2016) 033001',
-	'author': 'Gariazzo, S. et al.'}
+	'author': 'Gariazzo, S. et al.',
+	'bibdict': "{u'doi': u'10.1088/0954-3899/43/3/033001', "
+		+ "u'author': u'Gariazzo, S. and Giunti, C. and Laveder, M. and "
+		+ "Li, Y.F. and Zavanin, E.M.', u'journal': u'J.Phys.', "
+		+ "u'title': u'{Light sterile neutrinos}', 'ENTRYTYPE': "
+		+ "u'article', u'volume': u'G43', u'eprint': u'1507.08204', "
+		+ "u'primaryclass': u'hep-ph', u'year': u'2016', 'ID': "
+		+ "u'Gariazzo:2015rra', u'archiveprefix': u'arXiv', "
+		+ "u'pages': u'033001'}"}
 tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
@@ -1605,10 +1622,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
 		self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
 		self.assert_stdout(lambda: self.pBDB.bibs.getField("def", "isbn"),
-			"Error in getEntryField('def', 'isbn'): no element found?\n")
+			"Error in getField('def', 'isbn'): no element found?\n")
 		self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
 		self.assert_stdout(lambda: self.pBDB.bibs.getField("abc", "def"),
-			"Error in getEntryField('abc', 'def'): the field is missing?\n")
+			"Error in getField('abc', 'def'): the field is missing?\n")
 
 	def test_toDataDict(self):
 		self.insert_three()
@@ -2397,7 +2414,9 @@ class TestDatabaseEntries(DBTestCase):
 					'abstract': None, 'bibtexDict': {'arxiv': '1507.08204',
 					'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 					'title': '', 'journal': '', 'volume': '', 'number': '',
-					'pages': '', 'published': '  (2015) ', 'author': ''}])
+					'pages': '', 'published': '  (2015) ', 'author': '',
+					'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
 				mock_function.reset_mock()
 				self.assert_in_stdout(
 					lambda: self.pBDB.bibs.updateInfoFromOAI("12345",
@@ -2423,7 +2442,9 @@ class TestDatabaseEntries(DBTestCase):
 					'bibtexDict': {'arxiv': '1507.08204',
 					'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 					'title': '', 'journal': '', 'volume': '', 'number': '',
-					'pages': '', 'published': '  (2016) ', 'author': ''}])
+					'pages': '', 'published': '  (2016) ', 'author': '',
+					'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+					+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
@@ -2445,7 +2466,10 @@ class TestDatabaseEntries(DBTestCase):
 					'title': '{Light Sterile Neutrinos}',
 					'journal': '', 'volume': '', 'number': '',
 					'pages': '', 'published': '  (2016) ',
-					'author': 'Gariazzo'}])
+					'author': 'Gariazzo',
+					"bibdict": "{'ID': u'Gariazzo:2015rra', u'title': "
+					+ "u'{Light Sterile Neutrinos}', 'ENTRYTYPE': "
+					+ "u'article', u'author': u'Gariazzo'}"}])
 				self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assert_in_stdout(
 					lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
@@ -2536,7 +2560,9 @@ class TestDatabaseEntries(DBTestCase):
 			'abstract': None, 'bibtexDict': {'arxiv': '1303.5076',
 			'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '',
 			'journal': '', 'volume': '', 'number': '', 'pages': '',
-			'published': '  (2013) ', 'author': ''}])
+			'published': '  (2013) ', 'author': '', "bibdict": "{u'arxiv': "
+			+ "u'1303.5076', 'ENTRYTYPE': u'article', "
+			+ "'ID': u'Ade:2013zuv'}"}])
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None,
 			'arxiv': '1507.08204', 'ads': None, 'scholar': None,
@@ -2550,7 +2576,9 @@ class TestDatabaseEntries(DBTestCase):
 			'abstract': None, 'bibtexDict': {'arxiv': '1507.08204',
 			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '',
 			'journal': '', 'volume': '', 'number': '', 'pages': '',
-			'published': '  (2015) ', 'author': ''}])
+			'published': '  (2015) ', 'author': '', "bibdict": "{u'arxiv': "
+			+ "u'1507.08204', 'ENTRYTYPE': u'article', 'ID': "
+			+ "u'Gariazzo:2015rra'}"}])
 		with patch('physbiblio.webimport.inspireoai.webSearch.'
 				+ 'retrieveOAIUpdates',
 				side_effect=[[], [], [], [],
@@ -2591,7 +2619,9 @@ class TestDatabaseEntries(DBTestCase):
 				'arxiv': '1303.5076', 'ENTRYTYPE': 'article',
 				'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '',
 				'volume': '', 'number': '', 'pages': '',
-				'published': '  (2013) ', 'author': ''}])
+				'published': '  (2013) ', 'author': '',
+				"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': "
+				+ "u'article', 'ID': u'Ade:2013zuv'}"}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
 				'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G',
@@ -2614,7 +2644,11 @@ class TestDatabaseEntries(DBTestCase):
 				'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 				'title': '', 'journal': 'J.Phys.', 'volume': 'G43',
 				'number': '', 'pages': '033001',
-				'published': 'J.Phys. G43 (2016) 033001', 'author': ''}])
+				'published': 'J.Phys. G43 (2016) 033001', 'author': '',
+				"bibdict": "{u'doi': u'10.1088/0954-3899/43/3/033001', "
+				+ "u'journal': u'J.Phys.', u'arxiv': u'1507.08204', "
+				+ "'ENTRYTYPE': u'article', u'volume': u'G43', u'year': "
+				+ "u'2016', 'ID': u'Gariazzo:2015rra', u'pages': u'033001'}"}])
 		self.pBDB.undo(verbose = 0)
 		self.pBDB.bibs.insertFromBibtex(
 			u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
@@ -2635,7 +2669,9 @@ class TestDatabaseEntries(DBTestCase):
 			'noUpdate': 1, 'marks': '', 'abstract': None,
 			'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article',
 			'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '',
-			'number': '', 'pages': '', 'published': '  (2013) ', 'author': ''}
+			'number': '', 'pages': '', 'published': '  (2013) ', 'author': '',
+			"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': u'article', "
+			+ "'ID': u'Ade:2013zuv'}"}
 			])
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None,
@@ -2651,7 +2687,8 @@ class TestDatabaseEntries(DBTestCase):
 			'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article',
 			'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '',
 			'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ',
-			'author': ''}])
+			'author': '', "bibdict": "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+			+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
 		with patch('physbiblio.webimport.inspireoai.webSearch.' \
 				+ 'retrieveOAIUpdates',
 				side_effect=[
@@ -2681,7 +2718,9 @@ class TestDatabaseEntries(DBTestCase):
 				'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article',
 				'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '',
 				'volume': '', 'number': '', 'pages': '',
-				'published': '  (2013) ', 'author': ''}])
+				'published': '  (2013) ', 'author': '',
+				"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': "
+				+ "u'article', 'ID': u'Ade:2013zuv'}"}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
 				'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G',
@@ -2704,7 +2743,12 @@ class TestDatabaseEntries(DBTestCase):
 				'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 				'title': '', 'journal': 'J.Phys.', 'volume': 'G43',
 				'number': '', 'pages': '033001',
-				'published': 'J.Phys. G43 (2016) 033001', 'author': ''}])
+				'published': 'J.Phys. G43 (2016) 033001', 'author': '',
+				"bibdict": "{u'doi': u'10.1088/0954-3899/43/3/033001', "
+				+ "u'journal': u'J.Phys.', u'arxiv': u'1507.08204', "
+				+ "'ENTRYTYPE': u'article', u'volume': u'G43', u'year': "
+				+ "u'2016', 'ID': u'Gariazzo:2015rra', "
+				+ "u'pages': u'033001'}"}])
 
 	def test_findCorrupted(self):
 		"""test the function that finds corrupted bibtexs"""
