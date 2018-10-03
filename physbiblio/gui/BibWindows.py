@@ -182,6 +182,14 @@ def editBibtex(parent, statusBarObject, editKey = None):
 			else:
 				data[k] = 0
 		data["marks"] = ""
+		try:
+			tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
+		except IndexError:
+			tmpBibDict = {}
+		except ParseException:
+			pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%data["bibtex"], exc_info=True)
+			tmpBibDict = {}
+		data["bibdict"] = "%s"%tmpBibDict
 		for m, ckb in newBibWin.markValues.items():
 			if ckb.isChecked():
 				data["marks"] += "'%s',"%m

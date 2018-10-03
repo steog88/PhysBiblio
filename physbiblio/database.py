@@ -1281,13 +1281,18 @@ class entries(physbiblioDBSub):
 			tmp = {}
 			for k in el.keys():
 				tmp[k] = el[k]
-			try:
-				tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
-			except IndexError:
-				tmp["bibtexDict"] = {}
-			except ParseException:
-				pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%el["bibtex"], exc_info = True)
-				tmp["bibtexDict"] = {}
+			if el["bibdict"] is not None and el["bibdict"].strip() != "" and el["bibdict"].strip() != "{}":
+				tmp["bibtexDict"] = ast.literal_eval(el["bibdict"].strip())
+			else:
+				try:
+					tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+				except IndexError:
+					tmp["bibtexDict"] = {}
+				except ParseException:
+					pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%el["bibtex"], exc_info = True)
+					tmp["bibtexDict"] = {}
+				self.updateField(el["bibkey"], "bibdict",
+					"%s"%tmp["bibtexDict"])
 			try:
 				tmp["year"] = tmp["bibtexDict"]["year"]
 			except KeyError:
@@ -1659,10 +1664,10 @@ class entries(physbiblioDBSub):
 		try:
 			return self.getByBibkey(key, saveQuery = False)[0][field]
 		except IndexError:
-			pBLogger.warning("Error in getEntryField('%s', '%s'): no element found?"%(key, field))
+			pBLogger.warning("Error in getField('%s', '%s'): no element found?"%(key, field))
 			return False
 		except KeyError:
-			pBLogger.warning("Error in getEntryField('%s', '%s'): the field is missing?"%(key, field))
+			pBLogger.warning("Error in getField('%s', '%s'): the field is missing?"%(key, field))
 			return False
 
 	def toDataDict(self, key):
@@ -1673,7 +1678,7 @@ class entries(physbiblioDBSub):
 			key: the bibtex key
 
 		Output:
-			the output of self.prepareInsertEntry
+			the output of self.prepareInsert
 		"""
 		return self.prepareInsert(self.getField(key, "bibtex"))
 
@@ -1839,6 +1844,15 @@ class entries(physbiblioDBSub):
 				pass
 		#firstdate
 		data["firstdate"] = firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
+		#bibtex dict
+		try:
+			tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
+		except IndexError:
+			tmpBibDict = {}
+		except ParseException:
+			pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%data["bibtex"], exc_info=True)
+			tmpBibDict = {}
+		data["bibdict"] = "%s"%tmpBibDict
 		return data
 		
 	def prepareUpdateByKey(self, key_old, key_new):
@@ -1941,6 +1955,15 @@ class entries(physbiblioDBSub):
 		"""
 		if verbose > 0:
 			pBLogger.info("Updating '%s' for entry '%s'"%(field, key))
+		if field == "bibtex" and value != "" and value is not None:
+			try:
+				tmpBibDict = bibtexparser.loads(value).entries[0]
+			except IndexError:
+				tmpBibDict = {}
+			except ParseException:
+				pBLogger.warning("Problem in parsing the following bibtex code:\n%s"%value, exc_info=True)
+				tmpBibDict = {}
+			self.updateField(key, "bibdict", "%s"%tmpBibDict, verbose=verbose)
 		if field in self.tableCols["entries"] and field != "bibkey" \
 				and value is not None:
 			query = "update entries set " + field + "=:field where bibkey=:bibkey\n"

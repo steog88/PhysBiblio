@@ -1,3 +1,7 @@
+0.6.0 (2018-10-03):
+	* new field in database, entries table: bibdict. Needed to save time when building the main table
+	* much faster loading of the main table (for reasonable number of entries, still slow when requesting many of them)
+
 0.5.3 (2018-09-04):
 	* update arXiv "econ" subcategories
 	* improved tooltips in categories and experiments
