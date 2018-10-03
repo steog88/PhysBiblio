@@ -54,6 +54,7 @@ class physbiblioDB(physbiblioDBCore):
 			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
+			self.checkCols()
 
 			self.lastFetched = None
 			self.catsHier = None
@@ -63,6 +64,7 @@ class physbiblioDB(physbiblioDBCore):
 			if self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
+			self.checkCols()
 			self.lastFetched = None
 			self.catsHier = None
 		return True

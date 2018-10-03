@@ -52,18 +52,7 @@ class physbiblioDBCore():
 			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database or missing tables. Creating them!\n\n")
 				self.createTables()
-			#check if bibdict column is present in entries table
-			entryFields = self.cursExec("PRAGMA table_info(entries);")
-			cols = [name[1] for name in self.curs]
-			if "bibdict" not in cols:
-				if self.connExec(
-						"ALTER TABLE entries ADD COLUMN bibdict text;"):
-					self.logger.info("New column in table 'entries': "
-						+ "'bibdict' (text).")
-					self.commit()
-				else:
-					pBLogger.error("Cannot alter table 'entries'!")
-					self.undo()
+			self.checkCols()
 
 		self.lastFetched = None
 		self.catsHier = None
@@ -265,6 +254,23 @@ class physbiblioDBCore():
 			if not self.connExec(command):
 				self.logger.error("Insert main categories failed")
 		self.commit()
+
+	def checkCols(self):
+		"""Run when new columns are added to the database with respect
+		to previous versions of the software
+		Check if bibdict column is present in entries table
+		"""
+		entryFields = self.cursExec("PRAGMA table_info(entries);")
+		entriesCols = [name[1] for name in self.curs]
+		if "bibdict" not in entriesCols:
+			if self.connExec(
+					"ALTER TABLE entries ADD COLUMN bibdict text;"):
+				self.logger.info("New column in table 'entries': "
+					+ "'bibdict' (text).")
+				self.commit()
+			else:
+				pBLogger.error("Cannot alter table 'entries'!")
+				self.undo()
 
 class physbiblioDBSub():
 	"""
