@@ -94,6 +94,9 @@ class MainWindow(QMainWindow):
 
 	def mainWindowTitle(self, title):
 		"""Set the window title
+
+		Parameter:
+			title: the window title
 		"""
 		self.setWindowTitle(title)
 

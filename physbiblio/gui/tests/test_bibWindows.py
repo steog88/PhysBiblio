@@ -3541,8 +3541,6 @@ class TestBibtexListWindow(GUITestCase):
 				patch("physbiblio.gui.commonClasses.objListWindow."
 					+ "setProxyStuff") as _sps,\
 				patch("PySide2.QtWidgets.QTableView.hideColumn") as _hc,\
-				patch("PySide2.QtWidgets.QToolBar.addAction") as _aa,\
-				patch("PySide2.QtWidgets.QToolBar.addWidget") as _aw,\
 				patch("physbiblio.gui.bibWindows.MyBibTableModel",
 					autospec=True) as _tm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
@@ -3575,15 +3573,18 @@ class TestBibtexListWindow(GUITestCase):
 		self.assertIsInstance(bw.selectToolBar, QToolBar)
 		self.assertEqual(bw.selectToolBar.windowTitle(), 'Bibs toolbar')
 		self.assertEqual(bw.currLayout.itemAt(1).widget(), bw.selectToolBar)
-		_aa.assert_has_calls([
-			call(bw.selAct),
-			call(bw.clearAct),
-			call(bw.selAllAct),
-			call(bw.unselAllAct),
-			call(bw.okAct)])
-		_aw.assert_has_calls([
-			call(bw.mergeLabel),
-			call(bw.filterInput)])
+		macts = bw.selectToolBar.actions()
+		self.assertEqual(macts[0], bw.selAct)
+		self.assertEqual(macts[1], bw.clearAct)
+		self.assertTrue(macts[2].isSeparator())
+		self.assertEqual(macts[3], bw.selAllAct)
+		self.assertEqual(macts[4], bw.unselAllAct)
+		self.assertEqual(macts[5], bw.okAct)
+		self.assertEqual(bw.selectToolBar.widgetForAction(macts[6]),
+			bw.mergeLabel)
+		self.assertTrue(macts[7].isSeparator())
+		self.assertEqual(bw.selectToolBar.widgetForAction(macts[8]),
+			bw.filterInput)
 		# check filterinput
 		self.assertIsInstance(bw.filterInput, QLineEdit)
 		self.assertEqual(bw.filterInput.placeholderText(),
@@ -4165,10 +4166,6 @@ class TestSearchBibsWindow(GUITestCase):
 		pass
 
 	def test_onAddField(self):
-		"""test"""
-		pass
-
-	def test_keyPressEvent(self):
 		"""test"""
 		pass
 

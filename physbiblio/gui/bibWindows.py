@@ -2001,10 +2001,6 @@ class SearchBibsWindow(editObjectWindow):
 			o.widget().deleteLater()
 		self.createForm()
 
-	def keyPressEvent(self, e):
-		if e.key() == Qt.Key_Escape:
-			self.onCancel()
-
 	def eventFilter(self, widget, event):
 		if (event.type() == QEvent.KeyPress and
 				widget in [a["content"] for a in self.textValues] \
