@@ -181,6 +181,15 @@ def editBibtex(parentObject, editKey=None, testing=False):
 			if ckb.isChecked():
 				data["marks"] += "'%s',"%m
 		if data["bibtex"].strip() != "":
+			try:
+				tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
+			except IndexError:
+				tmpBibDict = {}
+			except ParseException:
+				pBLogger.warning("Problem in parsing the following "
+					+ "bibtex code:\n%s"%data["bibtex"], exc_info=True)
+				tmpBibDict = {}
+			data["bibdict"] = "%s"%tmpBibDict
 			if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
 				data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 			if data["bibkey"].strip() != "":

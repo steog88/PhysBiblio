@@ -149,7 +149,7 @@
 	* default paths with appdirs
 	* logging
 	* several optimizations/adjustments/improvements/speed-ups/bugfixes
-	
+
 	New features:
 	* import from bibtex file
 	* command line usage of main executable

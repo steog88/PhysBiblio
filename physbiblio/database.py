@@ -7,6 +7,7 @@ from sqlite3 import \
 import os
 import re
 import traceback
+import ast
 import datetime
 import bibtexparser
 import six.moves
@@ -616,7 +617,8 @@ class catsExps(physbiblioDBSub):
 			idExp: the experiment id
 
 		Output:
-			the list of `sqlite3.Row` objects with all the matching connections
+			the list of `sqlite3.Row` objects
+				with all the matching connections
 		"""
 		self.cursExec(
 			"select * from expCats where idExp=:idExp and idCat=:idCat",
@@ -1744,12 +1746,12 @@ class entries(physbiblioDBSub):
 			return self.getByBibkey(key, saveQuery=False)[0][field]
 		except IndexError:
 			pBLogger.warning(
-				"Error in getEntryField('%s', '%s'): no element found?"%(
+				"Error in getField('%s', '%s'): no element found?"%(
 				key, field))
 			return False
 		except KeyError:
 			pBLogger.warning(
-				"Error in getEntryField('%s', '%s'): the field is missing?"%(
+				"Error in getField('%s', '%s'): the field is missing?"%(
 				key, field))
 			return False
 
@@ -1760,7 +1762,7 @@ class entries(physbiblioDBSub):
 			key: the bibtex key
 
 		Output:
-			the output of self.prepareInsertEntry
+			the output of self.prepareInsert
 		"""
 		return self.prepareInsert(self.getField(key, "bibtex"))
 
@@ -2058,15 +2060,17 @@ class entries(physbiblioDBSub):
 							{"inspire": newid, "bibkey": key}):
 						return newid
 					else:
-						pBLogger.warning("Something went wrong in updateInspireID")
+						pBLogger.warning(
+							"Something went wrong in updateInspireID")
 						return False
 			else:
 				doi = self.getField(key, "doi")
 				if doi is not "" and doi is not None:
-					newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-						"doi+%s"%doi, number=0)
+					newid = physBiblioWeb.webSearch["inspire"]\
+						.retrieveInspireID("doi+%s"%doi, number=0)
 					if newid is not "":
-						if self.connExec("update entries set inspire=:inspire " \
+						if self.connExec(
+								"update entries set inspire=:inspire " \
 								+ "where bibkey=:bibkey\n",
 								{"inspire": newid, "bibkey": key}):
 							return newid
