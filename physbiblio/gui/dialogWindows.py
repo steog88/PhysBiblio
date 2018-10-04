@@ -721,8 +721,13 @@ class dailyArxivDialog(QDialog):
 		self.cancelButton.setAutoDefault(True)
 		self.grid.addWidget(self.cancelButton, 2, 1)
 
-		self.setGeometry(100, 100, 400, 100)
 		self.setLayout(self.grid)
+
+		self.setGeometry(100, 100, 400, 100)
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
 
 
 class dailyArxivSelect(advImportSelect):
