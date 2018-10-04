@@ -3697,9 +3697,10 @@ class TestBibtexListWindow(GUITestCase):
 			tmp.exec_ = MagicMock()
 			with patch("physbiblio.gui.bibWindows.CommonBibActions."
 					+ "createContextMenu", return_value=tmp) as _cm:
+				position = QCursor.pos()
 				bw.triggeredContextMenuEvent(
 					9999, 101, ev)
-				tmp.exec_.assert_called_once_with(QCursor.pos())
+				tmp.exec_.assert_called_once_with(position)
 				_cm.assert_called_once_with()
 
 	def test_handleItemEntered(self):
@@ -3879,48 +3880,13 @@ class TestBibtexListWindow(GUITestCase):
 					+ "statusBarMessage") as _m,\
 				patch("physbiblio.gui.bibWindows.AskPDFAction",
 					return_value=tmp) as _apa:
+			position = QCursor.pos()
 			bw.cellDoubleClick(ix)
 			_gf.assert_called_once_with("abc", fullPath=True)
 			_ol.assert_not_called()
 			_m.assert_not_called()
-			_apa.assert_called_once_with("abc", bw)
-			tmp.exec_.assert_called_once_with(QCursor.pos())
-		tmp.result = "openArxiv"
-		with patch("physbiblio.pdf.LocalPDF.getExisting",
-				return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"]) as _gf,\
-				patch("physbiblio.pdf.LocalPDF.getFilePath",
-					side_effect=["/tmp/arxiv.pdf", "/tmp/doi.pdf"]) as _gp,\
-				patch("physbiblio.pdf.LocalPDF.getFileDir",
-					return_value="/tmp") as _gd,\
-				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
-					) as _ol,\
-				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "getEventEntry",
-					return_value=(0, bw.colContents.index("pdf"),
-						"abc", currentry)) as _ge,\
-				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "updateInfo") as _ui,\
-				patch("physbiblio.gui.mainWindow.MainWindow."
-					+ "statusBarMessage") as _m,\
-				patch("physbiblio.gui.bibWindows.AskPDFAction",
-					return_value=tmp) as _apa:
-			bw.cellDoubleClick(ix)
-			_gp.assert_called_once_with("abc", "arxiv")
-			_ol.assert_called_once_with("abc", "file",
-				fileArg="/tmp/arxiv.pdf")
-			_m.assert_called_once_with("opening arXiv PDF...")
-			tmp.result = "openDoi"
-			bw.cellDoubleClick(ix)
-			_gp.assert_called_with("abc", "doi")
-			_ol.assert_called_with("abc", "file",
-				fileArg="/tmp/doi.pdf")
-			_m.assert_called_with("opening DOI PDF...")
-			tmp.result = "openOther_file1.pdf"
-			bw.cellDoubleClick(ix)
-			_gd.assert_called_with("abc")
-			_ol.assert_called_with("abc", "file",
-				fileArg="/tmp/file1.pdf")
-			_m.assert_called_with("opening file1.pdf...")
+			_apa.assert_called_once_with("abc", bw.mainWin)
+			tmp.exec_.assert_called_once_with(position)
 
 	def test_finalizeTable(self):
 		"""test finalizeTable"""
@@ -3992,63 +3958,96 @@ class TestEditBibtexDialog(GUITestCase):
 
 	def test_init(self):
 		"""test __init__"""
-		pass
+		p = QWidget()
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog.createForm"
+				) as _cf:
+			eb = EditBibtexDialog()
+			_cf.assert_called_once_with()
+		self.assertIsInstance(eb, editObjectWindow)
+		self.assertEqual(eb.parent(), None)
+		self.assertEqual(eb.bibtexEditLines, 8)
+		self.assertEqual(eb.checkValues, {})
+		self.assertEqual(eb.markValues, {})
+		self.assertEqual(eb.checkboxes,
+			["exp_paper", "lecture", "phd_thesis", "review",
+			"proceeding", "book", "noUpdate"])
+		tmp = {}
+		for k in pBDB.tableCols["entries"]:
+			self.assertEqual(eb.data[k], "")
+			tmp[k] = "a"
+
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog.createForm"
+				) as _cf:
+			eb = EditBibtexDialog(parent=p, bib=tmp)
+		self.assertEqual(eb.parent(), p)
+		self.assertEqual(eb.data, tmp)
 
 	def test_onOk(self):
 		"""test onOk"""
-		pass
+		p = QWidget()
+		eb = EditBibtexDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
+				patch("logging.Logger.error") as _e:
+			self.assertEqual(eb.onOk(), False)
+			_c.assert_not_called()
+			_e.assert_called_once_with("Invalid form contents: empty bibtex!")
+		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
+		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
+				patch("logging.Logger.error") as _e:
+			eb.onOk()
+			_c.assert_called_once_with()
+			_e.assert_not_called()
+			self.assertEqual(eb.result, True)
+
+		eb = EditBibtexDialog()
+		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
+		eb.textValues["bibkey"].setReadOnly(False)
+		eb.textValues["bibkey"].setText("abc")
+		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
+				patch("logging.Logger.error") as _e:
+			self.assertEqual(eb.onOk(), False)
+			_c.assert_not_called()
+			_e.assert_called_once_with(
+				"Invalid form contents: bibtex key will be taken from bibtex!")
 
 	def test_updateBibkey(self):
 		"""test updateBibkey"""
-		pass
+		p = QWidget()
+		eb = EditBibtexDialog()
+		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
+		eb.textValues["bibkey"].setText("")
+		eb.updateBibkey()
+		self.assertEqual(eb.textValues["bibkey"].text(), "abc")
+		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"')
+		eb.updateBibkey()
+		self.assertEqual(eb.textValues["bibkey"].text(), "not valid bibtex!")
 
 	def test_createForm(self):
 		"""test createForm"""
-		pass
-
-
-@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyPDFAction(GUITestCase):
-	"""test the MyPDFAction class"""
-
-	def test_init(self):
-		"""test init"""
-		m = MyMenu()
-		pa = MyPDFAction("fname", m)
-		self.assertIsInstance(pa, QAction)
-		self.assertEqual(pa.filename, "fname")
-		self.assertEqual(pa.parentMenu, m)
-		with patch("physbiblio.gui.bibWindows.MyPDFAction.returnFileName"
-				) as _r:
-			pa.triggered.emit()
-			_r.assert_called_once_with()
-
-		pa = MyPDFAction("fname", m, "title")
-		self.assertEqual(pa.text(), "title")
-
-	def test_returnFileName(self):
-		"""test returnFileName"""
-		m = MyMenu()
-		pa = MyPDFAction("fname", m)
-		with patch("PySide2.QtWidgets.QMenu.close") as _c:
-			pa.returnFileName()
-			self.assertEqual(m.result, "openOther_fname")
-			_c.assert_called_once_with()
+		p = QWidget()
+		eb = EditBibtexDialog()
+		self.assertEqual(eb.windowTitle(), 'Edit bibtex entry')
+		raise NotImplementedError
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAskPDFAction(GUITestCase):
 	"""test AskPDFAction"""
 
+	@classmethod
+	def setUpClass(self):
+		"""Define useful things"""
+		super(TestAskPDFAction, self).setUpClass()
+		self.mainW = MainWindow(testing=True)
+
 	def test_init(self):
 		"""test __init__"""
-		p = QWidget()
 		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=[]) as _ge,\
 				patch("physbiblio.pdf.LocalPDF.getFilePath",
 					side_effect=["", ""]) as _gp,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
-			apa = AskPDFAction("improbablekey", p)
+			apa = AskPDFAction("improbablekey", self.mainW)
 			_ge.assert_called_once_with("improbablekey", fullPath=True)
 			_gp.assert_has_calls([
 				call("improbablekey", "doi"),
@@ -4063,7 +4062,7 @@ class TestAskPDFAction(GUITestCase):
 				patch("physbiblio.pdf.LocalPDF.getFilePath",
 					side_effect=["d", "a"]) as _gp,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _fm:
-			apa = AskPDFAction("improbablekey", p)
+			apa = AskPDFAction("improbablekey", self.mainW)
 			_ge.assert_called_once_with("improbablekey", fullPath=True)
 			_gp.assert_has_calls([
 				call("improbablekey", "doi"),
@@ -4075,8 +4074,8 @@ class TestAskPDFAction(GUITestCase):
 		self.assertEqual(len(apa.possibleActions), 4)
 		self.assertIsInstance(apa.possibleActions[0], QAction)
 		self.assertIsInstance(apa.possibleActions[1], QAction)
-		self.assertIsInstance(apa.possibleActions[2], MyPDFAction)
-		self.assertIsInstance(apa.possibleActions[3], MyPDFAction)
+		self.assertIsInstance(apa.possibleActions[2], QAction)
+		self.assertIsInstance(apa.possibleActions[3], QAction)
 		self.assertEqual(apa.possibleActions[0].text(), "Open DOI PDF")
 		self.assertEqual(apa.possibleActions[1].text(), "Open arxiv PDF")
 		self.assertEqual(apa.possibleActions[2].text(), "Open b")
@@ -4092,23 +4091,67 @@ class TestAskPDFAction(GUITestCase):
 
 	def test_onOpenArxiv(self):
 		"""test onOpenArxiv"""
-		p = QWidget()
 		with patch("PySide2.QtWidgets.QMenu.close") as _c,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="/tmp/file.pdf") as _gp,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m,\
 				patch("logging.Logger.warning") as _w:
-			apa = AskPDFAction("improbablekey", p)
+			apa = AskPDFAction("improbablekey", self.mainW)
 			apa.onOpenArxiv()
-			self.assertEqual(apa.result, "openArxiv")
+			_ol.assert_called_once_with(
+				'improbablekey', 'file', fileArg='/tmp/file.pdf')
 			_c.assert_called_once_with()
+			_m.assert_called_once_with('Opening arXiv PDF...')
+			_gp.assert_has_calls([
+				call('improbablekey', 'doi'),
+				call('improbablekey', 'arxiv'),
+				call('improbablekey', 'arxiv')])
 
 	def test_onOpenDoi(self):
 		"""test onOpenDoi"""
-		p = QWidget()
 		with patch("PySide2.QtWidgets.QMenu.close") as _c,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					return_value="/tmp/file.pdf") as _gp,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m,\
 				patch("logging.Logger.warning") as _w:
-			apa = AskPDFAction("improbablekey", p)
+			apa = AskPDFAction("improbablekey", self.mainW)
 			apa.onOpenDoi()
-			self.assertEqual(apa.result, "openDoi")
+			_ol.assert_called_once_with(
+				'improbablekey', 'file', fileArg='/tmp/file.pdf')
 			_c.assert_called_once_with()
+			_m.assert_called_once_with('Opening DOI PDF...')
+			_gp.assert_has_calls([
+				call('improbablekey', 'doi'),
+				call('improbablekey', 'arxiv'),
+				call('improbablekey', 'doi')])
+
+	def test_onOpenOther(self):
+		"""test onOpenOther"""
+		with patch("physbiblio.pdf.LocalPDF.getExisting",
+				return_value=["a.pdf", "b.pdf"]) as _ge,\
+				patch("physbiblio.pdf.LocalPDF.getFilePath",
+					side_effect=["c", "d"]) as _gp,\
+				patch("physbiblio.pdf.LocalPDF.getFileDir",
+					return_value="/tmp") as _gd,\
+				patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+					) as _ol,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "statusBarMessage") as _m,\
+				patch("PySide2.QtWidgets.QMenu.close") as _c,\
+				patch("logging.Logger.warning") as _w:
+			apa = AskPDFAction("improbablekey", self.mainW)
+			apa.possibleActions[0].trigger()
+			_ol.assert_called_once_with(
+				'improbablekey', 'file', fileArg='/tmp/a.pdf')
+			_gd.assert_called_once_with('improbablekey')
+			_c.assert_called_once_with()
+			_m.assert_called_once_with("Opening a.pdf...")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

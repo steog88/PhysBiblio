@@ -1650,23 +1650,8 @@ class BibtexListWindow(QFrame, objListWindow):
 				self.mainWin.statusBarMessage("opening PDF...")
 				pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
 			elif len(pdfFiles) > 1:
-				ask = AskPDFAction(bibkey, self)
+				ask = AskPDFAction(bibkey, self.mainWin)
 				ask.exec_(QCursor.pos())
-				if ask.result == "openArxiv":
-					self.mainWin.statusBarMessage("opening arXiv PDF...")
-					pBGuiView.openLink(bibkey, "file",
-						fileArg=pBPDF.getFilePath(bibkey, "arxiv"))
-				elif ask.result == "openDoi":
-					self.mainWin.statusBarMessage("opening DOI PDF...")
-					pBGuiView.openLink(bibkey, "file",
-						fileArg=pBPDF.getFilePath(bibkey, "doi"))
-				elif isinstance(ask.result, str) \
-						and "openOther_" in ask.result:
-					filename = ask.result.replace("openOther_", "")
-					self.mainWin.statusBarMessage("opening %s..."%filename)
-					pBGuiView.openLink(bibkey, "file",
-						fileArg=os.path.join(
-							pBPDF.getFileDir(bibkey), filename))
 
 	def finalizeTable(self):
 		"""Set the font size, resize the table to fit the contents,
@@ -1704,9 +1689,17 @@ class BibtexListWindow(QFrame, objListWindow):
 
 
 class EditBibtexDialog(editObjectWindow):
-	"""create a window for editing or creating a bibtex entry"""
+	"""Create a window for editing or creating a new bibtex entry"""
 
-	def __init__(self, parent = None, bib = None):
+	def __init__(self, parent=None, bib=None):
+		"""Set some basic properties.
+		If `bib` is None, prepare a new empty record.
+
+		Parameters:
+			parent (default None): the parent widget
+			bib (default None): the bibtex record from the database,
+				or None to create a new entry
+		"""
 		super(EditBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		if bib is None:
@@ -1722,6 +1715,10 @@ class EditBibtexDialog(editObjectWindow):
 		self.createForm()
 
 	def onOk(self):
+		"""Validate the form content. Close the dialog only
+		if the bibtex field is not empty and the bibtex key has not
+		been manually modified in the 'bibkey' QTextEdit.
+		"""
 		if self.textValues["bibtex"].toPlainText() == "":
 			pBGUILogger.error("Invalid form contents: empty bibtex!")
 			return False
@@ -1735,6 +1732,9 @@ class EditBibtexDialog(editObjectWindow):
 		self.close()
 
 	def updateBibkey(self):
+		"""When the bibtex text is changed, update
+		the 'bibkey' QTextEdit according to the bibtex content
+		"""
 		bibtex = self.textValues["bibtex"].toPlainText()
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
@@ -1744,6 +1744,9 @@ class EditBibtexDialog(editObjectWindow):
 		self.textValues["bibkey"].setText(bibkey)
 
 	def createForm(self):
+		"""Create the form content:
+		input fields, labels, checkboxes and buttons
+		"""
 		self.setWindowTitle('Edit bibtex entry')
 
 		i = 0
@@ -1757,25 +1760,29 @@ class EditBibtexDialog(editObjectWindow):
 					and k not in self.checkboxes:
 				i += 1
 				self.currGrid.addWidget(MyLabel(k),
-					int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
+					int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2)
 				self.currGrid.addWidget(
 					MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
-					int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
+					int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2+1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "bibkey" and val != "":
 					self.textValues[k].setReadOnly(True)
 				self.currGrid.addWidget(self.textValues[k],
-					int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 2)
+					int((i + 1 - (2*i)%2)/2)*2,
+					((1+i)%2)*2,
+					1, 2)
 			elif k == "marks":
 				i += 1
 				groupBox, markValues = pBMarks.getGroupbox(
 					self.data["marks"],
-					description = pBDB.descriptions["entries"]["marks"])
+					description=pBDB.descriptions["entries"]["marks"])
 				self.markValues = markValues
 				if ((1+i)%2)*2 != 0:
 					i += 1
 				self.currGrid.addWidget(groupBox,
-					int((i+1-(i+i)%2)/2)*2, ((1+i)%2)*2, 1, 4)
+					int((i + 1 - (2*i)%2)/2)*2,
+					((1+i)%2)*2,
+					1, 4)
 
 		self.textValues["bibkey"].setReadOnly(True)
 
@@ -1817,42 +1824,16 @@ class EditBibtexDialog(editObjectWindow):
 		i += j
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i*2+1, 0,1,2)
+		self.currGrid.addWidget(self.acceptButton, i*2+1, 0, 1, 2)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i*2+1, 2,1,2)
+		self.currGrid.addWidget(self.cancelButton, i*2+1, 2, 1, 2)
 
-		self.setGeometry(100,100,400, 25*i)
+		self.setGeometry(100, 100, 400, 25*i)
 		self.centerWindow()
-
-
-class MyPDFAction(QAction):
-	"""Action used when asking which file to open"""
-
-	def __init__(self, filename, parentMenu, *args, **kwargs):
-		"""Extend `QAction.__init__` with few default properties
-
-		Parameters:
-			filename: the name of the file corresponding to this action
-			parentMenu: the menu of which this action is part
-			additional *args, **kwargs as in `QAction.__init__`
-		"""
-		QAction.__init__(self,
-			*args,
-			triggered = self.returnFileName,
-			**kwargs)
-		self.filename = filename
-		self.parentMenu = parentMenu
-
-	def returnFileName(self):
-		"""Define the result of the parentMenu
-		to later open the file self.filename
-		"""
-		self.parentMenu.result = "openOther_%s"%self.filename
-		self.parentMenu.close()
 
 
 class AskPDFAction(MyMenu):
@@ -1867,6 +1848,8 @@ class AskPDFAction(MyMenu):
 			parent (default None): the parent widget
 		"""
 		super(AskPDFAction, self).__init__(parent)
+		self.key = key
+		self.mainWin = parent
 		self.message = "What PDF of this entry (%s) do you want to open?"%(key)
 		self.possibleActions = []
 		files = pBPDF.getExisting(key, fullPath=True)
@@ -1874,26 +1857,40 @@ class AskPDFAction(MyMenu):
 		arxivFile = pBPDF.getFilePath(key, "arxiv")
 		if doiFile != "" and doiFile in files:
 			self.possibleActions.append(
-				QAction("Open DOI PDF", self, triggered = self.onOpenDoi))
+				QAction("Open DOI PDF", self,
+					triggered=self.onOpenDoi))
 			files.remove(doiFile)
 		if arxivFile != "" and arxivFile in files:
 			self.possibleActions.append(
-				QAction("Open arxiv PDF", self, triggered = self.onOpenArxiv))
+				QAction("Open arxiv PDF", self,
+					triggered=self.onOpenArxiv))
 			files.remove(arxivFile)
 		for f in files:
+			fname = f.split(os.sep)[-1]
 			self.possibleActions.append(
-				MyPDFAction(f, self, "Open %s"%f.split(os.sep)[-1],
-					parent=self))
+				QAction("Open %s"%fname, self,
+					triggered=lambda fn=fname: self.onOpenOther(fn)))
 		self.fillMenu()
 
 	def onOpenArxiv(self):
 		"""Set the result for opening the arXiv PDF"""
-		self.result	= "openArxiv"
+		self.mainWin.statusBarMessage("Opening arXiv PDF...")
+		pBGuiView.openLink(self.key, "file",
+			fileArg=pBPDF.getFilePath(self.key, "arxiv"))
 		self.close()
 
 	def onOpenDoi(self):
 		"""Set the result for opening the DOI PDF"""
-		self.result	= "openDoi"
+		self.mainWin.statusBarMessage("Opening DOI PDF...")
+		pBGuiView.openLink(self.key, "file",
+			fileArg=pBPDF.getFilePath(self.key, "doi"))
+		self.close()
+
+	def onOpenOther(self, filename):
+		"""Set the result for opening the DOI PDF"""
+		self.mainWin.statusBarMessage("Opening %s..."%filename)
+		pBGuiView.openLink(self.key, "file",
+			fileArg=os.path.join(pBPDF.getFileDir(self.key), filename))
 		self.close()
 
 
