@@ -538,7 +538,7 @@ class TestEditProfile(GUITestCase):
 		with patch("physbiblio.gui.profilesManager.editProfileWindow.createForm") \
 				as _s:
 			ep = editProfileWindow(p)
-			self.assertIsInstance(ep, editObjectWindow)
+			self.assertIsInstance(ep, EditObjectWindow)
 			self.assertEqual(ep.parent(), p)
 			_s.assert_called_once_with()
 

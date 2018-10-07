@@ -3963,9 +3963,8 @@ class TestEditBibtexDialog(GUITestCase):
 				) as _cf:
 			eb = EditBibtexDialog()
 			_cf.assert_called_once_with()
-		self.assertIsInstance(eb, editObjectWindow)
+		self.assertIsInstance(eb, EditObjectWindow)
 		self.assertEqual(eb.parent(), None)
-		self.assertEqual(eb.bibtexEditLines, 8)
 		self.assertEqual(eb.checkValues, {})
 		self.assertEqual(eb.markValues, {})
 		self.assertEqual(eb.checkboxes,
@@ -4022,12 +4021,164 @@ class TestEditBibtexDialog(GUITestCase):
 		eb.updateBibkey()
 		self.assertEqual(eb.textValues["bibkey"].text(), "not valid bibtex!")
 
+	def test_createField(self):
+		"""test createField"""
+		eb = EditBibtexDialog()
+		raise NotImplementedError
+
+	def test_createCheckbox(self):
+		"""test createCheckbox"""
+		eb = EditBibtexDialog()
+		#clean layout
+		while True:
+			o = eb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		self.assertEqual(eb.createCheckbox("bibkey", 10, 10), 10)
+		self.assertEqual(eb.currGrid.count(), 0)
+		for ik, k in enumerate(eb.checkboxes):
+			self.assertEqual(eb.createCheckbox(k, 10, ik*2), (ik+1) * 2)
+			self.assertIsInstance(
+				eb.currGrid.itemAtPosition(10 + ik*2, 2).widget(),
+				QCheckBox)
+			self.assertEqual(eb.checkValues[k],
+				eb.currGrid.itemAtPosition(10 + ik*2, 2).widget())
+			self.assertEqual(eb.checkValues[k].isChecked(), False)
+			self.assertEqual(eb.checkValues[k].text(), k)
+			self.assertIsInstance(
+				eb.currGrid.itemAtPosition(10 + ik*2 + 1, 2).widget(),
+				MyLabel)
+			self.assertEqual(
+				eb.currGrid.itemAtPosition(10 + ik*2 + 1, 2).widget().text(),
+				"(%s)"%pBDB.descriptions["entries"][k])
+		self.assertEqual(eb.currGrid.count(), 14)
+		eb = EditBibtexDialog(bib={"book": 1, "review": 1})
+		while True:
+			o = eb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		for ik, k in enumerate(eb.checkboxes):
+			self.assertEqual(eb.createCheckbox(k, 9, ik*2), (ik+1) * 2)
+			self.assertIsInstance(
+				eb.currGrid.itemAtPosition(10 + ik*2, 2).widget(),
+				QCheckBox)
+			self.assertEqual(eb.checkValues[k],
+				eb.currGrid.itemAtPosition(10 + ik*2, 2).widget())
+			self.assertEqual(eb.checkValues[k].text(), k)
+			self.assertIsInstance(
+				eb.currGrid.itemAtPosition(10 + ik*2 + 1, 2).widget(),
+				MyLabel)
+			self.assertEqual(
+				eb.currGrid.itemAtPosition(10 + ik*2 + 1, 2).widget().text(),
+				"(%s)"%pBDB.descriptions["entries"][k])
+		self.assertEqual(eb.checkValues["book"].isChecked(), True)
+		self.assertEqual(eb.checkValues["review"].isChecked(), True)
+
 	def test_createForm(self):
 		"""test createForm"""
-		p = QWidget()
-		eb = EditBibtexDialog()
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+				+ "createField",
+					side_effect=[i for i in range(1,28)]) as _cf,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+					+ "createCheckbox",
+					side_effect=[i for i in range(1,28)]) as _cc,\
+				patch("physbiblio.gui.commonClasses.EditObjectWindow."
+					+ "centerWindow") as _cw:
+			eb = EditBibtexDialog(bib={"bibtex": "@article"})
+			_cw.assert_called_once_with()
+			_cf.assert_has_calls([call('bibkey', 0),
+				 call('inspire', 1),
+				 call('arxiv', 2),
+				 call('ads', 3),
+				 call('scholar', 4),
+				 call('doi', 5),
+				 call('isbn', 6),
+				 call('year', 7),
+				 call('link', 8),
+				 call('comments', 9),
+				 call('old_keys', 10),
+				 call('crossref', 11),
+				 call('bibtex', 12),
+				 call('firstdate', 13),
+				 call('pubdate', 14),
+				 call('exp_paper', 15),
+				 call('lecture', 16),
+				 call('phd_thesis', 17),
+				 call('review', 18),
+				 call('proceeding', 19),
+				 call('book', 20),
+				 call('noUpdate', 21),
+				 call('marks', 22),
+				 call('abstract', 23),
+				 call('bibdict', 24)])
+			_cc.assert_has_calls([call('bibkey', 27, 0),
+				 call('inspire', 27, 1),
+				 call('arxiv', 27, 2),
+				 call('ads', 27, 3),
+				 call('scholar', 27, 4),
+				 call('doi', 27, 5),
+				 call('isbn', 27, 6),
+				 call('year', 27, 7),
+				 call('link', 27, 8),
+				 call('comments', 27, 9),
+				 call('old_keys', 27, 10),
+				 call('crossref', 27, 11),
+				 call('bibtex', 27, 12),
+				 call('firstdate', 27, 13),
+				 call('pubdate', 27, 14),
+				 call('exp_paper', 27, 15),
+				 call('lecture', 27, 16),
+				 call('phd_thesis', 27, 17),
+				 call('review', 27, 18),
+				 call('proceeding', 27, 19),
+				 call('book', 27, 20),
+				 call('noUpdate', 27, 21),
+				 call('marks', 27, 22),
+				 call('abstract', 27, 23),
+				 call('bibdict', 27, 24)])
 		self.assertEqual(eb.windowTitle(), 'Edit bibtex entry')
-		raise NotImplementedError
+		#test bibtex field, connect and labels
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(27, 0).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(27, 0).widget().text(),
+			"bibtex")
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(27, 1).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(27, 1).widget().text(),
+			"(%s)"%pBDB.descriptions["entries"]["bibtex"])
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(28, 0).widget(),
+			QPlainTextEdit)
+		self.assertEqual(eb.textValues["bibtex"],
+			eb.currGrid.itemAtPosition(28, 0).widget())
+		self.assertEqual(eb.textValues["bibtex"].toPlainText(),
+			"@article")
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+				+ "updateBibkey") as _ub:
+			eb.textValues["bibtex"].textChanged.emit()
+			_ub.assert_called_once_with()
+		#test ok cancel buttons
+		self.assertEqual(eb.layout().itemAtPosition(53, 0).widget(),
+			eb.acceptButton)
+		self.assertEqual(eb.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+				+ "onOk") as _f:
+			QTest.mouseClick(eb.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		self.assertIsInstance(eb.layout().itemAtPosition(53, 2).widget(),
+			QPushButton)
+		self.assertEqual(eb.layout().itemAtPosition(53, 2).widget(),
+			eb.cancelButton)
+		self.assertEqual(eb.cancelButton.text(), "Cancel")
+		self.assertTrue(eb.cancelButton.autoDefault())
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow."
+				+ "onCancel") as _f:
+			QTest.mouseClick(eb.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

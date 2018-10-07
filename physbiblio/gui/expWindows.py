@@ -16,7 +16,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyLabel, MyMenu, MyTableModel, \
+		EditObjectWindow, MyLabel, MyMenu, MyTableModel, \
 		objListWindow, pBGuiView
 	from physbiblio.gui.catWindows import catsTreeWindow
 	import physbiblio.gui.resourcesPyside2
@@ -522,11 +522,11 @@ class ExpsListWindow(objListWindow):
 		return None
 
 
-class EditExperimentDialog(editObjectWindow):
+class EditExperimentDialog(EditObjectWindow):
 	"""create a window for editing or creating an experiment"""
 
 	def __init__(self, parent=None, experiment=None):
-		"""Extend `editObjectWindow.__init__` to define self.data
+		"""Extend `EditObjectWindow.__init__` to define self.data
 		and call createForm
 
 		Parameters:

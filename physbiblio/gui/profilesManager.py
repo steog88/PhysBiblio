@@ -20,7 +20,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyComboBox, MyLabel
+		EditObjectWindow, MyComboBox, MyLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -214,7 +214,7 @@ class myOrderPushButton(QPushButton):
 		return self.parentObj
 
 
-class editProfileWindow(editObjectWindow):
+class editProfileWindow(EditObjectWindow):
 	"""create a window for editing or creating a profile"""
 
 	def __init__(self, parent = None):

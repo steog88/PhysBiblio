@@ -913,7 +913,7 @@ class TestEditExperimentDialog(GUITestCase):
 				) as _cf:
 			eed = EditExperimentDialog(p)
 			_cf.assert_called_once_with()
-		self.assertIsInstance(eed, editObjectWindow)
+		self.assertIsInstance(eed, EditObjectWindow)
 		self.assertEqual(eed.parent(), p)
 		self.assertIsInstance(eed.data, dict)
 		self.assertEqual(eed.data, {"idExp": "",
@@ -1003,11 +1003,11 @@ class TestEditExperimentDialog(GUITestCase):
 			eed.cancelButton)
 		self.assertEqual(eed.cancelButton.text(), "Cancel")
 		self.assertTrue(eed.cancelButton.autoDefault())
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.onOk"
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onOk"
 				) as _f:
 			QTest.mouseClick(eed.acceptButton, Qt.LeftButton)
 			_f.assert_called_once_with()
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.onCancel"
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onCancel"
 				) as _f:
 			QTest.mouseClick(eed.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()

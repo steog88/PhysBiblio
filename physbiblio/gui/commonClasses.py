@@ -264,7 +264,7 @@ class objListWindow(QDialog):
 		self.createTable()
 
 
-class editObjectWindow(QDialog):
+class EditObjectWindow(QDialog):
 	"""Create a window for editing or creating an experiment"""
 
 	def __init__(self, parent=None):
@@ -273,7 +273,7 @@ class editObjectWindow(QDialog):
 		Parameter:
 			parent: the parent object
 		"""
-		super(editObjectWindow, self).__init__(parent)
+		super(EditObjectWindow, self).__init__(parent)
 		self.textValues = {}
 		self.initUI()
 

@@ -341,24 +341,24 @@ class TestObjListWindow(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestEditObjectWindow(GUITestCase):
-	"""Test the editObjectWindow class"""
+	"""Test the EditObjectWindow class"""
 
 	def test_init(self):
 		"""test constructor"""
 		ew = QWidget()
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.initUI") \
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.initUI") \
 				as _iu:
-			eow = editObjectWindow(ew)
+			eow = EditObjectWindow(ew)
 			self.assertEqual(eow.parent(), ew)
 			self.assertEqual(eow.textValues, {})
 			_iu.assert_called_once_with()
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
-		eow = editObjectWindow()
+		eow = EditObjectWindow()
 		w = QLineEdit()
 		eow.currGrid.addWidget(w, 0, 0)
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.onCancel") \
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onCancel") \
 				as _oc:
 			QTest.keyPress(w, "a")
 			_oc.assert_not_called()
@@ -369,7 +369,7 @@ class TestEditObjectWindow(GUITestCase):
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		eow = editObjectWindow()
+		eow = EditObjectWindow()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			eow.onCancel()
 			self.assertFalse(eow.result)
@@ -377,7 +377,7 @@ class TestEditObjectWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		eow = editObjectWindow()
+		eow = EditObjectWindow()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			eow.onOk()
 			self.assertTrue(eow.result)
@@ -385,18 +385,18 @@ class TestEditObjectWindow(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.initUI") \
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.initUI") \
 				as _iu:
-			eow = editObjectWindow()
+			eow = EditObjectWindow()
 		self.assertFalse(hasattr(eow, "currGrid"))
-		eow = editObjectWindow()
+		eow = EditObjectWindow()
 		self.assertIsInstance(eow.currGrid, QGridLayout)
 		self.assertEqual(eow.layout(), eow.currGrid)
 		self.assertEqual(eow.currGrid.spacing(), 1)
 
 	def test_centerWindow(self):
 		"""test centerWindow"""
-		eow = editObjectWindow()
+		eow = EditObjectWindow()
 		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
 					autospec = True, return_value = QRect()) as _fg,\
 				patch("PySide2.QtCore.QRect.center",

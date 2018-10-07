@@ -33,7 +33,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, MyAndOrCombo, MyComboBox, MyLabel, \
+		EditObjectWindow, MyAndOrCombo, MyComboBox, MyLabel, \
 		MyLabelCenter, MyLabelRight, MyMenu, MyTableModel, \
 		objListWindow, pBGuiView
 	from physbiblio.gui.threadElements import \
@@ -1688,7 +1688,7 @@ class BibtexListWindow(QFrame, objListWindow):
 		QApplication.restoreOverrideCursor()
 
 
-class EditBibtexDialog(editObjectWindow):
+class EditBibtexDialog(EditObjectWindow):
 	"""Create a window for editing or creating a new bibtex entry"""
 
 	def __init__(self, parent=None, bib=None):
@@ -1701,13 +1701,15 @@ class EditBibtexDialog(editObjectWindow):
 				or None to create a new entry
 		"""
 		super(EditBibtexDialog, self).__init__(parent)
-		self.bibtexEditLines = 8
 		if bib is None:
 			self.data = {}
-			for k in pBDB.tableCols["entries"]:
-				self.data[k] = ""
 		else:
 			self.data = bib
+		for k in pBDB.tableCols["entries"]:
+			try:
+				self.data[k]
+			except KeyError:
+				self.data[k] = ""
 		self.checkValues = {}
 		self.markValues = {}
 		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review",
@@ -1743,6 +1745,76 @@ class EditBibtexDialog(editObjectWindow):
 			bibkey = "not valid bibtex!"
 		self.textValues["bibkey"].setText(bibkey)
 
+	def createField(self, k, i):
+		"""Create a `QLineEdit` with the field content
+		and the corresponding labels,
+		or a Groupbox in case of "marks"
+
+		Parameters:
+			k: the field name
+			i: the index to be used
+
+		Output:
+			the updated index
+		"""
+		if k == "bibdict" \
+				or k == "abstract" \
+				or k == "bibtex" \
+				or k in self.checkboxes:
+			return i
+		i += 1
+		if k != "marks":
+			self.currGrid.addWidget(MyLabel(k),
+				int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2)
+			self.currGrid.addWidget(
+				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+				int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2+1)
+			self.textValues[k] = QLineEdit(
+				str(self.data[k]) if self.data[k] is not None else "")
+			if k == "bibkey":
+				self.textValues[k].setReadOnly(True)
+			self.currGrid.addWidget(self.textValues[k],
+				int((i + 1 - (2*i)%2)/2)*2,
+				((1+i)%2)*2,
+				1, 2)
+		else:
+			groupBox, markValues = pBMarks.getGroupbox(
+				self.data["marks"],
+				description=pBDB.descriptions["entries"]["marks"])
+			self.markValues = markValues
+			if ((1+i)%2)*2 != 0:
+				i += 1
+			self.currGrid.addWidget(groupBox,
+				int((i + 1)/2)*2,
+				((1+i)%2)*2,
+				1, 4)
+		return i
+
+	def createCheckbox(self, k, i, j):
+		"""Create a QCheckBox (eventually checked)
+		and the corresponding labels
+
+		Parameters:
+			k: the field name
+			i: the number of previous rows already filled
+			j: the index to be used
+
+		Output:
+			the updated index
+		"""
+		if k in self.checkboxes:
+			j += 2
+			#print i, j, int((i+1)/2)*2 + j - 2, i + i%2 + j - 2
+			self.currGrid.addWidget(
+				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+				i + i%2 + j - 1, 2, 1, 2)
+			self.checkValues[k] = QCheckBox(k, self)
+			if self.data[k] == 1:
+				self.checkValues[k].toggle()
+			self.currGrid.addWidget(self.checkValues[k],
+				i + i%2 + j - 2, 2)
+		return j
+
 	def createForm(self):
 		"""Create the form content:
 		input fields, labels, checkboxes and buttons
@@ -1751,86 +1823,36 @@ class EditBibtexDialog(editObjectWindow):
 
 		i = 0
 		for k in pBDB.tableCols["entries"]:
-			if k == "bibdict":
-				continue
-			val = self.data[k] if self.data[k] is not None else ""
-			if k != "bibtex" \
-					and k != "marks" \
-					and k != "abstract" \
-					and k not in self.checkboxes:
-				i += 1
-				self.currGrid.addWidget(MyLabel(k),
-					int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2)
-				self.currGrid.addWidget(
-					MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
-					int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2+1)
-				self.textValues[k] = QLineEdit(str(val))
-				if k == "bibkey" and val != "":
-					self.textValues[k].setReadOnly(True)
-				self.currGrid.addWidget(self.textValues[k],
-					int((i + 1 - (2*i)%2)/2)*2,
-					((1+i)%2)*2,
-					1, 2)
-			elif k == "marks":
-				i += 1
-				groupBox, markValues = pBMarks.getGroupbox(
-					self.data["marks"],
-					description=pBDB.descriptions["entries"]["marks"])
-				self.markValues = markValues
-				if ((1+i)%2)*2 != 0:
-					i += 1
-				self.currGrid.addWidget(groupBox,
-					int((i + 1 - (2*i)%2)/2)*2,
-					((1+i)%2)*2,
-					1, 4)
+			i = self.createField(k, i)
 
-		self.textValues["bibkey"].setReadOnly(True)
-
-		#bibtex text editor
 		i += 1 + i%2
-		k = "bibtex"
-		self.currGrid.addWidget(MyLabel(k),
-			int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2)
-		self.currGrid.addWidget(
-			MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
-			int((i+1-(i+i)%2)/2)*2-1, ((1+i)%2)*2+1)
-		self.textValues[k] = QPlainTextEdit(self.data[k])
-		self.textValues["bibtex"].textChanged.connect(self.updateBibkey)
-		self.currGrid.addWidget(self.textValues[k],
-			int((i+1-(i+i)%2)/2)*2, 0, self.bibtexEditLines, 2)
-
 		j = 0
 		for k in pBDB.tableCols["entries"]:
-			if k == "bibdict":
-				continue
-			val = self.data[k]
-			if k in self.checkboxes:
-				j += 2
-				self.currGrid.addWidget(MyLabel(k),
-					int((i+1-(i+i)%2)/2)*2 + j - 2, 2)
-				self.currGrid.addWidget(
-					MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
-					int((i+1-(i+i)%2)/2)*2 + j - 1, 2, 1, 2)
-				self.checkValues[k] = QCheckBox("", self)
-				if val == 1:
-					self.checkValues[k].toggle()
-				self.currGrid.addWidget(self.checkValues[k],
-					int((i+1-(i+i)%2)/2)*2 + j - 2, 3)
+			j = self.createCheckbox(k, i, j)
 
-		self.currGrid.addWidget(self.textValues["bibtex"],
-			int((i+1-(i+i)%2)/2)*2, 0, j, 2)
+		#bibtex text editor
+		k = "bibtex"
+		self.currGrid.addWidget(MyLabel(k),
+			i + i%2 - 1, 0)
+		self.currGrid.addWidget(
+			MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+			i + i%2 - 1, 1)
+		self.textValues[k] = QPlainTextEdit(self.data[k])
+		self.textValues[k].textChanged.connect(self.updateBibkey)
+		self.currGrid.addWidget(self.textValues[k],
+			i + i%2, 0, j, 2)
 
 		# OK button
 		i += j
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.currGrid.addWidget(self.acceptButton, i*2+1, 0, 1, 2)
+		self.currGrid.addWidget(self.acceptButton, i + i%2 + 1, 0, 1, 2)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.currGrid.addWidget(self.cancelButton, i*2+1, 2, 1, 2)
+		self.currGrid.addWidget(self.cancelButton, i + i%2 + 1, 2, 1, 2)
 
 		self.setGeometry(100, 100, 400, 25*i)
 		self.centerWindow()
@@ -1894,7 +1916,7 @@ class AskPDFAction(MyMenu):
 		self.close()
 
 
-class SearchBibsWindow(editObjectWindow):
+class SearchBibsWindow(EditObjectWindow):
 	"""create a window for searching a bibtex entry"""
 
 	def __init__(self, parent = None, bib = None, replace = False):

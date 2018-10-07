@@ -1181,7 +1181,7 @@ class TestEditCategoryDialog(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.gui.catWindows.editObjectWindow.__init__",
+		with patch("physbiblio.gui.catWindows.EditObjectWindow.__init__",
 				return_value = None) as _i,\
 				patch("physbiblio.gui.catWindows.editCategoryDialog.createForm"
 					) as _c:
@@ -1189,7 +1189,7 @@ class TestEditCategoryDialog(GUITestCase):
 			_i.assert_called_once_with(p)
 			_c.assert_called_once_with()
 		ecd = editCategoryDialog(p)
-		self.assertIsInstance(ecd, editObjectWindow)
+		self.assertIsInstance(ecd, EditObjectWindow)
 		self.assertEqual(ecd.parent(), p)
 		self.assertIsInstance(ecd.data, dict)
 		for k in pBDB.tableCols["categories"]:
@@ -1402,7 +1402,7 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertEqual(ecd.acceptButton,
 			ecd.layout().itemAtPosition(ncf, 1).widget())
 		self.assertEqual(ecd.acceptButton.text(), "OK")
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.onOk"
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onOk"
 				) as _f:
 			QTest.mouseClick(ecd.acceptButton, Qt.LeftButton)
 			_f.assert_called_once_with()
@@ -1412,7 +1412,7 @@ class TestEditCategoryDialog(GUITestCase):
 			ecd.layout().itemAtPosition(ncf, 0).widget())
 		self.assertEqual(ecd.cancelButton.text(), "Cancel")
 		self.assertTrue(ecd.cancelButton.autoDefault())
-		with patch("physbiblio.gui.commonClasses.editObjectWindow.onCancel"
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onCancel"
 				) as _f:
 			QTest.mouseClick(ecd.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()

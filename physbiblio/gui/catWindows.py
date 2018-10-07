@@ -19,7 +19,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askYesNo
 	from physbiblio.gui.commonClasses import \
-		editObjectWindow, LeafFilterProxyModel, MyLabel, MyMenu, \
+		EditObjectWindow, LeafFilterProxyModel, MyLabel, MyMenu, \
 		NamedElement, NamedNode, TreeModel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -642,7 +642,7 @@ class catsTreeWindow(QDialog):
 		self.createForm()
 
 
-class editCategoryDialog(editObjectWindow):
+class editCategoryDialog(EditObjectWindow):
 	"""Create a window for editing or creating a category"""
 
 	def __init__(self, parent=None, category=None, useParentCat=None):
