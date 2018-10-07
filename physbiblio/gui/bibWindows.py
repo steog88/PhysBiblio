@@ -1765,29 +1765,25 @@ class EditBibtexDialog(EditObjectWindow):
 		i += 1
 		if k != "marks":
 			self.currGrid.addWidget(MyLabel(k),
-				int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2)
+				i + i%2 - 1, ((i+1)%2)*2)
 			self.currGrid.addWidget(
 				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
-				int((i + 1 - (2*i)%2)/2)*2 - 1, ((1+i)%2)*2+1)
+				i + i%2 - 1, ((i+1)%2)*2 + 1)
 			self.textValues[k] = QLineEdit(
 				str(self.data[k]) if self.data[k] is not None else "")
 			if k == "bibkey":
 				self.textValues[k].setReadOnly(True)
 			self.currGrid.addWidget(self.textValues[k],
-				int((i + 1 - (2*i)%2)/2)*2,
-				((1+i)%2)*2,
-				1, 2)
+				i + i%2, ((i+1)%2)*2, 1, 2)
 		else:
 			groupBox, markValues = pBMarks.getGroupbox(
 				self.data["marks"],
 				description=pBDB.descriptions["entries"]["marks"])
 			self.markValues = markValues
-			if ((1+i)%2)*2 != 0:
+			if (i+1)%2 != 0:
 				i += 1
 			self.currGrid.addWidget(groupBox,
-				int((i + 1)/2)*2,
-				((1+i)%2)*2,
-				1, 4)
+				i + i%2, 0, 1, 4)
 		return i
 
 	def createCheckbox(self, k, i, j):
@@ -1804,7 +1800,6 @@ class EditBibtexDialog(EditObjectWindow):
 		"""
 		if k in self.checkboxes:
 			j += 2
-			#print i, j, int((i+1)/2)*2 + j - 2, i + i%2 + j - 2
 			self.currGrid.addWidget(
 				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
 				i + i%2 + j - 1, 2, 1, 2)

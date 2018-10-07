@@ -36,9 +36,9 @@ class marks():
 
 	def getGroupbox(self,
 			marksData,
-			description = "Marks",
-			radio = False,
-			addAny = False):
+			description="Marks",
+			radio=False,
+			addAny=False):
 		"""Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s
 		for marks selection
 

@@ -3521,11 +3521,12 @@ class TestBibtexListWindow(GUITestCase):
 					+ "createContextMenu", return_value=tmp) as _cm,\
 				patch("physbiblio.database.entries.getByKey",
 					side_effect=[]) as _g:
+			position = QCursor.pos()
 			bw.onOk()
 			_cl.assert_called_once_with()
 			_cm.assert_called_once_with(selection=True)
 			_g.assert_not_called()
-			tmp.exec_.assert_called_once_with(QCursor.pos())
+			tmp.exec_.assert_called_once_with(position)
 			self.assertEqual(self.mainW.selectedBibs, [])
 
 	def test_createTable(self):
@@ -3656,8 +3657,9 @@ class TestBibtexListWindow(GUITestCase):
 		"""test triggeredContextMenuEvent"""
 		bw = BibtexListWindow(parent=self.mainW,
 			bibs=[{"bibtex": "text", "bibkey": "abc", "marks": ""}])
+		position = QCursor.pos()
 		ev = QMouseEvent(QEvent.MouseButtonPress,
-			QCursor.pos(),
+			position,
 			Qt.RightButton,
 			Qt.NoButton,
 			Qt.NoModifier)
@@ -3697,7 +3699,6 @@ class TestBibtexListWindow(GUITestCase):
 			tmp.exec_ = MagicMock()
 			with patch("physbiblio.gui.bibWindows.CommonBibActions."
 					+ "createContextMenu", return_value=tmp) as _cm:
-				position = QCursor.pos()
 				bw.triggeredContextMenuEvent(
 					9999, 101, ev)
 				tmp.exec_.assert_called_once_with(position)
@@ -4024,7 +4025,84 @@ class TestEditBibtexDialog(GUITestCase):
 	def test_createField(self):
 		"""test createField"""
 		eb = EditBibtexDialog()
-		raise NotImplementedError
+		#clean layout
+		while True:
+			o = eb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		self.assertEqual(eb.createField("bibdict", 10), 10)
+		self.assertEqual(eb.createField("abstract", 10), 10)
+		self.assertEqual(eb.createField("bibtex", 10), 10)
+		for k in eb.checkboxes:
+			self.assertEqual(eb.createField(k, 10), 10)
+		self.assertEqual(eb.createField("bibkey", 0), 1)
+		self.assertEqual(eb.createField("inspire", 5), 6)
+		self.assertEqual(eb.createField("marks", 11), 13)
+		self.assertEqual(eb.createField("marks", 20), 21)
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(2, 0).widget(),
+			QLineEdit)
+		self.assertEqual(eb.textValues["bibkey"],
+			eb.currGrid.itemAtPosition(2, 0).widget())
+		self.assertEqual(eb.textValues["bibkey"].text(), "")
+		self.assertEqual(eb.textValues["bibkey"].isReadOnly(), True)
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(1, 0).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(1, 0).widget().text(),
+			"bibkey")
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(1, 1).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(1, 1).widget().text(),
+			"(%s)"%pBDB.descriptions["entries"]["bibkey"])
+
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(6, 2).widget(),
+			QLineEdit)
+		self.assertEqual(eb.textValues["inspire"],
+			eb.currGrid.itemAtPosition(6, 2).widget())
+		self.assertEqual(eb.textValues["inspire"].text(), "")
+		self.assertEqual(eb.textValues["inspire"].isReadOnly(), False)
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(5, 2).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(5, 2).widget().text(),
+			"inspire")
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(5, 3).widget(),
+			MyLabel)
+		self.assertEqual(
+			eb.currGrid.itemAtPosition(5, 3).widget().text(),
+			"(%s)"%pBDB.descriptions["entries"]["inspire"])
+
+		self.assertIsInstance(
+			eb.currGrid.itemAtPosition(14, 0).widget(),
+			QGroupBox)
+		self.assertIsInstance(eb.markValues, dict)
+		self.assertEqual(sorted(eb.markValues.keys()),
+			sorted(pBMarks.marks.keys()))
+		for m in pBMarks.marks.keys():
+			self.assertIsInstance(eb.markValues[m], QCheckBox)
+			self.assertEqual(eb.markValues[m].isChecked(), False)
+
+		eb = EditBibtexDialog(
+			bib={"bibkey": "abc", "inspire": "123", "marks": "new,bad"})
+		#clean layout
+		while True:
+			o = eb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		self.assertEqual(eb.createField("bibkey", 0), 1)
+		self.assertEqual(eb.textValues["bibkey"].text(), "abc")
+		self.assertEqual(eb.createField("inspire", 5), 6)
+		self.assertEqual(eb.textValues["inspire"].text(), "123")
+		self.assertEqual(eb.createField("marks", 10), 11)
+		self.assertEqual(eb.markValues["bad"].isChecked(), True)
+		self.assertEqual(eb.markValues["new"].isChecked(), True)
 
 	def test_createCheckbox(self):
 		"""test createCheckbox"""
@@ -4311,7 +4389,7 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_init(self):
 		"""test"""
-		pass
+		raise NotImplementedError
 
 	def test_processHistoric(self):
 		"""test"""
