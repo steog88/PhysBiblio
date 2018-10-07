@@ -2334,35 +2334,68 @@ class MergeBibtexs(EditBibtexDialog):
 		for ix in ["0", "1"]:
 			self.radioButtons[ix][k].setChecked(False)
 
-	def addFieldOld(self, ix, k, i, c):
+	def addFieldOld(self, ix, k, r, c):
+		"""Create a QLineEdit for a field of one of the two old records
+
+		Parameter:
+			ix: "0" or "1" for the left or right record
+			k: the field name
+			r: the row index for the new widget in the layout
+			c: the column index for the new widget in the layout
+		"""
 		self.textValues[ix][k] = QLineEdit(
-			str(self.dataOld[ix][k] if self.dataOld[ix][k] is not None  \
+			str(self.dataOld[ix][k] \
+				if self.dataOld[ix][k] is not None  \
 				else ""))
 		self.textValues[ix][k].setReadOnly(True)
-		self.currGrid.addWidget(self.textValues[ix][k], i, c)
+		self.currGrid.addWidget(self.textValues[ix][k], r, c)
 
-	def addFieldNew(self, k, i, v):
+	def addFieldNew(self, k, r, v):
+		"""Create a QLineEdit for a field of the merged record
+
+		Parameter:
+			k: the field name
+			r: the row index for the new widget in the layout
+			v: the field current content
+		"""
 		self.textValues[k] = QLineEdit(str(v))
 		self.textValues[k].textEdited.connect(
 			lambda x, f=k: self.textModified(f))
-		self.currGrid.addWidget(self.textValues[k], i, 2)
+		self.currGrid.addWidget(self.textValues[k], r, 2)
 
-	def addRadio(self, ix, k, i, c):
+	def addRadio(self, ix, k, r, c):
+		"""Create a QRadioButton for one field of one of the two records
+
+		Parameter:
+			ix: "0" or "1" for the left or right record
+			k: the field name
+			r: the row index for the new widget in the layout
+			c: the column index for the new widget in the layout
+		"""
 		self.radioButtons[ix][k] = QRadioButton("")
 		self.radioButtons[ix][k].setAutoExclusive(False)
 		self.radioButtons[ix][k].clicked.connect(
 			lambda x=False, f=k, i=ix: self.radioToggled(i, f))
-		self.currGrid.addWidget(self.radioButtons[ix][k], i, c)
+		self.currGrid.addWidget(self.radioButtons[ix][k], r, c)
 
-	def addBibtexOld(self, ix, i, c):
+	def addBibtexOld(self, ix, r, c):
+		"""Create a QPlainTextEdit for a bibtex field
+		of one of the two old records
+
+		Parameter:
+			ix: "0" or "1" for the left or right record
+			r: the row index for the new widget in the layout
+			c: the column index for the new widget in the layout
+		"""
 		k = "bibtex"
 		self.textValues[ix][k] = QPlainTextEdit(
-			str(self.dataOld[ix][k] if self.dataOld[ix][k] is not None \
+			str(self.dataOld[ix][k] \
+				if self.dataOld[ix][k] is not None \
 				else ""))
 		self.textValues[ix][k].setReadOnly(True)
 		self.textValues[ix][k].setMinimumWidth(self.bibtexWidth)
 		self.currGrid.addWidget(self.textValues[ix][k],
-			i, c, self.bibtexEditLines, 1)
+			r, c, self.bibtexEditLines, 1)
 
 	def addGenericField(self, k, i):
 		try:

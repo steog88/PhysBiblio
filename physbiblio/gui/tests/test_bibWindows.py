@@ -4503,10 +4503,34 @@ class TestMergeBibtexs(GUITestCase):
 
 	def test_radioToggled(self):
 		"""test radioToggled"""
-		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
-				+ "createForm") as _cf:
-			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		with patch("logging.Logger.warning") as _w:
+			mb = MergeBibtexs(
+				{"bibkey": "0", "inspire": "0",
+					"bibtex": '@article{0, title="0"}'},
+				{"bibkey": "1", "inspire": "1",
+					"bibtex": '@article{1, title="1"}'})
+		mb.radioButtons["0"]["inspire"].setChecked(True)
+		mb.radioToggled("1", "inspire")
+		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), False)
+		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), True)
+		self.assertEqual(mb.textValues["inspire"].text(), "1")
+		mb.radioToggled("0", "inspire")
+		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), True)
+		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), False)
+		self.assertEqual(mb.textValues["inspire"].text(), "0")
+
+		mb.radioToggled("1", "bibtex")
+		self.assertEqual(mb.radioButtons["0"]["bibtex"].isChecked(), False)
+		self.assertEqual(mb.radioButtons["1"]["bibtex"].isChecked(), True)
+		self.assertEqual(mb.textValues["bibkey"].text(), "1")
+		self.assertEqual(mb.textValues["bibtex"].toPlainText(),
+			'@article{1, title="1"}')
+		mb.radioToggled("0", "bibtex")
+		self.assertEqual(mb.radioButtons["0"]["bibtex"].isChecked(), True)
+		self.assertEqual(mb.radioButtons["1"]["bibtex"].isChecked(), False)
+		self.assertEqual(mb.textValues["bibkey"].text(), "0")
+		self.assertEqual(mb.textValues["bibtex"].toPlainText(),
+			'@article{0, title="0"}')
 
 	def test_textModified(self):
 		"""test textModified"""
@@ -4515,11 +4539,11 @@ class TestMergeBibtexs(GUITestCase):
 				{"bibkey": "0", "inspire": "0", "bibtex": "@article0"},
 				{"bibkey": "1", "inspire": "1", "bibtex": "@article1"})
 		mb.radioButtons["0"]["inspire"].setChecked(True)
-		mb.textModified("inspire", "str")
+		mb.textModified("inspire")
 		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), False)
 		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), False)
 		mb.radioButtons["1"]["inspire"].setChecked(True)
-		mb.textModified("inspire", "str")
+		mb.textModified("inspire")
 		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), False)
 		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), False)
 
