@@ -816,7 +816,7 @@ class CommonBibActions():
 				files.remove(arxivFile)
 				menuP.append(QAction("Open arXiv PDF", self.menu,
 					triggered=lambda k=bibkey, t="file", f=arxivFile:
-						pBGuiView.openLink(k, t, fileArg = f)))
+						pBGuiView.openLink(k, t, fileArg=f)))
 				menuP.append(QAction("Delete arXiv PDF", self.menu,
 					triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF":
 						self.onDeletePDFFile(k, a, t)))
@@ -834,7 +834,7 @@ class CommonBibActions():
 				files.remove(doiFile)
 				menuP.append(QAction("Open DOI PDF", self.menu,
 					triggered=lambda k=bibkey, t="file", f=doiFile:
-						pBGuiView.openLink(k, t, fileArg = f)))
+						pBGuiView.openLink(k, t, fileArg=f)))
 				menuP.append(QAction("Delete DOI PDF", self.menu,
 					triggered=lambda k=bibkey, a="doi", t="DOI PDF":
 						self.onDeletePDFFile(k, a, t)))
@@ -851,7 +851,7 @@ class CommonBibActions():
 				fn = f.replace(pdfDir+"/", "")
 				menuP.append(QAction("Open %s"%fn, self.menu,
 					triggered=lambda k=bibkey, t="file", f=fn:
-						pBGuiView.openLink(k, t, fileArg = f)))
+						pBGuiView.openLink(k, t, fileArg=f)))
 				menuP.append(QAction("Delete %s"%fn, self.menu,
 					triggered=lambda k=bibkey, a=fn, t=f:
 						self.onDeletePDFFile(k, a, a, t)))
@@ -952,12 +952,12 @@ class CommonBibActions():
 		"""
 		bibkey = self.keys[0]
 		newPdf = askFileName(self.parent(),
-			"Where is the PDF located?", filter = "PDF (*.pdf)")
+			"Where is the PDF located?", filter="PDF (*.pdf)")
 		if newPdf != "" and os.path.isfile(newPdf):
 			if ftype == "generic":
 				newName = newPdf.split("/")[-1]
 				outcome = pBPDF.copyNewFile(bibkey, newPdf,
-					customName = newName)
+					customName=newName)
 			else:
 				outcome = pBPDF.copyNewFile(bibkey, newPdf, ftype)
 			if outcome:
@@ -1661,8 +1661,9 @@ class BibtexListWindow(QFrame, objListWindow):
 		font.setPointSize(pbConfig.params["bibListFontSize"])
 		self.tablewidget.setFont(font)
 
-		self.tablewidget.resizeColumnsToContents()
-		self.tablewidget.resizeRowsToContents()
+		if pbConfig.params["resizeTable"]:
+			self.tablewidget.resizeColumnsToContents()
+			self.tablewidget.resizeRowsToContents()
 
 		self.tablewidget.clicked.connect(self.cellClick)
 		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
@@ -1914,7 +1915,7 @@ class AskPDFAction(MyMenu):
 class SearchBibsWindow(EditObjectWindow):
 	"""create a window for searching a bibtex entry"""
 
-	def __init__(self, parent = None, bib = None, replace = False):
+	def __init__(self, parent=None, bib=None, replace=False):
 		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
@@ -1922,7 +1923,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.replace = replace
 		self.historic = [self.processHistoric(a) \
 			for a in pbConfig.globalDb.getSearchList(
-				manual = False, replacement = replace)]
+				manual=False, replacement=replace)]
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -1984,15 +1985,20 @@ class SearchBibsWindow(EditObjectWindow):
 		self.onOk()
 
 	def onAskCats(self):
-		selectCats = catsTreeWindow(parent = self,
-			askCats = True, expButton = False, previous = self.values["cats"])
+		selectCats = catsTreeWindow(
+			parent=self,
+			askCats=True,
+			expButton=False,
+			previous=self.values["cats"])
 		selectCats.exec_()
 		if selectCats.result == "Ok":
 			self.values["cats"] = self.selectedCats
 
 	def onAskExps(self):
-		selectExps = ExpsListWindow(parent = self.parent(),
-			askExps = True, previous = self.values["exps"])
+		selectExps = ExpsListWindow(
+			parent=self.parent(),
+			askExps=True,
+			previous=self.values["exps"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
 			self.values["exps"] = self.parent().selectedExps
@@ -2040,7 +2046,7 @@ class SearchBibsWindow(EditObjectWindow):
 				return True
 		return QWidget.eventFilter(self, widget, event)
 
-	def createForm(self, defaultIndex = 0, spaceRowHeight = 25):
+	def createForm(self, defaultIndex=0, spaceRowHeight=25):
 		if defaultIndex > len(self.historic):
 			defaultIndex = 0
 		self.setWindowTitle('Search bibtex entries')
@@ -2082,16 +2088,18 @@ class SearchBibsWindow(EditObjectWindow):
 
 		self.currGrid.setRowMinimumHeight(3, spaceRowHeight)
 
-		self.marksConn = MyAndOrCombo(self, current = self.values["marksConn"])
+		self.marksConn = MyAndOrCombo(self, current=self.values["marksConn"])
 		self.currGrid.addWidget(self.marksConn, 4, 0)
 		self.currGrid.addWidget(MyLabelRight("Filter by marks:"), 4, 1)
 		groupBox, markValues = pBMarks.getGroupbox(
-			self.values["marks"], description = "",
-			radio = True, addAny = True)
+			self.values["marks"],
+			description="",
+			radio=True,
+			addAny=True)
 		self.markValues = markValues
 		self.currGrid.addWidget(groupBox, 4, 2, 1, 5)
 
-		self.typeConn = MyAndOrCombo(self, current = self.values["typeConn"])
+		self.typeConn = MyAndOrCombo(self, current=self.values["typeConn"])
 		self.currGrid.addWidget(self.typeConn, 5, 0)
 		self.currGrid.addWidget(MyLabelRight("Entry type:"), 5, 1)
 		groupBox = QGroupBox()
@@ -2132,20 +2140,20 @@ class SearchBibsWindow(EditObjectWindow):
 				self.textValues.append({})
 
 			self.textValues[i]["logical"] = MyAndOrCombo(self,
-				current = previous["logical"])
+				current=previous["logical"])
 			self.currGrid.addWidget(self.textValues[i]["logical"],
 				i + firstFields, 0)
 
 			self.textValues[i]["field"] = MyComboBox(self,
 				["bibtex", "bibkey", "arxiv", "doi", "year",
 				"firstdate", "pubdate", "comment"],
-				current = previous["field"])
+				current=previous["field"])
 			self.currGrid.addWidget(
 				self.textValues[i]["field"], i + firstFields, 1)
 
 			self.textValues[i]["operator"] = MyComboBox(self,
 				["contains", "exact match"],
-				current = previous["operator"])
+				current=previous["operator"])
 			self.currGrid.addWidget(self.textValues[i]["operator"],
 				i + firstFields, 2)
 
@@ -2199,7 +2207,7 @@ class SearchBibsWindow(EditObjectWindow):
 			self.currGrid.addWidget(MyLabelRight("Into field:"), i, 0)
 			self.replNewField = MyComboBox(self,
 				["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"], current = fieNew)
+				"journal", "number", "volume"], current=fieNew)
 			self.currGrid.addWidget(self.replNewField, i, 1, 1, 2)
 			self.replNew = QLineEdit(new)
 			self.currGrid.addWidget(self.replNew, i, 3, 1, 3)
@@ -2208,7 +2216,7 @@ class SearchBibsWindow(EditObjectWindow):
 			self.currGrid.addWidget(self.doubleEdit, i, 0)
 			self.replNewField1 = MyComboBox(self,
 				["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"], current = fieNew)
+				"journal", "number", "volume"], current=fieNew)
 			self.currGrid.addWidget(self.replNewField1, i, 1, 1, 2)
 			self.replNew1 = QLineEdit(new1)
 			self.currGrid.addWidget(self.replNew1, i, 3, 1, 3)
@@ -2268,7 +2276,7 @@ class SearchBibsWindow(EditObjectWindow):
 class MergeBibtexs(EditBibtexDialog):
 	"""W"""
 
-	def __init__(self, bib1, bib2, parent = None):
+	def __init__(self, bib1, bib2, parent=None):
 		super(EditBibtexDialog, self).__init__(parent)
 		self.bibtexEditLines = 8
 		self.bibtexWidth = 330
@@ -2321,7 +2329,7 @@ class MergeBibtexs(EditBibtexDialog):
 			self.radioButtons[ix][k] = QRadioButton("")
 			self.radioButtons[ix][k].setAutoExclusive(False)
 			self.radioButtons[ix][k].clicked.connect(
-				lambda x = False: self.radioToggled(ix, k, x))
+				lambda x=False: self.radioToggled(ix, k, x))
 			self.currGrid.addWidget(self.radioButtons[ix][k], i, c)
 		def addBibtexOld(ix, i, c):
 			k = "bibtex"
@@ -2369,7 +2377,7 @@ class MergeBibtexs(EditBibtexDialog):
 		i += 1
 		groupBox, markValues = pBMarks.getGroupbox(
 			self.data["marks"],
-			description = pBDB.descriptions["entries"]["marks"])
+			description=pBDB.descriptions["entries"]["marks"])
 		self.markValues = markValues
 		self.currGrid.addWidget(groupBox, i, 0, 1, 5)
 		i += 1
@@ -2414,7 +2422,7 @@ class MergeBibtexs(EditBibtexDialog):
 		self.textValues[k].textChanged.connect(self.updateBibkey)
 		self.textValues[k].setMinimumWidth(self.bibtexWidth)
 		self.textValues[k].textChanged.connect(
-			lambda x = "": self.textModified("bibtex", str(x)))
+			lambda x="": self.textModified("bibtex", str(x)))
 		self.currGrid.addWidget(self.textValues[k],
 			i, 2, self.bibtexEditLines, 1)
 		i += self.bibtexEditLines
@@ -2439,7 +2447,7 @@ class FieldsFromArxiv(QDialog):
 	"""Dialog windows used to ask which fields should be imported
 	from the arXiv record of the field"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Initialize the properties and the layout of the widget
 
 		Parameter:

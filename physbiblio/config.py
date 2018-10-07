@@ -96,6 +96,11 @@ configuration_params = [
 		"firstdate", "pubdate", "doi", "arxiv", "isbn", "inspire"],
 	"description": 'The columns to be shown in the entries list',
 	"special": 'list'},
+{"name": "resizeTable",
+	"default": True,
+	"description": 'Automatically resize columns and rows ' \
+		+ 'in the main bibtex table',
+	"special": 'boolean'},
 {"name": "maxSavedSearches",
 	"default": 5,
 	"description": 'Max number of automatically saved ' \

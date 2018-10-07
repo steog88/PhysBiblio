@@ -3891,6 +3891,7 @@ class TestBibtexListWindow(GUITestCase):
 
 	def test_finalizeTable(self):
 		"""test finalizeTable"""
+		resTab = pbConfig.params["resizeTable"]
 		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellClick") as _f:
@@ -3901,6 +3902,7 @@ class TestBibtexListWindow(GUITestCase):
 			bw.tablewidget.doubleClicked.emit(QModelIndex())
 			_f.assert_called_once()
 		bw.cleanLayout()
+		pbConfig.params["resizeTable"] = True
 		with patch("PySide2.QtGui.QFont.setPointSize") as _sps,\
 				patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents"
 					) as _rc,\
@@ -3913,6 +3915,16 @@ class TestBibtexListWindow(GUITestCase):
 			self.assertEqual(bw.tablewidget.font().pointSize(),
 				pbConfig.params["bibListFontSize"])
 			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tablewidget)
+		bw.cleanLayout()
+		pbConfig.params["resizeTable"] = False
+		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents"
+					) as _rc,\
+				patch("PySide2.QtWidgets.QTableView.resizeRowsToContents"
+					) as _rr:
+			bw.finalizeTable()
+			_rc.assert_not_called()
+			_rr.assert_not_called()
+		pbConfig.params["resizeTable"] = resTab
 
 	def test_recreateTable(self):
 		"""test recreateTable"""
