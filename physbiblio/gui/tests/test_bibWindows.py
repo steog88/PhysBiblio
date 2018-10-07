@@ -4177,55 +4177,55 @@ class TestEditBibtexDialog(GUITestCase):
 			eb = EditBibtexDialog(bib={"bibtex": "@article"})
 			_cw.assert_called_once_with()
 			_cf.assert_has_calls([call('bibkey', 0),
-				 call('inspire', 1),
-				 call('arxiv', 2),
-				 call('ads', 3),
-				 call('scholar', 4),
-				 call('doi', 5),
-				 call('isbn', 6),
-				 call('year', 7),
-				 call('link', 8),
-				 call('comments', 9),
-				 call('old_keys', 10),
-				 call('crossref', 11),
-				 call('bibtex', 12),
-				 call('firstdate', 13),
-				 call('pubdate', 14),
-				 call('exp_paper', 15),
-				 call('lecture', 16),
-				 call('phd_thesis', 17),
-				 call('review', 18),
-				 call('proceeding', 19),
-				 call('book', 20),
-				 call('noUpdate', 21),
-				 call('marks', 22),
-				 call('abstract', 23),
-				 call('bibdict', 24)])
+				call('inspire', 1),
+				call('arxiv', 2),
+				call('ads', 3),
+				call('scholar', 4),
+				call('doi', 5),
+				call('isbn', 6),
+				call('year', 7),
+				call('link', 8),
+				call('comments', 9),
+				call('old_keys', 10),
+				call('crossref', 11),
+				call('bibtex', 12),
+				call('firstdate', 13),
+				call('pubdate', 14),
+				call('exp_paper', 15),
+				call('lecture', 16),
+				call('phd_thesis', 17),
+				call('review', 18),
+				call('proceeding', 19),
+				call('book', 20),
+				call('noUpdate', 21),
+				call('marks', 22),
+				call('abstract', 23),
+				call('bibdict', 24)])
 			_cc.assert_has_calls([call('bibkey', 27, 0),
-				 call('inspire', 27, 1),
-				 call('arxiv', 27, 2),
-				 call('ads', 27, 3),
-				 call('scholar', 27, 4),
-				 call('doi', 27, 5),
-				 call('isbn', 27, 6),
-				 call('year', 27, 7),
-				 call('link', 27, 8),
-				 call('comments', 27, 9),
-				 call('old_keys', 27, 10),
-				 call('crossref', 27, 11),
-				 call('bibtex', 27, 12),
-				 call('firstdate', 27, 13),
-				 call('pubdate', 27, 14),
-				 call('exp_paper', 27, 15),
-				 call('lecture', 27, 16),
-				 call('phd_thesis', 27, 17),
-				 call('review', 27, 18),
-				 call('proceeding', 27, 19),
-				 call('book', 27, 20),
-				 call('noUpdate', 27, 21),
-				 call('marks', 27, 22),
-				 call('abstract', 27, 23),
-				 call('bibdict', 27, 24)])
+				call('inspire', 27, 1),
+				call('arxiv', 27, 2),
+				call('ads', 27, 3),
+				call('scholar', 27, 4),
+				call('doi', 27, 5),
+				call('isbn', 27, 6),
+				call('year', 27, 7),
+				call('link', 27, 8),
+				call('comments', 27, 9),
+				call('old_keys', 27, 10),
+				call('crossref', 27, 11),
+				call('bibtex', 27, 12),
+				call('firstdate', 27, 13),
+				call('pubdate', 27, 14),
+				call('exp_paper', 27, 15),
+				call('lecture', 27, 16),
+				call('phd_thesis', 27, 17),
+				call('review', 27, 18),
+				call('proceeding', 27, 19),
+				call('book', 27, 20),
+				call('noUpdate', 27, 21),
+				call('marks', 27, 22),
+				call('abstract', 27, 23),
+				call('bibdict', 27, 24)])
 		self.assertEqual(eb.windowTitle(), 'Edit bibtex entry')
 		#test bibtex field, connect and labels
 		self.assertIsInstance(
@@ -4466,19 +4466,163 @@ class TestMergeBibtexs(GUITestCase):
 
 	def test_init(self):
 		"""test __init__"""
-		pass
+		a = {"bibtex": "@article0"}
+		b = {"bibtex": "@article1"}
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs(a, b)
+			_cf.assert_called_once_with()
+		self.assertIsInstance(mb, EditBibtexDialog)
+		self.assertEqual(mb.parent(), None)
+		self.assertEqual(mb.bibtexEditLines, 8)
+		self.assertEqual(mb.bibtexWidth, 330)
+		self.assertEqual(mb.dataOld,
+			{"0": a, "1": b})
+		self.assertIsInstance(mb.data, dict)
+		for k in pBDB.tableCols["entries"]:
+			self.assertEqual(mb.data[k], "")
+		self.assertEqual(mb.checkValues, {})
+		self.assertEqual(mb.markValues, {})
+		self.assertEqual(mb.radioButtons, {"0": {}, "1": {}})
+		self.assertEqual(mb.textValues["0"], {})
+		self.assertEqual(mb.textValues["1"], {})
+		self.assertEqual(mb.checkboxes, [
+			"exp_paper", "lecture", "phd_thesis", "review",
+			"proceeding", "book", "noUpdate"])
+		self.assertEqual(mb.generic, [
+			"year", "doi", "arxiv", "inspire", "isbn", "firstdate",
+			"pubdate", "ads", "scholar", "link", "comments",
+			"old_keys", "crossref"])
+
+		p = QWidget()
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs(a, b, parent=p)
+			_cf.assert_called_once_with()
+		self.assertEqual(mb.parent(), p)
 
 	def test_radioToggled(self):
 		"""test radioToggled"""
-		pass
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
 
 	def test_textModified(self):
 		"""test textModified"""
-		pass
+		with patch("logging.Logger.warning") as _w:
+			mb = MergeBibtexs(
+				{"bibkey": "0", "inspire": "0", "bibtex": "@article0"},
+				{"bibkey": "1", "inspire": "1", "bibtex": "@article1"})
+		mb.radioButtons["0"]["inspire"].setChecked(True)
+		mb.textModified("inspire", "str")
+		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), False)
+		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), False)
+		mb.radioButtons["1"]["inspire"].setChecked(True)
+		mb.textModified("inspire", "str")
+		self.assertEqual(mb.radioButtons["0"]["inspire"].isChecked(), False)
+		self.assertEqual(mb.radioButtons["1"]["inspire"].isChecked(), False)
+
+	def test_addFieldOld(self):
+		"""test addFieldOld"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addFieldNew(self):
+		"""test addFieldNew"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addRadio(self):
+		"""test addRadio"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addBibtexOld(self):
+		"""test addBibtexOld"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addGenericField(self):
+		"""test addGenericField"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addMarkTypeFields(self):
+		"""test addMarkTypeFields"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
+
+	def test_addBibtexFields(self):
+		"""test addBibtexFields"""
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
+		raise NotImplementedError
 
 	def test_createForm(self):
 		"""test createForm"""
-		pass
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "addGenericField",
+					side_effect=[i for i in range(1,28)]) as _agf,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addMarkTypeFields", return_value=29) as _mtf,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addBibtexFields", return_value=30) as _bf,\
+				patch("physbiblio.gui.commonClasses.EditObjectWindow."
+					+ "centerWindow") as _cw:
+			mb = MergeBibtexs(
+				{"bibtex": "@article0"},
+				{"bibtex": "@article1"})
+			_cw.assert_called_once_with()
+			_agf.assert_has_calls([call('year', 0),
+				call('doi', 1),
+				call('arxiv', 2),
+				call('inspire', 3),
+				call('isbn', 4),
+				call('firstdate', 5),
+				call('pubdate', 6),
+				call('ads', 7),
+				call('scholar', 8),
+				call('link', 9),
+				call('comments', 10),
+				call('old_keys', 11),
+				call('crossref', 12)])
+			_mtf.assert_called_once_with(13)
+			_bf.assert_called_once_with(29)
+		self.assertEqual(mb.windowTitle(), 'Merge bibtex entries')
+		#test ok cancel buttons
+		self.assertIsInstance(mb.layout().itemAtPosition(31, 0).widget(),
+			QPushButton)
+		self.assertEqual(mb.layout().itemAtPosition(31, 0).widget(),
+			mb.acceptButton)
+		self.assertEqual(mb.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+				+ "onOk") as _f:
+			QTest.mouseClick(mb.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+		self.assertIsInstance(mb.layout().itemAtPosition(31, 3).widget(),
+			QPushButton)
+		self.assertEqual(mb.layout().itemAtPosition(31, 3).widget(),
+			mb.cancelButton)
+		self.assertEqual(mb.cancelButton.text(), "Cancel")
+		self.assertTrue(mb.cancelButton.autoDefault())
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow."
+				+ "onCancel") as _f:
+			QTest.mouseClick(mb.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
