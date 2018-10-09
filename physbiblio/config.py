@@ -289,11 +289,14 @@ class globalDB(physbiblioDBCore):
 		if name.strip() == "":
 			self.logger.error("You must provide the profile name!")
 			return False
+		isDefault = name == self.getDefaultProfile()
 		command = "delete from profiles where name = :name\n"
 		self.logger.debug("%s\n%s"%(command, {"name": name}))
 		if not self.connExec(command, {"name": name}):
 			self.logger.error("Cannot delete profile")
 			return False
+		if isDefault:
+			self.getDefaultProfile()
 		self.commit(verbose = False)
 		return True
 
@@ -390,7 +393,9 @@ class globalDB(physbiblioDBCore):
 		except IndexError:
 			self.cursExec("SELECT * FROM profiles\n")
 			defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
-			self.setDefaultProfile(defaultProfileName)
+			if self.setDefaultProfile(defaultProfileName):
+				self.logger.info(
+					"Default profile changed to %s"%defaultProfileName)
 		return defaultProfileName
 
 	def setDefaultProfile(self, name = None):

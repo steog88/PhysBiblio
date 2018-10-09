@@ -412,6 +412,7 @@ class TestProfilesDB(unittest.TestCase):
 		self.assertEqual(self.globalDb.countProfiles(), 2)
 		self.assertTrue(self.globalDb.deleteProfile("abc"))
 		self.assertEqual(self.globalDb.countProfiles(), 1)
+		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestConfigDB(DBTestCase):
