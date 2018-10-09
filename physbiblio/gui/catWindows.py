@@ -567,16 +567,12 @@ class catsTreeWindow(QDialog):
 			3000))
 		self.timer.start(500)
 
-	def contextMenuEvent(self, event, testing=False):
+	def contextMenuEvent(self, event):
 		"""Create a right click menu with few actions
 		on the selected category
 
 		Parameter:
 			event: a `QEvent`
-			testing (default False): avoid `menu.exec_` during tests.
-				If it is a number,
-				it is the index of the `action` to test,
-				otherwise `action` will be `None`
 		"""
 		index = self.tree.selectedIndexes()[0]
 		if index.isValid():
@@ -603,13 +599,7 @@ class catsTreeWindow(QDialog):
 			]
 		menu.fillMenu()
 
-		if testing is not False:
-			if ("%s"%testing).isdigit():
-				action = menu.possibleActions[testing]
-			else:
-				action = None
-		else:
-			action = menu.exec_(event.globalPos())
+		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
 			searchDict = {"cats": {"id": [idCat], "operator": "and"}}

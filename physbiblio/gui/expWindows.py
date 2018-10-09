@@ -349,7 +349,7 @@ class ExpsListWindow(objListWindow):
 			self.cancelButton.setAutoDefault(True)
 			self.currLayout.addWidget(self.cancelButton)
 
-	def triggeredContextMenuEvent(self, row, col, event, testing=False):
+	def triggeredContextMenuEvent(self, row, col, event):
 		"""Process event when mouse right-clicks an item.
 		Opens a menu with a number of actions
 
@@ -358,13 +358,6 @@ class ExpsListWindow(objListWindow):
 			col: a the column number
 			event: a `QEvent` instance, used to obtain the mouse
 				position where to open the menu
-			testing (default False): avoid `menu.exec_` during tests.
-				If it is a list, the first argument must be a number
-				used to determine the action, while the second is used
-				if `action==catAction` to avoid `catsTreeWindow.exec_`
-				If it is a number,
-				it is the index of the `action` to test,
-				otherwise `action` will be `None`
 		"""
 		index = self.proxyModel.index(row, col)
 		if not index.isValid():
@@ -391,16 +384,7 @@ class ExpsListWindow(objListWindow):
 			]
 		menu.fillMenu()
 
-		if testing is not False:
-			if isinstance(testing, list):
-				action = menu.possibleActions[testing[0]]
-				testing = testing[1]
-			elif ("%s"%testing).isdigit():
-				action = menu.possibleActions[testing]
-			else:
-				action = None
-		else:
-			action = menu.exec_(event.globalPos())
+		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
 			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
@@ -418,10 +402,7 @@ class ExpsListWindow(objListWindow):
 				askForExp=idExp,
 				expButton=False,
 				previous=previous)
-			if not testing:
-				selectCats.exec_()
-			else:
-				selectCats = testing
+			selectCats.exec_()
 			if selectCats.result == "Ok":
 				cats = self.parent().selectedCats
 				for p in previous:

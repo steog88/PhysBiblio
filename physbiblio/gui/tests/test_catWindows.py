@@ -8,6 +8,7 @@ import traceback
 import os
 from PySide2.QtCore import Qt, QModelIndex, QPoint, QEvent
 from PySide2.QtTest import QTest
+from PySide2.QtGui import QMouseEvent
 from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
@@ -1071,6 +1072,12 @@ class TestCatsTreeWindow(GUITestCase):
 	def test_contextMenuEvent(self):
 		"""test contextMenuEvent"""
 		p = MainWindow(testing=True)
+		position = QCursor.pos()
+		ev = QMouseEvent(QEvent.MouseButtonPress,
+			position,
+			Qt.RightButton,
+			Qt.NoButton,
+			Qt.NoModifier)
 		with patch("physbiblio.database.categories.getHier",
 				return_value=self.cathier) as _gh,\
 				patch("physbiblio.database.categories.getAll",
@@ -1079,22 +1086,28 @@ class TestCatsTreeWindow(GUITestCase):
 					+"_populateTree",
 					return_value=self.rootElements[0]) as _pt:
 			ctw = catsTreeWindow(p)
+		mm = MyMenu()
+		mm.exec_ = MagicMock()
 		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
 				return_value=[QModelIndex()]) as _si,\
 				patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.catWindows.MyMenu",
+					return_value=mm) as _mm,\
 				patch("physbiblio.gui.catWindows.editCategory") as _ec,\
 				patch("physbiblio.gui.catWindows.deleteCategory") as _dc:
-			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), True)
+			ctw.contextMenuEvent(ev)
 			self.assertFalse(hasattr(ctw, "menu"))
 		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
 				return_value=[ctw.tree.indexAt(QPoint(0, 0))]) as _si,\
 				patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.catWindows.MyMenu",
+					return_value=mm) as _mm,\
 				patch("physbiblio.gui.catWindows.editCategory") as _ec,\
 				patch("physbiblio.gui.catWindows.deleteCategory") as _dc,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
-			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), True)
+			ctw.contextMenuEvent(ev)
 			_f.assert_called_once_with()
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
@@ -1119,15 +1132,17 @@ class TestCatsTreeWindow(GUITestCase):
 				self.assertEqual(act.text(), tit)
 				self.assertEqual(act.isEnabled(), en)
 
-			ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 0)
+			mm.exec_ = lambda x, i=0: mm.possibleActions[i]
+			ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 
 			pBDB.bibs.lastFetched = ["a"]
+			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 2)
+				ctw.contextMenuEvent(ev)
 				_ffd.assert_called_once_with(
 					{'cats': {'operator': 'and', 'id': [u'0']}})
 			_rmc.assert_called_once_with(["a"])
@@ -1135,25 +1150,28 @@ class TestCatsTreeWindow(GUITestCase):
 			_dc.assert_not_called()
 			_rmc.reset_mock()
 
+			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 4)
+				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(ctw, p, '0')
 			_dc.assert_not_called()
 			_ec.reset_mock()
 
+			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 5)
+				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
 			_dc.assert_called_once_with(ctw, p, '0', 'mainS')
 			_dc.reset_mock()
 
+			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				ctw.contextMenuEvent(QEvent(QEvent.ContextMenu), 7)
+				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(ctw, p, useParent='0')
 			_dc.assert_not_called()

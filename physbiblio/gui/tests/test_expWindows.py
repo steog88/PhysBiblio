@@ -8,6 +8,7 @@ import traceback
 import os
 from PySide2.QtCore import Qt, QEvent, QModelIndex
 from PySide2.QtTest import QTest
+from PySide2.QtGui import QMouseEvent
 from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
@@ -677,21 +678,29 @@ class TestExpsListWindow(GUITestCase):
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
 		p = MainWindow(testing=True)
+		position = QCursor.pos()
+		ev = QMouseEvent(QEvent.MouseButtonPress,
+			position,
+			Qt.RightButton,
+			Qt.NoButton,
+			Qt.NoModifier)
+		mm = MyMenu()
+		mm.exec_ = MagicMock()
 		with patch("physbiblio.database.experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=self.exps) as _gh,\
+				patch("physbiblio.gui.expWindows.MyMenu",
+					return_value=mm) as _mm:
 			elw = ExpsListWindow(p)
-		self.assertEqual(elw.triggeredContextMenuEvent(
-			9999, 0, QEvent(QEvent.ContextMenu), False),
-			None)
+		self.assertEqual(elw.triggeredContextMenuEvent(9999, 0, ev), None)
 		self.assertFalse(hasattr(elw, "menu"))
 		with patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent") as _rmc,\
+				patch("physbiblio.gui.expWindows.MyMenu",
+					return_value=mm) as _mm,\
 				patch("physbiblio.gui.expWindows.editExperiment") as _ec,\
 				patch("physbiblio.gui.expWindows.deleteExperiment") as _dc,\
 				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
-			self.assertEqual(elw.triggeredContextMenuEvent(
-				0, 0, QEvent(QEvent.ContextMenu), True),
-				True)
+			self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
 			_f.assert_called_once_with()
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
@@ -716,18 +725,17 @@ class TestExpsListWindow(GUITestCase):
 				self.assertEqual(act.text(), tit)
 				self.assertEqual(act.isEnabled(), en)
 
-			self.assertEqual(elw.triggeredContextMenuEvent(
-				0, 0, QEvent(QEvent.ContextMenu), 0),
-				True)
+			mm.exec_ = lambda x, i=0: mm.possibleActions[i]
+			self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 
 			pBDB.bibs.lastFetched = ["a"]
+			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				self.assertEqual(elw.triggeredContextMenuEvent(
-					0, 0, QEvent(QEvent.ContextMenu), 2),
+				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 				_ffd.assert_called_once_with(
 					{'exps': {'operator': 'and', 'id': [u'0']}})
@@ -736,20 +744,20 @@ class TestExpsListWindow(GUITestCase):
 			_dc.assert_not_called()
 			_rmc.reset_mock()
 
+			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				self.assertEqual(elw.triggeredContextMenuEvent(
-					0, 0, QEvent(QEvent.ContextMenu), 4),
+				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(elw, p, '0')
 			_dc.assert_not_called()
 			_ec.reset_mock()
 
+			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
-				self.assertEqual(elw.triggeredContextMenuEvent(
-					0, 0, QEvent(QEvent.ContextMenu), 5),
+				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
@@ -766,20 +774,21 @@ class TestExpsListWindow(GUITestCase):
 					askForExp=0,
 					expButton=False,
 					previous=[0, 13])
+			sc.exec_ = MagicMock()
 			sc.result = "Ok"
 			p.selectedCats = [9, 13]
+			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
 			with patch("physbiblio.database.entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd,\
-					patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-						return_value=None) as _i,\
+					patch("physbiblio.gui.expWindows.catsTreeWindow",
+						return_value=sc) as _i,\
 					patch("physbiblio.gui.mainWindow.MainWindow."
 						+ "statusBarMessage") as _sbm,\
 					patch("physbiblio.database.catsExps.delete") as _d,\
 					patch("physbiblio.database.catsExps.insert") as _a,\
 					patch("physbiblio.database.categories.getByExp",
 						return_value=[{"idCat": 0}, {"idCat": 13}]) as _gbe:
-				self.assertEqual(elw.triggeredContextMenuEvent(
-					0, 0, QEvent(QEvent.ContextMenu), [7, sc]),
+				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 				_ffd.assert_not_called()
 				_gbe.assert_called_once_with('0')
