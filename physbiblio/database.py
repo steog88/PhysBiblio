@@ -2499,7 +2499,15 @@ class entries(physbiblioDBSub):
 		output = ""
 		db = bibtexparser.bibdatabase.BibDatabase()
 		tmp = {}
-		for k,v in bibtexparser.loads(bibtex).entries[0].items():
+		try:
+			element = bibtexparser.loads(bibtex).entries[0]
+		except ParseException:
+			pBLogger.warning("Cannot parse properly:\n%s"%bibtex)
+			return ""
+		except IndexError:
+			pBLogger.warning("No entries found:\n%s"%bibtex)
+			return ""
+		for k,v in element.items():
 			try:
 				tmp[k] = v.replace("\n", " ")
 			except AttributeError:
@@ -2865,7 +2873,7 @@ class entries(physbiblioDBSub):
 		pBLogger.info("Entries to be processed: %d"%len(elements))
 		tot = len(elements)
 		for ie, e in enumerate(elements):
-			if self.importFromBibFlag:
+			if self.importFromBibFlag and e != []:
 				db.entries = [e]
 				bibtex = self.rmBibtexComments(self.rmBibtexACapo(
 					pbWriter.write(db).strip()))

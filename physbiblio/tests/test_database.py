@@ -1937,6 +1937,15 @@ class TestDatabaseEntries(DBTestCase):
 			u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'),
 			u'@Article{ghi,\n        author = "me",\n         ' \
 			+ 'title = "{ghi}",\n}\n\n')
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(self.pBDB.bibs.rmBibtexACapo(
+				u'@article{ghi,\nauthor = "\"ame",\ntitle = "ghi",\n}'),
+				'')
+			_w.assert_called_once_with('Cannot parse properly:\n'
+				+ '@article{ghi,\nauthor = "\"ame",\ntitle = "ghi",\n}')
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'%abc'), "")
+			_w.assert_called_once_with('No entries found:\n%abc')
 
 	def test_importFromBib(self):
 		with open("tmpbib.bib", "w") as f:
