@@ -109,10 +109,10 @@ class TestWebImportMethods(unittest.TestCase):
 			"isbn": ["9780198508717", '''@book{9780198508717,
   Author = {Carlo Giunti, Chung W. Kim},
   Title = {Fundamentals of Neutrino Physics and Astrophysics},
-  Publisher = {OXFORD UNIV PR},
+  Publisher = {Oxford University Press},
   Year = {2007},
-  Date = {2007-05-11},
-  PageTotal = {710 Seiten},
+  Date = {2007-03-15},
+  PageTotal = {728 Seiten},
   EAN = {9780198508717},
   ISBN = {0198508719},
   URL = {https://www.ebook.de/de/product/7616244/carlo_giunti_''' \
