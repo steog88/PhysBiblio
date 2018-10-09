@@ -2343,10 +2343,13 @@ class MergeBibtexs(EditBibtexDialog):
 			r: the row index for the new widget in the layout
 			c: the column index for the new widget in the layout
 		"""
-		self.textValues[ix][k] = QLineEdit(
-			str(self.dataOld[ix][k] \
+		try:
+			val = self.dataOld[ix][k] \
 				if self.dataOld[ix][k] is not None  \
-				else ""))
+				else ""
+		except KeyError:
+			val = ""
+		self.textValues[ix][k] = QLineEdit(str(val))
 		self.textValues[ix][k].setReadOnly(True)
 		self.currGrid.addWidget(self.textValues[ix][k], r, c)
 
@@ -2388,34 +2391,47 @@ class MergeBibtexs(EditBibtexDialog):
 			c: the column index for the new widget in the layout
 		"""
 		k = "bibtex"
-		self.textValues[ix][k] = QPlainTextEdit(
-			str(self.dataOld[ix][k] \
-				if self.dataOld[ix][k] is not None \
-				else ""))
+		try:
+			val = self.dataOld[ix][k] \
+				if self.dataOld[ix][k] is not None  \
+				else ""
+		except KeyError:
+			val = ""
+		self.textValues[ix][k] = QPlainTextEdit(str(val))
 		self.textValues[ix][k].setReadOnly(True)
 		self.textValues[ix][k].setMinimumWidth(self.bibtexWidth)
 		self.currGrid.addWidget(self.textValues[ix][k],
 			r, c, self.bibtexEditLines, 1)
 
-	def addGenericField(self, k, i):
+	def addGenericField(self, k, r):
+		"""Create fields for a specific key
+		for the new and old records and
+		the corresponding radio buttons.
+		One of the radio buttons is checked if one of the two records
+		have a null field.
+
+		Parameter:
+			k: the field name
+			r: the row index for the new widget in the layout
+		"""
 		try:
 			old0 = self.dataOld["0"][k]
 			old1 = self.dataOld["1"][k]
 		except KeyError:
-			pBLogger.warning("Key missing: %s"%k)
-			return i
+			pBLogger.warning("Key missing: '%s'"%k)
+			return r
 		if old0 == old1:
 			self.textValues[k] = QLineEdit(str(old0))
 			self.textValues[k].hide()
 		else:
 			self.currGrid.addWidget(MyLabelCenter(
 				"%s (%s)"%(k, pBDB.descriptions["entries"][k])),
-				i, 0, 1, 5)
-			i += 1
-			self.addFieldOld("0", k, i, 0)
-			self.addRadio("0", k, i, 1)
-			self.addFieldOld("1", k, i, 4)
-			self.addRadio("1", k, i, 3)
+				r, 0, 1, 5)
+			r += 1
+			self.addFieldOld("0", k, r, 0)
+			self.addRadio("0", k, r, 1)
+			self.addFieldOld("1", k, r, 4)
+			self.addRadio("1", k, r, 3)
 
 			#add radio
 			if old0 != "" and old1 == "":
@@ -2426,18 +2442,23 @@ class MergeBibtexs(EditBibtexDialog):
 				val = old1
 			else:
 				val = ""
-			self.addFieldNew(k, i, val)
-			i += 1
-		return i
+			self.addFieldNew(k, r, val)
+			r += 1
+		return r
 
-	def addMarkTypeFields(self, i):
-		i += 1
+	def addMarkTypeFields(self, r):
+		"""Create fields for the marks and types of the merged entry
+
+		Parameter:
+			r: the row index for the new widget in the layout
+		"""
+		r += 1
 		groupBox, markValues = pBMarks.getGroupbox(
 			self.data["marks"],
 			description=pBDB.descriptions["entries"]["marks"])
 		self.markValues = markValues
-		self.currGrid.addWidget(groupBox, i, 0, 1, 5)
-		i += 1
+		self.currGrid.addWidget(groupBox, r, 0, 1, 5)
+		r += 1
 		groupBox = QGroupBox("Types")
 		groupBox.setFlat(True)
 		hbox = QHBoxLayout()
@@ -2446,45 +2467,51 @@ class MergeBibtexs(EditBibtexDialog):
 				self.checkValues[k] = QCheckBox(k, self)
 				hbox.addWidget(self.checkValues[k])
 		groupBox.setLayout(hbox)
-		self.currGrid.addWidget(groupBox, i, 0, 1, 5)
-		return i
+		self.currGrid.addWidget(groupBox, r, 0, 1, 5)
+		return r
 
-	def addBibtexFields(self, i):
-		i += 1
+	def addBibtexFields(self, r):
+		"""Create "bibkey" and "bibtex" fields for the given records,
+		and corresponding radio buttons
+
+		Parameter:
+			r: the row index for the new widget in the layout
+		"""
+		r += 1
 		k = "bibkey"
 		self.currGrid.addWidget(MyLabelCenter(
-			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
-		i += 1
-		self.addFieldOld("0", k, i, 0)
-		self.addFieldOld("1", k, i, 4)
+			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), r, 0, 1, 5)
+		r += 1
+		self.addFieldOld("0", k, r, 0)
+		self.addFieldOld("1", k, r, 4)
 		if self.dataOld["0"][k] == self.dataOld["1"][k]:
 			self.textValues[k] = QLineEdit(str(self.dataOld["0"][k]))
 		else:
 			self.textValues[k] = QLineEdit("")
 		self.textValues[k].setReadOnly(True)
-		self.currGrid.addWidget(self.textValues[k], i, 2)
+		self.currGrid.addWidget(self.textValues[k], r, 2)
 
-		i += 1
+		r += 1
 		k = "bibtex"
 		self.currGrid.addWidget(MyLabelCenter(
-			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), i, 0, 1, 5)
-		i += 1
-		self.addBibtexOld("0", i, 0)
-		self.addRadio("0", k, i, 1)
-		self.addBibtexOld("1", i, 4)
-		self.addRadio("1", k, i, 3)
+			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), r, 0, 1, 5)
+		r += 1
+		self.addBibtexOld("0", r, 0)
+		self.addRadio("0", k, r, 1)
+		self.addBibtexOld("1", r, 4)
+		self.addRadio("1", k, r, 3)
 		#radio and connection
 		if self.dataOld["0"][k] == self.dataOld["1"][k]:
 			self.data[k] = self.dataOld["0"][k]
 		self.textValues[k] = QPlainTextEdit(
 			str(self.data[k] if self.data[k] is not None else ""))
-		self.textValues[k].textChanged.connect(self.updateBibkey)
 		self.textValues[k].setMinimumWidth(self.bibtexWidth)
+		self.textValues[k].textChanged.connect(self.updateBibkey)
 		self.textValues[k].textChanged.connect(
-			lambda x, f="bibtex": self.textModified(f))
+			lambda f="bibtex": self.textModified(f))
 		self.currGrid.addWidget(self.textValues[k],
-			i, 2, self.bibtexEditLines, 1)
-		return i + self.bibtexEditLines
+			r, 2, self.bibtexEditLines, 1)
+		return r + self.bibtexEditLines
 
 	def createForm(self):
 		"""Call the function that create the form fields,

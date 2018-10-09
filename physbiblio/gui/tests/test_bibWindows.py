@@ -4552,49 +4552,270 @@ class TestMergeBibtexs(GUITestCase):
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
 			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addFieldOld("0", "year", 123, 0)
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 0).widget(),
+			QLineEdit)
+		self.assertEqual(mb.textValues["0"]["year"],
+			mb.layout().itemAtPosition(123, 0).widget())
+		self.assertEqual(mb.textValues["0"]["year"].text(), "")
+		self.assertEqual(mb.textValues["0"]["year"].isReadOnly(), True)
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0", "year": "2018"},
+				{"bibtex": "@article1"})
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addFieldOld("0", "year", 123, 0)
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 0).widget(),
+			QLineEdit)
+		self.assertEqual(mb.textValues["0"]["year"],
+			mb.layout().itemAtPosition(123, 0).widget())
+		self.assertEqual(mb.textValues["0"]["year"].text(), "2018")
+		self.assertEqual(mb.textValues["0"]["year"].isReadOnly(), True)
 
 	def test_addFieldNew(self):
 		"""test addFieldNew"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
 			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addFieldNew("year", 123, "123")
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 2).widget(),
+			QLineEdit)
+		self.assertEqual(mb.textValues["year"],
+			mb.layout().itemAtPosition(123, 2).widget())
+		self.assertEqual(mb.textValues["year"].text(), "123")
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs.textModified"
+				) as _f:
+			mb.textValues["year"].textEdited.emit("321")
+			_f.assert_called_once_with("year")
 
 	def test_addRadio(self):
 		"""test addRadio"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
 			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addRadio("0", "year", 123, 1)
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 1).widget(),
+			QRadioButton)
+		self.assertEqual(mb.radioButtons["0"]["year"],
+			mb.layout().itemAtPosition(123, 1).widget())
+		self.assertEqual(mb.radioButtons["0"]["year"].text(), "")
+		self.assertEqual(mb.radioButtons["0"]["year"].autoExclusive(), False)
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs.radioToggled"
+				) as _f:
+			mb.radioButtons["0"]["year"].clicked.emit()
+			_f.assert_called_once_with("0", "year")
 
 	def test_addBibtexOld(self):
 		"""test addBibtexOld"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibkey": "0"}, {"bibtex": "@article1"})
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addBibtexOld("0", 123, 0)
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 0).widget(),
+			QPlainTextEdit)
+		self.assertEqual(mb.textValues["0"]["bibtex"],
+			mb.layout().itemAtPosition(123, 0).widget())
+		self.assertEqual(mb.textValues["0"]["bibtex"].toPlainText(), "")
+		self.assertEqual(mb.textValues["0"]["bibtex"].isReadOnly(), True)
+		self.assertEqual(mb.textValues["0"]["bibtex"].minimumWidth(),
+			mb.bibtexWidth)
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
 			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		#clean layout
+		while True:
+			o = mb.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+		mb.addBibtexOld("0", 123, 0)
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 0).widget(),
+			QPlainTextEdit)
+		self.assertEqual(mb.textValues["0"]["bibtex"],
+			mb.layout().itemAtPosition(123, 0).widget())
+		self.assertEqual(mb.textValues["0"]["bibtex"].toPlainText(),
+			"@article0")
+		self.assertEqual(mb.textValues["0"]["bibtex"].isReadOnly(), True)
 
 	def test_addGenericField(self):
 		"""test addGenericField"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
-			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+			mb = MergeBibtexs({"bibtex": "@article0"},
+				{"bibtex": "@article1", "year": "2018"})
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(mb.addGenericField("year", 123), 123)
+			_w.assert_called_once_with("Key missing: 'year'")
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0", "year": "2018"},
+				{"bibtex": "@article1", "year": "2018"})
+		self.assertEqual(mb.addGenericField("year", 123), 123)
+		self.assertIsInstance(mb.textValues["year"], QLineEdit)
+		self.assertEqual(mb.textValues["year"].text(), "2018")
+		self.assertEqual(mb.textValues["year"].isHidden(), True)
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0", "year": "2017"},
+				{"bibtex": "@article1", "year": "2018"})
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "addFieldOld") as _afo,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addFieldNew") as _afn,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addRadio") as _ar:
+			self.assertEqual(mb.addGenericField("year", 123), 125)
+			_afo.assert_has_calls([call("0", "year", 124, 0),
+				call("1", "year", 124, 4)])
+			_ar.assert_has_calls([call("0", "year", 124, 1),
+				call("1", "year", 124, 3)])
+			_afn.assert_called_once_with("year", 124, "")
+		self.assertIsInstance(mb.layout().itemAtPosition(123, 0).widget(),
+			MyLabelCenter)
+		self.assertEqual(
+			mb.layout().itemAtPosition(123, 0).widget().text(),
+			"%s (%s)"%("year", pBDB.descriptions["entries"]["year"]))
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0", "year": ""},
+				{"bibtex": "@article1", "year": "2018"})
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "addFieldNew") as _afn:
+			self.assertEqual(mb.addGenericField("year", 123), 125)
+			_afn.assert_called_once_with("year", 124, "2018")
+			self.assertTrue(mb.radioButtons["1"]["year"].isChecked())
+			self.assertFalse(mb.radioButtons["0"]["year"].isChecked())
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs({"bibtex": "@article0", "year": "2017"},
+				{"bibtex": "@article1", "year": ""})
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "addFieldNew") as _afn:
+			self.assertEqual(mb.addGenericField("year", 123), 125)
+			_afn.assert_called_once_with("year", 124, "2017")
+			self.assertTrue(mb.radioButtons["0"]["year"].isChecked())
+			self.assertFalse(mb.radioButtons["1"]["year"].isChecked())
 
 	def test_addMarkTypeFields(self):
 		"""test addMarkTypeFields"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
 			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+		self.assertEqual(mb.addMarkTypeFields(123), 125)
+		self.assertIsInstance(mb.markValues, dict)
+		for m in pBMarks.marks.keys():
+			self.assertIsInstance(mb.markValues[m], QCheckBox)
+		self.assertIsInstance(mb.currGrid.itemAtPosition(124, 0).widget(),
+			QGroupBox)
+		self.assertIsInstance(mb.currGrid.itemAtPosition(125, 0).widget(),
+			QGroupBox)
+		typesGB = mb.currGrid.itemAtPosition(125, 0).widget()
+		self.assertEqual(typesGB.isFlat(), True)
+		self.assertIsInstance(typesGB.layout(), QHBoxLayout)
+		i = 0
+		for k in pBDB.tableCols["entries"]:
+			if k in mb.checkboxes:
+				self.assertIsInstance(mb.checkValues[k], QCheckBox)
+				self.assertIsInstance(typesGB.layout().itemAt(i).widget(),
+					QCheckBox)
+				self.assertEqual(mb.checkValues[k],
+					typesGB.layout().itemAt(i).widget())
+				i += 1
 
 	def test_addBibtexFields(self):
 		"""test addBibtexFields"""
 		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
 				+ "createForm") as _cf:
-			mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
-		raise NotImplementedError
+			mb = MergeBibtexs(
+				{"bibtex": '@article{0, title="e0"}', "bibkey": "0"},
+				{"bibtex": '@article{1, title="e1"}', "bibkey": "1"})
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "addFieldOld") as _afo,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addBibtexOld") as _abo,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs."
+					+ "addRadio") as _ar:
+			self.assertEqual(mb.addBibtexFields(123), 135)
+			_afo.assert_has_calls([
+				call('0', 'bibkey', 125, 0),
+				call('1', 'bibkey', 125, 4)])
+			_abo.assert_has_calls([
+				call('0', 127, 0),
+				call('1', 127, 4)])
+			_ar.assert_has_calls([
+				call('0', 'bibtex', 127, 1),
+				call('1', 'bibtex', 127, 3)])
+		#bibkey
+		self.assertIsInstance(mb.currGrid.itemAtPosition(124, 0).widget(),
+			MyLabelCenter)
+		self.assertEqual(mb.currGrid.itemAtPosition(124, 0).widget().text(),
+			"%s (%s)"%("bibkey", pBDB.descriptions["entries"]["bibkey"]))
+		self.assertIsInstance(mb.currGrid.itemAtPosition(125, 2).widget(),
+			QLineEdit)
+		self.assertEqual(mb.textValues["bibkey"],
+			mb.currGrid.itemAtPosition(125, 2).widget())
+		self.assertEqual(mb.textValues["bibkey"].text(), "")
+		self.assertEqual(mb.textValues["bibkey"].isReadOnly(), True)
+
+		#bibtex
+		self.assertIsInstance(mb.currGrid.itemAtPosition(126, 0).widget(),
+			MyLabelCenter)
+		self.assertEqual(mb.currGrid.itemAtPosition(126, 0).widget().text(),
+			"%s (%s)"%("bibtex", pBDB.descriptions["entries"]["bibtex"]))
+		self.assertIsInstance(mb.currGrid.itemAtPosition(127, 2).widget(),
+			QPlainTextEdit)
+		self.assertEqual(mb.textValues["bibtex"],
+			mb.currGrid.itemAtPosition(127, 2).widget())
+		self.assertEqual(mb.textValues["bibtex"].toPlainText(), "")
+		self.assertEqual(mb.textValues["bibtex"].minimumWidth(),
+			mb.bibtexWidth)
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "textModified") as _tm,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog."
+					+ "updateBibkey") as _ub:
+			mb.textValues["bibtex"].textChanged.emit()
+			_tm.assert_called_once_with("bibtex")
+			_ub.assert_called_once_with()
+
+		with patch("physbiblio.gui.bibWindows.MergeBibtexs."
+				+ "createForm") as _cf:
+			mb = MergeBibtexs(
+				{"bibtex": '@article{0, title="e0"}', "bibkey": "0"},
+				{"bibtex": '@article{0, title="e0"}', "bibkey": "0"})
+		self.assertEqual(mb.addBibtexFields(123), 135)
+		self.assertEqual(mb.textValues["bibkey"].text(), "0")
+		self.assertEqual(mb.textValues["bibtex"].toPlainText(),
+			'@article{0, title="e0"}')
 
 	def test_createForm(self):
 		"""test createForm"""
