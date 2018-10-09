@@ -15,6 +15,9 @@
 	* many bugs fixed during code review for test writing
 	* moving towards PEP 8
 
+0.6.1 (2018-10-09):
+	* bug when extracting the default profile solved
+
 0.6.0 (2018-10-03):
 	* new field in database, entries table: bibdict. Needed to save time when building the main table
 	* much faster loading of the main table (for reasonable number of entries, still slow when requesting many of them)
@@ -150,7 +153,7 @@
 	* default paths with appdirs
 	* logging
 	* several optimizations/adjustments/improvements/speed-ups/bugfixes
-
+	
 	New features:
 	* import from bibtex file
 	* command line usage of main executable
