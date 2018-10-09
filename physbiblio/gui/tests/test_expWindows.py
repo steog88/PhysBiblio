@@ -12,10 +12,10 @@ from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -31,27 +31,28 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestFunctions(GUITestCase):
+class TestFunctions(GUIwMainWTestCase):
 	"""Test the editExperiment and deleteExperiment functions"""
 
 	def test_editExperiment(self):
 		"""test editExperiment"""
 		p = QWidget()
-		m = MainWindow(testing=True)
+		m = self.mainW
 		ncw = EditExperimentDialog(p)
+		ncw.exec_ = MagicMock()
 		ncw.onCancel()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i:
-			editExperiment(p, m, testing=ncw)
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i:
+			editExperiment(p, m)
 			_i.assert_called_once_with(p, experiment=None)
 			_s.assert_called_once_with("No modifications to experiments")
 
-		with patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("logging.Logger.debug") as _l:
-			editExperiment(p, p, testing=ncw)
+			editExperiment(p, p)
 			_i.assert_called_once_with(p, experiment=None)
 			_l.assert_called_once_with(
 				"mainWinObject has no attribute 'statusBarMessage'",
@@ -59,11 +60,11 @@ class TestFunctions(GUITestCase):
 
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g:
-			editExperiment(p, m, 9999, testing=ncw)
+			editExperiment(p, m, 9999)
 			_i.assert_called_once_with(p, experiment="abc")
 			_g.assert_called_once_with(9999)
 			_s.assert_called_once_with("No modifications to experiments")
@@ -73,14 +74,15 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["homepage"].setText("www.some.thing.com")
 		ncw.textValues["comments"].setText("comm")
 		ncw.textValues["inspire"].setText("1234")
+		ncw.exec_ = MagicMock()
 		ncw.onOk()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g:
-			editExperiment(p, m, editIdExp=9999, testing=ncw)
+			editExperiment(p, m, editIdExp=9999)
 			_i.assert_called_once_with(p, experiment="abc")
 			_g.assert_called_once_with(9999)
 			_s.assert_called_once_with("ERROR: empty experiment name")
@@ -88,14 +90,14 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["name"].setText("myexp")
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.experiments.insert",
 					return_value="abc") as _n,\
 				patch("logging.Logger.debug") as _l:
-			editExperiment(p, m, 9999, testing=ncw)
+			editExperiment(p, m, 9999)
 			_i.assert_called_once_with(p, experiment="abc")
 			_g.assert_called_once_with(9999)
 			_n.assert_called_once_with(
@@ -109,8 +111,8 @@ class TestFunctions(GUITestCase):
 		ctw = ExpsListWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.experiments.insert",
@@ -118,7 +120,7 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.debug") as _l,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
 					) as _r:
-			editExperiment(ctw, m, 9999, testing=ncw)
+			editExperiment(ctw, m, 9999)
 			_i.assert_called_once_with(ctw, experiment="abc")
 			_g.assert_called_once_with(9999)
 			_n.assert_called_once_with(
@@ -141,12 +143,13 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["name"].setText("myexp1")
 		ncw.textValues["comments"].setText("comm")
 		ncw.textValues["homepage"].setText("www.page.com")
+		ncw.exec_ = MagicMock()
 		ncw.onOk()
 		ctw = ExpsListWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.expWindows.EditExperimentDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.expWindows.EditExperimentDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.experiments.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.experiments.update",
@@ -154,7 +157,7 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.info") as _l,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
 					) as _r:
-			editExperiment(ctw, m, 9999, testing=ncw)
+			editExperiment(ctw, m, 9999)
 			_i.assert_called_once_with(ctw, experiment="abc")
 			_g.assert_called_once_with(9999)
 			_n.assert_called_once_with(
@@ -168,7 +171,7 @@ class TestFunctions(GUITestCase):
 	def test_deleteExperiment(self):
 		"""test deleteExperiment"""
 		p = QWidget()
-		m = MainWindow(testing=True)
+		m = self.mainW
 		with patch("physbiblio.gui.expWindows.askYesNo",
 				return_value = False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"

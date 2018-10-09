@@ -14,7 +14,7 @@ else:
 	from io import StringIO
 
 
-def askYesNo(message, title = "Question", testing = False):
+def askYesNo(message, title="Question", testing=False):
 	"""Uses `QMessageBox` to ask "Yes" or "No" for a given question.
 
 	Parameters:
@@ -43,7 +43,7 @@ def askYesNo(message, title = "Question", testing = False):
 		return False
 
 
-def infoMessage(message, title = "Information", testing = False):
+def infoMessage(message, title="Information", testing=False):
 	"""Uses `QMessageBox` to show a simple message.
 
 	Parameters:
@@ -65,7 +65,7 @@ def infoMessage(message, title = "Information", testing = False):
 class longInfoMessage(QDialog):
 	"""`infoMessage` version when a long text is expected"""
 
-	def __init__(self, message, title = "Information", testing = False):
+	def __init__(self, message, title="Information", testing=False):
 		"""Class constructor.
 
 		Parameters:
@@ -91,7 +91,7 @@ class longInfoMessage(QDialog):
 			self.exec_()
 
 
-def askGenericText(message, title, parent = None, testing = False):
+def askGenericText(message, title, parent=None, testing=False):
 	"""Uses `QInputDialog` to ask a text answer for a given question.
 
 	Parameters:
@@ -119,11 +119,11 @@ def askGenericText(message, title, parent = None, testing = False):
 	return dialog.textValue(), out
 
 
-def askFileName(parent = None,
-		title = "Filename to use:",
-		filter = "",
-		dir = "",
-		testing = False):
+def askFileName(parent=None,
+		title="Filename to use:",
+		filter="",
+		dir="",
+		testing=False):
 	"""Uses `QFileDialog` to ask the name of a single, existing file
 
 	Parameters (all optional):
@@ -151,11 +151,11 @@ def askFileName(parent = None,
 		return ""
 
 
-def askFileNames(parent = None,
-		title = "Filename to use:",
-		filter = "",
-		dir = "",
-		testing = False):
+def askFileNames(parent=None,
+		title="Filename to use:",
+		filter="",
+		dir="",
+		testing=False):
 	"""Uses `QFileDialog` to ask the names of a set of existing files
 
 	Parameters (all optional):
@@ -184,11 +184,11 @@ def askFileNames(parent = None,
 		return []
 
 
-def askSaveFileName(parent = None,
-		title = "Filename to use:",
-		filter = "",
-		dir = "",
-		testing = False):
+def askSaveFileName(parent=None,
+		title="Filename to use:",
+		filter="",
+		dir="",
+		testing=False):
 	"""Uses `QFileDialog` to ask the names of a single file
 	where something will be saved (the file may not exist)
 
@@ -218,10 +218,10 @@ def askSaveFileName(parent = None,
 		return ""
 
 
-def askDirName(parent = None,
-		title = "Directory to use:",
-		dir = "",
-		testing = False):
+def askDirName(parent=None,
+		title="Directory to use:",
+		dir="",
+		testing=False):
 	"""Uses `QFileDialog` to ask the names of a single directory
 
 	Parameters (all optional):

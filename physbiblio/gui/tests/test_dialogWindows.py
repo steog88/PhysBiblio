@@ -12,10 +12,10 @@ from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -272,19 +272,21 @@ class TestConfigWindow(GUITestCase):
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["bibtexListColumns"])
 		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec.exec_ = MagicMock()
 		cec.onCancel()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
-				return_value=None) as _cec:
-			cw.editColumns(cec)
+		with patch("physbiblio.gui.dialogWindows.configEditColumns",
+				return_value=cec) as _cec:
+			cw.editColumns()
 			_cec.assert_called_once_with(cw,
 				pbConfig.params["bibtexListColumns"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["bibtexListColumns"])
 		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec.exec_ = MagicMock()
 		cec.onOk()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns.__init__",
-				return_value=None) as _cec:
-			cw.editColumns(cec)
+		with patch("physbiblio.gui.dialogWindows.configEditColumns",
+				return_value=cec) as _cec:
+			cw.editColumns()
 			_cec.assert_called_once_with(cw,
 				pbConfig.params["bibtexListColumns"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
@@ -300,10 +302,11 @@ class TestConfigWindow(GUITestCase):
 			askCats=True,
 			expButton=False,
 			previous=['1'])
+		cwl.exec_ = MagicMock()
 		cwl.onCancel()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value=None) as _cwl:
-			cw.editDefCats(cwl)
+		with patch("physbiblio.gui.dialogWindows.catsTreeWindow",
+				return_value=cwl) as _cwl:
+			cw.editDefCats()
 			_cwl.assert_called_once_with(parent=cw,
 				askCats=True,
 				expButton=False,
@@ -314,11 +317,12 @@ class TestConfigWindow(GUITestCase):
 			askCats=True,
 			expButton=False,
 			previous=['1'])
+		cwl.exec_ = MagicMock()
 		cwl.onOk()
 		cw.selectedCats = ['1']
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value=None) as _cwl:
-			cw.editDefCats(cwl)
+		with patch("physbiblio.gui.dialogWindows.catsTreeWindow",
+				return_value=cwl) as _cwl:
+			cw.editDefCats()
 			_cwl.assert_called_once_with(parent=cw,
 				askCats=True,
 				expButton=False,
@@ -347,7 +351,7 @@ class TestConfigWindow(GUITestCase):
 				with patch("physbiblio.gui.dialogWindows.configWindow." +
 						"editColumns") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
-					_f.assert_called_once_with(False)
+					_f.assert_called_once_with()
 			elif k == "pdfFolder":
 				currClass = QPushButton
 				currWidget = cw.textValues[ix][1]
@@ -385,7 +389,7 @@ class TestConfigWindow(GUITestCase):
 				with patch("physbiblio.gui.dialogWindows.configWindow." +
 						"editDefCats") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
-					_f.assert_called_once_with(False)
+					_f.assert_called_once_with()
 			elif pbConfig.specialTypes[k] == "boolean":
 				currClass = MyTrueFalseCombo
 				currWidget = cw.textValues[ix][1]

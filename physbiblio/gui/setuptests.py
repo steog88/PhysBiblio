@@ -14,6 +14,14 @@ else:
 	from unittest.mock import patch
 	from io import StringIO
 
+try:
+	from physbiblio.gui.mainWindow import MainWindow
+except ImportError:
+    print("Could not find physbiblio and its modules!")
+    raise
+except Exception:
+	print(traceback.format_exc())
+
 globalQApp = QApplication()
 
 
@@ -38,3 +46,15 @@ class GUITestCase(unittest.TestCase):
 	def tearDownClass(self):
 		"""Remove a temporary QApplication from the class instance"""
 		del self.qapp
+
+
+class GUIwMainWTestCase(unittest.TestCase):
+	"""Class that manages GUI tests which need a testing instance
+	of the MainWindow class
+	"""
+
+	@classmethod
+	def setUpClass(self):
+		"""Call the parent method and instantiate a testing MainWindow"""
+		super(GUIwMainWTestCase, self).setUpClass()
+		self.mainW = MainWindow(testing=True)

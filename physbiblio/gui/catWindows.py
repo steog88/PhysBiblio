@@ -30,8 +30,7 @@ except ImportError:
 def editCategory(parentObject,
 		mainWinObject,
 		editIdCat=None,
-		useParentCat=None,
-		testing=False):
+		useParentCat=None):
 	"""Open a dialog (`editCategoryDialog`) to edit a category
 	and process the output.
 
@@ -43,9 +42,6 @@ def editCategory(parentObject,
 			or `None` to create a new category
 		useParentCat: the parent category (if any)
 			of the one to be edited
-		testing (default False): when doing tests,
-			interrupt the execution before `exec_` and
-			replace `newCatWin` with the passed object.
 	"""
 	if editIdCat is not None:
 		edit = pBDB.cats.getDictByID(editIdCat)
@@ -54,10 +50,7 @@ def editCategory(parentObject,
 	newCatWin = editCategoryDialog(parentObject,
 		category=edit,
 		useParentCat=useParentCat)
-	if testing:
-		newCatWin = testing
-	else:
-		newCatWin.exec_()
+	newCatWin.exec_()
 	if newCatWin.result:
 		data = {}
 		for k, v in newCatWin.textValues.items():
@@ -311,7 +304,7 @@ class catsTreeWindow(QDialog):
 				checkbox for the initial list of categories, which are
 				typically not the same for all the elements in the list
 		"""
-		super(catsTreeWindow, self).__init__(parent)
+		QDialog.__init__(self, parent)
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
 		self.setLayout(self.currLayout)
@@ -674,24 +667,14 @@ class editCategoryDialog(EditObjectWindow):
 			self.selectedCats = [0]
 		self.createForm()
 
-	def onAskParent(self, testing=False):
-		"""Open a `catsTreeWindow` and process its output
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `catsTreeWindow` instance,
-				it will use the custom dialog instead of run `exec_`
-		"""
+	def onAskParent(self):
+		"""Open a `catsTreeWindow` and process its output"""
 		selectCats = catsTreeWindow(parent=self,
 			askCats=True,
 			expButton=False,
 			single=True,
 			previous=self.selectedCats)
-		if not testing:
-			selectCats.exec_()
-		else:
-			selectCats = testing
+		selectCats.exec_()
 		if selectCats.result == "Ok":
 			try:
 				val = self.selectedCats[0]

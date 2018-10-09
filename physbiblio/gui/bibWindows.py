@@ -142,7 +142,7 @@ def writeAbstract(mainWin, entry):
 	a.doText()
 
 
-def editBibtex(parentObject, editKey=None, testing=False):
+def editBibtex(parentObject, editKey=None):
 	"""Open a dialog (`EditBibtexDialog`) to edit a bibtex entry
 	and process the output.
 
@@ -150,19 +150,13 @@ def editBibtex(parentObject, editKey=None, testing=False):
 		parentObject: the parent widget
 		editKey: the key of the entry to be edited,
 			or `None` to create a new one
-		testing (default False): when doing tests,
-			interrupt the execution before `exec_` and
-			replace `newBibWin` with the passed object.
 	"""
 	if editKey is not None:
 		edit = pBDB.bibs.getByKey(editKey, saveQuery=False)[0]
 	else:
 		edit = None
 	newBibWin = EditBibtexDialog(parentObject, bib=edit)
-	if testing:
-		newBibWin = testing
-	else:
-		newBibWin.exec_()
+	newBibWin.exec_()
 	data = {}
 	if newBibWin.result is True:
 		for k, v in newBibWin.textValues.items():
@@ -994,16 +988,9 @@ class CommonBibActions():
 		"""
 		self.parent().infoFromArxiv(self.bibs)
 
-	def onCat(self, testing=False):
+	def onCat(self):
 		"""Open a `catsTreeWindow` to ask the changes to the categories,
 		then perform the database changes
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `catsTreeWindow` instance,
-				the provided dialog will be used
-				instead of running `exec_`
 		"""
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
 		if len(self.keys) == 1:
@@ -1019,10 +1006,7 @@ class CommonBibActions():
 				expButton=False,
 				previous=previousAll,
 				multipleRecords=True)
-		if testing:
-			selectCats = testing
-		else:
-			selectCats.exec_()
+		selectCats.exec_()
 		if selectCats.result == "Ok":
 			if len(self.keys) == 1:
 				cats = self.parent().selectedCats
@@ -1174,17 +1158,10 @@ class CommonBibActions():
 		self.parent().done()
 		self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-	def onExp(self, testing=False):
+	def onExp(self):
 		"""Open a `ExpsListWindow` window to obtain the list of
 		experiments to be added (also deleted, if for a single entry)
 		and perform the database changes
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `ExpsListWindow` instance,
-				the provided dialog will be used
-				instead of running `exec_`
 		"""
 		if len(self.keys) == 1:
 			bibkey = self.keys[0]
@@ -1193,10 +1170,7 @@ class CommonBibActions():
 				askExps=True,
 				askForBib=bibkey,
 				previous=previous)
-			if testing:
-				selectExps = testing
-			else:
-				selectExps.exec_()
+			selectExps.exec_()
 			if selectExps.result == "Ok":
 				exps = self.parent().selectedExps
 				for p in previous:
@@ -1212,10 +1186,7 @@ class CommonBibActions():
 				+ "to the selected entries, not delete!")
 			selectExps = ExpsListWindow(parent=self.parent(),
 				askExps=True, previous=[])
-			if testing:
-				selectExps = testing
-			else:
-				selectExps.exec_()
+			selectExps.exec_()
 			if selectExps.result == "Ok":
 				pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
 				self.parent().statusBarMessage(
@@ -1227,24 +1198,14 @@ class CommonBibActions():
 		"""
 		self.parent().exportSelection(self.bibs)
 
-	def onMerge(self, testing=False):
+	def onMerge(self):
 		"""Open a `MergeBibtexs` window to configure the merging,
 		then perform the requested changes, merge the entries and
 		delete the previous ones
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `MergeBibtexs` instance,
-				the provided dialog will be used
-				instead of running `exec_`
 		"""
 		mergewin = MergeBibtexs(
 			self.bibs[0], self.bibs[1], self.parent())
-		if testing:
-			mergewin = testing
-		else:
-			mergewin.exec_()
+		mergewin.exec_()
 		if mergewin.result is True:
 			data = {}
 			for k, v in mergewin.textValues.items():

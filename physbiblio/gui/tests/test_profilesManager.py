@@ -13,10 +13,10 @@ from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -31,12 +31,13 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestEditProf(GUITestCase):
+class TestEditProf(GUIwMainWTestCase):
 	"""Test the editProfile function"""
 
 	@classmethod
 	def setUpClass(self):
 		"""set temporary pbConfig settings"""
+		super(TestEditProf, self).setUpClass()
 		self.oldProfileOrder = pbConfig.profileOrder
 		self.oldProfiles = pbConfig.profiles
 		self.oldCurrentProfileName = pbConfig.currentProfileName
@@ -53,6 +54,7 @@ class TestEditProf(GUITestCase):
 	@classmethod
 	def tearDownClass(self):
 		"""restore previous pbConfig settings"""
+		super(TestEditProf, self).tearDownClass()
 		pbConfig.profileOrder = self.oldProfileOrder
 		pbConfig.profiles = self.oldProfiles
 		pbConfig.currentProfileName = self.oldCurrentProfileName
@@ -62,24 +64,32 @@ class TestEditProf(GUITestCase):
 		"""Test the editProfile function"""
 		# first tests
 		p = QWidget()
-		mw = MainWindow(True)
+		mw = self.mainW
 		ep = editProfileWindow()
+		ep.exec_ = MagicMock()
 		ep.onCancel()
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-				as _m:
-			editProfile(mw, ep)
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m:
+			editProfile(mw)
 			_m.assert_called_once_with("No modifications")
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-				as _m:
-			editProfile(p, ep)
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+				) as _m:
+			editProfile(p)
 			_m.assert_not_called()
 
 		# test switch lines and some description
 		ep = editProfileWindow()
 		ep.switchLines(0)
 		ep.elements[2]["d"].setText("descrip")
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -88,7 +98,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -104,8 +114,11 @@ class TestEditProf(GUITestCase):
 		# test set new default
 		ep = editProfileWindow()
 		ep.elements[1]["r"].setChecked(True)
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -114,7 +127,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_called_once_with("test2")
 			_upf.assert_has_calls([
@@ -130,8 +143,11 @@ class TestEditProf(GUITestCase):
 		# test delete
 		ep = editProfileWindow()
 		ep.elements[1]["x"].setChecked(True)
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -142,7 +158,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value = True) as _ayn,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -162,8 +178,11 @@ class TestEditProf(GUITestCase):
 		# test rename existing
 		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -172,7 +191,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -193,8 +212,11 @@ class TestEditProf(GUITestCase):
 		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
 		ep.elements[1]["x"].setChecked(True)
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -205,7 +227,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -230,8 +252,11 @@ class TestEditProf(GUITestCase):
 		ep = editProfileWindow()
 		ep.elements[1]["n"].setText("testA")
 		ep.elements[1]["x"].setChecked(True)
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -242,7 +267,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -267,8 +292,11 @@ class TestEditProf(GUITestCase):
 		ep = editProfileWindow()
 		ep.elements[-1]["n"].setText("testNew")
 		ep.elements[-1]["f"].setCurrentText("testNew.db")
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -278,7 +306,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -301,8 +329,11 @@ class TestEditProf(GUITestCase):
 		ep.elements[-1]["n"].setText("testNew")
 		ep.elements[-1]["f"].setCurrentText("testNew.db")
 		ep.elements[-1]["c"].setCurrentText("test1.db")
+		ep.exec_ = MagicMock()
 		ep.onOk()
-		with patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
+		with patch("physbiblio.gui.profilesManager.editProfileWindow",
+				return_value=ep) as _epw,\
+				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
 				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
@@ -312,7 +343,7 @@ class TestEditProf(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
-			editProfile(mw, ep)
+			editProfile(mw)
 			_lp.assert_called_once_with()
 			_sdp.assert_not_called()
 			_upf.assert_has_calls([
@@ -334,12 +365,13 @@ class TestEditProf(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestSelectProfiles(GUITestCase):
+class TestSelectProfiles(GUIwMainWTestCase):
 	"""Test the selectProfiles class"""
 
 	@classmethod
 	def setUpClass(self):
 		"""set temporary pbConfig settings"""
+		super(TestSelectProfiles, self).setUpClass()
 		self.oldProfileOrder = pbConfig.profileOrder
 		self.oldProfiles = pbConfig.profiles
 		self.oldCurrentProfileName = pbConfig.currentProfileName
@@ -355,6 +387,7 @@ class TestSelectProfiles(GUITestCase):
 	@classmethod
 	def tearDownClass(self):
 		"""restore previous pbConfig settings"""
+		super(TestSelectProfiles, self).tearDownClass()
 		pbConfig.profileOrder = self.oldProfileOrder
 		pbConfig.profiles = self.oldProfiles
 		pbConfig.currentProfileName = self.oldCurrentProfileName
@@ -362,7 +395,7 @@ class TestSelectProfiles(GUITestCase):
 
 	def test_init(self):
 		"""test init"""
-		p = MainWindow(True)
+		p = self.mainW
 		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
 				as _iu:
 			self.assertRaises(Exception,
@@ -387,7 +420,7 @@ class TestSelectProfiles(GUITestCase):
 
 	def test_onLoad(self):
 		"""test onLoad"""
-		p = MainWindow(True)
+		p = self.mainW
 		sp = selectProfiles(p)
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
@@ -422,7 +455,7 @@ class TestSelectProfiles(GUITestCase):
 
 	def test_initUI(self):
 		"""Test initUI"""
-		p = MainWindow(True)
+		p = self.mainW
 		sp = selectProfiles(p, "message")
 		self.assertEqual(sp.windowTitle(), 'Select profile')
 		self.assertIsInstance(sp.layout(), QGridLayout)

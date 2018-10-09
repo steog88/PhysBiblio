@@ -177,38 +177,23 @@ class configWindow(QDialog):
 		if fname.strip() != "":
 			self.textValues[ix][1].setText(str(fname))
 
-	def editColumns(self, testing=False):
+	def editColumns(self):
 		"""Open a dialog to select and/or reorder the list of columns
 		to show in the entries list, and save the result
 		in the `configWindow` interface
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `configEditColumns` instance,
-				it will use the custom dialog instead of run `exec_`
 		"""
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		window = configEditColumns(self,
 			ast.literal_eval(self.textValues[ix][1].text().strip()))
-		if not testing:
-			window.exec_()
-		else:
-			window = testing
+		window.exec_()
 		if window.result:
 			columns = window.selected
 			self.textValues[ix][1].setText(str(columns))
 
-	def editDefCats(self, testing=False):
+	def editDefCats(self):
 		"""Open a dialog to select a the default categories
 		for the imported entries, and save the result
 		in the `configWindow` interface
-
-		Parameter:
-			testing (default False):
-				if evaluates to True it must be
-				a `catsTreeWindow` instance,
-				it will use the custom dialog instead of run `exec_`
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		selectCats = catsTreeWindow(
@@ -216,10 +201,7 @@ class configWindow(QDialog):
 			askCats=True,
 			expButton=False,
 			previous=ast.literal_eval(self.textValues[ix][1].text().strip()))
-		if not testing:
-			selectCats.exec_()
-		else:
-			selectCats = testing
+		selectCats.exec_()
 		if selectCats.result == "Ok":
 			self.textValues[ix][1].setText(str(self.selectedCats))
 

@@ -64,10 +64,10 @@ except ImportError as e:
 class MainWindow(QMainWindow):
 	"""W"""
 
-	def __init__(self, testing = False):
+	def __init__(self, testing=False):
 		QMainWindow.__init__(self)
-		availableWidth		= QDesktopWidget().availableGeometry().width()
-		availableHeight		= QDesktopWidget().availableGeometry().height()
+		availableWidth = QDesktopWidget().availableGeometry().width()
+		availableHeight = QDesktopWidget().availableGeometry().height()
 		self.setWindowTitle('PhysBiblio')
 		#x,y of topleft corner, width, height
 		self.setGeometry(0, 0, availableWidth, availableHeight)

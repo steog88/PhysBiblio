@@ -31,7 +31,7 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestFunctions(GUITestCase):
+class TestFunctions(GUIwMainWTestCase):
 	"""Test various functions:
 	copyToClipboard, writeBibtexInfo, writeAbstract,
 	editBibtex, deleteBibtex
@@ -256,17 +256,16 @@ class TestFunctions(GUITestCase):
 
 	def test_writeAbstract(self):
 		"""test writeAbstract"""
-		p = MainWindow(testing=True)
-		p.bottomCenter = BibtexInfo(p)
+		self.mainW.bottomCenter = BibtexInfo(self.mainW)
 		entry = {"abstract": "some random text"}
 		with patch("physbiblio.gui.bibWindows.AbstractFormulas.__init__",
 				return_value=None) as _af:
 			with self.assertRaises(AttributeError):
-				writeAbstract(p, entry)
-			_af.assert_called_once_with(p, "some random text")
+				writeAbstract(self.mainW, entry)
+			_af.assert_called_once_with(self.mainW, "some random text")
 		with patch("physbiblio.gui.bibWindows.AbstractFormulas.doText"
 				) as _dt:
-			writeAbstract(p, entry)
+			writeAbstract(self.mainW, entry)
 			_dt.assert_called_once_with()
 
 	def test_editBibtex(self):
@@ -289,14 +288,15 @@ class TestFunctions(GUITestCase):
 			'bibdict': "%s"%{'arxiv': '1507.08204',
 			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}}
 		p = QDialog()
-		m = MainWindow(testing=True)
-		ebd = EditBibtexDialog(m, bib=None)
+		ebd = EditBibtexDialog(self.mainW, bib=None)
+		ebd.exec_ = MagicMock()
 		ebd.onCancel()
 		with patch("logging.Logger.debug") as _ld,\
 				patch("physbiblio.database.entries.getByKey") as _gbk,\
-				patch("physbiblio.gui.bibWindows.EditBibtexDialog.__init__",
-					return_value=None) as _i:
-			editBibtex(p, editKey=None, testing=ebd)
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(p, editKey=None)
+			ebd.exec_.assert_called_once_with()
 			_i.assert_called_once_with(p, bib=None)
 			_ld.assert_called_once_with(
 				"parentObject has no attribute 'statusBarMessage'",
@@ -305,13 +305,16 @@ class TestFunctions(GUITestCase):
 		with patch("logging.Logger.debug") as _ld,\
 				patch("physbiblio.database.entries.getByKey") as _gbk,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _sbm:
-			editBibtex(m, editKey=None, testing=ebd)
+					) as _sbm,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey=None)
 			_sbm.assert_called_once_with("No modifications to bibtex entry")
 			_ld.assert_not_called()
 			_gbk.assert_not_called()
 
-		ebd = EditBibtexDialog(m, bib=None)
+		ebd = EditBibtexDialog(self.mainW, bib=None)
+		ebd.exec_ = MagicMock()
 		ebd.onCancel()
 		with patch("logging.Logger.debug") as _ld,\
 				patch("logging.Logger.warning") as _lw,\
@@ -326,9 +329,9 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.database.entries.insert") as _ins,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _ffl,\
-				patch("physbiblio.gui.bibWindows.EditBibtexDialog.__init__",
-					return_value=None) as _i:
-			editBibtex(p, editKey='Gariazzo:2015rra', testing=ebd)
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(p, editKey='Gariazzo:2015rra')
 			_ld.assert_called_once_with(
 				"parentObject has no attribute 'statusBarMessage'",
 				exc_info=True)
@@ -343,7 +346,8 @@ class TestFunctions(GUITestCase):
 			_i.assert_called_once_with(p, bib=testentry)
 
 		#test creation of entry, empty bibtex
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["bibtex"].setPlainText("")
 		with patch("logging.Logger.debug") as _ld,\
@@ -362,8 +366,10 @@ class TestFunctions(GUITestCase):
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _sbm:
-			editBibtex(m, editKey=None, testing=ebd)
+					) as _sbm,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey=None)
 			_ld.assert_not_called()
 			_lw.assert_not_called()
 			_li.assert_not_called()
@@ -378,7 +384,8 @@ class TestFunctions(GUITestCase):
 			_sbm.assert_called_once_with("ERROR: empty bibtex!")
 
 		#test creation of entry, empty bibkey inserted
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("")
 		with patch("logging.Logger.warning") as _lw,\
@@ -396,8 +403,10 @@ class TestFunctions(GUITestCase):
 					return_value=pBDB.bibs) as _ffl,\
 				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _sbm:
-			editBibtex(m, editKey=None, testing=ebd)
+					) as _sbm,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey=None)
 			_lw.assert_not_called()
 			_li.assert_not_called()
 			_gbk.assert_not_called()
@@ -411,7 +420,8 @@ class TestFunctions(GUITestCase):
 			_sbm.assert_called_once_with("ERROR: empty bibkey!")
 
 		#test creation of entry, new bibtex
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("")
 		with patch("logging.Logger.debug") as _ld,\
@@ -434,8 +444,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(p, editKey=None, testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(p, editKey=None)
 			_ld.assert_has_calls([
 				call("parentObject has no attribute 'mainWindowTitle'",
 					exc_info=True),
@@ -475,8 +487,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey=None, testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey=None)
 			_lw.assert_not_called()
 			_li.assert_not_called()
 			_gbk.assert_not_called()
@@ -493,7 +507,8 @@ class TestFunctions(GUITestCase):
 
 		#test edit with various field contents
 		#* no change bibkey: fix code?
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["comments"].setText("some text")
 		with patch("logging.Logger.warning") as _lw,\
@@ -515,8 +530,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey="Gariazzo:2015rra", testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="Gariazzo:2015rra")
 			_lw.assert_not_called()
 			_li.assert_called_once_with(
 				"Updating bibtex 'Gariazzo:2015rra'...")
@@ -546,7 +563,8 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* invalid key
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["bibkey"].setText("not valid bibtex!")
 		with patch("logging.Logger.warning") as _lw,\
@@ -568,8 +586,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey="testkey", testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="testkey")
 			_lw.assert_not_called()
 			_li.assert_has_calls([
 				call("Updating bibtex 'testkey'...")])
@@ -599,7 +619,8 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, updateBibkey successful
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("old")
 		with patch("logging.Logger.warning") as _lw,\
@@ -621,8 +642,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey="testkey", testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="testkey")
 			_lw.assert_not_called()
 			_li.assert_has_calls([
 				call("New bibtex key (Gariazzo:2015rra) for "
@@ -654,7 +677,8 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, updateBibkey unsuccessful
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		with patch("logging.Logger.warning") as _lw,\
 				patch("logging.Logger.info") as _li,\
@@ -675,8 +699,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey="testkey", testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="testkey")
 			_lw.assert_called_once_with("Cannot update bibtex key: "
 				+ "already present. Restoring previous one.")
 			_li.assert_has_calls([
@@ -709,7 +735,8 @@ class TestFunctions(GUITestCase):
 			_swt.assert_called_once_with("PhysBiblio*")
 
 		#* with update bibkey, old_keys existing
-		ebd = EditBibtexDialog(m, bib=testentry)
+		ebd = EditBibtexDialog(self.mainW, bib=testentry)
+		ebd.exec_ = MagicMock()
 		ebd.onOk()
 		ebd.textValues["old_keys"].setText("testkey")
 		with patch("logging.Logger.warning") as _lw,\
@@ -731,8 +758,10 @@ class TestFunctions(GUITestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc,\
 				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
-					) as _swt:
-			editBibtex(m, editKey="testkey", testing=ebd)
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="testkey")
 			_lw.assert_called_once_with("Cannot update bibtex key: "
 				+ "already present. Restoring previous one.")
 			_li.assert_has_calls([
@@ -767,13 +796,13 @@ class TestFunctions(GUITestCase):
 	def test_deleteBibtex(self):
 		"""test deleteBibtex"""
 		p = QWidget()
-		m = MainWindow(testing=True)
-		m.bibtexListWindow = BibtexListWindow(m, bibs=[])
+		m = self.mainW
+		m.bibtexListWindow = BibtexListWindow(self.mainW, bibs=[])
 		with patch("physbiblio.gui.bibWindows.askYesNo",
 				return_value=False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s:
-			deleteBibtex(m, "mykey")
+			deleteBibtex(self.mainW, "mykey")
 			_a.assert_called_once_with(
 				"Do you really want to delete this bibtex entry "
 				+ "(bibkey = 'mykey')?")
@@ -819,7 +848,7 @@ class TestFunctions(GUITestCase):
 					) as _s, \
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "recreateTable") as _r:
-			deleteBibtex(m, "mykey")
+			deleteBibtex(self.mainW, "mykey")
 			_a.assert_called_once_with(
 				"Do you really want to delete this bibtex entry "
 				+ "(bibkey = 'mykey')?")
@@ -830,31 +859,30 @@ class TestFunctions(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestAbstractFormulas(GUITestCase):
+class TestAbstractFormulas(GUIwMainWTestCase):
 	"""test the AbstractFormulas class"""
 
 	def test_init(self):
 		"""test __init__"""
-		m = MainWindow(testing=True)
-		m.bottomCenter = BibtexInfo(m)
-		af = AbstractFormulas(m, "test text")
+		self.mainW.bottomCenter = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW, "test text")
 		self.assertEqual(af.fontsize, pbConfig.params["bibListFontSize"])
-		self.assertEqual(af.mainWin, m)
+		self.assertEqual(af.mainWin, self.mainW)
 		self.assertEqual(af.statusMessages, True)
-		self.assertEqual(af.editor, m.bottomCenter.text)
+		self.assertEqual(af.editor, self.mainW.bottomCenter.text)
 		self.assertIsInstance(af.document, QTextDocument)
 		self.assertEqual(af.editor.document(), af.document)
 		self.assertEqual(af.abstractTitle, "<b>Abstract:</b><br/>")
 		self.assertEqual(af.text, "<b>Abstract:</b><br/>test text")
 
 		bi = BibtexInfo()
-		af = AbstractFormulas(m, "test text",
+		af = AbstractFormulas(self.mainW, "test text",
 			fontsize=99,
 			abstractTitle="Title",
 			customEditor=bi.text,
 			statusMessages="a")
 		self.assertEqual(af.fontsize, 99)
-		self.assertEqual(af.mainWin, m)
+		self.assertEqual(af.mainWin, self.mainW)
 		self.assertEqual(af.statusMessages, "a")
 		self.assertEqual(af.editor, bi.text)
 		self.assertIsInstance(af.document, QTextDocument)
@@ -864,18 +892,16 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_hasLatex(self):
 		"""test hasLatex"""
-		m = MainWindow(testing=True)
-		m.bottomCenter = BibtexInfo(m)
-		af = AbstractFormulas(m, "test text")
+		self.mainW.bottomCenter = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW, "test text")
 		self.assertEqual(af.hasLatex(), False)
-		af = AbstractFormulas(m, "test tex $f_e$ equation")
+		af = AbstractFormulas(self.mainW, "test tex $f_e$ equation")
 		self.assertEqual(af.hasLatex(), True)
 
 	def test_doText(self):
 		"""test doText"""
-		m = MainWindow(testing=True)
-		bi = BibtexInfo(m)
-		af = AbstractFormulas(m, "test text", customEditor=bi.text)
+		bi = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW, "test text", customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
@@ -883,7 +909,7 @@ class TestAbstractFormulas(GUITestCase):
 			_ih.assert_called_once_with(af.text)
 			_sbm.assert_not_called()
 
-		af = AbstractFormulas(m, "test text with $f_e$ equation",
+		af = AbstractFormulas(self.mainW, "test text with $f_e$ equation",
 			customEditor=bi.text)
 		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -895,7 +921,7 @@ class TestAbstractFormulas(GUITestCase):
 			_sbm.assert_called_once_with("Parsing LaTeX...")
 			_ih.assert_called_once_with(
 				"%sProcessing LaTeX formulas..."%af.abstractTitle)
-			_pl.assert_called_once_with(af.prepareText, m)
+			_pl.assert_called_once_with(af.prepareText, self.mainW)
 		with patch("PySide2.QtWidgets.QTextEdit.setHtml") as _ih,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm,\
@@ -915,9 +941,9 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_mathTexToQPixmap(self):
 		"""test mathTex_to_QPixmap"""
-		m = MainWindow(testing=True)
-		bi = BibtexInfo(m)
-		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		bi = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW,
+			r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
 		self.assertIsInstance(qi, QImage)
@@ -946,9 +972,9 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_prepareText(self):
 		"""test prepareText"""
-		m = MainWindow(testing=True)
-		bi = BibtexInfo(m)
-		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		bi = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW,
+			r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		with patch("physbiblio.gui.bibWindows.AbstractFormulas."
 				+ "mathTex_to_QPixmap", side_effect=["a", "b"]) as _mq:
@@ -964,9 +990,9 @@ class TestAbstractFormulas(GUITestCase):
 
 	def test_submitText(self):
 		"""test submitText"""
-		m = MainWindow(testing=True)
-		bi = BibtexInfo(m)
-		af = AbstractFormulas(m, r"test $\nu_\mu$ with $f_e$ equation",
+		bi = BibtexInfo(self.mainW)
+		af = AbstractFormulas(self.mainW,
+			r"test $\nu_\mu$ with $f_e$ equation",
 			customEditor=bi.text)
 		images, text = af.prepareText()
 		with patch("PySide2.QtGui.QTextDocument.addResource") as _ar,\
@@ -1334,14 +1360,8 @@ class TestMyBibTableModel(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestCommonBibActions(GUITestCase):
+class TestCommonBibActions(GUIwMainWTestCase):
 	"""test CommonBibActions"""
-
-	@classmethod
-	def setUpClass(self):
-		"""Define useful things"""
-		super(TestCommonBibActions, self).setUpClass()
-		self.mainW = MainWindow(testing=True)
 
 	def test_init(self):
 		"""test init (and `parent`)"""
@@ -2395,16 +2415,17 @@ class TestCommonBibActions(GUITestCase):
 			expButton=False,
 			previous=[],
 			multipleRecords=True)
+		sc.exec_ = MagicMock()
 		self.assertEqual(self.mainW.selectedCats, [])
 		with patch("physbiblio.database.categories.getByEntries",
 				return_value=[]) as _gc,\
-				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-					return_value=None) as _cwi,\
+				patch("physbiblio.gui.bibWindows.catsTreeWindow",
+					return_value=sc) as _cwi,\
 				patch("physbiblio.database.catsEntries.insert") as _cei,\
 				patch("physbiblio.database.catsEntries.delete") as _ced,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onCat(testing=sc)
+			c.onCat()
 			_cwi.assert_called_once_with(parent=self.mainW,
 				askCats=True,
 				expButton=False,
@@ -2420,17 +2441,18 @@ class TestCommonBibActions(GUITestCase):
 			expButton=False,
 			previous=[],
 			multipleRecords=True)
+		sc.exec_ = MagicMock()
 		self.mainW.selectedCats = [999, 1000]
 		sc.result = "Ok"
 		with patch("physbiblio.database.categories.getByEntries",
 				return_value=[]) as _gc,\
-				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-					return_value=None) as _cwi,\
+				patch("physbiblio.gui.bibWindows.catsTreeWindow",
+					return_value=sc) as _cwi,\
 				patch("physbiblio.database.catsEntries.insert") as _cei,\
 				patch("physbiblio.database.catsEntries.delete") as _ced,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onCat(testing=sc)
+			c.onCat()
 			_cwi.assert_called_once_with(parent=self.mainW,
 				askCats=True,
 				expButton=False,
@@ -2446,19 +2468,20 @@ class TestCommonBibActions(GUITestCase):
 			expButton=False,
 			previous=[],
 			multipleRecords=True)
+		sc.exec_ = MagicMock()
 		self.mainW.selectedCats = [999, 1000]
 		self.mainW.previousUnchanged = [1002]
 		sc.result = "Ok"
 		with patch("physbiblio.database.categories.getByEntries",
 				return_value=[{"idCat": 1000}, {"idCat": 1001},
 					{"idCat": 1002}]) as _gc,\
-				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-					return_value=None) as _cwi,\
+				patch("physbiblio.gui.bibWindows.catsTreeWindow",
+					return_value=sc) as _cwi,\
 				patch("physbiblio.database.catsEntries.insert") as _cei,\
 				patch("physbiblio.database.catsEntries.delete") as _ced,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onCat(testing=sc)
+			c.onCat()
 			_cwi.assert_called_once_with(parent=self.mainW,
 				askCats=True,
 				expButton=False,
@@ -2477,16 +2500,17 @@ class TestCommonBibActions(GUITestCase):
 			askCats=True,
 			expButton=False,
 			previous=[])
+		sc.exec_ = MagicMock()
 		self.assertEqual(self.mainW.selectedCats, [])
 		with patch("physbiblio.database.categories.getByEntries",
 				return_value=[]) as _gc,\
-				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-					return_value=None) as _cwi,\
+				patch("physbiblio.gui.bibWindows.catsTreeWindow",
+					return_value=sc) as _cwi,\
 				patch("physbiblio.database.catsEntries.insert") as _cei,\
 				patch("physbiblio.database.catsEntries.delete") as _ced,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onCat(testing=sc)
+			c.onCat()
 			_cwi.assert_called_once_with(parent=self.mainW,
 				askCats=True,
 				askForBib="abc",
@@ -2501,19 +2525,20 @@ class TestCommonBibActions(GUITestCase):
 			askCats=True,
 			expButton=False,
 			previous=[])
+		sc.exec_ = MagicMock()
 		self.mainW.selectedCats = [999, 1000]
 		self.mainW.previousUnchanged = [1002]
 		sc.result = "Ok"
 		with patch("physbiblio.database.categories.getByEntries",
 				return_value=[{"idCat": 1000}, {"idCat": 1001},
 					{"idCat": 1002}]) as _gc,\
-				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-					return_value=None) as _cwi,\
+				patch("physbiblio.gui.bibWindows.catsTreeWindow",
+					return_value=sc) as _cwi,\
 				patch("physbiblio.database.catsEntries.insert") as _cei,\
 				patch("physbiblio.database.catsEntries.delete") as _ced,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onCat(testing=sc)
+			c.onCat()
 			_cwi.assert_called_once_with(parent=self.mainW,
 				askCats=True,
 				askForBib="abc",
@@ -2778,14 +2803,15 @@ class TestCommonBibActions(GUITestCase):
 		se = ExpsListWindow(parent=self.mainW,
 			askExps=True,
 			previous=[])
+		se.exec_ = MagicMock()
 		self.mainW.selectedExps = [999, 1000]
 		with patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
-					return_value=None) as _ewi,\
+				patch("physbiblio.gui.bibWindows.ExpsListWindow",
+					return_value=se) as _ewi,\
 				patch("physbiblio.database.entryExps.insert") as _eei,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onExp(testing=se)
+			c.onExp()
 			_im.assert_called_once_with(
 				"Warning: you can just add experiments "
 				+ "to the selected entries, not delete!")
@@ -2795,7 +2821,7 @@ class TestCommonBibActions(GUITestCase):
 			_eei.assert_not_called()
 			_m.assert_not_called()
 			se.result = "Ok"
-			c.onExp(testing=se)
+			c.onExp()
 			_eei.assert_called_once_with(["abc", "def"], [999, 1000])
 			_m.assert_called_once_with("Experiments successfully inserted")
 
@@ -2803,16 +2829,17 @@ class TestCommonBibActions(GUITestCase):
 		se = ExpsListWindow(parent=self.mainW,
 			askExps=True,
 			previous=[])
+		se.exec_ = MagicMock()
 		self.mainW.selectedExps = [999, 1000]
 		with patch("physbiblio.database.experiments.getByEntry",
 				return_value=[]) as _ge,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
-					return_value=None) as _ewi,\
+				patch("physbiblio.gui.bibWindows.ExpsListWindow",
+					return_value=se) as _ewi,\
 				patch("physbiblio.database.entryExps.insert") as _eei,\
 				patch("physbiblio.database.entryExps.delete") as _eed,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onExp(testing=se)
+			c.onExp()
 			_ge.assert_called_once_with("abc")
 			_ewi.assert_called_once_with(parent=self.mainW,
 				askExps=True,
@@ -2822,7 +2849,7 @@ class TestCommonBibActions(GUITestCase):
 			_eed.assert_not_called()
 			_m.assert_not_called()
 			se.result = "Ok"
-			c.onExp(testing=se)
+			c.onExp()
 			_eed.assert_not_called()
 			_eei.assert_has_calls([call("abc", 999), call("abc", 1000)])
 			_m.assert_called_once_with(
@@ -2830,13 +2857,13 @@ class TestCommonBibActions(GUITestCase):
 
 		with patch("physbiblio.database.experiments.getByEntry",
 				return_value=[{"idExp": 1000}, {"idExp": 1001}]) as _ge,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
-					return_value=None) as _ewi,\
+				patch("physbiblio.gui.bibWindows.ExpsListWindow",
+					return_value=se) as _ewi,\
 				patch("physbiblio.database.entryExps.insert") as _eei,\
 				patch("physbiblio.database.entryExps.delete") as _eed,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m:
-			c.onExp(testing=se)
+			c.onExp()
 			_ge.assert_called_once_with("abc")
 			_ewi.assert_called_once_with(parent=self.mainW,
 				askExps=True,
@@ -2877,14 +2904,15 @@ class TestCommonBibActions(GUITestCase):
 			"year": "2018"}
 		with patch("logging.Logger.warning") as _w:
 			mb = MergeBibtexs(e, e, self.mainW)
+		mb.exec_ = MagicMock()
 		mb.onCancel()
 		#non accepted MergeBibtex form
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _m,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("logging.Logger.warning") as _w:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
 			_m.assert_called_once_with('Nothing to do')
 		mb.result = True
@@ -2894,8 +2922,8 @@ class TestCommonBibActions(GUITestCase):
 				) as _m,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rl,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
 					return_value=[]) as _c,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
@@ -2913,7 +2941,7 @@ class TestCommonBibActions(GUITestCase):
 					return_value=pBDB.bibs) as _fl,\
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _e:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_m.assert_not_called()
 			_rl.assert_not_called()
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
@@ -2940,7 +2968,7 @@ class TestCommonBibActions(GUITestCase):
 			_e.assert_called_once_with("Empty bibtex and/or bibkey!")
 
 			_e.reset_mock()
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_e.assert_called_once_with("Empty bibtex and/or bibkey!")
 
 		e = {"bibkey": "new",
@@ -2951,14 +2979,15 @@ class TestCommonBibActions(GUITestCase):
 			"year": "2018"}
 		with patch("logging.Logger.warning") as _w:
 			mb = MergeBibtexs(e, e, self.mainW)
+		mb.exec_ = MagicMock()
 		mb.result = True
 		#cannot delete
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _m,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rl,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
 					return_value=[]) as _c,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
@@ -2976,7 +3005,7 @@ class TestCommonBibActions(GUITestCase):
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_m.assert_not_called()
 			_rl.assert_not_called()
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
@@ -3007,8 +3036,8 @@ class TestCommonBibActions(GUITestCase):
 				) as _m,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rl,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
 					return_value=[]) as _c,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
@@ -3026,7 +3055,7 @@ class TestCommonBibActions(GUITestCase):
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_m.assert_not_called()
 			_rl.assert_not_called()
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
@@ -3058,8 +3087,8 @@ class TestCommonBibActions(GUITestCase):
 				) as _m,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent",
 					side_effect=Exception("error")) as _rl,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
 					return_value=[]) as _c,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
@@ -3077,7 +3106,7 @@ class TestCommonBibActions(GUITestCase):
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_m.assert_not_called()
 			_rl.assert_called_once_with(["last"])
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
@@ -3109,8 +3138,8 @@ class TestCommonBibActions(GUITestCase):
 				) as _m,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rl,\
-				patch("physbiblio.gui.bibWindows.MergeBibtexs.__init__",
-					return_value=None) as _mbi,\
+				patch("physbiblio.gui.bibWindows.MergeBibtexs",
+					return_value=mb) as _mbi,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.commit",
 					return_value=[]) as _c,\
 				patch("physbiblio.databaseCore.physbiblioDBCore.undo",
@@ -3128,7 +3157,7 @@ class TestCommonBibActions(GUITestCase):
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
-			c.onMerge(testing=mb)
+			c.onMerge()
 			_m.assert_not_called()
 			_rl.assert_called_once_with(["last"])
 			_mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
@@ -3282,14 +3311,13 @@ class TestCommonBibActions(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestBibtexListWindow(GUITestCase):
+class TestBibtexListWindow(GUIwMainWTestCase):
 	"""test BibtexListWindow"""
 
 	@classmethod
 	def setUpClass(self):
 		"""Define useful things"""
 		super(TestBibtexListWindow, self).setUpClass()
-		self.mainW = MainWindow(testing=True)
 		self.mainW.bottomLeft = BibtexInfo(self.mainW)
 		self.mainW.bottomCenter = BibtexInfo(self.mainW)
 		self.mainW.bottomRight = BibtexInfo(self.mainW)
@@ -4272,14 +4300,8 @@ class TestEditBibtexDialog(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestAskPDFAction(GUITestCase):
+class TestAskPDFAction(GUIwMainWTestCase):
 	"""test AskPDFAction"""
-
-	@classmethod
-	def setUpClass(self):
-		"""Define useful things"""
-		super(TestAskPDFAction, self).setUpClass()
-		self.mainW = MainWindow(testing=True)
 
 	def test_init(self):
 		"""test __init__"""

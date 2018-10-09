@@ -27,8 +27,7 @@ except ImportError:
 
 def editExperiment(parentObject,
 		mainWinObject,
-		editIdExp=None,
-		testing=False):
+		editIdExp=None):
 	"""Open a dialog (`EditExperimentDialog`) to edit an experiment
 	and process the output.
 
@@ -38,19 +37,13 @@ def editExperiment(parentObject,
 			the `statusBarMessage` and `setWindowTitle` methods
 		editIdCat: the id of the experiment to be edited,
 			or `None` to create a new one
-		testing (default False): when doing tests,
-			interrupt the execution before `exec_` and
-			replace `newCatWin` with the passed object.
 	"""
 	if editIdExp is not None:
 		edit = pBDB.exps.getDictByID(editIdExp)
 	else:
 		edit = None
 	newExpWin = EditExperimentDialog(parentObject, experiment=edit)
-	if testing:
-		newExpWin = testing
-	else:
-		newExpWin.exec_()
+	newExpWin.exec_()
 	if newExpWin.result:
 		data = {}
 		for k, v in newExpWin.textValues.items():
@@ -237,7 +230,7 @@ class ExpsListWindow(objListWindow):
 		self.askForCat = askForCat
 		self.previous = previous
 
-		super(ExpsListWindow, self).__init__(parent)
+		objListWindow.__init__(self, parent)
 		self.setWindowTitle('List of experiments')
 
 		self.createTable()

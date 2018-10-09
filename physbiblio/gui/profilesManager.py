@@ -26,23 +26,17 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-def editProfile(parentObject, testing = False):
+def editProfile(parentObject):
 	"""Use `editProfileWindow` and process the form output
 
 	Parameters:
 		parentObject: the parent object,
 			which has the function `statusBarMessage`
 			(a `MainWindow` instance)
-		testing: if False, create
-			the `editProfileWindow` instance normally,
-			otherwise, use the passed object
 	"""
 	oldOrder = pbConfig.profileOrder
-	if testing is False:
-		newProfWin = editProfileWindow(parentObject)
-		newProfWin.exec_()
-	else:
-		newProfWin = testing
+	newProfWin = editProfileWindow(parentObject)
+	newProfWin.exec_()
 	data = {}
 	if newProfWin.result:
 		newProfiles = {}

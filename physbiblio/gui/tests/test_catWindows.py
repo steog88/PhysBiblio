@@ -12,10 +12,10 @@ from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -31,27 +31,28 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestFunctions(GUITestCase):
+class TestFunctions(GUIwMainWTestCase):
 	"""test editCategory and deleteCategory"""
 
 	def test_editCategory(self):
 		"""test editCategory"""
 		p = QWidget()
-		m = MainWindow(testing=True)
+		m = self.mainW
 		ncw = editCategoryDialog(p)
+		ncw.exec_ = MagicMock()
 		ncw.onCancel()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i:
-			editCategory(p, m, testing = ncw)
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i:
+			editCategory(p, m)
 			_i.assert_called_once_with(p, category=None, useParentCat=None)
 			_s.assert_called_once_with("No modifications to categories")
 
-		with patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+		with patch("physbiblio.gui.catWindows.editCategoryDialog",
+				return_value=ncw) as _i,\
 				patch("logging.Logger.debug") as _l:
-			editCategory(p, p, testing = ncw)
+			editCategory(p, p)
 			_i.assert_called_once_with(p, category=None, useParentCat=None)
 			_l.assert_called_once_with(
 				"mainWinObject has no attribute 'statusBarMessage'",
@@ -59,11 +60,11 @@ class TestFunctions(GUITestCase):
 
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g:
-			editCategory(p, m, 15, testing = ncw)
+			editCategory(p, m, 15)
 			_i.assert_called_once_with(p, category="abc", useParentCat=None)
 			_g.assert_called_once_with(15)
 			_s.assert_called_once_with("No modifications to categories")
@@ -73,14 +74,15 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["ord"].setText("0")
 		ncw.textValues["comments"].setText("comm")
 		ncw.textValues["description"].setText("desc")
+		ncw.exec_ = MagicMock()
 		ncw.onOk()
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g:
-			editCategory(p, m, editIdCat=15, testing = ncw)
+			editCategory(p, m, editIdCat=15)
 			_i.assert_called_once_with(p, category="abc", useParentCat=None)
 			_g.assert_called_once_with(15)
 			_s.assert_called_once_with("ERROR: empty category name")
@@ -88,14 +90,14 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["name"].setText("mycat")
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.categories.insert",
 					return_value="abc") as _n,\
 				patch("logging.Logger.debug") as _l:
-			editCategory(p, m, 15, testing = ncw)
+			editCategory(p, m, 15)
 			_i.assert_called_once_with(p, category="abc", useParentCat=None)
 			_g.assert_called_once_with(15)
 			_n.assert_called_once_with(
@@ -109,8 +111,8 @@ class TestFunctions(GUITestCase):
 		ctw = catsTreeWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.categories.insert",
@@ -118,7 +120,7 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.debug") as _l,\
 				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
 					) as _r:
-			editCategory(ctw, m, 15, testing = ncw)
+			editCategory(ctw, m, 15)
 			_i.assert_called_once_with(ctw, category="abc", useParentCat=None)
 			_g.assert_called_once_with(15)
 			_n.assert_called_once_with(
@@ -144,12 +146,13 @@ class TestFunctions(GUITestCase):
 		ncw.textValues["name"].setText("mycat")
 		ncw.textValues["comments"].setText("comm")
 		ncw.textValues["description"].setText("desc")
+		ncw.exec_ = MagicMock()
 		ncw.onOk()
 		ctw = catsTreeWindow(p)
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _s,\
-				patch("physbiblio.gui.catWindows.editCategoryDialog."
-					+ "__init__", return_value=None) as _i,\
+				patch("physbiblio.gui.catWindows.editCategoryDialog",
+					return_value=ncw) as _i,\
 				patch("physbiblio.database.categories.getDictByID",
 					return_value="abc") as _g,\
 				patch("physbiblio.database.categories.update",
@@ -157,7 +160,7 @@ class TestFunctions(GUITestCase):
 				patch("logging.Logger.info") as _l,\
 				patch("physbiblio.gui.catWindows.catsTreeWindow.recreateTable"
 					) as _r:
-			editCategory(ctw, m, 15, useParentCat=0, testing=ncw)
+			editCategory(ctw, m, 15, useParentCat=0)
 			_i.assert_called_once_with(ctw, category="abc", useParentCat=0)
 			_g.assert_called_once_with(15)
 			_n.assert_called_once_with(
@@ -170,7 +173,7 @@ class TestFunctions(GUITestCase):
 	def test_deleteCategory(self):
 		"""test deleteCategory"""
 		p = QWidget()
-		m = MainWindow(testing = True)
+		m = self.mainW
 		with patch("physbiblio.gui.catWindows.askYesNo",
 				return_value = False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -1229,93 +1232,98 @@ class TestEditCategoryDialog(GUITestCase):
 		"""test onAskParents"""
 		p = QWidget()
 		ecd = editCategoryDialog(p)
-		sc = catsTreeWindow(parent = ecd,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = [0])
+		sc = catsTreeWindow(parent=ecd,
+			askCats=True,
+			expButton=False,
+			single=True,
+			previous=[0])
+		sc.exec_ = MagicMock()
 		sc.onCancel()
 		txt = ecd.textValues["parentCat"].text()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i:
-			ecd.onAskParent(sc)
-			_i.assert_called_once_with(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = ecd.selectedCats)
+		with patch("physbiblio.gui.catWindows.catsTreeWindow",
+				return_value=sc) as _i:
+			ecd.onAskParent()
+			_i.assert_called_once_with(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=ecd.selectedCats)
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"0 - Main")
 
-		sc = catsTreeWindow(parent = ecd,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = [1])
+		sc = catsTreeWindow(parent=ecd,
+			askCats=True,
+			expButton=False,
+			single=True,
+			previous=[1])
+		sc.exec_ = MagicMock()
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i:
-			ecd.onAskParent(sc)
-			_i.assert_called_once_with(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = ecd.selectedCats)
+		with patch("physbiblio.gui.catWindows.catsTreeWindow",
+				return_value=sc) as _i:
+			ecd.onAskParent()
+			_i.assert_called_once_with(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=ecd.selectedCats)
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"1 - Tags")
 
-		sc = catsTreeWindow(parent = ecd,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = [0, 1])
+		sc = catsTreeWindow(parent=ecd,
+			askCats=True,
+			expButton=False,
+			single=True,
+			previous=[0, 1])
+		sc.exec_ = MagicMock()
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i:
-			ecd.onAskParent(sc)
-			_i.assert_called_once_with(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = ecd.selectedCats)
+		with patch("physbiblio.gui.catWindows.catsTreeWindow",
+				return_value=sc) as _i:
+			ecd.onAskParent()
+			_i.assert_called_once_with(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=ecd.selectedCats)
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"1 - Tags")
 
-		sc = catsTreeWindow(parent = ecd,
-			askCats = True,
-			expButton = False,
-			single = True,
-			previous = [])
+		sc = catsTreeWindow(parent=ecd,
+			askCats=True,
+			expButton=False,
+			single=True,
+			previous=[])
+		sc.exec_ = MagicMock()
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i:
-			ecd.onAskParent(sc)
-			_i.assert_called_once_with(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = ecd.selectedCats)
+		with patch("physbiblio.gui.catWindows.catsTreeWindow",
+				return_value=sc) as _i:
+			ecd.onAskParent()
+			_i.assert_called_once_with(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=ecd.selectedCats)
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"Select parent")
 
 		with patch("logging.Logger.warning") as _l:
-			sc = catsTreeWindow(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = [9999])
+			sc = catsTreeWindow(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=[9999])
 			_l.assert_called_once_with(
 				'Invalid idCat in previous selection: 9999')
+		sc.exec_ = MagicMock()
 		sc.onOk()
-		with patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
-				return_value = None) as _i, \
+		with patch("physbiblio.gui.catWindows.catsTreeWindow",
+				return_value=sc) as _i, \
 				patch("logging.Logger.warning") as _l:
-			ecd.onAskParent(sc)
-			_i.assert_called_once_with(parent = ecd,
-				askCats = True,
-				expButton = False,
-				single = True,
-				previous = ecd.selectedCats)
+			ecd.onAskParent()
+			_i.assert_called_once_with(parent=ecd,
+				askCats=True,
+				expButton=False,
+				single=True,
+				previous=ecd.selectedCats)
 		self.assertEqual(ecd.textValues["parentCat"].text(),
 			"Select parent")
 
@@ -1369,7 +1377,7 @@ class TestEditCategoryDialog(GUITestCase):
 		with patch("physbiblio.gui.catWindows.editCategoryDialog.onAskParent"
 				) as _f:
 			QTest.mouseClick(ecd.textValues["parentCat"], Qt.LeftButton)
-			_f.assert_called_once_with(False)
+			_f.assert_called_once_with()
 
 		self.assertIsInstance(ecd.layout().itemAtPosition(7, 0).widget(),
 			MyLabel)
