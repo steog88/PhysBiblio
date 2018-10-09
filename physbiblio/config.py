@@ -385,7 +385,13 @@ class globalDB(physbiblioDBCore):
 			self.createProfile()
 			self.setDefaultProfile("default")
 		self.cursExec("SELECT * FROM profiles WHERE isDefault = 1\n")
-		return [e["name"] for e in self.curs.fetchall()][0]
+		try:
+			defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
+		except IndexError:
+			self.cursExec("SELECT * FROM profiles\n")
+			defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
+			self.setDefaultProfile(defaultProfileName)
+		return defaultProfileName
 
 	def setDefaultProfile(self, name = None):
 		"""Set the new default profile
