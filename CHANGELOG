@@ -7,6 +7,7 @@
 	* complete info from INSPIRE works with multiple entries
 
 	Improvements/bug fixes:
+	* construction of the main table can be speed up (a lot!) disabling the auto resize of columns and rows (see in the settings)
 	* database.entries.replace is running a bit faster now
 	* importFromBib splits the input file into segments, so that it will eventually fail only on single entries
 	* several functions improved
