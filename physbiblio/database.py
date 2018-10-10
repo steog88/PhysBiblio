@@ -3209,7 +3209,7 @@ class entries(physbiblioDBSub):
 		return self.fetchByExp(idExp,
 			orderBy = orderBy, orderType = orderType).lastFetched
 
-	def cleanBibtexs(self, startFrom = 0, entries = None):
+	def cleanBibtexs(self, startFrom=0, entries=None):
 		"""Clean (remove comments, unwanted fields, newlines, accents)
 		and reformat the bibtexs
 
@@ -3228,7 +3228,7 @@ class entries(physbiblioDBSub):
 			try:
 				tot = self.count() - startFrom
 				self.fetchAll(saveQuery=False,
-					limitTo = tot, limitOffset = startFrom, doFetch=False)
+					limitTo=tot, limitOffset=startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in cleanBibtexs")
@@ -3270,7 +3270,7 @@ class entries(physbiblioDBSub):
 		pBLogger.info("%d entries changed"%len(changed))
 		return num, err, changed
 
-	def findCorruptedBibtexs(self, startFrom = 0, entries = None):
+	def findCorruptedBibtexs(self, startFrom=0, entries=None):
 		"""Find bibtexs that cannot be read properly
 
 		Parameters:
@@ -3285,7 +3285,7 @@ class entries(physbiblioDBSub):
 			try:
 				tot = self.count() - startFrom
 				self.fetchAll(saveQuery=False,
-					limitTo = tot, limitOffset = startFrom, doFetch=False)
+					limitTo=tot, limitOffset=startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in cleanBibtexs")
@@ -3311,7 +3311,7 @@ class entries(physbiblioDBSub):
 		return bibtexs
 
 	def searchOAIUpdates(self,
-			startFrom = 0, entries = None, force = False, reloadAll = False):
+			startFrom=0, entries=None, force=False, reloadAll=False):
 		"""Select unpublished papers and look for updates using inspireOAI
 
 		Parameters:
@@ -3334,7 +3334,7 @@ class entries(physbiblioDBSub):
 			try:
 				tot = self.count() - startFrom
 				self.fetchAll(saveQuery=False,
-					limitTo = tot, limitOffset = startFrom, doFetch=False)
+					limitTo=tot, limitOffset=startFrom, doFetch=False)
 				iterator = self.fetchCursor()
 			except TypeError:
 				pBLogger.exception("Invalid startFrom in searchOAIUpdates")
@@ -3365,11 +3365,11 @@ class entries(physbiblioDBSub):
 					"%5d / %d (%5.2f%%) - looking for update: '%s'"%(
 					ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 				if not self.updateInfoFromOAI(e["inspire"],
-						bibtex = e["bibtex"],
+						bibtex=e["bibtex"],
 						verbose=0,
-						readConferenceTitle = (e["proceeding"] == 1 and force),
-						reloadAll = reloadAll,
-						originalKey = e["bibkey"]):
+						readConferenceTitle=(e["proceeding"] == 1 and force),
+						reloadAll=reloadAll,
+						originalKey=e["bibkey"]):
 					err.append(e["bibkey"])
 				else:
 					try:

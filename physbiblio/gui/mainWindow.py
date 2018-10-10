@@ -1030,6 +1030,14 @@ class MainWindow(QMainWindow):
 			return False
 
 	def runSearchBiblio(self, searchDict, lim, offs):
+		"""Run a search with some parameters
+
+		Parameters:
+			searchDict: the dictionary with the search parameters
+				to be used in `database.entries.fetchFromDict`
+			lim: the maximum number of entries to fetch
+			offs: the offset for the search
+		"""
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		noLim = pBDB.bibs.fetchFromDict(
 			searchDict.copy(), limitOffset=offs).lastFetched
@@ -1046,23 +1054,48 @@ class MainWindow(QMainWindow):
 		QApplication.restoreOverrideCursor()
 
 	def runSearchReplaceBiblio(self, searchDict, replaceFields, offs):
+		"""Run a search&replace with some parameters
+
+		Parameters:
+			searchDict: the dictionary with the search parameters
+				to be used in `database.entries.fetchFromDict`
+			replaceFields: a tuple/list of 5 elements,
+				as in the output of `self.searchBiblio`
+			offs: the offset for the search
+		"""
 		noLim = pBDB.bibs.fetchFromDict(
 			searchDict.copy(), limitOffset=offs).lastFetched
 		self.runReplace(replaceFields)
 
 	def delSearchBiblio(self, idS, name):
+		"""Delete a saved search from the database
+
+		Parameters:
+			idS: the search id in the database
+			name: the search name
+		"""
 		if askYesNo("Are you sure you want to delete "
 				+ "the saved search '%s'?"%name):
 			pbConfig.globalDb.deleteSearch(idS)
 			self.createMenusAndToolBar()
 
 	def searchAndReplace(self):
+		"""Open a search+replace form,
+		then use the result to run the replace function
+		"""
 		result = self.searchBiblio(replace=True)
 		if result is False:
 			return False
 		self.runReplace(result)
 
 	def runReplace(self, replace):
+		"""Run the `database.entries.replace` function,
+		then print some output in a dialog
+
+		Parameter:
+			replace: a tuple/list of 5 elements,
+				as in the output of `self.searchBiblio`
+		"""
 		fiOld, fiNew, old, new, regex = replace
 		if old == "":
 			infoMessage("The string to substitute is empty!")
@@ -1087,6 +1120,9 @@ class MainWindow(QMainWindow):
 		QApplication.restoreOverrideCursor()
 
 	def updateAllBibtexsAsk(self):
+		"""Same as updateAllBibtexs, but ask the values of
+		`startFrom` and `force` before the execution
+		"""
 		force = askYesNo("Do you want to force the update of already "
 			+ "existing items?\n(Only regular articles not "
 			+ "explicitely excluded will be considered)", "Force update:")
@@ -1112,6 +1148,21 @@ class MainWindow(QMainWindow):
 			useEntries=None,
 			force=False,
 			reloadAll=False):
+		"""Use INSPIRE to obtain updated information of a list of papers
+		and update their bibtex with the new data.
+		Typically used to add journal information to arXiv papers.
+
+		Parameters (see `physbiblio.database.entries.searchOAIUpdates`):
+			startFrom (default from the app settings): the index
+				of the entry where to start from
+			useEntries (default None): None (then use all)
+				or a list of entries
+			force (default False): if True, force the update
+				also of entries which already have journal information
+			reloadAll (default False): if True, completely reload
+				the bibtex instead of updating it
+				(may solve some format problems)
+		"""
 		self.statusBarMessage(
 			"Starting update of bibtexs from %s..."%startFrom)
 		self._runInThread(
@@ -1124,6 +1175,15 @@ class MainWindow(QMainWindow):
 		self.refreshMainContent()
 
 	def updateInspireInfo(self, bibkey, inspireID=None):
+		"""Use a thread to look for the INSPIRE ID of one or more papers
+		and then use it to obtain more information
+		(identifiers like DOI/arXiv, first appearance date, publication)
+
+		Parameters:
+			bibkey: the (list of) bibtex key of the entry
+			inspireID (default None): the (list of) INSPIRE ID,
+				if already known
+		"""
 		self.statusBarMessage(
 			"Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
@@ -1133,6 +1193,10 @@ class MainWindow(QMainWindow):
 		self.refreshMainContent()
 
 	def authorStats(self):
+		"""Ask the author name(s) and then
+		use a thread to obtain the citation statistics
+		for one or more authors using the INSPIRE-HEP database
+		"""
 		authorName, out = askGenericText(
 			"Insert the INSPIRE name of the author of which you want "
 			+ "the publication and citation statistics:",
@@ -1175,6 +1239,12 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def getInspireStats(self, inspireId):
+		"""Use a thread to obtain the citation statistics
+		of a paper using the INSPIRE-HEP database
+
+		Parameter:
+			inspireId: the ID of the paper in the INSPIRE database
+		"""
 		self._runInThread(
 			thread_paperStats, "Paper Stats",
 			inspireId,
@@ -1192,6 +1262,13 @@ class MainWindow(QMainWindow):
 		self.done()
 
 	def inspireLoadAndInsert(self, doReload=True):
+		"""Ask a search string, then use inspire to import the entries
+		which correspond, if unique results are obtained
+
+		Parameter:
+			doReload (default True): if True, reload
+				the main entries list at the end
+		"""
 		queryStr, out = askGenericText(
 			"Insert the query string you want to use for importing "
 			+ "from INSPIRE-HEP:\n(It will be interpreted as a list, "
@@ -1229,6 +1306,12 @@ class MainWindow(QMainWindow):
 		return True
 
 	def askCatsForEntries(self, entriesList):
+		"""Open a selection dialog for asking the categories
+		for a given list of entries
+
+		Parameter:
+			entriesList: the list of entries to be used
+		"""
 		for entry in entriesList:
 			selectCats = catsTreeWindow(parent=self,
 				askCats=True,
@@ -1251,6 +1334,9 @@ class MainWindow(QMainWindow):
 						"experiments for '%s' successfully inserted"%entry)
 
 	def inspireLoadAndInsertWithCats(self):
+		"""Extend `self.inspireLoadAndInsert` to ask the categories
+		to associate the entry with, if the import was successful
+		"""
 		if self.inspireLoadAndInsert(doReload=False) and len(
 				self.loadedAndInserted) > 0:
 			for key in self.loadedAndInserted:
@@ -1259,6 +1345,11 @@ class MainWindow(QMainWindow):
 			self.reloadMainContent()
 
 	def advancedImport(self):
+		"""Advanced import dialog.
+		Open a dialog where you can select which method to use
+		and insert the search string,
+		then import a selection among the obtained results
+		"""
 		adIm = advImportDialog()
 		adIm.exec_()
 		method = adIm.comboMethod.currentText().lower()
@@ -1340,6 +1431,10 @@ class MainWindow(QMainWindow):
 			return False
 
 	def cleanAllBibtexsAsk(self):
+		"""Use a thread to clean and reformat the bibtex entries.
+		Ask the index of the entry where to start from,
+		before proceeding
+		"""
 		text, out = askGenericText("Insert the ordinal number of "
 			+ "the bibtex element from which you want to start "
 			+ "the cleaning:",
@@ -1358,6 +1453,15 @@ class MainWindow(QMainWindow):
 		self.cleanAllBibtexs(startFrom)
 
 	def cleanAllBibtexs(self, startFrom=0, useEntries=None):
+		"""Use a thread to clean and reformat the bibtex entries
+
+		Parameters:
+			startFrom (default 0): the list index of the entry
+				where to start from
+			useEntries (default None): if not None, it must be a list
+				of entries to be processed, otherwise the full database
+				content will be used
+		"""
 		self.statusBarMessage("Starting cleaning of bibtexs...")
 		self._runInThread(
 			thread_cleanAllBibtexs, "Clean Bibtexs",
@@ -1367,6 +1471,17 @@ class MainWindow(QMainWindow):
 			minProgress=0., stopFlag=True)
 
 	def findBadBibtexs(self, startFrom=0, useEntries=None):
+		"""Use a thread to scan the database for bad bibtex entries.
+		If the user wants, a dialog for fixing each of them one by one
+		may appear at the end of the search
+
+		Parameters:
+			startFrom (default 0): the list index of the entry
+				where to start from
+			useEntries (default None): if not None, it must be a list
+				of entries to be processed, otherwise the full database
+				content will be used
+		"""
 		self.statusBarMessage("Starting checking bibtexs...")
 		self.badBibtexs = []
 		self._runInThread(
@@ -1389,6 +1504,14 @@ class MainWindow(QMainWindow):
 			infoMessage("No invalid records found!")
 
 	def infoFromArxiv(self, useEntries=None):
+		"""Use arXiv to obtain more information
+		on a specific selection of entries
+
+		Parameter:
+			useEntries (default None): if not None, it must be a list
+				of entries to be completed, otherwise the full database
+				content will be used
+		"""
 		iterator = useEntries
 		if useEntries is None:
 			pBDB.bibs.fetchAll(doFetch=False)
@@ -1405,6 +1528,11 @@ class MainWindow(QMainWindow):
 				minProgress=0., stopFlag=True)
 
 	def browseDailyArxiv(self):
+		"""Browse daily news from arXiv after showing
+		a dialog for asking the category,
+		and import the selection of entries
+		"""
+		#maybe better splitted in two: browse, select and import
 		bDA = dailyArxivDialog()
 		bDA.exec_()
 		cat = bDA.comboCat.currentText().lower()
