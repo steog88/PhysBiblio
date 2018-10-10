@@ -90,7 +90,7 @@ class TestMainWindow(GUITestCase):
 					) as _sbm,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _fl:
-			self.mw.refreshMainContent("anything")
+			self.mw.refreshMainContent()
 			_d.assert_called_once_with()
 			_sbm.assert_called_once_with("Reloading main table...")
 			_fl.assert_called_once_with()
