@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
 		self.setGeometry(0, 0, availableWidth, availableHeight)
 		self.setMinimumHeight(400)
 		self.setMinimumWidth(600)
-		self.myStatusBar = QStatusBar()
+		self.mainStatusBar = QStatusBar()
 		self.lastAuthorStats = None
 		self.lastPaperStats = None
 		if testing:
@@ -744,8 +744,8 @@ class MainWindow(QMainWindow):
 
 	def createStatusBar(self):
 		"""Function to create Status Bar"""
-		self.myStatusBar.showMessage('Ready', 0)
-		self.setStatusBar(self.myStatusBar)
+		self.mainStatusBar.showMessage('Ready', 0)
+		self.setStatusBar(self.mainStatusBar)
 
 	def statusBarMessage(self, message, time=4000):
 		"""Show a message in the status bar
@@ -755,7 +755,7 @@ class MainWindow(QMainWindow):
 			time (default 4000): how long (in ms) to display the message
 		"""
 		pBLogger.info(message)
-		self.myStatusBar.showMessage(message, time)
+		self.mainStatusBar.showMessage(message, time)
 
 	def save(self):
 		"""Ask and save the database changes"""

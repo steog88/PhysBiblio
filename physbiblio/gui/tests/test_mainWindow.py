@@ -11,10 +11,10 @@ from PySide2.QtTest import QTest
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 
 try:
 	from physbiblio.setuptests import *
@@ -29,21 +29,53 @@ except Exception:
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMainWindow(GUITestCase):
-	"""test"""
+	"""test the MainWindow class"""
 
 	@classmethod
 	def setUpClass(self):
 		"""define common parameters for test use"""
 		super(TestMainWindow, self).setUpClass()
-		self.mw = MainWindow()
+		self.clsName = "physbiblio.gui.mainWindow.MainWindow"
+		self.mainW = MainWindow()
 
 	def test_init(self):
-		"""test"""
-		pass
+		"""test __init__"""
+		tcu = thread_checkUpdated()
+		tcu.start = MagicMock()
+		with patch(self.clsName + ".createActions") as _ca,\
+				patch(self.clsName + ".createMenusAndToolBar") as _mt,\
+				patch(self.clsName + ".createMainLayout") as _ml,\
+				patch(self.clsName + ".setIcon") as _si,\
+				patch(self.clsName + ".createStatusBar") as _sb,\
+				patch("physbiblio.gui.mainWindow.thread_checkUpdated",
+					return_value=tcu) as _cu:
+			mw = MainWindow()
+			_ca.assert_called_once_with()
+			_mt.assert_called_once_with()
+			_ml.assert_called_once_with()
+			_si.assert_called_once_with()
+			_sb.assert_called_once_with()
+			_cu.assert_called_once_with(mw)
+			tcu.start.assert_called_once_with()
+			mw1 = MainWindow(testing=True)
+			_ca.assert_called_once_with()
+		with patch(self.clsName + ".printNewVersion") as _pnw:
+			mw.checkUpdated.result.emit(True, "0.0.0")
+			_pnw.assert_called_once_with(True, "0.0.0")
+		self.assertIsInstance(mw, QMainWindow)
+		self.assertEqual(mw.minimumWidth(), 600)
+		self.assertEqual(mw.minimumHeight(), 400)
+		self.assertIsInstance(mw.mainStatusBar, QStatusBar)
+		self.assertEqual(mw.lastAuthorStats, None)
+		self.assertEqual(mw.lastPaperStats, None)
+		self.assertIsInstance(mw1, QMainWindow)
+		self.assertEqual(mw1.lastPaperStats, None)
 
 	def test_mainWindowTitle(self):
-		"""test"""
-		pass
+		"""test mainWindowTitle"""
+		with patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t:
+			self.mainW.mainWindowTitle("mytitle")
+			_t.assert_called_once_with("mytitle")
 
 	def test_printNewVersion(self):
 		"""test"""
@@ -75,7 +107,7 @@ class TestMainWindow(GUITestCase):
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _swt,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
 					) as _rmc:
-			self.mw.undoDB()
+			self.mainW.undoDB()
 			_u.assert_called_once_with()
 			_swt.assert_called_once_with('PhysBiblio')
 			_rmc.assert_called_once_with()
@@ -90,7 +122,7 @@ class TestMainWindow(GUITestCase):
 					) as _sbm,\
 				patch("physbiblio.database.entries.fetchFromLast",
 					return_value=pBDB.bibs) as _fl:
-			self.mw.refreshMainContent()
+			self.mainW.refreshMainContent()
 			_d.assert_called_once_with()
 			_sbm.assert_called_once_with("Reloading main table...")
 			_fl.assert_called_once_with()
@@ -103,12 +135,12 @@ class TestMainWindow(GUITestCase):
 					+ "recreateTable") as _rt,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _sbm:
-			self.mw.reloadMainContent(bibs="fake")
+			self.mainW.reloadMainContent(bibs="fake")
 			_d.assert_called_once_with()
 			_sbm.assert_called_once_with("Reloading main table...")
 			_rt.assert_called_once_with("fake")
 			_rt.reset_mock()
-			self.mw.reloadMainContent()
+			self.mainW.reloadMainContent()
 			_rt.assert_called_once_with(None)
 
 	def test_manageProfiles(self):
@@ -116,14 +148,14 @@ class TestMainWindow(GUITestCase):
 		with patch("physbiblio.gui.profilesManager.selectProfiles.__init__",
 				return_value=None) as _i,\
 				self.assertRaises(RuntimeError):
-			self.mw.manageProfiles()
-			_i.assert_called_once_with(self.mw)
+			self.mainW.manageProfiles()
+			_i.assert_called_once_with(self.mainW)
 
 	def test_editProfile(self):
 		"""test editProfile"""
 		with patch("physbiblio.gui.mainWindow.editProfile") as _e:
-			self.mw.editProfile()
-			_e.assert_called_once_with(self.mw)
+			self.mainW.editProfile()
+			_e.assert_called_once_with(self.mainW)
 
 	def test_config(self):
 		"""test"""
@@ -134,8 +166,8 @@ class TestMainWindow(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows.LogFileContentDialog"
 				+ ".__init__", return_value=None) as _i,\
 				self.assertRaises(RuntimeError):
-			self.mw.logfile()
-			_i.assert_called_once_with(self.mw)
+			self.mainW.logfile()
+			_i.assert_called_once_with(self.mainW)
 
 	def test_reloadConfig(self):
 		"""test"""
@@ -157,7 +189,7 @@ class TestMainWindow(GUITestCase):
 		"""test cleanSpare"""
 		with patch("physbiblio.gui.mainWindow.MainWindow._runInThread"
 				) as _rit:
-			self.mw.cleanSpare()
+			self.mainW.cleanSpare()
 			_rit.assert_called_once_with(
 				thread_cleanSpare, "Clean spare entries")
 
@@ -167,14 +199,14 @@ class TestMainWindow(GUITestCase):
 				) as _rit,\
 				patch("physbiblio.gui.mainWindow.askYesNo",
 					return_value=True):
-			self.mw.cleanSparePDF()
+			self.mainW.cleanSparePDF()
 			_rit.assert_called_once_with(
 				thread_cleanSparePDF, "Clean spare PDF folders")
 		with patch("physbiblio.gui.mainWindow.MainWindow._runInThread"
 				) as _rit,\
 				patch("physbiblio.gui.mainWindow.askYesNo",
 					return_value=False):
-			self.mw.cleanSparePDF()
+			self.mainW.cleanSparePDF()
 			_rit.assert_not_called()
 
 	def test_createStatusBar(self):
@@ -220,16 +252,16 @@ class TestMainWindow(GUITestCase):
 				patch("physbiblio.gui.catWindows.catsTreeWindow.__init__",
 					return_value=None) as _i,\
 				self.assertRaises(RuntimeError):
-			self.mw.categories()
+			self.mainW.categories()
 			_sm.assert_called_once_with("categories triggered")
-			_i.assert_called_once_with(self.mw)
+			_i.assert_called_once_with(self.mainW)
 
 	def test_newCategory(self):
 		"""test newCategory"""
 		with patch("physbiblio.gui.mainWindow.editCategory"
 				) as _f:
-			self.mw.newCategory()
-			_f.assert_called_once_with(self.mw, self.mw)
+			self.mainW.newCategory()
+			_f.assert_called_once_with(self.mainW, self.mainW)
 
 	def test_experiments(self):
 		"""test experiments"""
@@ -238,23 +270,23 @@ class TestMainWindow(GUITestCase):
 				patch("physbiblio.gui.expWindows.ExpsListWindow.__init__",
 					return_value=None) as _i,\
 				self.assertRaises(RuntimeError):
-			self.mw.experiments()
+			self.mainW.experiments()
 			_sm.assert_called_once_with("experiments triggered")
-			_i.assert_called_once_with(self.mw)
+			_i.assert_called_once_with(self.mainW)
 
 	def test_newExperiment(self):
 		"""test newExperiment"""
 		with patch("physbiblio.gui.mainWindow.editExperiment"
 				) as _f:
-			self.mw.newExperiment()
-			_f.assert_called_once_with(self.mw, self.mw)
+			self.mainW.newExperiment()
+			_f.assert_called_once_with(self.mainW, self.mainW)
 
 	def test_newBibtex(self):
 		"""test newBibtex"""
 		with patch("physbiblio.gui.mainWindow.editBibtex"
 				) as _f:
-			self.mw.newBibtex()
-			_f.assert_called_once_with(self.mw)
+			self.mainW.newBibtex()
+			_f.assert_called_once_with(self.mainW)
 
 	def test_searchBiblio(self):
 		"""test"""
@@ -340,14 +372,14 @@ class TestMainWindow(GUITestCase):
 		"""test sendMessage"""
 		with patch("physbiblio.gui.mainWindow.infoMessage"
 				) as _i:
-			self.mw.sendMessage("mytext")
+			self.mainW.sendMessage("mytext")
 			_i.assert_called_once_with("mytext")
 
 	def test_done(self):
 		"""test done"""
 		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 				) as _sm:
-			self.mw.done()
+			self.mainW.done()
 			_sm.assert_called_once_with("...done!")
 
 
