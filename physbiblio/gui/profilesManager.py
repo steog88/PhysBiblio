@@ -111,7 +111,7 @@ def editProfile(parentObject):
 class selectProfiles(QDialog):
 	"""Widget to change the profile"""
 
-	def __init__(self, parent, message = None):
+	def __init__(self, parent, message=None):
 		"""Instantiate the class
 
 		Parameters:
@@ -120,7 +120,7 @@ class selectProfiles(QDialog):
 		"""
 		if not hasattr(parent, "reloadConfig"):
 			raise Exception("Cannot run selectProfiles: invalid parent")
-		super(selectProfiles, self).__init__(parent)
+		QDialog.__init__(self, parent)
 		self.message = message
 		self.initUI()
 

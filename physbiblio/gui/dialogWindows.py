@@ -282,7 +282,7 @@ class LogFileContentDialog(QDialog):
 		Parameter:
 			parent: the parent widget
 		"""
-		super(LogFileContentDialog, self).__init__(parent)
+		QDialog.__init__(self, parent)
 		self.title = "Log File Content"
 		self.initUI()
 

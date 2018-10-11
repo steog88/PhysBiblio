@@ -47,6 +47,22 @@ class GUITestCase(unittest.TestCase):
 		"""Remove a temporary QApplication from the class instance"""
 		del self.qapp
 
+	def assertGeometry(self, obj, x, y, w, h):
+		"""Test the geometry of an object
+
+		Parameters:
+			obj: the object to be tested
+			x: the expected x position
+			y: the expected y position
+			w: the expected width
+			h: the expected height
+		"""
+		geom = obj.geometry()
+		self.assertEqual(geom.x(), x)
+		self.assertEqual(geom.y(), y)
+		self.assertEqual(geom.width(), w)
+		self.assertEqual(geom.height(), h)
+
 
 class GUIwMainWTestCase(unittest.TestCase):
 	"""Class that manages GUI tests which need a testing instance

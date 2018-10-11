@@ -101,6 +101,25 @@ class MainWindow(QMainWindow):
 		self.checkUpdated.result.connect(self.printNewVersion)
 		self.checkUpdated.start()
 
+	def closeEvent(self, event):
+		"""Intercept close events. If uncommitted changes exist,
+		ask before closing the application
+
+		Parameter:
+			event: a QEvent
+		"""
+		if pBDB.checkUncommitted():
+			if not askYesNo("There may be unsaved changes to the database.\n"
+					+ "Do you really want to exit?"):
+				event.ignore()
+			else:
+				event.accept()
+		elif pbConfig.params["askBeforeExit"] and not askYesNo(
+				"Do you really want to exit?"):
+			event.ignore()
+		else:
+			event.accept()
+
 	def mainWindowTitle(self, title):
 		"""Set the window title
 
@@ -337,25 +356,6 @@ class MainWindow(QMainWindow):
 			"&Clean spare PDF folders", self,
 			statusTip="Remove spare PDF folders.",
 			triggered=self.cleanSparePDF)
-
-	def closeEvent(self, event):
-		"""Intercept close events. If uncommitted changes exist,
-		ask before closing the application
-
-		Parameter:
-			event: a QEvent
-		"""
-		if pBDB.checkUncommitted():
-			if askYesNo("There may be unsaved changes to the database.\n"
-					+ "Do you really want to exit?"):
-				event.accept()
-			else:
-				event.ignore()
-		elif pbConfig.params["askBeforeExit"] and not askYesNo(
-				"Do you really want to exit?"):
-			event.ignore()
-		else:
-			event.accept()
 
 	def createMenusAndToolBar(self):
 		"""Set the content of the menus and of the toolbar."""
