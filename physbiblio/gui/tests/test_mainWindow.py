@@ -677,6 +677,8 @@ class TestMainWindow(GUITestCase):
 
 	def test_config(self):
 		"""test config"""
+		cw = configWindow(self.mainW)
+		cw.exec_ = MagicMock()
 		raise NotImplementedError
 
 	def test_logfile(self):
@@ -691,20 +693,116 @@ class TestMainWindow(GUITestCase):
 			ld.exec_.assert_called_once_with()
 
 	def test_reloadConfig(self):
-		"""test"""
-		pass
+		"""test reloadConfig"""
+		oldWebA = pbConfig.params["webApplication"]
+		oldPdfA = pbConfig.params["pdfApplication"]
+		oldPdfF = pbConfig.params["pdfFolder"]
+		pbConfig.params["webApplication"] = "webApp"
+		pbConfig.params["pdfApplication"] = "pdfApp"
+		pbConfig.params["pdfFolder"] = "pdf/folder"
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "reloadColumnContents") as _rcc:
+			self.mainW.reloadConfig()
+			_sbm.assert_called_once_with("Reloading configuration...")
+			_rcc.assert_called_once_with()
+			self.assertEqual(pBView.webApp, "webApp")
+			self.assertEqual(pBPDF.pdfApp, "pdfApp")
+			self.assertEqual(pBPDF.pdfDir,
+				os.path.join(os.path.split(
+				os.path.abspath(sys.argv[0]))[0],
+				"pdf/folder"))
+		pbConfig.params["webApplication"] = "webApp"
+		pbConfig.params["pdfApplication"] = "pdfApp"
+		pbConfig.params["pdfFolder"] = "/pdf/folder"
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "reloadColumnContents") as _rcc:
+			self.mainW.reloadConfig()
+			_sbm.assert_called_once_with("Reloading configuration...")
+			_rcc.assert_called_once_with()
+			self.assertEqual(pBView.webApp, "webApp")
+			self.assertEqual(pBPDF.pdfApp, "pdfApp")
+			self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
+		pbConfig.params["webApplication"] = oldWebA
+		pbConfig.params["pdfApplication"] = oldPdfA
+		pbConfig.params["pdfFolder"] = oldPdfF
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "reloadColumnContents") as _rcc:
+			self.mainW.reloadConfig()
 
 	def test_showAbout(self):
-		"""test"""
-		pass
+		"""test showAbout"""
+		mbox = self.mainW.showAbout(testing=True)
+		self.assertEqual(mbox.windowTitle(), "About PhysBiblio")
+		self.assertEqual(mbox.text(),
+			"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>"
+			+ "https://github.com/steog88/physBiblio</a>) is "
+			+ "a cross-platform tool for managing a LaTeX/BibTeX database. "
+			+ "It is written in <code>python</code>, "
+			+ "using <code>sqlite3</code> for the database management "
+			+ "and <code>PySide</code> for the graphical part."
+			+ "<br>"
+			+ "It supports grouping, tagging, import/export, "
+			+ "automatic update and various different other functions."
+			+ "<br><br>"
+			+ "<b>Paths:</b><br>"
+			+ "<i>Configuration:</i> %s<br>"%pbConfig.configPath
+			+ "<i>Data:</i> %s<br>"%pbConfig.dataPath
+			+ "<br>"
+			+ "<b>Author:</b> Stefano Gariazzo "
+			+ "<i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"
+			+ "<b>Version:</b> %s (%s)<br>"%(
+				physbiblio.__version__, physbiblio.__version_date__)
+			+ "<b>Python version</b>: %s"%sys.version)
+		self.assertEqual(mbox.textFormat(), Qt.RichText)
+		img = QImage(":/images/icon.png").convertToFormat(
+			QImage.Format_ARGB32_Premultiplied)
+		self.assertEqual(img, mbox.iconPixmap().toImage())
+
+		mb = QMessageBox(QMessageBox.Information, "title", "PhysBiblio")
+		mb.exec_ = MagicMock()
+		with patch(self.modName + ".QMessageBox", return_value=mb) as _mb:
+			self.mainW.showAbout()
+			mb.exec_.assert_called_once_with()
 
 	def test_showDBStats(self):
-		"""test"""
-		pass
+		"""test showDBStats"""
+		dbStats(pBDB)
+		with patch(self.modName + ".dbStats") as _dbs,\
+				patch("glob.iglob", return_value=["a", "b"]) as _ig:
+			mbox = self.mainW.showDBStats(testing=True)
+			_dbs.assert_called_once_with(pBDB)
+			_ig.assert_called_once_with("%s/*/*.pdf"%pBPDF.pdfDir)
+		self.assertEqual(mbox.windowTitle(), "PhysBiblio database statistics")
+		self.assertEqual(mbox.text(),
+			"The PhysBiblio database currently contains "
+			+ "the following number of records:\n"
+			+ "- %d bibtex entries\n"%(pBDB.stats["bibs"])
+			+ "- %d categories\n"%(pBDB.stats["cats"])
+			+ "- %d experiments,\n"%(pBDB.stats["exps"])
+			+ "- %d bibtex entries to categories connections\n"%(
+				pBDB.stats["catBib"])
+			+ "- %d experiment to categories connections\n"%(
+				pBDB.stats["catExp"])
+			+ "- %d bibtex entries to experiment connections.\n\n"%(
+				pBDB.stats["bibExp"])
+			+ "The number of currently stored PDF files is 2.")
+		img = QImage(":/images/icon.png").convertToFormat(
+			QImage.Format_ARGB32_Premultiplied)
+		self.assertEqual(img, mbox.iconPixmap().toImage())
+		self.assertEqual(mbox.parent(), self.mainW)
+
+		mb = QMessageBox(QMessageBox.Information, "title", "PhysBiblio")
+		mb.show = MagicMock()
+		with patch(self.modName + ".QMessageBox", return_value=mb) as _mb:
+			self.mainW.showDBStats()
+			mb.show.assert_called_once_with()
 
 	def test_runInThread(self):
-		"""test"""
-		pass
+		"""test _runInThread"""
+		raise NotImplementedError
 
 	def test_cleanSpare(self):
 		"""test cleanSpare"""
@@ -728,39 +826,49 @@ class TestMainWindow(GUITestCase):
 			_rit.assert_not_called()
 
 	def test_createStatusBar(self):
-		"""test"""
-		pass
+		"""test createStatusBar"""
+		with patch(self.modName + ".QStatusBar.showMessage") as _sm:
+			self.mainW.createStatusBar()
+			_sm.assert_called_once_with('Ready', 0)
+			self.assertEqual(self.mainW.statusBar(), self.mainW.mainStatusBar)
 
 	def test_statusBarMessage(self):
-		"""test"""
-		pass
+		"""test statusBarMessage"""
+		with patch(self.modName + ".QStatusBar.showMessage") as _sm,\
+				patch("logging.Logger.info") as _i:
+			self.mainW.statusBarMessage("abc")
+			_i.assert_called_once_with("abc")
+			_sm.assert_called_once_with("abc", 4000)
+			_sm.reset_mock()
+			self.mainW.statusBarMessage("abc", time=2000)
+			_sm.assert_called_once_with("abc", 2000)
 
 	def test_save(self):
-		"""test"""
+		"""test save"""
 		pass
 
 	def test_importFromBib(self):
-		"""test"""
+		"""test importFromBib"""
 		pass
 
 	def test_export(self):
-		"""test"""
+		"""test export"""
 		pass
 
 	def test_exportSelection(self):
-		"""test"""
+		"""test exportSelection"""
 		pass
 
 	def test_exportFile(self):
-		"""test"""
+		"""test exportFile"""
 		pass
 
 	def test_exportUpdate(self):
-		"""test"""
+		"""test exportUpdate"""
 		pass
 
 	def test_exportAll(self):
-		"""test"""
+		"""test exportAll"""
 		pass
 
 	def test_categories(self):
@@ -806,83 +914,83 @@ class TestMainWindow(GUITestCase):
 			_f.assert_called_once_with(self.mainW)
 
 	def test_searchBiblio(self):
-		"""test"""
+		"""test searchBiblio"""
 		pass
 
 	def test_runSearchBiblio(self):
-		"""test"""
+		"""test runSearchBiblio"""
 		pass
 
 	def test_runSearchReplaceBiblio(self):
-		"""test"""
+		"""test runSearchReplaceBiblio"""
 		pass
 
 	def test_delSearchBiblio(self):
-		"""test"""
+		"""test delSearchBiblio"""
 		pass
 
 	def test_searchAndReplace(self):
-		"""test"""
+		"""test searchAndReplace"""
 		pass
 
 	def test_runReplace(self):
-		"""test"""
+		"""test runReplace"""
 		pass
 
 	def test_updateAllBibtexsAsk(self):
-		"""test"""
+		"""test updateAllBibtexsAsk"""
 		pass
 
 	def test_updateAllBibtexs(self):
-		"""test"""
+		"""test updateAllBibtexs"""
 		pass
 
 	def test_updateInspireInfo(self):
-		"""test"""
+		"""test updateInspireInfo"""
 		pass
 
 	def test_authorStats(self):
-		"""test"""
+		"""test authorStats"""
 		pass
 
 	def test_getInspireStats(self):
-		"""test"""
+		"""test getInspireStats"""
 		pass
 
 	def test_inspireLoadAndInsert(self):
-		"""test"""
+		"""test inspireLoadAndInsert"""
 		pass
 
 	def test_askCatsForEntries(self):
-		"""test"""
+		"""test askCatsForEntries"""
 		pass
 
 	def test_inspireLoadAndInsertWithCats(self):
-		"""test"""
+		"""test inspireLoadAndInsertWithCats"""
 		pass
 
 	def test_advancedImport(self):
-		"""test"""
+		"""test advancedImport"""
 		pass
 
 	def test_cleanAllBibtexsAsk(self):
-		"""test"""
+		"""test cleanAllBibtexsAsk"""
 		pass
 
 	def test_cleanAllBibtexs(self):
-		"""test"""
+		"""test cleanAllBibtexs"""
 		pass
 
 	def test_findBadBibtexs(self):
-		"""test"""
+		"""test findBadBibtexs"""
 		pass
 
 	def test_infoFromArxiv(self):
-		"""test"""
+		"""test infoFromArxiv"""
 		pass
 
 	def test_browseDailyArxiv(self):
-		"""test"""
+		"""test browseDailyArxiv"""
 		pass
 
 	def test_sendMessage(self):

@@ -4,6 +4,7 @@ This file is part of the physbiblio package.
 """
 import sys
 import traceback
+import os
 import signal
 import ast
 import glob
@@ -611,7 +612,7 @@ class MainWindow(QMainWindow):
 				pbConfig.params["pdfFolder"])
 		self.bibtexListWindow.reloadColumnContents()
 
-	def showAbout(self):
+	def showAbout(self, testing=False):
 		"""Function to show the About dialog"""
 		mbox = QMessageBox(QMessageBox.Information,
 			"About PhysBiblio",
@@ -636,6 +637,8 @@ class MainWindow(QMainWindow):
 			+ "<b>Python version</b>: %s"%sys.version)
 		mbox.setTextFormat(Qt.RichText)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
+		if testing:
+			return mbox
 		mbox.exec_()
 
 	def showDBStats(self, testing=False):
