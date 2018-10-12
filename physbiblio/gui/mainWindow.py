@@ -515,8 +515,8 @@ class MainWindow(QMainWindow):
 		splitterBottom.addWidget(self.bottomCenter)
 		splitterBottom.addWidget(self.bottomRight)
 		splitter.addWidget(splitterBottom)
-		splitter.setStretchFactor(0,3)
-		splitter.setStretchFactor(1,1)
+		splitter.setStretchFactor(0, 3)
+		splitter.setStretchFactor(1, 1)
 
 		availableWidth		= QDesktopWidget().availableGeometry().width()
 		availableHeight		= QDesktopWidget().availableGeometry().height()

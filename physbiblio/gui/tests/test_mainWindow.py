@@ -506,7 +506,7 @@ class TestMainWindow(GUITestCase):
 				self.assertTrue(macts[i].isSeparator())
 			else:
 				self.assertEqual(macts[i], a)
-		# self.assertEqual(tb.title(), "Toolbar")
+		self.assertEqual(tb.windowTitle(), "Toolbar")
 
 		#test empty search/replace menu
 		with patch("physbiblio.config.globalDB.getSearchList",
@@ -514,6 +514,14 @@ class TestMainWindow(GUITestCase):
 			self.mainW.createMenusAndToolBar()
 			self.assertEqual(self.mainW.searchMenu, None)
 			self.assertEqual(self.mainW.replaceMenu, None)
+		#test order of menus
+		self.assertEqual([a.menu() for a in self.mainW.menuBar().actions()],
+			[self.mainW.fileMenu,
+			self.mainW.bibMenu,
+			self.mainW.catMenu,
+			self.mainW.expMenu,
+			self.mainW.toolMenu,
+			self.mainW.helpMenu])
 
 		#create with mock getSearchList for searches and replaces
 		with patch("physbiblio.config.globalDB.getSearchList",
@@ -570,15 +578,47 @@ class TestMainWindow(GUITestCase):
 					with patch(a[1]) as _f:
 						macts[i].trigger()
 						_f.assert_called_once_with(*a[2])
-
-		raise NotImplementedError
 		#test order of menus with and without s&r
-		print [self.mainW.menuBar().widgetForAction(a)
-			for a in self.mainW.menuBar().actions()]
+		self.assertEqual([a.menu() for a in self.mainW.menuBar().actions()],
+			[self.mainW.fileMenu,
+			self.mainW.bibMenu,
+			self.mainW.catMenu,
+			self.mainW.expMenu,
+			self.mainW.toolMenu,
+			self.mainW.searchMenu,
+			self.mainW.replaceMenu,
+			self.mainW.helpMenu])
 
 	def test_createMainLayout(self):
 		"""test createMainLayout"""
-		raise NotImplementedError
+		self.assertIsInstance(self.mainW.bibtexListWindow, BibtexListWindow)
+		self.assertEqual(self.mainW.bibtexListWindow.frameShape(),
+			QFrame.StyledPanel)
+		self.assertIsInstance(self.mainW.bottomLeft, BibtexInfo)
+		self.assertEqual(self.mainW.bottomLeft.frameShape(),
+			QFrame.StyledPanel)
+		self.assertIsInstance(self.mainW.bottomCenter, BibtexInfo)
+		self.assertEqual(self.mainW.bottomCenter.frameShape(),
+			QFrame.StyledPanel)
+		self.assertIsInstance(self.mainW.bottomRight, BibtexInfo)
+		self.assertEqual(self.mainW.bottomRight.frameShape(),
+			QFrame.StyledPanel)
+
+		spl = self.mainW.centralWidget()
+		self.assertIsInstance(spl, QSplitter)
+		self.assertEqual(spl.orientation(), Qt.Vertical)
+		self.assertEqual(spl.widget(0), self.mainW.bibtexListWindow)
+		self.assertEqual(spl.widget(0).sizePolicy().verticalStretch(), 3)
+		self.assertIsInstance(spl.widget(1), QSplitter)
+		self.assertEqual(spl.widget(1).sizePolicy().verticalStretch(), 1)
+		spl1 = spl.widget(1)
+		self.assertEqual(spl1.orientation(), Qt.Horizontal)
+		self.assertEqual(spl1.widget(0), self.mainW.bottomLeft)
+		self.assertEqual(spl1.widget(1), self.mainW.bottomCenter)
+		self.assertEqual(spl1.widget(2), self.mainW.bottomRight)
+		self.assertGeometry(spl, 0, 0,
+			QDesktopWidget().availableGeometry().width(),
+			QDesktopWidget().availableGeometry().height())
 
 	def test_undoDB(self):
 		"""test undoDB"""
@@ -641,7 +681,8 @@ class TestMainWindow(GUITestCase):
 
 	def test_logfile(self):
 		"""test logfile"""
-		ld = LogFileContentDialog(self.mainW)
+		with patch("logging.Logger.exception") as _e:
+			ld = LogFileContentDialog(self.mainW)
 		ld.exec_ = MagicMock()
 		with patch(self.modName + ".LogFileContentDialog",
 				return_value=ld) as _i:
