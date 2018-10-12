@@ -771,14 +771,17 @@ class MainWindow(QMainWindow):
 			filter="Bibtex (*.bib)")
 		if filename != "":
 			self._runInThread(
-				thread_importFromBib, "Importing...",
-				filename, askYesNo("Do you want to use INSPIRE "
+				thread_importFromBib,
+				"Importing...",
+				filename,
+				askYesNo("Do you want to use INSPIRE "
 					+ "to find more information about the imported entries?"),
 				totStr="Entries to be processed: ",
 				progrStr="%), processing entry ",
-				minProgress=0,  stopFlag=True,
-				outMessage="All entries into %s have been imported"%filename)
-			self.statusBarMessage("File %s imported!"%filename)
+				minProgress=0,
+				stopFlag=True,
+				outMessage="All entries into '%s' have been imported"%filename)
+			self.statusBarMessage("File '%s' imported!"%filename)
 			self.reloadMainContent()
 		else:
 			self.statusBarMessage("Empty filename given!")
@@ -791,7 +794,7 @@ class MainWindow(QMainWindow):
 		if filename != "":
 			pBExport.exportLast(filename)
 			self.statusBarMessage(
-				"Last fetched entries exported into %s"%filename)
+				"Last fetched entries exported into '%s'"%filename)
 		else:
 			self.statusBarMessage("Empty filename given!")
 
@@ -807,7 +810,7 @@ class MainWindow(QMainWindow):
 		if filename != "":
 			pBExport.exportSelected(filename, entries)
 			self.statusBarMessage(
-				"Current selection exported into %s"%filename)
+				"Current selection exported into '%s'"%filename)
 		else:
 			self.statusBarMessage("Empty filename given!")
 
@@ -822,13 +825,16 @@ class MainWindow(QMainWindow):
 			texFile = askFileNames(self,
 				title="Which is/are the *.tex file(s) you want to compile?",
 				filter="Latex (*.tex)")
-			if (not isinstance(texFile, list) and texFile != "") or (
-					isinstance(texFile, list) and len(texFile)>0):
+			if (not isinstance(texFile, list) and texFile != "") \
+					or (isinstance(texFile, list) and len(texFile)>0):
 				self._runInThread(
-					thread_exportTexBib, "Exporting...",
-					texFile, outFName,
-					minProgress=0,  stopFlag=True,
-					outMessage="All entries saved into %s"%outFName)
+					thread_exportTexBib,
+					"Exporting...",
+					texFile,
+					outFName,
+					minProgress=0,
+					stopFlag=True,
+					outMessage="All entries saved into '%s'"%outFName)
 			else:
 				self.statusBarMessage("Empty input filename/folder!")
 		else:
@@ -839,14 +845,15 @@ class MainWindow(QMainWindow):
 		which already contains bibtex entries
 		with the newer information from the database
 		"""
-		filename = askSaveFileName(self, title="File to update?",
+		filename = askSaveFileName(self,
+			title="File to update?",
 			filter="Bibtex (*.bib)")
 		if filename != "":
 			overwrite = askYesNo(
 				"Do you want to overwrite the existing .bib file?",
 				"Overwrite")
 			pBExport.updateExportedBib(filename, overwrite=overwrite)
-			self.statusBarMessage("File %s updated"%filename)
+			self.statusBarMessage("File '%s' updated"%filename)
 		else:
 			self.statusBarMessage("Empty output filename!")
 
@@ -857,7 +864,7 @@ class MainWindow(QMainWindow):
 			filter="Bibtex (*.bib)")
 		if filename != "":
 			pBExport.exportAll(filename)
-			self.statusBarMessage("All entries saved into %s"%filename)
+			self.statusBarMessage("All entries saved into '%s'"%filename)
 		else:
 			self.statusBarMessage("Empty output filename!")
 

@@ -845,31 +845,164 @@ class TestMainWindow(GUITestCase):
 
 	def test_save(self):
 		"""test save"""
-		pass
+		with patch(self.modName + ".askYesNo",
+				side_effect=[True, False]) as _ayn,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".mainWindowTitle") as _mwt,\
+				patch("physbiblio.database.physbiblioDBCore.commit") as _c:
+			self.mainW.save()
+			_ayn.assert_called_once_with("Do you really want to save?")
+			_sbm.assert_called_once_with("Changes saved")
+			_mwt.assert_called_once_with("PhysBiblio")
+			_c.assert_called_once_with()
+			_ayn.reset_mock()
+			_sbm.reset_mock()
+			_mwt.reset_mock()
+			_c.reset_mock()
+			self.mainW.save()
+			_ayn.assert_called_once_with("Do you really want to save?")
+			_sbm.assert_called_once_with("Nothing saved")
+			_mwt.assert_not_called()
+			_c.assert_not_called()
 
 	def test_importFromBib(self):
 		"""test importFromBib"""
-		pass
+		with patch(self.modName + ".askFileName",
+				side_effect=["a.bib", ""]) as _afn,\
+				patch(self.modName + ".askYesNo", return_value=True) as _ayn,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".reloadMainContent") as _rmc:
+			self.mainW.importFromBib()
+			_afn.assert_called_once_with(self.mainW,
+				title="From where do you want to import?",
+				filter="Bibtex (*.bib)")
+			_rit.assert_called_once_with(
+				thread_importFromBib,
+				"Importing...", "a.bib", True,
+				totStr="Entries to be processed: ",
+				progrStr="%), processing entry ",
+				minProgress=0, stopFlag=True,
+				outMessage="All entries into 'a.bib' have been imported")
+			_ayn.assert_called_once_with("Do you want to use INSPIRE "
+				+ "to find more information about the imported entries?")
+			_sbm.assert_called_once_with("File 'a.bib' imported!")
+			_rmc.assert_called_once_with()
+			_rit.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.importFromBib()
+			_rit.assert_not_called()
+			_sbm.assert_called_once_with("Empty filename given!")
 
 	def test_export(self):
 		"""test export"""
-		pass
+		with patch(self.modName + ".askSaveFileName",
+				side_effect=["a.bib", ""]) as _afn,\
+				patch("physbiblio.export.pbExport.exportLast") as _ex,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.export()
+			_afn.assert_called_once_with(self.mainW,
+				title="Where do you want to export the entries?",
+				filter="Bibtex (*.bib)")
+			_ex.assert_called_once_with("a.bib")
+			_sbm.assert_called_once_with(
+				"Last fetched entries exported into 'a.bib'")
+			_ex.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.export()
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty filename given!")
 
 	def test_exportSelection(self):
 		"""test exportSelection"""
-		pass
+		with patch(self.modName + ".askSaveFileName",
+				side_effect=["a.bib", ""]) as _afn,\
+				patch("physbiblio.export.pbExport.exportSelected") as _ex,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportSelection([{"bibkey": "k"}])
+			_afn.assert_called_once_with(self.mainW,
+				title="Where do you want to export the selected entries?",
+				filter="Bibtex (*.bib)")
+			_ex.assert_called_once_with("a.bib", [{"bibkey": "k"}])
+			_sbm.assert_called_once_with(
+				"Current selection exported into 'a.bib'")
+			_ex.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.exportSelection([{"bibkey": "k"}])
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty filename given!")
 
 	def test_exportFile(self):
 		"""test exportFile"""
-		pass
+		with patch(self.modName + ".askSaveFileName",
+				side_effect=["a.bib", "a.bib", ""]) as _asn,\
+				patch(self.modName + ".askFileNames",
+					side_effect=[["a.tex", "b.tex"], ""]) as _afn,\
+				patch(self.clsName + "._runInThread") as _ex,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportFile()
+			_asn.assert_called_once_with(self.mainW,
+				title="Where do you want to export the entries?",
+				filter="Bibtex (*.bib)"),
+			_afn.assert_called_once_with(self.mainW,
+				title="Which is/are the *.tex file(s) you want to compile?",
+				filter="Latex (*.tex)")
+			_ex.assert_called_once_with(
+					thread_exportTexBib, "Exporting...",
+					["a.tex", "b.tex"], "a.bib",
+					minProgress=0, stopFlag=True,
+					outMessage="All entries saved into 'a.bib'")
+			_ex.reset_mock()
+			self.mainW.exportFile()
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty input filename/folder!")
+			_ex.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.exportFile()
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty output filename!")
 
 	def test_exportUpdate(self):
 		"""test exportUpdate"""
-		pass
+		with patch(self.modName + ".askSaveFileName",
+				side_effect=["a.bib", ""]) as _afn,\
+				patch(self.modName + ".askYesNo", return_value="a") as _ayn,\
+				patch("physbiblio.export.pbExport.updateExportedBib") as _ex,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportUpdate()
+			_afn.assert_called_once_with(self.mainW,
+				 title="File to update?",
+				filter="Bibtex (*.bib)")
+			_ayn.assert_called_once_with(
+				"Do you want to overwrite the existing .bib file?",
+				"Overwrite")
+			_ex.assert_called_once_with("a.bib", overwrite="a")
+			_sbm.assert_called_once_with(
+				"File 'a.bib' updated")
+			_ex.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.exportUpdate()
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty output filename!")
 
 	def test_exportAll(self):
 		"""test exportAll"""
-		pass
+		with patch(self.modName + ".askSaveFileName",
+				side_effect=["a.bib", ""]) as _afn,\
+				patch("physbiblio.export.pbExport.exportAll") as _ex,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportAll()
+			_afn.assert_called_once_with(self.mainW,
+				title="Where do you want to export the entries?",
+				filter="Bibtex (*.bib)")
+			_ex.assert_called_once_with("a.bib")
+			_sbm.assert_called_once_with(
+				"All entries saved into 'a.bib'")
+			_ex.reset_mock()
+			_sbm.reset_mock()
+			self.mainW.exportAll()
+			_ex.assert_not_called()
+			_sbm.assert_called_once_with("Empty output filename!")
 
 	def test_categories(self):
 		"""test categories"""
@@ -915,7 +1048,7 @@ class TestMainWindow(GUITestCase):
 
 	def test_searchBiblio(self):
 		"""test searchBiblio"""
-		pass
+		raise NotImplementedError
 
 	def test_runSearchBiblio(self):
 		"""test runSearchBiblio"""
