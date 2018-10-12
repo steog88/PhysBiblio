@@ -151,6 +151,12 @@ class MainWindow(QMainWindow):
 
 	def createActions(self):
 		"""Create the QActions used in menu and in the toolbar."""
+		self.exitAct = QAction(QIcon(":/images/application-exit.png"),
+			"E&xit", self,
+			shortcut="Ctrl+Q",
+			statusTip="Exit application",
+			triggered=self.close)
+
 		self.profilesAct = QAction(QIcon(":/images/profiles.png"),
 			"&Profiles", self,
 			shortcut="Ctrl+P",
@@ -182,7 +188,6 @@ class MainWindow(QMainWindow):
 
 		self.exportAct = QAction(QIcon(":/images/export.png"),
 			"Ex&port last as *.bib", self,
-			#shortcut="Ctrl+P",
 			statusTip="Export last query as *.bib",
 			triggered=self.export)
 				
@@ -192,27 +197,21 @@ class MainWindow(QMainWindow):
 			statusTip="Export complete bibliography as *.bib",
 			triggered=self.exportAll)
 
-		self.exportFileAct = QAction(#QIcon(":/images/export-table.png"),
+		self.exportFileAct = QAction(
 			"Export for a *.&tex", self,
 			shortcut="Ctrl+X",
 			statusTip="Export as *.bib the bibliography needed "
 				+ "to compile a .tex file",
 			triggered=self.exportFile)
 
-		self.exportUpdateAct = QAction(#QIcon(":/images/export-table.png"),
+		self.exportUpdateAct = QAction(
 			"Update an existing *.&bib file", self,
 			shortcut="Ctrl+Shift+X",
 			statusTip="Read a *.bib file and update "
 				+ "the existing elements inside it",
 			triggered=self.exportUpdate)
 
-		self.exitAct = QAction(QIcon(":/images/application-exit.png"),
-			"E&xit", self,
-			shortcut="Ctrl+Q",
-			statusTip="Exit application",
-			triggered=self.close)
-
-		self.CatAct = QAction("&Categories", self,
+		self.catAct = QAction("&Categories", self,
 			shortcut="Ctrl+T",
 			statusTip="Manage Categories",
 			triggered=self.categories)
@@ -222,7 +221,7 @@ class MainWindow(QMainWindow):
 			statusTip="New Category",
 			triggered=self.newCategory)
 
-		self.ExpAct = QAction("&Experiments", self,
+		self.expAct = QAction("&Experiments", self,
 			shortcut="Ctrl+E",
 			statusTip="List of Experiments",
 			triggered=self.experiments)
@@ -336,7 +335,7 @@ class MainWindow(QMainWindow):
 			statusTip="Show About box",
 			triggered=self.showAbout)
 
-		self.logfileAct = QAction(#QIcon(":/images/settings.png"),
+		self.logfileAct = QAction(
 			"Log file", self,
 			shortcut="Ctrl+G",
 			statusTip="Show the content of the logfile",
@@ -396,17 +395,14 @@ class MainWindow(QMainWindow):
 		self.bibMenu.addAction(self.refreshAct)
 		self.bibMenu.addAction(self.reloadAct)
 
-		self.menuBar().addSeparator()
 		self.catMenu = self.menuBar().addMenu("&Categories")
-		self.catMenu.addAction(self.CatAct)
+		self.catMenu.addAction(self.catAct)
 		self.catMenu.addAction(self.newCatAct)
 
-		self.menuBar().addSeparator()
 		self.expMenu = self.menuBar().addMenu("&Experiments")
-		self.expMenu.addAction(self.ExpAct)
+		self.expMenu.addAction(self.expAct)
 		self.expMenu.addAction(self.newExpAct)
 
-		self.menuBar().addSeparator()
 		self.toolMenu = self.menuBar().addMenu("&Tools")
 		self.toolMenu.addAction(self.dailyArxivAct)
 		self.toolMenu.addSeparator()
@@ -418,14 +414,12 @@ class MainWindow(QMainWindow):
 		freqSearches = pbConfig.globalDb.getSearchList(
 			manual=True, replacement=False)
 		if len(freqSearches) > 0:
-			self.menuBar().addSeparator()
 			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
 			for fs in freqSearches:
 				self.searchMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
-						lambda sD=ast.literal_eval(
-								fs["searchDict"]),
+						lambda sD=ast.literal_eval(fs["searchDict"]),
 								l=fs["limitNum"],
 								o=fs["offsetNum"]:
 							self.runSearchBiblio(sD, l, o)
@@ -438,18 +432,18 @@ class MainWindow(QMainWindow):
 						lambda idS=fs["idS"], n=fs["name"]: \
 							self.delSearchBiblio(idS, n)
 					))
+		else:
+			self.searchMenu = None
 
 		freqReplaces = pbConfig.globalDb.getSearchList(
 			manual=True, replacement=True)
 		if len(freqReplaces) > 0:
-			self.menuBar().addSeparator()
-			self.replaceMenu = self.menuBar().addMenu("Frequent &replace")
+			self.replaceMenu = self.menuBar().addMenu("Frequent &replaces")
 			for fs in freqReplaces:
 				self.replaceMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
-						lambda sD=ast.literal_eval(
-								fs["searchDict"]),
+						lambda sD=ast.literal_eval(fs["searchDict"]),
 								r=ast.literal_eval(fs["replaceFields"]),
 								o=fs["offsetNum"]:
 							self.runSearchReplaceBiblio(sD, r, o)
@@ -462,8 +456,9 @@ class MainWindow(QMainWindow):
 						lambda idS=fs["idS"], n=fs["name"]: \
 							self.delSearchBiblio(idS, n)
 					))
+		else:
+			self.replaceMenu = None
 
-		self.menuBar().addSeparator()
 		self.helpMenu = self.menuBar().addMenu("&Help")
 		self.helpMenu.addAction(self.dbstatsAct)
 		self.helpMenu.addAction(self.logfileAct)
