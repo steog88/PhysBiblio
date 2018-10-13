@@ -22,18 +22,17 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import askDirName, infoMessage
 	from physbiblio.gui.commonClasses import MyLabel
-	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
 figTitles = [
-"Paper number",
-"Papers per year",
-"Total citations",
-"Citations per year",
-"Mean citations",
-"Citations for each paper"
+	"Paper number",
+	"Papers per year",
+	"Total citations",
+	"Citations per year",
+	"Mean citations",
+	"Citations for each paper"
 ]
 
 
@@ -52,12 +51,13 @@ class authorStatsPlots(QDialog):
 				which should have a property `lastAuthorStats`
 		"""
 		super(authorStatsPlots, self).__init__(parent)
+		self.figs = figs
 		if title is not None:
 			self.setWindowTitle(title)
 		layout = QGridLayout(self)
 		layout.setSpacing(1)
 		self.setLayout(layout)
-		self.updatePlots(figs)
+		self.updatePlots()
 
 		nlines = int(len(figs)/2)
 		self.layout().addWidget(MyLabel(
@@ -65,7 +65,7 @@ class authorStatsPlots(QDialog):
 
 		try:
 			hIndex = "%d"%self.parent().lastAuthorStats["h"]
-		except AttributeError:
+		except (TypeError, AttributeError):
 			hIndex = "ND"
 		self.hIndex = MyLabel("Author h index: %s"%hIndex)
 		largerFont = QFont("Times", 15, QFont.Bold)
@@ -139,28 +139,24 @@ class authorStatsPlots(QDialog):
 				figTitles[ix], np.take(xdata, ind)[0].strftime("%d/%m/%Y"),
 				np.take(ydata, ind)[0]))
 
-	def updatePlots(self, figs):
+	def updatePlots(self):
 		"""Reset the dialog window removing all the previous items
 		and create new canvas for the figures.
-
-		Parameter:
-			figs: the list of figures to be inserted in the dialog
 		"""
 		i = 0
 		while True:
 			item = self.layout().takeAt(i)
-			if item is None: break
+			if item is None:
+				break
 			del item
-		if hasattr(self, "canvas"): del self.canvas
-		self.figs = figs
+		if hasattr(self, "canvas"):
+			del self.canvas
 		self.canvas = []
-		for fig in figs:
+		for fig in self.figs:
 			if fig is not None:
 				self.canvas.append(FigureCanvas(fig))
 				self.layout().addWidget(self.canvas[-1], int(i/2), i%2)
 				self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
-				#self.canvas[-1].mpl_connect(
-					#'button_press_event', self.onPress)
 				self.canvas[-1].draw()
 				i += 1
 
@@ -181,12 +177,13 @@ class paperStatsPlots(QDialog):
 				which should have a property lastPaperStats
 		"""
 		super(paperStatsPlots, self).__init__(parent)
+		self.fig = fig
 		if title is not None:
 			self.setWindowTitle(title)
 		layout = QGridLayout(self)
 		layout.setSpacing(1)
 		self.setLayout(layout)
-		self.updatePlots(fig)
+		self.updatePlots()
 
 		nlines = 1
 		self.layout().addWidget(MyLabel(
@@ -240,22 +237,19 @@ class paperStatsPlots(QDialog):
 			self.textBox.setText(formatString%("Citations", np.take(
 				xdata, ind)[0].strftime("%d/%m/%Y"), np.take(ydata, ind)[0]))
 
-	def updatePlots(self, fig):
+	def updatePlots(self):
 		"""Reset the dialog window removing all the previous items
 		and create a new canvas for the figure.
-
-		Parameter:
-			fig: the figure to be inserted in the dialog
 		"""
 		i = 0
 		while True:
 			item = self.layout().takeAt(i)
-			if item is None: break
+			if item is None:
+				break
 			del item
 		if hasattr(self, "canvas"): del self.canvas
-		self.fig = fig
-		if fig is not None:
-			self.canvas = FigureCanvas(fig)
+		if self.fig is not None:
+			self.canvas = FigureCanvas(self.fig)
 			self.layout().addWidget(self.canvas, 0, 0, 1, 2)
 			self.canvas.mpl_connect("pick_event", self.pickEvent)
 			self.canvas.draw()
