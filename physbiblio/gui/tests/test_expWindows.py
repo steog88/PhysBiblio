@@ -580,7 +580,7 @@ class TestExpsListWindow(GUITestCase):
 			QTest.keyPress(elw, Qt.Key_Enter)
 			_oc.assert_not_called()
 			QTest.keyPress(elw, Qt.Key_Escape)
-			_oc.assert_called_once()
+			self.assertEqual(_oc.call_count, 1)
 
 	def test_createTable(self):
 		"""test createTable"""

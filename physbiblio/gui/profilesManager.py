@@ -181,7 +181,7 @@ class selectProfiles(QDialog):
 class myOrderPushButton(QPushButton):
 	"""Define a button to switch two form lines"""
 
-	def __init__(self, parent, data, qicon, text, testing = False):
+	def __init__(self, parent, data, qicon, text, testing=False):
 		"""Extend `QPushButton.__init__`
 
 		Parameters:
@@ -211,7 +211,7 @@ class myOrderPushButton(QPushButton):
 class editProfileWindow(EditObjectWindow):
 	"""create a window for editing or creating a profile"""
 
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		"""Prepare instance and create form"""
 		super(editProfileWindow, self).__init__(parent)
 		self.createForm()
@@ -245,9 +245,9 @@ class editProfileWindow(EditObjectWindow):
 		self.close()
 
 	def addButtons(self,
-			profilesData = None,
-			profileOrder = None,
-			defaultProfile = None):
+			profilesData=None,
+			profileOrder=None,
+			defaultProfile=None):
 		"""Read profiles configuration and add `QLineEdits` and buttons
 		for the existing profiles, using previous form content if requested
 
@@ -284,13 +284,13 @@ class editProfileWindow(EditObjectWindow):
 				prof = profilesData[k]
 			except KeyError:
 				pBLogger.warning("Missing profile: '%s' in %s"%(
-					k, profilesData.keys()))
+					k, sorted(list(profilesData))))
 				missing.append(k)
 				continue
 			for f in ["db", "d"]:
-				if f not in prof.keys():
+				if f not in list(prof):
 					pBLogger.warning("Missing info: '%s' in %s. "%(
-						f, prof.keys()) + "Default to empty.")
+						f, sorted(list(prof))) + "Default to empty.")
 					prof[f] = ""
 			i += 1
 			tempEl = {}
@@ -332,10 +332,10 @@ class editProfileWindow(EditObjectWindow):
 				self.elements[i]["r"].setChecked(True)
 
 	def createForm(self,
-			profilesData = None,
-			profileOrder = None,
-			defaultProfile = None,
-			newLine = {"r": False, "n": "", "db": "", "d": "", "c": "None"}):
+			profilesData=None,
+			profileOrder=None,
+			defaultProfile=None,
+			newLine={"r": False, "n": "", "db": "", "d": "", "c": "None"}):
 		"""Create the form for managing profiles,
 		using previous form content if requested.
 
@@ -388,7 +388,7 @@ class editProfileWindow(EditObjectWindow):
 		for f in ["c", "db", "d", "n", "r"]:
 			if f not in newLine.keys():
 				pBLogger.warning("Missing field: '%s' in %s. "%(
-					f, newLine.keys()) + "Default to empty.")
+					f, sorted(list(newLine))) + "Default to empty.")
 				newLine[f] = ""
 		i = len(profilesData) + 3
 		self.currGrid.addWidget(MyLabel(""), i-2, 0)

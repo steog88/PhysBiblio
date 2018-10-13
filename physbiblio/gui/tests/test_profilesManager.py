@@ -120,12 +120,13 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow"
+					+ ".statusBarMessage") as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -149,14 +150,15 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
-					return_value = True) as _ayn,\
+					return_value=True) as _ayn,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -184,12 +186,13 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -199,7 +202,7 @@ class TestEditProf(GUIwMainWTestCase):
 				call(os.path.join(pbConfig.dataPath, 'test2.db'),
 					'name',
 					'testA',
-					identifierField = 'databasefile'),
+					identifierField='databasefile'),
 				call(u'testA', 'description', u'test2'),
 				call(u'test3', 'description', u'test3'),
 			])
@@ -218,14 +221,15 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
-					return_value = True) as _ayn,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+					return_value=True) as _ayn,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -235,7 +239,7 @@ class TestEditProf(GUIwMainWTestCase):
 				call(os.path.join(pbConfig.dataPath, 'test2.db'),
 					'name',
 					'testA',
-					identifierField = 'databasefile'),
+					identifierField='databasefile'),
 				call(u'testA', 'description', u'test2'),
 				call(u'test3', 'description', u'test3'),
 			])
@@ -258,14 +262,15 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
-					return_value = False) as _ayn,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+					return_value=False) as _ayn,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -275,7 +280,7 @@ class TestEditProf(GUIwMainWTestCase):
 				call(os.path.join(pbConfig.dataPath, 'test2.db'),
 					'name',
 					'testA',
-					identifierField = 'databasefile'),
+					identifierField='databasefile'),
 				call(u'testA', 'description', u'test2'),
 				call(u'test3', 'description', u'test3'),
 			])
@@ -298,13 +303,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+				patch("logging.Logger.info") as _w,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -316,12 +322,12 @@ class TestEditProf(GUIwMainWTestCase):
 			])
 			_dp.assert_not_called()
 			_cp.assert_called_once_with(
-				databasefile = os.path.join(pbConfig.dataPath, 'testNew.db'),
-				description = '',
-				name = 'testNew')
+				databasefile=os.path.join(pbConfig.dataPath, 'testNew.db'),
+				description='',
+				name='testNew')
 			_spo.assert_called_once_with(
 				['test1', 'test2', 'test3', "testNew"])
-			_w.assert_called_with('New profile created.\n')
+			_w.assert_called_with('New profile created.')
 			_copy.assert_not_called()
 
 		# test creation of new profile as copy of existing one
@@ -335,13 +341,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
 				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.globalDB.updateProfileField"
+					) as _upf,\
 				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
 				patch("physbiblio.config.globalDB.createProfile") as _cp,\
 				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
-				patch("physbiblio.gui.errorManager.ErrorStream.write") as _w,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
-					as _m,\
+				patch("logging.Logger.info") as _w,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _m,\
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with()
@@ -353,12 +360,12 @@ class TestEditProf(GUIwMainWTestCase):
 			])
 			_dp.assert_not_called()
 			_cp.assert_called_once_with(
-				databasefile = os.path.join(pbConfig.dataPath, 'testNew.db'),
-				description = '',
-				name = 'testNew')
+				databasefile=os.path.join(pbConfig.dataPath, 'testNew.db'),
+				description='',
+				name='testNew')
 			_spo.assert_called_once_with(
 				['test1', 'test2', 'test3', "testNew"])
-			_w.assert_called_with('New profile created.\n')
+			_w.assert_called_with('New profile created.')
 			_copy.assert_called_once_with(
 				os.path.join(pbConfig.dataPath, 'test1.db'),
 				os.path.join(pbConfig.dataPath, 'testNew.db'))
@@ -413,7 +420,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
 				as _iu,\
 				patch("physbiblio.gui.profilesManager.QDialog.close") as _c:
-			sp = selectProfiles(MainWindow(True))
+			sp = selectProfiles(self.mainW)
 			sp.onCancel()
 			_c.assert_called_once_with()
 			self.assertFalse(sp.result)
@@ -775,10 +782,10 @@ class TestEditProfile(GUITestCase):
 		with patch("logging.Logger.warning") as _w:
 			ep.addButtons(pdata, porder, pdefault)
 			_w.assert_has_calls([
-				call("Missing info: 'd' in ['x', 'r', 'db', 'n']." +
+				call("Missing info: 'd' in ['db', 'n', 'r', 'x']." +
 					" Default to empty."),
 				call("Missing profile: 'test4' in " +
-					"['test1', 'test3A', 'test2']"),
+					"['test1', 'test2', 'test3A']"),
 				])
 		self.assertIsInstance(ep.def_group, QButtonGroup)
 		self.assertIsInstance(ep.elements, list)
@@ -838,7 +845,7 @@ class TestEditProfile(GUITestCase):
 		with patch("physbiblio.gui.profilesManager.editProfileWindow.addButtons") \
 				as _a,\
 				patch("glob.iglob",
-					return_value = ["old1.db", "test1.db"]) as _g:
+					return_value=["old1.db", "test1.db"]) as _g:
 			ep.createForm()
 			_a.assert_called_once_with(
 				pbConfig.profiles,
@@ -980,15 +987,15 @@ class TestEditProfile(GUITestCase):
 		with patch("physbiblio.gui.profilesManager.editProfileWindow.addButtons") \
 				as _a,\
 				patch("glob.iglob",
-					return_value = ["old1.db", "test1.db"]) as _g,\
+					return_value=["old1.db", "test1.db"]) as _g,\
 				patch("logging.Logger.warning") as _w:
 			ep.createForm(pdata, porder, pdefault, pnew)
 			_a.assert_called_once_with(pdata, porder)
 			_w.assert_called_with("Missing field: 'd' in " +
-				"['c', 'r', 'db', 'n']" +
+				"['c', 'db', 'n', 'r']" +
 				". Default to empty.")
 		ep.cleanLayout()
-		with patch("glob.iglob", return_value = ["old1.db", "test1.db"]) as _g:
+		with patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g:
 			ep.createForm(pdata, porder, pdefault, pnew)
 
 		w0 = ep.layout().itemAtPosition(i, 0).widget()

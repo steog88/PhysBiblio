@@ -788,7 +788,7 @@ class TestCatsTreeWindow(GUITestCase):
 			QTest.keyPress(ctw, Qt.Key_Enter)
 			_oc.assert_not_called()
 			QTest.keyPress(ctw, Qt.Key_Escape)
-			_oc.assert_called_once()
+			self.assertEqual(_oc.call_count, 1)
 
 	def test_createForm(self):
 		"""test createForm"""

@@ -945,7 +945,7 @@ class TestAuthorStatsPlots(GUITestCase):
 			with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
 					"saveAction") as _sa:
 				QTest.mouseClick(asp.saveButton, Qt.LeftButton)
-				_sa.assert_called_once()
+				self.assertEqual(_sa.call_count, 1)
 			self.assertIsInstance(asp.clButton, QPushButton)
 			self.assertEqual(asp.clButton.text(), "Close")
 			self.assertTrue(asp.clButton.autoDefault())
@@ -954,7 +954,7 @@ class TestAuthorStatsPlots(GUITestCase):
 			with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
 					"onClose") as _cl:
 				QTest.mouseClick(asp.clButton, Qt.LeftButton)
-				_cl.assert_called_once()
+				self.assertEqual(_cl.call_count, 1)
 
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent = fakepar)
@@ -970,7 +970,7 @@ class TestAuthorStatsPlots(GUITestCase):
 			self.assertEqual(asp.windowTitle(), "abcdef")
 
 	def test_saveAction(self):
-		"""Test """
+		"""Test saveAction"""
 		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
 				"updatePlots") as _up:
 			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"],
@@ -991,7 +991,7 @@ class TestAuthorStatsPlots(GUITestCase):
 					self.assertFalse(asp.saveButton.isEnabled())
 					_ps.assert_called_once_with(
 						author = True, path = '/tmp', save = True)
-					_ex.assert_called_once()
+					self.assertEqual(_ex.call_count, 1)
 					self.assertEqual(fakepar.lastAuthorStats["figs"],
 						"fakeval")
 
@@ -1069,7 +1069,7 @@ class TestPaperStatsPlots(GUITestCase):
 		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots." +
 				"saveAction") as _sa:
 			QTest.mouseClick(asp.saveButton, Qt.LeftButton)
-			_sa.assert_called_once()
+			self.assertEqual(_sa.call_count, 1)
 		self.assertIsInstance(asp.clButton, QPushButton)
 		self.assertEqual(asp.clButton.text(), "Close")
 		self.assertTrue(asp.clButton.autoDefault())
@@ -1078,7 +1078,7 @@ class TestPaperStatsPlots(GUITestCase):
 		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots.onClose")  \
 				as _cl:
 			QTest.mouseClick(asp.clButton, Qt.LeftButton)
-			_cl.assert_called_once()
+			self.assertEqual(_cl.call_count, 1)
 
 		asp = paperStatsPlots(testData['figs'][2], parent = fakepar)
 		self.assertEqual(asp.parent(), fakepar)
@@ -1110,7 +1110,7 @@ class TestPaperStatsPlots(GUITestCase):
 					paper = True,
 					path = '/tmp',
 					save = True)
-				_ex.assert_called_once()
+				self.assertEqual(_ex.call_count, 1)
 				self.assertEqual(fakepar.lastAuthorStats["figs"], "fakeval")
 
 	def test_pickEvent(self):

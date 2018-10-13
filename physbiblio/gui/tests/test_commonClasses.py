@@ -279,7 +279,7 @@ class TestObjListWindow(GUITestCase):
 					as _rr:
 			olw.finalizeTable()
 			_rc.assert_has_calls([call(), call()])
-			_rr.assert_called_once()
+			self.assertEqual(_rr.call_count, 1)
 		self.assertIsInstance(olw.tablewidget, MyTableView)
 		maxw = QDesktopWidget().availableGeometry().width()
 		self.assertEqual(olw.maximumHeight(),
@@ -335,8 +335,8 @@ class TestObjListWindow(GUITestCase):
 				patch("physbiblio.gui.commonClasses.objListWindow." +
 					"createTable") as _ct:
 			olw.recreateTable()
-			_cl.assert_called_once()
-			_ct.assert_called_once()
+			self.assertEqual(_cl.call_count, 1)
+			self.assertEqual(_ct.call_count, 1)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -365,7 +365,7 @@ class TestEditObjectWindow(GUITestCase):
 			QTest.keyPress(w, Qt.Key_Enter)
 			_oc.assert_not_called()
 			QTest.keyPress(w, Qt.Key_Escape)
-			_oc.assert_called_once()
+			self.assertEqual(_oc.call_count, 1)
 
 	def test_onCancel(self):
 		"""test onCancel"""
@@ -373,7 +373,7 @@ class TestEditObjectWindow(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			eow.onCancel()
 			self.assertFalse(eow.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -381,7 +381,7 @@ class TestEditObjectWindow(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			eow.onOk()
 			self.assertTrue(eow.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_initUI(self):
 		"""test initUI"""
@@ -408,11 +408,11 @@ class TestEditObjectWindow(GUITestCase):
 				patch("PySide2.QtWidgets.QDialog.move",
 					autospec = True) as _mo:
 			eow.centerWindow()
-			_fg.assert_called_once()
-			_ce.assert_called_once()
-			_mc.assert_called_once()
-			_tl.assert_called_once()
-			_mo.assert_called_once()
+			self.assertEqual(_fg.call_count, 1)
+			self.assertEqual(_ce.call_count, 1)
+			self.assertEqual(_mc.call_count, 1)
+			self.assertEqual(_tl.call_count, 1)
+			self.assertEqual(_mo.call_count, 1)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -423,7 +423,7 @@ class TestMyThread(GUITestCase):
 		"""test all the methods in the class"""
 		with patch("PySide2.QtCore.QThread.__init__", autospec = True) as _in:
 			MyThread()
-			_in.assert_called_once()
+			self.assertEqual(_in.call_count, 1)
 		mt = MyThread()
 		self.assertIsInstance(mt, QThread)
 		self.assertRaises(NotImplementedError, lambda: mt.run())
@@ -464,7 +464,7 @@ class TestWriteStream(GUITestCase):
 			with patch("Queue.Queue.get", return_value = "abc") as _get:
 				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
-				_get.assert_called_once()
+				self.assertEqual(_get.call_count, 1)
 				self.assertEqual(ws.text, "abc")
 				self.assertTrue(ws.fin)
 		else:
@@ -474,7 +474,7 @@ class TestWriteStream(GUITestCase):
 			with patch("queue.Queue.get", return_value = "abc") as _get:
 				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
-				_get.assert_called_once()
+				self.assertEqual(_get.call_count, 1)
 				self.assertEqual(ws.text, "abc")
 				self.assertTrue(ws.fin)
 
@@ -844,7 +844,7 @@ class TestTreeModel(GUITestCase):
 		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes",
 				return_value = "empty") as _gr:
 			tm = TreeModel()
-			_gr.assert_called_once()
+			self.assertEqual(_gr.call_count, 1)
 		self.assertIsInstance(tm, QAbstractItemModel)
 		self.assertEqual(tm.rootNodes, "empty")
 
@@ -1297,7 +1297,7 @@ class TestMyMenu(GUITestCase):
 			QTest.keyPress(mm, Qt.Key_Enter)
 			_oc.assert_not_called()
 			QTest.keyPress(mm, Qt.Key_Escape)
-			_oc.assert_called_once()
+			self.assertEqual(_oc.call_count, 1)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -1369,7 +1369,7 @@ class TestMyImportedTableModel(GUITestCase):
 				},
 				["key", "id"],
 				"bibkey")
-			_ps.assert_called_once()
+			self.assertEqual(_ps.call_count, 1)
 		self.assertIsInstance(mitm, MyTableModel)
 		self.assertEqual(mitm.typeClass, "imports")
 		self.assertEqual(mitm.idName, "bibkey")

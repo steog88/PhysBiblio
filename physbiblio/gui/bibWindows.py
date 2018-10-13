@@ -5,8 +5,8 @@ This file is part of the physbiblio package.
 """
 import traceback
 import os
-import matplotlib
 import ast
+import matplotlib
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
 from matplotlib.backends.backend_agg import FigureCanvasAgg

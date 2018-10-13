@@ -105,7 +105,7 @@ class TestConfigEditColumns(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cec.onCancel()
 			self.assertFalse(cec.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -114,7 +114,7 @@ class TestConfigEditColumns(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cec.onOk()
 			self.assertTrue(cec.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 		self.assertEqual(cec.selected,
 			['bibkey', 'author', 'title'])
 		item = QTableWidgetItem("arxiv")
@@ -201,7 +201,7 @@ class TestConfigWindow(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cw.onCancel()
 			self.assertFalse(cw.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -209,7 +209,7 @@ class TestConfigWindow(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cw.onOk()
 			self.assertTrue(cw.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_editFolder(self):
 		"""test editFolder"""
@@ -664,11 +664,11 @@ class TestPrintText(GUITestCase):
 				patch("PySide2.QtWidgets.QDialog.move",
 					autospec=True) as _mo:
 			pt.centerWindow()
-			_fg.assert_called_once()
-			_ce.assert_called_once()
-			_mc.assert_called_once()
-			_tl.assert_called_once()
-			_mo.assert_called_once()
+			self.assertEqual(_fg.call_count, 1)
+			self.assertEqual(_ce.call_count, 1)
+			self.assertEqual(_mc.call_count, 1)
+			self.assertEqual(_tl.call_count, 1)
+			self.assertEqual(_mo.call_count, 1)
 
 	def test_appendText(self):
 		"""test appendText"""
@@ -776,7 +776,7 @@ class TestAdvImportDialog(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			aid.onCancel()
 			self.assertFalse(aid.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -784,7 +784,7 @@ class TestAdvImportDialog(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			aid.onOk()
 			self.assertTrue(aid.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_initUI(self):
 		"""test initUI"""
@@ -858,7 +858,7 @@ class TestAdvImportSelect(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ais.onCancel()
 			self.assertFalse(ais.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -866,7 +866,7 @@ class TestAdvImportSelect(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ais.onOk()
 			self.assertTrue(ais.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
@@ -880,7 +880,7 @@ class TestAdvImportSelect(GUITestCase):
 			_oc.assert_not_called()
 			self.assertTrue(ais.result)
 			QTest.keyPress(ais, Qt.Key_Escape)
-			_oc.assert_called_once()
+			self.assertEqual(_oc.call_count, 1)
 			self.assertFalse(ais.result)
 
 	def test_initUI(self):
@@ -1016,7 +1016,7 @@ class TestDailyArxivDialog(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			dad.onCancel()
 			self.assertFalse(dad.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_onOk(self):
 		"""test onOk"""
@@ -1024,7 +1024,7 @@ class TestDailyArxivDialog(GUITestCase):
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			dad.onOk()
 			self.assertTrue(dad.result)
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 
 	def test_updateCat(self):
 		"""test updateCat"""
@@ -1106,11 +1106,11 @@ class TestDailyArxivDialog(GUITestCase):
 				patch("PySide2.QtWidgets.QDialog.move",
 					autospec = True) as _mo:
 			dad.initUI()
-			_fg.assert_called_once()
-			_ce.assert_called_once()
-			_mc.assert_called_once()
-			_tl.assert_called_once()
-			_mo.assert_called_once()
+			self.assertEqual(_fg.call_count, 1)
+			self.assertEqual(_ce.call_count, 1)
+			self.assertEqual(_mc.call_count, 1)
+			self.assertEqual(_tl.call_count, 1)
+			self.assertEqual(_mo.call_count, 1)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

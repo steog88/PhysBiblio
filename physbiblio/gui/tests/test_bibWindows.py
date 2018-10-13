@@ -3924,11 +3924,11 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellClick") as _f:
 			bw.tablewidget.clicked.emit(QModelIndex())
-			_f.assert_called_once()
+			self.assertEqual(_f.call_count, 1)
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellDoubleClick") as _f:
 			bw.tablewidget.doubleClicked.emit(QModelIndex())
-			_f.assert_called_once()
+			self.assertEqual(_f.call_count, 1)
 		bw.cleanLayout()
 		pbConfig.params["resizeTable"] = True
 		with patch("PySide2.QtGui.QFont.setPointSize") as _sps,\
@@ -4947,7 +4947,7 @@ class TestFieldsFromArxiv(GUITestCase):
 		ffa.checkBoxes["title"].setChecked(False)
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ffa.onOk()
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 		self.assertTrue(ffa.result)
 		self.assertTrue(hasattr(ffa, "output"))
 		self.assertIsInstance(ffa.output, list)
@@ -4960,7 +4960,7 @@ class TestFieldsFromArxiv(GUITestCase):
 		ffa = FieldsFromArxiv(p)
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ffa.onCancel()
-			_c.assert_called_once()
+			self.assertEqual(_c.call_count, 1)
 		self.assertFalse(ffa.result)
 		self.assertFalse(hasattr(ffa, "output"))
 

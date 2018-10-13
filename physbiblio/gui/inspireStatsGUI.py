@@ -42,7 +42,7 @@ class authorStatsPlots(QDialog):
 	the results of `authorStats`
 	"""
 
-	def __init__(self, figs, title = None, parent = None):
+	def __init__(self, figs, title=None, parent=None):
 		"""Constructor.
 
 		Parameters:
@@ -97,7 +97,7 @@ class authorStatsPlots(QDialog):
 		if savePath != "":
 			try:
 				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(
-					author = True, save = True, path = savePath)
+					author=True, save=True, path=savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info=True)
 			infoMessage("Plots saved.")
@@ -170,7 +170,7 @@ class paperStatsPlots(QDialog):
 	to show the results of `paperStats`
 	"""
 
-	def __init__(self, fig, title = None, parent = None):
+	def __init__(self, fig, title=None, parent=None):
 		"""Constructor.
 		Defines some properties and buttons
 
@@ -217,7 +217,7 @@ class paperStatsPlots(QDialog):
 		if savePath != "":
 			try:
 				self.parent().lastPaperStats["fig"] = pBStats.plotStats(
-					paper = True, save = True, path = savePath)
+					paper=True, save=True, path=savePath)
 			except AttributeError:
 				pBLogger.warning("", exc_info=True)
 			infoMessage("Plot saved.")
