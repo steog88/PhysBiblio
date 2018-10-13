@@ -133,18 +133,12 @@ class configWindow(QDialog):
 		self.result	= True
 		self.close()
 
-	def editFolder(self, paramkey="pdfFolder"):
+	def editPDFFolder(self):
 		"""Open a dialog to select a new folder name
-		for a configuration parameter, and save the result
+		for the PDF path, and save the result
 		in the `configWindow` interface
-
-		Parameter:
-			paramkey: the parameter name in the configuration dictionary
 		"""
-		if paramkey not in pbConfig.paramOrder:
-			pBLogger.warning("Invalid paramkey: '%s'"%paramkey)
-			return
-		ix = pbConfig.paramOrder.index(paramkey)
+		ix = pbConfig.paramOrder.index("pdfFolder")
 		folder = askDirName(
 			parent=None,
 			dir=self.textValues[ix][1].text(),
@@ -226,7 +220,7 @@ class configWindow(QDialog):
 				self.textValues[-1][1].clicked.connect(self.editColumns)
 			elif k == "pdfFolder":
 				self.textValues.append([k, QPushButton(val)])
-				self.textValues[-1][1].clicked.connect(self.editFolder)
+				self.textValues[-1][1].clicked.connect(self.editPDFFolder)
 			elif k == "loggingLevel":
 				try:
 					self.textValues.append([k, MyComboBox(self,

@@ -211,15 +211,15 @@ class TestConfigWindow(GUITestCase):
 			self.assertTrue(cw.result)
 			self.assertEqual(_c.call_count, 1)
 
-	def test_editFolder(self):
-		"""test editFolder"""
+	def test_editPDFFolder(self):
+		"""test editPDFFolder"""
 		cw = configWindow()
 		ix = pbConfig.paramOrder.index("pdfFolder")
 		self.assertEqual(cw.textValues[ix][1].text(),
 			pbConfig.params["pdfFolder"])
 		with patch("physbiblio.gui.dialogWindows.askDirName",
 				return_value = "/some/new/folder/") as _adn:
-			cw.editFolder()
+			cw.editPDFFolder()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/")
 			_adn.assert_called_once_with(parent=None,
@@ -227,15 +227,12 @@ class TestConfigWindow(GUITestCase):
 				title="Directory for saving PDF files:")
 		with patch("physbiblio.gui.dialogWindows.askDirName",
 				return_value="") as _adn:
-			cw.editFolder()
+			cw.editPDFFolder()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/")
 			_adn.assert_called_once_with(parent=None,
 				dir="/some/new/folder/",
 				title="Directory for saving PDF files:")
-		with patch("logging.Logger.warning") as _w:
-			cw.editFolder("someField")
-			_w.assert_called_once_with("Invalid paramkey: 'someField'")
 
 	def test_editFile(self):
 		"""test editFile"""
@@ -358,9 +355,9 @@ class TestConfigWindow(GUITestCase):
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
 				with patch("physbiblio.gui.dialogWindows.configWindow." +
-						"editFolder") as _f:
+						"editPDFFolder") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
-					_f.assert_called_once_with(False)
+					_f.assert_called_once_with()
 			elif k == "loggingLevel":
 				currClass = MyComboBox
 				currWidget = cw.textValues[ix][1]
