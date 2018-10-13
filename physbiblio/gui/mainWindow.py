@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
 			statusTip="Manage profiles",
 			triggered=self.manageProfiles)
 
-		self.editProfileWindowsAct = QAction(
+		self.EditProfileWindowsAct = QAction(
 			"&Edit profiles", self,
 			shortcut="Ctrl+Alt+P",
 			statusTip="Edit profiles",
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportUpdateAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.profilesAct)
-		self.fileMenu.addAction(self.editProfileWindowsAct)
+		self.fileMenu.addAction(self.EditProfileWindowsAct)
 		self.fileMenu.addAction(self.configAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)

@@ -193,7 +193,7 @@ class TestMainWindow(GUITestCase):
 			s="Ctrl+P",
 			i=":/images/profiles.png")
 
-		assertAction(self.mainW.editProfileWindowsAct,
+		assertAction(self.mainW.EditProfileWindowsAct,
 			"&Edit profiles",
 			"Edit profiles",
 			"editProfile",
@@ -432,7 +432,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.exportUpdateAct,
 			None,
 			self.mainW.profilesAct,
-			self.mainW.editProfileWindowsAct,
+			self.mainW.EditProfileWindowsAct,
 			self.mainW.configAct,
 			None,
 			self.mainW.exitAct])

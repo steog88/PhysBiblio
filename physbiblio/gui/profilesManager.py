@@ -27,7 +27,7 @@ except ImportError:
 
 
 def editProfile(parentObject):
-	"""Use `editProfileWindow` and process the form output
+	"""Use `EditProfileWindow` and process the form output
 
 	Parameters:
 		parentObject: the parent object,
@@ -35,7 +35,7 @@ def editProfile(parentObject):
 			(a `MainWindow` instance)
 	"""
 	oldOrder = pbConfig.profileOrder
-	newProfWin = editProfileWindow(parentObject)
+	newProfWin = EditProfileWindow(parentObject)
 	newProfWin.exec_()
 	data = {}
 	if newProfWin.result:
@@ -185,7 +185,7 @@ class myOrderPushButton(QPushButton):
 		"""Extend `QPushButton.__init__`
 
 		Parameters:
-			parent: the parent object (an `editProfileWindow` instance)
+			parent: the parent object (an `EditProfileWindow` instance)
 			data: the index of the row that will be switched
 			qicon: the `QIcon` that will be used to build the `QPushButton`
 			text: the `QPushButton` text
@@ -193,7 +193,7 @@ class myOrderPushButton(QPushButton):
 				if True, do not connect the clicked signal
 		"""
 		self.qicon = qicon
-		super(myOrderPushButton, self).__init__(self.qicon, text)
+		QPushButton.__init__(self, self.qicon, text)
 		self.data = data
 		self.parentObj = parent
 		if not testing:
@@ -208,12 +208,12 @@ class myOrderPushButton(QPushButton):
 		return self.parentObj
 
 
-class editProfileWindow(EditObjectWindow):
+class EditProfileWindow(EditObjectWindow):
 	"""create a window for editing or creating a profile"""
 
 	def __init__(self, parent=None):
 		"""Prepare instance and create form"""
-		super(editProfileWindow, self).__init__(parent)
+		EditObjectWindow.__init__(self, parent)
 		self.createForm()
 
 	def onOk(self):
