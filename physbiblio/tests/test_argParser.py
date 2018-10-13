@@ -240,7 +240,7 @@ class TestParser(unittest.TestCase):
 				self.assertEqual(skipTestsSettings.long, _lon)
 				self.assertEqual(skipTestsSettings.oai, _oai)
 				self.assertEqual(skipTestsSettings.online, _onl)
-				_run.assert_called_once()
+				self.assertEqual(_run.call_count, 1)
 		with self.assertRaises(SystemExit):
 			args = parser.parse_args(["test", "-a"])
 		skipTestsSettings = oldSettings

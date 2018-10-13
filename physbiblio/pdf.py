@@ -3,6 +3,7 @@
 This file is part of the physbiblio package.
 """
 import sys
+import six
 import shutil
 import traceback
 if sys.version_info[0] < 3:
@@ -44,7 +45,7 @@ class LocalPDF():
 			the cleaned filename
 		"""
 		newFilename = ""
-		if not (isinstance(filename, str) or isinstance(filename, unicode)):
+		if not isinstance(filename, six.string_types):
 			pBLogger.warning("Wrong filename type! %s"%filename)
 			return ""
 		for i in filename:

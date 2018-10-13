@@ -86,15 +86,15 @@ fullRecordAde = {
 	'pages': 'A16',
 	'published': 'Astron.Astrophys. 571 (2014) A16',
 	'author': 'Ade, P.A.R. and others',
-	'bibdict': "{u'doi': u'10.1051/0004-6361/201321591', u'author': "
-		+ "u'Ade, P.A.R. and others', 'ENTRYTYPE': u'article', "
-		+ "u'collaboration': u'Planck', u'title': "
-		+ "u'{Planck 2013 results. XVI. Cosmological parameters}', "
-		+ "u'pages': u'A16', u'volume': u'571', u'reportnumber': "
-		+ "u'CERN-PH-TH-2013-129', u'eprint': u'1303.5076', "
-		+ "u'primaryclass': u'astro-ph.CO', u'year': u'2014', "
-		+ "'ID': u'Ade:2013zuv', u'archiveprefix': u'arXiv', "
-		+ "u'journal': u'Astron.Astrophys.'}"}
+	'bibdict': {u'doi': u'10.1051/0004-6361/201321591', u'author':
+		u'Ade, P.A.R. and others', 'ENTRYTYPE': u'article',
+		u'collaboration': u'Planck', u'title':
+		u'{Planck 2013 results. XVI. Cosmological parameters}',
+		u'pages': u'A16', u'volume': u'571', u'reportnumber':
+		u'CERN-PH-TH-2013-129', u'eprint': u'1303.5076',
+		u'primaryclass': u'astro-ph.CO', u'year': u'2014',
+		'ID': u'Ade:2013zuv', u'archiveprefix': u'arXiv',
+		u'journal': u'Astron.Astrophys.'}}
 fullRecordGariazzo = {
 	'bibkey': 'Gariazzo:2015rra',
 	'inspire': '1385583',
@@ -148,14 +148,14 @@ fullRecordGariazzo = {
 	'pages': '033001',
 	'published': 'J.Phys. G43 (2016) 033001',
 	'author': 'Gariazzo, S. et al.',
-	'bibdict': "{u'doi': u'10.1088/0954-3899/43/3/033001', "
-		+ "u'author': u'Gariazzo, S. and Giunti, C. and Laveder, M. and "
-		+ "Li, Y.F. and Zavanin, E.M.', u'journal': u'J.Phys.', "
-		+ "u'title': u'{Light sterile neutrinos}', 'ENTRYTYPE': "
-		+ "u'article', u'volume': u'G43', u'eprint': u'1507.08204', "
-		+ "u'primaryclass': u'hep-ph', u'year': u'2016', 'ID': "
-		+ "u'Gariazzo:2015rra', u'archiveprefix': u'arXiv', "
-		+ "u'pages': u'033001'}"}
+	'bibdict': {u'doi': u'10.1088/0954-3899/43/3/033001',
+		u'author': u'Gariazzo, S. and Giunti, C. and Laveder, M. and '
+		+ 'Li, Y.F. and Zavanin, E.M.', u'journal': u'J.Phys.',
+		u'title': u'{Light sterile neutrinos}', 'ENTRYTYPE':
+		u'article', u'volume': u'G43', u'eprint': u'1507.08204',
+		u'primaryclass': u'hep-ph', u'year': u'2016', 'ID':
+		u'Gariazzo:2015rra', u'archiveprefix': u'arXiv',
+		u'pages': u'033001'}}
 tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
@@ -999,20 +999,19 @@ class TestDatabaseEntries(DBTestCase):
 			self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
 		self.assertTrue(self.pBDB.bibs.updateField(
 			"def", "bibdict", "{}", verbose=0))
-		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), "{}")
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
 		self.assertTrue(self.pBDB.bibs.updateField(
 			"def", "bibtex",
 			'@Article{abc,\nauthor = "me",\ntitle = "{abc}",\n}',
 			verbose=0))
-		self.assertEqual(ast.literal_eval(
-			self.pBDB.bibs.getField("def", "bibdict")),
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"),
 			{'ENTRYTYPE': 'article', 'ID': 'abc',
 			'author': 'me', 'title': '{abc}'})
 		self.assertTrue(self.pBDB.bibs.updateField(
 			"def", "bibtex",
 			'@Article{abc,\nauthor = "me",\ntitle = ',
 			verbose=0))
-		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), "{}")
+		self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
 
 		self.pBDB.bibs.delete("def")
 		self.insert_three()
@@ -1201,7 +1200,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed["year"], "2018")
 		self.assertEqual(completed["pages"], "1")
 		self.assertEqual(completed["published"], "jcap 3 (2018) 1")
-		self.assertEqual(ast.literal_eval(completed["bibdict"]),
+		self.assertEqual(completed["bibdict"],
 			completed["bibtexDict"])
 
 		self.pBDB.undo(verbose = 0)
@@ -1217,7 +1216,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed["year"], "")
 		self.assertEqual(completed["pages"], "")
 		self.assertEqual(completed["published"], "")
-		self.assertEqual(ast.literal_eval(completed["bibdict"]),
+		self.assertEqual(completed["bibdict"],
 			completed["bibtexDict"])
 
 		data = self.pBDB.bibs.prepareInsert(
@@ -1232,9 +1231,9 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(completed[1]["bibtexDict"],
 			{'ENTRYTYPE': u'article', u'author': u'me',
 			'ID': u'def', u'title': u'{def}'})
-		self.assertEqual(ast.literal_eval(completed[0]["bibdict"]),
+		self.assertEqual(completed[0]["bibdict"],
 			completed[0]["bibtexDict"])
-		self.assertEqual(ast.literal_eval(completed[1]["bibdict"]),
+		self.assertEqual(completed[1]["bibdict"],
 			completed[1]["bibtexDict"])
 
 	def test_fetchFromLast(self):
@@ -1951,7 +1950,7 @@ class TestDatabaseEntries(DBTestCase):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = ' \
 			+ '"abc",}@article{def,\nauthor = "me",\ntitle = "def",}')
-		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc", "def"])
 
@@ -1959,9 +1958,9 @@ class TestDatabaseEntries(DBTestCase):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "abc",\n}\n@article{def,\n}\n')
-		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo = False),
+			"tmpbib.bib", completeInfo=False),
 			"Impossible to parse text:")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
@@ -1970,9 +1969,9 @@ class TestDatabaseEntries(DBTestCase):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\n' \
 			+ 'month = jan,\n}\n@article{def,\n}\n')
-		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo = False),
+			"tmpbib.bib", completeInfo=False),
 			"Impossible to parse text:")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
@@ -2021,14 +2020,14 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.undo(verbose = 0)
 		pbConfig.params["fetchAbstract"] = False
 		pbConfig.params["defaultCategories"] = {"ab"}
-		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo = False)
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo = False),
+			"tmpbib.bib", completeInfo=False),
 			"2 entries processed, of which 2 existing")
 
 		self.pBDB.undo(verbose = 0)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo = False),
+			"tmpbib.bib", completeInfo=False),
 			"Error binding parameter :idCat - probably unsupported type.")
 		self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
 
@@ -2462,8 +2461,8 @@ class TestDatabaseEntries(DBTestCase):
 					'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 					'title': '', 'journal': '', 'volume': '', 'number': '',
 					'pages': '', 'published': '  (2015) ', 'author': '',
-					'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
-					+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
+					'bibdict': {u'arxiv': u'1507.08204', 'ENTRYTYPE':
+						u'article', 'ID': u'Gariazzo:2015rra'}}])
 				mock_function.reset_mock()
 				self.assert_in_stdout(
 					lambda: self.pBDB.bibs.updateInfoFromOAI("12345",
@@ -2490,8 +2489,8 @@ class TestDatabaseEntries(DBTestCase):
 					'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'},
 					'title': '', 'journal': '', 'volume': '', 'number': '',
 					'pages': '', 'published': '  (2016) ', 'author': '',
-					'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
-					+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
+					'bibdict': {u'arxiv': u'1507.08204', 'ENTRYTYPE':
+						u'article', 'ID': u'Gariazzo:2015rra'}}])
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 					[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
@@ -2514,9 +2513,9 @@ class TestDatabaseEntries(DBTestCase):
 					'journal': '', 'volume': '', 'number': '',
 					'pages': '', 'published': '  (2016) ',
 					'author': 'Gariazzo',
-					"bibdict": "{'ID': u'Gariazzo:2015rra', u'title': "
-					+ "u'{Light Sterile Neutrinos}', 'ENTRYTYPE': "
-					+ "u'article', u'author': u'Gariazzo'}"}])
+					"bibdict": {'ID': u'Gariazzo:2015rra', u'title':
+						u'{Light Sterile Neutrinos}', 'ENTRYTYPE':
+						u'article', u'author': u'Gariazzo'}}])
 				self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
 				self.assert_in_stdout(
 					lambda: self.pBDB.bibs.updateInfoFromOAI("12345"),
@@ -2607,9 +2606,9 @@ class TestDatabaseEntries(DBTestCase):
 			'abstract': None, 'bibtexDict': {'arxiv': '1303.5076',
 			'ENTRYTYPE': 'article', 'ID': 'Ade:2013zuv'}, 'title': '',
 			'journal': '', 'volume': '', 'number': '', 'pages': '',
-			'published': '  (2013) ', 'author': '', "bibdict": "{u'arxiv': "
-			+ "u'1303.5076', 'ENTRYTYPE': u'article', "
-			+ "'ID': u'Ade:2013zuv'}"}])
+			'published': '  (2013) ', 'author': '', "bibdict": {u'arxiv':
+				u'1303.5076', 'ENTRYTYPE': u'article',
+				'ID': u'Ade:2013zuv'}}])
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None,
 			'arxiv': '1507.08204', 'ads': None, 'scholar': None,
@@ -2623,9 +2622,9 @@ class TestDatabaseEntries(DBTestCase):
 			'abstract': None, 'bibtexDict': {'arxiv': '1507.08204',
 			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}, 'title': '',
 			'journal': '', 'volume': '', 'number': '', 'pages': '',
-			'published': '  (2015) ', 'author': '', "bibdict": "{u'arxiv': "
-			+ "u'1507.08204', 'ENTRYTYPE': u'article', 'ID': "
-			+ "u'Gariazzo:2015rra'}"}])
+			'published': '  (2015) ', 'author': '', "bibdict": {u'arxiv':
+				u'1507.08204', 'ENTRYTYPE': u'article', 'ID':
+				u'Gariazzo:2015rra'}}])
 		with patch('physbiblio.webimport.inspireoai.webSearch.'
 				+ 'retrieveOAIUpdates',
 				side_effect=[[], [], [], [],
@@ -2667,8 +2666,8 @@ class TestDatabaseEntries(DBTestCase):
 				'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '',
 				'volume': '', 'number': '', 'pages': '',
 				'published': '  (2013) ', 'author': '',
-				"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': "
-				+ "u'article', 'ID': u'Ade:2013zuv'}"}])
+				"bibdict": {u'arxiv': u'1303.5076', 'ENTRYTYPE':
+					u'article', 'ID': u'Ade:2013zuv'}}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
 				'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G',
@@ -2692,10 +2691,10 @@ class TestDatabaseEntries(DBTestCase):
 				'title': '', 'journal': 'J.Phys.', 'volume': 'G43',
 				'number': '', 'pages': '033001',
 				'published': 'J.Phys. G43 (2016) 033001', 'author': '',
-				"bibdict": "{u'doi': u'10.1088/0954-3899/43/3/033001', "
-				+ "u'journal': u'J.Phys.', u'arxiv': u'1507.08204', "
-				+ "'ENTRYTYPE': u'article', u'volume': u'G43', u'year': "
-				+ "u'2016', 'ID': u'Gariazzo:2015rra', u'pages': u'033001'}"}])
+				"bibdict": {u'doi': u'10.1088/0954-3899/43/3/033001',
+					u'journal': u'J.Phys.', u'arxiv': u'1507.08204',
+					'ENTRYTYPE': u'article', u'volume': u'G43', u'year':
+					u'2016', 'ID': u'Gariazzo:2015rra', u'pages': u'033001'}}])
 		self.pBDB.undo(verbose = 0)
 		self.pBDB.bibs.insertFromBibtex(
 			u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
@@ -2717,8 +2716,8 @@ class TestDatabaseEntries(DBTestCase):
 			'bibtexDict': {'arxiv': '1303.5076', 'ENTRYTYPE': 'article',
 			'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '', 'volume': '',
 			'number': '', 'pages': '', 'published': '  (2013) ', 'author': '',
-			"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': u'article', "
-			+ "'ID': u'Ade:2013zuv'}"}
+			"bibdict": {u'arxiv': u'1303.5076', 'ENTRYTYPE': u'article',
+				'ID': u'Ade:2013zuv'}}
 			])
 		self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 			[{'bibkey': 'Gariazzo:2015rra', 'inspire': None,
@@ -2734,8 +2733,8 @@ class TestDatabaseEntries(DBTestCase):
 			'bibtexDict': {'arxiv': '1507.08204', 'ENTRYTYPE': 'article',
 			'ID': 'Gariazzo:2015rra'}, 'title': '', 'journal': '',
 			'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ',
-			'author': '', "bibdict": "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
-			+ "u'article', 'ID': u'Gariazzo:2015rra'}"}])
+			'author': '', "bibdict": {u'arxiv': u'1507.08204', 'ENTRYTYPE':
+				u'article', 'ID': u'Gariazzo:2015rra'}}])
 		with patch('physbiblio.webimport.inspireoai.webSearch.' \
 				+ 'retrieveOAIUpdates',
 				side_effect=[
@@ -2766,8 +2765,8 @@ class TestDatabaseEntries(DBTestCase):
 				'ID': 'Ade:2013zuv'}, 'title': '', 'journal': '',
 				'volume': '', 'number': '', 'pages': '',
 				'published': '  (2013) ', 'author': '',
-				"bibdict": "{u'arxiv': u'1303.5076', 'ENTRYTYPE': "
-				+ "u'article', 'ID': u'Ade:2013zuv'}"}])
+				"bibdict": {u'arxiv': u'1303.5076', 'ENTRYTYPE':
+					u'article', 'ID': u'Ade:2013zuv'}}])
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
 				[{'bibkey': 'Gariazzo:2015rra', 'inspire': '1385583',
 				'arxiv': '1507.08204', 'ads': '2015JPhG...43c3001G',
@@ -2791,11 +2790,11 @@ class TestDatabaseEntries(DBTestCase):
 				'title': '', 'journal': 'J.Phys.', 'volume': 'G43',
 				'number': '', 'pages': '033001',
 				'published': 'J.Phys. G43 (2016) 033001', 'author': '',
-				"bibdict": "{u'doi': u'10.1088/0954-3899/43/3/033001', "
-				+ "u'journal': u'J.Phys.', u'arxiv': u'1507.08204', "
-				+ "'ENTRYTYPE': u'article', u'volume': u'G43', u'year': "
-				+ "u'2016', 'ID': u'Gariazzo:2015rra', "
-				+ "u'pages': u'033001'}"}])
+				"bibdict": {u'doi': u'10.1088/0954-3899/43/3/033001',
+					u'journal': u'J.Phys.', u'arxiv': u'1507.08204',
+					'ENTRYTYPE': u'article', u'volume': u'G43', u'year':
+					u'2016', 'ID': u'Gariazzo:2015rra',
+					u'pages': u'033001'}}])
 
 	def test_findCorrupted(self):
 		"""test the function that finds corrupted bibtexs"""

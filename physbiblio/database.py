@@ -10,7 +10,7 @@ import traceback
 import ast
 import datetime
 import bibtexparser
-import six.moves
+import six
 from pyparsing import ParseException
 import dictdiffer
 
@@ -1267,21 +1267,28 @@ class entries(physbiblioDBSub):
 			tmp = {}
 			for k in el.keys():
 				tmp[k] = el[k]
-			if el["bibdict"] is not None \
-					and el["bibdict"].strip() != "" \
-					and el["bibdict"].strip() != "{}":
-				tmp["bibtexDict"] = ast.literal_eval(el["bibdict"].strip())
+			if el["bibdict"] is not None:
+				if isinstance(el["bibdict"], six.string_types) \
+						and el["bibdict"].strip() != "" \
+						and el["bibdict"].strip() != "{}":
+					tmp["bibtexDict"] = ast.literal_eval(
+						el["bibdict"].strip())
+					tmp["bibdict"] = dict(tmp["bibtexDict"])
+				elif isinstance(el["bibdict"], dict):
+					tmp["bibtexDict"] = tmp["bibdict"]
 			else:
 				try:
 					tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]
 						).entries[0]
 				except IndexError:
 					tmp["bibtexDict"] = {}
+					tmp["bibdict"] = {}
 				except ParseException:
 					pBLogger.warning("Problem in parsing the following "
 						+ "bibtex code:\n%s"%el["bibtex"],
 						exc_info = True)
 					tmp["bibtexDict"] = {}
+					tmp["bibdict"] = {}
 				self.updateField(el["bibkey"], "bibdict",
 					"%s"%tmp["bibtexDict"])
 			try:
@@ -1743,7 +1750,7 @@ class entries(physbiblioDBSub):
 			the output of self.getByBibkey otherwise
 		"""
 		try:
-			return self.getByBibkey(key, saveQuery=False)[0][field]
+			value = self.getByBibkey(key, saveQuery=False)[0][field]
 		except IndexError:
 			pBLogger.warning(
 				"Error in getField('%s', '%s'): no element found?"%(
@@ -1754,6 +1761,14 @@ class entries(physbiblioDBSub):
 				"Error in getField('%s', '%s'): the field is missing?"%(
 				key, field))
 			return False
+		if field == "bibdict" and isinstance(value, six.string_types):
+			try:
+				return ast.literal_eval(value)
+			except SyntaxError:
+				pBLogger.error("Cannot read bibdict:\n'%s'"%value)
+				return value
+		else:
+			return value
 
 	def toDataDict(self, key):
 		"""Convert the entry bibtex into a dictionary
@@ -2815,7 +2830,7 @@ class entries(physbiblioDBSub):
 				pbConfig.params["defaultCategories"], key)
 		self.mainDB.catBib.askCats(self.lastInserted)
 
-	def importFromBib(self, filename, completeInfo = True):
+	def importFromBib(self, filename, completeInfo=True):
 		"""Read a .bib file and add the contained entries in the database
 
 		Parameters:
@@ -2848,6 +2863,9 @@ class entries(physbiblioDBSub):
 				a list
 			"""
 			pBLogger.debug("Processing:\n%s"%text)
+			if text.strip() == "":
+				pBLogger.warning("Impossible to parse empty text!")
+				return []
 			bp = bibtexparser.bparser.BibTexParser(common_strings=True)
 			try:
 				return bp.parse(text).entries
