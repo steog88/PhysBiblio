@@ -1068,8 +1068,7 @@ class MainWindow(QMainWindow):
 				as in the output of `self.searchBiblio`
 			offs: the offset for the search
 		"""
-		noLim = pBDB.bibs.fetchFromDict(
-			searchDict.copy(), limitOffset=offs).lastFetched
+		pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset=offs)
 		self.runReplace(replaceFields)
 
 	def delSearchBiblio(self, idS, name):
@@ -1090,7 +1089,7 @@ class MainWindow(QMainWindow):
 		"""
 		result = self.searchBiblio(replace=True)
 		if result is False:
-			return False
+			return
 		self.runReplace(result)
 
 	def runReplace(self, replace):
@@ -1130,13 +1129,15 @@ class MainWindow(QMainWindow):
 		"""
 		force = askYesNo("Do you want to force the update of already "
 			+ "existing items?\n(Only regular articles not "
-			+ "explicitely excluded will be considered)", "Force update:")
+			+ "explicitely excluded will be considered)",
+			"Force update:")
 		text, out = askGenericText(
 			"Insert the ordinal number of the bibtex element "
 			+ "from which you want to start the updates:",
-			"Where do you want to start searchOAIUpdates from?", self)
+			"Where do you want to start searchOAIUpdates from?",
+			self)
 		if not out:
-			return False
+			return
 		try:
 			startFrom = int(text)
 		except ValueError:
@@ -1145,7 +1146,7 @@ class MainWindow(QMainWindow):
 					"Invalid entry"):
 				startFrom = 0
 			else:
-				return False
+				return
 		self.updateAllBibtexs(startFrom, force=force)
 
 	def updateAllBibtexs(self,
@@ -1171,12 +1172,16 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage(
 			"Starting update of bibtexs from %s..."%startFrom)
 		self._runInThread(
-			thread_updateAllBibtexs, "Update Bibtexs",
-			startFrom, useEntries=useEntries,
-			force=force, reloadAll=reloadAll,
+			thread_updateAllBibtexs,
+			"Update Bibtexs",
+			startFrom,
+			useEntries=useEntries,
+			force=force,
+			reloadAll=reloadAll,
 			totStr="SearchOAIUpdates will process ",
 			progrStr="%) - looking for update: ",
-			minProgress=0., stopFlag=True)
+			minProgress=0.,
+			stopFlag=True)
 		self.refreshMainContent()
 
 	def updateInspireInfo(self, bibkey, inspireID=None):
@@ -1192,9 +1197,12 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage(
 			"Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
-			thread_updateInspireInfo, "Update Info",
-			bibkey, inspireID,
-			minProgress=0., stopFlag=False)
+			thread_updateInspireInfo,
+			"Update Info",
+			bibkey,
+			inspireID,
+			minProgress=0.,
+			stopFlag=False)
 		self.refreshMainContent()
 
 	def authorStats(self):
@@ -1443,9 +1451,10 @@ class MainWindow(QMainWindow):
 		text, out = askGenericText("Insert the ordinal number of "
 			+ "the bibtex element from which you want to start "
 			+ "the cleaning:",
-			"Where do you want to start cleanBibtexs from?", self)
+			"Where do you want to start cleanBibtexs from?",
+			self)
 		if not out:
-			return False
+			return
 		try:
 			startFrom = int(text)
 		except ValueError:
@@ -1454,7 +1463,7 @@ class MainWindow(QMainWindow):
 					"Invalid entry"):
 				startFrom = 0
 			else:
-				return False
+				return
 		self.cleanAllBibtexs(startFrom)
 
 	def cleanAllBibtexs(self, startFrom=0, useEntries=None):
@@ -1490,21 +1499,24 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage("Starting checking bibtexs...")
 		self.badBibtexs = []
 		self._runInThread(
-			thread_findBadBibtexs, "Check Bibtexs",
-			startFrom, useEntries=useEntries,
+			thread_findBadBibtexs,
+			"Check Bibtexs",
+			startFrom,
+			useEntries=useEntries,
 			totStr="findCorruptedBibtexs will process ",
 			progrStr="%) - processing: ",
-			minProgress=0., stopFlag=True)
+			minProgress=0.,
+			stopFlag=True)
 		if len(self.badBibtexs) > 0:
-			if askYesNo("%d bad records have been found. "
-					+ "Do you want to fix them one by one?"%len(
-						self.badBibtexs)):
+			if askYesNo("%d bad records have been found. "%len(
+						self.badBibtexs)
+					+ "Do you want to fix them one by one?"):
 				for bibkey in self.badBibtexs:
 					editBibtex(self, bibkey)
 			else:
 				infoMessage("These are the bibtex keys corresponding "
-					+ "to invalid records:\n%s\n\nNo action will be "
-					+ "performed."%", ".join(self.badBibtexs))
+					+ "to invalid records:\n%s"%", ".join(self.badBibtexs)
+					+ "\n\nNo action will be performed.")
 		else:
 			infoMessage("No invalid records found!")
 
@@ -1526,11 +1538,14 @@ class MainWindow(QMainWindow):
 		if askFieldsWin.result:
 			self.statusBarMessage("Starting importing info from arxiv...")
 			self._runInThread(
-				thread_fieldsArxiv, "Get info from arXiv",
-				[e["bibkey"] for e in iterator], askFieldsWin.output,
+				thread_fieldsArxiv,
+				"Get info from arXiv",
+				[e["bibkey"] for e in iterator],
+				askFieldsWin.output,
 				totStr="Thread_fieldsArxiv will process ",
 				progrStr="%) - processing: arxiv:",
-				minProgress=0., stopFlag=True)
+				minProgress=0.,
+				stopFlag=True)
 
 	def browseDailyArxiv(self):
 		"""Browse daily news from arXiv after showing

@@ -1052,79 +1052,470 @@ class TestMainWindow(GUITestCase):
 
 	def test_runSearchBiblio(self):
 		"""test runSearchBiblio"""
-		pass
+		pBDB.lastFetched = []
+		with patch("PySide2.QtWidgets.QApplication."
+				+ "setOverrideCursor") as _soc,\
+				patch("PySide2.QtWidgets.QApplication."
+					+ "restoreOverrideCursor") as _roc,\
+				patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB) as _ffd,\
+				patch(self.clsName + ".reloadMainContent") as _rmc:
+			self.mainW.runSearchBiblio({"s": "a"}, 12, 34)
+			_soc.assert_called_once_with(Qt.WaitCursor)
+			_roc.assert_called_once_with()
+			_ffd.assert_has_calls([
+				call({"s": "a"}, limitOffset=34),
+				call({"s": "a"}, limitOffset=34, limitTo=12)])
+			_rmc.assert_called_once_with([])
+
+		pBDB.lastFetched = ["a"]
+		self.lastFetched = ["a", "b"]
+		with patch("PySide2.QtWidgets.QApplication."
+				+ "setOverrideCursor") as _soc,\
+				patch("PySide2.QtWidgets.QApplication."
+					+ "restoreOverrideCursor") as _roc,\
+				patch("physbiblio.database.entries.fetchFromDict",
+					side_effect=[self, pBDB]) as _ffd,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.modName + ".infoMessage") as _im:
+			self.mainW.runSearchBiblio({"s": "a"}, 12, 34)
+			_soc.assert_called_once_with(Qt.WaitCursor)
+			_roc.assert_called_once_with()
+			_ffd.assert_has_calls([
+				call({"s": "a"}, limitOffset=34),
+				call({"s": "a"}, limitOffset=34, limitTo=12)])
+			_rmc.assert_called_once_with(["a"])
+			_im.assert_called_once_with(
+				"Warning: more entries match the current search, "
+				+ "showing only the first 1 of 2.\nChange "
+				+ "'Max number of results' in the search form to see more.")
 
 	def test_runSearchReplaceBiblio(self):
 		"""test runSearchReplaceBiblio"""
-		pass
+		pBDB.lastFetched = ["a"]
+		with patch("physbiblio.database.entries.fetchFromDict",
+					return_value=pBDB) as _ffd,\
+				patch(self.clsName + ".runReplace") as _rr:
+			self.mainW.runSearchReplaceBiblio({"s": "a"}, ["b"], 12)
+			_ffd.assert_called_once_with({'s': 'a'}, limitOffset=12)
+			_rr.assert_called_once_with(["b"])
 
 	def test_delSearchBiblio(self):
 		"""test delSearchBiblio"""
-		pass
+		pBDB.lastFetched = ["a"]
+		with patch("physbiblio.config.globalDB.deleteSearch") as _ds,\
+				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
+				patch(self.modName + ".askYesNo") as _ay:
+			self.mainW.delSearchBiblio(999, "search")
+			_ay.assert_called_once_with("Are you sure you want to delete "
+				+ "the saved search 'search'?")
+			_cm.assert_called_once_with()
+			_ds.assert_called_once_with(999)
 
 	def test_searchAndReplace(self):
 		"""test searchAndReplace"""
-		pass
+		with patch(self.clsName + ".searchBiblio",
+				side_effect=[False, "a"]) as _sb,\
+				patch(self.clsName + ".runReplace") as _rr:
+			self.mainW.searchAndReplace()
+			_sb.assert_called_once_with(replace=True)
+			_rr.assert_not_called()
+			self.mainW.searchAndReplace()
+			_rr.assert_called_once_with("a")
 
 	def test_runReplace(self):
 		"""test runReplace"""
-		pass
+		pBDB.lastFetched = ["z"]
+		with patch("PySide2.QtWidgets.QApplication."
+				+ "setOverrideCursor") as _soc,\
+				patch("PySide2.QtWidgets.QApplication."
+					+ "restoreOverrideCursor") as _roc,\
+				patch("physbiblio.database.entries.fetchFromLast",
+					return_value=pBDB) as _ffl,\
+				patch("physbiblio.database.entries.replace",
+					return_value=[["d"], ["e", "f"], ["g", "h", "i"]]) as _r,\
+				patch("physbiblio.database.entries.fetchCursor",
+					return_value="c") as _fc,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.modName + ".longInfoMessage") as _lim,\
+				patch(self.modName + ".askYesNo",
+					side_effect=[False, True]) as _ay:
+			self.mainW.runReplace(("bibtex", "bibkey", "", ["a"], "r"))
+			_soc.assert_not_called()
+			_r.assert_not_called()
+			_im.assert_called_once_with("The string to substitute is empty!")
+			_im.reset_mock()
+
+			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
+			_soc.assert_not_called()
+			_r.assert_not_called()
+			_ay.assert_called_once_with("Empty new string. "
+				+ "Are you sure you want to continue?")
+			_ay.reset_mock()
+
+			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
+			_soc.assert_has_calls([call(Qt.WaitCursor), call(Qt.WaitCursor)])
+			_roc.assert_has_calls([call(), call()])
+			_ay.assert_called_once_with("Empty new string. "
+				+ "Are you sure you want to continue?")
+			_rmc.assert_called_once_with(["z"])
+			_im.assert_not_called()
+			_ay.assert_called_once_with("Empty new string. "
+				+ "Are you sure you want to continue?")
+			_r.assert_called_once_with(
+				'bibtex', 'bibkey', 'o', ['a', ''], entries='c', regex='r')
+			_fc.assert_called_once_with()
+			_ffl.assert_called_once_with()
+			_lim.assert_called_once_with(
+				"Replace completed.<br><br>"
+				+ "1 elements successfully processed"
+				+ " (of which 2 changed), "
+				+ "3 failures (see below).<br><br>"
+				+ "<b>Changed</b>: ['e', 'f']<br><br>"
+				+ "<b>Failed</b>: ['g', 'h', 'i']")
 
 	def test_updateAllBibtexsAsk(self):
 		"""test updateAllBibtexsAsk"""
-		pass
+		with patch(self.modName + ".askYesNo", return_value=False) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["a", False]) as _agt,\
+				patch(self.clsName + ".updateAllBibtexs") as _uab:
+			self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
+			_uab.assert_not_called()
+
+		with patch(self.modName + ".askYesNo", return_value=False) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["a", True]) as _agt,\
+				patch(self.clsName + ".updateAllBibtexs") as _uab:
+			self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
+			_uab.assert_not_called()
+
+		with patch(self.modName + ".askYesNo", return_value=True) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["a", True]) as _agt,\
+				patch(self.clsName + ".updateAllBibtexs") as _uab:
+			self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
+			_ay.assert_any_call("The text you inserted is not an integer. "
+				+ "I will start from 0.\nDo you want to continue?",
+				"Invalid entry")
+			_uab.assert_called_once_with(0, force=True)
+
+		with patch(self.modName + ".askYesNo", return_value=False) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["12", True]) as _agt,\
+				patch(self.clsName + ".updateAllBibtexs") as _uab:
+			self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
+			_ay.assert_called_once_with(
+				"Do you want to force the update of already existing "
+				+ "items?\n(Only regular articles not explicitely "
+				+ "excluded will be considered)", 'Force update:')
+			_agt.assert_called_once_with(
+				"Insert the ordinal number of the bibtex element from "
+				+ "which you want to start the updates:",
+				'Where do you want to start searchOAIUpdates from?',
+				self.mainW)
+			_uab.assert_called_once_with(12, force=False)
 
 	def test_updateAllBibtexs(self):
 		"""test updateAllBibtexs"""
-		pass
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".refreshMainContent") as _rmc:
+			self.mainW.updateAllBibtexs()
+			_sbm.assert_called_once_with(
+				"Starting update of bibtexs from %s..."%(
+					pbConfig.params["defaultUpdateFrom"]))
+			_rit.assert_called_once_with(thread_updateAllBibtexs,
+				'Update Bibtexs', 0, force=False, minProgress=0.0,
+				progrStr='%) - looking for update: ', reloadAll=False,
+				stopFlag=True, totStr='SearchOAIUpdates will process ',
+				useEntries=None)
+			_rmc.assert_called_once_with()
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".refreshMainContent") as _rmc:
+			self.mainW.updateAllBibtexs(startFrom=12,
+				useEntries="abc",
+				force=True,
+				reloadAll=True)
+			_sbm.assert_called_once_with(
+				"Starting update of bibtexs from 12...")
+			_rit.assert_called_once_with(thread_updateAllBibtexs,
+				'Update Bibtexs', 12, force=True, minProgress=0.0,
+				progrStr='%) - looking for update: ', reloadAll=True,
+				stopFlag=True, totStr='SearchOAIUpdates will process ',
+				useEntries="abc")
+			_rmc.assert_called_once_with()
 
 	def test_updateInspireInfo(self):
 		"""test updateInspireInfo"""
-		pass
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".refreshMainContent") as _rmc:
+			self.mainW.updateInspireInfo("key")
+			_sbm.assert_called_once_with(
+				"Starting generic info update from INSPIRE-HEP...")
+			_rit.assert_called_once_with(thread_updateInspireInfo,
+				"Update Info", "key", None, minProgress=0., stopFlag=False)
+			_rmc.assert_called_once_with()
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".refreshMainContent") as _rmc:
+			self.mainW.updateInspireInfo("key", inspireID="1234")
+			_sbm.assert_called_once_with(
+				"Starting generic info update from INSPIRE-HEP...")
+			_rit.assert_called_once_with(thread_updateInspireInfo,
+				"Update Info", "key", "1234", minProgress=0., stopFlag=False)
+			_rmc.assert_called_once_with()
 
 	def test_authorStats(self):
 		"""test authorStats"""
-		pass
+		raise NotImplementedError
 
 	def test_getInspireStats(self):
 		"""test getInspireStats"""
-		pass
+		raise NotImplementedError
 
 	def test_inspireLoadAndInsert(self):
 		"""test inspireLoadAndInsert"""
-		pass
+		raise NotImplementedError
 
 	def test_askCatsForEntries(self):
 		"""test askCatsForEntries"""
-		pass
+		raise NotImplementedError
 
 	def test_inspireLoadAndInsertWithCats(self):
 		"""test inspireLoadAndInsertWithCats"""
-		pass
+		self.mainW.loadedAndInserted = []
+		with patch(self.clsName + ".inspireLoadAndInsert",
+				return_value=False) as _ili,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch("physbiblio.database.catsEntries.delete") as _d:
+			self.mainW.inspireLoadAndInsertWithCats()
+			_ili.assert_called_once_with(doReload=False)
+			_d.assert_not_called()
+			_ace.assert_not_called()
+			_rmc.assert_not_called()
+		with patch(self.clsName + ".inspireLoadAndInsert",
+				return_value=True) as _ili,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch("physbiblio.database.catsEntries.delete") as _d:
+			self.mainW.inspireLoadAndInsertWithCats()
+			_ili.assert_called_once_with(doReload=False)
+			_d.assert_not_called()
+			_ace.assert_not_called()
+			_rmc.assert_not_called()
+
+		self.mainW.loadedAndInserted = ["a", "b"]
+		with patch(self.clsName + ".inspireLoadAndInsert",
+				return_value=True) as _ili,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch("physbiblio.database.catsEntries.delete") as _d:
+			self.mainW.inspireLoadAndInsertWithCats()
+			_ili.assert_called_once_with(doReload=False)
+			_d.assert_has_calls([call([], "a"), call([], "b")])
+			_ace.assert_called_once_with(["a", "b"])
+			_rmc.assert_called_once_with()
 
 	def test_advancedImport(self):
 		"""test advancedImport"""
-		pass
+		raise NotImplementedError
 
 	def test_cleanAllBibtexsAsk(self):
 		"""test cleanAllBibtexsAsk"""
-		pass
+		with patch(self.modName + ".askGenericText",
+					return_value=["a", False]) as _agt,\
+				patch(self.clsName + ".cleanAllBibtexs") as _cab:
+			self.assertEqual(self.mainW.cleanAllBibtexsAsk(), None)
+			_agt.assert_called_once_with(
+				"Insert the ordinal number of "
+				+ "the bibtex element from which you want to start "
+				+ "the cleaning:",
+				"Where do you want to start cleanBibtexs from?",
+				self.mainW)
+			_cab.assert_not_called()
+
+		with patch(self.modName + ".askYesNo", return_value=False) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["a", True]) as _agt,\
+				patch(self.clsName + ".cleanAllBibtexs") as _cab:
+			self.assertEqual(self.mainW.cleanAllBibtexsAsk(), None)
+			_agt.assert_called_once_with(
+				"Insert the ordinal number of "
+				+ "the bibtex element from which you want to start "
+				+ "the cleaning:",
+				"Where do you want to start cleanBibtexs from?",
+				self.mainW)
+			_ay.assert_called_once_with(
+				"The text you inserted is not an integer. "
+				+ "I will start from 0.\nDo you want to continue?",
+				"Invalid entry")
+			_cab.assert_not_called()
+
+		with patch(self.modName + ".askYesNo", return_value=True) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["a", True]) as _agt,\
+				patch(self.clsName + ".cleanAllBibtexs") as _cab:
+			self.assertEqual(self.mainW.cleanAllBibtexsAsk(), None)
+			_agt.assert_called_once_with(
+				"Insert the ordinal number of "
+				+ "the bibtex element from which you want to start "
+				+ "the cleaning:",
+				"Where do you want to start cleanBibtexs from?",
+				self.mainW)
+			_ay.assert_called_once_with(
+				"The text you inserted is not an integer. "
+				+ "I will start from 0.\nDo you want to continue?",
+				"Invalid entry")
+			_cab.assert_called_once_with(0)
+
+		with patch(self.modName + ".askYesNo", return_value=True) as _ay,\
+				patch(self.modName + ".askGenericText",
+					return_value=["12", True]) as _agt,\
+				patch(self.clsName + ".cleanAllBibtexs") as _cab:
+			self.assertEqual(self.mainW.cleanAllBibtexsAsk(), None)
+			_agt.assert_called_once_with(
+				"Insert the ordinal number of "
+				+ "the bibtex element from which you want to start "
+				+ "the cleaning:",
+				"Where do you want to start cleanBibtexs from?",
+				self.mainW)
+			_ay.assert_not_called()
+			_cab.assert_called_once_with(12)
 
 	def test_cleanAllBibtexs(self):
 		"""test cleanAllBibtexs"""
-		pass
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.mainW.cleanAllBibtexs()
+			_sbm.assert_called_once_with(
+				"Starting cleaning of bibtexs...")
+			_rit.assert_called_once_with(thread_cleanAllBibtexs,
+				'Clean Bibtexs', 0, minProgress=0.0,
+				progrStr='%) - cleaning: ', stopFlag=True,
+				totStr='CleanBibtexs will process ', useEntries=None)
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".refreshMainContent") as _rmc:
+			self.mainW.cleanAllBibtexs(startFrom=12, useEntries=["a"])
+			_sbm.assert_called_once_with(
+				"Starting cleaning of bibtexs...")
+			_rit.assert_called_once_with(thread_cleanAllBibtexs,
+				'Clean Bibtexs', 12, minProgress=0.0,
+				progrStr='%) - cleaning: ', stopFlag=True,
+				totStr='CleanBibtexs will process ', useEntries=["a"])
 
 	def test_findBadBibtexs(self):
 		"""test findBadBibtexs"""
-		pass
+		mainW = MainWindow(testing=True)
+		def patcher(*args, **kwargs):
+			mainW.badBibtexs = ["a", "b"]
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.modName + ".infoMessage") as _im:
+			self.mainW.findBadBibtexs()
+			_sbm.assert_called_once_with("Starting checking bibtexs...")
+			_rit.assert_called_once_with(
+				thread_findBadBibtexs, "Check Bibtexs",
+				0, useEntries=None,
+				totStr="findCorruptedBibtexs will process ",
+				progrStr="%) - processing: ",
+				minProgress=0., stopFlag=True)
+			_im.assert_called_once_with("No invalid records found!")
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.modName + ".infoMessage") as _im:
+			self.mainW.findBadBibtexs(startFrom=12, useEntries=["abc"])
+			_sbm.assert_called_once_with("Starting checking bibtexs...")
+			_rit.assert_called_once_with(
+				thread_findBadBibtexs, "Check Bibtexs",
+				12, useEntries=["abc"],
+				totStr="findCorruptedBibtexs will process ",
+				progrStr="%) - processing: ",
+				minProgress=0., stopFlag=True)
+			_im.assert_called_once_with("No invalid records found!")
+
+		mainW._runInThread = patcher
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".askYesNo", return_value=False) as _ay,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.modName + ".editBibtex") as _eb:
+			mainW.findBadBibtexs()
+			_im.assert_called_once_with(
+				"These are the bibtex keys corresponding to invalid"
+				+ " records:\na, b\n\nNo action will be performed.")
+			_eb.assert_not_called()
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".askYesNo", return_value=True) as _ay,\
+				patch(self.modName + ".editBibtex") as _eb:
+			mainW.findBadBibtexs()
+			_eb.assert_has_calls([call(mainW, "a"), call(mainW, "b")])
 
 	def test_infoFromArxiv(self):
 		"""test infoFromArxiv"""
-		pass
+		ffa = FieldsFromArxiv()
+		ffa.output = ["title"]
+		ffa.exec_ = MagicMock()
+		ffa.result = False
+		with patch(self.modName + ".FieldsFromArxiv",
+				return_value=ffa) as _ffa,\
+				patch("physbiblio.database.entries.fetchAll") as _fa,\
+				patch("physbiblio.database.entries.fetchCursor",
+					return_value=[{"bibkey": "a"}]) as _fc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.mainW.infoFromArxiv()
+			_ffa.assert_called_once_with()
+			ffa.exec_.assert_called_once_with()
+			_fa.assert_called_once_with(doFetch=False)
+			_fc.assert_called_once_with()
+			_sbm.assert_not_called()
+			_rit.assert_not_called()
+
+		ffa.result = True
+		with patch(self.modName + ".FieldsFromArxiv",
+				return_value=ffa) as _ffa,\
+				patch("physbiblio.database.entries.fetchAll") as _fa,\
+				patch("physbiblio.database.entries.fetchCursor",
+					return_value=[{"bibkey": "a"}]) as _fc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.mainW.infoFromArxiv()
+			_ffa.assert_called_once_with()
+			_fa.assert_called_once_with(doFetch=False)
+			_fc.assert_called_once_with()
+			_sbm.assert_called_once_with(
+				"Starting importing info from arxiv...")
+			_rit.assert_called_once_with(thread_fieldsArxiv,
+				'Get info from arXiv', ['a'], ['title'], minProgress=0.0,
+				progrStr='%) - processing: arxiv:', stopFlag=True,
+				totStr='Thread_fieldsArxiv will process ')
+		with patch(self.modName + ".FieldsFromArxiv",
+				return_value=ffa) as _ffa,\
+				patch("physbiblio.database.entries.fetchAll") as _fa,\
+				patch("physbiblio.database.entries.fetchCursor",
+					return_value=[{"bibkey": "a"}]) as _fc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.mainW.infoFromArxiv(
+				useEntries=[{"bibkey": "a"}, {"bibkey": "b"}])
+			_ffa.assert_called_once_with()
+			_fa.assert_not_called()
+			_fc.assert_not_called()
+			_sbm.assert_called_once_with(
+				"Starting importing info from arxiv...")
+			_rit.assert_called_once_with(thread_fieldsArxiv,
+				'Get info from arXiv', ['a', 'b'], ['title'], minProgress=0.0,
+				progrStr='%) - processing: arxiv:', stopFlag=True,
+				totStr='Thread_fieldsArxiv will process ')
 
 	def test_browseDailyArxiv(self):
 		"""test browseDailyArxiv"""
-		pass
+		raise NotImplementedError
 
 	def test_sendMessage(self):
 		"""test sendMessage"""
