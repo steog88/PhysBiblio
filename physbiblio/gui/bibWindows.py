@@ -6,6 +6,7 @@ This file is part of the physbiblio package.
 import traceback
 import os
 import ast
+import six
 import matplotlib
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
@@ -534,8 +535,7 @@ class MyBibTableModel(MyTableModel):
 				or
 				False and ""
 		"""
-		if marks is not None and (
-				isinstance(marks, str) or isinstance(marks, unicode)):
+		if marks is not None and isinstance(marks, six.string_types):
 			marks = [ k for k in pBMarks.marks.keys() if k in marks ]
 			if len(marks)>1:
 				return True, self.addImages(
@@ -2538,7 +2538,7 @@ class FieldsFromArxiv(QDialog):
 	def onOk(self):
 		"""Accept the dialog output and prepare self.output"""
 		self.output = []
-		for k in self.checkBoxes.keys():
+		for k in sorted(self.checkBoxes.keys()):
 			if self.checkBoxes[k].isChecked():
 				self.output.append(k)
 		self.result = True

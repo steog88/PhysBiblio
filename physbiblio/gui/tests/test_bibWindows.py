@@ -4952,7 +4952,7 @@ class TestFieldsFromArxiv(GUITestCase):
 		self.assertTrue(hasattr(ffa, "output"))
 		self.assertIsInstance(ffa.output, list)
 		self.assertEqual(ffa.output,
-			['archiveprefix', 'primaryclass', 'authors'])
+			['archiveprefix', 'authors', 'primaryclass'])
 
 	def test_onCancel(self):
 		"""test onCancel"""

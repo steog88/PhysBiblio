@@ -697,6 +697,7 @@ class TestMainWindow(GUITestCase):
 		oldWebA = pbConfig.params["webApplication"]
 		oldPdfA = pbConfig.params["pdfApplication"]
 		oldPdfF = pbConfig.params["pdfFolder"]
+		oldPdfD = pBPDF.pdfDir
 		pbConfig.params["webApplication"] = "webApp"
 		pbConfig.params["pdfApplication"] = "pdfApp"
 		pbConfig.params["pdfFolder"] = "pdf/folder"
@@ -731,6 +732,7 @@ class TestMainWindow(GUITestCase):
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "reloadColumnContents") as _rcc:
 			self.mainW.reloadConfig()
+		pBPDF.pdfDir = oldPdfD
 
 	def test_showAbout(self):
 		"""test showAbout"""
