@@ -8,6 +8,7 @@ import traceback
 import os
 import time
 from PySide2.QtCore import Qt, \
+	QByteArray, \
 	QItemSelectionModel, QMimeData, QModelIndex, QPoint, QPointF, QRect
 from PySide2.QtGui import QContextMenuEvent, QDropEvent
 from PySide2.QtTest import QTest
@@ -1181,7 +1182,12 @@ class TestMyDDTableWidget(GUITestCase):
 		mddtw.setItem(1, 0, item)
 
 		mimedata = QMimeData()
-		mimedata.setData("application/x-qabstractitemmodeldatalist", "source1")
+		if sys.version_info[0]<3:
+			mimedata.setData("application/x-qabstractitemmodeldatalist",
+				QByteArray("source1"))
+		else:
+			mimedata.setData("application/x-qabstractitemmodeldatalist",
+				QByteArray(b"source1"))
 		ev = QDropEvent(QPointF(1, 1),
 			Qt.DropActions(Qt.MoveAction),
 			mimedata,
@@ -1201,7 +1207,12 @@ class TestMyDDTableWidget(GUITestCase):
 		mddtw.selectionModel().select(
 			mddtw.model().index(1, 0),
 			QItemSelectionModel.Select)
-		mimedata.setData("application/x-qabstractitemmodeldatalist", "test1")
+		if sys.version_info[0]<3:
+			mimedata.setData("application/x-qabstractitemmodeldatalist",
+				QByteArray("test1"))
+		else:
+			mimedata.setData("application/x-qabstractitemmodeldatalist",
+				QByteArray(b"test1"))
 		ev = QDropEvent(QPointF(1, 1),
 			Qt.DropActions(Qt.MoveAction),
 			mimedata,

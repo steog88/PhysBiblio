@@ -145,7 +145,7 @@ class TestConfigEditColumns(GUITestCase):
 		self.assertEqual(cec.layout().itemAtPosition(1, 1).widget(),
 			cec.listSel)
 		self.assertEqual(cec.allItems,
-			pBDB.descriptions["entries"].keys() + cec.moreCols)
+			list(pBDB.descriptions["entries"]) + cec.moreCols)
 		self.assertEqual(cec.selItems, cec.previousSelected)
 
 		self.assertEqual(cec.listSel.rowCount(), 3)
@@ -490,8 +490,11 @@ class TestLogFileContentDialog(GUITestCase):
 			_c.assert_called_once_with()
 		if os.path.exists(pbConfig.params["logFileName"]):
 			os.remove(pbConfig.params["logFileName"])
+		openModule = \
+			"__builtin__.open" if sys.version_info[0]<3 \
+			else "builtins.open"
 		with patch(ayn_str, return_value=True) as _ayn,\
-				patch("__builtin__.open", side_effect=IOError("fake")) as _op,\
+				patch(openModule, side_effect=IOError("fake")) as _op,\
 				patch("logging.Logger.exception") as _ex,\
 				patch("PySide2.QtWidgets.QDialog.close") as _c:
 			lf.clearLog()

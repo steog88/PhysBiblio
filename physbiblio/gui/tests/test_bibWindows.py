@@ -540,7 +540,8 @@ class TestFunctions(GUIwMainWTestCase):
 			_gbk.assert_called_once_with('Gariazzo:2015rra', saveQuery=False)
 			_pi.assert_not_called()
 			_ub.assert_not_called()
-			_u.assert_called_once_with(
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
 				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
 				'year': u'2015', 'phd_thesis': 0,
 				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
@@ -549,10 +550,25 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-					+ '= "1507.08204",\n}',
+				+ '= "1507.08204",\n}',
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
-					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'Gariazzo:2015rra')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'some text', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+				+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+				+ "'article', 'ID': 'Gariazzo:2015rra'}"},
 				u'Gariazzo:2015rra')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -596,7 +612,8 @@ class TestFunctions(GUIwMainWTestCase):
 			_gbk.assert_called_once_with('testkey', saveQuery=False)
 			_pi.assert_not_called()
 			_ub.assert_not_called()
-			_u.assert_called_once_with(
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
 				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
 				'year': u'2015', 'phd_thesis': 0,
 				'bibkey': u'testkey', 'proceeding': 0,
@@ -609,6 +626,21 @@ class TestFunctions(GUIwMainWTestCase):
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'testkey')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -654,7 +686,8 @@ class TestFunctions(GUIwMainWTestCase):
 			_gbk.assert_called_once_with('testkey', saveQuery=False)
 			_pi.assert_not_called()
 			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
-			_u.assert_called_once_with(
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
 				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
 				'year': u'2015', 'phd_thesis': 0,
 				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
@@ -667,6 +700,21 @@ class TestFunctions(GUIwMainWTestCase):
 				'firstdate': u'2018-09-01', 'old_keys': u'old testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'Gariazzo:2015rra')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'old testkey',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
 				u'Gariazzo:2015rra')
 			_ins.assert_not_called()
 			_rf.assert_called_once_with('testkey', u'Gariazzo:2015rra')
@@ -712,7 +760,8 @@ class TestFunctions(GUIwMainWTestCase):
 			_gbk.assert_called_once_with('testkey', saveQuery=False)
 			_pi.assert_not_called()
 			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
-			_u.assert_called_once_with(
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
 				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
 				'year': u'2015', 'phd_thesis': 0,
 				'bibkey': u'testkey', 'proceeding': 0,
@@ -725,6 +774,21 @@ class TestFunctions(GUIwMainWTestCase):
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'testkey')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{testkey,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()
@@ -771,7 +835,8 @@ class TestFunctions(GUIwMainWTestCase):
 			_gbk.assert_called_once_with('testkey', saveQuery=False)
 			_pi.assert_not_called()
 			_ub.assert_called_once_with('testkey', u'Gariazzo:2015rra')
-			_u.assert_called_once_with(
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
 				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
 				'year': u'2015', 'phd_thesis': 0,
 				'bibkey': u'testkey', 'proceeding': 0,
@@ -784,6 +849,21 @@ class TestFunctions(GUIwMainWTestCase):
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'testkey')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'testkey', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{testkey,\n         arxiv '
+					+ '= "1507.08204",\n}',
+				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
 				u'testkey')
 			_ins.assert_not_called()
 			_rf.assert_not_called()

@@ -1229,7 +1229,8 @@ class TestMainWindow(GUITestCase):
 				"Starting update of bibtexs from %s..."%(
 					pbConfig.params["defaultUpdateFrom"]))
 			_rit.assert_called_once_with(thread_updateAllBibtexs,
-				'Update Bibtexs', 0, force=False, minProgress=0.0,
+				'Update Bibtexs', pbConfig.params["defaultUpdateFrom"],
+				force=False, minProgress=0.0,
 				progrStr='%) - looking for update: ', reloadAll=False,
 				stopFlag=True, totStr='SearchOAIUpdates will process ',
 				useEntries=None)
@@ -1319,7 +1320,9 @@ class TestMainWindow(GUITestCase):
 				patch("physbiblio.database.catsEntries.delete") as _d:
 			self.mainW.inspireLoadAndInsertWithCats()
 			_ili.assert_called_once_with(doReload=False)
-			_d.assert_has_calls([call([], "a"), call([], "b")])
+			_d.assert_has_calls([
+				call(pbConfig.params["defaultCategories"], "a"),
+				call(pbConfig.params["defaultCategories"], "b")])
 			_ace.assert_called_once_with(["a", "b"])
 			_rmc.assert_called_once_with()
 

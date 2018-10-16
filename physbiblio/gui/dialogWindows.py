@@ -85,7 +85,7 @@ class configEditColumns(QDialog):
 		self.gridlayout.addWidget(self.listAll, 1, 0)
 		self.gridlayout.addWidget(self.listSel, 1, 1)
 
-		self.allItems = pBDB.descriptions["entries"].keys() + self.moreCols
+		self.allItems = list(pBDB.descriptions["entries"]) + self.moreCols
 		self.selItems = self.previousSelected
 		isel = 0
 		iall = 0
