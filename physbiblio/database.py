@@ -1278,8 +1278,8 @@ class entries(physbiblioDBSub):
 					tmp["bibtexDict"] = tmp["bibdict"]
 			else:
 				try:
-					tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]
-						).entries[0]
+					tmp["bibtexDict"] = bibtexparser.bparser.BibTexParser(
+						common_strings=True).parse(el["bibtex"]).entries[0]
 				except IndexError:
 					tmp["bibtexDict"] = {}
 					tmp["bibdict"] = {}
@@ -1890,7 +1890,8 @@ class entries(physbiblioDBSub):
 		if number is None:
 			number = 0
 		try:
-			element = bibtexparser.loads(bibtex).entries[number]
+			element = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibtex).entries[number]
 			if element["ID"] is None:
 				element["ID"] = ""
 			if bibkey:
@@ -1964,7 +1965,8 @@ class entries(physbiblioDBSub):
 			else datetime.date.today().strftime("%Y-%m-%d")
 		#bibtex dict
 		try:
-			tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
+			tmpBibDict = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(data["bibtex"]).entries[0]
 		except IndexError:
 			tmpBibDict = {}
 		except ParseException:
@@ -2016,8 +2018,10 @@ class entries(physbiblioDBSub):
 			the joined bibtex
 		"""
 		try:
-			elementOld = bibtexparser.loads(bibtexOld).entries[0]
-			elementNew = bibtexparser.loads(bibtexNew).entries[0]
+			elementOld = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibtexOld).entries[0]
+			elementNew = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibtexNew).entries[0]
 		except ParseException:
 			pBLogger.warning("Parsing exception in prepareUpdate:\n%s\n%s"%(
 				bibtexOld, bibtexNew))
@@ -2112,7 +2116,8 @@ class entries(physbiblioDBSub):
 			pBLogger.info("Updating '%s' for entry '%s'"%(field, key))
 		if field == "bibtex" and value != "" and value is not None:
 			try:
-				tmpBibDict = bibtexparser.loads(value).entries[0]
+				tmpBibDict = bibtexparser.bparser.BibTexParser(
+					common_strings=True).parse(value).entries[0]
 			except IndexError:
 				tmpBibDict = {}
 			except ParseException:
@@ -2515,7 +2520,8 @@ class entries(physbiblioDBSub):
 		db = bibtexparser.bibdatabase.BibDatabase()
 		tmp = {}
 		try:
-			element = bibtexparser.loads(bibtex).entries[0]
+			element = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibtex).entries[0]
 		except ParseException:
 			pBLogger.warning("Cannot parse properly:\n%s"%bibtex)
 			return ""
@@ -2578,7 +2584,8 @@ class entries(physbiblioDBSub):
 		try:
 			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"] \
 				.retrieveUrlAll(arxiv, searchType = "id", fullDict = True)
-			tmp = bibtexparser.loads(bibtex).entries[0]
+			tmp = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibtex).entries[0]
 			for k in fields:
 				try:
 					tmp[k] = arxivDict[k]
@@ -2693,7 +2700,8 @@ class entries(physbiblioDBSub):
 			if method == "bibtex":
 				try:
 					db = bibtexparser.bibdatabase.BibDatabase()
-					db.entries = bibtexparser.loads(entry).entries
+					db.entries = bibtexparser.bparser.BibTexParser(
+						common_strings=True).parse(entry).entries
 					e  = self.rmBibtexComments(self.rmBibtexACapo(
 						pbWriter.write(db).strip()))
 				except ParseException:
@@ -3164,7 +3172,8 @@ class entries(physbiblioDBSub):
 			tmp = {}
 			for k in el.keys():
 				tmp[k] = el[k]
-			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			tmp["bibtexDict"] = bibtexparser.bparser.BibTexParser(
+				common_strings=True).parse(el["bibtex"]).entries[0]
 			fetched_out.append(tmp)
 		self.lastFetched = fetched_out
 		return self
@@ -3208,7 +3217,8 @@ class entries(physbiblioDBSub):
 			tmp = {}
 			for k in el.keys():
 				tmp[k] = el[k]
-			tmp["bibtexDict"] = bibtexparser.loads(el["bibtex"]).entries[0]
+			tmp["bibtexDict"] = bibtexparser.bparser.BibTexParser(
+				common_strings=True).parse(el["bibtex"]).entries[0]
 			fetched_out.append(tmp)
 		self.lastFetched = fetched_out
 		return self
@@ -3269,7 +3279,8 @@ class entries(physbiblioDBSub):
 					if e[field] is None:
 						self.updateField(e["bibkey"], field, "")
 				try:
-					element = bibtexparser.loads(e["bibtex"]).entries[0]
+					element = bibtexparser.bparser.BibTexParser(
+						common_strings=True).parse(e["bibtex"]).entries[0]
 					db.entries = []
 					db.entries.append(element)
 					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(
@@ -3320,7 +3331,8 @@ class entries(physbiblioDBSub):
 				pBLogger.info("%5d / %d (%5.2f%%) - processing: '%s'"%(
 					ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
 				try:
-					element = bibtexparser.loads(e["bibtex"]).entries[0]
+					element = bibtexparser.bparser.BibTexParser(
+						common_strings=True).parse(e["bibtex"]).entries[0]
 					pBLogger.info("%s is readable.\n"%element["ID"])
 				except:
 					bibtexs.append(e["bibkey"])

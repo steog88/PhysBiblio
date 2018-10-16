@@ -132,11 +132,11 @@ class pbExport():
 	def exportForTexFile(self,
 			texFileName,
 			outFileName,
-			overwrite = False,
-			autosave = True,
-			updateExisting = False,
-			removeUnused = False,
-			newOperation = True):
+			overwrite=False,
+			autosave=True,
+			updateExisting=False,
+			removeUnused=False,
+			newOperation=True):
 		"""Reads a .tex file looking for the \cite{} commands,
 		collects the bibtex entries cited in the text and
 		stores them in a bibtex file.
@@ -178,7 +178,7 @@ class pbExport():
 				nKeys,
 				warn,
 				totalCites,
-				full = False):
+				full=False):
 			"""Print information on the process"""
 			pBLogger.info("\n\nRESUME")
 			if totalCites is not None:
@@ -209,7 +209,7 @@ class pbExport():
 						for k, n in nKeys.items() ] ) )
 			pBLogger.info("     %s warning(s) occurred!"%warn)
 
-		def saveEntryOutBib(a, m = None):
+		def saveEntryOutBib(a, m=None):
 			"""Remove unwanted fields and add the bibtex entry
 			to the output file
 
@@ -218,7 +218,8 @@ class pbExport():
 				m: the ID (bibtex key) of the entry,
 					if it is not the default one
 			"""
-			entry = bibtexparser.loads(a).entries[0]
+			entry = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(a).entries[0]
 			for u in self.unwantedFields:
 				try:
 					del entry[u]
@@ -302,7 +303,8 @@ class pbExport():
 		# Do not load it every time for multiple texs!
 		if newOperation:
 			self.allCitations = set([])
-			self.existingBibsList = bibtexparser.loads(existingBibText).entries
+			self.existingBibsList = bibtexparser.bparser.BibTexParser(
+				common_strings=True).parse(existingBibText).entries
 		# work with dictionary, so that if there are repeated entries
 		# (entries with same ID) they are automatically discarded
 		existingBibsDict = { e["ID"]: e for e in self.existingBibsList}
@@ -342,11 +344,11 @@ class pbExport():
 					req, m, ret, nF, un, nK, w, cits = self.exportForTexFile(
 						t,
 						outFileName,
-						overwrite = False,
-						autosave = autosave,
-						updateExisting = False,
-						removeUnused = False,
-						newOperation = False)
+						overwrite=False,
+						autosave=autosave,
+						updateExisting=False,
+						removeUnused=False,
+						newOperation=False)
 					requiredBibkeys += req
 					missing += m
 					retrieved += ret
@@ -366,7 +368,7 @@ class pbExport():
 					newKeys,
 					warnings,
 					len(self.allCitations),
-					full = True)
+					full=True)
 				return requiredBibkeys, missing, retrieved, notFound, \
 					unexpected, newKeys, warnings, len(self.allCitations)
 
@@ -434,7 +436,7 @@ class pbExport():
 				#if not present, try INSPIRE import
 				pBLogger.info(
 					"Key '%s' missing, trying to import it from Web"%m)
-				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex = True)
+				newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex=True)
 				newCheck = pBDB.bibs.getByBibtex(m, saveQuery=False)
 
 				#if the import worked, insert the entry
@@ -474,7 +476,7 @@ class pbExport():
 		return requiredBibkeys, missing, retrieved, notFound, \
 			unexpected, newKeys, warnings, len(self.allCitations)
 
-	def updateExportedBib(self, fileName, overwrite = False):
+	def updateExportedBib(self, fileName, overwrite=False):
 		"""Reads a bibtex file and updates the entries that it contains,
 		for example if the entry has been published.
 
@@ -497,7 +499,8 @@ class pbExport():
 				"Cannot write on file.\nCheck the file permissions.")
 			return False
 		try:
-			biblist = bibtexparser.loads(bibfile)
+			biblist = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(bibfile)
 		except IndexError:
 			pBLogger.exception("Problems in loading the .bib file!")
 			return False

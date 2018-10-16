@@ -1372,7 +1372,8 @@ class MainWindow(QMainWindow):
 		if adIm.result == True and string != "":
 			QApplication.setOverrideCursor(Qt.WaitCursor)
 			cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
-			elements = bibtexparser.loads(cont).entries
+			elements = bibtexparser.bparser.BibTexParser(common_strings=True
+				).parse(cont).entries
 			found = {}
 			for el in elements:
 				if el["ID"].strip() == "":
