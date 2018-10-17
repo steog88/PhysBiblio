@@ -626,7 +626,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
 			MyTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
-			elw.tablewidget)
+			elw.tableview)
 		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
 		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
 		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
@@ -651,7 +651,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
 			MyTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
-			elw.tablewidget)
+			elw.tableview)
 		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
 		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
 		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
@@ -828,6 +828,7 @@ class TestExpsListWindow(GUITestCase):
 					return_value=33) as _cb,\
 				patch("physbiblio.database.catsExps.countByExp",
 					return_value=12) as _ce:
+			position = QCursor.pos()
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_l.assert_not_called()
 			self.assertIsInstance(elw.timer, QTimer)
@@ -836,11 +837,11 @@ class TestExpsListWindow(GUITestCase):
 			_st.assert_called_once_with(500)
 			_sh.assert_not_called()
 			elw.timer.timeout.emit()
-			_sh.assert_called_once_with(QCursor.pos(),
+			_sh.assert_called_once_with(position,
 				'0: test0\nCorresponding entries: 33\n'
 				+ 'Associated categories: 12',
-				elw.tablewidget.viewport(),
-				elw.tablewidget.visualRect(ix),
+				elw.tableview.viewport(),
+				elw.tableview.visualRect(ix),
 				3000)
 		with patch("logging.Logger.exception") as _l,\
 				patch("PySide2.QtCore.QTimer.start") as _st,\
@@ -853,7 +854,7 @@ class TestExpsListWindow(GUITestCase):
 					return_value=12) as _ce:
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_sh.assert_called_once_with(
-				QCursor.pos(), '', elw.tablewidget.viewport())
+				QCursor.pos(), '', elw.tableview.viewport())
 
 	def test_cellClick(self):
 		"""test cellClick"""

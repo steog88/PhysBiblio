@@ -1042,6 +1042,7 @@ class TestCatsTreeWindow(GUITestCase):
 					return_value=33) as _cb,\
 				patch("physbiblio.database.catsExps.countByCat",
 					return_value=12) as _ce:
+			position = QCursor.pos()
 			self.assertEqual(ctw.handleItemEntered(ix), None)
 			_l.assert_not_called()
 			self.assertIsInstance(ctw.timer, QTimer)
@@ -1050,7 +1051,7 @@ class TestCatsTreeWindow(GUITestCase):
 			_st.assert_called_once_with(500)
 			_sh.assert_not_called()
 			ctw.timer.timeout.emit()
-			_sh.assert_called_once_with(QCursor.pos(),
+			_sh.assert_called_once_with(position,
 				'0: main\nCorresponding entries: 33\n'
 				+ 'Associated experiments: 12',
 				ctw.tree.viewport(),

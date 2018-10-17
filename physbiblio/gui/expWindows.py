@@ -429,7 +429,7 @@ class ExpsListWindow(objListWindow):
 		idExp = str(self.proxyModel.sibling(row, 0, index).data())
 		try:
 			self.timer.stop()
-			QToolTip.showText(QCursor.pos(), "", self.tablewidget.viewport())
+			QToolTip.showText(QCursor.pos(), "", self.tableview.viewport())
 		except AttributeError:
 			pass
 		try:
@@ -447,8 +447,8 @@ class ExpsListWindow(objListWindow):
 				en=pBDB.bibExp.countByExp(idExp))
 			+ "Associated categories: {ca}".format(
 				ca=pBDB.catExp.countByExp(idExp)),
-			self.tablewidget.viewport(),
-			self.tablewidget.visualRect(index),
+			self.tableview.viewport(),
+			self.tableview.visualRect(index),
 			3000))
 		self.timer.start(500)
 

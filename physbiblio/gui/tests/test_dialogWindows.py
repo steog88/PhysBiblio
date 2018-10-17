@@ -58,7 +58,7 @@ class fake_abstractFormulas():
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigEditColumns(GUITestCase):
-	"""Test configEditColumns"""
+	"""Test ConfigEditColumns"""
 
 	@classmethod
 	def setUpClass(self):
@@ -76,18 +76,19 @@ class TestConfigEditColumns(GUITestCase):
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns.initUI") \
+		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns.initUI") \
 				as _u:
-			cec = configEditColumns()
+			cec = ConfigEditColumns()
 			self.assertIsInstance(cec, QDialog)
 			self.assertEqual(cec.parent(), None)
 			_u.assert_called_once_with()
-			cec = configEditColumns(p)
+			cec = ConfigEditColumns(p)
 			self.assertIsInstance(cec, QDialog)
 			self.assertEqual(cec.parent(), p)
 			self.assertEqual(cec.excludeCols, [
 				"crossref", "bibtex", "exp_paper", "lecture",
-				"phd_thesis", "review", "proceeding", "book", "noUpdate"])
+				"phd_thesis", "review", "proceeding", "book", "noUpdate",
+				"bibdict", "abstract"])
 			self.assertEqual(cec.moreCols, [
 				"title", "author", "journal", "volume", "pages",
 				"primaryclass", "booktitle", "reportnumber"])
@@ -95,13 +96,13 @@ class TestConfigEditColumns(GUITestCase):
 				self.defCols)
 			self.assertEqual(cec.selected,
 				self.defCols)
-			cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+			cec = ConfigEditColumns(p, ['bibkey', 'author', 'title'])
 			self.assertEqual(cec.previousSelected,
 				['bibkey', 'author', 'title'])
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		cec = configEditColumns()
+		cec = ConfigEditColumns()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cec.onCancel()
 			self.assertFalse(cec.result)
@@ -110,7 +111,7 @@ class TestConfigEditColumns(GUITestCase):
 	def test_onOk(self):
 		"""test onOk"""
 		p = QWidget()
-		cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+		cec = ConfigEditColumns(p, ['bibkey', 'author', 'title'])
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cec.onOk()
 			self.assertTrue(cec.result)
@@ -128,7 +129,7 @@ class TestConfigEditColumns(GUITestCase):
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
-		cec = configEditColumns(p, ['bibkey', 'author', 'title'])
+		cec = ConfigEditColumns(p, ['bibkey', 'author', 'title'])
 		self.assertIsInstance(cec.layout(), QGridLayout)
 		self.assertEqual(cec.layout(), cec.gridlayout)
 		self.assertIsInstance(cec.items, list)
@@ -171,11 +172,11 @@ class TestConfigEditColumns(GUITestCase):
 			cec.acceptButton)
 		self.assertEqual(cec.layout().itemAtPosition(2, 1).widget(),
 			cec.cancelButton)
-		with patch("physbiblio.gui.dialogWindows.configEditColumns.onOk") \
+		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns.onOk") \
 				as _f:
 			QTest.mouseClick(cec.acceptButton, Qt.LeftButton)
 			_f.assert_called_once_with()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns.onCancel") \
 				as _f:
 			QTest.mouseClick(cec.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()
@@ -268,20 +269,20 @@ class TestConfigWindow(GUITestCase):
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["bibtexListColumns"])
-		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec = ConfigEditColumns(cw, ['bibkey', 'author', 'title'])
 		cec.exec_ = MagicMock()
 		cec.onCancel()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns",
+		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns",
 				return_value=cec) as _cec:
 			cw.editColumns()
 			_cec.assert_called_once_with(cw,
 				pbConfig.params["bibtexListColumns"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["bibtexListColumns"])
-		cec = configEditColumns(cw, ['bibkey', 'author', 'title'])
+		cec = ConfigEditColumns(cw, ['bibkey', 'author', 'title'])
 		cec.exec_ = MagicMock()
 		cec.onOk()
-		with patch("physbiblio.gui.dialogWindows.configEditColumns",
+		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns",
 				return_value=cec) as _cec:
 			cw.editColumns()
 			_cec.assert_called_once_with(cw,
@@ -1146,7 +1147,7 @@ class TestDailyArxivSelect(GUITestCase):
 		self.assertIsInstance(das.layout().itemAt(1).widget(), QLineEdit)
 		self.assertEqual(das.layout().itemAt(1).widget(), das.filterInput)
 		self.assertIsInstance(das.layout().itemAt(2).widget(), MyTableView)
-		self.assertEqual(das.layout().itemAt(2).widget(), das.tablewidget)
+		self.assertEqual(das.layout().itemAt(2).widget(), das.tableview)
 		self.assertIsInstance(das.askCats, QCheckBox)
 		self.assertEqual(das.askCats.text(), "Ask categories at the end?")
 		self.assertTrue(das.askCats.isChecked())
@@ -1217,7 +1218,7 @@ class TestDailyArxivSelect(GUITestCase):
 		self.assertFalse(hasattr(das, "abstractFormulas"))
 		#the first row will contain the 1507.08204 entry,
 		#as the order is Qt.AscendingOrder on the first column (eprint)
-		ix = das.tablewidget.model().index(1, 0)
+		ix = das.tableview.model().index(1, 0)
 		with patch("logging.Logger.debug") as _d:
 			das.cellClick(ix)
 			_d.assert_called_once_with("self.abstractFormulas not present " +
@@ -1228,7 +1229,7 @@ class TestDailyArxivSelect(GUITestCase):
 			self.assertEqual(das.cellClick(ix), None)
 			_d.assert_called_once_with('Data not valid', exc_info=True)
 			_s.assert_called_once_with(1, 0, ix)
-		ix = das.tablewidget.model().index(0, 0)
+		ix = das.tableview.model().index(0, 0)
 		das.abstractFormulas = fake_abstractFormulas()
 		with patch("physbiblio.gui.bibWindows.AbstractFormulas.doText") as _d:
 			das.cellClick(ix)

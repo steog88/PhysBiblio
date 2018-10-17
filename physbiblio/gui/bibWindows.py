@@ -426,7 +426,7 @@ class BibtexInfo(QFrame):
 		self.currLayout.addWidget(self.text)
 
 
-class MyBibTableModel(MyTableModel):
+class BibTableModel(MyTableModel):
 	"""The model (based on `MyTableModel`)
 	which manages the list of bibtex entries
 	"""
@@ -519,7 +519,7 @@ class MyBibTableModel(MyTableModel):
 		if len(pBPDF.getExisting(key))>0:
 			return True, self.addImage(
 				":/images/application-pdf.png",
-				self.parentObj.tablewidget.rowHeight(0)*0.9)
+				self.parentObj.tableview.rowHeight(0)*0.9)
 		else:
 			return False, "no PDF"
 
@@ -540,11 +540,11 @@ class MyBibTableModel(MyTableModel):
 			if len(marks)>1:
 				return True, self.addImages(
 					[pBMarks.marks[img]["icon"] for img in marks ],
-					self.parentObj.tablewidget.rowHeight(0)*0.9)
+					self.parentObj.tableview.rowHeight(0)*0.9)
 			elif len(marks)>0:
 				return True, self.addImage(
 					pBMarks.marks[marks[0]]["icon"],
-					self.parentObj.tablewidget.rowHeight(0)*0.9)
+					self.parentObj.tableview.rowHeight(0)*0.9)
 			else:
 				return False, ""
 		else:
@@ -569,12 +569,12 @@ class MyBibTableModel(MyTableModel):
 		try:
 			rowData = self.dataList[row]
 		except IndexError:
-			pBGUILogger.exception("MyBibTableModel.data(): invalid row")
+			pBGUILogger.exception("BibTableModel.data(): invalid row")
 			return None
 		try:
 			colName = self.header[column]
 		except IndexError:
-			pBGUILogger.exception("MyBibTableModel.data(): invalid column")
+			pBGUILogger.exception("BibTableModel.data(): invalid column")
 			return None
 		if colName == "marks":
 			try:
@@ -1484,7 +1484,7 @@ class BibtexListWindow(QFrame, objListWindow):
 
 		self.currLayout.addWidget(self.selectToolBar)
 
-		self.tableModel = MyBibTableModel(self,
+		self.tableModel = BibTableModel(self,
 			self.bibs,
 			self.columns + self.additionalCols,
 			self.columns,
@@ -1495,7 +1495,7 @@ class BibtexListWindow(QFrame, objListWindow):
 
 		self.changeEnableActions()
 		self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
-		self.tablewidget.hideColumn(
+		self.tableview.hideColumn(
 			len(self.columns) + len(self.additionalCols))
 
 		self.finalizeTable()
@@ -1547,7 +1547,7 @@ class BibtexListWindow(QFrame, objListWindow):
 			event: a `QEvent` instance, used to obtain the mouse
 				position where to open the menu
 		"""
-		index = self.tablewidget.model().index(row, col)
+		index = self.tableview.model().index(row, col)
 		try:
 			row, col, bibkey, entry = self.getEventEntry(index)
 		except TypeError:
@@ -1620,16 +1620,21 @@ class BibtexListWindow(QFrame, objListWindow):
 		"""
 		font = QFont()
 		font.setPointSize(pbConfig.params["bibListFontSize"])
-		self.tablewidget.setFont(font)
+		self.tableview.setFont(font)
 
 		if pbConfig.params["resizeTable"]:
-			self.tablewidget.resizeColumnsToContents()
-			self.tablewidget.resizeRowsToContents()
+			self.tableview.resizeColumnsToContents()
+			self.tableview.resizeRowsToContents()
+		else:
+			for f in ["author", "title", "comments"]:
+				if f in self.colContents:
+					self.tableview.resizeColumnToContents(
+						self.colContents.index(f))
 
-		self.tablewidget.clicked.connect(self.cellClick)
-		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
+		self.tableview.clicked.connect(self.cellClick)
+		self.tableview.doubleClicked.connect(self.cellDoubleClick)
 
-		self.currLayout.addWidget(self.tablewidget)
+		self.currLayout.addWidget(self.tableview)
 
 	def recreateTable(self, bibs=None):
 		"""Call `self.cleanLayout` and `self.createTable`

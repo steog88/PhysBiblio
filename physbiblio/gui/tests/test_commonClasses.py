@@ -262,11 +262,11 @@ class TestObjListWindow(GUITestCase):
 			Qt.CaseInsensitive)
 		self.assertEqual(olw.proxyModel.filterKeyColumn(), -1)
 
-		self.assertIsInstance(olw.tablewidget, MyTableView)
-		self.assertEqual(olw.tablewidget.model(), olw.proxyModel)
-		self.assertTrue(olw.tablewidget.isSortingEnabled())
-		self.assertTrue(olw.tablewidget.hasMouseTracking())
-		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
+		self.assertIsInstance(olw.tableview, MyTableView)
+		self.assertEqual(olw.tableview.model(), olw.proxyModel)
+		self.assertTrue(olw.tableview.isSortingEnabled())
+		self.assertTrue(olw.tableview.hasMouseTracking())
+		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tableview)
 
 	def test_finalizeTable(self):
 		"""Test finalizeTable"""
@@ -281,35 +281,35 @@ class TestObjListWindow(GUITestCase):
 			olw.finalizeTable()
 			_rc.assert_has_calls([call(), call()])
 			self.assertEqual(_rr.call_count, 1)
-		self.assertIsInstance(olw.tablewidget, MyTableView)
+		self.assertIsInstance(olw.tableview, MyTableView)
 		maxw = QDesktopWidget().availableGeometry().width()
 		self.assertEqual(olw.maximumHeight(),
 			QDesktopWidget().availableGeometry().height())
 		self.assertEqual(olw.maximumWidth(), maxw)
-		hwidth = olw.tablewidget.horizontalHeader().length()
-		swidth = olw.tablewidget.style().pixelMetric(QStyle.PM_ScrollBarExtent)
-		fwidth = olw.tablewidget.frameWidth() * 2
+		hwidth = olw.tableview.horizontalHeader().length()
+		swidth = olw.tableview.style().pixelMetric(QStyle.PM_ScrollBarExtent)
+		fwidth = olw.tableview.frameWidth() * 2
 
 		if hwidth > maxw - (swidth + fwidth):
 			tW = maxw - (swidth + fwidth)
 		else:
 			tW = hwidth + swidth + fwidth
-		self.assertEqual(olw.tablewidget.width(), tW)
+		self.assertEqual(olw.tableview.width(), tW)
 		self.assertEqual(olw.minimumHeight(), 600)
 		ix = QModelIndex()
 		with patch("physbiblio.gui.commonClasses.objListWindow." +
 				"handleItemEntered") as _f:
-			olw.tablewidget.entered.emit(ix)
+			olw.tableview.entered.emit(ix)
 			_f.assert_called_once_with(ix)
 		with patch("physbiblio.gui.commonClasses.objListWindow." +
 				"cellClick") as _f:
-			olw.tablewidget.clicked.emit(ix)
+			olw.tableview.clicked.emit(ix)
 			_f.assert_called_once_with(ix)
 		with patch("physbiblio.gui.commonClasses.objListWindow." +
 				"cellDoubleClick") as _f:
-			olw.tablewidget.doubleClicked.emit(ix)
+			olw.tableview.doubleClicked.emit(ix)
 			_f.assert_called_once_with(ix)
-		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tablewidget)
+		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tableview)
 
 		olw = objListWindow(gridLayout = True)
 		olw.tableModel = emptyTableModel()
@@ -317,7 +317,7 @@ class TestObjListWindow(GUITestCase):
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 		olw.finalizeTable(gridPos = (4, 1))
 		self.assertEqual(olw.layout().itemAtPosition(4, 1).widget(),
-			olw.tablewidget)
+			olw.tableview)
 
 	def test_cleanLayout(self):
 		"""Test cleanLayout"""

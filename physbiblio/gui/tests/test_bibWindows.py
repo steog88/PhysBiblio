@@ -1113,15 +1113,15 @@ class TestBibtexInfo(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyBibTableModel(GUITestCase):
-	"""test the `MyBibTableModel` methods"""
+class TestBibTableModel(GUITestCase):
+	"""test the `BibTableModel` methods"""
 
 	def test_init(self):
 		"""test __init__"""
 		p = QWidget()
 		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
 		header = ["A", "B", "C"]
-		tm = MyBibTableModel(p, biblist, header)
+		tm = BibTableModel(p, biblist, header)
 		self.assertIsInstance(tm, MyTableModel)
 		self.assertEqual(tm.mainWin, None)
 		self.assertIsInstance(tm.latexToText, LatexNodes2Text)
@@ -1135,11 +1135,11 @@ class TestMyBibTableModel(GUITestCase):
 		self.assertEqual(tm.previous, [])
 		self.assertEqual(tm.ask, False)
 
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.prepareSelected"
+		with patch("physbiblio.gui.bibWindows.BibTableModel.prepareSelected"
 				) as _ps,\
 				patch("pylatexenc.latex2text.LatexNodes2Text.__init__",
 					return_value=None) as _il:
-			tm = MyBibTableModel(p, biblist, header,
+			tm = BibTableModel(p, biblist, header,
 				stdCols=["s1", "s2"],
 				addCols=["a1", "a2"],
 				askBibs=True,
@@ -1166,7 +1166,7 @@ class TestMyBibTableModel(GUITestCase):
 		p = QWidget()
 		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
 		header = ["A", "B", "C"]
-		tm = MyBibTableModel(p, biblist, header)
+		tm = BibTableModel(p, biblist, header)
 		self.assertEqual(tm.getIdentifier(biblist[0]), "a")
 		self.assertEqual(tm.getIdentifier(biblist[1]), "b")
 
@@ -1183,7 +1183,7 @@ class TestMyBibTableModel(GUITestCase):
 			"exp_paper": 1,
 			}]
 		header = ["A", "B", "C"]
-		tm = MyBibTableModel(p, biblist, header)
+		tm = BibTableModel(p, biblist, header)
 		self.assertEqual(tm.addTypeCell(biblist[0]),
 			"Book, Experimental paper, Lecture, "
 			+ "PhD thesis, Proceeding, Review")
@@ -1229,7 +1229,7 @@ class TestMyBibTableModel(GUITestCase):
 		biblist = [{"bibkey": "a"}]
 		header = ["A", "B", "C"]
 		m = BibtexListWindow(bibs=[])
-		tm = MyBibTableModel(m, biblist, header)
+		tm = BibTableModel(m, biblist, header)
 		with patch("physbiblio.pdf.LocalPDF.getExisting",
 				return_value=[]) as _ge:
 			self.assertEqual(tm.addPDFCell("a"),
@@ -1244,7 +1244,7 @@ class TestMyBibTableModel(GUITestCase):
 			_ge.assert_called_once_with("a")
 			_ai.assert_called_once_with(
 				":/images/application-pdf.png",
-				m.tablewidget.rowHeight(0)*0.9)
+				m.tableview.rowHeight(0)*0.9)
 
 	def test_addMarksCell(self):
 		"""test addMarksCell"""
@@ -1257,7 +1257,7 @@ class TestMyBibTableModel(GUITestCase):
 				"arxiv": "1809.00000"}])
 		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
 		header = ["A", "B", "C"]
-		tm = MyBibTableModel(m, biblist, header)
+		tm = BibTableModel(m, biblist, header)
 		self.assertEqual(tm.addMarksCell(None),
 			(False, ""))
 		self.assertEqual(tm.addMarksCell(123),
@@ -1271,13 +1271,13 @@ class TestMyBibTableModel(GUITestCase):
 			_ai.assert_called_once_with(
 				[':/images/emblem-important-symbolic.png',
 				':/images/unread-new.png'],
-				m.tablewidget.rowHeight(0)*0.9)
+				m.tableview.rowHeight(0)*0.9)
 		with patch("physbiblio.gui.commonClasses.MyTableModel.addImage",
 				return_value="called") as _ai:
 			self.assertEqual(tm.addMarksCell(u"new"),
 				(True, "called"))
 			_ai.assert_called_once_with(':/images/unread-new.png',
-				m.tablewidget.rowHeight(0)*0.9)
+				m.tableview.rowHeight(0)*0.9)
 
 	def test_data(self):
 		"""test data"""
@@ -1302,7 +1302,7 @@ class TestMyBibTableModel(GUITestCase):
 			"marks": "new,imp"}]
 		header = ["bibkey", "marks", "title", "author", "arxiv"]
 		addCols = ["Type", "PDF"]
-		tm = MyBibTableModel(m, biblist, header+addCols,
+		tm = BibTableModel(m, biblist, header+addCols,
 			header, addCols, previous=["b"], askBibs=True)
 		ix = tm.index(10, 0)
 		self.assertEqual(tm.data(ix, Qt.CheckStateRole), None)
@@ -1323,12 +1323,12 @@ class TestMyBibTableModel(GUITestCase):
 		self.assertEqual(tm.data(tm.index(1, 4), Qt.DisplayRole), "")
 
 		#check marks
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addMarksCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addMarksCell",
 				return_value=(False, "")) as _m:
 			self.assertEqual(tm.data(tm.index(0, 1), Qt.DisplayRole),
 				"")
 			_m.assert_called_once_with("")
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addMarksCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addMarksCell",
 				return_value=(False, "")) as _m:
 			self.assertEqual(tm.data(tm.index(1, 1), Qt.DisplayRole),
 				"")
@@ -1343,12 +1343,12 @@ class TestMyBibTableModel(GUITestCase):
 			QPixmap)
 
 		#check type
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addTypeCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addTypeCell",
 				return_value="type A") as _m:
 			self.assertEqual(tm.data(tm.index(0, 5), Qt.DisplayRole),
 				"type A")
 			_m.assert_called_once_with(biblist[0])
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addTypeCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addTypeCell",
 				return_value="type B") as _m:
 			self.assertEqual(tm.data(tm.index(1, 5), Qt.DisplayRole),
 				"type B")
@@ -1363,12 +1363,12 @@ class TestMyBibTableModel(GUITestCase):
 			None)
 
 		#check pdf
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addPDFCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addPDFCell",
 				return_value=(False, "no PDF")) as _m:
 			self.assertEqual(tm.data(tm.index(0, 6), Qt.DisplayRole),
 				"no PDF")
 			_m.assert_called_once_with("a")
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel.addPDFCell",
+		with patch("physbiblio.gui.bibWindows.BibTableModel.addPDFCell",
 				return_value=(False, "no PDF")) as _m:
 			self.assertEqual(tm.data(tm.index(1, 6), Qt.DisplayRole),
 				"no PDF")
@@ -1387,14 +1387,14 @@ class TestMyBibTableModel(GUITestCase):
 			self.assertIsInstance(tm.data(tm.index(1, 6), Qt.DecorationRole),
 				QPixmap)
 
-		tm = MyBibTableModel(m, biblist, header+addCols,
+		tm = BibTableModel(m, biblist, header+addCols,
 			header, addCols, previous=[], askBibs=False)
 		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), None)
-		tm = MyBibTableModel(m, biblist, header+addCols,
+		tm = BibTableModel(m, biblist, header+addCols,
 			header, addCols, previous=[], askBibs=True)
 		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
 			Qt.Unchecked)
-		tm = MyBibTableModel(m, biblist, header+addCols,
+		tm = BibTableModel(m, biblist, header+addCols,
 			header, addCols, previous=["a"], askBibs=True)
 		self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole),
 			Qt.Checked)
@@ -1415,7 +1415,7 @@ class TestMyBibTableModel(GUITestCase):
 			self.newEmit = ix1
 		biblist = [{"bibkey": "a"}, {"bibkey": "b"}]
 		header = ["A", "B", "C"]
-		tm = MyBibTableModel(p, biblist, header)
+		tm = BibTableModel(p, biblist, header)
 		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
 		ix = tm.index(10, 0)
 		self.newEmit = False
@@ -1431,7 +1431,7 @@ class TestMyBibTableModel(GUITestCase):
 		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
 		self.assertEqual(self.newEmit, ix)
 
-		tm = MyBibTableModel(p, biblist, header)
+		tm = BibTableModel(p, biblist, header)
 		ix = tm.index(1, 0)
 		self.assertEqual(tm.setData(ix, "abc", Qt.EditRole), True)
 		self.assertEqual(tm.selectedElements, {"a": False, "b": False})
@@ -3484,9 +3484,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		"""test clearSelection"""
 		bw = BibtexListWindow(bibs=[])
 		bw.tableModel.previous = ["abc"]
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+		with patch("physbiblio.gui.bibWindows.BibTableModel."
 				+ "prepareSelected") as _ps,\
-				patch("physbiblio.gui.bibWindows.MyBibTableModel."
+				patch("physbiblio.gui.bibWindows.BibTableModel."
 					+ "changeAsk") as _ca,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "changeEnableActions") as _ea:
@@ -3574,7 +3574,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 	def test_enableSelection(self):
 		"""test enableSelection"""
 		bw = BibtexListWindow(bibs=[])
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+		with patch("physbiblio.gui.bibWindows.BibTableModel."
 				+ "changeAsk") as _a,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "changeEnableActions") as _e:
@@ -3585,7 +3585,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 	def test_selectAll(self):
 		"""test selectAll"""
 		bw = BibtexListWindow(bibs=[])
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+		with patch("physbiblio.gui.bibWindows.BibTableModel."
 				+ "selectAll") as _f:
 			bw.selectAll()
 			_f.assert_called_once_with()
@@ -3593,7 +3593,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 	def test_unselectAll(self):
 		"""test unselectAll"""
 		bw = BibtexListWindow(bibs=[])
-		with patch("physbiblio.gui.bibWindows.MyBibTableModel."
+		with patch("physbiblio.gui.bibWindows.BibTableModel."
 				+ "unselectAll") as _f:
 			bw.unselectAll()
 			_f.assert_called_once_with()
@@ -3648,7 +3648,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				patch("physbiblio.gui.commonClasses.objListWindow."
 					+ "setProxyStuff") as _sps,\
 				patch("PySide2.QtWidgets.QTableView.hideColumn") as _hc,\
-				patch("physbiblio.gui.bibWindows.MyBibTableModel",
+				patch("physbiblio.gui.bibWindows.BibTableModel",
 					autospec=True) as _tm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "finalizeTable") as _ft:
@@ -4003,11 +4003,11 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellClick") as _f:
-			bw.tablewidget.clicked.emit(QModelIndex())
+			bw.tableview.clicked.emit(QModelIndex())
 			self.assertEqual(_f.call_count, 1)
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellDoubleClick") as _f:
-			bw.tablewidget.doubleClicked.emit(QModelIndex())
+			bw.tableview.doubleClicked.emit(QModelIndex())
 			self.assertEqual(_f.call_count, 1)
 		bw.cleanLayout()
 		pbConfig.params["resizeTable"] = True
@@ -4019,19 +4019,25 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			bw.finalizeTable()
 			_rc.assert_called_once_with()
 			_rr.assert_called_once_with()
-			self.assertIsInstance(bw.tablewidget.font(), QFont)
-			self.assertEqual(bw.tablewidget.font().pointSize(),
+			self.assertIsInstance(bw.tableview.font(), QFont)
+			self.assertEqual(bw.tableview.font().pointSize(),
 				pbConfig.params["bibListFontSize"])
-			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tablewidget)
+			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tableview)
 		bw.cleanLayout()
 		pbConfig.params["resizeTable"] = False
 		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents"
 					) as _rc,\
+				patch("PySide2.QtWidgets.QTableView.resizeColumnToContents"
+					) as _rsc,\
 				patch("PySide2.QtWidgets.QTableView.resizeRowsToContents"
 					) as _rr:
 			bw.finalizeTable()
 			_rc.assert_not_called()
 			_rr.assert_not_called()
+			for f in ["author", "title", "comments"]:
+				if f in bw.colContents:
+					_rsc.assert_any_call(
+						bw.colContents.index(f))
 		pbConfig.params["resizeTable"] = resTab
 
 	def test_recreateTable(self):

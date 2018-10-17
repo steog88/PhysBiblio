@@ -30,7 +30,7 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-class configEditColumns(QDialog):
+class ConfigEditColumns(QDialog):
 	"""Extend `QDialog` to ask the columns
 	that must appear in the main table
 	"""
@@ -43,10 +43,11 @@ class configEditColumns(QDialog):
 			previous: list of columns which must appear
 				as selected at the beginning
 		"""
-		super(configEditColumns, self).__init__(parent)
+		super(ConfigEditColumns, self).__init__(parent)
 		self.excludeCols = [
 			"crossref", "bibtex", "exp_paper", "lecture",
-			"phd_thesis", "review", "proceeding", "book", "noUpdate"]
+			"phd_thesis", "review", "proceeding", "book", "noUpdate",
+			"bibdict", "abstract"]
 		self.moreCols = [
 			"title", "author", "journal", "volume", "pages",
 			"primaryclass", "booktitle", "reportnumber"]
@@ -177,7 +178,7 @@ class configWindow(QDialog):
 		in the `configWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
-		window = configEditColumns(self,
+		window = ConfigEditColumns(self,
 			ast.literal_eval(self.textValues[ix][1].text().strip()))
 		window.exec_()
 		if window.result:

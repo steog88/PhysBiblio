@@ -202,12 +202,12 @@ class objListWindow(QDialog):
 		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setFilterKeyColumn(-1)
 
-		self.tablewidget = MyTableView(self)
-		self.tablewidget.setModel(self.proxyModel)
-		self.tablewidget.setSortingEnabled(True)
-		self.tablewidget.setMouseTracking(True)
+		self.tableview = MyTableView(self)
+		self.tableview.setModel(self.proxyModel)
+		self.tableview.setSortingEnabled(True)
+		self.tableview.setMouseTracking(True)
 		self.proxyModel.sort(sortColumn, sortOrder)
-		self.currLayout.addWidget(self.tablewidget)
+		self.currLayout.addWidget(self.tableview)
 
 	def finalizeTable(self, gridPos=(1, 0)):
 		"""Resize the table to fit the contents,
@@ -217,37 +217,37 @@ class objListWindow(QDialog):
 			gridPos (tuple): if gridLayout is active,
 			the position of the `QLineEdit` in the `QGridLayout`
 		"""
-		self.tablewidget.resizeColumnsToContents()
+		self.tableview.resizeColumnsToContents()
 
 		maxh = QDesktopWidget().availableGeometry().height()
 		maxw = QDesktopWidget().availableGeometry().width()
 		self.setMaximumHeight(maxh)
 		self.setMaximumWidth(maxw)
 
-		hwidth = self.tablewidget.horizontalHeader().length()
-		swidth = self.tablewidget.style().pixelMetric(QStyle.PM_ScrollBarExtent)
-		fwidth = self.tablewidget.frameWidth() * 2
+		hwidth = self.tableview.horizontalHeader().length()
+		swidth = self.tableview.style().pixelMetric(QStyle.PM_ScrollBarExtent)
+		fwidth = self.tableview.frameWidth() * 2
 
 		if self.tableWidth is None:
 			if hwidth > maxw - (swidth + fwidth):
 				self.tableWidth = maxw - (swidth + fwidth)
 			else:
 				self.tableWidth = hwidth + swidth + fwidth
-		self.tablewidget.setFixedWidth(self.tableWidth)
+		self.tableview.setFixedWidth(self.tableWidth)
 
 		self.setMinimumHeight(600)
 
-		self.tablewidget.resizeColumnsToContents()
-		self.tablewidget.resizeRowsToContents()
+		self.tableview.resizeColumnsToContents()
+		self.tableview.resizeRowsToContents()
 
-		self.tablewidget.entered.connect(self.handleItemEntered)
-		self.tablewidget.clicked.connect(self.cellClick)
-		self.tablewidget.doubleClicked.connect(self.cellDoubleClick)
+		self.tableview.entered.connect(self.handleItemEntered)
+		self.tableview.clicked.connect(self.cellClick)
+		self.tableview.doubleClicked.connect(self.cellDoubleClick)
 
 		if self.gridLayout:
-			self.currLayout.addWidget(self.tablewidget, *gridPos)
+			self.currLayout.addWidget(self.tableview, *gridPos)
 		else:
-			self.currLayout.addWidget(self.tablewidget)
+			self.currLayout.addWidget(self.tableview)
 
 	def cleanLayout(self):
 		"""Delete the previous table widget and other layout items"""
