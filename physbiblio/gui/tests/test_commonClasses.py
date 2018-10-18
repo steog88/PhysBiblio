@@ -399,15 +399,15 @@ class TestEditObjectWindow(GUITestCase):
 		"""test centerWindow"""
 		eow = EditObjectWindow()
 		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
-					autospec = True, return_value = QRect()) as _fg,\
+					autospec=True, return_value=QRect()) as _fg,\
 				patch("PySide2.QtCore.QRect.center",
-					autospec = True, return_value = QPoint()) as _ce,\
+					autospec=True, return_value=QPoint()) as _ce,\
 				patch("PySide2.QtCore.QRect.moveCenter",
-					autospec = True) as _mc,\
+					autospec=True) as _mc,\
 				patch("PySide2.QtCore.QRect.topLeft",
-					autospec = True, return_value = QPoint()) as _tl,\
+					autospec=True, return_value=QPoint()) as _tl,\
 				patch("PySide2.QtWidgets.QDialog.move",
-					autospec = True) as _mo:
+					autospec=True) as _mo:
 			eow.centerWindow()
 			self.assertEqual(_fg.call_count, 1)
 			self.assertEqual(_ce.call_count, 1)
@@ -422,7 +422,7 @@ class TestMyThread(GUITestCase):
 
 	def test_methods(self):
 		"""test all the methods in the class"""
-		with patch("PySide2.QtCore.QThread.__init__", autospec = True) as _in:
+		with patch("PySide2.QtCore.QThread.__init__", autospec=True) as _in:
 			MyThread()
 			self.assertEqual(_in.call_count, 1)
 		mt = MyThread()
@@ -430,8 +430,8 @@ class TestMyThread(GUITestCase):
 		self.assertRaises(NotImplementedError, lambda: mt.run())
 		self.assertRaises(NotImplementedError, lambda: mt.setStopFlag())
 		self.assertIsInstance(mt.finished, Signal)
-		with patch("time.sleep", autospec = True) as _sl,\
-				patch("PySide2.QtCore.QThread.start", autospec = True) as _st:
+		with patch("time.sleep", autospec=True) as _sl,\
+				patch("PySide2.QtCore.QThread.start", autospec=True) as _st:
 			mt.start()
 			_sl.assert_called_once_with(0.3)
 			_st.assert_called_once_with(mt)
@@ -462,7 +462,7 @@ class TestWriteStream(GUITestCase):
 			with patch("Queue.Queue.put") as _put:
 				ws.write("abc")
 				_put.assert_called_once_with("abc")
-			with patch("Queue.Queue.get", return_value = "abc") as _get:
+			with patch("Queue.Queue.get", return_value="abc") as _get:
 				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
 				self.assertEqual(_get.call_count, 1)
@@ -472,7 +472,7 @@ class TestWriteStream(GUITestCase):
 			with patch("queue.Queue.put") as _put:
 				ws.write("abc")
 				_put.assert_called_once_with("abc")
-			with patch("queue.Queue.get", return_value = "abc") as _get:
+			with patch("queue.Queue.get", return_value="abc") as _get:
 				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
 				self.assertEqual(_get.call_count, 1)
@@ -494,13 +494,13 @@ class TestMyTableWidget(GUITestCase):
 		self.assertEqual(mtw.parent(), p)
 		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
 		with patch("PySide2.QtGui.QContextMenuEvent.x",
-					return_value = 12) as _x,\
+					return_value=12) as _x,\
 				patch("PySide2.QtGui.QContextMenuEvent.y",
-					return_value = 24) as _y,\
+					return_value=24) as _y,\
 				patch("PySide2.QtWidgets.QTableWidget.rowAt",
-					return_value = 0) as _r,\
+					return_value=0) as _r,\
 				patch("PySide2.QtWidgets.QTableWidget.columnAt",
-					return_value = 1) as _c,\
+					return_value=1) as _c,\
 				patch("physbiblio.gui.commonClasses.objListWindow." +
 					"triggeredContextMenuEvent") as _t:
 			mtw.contextMenuEvent(e)
@@ -523,13 +523,13 @@ class TestMyTableView(GUITestCase):
 		self.assertEqual(mtw.parent(), p)
 		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
 		with patch("PySide2.QtGui.QContextMenuEvent.x",
-					return_value = 12) as _x,\
+					return_value=12) as _x,\
 				patch("PySide2.QtGui.QContextMenuEvent.y",
-					return_value = 24) as _y,\
+					return_value=24) as _y,\
 				patch("PySide2.QtWidgets.QTableView.rowAt",
-					return_value = 0) as _r,\
+					return_value=0) as _r,\
 				patch("PySide2.QtWidgets.QTableView.columnAt",
-					return_value = 1) as _c,\
+					return_value=1) as _c,\
 				patch("physbiblio.gui.commonClasses.objListWindow." +
 					"triggeredContextMenuEvent") as _t:
 			mtw.contextMenuEvent(e)
@@ -614,7 +614,7 @@ class TestMyTableModel(GUITestCase):
 		self.assertFalse(mtm.about)
 		self.assertFalse(mtm.changed)
 		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
-				side_effect = [0, 1, 2]) as _gi:
+				side_effect=[0, 1, 2]) as _gi:
 			mtm.prepareSelected()
 			_gi.assert_has_calls([
 				call({"a": 1, "b": 3}),
@@ -624,7 +624,7 @@ class TestMyTableModel(GUITestCase):
 		mtm = MyTableModel(p, ["a", "b"], previous = [2])
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
-				side_effect = [0, 1, 2]) as _gi:
+				side_effect=[0, 1, 2]) as _gi:
 			mtm.prepareSelected()
 			_gi.assert_has_calls([
 				call({"a": 1, "b": 3}),
@@ -634,7 +634,7 @@ class TestMyTableModel(GUITestCase):
 		mtm = MyTableModel(p, ["a", "b"], previous = [1, 5])
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
-				side_effect = [0, 1, 2]) as _gi:
+				side_effect=[0, 1, 2]) as _gi:
 			self.assert_in_stdout(mtm.prepareSelected,
 				"Invalid identifier in previous selection: 5")
 			_gi.assert_has_calls([
@@ -644,7 +644,7 @@ class TestMyTableModel(GUITestCase):
 		self.assertEqual(mtm.selectedElements, {0: False, 1: True, 2: False})
 		mtm = MyTableModel(p, ["a", "b"])
 		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
-				side_effect = [0, 1, 2]) as _gi:
+				side_effect=[0, 1, 2]) as _gi:
 			self.assert_in_stdout(mtm.prepareSelected,
 				"dataList is not defined!")
 			_gi.assert_not_called()
@@ -699,10 +699,10 @@ class TestMyTableModel(GUITestCase):
 		qpixm = QPixmap(":/images/edit.png")
 		painter = QPainter(basepixm)
 		with patch("physbiblio.gui.commonClasses.QPixmap",
-					side_effect = [basepixm, qpixm, qpixm]) as _qpm,\
+					side_effect=[basepixm, qpixm, qpixm]) as _qpm,\
 				patch("PySide2.QtGui.QPixmap.fill") as _fi,\
 				patch("physbiblio.gui.commonClasses.QPainter",
-					return_value = painter) as _qpai,\
+					return_value=painter) as _qpai,\
 				patch("PySide2.QtGui.QPainter.drawPixmap") as _drp:
 			qp = mtm.addImages([":/images/edit.png", ":/images/find.png"], 31)
 			_qpm.assert_has_calls([
@@ -746,18 +746,18 @@ class TestMyTableModel(GUITestCase):
 		mtm = MyTableModel(p, ["a", "b"])
 		self.assertEqual(mtm.flags(idx), None)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv:
+				return_value=True) as _iv:
 			with patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 1) as _c:
+					return_value=1) as _c:
 				self.assertEqual(mtm.flags(idx),
 					Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			with patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c:
+					return_value=0) as _c:
 				self.assertEqual(mtm.flags(idx),
 					Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			mtm.ask = True
 			with patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c:
+					return_value=0) as _c:
 				self.assertEqual(mtm.flags(idx),
 					Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 					Qt.ItemIsEnabled | Qt.ItemIsSelectable)
@@ -813,7 +813,7 @@ class TestTreeNode(GUITestCase):
 		"""test the __init__ and _getChildren methods"""
 		ew = QWidget()
 		with patch("physbiblio.gui.commonClasses.TreeNode._getChildren",
-				return_value = "def") as _gc:
+				return_value="def") as _gc:
 			tn = TreeNode(ew, "abc")
 			self.assertEqual(tn.parent(), ew)
 			self.assertEqual(tn.parentObj, ew)
@@ -843,7 +843,7 @@ class TestTreeModel(GUITestCase):
 	def test_init(self):
 		"""test the constructor"""
 		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes",
-				return_value = "empty") as _gr:
+				return_value="empty") as _gr:
 			tm = TreeModel()
 			self.assertEqual(_gr.call_count, 1)
 		self.assertIsInstance(tm, QAbstractItemModel)
@@ -853,7 +853,7 @@ class TestTreeModel(GUITestCase):
 		"""test the non implemented _getRootNodes"""
 		self.assertRaises(NotImplementedError, lambda: TreeModel())
 		with patch("physbiblio.gui.commonClasses.TreeModel._getRootNodes",
-				return_value = "empty") as _gr:
+				return_value="empty") as _gr:
 			tm = TreeModel()
 		self.assertRaises(NotImplementedError, lambda: tm._getRootNodes())
 
@@ -964,7 +964,7 @@ class TestNamedElement(GUITestCase):
 	def test_init(self):
 		"""test the constructor"""
 		with patch("physbiblio.gui.commonClasses.catString",
-				return_value = "abcde") as _cs:
+				return_value="abcde") as _cs:
 			ne = NamedElement(0, "main", ["a", "b"])
 			_cs.assert_called_once_with(0, pBDB)
 		self.assertEqual(ne.idCat, 0)
@@ -984,12 +984,12 @@ class TestNamedNode(GUITestCase):
 		nn = NamedNode(main, None, 0)
 		self.assertIsInstance(nn, TreeNode)
 		with patch("physbiblio.gui.commonClasses.TreeNode.__init__",
-				return_value = None) as _in:
+				return_value=None) as _in:
 			nn = NamedNode(main, None, 0)
 			_in.assert_called_once_with(nn, None, 0)
 		self.assertEqual(nn.element, main)
 		with patch("physbiblio.gui.commonClasses.NamedNode.__init__",
-				return_value = None) as _in:
+				return_value=None) as _in:
 			nn._getChildren()
 			_in.assert_called_once_with(el, nn, 0)
 		self.assertIsInstance(nn._getChildren(), list)
@@ -1010,7 +1010,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		"""Test filterAcceptsRow with all possible combinations"""
 		lf = LeafFilterProxyModel()
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value = True) as _its, \
+				"filterAcceptsRowItself", return_value=True) as _its, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
 					"filterAcceptsAnyParent") as _par, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
@@ -1020,9 +1020,9 @@ class TestLeafFilterProxyModel(GUITestCase):
 			_par.assert_not_called()
 			_chi.assert_not_called()
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value = False) as _its, \
+				"filterAcceptsRowItself", return_value=False) as _its, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value = True) as _par, \
+					"filterAcceptsAnyParent", return_value=True) as _par, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
 					"hasAcceptedChildren") as _chi:
 			self.assertTrue(lf.filterAcceptsRow(0, None))
@@ -1030,21 +1030,21 @@ class TestLeafFilterProxyModel(GUITestCase):
 			_par.assert_called_once_with(None)
 			_chi.assert_not_called()
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value = False) as _its, \
+				"filterAcceptsRowItself", return_value=False) as _its, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value = False) as _par, \
+					"filterAcceptsAnyParent", return_value=False) as _par, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren", return_value = True) as _chi:
+					"hasAcceptedChildren", return_value=True) as _chi:
 			self.assertTrue(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_called_once_with(None)
 			_chi.assert_called_once_with(0, None)
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value = False) as _its, \
+					"filterAcceptsRowItself", return_value=False) as _its, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value = False) as _par, \
+					"filterAcceptsAnyParent", return_value=False) as _par, \
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren", return_value = False) as _chi:
+					"hasAcceptedChildren", return_value=False) as _chi:
 			self.assertFalse(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_called_once_with(None)
@@ -1054,7 +1054,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		"""test filterAcceptRowItself"""
 		lf = LeafFilterProxyModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.filterAcceptsRow",
-				return_value = "testval") as _far:
+				return_value="testval") as _far:
 			self.assertEqual(lf.filterAcceptsRowItself(0, "par"), "testval")
 			_far.assert_called_once_with(0, "par")
 
@@ -1073,7 +1073,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value = False) as _its:
+					"filterAcceptsRowItself", return_value=False) as _its:
 			self.assertFalse(
 				lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 			self.assertEqual(_iv.call_count, 3)
@@ -1081,9 +1081,9 @@ class TestLeafFilterProxyModel(GUITestCase):
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value = False) as _its,\
+					"filterAcceptsRowItself", return_value=False) as _its,\
 				patch("physbiblio.gui.commonClasses.QModelIndex.parent",
-					return_value = QModelIndex()) as _pa:
+					return_value=QModelIndex()) as _pa:
 			self.assertFalse(
 				lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 			self.assertEqual(_iv.call_count, 3)
@@ -1092,7 +1092,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value = True) as _its:
+					"filterAcceptsRowItself", return_value=True) as _its:
 			self.assertTrue(
 				lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 			self.assertEqual(_iv.call_count, 1)
@@ -1100,7 +1100,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
 				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value = True) as _its,\
+					"filterAcceptsRowItself", return_value=True) as _its,\
 				patch("physbiblio.gui.commonClasses.QModelIndex.parent") \
 					as _pa:
 			self.assertTrue(
@@ -1118,16 +1118,16 @@ class TestLeafFilterProxyModel(GUITestCase):
 		lf.setSourceModel(tm)
 		self.assertTrue(lf.hasAcceptedChildren(0, QModelIndex()))
 		with patch("physbiblio.gui.tests.test_commonClasses.emptyTreeModel." +
-				"rowCount", return_value = 1) as _rc:
+				"rowCount", return_value=1) as _rc:
 			self.assertTrue(lf.hasAcceptedChildren(1, QModelIndex()))
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRow", return_value = True) as _acc:
+				"filterAcceptsRow", return_value=True) as _acc:
 			self.assertTrue(lf.hasAcceptedChildren(5, QModelIndex()))
 			self.assertEqual(_acc.call_count, 1)
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRow", return_value = False) as _acc,\
+				"filterAcceptsRow", return_value=False) as _acc,\
 				patch("physbiblio.gui.tests.test_commonClasses." +
-					"emptyTreeModel.rowCount", return_value = 1) as _rc:
+					"emptyTreeModel.rowCount", return_value=1) as _rc:
 			self.assertFalse(lf.hasAcceptedChildren(1, QModelIndex()))
 
 
@@ -1194,7 +1194,7 @@ class TestMyDDTableWidget(GUITestCase):
 			Qt.MouseButtons(Qt.LeftButton),
 			Qt.KeyboardModifiers(Qt.NoModifier))
 		with patch("PySide2.QtGui.QDropEvent.source",
-				return_value = sender) as _s:
+				return_value=sender) as _s:
 			mddtw.dropEvent(ev)
 			_s.assert_called_once_with()
 		self.assertEqual(sender.rowCount(), 1)
@@ -1219,7 +1219,7 @@ class TestMyDDTableWidget(GUITestCase):
 			Qt.MouseButtons(Qt.LeftButton),
 			Qt.KeyboardModifiers(Qt.NoModifier))
 		with patch("PySide2.QtGui.QDropEvent.source",
-				return_value = mddtw) as _s:
+				return_value=mddtw) as _s:
 			mddtw.dropEvent(ev)
 			_s.assert_called_once_with()
 		self.assertEqual(sender.rowCount(), 1)
@@ -1236,11 +1236,11 @@ class TestMyDDTableWidget(GUITestCase):
 		a = mddtw.getselectedRowsFast()
 		self.assertEqual(a, [])
 		with patch("PySide2.QtWidgets.QTableWidget.selectedItems",
-				return_value = [QTableWidgetItem() for i in range(5)]) as _si,\
+				return_value=[QTableWidgetItem() for i in range(5)]) as _si,\
 				patch("PySide2.QtWidgets.QTableWidgetItem.row",
-					side_effect = [1, 8, 3, 1, 2]) as _r,\
+					side_effect=[1, 8, 3, 1, 2]) as _r,\
 				patch("PySide2.QtWidgets.QTableWidgetItem.text",
-					side_effect = ["de", "fg", "ab", "hi", "bibkey"]) as _t:
+					side_effect=["de", "fg", "ab", "hi", "bibkey"]) as _t:
 			a = mddtw.getselectedRowsFast()
 			self.assertEqual(a, [1, 3, 8])
 
@@ -1324,7 +1324,7 @@ class TestGuiViewEntry(GUITestCase):
 		self.assertIsInstance(pBGuiView, guiViewEntry)
 
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
-				return_value = True) as _ou,\
+				return_value=True) as _ou,\
 				patch("logging.Logger.debug") as _db:
 			gve.openLink(["abc", "def"], "link")
 			_db.assert_has_calls([
@@ -1336,7 +1336,7 @@ class TestGuiViewEntry(GUITestCase):
 				call(QUrl("def"))
 				])
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
-				return_value = False) as _ou,\
+				return_value=False) as _ou,\
 				patch("logging.Logger.warning") as _db:
 			gve.openLink(["abc", "def"], "link")
 			_db.assert_has_calls([
@@ -1348,18 +1348,18 @@ class TestGuiViewEntry(GUITestCase):
 				call(QUrl("def"))
 				])
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
-				return_value = True) as _ou,\
+				return_value=True) as _ou,\
 				patch("physbiblio.view.viewEntry.getLink",
-					return_value = "mylink") as _gl:
+					return_value="mylink") as _gl:
 			gve.openLink("abc", arg = "somearg", fileArg = "somefilearg")
 			_gl.assert_called_once_with("abc",
 				arg = "somearg",
 				fileArg = "somefilearg")
 			_ou.assert_called_once_with(QUrl("mylink"))
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
-				return_value = True) as _ou,\
+				return_value=True) as _ou,\
 				patch("physbiblio.gui.commonClasses.QUrl.fromLocalFile",
-					return_value = QUrl("mylink")) as _fl:
+					return_value=QUrl("mylink")) as _fl:
 			gve.openLink("abc", arg = "file", fileArg = "/a/b/c")
 			_fl.assert_called_once_with("/a/b/c")
 			_ou.assert_called_once_with(QUrl("mylink"))
@@ -1409,20 +1409,20 @@ class TestMyImportedTableModel(GUITestCase):
 			},
 			["key", "ID"])
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = False) as _iv:
+				return_value=False) as _iv:
 			self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole), None)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv:
+				return_value=True) as _iv:
 			with patch("PySide2.QtCore.QModelIndex.column",
-						return_value = 10) as _c,\
+						return_value=10) as _c,\
 					patch("PySide2.QtCore.QModelIndex.row",
-						return_value = 10) as _r:
+						return_value=10) as _r:
 				self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole),
 					None)
 			with patch("PySide2.QtCore.QModelIndex.column",
-						return_value = 0) as _c,\
+						return_value=0) as _c,\
 					patch("PySide2.QtCore.QModelIndex.row",
-						return_value = 0) as _r:
+						return_value=0) as _r:
 				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
 					Qt.Unchecked)
 				self.assertTrue(mitm.setData(QModelIndex(),
@@ -1431,9 +1431,9 @@ class TestMyImportedTableModel(GUITestCase):
 				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
 					Qt.Checked)
 			with patch("PySide2.QtCore.QModelIndex.column",
-						return_value = 0) as _c,\
+						return_value=0) as _c,\
 					patch("PySide2.QtCore.QModelIndex.row",
-						return_value = 0) as _r:
+						return_value=0) as _r:
 				mitm.existList[0] = True
 				self.assertEqual(mitm.data(QModelIndex(), Qt.EditRole),
 					"a - already existing")
@@ -1442,9 +1442,9 @@ class TestMyImportedTableModel(GUITestCase):
 				self.assertEqual(mitm.data(QModelIndex(), Qt.CheckStateRole),
 					None)
 			with patch("PySide2.QtCore.QModelIndex.column",
-						return_value = 1) as _c,\
+						return_value=1) as _c,\
 					patch("PySide2.QtCore.QModelIndex.row",
-						return_value = 0) as _r:
+						return_value=0) as _r:
 				self.assertEqual(mitm.data(QModelIndex(), Qt.EditRole),
 					"a")
 				self.assertEqual(mitm.data(QModelIndex(), Qt.DisplayRole),
@@ -1463,19 +1463,19 @@ class TestMyImportedTableModel(GUITestCase):
 		mitm.dataChanged.connect(fakeExec_dataChanged)
 		ids = {"a": False, "b": False}
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv:
+				return_value=True) as _iv:
 			self.assertTrue(mitm.setData(QModelIndex(), "abc", Qt.DisplayRole))
 			self.assertEqual(ids, mitm.selectedElements)
 			with patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 1) as _c:
+					return_value=1) as _c:
 				self.assertTrue(mitm.setData(QModelIndex(),
 					"abc",
 					Qt.CheckStateRole))
 				self.assertEqual(ids, mitm.selectedElements)
 			with patch("PySide2.QtCore.QModelIndex.column",
-						return_value = 0) as _c,\
+						return_value=0) as _c,\
 					patch("PySide2.QtCore.QModelIndex.row",
-						return_value = 0) as _r:
+						return_value=0) as _r:
 				self.assertTrue(mitm.setData(QModelIndex(),
 					Qt.Checked,
 					Qt.CheckStateRole))
@@ -1497,7 +1497,7 @@ class TestMyImportedTableModel(GUITestCase):
 				self.assertEqual({"a": False, "b": False},
 					mitm.selectedElements)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = False) as _iv:
+				return_value=False) as _iv:
 			self.assertFalse(mitm.setData(QModelIndex(),
 				Qt.Checked,
 				Qt.DisplayRole))
@@ -1511,24 +1511,24 @@ class TestMyImportedTableModel(GUITestCase):
 			},
 			["key", "id"])
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = False) as _iv:
+				return_value=False) as _iv:
 			self.assertEqual(mitm.flags(QModelIndex()), None)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv,\
+				return_value=True) as _iv,\
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 1) as _c,\
+					return_value=1) as _c,\
 				patch("PySide2.QtCore.QModelIndex.row",
-					side_effect = [0, 1]) as _r:
+					side_effect=[0, 1]) as _r:
 			self.assertEqual(mitm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			self.assertEqual(mitm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv,\
+				return_value=True) as _iv,\
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c,\
+					return_value=0) as _c,\
 				patch("PySide2.QtCore.QModelIndex.row",
-					side_effect = [0, 1]) as _r:
+					side_effect=[0, 1]) as _r:
 			self.assertEqual(mitm.flags(QModelIndex()),
 				Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)

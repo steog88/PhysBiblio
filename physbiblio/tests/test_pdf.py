@@ -90,7 +90,7 @@ class TestPdfMethods(unittest.TestCase):
 				os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344")))
 			self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
 		with patch('physbiblio.database.entries.getField',
-				side_effect = ["1801.15000", "1801.15000", "", "", None, None]
+				side_effect=["1801.15000", "1801.15000", "", "", None, None]
 				) as _mock:
 			self.assertFalse(pBPDF.downloadArxiv("abc.def"))
 			self.assertFalse(pBPDF.downloadArxiv("abc.def"))

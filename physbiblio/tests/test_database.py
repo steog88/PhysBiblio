@@ -1525,7 +1525,7 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'title = "{ghi}",\n}\n'
 		self.pBDB.bibs.fetchAll(doFetch=False)
 		with patch('physbiblio.database.entries.fetchCursor',
-				return_value = self.pBDB.bibs.fetchCursor()) as _curs:
+				return_value=self.pBDB.bibs.fetchCursor()) as _curs:
 			pBExport.exportAll(testBibName)
 		with open(testBibName) as f:
 			self.assertEqual(f.read(), sampleTxt)
@@ -1985,11 +1985,11 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'arxiv = "1507.08204",\n}\n@article{' \
 			+ 'Gariazzo:2014rra,\nauthor="me",\n}\n')
 		with patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
-				side_effect = [
+				side_effect=[
 				("bibtex_not_used", {"abstract": "some fake abstract"})]
 				) as _retrieve, \
 				patch('physbiblio.database.entries.updateInspireID',
-					side_effect = ["1385583", False]) as _inspireid, \
+					side_effect=["1385583", False]) as _inspireid, \
 				patch('physbiblio.webimport.inspireoai.webSearch.' \
 					+ 'retrieveOAIData',
 					side_effect=[
@@ -2055,7 +2055,7 @@ class TestDatabaseEntries(DBTestCase):
 		for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
 			with patch('physbiblio.webimport.' \
 					+ '%s.webSearch.retrieveUrlAll'%method,
-					return_value = "") as _mock:
+					return_value="") as _mock:
 				self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef",
 					method = method))
 				_mock.assert_called_once_with("abcdef")
@@ -2109,12 +2109,12 @@ class TestDatabaseEntries(DBTestCase):
 		pbConfig.params["defaultCategories"] = [1]
 		pbConfig.params["fetchAbstract"] = False
 		with patch('physbiblio.database.entries.updateInspireID',
-				return_value = "1") as _mock_uiid, \
+				return_value="1") as _mock_uiid, \
 				patch('physbiblio.database.entries.updateInfoFromOAI',
-					return_value = True) as _mock_uio:
+					return_value=True) as _mock_uio:
 			#test add categories
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					return_value = u'\n@article{key0,\n' \
+					return_value=u'\n@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",}\n') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
 				self.assertEqual([e["idCat"] for e in \
@@ -2123,7 +2123,7 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.undo(verbose = 0)
 			#test with list entry (also nested lists)
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					side_effect = [
+					side_effect=[
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
@@ -2136,7 +2136,7 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.undo(verbose = 0)
 			#test with number>0
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					side_effect = [
+					side_effect=[
 					u'@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n@article{key1,\nauthor = ' \
 					+ '"Gariazzo",\ntitle = "{title}",}\n',
@@ -2154,7 +2154,7 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.undo(verbose = 0)
 			#test setBook when using isbn
 			with patch('physbiblio.webimport.isbn.webSearch.retrieveUrlAll',
-					return_value = u'@article{key0,\n' \
+					return_value=u'@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",}') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					method = "isbn"))
@@ -2164,13 +2164,13 @@ class TestDatabaseEntries(DBTestCase):
 			#test abstract download
 			pbConfig.params["fetchAbstract"] = True
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					side_effect = [
+					side_effect=[
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{key1,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",\narxiv="1234.5678",}\n']) as _mock, \
 					patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
-						return_value = (u'\n@article{key0,\n' \
+						return_value=(u'\n@article{key0,\n' \
 						+ 'author = "Gariazzo",\ntitle = "{title}",}\n',
 						{"abstract": "some fake abstract"})) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
@@ -2184,7 +2184,7 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.undo(verbose = 0)
 			#unreadable bibtex, empty bibkey (any other method)
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					side_effect = [
+					side_effect=[
 					u'\n@article{key0,\nauthor = ',
 					u'\n@article{key0,\nauthor = ',
 					u'\n@article{ ,\nauthor = "Gariazzo",\n' \
@@ -2207,7 +2207,7 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_uio.reset_mock()
 			#test updateInspireID, updateInfoFromOAI are called
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					return_value = u'\n@article{key0,\n' \
+					return_value=u'\n@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
 					+ '\narxiv="1234.5678",}') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
@@ -2218,7 +2218,7 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_uio.reset_mock()
 			#test updateInspireID, updateInfoFromOAI are called
 			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
-					return_value = u'@article{key0,\nauthor = "Gariazzo",' \
+					return_value=u'@article{key0,\nauthor = "Gariazzo",' \
 					+ '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{' \
 					+ 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",' \
 					+ '\narxiv="1234.5678",}\n') as _mock:
@@ -2232,7 +2232,7 @@ class TestDatabaseEntries(DBTestCase):
 			#test updateInspireID, updateInfoFromOAI are called
 			with patch(
 				'physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
-					return_value = u'@article{key0,\n' \
+					return_value=u'@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
 					+ '\narxiv="1234.5678",}') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
@@ -2244,7 +2244,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.lastInserted = ["abc"]
 		with patch('six.moves.input', return_value='[1,2]') as _input, \
 				patch('physbiblio.database.entries.loadAndInsert',
-				autospec = True) as _mock:
+				autospec=True) as _mock:
 			self.pBDB.bibs.loadAndInsertWithCats(
 				["acb"], "doi", True, 1, True, "yes")
 			_input.assert_called_once_with("categories for 'abc': ")
@@ -2343,7 +2343,7 @@ class TestDatabaseEntries(DBTestCase):
 				False, True,
 				]) as _mock_uioai, \
 				patch("physbiblio.database.entries.fetchCursor",
-					side_effect = [
+					side_effect=[
 					[entry1, entry2],#1
 					[entry1a, entry2a],#2
 					[entry1a, entry2a],#3
@@ -2351,7 +2351,7 @@ class TestDatabaseEntries(DBTestCase):
 					[entry1, entry2],#6
 					]) as _mock_ga, \
 				patch("physbiblio.database.entries.getByKey",
-					side_effect = [
+					side_effect=[
 					[entry1a], [entry2a],#1
 					[entry1a], [entry2a],#3
 					[entry1a], [entry2a],#4,5
@@ -2405,7 +2405,7 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
 		with patch('physbiblio.database.entries.getField',
-				side_effect = ["abcd", False, "12345"]) as mock:
+				side_effect=["abcd", False, "12345"]) as mock:
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 
@@ -2549,10 +2549,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
 			u'@article{abc,\narxiv="1234.56789"\n}', inspire = "12345"))
 		with patch('physbiblio.database.entries.updateInfoFromOAI',
-				autospec = True,
-				side_effect = ["a", "b", "c", "d", "e", "f"]) as mock_function:
+				autospec=True,
+				side_effect=["a", "b", "c", "d", "e", "f"]) as mock_function:
 			with patch('physbiblio.database.entries.updateInspireID',
-					side_effect = ["54321", False]) as _updateid:
+					side_effect=["54321", False]) as _updateid:
 				self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
 				mock_function.assert_called_once_with(
 					self.pBDB.bibs, "12345", verbose = 0)

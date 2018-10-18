@@ -140,7 +140,7 @@ class TestFunctions(GUIwMainWTestCase):
 			'name': "mycat"
 		}
 		with patch("physbiblio.database.categories.getParent",
-				return_value = [[1]]) as _p:
+				return_value=[[1]]) as _p:
 			ncw = editCategoryDialog(p, cat)
 		ncw.selectedCats = []
 		ncw.textValues["ord"].setText("0")
@@ -176,7 +176,7 @@ class TestFunctions(GUIwMainWTestCase):
 		p = QWidget()
 		m = self.mainW
 		with patch("physbiblio.gui.catWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s:
 			deleteCategory(p, m, 15, "mycat")
@@ -186,7 +186,7 @@ class TestFunctions(GUIwMainWTestCase):
 			_s.assert_called_once_with("Nothing changed")
 
 		with patch("physbiblio.gui.catWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("logging.Logger.debug") as _d:
 			deleteCategory(p, p, 15, "mycat")
 			_a.assert_called_once_with(
@@ -197,7 +197,7 @@ class TestFunctions(GUIwMainWTestCase):
 				exc_info=True)
 
 		with patch("physbiblio.gui.catWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.categories.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -216,7 +216,7 @@ class TestFunctions(GUIwMainWTestCase):
 
 		ctw = catsTreeWindow(p)
 		with patch("physbiblio.gui.catWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.categories.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -246,7 +246,7 @@ class TestCatsModel(GUITestCase):
 			{"idCat": 3, "name": "test3"},
 			]
 		with patch("physbiblio.gui.commonClasses.catString",
-				side_effect = ["test2S", "test1S", "test3S", "mainS"]):
+				side_effect=["test2S", "test1S", "test3S", "mainS"]):
 			self.rootElements = [
 				NamedElement(0, "main", [
 					NamedElement(1, "test1", [NamedElement(2, "test2", [])]),
@@ -342,23 +342,23 @@ class TestCatsModel(GUITestCase):
 		"""test flags"""
 		cm = catsModel([], [])
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = False) as _iv:
+				return_value=False) as _iv:
 			self.assertEqual(cm.flags(QModelIndex()), None)
 			_iv.assert_called_once_with()
 
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv, \
+				return_value=True) as _iv, \
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 1) as _c:
+					return_value=1) as _c:
 			self.assertEqual(cm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			_iv.assert_called_once_with()
 			_c.assert_called_once_with()
 
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv, \
+				return_value=True) as _iv, \
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c:
+					return_value=0) as _c:
 			self.assertEqual(cm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			_iv.assert_called_once_with()
@@ -368,9 +368,9 @@ class TestCatsModel(GUITestCase):
 		p.askCats = False
 		cm = catsModel([], [], p)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv, \
+				return_value=True) as _iv, \
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c:
+					return_value=0) as _c:
 			self.assertEqual(cm.flags(QModelIndex()),
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 			_iv.assert_called_once_with()
@@ -380,9 +380,9 @@ class TestCatsModel(GUITestCase):
 		p.askCats = True
 		cm = catsModel([], [], p)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
-				return_value = True) as _iv, \
+				return_value=True) as _iv, \
 				patch("PySide2.QtCore.QModelIndex.column",
-					return_value = 0) as _c:
+					return_value=0) as _c:
 			self.assertEqual(cm.flags(QModelIndex()),
 				Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
@@ -447,7 +447,7 @@ class TestCatsTreeWindow(GUITestCase):
 			]
 		self.cathier = {0: {1: {2: {}}, 3: {}}}
 		with patch("physbiblio.gui.commonClasses.catString",
-				side_effect = [" 2: test2S", " 1: test1S",
+				side_effect=[" 2: test2S", " 1: test1S",
 					" 3: test3S", " 0: mainS"]):
 			self.rootElements = [
 				NamedElement(0, "main", [
@@ -516,7 +516,7 @@ class TestCatsTreeWindow(GUITestCase):
 			ctw = catsTreeWindow(parent=p, askCats=True, askForBib="bib")
 		# bibkey not in db
 		with patch("physbiblio.database.entries.getByBibkey",
-				return_value = []) as _gbb,\
+				return_value=[]) as _gbb,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(ctw.populateAskCat(), None)
 			_gbb.assert_called_once_with("bib", saveQuery=False)
@@ -628,7 +628,7 @@ class TestCatsTreeWindow(GUITestCase):
 			ctw = catsTreeWindow(parent=p, askCats=True, askForExp="exp")
 		# idExp not in db
 		with patch("physbiblio.database.experiments.getByID",
-				return_value = []) as _gbi,\
+				return_value=[]) as _gbi,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(ctw.populateAskCat(), None)
 			_gbi.assert_called_once_with("exp")
@@ -640,7 +640,7 @@ class TestCatsTreeWindow(GUITestCase):
 		self.assertEqual(ctw.currLayout.count(), 0)
 		# dict has no "name" or "comments"
 		with patch("physbiblio.database.experiments.getByID",
-				return_value = [
+				return_value=[
 					{"name": "name", "idExp": 9999}
 					]) as _gbi:
 			self.assertEqual(ctw.populateAskCat(), True)
@@ -658,7 +658,7 @@ class TestCatsTreeWindow(GUITestCase):
 		# full string
 		ctw.cleanLayout()
 		with patch("physbiblio.database.experiments.getByID",
-				return_value = [
+				return_value=[
 					{"name": "name", "idExp": 9999, "comments": "comm"}
 					]) as _gbi:
 			self.assertEqual(ctw.populateAskCat(), True)
@@ -974,7 +974,7 @@ class TestCatsTreeWindow(GUITestCase):
 		p = QWidget()
 		ctw = catsTreeWindow(p)
 		with patch("physbiblio.database.categories.getByID",
-				side_effect = [
+				side_effect=[
 					[{"idCat": 0, "name": "main"}],
 					[{"idCat": 1, "name": "test1"}],
 					[{"idCat": 3, "name": "test3"}],
@@ -1204,7 +1204,7 @@ class TestEditCategoryDialog(GUITestCase):
 		"""test init"""
 		p = QWidget()
 		with patch("physbiblio.gui.catWindows.EditObjectWindow.__init__",
-				return_value = None) as _i,\
+				return_value=None) as _i,\
 				patch("physbiblio.gui.catWindows.editCategoryDialog.createForm"
 					) as _c:
 			ecd = editCategoryDialog(p)
@@ -1228,7 +1228,7 @@ class TestEditCategoryDialog(GUITestCase):
 			'name': "mycat"
 		}
 		with patch("physbiblio.database.categories.getParent",
-				return_value = [[1]]) as _p:
+				return_value=[[1]]) as _p:
 			ecd = editCategoryDialog(p, cat)
 			_p.assert_called_once_with(15)
 		for k in pBDB.tableCols["categories"]:
@@ -1236,7 +1236,7 @@ class TestEditCategoryDialog(GUITestCase):
 		self.assertIsInstance(ecd.selectedCats, list)
 		self.assertEqual(ecd.selectedCats, [1])
 		with patch("physbiblio.database.categories.getParent",
-				return_value = 1) as _p:
+				return_value=1) as _p:
 			ecd = editCategoryDialog(parent=p, category=cat, useParentCat=14)
 			_p._assert_not_called()
 		for k in pBDB.tableCols["categories"]:
@@ -1453,7 +1453,7 @@ class TestEditCategoryDialog(GUITestCase):
 			'name': "mycat"
 		}
 		with patch("physbiblio.database.categories.getParent",
-				return_value = [[1]]) as _p, \
+				return_value=[[1]]) as _p, \
 				patch("physbiblio.gui.catWindows.editCategoryDialog.createForm"
 					) as _c:
 			ecd = editCategoryDialog(p, cat)

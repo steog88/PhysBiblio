@@ -57,13 +57,13 @@ class Test_thread_checkUpdated(GUITestCase):
 		thr = thread_checkUpdated(p)
 		thr.result.connect(h1)
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				return_value = (False, __version__)) as _cho:
+				return_value=(False, __version__)) as _cho:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
 		h1.assert_called_once_with(False, __version__)
 		h1.reset_mock()
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				return_value = ()) as _cho,\
+				return_value=()) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)

@@ -219,7 +219,7 @@ class TestConfigWindow(GUITestCase):
 		self.assertEqual(cw.textValues[ix][1].text(),
 			pbConfig.params["pdfFolder"])
 		with patch("physbiblio.gui.dialogWindows.askDirName",
-				return_value = "/some/new/folder/") as _adn:
+				return_value="/some/new/folder/") as _adn:
 			cw.editPDFFolder()
 			self.assertEqual(cw.textValues[ix][1].text(),
 				"/some/new/folder/")
@@ -1097,15 +1097,15 @@ class TestDailyArxivDialog(GUITestCase):
 			_c.assert_called_once_with()
 
 		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
-					autospec = True, return_value = QRect()) as _fg,\
+					autospec=True, return_value=QRect()) as _fg,\
 				patch("PySide2.QtCore.QRect.center",
-					autospec = True, return_value = QPoint()) as _ce,\
+					autospec=True, return_value=QPoint()) as _ce,\
 				patch("PySide2.QtCore.QRect.moveCenter",
-					autospec = True) as _mc,\
+					autospec=True) as _mc,\
 				patch("PySide2.QtCore.QRect.topLeft",
-					autospec = True, return_value = QPoint()) as _tl,\
+					autospec=True, return_value=QPoint()) as _tl,\
 				patch("PySide2.QtWidgets.QDialog.move",
-					autospec = True) as _mo:
+					autospec=True) as _mo:
 			dad.initUI()
 			self.assertEqual(_fg.call_count, 1)
 			self.assertEqual(_ce.call_count, 1)

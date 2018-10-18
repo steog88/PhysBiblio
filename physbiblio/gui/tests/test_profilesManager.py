@@ -536,7 +536,7 @@ class TestmyOrderPushButton(GUITestCase):
 			QTest.mouseClick(opb, Qt.LeftButton)
 			_s.assert_called_once_with(1)
 		with patch("physbiblio.gui.profilesManager.QPushButton.__init__",
-				return_value = QPushButton()) as _i:
+				return_value=QPushButton()) as _i:
 			opb = myOrderPushButton(p, 1, qi, "txt", True)
 			_i.assert_called_once_with(opb, qi, "txt")
 

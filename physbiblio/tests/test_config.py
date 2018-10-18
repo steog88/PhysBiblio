@@ -48,7 +48,7 @@ class TestConfigMethods(unittest.TestCase):
 			os.remove(tempCfgName)
 		newConfParamsDict = dict(config_defaults)
 		with patch("physbiblio.config.ConfigVars.readProfiles",
-				return_value = ("tmp", {"tmp": {"db": tempCfgName, "d":""}},
+				return_value=("tmp", {"tmp": {"db": tempCfgName, "d":""}},
 				["tmp"])) as _mock_readprof:
 			self.assertFalse(os.path.exists(tempCfgName))
 			tempPbConfig = ConfigVars()
@@ -382,7 +382,7 @@ class TestProfilesDB(unittest.TestCase):
 			["default", "temp"]),
 			"List of profile names does not match existing profiles!")
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
-				side_effect = [True, False, True, False]) as _mock:
+				side_effect=[True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
 			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
 				["abc", "default"]),
@@ -399,7 +399,7 @@ class TestProfilesDB(unittest.TestCase):
 		self.assert_in_stdout(lambda: self.globalDb.setDefaultProfile("temp"),
 			"No profiles with the given name!")
 		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
-				side_effect = [True, False, True, False]) as _mock:
+				side_effect=[True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setDefaultProfile("abc"))
 			self.assert_in_stdout(
 				lambda: self.globalDb.setDefaultProfile("abc"),

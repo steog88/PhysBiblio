@@ -174,7 +174,7 @@ class TestFunctions(GUIwMainWTestCase):
 		p = QWidget()
 		m = self.mainW
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s:
 			deleteExperiment(p, m, 9999, "myexp")
@@ -184,7 +184,7 @@ class TestFunctions(GUIwMainWTestCase):
 			_s.assert_called_once_with("Nothing changed")
 
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value = False) as _a, \
+				return_value=False) as _a, \
 				patch("logging.Logger.debug") as _d:
 			deleteExperiment(p, p, 9999, "myexp")
 			_a.assert_called_once_with(
@@ -195,7 +195,7 @@ class TestFunctions(GUIwMainWTestCase):
 				exc_info=True)
 
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.experiments.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -214,7 +214,7 @@ class TestFunctions(GUIwMainWTestCase):
 
 		elw = ExpsListWindow(p)
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value = True) as _a, \
+				return_value=True) as _a, \
 				patch("physbiblio.database.experiments.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -410,7 +410,7 @@ class TestExpsListWindow(GUITestCase):
 			elw = ExpsListWindow(p, askExps=True, askForBib="bib")
 		# bibkey not in db
 		with patch("physbiblio.database.entries.getByBibkey",
-				return_value = []) as _gbb,\
+				return_value=[]) as _gbb,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(elw.populateAskExp(), None)
 			_gbb.assert_called_once_with("bib", saveQuery=False)
@@ -593,7 +593,7 @@ class TestExpsListWindow(GUITestCase):
 				patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
 					) as _pae,\
 				patch("physbiblio.gui.expWindows.ExpTableModel.__init__",
-					return_value = None) as _etm,\
+					return_value=None) as _etm,\
 				patch("physbiblio.gui.commonClasses.objListWindow."
 					+ "addFilterInput") as _afi,\
 				patch("physbiblio.gui.commonClasses.objListWindow."

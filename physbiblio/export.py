@@ -296,8 +296,15 @@ class pbExport():
 			with open(outFileName, "r") as f:
 				existingBibText = f.read()
 		except IOError:
-			pBLogger.exception("Cannot read file %s."%outFileName)
-			return False
+			pBLogger.error(
+				"Cannot read file %s.\nCreating one."%outFileName)
+			try:
+				open(outFileName, "w").close()
+			except IOError:
+				pBLogger.exception(
+					"Cannot create file %s!"%outFileName)
+				return False
+			existingBibText = ""
 
 		# this is time consuming if there are many entries.
 		# Do not load it every time for multiple texs!
