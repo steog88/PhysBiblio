@@ -88,6 +88,8 @@ If you are not sure which is your case, and in any case to report any problem yo
 In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio test -h`).
 As an example, `PhysBiblio test -o` will skip all the online tests.
 
+If the tests cannot complete due to a segmentation fault, or present random behaviors, it may be a problem related with the python version. A known case includes crashes with python 3.5.5 in Sabayon Linux. No problems appear when python 3.6 is used instead.
+
 ### Usage
 To run the program, execute `PhysBiblio` that have been installed.
 By default it will run with `python2.x`.

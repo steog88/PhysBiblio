@@ -310,8 +310,11 @@ class pbExport():
 		# Do not load it every time for multiple texs!
 		if newOperation:
 			self.allCitations = set([])
-			self.existingBibsList = bibtexparser.bparser.BibTexParser(
-				common_strings=True).parse(existingBibText).entries
+			if existingBibText != "":
+				self.existingBibsList = bibtexparser.bparser.BibTexParser(
+					common_strings=True).parse(existingBibText).entries
+			else:
+				self.existingBibsList = []
 		# work with dictionary, so that if there are repeated entries
 		# (entries with same ID) they are automatically discarded
 		existingBibsDict = { e["ID"]: e for e in self.existingBibsList}
