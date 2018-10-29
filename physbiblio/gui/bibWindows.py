@@ -685,17 +685,45 @@ class CommonBibActions():
 			QAction("\cite{key(s)}", self.menu, triggered=self.onCopyCites),
 			QAction("bibtex(s)", self.menu, triggered=self.onCopyBibtexs)
 			]
+		subm = []
+		latexToText = LatexNodes2Text(
+			keep_inline_math=True, keep_comments=False)
 		if not selection:
-			abstract = initialRecord["abstract"]
-			link = initialRecord["link"]
-			if abstract is not None and abstract.strip() != "":
-				menuC.append(
-					QAction("abstract", self.menu,
-						triggered=lambda t=abstract: copyToClipboard(t)))
-			if link is not None and link.strip() != "":
-				menuC.append(
-					QAction("link", self.menu,
-						triggered=lambda t=link: copyToClipboard(t)))
+			for field in ["abstract", "arXiv", "DOI", "INSPIRE", "link",
+					"authors", "journal", "published", "title"]:
+				if field == "published":
+					try:
+						content = "%s %s (%s) %s"%(
+							initialRecord["bibtexDict"]["journal"],
+							initialRecord["bibtexDict"]["volume"],
+							initialRecord["bibtexDict"]["year"],
+							initialRecord["bibtexDict"]["pages"])
+					except KeyError:
+						pBLogger.debug(
+							"KeyError: 'journal', 'volume', "
+							+ "'year' or 'pages' not found for '%s'"%(
+								initialRecord["bibkey"]))
+						content = ""
+				else:
+					try:
+						content = initialRecord[field.lower()]
+					except KeyError:
+						try:
+							content = initialRecord["bibtexDict"][
+								field.lower()]
+						except KeyError:
+							pBLogger.debug("Field '%s' not found for '%s'"%(
+								field, initialRecord["bibkey"]))
+							content = ""
+				if content is not None and content.strip() != "":
+					subm.append(
+						QAction(field, self.menu,
+							triggered=lambda t=latexToText.latex_to_text(
+								content): copyToClipboard(t)))
+		if len(subm) > 0:
+			menuC.append(None)
+			for s in subm:
+				menuC.append(s)
 		self.menu.possibleActions.append(["Copy to clipboard", menuC])
 
 	def _createMenuInspire(self, selection, inspireID):

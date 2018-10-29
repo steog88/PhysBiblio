@@ -1557,18 +1557,21 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
-			for a in c.menu.possibleActions[0][1]:
-				self.assertIsInstance(a, QAction)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 6)
+			for i, a in enumerate(c.menu.possibleActions[0][1]):
+				if i == 3:
+					self.assertEqual(a, None)
+				else:
+					self.assertIsInstance(a, QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
 				"key(s)")
 			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"\cite{key(s)}")
 			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
 				"bibtex(s)")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"abstract")
 			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"abstract")
+			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
 				"link")
 			_a.assert_not_called()
 			c.menu.possibleActions[0][1][0].trigger()
@@ -1580,11 +1583,92 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			c.menu.possibleActions[0][1][2].trigger()
 			_c.assert_called_once_with()
 			_d.assert_not_called()
-			c.menu.possibleActions[0][1][3].trigger()
+			c.menu.possibleActions[0][1][4].trigger()
 			_d.assert_called_once_with("abc")
 			_d.reset_mock()
-			c.menu.possibleActions[0][1][4].trigger()
+			c.menu.possibleActions[0][1][5].trigger()
 			_d.assert_called_once_with("def")
+
+		c = CommonBibActions([
+			{"bibkey": "abc", "abstract": "abc", "link": "def",
+			"arxiv": "1234.5678", "doi": "1/2/3", "inspire": "123456",
+			"bibtexDict": {
+				"author": "me", "title": "some paper", "journal": "jou",
+				"year": "2018", "pages": "12", "volume": "0"}}], p)
+		c.menu = MyMenu(self.mainW)
+		with patch("physbiblio.gui.bibWindows.CommonBibActions."
+				+ "onCopyKeys") as _a,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyCites") as _b,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions."
+					+ "onCopyBibtexs") as _c,\
+				patch("physbiblio.gui.bibWindows."
+					+ "copyToClipboard") as _d:
+			c._createMenuCopy(False, c.bibs[0])
+			self.assertIsInstance(c.menu.possibleActions[0], list)
+			self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
+			self.assertIsInstance(c.menu.possibleActions[0][1], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 12)
+			for i, a in enumerate(c.menu.possibleActions[0][1]):
+				if i == 3:
+					self.assertEqual(a, None)
+				else:
+					self.assertIsInstance(a, QAction)
+			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
+				"key(s)")
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
+				"\cite{key(s)}")
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+				"bibtex(s)")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"abstract")
+			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
+				"arXiv")
+			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+				"DOI")
+			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+				"INSPIRE")
+			self.assertEqual(c.menu.possibleActions[0][1][8].text(),
+				"link")
+			self.assertEqual(c.menu.possibleActions[0][1][9].text(),
+				"journal")
+			self.assertEqual(c.menu.possibleActions[0][1][10].text(),
+				"published")
+			self.assertEqual(c.menu.possibleActions[0][1][11].text(),
+				"title")
+			_a.assert_not_called()
+			c.menu.possibleActions[0][1][0].trigger()
+			_a.assert_called_once_with()
+			_b.assert_not_called()
+			c.menu.possibleActions[0][1][1].trigger()
+			_b.assert_called_once_with()
+			_c.assert_not_called()
+			c.menu.possibleActions[0][1][2].trigger()
+			_c.assert_called_once_with()
+			_d.assert_not_called()
+			c.menu.possibleActions[0][1][4].trigger()
+			_d.assert_called_once_with("abc")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][5].trigger()
+			_d.assert_called_once_with("1234.5678")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][6].trigger()
+			_d.assert_called_once_with("1/2/3")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][7].trigger()
+			_d.assert_called_once_with("123456")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][8].trigger()
+			_d.assert_called_once_with("def")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][9].trigger()
+			_d.assert_called_once_with("jou")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][10].trigger()
+			_d.assert_called_once_with("jou 0 (2018) 12")
+			_d.reset_mock()
+			c.menu.possibleActions[0][1][11].trigger()
+			_d.assert_called_once_with("some paper")
 
 	def test_createMenuInspire(self):
 		"""test _createMenuInspire"""
