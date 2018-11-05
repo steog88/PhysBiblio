@@ -454,7 +454,7 @@ class thread_cleanSpare(MyThread):
 				(a `WriteStream` object)
 			parent: the parent widget
 		"""
-		super(thread_cleanSpare, self).__init__(parent)
+		MyThread.__init__(self, parent)
 		self.receiver = myrec
 
 	def run(self):

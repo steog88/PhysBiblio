@@ -452,7 +452,7 @@ class TestWriteStream(GUITestCase):
 		self.assertEqual(ws.queue, queue)
 		self.assertTrue(ws.running)
 		self.assertEqual(ws.parent(), None)
-		self.assertIsInstance(ws.mysignal, Signal)
+		self.assertIsInstance(ws.newText, Signal)
 		self.assertIsInstance(ws.finished, Signal)
 		ew = QWidget()
 		ws = WriteStream(queue, parent = ew)
@@ -463,7 +463,7 @@ class TestWriteStream(GUITestCase):
 				ws.write("abc")
 				_put.assert_called_once_with("abc")
 			with patch("Queue.Queue.get", return_value="abc") as _get:
-				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
+				ws.newText.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
 				self.assertEqual(_get.call_count, 1)
 				self.assertEqual(ws.text, "abc")
@@ -473,7 +473,7 @@ class TestWriteStream(GUITestCase):
 				ws.write("abc")
 				_put.assert_called_once_with("abc")
 			with patch("queue.Queue.get", return_value="abc") as _get:
-				ws.mysignal.connect(lambda x: fakeExec_writeStream_mys(ws, x))
+				ws.newText.connect(lambda x: fakeExec_writeStream_mys(ws, x))
 				ws.run()
 				self.assertEqual(_get.call_count, 1)
 				self.assertEqual(ws.text, "abc")

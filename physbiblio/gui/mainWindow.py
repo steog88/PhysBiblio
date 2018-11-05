@@ -40,7 +40,7 @@ try:
 		BibtexListWindow, BibtexInfo
 	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
-		configWindow, LogFileContentDialog, printText, advImportDialog, \
+		configWindow, LogFileContentDialog, PrintText, advImportDialog, \
 		advImportSelect, dailyArxivDialog, dailyArxivSelect
 	from physbiblio.gui.expWindows import \
 		editExperiment, ExpsListWindow, EditExperimentDialog
@@ -695,7 +695,7 @@ class MainWindow(QMainWindow):
 		progrStr = getDelKwargs("progrStr")
 		addMessage = getDelKwargs("addMessage")
 		stopFlag = getDelKwargs("stopFlag")
-		app = printText(title=title, totStr=totStr, progrStr=progrStr,
+		app = PrintText(title=title, totStr=totStr, progrStr=progrStr,
 			noStopButton=True if stopFlag is False else False)
 
 		outMessage = getDelKwargs("outMessage")
@@ -704,7 +704,7 @@ class MainWindow(QMainWindow):
 			app.progressBarMin(minProgress)
 		queue = Queue()
 		ws = WriteStream(queue)
-		ws.mysignal.connect(app.appendText)
+		ws.newText.connect(app.appendText)
 		thr = thread_func(ws, *args, parent=self, **kwargs)
 
 		ws.finished.connect(ws.deleteLater)

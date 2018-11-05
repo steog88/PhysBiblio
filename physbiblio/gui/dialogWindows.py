@@ -327,7 +327,7 @@ class LogFileContentDialog(QDialog):
 		self.setLayout(grid)
 
 
-class printText(QDialog):
+class PrintText(QDialog):
 	"""Create a window for printing text of command line output"""
 
 	stopped = Signal()
@@ -358,7 +358,7 @@ class printText(QDialog):
 				a "stop" button to stop the iterations
 			message: a text to be inserted as a `MyLabel` in the dialog
 		"""
-		super(printText, self).__init__(parent)
+		super(PrintText, self).__init__(parent)
 		self._wantToClose = False
 		if title != "":
 			self.title = title
@@ -380,7 +380,7 @@ class printText(QDialog):
 			event: a `QEvent`
 		"""
 		if self._wantToClose:
-			super(printText, self).closeEvent(event)
+			super(PrintText, self).closeEvent(event)
 		else:
 			event.ignore()
 
@@ -446,7 +446,7 @@ class printText(QDialog):
 					self.progressBar.setValue(curr)
 			except IndexError:
 				pBLogger.warning(
-					"printText.progressBar cannot work with float numbers")
+					"PrintText.progressBar cannot work with float numbers")
 		self.textEdit.moveCursor(QTextCursor.End)
 		self.textEdit.insertPlainText(text)
 

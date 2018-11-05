@@ -344,7 +344,7 @@ class MyThread(QThread):
 class WriteStream(MyThread):
 	"""Class used to redirect prints to a window"""
 
-	mysignal = Signal(str)
+	newText = Signal(str)
 
 	finished = Signal()
 
@@ -371,7 +371,7 @@ class WriteStream(MyThread):
 		"""Run the thread"""
 		while self.running:
 			text = self.queue.get()
-			self.mysignal.emit(text)
+			self.newText.emit(text)
 		self.finished.emit()
 
 

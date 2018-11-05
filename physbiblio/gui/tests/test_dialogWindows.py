@@ -542,12 +542,12 @@ class TestLogFileContentDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPrintText(GUITestCase):
-	"""Test printText"""
+	"""Test PrintText"""
 
 	def test_init(self):
 		"""test init"""
-		with patch("physbiblio.gui.dialogWindows.printText.initUI") as _u:
-			pt = printText()
+		with patch("physbiblio.gui.dialogWindows.PrintText.initUI") as _u:
+			pt = PrintText()
 			_u.assert_called_once_with()
 		self.assertIsInstance(pt, QDialog)
 		self.assertIsInstance(pt.stopped, Signal)
@@ -561,7 +561,7 @@ class TestPrintText(GUITestCase):
 		self.assertEqual(pt.message, None)
 
 		p = QWidget()
-		pt = printText(p, "title", False, "some tot string",
+		pt = PrintText(p, "title", False, "some tot string",
 			"some progr string", True, "mymessage")
 		self.assertEqual(pt.parent(), p)
 		self.assertEqual(pt.title, "title")
@@ -574,7 +574,7 @@ class TestPrintText(GUITestCase):
 	def test_closeEvent(self):
 		"""test closeEvent"""
 		p = QWidget()
-		pt = printText(p)
+		pt = PrintText(p)
 		e = QEvent(QEvent.Close)
 		with patch("PySide2.QtCore.QEvent.ignore") as _i:
 			pt.closeEvent(e)
@@ -587,7 +587,7 @@ class TestPrintText(GUITestCase):
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
-		pt = printText(p, progressBar=False, noStopButton=True)
+		pt = PrintText(p, progressBar=False, noStopButton=True)
 		self.assertEqual(pt.windowTitle(), "Redirect print")
 		self.assertIsInstance(pt.layout(), QGridLayout)
 		self.assertEqual(pt.layout(), pt.grid)
@@ -604,7 +604,7 @@ class TestPrintText(GUITestCase):
 		self.assertEqual(pt.closeButton.text(), "Close")
 		self.assertFalse(pt.closeButton.isEnabled())
 
-		pt = printText(p, "title", True, "some tot string",
+		pt = PrintText(p, "title", True, "some tot string",
 			"some progr string", False, "mymessage")
 		self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(),
 			MyLabel)
@@ -628,7 +628,7 @@ class TestPrintText(GUITestCase):
 			pt.cancelButton)
 		self.assertEqual(pt.cancelButton.text(), "Stop")
 		self.assertTrue(pt.cancelButton.autoDefault())
-		with patch("physbiblio.gui.dialogWindows.printText.stopExec") as _s:
+		with patch("physbiblio.gui.dialogWindows.PrintText.stopExec") as _s:
 			QTest.mouseClick(pt.cancelButton, Qt.LeftButton)
 			_s.assert_called_once_with()
 		self.assertIsInstance(pt.grid.itemAtPosition(4, 0).widget(),
@@ -645,7 +645,7 @@ class TestPrintText(GUITestCase):
 			QTest.mouseClick(pt.closeButton, Qt.LeftButton, delay=10)
 			_s.assert_called_once_with()
 		
-		with patch("physbiblio.gui.dialogWindows.printText.centerWindow"
+		with patch("physbiblio.gui.dialogWindows.PrintText.centerWindow"
 				) as _c:
 			pt.initUI()
 			_c.assert_called_once_with()
@@ -653,7 +653,7 @@ class TestPrintText(GUITestCase):
 	def test_centerWindow(self):
 		"""test centerWindow"""
 		p = QWidget()
-		pt = printText(p)
+		pt = PrintText(p)
 		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
 					autospec=True, return_value=QRect()) as _fg,\
 				patch("PySide2.QtCore.QRect.center",
@@ -674,7 +674,7 @@ class TestPrintText(GUITestCase):
 	def test_appendText(self):
 		"""test appendText"""
 		p = QWidget()
-		pt = printText(p)
+		pt = PrintText(p)
 		self.assertEqual(pt.textEdit.toPlainText(), "")
 		pt.appendText("abcd")
 		self.assertEqual(pt.textEdit.toPlainText(), "abcd")
@@ -682,7 +682,7 @@ class TestPrintText(GUITestCase):
 		pt.appendText("\nefgh")
 		self.assertEqual(pt.textEdit.toPlainText(), "abcd\nefgh")
 
-		pt = printText(p,
+		pt = PrintText(p,
 			progressBar=True,
 			totStr="process events: ",
 			progrStr="step: ")
@@ -696,7 +696,7 @@ class TestPrintText(GUITestCase):
 		with patch("logging.Logger.warning") as _l:
 			pt.appendText("process events: 45.6\n")
 			_l.assert_called_once_with(
-				'printText.progressBar cannot work with float numbers')
+				'PrintText.progressBar cannot work with float numbers')
 		self.assertEqual(pt.textEdit.toPlainText(),
 			"process events: 123 45.6\n" +
 			"process events: 45.6\n")
@@ -711,7 +711,7 @@ class TestPrintText(GUITestCase):
 		with patch("logging.Logger.warning") as _l:
 			pt.appendText("step: 98.7\n")
 			_l.assert_called_once_with(
-				'printText.progressBar cannot work with float numbers')
+				'PrintText.progressBar cannot work with float numbers')
 		self.assertEqual(pt.textEdit.toPlainText(),
 			"process events: 123 45.6\n" +
 			"process events: 45.6\n" +
@@ -722,14 +722,14 @@ class TestPrintText(GUITestCase):
 
 	def test_progressBarMin(self):
 		"""test progressBarMin"""
-		pt = printText()
+		pt = PrintText()
 		self.assertIsInstance(pt.progressBar, QProgressBar)
 		pt.progressBarMin(1234.)
 		self.assertEqual(pt.progressBar.minimum(), 1234.)
 
 	def test_progressBarMax(self):
 		"""test progressBarMax"""
-		pt = printText()
+		pt = PrintText()
 		self.assertIsInstance(pt.progressBar, QProgressBar)
 		pt.progressBarMax(1234)
 		self.assertEqual(pt.progressBar.maximum(), 1234)
@@ -739,7 +739,7 @@ class TestPrintText(GUITestCase):
 		self.stop = False
 		def stoppedAct(a=self):
 			a.stop = True
-		pt = printText()
+		pt = PrintText()
 		pt.stopped.connect(stoppedAct)
 		self.assertTrue(pt.cancelButton.isEnabled())
 		self.assertFalse(self.stop)
@@ -749,7 +749,7 @@ class TestPrintText(GUITestCase):
 
 	def test_enableClose(self):
 		"""test enableClose"""
-		pt = printText()
+		pt = PrintText()
 		self.assertFalse(pt.closeButton.isEnabled())
 		self.assertFalse(pt._wantToClose)
 		pt.enableClose()

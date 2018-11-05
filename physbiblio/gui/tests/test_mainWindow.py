@@ -804,7 +804,96 @@ class TestMainWindow(GUITestCase):
 
 	def test_runInThread(self):
 		"""test _runInThread"""
-		raise NotImplementedError
+		app = PrintText()
+		app.exec_ = MagicMock()
+		self.assertTrue(hasattr(app, "stopped"))
+		app.stopped = MagicMock()
+		app.stopped.connect = MagicMock()
+		q = Queue()
+		ws = WriteStream(q)
+		self.assertTrue(hasattr(ws, "newText"))
+		self.assertTrue(hasattr(ws, "finished"))
+		ws.newText = MagicMock()
+		ws.finished = MagicMock()
+		ws.newText.connect = MagicMock()
+		ws.finished.connect = MagicMock()
+		thr = thread_cleanSpare(ws, parent=self.mainW)#just use one
+		thr.start = MagicMock()
+		thr.finished = MagicMock()
+		thr.finished.connect = MagicMock()
+		func = MagicMock(return_value=thr)
+		with patch(self.modName + ".PrintText",
+				return_value=app) as _pt,\
+				patch("physbiblio.gui.dialogWindows.PrintText"
+					+ ".progressBarMin") as _pbm,\
+				patch(self.modName + ".Queue", return_value=q) as _qu,\
+				patch(self.modName + ".WriteStream", return_value=ws) as _ws,\
+				patch("physbiblio.errors.pBErrorManagerClass"
+					+ ".tempHandler") as _th,\
+				patch("physbiblio.errors.pBErrorManagerClass"
+					+ ".rmTempHandler") as _rth,\
+				patch("logging.Logger.info") as _info,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".done") as _done:
+			self.mainW._runInThread(func, "title")
+			_pt.assert_called_once_with(noStopButton=False,
+				progrStr=None, title='title', totStr=None)
+			_pbm.assert_not_called()
+			ws.newText.connect.assert_called_once_with(app.appendText)
+			func.assert_called_once_with(ws, parent=self.mainW)
+			ws.finished.connect.assert_called_once_with(ws.deleteLater)
+			thr.finished.connect.assert_has_calls([
+				call(app.enableClose),
+				call(thr.deleteLater)])
+			app.stopped.connect.assert_not_called()
+			_th.assert_called_once_with(ws, format='%(message)s')
+			thr.start.assert_called_once_with()
+			app.exec_.assert_called_once_with()
+			_info.assert_called_once_with('Closing...')
+			_rth.assert_called_once_with()
+			_sbm.assert_not_called()
+			_done.assert_called_once_with()
+		ws.newText.connect.reset_mock()
+		func.reset_mock()
+		ws.finished.connect.reset_mock()
+		thr.finished.connect.reset_mock()
+		app.stopped.connect.reset_mock()
+		thr.start.reset_mock()
+		app.exec_.reset_mock()
+		with patch(self.modName + ".PrintText",
+				return_value=app) as _pt,\
+				patch("physbiblio.gui.dialogWindows.PrintText"
+					+ ".progressBarMin") as _pbm,\
+				patch(self.modName + ".Queue", return_value=q) as _qu,\
+				patch(self.modName + ".WriteStream", return_value=ws) as _ws,\
+				patch("physbiblio.errors.pBErrorManagerClass"
+					+ ".tempHandler") as _th,\
+				patch("physbiblio.errors.pBErrorManagerClass"
+					+ ".rmTempHandler") as _rth,\
+				patch("logging.Logger.info") as _info,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".done") as _done:
+			self.mainW._runInThread(func, "title", "abc",
+				totStr="tot", progrStr="progr",
+				addMessage="add", stopFlag=True,
+				outMessage="out", minProgress=12)
+			_pt.assert_called_once_with(noStopButton=False,
+				progrStr="progr", title='title', totStr="tot")
+			_pbm.assert_called_once_with(12)
+			ws.newText.connect.assert_called_once_with(app.appendText)
+			func.assert_called_once_with(ws, "abc", parent=self.mainW)
+			ws.finished.connect.assert_called_once_with(ws.deleteLater)
+			thr.finished.connect.assert_has_calls([
+				call(app.enableClose),
+				call(thr.deleteLater)])
+			app.stopped.connect.assert_called_once_with(thr.setStopFlag)
+			_th.assert_called_once_with(ws, format='%(message)s')
+			thr.start.assert_called_once_with()
+			app.exec_.assert_called_once_with()
+			_info.assert_has_calls([call("add"), call('Closing...')])
+			_rth.assert_called_once_with()
+			_sbm.assert_called_once_with("out")
+			_done.assert_not_called()
 
 	def test_cleanSpare(self):
 		"""test cleanSpare"""
