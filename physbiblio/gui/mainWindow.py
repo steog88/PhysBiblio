@@ -29,6 +29,7 @@ try:
 	from physbiblio.pdf import pBPDF
 	from physbiblio.view import pBView
 	from physbiblio.bibtexWriter import pbWriter
+	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import \
 		askFileName, askFileNames, askGenericText, askSaveFileName, \
@@ -1332,8 +1333,7 @@ class MainWindow(QMainWindow):
 				previous=[a[0] for a in pBDB.cats.getByEntry(entry)])
 			selectCats.exec_()
 			if selectCats.result in ["Ok", "Exps"]:
-				cats = self.selectedCats
-				pBDB.catBib.insert(cats, entry)
+				pBDB.catBib.insert(self.selectedCats, entry)
 				self.statusBarMessage(
 					"categories for '%s' successfully inserted"%entry)
 			if selectCats.result == "Exps":
@@ -1341,8 +1341,7 @@ class MainWindow(QMainWindow):
 					askExps=True, askForBib=entry)
 				selectExps.exec_()
 				if selectExps.result == "Ok":
-					exps = self.selectedExps
-					pBDB.bibExp.insert(entry, exps)
+					pBDB.bibExp.insert(entry, self.selectedExps)
 					self.statusBarMessage(
 						"experiments for '%s' successfully inserted"%entry)
 

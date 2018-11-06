@@ -1367,7 +1367,41 @@ class TestMainWindow(GUITestCase):
 
 	def test_getInspireStats(self):
 		"""test getInspireStats"""
-		raise NotImplementedError
+		self.mainW.lastPaperStats = None
+		with patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch("physbiblio.inspireStats.inspireStatsLoader.plotStats"
+					) as _ps:
+			self.assertFalse(self.mainW.getInspireStats("1234"))
+			_rit.assert_called_once_with(thread_paperStats,
+				'Paper Stats', '1234',
+				minProgress=0.0, progrStr='%) - looking for paper: ',
+				stopFlag=False, totStr='PaperStats will process ')
+			_im.assert_called_once_with(
+				"No results obtained. Maybe there was an error.")
+			_ps.assert_not_called()
+		self.mainW.lastPaperStats = {"id": "1234"}
+		psp = MagicMock()
+		psp.show = MagicMock()
+		with patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".done") as _d,\
+				patch(self.modName + ".paperStatsPlots",
+					return_value=psp) as _psp,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch("physbiblio.inspireStats.inspireStatsLoader.plotStats",
+					return_value="something") as _ps:
+			self.assertEqual(self.mainW.getInspireStats("1234"), None)
+			_im.assert_not_called()
+			_rit.assert_called_once_with(thread_paperStats,
+				'Paper Stats', '1234',
+				minProgress=0.0, progrStr='%) - looking for paper: ',
+				stopFlag=False, totStr='PaperStats will process ')
+			_ps.assert_called_once_with(paper=True)
+			_psp.assert_called_once_with('something', parent=self.mainW,
+				title='Statistics for recid:1234')
+			psp.show.assert_called_once_with()
+			_d.assert_called_once_with()
+			self.assertEqual(self.mainW.lastPaperStats["fig"], "something")
 
 	def test_inspireLoadAndInsert(self):
 		"""test inspireLoadAndInsert"""
@@ -1375,7 +1409,61 @@ class TestMainWindow(GUITestCase):
 
 	def test_askCatsForEntries(self):
 		"""test askCatsForEntries"""
-		raise NotImplementedError
+		sc1 = catsTreeWindow(parent=self.mainW)
+		sc1.exec_ = MagicMock()
+		sc1.result = "Ok"
+		sc2 = catsTreeWindow(parent=self.mainW)
+		sc2.exec_ = MagicMock()
+		sc2.result = False
+		sc3 = catsTreeWindow(parent=self.mainW)
+		sc3.exec_ = MagicMock()
+		sc3.result = "Exps"
+		se1 = ExpsListWindow(parent=self.mainW)
+		se1.exec_ = MagicMock()
+		se1.result = "Ok"
+		se2 = ExpsListWindow(parent=self.mainW)
+		se2.exec_ = MagicMock()
+		se2.result = False
+		self.mainW.selectedCats = [0, 1, 2]
+		self.mainW.selectedExps = [0, 1]
+		with patch("physbiblio.database.categories.getByEntry",
+				return_value=[[0]]) as _gbe,\
+				patch(self.modName + ".catsTreeWindow",
+					side_effect=[sc1, sc2, sc3, sc3]) as _ctw,\
+				patch("physbiblio.database.catsEntries.insert") as _cbi,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".ExpsListWindow",
+					side_effect=[se1, se2]) as _elw,\
+				patch("physbiblio.database.entryExps.insert") as _bei:
+			self.mainW.askCatsForEntries(["a", "b", "c", "d"])
+			_gbe.assert_has_calls([call("a"), call("b"), call("c"), call("d")])
+			_ctw.assert_has_calls([
+				call(askCats=True, askForBib='a', parent=self.mainW,
+					previous=[0]),
+				call(askCats=True, askForBib='b', parent=self.mainW,
+					previous=[0]),
+				call(askCats=True, askForBib='c', parent=self.mainW,
+					previous=[0]),
+				call(askCats=True, askForBib='d', parent=self.mainW,
+					previous=[0])])
+			sc1.exec_.assert_called_once_with()
+			sc2.exec_.assert_called_once_with()
+			self.assertEqual(sc3.exec_.call_count, 2)
+			_cbi.assert_has_calls([
+				call([0, 1, 2], 'a'),
+				call([0, 1, 2], 'c'),
+				call([0, 1, 2], 'd')])
+			_elw.assert_has_calls([
+				call(askExps=True, askForBib='c', parent=self.mainW),
+				call(askExps=True, askForBib='d', parent=self.mainW)])
+			se1.exec_.assert_called_once_with()
+			se2.exec_.assert_called_once_with()
+			_bei.assert_called_once_with('c', [0, 1])
+			_sbm.assert_has_calls([
+				call("categories for 'a' successfully inserted"),
+				call("categories for 'c' successfully inserted"),
+				call("experiments for 'c' successfully inserted"),
+				call("categories for 'd' successfully inserted")])
 
 	def test_inspireLoadAndInsertWithCats(self):
 		"""test inspireLoadAndInsertWithCats"""
