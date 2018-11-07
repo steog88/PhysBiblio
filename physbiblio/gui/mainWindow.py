@@ -1552,7 +1552,6 @@ class MainWindow(QMainWindow):
 		a dialog for asking the category,
 		and import the selection of entries
 		"""
-		#maybe better splitted in two: browse, select and import
 		bDA = dailyArxivDialog()
 		bDA.exec_()
 		cat = bDA.comboCat.currentText().lower()
@@ -1562,7 +1561,7 @@ class MainWindow(QMainWindow):
 				physBiblioWeb.webSearch["arxiv"].categories[cat]
 			except KeyError:
 				pBGUILogger.warning("Non-existent category! %s"%cat)
-				return
+				return False
 			QApplication.setOverrideCursor(Qt.WaitCursor)
 			content = physBiblioWeb.webSearch["arxiv"].arxivDaily(
 				cat if sub == "--" else "%s.%s"%(cat, sub))
@@ -1586,14 +1585,15 @@ class MainWindow(QMainWindow):
 			selImpo.exec_()
 			if selImpo.result == True:
 				newFound = {}
-				for ch, val in selImpo.selected.items():
-					if val:
+				for ch in sorted(selImpo.selected):
+					if selImpo.selected[ch]:
 						newFound[ch] = found[ch]
 				found = newFound
 				db = bibtexparser.bibdatabase.BibDatabase()
 				inserted = []
 				QApplication.setOverrideCursor(Qt.WaitCursor)
-				for key, el in found.items():
+				for key in sorted(found):
+					el = found[key]
 					if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
 						newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
 						inserted.append(newKey)
@@ -1608,19 +1608,13 @@ class MainWindow(QMainWindow):
 							"primaryclass": el["bibpars"]["primaryclass"]}]
 						entry = pbWriter.write(db)
 						data = pBDB.bibs.prepareInsert(entry)
-						try:
-							if pBDB.bibs.insert(data):
-								pBLogger.info("Element '%s' "%key
-									+ "successfully inserted.\n")
-								inserted.append(key)
-							else:
-								pBLogger.warning(
-									"Failed in inserting entry %s\n"%key)
-								continue
-						except:
+						if pBDB.bibs.insert(data):
+							pBLogger.info("Element '%s' "%key
+								+ "successfully inserted.\n")
+							inserted.append(key)
+						else:
 							pBLogger.warning(
-								"An error occurred while inserting entry "
-								+ "%s\n"%key)
+								"Failed in inserting entry %s\n"%key)
 							continue
 						try:
 							eid = pBDB.bibs.updateInspireID(key)
@@ -1628,7 +1622,6 @@ class MainWindow(QMainWindow):
 								entries=pBDB.bibs.getByBibkey(key),
 								force=True, reloadAll=True)
 							newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
-							print(key, newKey)
 							if key != newKey:
 								inserted[-1] = newKey
 						except:
@@ -1637,7 +1630,7 @@ class MainWindow(QMainWindow):
 									key))
 				QApplication.restoreOverrideCursor()
 				self.statusBarMessage(
-					"[browseDailyArxiv] Entries successfully imported: %s"%(
+					"Entries successfully imported: %s"%(
 						inserted))
 				if selImpo.askCats.isChecked():
 					self.askCatsForEntries(inserted)
