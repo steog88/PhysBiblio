@@ -15,8 +15,8 @@ from PySide2.QtWidgets import \
 	QTableWidget, QTableWidgetItem, QVBoxLayout
 
 try:
-	from physbiblio.errors import pBErrorManagerClass, pBLogger
-	from physbiblio.view import viewEntry
+	from physbiblio.errors import PBErrorManagerClass, pBLogger
+	from physbiblio.view import ViewEntry
 	from physbiblio.pdf import pBPDF
 	from physbiblio.database import pBDB, catString
 	import physbiblio.gui.resourcesPyside2
@@ -25,7 +25,7 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-class MyLabel(QLabel):
+class PBLabel(QLabel):
 	"""Extension of `QLabel` with text interaction flags
 	which enable text selection with the mouse
 	"""
@@ -41,7 +41,7 @@ class MyLabel(QLabel):
 			Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
 
 
-class MyLabelRight(MyLabel):
+class PBLabelRight(PBLabel):
 	"""Class that creates a right-aligned QLabel"""
 
 	def __init__(self, label):
@@ -50,11 +50,11 @@ class MyLabelRight(MyLabel):
 		Parameter:
 			label: the text label to be passed to QLabel
 		"""
-		super(MyLabelRight, self).__init__(label)
+		super(PBLabelRight, self).__init__(label)
 		self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
 
-class MyLabelCenter(MyLabel):
+class PBLabelCenter(PBLabel):
 	"""Class that creates a center-aligned QLabel"""
 
 	def __init__(self, label):
@@ -63,11 +63,11 @@ class MyLabelCenter(MyLabel):
 		Parameter:
 			label: the text label to be passed to QLabel
 		"""
-		super(MyLabelCenter, self).__init__(label)
+		super(PBLabelCenter, self).__init__(label)
 		self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
 
-class MyComboBox(QComboBox):
+class PBComboBox(QComboBox):
 	"""Personalize QComboBox for faster construction"""
 
 	def __init__(self, parent, fields, current=None):
@@ -79,7 +79,7 @@ class MyComboBox(QComboBox):
 				to be added to the QComboBox
 			current (default None): the value to be set as the initial value
 		"""
-		super(MyComboBox, self).__init__(parent)
+		super(PBComboBox, self).__init__(parent)
 		for f in fields:
 			self.addItem("%s"%f)
 		if current is not None:
@@ -89,7 +89,7 @@ class MyComboBox(QComboBox):
 				pass
 
 
-class MyAndOrCombo(MyComboBox):
+class PBAndOrCombo(PBComboBox):
 	"""Shortcut for generating a QComboBox with and/or"""
 
 	def __init__(self, parent, current=None):
@@ -100,11 +100,11 @@ class MyAndOrCombo(MyComboBox):
 			current (default None): the value to be set
 				as selected at the beginning
 		"""
-		super(MyAndOrCombo, self).__init__(parent,
+		super(PBAndOrCombo, self).__init__(parent,
 			["AND", "OR"], current=current)
 
 
-class MyTrueFalseCombo(MyComboBox):
+class PBTrueFalseCombo(PBComboBox):
 	"""Shortcut for generating a QComboBox with true/false"""
 
 	def __init__(self, parent, current=None):
@@ -115,11 +115,11 @@ class MyTrueFalseCombo(MyComboBox):
 			current (default None): the value to be set as selected
 				at the beginning
 		"""
-		super(MyTrueFalseCombo, self).__init__(parent,
+		super(PBTrueFalseCombo, self).__init__(parent,
 			["True", "False"], current=current)
 
 
-class objListWindow(QDialog):
+class ObjListWindow(QDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
 
 	def __init__(self, parent=None, gridLayout=False):
@@ -130,7 +130,7 @@ class objListWindow(QDialog):
 			gridLayout (boolean, default False):
 				if True, use a QGridLayout, otherwise a QVBoxLayout
 		"""
-		super(objListWindow, self).__init__(parent)
+		super(ObjListWindow, self).__init__(parent)
 		self.tableWidth = None
 		self.proxyModel = None
 		self.gridLayout = gridLayout
@@ -202,7 +202,7 @@ class objListWindow(QDialog):
 		self.proxyModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 		self.proxyModel.setFilterKeyColumn(-1)
 
-		self.tableview = MyTableView(self)
+		self.tableview = PBTableView(self)
 		self.tableview.setModel(self.proxyModel)
 		self.tableview.setSortingEnabled(True)
 		self.tableview.setMouseTracking(True)
@@ -312,7 +312,7 @@ class EditObjectWindow(QDialog):
 		self.move(qr.topLeft())
 
 
-class MyThread(QThread):
+class PBThread(QThread):
 	"""Extend `QThread`, but further extension is needed"""
 
 	finished = Signal()
@@ -341,7 +341,7 @@ class MyThread(QThread):
 		QThread.start(self, *args, **kwargs)
 
 
-class WriteStream(MyThread):
+class WriteStream(PBThread):
 	"""Class used to redirect prints to a window"""
 
 	newText = Signal(str)
@@ -375,22 +375,7 @@ class WriteStream(MyThread):
 		self.finished.emit()
 
 
-class MyTableWidget(QTableWidget):
-	"""Extension of `QTableWidget`, used to define the contextMenuEvent"""
-
-	def contextMenuEvent(self, event):
-		"""Connect the context menu event to the parent function
-
-		Parameter:
-			event: the `PySide2.QtGui.QContextMenuEvent`
-		"""
-		self.parent().triggeredContextMenuEvent(
-			self.rowAt(event.y()),
-			self.columnAt(event.x()),
-			event)
-
-
-class MyTableView(QTableView):
+class PBTableView(QTableView):
 	"""Extension of `QTableView`, used to define the contextMenuEvent"""
 
 	def contextMenuEvent(self, event):
@@ -405,7 +390,7 @@ class MyTableView(QTableView):
 			event)
 
 
-class MyTableModel(QAbstractTableModel):
+class PBTableModel(QAbstractTableModel):
 	"""Extension of `QAbstractTableModel`,
 	used for experiments and bibtex entries
 	"""
@@ -820,7 +805,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		return False
 
 
-class MyDDTableWidget(QTableWidget):
+class PBDDTableWidget(QTableWidget):
 	"""Drag and drop extension of QTableWidget"""
 
 	def __init__(self, parent, header):
@@ -829,7 +814,7 @@ class MyDDTableWidget(QTableWidget):
 		Parameters:
 			header: the title of the column
 		"""
-		super(MyDDTableWidget, self).__init__(parent)
+		super(PBDDTableWidget, self).__init__(parent)
 		self.setColumnCount(1)
 		self.setHorizontalHeaderLabels([header])
 		self.setDragEnabled(True)
@@ -861,7 +846,7 @@ class MyDDTableWidget(QTableWidget):
 
 		# Default dropEvent method fires dropMimeData
 		# with appropriate parameters (we're interested in the row index).
-		super(MyDDTableWidget, self).dropEvent(event)
+		super(PBDDTableWidget, self).dropEvent(event)
 		# Now we know where to insert selected row(s)
 		dropRow = self.last_drop_row
 
@@ -909,7 +894,7 @@ class MyDDTableWidget(QTableWidget):
 		return selectedRows
 
 
-class MyMenu(QMenu):
+class PBMenu(QMenu):
 	"""Extend `QMenu` for faster menu build"""
 
 	def __init__(self, parent=None):
@@ -918,7 +903,7 @@ class MyMenu(QMenu):
 		Parameter:
 			parent: the parent widget
 		"""
-		super(MyMenu, self).__init__(parent)
+		super(PBMenu, self).__init__(parent)
 		self.possibleActions = []
 		self.result = False
 
@@ -930,7 +915,7 @@ class MyMenu(QMenu):
 			if act is None:
 				self.addSeparator()
 			elif isinstance(act, list):
-				submenu = MyMenu()
+				submenu = PBMenu()
 				submenu.setTitle(act[0])
 				submenu.possibleActions = act[1]
 				submenu.fillMenu()
@@ -948,8 +933,8 @@ class MyMenu(QMenu):
 			self.close()
 
 
-class guiViewEntry(viewEntry):
-	"""Extends the viewEntry class to work with QtGui.QDesktopServices"""
+class GUIViewEntry(ViewEntry):
+	"""Extends the ViewEntry class to work with QtGui.QDesktopServices"""
 
 	def openLink(self, key, arg="", fileArg=None):
 		"""Use `QDesktopServices` to open an url using
@@ -984,11 +969,11 @@ class guiViewEntry(viewEntry):
 				pBLogger.warning("Opening link for '%s' failed!"%key)
 
 
-pBGuiView = guiViewEntry()
+pBGuiView = GUIViewEntry()
 
 
-class MyImportedTableModel(MyTableModel):
-	"""Extend `MyTableModel` to manage the selection
+class PBImportedTableModel(PBTableModel):
+	"""Extend `PBTableModel` to manage the selection
 	during the import of entries
 	"""
 
@@ -996,13 +981,13 @@ class MyImportedTableModel(MyTableModel):
 		"""Set some properties and settings
 
 		Parameters:
-			parent: the parent widget (pass to `MyTableModel.__init__`)
+			parent: the parent widget (pass to `PBTableModel.__init__`)
 			bibdict: a dictionary with the info
 				of the imported bibtex entries.
 				It should contain dictionaries with two items:
 					"bibpars", "exist"
 			header: the header names to be passed
-				to `MyTableModel.__init__`
+				to `PBTableModel.__init__`
 			idName: the key of the field representing
 				the unique ID of the item
 		"""
@@ -1011,7 +996,7 @@ class MyImportedTableModel(MyTableModel):
 		self.bibsOrder = [k for k in bibdict.keys()]
 		self.dataList = [bibdict[k]['bibpars'] for k in self.bibsOrder]
 		self.existList = [bibdict[k]['exist'] for k in self.bibsOrder]
-		MyTableModel.__init__(self, parent, header, *args)
+		PBTableModel.__init__(self, parent, header, *args)
 		self.prepareSelected()
 
 	def getIdentifier(self, element):

@@ -13,7 +13,7 @@ else:
 	from io import StringIO
 
 try:
-	from physbiblio.errors import pBErrorManagerClass, pBLogger
+	from physbiblio.errors import PBErrorManagerClass, pBLogger
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -79,17 +79,17 @@ class ErrorStream(StringIO):
 		return
 
 
-class pBErrorManagerClassGui(pBErrorManagerClass):
+class PBErrorManagerClassGui(PBErrorManagerClass):
 	"""Extends the error manager class to show
 	gui messages through ErrorStream
 	"""
 
 	def __init__(self):
-		"""Init the class, using pBErrorManagerClass.__init__ and
+		"""Init the class, using PBErrorManagerClass.__init__ and
 		the gui logger name,
 		then add a new handler which uses ErrorStream
 		"""
-		pBErrorManagerClass.__init__(self, "physbiblioguilog")
+		PBErrorManagerClass.__init__(self, "physbiblioguilog")
 		self.guiStream = ErrorStream()
 		self.tempHandler(self.guiStream,
 			level = logging.DEBUG,
@@ -111,5 +111,5 @@ class pBErrorManagerClassGui(pBErrorManagerClass):
 		return self.logger
 
 
-pBGUIErrorManager = pBErrorManagerClassGui()
+pBGUIErrorManager = PBErrorManagerClassGui()
 pBGUILogger = pBGUIErrorManager.logger

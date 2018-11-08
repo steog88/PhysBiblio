@@ -106,16 +106,15 @@ class TestWebImportMethods(unittest.TestCase):
 				'id': '1385583',
 				'link': '%s10.1088/0954-3899/43/3/033001'%pbConfig.doiUrl,
 				'reportnumber': None}],
-			"isbn": ["9780198508717", '''@book{9780198508717,
+			"isbn": ["9780191523229", '''@book{9780191523229,
   Author = {Carlo Giunti, Chung W. Kim},
   Title = {Fundamentals of Neutrino Physics and Astrophysics},
-  Publisher = {Oxford University Press},
+  Publisher = {OUP Oxford},
   Year = {2007},
   Date = {2007-03-15},
-  PageTotal = {728 Seiten},
-  EAN = {9780198508717},
-  ISBN = {0198508719},
-  URL = {https://www.ebook.de/de/product/7616244/carlo_giunti_''' \
+  PageTotal = {},
+  EAN = {9780191523229},
+  URL = {https://www.ebook.de/de/product/21360145/carlo_giunti_''' \
 + '''chung_w_kim_fundamentals_of_neutrino_physics_and_astrophysics.html}
 }'''],
 			}
@@ -408,7 +407,7 @@ as force and matter fields.
 + '''&lt;/a&gt;</dc:creator>
 </item>
 </rdf:RDF>'''
-		with patch('physbiblio.webimport.webInterf.webInterf.textFromUrl',
+		with patch('physbiblio.webimport.webInterf.WebInterf.textFromUrl',
 				return_value=content_example) as _fromUrl:
 			result = physBiblioWeb.webSearch["arxiv"].arxivDaily("hep-ex")
 			_fromUrl.assert_called_once_with(

@@ -44,14 +44,14 @@ class TestMainWindow(GUITestCase):
 
 	def test_init(self):
 		"""test __init__"""
-		tcu = thread_checkUpdated()
+		tcu = Thread_checkUpdated()
 		tcu.start = MagicMock()
 		with patch(self.clsName + ".createActions") as _ca,\
 				patch(self.clsName + ".createMenusAndToolBar") as _mt,\
 				patch(self.clsName + ".createMainLayout") as _ml,\
 				patch(self.clsName + ".setIcon") as _si,\
 				patch(self.clsName + ".createStatusBar") as _sb,\
-				patch(self.modName + ".thread_checkUpdated",
+				patch(self.modName + ".Thread_checkUpdated",
 					return_value=tcu) as _cu:
 			mw = MainWindow()
 			_ca.assert_called_once_with()
@@ -81,7 +81,7 @@ class TestMainWindow(GUITestCase):
 	def test_closeEvent(self):
 		"""test closeEvent"""
 		e = QEvent(QEvent.Close)
-		with patch("physbiblio.databaseCore.physbiblioDBCore."
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore."
 					+ "checkUncommitted", return_value=True) as _c,\
 				patch(self.modName + ".askYesNo",
 					side_effect=[True, False]) as _a,\
@@ -97,7 +97,7 @@ class TestMainWindow(GUITestCase):
 			_ei.assert_called_once_with()
 		oldcfg = pbConfig.params["askBeforeExit"]
 		pbConfig.params["askBeforeExit"] = False
-		with patch("physbiblio.databaseCore.physbiblioDBCore."
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore."
 					+ "checkUncommitted", return_value=False) as _c,\
 				patch(self.modName + ".askYesNo",
 					side_effect=[True, False]) as _a,\
@@ -509,7 +509,7 @@ class TestMainWindow(GUITestCase):
 		self.assertEqual(tb.windowTitle(), "Toolbar")
 
 		#test empty search/replace menu
-		with patch("physbiblio.config.globalDB.getSearchList",
+		with patch("physbiblio.config.GlobalDB.getSearchList",
 				side_effect=[[], []]) as _gs:
 			self.mainW.createMenusAndToolBar()
 			self.assertEqual(self.mainW.searchMenu, None)
@@ -524,7 +524,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.helpMenu])
 
 		#create with mock getSearchList for searches and replaces
-		with patch("physbiblio.config.globalDB.getSearchList",
+		with patch("physbiblio.config.GlobalDB.getSearchList",
 				side_effect=[
 					[{"idS": 0, "name": "s1", "searchDict": "{'n': 'abc'}",
 						"limitNum": 101, "offsetNum": 99},
@@ -622,7 +622,7 @@ class TestMainWindow(GUITestCase):
 
 	def test_undoDB(self):
 		"""test undoDB"""
-		with patch("physbiblio.databaseCore.physbiblioDBCore.undo") as _u,\
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore.undo") as _u,\
 				patch(self.qmwName + ".setWindowTitle") as _swt,\
 				patch(self.clsName + ".reloadMainContent") as _rmc:
 			self.mainW.undoDB()
@@ -637,7 +637,7 @@ class TestMainWindow(GUITestCase):
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "recreateTable") as _rt,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
-				patch("physbiblio.database.entries.fetchFromLast",
+				patch("physbiblio.database.Entries.fetchFromLast",
 					return_value=pBDB.bibs) as _fl:
 			self.mainW.refreshMainContent()
 			_d.assert_called_once_with()
@@ -661,9 +661,9 @@ class TestMainWindow(GUITestCase):
 
 	def test_manageProfiles(self):
 		"""test manageProfiles"""
-		sp = selectProfiles(self.mainW)
+		sp = SelectProfiles(self.mainW)
 		sp.exec_ = MagicMock()
-		with patch(self.modName + ".selectProfiles",
+		with patch(self.modName + ".SelectProfiles",
 				return_value=sp) as _i:
 			self.mainW.manageProfiles()
 			_i.assert_called_once_with(self.mainW)
@@ -677,7 +677,7 @@ class TestMainWindow(GUITestCase):
 
 	def test_config(self):
 		"""test config"""
-		cw = configWindow(self.mainW)
+		cw = ConfigWindow(self.mainW)
 		cw.exec_ = MagicMock()
 		raise NotImplementedError
 
@@ -817,7 +817,7 @@ class TestMainWindow(GUITestCase):
 		ws.finished = MagicMock()
 		ws.newText.connect = MagicMock()
 		ws.finished.connect = MagicMock()
-		thr = thread_cleanSpare(ws, parent=self.mainW)#just use one
+		thr = Thread_cleanSpare(ws, parent=self.mainW)#just use one
 		thr.start = MagicMock()
 		thr.finished = MagicMock()
 		thr.finished.connect = MagicMock()
@@ -828,9 +828,9 @@ class TestMainWindow(GUITestCase):
 					+ ".progressBarMin") as _pbm,\
 				patch(self.modName + ".Queue", return_value=q) as _qu,\
 				patch(self.modName + ".WriteStream", return_value=ws) as _ws,\
-				patch("physbiblio.errors.pBErrorManagerClass"
+				patch("physbiblio.errors.PBErrorManagerClass"
 					+ ".tempHandler") as _th,\
-				patch("physbiblio.errors.pBErrorManagerClass"
+				patch("physbiblio.errors.PBErrorManagerClass"
 					+ ".rmTempHandler") as _rth,\
 				patch("logging.Logger.info") as _info,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
@@ -866,9 +866,9 @@ class TestMainWindow(GUITestCase):
 					+ ".progressBarMin") as _pbm,\
 				patch(self.modName + ".Queue", return_value=q) as _qu,\
 				patch(self.modName + ".WriteStream", return_value=ws) as _ws,\
-				patch("physbiblio.errors.pBErrorManagerClass"
+				patch("physbiblio.errors.PBErrorManagerClass"
 					+ ".tempHandler") as _th,\
-				patch("physbiblio.errors.pBErrorManagerClass"
+				patch("physbiblio.errors.PBErrorManagerClass"
 					+ ".rmTempHandler") as _rth,\
 				patch("logging.Logger.info") as _info,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
@@ -900,7 +900,7 @@ class TestMainWindow(GUITestCase):
 		with patch(self.clsName + "._runInThread") as _rit:
 			self.mainW.cleanSpare()
 			_rit.assert_called_once_with(
-				thread_cleanSpare, "Clean spare entries")
+				Thread_cleanSpare, "Clean spare entries")
 
 	def test_cleanSparePDF(self):
 		"""test cleanSparePDF"""
@@ -909,7 +909,7 @@ class TestMainWindow(GUITestCase):
 					return_value=True):
 			self.mainW.cleanSparePDF()
 			_rit.assert_called_once_with(
-				thread_cleanSparePDF, "Clean spare PDF folders")
+				Thread_cleanSparePDF, "Clean spare PDF folders")
 		with patch(self.clsName + "._runInThread") as _rit,\
 				patch(self.modName + ".askYesNo",
 					return_value=False):
@@ -940,7 +940,7 @@ class TestMainWindow(GUITestCase):
 				side_effect=[True, False]) as _ayn,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.clsName + ".mainWindowTitle") as _mwt,\
-				patch("physbiblio.database.physbiblioDBCore.commit") as _c:
+				patch("physbiblio.database.PhysBiblioDBCore.commit") as _c:
 			self.mainW.save()
 			_ayn.assert_called_once_with("Do you really want to save?")
 			_sbm.assert_called_once_with("Changes saved")
@@ -969,7 +969,7 @@ class TestMainWindow(GUITestCase):
 				title="From where do you want to import?",
 				filter="Bibtex (*.bib)")
 			_rit.assert_called_once_with(
-				thread_importFromBib,
+				Thread_importFromBib,
 				"Importing...", "a.bib", True,
 				totStr="Entries to be processed: ",
 				progrStr="%), processing entry ",
@@ -989,7 +989,7 @@ class TestMainWindow(GUITestCase):
 		"""test export"""
 		with patch(self.modName + ".askSaveFileName",
 				side_effect=["a.bib", ""]) as _afn,\
-				patch("physbiblio.export.pbExport.exportLast") as _ex,\
+				patch("physbiblio.export.PBExport.exportLast") as _ex,\
 				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.export()
 			_afn.assert_called_once_with(self.mainW,
@@ -1008,7 +1008,7 @@ class TestMainWindow(GUITestCase):
 		"""test exportSelection"""
 		with patch(self.modName + ".askSaveFileName",
 				side_effect=["a.bib", ""]) as _afn,\
-				patch("physbiblio.export.pbExport.exportSelected") as _ex,\
+				patch("physbiblio.export.PBExport.exportSelected") as _ex,\
 				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.exportSelection([{"bibkey": "k"}])
 			_afn.assert_called_once_with(self.mainW,
@@ -1039,7 +1039,7 @@ class TestMainWindow(GUITestCase):
 				title="Which is/are the *.tex file(s) you want to compile?",
 				filter="Latex (*.tex)")
 			_ex.assert_called_once_with(
-					thread_exportTexBib, "Exporting...",
+					Thread_exportTexBib, "Exporting...",
 					["a.tex", "b.tex"], "a.bib",
 					minProgress=0, stopFlag=True,
 					outMessage="All entries saved into 'a.bib'")
@@ -1058,7 +1058,7 @@ class TestMainWindow(GUITestCase):
 		with patch(self.modName + ".askSaveFileName",
 				side_effect=["a.bib", ""]) as _afn,\
 				patch(self.modName + ".askYesNo", return_value="a") as _ayn,\
-				patch("physbiblio.export.pbExport.updateExportedBib") as _ex,\
+				patch("physbiblio.export.PBExport.updateExportedBib") as _ex,\
 				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.exportUpdate()
 			_afn.assert_called_once_with(self.mainW,
@@ -1080,7 +1080,7 @@ class TestMainWindow(GUITestCase):
 		"""test exportAll"""
 		with patch(self.modName + ".askSaveFileName",
 				side_effect=["a.bib", ""]) as _afn,\
-				patch("physbiblio.export.pbExport.exportAll") as _ex,\
+				patch("physbiblio.export.PBExport.exportAll") as _ex,\
 				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.exportAll()
 			_afn.assert_called_once_with(self.mainW,
@@ -1097,10 +1097,10 @@ class TestMainWindow(GUITestCase):
 
 	def test_categories(self):
 		"""test categories"""
-		ca = catsTreeWindow(self.mainW)
+		ca = CatsTreeWindow(self.mainW)
 		ca.show = MagicMock()
 		with patch(self.clsName + ".statusBarMessage") as _sm,\
-				patch(self.modName + ".catsTreeWindow",
+				patch(self.modName + ".CatsTreeWindow",
 					return_value=ca) as _i:
 			self.mainW.categories()
 			_sm.assert_called_once_with("categories triggered")
@@ -1148,7 +1148,7 @@ class TestMainWindow(GUITestCase):
 				+ "setOverrideCursor") as _soc,\
 				patch("PySide2.QtWidgets.QApplication."
 					+ "restoreOverrideCursor") as _roc,\
-				patch("physbiblio.database.entries.fetchFromDict",
+				patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB) as _ffd,\
 				patch(self.clsName + ".reloadMainContent") as _rmc:
 			self.mainW.runSearchBiblio({"s": "a"}, 12, 34)
@@ -1165,7 +1165,7 @@ class TestMainWindow(GUITestCase):
 				+ "setOverrideCursor") as _soc,\
 				patch("PySide2.QtWidgets.QApplication."
 					+ "restoreOverrideCursor") as _roc,\
-				patch("physbiblio.database.entries.fetchFromDict",
+				patch("physbiblio.database.Entries.fetchFromDict",
 					side_effect=[self, pBDB]) as _ffd,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.modName + ".infoMessage") as _im:
@@ -1184,7 +1184,7 @@ class TestMainWindow(GUITestCase):
 	def test_runSearchReplaceBiblio(self):
 		"""test runSearchReplaceBiblio"""
 		pBDB.lastFetched = ["a"]
-		with patch("physbiblio.database.entries.fetchFromDict",
+		with patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB) as _ffd,\
 				patch(self.clsName + ".runReplace") as _rr:
 			self.mainW.runSearchReplaceBiblio({"s": "a"}, ["b"], 12)
@@ -1194,7 +1194,7 @@ class TestMainWindow(GUITestCase):
 	def test_delSearchBiblio(self):
 		"""test delSearchBiblio"""
 		pBDB.lastFetched = ["a"]
-		with patch("physbiblio.config.globalDB.deleteSearch") as _ds,\
+		with patch("physbiblio.config.GlobalDB.deleteSearch") as _ds,\
 				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
 				patch(self.modName + ".askYesNo") as _ay:
 			self.mainW.delSearchBiblio(999, "search")
@@ -1221,15 +1221,15 @@ class TestMainWindow(GUITestCase):
 				+ "setOverrideCursor") as _soc,\
 				patch("PySide2.QtWidgets.QApplication."
 					+ "restoreOverrideCursor") as _roc,\
-				patch("physbiblio.database.entries.fetchFromLast",
+				patch("physbiblio.database.Entries.fetchFromLast",
 					return_value=pBDB) as _ffl,\
-				patch("physbiblio.database.entries.replace",
+				patch("physbiblio.database.Entries.replace",
 					return_value=[["d"], ["e", "f"], ["g", "h", "i"]]) as _r,\
-				patch("physbiblio.database.entries.fetchCursor",
+				patch("physbiblio.database.Entries.fetchCursor",
 					return_value="c") as _fc,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch(self.modName + ".longInfoMessage") as _lim,\
+				patch(self.modName + ".LongInfoMessage") as _lim,\
 				patch(self.modName + ".askYesNo",
 					side_effect=[False, True]) as _ay:
 			self.mainW.runReplace(("bibtex", "bibkey", "", ["a"], "r"))
@@ -1317,7 +1317,7 @@ class TestMainWindow(GUITestCase):
 			_sbm.assert_called_once_with(
 				"Starting update of bibtexs from %s..."%(
 					pbConfig.params["defaultUpdateFrom"]))
-			_rit.assert_called_once_with(thread_updateAllBibtexs,
+			_rit.assert_called_once_with(Thread_updateAllBibtexs,
 				'Update Bibtexs', pbConfig.params["defaultUpdateFrom"],
 				force=False, minProgress=0.0,
 				progrStr='%) - looking for update: ', reloadAll=False,
@@ -1333,7 +1333,7 @@ class TestMainWindow(GUITestCase):
 				reloadAll=True)
 			_sbm.assert_called_once_with(
 				"Starting update of bibtexs from 12...")
-			_rit.assert_called_once_with(thread_updateAllBibtexs,
+			_rit.assert_called_once_with(Thread_updateAllBibtexs,
 				'Update Bibtexs', 12, force=True, minProgress=0.0,
 				progrStr='%) - looking for update: ', reloadAll=True,
 				stopFlag=True, totStr='SearchOAIUpdates will process ',
@@ -1348,7 +1348,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.updateInspireInfo("key")
 			_sbm.assert_called_once_with(
 				"Starting generic info update from INSPIRE-HEP...")
-			_rit.assert_called_once_with(thread_updateInspireInfo,
+			_rit.assert_called_once_with(Thread_updateInspireInfo,
 				"Update Info", "key", None, minProgress=0., stopFlag=False)
 			_rmc.assert_called_once_with()
 		with patch(self.clsName + ".statusBarMessage") as _sbm,\
@@ -1357,7 +1357,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.updateInspireInfo("key", inspireID="1234")
 			_sbm.assert_called_once_with(
 				"Starting generic info update from INSPIRE-HEP...")
-			_rit.assert_called_once_with(thread_updateInspireInfo,
+			_rit.assert_called_once_with(Thread_updateInspireInfo,
 				"Update Info", "key", "1234", minProgress=0., stopFlag=False)
 			_rmc.assert_called_once_with()
 
@@ -1370,10 +1370,10 @@ class TestMainWindow(GUITestCase):
 		self.mainW.lastPaperStats = None
 		with patch(self.clsName + "._runInThread") as _rit,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.inspireStats.inspireStatsLoader.plotStats"
+				patch("physbiblio.inspireStats.InspireStatsLoader.plotStats"
 					) as _ps:
 			self.assertFalse(self.mainW.getInspireStats("1234"))
-			_rit.assert_called_once_with(thread_paperStats,
+			_rit.assert_called_once_with(Thread_paperStats,
 				'Paper Stats', '1234',
 				minProgress=0.0, progrStr='%) - looking for paper: ',
 				stopFlag=False, totStr='PaperStats will process ')
@@ -1385,14 +1385,14 @@ class TestMainWindow(GUITestCase):
 		psp.show = MagicMock()
 		with patch(self.clsName + "._runInThread") as _rit,\
 				patch(self.clsName + ".done") as _d,\
-				patch(self.modName + ".paperStatsPlots",
+				patch(self.modName + ".PaperStatsPlots",
 					return_value=psp) as _psp,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.inspireStats.inspireStatsLoader.plotStats",
+				patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
 					return_value="something") as _ps:
 			self.assertEqual(self.mainW.getInspireStats("1234"), None)
 			_im.assert_not_called()
-			_rit.assert_called_once_with(thread_paperStats,
+			_rit.assert_called_once_with(Thread_paperStats,
 				'Paper Stats', '1234',
 				minProgress=0.0, progrStr='%) - looking for paper: ',
 				stopFlag=False, totStr='PaperStats will process ')
@@ -1409,13 +1409,13 @@ class TestMainWindow(GUITestCase):
 
 	def test_askCatsForEntries(self):
 		"""test askCatsForEntries"""
-		sc1 = catsTreeWindow(parent=self.mainW)
+		sc1 = CatsTreeWindow(parent=self.mainW)
 		sc1.exec_ = MagicMock()
 		sc1.result = "Ok"
-		sc2 = catsTreeWindow(parent=self.mainW)
+		sc2 = CatsTreeWindow(parent=self.mainW)
 		sc2.exec_ = MagicMock()
 		sc2.result = False
-		sc3 = catsTreeWindow(parent=self.mainW)
+		sc3 = CatsTreeWindow(parent=self.mainW)
 		sc3.exec_ = MagicMock()
 		sc3.result = "Exps"
 		se1 = ExpsListWindow(parent=self.mainW)
@@ -1426,15 +1426,15 @@ class TestMainWindow(GUITestCase):
 		se2.result = False
 		self.mainW.selectedCats = [0, 1, 2]
 		self.mainW.selectedExps = [0, 1]
-		with patch("physbiblio.database.categories.getByEntry",
+		with patch("physbiblio.database.Categories.getByEntry",
 				return_value=[[0]]) as _gbe,\
-				patch(self.modName + ".catsTreeWindow",
+				patch(self.modName + ".CatsTreeWindow",
 					side_effect=[sc1, sc2, sc3, sc3]) as _ctw,\
-				patch("physbiblio.database.catsEntries.insert") as _cbi,\
+				patch("physbiblio.database.CatsEntries.insert") as _cbi,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.modName + ".ExpsListWindow",
 					side_effect=[se1, se2]) as _elw,\
-				patch("physbiblio.database.entryExps.insert") as _bei:
+				patch("physbiblio.database.EntryExps.insert") as _bei:
 			self.mainW.askCatsForEntries(["a", "b", "c", "d"])
 			_gbe.assert_has_calls([call("a"), call("b"), call("c"), call("d")])
 			_ctw.assert_has_calls([
@@ -1472,7 +1472,7 @@ class TestMainWindow(GUITestCase):
 				return_value=False) as _ili,\
 				patch(self.clsName + ".askCatsForEntries") as _ace,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
-				patch("physbiblio.database.catsEntries.delete") as _d:
+				patch("physbiblio.database.CatsEntries.delete") as _d:
 			self.mainW.inspireLoadAndInsertWithCats()
 			_ili.assert_called_once_with(doReload=False)
 			_d.assert_not_called()
@@ -1482,7 +1482,7 @@ class TestMainWindow(GUITestCase):
 				return_value=True) as _ili,\
 				patch(self.clsName + ".askCatsForEntries") as _ace,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
-				patch("physbiblio.database.catsEntries.delete") as _d:
+				patch("physbiblio.database.CatsEntries.delete") as _d:
 			self.mainW.inspireLoadAndInsertWithCats()
 			_ili.assert_called_once_with(doReload=False)
 			_d.assert_not_called()
@@ -1494,7 +1494,7 @@ class TestMainWindow(GUITestCase):
 				return_value=True) as _ili,\
 				patch(self.clsName + ".askCatsForEntries") as _ace,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
-				patch("physbiblio.database.catsEntries.delete") as _d:
+				patch("physbiblio.database.CatsEntries.delete") as _d:
 			self.mainW.inspireLoadAndInsertWithCats()
 			_ili.assert_called_once_with(doReload=False)
 			_d.assert_has_calls([
@@ -1506,6 +1506,364 @@ class TestMainWindow(GUITestCase):
 	def test_advancedImport(self):
 		"""test advancedImport"""
 		raise NotImplementedError
+		# dad = DailyArxivDialog()
+		# dad.exec_ = MagicMock()
+		# dad.result = False
+		# dad.comboCat.setCurrentText("")
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# dad.exec_.assert_called_once_with()
+
+		# dad.exec_ = MagicMock()
+		# dad.result = True
+		# dad.comboCat.setCurrentText("")
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# dad.exec_.assert_called_once_with()
+
+		# with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.updateCat"
+				# ) as _uc:
+			# dad.comboCat.addItem("nonex")
+			# dad.comboCat.setCurrentText("nonex")
+		# dad.exec_ = MagicMock()
+		# dad.result = True
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch("logging.Logger.warning") as _w,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[]) as _ad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# dad.exec_.assert_called_once_with()
+			# _w.assert_called_once_with("Non-existent category! nonex")
+			# _ad.assert_not_called()
+
+		# dad.comboCat.setCurrentText("astro-ph")
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch(self.modName + ".infoMessage") as _im,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[]) as _ad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# _im.assert_called_once_with("No results obtained.")
+			# _ad.assert_called_once_with('astro-ph')
+
+		# dad.comboSub.setCurrentText("CO")
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch(self.modName + ".infoMessage") as _im,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[]) as _ad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# _im.assert_called_once_with("No results obtained.")
+			# _ad.assert_called_once_with('astro-ph.CO')
+
+		# das = DailyArxivSelect(
+			# {"12.345":
+				# {"bibpars": {
+					# "author": "me",
+					# "title": "title",
+					# "type": "",
+					# "eprint": "12.345",
+					# "replacement": False,
+					# "cross": False,
+					# "abstract": "some text",
+					# "primaryclass": "astro-ph"},
+				# "exist": 1}},
+			# self.mainW)
+		# das.abstractFormulas = AbstractFormulas
+		# das.exec_ = MagicMock()
+		# das.askCats.setCheckState(Qt.Unchecked)
+		# das.selected = {"12.345": True}
+		# das.result = False
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch(self.modName + ".DailyArxivSelect",
+					# return_value=das) as _das,\
+				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					# ) as _sc,\
+				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					# ) as _rc,\
+				# patch(self.clsName + ".reloadMainContent") as _rmc,\
+				# patch(self.modName + ".infoMessage") as _im,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[
+						# {"replacement": False,
+						# "cross": False,
+						# "eprint": "12.345"}
+					# ]) as _ad:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# _im.assert_not_called()
+			# _ad.assert_called_once_with('astro-ph.CO')
+			# _das.assert_called_once_with(
+				# {'12.345': {'exist': False, 'bibpars':
+					# {'type': '', 'eprint': '12.345',
+					# 'cross': False, 'replacement': False}}},
+				# self.mainW)
+			# das.exec_.assert_called_once_with()
+			# self.assertEqual(_sc.call_count, 1)
+			# self.assertEqual(_rc.call_count, 1)
+			# _rmc.assert_called_once_with()
+
+		# das.exec_ = MagicMock()
+		# das.result = True
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch(self.modName + ".DailyArxivSelect",
+					# return_value=das) as _das,\
+				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					# ) as _sc,\
+				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					# ) as _rc,\
+				# patch(self.clsName + ".askCatsForEntries") as _ace,\
+				# patch(self.clsName + ".reloadMainContent") as _rmc,\
+				# patch(self.clsName + ".statusBarMessage") as _sbm,\
+				# patch(self.modName + ".infoMessage") as _im,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[
+						# {"replacement": False,
+						# "cross": False,
+						# "eprint": "12.345"}
+					# ]) as _ad,\
+				# patch("physbiblio.database.Entries.loadAndInsert",
+					# return_value=True) as _lai,\
+				# patch("physbiblio.database.Entries.getByKey",
+					# return_value=[{"bibkey": "12.345"}]) as _gbk:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# _im.assert_not_called()
+			# _ad.assert_called_once_with('astro-ph.CO')
+			# _das.assert_called_once_with(
+				# {'12.345': {'exist': False, 'bibpars':
+					# {'type': '', 'eprint': '12.345',
+					# 'cross': False, 'replacement': False}}},
+				# self.mainW)
+			# das.exec_.assert_called_once_with()
+			# self.assertEqual(_sc.call_count, 2)
+			# self.assertEqual(_rc.call_count, 2)
+			# _rmc.assert_called_once_with()
+			# _sbm.assert_called_once_with(
+				# "Entries successfully imported: ['12.345']")
+			# _lai.assert_called_once_with("12.345")
+			# _gbk.assert_called_once_with("12.345")
+			# _ace.assert_not_called()
+
+		# das = DailyArxivSelect(
+			# {"12.345":
+				# {"bibpars": {
+					# "author": "me1",
+					# "title": "title1",
+					# "type": "",
+					# "eprint": "12.345",
+					# "replacement": False,
+					# "cross": False,
+					# "abstract": "some text",
+					# "primaryclass": "astro-ph"},
+				# "exist": 1},
+			# "12.346":
+				# {"bibpars": {
+					# "author": "me2",
+					# "title": "title2",
+					# "type": "",
+					# "eprint": "12.346",
+					# "replacement": False,
+					# "cross": True,
+					# "abstract": "some other text",
+					# "primaryclass": "astro-ph.CO"},
+				# "exist": 1},
+			# "12.347":
+				# {"bibpars": {
+					# "author": "me3",
+					# "title": "title3",
+					# "type": "",
+					# "eprint": "12.347",
+					# "replacement": False,
+					# "cross": False,
+					# "abstract": "some more text",
+					# "primaryclass": "hep-ph"},
+				# "exist": 1},
+			# "12.348":
+				# {"bibpars": {
+					# "author": "me4",
+					# "title": "title4",
+					# "type": "",
+					# "eprint": "12.348",
+					# "replacement": False,
+					# "cross": False,
+					# "abstract": "some more text",
+					# "primaryclass": "hep-ph"},
+				# "exist": 1},
+			# "12.349":
+				# {"bibpars": {
+					# "author": "me5",
+					# "title": "title5",
+					# "type": "",
+					# "eprint": "12.349",
+					# "replacement": False,
+					# "cross": False,
+					# "abstract": "some more text",
+					# "primaryclass": "hep-ex"},
+				# "exist": 1}},
+			# self.mainW)
+		# das.abstractFormulas = AbstractFormulas
+		# das.exec_ = MagicMock()
+		# das.askCats.setCheckState(Qt.Unchecked)
+		# das.selected = {"12.345": True, "12.346": True,
+			# "12.347": False, "12.348": True, "12.349": True}
+		# das.result = True
+		# das.askCats.setCheckState(Qt.Checked)
+		# with patch(self.modName + ".DailyArxivDialog",
+				# return_value=dad) as _dad,\
+				# patch(self.modName + ".DailyArxivSelect",
+					# return_value=das) as _das,\
+				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					# ) as _sc,\
+				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					# ) as _rc,\
+				# patch(self.clsName + ".askCatsForEntries") as _ace,\
+				# patch(self.clsName + ".reloadMainContent") as _rmc,\
+				# patch(self.clsName + ".statusBarMessage") as _sbm,\
+				# patch(self.modName + ".infoMessage") as _im,\
+				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					# return_value=[
+						# {"author": "me1",
+						# "title": "title1",
+						# "type": "",
+						# "eprint": "12.345",
+						# "replacement": True,
+						# "cross": False,
+						# "abstract": "some text",
+						# "primaryclass": "astro-ph"},
+						# {"author": "me2",
+						# "title": "title2",
+						# "type": "",
+						# "eprint": "12.346",
+						# "replacement": True,
+						# "cross": True,
+						# "abstract": "some other text",
+						# "primaryclass": "astro-ph.CO"},
+						# {"author": "me3",
+						# "title": "title3",
+						# "type": "",
+						# "eprint": "12.347",
+						# "replacement": False,
+						# "cross": True,
+						# "abstract": "some more text",
+						# "primaryclass": "hep-ph"},
+						# {"author": "me4",
+						# "title": "title4",
+						# "type": "",
+						# "eprint": "12.348",
+						# "replacement": False,
+						# "cross": False,
+						# "abstract": "some more text",
+						# "primaryclass": "hep-ph"},
+						# {"author": "me5",
+						# "title": "title5",
+						# "type": "",
+						# "eprint": "12.349",
+						# "replacement": False,
+						# "cross": False,
+						# "abstract": "some more text",
+						# "primaryclass": "hep-ex"}
+					# ]) as _ad,\
+				# patch("physbiblio.database.Entries.loadAndInsert",
+					# side_effect=[True, False, False, False]) as _lai,\
+				# patch("physbiblio.database.Entries.prepareInsert",
+					# side_effect=["data1", "data2", "data3"]) as _pi,\
+				# patch("physbiblio.database.Entries.updateInspireID",
+					# return_value="123") as _uid,\
+				# patch("physbiblio.database.Entries.searchOAIUpdates"
+					# ) as _sou,\
+				# patch("physbiblio.database.Entries.insert",
+					# side_effect=[False, True, True]) as _bi,\
+				# patch("physbiblio.database.Entries.getByKey",
+					# side_effect=[
+						# [{"bibkey": "12.345"}],
+						# [],
+						# [{"bibkey": "12.350"}],
+						# ]) as _gbk,\
+				# patch("physbiblio.database.Entries.getByBibkey",
+					# return_value=[{"bibkey": "12.346"}]) as _gbb,\
+				# patch("logging.Logger.info") as _in,\
+				# patch("logging.Logger.warning") as _wa:
+			# self.assertFalse(self.mainW.browseDailyArxiv())
+			# _dad.assert_called_once_with()
+			# _im.assert_not_called()
+			# _ad.assert_called_once_with('astro-ph.CO')
+			# _das.assert_called_once_with(
+				# {'12.345': {'exist': True, 'bibpars':
+					# {'eprint': '12.345', 'primaryclass': 'astro-ph',
+					# 'author': 'me1', 'abstract': 'some text',
+					# 'title': 'title1', 'type': '[replacement]',
+					# 'cross': False, 'replacement': True}},
+				# '12.346': {'exist': True, 'bibpars':
+					# {'eprint': '12.346', 'primaryclass': 'astro-ph.CO',
+					# 'author': 'me2', 'abstract': 'some other text',
+					# 'title': 'title2', 'type': '[replacement][cross-listed]',
+					# 'cross': True, 'replacement': True}},
+				# '12.347': {'exist': True, 'bibpars':
+					# {'eprint': '12.347', 'primaryclass': 'hep-ph',
+					# 'author': 'me3', 'abstract': 'some more text',
+					# 'title': 'title3', 'type': '[cross-listed]',
+					# 'cross': True, 'replacement': False}},
+				# '12.348': {'exist': True, 'bibpars':
+					# {'eprint': '12.348', 'primaryclass': 'hep-ph',
+					# 'author': 'me4', 'abstract': 'some more text',
+					# 'title': 'title4', 'type': '',
+					# 'cross': False, 'replacement': False}},
+				# '12.349': {'exist': True, 'bibpars':
+					# {'eprint': '12.349', 'primaryclass': 'hep-ex',
+					# 'author': 'me5', 'abstract': 'some more text',
+					# 'title': 'title5', 'type': '',
+					# 'cross': False, 'replacement': False}},},
+				# self.mainW)
+			# self.assertEqual(_sc.call_count, 2)
+			# self.assertEqual(_rc.call_count, 2)
+			# _rmc.assert_called_once_with()
+			# _lai.assert_has_calls([
+				# call("12.345"), call("12.346"),
+				# call('12.348'), call("12.349")])
+			# _gbk.assert_has_calls([
+				# call('12.345'), call('12.348'), call('12.349')])
+			# _ace.assert_called_once_with(["12.345", "12.348", "12.350"])
+			# _sbm.assert_called_once_with(
+				# "Entries successfully imported: "
+				# + "['12.345', '12.348', '12.350']")
+			# _in.assert_has_calls([
+				# call("Element '12.348' successfully inserted.\n"),
+				# call("Element '12.349' successfully inserted.\n")])
+			# _wa.assert_has_calls([
+				# call('Failed in inserting entry 12.346\n'),
+				# call('Failed in completing info for entry 12.348\n')])
+			# _pi.assert_has_calls([
+				# call('@Article{12.346,\n        author = "me2",\n'
+				# + '         title = "{title2}",\n archiveprefix '
+				# + '= "arXiv",\n  primaryclass = "astro-ph.CO",\n'
+				# + '        eprint = "12.346",\n}\n\n'),
+				# call('@Article{12.348,\n        author = "me4",\n'
+				# + '         title = "{title4}",\n archiveprefix '
+				# + '= "arXiv",\n  primaryclass = "hep-ph",\n'
+				# + '        eprint = "12.348",\n}\n\n'),
+				# call('@Article{12.349,\n        author = "me5",\n'
+				# + '         title = "{title5}",\n archiveprefix '
+				# + '= "arXiv",\n  primaryclass = "hep-ex",\n'
+				# + '        eprint = "12.349",\n}\n\n')])
+			# _bi.assert_has_calls([call("data1"), call("data2")])
+			# _uid.assert_has_calls([call('12.348'), call('12.349')])
+			# _sou.assert_has_calls([
+				# call(0, entries=[{'bibkey': '12.346'}],
+					# force=True, reloadAll=True),
+				# call(0, entries=[{'bibkey': '12.346'}],
+					# force=True, reloadAll=True)])
+			# _gbb.assert_has_calls([call('12.348'), call('12.349')])
 
 	def test_cleanAllBibtexsAsk(self):
 		"""test cleanAllBibtexsAsk"""
@@ -1576,7 +1934,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.cleanAllBibtexs()
 			_sbm.assert_called_once_with(
 				"Starting cleaning of bibtexs...")
-			_rit.assert_called_once_with(thread_cleanAllBibtexs,
+			_rit.assert_called_once_with(Thread_cleanAllBibtexs,
 				'Clean Bibtexs', 0, minProgress=0.0,
 				progrStr='%) - cleaning: ', stopFlag=True,
 				totStr='CleanBibtexs will process ', useEntries=None)
@@ -1586,7 +1944,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.cleanAllBibtexs(startFrom=12, useEntries=["a"])
 			_sbm.assert_called_once_with(
 				"Starting cleaning of bibtexs...")
-			_rit.assert_called_once_with(thread_cleanAllBibtexs,
+			_rit.assert_called_once_with(Thread_cleanAllBibtexs,
 				'Clean Bibtexs', 12, minProgress=0.0,
 				progrStr='%) - cleaning: ', stopFlag=True,
 				totStr='CleanBibtexs will process ', useEntries=["a"])
@@ -1602,7 +1960,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.findBadBibtexs()
 			_sbm.assert_called_once_with("Starting checking bibtexs...")
 			_rit.assert_called_once_with(
-				thread_findBadBibtexs, "Check Bibtexs",
+				Thread_findBadBibtexs, "Check Bibtexs",
 				0, useEntries=None,
 				totStr="findCorruptedBibtexs will process ",
 				progrStr="%) - processing: ",
@@ -1614,7 +1972,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.findBadBibtexs(startFrom=12, useEntries=["abc"])
 			_sbm.assert_called_once_with("Starting checking bibtexs...")
 			_rit.assert_called_once_with(
-				thread_findBadBibtexs, "Check Bibtexs",
+				Thread_findBadBibtexs, "Check Bibtexs",
 				12, useEntries=["abc"],
 				totStr="findCorruptedBibtexs will process ",
 				progrStr="%) - processing: ",
@@ -1645,8 +2003,8 @@ class TestMainWindow(GUITestCase):
 		ffa.result = False
 		with patch(self.modName + ".FieldsFromArxiv",
 				return_value=ffa) as _ffa,\
-				patch("physbiblio.database.entries.fetchAll") as _fa,\
-				patch("physbiblio.database.entries.fetchCursor",
+				patch("physbiblio.database.Entries.fetchAll") as _fa,\
+				patch("physbiblio.database.Entries.fetchCursor",
 					return_value=[{"bibkey": "a"}]) as _fc,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.clsName + "._runInThread") as _rit:
@@ -1661,8 +2019,8 @@ class TestMainWindow(GUITestCase):
 		ffa.result = True
 		with patch(self.modName + ".FieldsFromArxiv",
 				return_value=ffa) as _ffa,\
-				patch("physbiblio.database.entries.fetchAll") as _fa,\
-				patch("physbiblio.database.entries.fetchCursor",
+				patch("physbiblio.database.Entries.fetchAll") as _fa,\
+				patch("physbiblio.database.Entries.fetchCursor",
 					return_value=[{"bibkey": "a"}]) as _fc,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.clsName + "._runInThread") as _rit:
@@ -1672,14 +2030,14 @@ class TestMainWindow(GUITestCase):
 			_fc.assert_called_once_with()
 			_sbm.assert_called_once_with(
 				"Starting importing info from arxiv...")
-			_rit.assert_called_once_with(thread_fieldsArxiv,
+			_rit.assert_called_once_with(Thread_fieldsArxiv,
 				'Get info from arXiv', ['a'], ['title'], minProgress=0.0,
 				progrStr='%) - processing: arxiv:', stopFlag=True,
 				totStr='Thread_fieldsArxiv will process ')
 		with patch(self.modName + ".FieldsFromArxiv",
 				return_value=ffa) as _ffa,\
-				patch("physbiblio.database.entries.fetchAll") as _fa,\
-				patch("physbiblio.database.entries.fetchCursor",
+				patch("physbiblio.database.Entries.fetchAll") as _fa,\
+				patch("physbiblio.database.Entries.fetchCursor",
 					return_value=[{"bibkey": "a"}]) as _fc,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.clsName + "._runInThread") as _rit:
@@ -1690,18 +2048,18 @@ class TestMainWindow(GUITestCase):
 			_fc.assert_not_called()
 			_sbm.assert_called_once_with(
 				"Starting importing info from arxiv...")
-			_rit.assert_called_once_with(thread_fieldsArxiv,
+			_rit.assert_called_once_with(Thread_fieldsArxiv,
 				'Get info from arXiv', ['a', 'b'], ['title'], minProgress=0.0,
 				progrStr='%) - processing: arxiv:', stopFlag=True,
 				totStr='Thread_fieldsArxiv will process ')
 
 	def test_browseDailyArxiv(self):
 		"""test browseDailyArxiv"""
-		dad = dailyArxivDialog()
+		dad = DailyArxivDialog()
 		dad.exec_ = MagicMock()
 		dad.result = False
 		dad.comboCat.setCurrentText("")
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
@@ -1710,22 +2068,22 @@ class TestMainWindow(GUITestCase):
 		dad.exec_ = MagicMock()
 		dad.result = True
 		dad.comboCat.setCurrentText("")
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
 			dad.exec_.assert_called_once_with()
 
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.updateCat"
+		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.updateCat"
 				) as _uc:
 			dad.comboCat.addItem("nonex")
 			dad.comboCat.setCurrentText("nonex")
 		dad.exec_ = MagicMock()
 		dad.result = True
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
 				patch("logging.Logger.warning") as _w,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[]) as _ad:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
@@ -1734,10 +2092,10 @@ class TestMainWindow(GUITestCase):
 			_ad.assert_not_called()
 
 		dad.comboCat.setCurrentText("astro-ph")
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[]) as _ad:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
@@ -1745,17 +2103,17 @@ class TestMainWindow(GUITestCase):
 			_ad.assert_called_once_with('astro-ph')
 
 		dad.comboSub.setCurrentText("CO")
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[]) as _ad:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
 			_im.assert_called_once_with("No results obtained.")
 			_ad.assert_called_once_with('astro-ph.CO')
 
-		das = dailyArxivSelect(
+		das = DailyArxivSelect(
 			{"12.345":
 				{"bibpars": {
 					"author": "me",
@@ -1773,9 +2131,9 @@ class TestMainWindow(GUITestCase):
 		das.askCats.setCheckState(Qt.Unchecked)
 		das.selected = {"12.345": True}
 		das.result = False
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
-				patch(self.modName + ".dailyArxivSelect",
+				patch(self.modName + ".DailyArxivSelect",
 					return_value=das) as _das,\
 				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
 					) as _sc,\
@@ -1783,7 +2141,7 @@ class TestMainWindow(GUITestCase):
 					) as _rc,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[
 						{"replacement": False,
 						"cross": False,
@@ -1805,9 +2163,9 @@ class TestMainWindow(GUITestCase):
 
 		das.exec_ = MagicMock()
 		das.result = True
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
-				patch(self.modName + ".dailyArxivSelect",
+				patch(self.modName + ".DailyArxivSelect",
 					return_value=das) as _das,\
 				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
 					) as _sc,\
@@ -1817,15 +2175,15 @@ class TestMainWindow(GUITestCase):
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[
 						{"replacement": False,
 						"cross": False,
 						"eprint": "12.345"}
 					]) as _ad,\
-				patch("physbiblio.database.entries.loadAndInsert",
+				patch("physbiblio.database.Entries.loadAndInsert",
 					return_value=True) as _lai,\
-				patch("physbiblio.database.entries.getByKey",
+				patch("physbiblio.database.Entries.getByKey",
 					return_value=[{"bibkey": "12.345"}]) as _gbk:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
@@ -1846,7 +2204,7 @@ class TestMainWindow(GUITestCase):
 			_gbk.assert_called_once_with("12.345")
 			_ace.assert_not_called()
 
-		das = dailyArxivSelect(
+		das = DailyArxivSelect(
 			{"12.345":
 				{"bibpars": {
 					"author": "me1",
@@ -1910,9 +2268,9 @@ class TestMainWindow(GUITestCase):
 			"12.347": False, "12.348": True, "12.349": True}
 		das.result = True
 		das.askCats.setCheckState(Qt.Checked)
-		with patch(self.modName + ".dailyArxivDialog",
+		with patch(self.modName + ".DailyArxivDialog",
 				return_value=dad) as _dad,\
-				patch(self.modName + ".dailyArxivSelect",
+				patch(self.modName + ".DailyArxivSelect",
 					return_value=das) as _das,\
 				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
 					) as _sc,\
@@ -1922,7 +2280,7 @@ class TestMainWindow(GUITestCase):
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch(self.modName + ".infoMessage") as _im,\
-				patch("physbiblio.webimport.arxiv.webSearch.arxivDaily",
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
 					return_value=[
 						{"author": "me1",
 						"title": "title1",
@@ -1965,23 +2323,23 @@ class TestMainWindow(GUITestCase):
 						"abstract": "some more text",
 						"primaryclass": "hep-ex"}
 					]) as _ad,\
-				patch("physbiblio.database.entries.loadAndInsert",
+				patch("physbiblio.database.Entries.loadAndInsert",
 					side_effect=[True, False, False, False]) as _lai,\
-				patch("physbiblio.database.entries.prepareInsert",
+				patch("physbiblio.database.Entries.prepareInsert",
 					side_effect=["data1", "data2", "data3"]) as _pi,\
-				patch("physbiblio.database.entries.updateInspireID",
+				patch("physbiblio.database.Entries.updateInspireID",
 					return_value="123") as _uid,\
-				patch("physbiblio.database.entries.searchOAIUpdates"
+				patch("physbiblio.database.Entries.searchOAIUpdates"
 					) as _sou,\
-				patch("physbiblio.database.entries.insert",
+				patch("physbiblio.database.Entries.insert",
 					side_effect=[False, True, True]) as _bi,\
-				patch("physbiblio.database.entries.getByKey",
+				patch("physbiblio.database.Entries.getByKey",
 					side_effect=[
 						[{"bibkey": "12.345"}],
 						[],
 						[{"bibkey": "12.350"}],
 						]) as _gbk,\
-				patch("physbiblio.database.entries.getByBibkey",
+				patch("physbiblio.database.Entries.getByBibkey",
 					return_value=[{"bibkey": "12.346"}]) as _gbb,\
 				patch("logging.Logger.info") as _in,\
 				patch("logging.Logger.warning") as _wa:

@@ -16,9 +16,9 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.databaseCore import physbiblioDBCore
+	from physbiblio.databaseCore import PhysBiblioDBCore
 	from physbiblio.config import \
-		pbConfig, ConfigVars, config_defaults, configurationDB, globalDB
+		pbConfig, ConfigVars, config_defaults, ConfigurationDB, GlobalDB
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -53,9 +53,9 @@ class TestConfigMethods(unittest.TestCase):
 			self.assertFalse(os.path.exists(tempCfgName))
 			tempPbConfig = ConfigVars()
 			tempPbConfig.prepareLogger("physbibliotestlog")
-			tempDb = physbiblioDBCore(tempCfgName,
+			tempDb = PhysBiblioDBCore(tempCfgName,
 				tempPbConfig.logger, info = False)
-			configDb = configurationDB(tempDb)
+			configDb = ConfigurationDB(tempDb)
 
 			self.assertTrue(os.path.exists(tempCfgName))
 			_mock_readprof.assert_called_once_with()
@@ -169,9 +169,9 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 		self.assertEqual(tempPbConfig.params, tempParams)
 
-		tempDb = physbiblioDBCore(tempProfName1,
+		tempDb = PhysBiblioDBCore(tempProfName1,
 			tempPbConfig.logger, info = False)
-		configDb = configurationDB(tempDb)
+		configDb = ConfigurationDB(tempDb)
 		configDb.insert("defaultCategories", "[0")
 		configDb.commit()
 
@@ -284,7 +284,7 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 class TestProfilesDB(unittest.TestCase):
-	"""Test globalDB"""
+	"""Test GlobalDB"""
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
@@ -293,11 +293,11 @@ class TestProfilesDB(unittest.TestCase):
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
 
-	def test_globalDB(self):
+	def test_GlobalDB(self):
 		"""Test database for profiles"""
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
-		self.globalDb = globalDB(tempProfName,
+		self.globalDb = GlobalDB(tempProfName,
 			pbConfig.logger, pbConfig.dataPath, info = False)
 		self.assertEqual(self.globalDb.countProfiles(), 1)
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
@@ -381,7 +381,7 @@ class TestProfilesDB(unittest.TestCase):
 		self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
 			["default", "temp"]),
 			"List of profile names does not match existing profiles!")
-		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore.connExec",
 				side_effect=[True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
 			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
@@ -398,7 +398,7 @@ class TestProfilesDB(unittest.TestCase):
 		self.assertFalse(self.globalDb.setDefaultProfile("temp"))
 		self.assert_in_stdout(lambda: self.globalDb.setDefaultProfile("temp"),
 			"No profiles with the given name!")
-		with patch("physbiblio.databaseCore.physbiblioDBCore.connExec",
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore.connExec",
 				side_effect=[True, False, True, False]) as _mock:
 			self.assertFalse(self.globalDb.setDefaultProfile("abc"))
 			self.assert_in_stdout(
@@ -416,7 +416,7 @@ class TestProfilesDB(unittest.TestCase):
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestConfigDB(DBTestCase):
-	"""Test configurationDB"""
+	"""Test ConfigurationDB"""
 	def test_configDB(self):
 		"""Test count, insert and update, delete and get methods"""
 		self.assertEqual(self.pBDB.config.count(), 0)

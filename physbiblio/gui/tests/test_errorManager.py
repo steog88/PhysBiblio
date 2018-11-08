@@ -21,7 +21,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
-	from physbiblio.errors import pBErrorManagerClass
+	from physbiblio.errors import PBErrorManagerClass
 	from physbiblio.gui.errorManager import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -61,10 +61,10 @@ class TestGUIErrorManager(GUITestCase):
 		self.assertEqual(mb.icon(), QMessageBox.Warning)
 		self.assertEqual(es.write(" ", testing=True), None)
 
-	def test_pBErrorManagerClassGui(self):
+	def test_PBErrorManagerClassGui(self):
 		"""Test functions in ErrorStream"""
-		el = pBErrorManagerClassGui()
-		self.assertIsInstance(el, pBErrorManagerClass)
+		el = PBErrorManagerClassGui()
+		self.assertIsInstance(el, PBErrorManagerClass)
 		self.assertIsInstance(el.guiStream, ErrorStream)
 		l = el.loggerPriority(25)
 		self.assertEqual(el.guiStream.priority, 25)
@@ -74,8 +74,8 @@ class TestGUIErrorManager(GUITestCase):
 		"""test that the module contains the appropriate objects"""
 		import physbiblio.gui.errorManager as pgem
 		self.assertIsInstance(pgem.pBGUIErrorManager,
-			pgem.pBErrorManagerClassGui)
-		self.assertIsInstance(pgem.pBGUIErrorManager, pBErrorManagerClass)
+			pgem.PBErrorManagerClassGui)
+		self.assertIsInstance(pgem.pBGUIErrorManager, PBErrorManagerClass)
 		self.assertIsInstance(pgem.pBGUILogger, logging.Logger)
 		self.assertEqual(pgem.pBGUILogger, pgem.pBGUIErrorManager.logger)
 

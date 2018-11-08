@@ -72,7 +72,7 @@ class TestInspireStatsMethods(unittest.TestCase):
 
 	def test_authorStats(self):
 		"""Test paperStats function downloading real and fake data"""
-		with patch("physbiblio.inspireStats.inspireStatsLoader.paperStats",
+		with patch("physbiblio.inspireStats.InspireStatsLoader.paperStats",
 				return_value={'aI':
 				{1653464: {'date':
 					datetime.datetime(2018, 2, 7, 4, 24, 2)},

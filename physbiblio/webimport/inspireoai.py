@@ -37,7 +37,7 @@ from oaipmh import metadata
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
-	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.webimport.webInterf import WebInterf
 	from physbiblio.webimport.arxiv import getYear
 	from physbiblio.parseAccents import parse_accents_str
 	from bibtexparser.bibdatabase import BibDatabase
@@ -125,19 +125,19 @@ registry = metadata.MetadataRegistry()
 registry.registerReader('marcxml', marcxml_reader)
 
 
-class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to INSPIRE-HEP
+class WebSearch(WebInterf):
+	"""Subclass of WebInterf that can connect to INSPIRE-HEP
 	to perform searches using the OAI API
 	"""
 
 	def __init__(self):
 		"""Initializes the class variables using
-		the webInterf constructor.
+		the WebInterf constructor.
 
 		Define additional specific parameters
 		for the INSPIRE-HEP OAI API.
 		"""
-		webInterf.__init__(self)
+		WebInterf.__init__(self)
 		self.name = "inspireoai"
 		self.description = "INSPIRE OAI interface"
 		self.url = "https://inspirehep.net/oai2d"

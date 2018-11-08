@@ -30,15 +30,15 @@ except Exception:
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestMarks(GUITestCase):
-	"""Test the functions in marks.marks"""
+	"""Test the functions in marks.Marks"""
 
 	def test_pbmarks(self):
 		"""test that pBMarks exists"""
-		self.assertIsInstance(pBMarks, marks)
+		self.assertIsInstance(pBMarks, Marks)
 
 	def testInit(self):
 		"""tests for the marks.__init__ function"""
-		m = marks()
+		m = Marks()
 		self.assertEqual(len(m.marks.keys()), 5)
 		for q in ["imp", "fav", "bad", "que", "new"]:
 			self.assertIn(q, m.marks.keys())
@@ -59,14 +59,14 @@ class TestMarks(GUITestCase):
 
 	def testNewMark(self):
 		"""tests for the marks.newMark function"""
-		m = marks()
+		m = Marks()
 		m.newMark("abc", "desc", "icon")
 		self.assertEqual(m.marks["abc"],
 			{"desc": "desc", "icon": ":/images/icon.png"})
 
 	def testGetGroupbox(self):
 		"""tests for the marks.getGroupbox function"""
-		m = marks()
+		m = Marks()
 		gb, mv = m.getGroupbox(None)
 		self.assertTrue(gb.isFlat())
 		self.assertEqual(gb.title(), "Marks")

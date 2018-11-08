@@ -21,7 +21,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import askDirName, infoMessage
-	from physbiblio.gui.commonClasses import MyLabel
+	from physbiblio.gui.commonClasses import PBLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -36,7 +36,7 @@ figTitles = [
 ]
 
 
-class authorStatsPlots(QDialog):
+class AuthorStatsPlots(QDialog):
 	"""Class that constructs a window to show
 	the results of `authorStats`
 	"""
@@ -50,7 +50,7 @@ class authorStatsPlots(QDialog):
 			parent (default None): the parent object,
 				which should have a property `lastAuthorStats`
 		"""
-		super(authorStatsPlots, self).__init__(parent)
+		super(AuthorStatsPlots, self).__init__(parent)
 		self.figs = figs
 		if title is not None:
 			self.setWindowTitle(title)
@@ -60,14 +60,14 @@ class authorStatsPlots(QDialog):
 		self.updatePlots()
 
 		nlines = int(len(figs)/2)
-		self.layout().addWidget(MyLabel(
+		self.layout().addWidget(PBLabel(
 			"Click on the lines to have more information:"), nlines + 1, 0)
 
 		try:
 			hIndex = "%d"%self.parent().lastAuthorStats["h"]
 		except (TypeError, AttributeError):
 			hIndex = "ND"
-		self.hIndex = MyLabel("Author h index: %s"%hIndex)
+		self.hIndex = PBLabel("Author h index: %s"%hIndex)
 		largerFont = QFont("Times", 15, QFont.Bold)
 		self.hIndex.setFont(largerFont)
 		self.layout().addWidget(self.hIndex, nlines + 1, 1)
@@ -161,7 +161,7 @@ class authorStatsPlots(QDialog):
 				i += 1
 
 
-class paperStatsPlots(QDialog):
+class PaperStatsPlots(QDialog):
 	"""Class that constructs a window
 	to show the results of `paperStats`
 	"""
@@ -176,7 +176,7 @@ class paperStatsPlots(QDialog):
 			parent (default None): the parent object,
 				which should have a property lastPaperStats
 		"""
-		super(paperStatsPlots, self).__init__(parent)
+		super(PaperStatsPlots, self).__init__(parent)
 		self.fig = fig
 		if title is not None:
 			self.setWindowTitle(title)
@@ -186,7 +186,7 @@ class paperStatsPlots(QDialog):
 		self.updatePlots()
 
 		nlines = 1
-		self.layout().addWidget(MyLabel(
+		self.layout().addWidget(PBLabel(
 			"Click on the line to have more information:"), nlines + 1, 0)
 
 		self.textBox = QLineEdit("")

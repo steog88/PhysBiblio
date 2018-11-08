@@ -49,12 +49,12 @@ def call_tests(args):
 		skipTestsSettings.online = True
 		skipTestsSettings.oai = True
 
-	from physbiblio.testLoader import MyScanningLoader
+	from physbiblio.testLoader import PBScanningLoader
 	if sys.version_info[0] < 3:
 		import unittest2 as unittest
 	else:
 		import unittest
-	suite = MyScanningLoader().discover('physbiblio')
+	suite = PBScanningLoader().discover('physbiblio')
 	testRunner = unittest.runner.TextTestRunner()
 	testRunner.run(suite)
 
@@ -136,13 +136,13 @@ def call_gui(args = None):
 		pBLogger.info("Closing main window...")
 
 
-class newProfileAction(argparse.Action):
+class NewProfileAction(argparse.Action):
 	"""Used to trigger a reload of the settings
 	if a profile is specified as an argument
 	"""
 
 	def __init__(self, option_strings, dest, **kwargs):
-		super(newProfileAction, self).__init__(option_strings, dest, **kwargs)
+		super(NewProfileAction, self).__init__(option_strings, dest, **kwargs)
 
 	def __call__(self, parser, namespace, values, option_string=None):
 		prof = values[0]
@@ -157,7 +157,7 @@ def setParser():
 	parser.add_argument(
 		'-p',
 		'--profile',
-		action=newProfileAction,
+		action=NewProfileAction,
 		nargs=1,
 		choices=pbConfig.profiles.keys(),
 		help='define the profile that must be used'

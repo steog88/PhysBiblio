@@ -19,7 +19,7 @@ except ImportError:
 encoding_default = 'iso-8859-15'
 
 
-class physbiblioDBCore():
+class PhysBiblioDBCore():
 	"""Contains most of the basic functions on the database.
 	Will be subclassed to do everything else.
 	"""
@@ -83,7 +83,7 @@ class physbiblioDBCore():
 		return True
 
 	def reOpenDB(self):
-		"""Not defined at this stage. Present in subclass physbiblioDB"""
+		"""Not defined at this stage. Present in subclass PhysBiblioDB"""
 		pass
 
 	def closeDB(self, info=True):
@@ -207,7 +207,7 @@ class physbiblioDBCore():
 		return self.curs
 
 	def loadSubClasses(self):
-		"""Not defined at this stage. Present in subclass physbiblioDB"""
+		"""Not defined at this stage. Present in subclass PhysBiblioDB"""
 		pass
 
 	def checkExistingTables(self,
@@ -279,16 +279,16 @@ class physbiblioDBCore():
 				pBLogger.error("Cannot alter table 'entries'!")
 				self.undo()
 
-class physbiblioDBSub():
-	"""Uses physbiblioDB instance 'self.mainDB = parent'
+class PhysBiblioDBSub():
+	"""Uses PhysBiblioDB instance 'self.mainDB = parent'
 	to act on the database.
-	All the subcategories of physbiblioDB are defined
+	All the subcategories of PhysBiblioDB are defined
 	starting from this one.
 	"""
 
 	def __init__(self, parent):
 		"""Initialize DB class, connecting to
-		the main physbiblioDB instance (parent).
+		the main PhysBiblioDB instance (parent).
 		"""
 		self.mainDB = parent
 		#structure of the tables
@@ -327,19 +327,19 @@ class physbiblioDBSub():
 			return None
 
 	def closeDB(self):
-		"""Close the database (using physbiblioDB.close)"""
+		"""Close the database (using PhysBiblioDB.close)"""
 		self.mainDB.closeDB()
 
 	def commit(self):
-		"""Commit the changes (using physbiblioDB.commit)"""
+		"""Commit the changes (using PhysBiblioDB.commit)"""
 		self.mainDB.commit()
 
 	def connExec(self,query,data=None):
-		"""Execute connection (see physbiblioDB.connExec)"""
+		"""Execute connection (see PhysBiblioDB.connExec)"""
 		return self.mainDB.connExec(query, data=data)
 
 	def cursExec(self, query, data=None):
-		"""Execute cursor (see physbiblioDB.cursExec)"""
+		"""Execute cursor (see PhysBiblioDB.cursExec)"""
 		return self.mainDB.cursExec(query, data=data)
 
 	def cursor(self):

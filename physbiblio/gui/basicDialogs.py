@@ -62,7 +62,7 @@ def infoMessage(message, title="Information", testing=False):
 	mbox.exec_()
 
 
-class longInfoMessage(QDialog):
+class LongInfoMessage(QDialog):
 	"""`infoMessage` version when a long text is expected"""
 
 	def __init__(self, message, title="Information", testing=False):

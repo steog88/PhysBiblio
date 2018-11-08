@@ -30,8 +30,8 @@ except ImportError:
 	raise
 
 
-class fake_abstractFormulas():
-	"""Used to test `dailyArxivSelect.cellClick`"""
+class Fake_abstractFormulas():
+	"""Used to test `DailyArxivSelect.cellClick`"""
 
 	def __init__(self):
 		"""empty constructor"""
@@ -135,10 +135,10 @@ class TestConfigEditColumns(GUITestCase):
 		self.assertIsInstance(cec.items, list)
 		self.assertIsInstance(cec.allItems, list)
 		self.assertIsInstance(cec.selItems, list)
-		self.assertIsInstance(cec.listAll, MyDDTableWidget)
-		self.assertIsInstance(cec.listSel, MyDDTableWidget)
+		self.assertIsInstance(cec.listAll, PBDDTableWidget)
+		self.assertIsInstance(cec.listSel, PBDDTableWidget)
 		self.assertIsInstance(cec.layout().itemAtPosition(0, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(cec.layout().itemAtPosition(0, 0).widget().text(),
 			"Drag and drop items to order visible columns")
 		self.assertEqual(cec.layout().itemAtPosition(1, 0).widget(),
@@ -184,13 +184,13 @@ class TestConfigEditColumns(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestConfigWindow(GUITestCase):
-	"""Test configWindow"""
+	"""Test ConfigWindow"""
 
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.configWindow.initUI") as _iu:
-			cw = configWindow(p)
+		with patch("physbiblio.gui.dialogWindows.ConfigWindow.initUI") as _iu:
+			cw = ConfigWindow(p)
 			self.assertIsInstance(cw, QDialog)
 			self.assertEqual(cw.parent(), p)
 			self.assertEqual(cw.textValues, [])
@@ -198,7 +198,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cw.onCancel()
 			self.assertFalse(cw.result)
@@ -206,7 +206,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			cw.onOk()
 			self.assertTrue(cw.result)
@@ -214,7 +214,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_editPDFFolder(self):
 		"""test editPDFFolder"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		ix = pbConfig.paramOrder.index("pdfFolder")
 		self.assertEqual(cw.textValues[ix][1].text(),
 			pbConfig.params["pdfFolder"])
@@ -237,7 +237,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_editFile(self):
 		"""test editFile"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		ix = pbConfig.paramOrder.index("logFileName")
 		self.assertEqual(cw.textValues[ix][1].text(),
 			pbConfig.params["logFileName"])
@@ -265,7 +265,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_editColumns(self):
 		"""test editColumns"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["bibtexListColumns"])
@@ -292,17 +292,17 @@ class TestConfigWindow(GUITestCase):
 
 	def test_editDefCats(self):
 		"""test editDefCats"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		ix = pbConfig.paramOrder.index("defaultCategories")
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = catsTreeWindow(parent=cw,
+		cwl = CatsTreeWindow(parent=cw,
 			askCats=True,
 			expButton=False,
 			previous=['1'])
 		cwl.exec_ = MagicMock()
 		cwl.onCancel()
-		with patch("physbiblio.gui.dialogWindows.catsTreeWindow",
+		with patch("physbiblio.gui.dialogWindows.CatsTreeWindow",
 				return_value=cwl) as _cwl:
 			cw.editDefCats()
 			_cwl.assert_called_once_with(parent=cw,
@@ -311,14 +311,14 @@ class TestConfigWindow(GUITestCase):
 				previous=pbConfig.params["defaultCategories"])
 		self.assertEqual(ast.literal_eval(cw.textValues[ix][1].text()),
 			pbConfig.params["defaultCategories"])
-		cwl = catsTreeWindow(parent=cw,
+		cwl = CatsTreeWindow(parent=cw,
 			askCats=True,
 			expButton=False,
 			previous=['1'])
 		cwl.exec_ = MagicMock()
 		cwl.onOk()
 		cw.selectedCats = ['1']
-		with patch("physbiblio.gui.dialogWindows.catsTreeWindow",
+		with patch("physbiblio.gui.dialogWindows.CatsTreeWindow",
 				return_value=cwl) as _cwl:
 			cw.editDefCats()
 			_cwl.assert_called_once_with(parent=cw,
@@ -330,7 +330,7 @@ class TestConfigWindow(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		cw = configWindow()
+		cw = ConfigWindow()
 		self.assertEqual(cw.windowTitle(), 'Configuration')
 		self.assertIsInstance(cw.layout(), QGridLayout)
 		self.assertEqual(cw.layout(), cw.grid)
@@ -338,7 +338,7 @@ class TestConfigWindow(GUITestCase):
 
 		for ix, k in enumerate(pbConfig.paramOrder):
 			self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(cw.layout().itemAtPosition(ix, 0).widget().text(),
 				"%s (<i>%s</i>)"%(pbConfig.descriptions[k], k))
 			if k == "bibtexListColumns":
@@ -346,7 +346,7 @@ class TestConfigWindow(GUITestCase):
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
-				with patch("physbiblio.gui.dialogWindows.configWindow." +
+				with patch("physbiblio.gui.dialogWindows.ConfigWindow." +
 						"editColumns") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
 					_f.assert_called_once_with()
@@ -355,12 +355,12 @@ class TestConfigWindow(GUITestCase):
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
-				with patch("physbiblio.gui.dialogWindows.configWindow." +
+				with patch("physbiblio.gui.dialogWindows.ConfigWindow." +
 						"editPDFFolder") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
 					_f.assert_called_once_with()
 			elif k == "loggingLevel":
-				currClass = MyComboBox
+				currClass = PBComboBox
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.currentText(),
@@ -375,7 +375,7 @@ class TestConfigWindow(GUITestCase):
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
-				with patch("physbiblio.gui.dialogWindows.configWindow." +
+				with patch("physbiblio.gui.dialogWindows.ConfigWindow." +
 						"editFile") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
 					_f.assert_called_once_with()
@@ -384,12 +384,12 @@ class TestConfigWindow(GUITestCase):
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.text(), "%s"%pbConfig.params[k])
-				with patch("physbiblio.gui.dialogWindows.configWindow." +
+				with patch("physbiblio.gui.dialogWindows.ConfigWindow." +
 						"editDefCats") as _f:
 					QTest.mouseClick(currWidget, Qt.LeftButton)
 					_f.assert_called_once_with()
 			elif pbConfig.specialTypes[k] == "boolean":
-				currClass = MyTrueFalseCombo
+				currClass = PBTrueFalseCombo
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.currentText(),
@@ -414,11 +414,11 @@ class TestConfigWindow(GUITestCase):
 			cw.acceptButton)
 		self.assertEqual(cw.layout().itemAtPosition(ix, 1).widget(),
 			cw.cancelButton)
-		with patch("physbiblio.gui.dialogWindows.configWindow.onOk") \
+		with patch("physbiblio.gui.dialogWindows.ConfigWindow.onOk") \
 				as _f:
 			QTest.mouseClick(cw.acceptButton, Qt.LeftButton)
 			_f.assert_called_once_with()
-		with patch("physbiblio.gui.dialogWindows.configWindow.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.ConfigWindow.onCancel") \
 				as _f:
 			QTest.mouseClick(cw.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()
@@ -427,17 +427,17 @@ class TestConfigWindow(GUITestCase):
 		oldLevel = pbConfig.params["loggingLevel"]
 		pbConfig.params["loggingLevel"] = "10"
 		with patch("logging.Logger.warning") as _w:
-			cw = configWindow()
+			cw = ConfigWindow()
 			_w.assert_called_once_with("Invalid string for 'loggingLevel' " +
 				"param. Reset to default")
 		pbConfig.params["loggingLevel"] = "abc"
 		with patch("logging.Logger.warning") as _w:
-			cw = configWindow()
+			cw = ConfigWindow()
 			_w.assert_called_once_with("Invalid string for 'loggingLevel' " +
 				"param. Reset to default")
 		for ix, k in enumerate(pbConfig.paramOrder):
 			if k == "loggingLevel":
-				currClass = MyComboBox
+				currClass = PBComboBox
 				currWidget = cw.textValues[ix][1]
 				self.assertIsInstance(currWidget, currClass)
 				self.assertEqual(currWidget.currentText(),
@@ -521,7 +521,7 @@ class TestLogFileContentDialog(GUITestCase):
 		self.assertEqual(lf.windowTitle(), lf.title)
 		self.assertIsInstance(lf.layout(), QVBoxLayout)
 		self.assertEqual(lf.layout().spacing(), 1)
-		self.assertIsInstance(lf.layout().itemAt(0).widget(), MyLabel)
+		self.assertIsInstance(lf.layout().itemAt(0).widget(), PBLabel)
 		self.assertEqual(lf.layout().itemAt(0).widget().text(),
 			"Reading %s"%pbConfig.params["logFileName"])
 		self.assertIsInstance(lf.textEdit, QPlainTextEdit)
@@ -607,7 +607,7 @@ class TestPrintText(GUITestCase):
 		pt = PrintText(p, "title", True, "some tot string",
 			"some progr string", False, "mymessage")
 		self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(pt.grid.itemAtPosition(0, 0).widget().text(),
 			pt.message)
 		self.assertIsInstance(pt.grid.itemAtPosition(1, 0).widget(),
@@ -759,21 +759,21 @@ class TestPrintText(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportDialog(GUITestCase):
-	"""Test advImportDialog"""
+	"""Test AdvancedImportDialog"""
 
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.advImportDialog.initUI") \
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportDialog.initUI") \
 				as _iu:
-			aid = advImportDialog(p)
+			aid = AdvancedImportDialog(p)
 			self.assertIsInstance(aid, QDialog)
 			self.assertEqual(aid.parent(), p)
 			_iu.assert_called_once_with()
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		aid = advImportDialog()
+		aid = AdvancedImportDialog()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			aid.onCancel()
 			self.assertFalse(aid.result)
@@ -781,7 +781,7 @@ class TestAdvImportDialog(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		aid = advImportDialog()
+		aid = AdvancedImportDialog()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			aid.onOk()
 			self.assertTrue(aid.result)
@@ -789,16 +789,16 @@ class TestAdvImportDialog(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		aid = advImportDialog()
+		aid = AdvancedImportDialog()
 		self.assertEqual(aid.windowTitle(), 'Advanced import')
 		self.assertIsInstance(aid.layout(), QGridLayout)
 		self.assertEqual(aid.grid, aid.layout())
 		self.assertEqual(aid.grid.spacing(), 1)
 
-		self.assertIsInstance(aid.grid.itemAtPosition(0, 0).widget(), MyLabel)
+		self.assertIsInstance(aid.grid.itemAtPosition(0, 0).widget(), PBLabel)
 		self.assertEqual(aid.grid.itemAtPosition(0, 0).widget().text(),
 			"Search string: ")
-		self.assertIsInstance(aid.grid.itemAtPosition(1, 0).widget(), MyLabel)
+		self.assertIsInstance(aid.grid.itemAtPosition(1, 0).widget(), PBLabel)
 		self.assertEqual(aid.grid.itemAtPosition(1, 0).widget().text(),
 			"Select method: ")
 
@@ -807,7 +807,7 @@ class TestAdvImportDialog(GUITestCase):
 		self.assertEqual(le, aid.searchStr)
 		self.assertEqual(le.text(), "")
 		cm = aid.grid.itemAtPosition(1, 1).widget()
-		self.assertIsInstance(cm, MyComboBox)
+		self.assertIsInstance(cm, PBComboBox)
 		self.assertEqual(cm, aid.comboMethod)
 		self.assertEqual(cm.count(), 4)
 		self.assertEqual(cm.itemText(0), "INSPIRE-HEP")
@@ -821,7 +821,7 @@ class TestAdvImportDialog(GUITestCase):
 		self.assertEqual(aid.grid.itemAtPosition(2, 0).widget(),
 			aid.acceptButton)
 		self.assertEqual(aid.acceptButton.text(), "OK")
-		with patch("physbiblio.gui.dialogWindows.advImportDialog.onOk") \
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportDialog.onOk") \
 				as _o:
 			QTest.mouseClick(aid.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
@@ -832,7 +832,7 @@ class TestAdvImportDialog(GUITestCase):
 			aid.cancelButton)
 		self.assertEqual(aid.cancelButton.text(), "Cancel")
 		self.assertTrue(aid.cancelButton.autoDefault())
-		with patch("physbiblio.gui.dialogWindows.advImportDialog.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportDialog.onCancel") \
 				as _c:
 			QTest.mouseClick(aid.cancelButton, Qt.LeftButton)
 			_c.assert_called_once_with()
@@ -840,22 +840,22 @@ class TestAdvImportDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAdvImportSelect(GUITestCase):
-	"""Test advImportSelect"""
+	"""Test AdvancedImportSelect"""
 
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.advImportSelect.initUI") as _i:
-			ais = advImportSelect({"abc": "def"}, p)
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportSelect.initUI") as _i:
+			ais = AdvancedImportSelect({"abc": "def"}, p)
 			_i.assert_called_once_with()
-		self.assertIsInstance(ais, objListWindow)
+		self.assertIsInstance(ais, ObjListWindow)
 		self.assertEqual(ais.bibs, {"abc": "def"})
 		self.assertEqual(ais.parent(), p)
 		self.assertEqual(ais.checkBoxes, [])
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		ais = advImportSelect()
+		ais = AdvancedImportSelect()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ais.onCancel()
 			self.assertFalse(ais.result)
@@ -863,7 +863,7 @@ class TestAdvImportSelect(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		ais = advImportSelect()
+		ais = AdvancedImportSelect()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ais.onOk()
 			self.assertTrue(ais.result)
@@ -871,7 +871,7 @@ class TestAdvImportSelect(GUITestCase):
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
-		ais = advImportSelect()
+		ais = AdvancedImportSelect()
 		ais.result = True
 		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
 			QTest.keyPress(ais, "a")
@@ -887,7 +887,7 @@ class TestAdvImportSelect(GUITestCase):
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
-		ais = advImportSelect({
+		ais = AdvancedImportSelect({
 			"abc": {
 				"exist": True,
 				"bibpars": {
@@ -911,11 +911,11 @@ class TestAdvImportSelect(GUITestCase):
 		self.assertEqual(ais.layout(), ais.currLayout)
 		self.assertEqual(ais.currLayout.spacing(), 1)
 		self.assertIsInstance(ais.layout().itemAtPosition(0, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(ais.layout().itemAtPosition(0, 0).widget().text(),
 			"This is the list of elements found." +
 			"\nSelect the ones that you want to import:")
-		self.assertIsInstance(ais.tableModel, MyImportedTableModel)
+		self.assertIsInstance(ais.tableModel, PBImportedTableModel)
 		self.assertEqual(ais.tableModel.header,
 			["ID", "title", "author", "eprint", "doi"])
 		self.assertEqual(ais.tableModel.bibsOrder, ["abc", "def"])
@@ -965,19 +965,19 @@ class TestAdvImportSelect(GUITestCase):
 			ais.cancelButton.text(),
 			"Cancel")
 		self.assertTrue(ais.cancelButton.autoDefault())
-		with patch("physbiblio.gui.dialogWindows.advImportSelect.onOk") as _o:
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportSelect.onOk") as _o:
 			QTest.mouseClick(ais.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
-		with patch("physbiblio.gui.dialogWindows.advImportSelect.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportSelect.onCancel") \
 				as _o:
 			QTest.mouseClick(ais.cancelButton, Qt.LeftButton)
 			_o.assert_called_once_with()
 
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"addFilterInput") as _afi,\
-				patch("physbiblio.gui.commonClasses.objListWindow." +
+				patch("physbiblio.gui.commonClasses.ObjListWindow." +
 					"setProxyStuff") as _sps,\
-				patch("physbiblio.gui.commonClasses.objListWindow." +
+				patch("physbiblio.gui.commonClasses.ObjListWindow." +
 					"finalizeTable") as _ft:
 			ais.initUI()
 			_afi.assert_called_once_with("Filter entries", gridPos=(1, 0))
@@ -986,7 +986,7 @@ class TestAdvImportSelect(GUITestCase):
 
 	def test_more(self):
 		"""test some empty functions"""
-		ais = advImportSelect()
+		ais = AdvancedImportSelect()
 		self.assertEqual(None,
 			ais.triggeredContextMenuEvent(0, 0, QEvent(QEvent.ContextMenu)))
 		self.assertEqual(None,
@@ -999,21 +999,21 @@ class TestAdvImportSelect(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivDialog(GUITestCase):
-	"""Test dailyArxivDialog"""
+	"""Test DailyArxivDialog"""
 
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.initUI") \
+		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.initUI") \
 				as _iu:
-			dad = dailyArxivDialog(p)
+			dad = DailyArxivDialog(p)
 			self.assertIsInstance(dad, QDialog)
 			self.assertEqual(dad.parent(), p)
 			_iu.assert_called_once_with()
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		dad = dailyArxivDialog()
+		dad = DailyArxivDialog()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			dad.onCancel()
 			self.assertFalse(dad.result)
@@ -1021,7 +1021,7 @@ class TestDailyArxivDialog(GUITestCase):
 
 	def test_onOk(self):
 		"""test onOk"""
-		dad = dailyArxivDialog()
+		dad = DailyArxivDialog()
 		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			dad.onOk()
 			self.assertTrue(dad.result)
@@ -1029,7 +1029,7 @@ class TestDailyArxivDialog(GUITestCase):
 
 	def test_updateCat(self):
 		"""test updateCat"""
-		dad = dailyArxivDialog()
+		dad = DailyArxivDialog()
 		self.assertEqual(dad.comboSub.count(), 1)
 		self.assertEqual(dad.comboSub.itemText(0), "")
 		for c in physBiblioWeb.webSearch["arxiv"].categories.keys():
@@ -1043,21 +1043,21 @@ class TestDailyArxivDialog(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		dad = dailyArxivDialog()
+		dad = DailyArxivDialog()
 		self.assertEqual(dad.windowTitle(), 'Browse arxiv daily')
 		self.assertIsInstance(dad.layout(), QGridLayout)
 		self.assertEqual(dad.grid, dad.layout())
 		self.assertEqual(dad.grid.spacing(), 1)
 
-		self.assertIsInstance(dad.grid.itemAtPosition(0, 0).widget(), MyLabel)
+		self.assertIsInstance(dad.grid.itemAtPosition(0, 0).widget(), PBLabel)
 		self.assertEqual(dad.grid.itemAtPosition(0, 0).widget().text(),
 			"Select category: ")
-		self.assertIsInstance(dad.grid.itemAtPosition(1, 0).widget(), MyLabel)
+		self.assertIsInstance(dad.grid.itemAtPosition(1, 0).widget(), PBLabel)
 		self.assertEqual(dad.grid.itemAtPosition(1, 0).widget().text(),
 			"Subcategory: ")
 
 		cc = dad.grid.itemAtPosition(0, 1).widget()
-		self.assertIsInstance(cc, MyComboBox)
+		self.assertIsInstance(cc, PBComboBox)
 		self.assertEqual(cc, dad.comboCat)
 		self.assertEqual(cc.count(),
 			len(physBiblioWeb.webSearch["arxiv"].categories) + 1)
@@ -1065,12 +1065,12 @@ class TestDailyArxivDialog(GUITestCase):
 		for ix, c in enumerate(sorted(
 				physBiblioWeb.webSearch["arxiv"].categories.keys())):
 			self.assertEqual(cc.itemText(ix + 1), c)
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.updateCat") \
+		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.updateCat") \
 				as _cic:
 			dad.comboCat.setCurrentText("hep-ph")
 			_cic.assert_called_once_with("hep-ph")
 		cs = dad.grid.itemAtPosition(1, 1).widget()
-		self.assertIsInstance(cs, MyComboBox)
+		self.assertIsInstance(cs, PBComboBox)
 		self.assertEqual(cs, dad.comboSub)
 		self.assertEqual(cs.count(), 1)
 		self.assertEqual(cs.itemText(0), "")
@@ -1080,7 +1080,7 @@ class TestDailyArxivDialog(GUITestCase):
 		self.assertEqual(dad.grid.itemAtPosition(2, 0).widget(),
 			dad.acceptButton)
 		self.assertEqual(dad.acceptButton.text(), "OK")
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.onOk") \
+		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.onOk") \
 				as _o:
 			QTest.mouseClick(dad.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
@@ -1091,7 +1091,7 @@ class TestDailyArxivDialog(GUITestCase):
 			dad.cancelButton)
 		self.assertEqual(dad.cancelButton.text(), "Cancel")
 		self.assertTrue(dad.cancelButton.autoDefault())
-		with patch("physbiblio.gui.dialogWindows.dailyArxivDialog.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.onCancel") \
 				as _c:
 			QTest.mouseClick(dad.cancelButton, Qt.LeftButton)
 			_c.assert_called_once_with()
@@ -1116,37 +1116,37 @@ class TestDailyArxivDialog(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestDailyArxivSelect(GUITestCase):
-	"""Test dailyArxivSelect"""
+	"""Test DailyArxivSelect"""
 
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		das = dailyArxivSelect({}, p)
-		self.assertIsInstance(das, advImportSelect)
+		das = DailyArxivSelect({}, p)
+		self.assertIsInstance(das, AdvancedImportSelect)
 
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s,\
 				patch("physbiblio.gui.commonClasses." +
-					"objListWindow.finalizeTable") as _f:
-			das = dailyArxivSelect({}, p)
+					"ObjListWindow.finalizeTable") as _f:
+			das = DailyArxivSelect({}, p)
 			_s.assert_called_once_with(0, Qt.AscendingOrder)
 			_f.assert_called_once_with(gridPos=(2, 0, 1, 2))
-		das = dailyArxivSelect({}, p)
+		das = DailyArxivSelect({}, p)
 		self.assertEqual(das.windowTitle(), 'ArXiv daily listing - results')
 		self.assertEqual(das.layout().spacing(), 1)
-		self.assertIsInstance(das.layout().itemAt(0).widget(), MyLabel)
+		self.assertIsInstance(das.layout().itemAt(0).widget(), PBLabel)
 		self.assertEqual(das.layout().itemAt(0).widget().text(),
 			"This is the list of elements found.\n" +
 				"Select the ones that you want to import:")
-		self.assertIsInstance(das.tableModel, MyImportedTableModel)
+		self.assertIsInstance(das.tableModel, PBImportedTableModel)
 		self.assertEqual(das.tableModel.header,
 			["eprint", "type", "title", "author", "primaryclass", "abstract"])
 		self.assertEqual(das.tableModel.idName, "eprint")
 		self.assertIsInstance(das.layout().itemAt(1).widget(), QLineEdit)
 		self.assertEqual(das.layout().itemAt(1).widget(), das.filterInput)
-		self.assertIsInstance(das.layout().itemAt(2).widget(), MyTableView)
+		self.assertIsInstance(das.layout().itemAt(2).widget(), PBTableView)
 		self.assertEqual(das.layout().itemAt(2).widget(), das.tableview)
 		self.assertIsInstance(das.askCats, QCheckBox)
 		self.assertEqual(das.askCats.text(), "Ask categories at the end?")
@@ -1171,10 +1171,10 @@ class TestDailyArxivSelect(GUITestCase):
 			das.cancelButton.text(),
 			"Cancel")
 		self.assertTrue(das.cancelButton.autoDefault())
-		with patch("physbiblio.gui.dialogWindows.advImportSelect.onOk") as _o:
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportSelect.onOk") as _o:
 			QTest.mouseClick(das.acceptButton, Qt.LeftButton)
 			_o.assert_called_once_with()
-		with patch("physbiblio.gui.dialogWindows.advImportSelect.onCancel") \
+		with patch("physbiblio.gui.dialogWindows.AdvancedImportSelect.onCancel") \
 				as _o:
 			QTest.mouseClick(das.cancelButton, Qt.LeftButton)
 			_o.assert_called_once_with()
@@ -1211,7 +1211,7 @@ class TestDailyArxivSelect(GUITestCase):
 			},
 			"exist": False
 			}}
-		das = dailyArxivSelect(bibs, p)
+		das = DailyArxivSelect(bibs, p)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=False) as _iv:
 			self.assertEqual(das.cellClick(QModelIndex()), None)
@@ -1222,7 +1222,7 @@ class TestDailyArxivSelect(GUITestCase):
 		with patch("logging.Logger.debug") as _d:
 			das.cellClick(ix)
 			_d.assert_called_once_with("self.abstractFormulas not present " +
-				"in dailyArxivSelect. Eprint: 1808.00000")
+				"in DailyArxivSelect. Eprint: 1808.00000")
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sibling",
 					return_value=None) as _s,\
 				patch("logging.Logger.debug") as _d:
@@ -1230,7 +1230,7 @@ class TestDailyArxivSelect(GUITestCase):
 			_d.assert_called_once_with('Data not valid', exc_info=True)
 			_s.assert_called_once_with(1, 0, ix)
 		ix = das.tableview.model().index(0, 0)
-		das.abstractFormulas = fake_abstractFormulas()
+		das.abstractFormulas = Fake_abstractFormulas()
 		with patch("physbiblio.gui.bibWindows.AbstractFormulas.doText") as _d:
 			das.cellClick(ix)
 			self.assertIsInstance(das.abstractFormulas.el, AbstractFormulas)

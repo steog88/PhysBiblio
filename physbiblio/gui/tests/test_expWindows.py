@@ -21,7 +21,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
-	from physbiblio.gui.commonClasses import MyTableView
+	from physbiblio.gui.commonClasses import PBTableView
 	from physbiblio.gui.expWindows import *
 	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
@@ -63,7 +63,7 @@ class TestFunctions(GUIwMainWTestCase):
 				) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
 					return_value=ncw) as _i,\
-				patch("physbiblio.database.experiments.getDictByID",
+				patch("physbiblio.database.Experiments.getDictByID",
 					return_value="abc") as _g:
 			editExperiment(p, m, 9999)
 			_i.assert_called_once_with(p, experiment="abc")
@@ -81,7 +81,7 @@ class TestFunctions(GUIwMainWTestCase):
 				) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
 					return_value=ncw) as _i,\
-				patch("physbiblio.database.experiments.getDictByID",
+				patch("physbiblio.database.Experiments.getDictByID",
 					return_value="abc") as _g:
 			editExperiment(p, m, editIdExp=9999)
 			_i.assert_called_once_with(p, experiment="abc")
@@ -93,9 +93,9 @@ class TestFunctions(GUIwMainWTestCase):
 				) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
 					return_value=ncw) as _i,\
-				patch("physbiblio.database.experiments.getDictByID",
+				patch("physbiblio.database.Experiments.getDictByID",
 					return_value="abc") as _g,\
-				patch("physbiblio.database.experiments.insert",
+				patch("physbiblio.database.Experiments.insert",
 					return_value="abc") as _n,\
 				patch("logging.Logger.debug") as _l:
 			editExperiment(p, m, 9999)
@@ -114,9 +114,9 @@ class TestFunctions(GUIwMainWTestCase):
 				) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
 					return_value=ncw) as _i,\
-				patch("physbiblio.database.experiments.getDictByID",
+				patch("physbiblio.database.Experiments.getDictByID",
 					return_value="abc") as _g,\
-				patch("physbiblio.database.experiments.insert",
+				patch("physbiblio.database.Experiments.insert",
 					return_value="abc") as _n,\
 				patch("logging.Logger.debug") as _l,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
@@ -151,9 +151,9 @@ class TestFunctions(GUIwMainWTestCase):
 				) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
 					return_value=ncw) as _i,\
-				patch("physbiblio.database.experiments.getDictByID",
+				patch("physbiblio.database.Experiments.getDictByID",
 					return_value="abc") as _g,\
-				patch("physbiblio.database.experiments.update",
+				patch("physbiblio.database.Experiments.update",
 					return_value="abc") as _n,\
 				patch("logging.Logger.info") as _l,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
@@ -196,7 +196,7 @@ class TestFunctions(GUIwMainWTestCase):
 
 		with patch("physbiblio.gui.expWindows.askYesNo",
 				return_value=True) as _a, \
-				patch("physbiblio.database.experiments.delete") as _c, \
+				patch("physbiblio.database.Experiments.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s, \
@@ -215,7 +215,7 @@ class TestFunctions(GUIwMainWTestCase):
 		elw = ExpsListWindow(p)
 		with patch("physbiblio.gui.expWindows.askYesNo",
 				return_value=True) as _a, \
-				patch("physbiblio.database.experiments.delete") as _c, \
+				patch("physbiblio.database.Experiments.delete") as _c, \
 				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _s, \
@@ -241,12 +241,12 @@ class TestExpTableModel(GUITestCase):
 		exp_list = [{"idExp": 0, "name": "no"}]
 		header = ["id", "name"]
 		em = ExpTableModel(p, exp_list, header, askExps=False, previous=[])
-		self.assertIsInstance(em, MyTableModel)
+		self.assertIsInstance(em, PBTableModel)
 		self.assertEqual(em.typeClass, "Exps")
 		self.assertEqual(em.dataList, exp_list)
-		with patch("physbiblio.gui.commonClasses.MyTableModel.__init__"
+		with patch("physbiblio.gui.commonClasses.PBTableModel.__init__"
 				) as _i,\
-				patch("physbiblio.gui.commonClasses.MyTableModel."
+				patch("physbiblio.gui.commonClasses.PBTableModel."
 					+ "prepareSelected") as _s:
 			em = ExpTableModel(p, exp_list, header,
 				askExps=True, previous=[9999])
@@ -350,13 +350,13 @@ class TestExpsListWindow(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _cf:
 			elw = ExpsListWindow(p)
 			_cf.assert_called_once_with()
-		self.assertIsInstance(elw, objListWindow)
+		self.assertIsInstance(elw, ObjListWindow)
 		self.assertEqual(elw.parent(), p)
 		self.assertEqual(elw.colcnt, 5)
 		self.assertEqual(elw.colContents,
@@ -367,7 +367,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.previous, [])
 		self.assertEqual(elw.windowTitle(), 'List of experiments')
 
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _cf:
@@ -377,7 +377,7 @@ class TestExpsListWindow(GUITestCase):
 				askForCat="mycat",
 				previous=[9999])
 			_cf.assert_called_once_with()
-		self.assertIsInstance(elw, objListWindow)
+		self.assertIsInstance(elw, ObjListWindow)
 		self.assertEqual(elw.parent(), p)
 		self.assertEqual(elw.colcnt, 5)
 		self.assertEqual(elw.colContents,
@@ -391,7 +391,7 @@ class TestExpsListWindow(GUITestCase):
 	def test_populateAskExp(self):
 		"""test populateAskExp"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _c:
@@ -403,13 +403,13 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.currLayout.count(), 0)
 
 		#test with askCats = True and askForBib
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _c:
 			elw = ExpsListWindow(p, askExps=True, askForBib="bib")
 		# bibkey not in db
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				return_value=[]) as _gbb,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(elw.populateAskExp(), None)
@@ -421,7 +421,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertFalse(hasattr(p, "selectedExps"))
 		self.assertEqual(elw.currLayout.count(), 0)
 		# dict has no "title" or "author"
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"inspire": None, "doi": None, "arxiv": None}]
 					]) as _gbb:
@@ -429,7 +429,7 @@ class TestExpsListWindow(GUITestCase):
 			_gbb.assert_called_once_with("bib", saveQuery=False)
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br>bib<br>")
@@ -439,7 +439,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(p.selectedExps, [])
 		# no link exists
 		elw.cleanLayout()
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": None, "arxiv": None}]
@@ -448,7 +448,7 @@ class TestExpsListWindow(GUITestCase):
 			_gbb.assert_called_once_with("bib", saveQuery=False)
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br>bib<br>"
@@ -456,19 +456,19 @@ class TestExpsListWindow(GUITestCase):
 				+ "<b>title</b>:<br>title<br>")
 		# inspire exists
 		elw.cleanLayout()
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": "1234", "doi": "1/2/3", "arxiv": "123456"}]
 					]) as _gbb, \
-				patch("physbiblio.view.viewEntry.getLink",
+				patch("physbiblio.view.ViewEntry.getLink",
 					return_value="inspirelink") as _l:
 			self.assertEqual(elw.populateAskExp(), True)
 			_gbb.assert_called_once_with("bib", saveQuery=False)
 			_l.assert_called_once_with("bib", "inspire")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br><a href='inspirelink'>bib</a><br>"
@@ -476,19 +476,19 @@ class TestExpsListWindow(GUITestCase):
 				+ "<b>title</b>:<br>title<br>")
 		elw.cleanLayout()
 		# arxiv exists
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": "1/2/3", "arxiv": "123456"}]
 					]) as _gbb, \
-				patch("physbiblio.view.viewEntry.getLink",
+				patch("physbiblio.view.ViewEntry.getLink",
 					return_value="arxivlink") as _l:
 			self.assertEqual(elw.populateAskExp(), True)
 			_gbb.assert_called_once_with("bib", saveQuery=False)
 			_l.assert_called_once_with("bib", "arxiv")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br><a href='arxivlink'>bib</a><br>"
@@ -496,19 +496,19 @@ class TestExpsListWindow(GUITestCase):
 				+ "<b>title</b>:<br>title<br>")
 		elw.cleanLayout()
 		# doi exists
-		with patch("physbiblio.database.entries.getByBibkey",
+		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": "1/2/3", "arxiv": ""}]
 					]) as _gbb, \
-				patch("physbiblio.view.viewEntry.getLink",
+				patch("physbiblio.view.ViewEntry.getLink",
 					return_value="doilink") as _l:
 			self.assertEqual(elw.populateAskExp(), True)
 			_gbb.assert_called_once_with("bib", saveQuery=False)
 			_l.assert_called_once_with("bib", "doi")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br><a href='doilink'>bib</a><br>"
@@ -517,7 +517,7 @@ class TestExpsListWindow(GUITestCase):
 
 		#test with askCats = True and askForExp
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _c:
@@ -527,7 +527,7 @@ class TestExpsListWindow(GUITestCase):
 
 		# #test with no askForBib, askForExp
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 					) as _c:
@@ -535,7 +535,7 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.populateAskExp(), True)
 		self.assertEqual(elw.currLayout.count(), 1)
 		self.assertIsInstance(elw.layout().itemAt(0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(elw.layout().itemAt(0).widget().text(),
 			"Select the desired experiments:")
 
@@ -549,7 +549,7 @@ class TestExpsListWindow(GUITestCase):
 	def test_onOk(self):
 		"""test onOk"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertFalse(hasattr(p, "selectedExps"))
@@ -588,17 +588,17 @@ class TestExpsListWindow(GUITestCase):
 		with patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
 				) as _c:
 			elw = ExpsListWindow(p)
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
 				patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
 					) as _pae,\
 				patch("physbiblio.gui.expWindows.ExpTableModel.__init__",
 					return_value=None) as _etm,\
-				patch("physbiblio.gui.commonClasses.objListWindow."
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
 					+ "addFilterInput") as _afi,\
-				patch("physbiblio.gui.commonClasses.objListWindow."
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
 					+ "setProxyStuff") as _sps,\
-				patch("physbiblio.gui.commonClasses.objListWindow."
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
 					+ "finalizeTable") as _ft:
 			elw.createTable()
 			_pae.assert_called_once_with()
@@ -609,7 +609,7 @@ class TestExpsListWindow(GUITestCase):
 			_etm.assert_called_once_with(elw, self.exps,
 				pBDB.tableCols["experiments"], askExps=False, previous=[])
 		elw.cleanLayout()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh:
 			elw.createTable()
 		self.assertEqual(self.exps, elw.exps)
@@ -624,7 +624,7 @@ class TestExpsListWindow(GUITestCase):
 			elw.filterInput.textChanged.emit("a")
 			_cf.assert_called_once_with("a")
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
-			MyTableView)
+			PBTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
 			elw.tableview)
 		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
@@ -649,7 +649,7 @@ class TestExpsListWindow(GUITestCase):
 			elw.filterInput.textChanged.emit("a")
 			_cf.assert_called_once_with("a")
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
-			MyTableView)
+			PBTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
 			elw.tableview)
 		self.assertIsInstance(elw.layout().itemAt(2).widget(), QPushButton)
@@ -684,29 +684,29 @@ class TestExpsListWindow(GUITestCase):
 			Qt.RightButton,
 			Qt.NoButton,
 			Qt.NoModifier)
-		mm = MyMenu()
+		mm = PBMenu()
 		mm.exec_ = MagicMock()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.MyMenu",
+				patch("physbiblio.gui.expWindows.PBMenu",
 					return_value=mm) as _mm:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.triggeredContextMenuEvent(9999, 0, ev), None)
 		self.assertFalse(hasattr(elw, "menu"))
 		with patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent") as _rmc,\
-				patch("physbiblio.gui.expWindows.MyMenu",
+				patch("physbiblio.gui.expWindows.PBMenu",
 					return_value=mm) as _mm,\
 				patch("physbiblio.gui.expWindows.editExperiment") as _ec,\
 				patch("physbiblio.gui.expWindows.deleteExperiment") as _dc,\
-				patch("physbiblio.gui.commonClasses.MyMenu.fillMenu") as _f:
+				patch("physbiblio.gui.commonClasses.PBMenu.fillMenu") as _f:
 			self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
 			_f.assert_called_once_with()
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 
-			self.assertIsInstance(elw.menu, MyMenu)
+			self.assertIsInstance(elw.menu, PBMenu)
 			self.assertIsInstance(elw.menu.possibleActions, list)
 			self.assertEqual(len(elw.menu.possibleActions), 8)
 			self.assertEqual(elw.menu.possibleActions[1], None)
@@ -733,7 +733,7 @@ class TestExpsListWindow(GUITestCase):
 
 			pBDB.bibs.lastFetched = ["a"]
 			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
-			with patch("physbiblio.database.entries.fetchFromDict",
+			with patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
@@ -745,7 +745,7 @@ class TestExpsListWindow(GUITestCase):
 			_rmc.reset_mock()
 
 			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
-			with patch("physbiblio.database.entries.fetchFromDict",
+			with patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
@@ -755,7 +755,7 @@ class TestExpsListWindow(GUITestCase):
 			_ec.reset_mock()
 
 			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
-			with patch("physbiblio.database.entries.fetchFromDict",
+			with patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
@@ -764,11 +764,11 @@ class TestExpsListWindow(GUITestCase):
 			_dc.assert_called_once_with(elw, p, '0', 'test0')
 			_dc.reset_mock()
 
-			with patch("physbiblio.database.experiments.getByID",
+			with patch("physbiblio.database.Experiments.getByID",
 					return_value=[self.exps[0]]) as _gbi,\
-					patch("physbiblio.gui.catWindows.catsTreeWindow."
+					patch("physbiblio.gui.catWindows.CatsTreeWindow."
 						+ "createForm") as _cf:
-				sc = catsTreeWindow(
+				sc = CatsTreeWindow(
 					parent=p,
 					askCats=True,
 					askForExp=0,
@@ -778,15 +778,15 @@ class TestExpsListWindow(GUITestCase):
 			sc.result = "Ok"
 			p.selectedCats = [9, 13]
 			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
-			with patch("physbiblio.database.entries.fetchFromDict",
+			with patch("physbiblio.database.Entries.fetchFromDict",
 					return_value=pBDB.bibs) as _ffd,\
-					patch("physbiblio.gui.expWindows.catsTreeWindow",
+					patch("physbiblio.gui.expWindows.CatsTreeWindow",
 						return_value=sc) as _i,\
 					patch("physbiblio.gui.mainWindow.MainWindow."
 						+ "statusBarMessage") as _sbm,\
-					patch("physbiblio.database.catsExps.delete") as _d,\
-					patch("physbiblio.database.catsExps.insert") as _a,\
-					patch("physbiblio.database.categories.getByExp",
+					patch("physbiblio.database.CatsExps.delete") as _d,\
+					patch("physbiblio.database.CatsExps.insert") as _a,\
+					patch("physbiblio.database.Categories.getByExp",
 						return_value=[{"idCat": 0}, {"idCat": 13}]) as _gbe:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
@@ -805,14 +805,14 @@ class TestExpsListWindow(GUITestCase):
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		ix = elw.proxyModel.index(0, 0)
 		with patch("logging.Logger.exception") as _l,\
 				patch("PySide2.QtCore.QTimer.start") as _st,\
 				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
-				patch("physbiblio.database.experiments.getByID",
+				patch("physbiblio.database.Experiments.getByID",
 					return_value=[]) as _gbi:
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_l.assert_called_once_with("Failed in finding experiment")
@@ -822,11 +822,11 @@ class TestExpsListWindow(GUITestCase):
 		with patch("logging.Logger.exception") as _l,\
 				patch("PySide2.QtCore.QTimer.start") as _st,\
 				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
-				patch("physbiblio.database.experiments.getByID",
+				patch("physbiblio.database.Experiments.getByID",
 					return_value=[self.exps[0]]) as _gbi,\
-				patch("physbiblio.database.entryExps.countByExp",
+				patch("physbiblio.database.EntryExps.countByExp",
 					return_value=33) as _cb,\
-				patch("physbiblio.database.catsExps.countByExp",
+				patch("physbiblio.database.CatsExps.countByExp",
 					return_value=12) as _ce:
 			position = QCursor.pos()
 			self.assertEqual(elw.handleItemEntered(ix), None)
@@ -846,11 +846,11 @@ class TestExpsListWindow(GUITestCase):
 		with patch("logging.Logger.exception") as _l,\
 				patch("PySide2.QtCore.QTimer.start") as _st,\
 				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
-				patch("physbiblio.database.experiments.getByID",
+				patch("physbiblio.database.Experiments.getByID",
 					return_value=[self.exps[0]]) as _gbi,\
-				patch("physbiblio.database.entryExps.countByExp",
+				patch("physbiblio.database.EntryExps.countByExp",
 					return_value=33) as _cb,\
-				patch("physbiblio.database.catsExps.countByExp",
+				patch("physbiblio.database.CatsExps.countByExp",
 					return_value=12) as _ce:
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_sh.assert_called_once_with(
@@ -859,7 +859,7 @@ class TestExpsListWindow(GUITestCase):
 	def test_cellClick(self):
 		"""test cellClick"""
 		p = QWidget()
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=self.exps) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.cellClick(QModelIndex()), None)
@@ -873,7 +873,7 @@ class TestExpsListWindow(GUITestCase):
 				"homepage": "", "comments": "", "inspire": ""},
 			{"idExp": 1, "name": "test1",
 				"homepage": "www.some.com", "comments": "", "inspire": "1234"}]
-		with patch("physbiblio.database.experiments.getAll",
+		with patch("physbiblio.database.Experiments.getAll",
 				return_value=exps) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.cellDoubleClick(QModelIndex()), None)
@@ -885,14 +885,14 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 0)), None)
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 1)), None)
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 2)), None)
-		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink"
 				) as _ol,\
 				patch("logging.Logger.debug") as _l:
 			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 3)),
 				True)
 			_ol.assert_called_once_with('www.some.com', 'link')
 			_l.assert_called_once_with("Opening 'www.some.com'...")
-		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink"
+		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink"
 				) as _ol,\
 				patch("logging.Logger.debug") as _l:
 			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)),
@@ -901,7 +901,7 @@ class TestExpsListWindow(GUITestCase):
 				pbConfig.inspireRecord + '1234', 'link')
 			_l.assert_called_once_with("Opening '%s'..."%(
 				pbConfig.inspireRecord + '1234'))
-		with patch("physbiblio.gui.commonClasses.guiViewEntry.openLink",
+		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink",
 				side_effect=Exception("some error")) as _ol,\
 				patch("logging.Logger.debug") as _l,\
 				patch("logging.Logger.warning") as _w:
@@ -946,11 +946,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.windowTitle(), 'Edit experiment')
 
 		self.assertIsInstance(eed.layout().itemAtPosition(1, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(1, 0).widget().text(),
 			"name")
 		self.assertIsInstance(eed.layout().itemAtPosition(1, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(1, 1).widget().text(),
 			"(Name of the experiment)")
 		self.assertIsInstance(eed.layout().itemAtPosition(2, 0).widget(),
@@ -961,11 +961,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["name"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(3, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(3, 0).widget().text(),
 			"comments")
 		self.assertIsInstance(eed.layout().itemAtPosition(3, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(3, 1).widget().text(),
 			"(Description or comments)")
 		self.assertIsInstance(eed.layout().itemAtPosition(4, 0).widget(),
@@ -976,11 +976,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["comments"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(5, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(5, 0).widget().text(),
 			"homepage")
 		self.assertIsInstance(eed.layout().itemAtPosition(5, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(5, 1).widget().text(),
 			"(Web link to the experiment homepage)")
 		self.assertIsInstance(eed.layout().itemAtPosition(6, 0).widget(),
@@ -991,11 +991,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["homepage"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(7, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(7, 0).widget().text(),
 			"inspire")
 		self.assertIsInstance(eed.layout().itemAtPosition(7, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(7, 1).widget().text(),
 			"(INSPIRE-HEP ID of the experiment record)")
 		self.assertIsInstance(eed.layout().itemAtPosition(8, 0).widget(),
@@ -1030,11 +1030,11 @@ class TestEditExperimentDialog(GUITestCase):
 		eed = EditExperimentDialog(parent=p, experiment=exp)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(1, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(1, 0).widget().text(),
 			"idExp")
 		self.assertIsInstance(eed.layout().itemAtPosition(1, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(1, 1).widget().text(),
 			"(Unique ID that identifies the experiment)")
 		self.assertIsInstance(eed.layout().itemAtPosition(2, 0).widget(),
@@ -1045,11 +1045,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["idExp"].isEnabled(), False)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(3, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(3, 0).widget().text(),
 			"name")
 		self.assertIsInstance(eed.layout().itemAtPosition(3, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(3, 1).widget().text(),
 			"(Name of the experiment)")
 		self.assertIsInstance(eed.layout().itemAtPosition(4, 0).widget(),
@@ -1060,11 +1060,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["name"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(5, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(5, 0).widget().text(),
 			"comments")
 		self.assertIsInstance(eed.layout().itemAtPosition(5, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(5, 1).widget().text(),
 			"(Description or comments)")
 		self.assertIsInstance(eed.layout().itemAtPosition(6, 0).widget(),
@@ -1075,11 +1075,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["comments"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(7, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(7, 0).widget().text(),
 			"homepage")
 		self.assertIsInstance(eed.layout().itemAtPosition(7, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(7, 1).widget().text(),
 			"(Web link to the experiment homepage)")
 		self.assertIsInstance(eed.layout().itemAtPosition(8, 0).widget(),
@@ -1090,11 +1090,11 @@ class TestEditExperimentDialog(GUITestCase):
 		self.assertEqual(eed.textValues["homepage"].isEnabled(), True)
 
 		self.assertIsInstance(eed.layout().itemAtPosition(9, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(9, 0).widget().text(),
 			"inspire")
 		self.assertIsInstance(eed.layout().itemAtPosition(9, 1).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(eed.layout().itemAtPosition(9, 1).widget().text(),
 			"(INSPIRE-HEP ID of the experiment record)")
 		self.assertIsInstance(eed.layout().itemAtPosition(10, 0).widget(),

@@ -15,8 +15,8 @@ from pyparsing import ParseException
 import dictdiffer
 
 try:
-	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
-	from physbiblio.config import pbConfig, configurationDB
+	from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
+	from physbiblio.config import pbConfig, ConfigurationDB
 	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import physBiblioWeb
@@ -27,14 +27,14 @@ except ImportError:
 	raise
 
 
-class physbiblioDB(physbiblioDBCore):
-	"""Subclassing physbiblioDBCore to add reOpenDB
+class PhysBiblioDB(PhysBiblioDBCore):
+	"""Subclassing PhysBiblioDBCore to add reOpenDB
 	and loadSubClasses implementations.
 	"""
 
 	def __init__(self, *args, **kwargs):
-		"""Wrapper for physbiblioDBCore.__init__"""
-		physbiblioDBCore.__init__(self, *args, **kwargs)
+		"""Wrapper for PhysBiblioDBCore.__init__"""
+		PhysBiblioDBCore.__init__(self, *args, **kwargs)
 
 	def reOpenDB(self, newDB = None):
 		"""Close the currently open database and
@@ -84,18 +84,18 @@ class physbiblioDB(physbiblioDBCore):
 				delattr(self, q)
 			except AttributeError:
 				pass
-		self.utils = utilities(self)
-		self.bibs = entries(self)
-		self.cats = categories(self)
-		self.exps = experiments(self)
-		self.bibExp = entryExps(self)
-		self.catBib = catsEntries(self)
-		self.catExp = catsExps(self)
-		self.config = configurationDB(self)
+		self.utils = Utilities(self)
+		self.bibs = Entries(self)
+		self.cats = Categories(self)
+		self.exps = Experiments(self)
+		self.bibExp = EntryExps(self)
+		self.catBib = CatsEntries(self)
+		self.catExp = CatsExps(self)
+		self.config = ConfigurationDB(self)
 		return True
 
 
-class categories(physbiblioDBSub):
+class Categories(PhysBiblioDBSub):
 	"""Subclass that manages the functions for the categories."""
 
 	def count(self):
@@ -422,7 +422,7 @@ class categories(physbiblioDBSub):
 		return self.curs.fetchall()
 
 
-class catsEntries(physbiblioDBSub):
+class CatsEntries(PhysBiblioDBSub):
 	"""Functions for connecting categories and entries"""
 
 	def count(self):
@@ -572,7 +572,7 @@ class catsEntries(physbiblioDBSub):
 					"Something failed in reading your input '%s'"%string)
 
 
-class catsExps(physbiblioDBSub):
+class CatsExps(PhysBiblioDBSub):
 	"""Functions for connecting categories and experiments"""
 
 	def count(self):
@@ -722,16 +722,16 @@ class catsExps(physbiblioDBSub):
 					"Something failed in reading your input '%s'"%string)
 
 
-class entryExps(physbiblioDBSub):
+class EntryExps(PhysBiblioDBSub):
 	"""Functions for connecting entries and experiments"""
 
 	def count(self):
-		"""obtain the number of rows in entryExps"""
+		"""obtain the number of rows in EntryExps"""
 		self.cursExec("SELECT Count(*) FROM entryExps")
 		return self.curs.fetchall()[0][0]
 
 	def countByExp(self, idExp):
-		"""Obtain the number of rows in entryExps
+		"""Obtain the number of rows in EntryExps
 		which are associated with a given experiment
 
 		Parameters:
@@ -874,7 +874,7 @@ class entryExps(physbiblioDBSub):
 					"Something failed in reading your input '%s'"%string)
 
 
-class experiments(physbiblioDBSub):
+class Experiments(PhysBiblioDBSub):
 	"""Functions to manage the experiments"""
 
 	def count(self):
@@ -1211,12 +1211,12 @@ class experiments(physbiblioDBSub):
 		return self.curs.fetchall()
 
 
-class entries(physbiblioDBSub):
+class Entries(PhysBiblioDBSub):
 	"""Functions to manage the bibtex entries"""
 
 	def __init__(self, parent):
 		"""Call parent __init__ and create an empty lastFetched & c."""
-		physbiblioDBSub.__init__(self, parent)
+		PhysBiblioDBSub.__init__(self, parent)
 		self.lastFetched = []
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
@@ -2408,7 +2408,7 @@ class entries(physbiblioDBSub):
 				the lists of entries that were
 				successfully processed, changed or produced errors
 		"""
-		def myReplace(line, new, previous = None):
+		def singleReplace(line, new, previous = None):
 			"""Replace the old with the new string in the given line
 
 			Parameters:
@@ -2464,7 +2464,7 @@ class entries(physbiblioDBSub):
 							fiNew, entry["bibkey"]))
 					if fiNew in entry["bibtexDict"].keys():
 						bef.append(entry["bibtexDict"][fiNew])
-						after  = myReplace(
+						after  = singleReplace(
 							before, new, previous = entry["bibtexDict"][fiNew])
 						aft.append(after)
 						entry["bibtexDict"][fiNew] = after
@@ -2477,7 +2477,7 @@ class entries(physbiblioDBSub):
 							"bibtex", entry["bibtex"], verbose=0)
 					if fiNew in entry.keys():
 						bef.append(entry[fiNew])
-						after  = myReplace(before, new,
+						after  = singleReplace(before, new,
 							previous = entry[fiNew])
 						aft.append(after)
 						self.updateField(entry["bibkey"],
@@ -3433,7 +3433,7 @@ class entries(physbiblioDBSub):
 		return num, err, changed
 
 
-class utilities(physbiblioDBSub):
+class Utilities(PhysBiblioDBSub):
 	"""Adds some more useful functions to the database management"""
 
 	def cleanSpareEntries(self):
@@ -3538,7 +3538,7 @@ def dbStats(db):
 	in the various database tables
 
 	Parameters:
-		db: the database (instance of physbiblioDB)
+		db: the database (instance of PhysBiblioDB)
 	"""
 	db.stats = {}
 	db.stats["bibs"] = db.bibs.count()
@@ -3549,4 +3549,4 @@ def dbStats(db):
 	db.stats["bibExp"] = db.bibExp.count()
 
 
-pBDB = physbiblioDB(pbConfig.currentDatabase, pBLogger)
+pBDB = PhysBiblioDB(pbConfig.currentDatabase, pBLogger)

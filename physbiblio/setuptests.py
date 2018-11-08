@@ -26,14 +26,14 @@ try:
 	pbConfig.prepareLogger("physbibliotestlog")
 	pbConfig.reloadProfiles()
 	from physbiblio.errors import pBErrorManager, pBLogger
-	from physbiblio.database import physbiblioDB
+	from physbiblio.database import PhysBiblioDB
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 	raise
 
 
-class skipTestsSettingsClass():
+class SkipTestsSettingsClass():
 	"""Store settings for deciding the tests to skip"""
 
 	def __init__(self):
@@ -42,7 +42,7 @@ class skipTestsSettingsClass():
 
 	def copy(self):
 		"""create a new instance, copy of the previous one"""
-		new = skipTestsSettingsClass()
+		new = SkipTestsSettingsClass()
 		new.db = bool(self.db)
 		new.gui = bool(self.gui)
 		new.long = bool(self.long)
@@ -63,7 +63,7 @@ class skipTestsSettingsClass():
 		return "DB: %s\nGUI: %s\nlong: %s\nOnline: %s (OAI: %s)"%(
 			self.db, self.gui, self.long, self.online, self.oai)
 
-skipTestsSettings = skipTestsSettingsClass()
+skipTestsSettings = SkipTestsSettingsClass()
 
 pbConfig.params["logFileName"] = tempLogFileName
 logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])
@@ -80,7 +80,7 @@ class DBTestCase(unittest.TestCase):
 	def setUpClass(self):
 		"""Create a temporary database"""
 		self.maxDiff = None
-		self.pBDB = physbiblioDB(tempDBName, pBLogger)
+		self.pBDB = PhysBiblioDB(tempDBName, pBLogger)
 
 	def tearDown(self):
 		"""Clean temporary database"""

@@ -11,7 +11,7 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-class marks():
+class Marks():
 	"""Class that manages the marks of bibtex entries"""
 
 	def __init__(self):
@@ -76,4 +76,4 @@ class marks():
 		return groupBox, markValues
 
 
-pBMarks = marks()
+pBMarks = Marks()

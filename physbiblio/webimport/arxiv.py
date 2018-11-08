@@ -12,7 +12,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.errors import pBLogger
 	from bibtexparser.bibdatabase import BibDatabase
-	from physbiblio.webimport.webInterf import webInterf, physBiblioWeb
+	from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 	from physbiblio.parseAccents import parse_accents_str
 	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
@@ -37,18 +37,18 @@ def getYear(string):
 		return None
 
 
-class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to arxiv.org
+class WebSearch(WebInterf):
+	"""Subclass of WebInterf that can connect to arxiv.org
 	to perform searches
 	"""
 
 	def __init__(self):
 		"""Initializes the class variables using
-		the webInterf constructor.
+		the WebInterf constructor.
 
 		Define additional specific parameters for the arxiv.org API.
 		"""
-		webInterf.__init__(self)
+		WebInterf.__init__(self)
 		self.name = "arXiv"
 		self.description = "arXiv fetcher"
 		self.url = "https://export.arxiv.org/api/query"

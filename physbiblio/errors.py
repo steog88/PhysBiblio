@@ -15,7 +15,7 @@ except ImportError:
 	raise
 
 
-class pBErrorManagerClass():
+class PBErrorManagerClass():
 	"""Class that manages the output of the errors and
 	stores the messages into a log file
 	"""
@@ -112,6 +112,6 @@ class pBErrorManagerClass():
 			exc_info = (cls, exception, trcbk))
 
 
-pBErrorManager = pBErrorManagerClass(pbConfig.loggerString)
+pBErrorManager = PBErrorManagerClass(pbConfig.loggerString)
 pBLogger = pBErrorManager.logger
 sys.excepthook = pBErrorManager.excepthook

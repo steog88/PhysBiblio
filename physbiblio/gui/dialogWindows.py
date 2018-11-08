@@ -21,9 +21,9 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askSaveFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		MyComboBox, MyDDTableWidget, MyImportedTableModel, MyLabel, \
-		MyTableView, MyTrueFalseCombo, objListWindow
-	from physbiblio.gui.catWindows import catsTreeWindow
+		PBComboBox, PBDDTableWidget, PBImportedTableModel, PBLabel, \
+		PBTableView, PBTrueFalseCombo, ObjListWindow
+	from physbiblio.gui.catWindows import CatsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -71,17 +71,17 @@ class ConfigEditColumns(QDialog):
 		self.close()
 
 	def initUI(self):
-		"""Initialize the `MyDDTableWidget`s and their content,
+		"""Initialize the `PBDDTableWidget`s and their content,
 		plus the buttons and labels
 		"""
 		self.gridlayout = QGridLayout()
 		self.setLayout(self.gridlayout)
 
 		self.items = []
-		self.listAll = MyDDTableWidget(self, "Available columns")
-		self.listSel = MyDDTableWidget(self, "Selected columns")
+		self.listAll = PBDDTableWidget(self, "Available columns")
+		self.listSel = PBDDTableWidget(self, "Selected columns")
 		self.gridlayout.addWidget(
-			MyLabel("Drag and drop items to order visible columns"),
+			PBLabel("Drag and drop items to order visible columns"),
 			0, 0, 1, 2)
 		self.gridlayout.addWidget(self.listAll, 1, 0)
 		self.gridlayout.addWidget(self.listSel, 1, 1)
@@ -115,12 +115,12 @@ class ConfigEditColumns(QDialog):
 		self.gridlayout.addWidget(self.cancelButton, 2, 1)
 
 
-class configWindow(QDialog):
+class ConfigWindow(QDialog):
 	"""Create a window for editing the configuration settings"""
 
 	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
-		super(configWindow, self).__init__(parent)
+		super(ConfigWindow, self).__init__(parent)
 		self.textValues = []
 		self.initUI()
 
@@ -137,7 +137,7 @@ class configWindow(QDialog):
 	def editPDFFolder(self):
 		"""Open a dialog to select a new folder name
 		for the PDF path, and save the result
-		in the `configWindow` interface
+		in the `ConfigWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("pdfFolder")
 		folder = askDirName(
@@ -153,7 +153,7 @@ class configWindow(QDialog):
 			filter="*.log"):
 		"""Open a dialog to select a new file name
 		for a configuration parameter, and save the result
-		in the `configWindow` interface
+		in the `ConfigWindow` interface
 
 		Parameters:
 			paramkey: the parameter name in the configuration dictionary
@@ -175,7 +175,7 @@ class configWindow(QDialog):
 	def editColumns(self):
 		"""Open a dialog to select and/or reorder the list of columns
 		to show in the entries list, and save the result
-		in the `configWindow` interface
+		in the `ConfigWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("bibtexListColumns")
 		window = ConfigEditColumns(self,
@@ -188,10 +188,10 @@ class configWindow(QDialog):
 	def editDefCats(self):
 		"""Open a dialog to select a the default categories
 		for the imported entries, and save the result
-		in the `configWindow` interface
+		in the `ConfigWindow` interface
 		"""
 		ix = pbConfig.paramOrder.index("defaultCategories")
-		selectCats = catsTreeWindow(
+		selectCats = CatsTreeWindow(
 			parent=self,
 			askCats=True,
 			expButton=False,
@@ -214,7 +214,7 @@ class configWindow(QDialog):
 			val = pbConfig.params[k] if isinstance(pbConfig.params[k], str) \
 				else str(pbConfig.params[k])
 			grid.addWidget(
-				MyLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)),
+				PBLabel("%s (<i>%s</i>)"%(pbConfig.descriptions[k], k)),
 				i-1, 0, 1, 2)
 			if k == "bibtexListColumns":
 				self.textValues.append([k, QPushButton(val)])
@@ -224,7 +224,7 @@ class configWindow(QDialog):
 				self.textValues[-1][1].clicked.connect(self.editPDFFolder)
 			elif k == "loggingLevel":
 				try:
-					self.textValues.append([k, MyComboBox(self,
+					self.textValues.append([k, PBComboBox(self,
 						pbConfig.loggingLevels,
 						pbConfig.loggingLevels[int(val)])
 						])
@@ -232,7 +232,7 @@ class configWindow(QDialog):
 					pBGUILogger.warning("Invalid string for 'loggingLevel' "
 						+ "param. Reset to default")
 					self.textValues.append([k,
-						MyComboBox(self,
+						PBComboBox(self,
 							pbConfig.loggingLevels,
 							pbConfig.loggingLevels[
 								int(pbConfig.defaultsParams["loggingLevel"])]
@@ -244,7 +244,7 @@ class configWindow(QDialog):
 				self.textValues.append([k, QPushButton(val)])
 				self.textValues[-1][1].clicked.connect(self.editDefCats)
 			elif pbConfig.specialTypes[k] == "boolean":
-				self.textValues.append([k, MyTrueFalseCombo(self, val)])
+				self.textValues.append([k, PBTrueFalseCombo(self, val)])
 			else:
 				self.textValues.append([k, QLineEdit(val)])
 			grid.addWidget(self.textValues[i-1][1], i-1, 2, 1, 2)
@@ -303,7 +303,7 @@ class LogFileContentDialog(QDialog):
 		grid = QVBoxLayout()
 		grid.setSpacing(1)
 
-		grid.addWidget(MyLabel("Reading %s"%pbConfig.params["logFileName"]))
+		grid.addWidget(PBLabel("Reading %s"%pbConfig.params["logFileName"]))
 		try:
 			with open(pbConfig.params["logFileName"]) as r:
 				text = r.read()
@@ -356,7 +356,7 @@ class PrintText(QDialog):
 				Used to set the progress bar value appropriately.
 			noStopButton (default False): True if the widget must have
 				a "stop" button to stop the iterations
-			message: a text to be inserted as a `MyLabel` in the dialog
+			message: a text to be inserted as a `PBLabel` in the dialog
 		"""
 		super(PrintText, self).__init__(parent)
 		self._wantToClose = False
@@ -393,7 +393,7 @@ class PrintText(QDialog):
 		grid.setSpacing(1)
 
 		if self.message is not None and self.message.strip() != "":
-			grid.addWidget(MyLabel("%s"%self.message))
+			grid.addWidget(PBLabel("%s"%self.message))
 
 		self.textEdit = QTextEdit()
 		grid.addWidget(self.textEdit)
@@ -481,12 +481,12 @@ class PrintText(QDialog):
 		self.closeButton.setEnabled(True)
 
 
-class advImportDialog(QDialog):
+class AdvancedImportDialog(QDialog):
 	"""create a window for the advanced import"""
 
 	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
-		super(advImportDialog, self).__init__(parent)
+		super(AdvancedImportDialog, self).__init__(parent)
 		self.initUI()
 
 	def onCancel(self):
@@ -508,12 +508,12 @@ class advImportDialog(QDialog):
 		grid.setSpacing(1)
 
 		##search
-		grid.addWidget(MyLabel("Search string: "), 0, 0)
+		grid.addWidget(PBLabel("Search string: "), 0, 0)
 		self.searchStr = QLineEdit("")
 		grid.addWidget(self.searchStr, 0, 1)
 
-		grid.addWidget(MyLabel("Select method: "), 1, 0)
-		self.comboMethod = MyComboBox(self,
+		grid.addWidget(PBLabel("Select method: "), 1, 0)
+		self.comboMethod = PBComboBox(self,
 			["INSPIRE-HEP", "arXiv", "DOI", "ISBN"],
 			current="INSPIRE-HEP")
 		grid.addWidget(self.comboMethod, 1, 1)
@@ -534,7 +534,7 @@ class advImportDialog(QDialog):
 		self.searchStr.setFocus()
 
 
-class advImportSelect(objListWindow):
+class AdvancedImportSelect(ObjListWindow):
 	"""create a window for the advanced import"""
 
 	def __init__(self, bibs={}, parent=None):
@@ -549,7 +549,7 @@ class advImportSelect(objListWindow):
 			parent: the parent widget
 		"""
 		self.bibs = bibs
-		super(advImportSelect, self).__init__(parent, gridLayout=True)
+		super(AdvancedImportSelect, self).__init__(parent, gridLayout=True)
 		self.checkBoxes = []
 		self.initUI()
 
@@ -580,7 +580,7 @@ class advImportSelect(objListWindow):
 
 		self.currLayout.setSpacing(1)
 
-		self.currLayout.addWidget(MyLabel("This is the list of elements found."
+		self.currLayout.addWidget(PBLabel("This is the list of elements found."
 			+ "\nSelect the ones that you want to import:"))
 
 		headers = ["ID", "title", "author", "eprint", "doi"]
@@ -601,7 +601,7 @@ class advImportSelect(objListWindow):
 						self.bibs[k]['bibpars'][f].replace("\n", " ")
 				except KeyError:
 					pass
-		self.tableModel = MyImportedTableModel(self, self.bibs, headers)
+		self.tableModel = PBImportedTableModel(self, self.bibs, headers)
 		self.addFilterInput("Filter entries", gridPos=(1, 0))
 		self.setProxyStuff(0, Qt.AscendingOrder)
 		self.finalizeTable(gridPos=(2, 0, 1, 2))
@@ -639,12 +639,12 @@ class advImportSelect(objListWindow):
 		pass
 
 
-class dailyArxivDialog(QDialog):
+class DailyArxivDialog(QDialog):
 	"""create a window for the advanced import"""
 
 	def __init__(self, parent=None):
 		"""Simple extension of `QDialog.__init__`"""
-		super(dailyArxivDialog, self).__init__(parent)
+		super(DailyArxivDialog, self).__init__(parent)
 		self.initUI()
 
 	def onCancel(self):
@@ -677,14 +677,14 @@ class dailyArxivDialog(QDialog):
 		self.grid.setSpacing(1)
 
 		##combo boxes
-		self.grid.addWidget(MyLabel("Select category: "), 0, 0)
-		self.comboCat = MyComboBox(self,
+		self.grid.addWidget(PBLabel("Select category: "), 0, 0)
+		self.comboCat = PBComboBox(self,
 			[""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys()))
 		self.comboCat.currentIndexChanged[str].connect(self.updateCat)
 		self.grid.addWidget(self.comboCat, 0, 1)
 
-		self.grid.addWidget(MyLabel("Subcategory: "), 1, 0)
-		self.comboSub = MyComboBox(self, [""])
+		self.grid.addWidget(PBLabel("Subcategory: "), 1, 0)
+		self.comboSub = PBComboBox(self, [""])
 		self.grid.addWidget(self.comboSub, 1, 1)
 
 		# OK button
@@ -707,7 +707,7 @@ class dailyArxivDialog(QDialog):
 		self.move(qr.topLeft())
 
 
-class dailyArxivSelect(advImportSelect):
+class DailyArxivSelect(AdvancedImportSelect):
 	"""create a window for the advanced import"""
 
 	def initUI(self):
@@ -717,11 +717,11 @@ class dailyArxivSelect(advImportSelect):
 		self.currLayout.setSpacing(1)
 
 		self.currLayout.addWidget(
-			MyLabel("This is the list of elements found.\n"
+			PBLabel("This is the list of elements found.\n"
 				+ "Select the ones that you want to import:"))
 
 		headers = ["eprint", "type", "title", "author", "primaryclass"]
-		self.tableModel = MyImportedTableModel(self,
+		self.tableModel = PBImportedTableModel(self,
 			self.bibs,
 			headers + ["abstract"],
 			idName="eprint")
@@ -774,4 +774,4 @@ class dailyArxivSelect(advImportSelect):
 			a.doText()
 		else:
 			pBLogger.debug("self.abstractFormulas not present in "
-				+ "dailyArxivSelect. Eprint: %s"%eprint)
+				+ "DailyArxivSelect. Eprint: %s"%eprint)

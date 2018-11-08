@@ -21,7 +21,7 @@ except ImportError:
 	raise
 
 
-class pbExport():
+class PBExport():
 	"""Class that contains the export functions and related."""
 
 	def __init__(self):
@@ -536,4 +536,4 @@ class pbExport():
 		return True
 
 
-pBExport = pbExport()
+pBExport = PBExport()

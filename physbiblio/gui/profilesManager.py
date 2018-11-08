@@ -20,7 +20,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, MyComboBox, MyLabel
+		EditObjectWindow, PBComboBox, PBLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -108,7 +108,7 @@ def editProfile(parentObject):
 			exc_info=True)
 
 
-class selectProfiles(QDialog):
+class SelectProfiles(QDialog):
 	"""Widget to change the profile"""
 
 	def __init__(self, parent, message=None):
@@ -119,7 +119,7 @@ class selectProfiles(QDialog):
 			message: a message used as a description
 		"""
 		if not hasattr(parent, "reloadConfig"):
-			raise Exception("Cannot run selectProfiles: invalid parent")
+			raise Exception("Cannot run SelectProfiles: invalid parent")
 		QDialog.__init__(self, parent)
 		self.message = message
 		self.initUI()
@@ -142,7 +142,7 @@ class selectProfiles(QDialog):
 		self.close()
 
 	def initUI(self):
-		"""Create a `QGridLayout` with the `MyComboBox` and
+		"""Create a `QGridLayout` with the `PBComboBox` and
 		the two selection buttons
 		"""
 		self.setWindowTitle('Select profile')
@@ -152,11 +152,11 @@ class selectProfiles(QDialog):
 
 		i = 0
 		if self.message is not None:
-			grid.addWidget(MyLabel("%s"%self.message), 0, 0)
+			grid.addWidget(PBLabel("%s"%self.message), 0, 0)
 			i += 1
 
-		grid.addWidget(MyLabel("Available profiles: "), i, 0)
-		self.combo = MyComboBox(self,
+		grid.addWidget(PBLabel("Available profiles: "), i, 0)
+		self.combo = PBComboBox(self,
 			["%s -- %s"%(p, pbConfig.profiles[p]["d"])
 				for p in pbConfig.profileOrder],
 			current = "%s -- %s"%(
@@ -178,7 +178,7 @@ class selectProfiles(QDialog):
 		self.setLayout(grid)
 
 
-class myOrderPushButton(QPushButton):
+class PBOrderPushButton(QPushButton):
 	"""Define a button to switch two form lines"""
 
 	def __init__(self, parent, data, qicon, text, testing=False):
@@ -308,9 +308,9 @@ class EditProfileWindow(EditObjectWindow):
 			self.currGrid.addWidget(tempEl["d"], i, 3)
 			if i > 1:
 				self.arrows.append([
-					myOrderPushButton(self,
+					PBOrderPushButton(self,
 						j, QIcon(":/images/arrow-down.png"), ""),
-					myOrderPushButton(self,
+					PBOrderPushButton(self,
 						j, QIcon(":/images/arrow-up.png"), "")])
 				self.currGrid.addWidget(self.arrows[j][0], i-1, 5)
 				self.currGrid.addWidget(self.arrows[j][1], i, 4)
@@ -373,15 +373,15 @@ class EditProfileWindow(EditObjectWindow):
 		self.setWindowTitle('Edit profile')
 
 		labels = [
-			MyLabel("Default"),
-			MyLabel("Short name"),
-			MyLabel("Filename"),
-			MyLabel("Description")
+			PBLabel("Default"),
+			PBLabel("Short name"),
+			PBLabel("Filename"),
+			PBLabel("Description")
 			]
 		for i,e in enumerate(labels):
 			self.currGrid.addWidget(e, 0, i)
-		self.currGrid.addWidget(MyLabel("Order"), 0, 4, 1, 2)
-		self.currGrid.addWidget(MyLabel("Delete?"), 0, 6)
+		self.currGrid.addWidget(PBLabel("Order"), 0, 4, 1, 2)
+		self.currGrid.addWidget(PBLabel("Delete?"), 0, 6)
 
 		self.addButtons(profilesData, profileOrder)
 
@@ -391,9 +391,9 @@ class EditProfileWindow(EditObjectWindow):
 					f, sorted(list(newLine))) + "Default to empty.")
 				newLine[f] = ""
 		i = len(profilesData) + 3
-		self.currGrid.addWidget(MyLabel(""), i-2, 0)
+		self.currGrid.addWidget(PBLabel(""), i-2, 0)
 		tempEl = {}
-		self.currGrid.addWidget(MyLabel("Add new?"), i-1, 0)
+		self.currGrid.addWidget(PBLabel("Add new?"), i-1, 0)
 		tempEl["r"] = QRadioButton("")
 		self.def_group.addButton(tempEl["r"])
 		if newLine["r"]:
@@ -418,7 +418,7 @@ class EditProfileWindow(EditObjectWindow):
 		tempEl["d"] = QLineEdit(newLine["d"])
 		self.currGrid.addWidget(tempEl["d"], i, 3)
 
-		self.currGrid.addWidget(MyLabel("Copy from:"), i, 4, 1, 2)
+		self.currGrid.addWidget(PBLabel("Copy from:"), i, 4, 1, 2)
 		tempEl["c"] = QComboBox(self)
 		copyElements = ["None"] + registeredDb
 		tempEl["c"].addItems(copyElements)
@@ -429,7 +429,7 @@ class EditProfileWindow(EditObjectWindow):
 		self.elements.append(tempEl)
 
 		i += 1
-		self.currGrid.addWidget(MyLabel(""), i, 0)
+		self.currGrid.addWidget(PBLabel(""), i, 0)
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)

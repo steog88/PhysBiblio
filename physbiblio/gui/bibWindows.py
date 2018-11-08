@@ -34,12 +34,12 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, MyAndOrCombo, MyComboBox, MyLabel, \
-		MyLabelCenter, MyLabelRight, MyMenu, MyTableModel, \
-		objListWindow, pBGuiView
+		EditObjectWindow, PBAndOrCombo, PBComboBox, PBLabel, \
+		PBLabelCenter, PBLabelRight, PBMenu, PBTableModel, \
+		ObjListWindow, pBGuiView
 	from physbiblio.gui.threadElements import \
-		thread_downloadArxiv, thread_processLatex
-	from physbiblio.gui.catWindows import catsTreeWindow
+		Thread_downloadArxiv, Thread_processLatex
+	from physbiblio.gui.catWindows import CatsTreeWindow
 	from physbiblio.gui.expWindows import ExpsListWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -321,14 +321,14 @@ class AbstractFormulas():
 		return "$" in self.text
 
 	def doText(self):
-		"""Convert the text using the `thread_processLatex` thread
+		"""Convert the text using the `Thread_processLatex` thread
 		to perform the conversion without freezing the main process
 		"""
 		if self.hasLatex():
 			self.mainWin.statusBarMessage("Parsing LaTeX...")
 			self.editor.setHtml(
 				"%sProcessing LaTeX formulas..."%self.abstractTitle)
-			self.thr = thread_processLatex(self.prepareText, self.mainWin)
+			self.thr = Thread_processLatex(self.prepareText, self.mainWin)
 			self.thr.passData.connect(self.submitText)
 			self.thr.start()
 		else:
@@ -426,8 +426,8 @@ class BibtexInfo(QFrame):
 		self.currLayout.addWidget(self.text)
 
 
-class BibTableModel(MyTableModel):
-	"""The model (based on `MyTableModel`)
+class BibTableModel(PBTableModel):
+	"""The model (based on `PBTableModel`)
 	which manages the list of bibtex entries
 	"""
 
@@ -442,7 +442,7 @@ class BibTableModel(MyTableModel):
 			mainWin=None,
 			*args):
 		"""Constructor of the model, defines some properties
-		and uses `MyTableModel.__init__`
+		and uses `PBTableModel.__init__`
 
 		Parameters:
 			parent: the parent widget
@@ -463,7 +463,7 @@ class BibTableModel(MyTableModel):
 			keep_inline_math=False, keep_comments=False)
 		self.typeClass = "Bibs"
 		self.dataList = bib_list
-		MyTableModel.__init__(self,
+		PBTableModel.__init__(self,
 			parent, header + ["bibtex"], askBibs, previous, *args)
 		self.stdCols = stdCols
 		self.addCols = addCols + ["bibtex"]
@@ -893,7 +893,7 @@ class CommonBibActions():
 			selection (default False): if True, the menu is for
 				a selection of entries. If False, for a single entry
 		"""
-		menu = MyMenu(self.parent())
+		menu = PBMenu(self.parent())
 		self.menu = menu
 		if len(self.keys) == 0 or len(self.bibs) == 0:
 			return
@@ -1017,19 +1017,19 @@ class CommonBibActions():
 		self.parent().infoFromArxiv(self.bibs)
 
 	def onCat(self):
-		"""Open a `catsTreeWindow` to ask the changes to the categories,
+		"""Open a `CatsTreeWindow` to ask the changes to the categories,
 		then perform the database changes
 		"""
 		previousAll = [e["idCat"] for e in pBDB.cats.getByEntries(self.keys)]
 		if len(self.keys) == 1:
 			bibkey = self.keys[0]
-			selectCats = catsTreeWindow(parent=self.parent(),
+			selectCats = CatsTreeWindow(parent=self.parent(),
 				askCats=True,
 				askForBib=bibkey,
 				expButton=False,
 				previous=previousAll)
 		else:
-			selectCats = catsTreeWindow(parent=self.parent(),
+			selectCats = CatsTreeWindow(parent=self.parent(),
 				askCats=True,
 				expButton=False,
 				previous=previousAll,
@@ -1059,7 +1059,7 @@ class CommonBibActions():
 					"Categories successfully inserted")
 
 	def onCitations(self):
-		"""Call `inspireStats.inspireStatsLoader.plotStats`
+		"""Call `inspireStats.InspireStatsLoader.plotStats`
 		to obtain the citation info of one or more papers
 		"""
 		self.parent().getInspireStats([e["inspire"] for e in self.bibs])
@@ -1169,7 +1169,7 @@ class CommonBibActions():
 				self.parent().statusBarMessage(
 					"downloading PDF for arxiv:%s..."%entry["arxiv"])
 				self.downArxiv_thr.append(
-					thread_downloadArxiv(entry["bibkey"], self.parent()))
+					Thread_downloadArxiv(entry["bibkey"], self.parent()))
 				self.downArxiv_thr[-1].finished.connect(
 					lambda a=entry["arxiv"]: self.onDownloadArxivDone(a))
 				self.downArxiv_thr[-1].start()
@@ -1353,7 +1353,7 @@ class CommonBibActions():
 			pBDB.bibs.fetchFromLast().lastFetched)
 
 
-class BibtexListWindow(QFrame, objListWindow):
+class BibtexListWindow(QFrame, ObjListWindow):
 	"""Class that constructs the main bibtex table"""
 
 	def __init__(self,
@@ -1388,7 +1388,7 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.colContents += [a.lower() for a in self.additionalCols]
 
 		QFrame.__init__(self, parent)
-		objListWindow.__init__(self, parent)
+		ObjListWindow.__init__(self, parent)
 
 		self.createActions()
 		self.createTable()
@@ -1489,7 +1489,7 @@ class BibtexListWindow(QFrame, objListWindow):
 			pBDB.bibs.lastQuery)
 		if len(pBDB.bibs.lastVals)>0 :
 			commentStr += " - arguments:\t%s"%(pBDB.bibs.lastVals,)
-		self.lastLabel = MyLabel(commentStr)
+		self.lastLabel = PBLabel(commentStr)
 		self.currLayout.addWidget(self.lastLabel)
 
 		self.selectToolBar = QToolBar('Bibs toolbar')
@@ -1499,7 +1499,7 @@ class BibtexListWindow(QFrame, objListWindow):
 		self.selectToolBar.addAction(self.selAllAct)
 		self.selectToolBar.addAction(self.unselAllAct)
 		self.selectToolBar.addAction(self.okAct)
-		self.mergeLabel = MyLabel(
+		self.mergeLabel = PBLabel(
 			"(Select exactly two entries to enable merging them)")
 		self.selectToolBar.addWidget(self.mergeLabel)
 		self.selectToolBar.addSeparator()
@@ -1759,10 +1759,10 @@ class EditBibtexDialog(EditObjectWindow):
 			return i
 		i += 1
 		if k != "marks":
-			self.currGrid.addWidget(MyLabel(k),
+			self.currGrid.addWidget(PBLabel(k),
 				i + i%2 - 1, ((i+1)%2)*2)
 			self.currGrid.addWidget(
-				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+				PBLabel("(%s)"%pBDB.descriptions["entries"][k]),
 				i + i%2 - 1, ((i+1)%2)*2 + 1)
 			self.textValues[k] = QLineEdit(
 				str(self.data[k]) if self.data[k] is not None else "")
@@ -1796,7 +1796,7 @@ class EditBibtexDialog(EditObjectWindow):
 		if k in self.checkboxes:
 			j += 2
 			self.currGrid.addWidget(
-				MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+				PBLabel("(%s)"%pBDB.descriptions["entries"][k]),
 				i + i%2 + j - 1, 2, 1, 2)
 			self.checkValues[k] = QCheckBox(k, self)
 			if self.data[k] == 1:
@@ -1822,10 +1822,10 @@ class EditBibtexDialog(EditObjectWindow):
 
 		#bibtex text editor
 		k = "bibtex"
-		self.currGrid.addWidget(MyLabel(k),
+		self.currGrid.addWidget(PBLabel(k),
 			i + i%2 - 1, 0)
 		self.currGrid.addWidget(
-			MyLabel("(%s)"%pBDB.descriptions["entries"][k]),
+			PBLabel("(%s)"%pBDB.descriptions["entries"][k]),
 			i + i%2 - 1, 1)
 		self.textValues[k] = QPlainTextEdit(self.data[k])
 		self.textValues[k].textChanged.connect(self.updateBibkey)
@@ -1848,7 +1848,7 @@ class EditBibtexDialog(EditObjectWindow):
 		self.centerWindow()
 
 
-class AskPDFAction(MyMenu):
+class AskPDFAction(PBMenu):
 	"""Menu used to ask which PDF file must be opened"""
 
 	def __init__(self, key, parent=None):
@@ -1979,7 +1979,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.onOk()
 
 	def onAskCats(self):
-		selectCats = catsTreeWindow(
+		selectCats = CatsTreeWindow(
 			parent=self,
 			askCats=True,
 			expButton=False,
@@ -2052,39 +2052,39 @@ class SearchBibsWindow(EditObjectWindow):
 		# self.currGrid.addWidget(tempEl["f"], i, 2)
 		# tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
 
-		self.currGrid.addWidget(MyLabelRight(
+		self.currGrid.addWidget(PBLabelRight(
 			"Filter by categories, using the following operator:"),
 			0, 0, 1, 3)
 		self.catsButton = QPushButton('Categories', self)
 		self.catsButton.clicked.connect(self.onAskCats)
 		self.currGrid.addWidget(self.catsButton, 0, 3, 1, 2)
-		self.comboCats = MyAndOrCombo(self)
+		self.comboCats = PBAndOrCombo(self)
 		self.comboCats.activated[str].connect(self.onComboCatsChange)
 		self.currGrid.addWidget(self.comboCats, 0, 5)
 
-		self.currGrid.addWidget(MyLabelRight(
+		self.currGrid.addWidget(PBLabelRight(
 			"Filter by experiments, using the following operator:"),
 			1, 0, 1, 3)
 		self.expsButton = QPushButton('Experiments', self)
 		self.expsButton.clicked.connect(self.onAskExps)
 		self.currGrid.addWidget(self.expsButton, 1, 3, 1, 2)
-		self.comboExps = MyAndOrCombo(self)
+		self.comboExps = PBAndOrCombo(self)
 		self.comboExps.activated[str].connect(self.onComboExpsChange)
 		self.currGrid.addWidget(self.comboExps, 1, 5)
 
-		self.currGrid.addWidget(MyLabelRight(
+		self.currGrid.addWidget(PBLabelRight(
 			"If using both categories and experiments, "
 			+ "which operator between them?"),
 			2, 0, 1, 4)
-		self.comboCE = MyAndOrCombo(self)
+		self.comboCE = PBAndOrCombo(self)
 		self.comboCE.activated[str].connect(self.onComboCEChange)
 		self.currGrid.addWidget(self.comboCE, 2, 5)
 
 		self.currGrid.setRowMinimumHeight(3, spaceRowHeight)
 
-		self.marksConn = MyAndOrCombo(self, current=self.values["marksConn"])
+		self.marksConn = PBAndOrCombo(self, current=self.values["marksConn"])
 		self.currGrid.addWidget(self.marksConn, 4, 0)
-		self.currGrid.addWidget(MyLabelRight("Filter by marks:"), 4, 1)
+		self.currGrid.addWidget(PBLabelRight("Filter by marks:"), 4, 1)
 		groupBox, markValues = pBMarks.getGroupbox(
 			self.values["marks"],
 			description="",
@@ -2093,9 +2093,9 @@ class SearchBibsWindow(EditObjectWindow):
 		self.markValues = markValues
 		self.currGrid.addWidget(groupBox, 4, 2, 1, 5)
 
-		self.typeConn = MyAndOrCombo(self, current=self.values["typeConn"])
+		self.typeConn = PBAndOrCombo(self, current=self.values["typeConn"])
 		self.currGrid.addWidget(self.typeConn, 5, 0)
-		self.currGrid.addWidget(MyLabelRight("Entry type:"), 5, 1)
+		self.currGrid.addWidget(PBLabelRight("Entry type:"), 5, 1)
 		groupBox = QGroupBox()
 		self.typeValues = {}
 		groupBox.setFlat(True)
@@ -2109,7 +2109,7 @@ class SearchBibsWindow(EditObjectWindow):
 		groupBox.setLayout(vbox)
 		self.currGrid.addWidget(groupBox, 5, 2, 1, 5)
 
-		self.currGrid.addWidget(MyLabel(
+		self.currGrid.addWidget(PBLabel(
 			"Select more: the operator to use, the field to match, "
 			+ "(exact match vs contains) and the content to match"),
 			7, 0, 1, 7)
@@ -2133,19 +2133,19 @@ class SearchBibsWindow(EditObjectWindow):
 					"content": ""}
 				self.textValues.append({})
 
-			self.textValues[i]["logical"] = MyAndOrCombo(self,
+			self.textValues[i]["logical"] = PBAndOrCombo(self,
 				current=previous["logical"])
 			self.currGrid.addWidget(self.textValues[i]["logical"],
 				i + firstFields, 0)
 
-			self.textValues[i]["field"] = MyComboBox(self,
+			self.textValues[i]["field"] = PBComboBox(self,
 				["bibtex", "bibkey", "arxiv", "doi", "year",
 				"firstdate", "pubdate", "comment"],
 				current=previous["field"])
 			self.currGrid.addWidget(
 				self.textValues[i]["field"], i + firstFields, 1)
 
-			self.textValues[i]["operator"] = MyComboBox(self,
+			self.textValues[i]["operator"] = PBComboBox(self,
 				["contains", "exact match"],
 				current=previous["operator"])
 			self.currGrid.addWidget(self.textValues[i]["operator"],
@@ -2159,7 +2159,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.textValues[-1]["content"].setFocus()
 
 		i = self.numberOfRows + firstFields + 1
-		self.currGrid.addWidget(MyLabelRight(
+		self.currGrid.addWidget(PBLabelRight(
 			"Click here if you want more fields:"), i-1, 0, 1, 2)
 		self.addFieldButton = QPushButton("Add another line", self)
 		self.addFieldButton.clicked.connect(self.onAddField)
@@ -2169,8 +2169,8 @@ class SearchBibsWindow(EditObjectWindow):
 
 		i += 2
 		if self.replace:
-			self.currGrid.addWidget(MyLabel("Replace:"), i - 1, 0)
-			self.currGrid.addWidget(MyLabelRight("regex:"), i - 1, 2)
+			self.currGrid.addWidget(PBLabel("Replace:"), i - 1, 0)
+			self.currGrid.addWidget(PBLabelRight("regex:"), i - 1, 2)
 			self.replRegex = QCheckBox("", self)
 			self.currGrid.addWidget(self.replRegex, i - 1, 3)
 			try:
@@ -2189,8 +2189,8 @@ class SearchBibsWindow(EditObjectWindow):
 				old = ""
 				new = ""
 				new1 = ""
-			self.currGrid.addWidget(MyLabelRight("From field:"), i, 0)
-			self.replOldField = MyComboBox(self,
+			self.currGrid.addWidget(PBLabelRight("From field:"), i, 0)
+			self.replOldField = PBComboBox(self,
 				["arxiv", "doi", "year", "author", "title",
 				"journal", "number", "volume", "published"],
 				current = fieNew)
@@ -2198,8 +2198,8 @@ class SearchBibsWindow(EditObjectWindow):
 			self.replOld = QLineEdit(old)
 			self.currGrid.addWidget(self.replOld, i, 3, 1, 3)
 			i += 1
-			self.currGrid.addWidget(MyLabelRight("Into field:"), i, 0)
-			self.replNewField = MyComboBox(self,
+			self.currGrid.addWidget(PBLabelRight("Into field:"), i, 0)
+			self.replNewField = PBComboBox(self,
 				["arxiv", "doi", "year", "author", "title",
 				"journal", "number", "volume"], current=fieNew)
 			self.currGrid.addWidget(self.replNewField, i, 1, 1, 2)
@@ -2208,7 +2208,7 @@ class SearchBibsWindow(EditObjectWindow):
 			i += 1
 			self.doubleEdit = QCheckBox("and also:")
 			self.currGrid.addWidget(self.doubleEdit, i, 0)
-			self.replNewField1 = MyComboBox(self,
+			self.replNewField1 = PBComboBox(self,
 				["arxiv", "doi", "year", "author", "title",
 				"journal", "number", "volume"], current=fieNew)
 			self.currGrid.addWidget(self.replNewField1, i, 1, 1, 2)
@@ -2227,13 +2227,13 @@ class SearchBibsWindow(EditObjectWindow):
 			except AttributeError:
 				lim = str(pbConfig.params["defaultLimitBibtexs"])
 				offs = "0"
-			self.currGrid.addWidget(MyLabelRight("Max number of results:"),
+			self.currGrid.addWidget(PBLabelRight("Max number of results:"),
 				i - 1, 0, 1, 2)
 			self.limitValue = QLineEdit(lim)
 			self.limitValue.setMaxLength(6)
 			self.limitValue.setFixedWidth(75)
 			self.currGrid.addWidget(self.limitValue, i - 1, 2)
-			self.currGrid.addWidget(MyLabelRight("Start from:"),
+			self.currGrid.addWidget(PBLabelRight("Start from:"),
 				i - 1, 3, 1, 2)
 			self.limitOffs = QLineEdit(offs)
 			self.limitOffs.setMaxLength(6)
@@ -2418,7 +2418,7 @@ class MergeBibtexs(EditBibtexDialog):
 			self.textValues[k] = QLineEdit(str(old0))
 			self.textValues[k].hide()
 		else:
-			self.currGrid.addWidget(MyLabelCenter(
+			self.currGrid.addWidget(PBLabelCenter(
 				"%s (%s)"%(k, pBDB.descriptions["entries"][k])),
 				r, 0, 1, 5)
 			r += 1
@@ -2473,7 +2473,7 @@ class MergeBibtexs(EditBibtexDialog):
 		"""
 		r += 1
 		k = "bibkey"
-		self.currGrid.addWidget(MyLabelCenter(
+		self.currGrid.addWidget(PBLabelCenter(
 			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), r, 0, 1, 5)
 		r += 1
 		self.addFieldOld("0", k, r, 0)
@@ -2487,7 +2487,7 @@ class MergeBibtexs(EditBibtexDialog):
 
 		r += 1
 		k = "bibtex"
-		self.currGrid.addWidget(MyLabelCenter(
+		self.currGrid.addWidget(PBLabelCenter(
 			"%s (%s)"%(k, pBDB.descriptions["entries"][k])), r, 0, 1, 5)
 		r += 1
 		self.addBibtexOld("0", r, 0)

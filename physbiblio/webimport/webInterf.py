@@ -1,4 +1,4 @@
-"""Module that creates the base class webInterf,
+"""Module that creates the base class WebInterf,
 which will be used by other modules in this package.
 
 Uses urllib to download url content.
@@ -30,7 +30,7 @@ pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
 
-class webInterf():
+class WebInterf():
 	"""This is the main class for the web search methods.
 
 	It contains a constructor, a function to create an appropriate url
@@ -132,8 +132,8 @@ class webInterf():
 		for method in self.interfaces:
 			try:
 				_temp = __import__("physbiblio.webimport." + method,
-					globals(), locals(), ["webSearch"])
-				self.webSearch[method] = getattr(_temp, "webSearch")()
+					globals(), locals(), ["WebSearch"])
+				self.webSearch[method] = getattr(_temp, "WebSearch")()
 			except Exception:
 				pBLogger.exception(
 					"Error importing physbiblio.webimport.%s"%method)
@@ -173,5 +173,5 @@ class webInterf():
 			return ""
 
 
-physBiblioWeb = webInterf()
+physBiblioWeb = WebInterf()
 physBiblioWeb.loadInterfaces()

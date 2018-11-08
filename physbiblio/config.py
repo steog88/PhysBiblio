@@ -10,7 +10,7 @@ import logging
 from appdirs import AppDirs
 
 try:
-	from physbiblio.databaseCore import physbiblioDBCore, physbiblioDBSub
+	from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
 	from physbiblio.tablesDef import profilesSettingsTable, searchesTable
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -126,7 +126,7 @@ for p in configuration_params:
 	config_special[p["name"]] = p["special"]
 
 
-class globalDB(physbiblioDBCore):
+class GlobalDB(PhysBiblioDBCore):
 	"""Class that manages the operations on the global DB:
 	profiles and frequent searches/replaces
 	"""
@@ -141,7 +141,7 @@ class globalDB(physbiblioDBCore):
 			info (boolean, default True): print some output messages
 		"""
 		self.dataPath = datapath
-		physbiblioDBCore.__init__(self, dbname, logger, noOpen=True)
+		PhysBiblioDBCore.__init__(self, dbname, logger, noOpen=True)
 		self.openDB(info=info)
 
 		self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
@@ -570,7 +570,7 @@ class globalDB(physbiblioDBCore):
 		return True
 
 
-class configurationDB(physbiblioDBSub):
+class ConfigurationDB(PhysBiblioDBSub):
 	"""Subclass that manages the functions for the categories."""
 
 	def count(self):
@@ -697,7 +697,7 @@ class ConfigVars():
 
 		self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
 		self.globalDbFile = os.path.join(self.configPath, profileFileName)
-		self.globalDb = globalDB(self.globalDbFile,
+		self.globalDb = GlobalDB(self.globalDbFile,
 			self.logger, self.dataPath, info=False)
 
 		self.checkOldProfiles()
@@ -766,9 +766,9 @@ class ConfigVars():
 			defProf, profiles, profileOrder = self.oldReadProfiles()
 			for k in profiles.keys():
 				self.oldReInit(k, profiles[k])
-				tempDb = physbiblioDBCore(
+				tempDb = PhysBiblioDBCore(
 					self.params["mainDatabaseName"], self.logger)
-				configDb = configurationDB(tempDb)
+				configDb = ConfigurationDB(tempDb)
 
 				self.globalDb.createProfile(
 					name=k,
@@ -859,9 +859,9 @@ class ConfigVars():
 			if isinstance(v, str) and "PBDATA" in v:
 				v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
 			self.params[k] = v
-		tempDb = physbiblioDBCore(self.currentDatabase,
+		tempDb = PhysBiblioDBCore(self.currentDatabase,
 			self.logger, info = False)
-		configDb = configurationDB(tempDb)
+		configDb = ConfigurationDB(tempDb)
 		try:
 			for k in config_defaults.keys():
 				if k == "mainDatabaseName":

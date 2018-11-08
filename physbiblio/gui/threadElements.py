@@ -20,13 +20,13 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.export import pBExport
 	from physbiblio.gui.commonClasses import \
-		MyThread, WriteStream
+		PBThread, WriteStream
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
 
 
-class thread_checkUpdated(MyThread):
+class Thread_checkUpdated(PBThread):
 	"""Thread that checks if PhysBiblio is updated,
 	using the `outdated` package
 	"""
@@ -48,11 +48,11 @@ class thread_checkUpdated(MyThread):
 				+ "Are you offline?", exc_info=True)
 
 
-class thread_updateAllBibtexs(MyThread):
+class Thread_updateAllBibtexs(PBThread):
 	"""Thread that uses `pBDB.bibs.searchOAIUpdates`"""
 
 	def __init__(self,
-			myrec,
+			receiver,
 			startFrom,
 			parent=None,
 			useEntries=None,
@@ -61,21 +61,21 @@ class thread_updateAllBibtexs(MyThread):
 		"""Initialize the thread and store the required settings
 
 		Parameters:
-			myrec: the receiver for the text output (a `WriteStream` object)
+			receiver: the receiver for the text output (a `WriteStream` object)
 			startFrom: the index where to start from the update
-				(see `physbiblio.database.entries.searchOAIUpdates`)
+				(see `physbiblio.database.Entries.searchOAIUpdates`)
 			parent: the parent widget
 			useEntries: the list of entries that must be updated
-				(see `physbiblio.database.entries.searchOAIUpdates`)
+				(see `physbiblio.database.Entries.searchOAIUpdates`)
 			force: force the update of all entries
-				(see `physbiblio.database.entries.searchOAIUpdates`)
+				(see `physbiblio.database.Entries.searchOAIUpdates`)
 			reloadAll:  reload the entry completely, without trying
 				to simply update the existing one
-				(see `physbiblio.database.entries.searchOAIUpdates`)
+				(see `physbiblio.database.Entries.searchOAIUpdates`)
 		"""
-		super(thread_updateAllBibtexs, self).__init__(parent)
+		super(Thread_updateAllBibtexs, self).__init__(parent)
 		self.startFrom = startFrom
-		self.receiver = myrec
+		self.receiver = receiver
 		self.useEntries = useEntries
 		self.force = force
 		self.reloadAll = reloadAll
@@ -97,28 +97,28 @@ class thread_updateAllBibtexs(MyThread):
 		pBDB.bibs.runningOAIUpdates = False
 
 
-class thread_updateInspireInfo(MyThread):
-	"""Thread that uses `physbiblio.database.entries.updateInfoFromOAI`
+class Thread_updateInspireInfo(PBThread):
+	"""Thread that uses `physbiblio.database.Entries.updateInfoFromOAI`
 	to update the entry record.
 	If the inspireID is missing,
-	use `physbiblio.database.entries.updateInspireID` to retrieve it.
+	use `physbiblio.database.Entries.updateInspireID` to retrieve it.
 	"""
 
-	def __init__(self, myrec, bibkey, inspireID=None, parent=None):
+	def __init__(self, receiver, bibkey, inspireID=None, parent=None):
 		"""Initialize the thread and store the required settings
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			bibkey: the key of the entry to process
 			inspireID: the identifier of the entry
 				in the INSPIRE database
 			parent: the parent widget
 		"""
-		super(thread_updateInspireInfo, self).__init__(parent)
+		super(Thread_updateInspireInfo, self).__init__(parent)
 		self.bibkey = bibkey
 		self.inspireID = inspireID
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,
@@ -149,7 +149,7 @@ class thread_updateInspireInfo(MyThread):
 		self.receiver.running = False
 
 
-class thread_downloadArxiv(MyThread):
+class Thread_downloadArxiv(PBThread):
 	"""Use `physbiblio.pdf.LocalPDF.downloadArxiv`
 	to download the article PDF from arXiv.
 	A valid arXiv number must be present
@@ -162,7 +162,7 @@ class thread_downloadArxiv(MyThread):
 		Parameter:
 			bibkey: the identifier of the entry in the database
 		"""
-		super(thread_downloadArxiv, self).__init__(parent)
+		super(Thread_downloadArxiv, self).__init__(parent)
 		self.bibkey = bibkey
 
 	def run(self):
@@ -170,7 +170,7 @@ class thread_downloadArxiv(MyThread):
 		pBPDF.downloadArxiv(self.bibkey)
 
 
-class thread_processLatex(MyThread):
+class Thread_processLatex(PBThread):
 	"""Thread the function that processes the presence
 	of maths in the abstracts
 	"""
@@ -186,7 +186,7 @@ class thread_processLatex(MyThread):
 				Must be passed as an argument due to the dependencies.
 			parent: the parent widget
 		"""
-		super(thread_processLatex, self).__init__(parent)
+		super(Thread_processLatex, self).__init__(parent)
 		self.func = func
 
 	def run(self):
@@ -197,28 +197,28 @@ class thread_processLatex(MyThread):
 		self.passData.emit(images, text)
 
 
-class thread_authorStats(MyThread):
+class Thread_authorStats(PBThread):
 	"""Thread using
-	`physbiblio.inspireStats.inspireStatsLoader.authorStats`
+	`physbiblio.inspireStats.InspireStatsLoader.authorStats`
 	for downloading the author citation statistics
 	"""
 
-	def __init__(self, myrec, name, parent):
+	def __init__(self, receiver, name, parent):
 		"""Initialize the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` instance)
 			name: the author identifier in INSPIRE
 			parent: the parent widget. Cannot be None
 		"""
-		super(thread_authorStats, self).__init__(parent)
+		super(Thread_authorStats, self).__init__(parent)
 		try:
 			self.parent().lastAuthorStats = False
 		except AttributeError:
-			raise Exception("Cannot run thread_authorStats: invalid parent")
+			raise Exception("Cannot run Thread_authorStats: invalid parent")
 		self.authorName = name
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver, run `pBStats.authorStats` and finish"""
@@ -232,26 +232,26 @@ class thread_authorStats(MyThread):
 		pBStats.runningAuthorStats = False
 
 
-class thread_paperStats(MyThread):
-	"""Thread using `physbiblio.inspireStats.inspireStatsLoader.paperStats`
+class Thread_paperStats(PBThread):
+	"""Thread using `physbiblio.inspireStats.InspireStatsLoader.paperStats`
 	for downloading the paper citation statistics
 	"""
 
-	def __init__(self, myrec, inspireId, parent):
+	def __init__(self, receiver, inspireId, parent):
 		"""Initialize the object
 
 		Parameters:
-			myrec: the receiver for the text output (a `WriteStream` instance)
+			receiver: the receiver for the text output (a `WriteStream` instance)
 			inspireId: the paper identifier in INSPIRE
 			parent: the parent widget. Cannot be None
 		"""
-		super(thread_paperStats, self).__init__(parent)
+		super(Thread_paperStats, self).__init__(parent)
 		try:
 			self.parent().lastPaperStats = False
 		except AttributeError:
-			raise Exception("Cannot run thread_paperStats: invalid parent")
+			raise Exception("Cannot run Thread_paperStats: invalid parent")
 		self.inspireId = inspireId
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver, run `pBStats.paperStats` and finish"""
@@ -261,24 +261,24 @@ class thread_paperStats(MyThread):
 		self.receiver.running = False
 
 
-class thread_loadAndInsert(MyThread):
+class Thread_loadAndInsert(PBThread):
 	"""Thread the execution of `pBDB.bibs.loadAndInsert`"""
 
-	def __init__(self, myrec, content, parent):
+	def __init__(self, receiver, content, parent):
 		"""Instantiate object.
 
 		Parameters:
-			myrec: the receiver for the text output (a `WriteStream` object)
+			receiver: the receiver for the text output (a `WriteStream` object)
 			content: the string to be searched in INSPIRE
 			parent: the parent widget. Cannot be None
 		"""
-		super(thread_loadAndInsert, self).__init__(parent)
+		super(Thread_loadAndInsert, self).__init__(parent)
 		try:
 			self.parent().lastAuthorStats = False
 		except AttributeError:
-			raise Exception("Cannot run thread_loadAndInsert: invalid parent")
+			raise Exception("Cannot run Thread_loadAndInsert: invalid parent")
 		self.content = content
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver, run `pBDB.bibs.loadAndInsert` and finish"""
@@ -296,26 +296,26 @@ class thread_loadAndInsert(MyThread):
 		pBDB.bibs.runningLoadAndInsert = False
 
 
-class thread_cleanAllBibtexs(MyThread):
+class Thread_cleanAllBibtexs(PBThread):
 	"""Thread the execution
-	of `physbiblio.database.entries.cleanBibtexs`
+	of `physbiblio.database.Entries.cleanBibtexs`
 	"""
 
-	def __init__(self, myrec, startFrom, parent=None, useEntries=None):
+	def __init__(self, receiver, startFrom, parent=None, useEntries=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			startFrom: the list index of the object where to start from
-				(see `physbiblio.database.entries.cleanBibtexs`)
+				(see `physbiblio.database.Entries.cleanBibtexs`)
 			parent: the parent widget
 			useEntries (optional): the list of entries to be processed
-				(see `physbiblio.database.entries.cleanBibtexs`)
+				(see `physbiblio.database.Entries.cleanBibtexs`)
 		"""
-		super(thread_cleanAllBibtexs, self).__init__(parent)
+		super(Thread_cleanAllBibtexs, self).__init__(parent)
 		self.startFrom = startFrom
-		self.receiver = myrec
+		self.receiver = receiver
 		self.useEntries = useEntries
 
 	def run(self):
@@ -330,31 +330,31 @@ class thread_cleanAllBibtexs(MyThread):
 		pBDB.bibs.runningCleanBibtexs = False
 
 
-class thread_findBadBibtexs(MyThread):
+class Thread_findBadBibtexs(PBThread):
 	"""Thread the execution of
-	`physbiblio.database.entries.findCorruptedBibtexs`
+	`physbiblio.database.Entries.findCorruptedBibtexs`
 	"""
 
-	def __init__(self, myrec, startFrom, parent, useEntries=None):
+	def __init__(self, receiver, startFrom, parent, useEntries=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			startFrom: the list index of the object where to start from
-				(see `physbiblio.database.entries.findCorruptedBibtexs`)
+				(see `physbiblio.database.Entries.findCorruptedBibtexs`)
 			parent: the parent widget. Cannot be None
 			useEntries (optional): the list of entries to be processed
-				(see `physbiblio.database.entries.findCorruptedBibtexs`)
+				(see `physbiblio.database.Entries.findCorruptedBibtexs`)
 		"""
-		super(thread_findBadBibtexs, self).__init__(parent)
+		super(Thread_findBadBibtexs, self).__init__(parent)
 		try:
 			self.parent().badBibtexs = False
 		except AttributeError:
 			raise Exception(
-				"Cannot run thread_findBadBibtexs: invalid parent")
+				"Cannot run Thread_findBadBibtexs: invalid parent")
 		self.startFrom = startFrom
-		self.receiver = myrec
+		self.receiver = receiver
 		self.useEntries = useEntries
 
 	def run(self):
@@ -372,26 +372,26 @@ class thread_findBadBibtexs(MyThread):
 		pBDB.bibs.runningFindBadBibtexs = False
 
 
-class thread_importFromBib(MyThread):
+class Thread_importFromBib(PBThread):
 	"""Thread the execution of
-	`physbiblio.database.entries.importFromBib`
+	`physbiblio.database.Entries.importFromBib`
 	"""
 
-	def __init__(self, myrec, bibFile, complete, parent=None):
+	def __init__(self, receiver, bibFile, complete, parent=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			bibFile: the name of the file to import
 			complete: complete info online, using INSPIRE
-				(see `physbiblio.database.entries.importFromBib`)
+				(see `physbiblio.database.Entries.importFromBib`)
 			parent: the parent widget
 		"""
-		super(thread_importFromBib, self).__init__(parent)
+		super(Thread_importFromBib, self).__init__(parent)
 		self.bibFile = bibFile
 		self.complete = complete
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,
@@ -407,25 +407,25 @@ class thread_importFromBib(MyThread):
 		pBDB.bibs.importFromBibFlag = False
 
 
-class thread_exportTexBib(MyThread):
+class Thread_exportTexBib(PBThread):
 	"""Thread the execution of
-	`physbiblio.export.pbExport.exportForTexFile`
+	`physbiblio.export.PBExport.exportForTexFile`
 	"""
 
-	def __init__(self, myrec, texFiles, outFName, parent=None):
+	def __init__(self, receiver, texFiles, outFName, parent=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			texFiles: a list of '.tex' file names or a single file name
 			outFName: the file name of the output '.bib' file
 			parent: the parent widget
 		"""
-		super(thread_exportTexBib, self).__init__(parent)
+		super(Thread_exportTexBib, self).__init__(parent)
 		self.texFiles = texFiles
 		self.outFName = outFName
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,
@@ -441,21 +441,21 @@ class thread_exportTexBib(MyThread):
 		pBExport.exportForTexFlag = False
 
 
-class thread_cleanSpare(MyThread):
+class Thread_cleanSpare(PBThread):
 	"""Thread the execution of
-	`physbiblio.database.utilities.cleanSpareEntries`
+	`physbiblio.database.Utilities.cleanSpareEntries`
 	"""
 
-	def __init__(self, myrec, parent):
+	def __init__(self, receiver, parent):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			parent: the parent widget
 		"""
-		MyThread.__init__(self, parent)
-		self.receiver = myrec
+		PBThread.__init__(self, parent)
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,
@@ -466,21 +466,21 @@ class thread_cleanSpare(MyThread):
 		self.receiver.running = False
 
 
-class thread_cleanSparePDF(MyThread):
+class Thread_cleanSparePDF(PBThread):
 	"""Thread the execution of
 	`physbiblio.pdf.LocalPDF.removeSparePDFFolders`
 	"""
 
-	def __init__(self, myrec, parent=None):
+	def __init__(self, receiver, parent=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			parent: the parent widget
 		"""
-		super(thread_cleanSparePDF, self).__init__(parent)
-		self.receiver = myrec
+		super(Thread_cleanSparePDF, self).__init__(parent)
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,
@@ -491,26 +491,26 @@ class thread_cleanSparePDF(MyThread):
 		self.receiver.running = False
 
 
-class thread_fieldsArxiv(MyThread):
+class Thread_fieldsArxiv(PBThread):
 	"""Thread the execution of
-	`physbiblio.database.entries.getFieldsFromArxiv`
+	`physbiblio.database.Entries.getFieldsFromArxiv`
 	"""
 
-	def __init__(self, myrec, entries, fields, parent=None):
+	def __init__(self, receiver, entries, fields, parent=None):
 		"""Instantiate the object
 
 		Parameters:
-			myrec: the receiver for the text output
+			receiver: the receiver for the text output
 				(a `WriteStream` object)
 			entries: the list of entries or the single entry
 				for which the new fields must be added
 			fields: the list of fields to be updated from arXiv
 			parent: the parent widget
 		"""
-		super(thread_fieldsArxiv, self).__init__(parent)
+		super(Thread_fieldsArxiv, self).__init__(parent)
 		self.entries = entries
 		self.fields = fields
-		self.receiver = myrec
+		self.receiver = receiver
 
 	def run(self):
 		"""Start the receiver,

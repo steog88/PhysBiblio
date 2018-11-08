@@ -33,27 +33,27 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import \
 		askFileName, askFileNames, askGenericText, askSaveFileName, \
-		askYesNo, infoMessage, longInfoMessage
+		askYesNo, infoMessage, LongInfoMessage
 	from physbiblio.gui.commonClasses import \
-		MyComboBox, WriteStream
+		PBComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
 		AbstractFormulas, FieldsFromArxiv, SearchBibsWindow, editBibtex, \
 		BibtexListWindow, BibtexInfo
-	from physbiblio.gui.catWindows import catsTreeWindow, editCategory
+	from physbiblio.gui.catWindows import CatsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
-		configWindow, LogFileContentDialog, PrintText, advImportDialog, \
-		advImportSelect, dailyArxivDialog, dailyArxivSelect
+		ConfigWindow, LogFileContentDialog, PrintText, AdvancedImportDialog, \
+		AdvancedImportSelect, DailyArxivDialog, DailyArxivSelect
 	from physbiblio.gui.expWindows import \
 		editExperiment, ExpsListWindow, EditExperimentDialog
 	from physbiblio.gui.inspireStatsGUI import \
-		authorStatsPlots, paperStatsPlots
-	from physbiblio.gui.profilesManager import selectProfiles, editProfile
+		AuthorStatsPlots, PaperStatsPlots
+	from physbiblio.gui.profilesManager import SelectProfiles, editProfile
 	from physbiblio.gui.threadElements import \
-		thread_authorStats, thread_cleanSpare, thread_cleanSparePDF, \
-		thread_updateAllBibtexs, thread_exportTexBib, thread_importFromBib, \
-		thread_updateInspireInfo, thread_paperStats, thread_loadAndInsert, \
-		thread_cleanAllBibtexs, thread_findBadBibtexs, thread_fieldsArxiv, \
-		thread_checkUpdated
+		Thread_authorStats, Thread_cleanSpare, Thread_cleanSparePDF, \
+		Thread_updateAllBibtexs, Thread_exportTexBib, Thread_importFromBib, \
+		Thread_updateInspireInfo, Thread_paperStats, Thread_loadAndInsert, \
+		Thread_cleanAllBibtexs, Thread_findBadBibtexs, Thread_fieldsArxiv, \
+		Thread_checkUpdated
 except ImportError as e:
 	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())
@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
 		#Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-		self.checkUpdated = thread_checkUpdated(self)
+		self.checkUpdated = Thread_checkUpdated(self)
 		self.checkUpdated.finished.connect(self.checkUpdated.deleteLater)
 		self.checkUpdated.result.connect(self.printNewVersion)
 		self.checkUpdated.start()
@@ -551,7 +551,7 @@ class MainWindow(QMainWindow):
 
 	def manageProfiles(self):
 		"""Ask and change profile"""
-		profilesWin = selectProfiles(self)
+		profilesWin = SelectProfiles(self)
 		profilesWin.exec_()
 
 	def editProfile(self):
@@ -562,12 +562,12 @@ class MainWindow(QMainWindow):
 		"""Open a window to manage the configuration of PhysBiblio,
 		then read its output and save the results
 		"""
-		cfgWin = configWindow(self)
+		cfgWin = ConfigWindow(self)
 		cfgWin.exec_()
 		if cfgWin.result:
 			changed = False
 			for q in cfgWin.textValues:
-				if isinstance(q[1], MyComboBox):
+				if isinstance(q[1], PBComboBox):
 					s = "%s"%q[1].currentText()
 				else:
 					s = "%s"%q[1].text()
@@ -672,12 +672,12 @@ class MainWindow(QMainWindow):
 			return mbox
 		mbox.show()
 
-	def _runInThread(self, thread_func, title, *args, **kwargs):
+	def _runInThread(self, Thread_func, title, *args, **kwargs):
 		"""Function which simplifies the creation of the objects which
 		are needed to run a function in a thread
 
 		Parameters:
-			thread_func: the thread class name
+			Thread_func: the thread class name
 			title: the title of the window where the output is shown
 			*args, **kwargs: all the other parameters which will
 				be passed to the thread constructor
@@ -706,7 +706,7 @@ class MainWindow(QMainWindow):
 		queue = Queue()
 		ws = WriteStream(queue)
 		ws.newText.connect(app.appendText)
-		thr = thread_func(ws, *args, parent=self, **kwargs)
+		thr = Thread_func(ws, *args, parent=self, **kwargs)
 
 		ws.finished.connect(ws.deleteLater)
 		thr.finished.connect(app.enableClose)
@@ -730,7 +730,7 @@ class MainWindow(QMainWindow):
 		"""Run a thread to clean the spare connections and records
 		in the database (if something has not been properly deleted)
 		"""
-		self._runInThread(thread_cleanSpare, "Clean spare entries")
+		self._runInThread(Thread_cleanSpare, "Clean spare entries")
 
 	def cleanSparePDF(self):
 		"""Ask and run a thread to remove the spare PDF files/folder
@@ -739,7 +739,7 @@ class MainWindow(QMainWindow):
 		if askYesNo("Do you really want to delete the unassociated "
 				+ "PDF folders?\nThere may be some (unlikely) "
 				+ "accidental deletion of files."):
-			self._runInThread(thread_cleanSparePDF, "Clean spare PDF folders")
+			self._runInThread(Thread_cleanSparePDF, "Clean spare PDF folders")
 
 	def createStatusBar(self):
 		"""Function to create Status Bar"""
@@ -772,7 +772,7 @@ class MainWindow(QMainWindow):
 			filter="Bibtex (*.bib)")
 		if filename != "":
 			self._runInThread(
-				thread_importFromBib,
+				Thread_importFromBib,
 				"Importing...",
 				filename,
 				askYesNo("Do you want to use INSPIRE "
@@ -829,7 +829,7 @@ class MainWindow(QMainWindow):
 			if (not isinstance(texFile, list) and texFile != "") \
 					or (isinstance(texFile, list) and len(texFile)>0):
 				self._runInThread(
-					thread_exportTexBib,
+					Thread_exportTexBib,
 					"Exporting...",
 					texFile,
 					outFName,
@@ -872,7 +872,7 @@ class MainWindow(QMainWindow):
 	def categories(self):
 		"""Open a window to show the list categories"""
 		self.statusBarMessage("categories triggered")
-		catListWin = catsTreeWindow(self)
+		catListWin = CatsTreeWindow(self)
 		catListWin.show()
 
 	def newCategory(self):
@@ -1040,7 +1040,7 @@ class MainWindow(QMainWindow):
 
 		Parameters:
 			searchDict: the dictionary with the search parameters
-				to be used in `database.entries.fetchFromDict`
+				to be used in `database.Entries.fetchFromDict`
 			lim: the maximum number of entries to fetch
 			offs: the offset for the search
 		"""
@@ -1064,7 +1064,7 @@ class MainWindow(QMainWindow):
 
 		Parameters:
 			searchDict: the dictionary with the search parameters
-				to be used in `database.entries.fetchFromDict`
+				to be used in `database.Entries.fetchFromDict`
 			replaceFields: a tuple/list of 5 elements,
 				as in the output of `self.searchBiblio`
 			offs: the offset for the search
@@ -1094,7 +1094,7 @@ class MainWindow(QMainWindow):
 		self.runReplace(result)
 
 	def runReplace(self, replace):
-		"""Run the `database.entries.replace` function,
+		"""Run the `database.Entries.replace` function,
 		then print some output in a dialog
 
 		Parameter:
@@ -1114,7 +1114,7 @@ class MainWindow(QMainWindow):
 			fiOld, fiNew, old, new,
 			entries=pBDB.bibs.fetchCursor(), regex=regex)
 		QApplication.restoreOverrideCursor()
-		longInfoMessage("Replace completed.<br><br>"
+		LongInfoMessage("Replace completed.<br><br>"
 			+ "%d elements successfully processed "%len(success)
 			+ "(of which %d changed), "%len(changed)
 			+ "%d failures (see below)."%len(failed)
@@ -1159,7 +1159,7 @@ class MainWindow(QMainWindow):
 		and update their bibtex with the new data.
 		Typically used to add journal information to arXiv papers.
 
-		Parameters (see `physbiblio.database.entries.searchOAIUpdates`):
+		Parameters (see `physbiblio.database.Entries.searchOAIUpdates`):
 			startFrom (default from the app settings): the index
 				of the entry where to start from
 			useEntries (default None): None (then use all)
@@ -1173,7 +1173,7 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage(
 			"Starting update of bibtexs from %s..."%startFrom)
 		self._runInThread(
-			thread_updateAllBibtexs,
+			Thread_updateAllBibtexs,
 			"Update Bibtexs",
 			startFrom,
 			useEntries=useEntries,
@@ -1198,7 +1198,7 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage(
 			"Starting generic info update from INSPIRE-HEP...")
 		self._runInThread(
-			thread_updateInspireInfo,
+			Thread_updateInspireInfo,
 			"Update Info",
 			bibkey,
 			inspireID,
@@ -1234,7 +1234,7 @@ class MainWindow(QMainWindow):
 			"Starting computing author stats from INSPIRE...")
 
 		self._runInThread(
-			thread_authorStats, "Author Stats",
+			Thread_authorStats, "Author Stats",
 			authorName,
 			totStr="AuthorStats will process ",
 			progrStr="%) - looking for paper: ",
@@ -1246,7 +1246,7 @@ class MainWindow(QMainWindow):
 				+ "Maybe there was an error or you interrupted execution.")
 			return False
 		self.lastAuthorStats["figs"] = pBStats.plotStats(author=True)
-		aSP = authorStatsPlots(self.lastAuthorStats["figs"],
+		aSP = AuthorStatsPlots(self.lastAuthorStats["figs"],
 			title="Statistics for %s"%authorName,
 			parent=self)
 		aSP.show()
@@ -1260,7 +1260,7 @@ class MainWindow(QMainWindow):
 			inspireId: the ID of the paper in the INSPIRE database
 		"""
 		self._runInThread(
-			thread_paperStats, "Paper Stats",
+			Thread_paperStats, "Paper Stats",
 			inspireId,
 			totStr="PaperStats will process ",
 			progrStr="%) - looking for paper: ",
@@ -1269,7 +1269,7 @@ class MainWindow(QMainWindow):
 			infoMessage("No results obtained. Maybe there was an error.")
 			return False
 		self.lastPaperStats["fig"] = pBStats.plotStats(paper=True)
-		pSP = paperStatsPlots(self.lastPaperStats["fig"],
+		pSP = PaperStatsPlots(self.lastPaperStats["fig"],
 			title="Statistics for recid:%s"%inspireId,
 			parent=self)
 		pSP.show()
@@ -1304,7 +1304,7 @@ class MainWindow(QMainWindow):
 				return False
 
 		self._runInThread(
-			thread_loadAndInsert, "Import from INSPIRE-HEP",
+			Thread_loadAndInsert, "Import from INSPIRE-HEP",
 			queryStr,
 			totStr="LoadAndInsert will process ",
 			progrStr="%) - looking for string: ",
@@ -1327,7 +1327,7 @@ class MainWindow(QMainWindow):
 			entriesList: the list of entries to be used
 		"""
 		for entry in entriesList:
-			selectCats = catsTreeWindow(parent=self,
+			selectCats = CatsTreeWindow(parent=self,
 				askCats=True,
 				askForBib=entry,
 				previous=[a[0] for a in pBDB.cats.getByEntry(entry)])
@@ -1362,7 +1362,7 @@ class MainWindow(QMainWindow):
 		and insert the search string,
 		then import a selection among the obtained results
 		"""
-		adIm = advImportDialog()
+		adIm = AdvancedImportDialog()
 		adIm.exec_()
 		method = adIm.comboMethod.currentText().lower()
 		if method == "inspire-hep":
@@ -1400,7 +1400,7 @@ class MainWindow(QMainWindow):
 				return False
 
 			QApplication.restoreOverrideCursor()
-			selImpo = advImportSelect(found, self)
+			selImpo = AdvancedImportSelect(found, self)
 			selImpo.exec_()
 			if selImpo.result == True:
 				newFound = {}
@@ -1478,7 +1478,7 @@ class MainWindow(QMainWindow):
 		"""
 		self.statusBarMessage("Starting cleaning of bibtexs...")
 		self._runInThread(
-			thread_cleanAllBibtexs, "Clean Bibtexs",
+			Thread_cleanAllBibtexs, "Clean Bibtexs",
 			startFrom, useEntries=useEntries,
 			totStr="CleanBibtexs will process ",
 			progrStr="%) - cleaning: ",
@@ -1499,7 +1499,7 @@ class MainWindow(QMainWindow):
 		self.statusBarMessage("Starting checking bibtexs...")
 		self.badBibtexs = []
 		self._runInThread(
-			thread_findBadBibtexs,
+			Thread_findBadBibtexs,
 			"Check Bibtexs",
 			startFrom,
 			useEntries=useEntries,
@@ -1538,7 +1538,7 @@ class MainWindow(QMainWindow):
 		if askFieldsWin.result:
 			self.statusBarMessage("Starting importing info from arxiv...")
 			self._runInThread(
-				thread_fieldsArxiv,
+				Thread_fieldsArxiv,
 				"Get info from arXiv",
 				[e["bibkey"] for e in iterator],
 				askFieldsWin.output,
@@ -1552,7 +1552,7 @@ class MainWindow(QMainWindow):
 		a dialog for asking the category,
 		and import the selection of entries
 		"""
-		bDA = dailyArxivDialog()
+		bDA = DailyArxivDialog()
 		bDA.exec_()
 		cat = bDA.comboCat.currentText().lower()
 		if bDA.result and cat != "":
@@ -1580,7 +1580,7 @@ class MainWindow(QMainWindow):
 				return False
 
 			QApplication.restoreOverrideCursor()
-			selImpo = dailyArxivSelect(found, self)
+			selImpo = DailyArxivSelect(found, self)
 			selImpo.abstractFormulas = AbstractFormulas
 			selImpo.exec_()
 			if selImpo.result == True:
@@ -1659,7 +1659,7 @@ if __name__=='__main__':
 		myWindow.show()
 		sys.exit(myApp.exec_())
 	except NameError:
-		print("NameError:",sys.exc_info()[1])
+		print("NameError:", sys.exc_info()[1])
 	except SystemExit:
 		print("Closing main window...")
 	except Exception:

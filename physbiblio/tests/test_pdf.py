@@ -18,7 +18,7 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.config import pbConfig
-	from physbiblio.database import pBDB, physbiblioDB
+	from physbiblio.database import pBDB, PhysBiblioDB
 	from physbiblio.pdf import pBPDF
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -39,7 +39,7 @@ class TestPdfMethods(unittest.TestCase):
 		self.assertEqual(pBPDF.getFileDir(r'a\b/c:d*e?f"g<h>i|' + "j'"),
 			os.path.join(pBPDF.pdfDir, "a_b_c_d_e_f_g_h_i_j_"))
 		testPaperFolder = pBPDF.getFileDir("abc.def")
-		with patch('physbiblio.database.entries.getField',
+		with patch('physbiblio.database.Entries.getField',
 				return_value="12345678") as _mock:
 			self.assertEqual(pBPDF.getFilePath("abc.def", "arxiv"),
 				os.path.join(testPaperFolder, "12345678.pdf"))
@@ -53,7 +53,7 @@ class TestPdfMethods(unittest.TestCase):
 		self.assertFalse(os.path.exists(pBPDF.getFileDir("abc.def")))
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
 		open(emptyPdfName, 'a').close()
-		with patch('physbiblio.database.entries.getField',
+		with patch('physbiblio.database.Entries.getField',
 				return_value="12345678") as _mock:
 			pBPDF.copyNewFile("abc.fed", emptyPdfName, "arxiv")
 			pBPDF.copyNewFile("abc.fed", emptyPdfName,
@@ -73,7 +73,7 @@ class TestPdfMethods(unittest.TestCase):
 	@unittest.skipIf(skipTestsSettings.online, "Long tests")
 	def test_download(self):
 		"""Test downloadArxiv"""
-		with patch('physbiblio.database.entries.getField',
+		with patch('physbiblio.database.Entries.getField',
 				return_value="1806.11344") as _mock:
 			self.assertTrue(pBPDF.downloadArxiv("abc.def"))
 			self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
@@ -89,7 +89,7 @@ class TestPdfMethods(unittest.TestCase):
 			self.assertTrue(pBPDF.removeFile("abc.def", "file",
 				os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344")))
 			self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
-		with patch('physbiblio.database.entries.getField',
+		with patch('physbiblio.database.Entries.getField',
 				side_effect=["1801.15000", "1801.15000", "", "", None, None]
 				) as _mock:
 			self.assertFalse(pBPDF.downloadArxiv("abc.def"))
@@ -99,7 +99,7 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_removeSpare(self):
 		"""Test finding spare folders"""
-		with patch('physbiblio.database.entries.fetchCursor',
+		with patch('physbiblio.database.Entries.fetchCursor',
 				return_value=[{"bibkey":"abc"}, {"bibkey":"def"}]) as _mock:
 			for q in ["abc", "def", "ghi"]:
 				pBPDF.createFolder(q)

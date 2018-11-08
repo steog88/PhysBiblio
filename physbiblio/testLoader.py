@@ -12,7 +12,7 @@ else:
 from pkg_resources import resource_listdir, resource_exists
 
 
-class MyScanningLoader(TestLoader):
+class PBScanningLoader(TestLoader):
 	"""Custom ScanningLoader implementation to be used
 	when calling `setup.py test`
 	"""

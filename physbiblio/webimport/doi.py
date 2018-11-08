@@ -5,7 +5,7 @@ This file is part of the physbiblio package.
 import traceback
 try:
 	from physbiblio.errors import pBLogger
-	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.webimport.webInterf import WebInterf
 	from physbiblio.parseAccents import parse_accents_str
 	from physbiblio.config import pbConfig
 except ImportError:
@@ -14,17 +14,17 @@ except ImportError:
 	raise
 
 
-class webSearch(webInterf):
-	"""Subclass of webInterf that can connect
+class WebSearch(WebInterf):
+	"""Subclass of WebInterf that can connect
 	to doi.org to perform searches
 	"""
 
 	def __init__(self):
-		"""Initializes the class variables using the webInterf constructor.
+		"""Initializes the class variables using the WebInterf constructor.
 
 		Define additional specific parameters for the DOI.org API.
 		"""
-		webInterf.__init__(self)
+		WebInterf.__init__(self)
 		self.name = "doi"
 		self.description = "Doi fetcher"
 		self.url = pbConfig.doiUrl

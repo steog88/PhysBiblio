@@ -26,7 +26,7 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.inspireStatsGUI import *
 	from physbiblio.gui.basicDialogs import askDirName
-	from physbiblio.gui.commonClasses import MyLabel
+	from physbiblio.gui.commonClasses import PBLabel
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -893,7 +893,7 @@ testData["figs"] = pBStats.plotStats(author=True)
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestAuthorStatsPlots(GUIwMainWTestCase):
-	"""Test the functions in authorStatsPlots"""
+	"""Test the functions in AuthorStatsPlots"""
 
 	def test_figTitles(self):
 		"""test figTitles"""
@@ -910,19 +910,19 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		"""Test __init__"""
 		self.mainW.lastAuthorStats = {"h": 999}
 		self.mainW.lastPaperStats = {}
-		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
 				"updatePlots") as _up:
-			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"])
+			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"])
 			self.assertEqual(asp.figs, ["a", "b", "c", "d", "e", "f"])
 			_up.assert_called_once_with()
 			self.assertIsInstance(asp.layout(), QGridLayout)
 			self.assertEqual(asp.layout().columnCount(), 2)
 			self.assertEqual(asp.layout().rowCount(), 7)
 			w40 = asp.layout().itemAtPosition(4, 0).widget()
-			self.assertIsInstance(w40, MyLabel)
+			self.assertIsInstance(w40, PBLabel)
 			self.assertEqual(w40.text(),
 				"Click on the lines to have more information:")
-			self.assertIsInstance(asp.hIndex, MyLabel)
+			self.assertIsInstance(asp.hIndex, PBLabel)
 			self.assertEqual(asp.hIndex.font(), QFont("Times", 15, QFont.Bold))
 			self.assertEqual(asp.hIndex.text(), "Author h index: ND")
 			self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(),
@@ -935,7 +935,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertEqual(asp.saveButton.text(), "Save")
 			self.assertEqual(asp.layout().itemAtPosition(6, 0).widget(),
 				asp.saveButton)
-			with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
+			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
 					"saveAction") as _sa:
 				QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 				self.assertEqual(_sa.call_count, 1)
@@ -944,19 +944,19 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertTrue(asp.clButton.autoDefault())
 			self.assertEqual(asp.layout().itemAtPosition(6, 1).widget(),
 				asp.clButton)
-			with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
+			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
 					"onClose") as _cl:
 				QTest.mouseClick(asp.clButton, Qt.LeftButton)
 				self.assertEqual(_cl.call_count, 1)
 
-			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"],
+			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent=self.mainW)
 			self.assertEqual(asp.parent(), self.mainW)
-			self.assertIsInstance(asp.hIndex, MyLabel)
+			self.assertIsInstance(asp.hIndex, PBLabel)
 			self.assertEqual(asp.hIndex.text(), "Author h index: 999")
 			self.assertEqual(asp.windowTitle(), "")
 
-			asp = authorStatsPlots(
+			asp = AuthorStatsPlots(
 				["a", "b", "c", "d", "e", "f"],
 				title="abcdef",
 				parent=self.mainW)
@@ -965,13 +965,13 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 	def test_saveAction(self):
 		"""Test saveAction"""
 		self.mainW.lastAuthorStats = {"h": 999}
-		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
 				"updatePlots") as _up:
 			time.sleep(0.01)
-			asp = authorStatsPlots(["a", "b", "c", "d", "e", "f"],
+			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent=self.mainW)
 		self.assertTrue(asp.saveButton.isEnabled())
-		with patch("physbiblio.inspireStats.inspireStatsLoader.plotStats",
+		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
 				return_value="fakeval") as _ps:
 			with patch('PySide2.QtWidgets.QFileDialog.exec_',
 					new=lambda x: fakeExec(x, "/tmp", False)):
@@ -994,7 +994,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		"""Test pickEvent"""
 		self.mainW.lastAuthorStats = {"h": 999}
 		pt = QPoint(0,0)
-		asp = authorStatsPlots(testData["figs"], parent=self.mainW)
+		asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 		QTest.mouseClick(asp.layout().itemAtPosition(1, 0).widget(),
 			Qt.LeftButton,
 			pos=pt)
@@ -1014,12 +1014,12 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 	def test_updatePlots(self):
 		"""Test updatePlots"""
 		self.mainW.lastAuthorStats = {"h": 999}
-		with patch("physbiblio.gui.inspireStatsGUI.authorStatsPlots." +
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
 				"updatePlots") as _up:
-			asp = authorStatsPlots(testData["figs"], parent=self.mainW)
+			asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 			self.assertEqual(asp.figs, testData["figs"])
 			_up.assert_called_once_with()
-		asp = authorStatsPlots(testData["figs"], parent=self.mainW)
+		asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 		self.assertEqual(asp.figs, testData["figs"])
 		self.assertIsInstance(asp.canvas, list)
 		for i in [0, 1, 2]:
@@ -1032,7 +1032,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 					asp.figs[i*2 + j])
 		self.assertEqual(len(asp.canvas), 6)
 		self.assertEqual(len(asp.figs), 6)
-		asp = authorStatsPlots([None] + testData["figs"] + [None],
+		asp = AuthorStatsPlots([None] + testData["figs"] + [None],
 			parent=self.mainW)
 		self.assertEqual(len(asp.canvas), 6)
 		self.assertEqual(len(asp.figs), 8)
@@ -1045,17 +1045,17 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPaperStatsPlots(GUIwMainWTestCase):
-	"""Test the functions in paperStatsPlots"""
+	"""Test the functions in PaperStatsPlots"""
 
 	def test_init(self):
 		"""Test init"""
 		self.mainW.lastPaperStats = {}
-		asp = paperStatsPlots(testData['figs'][2])
+		asp = PaperStatsPlots(testData['figs'][2])
 		self.assertIsInstance(asp.layout(), QGridLayout)
 		self.assertEqual(asp.layout().columnCount(), 2)
 		self.assertEqual(asp.layout().rowCount(), 5)
 		w20 = asp.layout().itemAtPosition(2, 0).widget()
-		self.assertIsInstance(w20, MyLabel)
+		self.assertIsInstance(w20, PBLabel)
 		self.assertEqual(w20.text(),
 			"Click on the line to have more information:")
 		self.assertIsInstance(asp.textBox, QLineEdit)
@@ -1066,7 +1066,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertEqual(asp.saveButton.text(), "Save")
 		self.assertEqual(asp.layout().itemAtPosition(4, 0).widget(),
 			asp.saveButton)
-		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots." +
+		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots." +
 				"saveAction") as _sa:
 			QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 			self.assertEqual(_sa.call_count, 1)
@@ -1075,16 +1075,16 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertTrue(asp.clButton.autoDefault())
 		self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(),
 			asp.clButton)
-		with patch("physbiblio.gui.inspireStatsGUI.paperStatsPlots.onClose")  \
+		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots.onClose")  \
 				as _cl:
 			QTest.mouseClick(asp.clButton, Qt.LeftButton)
 			self.assertEqual(_cl.call_count, 1)
 
-		asp = paperStatsPlots(testData['figs'][2], parent=self.mainW)
+		asp = PaperStatsPlots(testData['figs'][2], parent=self.mainW)
 		self.assertEqual(asp.parent(), self.mainW)
 		self.assertEqual(asp.windowTitle(), "")
 
-		asp = paperStatsPlots(
+		asp = PaperStatsPlots(
 			testData['figs'][2],
 			title="abcdef",
 			parent=self.mainW)
@@ -1093,9 +1093,9 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 	def test_saveAction(self):
 		"""Test saveAction"""
 		self.mainW.lastPaperStats = {}
-		asp = paperStatsPlots(testData['figs'][2], parent=self.mainW)
+		asp = PaperStatsPlots(testData['figs'][2], parent=self.mainW)
 		self.assertTrue(asp.saveButton.isEnabled())
-		with patch("physbiblio.inspireStats.inspireStatsLoader.plotStats",
+		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
 				return_value="fakeval") as _ps:
 			with patch('PySide2.QtWidgets.QFileDialog.exec_',
 					new=lambda x: fakeExec(x, "/tmp", False)):
@@ -1118,7 +1118,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		"""Test pickEvent"""
 		self.mainW.lastPaperStats = {}
 		pt = QPoint(0,0)
-		asp = paperStatsPlots(testData['figs'][2], parent=self.mainW)
+		asp = PaperStatsPlots(testData['figs'][2], parent=self.mainW)
 		QTest.mouseClick(
 			asp.layout().itemAtPosition(0, 0).widget(),
 			Qt.LeftButton,
@@ -1129,7 +1129,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 	def test_updatePlots(self):
 		"""Test updatePlots"""
 		self.mainW.lastPaperStats = {}
-		asp = paperStatsPlots(testData['figs'][2], parent=self.mainW)
+		asp = PaperStatsPlots(testData['figs'][2], parent=self.mainW)
 		self.assertEqual(asp.fig, testData["figs"][2])
 		self.assertIsInstance(asp.canvas, FigureCanvasQTAgg)
 		self.assertIsInstance(asp.layout().itemAtPosition(0, 0).widget(),

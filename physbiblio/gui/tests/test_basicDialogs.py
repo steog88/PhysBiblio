@@ -49,9 +49,9 @@ class TestDialogWindows(GUITestCase):
 		self.assertEqual(win.text(), "mymessage")
 		self.assertEqual(win.windowTitle(), "mytitle")
 
-	def test_longInfoMessage(self):
-		"""Test longInfoMessage"""
-		win = longInfoMessage("mymessage", "mytitle", True)
+	def test_LongInfoMessage(self):
+		"""Test LongInfoMessage"""
+		win = LongInfoMessage("mymessage", "mytitle", True)
 		self.assertIsInstance(win, QDialog)
 		self.assertEqual(win.windowTitle(), "mytitle")
 		self.assertIsInstance(win.layout(), QGridLayout)

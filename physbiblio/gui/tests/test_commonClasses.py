@@ -53,7 +53,7 @@ def fakeExec_dataChanged(x, y):
 	assert x == y
 
 
-class emptyTableModel(QAbstractTableModel):
+class EmptyTableModel(QAbstractTableModel):
 	"""Used to do tests when a table model is needed"""
 
 	def __init__(self, *args):
@@ -69,7 +69,7 @@ class emptyTableModel(QAbstractTableModel):
 		return None
 
 
-class emptyTreeModel(TreeModel):
+class EmptyTreeModel(TreeModel):
 	"""Used to do tests when a tree model is needed"""
 
 	def __init__(self, elements, *args):
@@ -93,11 +93,11 @@ class emptyTreeModel(TreeModel):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLabels(GUITestCase):
-	"""Test the MyLabelRight and MyLabelCenter classes"""
+	"""Test the PBLabelRight and PBLabelCenter classes"""
 
 	def test_myLabel(self):
-		"""Test MyLabel"""
-		l = MyLabel("label")
+		"""Test PBLabel"""
+		l = PBLabel("label")
 		self.assertIsInstance(l, QLabel)
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.textInteractionFlags(),
@@ -106,97 +106,97 @@ class TestLabels(GUITestCase):
 		self.assertEqual(l.openExternalLinks(), True)
 
 	def test_myLabelRight(self):
-		"""Test MyLabelRight"""
-		l = MyLabelRight("label")
+		"""Test PBLabelRight"""
+		l = PBLabelRight("label")
 		self.assertIsInstance(l, QLabel)
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.alignment(), Qt.AlignRight | Qt.AlignVCenter)
 
 	def test_myLabelCenter(self):
-		"""Test MyLabelCenter"""
-		l = MyLabelCenter("label")
+		"""Test PBLabelCenter"""
+		l = PBLabelCenter("label")
 		self.assertIsInstance(l, QLabel)
 		self.assertEqual(l.text(), "label")
 		self.assertEqual(l.alignment(), Qt.AlignCenter | Qt.AlignVCenter)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyComboBox(GUITestCase):
-	"""Test the MyComboBox class"""
+class TestPBComboBox(GUITestCase):
+	"""Test the PBComboBox class"""
 
 	def test_init(self):
 		"""test the constructor"""
 		ew = QWidget()
-		mb = MyComboBox(ew, [])
+		mb = PBComboBox(ew, [])
 		self.assertIsInstance(mb, QComboBox)
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.itemText(0), "")
-		mb = MyComboBox(ew, ["1", "2"])
+		mb = PBComboBox(ew, ["1", "2"])
 		self.assertEqual(mb.itemText(0), "1")
 		self.assertEqual(mb.itemText(1), "2")
 		self.assertEqual(mb.itemText(2), "")
 		self.assertEqual(mb.currentText(), "1")
-		mb = MyComboBox(ew, ["1", "2"],  "0")
+		mb = PBComboBox(ew, ["1", "2"],  "0")
 		self.assertEqual(mb.currentText(), "1")
-		mb = MyComboBox(ew, ["1", "2"],  "2")
+		mb = PBComboBox(ew, ["1", "2"],  "2")
 		self.assertEqual(mb.currentText(), "2")
-		mb = MyComboBox(ew, [1, 2])
+		mb = PBComboBox(ew, [1, 2])
 		self.assertEqual(mb.itemText(0), "1")
 		self.assertEqual(mb.itemText(1), "2")
 		self.assertEqual(mb.itemText(2), "")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyAndOrCombo(GUITestCase):
-	"""Test the MyAndOrCombo class"""
+class TestPBAndOrCombo(GUITestCase):
+	"""Test the PBAndOrCombo class"""
 
 	def test_init(self):
 		"""test the constructor"""
-		mb = MyAndOrCombo(None)
-		self.assertIsInstance(mb, MyComboBox)
+		mb = PBAndOrCombo(None)
+		self.assertIsInstance(mb, PBComboBox)
 		self.assertIsInstance(mb, QComboBox)
 		self.assertEqual(mb.parentWidget(), None)
 		self.assertEqual(mb.itemText(0), "AND")
 		self.assertEqual(mb.itemText(1), "OR")
 		self.assertEqual(mb.itemText(2), "")
 		self.assertEqual(mb.currentText(), "AND")
-		mb = MyAndOrCombo(None, "or")
+		mb = PBAndOrCombo(None, "or")
 		self.assertEqual(mb.currentText(), "AND")
 		ew = QWidget()
-		mb = MyAndOrCombo(ew, "OR")
+		mb = PBAndOrCombo(ew, "OR")
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "OR")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyTrueFalseCombo(GUITestCase):
-	"""Test the MyTrueFalseCombo class"""
+class TestPBTrueFalseCombo(GUITestCase):
+	"""Test the PBTrueFalseCombo class"""
 
 	def test_init(self):
 		"""test the constructor"""
-		mb = MyTrueFalseCombo(None)
-		self.assertIsInstance(mb, MyComboBox)
+		mb = PBTrueFalseCombo(None)
+		self.assertIsInstance(mb, PBComboBox)
 		self.assertIsInstance(mb, QComboBox)
 		self.assertEqual(mb.parentWidget(), None)
 		self.assertEqual(mb.itemText(0), "True")
 		self.assertEqual(mb.itemText(1), "False")
 		self.assertEqual(mb.itemText(2), "")
 		self.assertEqual(mb.currentText(), "True")
-		mb = MyTrueFalseCombo(None, "abc")
+		mb = PBTrueFalseCombo(None, "abc")
 		self.assertEqual(mb.currentText(), "True")
 		ew = QWidget()
-		mb = MyTrueFalseCombo(ew, "False")
+		mb = PBTrueFalseCombo(ew, "False")
 		self.assertEqual(mb.parentWidget(), ew)
 		self.assertEqual(mb.currentText(), "False")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestObjListWindow(GUITestCase):
-	"""Test the objListWindow class"""
+	"""Test the ObjListWindow class"""
 
 	def test_init(self):
 		"""test the __init__ function"""
-		olw = objListWindow()
+		olw = ObjListWindow()
 		self.assertIsInstance(olw, QDialog)
 		self.assertEqual(olw.tableWidth, None)
 		self.assertEqual(olw.proxyModel, None)
@@ -204,14 +204,14 @@ class TestObjListWindow(GUITestCase):
 		self.assertIsInstance(olw.currLayout, QVBoxLayout)
 		self.assertEqual(olw.layout(), olw.currLayout)
 
-		olw = objListWindow(gridLayout = True)
+		olw = ObjListWindow(gridLayout = True)
 		self.assertTrue(olw.gridLayout)
 		self.assertIsInstance(olw.currLayout, QGridLayout)
 		self.assertEqual(olw.layout(), olw.currLayout)
 
 	def test_NI(self):
 		"""Test the non implemented functions (must be subclassed!)"""
-		olw = objListWindow()
+		olw = ObjListWindow()
 		ix = QModelIndex()
 		self.assertRaises(NotImplementedError, lambda: olw.createTable())
 		self.assertRaises(NotImplementedError, lambda: olw.cellClick(ix))
@@ -224,8 +224,8 @@ class TestObjListWindow(GUITestCase):
 
 	def test_changeFilter(self):
 		"""test changeFilter"""
-		olw = objListWindow()
-		olw.tableModel = emptyTableModel()
+		olw = ObjListWindow()
+		olw.tableModel = EmptyTableModel()
 		olw.setProxyStuff(1, Qt.AscendingOrder)
 		olw.changeFilter("abc")
 		self.assertEqual(olw.proxyModel.filterRegExp().pattern(), "abc")
@@ -234,24 +234,24 @@ class TestObjListWindow(GUITestCase):
 
 	def test_addFilterInput(self):
 		"""test addFilterInput"""
-		olw = objListWindow()
+		olw = ObjListWindow()
 		olw.addFilterInput("plch")
 		self.assertIsInstance(olw.filterInput, QLineEdit)
 		self.assertEqual(olw.filterInput.placeholderText(), "plch")
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"changeFilter") as _cf:
 			olw.filterInput.textChanged.emit("sss")
 			_cf.assert_called_once_with("sss")
 
-		olw = objListWindow(gridLayout = True)
+		olw = ObjListWindow(gridLayout = True)
 		olw.addFilterInput("plch", gridPos = (4, 1))
 		self.assertEqual(olw.layout().itemAtPosition(4, 1).widget(),
 			olw.filterInput)
 
 	def test_setProxyStuff(self):
 		"""test setProxyStuff"""
-		olw = objListWindow()
-		olw.tableModel = emptyTableModel()
+		olw = ObjListWindow()
+		olw.tableModel = EmptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 			_s.assert_called_once_with(1, Qt.AscendingOrder)
@@ -262,7 +262,7 @@ class TestObjListWindow(GUITestCase):
 			Qt.CaseInsensitive)
 		self.assertEqual(olw.proxyModel.filterKeyColumn(), -1)
 
-		self.assertIsInstance(olw.tableview, MyTableView)
+		self.assertIsInstance(olw.tableview, PBTableView)
 		self.assertEqual(olw.tableview.model(), olw.proxyModel)
 		self.assertTrue(olw.tableview.isSortingEnabled())
 		self.assertTrue(olw.tableview.hasMouseTracking())
@@ -270,8 +270,8 @@ class TestObjListWindow(GUITestCase):
 
 	def test_finalizeTable(self):
 		"""Test finalizeTable"""
-		olw = objListWindow()
-		olw.tableModel = emptyTableModel()
+		olw = ObjListWindow()
+		olw.tableModel = EmptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents") \
@@ -281,7 +281,7 @@ class TestObjListWindow(GUITestCase):
 			olw.finalizeTable()
 			_rc.assert_has_calls([call(), call()])
 			self.assertEqual(_rr.call_count, 1)
-		self.assertIsInstance(olw.tableview, MyTableView)
+		self.assertIsInstance(olw.tableview, PBTableView)
 		maxw = QDesktopWidget().availableGeometry().width()
 		self.assertEqual(olw.maximumHeight(),
 			QDesktopWidget().availableGeometry().height())
@@ -297,22 +297,22 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.tableview.width(), tW)
 		self.assertEqual(olw.minimumHeight(), 600)
 		ix = QModelIndex()
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"handleItemEntered") as _f:
 			olw.tableview.entered.emit(ix)
 			_f.assert_called_once_with(ix)
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"cellClick") as _f:
 			olw.tableview.clicked.emit(ix)
 			_f.assert_called_once_with(ix)
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"cellDoubleClick") as _f:
 			olw.tableview.doubleClicked.emit(ix)
 			_f.assert_called_once_with(ix)
 		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tableview)
 
-		olw = objListWindow(gridLayout = True)
-		olw.tableModel = emptyTableModel()
+		olw = ObjListWindow(gridLayout = True)
+		olw.tableModel = EmptyTableModel()
 		with patch("PySide2.QtCore.QSortFilterProxyModel.sort") as _s:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
 		olw.finalizeTable(gridPos = (4, 1))
@@ -321,7 +321,7 @@ class TestObjListWindow(GUITestCase):
 
 	def test_cleanLayout(self):
 		"""Test cleanLayout"""
-		olw = objListWindow()
+		olw = ObjListWindow()
 		olw.layout().addWidget(QLabel("empty"))
 		olw.layout().addWidget(QLabel("empty1"))
 		self.assertEqual(olw.layout().count(), 2)
@@ -330,10 +330,10 @@ class TestObjListWindow(GUITestCase):
 
 	def test_recreateTable(self):
 		"""Test recreateTable"""
-		olw = objListWindow()
-		with patch("physbiblio.gui.commonClasses.objListWindow." +
+		olw = ObjListWindow()
+		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
 				"cleanLayout") as _cl, \
-				patch("physbiblio.gui.commonClasses.objListWindow." +
+				patch("physbiblio.gui.commonClasses.ObjListWindow." +
 					"createTable") as _ct:
 			olw.recreateTable()
 			self.assertEqual(_cl.call_count, 1)
@@ -417,15 +417,15 @@ class TestEditObjectWindow(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyThread(GUITestCase):
-	"""Test the MyThread class"""
+class TestPBThread(GUITestCase):
+	"""Test the PBThread class"""
 
 	def test_methods(self):
 		"""test all the methods in the class"""
 		with patch("PySide2.QtCore.QThread.__init__", autospec=True) as _in:
-			MyThread()
+			PBThread()
 			self.assertEqual(_in.call_count, 1)
-		mt = MyThread()
+		mt = PBThread()
 		self.assertIsInstance(mt, QThread)
 		self.assertRaises(NotImplementedError, lambda: mt.run())
 		self.assertRaises(NotImplementedError, lambda: mt.setStopFlag())
@@ -448,7 +448,7 @@ class TestWriteStream(GUITestCase):
 		"""Test __init__, write, run methods"""
 		queue = Queue()
 		ws = WriteStream(queue)
-		self.assertIsInstance(ws, MyThread)
+		self.assertIsInstance(ws, PBThread)
 		self.assertEqual(ws.queue, queue)
 		self.assertTrue(ws.running)
 		self.assertEqual(ws.parent(), None)
@@ -481,44 +481,13 @@ class TestWriteStream(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyTableWidget(GUITestCase):
-	"""Test the MyTableWidget class"""
+class TestPBTableView(GUITestCase):
+	"""Test the PBTableView class"""
 
 	def test_methods(self):
 		"""Test __init__, contextMenuEvent methods"""
-		p = objListWindow()
-		mtw = MyTableWidget(2, 3, p)
-		self.assertIsInstance(mtw, QTableWidget)
-		self.assertEqual(mtw.rowCount(), 2)
-		self.assertEqual(mtw.columnCount(), 3)
-		self.assertEqual(mtw.parent(), p)
-		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
-		with patch("PySide2.QtGui.QContextMenuEvent.x",
-					return_value=12) as _x,\
-				patch("PySide2.QtGui.QContextMenuEvent.y",
-					return_value=24) as _y,\
-				patch("PySide2.QtWidgets.QTableWidget.rowAt",
-					return_value=0) as _r,\
-				patch("PySide2.QtWidgets.QTableWidget.columnAt",
-					return_value=1) as _c,\
-				patch("physbiblio.gui.commonClasses.objListWindow." +
-					"triggeredContextMenuEvent") as _t:
-			mtw.contextMenuEvent(e)
-			_x.assert_called_once_with()
-			_y.assert_called_once_with()
-			_r.assert_called_once_with(24)
-			_c.assert_called_once_with(12)
-			_t.assert_called_once_with(0, 1, e)
-
-
-@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyTableView(GUITestCase):
-	"""Test the MyTableView class"""
-
-	def test_methods(self):
-		"""Test __init__, contextMenuEvent methods"""
-		p = objListWindow()
-		mtw = MyTableView(p)
+		p = ObjListWindow()
+		mtw = PBTableView(p)
 		self.assertIsInstance(mtw, QTableView)
 		self.assertEqual(mtw.parent(), p)
 		e = QContextMenuEvent(QContextMenuEvent.Mouse, QPoint())
@@ -530,7 +499,7 @@ class TestMyTableView(GUITestCase):
 					return_value=0) as _r,\
 				patch("PySide2.QtWidgets.QTableView.columnAt",
 					return_value=1) as _c,\
-				patch("physbiblio.gui.commonClasses.objListWindow." +
+				patch("physbiblio.gui.commonClasses.ObjListWindow." +
 					"triggeredContextMenuEvent") as _t:
 			mtw.contextMenuEvent(e)
 			_x.assert_called_once_with()
@@ -541,8 +510,8 @@ class TestMyTableView(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyTableModel(GUITestCase):
-	"""Test the MyTableModel class"""
+class TestPBTableModel(GUITestCase):
+	"""Test the PBTableModel class"""
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
@@ -554,14 +523,14 @@ class TestMyTableModel(GUITestCase):
 
 	def test_init(self):
 		"""test constructor"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertIsInstance(mtm, QAbstractTableModel)
 		self.assertEqual(mtm.header, ["a", "b"])
 		self.assertEqual(mtm.parentObj, p)
 		self.assertEqual(mtm.previous, [])
 		self.assertFalse(mtm.ask)
-		mtm = MyTableModel(p, ["a", "b"], ask = True, previous = [1])
+		mtm = PBTableModel(p, ["a", "b"], ask = True, previous = [1])
 		self.assertEqual(mtm.previous, [1])
 		self.assertTrue(mtm.ask)
 
@@ -571,8 +540,8 @@ class TestMyTableModel(GUITestCase):
 			cl.about = True
 		def setChanged(cl):
 			cl.changed = True
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		mtm.about = False
 		mtm.changed = False
 		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
@@ -594,8 +563,8 @@ class TestMyTableModel(GUITestCase):
 
 	def test_getIdentifier(self):
 		"""Test that getIdentifier is not implemented"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertRaises(NotImplementedError, lambda: mtm.getIdentifier("a"))
 
 	def test_prepareSelected(self):
@@ -604,8 +573,8 @@ class TestMyTableModel(GUITestCase):
 			cl.about = True
 		def setChanged(cl):
 			cl.changed = True
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		mtm.about = False
 		mtm.changed = False
@@ -613,7 +582,7 @@ class TestMyTableModel(GUITestCase):
 		mtm.layoutChanged.connect(lambda: setChanged(mtm))
 		self.assertFalse(mtm.about)
 		self.assertFalse(mtm.changed)
-		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
+		with patch("physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
 				side_effect=[0, 1, 2]) as _gi:
 			mtm.prepareSelected()
 			_gi.assert_has_calls([
@@ -621,9 +590,9 @@ class TestMyTableModel(GUITestCase):
 				call({"a": 2, "b": 2}),
 				call({"a": 3, "b": 1})])
 		self.assertEqual(mtm.selectedElements, {0: False, 1: False, 2: False})
-		mtm = MyTableModel(p, ["a", "b"], previous = [2])
+		mtm = PBTableModel(p, ["a", "b"], previous = [2])
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
-		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
+		with patch("physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
 				side_effect=[0, 1, 2]) as _gi:
 			mtm.prepareSelected()
 			_gi.assert_has_calls([
@@ -631,9 +600,9 @@ class TestMyTableModel(GUITestCase):
 				call({"a": 2, "b": 2}),
 				call({"a": 3, "b": 1})])
 		self.assertEqual(mtm.selectedElements, {0: False, 1: False, 2: True})
-		mtm = MyTableModel(p, ["a", "b"], previous = [1, 5])
+		mtm = PBTableModel(p, ["a", "b"], previous = [1, 5])
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
-		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
+		with patch("physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
 				side_effect=[0, 1, 2]) as _gi:
 			self.assert_in_stdout(mtm.prepareSelected,
 				"Invalid identifier in previous selection: 5")
@@ -642,8 +611,8 @@ class TestMyTableModel(GUITestCase):
 				call({"a": 2, "b": 2}),
 				call({"a": 3, "b": 1})])
 		self.assertEqual(mtm.selectedElements, {0: False, 1: True, 2: False})
-		mtm = MyTableModel(p, ["a", "b"])
-		with patch("physbiblio.gui.commonClasses.MyTableModel.getIdentifier",
+		mtm = PBTableModel(p, ["a", "b"])
+		with patch("physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
 				side_effect=[0, 1, 2]) as _gi:
 			self.assert_in_stdout(mtm.prepareSelected,
 				"dataList is not defined!")
@@ -656,8 +625,8 @@ class TestMyTableModel(GUITestCase):
 			cl.about = True
 		def setChanged(cl):
 			cl.changed = True
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		dl = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		mtm.dataList = dl
 		mtm.about = False
@@ -680,8 +649,8 @@ class TestMyTableModel(GUITestCase):
 
 	def test_addImage(self):
 		"""Test addImage"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		img = mtm.addImage(":/images/edit.png", 51)
 		self.assertIsInstance(img, QPixmap)
 		self.assertEqual(img.height(), 51)
@@ -690,8 +659,8 @@ class TestMyTableModel(GUITestCase):
 
 	def test_addImages(self):
 		"""Test addImages"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		qp = mtm.addImages([":/images/edit.png", ":/images/find.png"], 31)
 		self.assertIsInstance(qp, QPixmap)
 		self.assertEqual(qp.height(), 31)
@@ -716,34 +685,34 @@ class TestMyTableModel(GUITestCase):
 
 	def test_rowCount(self):
 		"""Test columnCount"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertEqual(mtm.rowCount(), 0)
 		mtm.dataList = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		self.assertEqual(mtm.rowCount(), 3)
-		mtm = MyTableModel(p, 1)
+		mtm = PBTableModel(p, 1)
 		self.assertEqual(mtm.rowCount(), 0)
 
 	def test_columnCount(self):
 		"""Test columnCount"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertEqual(mtm.columnCount(), 2)
 		self.assertEqual(mtm.columnCount(p), 2)
-		mtm = MyTableModel(p, 1)
+		mtm = PBTableModel(p, 1)
 		self.assertEqual(mtm.columnCount(), 0)
 
 	def test_data(self):
 		"""Test that data is not implemented"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertRaises(NotImplementedError, lambda: mtm.data(1, 1))
 
 	def test_flags(self):
 		"""test flags"""
 		idx = QModelIndex()
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertEqual(mtm.flags(idx), None)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=True) as _iv:
@@ -764,16 +733,16 @@ class TestMyTableModel(GUITestCase):
 
 	def test_headerData(self):
 		"""test headerData"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertEqual(mtm.headerData(0, Qt.Vertical, Qt.DisplayRole), None)
 		self.assertEqual(mtm.headerData(0, Qt.Horizontal, Qt.EditRole), None)
 		self.assertEqual(mtm.headerData(0, Qt.Horizontal, Qt.DisplayRole), "a")
 
 	def test_setData(self):
 		"""Test that setData is not implemented"""
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		self.assertRaises(NotImplementedError, lambda: mtm.setData(1, 1, 1))
 
 	def test_sort(self):
@@ -782,8 +751,8 @@ class TestMyTableModel(GUITestCase):
 			cl.about = True
 		def setChanged(cl):
 			cl.changed = True
-		p = objListWindow()
-		mtm = MyTableModel(p, ["a", "b"])
+		p = ObjListWindow()
+		mtm = PBTableModel(p, ["a", "b"])
 		dl = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
 		mtm.dataList = dl
 		mtm.about = False
@@ -1064,7 +1033,7 @@ class TestLeafFilterProxyModel(GUITestCase):
 		ot = NamedElement(2, "other", [])
 		main = NamedElement(0, "main", [el])
 		lf = LeafFilterProxyModel()
-		tm = emptyTreeModel([main, ot])
+		tm = EmptyTreeModel([main, ot])
 		lf.setSourceModel(tm)
 		self.assertTrue(lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 		self.assertTrue(lf.filterAcceptsAnyParent(lf.index(1,0,QModelIndex())))
@@ -1114,10 +1083,10 @@ class TestLeafFilterProxyModel(GUITestCase):
 		el = NamedElement(1, "tags", [])
 		main = NamedElement(0, "main", [el])
 		lf = LeafFilterProxyModel()
-		tm = emptyTreeModel([main])
+		tm = EmptyTreeModel([main])
 		lf.setSourceModel(tm)
 		self.assertTrue(lf.hasAcceptedChildren(0, QModelIndex()))
-		with patch("physbiblio.gui.tests.test_commonClasses.emptyTreeModel." +
+		with patch("physbiblio.gui.tests.test_commonClasses.EmptyTreeModel." +
 				"rowCount", return_value=1) as _rc:
 			self.assertTrue(lf.hasAcceptedChildren(1, QModelIndex()))
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
@@ -1127,18 +1096,18 @@ class TestLeafFilterProxyModel(GUITestCase):
 		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
 				"filterAcceptsRow", return_value=False) as _acc,\
 				patch("physbiblio.gui.tests.test_commonClasses." +
-					"emptyTreeModel.rowCount", return_value=1) as _rc:
+					"EmptyTreeModel.rowCount", return_value=1) as _rc:
 			self.assertFalse(lf.hasAcceptedChildren(1, QModelIndex()))
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyDDTableWidget(GUITestCase):
-	"""Test the MyDDTableWidget class"""
+class TestPBDDTableWidget(GUITestCase):
+	"""Test the PBDDTableWidget class"""
 
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		mddtw = MyDDTableWidget(p, "head")
+		mddtw = PBDDTableWidget(p, "head")
 		self.assertIsInstance(mddtw, QTableWidget)
 		self.assertEqual(mddtw.parent(), p)
 		self.assertEqual(mddtw.columnCount(), 1)
@@ -1149,20 +1118,20 @@ class TestMyDDTableWidget(GUITestCase):
 			QAbstractItemView.SelectRows)
 		with patch("physbiblio.gui.commonClasses.QTableWidget." +
 				"setHorizontalHeaderLabels") as _shl:
-			mddtw = MyDDTableWidget(p, "head")
+			mddtw = PBDDTableWidget(p, "head")
 			_shl.assert_called_once_with(["head"])
 
 	def test_dropMimeData(self):
 		"""test dropMimeData"""
 		p = QWidget()
-		mddtw = MyDDTableWidget(p, "head")
+		mddtw = PBDDTableWidget(p, "head")
 		self.assertTrue(mddtw.dropMimeData(12, 0, None, None))
 		self.assertEqual(mddtw.last_drop_row, 12)
 
 	def test_dropEvent(self):
 		"""test dropEvent"""
 		p = QWidget()
-		sender = MyDDTableWidget(p, "head")
+		sender = PBDDTableWidget(p, "head")
 		item = QTableWidgetItem("source1")
 		sender.insertRow(0)
 		sender.setItem(0, 0, item)
@@ -1173,7 +1142,7 @@ class TestMyDDTableWidget(GUITestCase):
 			sender.model().index(0, 0),
 			QItemSelectionModel.Select)
 
-		mddtw = MyDDTableWidget(p, "head")
+		mddtw = PBDDTableWidget(p, "head")
 		item = QTableWidgetItem("test1")
 		mddtw.insertRow(0)
 		mddtw.setItem(0, 0, item)
@@ -1232,7 +1201,7 @@ class TestMyDDTableWidget(GUITestCase):
 	def test_getselectedRowsFast(self):
 		"""test getselectedRowsFast"""
 		p = QWidget()
-		mddtw = MyDDTableWidget(p, "head")
+		mddtw = PBDDTableWidget(p, "head")
 		a = mddtw.getselectedRowsFast()
 		self.assertEqual(a, [])
 		with patch("PySide2.QtWidgets.QTableWidget.selectedItems",
@@ -1246,22 +1215,22 @@ class TestMyDDTableWidget(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyMenu(GUITestCase):
-	"""Test the MyMenu class"""
+class TestPBMenu(GUITestCase):
+	"""Test the PBMenu class"""
 
 	def test_init(self):
 		"""Test init"""
-		mm = MyMenu()
+		mm = PBMenu()
 		self.assertIsInstance(mm, QMenu)
 		self.assertEqual(mm.possibleActions, [])
 		self.assertFalse(mm.result)
 		with patch("physbiblio.gui.commonClasses.QMenu.__init__") as _in:
-			mm = MyMenu("abc")
+			mm = PBMenu("abc")
 			_in.assert_called_once_with("abc")
 
 	def test_fillMenu(self):
 		"""test fillMenu"""
-		mm = MyMenu()
+		mm = PBMenu()
 		acts = [
 			QAction("test1"),
 			"abc",
@@ -1301,7 +1270,7 @@ class TestMyMenu(GUITestCase):
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
-		mm = MyMenu()
+		mm = PBMenu()
 		with patch("physbiblio.gui.commonClasses.QMenu.close") as _oc:
 			QTest.keyPress(mm, "a")
 			_oc.assert_not_called()
@@ -1316,12 +1285,12 @@ class TestGuiViewEntry(GUITestCase):
 	"""Test the GuiViewEntry class"""
 
 	def test_methods(self):
-		"""Test that the object is instance of `viewEntry`
+		"""Test that the object is instance of `ViewEntry`
 		and that openLink works
 		"""
-		gve = guiViewEntry()
-		self.assertIsInstance(gve, viewEntry)
-		self.assertIsInstance(pBGuiView, guiViewEntry)
+		gve = GUIViewEntry()
+		self.assertIsInstance(gve, ViewEntry)
+		self.assertIsInstance(pBGuiView, GUIViewEntry)
 
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
 				return_value=True) as _ou,\
@@ -1349,7 +1318,7 @@ class TestGuiViewEntry(GUITestCase):
 				])
 		with patch("PySide2.QtGui.QDesktopServices.openUrl",
 				return_value=True) as _ou,\
-				patch("physbiblio.view.viewEntry.getLink",
+				patch("physbiblio.view.ViewEntry.getLink",
 					return_value="mylink") as _gl:
 			gve.openLink("abc", arg = "somearg", fileArg = "somefilearg")
 			_gl.assert_called_once_with("abc",
@@ -1366,14 +1335,14 @@ class TestGuiViewEntry(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestMyImportedTableModel(GUITestCase):
-	"""Test the MyImportedTableModel class"""
+class TestPBImportedTableModel(GUITestCase):
+	"""Test the PBImportedTableModel class"""
 
 	def test_init(self):
 		"""test init"""
-		with patch("physbiblio.gui.commonClasses.MyTableModel." +
+		with patch("physbiblio.gui.commonClasses.PBTableModel." +
 				"prepareSelected") as _ps:
-			mitm = MyImportedTableModel(QWidget(),
+			mitm = PBImportedTableModel(QWidget(),
 				{
 				"a": {"exist": False, "bibpars": {"ID": "a"}},
 				"b": {"exist": False, "bibpars": {"ID": "b"}},
@@ -1381,7 +1350,7 @@ class TestMyImportedTableModel(GUITestCase):
 				["key", "id"],
 				"bibkey")
 			self.assertEqual(_ps.call_count, 1)
-		self.assertIsInstance(mitm, MyTableModel)
+		self.assertIsInstance(mitm, PBTableModel)
 		self.assertEqual(mitm.typeClass, "imports")
 		self.assertEqual(mitm.idName, "bibkey")
 		self.assertEqual(mitm.bibsOrder, ["a", "b"])
@@ -1390,7 +1359,7 @@ class TestMyImportedTableModel(GUITestCase):
 
 	def test_getIdentifier(self):
 		"""test getIdentifier"""
-		mitm = MyImportedTableModel(QWidget(),
+		mitm = PBImportedTableModel(QWidget(),
 			{
 			"a": {"exist": False, "bibpars": {"ID": "a"}},
 			"b": {"exist": False, "bibpars": {"ID": "b"}},
@@ -1402,7 +1371,7 @@ class TestMyImportedTableModel(GUITestCase):
 
 	def test_data(self):
 		"""test data"""
-		mitm = MyImportedTableModel(QWidget(),
+		mitm = PBImportedTableModel(QWidget(),
 			{
 			"a": {"exist": False, "bibpars": {"ID": "a", "key": "a"}},
 			"b": {"exist": False, "bibpars": {"ID": "b", "key": "b"}},
@@ -1454,7 +1423,7 @@ class TestMyImportedTableModel(GUITestCase):
 
 	def test_setData(self):
 		"""test setData"""
-		mitm = MyImportedTableModel(QWidget(),
+		mitm = PBImportedTableModel(QWidget(),
 			{
 			"a": {"exist": False, "bibpars": {"ID": "a"}},
 			"b": {"exist": False, "bibpars": {"ID": "b"}},
@@ -1504,7 +1473,7 @@ class TestMyImportedTableModel(GUITestCase):
 
 	def test_flags(self):
 		"""test flags"""
-		mitm = MyImportedTableModel(QWidget(),
+		mitm = PBImportedTableModel(QWidget(),
 			{
 			"a": {"exist": False, "bibpars": {"ID": "a"}},
 			"b": {"exist": True, "bibpars": {"ID": "b"}},

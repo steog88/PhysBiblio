@@ -1,4 +1,4 @@
-"""Module that contains the MyBibTexWriter class
+"""Module that contains the PBBibTexWriter class
 (needed to override _entry_to_bibtex).
 
 This file is part of the physbiblio package.
@@ -6,15 +6,15 @@ This file is part of the physbiblio package.
 from bibtexparser.bwriter import BibTexWriter
 
 
-class MyBibTexWriter(BibTexWriter):
+class PBBibTexWriter(BibTexWriter):
 	"""This class is used to override _entry_to_bibtex"""
 
 	def __init__(self):
-		"""Constructor for the MyBibTexWriter class.
+		"""Constructor for the PBBibTexWriter class.
 		Uses parent class constructor
 		and adds some additional properties.
 		"""
-		super(MyBibTexWriter, self).__init__()
+		super(PBBibTexWriter, self).__init__()
 		#use 13 characters for the field name:
 		self._max_field_width = 13
 		#order of fields in output
@@ -75,4 +75,4 @@ class MyBibTexWriter(BibTexWriter):
 		return bibtex
 
 
-pbWriter = MyBibTexWriter()
+pbWriter = PBBibTexWriter()

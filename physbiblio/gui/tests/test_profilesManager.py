@@ -90,11 +90,11 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField") as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField") as _upf,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage") \
 					as _m,\
 				patch("shutil.copy2") as _copy:
@@ -119,12 +119,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow"
 					+ ".statusBarMessage") as _m,\
 				patch("shutil.copy2") as _copy:
@@ -149,12 +149,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
@@ -185,12 +185,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m,\
 				patch("shutil.copy2") as _copy:
@@ -220,12 +220,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value=True) as _ayn,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -261,12 +261,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
 					return_value=False) as _ayn,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
@@ -302,12 +302,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("logging.Logger.info") as _w,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m,\
@@ -340,12 +340,12 @@ class TestEditProf(GUIwMainWTestCase):
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles") as _lp,\
-				patch("physbiblio.config.globalDB.setDefaultProfile") as _sdp,\
-				patch("physbiblio.config.globalDB.updateProfileField"
+				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.updateProfileField"
 					) as _upf,\
-				patch("physbiblio.config.globalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.globalDB.createProfile") as _cp,\
-				patch("physbiblio.config.globalDB.setProfileOrder") as _spo,\
+				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.setProfileOrder") as _spo,\
 				patch("logging.Logger.info") as _w,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
 					) as _m,\
@@ -373,7 +373,7 @@ class TestEditProf(GUIwMainWTestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestSelectProfiles(GUIwMainWTestCase):
-	"""Test the selectProfiles class"""
+	"""Test the SelectProfiles class"""
 
 	@classmethod
 	def setUpClass(self):
@@ -403,24 +403,24 @@ class TestSelectProfiles(GUIwMainWTestCase):
 	def test_init(self):
 		"""test init"""
 		p = self.mainW
-		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
+		with patch("physbiblio.gui.profilesManager.SelectProfiles.initUI") \
 				as _iu:
 			self.assertRaises(Exception,
-				lambda: selectProfiles(None))
-			sp = selectProfiles(p)
+				lambda: SelectProfiles(None))
+			sp = SelectProfiles(p)
 			self.assertIsInstance(sp, QDialog)
 			self.assertEqual(sp.parent(), p)
 			self.assertEqual(sp.message, None)
-			sp = selectProfiles(p, "message")
+			sp = SelectProfiles(p, "message")
 			self.assertEqual(sp.message, "message")
 			_iu.assert_has_calls([call(), call()])
 
 	def test_onCancel(self):
 		"""test onCancel"""
-		with patch("physbiblio.gui.profilesManager.selectProfiles.initUI") \
+		with patch("physbiblio.gui.profilesManager.SelectProfiles.initUI") \
 				as _iu,\
 				patch("physbiblio.gui.profilesManager.QDialog.close") as _c:
-			sp = selectProfiles(self.mainW)
+			sp = SelectProfiles(self.mainW)
 			sp.onCancel()
 			_c.assert_called_once_with()
 			self.assertFalse(sp.result)
@@ -428,21 +428,21 @@ class TestSelectProfiles(GUIwMainWTestCase):
 	def test_onLoad(self):
 		"""test onLoad"""
 		p = self.mainW
-		sp = selectProfiles(p)
+		sp = SelectProfiles(p)
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
 					as _rc,\
 				patch("physbiblio.gui.mainWindow.MainWindow." +
 					"reloadMainContent") as _rm,\
 				patch("physbiblio.config.ConfigVars.reInit") as _ri,\
-				patch("physbiblio.database.physbiblioDB.reOpenDB") as _ro:
+				patch("physbiblio.database.PhysBiblioDB.reOpenDB") as _ro:
 			sp.onLoad()
 			_ri.assert_not_called()
 			_ro.assert_not_called()
 			_rc.assert_not_called()
 			_rm.assert_called_once_with()
 			_c.assert_called_once_with()
-		sp = selectProfiles(p)
+		sp = SelectProfiles(p)
 		sp.combo.setCurrentIndex(1)
 		pbConfig.currentDatabase = "test2.db"
 		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
@@ -451,7 +451,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 				patch("physbiblio.gui.mainWindow.MainWindow." +
 					"reloadMainContent") as _rm,\
 				patch("physbiblio.config.ConfigVars.reInit") as _ri,\
-				patch("physbiblio.database.physbiblioDB.reOpenDB") as _ro:
+				patch("physbiblio.database.PhysBiblioDB.reOpenDB") as _ro:
 			sp.onLoad()
 			_ri.assert_called_once_with('test2',
 				{'db': 'test2.db', 'd': 'test2', 'n': 'test2'})
@@ -463,20 +463,20 @@ class TestSelectProfiles(GUIwMainWTestCase):
 	def test_initUI(self):
 		"""Test initUI"""
 		p = self.mainW
-		sp = selectProfiles(p, "message")
+		sp = SelectProfiles(p, "message")
 		self.assertEqual(sp.windowTitle(), 'Select profile')
 		self.assertIsInstance(sp.layout(), QGridLayout)
 		self.assertEqual(sp.layout().spacing(), 10)
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(sp.layout().itemAtPosition(0, 0).widget().text(),
 			"message")
 		self.assertIsInstance(sp.layout().itemAtPosition(1, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(sp.layout().itemAtPosition(1, 0).widget().text(),
 			"Available profiles: ")
 		mcb = sp.layout().itemAtPosition(1, 1).widget()
-		self.assertIsInstance(mcb, MyComboBox)
+		self.assertIsInstance(mcb, PBComboBox)
 		self.assertEqual(mcb.count(), 2)
 		self.assertEqual(mcb.itemText(0), "test1 -- test1")
 		self.assertEqual(mcb.itemText(1), "test2 -- test2")
@@ -491,38 +491,38 @@ class TestSelectProfiles(GUIwMainWTestCase):
 			sp.cancelButton)
 		self.assertTrue(sp.cancelButton.autoDefault())
 
-		sp = selectProfiles(p)
+		sp = SelectProfiles(p)
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(sp.layout().itemAtPosition(0, 0).widget().text(),
 			"Available profiles: ")
 		self.assertIsInstance(sp.layout().itemAtPosition(0, 1).widget(),
-			MyComboBox)
+			PBComboBox)
 		self.assertEqual(sp.layout().itemAtPosition(1, 0).widget(),
 			sp.loadButton)
 		self.assertEqual(sp.layout().itemAtPosition(1, 1).widget(),
 			sp.cancelButton)
 
-		with patch("physbiblio.gui.profilesManager.selectProfiles.onCancel") \
+		with patch("physbiblio.gui.profilesManager.SelectProfiles.onCancel") \
 				as _f:
 			QTest.mouseClick(sp.cancelButton, Qt.LeftButton)
 			_f.assert_called_once_with()
-		with patch("physbiblio.gui.profilesManager.selectProfiles.onLoad") \
+		with patch("physbiblio.gui.profilesManager.SelectProfiles.onLoad") \
 				as _f:
 			QTest.mouseClick(sp.loadButton, Qt.LeftButton)
 			_f.assert_called_once_with()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
-class TestmyOrderPushButton(GUITestCase):
-	"""Test the myOrderPushButton class"""
+class TestPBOrderPushButton(GUITestCase):
+	"""Test the PBOrderPushButton class"""
 
 	def test_init(self):
 		"""test init"""
 		self.max_diff = None
 		qi = QIcon(":/images/arrow-down.png")
 		p = EditProfileWindow(QWidget())
-		opb = myOrderPushButton(p, 1, qi, "txt")
+		opb = PBOrderPushButton(p, 1, qi, "txt")
 		self.assertIsInstance(opb, QPushButton)
 		self.assertEqual(opb.text(), "txt")
 		self.assertEqual(opb.qicon, qi)
@@ -537,7 +537,7 @@ class TestmyOrderPushButton(GUITestCase):
 			_s.assert_called_once_with(1)
 		with patch("physbiblio.gui.profilesManager.QPushButton.__init__",
 				return_value=QPushButton()) as _i:
-			opb = myOrderPushButton(p, 1, qi, "txt", True)
+			opb = PBOrderPushButton(p, 1, qi, "txt", True)
 			_i.assert_called_once_with(opb, qi, "txt")
 
 
@@ -659,12 +659,12 @@ class TestEditProfile(GUITestCase):
 
 			if i > 1:
 				ad = ep.layout().itemAtPosition(i, 5).widget()
-				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertIsInstance(ad, PBOrderPushButton)
 				self.assertEqual(ad.data, i - 1)
 				self.assertEqual(ep.arrows[i - 1][0], ad)
 			if i < 2:
 				au = ep.layout().itemAtPosition(i + 2, 4).widget()
-				self.assertIsInstance(au, myOrderPushButton)
+				self.assertIsInstance(au, PBOrderPushButton)
 				self.assertEqual(au.data, i)
 				self.assertEqual(ep.arrows[i][1], au)
 
@@ -732,12 +732,12 @@ class TestEditProfile(GUITestCase):
 
 			if i > 1:
 				ad = ep.layout().itemAtPosition(i, 5).widget()
-				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertIsInstance(ad, PBOrderPushButton)
 				self.assertEqual(ad.data, i - 1)
 				self.assertEqual(ep.arrows[i - 1][0], ad)
 			if i < 2:
 				au = ep.layout().itemAtPosition(i + 2, 4).widget()
-				self.assertIsInstance(au, myOrderPushButton)
+				self.assertIsInstance(au, PBOrderPushButton)
 				self.assertEqual(au.data, i)
 				self.assertEqual(ep.arrows[i][1], au)
 
@@ -814,12 +814,12 @@ class TestEditProfile(GUITestCase):
 
 			if i > 1:
 				ad = ep.layout().itemAtPosition(i, 5).widget()
-				self.assertIsInstance(ad, myOrderPushButton)
+				self.assertIsInstance(ad, PBOrderPushButton)
 				self.assertEqual(ad.data, i - 1)
 				self.assertEqual(ep.arrows[i - 1][0], ad)
 			if i < 2:
 				au = ep.layout().itemAtPosition(i + 2, 4).widget()
-				self.assertIsInstance(au, myOrderPushButton)
+				self.assertIsInstance(au, PBOrderPushButton)
 				self.assertEqual(au.data, i)
 				self.assertEqual(ep.arrows[i][1], au)
 
@@ -865,26 +865,26 @@ class TestEditProfile(GUITestCase):
 		for i, l in labels:
 			self.assertIsInstance(
 				ep.layout().itemAtPosition(0, i).widget(),
-				MyLabel)
+				PBLabel)
 			self.assertEqual(
 				ep.layout().itemAtPosition(0, i).widget().text(),
 				l)
 		i = len(pbConfig.profiles) + 3
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i - 2, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i - 2, 0).widget().text(),
 			"")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i - 1, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i - 1, 0).widget().text(),
 			"Add new?")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i + 1, 0).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i + 1, 0).widget().text(),
 			"")
@@ -934,7 +934,7 @@ class TestEditProfile(GUITestCase):
 		self.assertEqual(w3.text(), "")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i, 4).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i, 4).widget().text(),
 			"Copy from:")
@@ -1018,7 +1018,7 @@ class TestEditProfile(GUITestCase):
 		self.assertEqual(w3.text(), "")
 		self.assertIsInstance(
 			ep.layout().itemAtPosition(i, 4).widget(),
-			MyLabel)
+			PBLabel)
 		self.assertEqual(
 			ep.layout().itemAtPosition(i, 4).widget().text(),
 			"Copy from:")

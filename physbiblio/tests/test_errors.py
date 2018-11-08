@@ -17,7 +17,7 @@ else:
 
 try:
 	from physbiblio.setuptests import *
-	from physbiblio.errors import pBErrorManagerClass
+	from physbiblio.errors import PBErrorManagerClass
 	from physbiblio.config import pbConfig
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -26,13 +26,13 @@ except Exception:
 	print(traceback.format_exc())
 
 class TestErrors(unittest.TestCase):
-	"""Test pBErrorManagerClass stuff"""
+	"""Test PBErrorManagerClass stuff"""
 	@classmethod
 	def setUpClass(self):
 		"""settings"""
 		pbConfig.params["loggingLevel"] = 3
 		pbConfig.params["logFileName"] = logFileName
-		self.pBErrorManager = pBErrorManagerClass("testlogger")
+		self.pBErrorManager = PBErrorManagerClass("testlogger")
 
 	def reset(self, m):
 		"""Clear a StringIO object"""

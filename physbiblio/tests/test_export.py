@@ -81,7 +81,7 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			self.assertEqual(f.read(), sampleTxt)
 
-		with patch('physbiblio.database.entries.getByBibkey',
+		with patch('physbiblio.database.Entries.getByBibkey',
 				return_value=[{"bibtexDict":
 					{"ID": "empty2", "ENTRYTYPE": "Article",
 					"author": "me et al", "title": "yes"}}]) as _mock:
@@ -102,7 +102,7 @@ class TestExportMethods(unittest.TestCase):
 			{"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' \
 			+ '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
-		with patch('physbiblio.database.entries.fetchCursor',
+		with patch('physbiblio.database.Entries.fetchCursor',
 				return_value=sampleList) as _curs:
 			pBExport.exportAll(testBibName)
 		with open(testBibName) as f:
@@ -126,9 +126,9 @@ class TestExportMethods(unittest.TestCase):
 				'@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'}]
 
 		self.assertFalse(os.path.exists(testBibName))
-		with patch('physbiblio.database.catsEntries.insert',
+		with patch('physbiblio.database.CatsEntries.insert',
 				return_value=True) as _ceins:
-			with patch('physbiblio.database.entries.getByBibtex',
+			with patch('physbiblio.database.Entries.getByBibtex',
 					side_effect=[
 					[{"bibkey": "empty", "bibtexDict": {}, "bibtex":
 						'@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
@@ -147,7 +147,7 @@ class TestExportMethods(unittest.TestCase):
 					[],
 					[],
 					]) as _getbbibt:
-				with patch('physbiblio.database.entries.loadAndInsert',
+				with patch('physbiblio.database.Entries.loadAndInsert',
 						side_effect=[
 						'@article{Gariazzo:2015rra,\nauthor= '
 						+ '"Gariazzo, S. and others",\ntitle='
@@ -188,9 +188,9 @@ class TestExportMethods(unittest.TestCase):
 
 		with open(testTexName, "a") as f:
 			f.write("\cite{newcite}")
-		with patch('physbiblio.database.catsEntries.insert',
+		with patch('physbiblio.database.CatsEntries.insert',
 				return_value=True) as _ceins, \
-				patch('physbiblio.database.entries.getByBibtex',
+				patch('physbiblio.database.Entries.getByBibtex',
 					side_effect=[
 					[],
 					[],
@@ -199,7 +199,7 @@ class TestExportMethods(unittest.TestCase):
 						'@article{newcite,\nauthor= "myself",\ntitle='
 						+ '"{some paper}",\n}'}],
 					]) as _getbbibt,\
-				patch('physbiblio.database.entries.loadAndInsert',
+				patch('physbiblio.database.Entries.loadAndInsert',
 					side_effect=['',
 					'@article{newcite,\nauthor= "myself",\ntitle='
 						+ '"{some paper}",\n}']) as _mock:
@@ -233,7 +233,7 @@ class TestExportMethods(unittest.TestCase):
 
 		with open(testTexName, "w") as f:
 			f.write("\cite{newcite}")
-		with patch('physbiblio.database.entries.getByBibtex', side_effect=[
+		with patch('physbiblio.database.Entries.getByBibtex', side_effect=[
 				[{"bibkey": "newcite", "bibtexDict": {},
 				"bibtex": '@article{newcite,\nauthor= "myself",\ntitle='
 					+ '"{some paper}",\n}'}],
@@ -263,7 +263,7 @@ class TestExportMethods(unittest.TestCase):
 		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
 			+ '"{Light sterile neutrinos}",\n}'
 		bibtex3 = '@Article{bib2,\nauthor="me",\ntitle="title"\n}'
-		with patch('physbiblio.database.entries.getByBibtex', side_effect=[
+		with patch('physbiblio.database.Entries.getByBibtex', side_effect=[
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
 					"bibtex": bibtex1}],
@@ -303,7 +303,7 @@ class TestExportMethods(unittest.TestCase):
 			+ '"{newtitle}"\n}'
 		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
 			+ '"{Light sterile neutrinos}",\n}'
-		with patch('physbiblio.database.entries.getByBibtex', side_effect=[
+		with patch('physbiblio.database.Entries.getByBibtex', side_effect=[
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
 					"bibtex": bibtex1}],
@@ -336,7 +336,7 @@ class TestExportMethods(unittest.TestCase):
 			f.write("\cite{newcite}")
 		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",' \
 			+ '\ntitle="{title}"\n}'
-		with patch('physbiblio.database.entries.getByBibtex', side_effect=[
+		with patch('physbiblio.database.Entries.getByBibtex', side_effect=[
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
 					"bibtex": bibtex1}],

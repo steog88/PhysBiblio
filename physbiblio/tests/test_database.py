@@ -168,7 +168,7 @@ class TestCreateTables(unittest.TestCase):
 		if os.path.exists(tempFDBName):
 			os.remove(tempFDBName)
 		open(tempFDBName, 'a').close()
-		self.pBDB = physbiblioDB(tempFDBName, pBLogger, noOpen = True)
+		self.pBDB = PhysBiblioDB(tempFDBName, pBLogger, noOpen = True)
 		self.pBDB.openDB()
 
 		self.assertTrue(self.pBDB.cursExec(
@@ -185,7 +185,7 @@ class TestCreateTables(unittest.TestCase):
 
 		os.remove(tempFDBName)
 		open(tempFDBName, 'a').close()
-		self.pBDB = physbiblioDB(tempFDBName, pBLogger)
+		self.pBDB = PhysBiblioDB(tempFDBName, pBLogger)
 		self.assertTrue(self.pBDB.cursExec(
 			"SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]),
@@ -201,7 +201,7 @@ class TestCreateTables(unittest.TestCase):
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseMain(DBTestCase):#using cats just for simplicity
-	"""Test main database class physbiblioDB and physbiblioDBSub structures"""
+	"""Test main database class PhysBiblioDB and PhysBiblioDBSub structures"""
 	def test_operations(self):
 		"""Test main database functions (open/close, basic commands)"""
 		print(self.pBDB.dbname)
@@ -257,7 +257,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.pBDB.commit()
 
 	def test_literal_eval(self):
-		"""Test literal_eval in physbiblioDBSub"""
+		"""Test literal_eval in PhysBiblioDBSub"""
 		self.assertEqual(self.pBDB.cats.literal_eval("[1,2]"), [1,2])
 		self.assertEqual(self.pBDB.cats.literal_eval("['test','a']"),
 			["test","a"])
@@ -272,8 +272,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseLinks(DBTestCase):
 	"""Test subclasses connecting categories, experiments, entries"""
-	def test_catsEntries(self):
-		"""Test catsEntries functions"""
+	def test_CatsEntries(self):
+		"""Test CatsEntries functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.catBib.insert(1, "test"))
 		self.assertFalse(self.pBDB.catBib.insert(1, "test"))#already present
@@ -308,7 +308,7 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertTrue(self.pBDB.catBib.insert("test", "test"))
 
 	def test_catExps(self):
-		"""Test catsExps functions"""
+		"""Test CatsExps functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.catExp.insert(1, 10))
 		self.assertFalse(self.pBDB.catExp.insert(1, 10))#already present
@@ -338,8 +338,8 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual(self.pBDB.catExp.countByExp(1), 0)
 		self.assertTrue(self.pBDB.catExp.insert("test", "test"))
 
-	def test_entryExps(self):
-		"""Test entryExps functions"""
+	def test_EntryExps(self):
+		"""Test EntryExps functions"""
 		self.pBDB.utils.cleanSpareEntries()
 		self.assertTrue(self.pBDB.bibExp.insert("test", 1))
 		self.assertFalse(self.pBDB.bibExp.insert("test", 1))#already present
@@ -1524,7 +1524,7 @@ class TestDatabaseEntries(DBTestCase):
 			+ '@Article{ghi,\n        author = "me",\n         ' \
 			+ 'title = "{ghi}",\n}\n'
 		self.pBDB.bibs.fetchAll(doFetch=False)
-		with patch('physbiblio.database.entries.fetchCursor',
+		with patch('physbiblio.database.Entries.fetchCursor',
 				return_value=self.pBDB.bibs.fetchCursor()) as _curs:
 			pBExport.exportAll(testBibName)
 		with open(testBibName) as f:
@@ -1984,13 +1984,13 @@ class TestDatabaseEntries(DBTestCase):
 			f.write(u'@article{Gariazzo:2015rra,\nauthor = "me",\n' \
 			+ 'arxiv = "1507.08204",\n}\n@article{' \
 			+ 'Gariazzo:2014rra,\nauthor="me",\n}\n')
-		with patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
+		with patch('physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 				side_effect=[
 				("bibtex_not_used", {"abstract": "some fake abstract"})]
 				) as _retrieve, \
-				patch('physbiblio.database.entries.updateInspireID',
+				patch('physbiblio.database.Entries.updateInspireID',
 					side_effect=["1385583", False]) as _inspireid, \
-				patch('physbiblio.webimport.inspireoai.webSearch.' \
+				patch('physbiblio.webimport.inspireoai.WebSearch.' \
 					+ 'retrieveOAIData',
 					side_effect=[
 						{'doi': u'10.1088/0954-3899/43/3/033001',
@@ -2054,7 +2054,7 @@ class TestDatabaseEntries(DBTestCase):
 		#methods
 		for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
 			with patch('physbiblio.webimport.' \
-					+ '%s.webSearch.retrieveUrlAll'%method,
+					+ '%s.WebSearch.retrieveUrlAll'%method,
 					return_value="") as _mock:
 				self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef",
 					method = method))
@@ -2108,12 +2108,12 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.undo(verbose = 0)
 		pbConfig.params["defaultCategories"] = [1]
 		pbConfig.params["fetchAbstract"] = False
-		with patch('physbiblio.database.entries.updateInspireID',
+		with patch('physbiblio.database.Entries.updateInspireID',
 				return_value="1") as _mock_uiid, \
-				patch('physbiblio.database.entries.updateInfoFromOAI',
+				patch('physbiblio.database.Entries.updateInfoFromOAI',
 					return_value=True) as _mock_uio:
 			#test add categories
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'\n@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",}\n') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
@@ -2122,7 +2122,7 @@ class TestDatabaseEntries(DBTestCase):
 					pbConfig.params["defaultCategories"])
 			self.pBDB.undo(verbose = 0)
 			#test with list entry (also nested lists)
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					side_effect=[
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
@@ -2135,7 +2135,7 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertEqual(self.pBDB.bibs.count(), 1)
 			self.pBDB.undo(verbose = 0)
 			#test with number>0
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					side_effect=[
 					u'@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n@article{key1,\nauthor = ' \
@@ -2153,7 +2153,7 @@ class TestDatabaseEntries(DBTestCase):
 					["key1", "key0"])
 			self.pBDB.undo(verbose = 0)
 			#test setBook when using isbn
-			with patch('physbiblio.webimport.isbn.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.isbn.WebSearch.retrieveUrlAll',
 					return_value=u'@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",}') as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
@@ -2163,13 +2163,13 @@ class TestDatabaseEntries(DBTestCase):
 			self.pBDB.undo(verbose = 0)
 			#test abstract download
 			pbConfig.params["fetchAbstract"] = True
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					side_effect=[
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{key1,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",\narxiv="1234.5678",}\n']) as _mock, \
-					patch('physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
+					patch('physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 						return_value=(u'\n@article{key0,\n' \
 						+ 'author = "Gariazzo",\ntitle = "{title}",}\n',
 						{"abstract": "some fake abstract"})) as _mock:
@@ -2183,7 +2183,7 @@ class TestDatabaseEntries(DBTestCase):
 			pbConfig.params["fetchAbstract"] = False
 			self.pBDB.undo(verbose = 0)
 			#unreadable bibtex, empty bibkey (any other method)
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					side_effect=[
 					u'\n@article{key0,\nauthor = ',
 					u'\n@article{key0,\nauthor = ',
@@ -2206,7 +2206,7 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_uiid.reset_mock()
 			_mock_uio.reset_mock()
 			#test updateInspireID, updateInfoFromOAI are called
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'\n@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
 					+ '\narxiv="1234.5678",}') as _mock:
@@ -2217,7 +2217,7 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_uiid.reset_mock()
 			_mock_uio.reset_mock()
 			#test updateInspireID, updateInfoFromOAI are called
-			with patch('physbiblio.webimport.inspire.webSearch.retrieveUrlAll',
+			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'@article{key0,\nauthor = "Gariazzo",' \
 					+ '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{' \
 					+ 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",' \
@@ -2231,7 +2231,7 @@ class TestDatabaseEntries(DBTestCase):
 			_mock_uio.reset_mock()
 			#test updateInspireID, updateInfoFromOAI are called
 			with patch(
-				'physbiblio.webimport.arxiv.webSearch.retrieveUrlAll',
+				'physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 					return_value=u'@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
 					+ '\narxiv="1234.5678",}') as _mock:
@@ -2243,7 +2243,7 @@ class TestDatabaseEntries(DBTestCase):
 		# loadAndInsertWithCats
 		self.pBDB.bibs.lastInserted = ["abc"]
 		with patch('six.moves.input', return_value='[1,2]') as _input, \
-				patch('physbiblio.database.entries.loadAndInsert',
+				patch('physbiblio.database.Entries.loadAndInsert',
 				autospec=True) as _mock:
 			self.pBDB.bibs.loadAndInsertWithCats(
 				["acb"], "doi", True, 1, True, "yes")
@@ -2335,14 +2335,14 @@ class TestDatabaseEntries(DBTestCase):
 		entry2a["doi"] = "1/2/3/4"
 		entry1a["bibtexDict"]["journal"] = "jcap"
 		entry2a["bibtexDict"]["journal"] = "jcap"
-		with patch('physbiblio.database.entries.updateInfoFromOAI',
+		with patch('physbiblio.database.Entries.updateInfoFromOAI',
 				side_effect=[
 				True, True,
 				True, True,
 				True, True,
 				False, True,
 				]) as _mock_uioai, \
-				patch("physbiblio.database.entries.fetchCursor",
+				patch("physbiblio.database.Entries.fetchCursor",
 					side_effect=[
 					[entry1, entry2],#1
 					[entry1a, entry2a],#2
@@ -2350,7 +2350,7 @@ class TestDatabaseEntries(DBTestCase):
 					[entry2],#4
 					[entry1, entry2],#6
 					]) as _mock_ga, \
-				patch("physbiblio.database.entries.getByKey",
+				patch("physbiblio.database.Entries.getByKey",
 					side_effect=[
 					[entry1a], [entry2a],#1
 					[entry1a], [entry2a],#3
@@ -2404,13 +2404,13 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
-		with patch('physbiblio.database.entries.getField',
+		with patch('physbiblio.database.Entries.getField',
 				side_effect=["abcd", False, "12345"]) as mock:
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 
 			self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
-			with patch('physbiblio.webimport.inspireoai.webSearch.'
+			with patch('physbiblio.webimport.inspireoai.WebSearch.'
 					+ 'retrieveOAIData', side_effect=[
 					False,
 					mockOut, mockOut, mockOut,
@@ -2548,10 +2548,10 @@ class TestDatabaseEntries(DBTestCase):
 		"""
 		self.pBDB.bibs.insert(self.pBDB.bibs.prepareInsert(
 			u'@article{abc,\narxiv="1234.56789"\n}', inspire = "12345"))
-		with patch('physbiblio.database.entries.updateInfoFromOAI',
+		with patch('physbiblio.database.Entries.updateInfoFromOAI',
 				autospec=True,
 				side_effect=["a", "b", "c", "d", "e", "f"]) as mock_function:
-			with patch('physbiblio.database.entries.updateInspireID',
+			with patch('physbiblio.database.Entries.updateInspireID',
 					side_effect=["54321", False]) as _updateid:
 				self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
 				mock_function.assert_called_once_with(
@@ -2625,7 +2625,7 @@ class TestDatabaseEntries(DBTestCase):
 			'published': '  (2015) ', 'author': '', "bibdict": {u'arxiv':
 				u'1507.08204', 'ENTRYTYPE': u'article', 'ID':
 				u'Gariazzo:2015rra'}}])
-		with patch('physbiblio.webimport.inspireoai.webSearch.'
+		with patch('physbiblio.webimport.inspireoai.WebSearch.'
 				+ 'retrieveOAIUpdates',
 				side_effect=[[], [], [], [],
 				[{'doi': u'10.1088/0954-3899/43/3/033001', 'isbn': None,
@@ -2735,7 +2735,7 @@ class TestDatabaseEntries(DBTestCase):
 			'volume': '', 'number': '', 'pages': '', 'published': '  (2015) ',
 			'author': '', "bibdict": {u'arxiv': u'1507.08204', 'ENTRYTYPE':
 				u'article', 'ID': u'Gariazzo:2015rra'}}])
-		with patch('physbiblio.webimport.inspireoai.webSearch.' \
+		with patch('physbiblio.webimport.inspireoai.WebSearch.' \
 				+ 'retrieveOAIUpdates',
 				side_effect=[
 				[{'doi': u'10.1088/0954-3899/43/3/033001',

@@ -29,7 +29,7 @@ class TestViewMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.view"""
 	def test_getLink(self):
 		"""Test getLink function with different inputs"""
-		with patch('physbiblio.database.entries.getField', side_effect=[
+		with patch('physbiblio.database.Entries.getField', side_effect=[
 				'1507.08204', '', '', '1507.08204', #test "arxiv"
 				'', '10.1088/0954-3899/43/3/033001',
 					'', '10.1088/0954-3899/43/3/033001', #test "doi"

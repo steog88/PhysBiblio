@@ -5,7 +5,7 @@ This file is part of the physbiblio package.
 import traceback
 try:
 	from physbiblio.errors import pBLogger
-	from physbiblio.webimport.webInterf import webInterf
+	from physbiblio.webimport.webInterf import WebInterf
 	from physbiblio.parseAccents import parse_accents_str
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -13,18 +13,18 @@ except ImportError:
 	raise
 
 
-class webSearch(webInterf):
-	"""Subclass of webInterf that can connect to ISBN2Bibtex
+class WebSearch(WebInterf):
+	"""Subclass of WebInterf that can connect to ISBN2Bibtex
 	to perform searches
 	"""
 
 	def __init__(self):
 		"""Initializes the class variables
-		using the webInterf constructor.
+		using the WebInterf constructor.
 
 		Define additional specific parameters for the ISBN2Bibtex API.
 		"""
-		webInterf.__init__(self)
+		WebInterf.__init__(self)
 		self.name = "isbn"
 		self.description = "ISBN to bibtex"
 		self.url = "http://www.ebook.de/de/tools/isbn2bibtex"

@@ -15,7 +15,7 @@ except ImportError:
 	raise
 
 
-class viewEntry():
+class ViewEntry():
 	"""Contains methods to print or open a web link to the entry"""
 
 	def __init__(self):
@@ -111,4 +111,4 @@ class viewEntry():
 					+ " link for entry '%s'"%key)
 
 
-pBView = viewEntry()
+pBView = ViewEntry()

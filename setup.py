@@ -56,5 +56,5 @@ setup(name='physbiblio',
 		provides=['physbiblio'],
 		data_files=[("physbiblio",
 			["LICENSE", "CHANGELOG", 'physbiblio/gui/images/icon.png'])],
-		test_loader="physbiblio.testLoader:MyScanningLoader",
+		test_loader="physbiblio.testLoader:PBScanningLoader",
 	)

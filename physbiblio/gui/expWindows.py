@@ -16,9 +16,9 @@ try:
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, MyLabel, MyMenu, MyTableModel, \
-		objListWindow, pBGuiView
-	from physbiblio.gui.catWindows import catsTreeWindow
+		EditObjectWindow, PBLabel, PBMenu, PBTableModel, \
+		ObjListWindow, pBGuiView
+	from physbiblio.gui.catWindows import CatsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -102,7 +102,7 @@ def deleteExperiment(parentObject, mainWinObject, idExp, name):
 			exc_info=True)
 
 
-class ExpTableModel(MyTableModel):
+class ExpTableModel(PBTableModel):
 	"""Model for the experiment list"""
 
 	def __init__(self,
@@ -112,7 +112,7 @@ class ExpTableModel(MyTableModel):
 			askExps=False,
 			previous=[],
 			*args):
-		"""Extension of `MyTableModel`
+		"""Extension of `PBTableModel`
 		Initialize the model, save the data and the initial selection
 
 		Parameters:
@@ -197,7 +197,7 @@ class ExpTableModel(MyTableModel):
 		return True
 
 
-class ExpsListWindow(objListWindow):
+class ExpsListWindow(ObjListWindow):
 	"""create a window for printing the list of experiments"""
 
 	def __init__(self,
@@ -206,7 +206,7 @@ class ExpsListWindow(objListWindow):
 			askForBib=None,
 			askForCat=None,
 			previous=[]):
-		"""Constructor, extends `objListWindow.__init__`
+		"""Constructor, extends `ObjListWindow.__init__`
 		with more settings and parameters
 
 		Parameters:
@@ -230,7 +230,7 @@ class ExpsListWindow(objListWindow):
 		self.askForCat = askForCat
 		self.previous = previous
 
-		objListWindow.__init__(self, parent)
+		ObjListWindow.__init__(self, parent)
 		self.setWindowTitle('List of experiments')
 
 		self.createTable()
@@ -267,13 +267,13 @@ class ExpsListWindow(objListWindow):
 							self.askForBib)
 					else:
 						link = self.askForBib
-					bibtext = MyLabel(
+					bibtext = PBLabel(
 						"Mark experiments for the following entry:<br>"
 						+ "<b>key</b>:<br>%s<br>"%link
 						+ "<b>author(s)</b>:<br>%s<br>"%bibitem["author"]
 						+ "<b>title</b>:<br>%s<br>"%bibitem["title"])
 				except KeyError:
-					bibtext = MyLabel(
+					bibtext = PBLabel(
 						"Mark experiments for the following entry:<br>"
 						+ "<b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
@@ -281,7 +281,7 @@ class ExpsListWindow(objListWindow):
 				raise NotImplementedError("This feature is not implemented")
 			else:
 				self.currLayout.addWidget(
-					MyLabel("Select the desired experiments:"))
+					PBLabel("Select the desired experiments:"))
 			self.marked = []
 			self.parent().selectedExps = []
 		return True
@@ -368,7 +368,7 @@ class ExpsListWindow(objListWindow):
 		except AttributeError:
 			return
 
-		menu = MyMenu()
+		menu = PBMenu()
 		self.menu = menu
 		titAction = QAction("--Experiment: %s--"%expName)
 		titAction.setDisabled(True)
@@ -396,7 +396,7 @@ class ExpsListWindow(objListWindow):
 			deleteExperiment(self, self.parent(), idExp, expName)
 		elif action == catAction:
 			previous = [a["idCat"] for a in pBDB.cats.getByExp(idExp)]
-			selectCats = catsTreeWindow(
+			selectCats = CatsTreeWindow(
 				parent=self.parent(),
 				askCats=True,
 				askForExp=idExp,
@@ -526,9 +526,9 @@ class EditExperimentDialog(EditObjectWindow):
 			val = self.data[k]
 			if k != "idExp" or (k == "idExp" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(MyLabel(k), i*2 - 1, 0)
+				self.currGrid.addWidget(PBLabel(k), i*2 - 1, 0)
 				self.currGrid.addWidget(
-					MyLabel("(%s)"%pBDB.descriptions["experiments"][k]),
+					PBLabel("(%s)"%pBDB.descriptions["experiments"][k]),
 					i*2 - 1, 1)
 				self.textValues[k] = QLineEdit(str(val))
 				if k == "idExp":

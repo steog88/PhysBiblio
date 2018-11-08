@@ -7,7 +7,7 @@ import re
 try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.config import pbConfig
-	from physbiblio.webimport.webInterf import webInterf, physBiblioWeb
+	from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 	from physbiblio.parseAccents import parse_accents_str
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -15,18 +15,18 @@ except ImportError:
 	raise
 
 
-class webSearch(webInterf):
-	"""Subclass of webInterf that can connect
+class WebSearch(WebInterf):
+	"""Subclass of WebInterf that can connect
 	to INSPIRE-HEP to perform searches
 	"""
 
 	def __init__(self):
 		"""Initializes the class variables
-		using the webInterf constructor.
+		using the WebInterf constructor.
 
 		Define additional specific parameters for the INSPIRE-HEP API.
 		"""
-		webInterf.__init__(self)
+		WebInterf.__init__(self)
 		self.name = "inspire"
 		self.description = "INSPIRE fetcher"
 		self.url = pbConfig.inspireSearchBase

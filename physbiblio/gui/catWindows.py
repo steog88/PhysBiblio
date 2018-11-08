@@ -19,7 +19,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askYesNo
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, LeafFilterProxyModel, MyLabel, MyMenu, \
+		EditObjectWindow, LeafFilterProxyModel, PBLabel, PBMenu, \
 		NamedElement, NamedNode, TreeModel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -31,7 +31,7 @@ def editCategory(parentObject,
 		mainWinObject,
 		editIdCat=None,
 		useParentCat=None):
-	"""Open a dialog (`editCategoryDialog`) to edit a category
+	"""Open a dialog (`EditCategoryDialog`) to edit a category
 	and process the output.
 
 	Parameters:
@@ -47,7 +47,7 @@ def editCategory(parentObject,
 		edit = pBDB.cats.getDictByID(editIdCat)
 	else:
 		edit = None
-	newCatWin = editCategoryDialog(parentObject,
+	newCatWin = EditCategoryDialog(parentObject,
 		category=edit,
 		useParentCat=useParentCat)
 	newCatWin.exec_()
@@ -115,7 +115,7 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
 			exc_info=True)
 
 
-class catsModel(TreeModel):
+class CatsModel(TreeModel):
 	"""Model for the categories tree"""
 
 	def __init__(self,
@@ -266,7 +266,7 @@ class catsModel(TreeModel):
 		return True
 
 
-class catsTreeWindow(QDialog):
+class CatsTreeWindow(QDialog):
 	"""Extension of `QDialog` that shows the categories tree"""
 
 	def __init__(self,
@@ -353,12 +353,12 @@ class catsTreeWindow(QDialog):
 							self.askForBib)
 					else:
 						link = self.askForBib
-					bibtext = MyLabel("Mark categories for the following "
+					bibtext = PBLabel("Mark categories for the following "
 						+ "entry:<br><b>key</b>:<br>%s<br>"%link
 						+ "<b>author(s)</b>:<br>%s<br>"%bibitem["author"]
 						+ "<b>title</b>:<br>%s<br>"%bibitem["title"])
 				except KeyError:
-					bibtext = MyLabel("Mark categories for the following "
+					bibtext = PBLabel("Mark categories for the following "
 						+ "entry:<br><b>key</b>:<br>%s<br>"%(self.askForBib))
 				self.currLayout.addWidget(bibtext)
 			elif self.askForExp is not None:
@@ -369,21 +369,21 @@ class catsTreeWindow(QDialog):
 						+ " is not in the database!", exc_info=True)
 					return
 				try:
-					exptext = MyLabel("Mark categories for the following "
+					exptext = PBLabel("Mark categories for the following "
 						+ "experiment:<br><b>id</b>:<br>%s<br>"%self.askForExp
 						+ "<b>name</b>:<br>%s<br>"%expitem["name"]
 						+ "<b>comments</b>:<br>%s<br>"%expitem["comments"])
 				except KeyError:
-					exptext = MyLabel("Mark categories for the following "
+					exptext = PBLabel("Mark categories for the following "
 						+ "experiment:<br><b>id</b>:<br>%s<br>"%(
 							self.askForExp))
 				self.currLayout.addWidget(exptext)
 			else:
 				if self.single:
-					comment = MyLabel("Select the desired category "
+					comment = PBLabel("Select the desired category "
 						+ "(only the first one will be considered):")
 				else:
-					comment = MyLabel("Select the desired categories:")
+					comment = PBLabel("Select the desired categories:")
 				self.currLayout.addWidget(comment)
 			self.marked = []
 			self.parent().selectedCats = []
@@ -475,7 +475,7 @@ class catsTreeWindow(QDialog):
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
-		self.root_model = catsModel(pBDB.cats.getAll(),
+		self.root_model = CatsModel(pBDB.cats.getAll(),
 			[catsNamedTree],
 			self,
 			self.previous,
@@ -583,7 +583,7 @@ class catsTreeWindow(QDialog):
 			.data().split(": ")
 		idCat = idCat.strip()
 
-		menu = MyMenu()
+		menu = PBMenu()
 		self.menu = menu
 		titAction = QAction("--Category: %s--"%catName)
 		titAction.setDisabled(True)
@@ -625,7 +625,7 @@ class catsTreeWindow(QDialog):
 		self.createForm()
 
 
-class editCategoryDialog(EditObjectWindow):
+class EditCategoryDialog(EditObjectWindow):
 	"""Create a window for editing or creating a category"""
 
 	def __init__(self, parent=None, category=None, useParentCat=None):
@@ -637,7 +637,7 @@ class editCategoryDialog(EditObjectWindow):
 			useParentCat: the id of the parent category
 				of the given one in the tree
 		"""
-		super(editCategoryDialog, self).__init__(parent)
+		super(EditCategoryDialog, self).__init__(parent)
 		if category is None:
 			self.data = {}
 			for k in pBDB.tableCols["categories"]:
@@ -658,8 +658,8 @@ class editCategoryDialog(EditObjectWindow):
 		self.createForm()
 
 	def onAskParent(self):
-		"""Open a `catsTreeWindow` and process its output"""
-		selectCats = catsTreeWindow(parent=self,
+		"""Open a `CatsTreeWindow` and process its output"""
+		selectCats = CatsTreeWindow(parent=self,
 			askCats=True,
 			expButton=False,
 			single=True,
@@ -682,9 +682,9 @@ class editCategoryDialog(EditObjectWindow):
 			val = self.data[k]
 			if k != "idCat" or (k == "idCat" and self.data[k] != ""):
 				i += 1
-				self.currGrid.addWidget(MyLabel(
+				self.currGrid.addWidget(PBLabel(
 					pBDB.descriptions["categories"][k]), i*2 - 1, 0)
-				self.currGrid.addWidget(MyLabel("(%s)"%k), i*2 - 1, 1)
+				self.currGrid.addWidget(PBLabel("(%s)"%k), i*2 - 1, 1)
 				if k == "parentCat":
 					try:
 						val = self.selectedCats[0]

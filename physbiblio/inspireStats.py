@@ -29,7 +29,7 @@ except ImportError:
 	raise
 
 
-class inspireStatsLoader():
+class InspireStatsLoader():
 	"""Class that contains the methods
 	to collect information from INSPIRE-HEP
 	"""
@@ -454,4 +454,4 @@ class inspireStatsLoader():
 			return False
 
 
-pBStats = inspireStatsLoader()
+pBStats = InspireStatsLoader()
