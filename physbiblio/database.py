@@ -2739,7 +2739,7 @@ class Entries(PhysBiblioDBSub):
 			for f in ["arxiv", "doi"]:
 				try:
 					if data[f] is not None \
-							and isinstance(data[f], str) \
+							and isinstance(data[f], six.string_types) \
 							and data[f].strip() != "":
 						temp = self.fetchAll(params = {f: data[f]},
 							saveQuery=False).lastFetched

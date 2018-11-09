@@ -1505,365 +1505,321 @@ class TestMainWindow(GUITestCase):
 
 	def test_advancedImport(self):
 		"""test advancedImport"""
-		raise NotImplementedError
-		# dad = DailyArxivDialog()
-		# dad.exec_ = MagicMock()
-		# dad.result = False
-		# dad.comboCat.setCurrentText("")
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# dad.exec_.assert_called_once_with()
+		aid = AdvancedImportDialog()
+		aid.exec_ = MagicMock()
+		aid.result = False
+		aid.comboMethod.setCurrentText("INSPIRE-HEP")
+		aid.searchStr.setText("")
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
 
-		# dad.exec_ = MagicMock()
-		# dad.result = True
-		# dad.comboCat.setCurrentText("")
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# dad.exec_.assert_called_once_with()
+		aid.exec_ = MagicMock()
+		aid.result = True
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
 
-		# with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.updateCat"
-				# ) as _uc:
-			# dad.comboCat.addItem("nonex")
-			# dad.comboCat.setCurrentText("nonex")
-		# dad.exec_ = MagicMock()
-		# dad.result = True
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch("logging.Logger.warning") as _w,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[]) as _ad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# dad.exec_.assert_called_once_with()
-			# _w.assert_called_once_with("Non-existent category! nonex")
-			# _ad.assert_not_called()
+		aid.searchStr.setText("test")
+		aid.exec_ = MagicMock()
+		aid.result = True
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch("physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+					return_value="") as _ru:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
+			_im.assert_called_once_with("No results obtained.")
+			_ru.assert_called_once_with("test")
 
-		# dad.comboCat.setCurrentText("astro-ph")
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch(self.modName + ".infoMessage") as _im,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[]) as _ad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# _im.assert_called_once_with("No results obtained.")
-			# _ad.assert_called_once_with('astro-ph')
+		aid.comboMethod.setCurrentText("DOI")
+		with patch("logging.Logger.warning") as _w:
+			ais = AdvancedImportSelect(
+				{u'a': {'exist': True, 'bibpars':
+					{'ID': u'a', u'title': u'T',
+					'ENTRYTYPE': u'article', u'author': u'gs'}},
+				u'b': {'exist': True, 'bibpars':
+					{u'doi': u'2', u'author': u'sg', u'title': u'tit',
+					u'arxiv': u'1', 'ID': u'b', 'ENTRYTYPE': u'article'}},
+				u'c': {'exist': False, 'bibpars':
+					{u'doi': u'4', u'title': u'title', u'author': u'io',
+					'ENTRYTYPE': u'article', 'arxiv': u'3',
+					u'eprint': u'3', 'ID': u'c'}},
+				u'd': {'exist': False, 'bibpars':
+					{'ID': u'd', u'title': u't', 'ENTRYTYPE': u'article',
+					u'author': u'yo'}}}, self.mainW)
+		ais.exec_ = MagicMock()
+		ais.askCats.setCheckState(Qt.Checked)
+		ais.selected = {"a": True, "b": True, "c": False}
+		ais.result = False
+		aid.exec_.reset_mock()
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid,\
+				patch(self.modName + ".AdvancedImportSelect",
+					return_value=ais) as _ais,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch("physbiblio.webimport.doi.WebSearch.retrieveUrlAll",
+					return_value='@article{ ,\nauthor="me",\ntitle="titl"\n}\n'
+						+ '@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+						+ '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+						+ 'arxiv="1",\ndoi="2"\n}\n'
+						+ '@article{c,\nauthor="io",\ntitle="title"\n,'
+						+ 'eprint="3",\ndoi="4"\n}\n'
+						+ '@article{d,\nauthor="yo",\ntitle="t"\n}\n'
+						) as _ru,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch("logging.Logger.warning") as _wa,\
+				patch("logging.Logger.debug") as _deb,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[["a"], [], [], []]) as _gbb,\
+				patch("physbiblio.database.Entries.getAll",
+					side_effect=[["b"], [], []]) as _ga,\
+				patch("physbiblio.database.CatsEntries.delete") as _cd:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
+			_im.assert_not_called()
+			_ru.assert_called_once_with("test")
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
+			_rmc.assert_called_once_with()
+			_gbb.assert_has_calls([call(u'a', saveQuery=False),
+				 call(u'b', saveQuery=False),
+				 call(u'c', saveQuery=False)])
+			_ga.assert_has_calls([
+				call(params={'arxiv': u'1'}, saveQuery=False),
+				call(params={'arxiv': u'3'}, saveQuery=False),
+				call(params={'doi': u'4'}, saveQuery=False)])
+			_deb.assert_has_calls([
+				call(u"KeyError 'arxiv', entry: d"),
+				call(u"KeyError 'doi', entry: d")])
+			_wa.assert_called_once_with(
+				"Impossible to insert an entry with empty bibkey!"
+				+ "\n{'ID': None, u'title': u'titl', 'ENTRYTYPE':"
+				+ " u'article', u'author': u'me'}\n")
 
-		# dad.comboSub.setCurrentText("CO")
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch(self.modName + ".infoMessage") as _im,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[]) as _ad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# _im.assert_called_once_with("No results obtained.")
-			# _ad.assert_called_once_with('astro-ph.CO')
+		aid.exec_.reset_mock()
+		ais.exec_.reset_mock()
+		ais.result = True
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid,\
+				patch(self.modName + ".AdvancedImportSelect",
+					return_value=ais) as _ais,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.webimport.doi.WebSearch.retrieveUrlAll",
+					return_value='@article{ ,\nauthor="me",\ntitle="titl"\n}\n'
+						+ '@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+						+ '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+						+ 'arxiv="1",\ndoi="2"\n}\n'
+						+ '@article{c,\nauthor="io",\ntitle="title"\n,'
+						+ 'eprint="3",\ndoi="4"\n}\n'
+						+ '@article{d,\nauthor="yo",\ntitle="t"\n}\n'
+						) as _ru,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch("logging.Logger.warning") as _wa,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.debug") as _deb,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[["a"], [], [], []]) as _gbb,\
+				patch("physbiblio.database.Entries.getAll",
+					side_effect=[["b"], [], []]) as _ga,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					side_effect=["data1", "data2", "data3", "data4"]) as _pi,\
+				patch("physbiblio.database.Entries.insert",
+					side_effect=[True, False, True, True]) as _bi,\
+				patch("physbiblio.database.CatsEntries.delete") as _cd:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
+			_im.assert_not_called()
+			_ru.assert_called_once_with("test")
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
+			_rmc.assert_called_once_with()
+			_gbb.assert_has_calls([call(u'a', saveQuery=False),
+				 call(u'b', saveQuery=False),
+				 call(u'c', saveQuery=False)])
+			_ga.assert_has_calls([
+				call(params={'arxiv': u'1'}, saveQuery=False),
+				call(params={'arxiv': u'3'}, saveQuery=False),
+				call(params={'doi': u'4'}, saveQuery=False)])
+			_deb.assert_has_calls([
+				call(u"KeyError 'arxiv', entry: d"),
+				call(u"KeyError 'doi', entry: d")])
+			_pi.assert_has_calls([
+				call(u'@Article{a,\n        author = "gs",'
+					+ '\n         title = "{T}",\n}\n\n'),
+				call(u'@Article{b,\n        author = "sg",'
+					+ '\n         title = "{tit}",\n           '
+					+ 'doi = "2",\n         arxiv = "1",\n}\n\n')])
+			_bi.assert_has_calls([call("data1"), call("data2")])
+			_wa.assert_has_calls([call("Failed in inserting entry 'b'\n")])
+			_sbm.assert_called_once_with(
+				"Entries successfully imported: ['a']")
+			_ace.assert_called_once_with(["a"])
+			_in.assert_called_once_with("Element 'a' successfully inserted.\n")
+			_cd.assert_called_once_with(
+				pbConfig.params["defaultCategories"], "a")
 
-		# das = DailyArxivSelect(
-			# {"12.345":
-				# {"bibpars": {
-					# "author": "me",
-					# "title": "title",
-					# "type": "",
-					# "eprint": "12.345",
-					# "replacement": False,
-					# "cross": False,
-					# "abstract": "some text",
-					# "primaryclass": "astro-ph"},
-				# "exist": 1}},
-			# self.mainW)
-		# das.abstractFormulas = AbstractFormulas
-		# das.exec_ = MagicMock()
-		# das.askCats.setCheckState(Qt.Unchecked)
-		# das.selected = {"12.345": True}
-		# das.result = False
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch(self.modName + ".DailyArxivSelect",
-					# return_value=das) as _das,\
-				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
-					# ) as _sc,\
-				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
-					# ) as _rc,\
-				# patch(self.clsName + ".reloadMainContent") as _rmc,\
-				# patch(self.modName + ".infoMessage") as _im,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[
-						# {"replacement": False,
-						# "cross": False,
-						# "eprint": "12.345"}
-					# ]) as _ad:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# _im.assert_not_called()
-			# _ad.assert_called_once_with('astro-ph.CO')
-			# _das.assert_called_once_with(
-				# {'12.345': {'exist': False, 'bibpars':
-					# {'type': '', 'eprint': '12.345',
-					# 'cross': False, 'replacement': False}}},
-				# self.mainW)
-			# das.exec_.assert_called_once_with()
-			# self.assertEqual(_sc.call_count, 1)
-			# self.assertEqual(_rc.call_count, 1)
-			# _rmc.assert_called_once_with()
+		aid.comboMethod.setCurrentText("ISBN")
+		aid.exec_.reset_mock()
+		with patch("logging.Logger.warning") as _w:
+			ais = AdvancedImportSelect(
+				{u'a': {'exist': True, 'bibpars':
+					{'ID': u'a', u'title': u'T',
+					'ENTRYTYPE': u'article', u'author': u'gs'}},
+				u'b': {'exist': True, 'bibpars':
+					{u'doi': u'2', u'author': u'sg', u'title': u'tit',
+					u'arxiv': u'1', 'ID': u'b', 'ENTRYTYPE': u'article'}}
+				}, self.mainW)
+		ais.exec_ = MagicMock()
+		ais.askCats.setCheckState(Qt.Unchecked)
+		ais.selected = {"a": True, "b": True}
+		ais.result = True
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid,\
+				patch(self.modName + ".AdvancedImportSelect",
+					return_value=ais) as _ais,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
+					return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+						+ '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+						+ 'arxiv="1",\ndoi="2"\n}\n'
+						) as _ru,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch("logging.Logger.warning") as _wa,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.debug") as _deb,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[["a"], ["b"]]) as _gbb,\
+				patch("physbiblio.database.Entries.getAll",
+					side_effect=[["b"], [], []]) as _ga,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					side_effect=["data1", "data2"]) as _pi,\
+				patch("physbiblio.database.Entries.insert",
+					side_effect=[True, True]) as _bi,\
+				patch("physbiblio.database.Entries.setBook") as _sb,\
+				patch("physbiblio.database.Entries.updateInspireID") as _ui,\
+				patch("physbiblio.database.Entries.updateInfoFromOAI") as _ii,\
+				patch("physbiblio.database.CatsEntries.delete") as _cd:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
+			_im.assert_not_called()
+			_ru.assert_called_once_with("test")
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
+			_rmc.assert_called_once_with()
+			_gbb.assert_has_calls([call(u'a', saveQuery=False),
+				 call(u'b', saveQuery=False)])
+			_ga.assert_not_called()
+			_pi.assert_has_calls([
+				call(u'@Article{a,\n        author = "gs",'
+					+ '\n         title = "{T}",\n}\n\n'),
+				call(u'@Article{b,\n        author = "sg",'
+					+ '\n         title = "{tit}",\n           '
+					+ 'doi = "2",\n         arxiv = "1",\n}\n\n')])
+			_bi.assert_has_calls([call("data1"), call("data2")])
+			_wa.assert_not_called()
+			_sbm.assert_called_once_with(
+				"Entries successfully imported: ['a', 'b']")
+			_in.assert_has_calls([
+				call("Element 'a' successfully inserted.\n"),
+				call("Element 'b' successfully inserted.\n")])
+			_sb.assert_has_calls([call("a"), call("b")])
+			_cd.assert_not_called()
+			_ace.assert_not_called()
+			_ui.assert_not_called()
+			_ii.assert_not_called()
 
-		# das.exec_ = MagicMock()
-		# das.result = True
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch(self.modName + ".DailyArxivSelect",
-					# return_value=das) as _das,\
-				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
-					# ) as _sc,\
-				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
-					# ) as _rc,\
-				# patch(self.clsName + ".askCatsForEntries") as _ace,\
-				# patch(self.clsName + ".reloadMainContent") as _rmc,\
-				# patch(self.clsName + ".statusBarMessage") as _sbm,\
-				# patch(self.modName + ".infoMessage") as _im,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[
-						# {"replacement": False,
-						# "cross": False,
-						# "eprint": "12.345"}
-					# ]) as _ad,\
-				# patch("physbiblio.database.Entries.loadAndInsert",
-					# return_value=True) as _lai,\
-				# patch("physbiblio.database.Entries.getByKey",
-					# return_value=[{"bibkey": "12.345"}]) as _gbk:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# _im.assert_not_called()
-			# _ad.assert_called_once_with('astro-ph.CO')
-			# _das.assert_called_once_with(
-				# {'12.345': {'exist': False, 'bibpars':
-					# {'type': '', 'eprint': '12.345',
-					# 'cross': False, 'replacement': False}}},
-				# self.mainW)
-			# das.exec_.assert_called_once_with()
-			# self.assertEqual(_sc.call_count, 2)
-			# self.assertEqual(_rc.call_count, 2)
-			# _rmc.assert_called_once_with()
-			# _sbm.assert_called_once_with(
-				# "Entries successfully imported: ['12.345']")
-			# _lai.assert_called_once_with("12.345")
-			# _gbk.assert_called_once_with("12.345")
-			# _ace.assert_not_called()
-
-		# das = DailyArxivSelect(
-			# {"12.345":
-				# {"bibpars": {
-					# "author": "me1",
-					# "title": "title1",
-					# "type": "",
-					# "eprint": "12.345",
-					# "replacement": False,
-					# "cross": False,
-					# "abstract": "some text",
-					# "primaryclass": "astro-ph"},
-				# "exist": 1},
-			# "12.346":
-				# {"bibpars": {
-					# "author": "me2",
-					# "title": "title2",
-					# "type": "",
-					# "eprint": "12.346",
-					# "replacement": False,
-					# "cross": True,
-					# "abstract": "some other text",
-					# "primaryclass": "astro-ph.CO"},
-				# "exist": 1},
-			# "12.347":
-				# {"bibpars": {
-					# "author": "me3",
-					# "title": "title3",
-					# "type": "",
-					# "eprint": "12.347",
-					# "replacement": False,
-					# "cross": False,
-					# "abstract": "some more text",
-					# "primaryclass": "hep-ph"},
-				# "exist": 1},
-			# "12.348":
-				# {"bibpars": {
-					# "author": "me4",
-					# "title": "title4",
-					# "type": "",
-					# "eprint": "12.348",
-					# "replacement": False,
-					# "cross": False,
-					# "abstract": "some more text",
-					# "primaryclass": "hep-ph"},
-				# "exist": 1},
-			# "12.349":
-				# {"bibpars": {
-					# "author": "me5",
-					# "title": "title5",
-					# "type": "",
-					# "eprint": "12.349",
-					# "replacement": False,
-					# "cross": False,
-					# "abstract": "some more text",
-					# "primaryclass": "hep-ex"},
-				# "exist": 1}},
-			# self.mainW)
-		# das.abstractFormulas = AbstractFormulas
-		# das.exec_ = MagicMock()
-		# das.askCats.setCheckState(Qt.Unchecked)
-		# das.selected = {"12.345": True, "12.346": True,
-			# "12.347": False, "12.348": True, "12.349": True}
-		# das.result = True
-		# das.askCats.setCheckState(Qt.Checked)
-		# with patch(self.modName + ".DailyArxivDialog",
-				# return_value=dad) as _dad,\
-				# patch(self.modName + ".DailyArxivSelect",
-					# return_value=das) as _das,\
-				# patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
-					# ) as _sc,\
-				# patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
-					# ) as _rc,\
-				# patch(self.clsName + ".askCatsForEntries") as _ace,\
-				# patch(self.clsName + ".reloadMainContent") as _rmc,\
-				# patch(self.clsName + ".statusBarMessage") as _sbm,\
-				# patch(self.modName + ".infoMessage") as _im,\
-				# patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-					# return_value=[
-						# {"author": "me1",
-						# "title": "title1",
-						# "type": "",
-						# "eprint": "12.345",
-						# "replacement": True,
-						# "cross": False,
-						# "abstract": "some text",
-						# "primaryclass": "astro-ph"},
-						# {"author": "me2",
-						# "title": "title2",
-						# "type": "",
-						# "eprint": "12.346",
-						# "replacement": True,
-						# "cross": True,
-						# "abstract": "some other text",
-						# "primaryclass": "astro-ph.CO"},
-						# {"author": "me3",
-						# "title": "title3",
-						# "type": "",
-						# "eprint": "12.347",
-						# "replacement": False,
-						# "cross": True,
-						# "abstract": "some more text",
-						# "primaryclass": "hep-ph"},
-						# {"author": "me4",
-						# "title": "title4",
-						# "type": "",
-						# "eprint": "12.348",
-						# "replacement": False,
-						# "cross": False,
-						# "abstract": "some more text",
-						# "primaryclass": "hep-ph"},
-						# {"author": "me5",
-						# "title": "title5",
-						# "type": "",
-						# "eprint": "12.349",
-						# "replacement": False,
-						# "cross": False,
-						# "abstract": "some more text",
-						# "primaryclass": "hep-ex"}
-					# ]) as _ad,\
-				# patch("physbiblio.database.Entries.loadAndInsert",
-					# side_effect=[True, False, False, False]) as _lai,\
-				# patch("physbiblio.database.Entries.prepareInsert",
-					# side_effect=["data1", "data2", "data3"]) as _pi,\
-				# patch("physbiblio.database.Entries.updateInspireID",
-					# return_value="123") as _uid,\
-				# patch("physbiblio.database.Entries.searchOAIUpdates"
-					# ) as _sou,\
-				# patch("physbiblio.database.Entries.insert",
-					# side_effect=[False, True, True]) as _bi,\
-				# patch("physbiblio.database.Entries.getByKey",
-					# side_effect=[
-						# [{"bibkey": "12.345"}],
-						# [],
-						# [{"bibkey": "12.350"}],
-						# ]) as _gbk,\
-				# patch("physbiblio.database.Entries.getByBibkey",
-					# return_value=[{"bibkey": "12.346"}]) as _gbb,\
-				# patch("logging.Logger.info") as _in,\
-				# patch("logging.Logger.warning") as _wa:
-			# self.assertFalse(self.mainW.browseDailyArxiv())
-			# _dad.assert_called_once_with()
-			# _im.assert_not_called()
-			# _ad.assert_called_once_with('astro-ph.CO')
-			# _das.assert_called_once_with(
-				# {'12.345': {'exist': True, 'bibpars':
-					# {'eprint': '12.345', 'primaryclass': 'astro-ph',
-					# 'author': 'me1', 'abstract': 'some text',
-					# 'title': 'title1', 'type': '[replacement]',
-					# 'cross': False, 'replacement': True}},
-				# '12.346': {'exist': True, 'bibpars':
-					# {'eprint': '12.346', 'primaryclass': 'astro-ph.CO',
-					# 'author': 'me2', 'abstract': 'some other text',
-					# 'title': 'title2', 'type': '[replacement][cross-listed]',
-					# 'cross': True, 'replacement': True}},
-				# '12.347': {'exist': True, 'bibpars':
-					# {'eprint': '12.347', 'primaryclass': 'hep-ph',
-					# 'author': 'me3', 'abstract': 'some more text',
-					# 'title': 'title3', 'type': '[cross-listed]',
-					# 'cross': True, 'replacement': False}},
-				# '12.348': {'exist': True, 'bibpars':
-					# {'eprint': '12.348', 'primaryclass': 'hep-ph',
-					# 'author': 'me4', 'abstract': 'some more text',
-					# 'title': 'title4', 'type': '',
-					# 'cross': False, 'replacement': False}},
-				# '12.349': {'exist': True, 'bibpars':
-					# {'eprint': '12.349', 'primaryclass': 'hep-ex',
-					# 'author': 'me5', 'abstract': 'some more text',
-					# 'title': 'title5', 'type': '',
-					# 'cross': False, 'replacement': False}},},
-				# self.mainW)
-			# self.assertEqual(_sc.call_count, 2)
-			# self.assertEqual(_rc.call_count, 2)
-			# _rmc.assert_called_once_with()
-			# _lai.assert_has_calls([
-				# call("12.345"), call("12.346"),
-				# call('12.348'), call("12.349")])
-			# _gbk.assert_has_calls([
-				# call('12.345'), call('12.348'), call('12.349')])
-			# _ace.assert_called_once_with(["12.345", "12.348", "12.350"])
-			# _sbm.assert_called_once_with(
-				# "Entries successfully imported: "
-				# + "['12.345', '12.348', '12.350']")
-			# _in.assert_has_calls([
-				# call("Element '12.348' successfully inserted.\n"),
-				# call("Element '12.349' successfully inserted.\n")])
-			# _wa.assert_has_calls([
-				# call('Failed in inserting entry 12.346\n'),
-				# call('Failed in completing info for entry 12.348\n')])
-			# _pi.assert_has_calls([
-				# call('@Article{12.346,\n        author = "me2",\n'
-				# + '         title = "{title2}",\n archiveprefix '
-				# + '= "arXiv",\n  primaryclass = "astro-ph.CO",\n'
-				# + '        eprint = "12.346",\n}\n\n'),
-				# call('@Article{12.348,\n        author = "me4",\n'
-				# + '         title = "{title4}",\n archiveprefix '
-				# + '= "arXiv",\n  primaryclass = "hep-ph",\n'
-				# + '        eprint = "12.348",\n}\n\n'),
-				# call('@Article{12.349,\n        author = "me5",\n'
-				# + '         title = "{title5}",\n archiveprefix '
-				# + '= "arXiv",\n  primaryclass = "hep-ex",\n'
-				# + '        eprint = "12.349",\n}\n\n')])
-			# _bi.assert_has_calls([call("data1"), call("data2")])
-			# _uid.assert_has_calls([call('12.348'), call('12.349')])
-			# _sou.assert_has_calls([
-				# call(0, entries=[{'bibkey': '12.346'}],
-					# force=True, reloadAll=True),
-				# call(0, entries=[{'bibkey': '12.346'}],
-					# force=True, reloadAll=True)])
-			# _gbb.assert_has_calls([call('12.348'), call('12.349')])
+		aid.comboMethod.setCurrentText("INSPIRE-HEP")
+		aid.exec_.reset_mock()
+		ais.exec_.reset_mock()
+		with patch(self.modName + ".AdvancedImportDialog",
+				return_value=aid) as _aid,\
+				patch(self.modName + ".AdvancedImportSelect",
+					return_value=ais) as _ais,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+					return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+						+ '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+						+ 'arxiv="1",\ndoi="2"\n}\n'
+						) as _ru,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch("logging.Logger.warning") as _wa,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.debug") as _deb,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[["a"], ["b"]]) as _gbb,\
+				patch("physbiblio.database.Entries.getAll",
+					side_effect=[["b"], [], []]) as _ga,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					side_effect=["data1", "data2"]) as _pi,\
+				patch("physbiblio.database.Entries.insert",
+					side_effect=[True, True]) as _bi,\
+				patch("physbiblio.database.Entries.setBook") as _sb,\
+				patch("physbiblio.database.Entries.updateInspireID",
+					side_effect=["123", KeyError]) as _ui,\
+				patch("physbiblio.database.Entries.updateInfoFromOAI") as _ii,\
+				patch("physbiblio.database.CatsEntries.delete") as _cd:
+			self.assertFalse(self.mainW.advancedImport())
+			_aid.assert_called_once_with()
+			aid.exec_.assert_called_once_with()
+			_im.assert_not_called()
+			_ru.assert_called_once_with("test")
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
+			_rmc.assert_called_once_with()
+			_gbb.assert_has_calls([call(u'a', saveQuery=False),
+				 call(u'b', saveQuery=False)])
+			_ga.assert_not_called()
+			_pi.assert_has_calls([
+				call(u'@Article{a,\n        author = "gs",'
+					+ '\n         title = "{T}",\n}\n\n'),
+				call(u'@Article{b,\n        author = "sg",'
+					+ '\n         title = "{tit}",\n           '
+					+ 'doi = "2",\n         arxiv = "1",\n}\n\n')])
+			_bi.assert_has_calls([call("data1"), call("data2")])
+			_wa.assert_called_once_with(
+				"Failed in completing info for entry 'b'\n")
+			_sbm.assert_called_once_with(
+				"Entries successfully imported: ['a']")
+			_in.assert_has_calls([
+				call("Element 'a' successfully inserted.\n")])
+			_sb.assert_not_called()
+			_cd.assert_not_called()
+			_ace.assert_not_called()
+			_ui.assert_has_calls([call("a"), call("b")])
+			_ii.assert_called_once_with("123")
 
 	def test_cleanAllBibtexsAsk(self):
 		"""test cleanAllBibtexsAsk"""
@@ -2203,6 +2159,52 @@ class TestMainWindow(GUITestCase):
 			_lai.assert_called_once_with("12.345")
 			_gbk.assert_called_once_with("12.345")
 			_ace.assert_not_called()
+
+		das.exec_ = MagicMock()
+		das.askCats.setCheckState(Qt.Checked)
+		with patch(self.modName + ".DailyArxivDialog",
+				return_value=dad) as _dad,\
+				patch(self.modName + ".DailyArxivSelect",
+					return_value=das) as _das,\
+				patch("PySide2.QtWidgets.QApplication.setOverrideCursor"
+					) as _sc,\
+				patch("PySide2.QtWidgets.QApplication.restoreOverrideCursor"
+					) as _rc,\
+				patch(self.clsName + ".askCatsForEntries") as _ace,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch("physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+					return_value=[
+						{"replacement": False,
+						"cross": False,
+						"eprint": "12.345"}
+					]) as _ad,\
+				patch("physbiblio.database.Entries.loadAndInsert",
+					return_value=True) as _lai,\
+				patch("physbiblio.database.Entries.getByKey",
+					return_value=[{"bibkey": "12.345"}]) as _gbk,\
+				patch("physbiblio.database.CatsEntries.delete") as _cd:
+			self.assertFalse(self.mainW.browseDailyArxiv())
+			_dad.assert_called_once_with()
+			_im.assert_not_called()
+			_ad.assert_called_once_with('astro-ph.CO')
+			_das.assert_called_once_with(
+				{'12.345': {'exist': False, 'bibpars':
+					{'type': '', 'eprint': '12.345',
+					'cross': False, 'replacement': False}}},
+				self.mainW)
+			das.exec_.assert_called_once_with()
+			self.assertEqual(_sc.call_count, 2)
+			self.assertEqual(_rc.call_count, 2)
+			_rmc.assert_called_once_with()
+			_sbm.assert_called_once_with(
+				"Entries successfully imported: ['12.345']")
+			_lai.assert_called_once_with("12.345")
+			_gbk.assert_called_once_with("12.345")
+			_ace.assert_called_once_with(['12.345'])
+			_cd.assert_called_once_with(
+				pbConfig.params["defaultCategories"], '12.345')
 
 		das = DailyArxivSelect(
 			{"12.345":

@@ -5,6 +5,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
+import six
 import signal
 import ast
 import glob
@@ -1375,22 +1376,25 @@ class MainWindow(QMainWindow):
 				).parse(cont).entries
 			found = {}
 			for el in elements:
-				if el["ID"].strip() == "":
+				if not isinstance(el["ID"], six.string_types) or \
+						el["ID"].strip() == "":
 					pBLogger.warning("Impossible to insert an entry with "
-						+ "empty bibkey!\n%s\n"%el["ID"])
+						+ "empty bibkey!\n%s\n"%el)
 				else:
 					try:
 						el["arxiv"] = el["eprint"]
 					except KeyError:
 						pass
-					exist = (len(pBDB.bibs.getByBibkey(el["ID"],
+					exist = (len(pBDB.bibs.getByBibkey(
+						el["ID"],
 						saveQuery=False) ) > 0)
 					for f in ["arxiv", "doi"]:
 						try:
 							exist = (exist or
 								(el[f].strip() != "" and len(
-									pBDB.bibs.fetchAll(params={f: el[f]},
-										saveQuery=False).lastFetched) > 0))
+									pBDB.bibs.getAll(
+										params={f: el[f]},
+										saveQuery=False)) > 0))
 						except KeyError:
 							pBLogger.debug("KeyError '%s', entry: %s"%(
 								f, el["ID"]))
@@ -1404,20 +1408,19 @@ class MainWindow(QMainWindow):
 			selImpo.exec_()
 			if selImpo.result == True:
 				newFound = {}
-				for ch, val in selImpo.selected.items():
-					if val:
+				for ch in sorted(selImpo.selected):
+					if selImpo.selected[ch]:
 						newFound[ch] = found[ch]
 				found = newFound
 				db = bibtexparser.bibdatabase.BibDatabase()
 				inserted = []
-				for key, el in found.items():
+				for key in sorted(found):
+					el = found[key]
 					db.entries = [el["bibpars"]]
 					entry = pbWriter.write(db)
 					data = pBDB.bibs.prepareInsert(entry)
-					try:
-						pBDB.bibs.insert(data)
-					except:
-						pBLogger.warning("Failed in inserting entry %s\n"%key)
+					if not pBDB.bibs.insert(data):
+						pBLogger.warning("Failed in inserting entry '%s'\n"%key)
 						continue
 					try:
 						if method == "inspire":
@@ -1430,9 +1433,9 @@ class MainWindow(QMainWindow):
 						inserted.append(key)
 					except:
 						pBLogger.warning(
-							"Failed in completing info for entry %s\n"%key)
+							"Failed in completing info for entry '%s'\n"%key)
 				self.statusBarMessage(
-					"[advancedImport] Entries successfully imported: %s"%(
+					"Entries successfully imported: %s"%(
 						inserted))
 				if selImpo.askCats.isChecked():
 					for key in inserted:
@@ -1633,6 +1636,9 @@ class MainWindow(QMainWindow):
 					"Entries successfully imported: %s"%(
 						inserted))
 				if selImpo.askCats.isChecked():
+					for key in inserted:
+						pBDB.catBib.delete(
+							pbConfig.params["defaultCategories"], key)
 					self.askCatsForEntries(inserted)
 			self.reloadMainContent()
 		else:
