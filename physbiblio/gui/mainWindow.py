@@ -1312,7 +1312,7 @@ class MainWindow(QMainWindow):
 			minProgress=0., stopFlag=True,
 			addMessage="Searching:\n%s"%queryStr)
 
-		if self.loadedAndInserted is []:
+		if self.loadedAndInserted == []:
 			infoMessage("No results obtained. "
 				+ "Maybe there was an error or you interrupted execution.")
 			return False

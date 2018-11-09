@@ -1405,7 +1405,90 @@ class TestMainWindow(GUITestCase):
 
 	def test_inspireLoadAndInsert(self):
 		"""test inspireLoadAndInsert"""
-		raise NotImplementedError
+		with patch(self.modName + ".askGenericText",
+				return_value=("", False)) as _gt:
+			self.assertFalse(self.mainW.inspireLoadAndInsert())
+			_gt.assert_called_once_with(
+				"Insert the query string you want to use for importing "
+				+ "from INSPIRE-HEP:\n(It will be interpreted as a list, "
+				+ "if possible)", "Query string?", self.mainW)
+		with patch(self.modName + ".askGenericText",
+				return_value=("", True)) as _gt,\
+				patch("logging.Logger.warning") as _w:
+			self.assertFalse(self.mainW.inspireLoadAndInsert())
+			_gt.assert_called_once_with(
+				"Insert the query string you want to use for importing "
+				+ "from INSPIRE-HEP:\n(It will be interpreted as a list, "
+				+ "if possible)", "Query string?", self.mainW)
+			_w.assert_called_once_with("Empty string! cannot proceed.")
+		with patch(self.modName + ".askGenericText",
+				return_value=("ab,c", True)) as _gt,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("logging.Logger.exception") as _ex,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.assertFalse(self.mainW.inspireLoadAndInsert())
+			_sbm.assert_called_once_with("Starting import from INSPIRE...")
+			_ex.assert_called_once_with(
+				"Cannot recognize the list sintax. "
+				+ "Missing quotes in the string?")
+			_rit.assert_not_called()
+
+		self.mainW.loadedAndInserted = []
+		with patch(self.modName + ".askGenericText",
+				return_value=("'ab','cd'", True)) as _gt,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.assertFalse(self.mainW.inspireLoadAndInsert())
+			_im.assert_called_once_with(
+				'No results obtained. Maybe there was an error'
+				+ ' or you interrupted execution.')
+			_rit.assert_called_once_with(
+				Thread_loadAndInsert, "Import from INSPIRE-HEP",
+				['ab', 'cd'],
+				totStr="LoadAndInsert will process ",
+				progrStr="%) - looking for string: ",
+				minProgress=0., stopFlag=True,
+				addMessage="Searching:\n['ab', 'cd']")
+
+		self.mainW.loadedAndInserted = []
+		with patch(self.modName + ".askGenericText",
+				return_value=("abcd", True)) as _gt,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + "._runInThread") as _rit:
+			self.assertFalse(self.mainW.inspireLoadAndInsert())
+			_im.assert_called_once_with(
+				'No results obtained. Maybe there was an error'
+				+ ' or you interrupted execution.')
+			_rit.assert_called_once_with(
+				Thread_loadAndInsert, "Import from INSPIRE-HEP",
+				'abcd',
+				totStr="LoadAndInsert will process ",
+				progrStr="%) - looking for string: ",
+				minProgress=0., stopFlag=True,
+				addMessage="Searching:\nabcd")
+
+		mainW = MainWindow(testing=True)
+		def fake_loadAndInsert(*args, **kwargs):
+			mainW.loadedAndInserted = ["a"]
+
+		mainW._runInThread = fake_loadAndInsert
+		with patch(self.modName + ".askGenericText",
+				return_value=("'ab','cd'", True)) as _gt,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".reloadMainContent") as _rmc,\
+				patch(self.modName + ".infoMessage") as _im:
+			self.assertTrue(mainW.inspireLoadAndInsert())
+			_im.assert_not_called()
+			_rmc.assert_called_once_with()
+
+		with patch(self.modName + ".askGenericText",
+				return_value=("'ab','cd'", True)) as _gt,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + ".reloadMainContent") as _rmc:
+			self.assertTrue(mainW.inspireLoadAndInsert(doReload=False))
+			_rmc.assert_not_called()
 
 	def test_askCatsForEntries(self):
 		"""test askCatsForEntries"""
