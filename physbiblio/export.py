@@ -392,7 +392,7 @@ class PBExport():
 			return False
 
 		#extract \cite* commands
-		matchKeys = '([A-Za-z_\-\']+:[0-9]*[A-Za-z]*|[A-Za-z0-9_\-\']+)'
+		matchKeys = '([0-9A-Za-z_\-\':]+)'
 		cite = re.compile('\\\\(cite|citep|citet)\{([\n ]*' \
 			+ matchKeys + '[,]?[\n ]*)*\}', re.MULTILINE)	#find \cite{...}
 		citeKeys = re.compile(matchKeys,
