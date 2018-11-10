@@ -1,3 +1,4 @@
+0.9.0 (2018-11-10):
 	New features:
 	* now runs with PySide2 (based on Qt5)
 	* `Physbiblio test` options through command line
