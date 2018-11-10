@@ -581,9 +581,6 @@ class MainWindow(QMainWindow):
 					pbConfig.params[q[0]] = s
 					pBDB.config.update(q[0], s)
 					changed = True
-				if str(pbConfig.defaultsParams[q[0]]) == s:
-					pBDB.config.delete(q[0])
-					changed = True
 				pBLogger.debug("Using configuration param %s = %s"%(q[0], s))
 			if changed:
 				pBDB.commit()
@@ -591,6 +588,8 @@ class MainWindow(QMainWindow):
 				self.reloadConfig()
 				self.refreshMainContent()
 				self.statusBarMessage("Configuration saved")
+			else:
+				self.statusBarMessage("No changes requested")
 		else:
 			self.statusBarMessage("Changes discarded")
 
@@ -1226,7 +1225,7 @@ class MainWindow(QMainWindow):
 		if "[" in authorName:
 			try:
 				authorName = ast.literal_eval(authorName.strip())
-			except SyntaxError:
+			except (ValueError, SyntaxError):
 				pBGUILogger.exception(
 					"Cannot recognize the list sintax. "
 					+ "Missing quotes in the string?")
@@ -1248,10 +1247,11 @@ class MainWindow(QMainWindow):
 			return False
 		self.lastAuthorStats["figs"] = pBStats.plotStats(author=True)
 		aSP = AuthorStatsPlots(self.lastAuthorStats["figs"],
-			title="Statistics for %s"%authorName,
+			title="Statistics for '%s'"%authorName,
 			parent=self)
 		aSP.show()
 		self.done()
+		return True
 
 	def getInspireStats(self, inspireId):
 		"""Use a thread to obtain the citation statistics

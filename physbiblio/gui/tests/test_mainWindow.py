@@ -679,7 +679,77 @@ class TestMainWindow(GUITestCase):
 		"""test config"""
 		cw = ConfigWindow(self.mainW)
 		cw.exec_ = MagicMock()
-		raise NotImplementedError
+		cw.result = False
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".ConfigWindow",
+					return_value=cw) as _cw:
+			self.mainW.config()
+			_cw.assert_called_once_with(self.mainW)
+			cw.exec_.assert_called_once()
+			_sbm.assert_called_once_with("Changes discarded")
+		cw.result = True
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".ConfigWindow",
+					return_value=cw) as _cw,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.debug") as _de,\
+				patch("physbiblio.config.ConfigurationDB.update") as _cup,\
+				patch("physbiblio.config.ConfigVars.readConfig") as _rdc,\
+				patch(self.clsName + ".reloadConfig") as _rlc,\
+				patch(self.clsName + ".refreshMainContent") as _rmc,\
+				patch("physbiblio.database.PhysBiblioDB.commit") as _com:
+			self.mainW.config()
+			_sbm.assert_called_once_with("No changes requested")
+			_in.assert_not_called()
+			_cup.assert_not_called()
+			_rdc.assert_not_called()
+			_rlc.assert_not_called()
+			_rmc.assert_not_called()
+			_com.assert_not_called()
+		old = {}
+		new = {}
+		for k, v in cw.textValues:
+			if k == "maxAuthorSave":
+				new[k] = "12314"
+				v.setText(new[k])
+				old[k] = pbConfig.params[k]
+			elif k == "askBeforeExit":
+				old[k] = pbConfig.params[k]
+				if pbConfig.params[k] != "True":
+					v.setCurrentText("True")
+					new[k] = "True"
+				else:
+					v.setCurrentText("False")
+					new[k] = "False"
+			elif k == "loggingLevel":
+				old[k] = pbConfig.params[k]
+				if pbConfig.params[k] != 3:
+					v.setCurrentText("3 - all")
+					new[k] = "3"
+				else:
+					v.setCurrentText("2 - info")
+					new[k] = "2"
+		with patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.modName + ".ConfigWindow",
+					return_value=cw) as _cw,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.debug") as _de,\
+				patch("physbiblio.config.ConfigurationDB.update") as _cup,\
+				patch("physbiblio.config.ConfigVars.readConfig") as _rdc,\
+				patch(self.clsName + ".reloadConfig") as _rlc,\
+				patch(self.clsName + ".refreshMainContent") as _rmc,\
+				patch("physbiblio.database.PhysBiblioDB.commit") as _com:
+			self.mainW.config()
+			_sbm.assert_called_once_with('Configuration saved')
+			self.assertEqual(_de.call_count+1, len(pbConfig.params.keys()))
+			for k in old.keys():
+				_in.assert_has_calls([call(u"New value for param "
+					"%s = %s (old: '%s')"%(k, new[k], old[k]))])
+				_cup.assert_has_calls([call(k, new[k])])
+			_rdc.assert_called_once_with()
+			_rlc.assert_called_once_with()
+			_rmc.assert_called_once_with()
+			_com.assert_called_once_with()
 
 	def test_logfile(self):
 		"""test logfile"""
@@ -1363,7 +1433,91 @@ class TestMainWindow(GUITestCase):
 
 	def test_authorStats(self):
 		"""test authorStats"""
-		raise NotImplementedError
+		with patch(self.modName + ".askGenericText",
+				return_value=("", False)) as _at:
+			self.assertFalse(self.mainW.authorStats())
+			_at.assert_called_once_with(
+				"Insert the INSPIRE name of the author of which you want "
+				+ "the publication and citation statistics:",
+				"Author name?", self.mainW)
+		with patch(self.modName + ".askGenericText",
+				return_value=("", True)) as _at,\
+				patch("logging.Logger.warning") as _w:
+			self.assertFalse(self.mainW.authorStats())
+			_w.assert_called_once_with(
+				"Empty name inserted! cannot proceed.")
+		with patch(self.modName + ".askGenericText",
+				return_value=("[author]", True)) as _at,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch("logging.Logger.exception") as _exc:
+			self.assertFalse(self.mainW.authorStats())
+			_exc.assert_called_once_with(
+				"Cannot recognize the list sintax. "
+				+ "Missing quotes in the string?")
+
+		self.mainW.lastAuthorStats = None
+		with patch(self.modName + ".askGenericText",
+				return_value=("['a1','a2']", True)) as _at,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch("logging.Logger.exception") as _exc,\
+				patch("logging.Logger.warning") as _w:
+			self.assertFalse(self.mainW.authorStats())
+			_sbm.assert_called_once_with(
+				'Starting computing author stats from INSPIRE...')
+			_rit.assert_called_once_with(
+				Thread_authorStats, "Author Stats",
+				['a1','a2'],
+				totStr="AuthorStats will process ",
+				progrStr="%) - looking for paper: ",
+				minProgress=0., stopFlag=True)
+			_im.assert_called_once_with("No results obtained. "
+				+ "Maybe there was an error or you interrupted execution.")
+
+		self.mainW.lastAuthorStats = {"paLi": [[]]}
+		with patch(self.modName + ".askGenericText",
+				return_value=("author", True)) as _at,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch("logging.Logger.exception") as _exc,\
+				patch("logging.Logger.warning") as _w:
+			self.assertFalse(self.mainW.authorStats())
+			_sbm.assert_called_once_with(
+				'Starting computing author stats from INSPIRE...')
+			_rit.assert_called_once_with(
+				Thread_authorStats, "Author Stats",
+				"author",
+				totStr="AuthorStats will process ",
+				progrStr="%) - looking for paper: ",
+				minProgress=0., stopFlag=True)
+			_im.assert_called_once_with("No results obtained. "
+				+ "Maybe there was an error or you interrupted execution.")
+
+		self.mainW.lastAuthorStats = {"paLi": [["a"]]}
+		aSP = MagicMock()
+		aSP.show = MagicMock()
+		with patch(self.modName + ".askGenericText",
+				return_value=("author", True)) as _at,\
+				patch(self.modName + ".infoMessage") as _im,\
+				patch(self.clsName + ".statusBarMessage") as _sbm,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".done") as _d,\
+				patch(self.modName + ".AuthorStatsPlots",
+					return_value=aSP) as _asp,\
+				patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
+					return_value="figs") as _ps,\
+				patch("logging.Logger.exception") as _exc,\
+				patch("logging.Logger.warning") as _w:
+			self.assertTrue(self.mainW.authorStats())
+			_ps.assert_called_once_with(author=True)
+			_asp.assert_called_once_with(
+				"figs",
+				title="Statistics for 'author'",
+				parent=self.mainW)
+			aSP.show.assert_called_once_with()
+			_d.assert_called_once_with()
 
 	def test_getInspireStats(self):
 		"""test getInspireStats"""
