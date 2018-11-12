@@ -174,7 +174,7 @@ def editBibtex(parentObject, editKey=None):
 		data["marks"] = ""
 		for m, ckb in newBibWin.markValues.items():
 			if ckb.isChecked():
-				data["marks"] += "'%s',"%m
+				data["marks"] += "%s,"%m
 		if data["bibtex"].strip() != "":
 			try:
 				tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
@@ -1254,7 +1254,7 @@ class CommonBibActions():
 			data["marks"] = ""
 			for m, ckb in mergewin.markValues.items():
 				if ckb.isChecked():
-					data["marks"] += "'%s',"%m
+					data["marks"] += "%s,"%m
 			if data["old_keys"].strip() != "":
 				data["old_keys"] = ", ".join(
 					[data["old_keys"],
@@ -1322,8 +1322,10 @@ class CommonBibActions():
 		if mark not in pBMarks.marks.keys():
 			pBLogger.warning("Invalid mark: '%s'"%mark)
 			return
+		pBLogger.debug("updateMark: '%s', entries: %s"%(mark,
+			[e["bibkey"] for e in self.bibs]))
 		for e in self.bibs:
-			marks = e["marks"].split(",")
+			marks = e["marks"].replace("'", "").split(",")
 			marks = [m for m in marks if m.strip() != ""]
 			if mark in marks:
 				marks.remove(mark)

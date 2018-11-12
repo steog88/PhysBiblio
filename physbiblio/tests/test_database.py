@@ -1803,14 +1803,14 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
 		self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"3 entries processed\n0 errors occurred\n1 entries changed")
+			"3 entries processed\n0 errors occurred\n1 bibtex entries changed")
 		self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
 
 		self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
 			"Error while cleaning entry 'def'")
 		self.assert_in_stdout(lambda: self.pBDB.bibs.cleanBibtexs(),
-			"3 entries processed\n1 errors occurred\n0 entries changed")
+			"3 entries processed\n1 errors occurred\n0 bibtex entries changed")
 		self.pBDB.bibs.cleanBibtexs()
 
 	def test_printAll(self):

@@ -3275,9 +3275,17 @@ class Entries(PhysBiblioDBSub):
 				num += 1
 				pBLogger.info("%5d / %d (%5.2f%%) - cleaning: '%s'\n"%(
 					ix+1, tot, 100.*(ix+1)/tot, e["bibkey"]))
-				for field in ["old_keys"]:#convert None to "" from given fields
+				for field in ["marks", "old_keys"]:#convert None to "" for given fields
 					if e[field] is None:
 						self.updateField(e["bibkey"], field, "")
+				if e["marks"] is not None and "'" in e["marks"]:
+					marks = e["marks"].replace("'", "").split(",")
+					newmarks = []
+					for m in marks:
+						if m not in newmarks:
+							newmarks.append(m)
+					self.updateField(e["bibkey"],
+						"marks", ",".join(newmarks))
 				try:
 					element = bibtexparser.bparser.BibTexParser(
 						common_strings=True).parse(e["bibtex"]).entries[0]
@@ -3296,7 +3304,7 @@ class Entries(PhysBiblioDBSub):
 					err += 1
 		pBLogger.info("%d entries processed"%num)
 		pBLogger.info("%d errors occurred"%err)
-		pBLogger.info("%d entries changed"%len(changed))
+		pBLogger.info("%d bibtex entries changed"%len(changed))
 		return num, err, changed
 
 	def findCorruptedBibtexs(self, startFrom=0, entries=None):
