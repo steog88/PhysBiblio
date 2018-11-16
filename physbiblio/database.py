@@ -1319,22 +1319,32 @@ class Entries(PhysBiblioDBSub):
 			fetched_out.append(tmp)
 		return fetched_out
 
-	def fetchFromLast(self):
+	def fetchFromLast(self, doFetch=True):
 		"""Fetch entries using the last saved query
+
+		Parameter:
+			doFetch (boolean, default True):
+				use self.curs.fetchall and store all the rows in a list.
+				Set to False to directly use the iterator on self.curs.
 
 		Output:
 			self
 		"""
+		if doFetch:
+			cursor = self.curs
+		else:
+			cursor = self.fetchCurs
 		try:
 			if len(self.lastVals) > 0:
-				self.cursExec(self.lastQuery, self.lastVals)
+				cursor.execute(self.lastQuery, self.lastVals)
 			else:
-				self.cursExec(self.lastQuery)
+				cursor.execute(self.lastQuery)
 		except:
 			pBLogger.warning(
 				"Query failed: %s\nvalues:"%(self.lastQuery, self.lastVals))
-		fetched_in = self.curs.fetchall()
-		self.lastFetched = self.completeFetched(fetched_in)
+		if doFetch:
+			fetched_in = cursor.fetchall()
+			self.lastFetched = self.completeFetched(fetched_in)
 		return self
 
 	def fetchFromDict(self,
@@ -1364,7 +1374,6 @@ class Entries(PhysBiblioDBSub):
 					"operator": "like" if the field must only contain
 						the string, "=" for exact match
 					"connection" (optional): logical operator}
-
 			catExpOperator: "and" (default) or "or",
 				the logical operator that connects multiple
 				category + experiment searches.
@@ -2387,7 +2396,7 @@ class Entries(PhysBiblioDBSub):
 
 	def replace(self,
 			fiOld, fiNews, old, news,
-			entries = None, regex = False):
+			entries=None, regex=False):
 		"""Replace a string with a new one, in the given field
 		of the (previously) selected bibtex entries
 
@@ -2408,7 +2417,7 @@ class Entries(PhysBiblioDBSub):
 				the lists of entries that were
 				successfully processed, changed or produced errors
 		"""
-		def singleReplace(line, new, previous = None):
+		def singleReplace(line, new, previous=None):
 			"""Replace the old with the new string in the given line
 
 			Parameters:

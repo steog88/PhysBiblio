@@ -1241,6 +1241,12 @@ class TestDatabaseEntries(DBTestCase):
 		self.insert_three()
 		self.pBDB.bibs.lastQuery = "SELECT * FROM entries"
 		self.pBDB.bibs.lastVals = ()
+		self.pBDB.bibs.lastFetched = "no"
+		self.pBDB.bibs.fetchFromLast(doFetch=False)
+		self.assertEqual(self.pBDB.bibs.lastFetched, "no")
+		self.assertEqual([e["bibkey"] for e in \
+			self.pBDB.bibs.fetchCurs],
+			["abc", "def", "ghi"])
 		self.assertEqual([e["bibkey"] for e in \
 			self.pBDB.bibs.fetchFromLast().lastFetched],
 			["abc", "def", "ghi"])

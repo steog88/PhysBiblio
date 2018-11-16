@@ -1327,7 +1327,7 @@ class TestMainWindow(GUITestCase):
 			_r.assert_called_once_with(
 				'bibtex', 'bibkey', 'o', ['a', ''], entries='c', regex='r')
 			_fc.assert_called_once_with()
-			_ffl.assert_called_once_with()
+			_ffl.assert_has_calls([call(doFetch=False), call()])
 			_lim.assert_called_once_with(
 				"Replace completed.<br><br>"
 				+ "1 elements successfully processed"

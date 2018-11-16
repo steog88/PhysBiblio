@@ -1110,6 +1110,7 @@ class MainWindow(QMainWindow):
 					+ "Are you sure you want to continue?"):
 				return
 		QApplication.setOverrideCursor(Qt.WaitCursor)
+		pBDB.bibs.fetchFromLast(doFetch=False)
 		success, changed, failed = pBDB.bibs.replace(
 			fiOld, fiNew, old, new,
 			entries=pBDB.bibs.fetchCursor(), regex=regex)
