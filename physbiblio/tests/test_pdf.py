@@ -65,10 +65,14 @@ class TestPdfMethods(unittest.TestCase):
 			pBPDF.copyToDir(pBPDF.pdfDir, "abc.fed", "arxiv")
 			self.assertTrue(os.path.exists(
 				os.path.join(pBPDF.pdfDir, "12345678.pdf")))
+			pBPDF.mergePDFFolders("abc.fed", "cba.fed")
+			self.assertTrue(os.path.exists(
+				pBPDF.getFilePath("cba.fed", "arxiv")))
 			self.assertTrue(pBPDF.removeFile("abc.fed", "arxiv"))
 			self.assertFalse(pBPDF.removeFile("abc.fed", "arxiv"))
 			os.remove(os.path.join(pBPDF.pdfDir, "12345678.pdf"))
 			shutil.rmtree(pBPDF.getFileDir("abc.fed"))
+			shutil.rmtree(pBPDF.getFileDir("cba.fed"))
 
 	@unittest.skipIf(skipTestsSettings.online, "Long tests")
 	def test_download(self):

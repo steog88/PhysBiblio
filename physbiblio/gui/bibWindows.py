@@ -1296,7 +1296,7 @@ class CommonBibActions():
 						for e in pBDB.exps.getByEntry(oldkey):
 							pBDB.bibExp.insert(data["bibkey"], e["idExp"])
 							pBDB.bibExp.delete(oldkey, e["idExp"])
-						# merge pdf folders
+						pBPDF.mergePDFFolders(oldkey, data["bibkey"])
 			else:
 				pBGUILogger.error("Empty bibtex and/or bibkey!")
 		else:

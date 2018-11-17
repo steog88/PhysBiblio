@@ -3330,6 +3330,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 					return_value=True) as _eede,\
 				patch("physbiblio.database.EntryExps.insert",
 					return_value=True) as _eein,\
+				patch("physbiblio.pdf.LocalPDF.mergePDFFolders") as _mpdf,\
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
@@ -3374,6 +3375,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			_eein.assert_has_calls([
 				call('merged', 4321), call('merged', 5432),
 				call('merged', 4321), call('merged', 5432)])
+			_mpdf.assert_has_calls([
+				call('abc', 'merged'),
+				call('def', 'merged')])
 
 	def test_onModify(self):
 		"""test onModify"""

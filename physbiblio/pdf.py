@@ -97,7 +97,7 @@ class LocalPDF():
 			filename = self.badFName(filename)
 			return osp.join(self.getFileDir(key), filename + '.pdf')
 
-	def createFolder(self, key, noCheck = False):
+	def createFolder(self, key, noCheck=False):
 		"""Create the PDF folder for a given entry.
 
 		Parameters:
@@ -128,8 +128,8 @@ class LocalPDF():
 	def copyNewFile(self,
 			key,
 			origFileName,
-			fileType = None,
-			customName = None):
+			fileType=None,
+			customName=None):
 		"""Copy a file in any place of the filesystem
 		into the directory corresponding to the given entry
 
@@ -164,7 +164,7 @@ class LocalPDF():
 				origFileName, newFileName))
 			return False
 
-	def copyToDir(self, outFolder, key, fileType = None, customName = None):
+	def copyToDir(self, outFolder, key, fileType=None, customName=None):
 		"""Copy a file from the directory corresponding
 		to the given entry to the a directory in the filesystem.
 
@@ -196,7 +196,7 @@ class LocalPDF():
 				origFile, outFolder))
 			return False
 
-	def downloadArxiv(self, key, force = False):
+	def downloadArxiv(self, key, force=False):
 		"""Download the PDF file from arXiv for a given entry
 		and save it in the proper folder.
 
@@ -237,10 +237,10 @@ class LocalPDF():
 
 	def openFile(self,
 			key,
-			arg = None,
-			fileType = None,
-			fileNum = None,
-			fileName = None):
+			arg=None,
+			fileType=None,
+			fileNum=None,
+			fileName=None):
 		"""Open a PDF file in an external application
 		(if defined in the configuration).
 		Does nothing if there is self.pdfApp is empty.
@@ -279,7 +279,7 @@ class LocalPDF():
 			if self.pdfApp != "":
 				pBLogger.info("Opening '%s'..."%fName)
 				subprocess.Popen([self.pdfApp, fName],
-					stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+					stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		except:
 			pBLogger.exception("Opening PDF for '%s' failed!"%key)
 
@@ -328,7 +328,7 @@ class LocalPDF():
 		pBLogger.info("File %s removed"%fileName)
 		return True
 
-	def getExisting(self, key, fullPath = False):
+	def getExisting(self, key, fullPath=False):
 		"""Obtain the list of existing files for a given entry.
 
 		Parameters:
@@ -349,17 +349,17 @@ class LocalPDF():
 		except:
 			return []
 
-	def printExisting(self, key, fullPath = False):
+	def printExisting(self, key, fullPath=False):
 		"""Print the list of existing files for a given entry,
 		using self.getExisting to get it.
 		Same parameters as self.getExisting.
 		"""
 		pBLogger.info("Listing file for entry '%s', located in %s:"%(
 			key, self.getFileDir(key)))
-		for i,e in enumerate(self.getExisting(key, fullPath = fullPath)):
+		for i,e in enumerate(self.getExisting(key, fullPath=fullPath)):
 			pBLogger.info("%2d: %s"%(i, e))
 
-	def printAllExisting(self, entries = None, fullPath = False):
+	def printAllExisting(self, entries=None, fullPath=False):
 		"""Print the complete list of all the existing PDF files
 		in the PDF folder, given all the entries in the database
 		or a specific subset
@@ -372,11 +372,11 @@ class LocalPDF():
 		"""
 		iterator = entries
 		if entries is None:
-			pBDB.bibs.fetchAll(orderBy = "firstdate",
+			pBDB.bibs.fetchAll(orderBy="firstdate",
 				saveQuery=False, doFetch=False)
 			iterator = pBDB.bibs.fetchCursor()
 		for e in iterator:
-			exist = self.getExisting(e["bibkey"], fullPath = fullPath)
+			exist = self.getExisting(e["bibkey"], fullPath=fullPath)
 			if len(exist) > 0:
 				pBLogger.info("%30s: [%s]"%(e["bibkey"], "] [".join(exist)))
 
@@ -402,6 +402,24 @@ class LocalPDF():
 			pBLogger.info("Done!")
 		else:
 			pBLogger.warning("Nothing found.")
+
+	def mergePDFFolders(self, oldkey, newkey):
+		"""Copy the PDF files that exist in one folder to a new one
+
+		Parameters:
+			oldkey: the old bibtex key
+			newkey: the new bibtex key
+		"""
+		oldPDFs = self.getExisting(oldkey, fullPath=True)
+		outFolder = self.getFileDir(newkey)
+		self.createFolder(newkey)
+		for o in oldPDFs:
+			try:
+				shutil.copy2(o, outFolder)
+				pBLogger.info("%s copied to %s"%(o, outFolder))
+			except:
+				pBLogger.exception(
+					"Impossible to copy %s to %s"%(o, outFolder))
 
 
 pBPDF = LocalPDF()
