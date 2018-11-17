@@ -3318,6 +3318,18 @@ class TestCommonBibActions(GUIwMainWTestCase):
 					return_value=True) as _in,\
 				patch("physbiblio.database.Entries.fetchFromLast",
 					return_value=pBDB.bibs) as _fl,\
+				patch("physbiblio.database.Categories.getByEntry",
+					return_value=[{"idCat": 321}, {"idCat": 432}]) as _cebk,\
+				patch("physbiblio.database.CatsEntries.delete",
+					return_value=True) as _cede,\
+				patch("physbiblio.database.CatsEntries.insert",
+					return_value=True) as _cein,\
+				patch("physbiblio.database.Experiments.getByEntry",
+					return_value=[{"idExp": 4321}, {"idExp": 5432}]) as _eebk,\
+				patch("physbiblio.database.EntryExps.delete",
+					return_value=True) as _eede,\
+				patch("physbiblio.database.EntryExps.insert",
+					return_value=True) as _eein,\
 				patch("logging.Logger.warning") as _w,\
 				patch("logging.Logger.error") as _er,\
 				patch("logging.Logger.exception") as _ex:
@@ -3348,6 +3360,20 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			_w.assert_not_called()
 			_er.assert_not_called()
 			_ex.assert_not_called()
+			_cebk.assert_has_calls([call('abc'), call('def')])
+			_cede.assert_has_calls([
+				call(321, 'abc'), call(432, 'abc'),
+				call(321, 'def'), call(432, 'def')])
+			_cein.assert_has_calls([
+				call(321, 'merged'), call(432, 'merged'),
+				call(321, 'merged'), call(432, 'merged')])
+			_eebk.assert_has_calls([call('abc'), call('def')])
+			_eede.assert_has_calls([
+				call('abc', 4321), call('abc', 5432),
+				call('def', 4321), call('def', 5432)])
+			_eein.assert_has_calls([
+				call('merged', 4321), call('merged', 5432),
+				call('merged', 4321), call('merged', 5432)])
 
 	def test_onModify(self):
 		"""test onModify"""

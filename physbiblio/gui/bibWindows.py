@@ -1266,6 +1266,7 @@ class CommonBibActions():
 					self.bibs[1]["bibkey"]])
 			data = pBDB.bibs.prepareInsert(**data)
 			if data["bibkey"].strip() != "" and data["bibtex"].strip() != "":
+				correct= False
 				pBDB.commit()
 				try:
 					for key in [self.bibs[0]["bibkey"],
@@ -1280,11 +1281,22 @@ class CommonBibActions():
 						pBDB.undo()
 					else:
 						self.parent().setWindowTitle("PhysBiblio*")
+						correct = True
 						try:
 							self.parent().reloadMainContent(
 								pBDB.bibs.fetchFromLast().lastFetched)
 						except:
 							pBLogger.warning("Impossible to reload content.")
+				if correct:
+					for oldkey in [self.bibs[0]["bibkey"],
+							self.bibs[1]["bibkey"]]:
+						for e in pBDB.cats.getByEntry(oldkey):
+							pBDB.catBib.insert(e["idCat"], data["bibkey"])
+							pBDB.catBib.delete(e["idCat"], oldkey)
+						for e in pBDB.exps.getByEntry(oldkey):
+							pBDB.bibExp.insert(data["bibkey"], e["idExp"])
+							pBDB.bibExp.delete(oldkey, e["idExp"])
+						# merge pdf folders
 			else:
 				pBGUILogger.error("Empty bibtex and/or bibkey!")
 		else:
