@@ -1136,10 +1136,14 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'volume = "95",\n          year = "2018",\n         ' \
 			+ 'pages = "1",\n         arxiv = "1234.56789",\n}'
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
-		self.assertEqual(self.pBDB.bibs.replace("published",
-			["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-			[r'\1', r'\2'], regex=True),
-			(["abc", "def"], ["def"], []))
+		with patch("logging.Logger.info") as _i:
+			self.assertEqual(self.pBDB.bibs.replace("published",
+				["journal", "volume"], "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+				[r'\1', r'\2'], regex=True),
+				(["abc", "def"], ["def"], []))
+			_i.assert_has_calls([call('Replace will process 2 entries'),
+				call(u'processing     1 / 2 (50.00%): entry abc'),
+				call(u'processing     2 / 2 (100.00%): entry def')])
 		self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
 
 		self.assertEqual(self.pBDB.bibs.replace("published",
@@ -1172,9 +1176,16 @@ class TestDatabaseEntries(DBTestCase):
 		bibtexIn = u'@article{ghi,\nauthor = "me",\n' \
 			+ 'title = "ghi",\neprint="1234.56789",\n}'
 		self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
-		self.assertEqual(self.pBDB.bibs.replace(
-			"eprint", ["volume"], "1234.00000", ['56789']),
-			(["ghi"], ["ghi"], ["abc", "def"]))
+		with patch("logging.Logger.info") as _i:
+			self.assertEqual(self.pBDB.bibs.replace(
+				"eprint", ["volume"], "1234.00000", ['56789'],
+				lenEntries=5,
+				entries=self.pBDB.bibs.fetchAll(saveQuery=False).lastFetched),
+				(["ghi"], ["ghi"], ["abc", "def"]))
+			_i.assert_has_calls([call('Replace will process 5 entries'),
+				call(u'processing     1 / 5 (20.00%): entry abc'),
+				call(u'processing     2 / 5 (40.00%): entry def'),
+				call(u'processing     3 / 5 (60.00%): entry ghi')])
 		self.assert_in_stdout(lambda: self.pBDB.bibs.replace(
 			"eprint", ["volume"], "1234.00000", ['56789']),
 			"Field eprint not found in entry ")
