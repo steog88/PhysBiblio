@@ -128,6 +128,65 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class Test_Thread_replace(GUITestCase):
+	"""Test the functions in threadElements.Thread_updateAllBibtexs"""
+
+	def test_init(self):
+		"""test __init__"""
+		p = QWidget()
+		q = Queue()
+		ws = WriteStream(q)
+		thr = Thread_replace(ws, "a", ["b"], "1", ["2"],
+			parent=p, regex=True)
+		self.assertIsInstance(thr, PBThread)
+		self.assertEqual(thr.parent(), p)
+		self.assertEqual(thr.fiOld, "a")
+		self.assertEqual(thr.fiNew, ["b"])
+		self.assertEqual(thr.old, "1")
+		self.assertEqual(thr.new, ["2"])
+		self.assertEqual(thr.receiver, ws)
+		self.assertEqual(thr.regex, True)
+
+	def test_run(self):
+		"""test run"""
+		p = QWidget()
+		q = Queue()
+		ws = WriteStream(q)
+		thr = Thread_replace(ws, "a", ["b"], "1", ["2"], p, True)
+		self.assertTrue(ws.running)
+		pBDB.bibs.lastFetched = ["e", "f"]
+		with patch("physbiblio.database.Entries.replace",
+					return_value=("r1", "r2", "r3")) as _rep,\
+				patch("time.sleep") as _sl,\
+				patch("physbiblio.database.Entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.database.Entries.fetchCursor",
+					return_value="curs") as _fc,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+			thr.run()
+			_rep.assert_called_once_with(
+				"a", ["b"], "1", ["2"],
+				entries="curs", lenEntries=2,
+				regex=True)
+			self.assertFalse(ws.running)
+			_st.assert_called_once_with()
+			_sl.assert_called_once_with(0.1)
+			_ffl.assert_has_calls([call(doFetch=False), call()])
+			_fc.assert_called_once_with()
+			self.assertEqual(p.replaceResults, ("r1", "r2", "r3"))
+
+	def test_setStopFlag(self):
+		"""test setStopFlag"""
+		q = Queue()
+		ws = WriteStream(q)
+		thr = Thread_replace(ws, "a", ["b"], "1", ["2"])
+		pBDB.bibs.runningReplace = True
+		self.assertTrue(pBDB.bibs.runningReplace)
+		thr.setStopFlag()
+		self.assertFalse(pBDB.bibs.runningReplace)
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_Thread_updateInspireInfo(GUITestCase):
 	"""Test the functions in threadElements.Thread_updateInspireInfo"""
 
@@ -194,6 +253,7 @@ class Test_Thread_updateInspireInfo(GUITestCase):
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
+
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_Thread_downloadArxiv(GUITestCase):

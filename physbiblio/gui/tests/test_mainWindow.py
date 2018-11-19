@@ -1287,16 +1287,14 @@ class TestMainWindow(GUITestCase):
 	def test_runReplace(self):
 		"""test runReplace"""
 		pBDB.lastFetched = ["z"]
+		self.mainW.replaceResults = (["d"], ["e", "f"], ["g", "h", "i"])
 		with patch("PySide2.QtWidgets.QApplication."
 				+ "setOverrideCursor") as _soc,\
 				patch("PySide2.QtWidgets.QApplication."
 					+ "restoreOverrideCursor") as _roc,\
 				patch("physbiblio.database.Entries.fetchFromLast",
 					return_value=pBDB) as _ffl,\
-				patch("physbiblio.database.Entries.replace",
-					return_value=[["d"], ["e", "f"], ["g", "h", "i"]]) as _r,\
-				patch("physbiblio.database.Entries.fetchCursor",
-					return_value="c") as _fc,\
+				patch(self.clsName + "._runInThread") as _rit,\
 				patch(self.clsName + ".reloadMainContent") as _rmc,\
 				patch(self.modName + ".infoMessage") as _im,\
 				patch(self.modName + ".LongInfoMessage") as _lim,\
@@ -1304,30 +1302,32 @@ class TestMainWindow(GUITestCase):
 					side_effect=[False, True]) as _ay:
 			self.mainW.runReplace(("bibtex", "bibkey", "", ["a"], "r"))
 			_soc.assert_not_called()
-			_r.assert_not_called()
+			_rit.assert_not_called()
 			_im.assert_called_once_with("The string to substitute is empty!")
 			_im.reset_mock()
 
 			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
 			_soc.assert_not_called()
-			_r.assert_not_called()
+			_rit.assert_not_called()
 			_ay.assert_called_once_with("Empty new string. "
 				+ "Are you sure you want to continue?")
 			_ay.reset_mock()
 
 			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
-			_soc.assert_has_calls([call(Qt.WaitCursor), call(Qt.WaitCursor)])
-			_roc.assert_has_calls([call(), call()])
+			_soc.assert_called_once_with(Qt.WaitCursor)
+			_roc.assert_called_once_with()
 			_ay.assert_called_once_with("Empty new string. "
 				+ "Are you sure you want to continue?")
 			_rmc.assert_called_once_with(["z"])
 			_im.assert_not_called()
 			_ay.assert_called_once_with("Empty new string. "
 				+ "Are you sure you want to continue?")
-			_r.assert_called_once_with(
-				'bibtex', 'bibkey', 'o', ['a', ''], entries='c', regex='r')
-			_fc.assert_called_once_with()
-			_ffl.assert_has_calls([call(doFetch=False), call()])
+			_rit.assert_called_once_with(
+				Thread_replace, 'Replace',
+				'bibtex', 'bibkey', 'o', ['a', ''],
+				minProgress=0.0, progrStr='%): entry ',
+				regex='r', stopFlag=True, totStr='Replace will process ')
+			_ffl.assert_called_once_with()
 			_lim.assert_called_once_with(
 				"Replace completed.<br><br>"
 				+ "1 elements successfully processed"

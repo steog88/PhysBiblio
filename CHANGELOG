@@ -1,3 +1,5 @@
+	* improved merge function (deals with categories/experiments and PDF)
+	* replace functions now show progress
 	* Fixed bug related to format of saving marks in the database
 	* Fixed bug which prevented saved replaces to run properly
 

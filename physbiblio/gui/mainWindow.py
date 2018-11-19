@@ -54,7 +54,7 @@ try:
 		Thread_updateAllBibtexs, Thread_exportTexBib, Thread_importFromBib, \
 		Thread_updateInspireInfo, Thread_paperStats, Thread_loadAndInsert, \
 		Thread_cleanAllBibtexs, Thread_findBadBibtexs, Thread_fieldsArxiv, \
-		Thread_checkUpdated
+		Thread_checkUpdated, Thread_replace
 except ImportError as e:
 	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())
@@ -1109,12 +1109,17 @@ class MainWindow(QMainWindow):
 			if not askYesNo("Empty new string. "
 					+ "Are you sure you want to continue?"):
 				return
-		QApplication.setOverrideCursor(Qt.WaitCursor)
-		pBDB.bibs.fetchFromLast(doFetch=False)
-		success, changed, failed = pBDB.bibs.replace(
+		self._runInThread(
+			Thread_replace,
+			"Replace",
 			fiOld, fiNew, old, new,
-			entries=pBDB.bibs.fetchCursor(), regex=regex)
-		QApplication.restoreOverrideCursor()
+			regex=regex,
+			totStr="Replace will process ",
+			progrStr="%): entry ",
+			minProgress=0.,
+			stopFlag=True
+			)
+		success, changed, failed = self.replaceResults
 		LongInfoMessage("Replace completed.<br><br>"
 			+ "%d elements successfully processed "%len(success)
 			+ "(of which %d changed), "%len(changed)

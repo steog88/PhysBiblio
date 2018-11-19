@@ -97,6 +97,55 @@ class Thread_updateAllBibtexs(PBThread):
 		pBDB.bibs.runningOAIUpdates = False
 
 
+class Thread_replace(PBThread):
+	"""Thread that uses `pBDB.bibs.replace`"""
+
+	def __init__(self,
+			receiver,
+			fiOld,
+			fiNew,
+			old,
+			new,
+			parent=None,
+			regex=False):
+		"""Initialize the thread and store the required settings
+
+		Parameters:
+			receiver: the receiver for the text output (a `WriteStream` object)
+			fiOld
+			fiNew
+			old
+			new
+			parent: the parent widget
+			regex
+		"""
+		super(Thread_replace, self).__init__(parent)
+		self.fiOld = fiOld
+		self.fiNew = fiNew
+		self.old = old
+		self.new = new
+		self.receiver = receiver
+		self.regex = regex
+
+	def run(self):
+		"""Start the receiver,
+		run `pBDB.bibs.searchOAIUpdates` and finish
+		"""
+		self.receiver.start()
+		pBDB.bibs.fetchFromLast(doFetch=False)
+		success, changed, failed = pBDB.bibs.replace(
+			self.fiOld, self.fiNew, self.old, self.new,
+			entries=pBDB.bibs.fetchCursor(), regex=self.regex,
+			lenEntries=len(pBDB.bibs.fetchFromLast().lastFetched))
+		self.parent().replaceResults = (success, changed, failed)
+		time.sleep(0.1)
+		self.receiver.running = False
+
+	def setStopFlag(self):
+		"""Set the stop flag for the threaded process"""
+		pBDB.bibs.runningReplace = False
+
+
 class Thread_updateInspireInfo(PBThread):
 	"""Thread that uses `physbiblio.database.Entries.updateInfoFromOAI`
 	to update the entry record.

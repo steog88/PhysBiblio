@@ -2396,7 +2396,7 @@ class Entries(PhysBiblioDBSub):
 
 	def replace(self,
 			fiOld, fiNews, old, news,
-			entries=None, regex=False):
+			entries=None, regex=False, lenEntries=1):
 		"""Replace a string with a new one, in the given field
 		of the (previously) selected bibtex entries
 
@@ -2411,6 +2411,8 @@ class Entries(PhysBiblioDBSub):
 			regex (boolean, default False):
 				whether to use regular expression
 				for matching and replacing
+			lenEntries (default 1): if `entries` is passed, this must be
+				the length of `entries`
 
 		Output:
 			success, changed, failed:
@@ -2444,17 +2446,26 @@ class Entries(PhysBiblioDBSub):
 			pBLogger.warning("Invalid 'fiNews' or 'news' (they must be lists)")
 			return [], [], []
 		if entries is None:
+			tot = len(self.fetchAll(saveQuery=False).lastFetched)
 			self.fetchAll(saveQuery=False, doFetch=False)
 			iterator = self.fetchCursor()
 		else:
 			iterator = entries
+			tot = lenEntries
 		success = []
 		changed = []
 		failed = []
+		self.runningReplace = True
+		pBLogger.info("Replace will process %d entries"%tot)
+		if tot < 1:
+			tot = 1
 		for ix, entry in enumerate(iterator):
+			if not self.runningReplace:
+				continue
 			if not "bibtexDict" in entry.keys():
 				entry = self.completeFetched([entry])[0]
-			pBLogger.info("processing (%d): %s"%(ix, entry["bibkey"]))
+			pBLogger.info("processing %5d / %d (%5.2f%%): entry %s"%(
+				ix+1, tot, 100.*(ix+1)/tot, entry["bibkey"]))
 			try:
 				if not fiOld in entry["bibtexDict"].keys() \
 						and not fiOld in entry.keys():
@@ -2473,8 +2484,8 @@ class Entries(PhysBiblioDBSub):
 							fiNew, entry["bibkey"]))
 					if fiNew in entry["bibtexDict"].keys():
 						bef.append(entry["bibtexDict"][fiNew])
-						after  = singleReplace(
-							before, new, previous = entry["bibtexDict"][fiNew])
+						after = singleReplace(
+							before, new, previous=entry["bibtexDict"][fiNew])
 						aft.append(after)
 						entry["bibtexDict"][fiNew] = after
 						db = bibtexparser.bibdatabase.BibDatabase()
@@ -2486,8 +2497,8 @@ class Entries(PhysBiblioDBSub):
 							"bibtex", entry["bibtex"], verbose=0)
 					if fiNew in entry.keys():
 						bef.append(entry[fiNew])
-						after  = singleReplace(before, new,
-							previous = entry[fiNew])
+						after = singleReplace(before, new,
+							previous=entry[fiNew])
 						aft.append(after)
 						self.updateField(entry["bibkey"],
 							fiNew, after, verbose=0)
