@@ -11,10 +11,12 @@ if sys.version_info[0] < 3:
 	from urllib2 import URLError
 else:
 	from urllib.request import URLError
+import bibtexparser
 
 try:
 	from physbiblio import __version__
 	from physbiblio.errors import pBLogger
+	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.database import pBDB
 	from physbiblio.pdf import pBPDF
 	from physbiblio.inspireStats import pBStats
@@ -106,18 +108,21 @@ class Thread_replace(PBThread):
 			fiNew,
 			old,
 			new,
-			parent=None,
+			parent,
 			regex=False):
 		"""Initialize the thread and store the required settings
 
 		Parameters:
-			receiver: the receiver for the text output (a `WriteStream` object)
-			fiOld
-			fiNew
-			old
-			new
+			receiver: the receiver for the text output
+				(a `WriteStream` object)
+			fiOld: name of the field from where the content is taken
+			fiNew (list): names of new fields where
+				the replaced content must go
+			old: content to replace or match string
+			new (list): new content or regex instruction to extract it
 			parent: the parent widget
-			regex
+			regex (default False): if True, use regular expressions.
+				if False, just do normal string replacement
 		"""
 		super(Thread_replace, self).__init__(parent)
 		self.fiOld = fiOld
@@ -129,7 +134,7 @@ class Thread_replace(PBThread):
 
 	def run(self):
 		"""Start the receiver,
-		run `pBDB.bibs.searchOAIUpdates` and finish
+		run `pBDB.bibs.replace` and finish
 		"""
 		self.receiver.start()
 		pBDB.bibs.fetchFromLast(doFetch=False)
@@ -573,3 +578,82 @@ class Thread_fieldsArxiv(PBThread):
 	def setStopFlag(self):
 		"""Set the stop flag for the threaded process"""
 		pBDB.bibs.getArxivFieldsFlag = False
+
+
+class Thread_importDailyArxiv(PBThread):
+	"""Thread that uses `pBDB.bibs.replace`"""
+
+	def __init__(self,
+			receiver,
+			found,
+			parent):
+		"""Initialize the thread and store the required settings
+
+		Parameters:
+			receiver: the receiver for the text output
+				(a `WriteStream` object)
+			found: the list of records to be imported
+			parent: the parent widget
+		"""
+		super(Thread_importDailyArxiv, self).__init__(parent)
+		self.found = found
+		self.receiver = receiver
+		self.runningImport = True
+
+	def run(self):
+		"""Start the receiver,
+		import the required entries and finish
+		"""
+		self.receiver.start()
+		db = bibtexparser.bibdatabase.BibDatabase()
+		inserted = []
+		failed = []
+		for key in sorted(self.found):
+			if not self.runningImport:
+				continue
+			el = self.found[key]
+			if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
+				newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+				inserted.append(newKey)
+			else:
+				db.entries = [{
+					"ID": el["bibpars"]["eprint"],
+					"ENTRYTYPE": "article",
+					"title": el["bibpars"]["title"],
+					"author": el["bibpars"]["author"],
+					"archiveprefix": "arXiv",
+					"eprint": el["bibpars"]["eprint"],
+					"primaryclass": el["bibpars"]["primaryclass"]}]
+				entry = pbWriter.write(db)
+				data = pBDB.bibs.prepareInsert(entry)
+				if pBDB.bibs.insert(data):
+					pBLogger.info("Element '%s' "%key
+						+ "successfully inserted.\n")
+					inserted.append(key)
+				else:
+					pBLogger.warning(
+						"Failed in inserting entry %s\n"%key)
+					failed.append(key)
+					continue
+				try:
+					eid = pBDB.bibs.updateInspireID(key)
+					pBDB.bibs.searchOAIUpdates(0,
+						entries=pBDB.bibs.getByBibkey(key),
+						force=True, reloadAll=True)
+					newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+					if key != newKey:
+						inserted[-1] = newKey
+				except:
+					pBLogger.warning(
+						"Failed in completing info for entry %s\n"%(
+							key))
+					failed.append(key)
+		pBLogger.info("Entries successfully imported:\n%s"%(inserted))
+		pBLogger.info("Errors for entries:\n%s"%(failed))
+		self.parent().importArXivResults = (inserted, failed)
+		time.sleep(0.1)
+		self.receiver.running = False
+
+	def setStopFlag(self):
+		"""Set the stop flag for the threaded process"""
+		self.runningImport = False

@@ -54,7 +54,7 @@ try:
 		Thread_updateAllBibtexs, Thread_exportTexBib, Thread_importFromBib, \
 		Thread_updateInspireInfo, Thread_paperStats, Thread_loadAndInsert, \
 		Thread_cleanAllBibtexs, Thread_findBadBibtexs, Thread_fieldsArxiv, \
-		Thread_checkUpdated, Thread_replace
+		Thread_checkUpdated, Thread_replace, Thread_importDailyArxiv
 except ImportError as e:
 	print("Could not find physbiblio and its modules!", e)
 	print(traceback.format_exc())
@@ -1605,46 +1605,13 @@ class MainWindow(QMainWindow):
 					if selImpo.selected[ch]:
 						newFound[ch] = found[ch]
 				found = newFound
-				db = bibtexparser.bibdatabase.BibDatabase()
-				inserted = []
-				QApplication.setOverrideCursor(Qt.WaitCursor)
-				for key in sorted(found):
-					el = found[key]
-					if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
-						newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
-						inserted.append(newKey)
-					else:
-						db.entries = [{
-							"ID": el["bibpars"]["eprint"],
-							"ENTRYTYPE": "article",
-							"title": el["bibpars"]["title"],
-							"author": el["bibpars"]["author"],
-							"archiveprefix": "arXiv",
-							"eprint": el["bibpars"]["eprint"],
-							"primaryclass": el["bibpars"]["primaryclass"]}]
-						entry = pbWriter.write(db)
-						data = pBDB.bibs.prepareInsert(entry)
-						if pBDB.bibs.insert(data):
-							pBLogger.info("Element '%s' "%key
-								+ "successfully inserted.\n")
-							inserted.append(key)
-						else:
-							pBLogger.warning(
-								"Failed in inserting entry %s\n"%key)
-							continue
-						try:
-							eid = pBDB.bibs.updateInspireID(key)
-							pBDB.bibs.searchOAIUpdates(0,
-								entries=pBDB.bibs.getByBibkey(key),
-								force=True, reloadAll=True)
-							newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
-							if key != newKey:
-								inserted[-1] = newKey
-						except:
-							pBLogger.warning(
-								"Failed in completing info for entry %s\n"%(
-									key))
-				QApplication.restoreOverrideCursor()
+				self._runInThread(
+					Thread_importDailyArxiv,
+					"Import from arXiv",
+					found,
+					stopFlag=True
+					)
+				inserted, failed = self.importArXivResults
 				self.statusBarMessage(
 					"Entries successfully imported: %s"%(
 						inserted))

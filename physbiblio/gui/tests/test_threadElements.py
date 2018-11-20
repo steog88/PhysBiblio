@@ -177,9 +177,10 @@ class Test_Thread_replace(GUITestCase):
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""
+		p = QWidget()
 		q = Queue()
 		ws = WriteStream(q)
-		thr = Thread_replace(ws, "a", ["b"], "1", ["2"])
+		thr = Thread_replace(ws, "a", ["b"], "1", ["2"], p)
 		pBDB.bibs.runningReplace = True
 		self.assertTrue(pBDB.bibs.runningReplace)
 		thr.setStopFlag()
@@ -720,6 +721,181 @@ class Test_Thread_fieldsArxiv(GUITestCase):
 		self.assertTrue(pBDB.bibs.getArxivFieldsFlag)
 		thr.setStopFlag()
 		self.assertFalse(pBDB.bibs.getArxivFieldsFlag)
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class Test_Thread_importDailyArxiv(GUITestCase):
+	"""Test the functions in threadElements.Thread_importDailyArxiv"""
+
+	def test_init(self):
+		"""test __init__"""
+		p = QWidget()
+		q = Queue()
+		ws = WriteStream(q)
+		thr = Thread_importDailyArxiv(ws, ["a", "b"], p)
+		self.assertIsInstance(thr, PBThread)
+		self.assertEqual(thr.parent(), p)
+		self.assertEqual(thr.receiver, ws)
+		self.assertEqual(thr.found, ["a", "b"])
+		self.assertTrue(thr.runningImport)
+
+	def test_run(self):
+		"""test run"""
+		p = QWidget()
+		q = Queue()
+		ws = WriteStream(q)
+		self.assertTrue(ws.running)
+		thr = Thread_importDailyArxiv(ws,
+			{"12.345":
+				{"bibpars": {
+					"author": "me",
+					"title": "title",
+					"type": "",
+					"eprint": "12.345",
+					"replacement": False,
+					"cross": False,
+					"abstract": "some text",
+					"primaryclass": "astro-ph"},
+				"exist": 1}},
+			p)
+		with patch("physbiblio.database.Entries.loadAndInsert",
+					return_value=True) as _lai,\
+				patch("physbiblio.database.Entries.getByKey",
+					return_value=[{"bibkey": "12.345"}]) as _gbk,\
+				patch("time.sleep") as _sl,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start"
+					) as _st,\
+				patch("logging.Logger.info") as _in:
+			thr.run()
+			_lai.assert_called_once_with("12.345")
+			_gbk.assert_called_once_with("12.345")
+			self.assertFalse(ws.running)
+			_st.assert_called_once_with()
+			_sl.assert_called_once_with(0.1)
+			_in.assert_has_calls([
+				call("Entries successfully imported:\n['12.345']"),
+				call('Errors for entries:\n[]')])
+
+		q = Queue()
+		ws = WriteStream(q)
+		self.assertTrue(ws.running)
+		thr = Thread_importDailyArxiv(ws,
+			{"12.345":
+				{"bibpars": {
+					"author": "me1",
+					"title": "title1",
+					"type": "",
+					"eprint": "12.345",
+					"replacement": False,
+					"cross": False,
+					"abstract": "some text",
+					"primaryclass": "astro-ph"},
+				"exist": 1},
+			"12.346":
+				{"bibpars": {
+					"author": "me2",
+					"title": "title2",
+					"type": "",
+					"eprint": "12.346",
+					"replacement": False,
+					"cross": True,
+					"abstract": "some other text",
+					"primaryclass": "astro-ph.CO"},
+				"exist": 1},
+			"12.348":
+				{"bibpars": {
+					"author": "me4",
+					"title": "title4",
+					"type": "",
+					"eprint": "12.348",
+					"replacement": False,
+					"cross": False,
+					"abstract": "some more text",
+					"primaryclass": "hep-ph"},
+				"exist": 1},
+			"12.349":
+				{"bibpars": {
+					"author": "me5",
+					"title": "title5",
+					"type": "",
+					"eprint": "12.349",
+					"replacement": False,
+					"cross": False,
+					"abstract": "some more text",
+					"primaryclass": "hep-ex"},
+				"exist": 1}},
+			p)
+		with patch("physbiblio.database.Entries.loadAndInsert",
+					side_effect=[True, False, False, False]) as _lai,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					side_effect=["data1", "data2", "data3"]) as _pi,\
+				patch("physbiblio.database.Entries.updateInspireID",
+					return_value="123") as _uid,\
+				patch("physbiblio.database.Entries.searchOAIUpdates"
+					) as _sou,\
+				patch("physbiblio.database.Entries.insert",
+					side_effect=[False, True, True]) as _bi,\
+				patch("physbiblio.database.Entries.getByKey",
+					side_effect=[
+						[{"bibkey": "12.345"}],
+						[],
+						[{"bibkey": "12.350"}],
+						]) as _gbk,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					return_value=[{"bibkey": "12.346"}]) as _gbb,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.warning") as _wa,\
+				patch("time.sleep") as _sl,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+			thr.run()
+			self.assertFalse(ws.running)
+			_st.assert_called_once_with()
+			_sl.assert_called_once_with(0.1)
+			_lai.assert_has_calls([
+				call("12.345"), call("12.346"),
+				call('12.348'), call("12.349")])
+			_gbk.assert_has_calls([
+				call('12.345'), call('12.348'), call('12.349')])
+			_in.assert_has_calls([
+				call("Element '12.348' successfully inserted.\n"),
+				call("Element '12.349' successfully inserted.\n"),
+				call("Entries successfully imported:\n"
+					+ "['12.345', '12.348', '12.350']"),
+				call("Errors for entries:\n['12.346', '12.348']")])
+			_wa.assert_has_calls([
+				call('Failed in inserting entry 12.346\n'),
+				call('Failed in completing info for entry 12.348\n')])
+			_pi.assert_has_calls([
+				call('@Article{12.346,\n        author = "me2",\n'
+				+ '         title = "{title2}",\n archiveprefix '
+				+ '= "arXiv",\n  primaryclass = "astro-ph.CO",\n'
+				+ '        eprint = "12.346",\n}\n\n'),
+				call('@Article{12.348,\n        author = "me4",\n'
+				+ '         title = "{title4}",\n archiveprefix '
+				+ '= "arXiv",\n  primaryclass = "hep-ph",\n'
+				+ '        eprint = "12.348",\n}\n\n'),
+				call('@Article{12.349,\n        author = "me5",\n'
+				+ '         title = "{title5}",\n archiveprefix '
+				+ '= "arXiv",\n  primaryclass = "hep-ex",\n'
+				+ '        eprint = "12.349",\n}\n\n')])
+			_bi.assert_has_calls([call("data1"), call("data2")])
+			_uid.assert_has_calls([call('12.348'), call('12.349')])
+			_sou.assert_has_calls([
+				call(0, entries=[{'bibkey': '12.346'}],
+					force=True, reloadAll=True),
+				call(0, entries=[{'bibkey': '12.346'}],
+					force=True, reloadAll=True)])
+			_gbb.assert_has_calls([call('12.348'), call('12.349')])
+
+	def test_setStopFlag(self):
+		"""test setStopFlag"""
+		p = QWidget()
+		q = Queue()
+		ws = WriteStream(q)
+		thr = Thread_importDailyArxiv(ws, ["a", "b"], p)
+		self.assertTrue(thr.runningImport)
+		thr.setStopFlag()
+		self.assertFalse(thr.runningImport)
 
 
 if __name__=='__main__':

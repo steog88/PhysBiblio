@@ -2323,6 +2323,7 @@ class TestMainWindow(GUITestCase):
 					"primaryclass": "astro-ph"},
 				"exist": 1}},
 			self.mainW)
+		self.mainW.importArXivResults = (['12.345'], [])
 		das.abstractFormulas = AbstractFormulas
 		das.exec_ = MagicMock()
 		das.askCats.setCheckState(Qt.Unchecked)
@@ -2378,10 +2379,7 @@ class TestMainWindow(GUITestCase):
 						"cross": False,
 						"eprint": "12.345"}
 					]) as _ad,\
-				patch("physbiblio.database.Entries.loadAndInsert",
-					return_value=True) as _lai,\
-				patch("physbiblio.database.Entries.getByKey",
-					return_value=[{"bibkey": "12.345"}]) as _gbk:
+				patch(self.clsName + "._runInThread") as _rit:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
 			_im.assert_not_called()
@@ -2392,13 +2390,17 @@ class TestMainWindow(GUITestCase):
 					'cross': False, 'replacement': False}}},
 				self.mainW)
 			das.exec_.assert_called_once_with()
-			self.assertEqual(_sc.call_count, 2)
-			self.assertEqual(_rc.call_count, 2)
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
 			_rmc.assert_called_once_with()
 			_sbm.assert_called_once_with(
 				"Entries successfully imported: ['12.345']")
-			_lai.assert_called_once_with("12.345")
-			_gbk.assert_called_once_with("12.345")
+			_rit.assert_called_once_with(Thread_importDailyArxiv,
+				'Import from arXiv',
+				{'12.345': {'exist': False, 'bibpars':
+					{'type': '', 'eprint': '12.345', 'cross': False,
+					'replacement': False}}},
+				stopFlag=True)
 			_ace.assert_not_called()
 
 		das.exec_ = MagicMock()
@@ -2421,11 +2423,8 @@ class TestMainWindow(GUITestCase):
 						"cross": False,
 						"eprint": "12.345"}
 					]) as _ad,\
-				patch("physbiblio.database.Entries.loadAndInsert",
-					return_value=True) as _lai,\
-				patch("physbiblio.database.Entries.getByKey",
-					return_value=[{"bibkey": "12.345"}]) as _gbk,\
-				patch("physbiblio.database.CatsEntries.delete") as _cd:
+				patch("physbiblio.database.CatsEntries.delete") as _cd,\
+				patch(self.clsName + "._runInThread") as _rit:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
 			_im.assert_not_called()
@@ -2436,13 +2435,17 @@ class TestMainWindow(GUITestCase):
 					'cross': False, 'replacement': False}}},
 				self.mainW)
 			das.exec_.assert_called_once_with()
-			self.assertEqual(_sc.call_count, 2)
-			self.assertEqual(_rc.call_count, 2)
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
 			_rmc.assert_called_once_with()
 			_sbm.assert_called_once_with(
 				"Entries successfully imported: ['12.345']")
-			_lai.assert_called_once_with("12.345")
-			_gbk.assert_called_once_with("12.345")
+			_rit.assert_called_once_with(Thread_importDailyArxiv,
+				'Import from arXiv',
+				{'12.345': {'exist': False, 'bibpars':
+					{'type': '', 'eprint': '12.345', 'cross': False,
+					'replacement': False}}},
+				stopFlag=True)
 			_ace.assert_called_once_with(['12.345'])
 			_cd.assert_called_once_with(
 				pbConfig.params["defaultCategories"], '12.345')
@@ -2504,6 +2507,8 @@ class TestMainWindow(GUITestCase):
 					"primaryclass": "hep-ex"},
 				"exist": 1}},
 			self.mainW)
+		self.mainW.importArXivResults = (
+			['12.345', '12.348', '12.350'], ['12.346', '12.348'])
 		das.abstractFormulas = AbstractFormulas
 		das.exec_ = MagicMock()
 		das.askCats.setCheckState(Qt.Unchecked)
@@ -2566,96 +2571,65 @@ class TestMainWindow(GUITestCase):
 						"abstract": "some more text",
 						"primaryclass": "hep-ex"}
 					]) as _ad,\
-				patch("physbiblio.database.Entries.loadAndInsert",
-					side_effect=[True, False, False, False]) as _lai,\
-				patch("physbiblio.database.Entries.prepareInsert",
-					side_effect=["data1", "data2", "data3"]) as _pi,\
-				patch("physbiblio.database.Entries.updateInspireID",
-					return_value="123") as _uid,\
-				patch("physbiblio.database.Entries.searchOAIUpdates"
-					) as _sou,\
-				patch("physbiblio.database.Entries.insert",
-					side_effect=[False, True, True]) as _bi,\
-				patch("physbiblio.database.Entries.getByKey",
-					side_effect=[
-						[{"bibkey": "12.345"}],
-						[],
-						[{"bibkey": "12.350"}],
-						]) as _gbk,\
-				patch("physbiblio.database.Entries.getByBibkey",
-					return_value=[{"bibkey": "12.346"}]) as _gbb,\
-				patch("logging.Logger.info") as _in,\
-				patch("logging.Logger.warning") as _wa:
+				patch(self.clsName + "._runInThread") as _rit:
 			self.assertFalse(self.mainW.browseDailyArxiv())
 			_dad.assert_called_once_with()
 			_im.assert_not_called()
 			_ad.assert_called_once_with('astro-ph.CO')
 			_das.assert_called_once_with(
-				{'12.345': {'exist': True, 'bibpars':
-					{'eprint': '12.345', 'primaryclass': 'astro-ph',
-					'author': 'me1', 'abstract': 'some text',
-					'title': 'title1', 'type': '[replacement]',
-					'cross': False, 'replacement': True}},
-				'12.346': {'exist': True, 'bibpars':
+				{'12.346': {'exist': False, 'bibpars':
 					{'eprint': '12.346', 'primaryclass': 'astro-ph.CO',
 					'author': 'me2', 'abstract': 'some other text',
 					'title': 'title2', 'type': '[replacement][cross-listed]',
 					'cross': True, 'replacement': True}},
-				'12.347': {'exist': True, 'bibpars':
+				'12.347': {'exist': False, 'bibpars':
 					{'eprint': '12.347', 'primaryclass': 'hep-ph',
 					'author': 'me3', 'abstract': 'some more text',
 					'title': 'title3', 'type': '[cross-listed]',
 					'cross': True, 'replacement': False}},
-				'12.348': {'exist': True, 'bibpars':
+				'12.345': {'exist': False, 'bibpars':
+					{'eprint': '12.345', 'primaryclass': 'astro-ph',
+					'author': 'me1', 'abstract': 'some text',
+					'title': 'title1', 'type': '[replacement]',
+					'cross': False, 'replacement': True}},
+				'12.348': {'exist': False, 'bibpars':
 					{'eprint': '12.348', 'primaryclass': 'hep-ph',
 					'author': 'me4', 'abstract': 'some more text',
-					'title': 'title4', 'type': '',
-					'cross': False, 'replacement': False}},
-				'12.349': {'exist': True, 'bibpars':
+					'title': 'title4', 'type': '', 'cross': False,
+					'replacement': False}},
+				'12.349': {'exist': False, 'bibpars':
 					{'eprint': '12.349', 'primaryclass': 'hep-ex',
 					'author': 'me5', 'abstract': 'some more text',
-					'title': 'title5', 'type': '',
-					'cross': False, 'replacement': False}},},
+					'title': 'title5', 'type': '', 'cross': False,
+					'replacement': False}}},
 				self.mainW)
-			self.assertEqual(_sc.call_count, 2)
-			self.assertEqual(_rc.call_count, 2)
+			self.assertEqual(_sc.call_count, 1)
+			self.assertEqual(_rc.call_count, 1)
 			_rmc.assert_called_once_with()
-			_lai.assert_has_calls([
-				call("12.345"), call("12.346"),
-				call('12.348'), call("12.349")])
-			_gbk.assert_has_calls([
-				call('12.345'), call('12.348'), call('12.349')])
+			_rit.assert_called_once_with(Thread_importDailyArxiv,
+				'Import from arXiv',
+				{'12.346': {'exist': False, 'bibpars': {'eprint': '12.346',
+				'primaryclass': 'astro-ph.CO', 'author': 'me2',
+				'abstract': 'some other text', 'title': 'title2',
+				'type': '[replacement][cross-listed]', 'cross': True,
+				'replacement': True}},
+				'12.345': {'exist': False, 'bibpars': {'eprint': '12.345',
+				'primaryclass': 'astro-ph', 'author': 'me1', 'abstract':
+					'some text', 'title': 'title1', 'type': '[replacement]',
+					'cross': False, 'replacement': True}},
+				'12.348': {'exist': False, 'bibpars': {'eprint': '12.348',
+				'primaryclass': 'hep-ph', 'author': 'me4', 'abstract':
+					'some more text', 'title': 'title4', 'type': '',
+					'cross': False, 'replacement': False}},
+				'12.349': {'exist': False, 'bibpars': {'eprint': '12.349',
+				'primaryclass': 'hep-ex', 'author': 'me5', 'abstract':
+					'some more text', 'title': 'title5', 'type': '',
+					'cross': False, 'replacement': False}}},
+				stopFlag=True)
 			_ace.assert_called_once_with(["12.345", "12.348", "12.350"])
 			_sbm.assert_called_once_with(
 				"Entries successfully imported: "
 				+ "['12.345', '12.348', '12.350']")
-			_in.assert_has_calls([
-				call("Element '12.348' successfully inserted.\n"),
-				call("Element '12.349' successfully inserted.\n")])
-			_wa.assert_has_calls([
-				call('Failed in inserting entry 12.346\n'),
-				call('Failed in completing info for entry 12.348\n')])
-			_pi.assert_has_calls([
-				call('@Article{12.346,\n        author = "me2",\n'
-				+ '         title = "{title2}",\n archiveprefix '
-				+ '= "arXiv",\n  primaryclass = "astro-ph.CO",\n'
-				+ '        eprint = "12.346",\n}\n\n'),
-				call('@Article{12.348,\n        author = "me4",\n'
-				+ '         title = "{title4}",\n archiveprefix '
-				+ '= "arXiv",\n  primaryclass = "hep-ph",\n'
-				+ '        eprint = "12.348",\n}\n\n'),
-				call('@Article{12.349,\n        author = "me5",\n'
-				+ '         title = "{title5}",\n archiveprefix '
-				+ '= "arXiv",\n  primaryclass = "hep-ex",\n'
-				+ '        eprint = "12.349",\n}\n\n')])
-			_bi.assert_has_calls([call("data1"), call("data2")])
-			_uid.assert_has_calls([call('12.348'), call('12.349')])
-			_sou.assert_has_calls([
-				call(0, entries=[{'bibkey': '12.346'}],
-					force=True, reloadAll=True),
-				call(0, entries=[{'bibkey': '12.346'}],
-					force=True, reloadAll=True)])
-			_gbb.assert_has_calls([call('12.348'), call('12.349')])
 
 	def test_sendMessage(self):
 		"""test sendMessage"""
