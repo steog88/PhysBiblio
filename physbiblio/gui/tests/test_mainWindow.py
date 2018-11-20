@@ -193,7 +193,7 @@ class TestMainWindow(GUITestCase):
 			s="Ctrl+P",
 			i=":/images/profiles.png")
 
-		assertAction(self.mainW.EditProfileWindowsAct,
+		assertAction(self.mainW.editProfileWindowsAct,
 			"&Edit profiles",
 			"Edit profiles",
 			"editProfile",
@@ -432,7 +432,7 @@ class TestMainWindow(GUITestCase):
 			self.mainW.exportUpdateAct,
 			None,
 			self.mainW.profilesAct,
-			self.mainW.EditProfileWindowsAct,
+			self.mainW.editProfileWindowsAct,
 			self.mainW.configAct,
 			None,
 			self.mainW.exitAct])
@@ -843,10 +843,13 @@ class TestMainWindow(GUITestCase):
 		"""test showDBStats"""
 		dbStats(pBDB)
 		with patch(self.modName + ".dbStats") as _dbs,\
+				patch("physbiblio.pdf.LocalPDF.dirSize",
+					return_value=4096**2) as _ds,\
 				patch("glob.iglob", return_value=["a", "b"]) as _ig:
 			mbox = self.mainW.showDBStats(testing=True)
 			_dbs.assert_called_once_with(pBDB)
 			_ig.assert_called_once_with("%s/*/*.pdf"%pBPDF.pdfDir)
+			_ds.assert_called_once_with(pBPDF.pdfDir)
 		self.assertEqual(mbox.windowTitle(), "PhysBiblio database statistics")
 		self.assertEqual(mbox.text(),
 			"The PhysBiblio database currently contains "
@@ -860,7 +863,8 @@ class TestMainWindow(GUITestCase):
 				pBDB.stats["catExp"])
 			+ "- %d bibtex entries to experiment connections.\n\n"%(
 				pBDB.stats["bibExp"])
-			+ "The number of currently stored PDF files is 2.")
+			+ "The number of currently stored PDF files is 2.\n"
+			+ "The size of the PDF folder is 16.00MB.")
 		img = QImage(":/images/icon.png").convertToFormat(
 			QImage.Format_ARGB32_Premultiplied)
 		self.assertEqual(img, mbox.iconPixmap().toImage())

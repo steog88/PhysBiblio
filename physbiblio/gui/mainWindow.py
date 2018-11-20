@@ -166,7 +166,7 @@ class MainWindow(QMainWindow):
 			statusTip="Manage profiles",
 			triggered=self.manageProfiles)
 
-		self.EditProfileWindowsAct = QAction(
+		self.editProfileWindowsAct = QAction(
 			"&Edit profiles", self,
 			shortcut="Ctrl+Alt+P",
 			statusTip="Edit profiles",
@@ -372,7 +372,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.exportUpdateAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.profilesAct)
-		self.fileMenu.addAction(self.EditProfileWindowsAct)
+		self.fileMenu.addAction(self.editProfileWindowsAct)
 		self.fileMenu.addAction(self.configAct)
 		self.fileMenu.addSeparator()
 		self.fileMenu.addAction(self.exitAct)
@@ -665,7 +665,9 @@ class MainWindow(QMainWindow):
 				pBDB.stats["catExp"])
 			+ "- %d bibtex entries to experiment connections.\n\n"%(
 				pBDB.stats["bibExp"])
-			+ "The number of currently stored PDF files is %d."%onlyfiles,
+			+ "The number of currently stored PDF files is %d.\n"%onlyfiles
+			+ "The size of the PDF folder is %s."%(
+				pBPDF.getSizeWUnits(pBPDF.dirSize(pBPDF.pdfDir))),
 			parent=self)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
 		if testing:

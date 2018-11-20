@@ -421,5 +421,68 @@ class LocalPDF():
 				pBLogger.exception(
 					"Impossible to copy %s to %s"%(o, outFolder))
 
+	def dirSize(self, folder, dirs=True):
+		"""Get the size of a single directory and its content
+
+		Parameters:
+			folder: the path of the folder to scan
+			dirs (default True): if True, include the size of folders
+
+		Output:
+			the size in bytes
+		"""
+		if dirs:
+			total_size = os.path.getsize(folder)
+		else:
+			total_size = 0
+		if sys.version_info[0] < 3:
+			for item in os.listdir(folder):
+				itempath = os.path.join(folder, item)
+				if os.path.isfile(itempath):
+					total_size += os.path.getsize(itempath)
+				elif os.path.isdir(itempath):
+					total_size += self.dirSize(itempath, dirs=dirs)
+		else:
+			for dirpath, dirnames, filenames in os.walk(folder):
+				if dirs:
+					for d in dirnames:
+						total_size += os.path.getsize(
+							os.path.join(dirpath, d))
+				for f in filenames:
+					fp = os.path.join(dirpath, f)
+					if os.path.isfile(fp):
+						total_size += os.path.getsize(fp)
+		return total_size
+
+	def getSizeWUnits(self, size, units="MB", fmt="%.2f"):
+		"""Print a size obtained with `self.dirSize`
+
+		Parameters:
+			size:
+			units (default "MB"):
+			format (default "%.2f"): the format
+
+		Output:
+			the string with the size in the appropriate units
+		"""
+		allowedUnits = ["B", "KB", "MB", "GB", "TB", "PB"]
+		try:
+			exponent = allowedUnits.index(units.upper())
+			unitsU = units.upper()
+		except ValueError:
+			pBLogger.warning("Invalid units. Changing to 'MB'.")
+			exponent = 2
+			unitsU = "MB"
+		try:
+			sizeWUnits = size / 1024.**(exponent)
+		except TypeError:
+			pBLogger.warning("Invalid size. It must be a number!")
+			return "nan"
+		try:
+			return fmt%sizeWUnits + unitsU
+		except (TypeError, ValueError):
+			pBLogger.warning("Invalid format. Using '%.2f'")
+			return "%.2f"%sizeWUnits + unitsU
+
 
 pBPDF = LocalPDF()
