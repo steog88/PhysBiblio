@@ -1847,8 +1847,8 @@ class TestMainWindow(GUITestCase):
 				call(u"KeyError 'doi', entry: d")])
 			_wa.assert_called_once_with(
 				"Impossible to insert an entry with empty bibkey!"
-				+ "\n{'ID': None, u'title': u'titl', 'ENTRYTYPE':"
-				+ " u'article', u'author': u'me'}\n")
+				+ '\n@Article{,\n        author = "me",\n         '
+				+ 'title = "{titl}",\n}\n\n\n')
 
 		aid.exec_.reset_mock()
 		ais.exec_.reset_mock()

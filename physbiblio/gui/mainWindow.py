@@ -1377,17 +1377,23 @@ class MainWindow(QMainWindow):
 		if method == "inspire-hep":
 			method = "inspire"
 		string = adIm.searchStr.text().strip()
+		db = bibtexparser.bibdatabase.BibDatabase()
 		if adIm.result == True and string != "":
 			QApplication.setOverrideCursor(Qt.WaitCursor)
 			cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
-			elements = bibtexparser.bparser.BibTexParser(common_strings=True
-				).parse(cont).entries
+			if cont.strip() != "":
+				elements = bibtexparser.bparser.BibTexParser(
+					common_strings=True).parse(cont).entries
+			else:
+				elements = []
 			found = {}
 			for el in elements:
 				if not isinstance(el["ID"], six.string_types) or \
 						el["ID"].strip() == "":
+					db.entries = [el]
+					entry = pbWriter.write(db)
 					pBLogger.warning("Impossible to insert an entry with "
-						+ "empty bibkey!\n%s\n"%el)
+						+ "empty bibkey!\n%s\n"%entry)
 				else:
 					try:
 						el["arxiv"] = el["eprint"]
@@ -1420,7 +1426,6 @@ class MainWindow(QMainWindow):
 					if selImpo.selected[ch]:
 						newFound[ch] = found[ch]
 				found = newFound
-				db = bibtexparser.bibdatabase.BibDatabase()
 				inserted = []
 				for key in sorted(found):
 					el = found[key]

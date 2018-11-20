@@ -3,6 +3,7 @@
 	* statistics dialog now shows total size of the PDF folder
 	* Fixed bug related to format of saving marks in the database
 	* Fixed bug which prevented saved replaces to run properly
+	* Fixed possible python3 bug in advancedImport
 
 0.9.0 (2018-11-10):
 	New features:
