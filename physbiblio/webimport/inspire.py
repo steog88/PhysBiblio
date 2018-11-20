@@ -96,7 +96,7 @@ class WebSearch(WebInterf):
 			pBLogger.exception("Impossible to get results")
 			return ""
 
-	def retrieveInspireID(self, string, number = None):
+	def retrieveInspireID(self, string, number=None):
 		"""Read the fetched content for a given entry
 		to obtain its INSPIRE-HEP ID
 

@@ -33,6 +33,7 @@ else:
 from lxml.etree import tostring
 from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
+from socket import error as SocketError
 
 try:
 	from physbiblio.errors import pBLogger
@@ -48,7 +49,7 @@ except ImportError:
 	raise
 
 
-def safe_list_get(l, idx, default = ""):
+def safe_list_get(l, idx, default=""):
 	"""Safely get an element from a list.
 	No error if it doesn't exist...
 
@@ -178,7 +179,7 @@ class WebSearch(WebInterf):
 		pBLogger.warning("Inspireoai cannot search strings in the DB")
 		return ""
 
-	def readRecord(self, record, readConferenceTitle = False):
+	def readRecord(self, record, readConferenceTitle=False):
 		"""Read the content of a marcxml record
 		to return a bibtex string
 
@@ -355,7 +356,8 @@ class WebSearch(WebInterf):
 				tmpDict["link"] = pbConfig.doiUrl + tmpDict["doi"]
 		except KeyError:
 			pass
-		bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
+		bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"],
+			"ID": tmpDict["bibkey"]}
 		for k in self.bibtexFields:
 			if k in tmpDict.keys() and tmpDict[k] is not None and \
 					tmpDict[k] is not "":
@@ -392,9 +394,9 @@ class WebSearch(WebInterf):
 			the dictionary containing the bibtex information
 		"""
 		try:
-			record = self.oai.getRecord(metadataPrefix = 'marcxml',
-				identifier = "oai:inspirehep.net:" + inspireID)
-		except (URLError, ErrorBase, IncompleteRead):
+			record = self.oai.getRecord(metadataPrefix='marcxml',
+				identifier="oai:inspirehep.net:" + inspireID)
+		except (URLError, ErrorBase, IncompleteRead, SocketError):
 			pBLogger.exception(
 				"Impossible to get marcxml for entry %s"%inspireID)
 			return False
@@ -462,7 +464,7 @@ class WebSearch(WebInterf):
 		Output:
 			a list of dictionaries containing the bibtex information
 		"""
-		recs = self.oai.listRecords(metadataPrefix = 'marcxml',
+		recs = self.oai.listRecords(metadataPrefix='marcxml',
 			from_=date1, until=date2, set="INSPIRE:HEP")
 		nhand = 0
 		pBLogger.info("\nSTARTING OAI harvester --- " \

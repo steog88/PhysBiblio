@@ -58,7 +58,7 @@ class WebInterf():
 		return self.url + "?" + "&".join(
 			["%s=%s"%(a, b) for a, b in self.urlArgs.items()])
 
-	def textFromUrl(self, url, headers = None):
+	def textFromUrl(self, url, headers=None):
 		"""Use urllib to get the html content of the given url.
 
 		Parameters:
@@ -71,10 +71,10 @@ class WebInterf():
 		"""
 		try:
 			if headers is not None:
-				req = Request(url, headers = headers)
+				req = Request(url, headers=headers)
 			else:
 				req = Request(url)
-			response = urlopen(req, timeout = self.urlTimeout)
+			response = urlopen(req, timeout=self.urlTimeout)
 			data = response.read()
 		except URLError:
 			pBLogger.warning(

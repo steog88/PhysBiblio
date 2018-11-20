@@ -82,7 +82,8 @@ class WebSearch(WebInterf):
 			"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph",
 				"bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an",
 				"ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det",
-				"med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph", "space-ph"],
+				"med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph",
+				"space-ph"],
 			"q-bio": [
 				"BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
 			"q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
