@@ -374,6 +374,16 @@ class PrintText(QDialog):
 		self.message = message
 		self.initUI()
 
+	def keyPressEvent(self, e):
+		"""Intercept press keys and only exit if escape is pressed
+		when closing is enabled
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
+		"""
+		if e.key() == Qt.Key_Escape and self._wantToClose:
+			self.close()
+
 	def closeEvent(self, event):
 		"""Manage the `closeEvent` of the dialog.
 		Reject unless `self._wantToClose` is True

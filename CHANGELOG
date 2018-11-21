@@ -1,3 +1,5 @@
+	* Prevent closing window with 'Esc' when a thread is running
+
 0.9.1 (2018-11-20):
 	New features:
 	* improved merge function (deals with categories/experiments and PDF)

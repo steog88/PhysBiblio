@@ -571,6 +571,21 @@ class TestPrintText(GUITestCase):
 		self.assertEqual(pt.noStopButton, True)
 		self.assertEqual(pt.message, "mymessage")
 
+	def test_keyPressEvent(self):
+		"""test keyPressEvent"""
+		p = QWidget()
+		pt = PrintText(p)
+		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
+			QTest.keyPress(pt, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(pt, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(pt, Qt.Key_Escape)
+			_oc.assert_not_called()
+			pt.enableClose()
+			QTest.keyPress(pt, Qt.Key_Escape)
+			self.assertEqual(_oc.call_count, 1)
+
 	def test_closeEvent(self):
 		"""test closeEvent"""
 		p = QWidget()
