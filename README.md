@@ -36,7 +36,7 @@ If `pip` points to your `python3` distribution, the above commands will do the j
 Otherwise, use the same commands above but with `pip3` instead of `pip`.
 
 #### Conda
-Here you find a list of instructions to install and run `PhysBiblio` using `conda` and related commands.
+Here you find a list of instructions to install and run `PhysBiblio.exe` using `conda` and related commands.
 Note that the following commands have not (yet) been tested with `PySide2`.
 Remember to use a python version 2.7+ or 3.5+.
 ```
@@ -47,12 +47,12 @@ pip install physbiblio
 At this point, the installation is complete.
 To launch the main program correctly, once you have activated the appropriate `conda` environment (`conda activate physbiblio`), use:
 ```
-python PhysBiblio
+python PhysBiblio.exe
 ```
 (if you omit `python`, it will try to use the default Python installation instead of the Conda one, and fail due to missing libraries)
 
 #### Additional info
-At this point, `PhysBiblio` will be installed in your computer, in Linux it will be in some folder like `/usr/bin/`, `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
+At this point, `PhysBiblio.exe` will be installed in your computer, in Linux it will be in some folder like `/usr/bin/`, `/usr/local/bin/` or `/your/user/folder/.local/bin/`.
 You can find out the location where the package is installed with
 ```
 pip show -f physbiblio
@@ -71,31 +71,31 @@ pip install -U physbiblio
 ### Test that everything works
 Once you have installed the software, you may want to spend few minutes to run the test suite
 and check that everything works.  
-The test suite is available through the same `PhysBiblio` executable with the command `test`:
-`PhysBiblio test`
+The test suite is available through the same `PhysBiblio.exe` executable with the command `test`:
+`PhysBiblio.exe test`
 If this does not work, check that the global variable PATH is correctly configured.
 The other possibility is to point to the PhysBiblio script directly, using one of the following commands:
 ```
-/path/to/PhysBiblio test
-python /path/to/PhysBiblio test
-python3 /path/to/PhysBiblio test
+/path/to/PhysBiblio.exe test
+python /path/to/PhysBiblio.exe test
+python3 /path/to/PhysBiblio.exe test
 ```
 
 The entire suite of tests will check that all the functions work properly and should complete without errors and failures in a few minutes, depending on the internet connection speed.  
 A failure may be due to missing packages, incompatible package versions, particular inconsistencies due to specific operating systems and package versions, or missing internet connection (or bugs).
 If you are not sure which is your case, and in any case to report any problem you find, please go [here](https://github.com/steog88/physBiblio/issues).
 
-In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio test -h`).
-As an example, `PhysBiblio test -o` will skip all the online tests.
+In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio.exe test -h`).
+As an example, `PhysBiblio.exe test -o` will skip all the online tests.
 
 If the tests cannot complete due to a segmentation fault, or present random behaviors, it may be a problem related with the python version. A known case includes crashes with python 3.5.5 in Sabayon Linux. No problems appear when python 3.6 is used instead.
 
 ### Usage
-To run the program, execute `PhysBiblio` that have been installed.
+To run the program, execute `PhysBiblio.exe` that have been installed.
 By default it will run with `python2.x`.
 You can choose a specific `python` version running it explicitely via command line, for example you may select `python3` with
 ```
-python3 /path/to/PhysBiblio
+python3 /path/to/PhysBiblio.exe
 ```
 
 You may want to create a menu shortcut to PhysBiblio.
@@ -103,7 +103,7 @@ In Ubuntu, you can simply create a new file `/your/home/.local/share/application
 ```
 [Desktop Entry]
 Type=Application
-Exec=/path/to/PhysBiblio
+Exec=/path/to/PhysBiblio.exe
 Icon=/path/to/physbiblio/icon.png
 Name=PhysBiblio
 Path[$e]=/path/to/PhysBiblio/
@@ -207,19 +207,19 @@ In order to avoid heavy traffic on the server when using the `update` functions 
 Basically instead of looking for each single entry, the code will download the information of all the entries modified in a given time interval and use what is needed in the local database.  
 In this way, the amount of data traffic is higher, but the server-side load for INSPIRE-HEP is much more sustainable.
 
-The easiest way to do this (in Linux) is to use a cron job that will run daily or weekly and the command `PhysBiblio daily` or `PhysBiblio weekly` (see also [3. Command line usage](#3-command-line-usage)).  
+The easiest way to do this (in Linux) is to use a cron job that will run daily or weekly and the command `PhysBiblio.exe daily` or `PhysBiblio.exe weekly` (see also [3. Command line usage](#3-command-line-usage)).  
 The `daily` (`weekly`) routines will download the updates of the last day (week) from the INSPIRE-HEP database and update the local database.
 
 To set your cron job, use `crontab -e` and add one of the following lines:
 ```
-0 7 * * * /path/to/PhysBiblio daily > /path/to/log_daily_`date "+\%y\%m\%d"`.log 2>&1
-0 7 * * sat /path/to/PhysBiblio weekly > /path/to/log_weekly_`date "+\%y\%m\%d"`.log 2>&1
+0 7 * * * /path/to/PhysBiblio.exe daily > /path/to/log_daily_`date "+\%y\%m\%d"`.log 2>&1
+0 7 * * sat /path/to/PhysBiblio.exe weekly > /path/to/log_weekly_`date "+\%y\%m\%d"`.log 2>&1
 ```
 The syntax is simple: the `daily` (`weekly`) script will run every day (every saturday) at 7:00 and save a logfile in the desired folder.
 
 You may then check the bottom of the logfile to see the modified entries and scroll the entire the content if you want to see the complete list of modifications.
 
-You can also use the more generic `PhysBiblio dates [date1[, date2]]` command, which enables you to fetch the content between the two given dates (which must be in the format `yyyy-mm-dd`).
+You can also use the more generic `PhysBiblio.exe dates [date1[, date2]]` command, which enables you to fetch the content between the two given dates (which must be in the format `yyyy-mm-dd`).
 If not given, the default dates are the same as for the `daily` command.
 
 ## 3. Command line usage
@@ -228,7 +228,7 @@ so they can be included in any non-graphical script.
 
 The usage is simple:
 ```
-/path/to/PhysBiblio <command> [options]
+/path/to/PhysBiblio.exe <command> [options]
 ```
 
 The list of available commands includes:
@@ -257,13 +257,13 @@ The list of available commands includes:
 
 The best ways to know how to use the various sub-commands and options are
 ```
-/path/to/PhysBiblio -h
-/path/to/PhysBiblio <command> -h
+/path/to/PhysBiblio.exe -h
+/path/to/PhysBiblio.exe <command> -h
 ```
 
 ## 4. Data paths
 PhysBiblio now saves data, by default, in the directories specified by the `appdirs` package using `user_config_dir` and `user_data_dir`.
-Both the directories are indicated at the beginning when launching `PhysBiblio` via command line.
+Both the directories are indicated at the beginning when launching `PhysBiblio.exe` via command line.
 
 The stored configuration includes a `profiles.db` file, containing the information on the existing profiles.
 
