@@ -1,3 +1,6 @@
+0.9.3 (2018-11-30):
+	* forgot to rename executable in setup.py
+
 0.9.2 (2018-11-29):
 	* executable renamed to PhysBiblio.exe to avoid case conflicts
 	* Prevent closing window with 'Esc' when a thread is running

@@ -31,7 +31,7 @@ setup(name='physbiblio',
 			'physbiblio.tests',
 			'physbiblio.webimport.tests',
 			],
-		scripts=['PhysBiblio'],
+		scripts=['PhysBiblio.exe'],
 		package_data={
 			'': ['*.sh', '*.md', '*.png'],
 			'physbiblio.gui': ['images/*.png'],

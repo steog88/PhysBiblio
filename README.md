@@ -8,7 +8,7 @@ It is written in Python, it uses PySide2 for the graphical interface and Sqlite 
 ## 1. Getting started
 
 ### **WARNING:**
-PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 17.10 versions) and Sabayon Linux, using `python` version `2.7+` and `3.5+`.  
+PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Sabayon Linux, using `python` version `2.7+` and `3.5+`.  
 It should work equally well in other operating systems or with different python versions, but it has not been tested.  
 In any case, several bugs are surely still present and the program may freeze or crash unexpectedly.
 Please report any bug that you find [here](https://github.com/steog88/physBiblio/issues).

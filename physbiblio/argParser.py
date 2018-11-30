@@ -153,7 +153,7 @@ class NewProfileAction(argparse.Action):
 
 def setParser():
 	"""Contains the argparse definition of sub-commands and options"""
-	parser = argparse.ArgumentParser(prog='PhysBiblio')
+	parser = argparse.ArgumentParser(prog='PhysBiblio.exe')
 	parser.add_argument(
 		'-p',
 		'--profile',

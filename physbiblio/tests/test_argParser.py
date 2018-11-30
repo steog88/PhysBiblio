@@ -72,7 +72,7 @@ class TestParser(unittest.TestCase):
 			with self.assertRaises(SystemExit):
 				parser.parse_args([opt])
 			self.assert_in_stdout_sysexit(lambda: parser.parse_args([opt]),
-				['usage: PhysBiblio [-h] [-p ',
+				['usage: PhysBiblio.exe [-h] [-p ',
 				'{clean,cli,daily,dates,export,test,tex,update,weekly,gui}'])
 		for opt in ["-p", "--profile"]:
 			profile = list(pbConfig.profiles.keys())[0]
