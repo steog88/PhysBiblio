@@ -5,7 +5,8 @@ This file is part of the physbiblio package.
 import traceback
 import sqlite3
 from sqlite3 import \
-	OperationalError, ProgrammingError, DatabaseError, InterfaceError
+	DatabaseError, IntegrityError, InterfaceError,\
+	OperationalError, ProgrammingError
 import os
 import ast
 
@@ -45,6 +46,7 @@ class PhysBiblioDBCore():
 		self.dbChanged = False
 		self.conn = None
 		self.curs = None
+		self.operational = None
 		self.dbname = dbname
 		self.logger = logger
 		db_is_new = not os.path.exists(self.dbname)
@@ -98,6 +100,21 @@ class PhysBiblioDBCore():
 			self.logger.debug("Closing database...")
 		self.conn.close()
 		return True
+
+	def sendDBIsLocked(self):
+		"""If the database is open in another instance
+		and no writing operation are allowed,
+		try to emit a signal to the main GUI
+		"""
+		if self.operational is not None:
+			try:
+				self.operational.emit()
+			except AttributeError:
+				self.logger.exception("Invalid `self.operational`!")
+				return False
+			else:
+				return True
+		return False
 
 	def checkUncommitted(self):
 		"""Check if there are uncommitted changes.
@@ -162,17 +179,27 @@ class PhysBiblioDBCore():
 		"""
 		try:
 			if data:
-				self.conn.execute(query,data)
+				self.conn.execute(query, data)
 			else:
 				self.conn.execute(query)
-		except (OperationalError, ProgrammingError,
-				DatabaseError, InterfaceError) as err:
-			self.logger.exception('Connection error: %s\nquery: %s'%(
-				err, query))
+		except OperationalError as err:
+			if str(err) == "database is locked":
+				if not self.sendDBIsLocked():
+					self.logger.error(
+						'OperationalError: the database is already open '
+						+ 'in another instance of the application\n'
+						+ 'query failed: %s'%query)
+			else:
+				self.logger.exception(
+					'Connection error: %s\nquery: %s'%(err, query))
 			return False
 		except IntegrityError as err:
 			self.logger.exception(
 				'Cannot insert/update: ID exists!\n%s\nquery: %s'%(err, query))
+			return False
+		except (ProgrammingError, DatabaseError, InterfaceError) as err:
+			self.logger.exception(
+				'Connection error: %s\nquery: %s'%(err, query))
 			return False
 		else:
 			self.dbChanged = True
@@ -304,6 +331,10 @@ class PhysBiblioDBSub():
 
 		self.lastFetched = None
 		self.catsHier = None
+
+	def sendDBIsLocked(self):
+		"""Call corresponding PhysBiblioDBCore function"""
+		return self.mainDB.sendDBIsLocked()
 
 	def literal_eval(self, string):
 		"""Wrapper for ast.literal_eval

@@ -11,11 +11,11 @@ import ast
 
 if sys.version_info[0] < 3:
 	import unittest2 as unittest
-	from mock import patch, call
+	from mock import patch, call, MagicMock
 	from StringIO import StringIO
 else:
 	import unittest
-	from unittest.mock import patch, call
+	from unittest.mock import patch, call, MagicMock
 	from io import StringIO
 
 try:
@@ -23,6 +23,7 @@ try:
 	from physbiblio.errors import pBLogger
 	from physbiblio.export import pBExport
 	from physbiblio.config import pbConfig
+	from physbiblio.databaseCore import *
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -204,7 +205,6 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 	"""Test main database class PhysBiblioDB and PhysBiblioDBSub structures"""
 	def test_operations(self):
 		"""Test main database functions (open/close, basic commands)"""
-		print(self.pBDB.dbname)
 		self.assertFalse(self.pBDB.checkUncommitted())
 		self.assertTrue(self.pBDB.cursExec("SELECT * from categories"))
 		self.assertTrue(self.pBDB.cursExec(
@@ -268,6 +268,94 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("[test f]"), None)
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"),
 			["test g", "test h"])
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked"
+				) as _s:
+			self.pBDB.cats.mainDB.sendDBIsLocked()
+			_s.assert_called_once_with()
+
+	def test_sendDBIsLocked(self):
+		"""test the sendDBIsLocked function"""
+		self.assertTrue(hasattr(self.pBDB, "operational"))
+		self.pBDB.operational = None
+		self.assertFalse(self.pBDB.sendDBIsLocked())
+		self.pBDB.operational = 123
+		with patch("logging.Logger.exception") as _ex:
+			self.assertFalse(self.pBDB.sendDBIsLocked())
+			_ex.assert_called_once_with("Invalid `self.operational`!")
+		tmp = MagicMock()
+		tmp.emit = MagicMock()
+		self.pBDB.operational = tmp
+		self.assertTrue(self.pBDB.sendDBIsLocked())
+		tmp.emit.assert_called_once_with()
+
+	def test_connExec(self):
+		"""test connExec"""
+		self.pBDB.dbChanged = False
+		trueconn = self.pBDB.conn
+		self.pBDB.conn = MagicMock()
+		self.pBDB.conn.execute.side_effect = [
+			ProgrammingError("a"),
+			DatabaseError("b"),
+			InterfaceError("c"),
+			]
+		with patch("logging.Logger.exception") as _ex:
+			self.assertFalse(self.pBDB.connExec("a"))
+			self.assertFalse(self.pBDB.connExec("a"))
+			self.assertFalse(self.pBDB.connExec("a"))
+			_ex.assert_has_calls([
+				call("Connection error: a\nquery: a"),
+				call("Connection error: b\nquery: a"),
+				call("Connection error: c\nquery: a")])
+		self.pBDB.conn.execute.side_effect = IntegrityError("d")
+		with patch("logging.Logger.exception") as _ex:
+			self.assertFalse(self.pBDB.connExec("a"))
+			_ex.assert_called_once_with(
+				'Cannot insert/update: ID exists!\nd\nquery: a')
+
+		self.pBDB.conn.execute.side_effect = OperationalError("e")
+		with patch("logging.Logger.exception") as _ex,\
+				patch("logging.Logger.error") as _er,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".sendDBIsLocked", return_value=True) as _lo:
+			self.assertFalse(self.pBDB.connExec("a"))
+			_ex.assert_called_once_with('Connection error: e\nquery: a')
+			_er.assert_not_called()
+			_lo.assert_not_called()
+		self.pBDB.conn.execute.side_effect = OperationalError(
+			"database is locked")
+		with patch("logging.Logger.exception") as _ex,\
+				patch("logging.Logger.error") as _er,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".sendDBIsLocked", return_value=True) as _lo:
+			self.assertFalse(self.pBDB.connExec("a"))
+			_ex.assert_not_called()
+			_er.assert_not_called()
+			_lo.assert_called_once_with()
+		with patch("logging.Logger.exception") as _ex,\
+				patch("logging.Logger.error") as _er,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".sendDBIsLocked", return_value=False) as _lo:
+			self.assertFalse(self.pBDB.connExec("a"))
+			_ex.assert_not_called()
+			_er.assert_called_once_with(
+				'OperationalError: the database is already open '
+				+ 'in another instance of the application\nquery failed: a')
+			_lo.assert_called_once_with()
+
+		self.pBDB.conn.execute.reset_mock()
+		self.pBDB.conn.execute.side_effect = None
+		self.pBDBbis = PhysBiblioDB(tempDBName, pBLogger)
+		self.assertFalse(self.pBDB.dbChanged)
+		self.assertTrue(self.pBDB.connExec("a"))
+		self.pBDB.conn.execute.assert_called_once_with("a")
+		self.assertTrue(self.pBDB.dbChanged)
+		self.pBDB.dbChanged = False
+		self.pBDB.conn.execute.reset_mock()
+		self.assertTrue(self.pBDB.connExec("a", data="b"))
+		self.assertTrue(self.pBDB.dbChanged)
+		self.pBDB.conn.execute.assert_called_once_with("a", "b")
+
+		self.pBDB.conn = trueconn
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseLinks(DBTestCase):

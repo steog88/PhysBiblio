@@ -1605,8 +1605,17 @@ class Entries(PhysBiblioDBSub):
 				cursor.execute(query, vals)
 			else:
 				cursor.execute(query)
-		except (OperationalError, ProgrammingError,
-				DatabaseError, InterfaceError) as err:
+		except OperationalError as err:
+			if str(err) == "database is locked":
+				if not self.sendDBIsLocked():
+					pBLogger.exception(
+						'Operational error: the database is open'
+						+ ' in another instance of the application\n'
+						+ 'query: %s'%query)
+			else:
+				pBLogger.exception(
+					'Connection error: %s\nquery: %s'%(err, query))
+		except (ProgrammingError, DatabaseError, InterfaceError) as err:
 			pBLogger.exception("Query failed: %s\nvalues: %s"%(query, vals))
 		if doFetch:
 			fetched_in = self.curs.fetchall()
