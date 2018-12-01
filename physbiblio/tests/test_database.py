@@ -275,16 +275,16 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 
 	def test_sendDBIsLocked(self):
 		"""test the sendDBIsLocked function"""
-		self.assertTrue(hasattr(self.pBDB, "operational"))
-		self.pBDB.operational = None
+		self.assertTrue(hasattr(self.pBDB, "onIsLocked"))
+		self.pBDB.onIsLocked = None
 		self.assertFalse(self.pBDB.sendDBIsLocked())
-		self.pBDB.operational = 123
+		self.pBDB.onIsLocked = 123
 		with patch("logging.Logger.exception") as _ex:
 			self.assertFalse(self.pBDB.sendDBIsLocked())
-			_ex.assert_called_once_with("Invalid `self.operational`!")
+			_ex.assert_called_once_with("Invalid `self.onIsLocked`!")
 		tmp = MagicMock()
 		tmp.emit = MagicMock()
-		self.pBDB.operational = tmp
+		self.pBDB.onIsLocked = tmp
 		self.assertTrue(self.pBDB.sendDBIsLocked())
 		tmp.emit.assert_called_once_with()
 
@@ -354,6 +354,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertTrue(self.pBDB.connExec("a", data="b"))
 		self.assertTrue(self.pBDB.dbChanged)
 		self.pBDB.conn.execute.assert_called_once_with("a", "b")
+		self.pBDBbis.undo()
+		self.pBDBbis.closeDB()
 
 		self.pBDB.conn = trueconn
 

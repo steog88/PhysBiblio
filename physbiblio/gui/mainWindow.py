@@ -36,7 +36,7 @@ try:
 		askFileName, askFileNames, askGenericText, askSaveFileName, \
 		askYesNo, infoMessage, LongInfoMessage
 	from physbiblio.gui.commonClasses import \
-		PBComboBox, WriteStream
+		ObjectWithSignal, PBComboBox, WriteStream
 	from physbiblio.gui.bibWindows import \
 		AbstractFormulas, FieldsFromArxiv, SearchBibsWindow, editBibtex, \
 		BibtexListWindow, BibtexInfo
@@ -96,7 +96,12 @@ class MainWindow(QMainWindow):
 		self.setIcon()
 		self.createStatusBar()
 
-		#Catch Ctrl+C in shell
+		# When the DB is locked, ask if the user wants to close the PB instance
+		self.onIsLockedClass = ObjectWithSignal()
+		pBDB.onIsLocked = self.onIsLockedClass.customSignal
+		pBDB.onIsLocked.connect(self.lockedDatabase)
+
+		# Catch Ctrl+C in shell
 		signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 		self.checkUpdated = Thread_checkUpdated(self)
@@ -146,6 +151,20 @@ class MainWindow(QMainWindow):
 				+ "(with `sudo`, eventually).")
 		else:
 			pBLogger.info("No new versions available!")
+
+	def lockedDatabase(self):
+		"""Action to be performed when the database is locked
+		by another instance of the program.
+		Ask what to do and close the main window.
+		"""
+		if askYesNo("The database is locked.\n"
+				+ "Probably another instance of the program is"
+				+ " currently open and you cannot save your changes.\n"
+				+ "For this reason, the current instance "
+				+ "may not work properly.\n"
+				+ "Do you want to close this instance of PhysBiblio?",
+				title="Attention!"):
+			raise SystemExit
 
 	def setIcon(self):
 		"""Set the icon of the main window"""

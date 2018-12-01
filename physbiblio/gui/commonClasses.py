@@ -7,7 +7,7 @@ import traceback
 import time
 from PySide2.QtCore import Qt, Signal, \
 	QAbstractItemModel, QAbstractTableModel, QModelIndex, \
-	QSortFilterProxyModel, QThread, QUrl
+	QObject, QSortFilterProxyModel, QThread, QUrl
 from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
 from PySide2.QtWidgets import \
 	QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, \
@@ -1073,3 +1073,9 @@ class PBImportedTableModel(PBTableModel):
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		else:
 			return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+
+class ObjectWithSignal(QObject):
+	"""Being a QObject is necessary to create a signal and use it"""
+
+	customSignal = Signal()

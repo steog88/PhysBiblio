@@ -46,7 +46,7 @@ class PhysBiblioDBCore():
 		self.dbChanged = False
 		self.conn = None
 		self.curs = None
-		self.operational = None
+		self.onIsLocked = None
 		self.dbname = dbname
 		self.logger = logger
 		db_is_new = not os.path.exists(self.dbname)
@@ -106,11 +106,11 @@ class PhysBiblioDBCore():
 		and no writing operation are allowed,
 		try to emit a signal to the main GUI
 		"""
-		if self.operational is not None:
+		if self.onIsLocked is not None:
 			try:
-				self.operational.emit()
+				self.onIsLocked.emit()
 			except AttributeError:
-				self.logger.exception("Invalid `self.operational`!")
+				self.logger.exception("Invalid `self.onIsLocked`!")
 				return False
 			else:
 				return True

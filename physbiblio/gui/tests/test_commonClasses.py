@@ -1505,5 +1505,16 @@ class TestPBImportedTableModel(GUITestCase):
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 
 
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestObjectWithSignal(GUITestCase):
+	"""Test the ObjectWithSignal class"""
+
+	def test_class(self):
+		"""test the class inheritance and signal existence"""
+		o = ObjectWithSignal()
+		self.assertIsInstance(o, QObject)
+		self.assertIsInstance(o.customSignal, Signal)
+
+
 if __name__=='__main__':
 	unittest.main()

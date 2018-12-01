@@ -46,6 +46,7 @@ class TestMainWindow(GUITestCase):
 		"""test __init__"""
 		tcu = Thread_checkUpdated()
 		tcu.start = MagicMock()
+		pBDB.onIsLocked = None
 		with patch(self.clsName + ".createActions") as _ca,\
 				patch(self.clsName + ".createMenusAndToolBar") as _mt,\
 				patch(self.clsName + ".createMainLayout") as _ml,\
@@ -77,6 +78,12 @@ class TestMainWindow(GUITestCase):
 		self.assertGeometry(mw, 0, 0,
 			QDesktopWidget().availableGeometry().width(),
 			QDesktopWidget().availableGeometry().height())
+		self.assertTrue(hasattr(mw, "onIsLockedClass"))
+		self.assertIsInstance(mw.onIsLockedClass, ObjectWithSignal)
+		self.assertEqual(pBDB.onIsLocked, mw.onIsLockedClass.customSignal)
+		with patch(self.clsName + ".lockedDatabase") as _ld:
+			pBDB.onIsLocked.emit()
+			_ld.assert_called_once_with()
 
 	def test_closeEvent(self):
 		"""test closeEvent"""
@@ -132,6 +139,24 @@ class TestMainWindow(GUITestCase):
 			_w.assert_called_once_with("New version available (0.0.0)!\n"
 				+ "You can upgrade with `pip install -U physbiblio` "
 				+ "(with `sudo`, eventually).")
+
+	def test_lockedDatabase(self):
+		"""test lockedDatabase"""
+		with patch(self.modName + ".askYesNo",
+				side_effect=[True, False]) as _a:
+			with self.assertRaises(SystemExit):
+				self.mainW.lockedDatabase()
+			_a.assert_called_once_with("The database is locked.\n"
+				+ "Probably another instance of the program is"
+				+ " currently open and you cannot save your changes.\n"
+				+ "For this reason, the current instance "
+				+ "may not work properly.\n"
+				+ "Do you want to close this instance of PhysBiblio?",
+				title="Attention!")
+			try:
+				self.mainW.lockedDatabase()
+			except SystemExit:
+				self.fail("Unexpected raise")
 
 	def test_setIcon(self):
 		"""test setIcon"""
