@@ -177,20 +177,25 @@ class TestCreateTables(unittest.TestCase):
 		self.assertEqual([name[0] for name in self.pBDB.cursor()], [])
 		with patch("logging.Logger.info") as _i:
 			self.pBDB.createTables()
-			_i.assert_has_calls([
-				call("CREATE TABLE settings (\nname text primary key not"
-					+ " null,\nvalue text default '');\n"),
-				call('CREATE TABLE entryExps (\nidEnEx integer primary '
+			_i.assert_any_call(
+				"CREATE TABLE settings (\nname text primary key not"
+					+ " null,\nvalue text default '');\n")
+			_i.assert_any_call(
+				'CREATE TABLE entryExps (\nidEnEx integer primary '
 					+ 'key,\nbibkey text not null,\n'
-					+ 'idExp integer not null);\n'),
-				call('CREATE TABLE entryCats (\nidEnC integer primary key,'
-					+ '\nbibkey text not null,\nidCat integer not null);\n'),
-				call('CREATE TABLE experiments (\nidExp integer primary key,'
+					+ 'idExp integer not null);\n')
+			_i.assert_any_call(
+				'CREATE TABLE entryCats (\nidEnC integer primary key,'
+					+ '\nbibkey text not null,\nidCat integer not null);\n')
+			_i.assert_any_call(
+				'CREATE TABLE experiments (\nidExp integer primary key,'
 					+ '\nname text not null,\ncomments text not null,'
-					+ '\nhomepage text ,\ninspire text );\n'),
-				call('CREATE TABLE expCats (\nidExC integer primary key,\n'
-					+ 'idExp integer not null,\nidCat integer not null);\n'),
-				call('CREATE TABLE entries (\nbibkey text primary key '
+					+ '\nhomepage text ,\ninspire text );\n')
+			_i.assert_any_call(
+				'CREATE TABLE expCats (\nidExC integer primary key,\n'
+					+ 'idExp integer not null,\nidCat integer not null);\n')
+			_i.assert_any_call(
+				'CREATE TABLE entries (\nbibkey text primary key '
 					+ 'not null,\ninspire text ,\narxiv text ,\nads '
 					+ 'text ,\nscholar text ,\ndoi text ,\nisbn text ,'
 					+ '\nyear integer ,\nlink text ,\ncomments text ,'
@@ -200,18 +205,20 @@ class TestCreateTables(unittest.TestCase):
 					+ 'default 0,\nphd_thesis integer default 0,\nreview '
 					+ 'integer default 0,\nproceeding integer default 0,'
 					+ '\nbook integer default 0,\nnoUpdate integer default 0,'
-					+ '\nmarks text ,\nabstract text ,\nbibdict text );\n'),
-				call("CREATE TABLE categories (\nidCat integer primary key,"
+					+ '\nmarks text ,\nabstract text ,\nbibdict text );\n')
+			_i.assert_any_call(
+				"CREATE TABLE categories (\nidCat integer primary key,"
 					+ "\nname text not null,\ndescription text not null,"
 					+ "\nparentCat integer default 0,\ncomments text "
-					+ "default '',\nord integer default 0);\n"),
-				call('INSERT into categories '
+					+ "default '',\nord integer default 0);\n")
+			_i.assert_any_call(
+				'INSERT into categories '
 					+ '(idCat, name, description, parentCat, ord) values '
 					+ '(0,"Main","This is the main category. All the other '
 					+ 'ones are subcategories of this one",0,0), '
 					+ '(1,"Tags","Use this category to store tags (such as: '
-					+ 'ongoing projects, temporary cats,...)",0,0)\n\n'),
-				call('Database saved.')])
+					+ 'ongoing projects, temporary cats,...)",0,0)\n\n')
+			_i.assert_any_call('Database saved.')
 		self.assertTrue(self.pBDB.cursExec(
 			"SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]),
