@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+import sys
 import traceback
 import sqlite3
 from sqlite3 import \
@@ -54,7 +55,7 @@ class PhysBiblioDBCore():
 		if not noOpen:
 			self.openDB(info=info)
 			if db_is_new or self.checkExistingTables():
-				self.logger.info("-------New database or missing tables."
+				self.logger.info("-------New database or missing tables.\n"
 					+ "Creating them!\n\n")
 				self.createTables()
 			self.checkCols()
@@ -122,8 +123,11 @@ class PhysBiblioDBCore():
 		Output:
 			True/False
 		"""
-		#return self.conn.in_transaction() #works only with sqlite > 3.2...
-		return self.dbChanged
+		if (sys.version_info[0] == 3 and
+				sys.version_info[1] > 2):
+			return self.conn.in_transaction
+		else:
+			return self.dbChanged
 
 	def commit(self, verbose=True):
 		"""Commit the changes.
@@ -137,13 +141,14 @@ class PhysBiblioDBCore():
 		"""
 		try:
 			self.conn.commit()
+		except Exception:
+			self.logger.exception("Impossible to commit!")
+			return False
+		else:
 			self.dbChanged = False
 			if verbose:
 				self.logger.info("Database saved.")
 			return True
-		except Exception:
-			self.logger.exception("Impossible to commit!")
-			return False
 
 	def undo(self, verbose=True):
 		"""Undo the uncommitted changes
@@ -158,13 +163,14 @@ class PhysBiblioDBCore():
 		"""
 		try:
 			self.conn.rollback()
+		except Exception:
+			self.logger.exception("Impossible to rollback!")
+			return False
+		else:
 			self.dbChanged = False
 			if verbose:
 				self.logger.info("Rolled back to last commit.")
 			return True
-		except Exception:
-			self.logger.exception("Impossible to rollback!")
-			return False
 
 	def connExec(self, query, data=None):
 		"""Execute connection.
@@ -303,7 +309,7 @@ class PhysBiblioDBCore():
 					+ "'bibdict' (text).")
 				self.commit()
 			else:
-				pBLogger.error("Cannot alter table 'entries'!")
+				self.logger.error("Cannot alter table 'entries'!")
 				self.undo()
 
 class PhysBiblioDBSub():
@@ -318,12 +324,9 @@ class PhysBiblioDBSub():
 		the main PhysBiblioDB instance (parent).
 		"""
 		self.mainDB = parent
-		#structure of the tables
+
 		self.tableFields = self.mainDB.tableFields
-		#names of the columns
-		self.tableCols = {}
-		for q in self.tableFields.keys():
-			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
+		self.tableCols = self.mainDB.tableCols
 
 		self.conn = self.mainDB.conn
 		self.curs = self.mainDB.curs
@@ -365,7 +368,7 @@ class PhysBiblioDBSub():
 		"""Commit the changes (using PhysBiblioDB.commit)"""
 		self.mainDB.commit()
 
-	def connExec(self,query,data=None):
+	def connExec(self, query, data=None):
 		"""Execute connection (see PhysBiblioDB.connExec)"""
 		return self.mainDB.connExec(query, data=data)
 

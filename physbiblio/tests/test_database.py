@@ -175,13 +175,49 @@ class TestCreateTables(unittest.TestCase):
 		self.assertTrue(self.pBDB.cursExec(
 			"SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual([name[0] for name in self.pBDB.cursor()], [])
-		self.pBDB.createTables()
+		with patch("logging.Logger.info") as _i:
+			self.pBDB.createTables()
+			_i.assert_has_calls([
+				call("CREATE TABLE settings (\nname text primary key not"
+					+ " null,\nvalue text default '');\n"),
+				call('CREATE TABLE entryExps (\nidEnEx integer primary '
+					+ 'key,\nbibkey text not null,\n'
+					+ 'idExp integer not null);\n'),
+				call('CREATE TABLE entryCats (\nidEnC integer primary key,'
+					+ '\nbibkey text not null,\nidCat integer not null);\n'),
+				call('CREATE TABLE experiments (\nidExp integer primary key,'
+					+ '\nname text not null,\ncomments text not null,'
+					+ '\nhomepage text ,\ninspire text );\n'),
+				call('CREATE TABLE expCats (\nidExC integer primary key,\n'
+					+ 'idExp integer not null,\nidCat integer not null);\n'),
+				call('CREATE TABLE entries (\nbibkey text primary key '
+					+ 'not null,\ninspire text ,\narxiv text ,\nads '
+					+ 'text ,\nscholar text ,\ndoi text ,\nisbn text ,'
+					+ '\nyear integer ,\nlink text ,\ncomments text ,'
+					+ '\nold_keys text ,\ncrossref text ,\nbibtex text '
+					+ 'not null,\nfirstdate text not null,\npubdate text '
+					+ ',\nexp_paper integer default 0,\nlecture integer '
+					+ 'default 0,\nphd_thesis integer default 0,\nreview '
+					+ 'integer default 0,\nproceeding integer default 0,'
+					+ '\nbook integer default 0,\nnoUpdate integer default 0,'
+					+ '\nmarks text ,\nabstract text ,\nbibdict text );\n'),
+				call("CREATE TABLE categories (\nidCat integer primary key,"
+					+ "\nname text not null,\ndescription text not null,"
+					+ "\nparentCat integer default 0,\ncomments text "
+					+ "default '',\nord integer default 0);\n"),
+				call('INSERT into categories '
+					+ '(idCat, name, description, parentCat, ord) values '
+					+ '(0,"Main","This is the main category. All the other '
+					+ 'ones are subcategories of this one",0,0), '
+					+ '(1,"Tags","Use this category to store tags (such as: '
+					+ 'ongoing projects, temporary cats,...)",0,0)\n\n'),
+				call('Database saved.')])
 		self.assertTrue(self.pBDB.cursExec(
 			"SELECT name FROM sqlite_master WHERE type='table';"))
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]),
 			["categories", "entries", "entryCats", "entryExps", "expCats",
 			"experiments", "settings"])
-		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()],
+		self.assertEqual([e["name"] for e in self.pBDB.cats.getAll()],
 			["Main", "Tags"])
 
 		os.remove(tempFDBName)
@@ -192,7 +228,7 @@ class TestCreateTables(unittest.TestCase):
 		self.assertEqual(sorted([name[0] for name in self.pBDB.cursor()]),
 			["categories", "entries", "entryCats", "entryExps", "expCats",
 			"experiments", "settings"])
-		self.assertTrue([e["name"] for e in self.pBDB.cats.getAll()],
+		self.assertEqual([e["name"] for e in self.pBDB.cats.getAll()],
 			["Main", "Tags"])
 
 	@classmethod
@@ -273,6 +309,133 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			self.pBDB.cats.mainDB.sendDBIsLocked()
 			_s.assert_called_once_with()
 
+	def test_init(self):
+		"""test init"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".openDB") as _o:
+			dbc = PhysBiblioDBCore(
+				tempDBName, pBLogger, noOpen=True, info=False)
+			_e.assert_called_once_with(tempDBName)
+			_o.assert_not_called()
+			_lsc.assert_called_once_with()
+		self.assertEqual(dbc.tableFields, physbiblio.tablesDef.tableFields)
+		self.assertEqual(dbc.descriptions,
+			physbiblio.tablesDef.fieldsDescriptions)
+		self.assertIsInstance(dbc.tableCols, dict)
+		self.assertEqual(dbc.tableCols,
+			{q: [ a[0] for a in dbc.tableFields[q] ]
+				for q in dbc.tableFields.keys()})
+		self.assertEqual(dbc.dbChanged, False)
+		self.assertEqual(dbc.conn, None)
+		self.assertEqual(dbc.curs, None)
+		self.assertEqual(dbc.onIsLocked, None)
+		self.assertEqual(dbc.dbname, tempDBName)
+		self.assertEqual(dbc.logger, pBLogger)
+		self.assertEqual(dbc.lastFetched, None)
+		self.assertEqual(dbc.catsHier, None)
+
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("logging.Logger.info") as _i,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".checkExistingTables", return_value=True) as _ce,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".createTables") as _ct,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".checkCols") as _cc,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".openDB") as _o:
+			dbc = PhysBiblioDBCore(
+				tempDBName, pBLogger, noOpen=True, info=False)
+			_o.assert_not_called()
+			_i.assert_not_called()
+			_ct.assert_not_called()
+			_ce.assert_not_called()
+			_cc.assert_not_called()
+			dbc = PhysBiblioDBCore(
+				tempDBName, pBLogger, info=False)
+			_o.assert_called_once_with(info=False)
+			_i.assert_called_once_with(
+				"-------New database or missing tables.\nCreating them!\n\n")
+			_ct.assert_called_once_with()
+			_ce.assert_called_once_with()
+			_cc.assert_called_once_with()
+
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("logging.Logger.info") as _i,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".checkExistingTables", return_value=False) as _ce,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".createTables") as _ct,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".checkCols") as _cc,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".openDB") as _o:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger)
+			_o.assert_called_once_with(info=True)
+			_i.assert_not_called()
+			_ct.assert_not_called()
+			_ce.assert_called_once_with()
+			_cc.assert_called_once_with()
+
+		self.assertTrue(hasattr(dbc, "reOpenDB"))
+		self.assertTrue(hasattr(dbc, "loadSubClasses"))
+
+	def test_openDB(self):
+		"""test openDB"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		self.assertEqual(dbc.conn, None)
+		with patch("logging.Logger.info") as _i,\
+				patch("sqlite3.connect") as _c,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc.openDB()
+			_i.assert_called_once_with("Opening database: %s"%tempDBName)
+			_c.assert_called_once_with(tempDBName, check_same_thread=False)
+			_c().cursor.assert_called_once_with()
+			_lsc.assert_called_once_with()
+			self.assertEqual(dbc.conn, _c())
+			self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
+			self.assertEqual(dbc.curs, _c().cursor())
+		with patch("logging.Logger.debug") as _d,\
+				patch("sqlite3.connect") as _c,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc.openDB(info=False)
+			_d.assert_called_once_with("Opening database: %s"%tempDBName)
+			_c.assert_called_once_with(tempDBName, check_same_thread=False)
+			_c().cursor.assert_called_once_with()
+			_lsc.assert_called_once_with()
+			self.assertEqual(dbc.conn, _c())
+			self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
+			self.assertEqual(dbc.curs, _c().cursor())
+
+	def test_closeDB(self):
+		"""test closeDB"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.conn = MagicMock()
+		with patch("logging.Logger.info") as _i:
+			self.assertTrue(dbc.closeDB())
+			_i.assert_called_once_with("Closing database...")
+			dbc.conn.close.assert_called_once_with()
+		dbc.conn.reset_mock()
+		with patch("logging.Logger.debug") as _d:
+			self.assertTrue(dbc.closeDB(info=False))
+			_d.assert_called_once_with("Closing database...")
+			dbc.conn.close.assert_called_once_with()
+
 	def test_sendDBIsLocked(self):
 		"""test the sendDBIsLocked function"""
 		self.assertTrue(hasattr(self.pBDB, "onIsLocked"))
@@ -287,6 +450,75 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.pBDB.onIsLocked = tmp
 		self.assertTrue(self.pBDB.sendDBIsLocked())
 		tmp.emit.assert_called_once_with()
+
+	def test_checkUncommitted(self):
+		"""test checkUncommitted"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		if (sys.version_info[0] == 3 and
+				sys.version_info[1] > 2):
+			dbc.conn = MagicMock()
+			dbc.conn.in_transaction = "abc"
+			self.assertEqual(dbc.checkUncommitted(), "abc")
+		else:
+			dbc.dbChanged = "abc"
+			self.assertEqual(dbc.checkUncommitted(), "abc")
+
+	def test_commit(self):
+		"""test commit"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.conn = MagicMock()
+		dbc.dbChanged = "abc"
+		with patch("logging.Logger.info") as _i:
+			self.assertTrue(dbc.commit())
+			dbc.conn.commit.assert_called_once_with()
+			self.assertFalse(dbc.dbChanged)
+			_i.assert_called_once_with("Database saved.")
+			dbc.dbChanged = "abc"
+			_i.reset_mock()
+			self.assertTrue(dbc.commit(verbose=False))
+			self.assertFalse(dbc.dbChanged)
+			_i.assert_not_called()
+		dbc.conn.commit.reset_mock()
+		dbc.conn.commit.side_effect = Exception("error")
+		dbc.dbChanged = "abc"
+		with patch("logging.Logger.exception") as _e:
+			self.assertFalse(dbc.commit())
+			dbc.conn.commit.assert_called_once_with()
+			self.assertEqual(dbc.dbChanged, "abc")
+			_e.assert_called_once_with("Impossible to commit!")
+
+	def test_undo(self):
+		"""test undo"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.conn = MagicMock()
+		dbc.dbChanged = "abc"
+		with patch("logging.Logger.info") as _i:
+			self.assertTrue(dbc.undo())
+			dbc.conn.rollback.assert_called_once_with()
+			self.assertFalse(dbc.dbChanged)
+			_i.assert_called_once_with("Rolled back to last commit.")
+			dbc.dbChanged = "abc"
+			_i.reset_mock()
+			self.assertTrue(dbc.undo(verbose=False))
+			self.assertFalse(dbc.dbChanged)
+			_i.assert_not_called()
+		dbc.conn.rollback.reset_mock()
+		dbc.conn.rollback.side_effect = Exception("error")
+		dbc.dbChanged = "abc"
+		with patch("logging.Logger.exception") as _e:
+			self.assertFalse(dbc.undo())
+			dbc.conn.rollback.assert_called_once_with()
+			self.assertEqual(dbc.dbChanged, "abc")
+			_e.assert_called_once_with("Impossible to rollback!")
 
 	def test_connExec(self):
 		"""test connExec"""
@@ -358,6 +590,152 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.pBDBbis.closeDB()
 
 		self.pBDB.conn = trueconn
+
+	def test_cursExec(self):
+		"""test cursExec"""
+		trueconn = self.pBDB.curs
+		self.pBDB.curs = MagicMock()
+		self.pBDB.curs.execute.side_effect = Exception("a")
+		with patch("logging.Logger.exception") as _ex:
+			self.assertFalse(self.pBDB.cursExec("a"))
+			_ex.assert_called_once_with(
+				'Cursor error: a\nThe query was: "a"\n '
+				+ 'and the parameters: None')
+		with patch("logging.Logger.exception") as _ex:
+			self.assertFalse(self.pBDB.cursExec("a", data=["b"]))
+			_ex.assert_called_once_with(
+				'Cursor error: a\nThe query was: "a"\n '
+				+ 'and the parameters: [\'b\']')
+
+		self.pBDB.curs.execute.reset_mock()
+		self.pBDB.curs.execute.side_effect = None
+		self.assertTrue(self.pBDB.cursExec("a", data="b"))
+		self.pBDB.curs.execute.assert_called_once_with("a", "b")
+
+		self.pBDB.curs = trueconn
+
+	def test_cursor(self):
+		"""test cursor"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.curs = "curs"
+		self.assertEqual(dbc.cursor(), "curs")
+
+	def test_checkExistingTables(self):
+		"""test checkExistingTables"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.curs = [["tab1", "1"], ["tab2", "2"]]
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec") as _ce:
+			self.assertTrue(dbc.checkExistingTables())
+			_ce.assert_called_once_with(
+				"SELECT name FROM sqlite_master WHERE type='table';")
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec") as _ce:
+			self.assertFalse(dbc.checkExistingTables(
+				wantedTables=["tab1", "tab2"]))
+		dbc.curs = [["categories"], ["entries"],
+				["entryCats"], ["entryExps"], ["expCats"],
+				["experiments"], ["settings"]]
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec") as _ce:
+			self.assertFalse(dbc.checkExistingTables())
+
+	def test_checkCols(self):
+		"""test checkCols"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
+		dbc.curs = [[0, "title"], [1, "column"], [2, "bibdict"]]
+		with patch("logging.Logger.info") as _i,\
+				patch("logging.Logger.error") as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".commit") as _co,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".undo") as _un,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".cursExec") as _cue,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".connExec", side_effect=[True, False]) as _coe:
+			dbc.checkCols()
+			_cue.assert_called_once_with("PRAGMA table_info(entries);")
+			_coe.assert_not_called()
+			dbc.curs = [[0, "title"], [1, "column"]]
+			dbc.checkCols()
+			_coe.assert_called_once_with(
+				"ALTER TABLE entries ADD COLUMN bibdict text;")
+			_co.assert_called_once_with()
+			_i.assert_called_once_with("New column in table 'entries': "
+					+ "'bibdict' (text).")
+			_e.assert_not_called()
+			_un.assert_not_called()
+			dbc.checkCols()
+			_co.assert_called_once_with()
+			_e.assert_called_once_with("Cannot alter table 'entries'!")
+			_un.assert_called_once_with()
+
+	def test_PhysBiblioDBSub(self):
+		"""test methods in PhysBiblioDBSub"""
+		with patch("os.path.exists", return_value=True) as _e,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".loadSubClasses") as _lsc:
+			dbc = PhysBiblioDBCore(tempDBName, pBLogger)
+
+		# __init__
+		dbs = PhysBiblioDBSub(dbc)
+		self.assertEqual(dbs.mainDB, dbc)
+		self.assertEqual(dbs.mainDB.tableFields, dbc.tableFields)
+		self.assertEqual(dbs.mainDB.tableCols, dbc.tableCols)
+		self.assertEqual(dbs.mainDB.conn, dbc.conn)
+		self.assertEqual(dbs.mainDB.curs, dbc.curs)
+		self.assertEqual(dbs.mainDB.dbname, dbc.dbname)
+		self.assertEqual(dbs.lastFetched, None)
+		self.assertEqual(dbs.catsHier, None)
+
+		# closeDB
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".closeDB") as _f:
+			dbs.closeDB()
+			_f.assert_called_once_with()
+
+		# commit
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".commit") as _f:
+			dbs.commit()
+			_f.assert_called_once_with()
+
+		# connExec
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".connExec", return_value="abc") as _f:
+			self.assertEqual(dbs.connExec("a"), "abc")
+			_f.assert_called_once_with("a", data=None)
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".connExec", return_value="abc") as _f:
+			self.assertEqual(dbs.connExec("a", data="b"), "abc")
+			_f.assert_called_once_with("a", data="b")
+
+		# cursExec
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", return_value="abc") as _f:
+			self.assertEqual(dbs.cursExec("a"), "abc")
+			_f.assert_called_once_with("a", data=None)
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", return_value="abc") as _f:
+			self.assertEqual(dbs.cursExec("a", data="b"), "abc")
+			_f.assert_called_once_with("a", data="b")
+
+		# cursor
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursor", return_value="curs") as _f:
+			self.assertEqual(dbs.cursor(), "curs")
+			_f.assert_called_once_with()
+
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseLinks(DBTestCase):

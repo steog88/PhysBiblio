@@ -1,4 +1,5 @@
 	* now asking to close when the database is locked by another PhysBiblio instance
+	* more accurate tests in databaseCore and few improvements
 
 0.9.3 (2018-11-30):
 	* forgot to rename executable in setup.py
