@@ -79,11 +79,11 @@ class TestConfigEditColumns(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows.ConfigEditColumns.initUI") \
 				as _u:
 			cec = ConfigEditColumns()
-			self.assertIsInstance(cec, QDialog)
+			self.assertIsInstance(cec, PBDialog)
 			self.assertEqual(cec.parent(), None)
 			_u.assert_called_once_with()
 			cec = ConfigEditColumns(p)
-			self.assertIsInstance(cec, QDialog)
+			self.assertIsInstance(cec, PBDialog)
 			self.assertEqual(cec.parent(), p)
 			self.assertEqual(cec.excludeCols, [
 				"crossref", "bibtex", "exp_paper", "lecture",
@@ -191,7 +191,7 @@ class TestConfigWindow(GUITestCase):
 		p = QWidget()
 		with patch("physbiblio.gui.dialogWindows.ConfigWindow.initUI") as _iu:
 			cw = ConfigWindow(p)
-			self.assertIsInstance(cw, QDialog)
+			self.assertIsInstance(cw, PBDialog)
 			self.assertEqual(cw.parent(), p)
 			self.assertEqual(cw.textValues, [])
 			_iu.assert_called_once_with()
@@ -461,7 +461,7 @@ class TestLogFileContentDialog(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows." +
 				"LogFileContentDialog.initUI") as _u:
 			lf = LogFileContentDialog(p)
-			self.assertIsInstance(lf, QDialog)
+			self.assertIsInstance(lf, PBDialog)
 			self.assertEqual(lf.parent(), p)
 			self.assertEqual(lf.title, "Log File Content")
 			_u.assert_called_once_with()
@@ -549,7 +549,7 @@ class TestPrintText(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows.PrintText.initUI") as _u:
 			pt = PrintText()
 			_u.assert_called_once_with()
-		self.assertIsInstance(pt, QDialog)
+		self.assertIsInstance(pt, PBDialog)
 		self.assertIsInstance(pt.stopped, Signal)
 		self.assertEqual(pt._wantToClose, False)
 		self.assertEqual(pt.parent(), None)
@@ -665,27 +665,6 @@ class TestPrintText(GUITestCase):
 			pt.initUI()
 			_c.assert_called_once_with()
 
-	def test_centerWindow(self):
-		"""test centerWindow"""
-		p = QWidget()
-		pt = PrintText(p)
-		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
-					autospec=True, return_value=QRect()) as _fg,\
-				patch("PySide2.QtCore.QRect.center",
-					autospec=True, return_value=QPoint()) as _ce,\
-				patch("PySide2.QtCore.QRect.moveCenter",
-					autospec=True) as _mc,\
-				patch("PySide2.QtCore.QRect.topLeft",
-					autospec=True, return_value=QPoint()) as _tl,\
-				patch("PySide2.QtWidgets.QDialog.move",
-					autospec=True) as _mo:
-			pt.centerWindow()
-			self.assertEqual(_fg.call_count, 1)
-			self.assertEqual(_ce.call_count, 1)
-			self.assertEqual(_mc.call_count, 1)
-			self.assertEqual(_tl.call_count, 1)
-			self.assertEqual(_mo.call_count, 1)
-
 	def test_appendText(self):
 		"""test appendText"""
 		p = QWidget()
@@ -782,7 +761,7 @@ class TestAdvImportDialog(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows.AdvancedImportDialog.initUI") \
 				as _iu:
 			aid = AdvancedImportDialog(p)
-			self.assertIsInstance(aid, QDialog)
+			self.assertIsInstance(aid, PBDialog)
 			self.assertEqual(aid.parent(), p)
 			_iu.assert_called_once_with()
 
@@ -804,7 +783,10 @@ class TestAdvImportDialog(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		aid = AdvancedImportDialog()
+		with patch("physbiblio.gui.commonClasses.PBDialog."
+				+ "centerWindow") as _cw:
+			aid = AdvancedImportDialog()
+			_cw.assert_called_once_with()
 		self.assertEqual(aid.windowTitle(), 'Advanced import')
 		self.assertIsInstance(aid.layout(), QGridLayout)
 		self.assertEqual(aid.grid, aid.layout())
@@ -1022,7 +1004,7 @@ class TestDailyArxivDialog(GUITestCase):
 		with patch("physbiblio.gui.dialogWindows.DailyArxivDialog.initUI") \
 				as _iu:
 			dad = DailyArxivDialog(p)
-			self.assertIsInstance(dad, QDialog)
+			self.assertIsInstance(dad, PBDialog)
 			self.assertEqual(dad.parent(), p)
 			_iu.assert_called_once_with()
 

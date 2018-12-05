@@ -7,7 +7,7 @@ import traceback
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import \
-	QAction, QDialog, QLineEdit, QPushButton, QTreeView, \
+	QAction, QLineEdit, QPushButton, QTreeView, \
 	QVBoxLayout, QToolTip
 
 try:
@@ -19,7 +19,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askYesNo
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, LeafFilterProxyModel, PBLabel, PBMenu, \
+		EditObjectWindow, LeafFilterProxyModel, PBDialog, PBLabel, PBMenu, \
 		NamedElement, NamedNode, TreeModel
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -266,8 +266,8 @@ class CatsModel(TreeModel):
 		return True
 
 
-class CatsTreeWindow(QDialog):
-	"""Extension of `QDialog` that shows the categories tree"""
+class CatsTreeWindow(PBDialog):
+	"""Extension of `PBDialog` that shows the categories tree"""
 
 	def __init__(self,
 			parent=None,
@@ -304,7 +304,7 @@ class CatsTreeWindow(QDialog):
 				checkbox for the initial list of categories, which are
 				typically not the same for all the elements in the list
 		"""
-		QDialog.__init__(self, parent)
+		PBDialog.__init__(self, parent)
 		self.setWindowTitle("Categories")
 		self.currLayout = QVBoxLayout(self)
 		self.setLayout(self.currLayout)

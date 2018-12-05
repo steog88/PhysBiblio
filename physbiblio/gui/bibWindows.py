@@ -18,7 +18,7 @@ from pylatexenc.latex2text import LatexNodes2Text
 from PySide2.QtCore import Qt, QEvent, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide2.QtWidgets import \
-	QAction, QApplication, QCheckBox, QComboBox, QDialog, QFrame, QGroupBox, \
+	QAction, QApplication, QCheckBox, QComboBox, QFrame, QGroupBox, \
 	QHBoxLayout, QLineEdit, QPlainTextEdit, QPushButton, \
 	QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
 
@@ -34,7 +34,7 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, PBAndOrCombo, PBComboBox, PBLabel, \
+		EditObjectWindow, PBAndOrCombo, PBComboBox, PBDialog, PBLabel, \
 		PBLabelCenter, PBLabelRight, PBMenu, PBTableModel, \
 		ObjListWindow, pBGuiView
 	from physbiblio.gui.threadElements import \
@@ -2553,7 +2553,7 @@ class MergeBibtexs(EditBibtexDialog):
 		self.centerWindow()
 
 
-class FieldsFromArxiv(QDialog):
+class FieldsFromArxiv(PBDialog):
 	"""Dialog windows used to ask which fields should be imported
 	from the arXiv record of the field"""
 

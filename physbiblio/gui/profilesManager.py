@@ -10,7 +10,7 @@ import shutil
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QButtonGroup, QCheckBox, QComboBox, \
-	QDesktopWidget, QDialog, QGridLayout, QLineEdit, \
+	QDesktopWidget, QGridLayout, QLineEdit, \
 	QPushButton, QRadioButton
 
 try:
@@ -20,7 +20,7 @@ try:
 	from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
 	from physbiblio.gui.basicDialogs import askYesNo
 	from physbiblio.gui.commonClasses import \
-		EditObjectWindow, PBComboBox, PBLabel
+		EditObjectWindow, PBComboBox, PBDialog, PBLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -108,7 +108,7 @@ def editProfile(parentObject):
 			exc_info=True)
 
 
-class SelectProfiles(QDialog):
+class SelectProfiles(PBDialog):
 	"""Widget to change the profile"""
 
 	def __init__(self, parent, message=None):
@@ -120,7 +120,7 @@ class SelectProfiles(QDialog):
 		"""
 		if not hasattr(parent, "reloadConfig"):
 			raise Exception("Cannot run SelectProfiles: invalid parent")
-		QDialog.__init__(self, parent)
+		PBDialog.__init__(self, parent)
 		self.message = message
 		self.initUI()
 

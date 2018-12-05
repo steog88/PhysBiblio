@@ -5,8 +5,8 @@ This file is part of the physbiblio package.
 """
 import sys
 from PySide2.QtWidgets import \
-	QDialog, QFileDialog, QGridLayout, QInputDialog, QMessageBox, \
-	QTextEdit, QPushButton
+	QDesktopWidget, QDialog, QFileDialog, QGridLayout, QInputDialog, \
+	QMessageBox, QTextEdit, QPushButton
 
 if sys.version_info[0] < 3:
 	from StringIO import StringIO
@@ -87,6 +87,10 @@ class LongInfoMessage(QDialog):
 		self.gridlayout.addWidget(self.okbutton, 1, 1)
 		self.setLayout(self.gridlayout)
 		self.setGeometry(100, 100, 600, 400)
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
 		if not testing:
 			self.exec_()
 

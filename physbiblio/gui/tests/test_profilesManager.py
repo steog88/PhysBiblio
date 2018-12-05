@@ -408,7 +408,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 			self.assertRaises(Exception,
 				lambda: SelectProfiles(None))
 			sp = SelectProfiles(p)
-			self.assertIsInstance(sp, QDialog)
+			self.assertIsInstance(sp, PBDialog)
 			self.assertEqual(sp.parent(), p)
 			self.assertEqual(sp.message, None)
 			sp = SelectProfiles(p, "message")
@@ -419,7 +419,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 		"""test onCancel"""
 		with patch("physbiblio.gui.profilesManager.SelectProfiles.initUI") \
 				as _iu,\
-				patch("physbiblio.gui.profilesManager.QDialog.close") as _c:
+				patch("physbiblio.gui.profilesManager.PBDialog.close") as _c:
 			sp = SelectProfiles(self.mainW)
 			sp.onCancel()
 			_c.assert_called_once_with()
@@ -429,7 +429,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 		"""test onLoad"""
 		p = self.mainW
 		sp = SelectProfiles(p)
-		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+		with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
 					as _rc,\
 				patch("physbiblio.gui.mainWindow.MainWindow." +
@@ -445,7 +445,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
 		sp = SelectProfiles(p)
 		sp.combo.setCurrentIndex(1)
 		pbConfig.currentDatabase = "test2.db"
-		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+		with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig") \
 					as _rc,\
 				patch("physbiblio.gui.mainWindow.MainWindow." +
@@ -586,7 +586,7 @@ class TestEditProfile(GUITestCase):
 		"""test onOk"""
 		p = QWidget()
 		ep = EditProfileWindow(p)
-		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+		with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 				patch("logging.Logger.info") as _i:
 			ep.onOk()
 			_c.assert_called_once_with()
@@ -598,7 +598,7 @@ class TestEditProfile(GUITestCase):
 				]:
 			ep.elements[-1]["n"].setText(n)
 			ep.elements[-1]["f"].setCurrentText(f)
-			with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+			with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 					patch("logging.Logger.info") as _i:
 				ep.onOk()
 				_c.assert_not_called()
@@ -607,7 +607,7 @@ class TestEditProfile(GUITestCase):
 					"is empty.")
 		ep.elements[-1]["n"].setText("test1")
 		ep.elements[-1]["f"].setCurrentText("testA.db")
-		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+		with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 				patch("logging.Logger.info") as _i:
 			ep.onOk()
 			_c.assert_not_called()
@@ -615,7 +615,7 @@ class TestEditProfile(GUITestCase):
 				"Cannot create new profile: 'name' already in use.")
 		ep.elements[-1]["n"].setText("testA")
 		ep.elements[-1]["f"].setCurrentText("test1.db")
-		with patch("physbiblio.gui.profilesManager.QDialog.close") as _c,\
+		with patch("physbiblio.gui.profilesManager.PBDialog.close") as _c,\
 				patch("logging.Logger.info") as _i:
 			ep.onOk()
 			_c.assert_not_called()

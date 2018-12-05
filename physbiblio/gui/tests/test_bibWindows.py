@@ -287,7 +287,7 @@ class TestFunctions(GUIwMainWTestCase):
 			'pages': '', 'published': '  (2015) ', 'author': '',
 			'bibdict': "%s"%{'arxiv': '1507.08204',
 			'ENTRYTYPE': 'article', 'ID': 'Gariazzo:2015rra'}}
-		p = QDialog()
+		p = PBDialog()
 		ebd = EditBibtexDialog(self.mainW, bib=None)
 		ebd.exec_ = MagicMock()
 		ebd.onCancel()
@@ -5103,7 +5103,7 @@ class TestFieldsFromArxiv(GUITestCase):
 		self.assertEqual(ffa.parent(), None)
 
 		ffa = FieldsFromArxiv(p)
-		self.assertIsInstance(ffa, QDialog)
+		self.assertIsInstance(ffa, PBDialog)
 		self.assertEqual(ffa.parent(), p)
 		self.assertEqual(ffa.windowTitle(), "Import fields from arXiv")
 		self.assertEqual(ffa.arxivDict,

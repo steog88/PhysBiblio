@@ -25,6 +25,19 @@ except ImportError:
 	print(traceback.format_exc())
 
 
+class PBDialog(QDialog):
+	"""Extend QDialog with centerWindow"""
+
+	def centerWindow(self):
+		"""Use the `QDesktopWidget` to get the relevant information
+		and center the dialog in the screen.
+		"""
+		qr = self.frameGeometry()
+		cp = QDesktopWidget().availableGeometry().center()
+		qr.moveCenter(cp)
+		self.move(qr.topLeft())
+
+
 class PBLabel(QLabel):
 	"""Extension of `QLabel` with text interaction flags
 	which enable text selection with the mouse
@@ -119,7 +132,7 @@ class PBTrueFalseCombo(PBComboBox):
 			["True", "False"], current=current)
 
 
-class ObjListWindow(QDialog):
+class ObjListWindow(PBDialog):
 	"""Create a window managing a list (of bibtexs or of experiments)"""
 
 	def __init__(self, parent=None, gridLayout=False):
@@ -264,7 +277,7 @@ class ObjListWindow(QDialog):
 		self.createTable()
 
 
-class EditObjectWindow(QDialog):
+class EditObjectWindow(PBDialog):
 	"""Create a window for editing or creating an experiment"""
 
 	def __init__(self, parent=None):
@@ -301,15 +314,6 @@ class EditObjectWindow(QDialog):
 		self.currGrid = QGridLayout()
 		self.currGrid.setSpacing(1)
 		self.setLayout(self.currGrid)
-
-	def centerWindow(self):
-		"""Use the `QDesktopWidget` to get the relevant information
-		and center the widget in the screen.
-		"""
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
 
 
 class PBThread(QThread):

@@ -92,6 +92,31 @@ class EmptyTreeModel(TreeModel):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestPBDialog(GUITestCase):
+	"""Test the PBDialog class"""
+
+	def test_centerWindow(self):
+		"""test centerWindow"""
+		p = PBDialog()
+		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
+					autospec=True, return_value=QRect()) as _fg,\
+				patch("PySide2.QtCore.QRect.center",
+					autospec=True, return_value=QPoint()) as _ce,\
+				patch("PySide2.QtCore.QRect.moveCenter",
+					autospec=True) as _mc,\
+				patch("PySide2.QtCore.QRect.topLeft",
+					autospec=True, return_value=QPoint()) as _tl,\
+				patch("PySide2.QtWidgets.QDialog.move",
+					autospec=True) as _mo:
+			p.centerWindow()
+			self.assertEqual(_fg.call_count, 1)
+			self.assertEqual(_ce.call_count, 1)
+			self.assertEqual(_mc.call_count, 1)
+			self.assertEqual(_tl.call_count, 1)
+			self.assertEqual(_mo.call_count, 1)
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLabels(GUITestCase):
 	"""Test the PBLabelRight and PBLabelCenter classes"""
 
@@ -394,26 +419,6 @@ class TestEditObjectWindow(GUITestCase):
 		self.assertIsInstance(eow.currGrid, QGridLayout)
 		self.assertEqual(eow.layout(), eow.currGrid)
 		self.assertEqual(eow.currGrid.spacing(), 1)
-
-	def test_centerWindow(self):
-		"""test centerWindow"""
-		eow = EditObjectWindow()
-		with patch("PySide2.QtWidgets.QDialog.frameGeometry",
-					autospec=True, return_value=QRect()) as _fg,\
-				patch("PySide2.QtCore.QRect.center",
-					autospec=True, return_value=QPoint()) as _ce,\
-				patch("PySide2.QtCore.QRect.moveCenter",
-					autospec=True) as _mc,\
-				patch("PySide2.QtCore.QRect.topLeft",
-					autospec=True, return_value=QPoint()) as _tl,\
-				patch("PySide2.QtWidgets.QDialog.move",
-					autospec=True) as _mo:
-			eow.centerWindow()
-			self.assertEqual(_fg.call_count, 1)
-			self.assertEqual(_ce.call_count, 1)
-			self.assertEqual(_mc.call_count, 1)
-			self.assertEqual(_tl.call_count, 1)
-			self.assertEqual(_mo.call_count, 1)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

@@ -556,7 +556,7 @@ class TestExpsListWindow(GUITestCase):
 		elw.tableModel.selectedElements[0] = True
 		elw.tableModel.selectedElements[2] = False
 		elw.tableModel.selectedElements[3] = True
-		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			elw.onOk()
 			_c.assert_called_once_with()
 		self.assertEqual(hasattr(p, "selectedExps"), True)

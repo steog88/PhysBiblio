@@ -463,7 +463,7 @@ class TestCatsTreeWindow(GUITestCase):
 				) as _c:
 			ctw = CatsTreeWindow(p)
 			_c.assert_called_once_with()
-		self.assertIsInstance(ctw, QDialog)
+		self.assertIsInstance(ctw, PBDialog)
 		self.assertEqual(ctw.windowTitle(), "Categories")
 		self.assertIsInstance(ctw.layout(), QVBoxLayout)
 		self.assertEqual(ctw.layout(), ctw.currLayout)
@@ -483,7 +483,7 @@ class TestCatsTreeWindow(GUITestCase):
 				askForBib="bib", askForExp="exp", expButton="eb",
 				previous="pr", single="s", multipleRecords="mr")
 			_c.assert_called_once_with()
-		self.assertIsInstance(ctw, QDialog)
+		self.assertIsInstance(ctw, PBDialog)
 		self.assertEqual(ctw.windowTitle(), "Categories")
 		self.assertIsInstance(ctw.layout(), QVBoxLayout)
 		self.assertEqual(ctw.layout(), ctw.currLayout)
@@ -717,7 +717,7 @@ class TestCatsTreeWindow(GUITestCase):
 		ctw.root_model.selectedCats[0] = True
 		ctw.root_model.selectedCats[3] = True
 		ctw.root_model.previousSaved[0] = True
-		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ctw.onOk()
 			_c.assert_called_once_with()
 		self.assertEqual(hasattr(p, "selectedCats"), True)
@@ -741,7 +741,7 @@ class TestCatsTreeWindow(GUITestCase):
 		ctw.root_model.selectedCats[2] = False
 		ctw.root_model.previousSaved[1] = False
 		ctw.root_model.previousSaved[2] = False
-		with patch("physbiblio.gui.catWindows.QDialog.close") as _c:
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
 			ctw.onOk(exps=True)
 			_c.assert_called_once_with()
 		self.assertEqual(hasattr(p, "selectedCats"), True)

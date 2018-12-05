@@ -21,7 +21,7 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import askDirName, infoMessage
-	from physbiblio.gui.commonClasses import PBLabel
+	from physbiblio.gui.commonClasses import PBDialog, PBLabel
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -36,7 +36,7 @@ figTitles = [
 ]
 
 
-class AuthorStatsPlots(QDialog):
+class AuthorStatsPlots(PBDialog):
 	"""Class that constructs a window to show
 	the results of `authorStats`
 	"""
@@ -161,7 +161,7 @@ class AuthorStatsPlots(QDialog):
 				i += 1
 
 
-class PaperStatsPlots(QDialog):
+class PaperStatsPlots(PBDialog):
 	"""Class that constructs a window
 	to show the results of `paperStats`
 	"""

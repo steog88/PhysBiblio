@@ -9,7 +9,7 @@ import six
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QTextCursor
 from PySide2.QtWidgets import \
-	QCheckBox, QComboBox, QDesktopWidget, QDialog, QGridLayout, \
+	QCheckBox, QComboBox, QDesktopWidget, QGridLayout, \
 	QLineEdit, QPlainTextEdit, QProgressBar, QPushButton, QTableWidgetItem, \
 	QTextEdit, QVBoxLayout
 
@@ -22,8 +22,8 @@ try:
 	from physbiblio.gui.basicDialogs import \
 		askDirName, askSaveFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
-		PBComboBox, PBDDTableWidget, PBImportedTableModel, PBLabel, \
-		PBTableView, PBTrueFalseCombo, ObjListWindow
+		PBComboBox, PBDDTableWidget, PBDialog, PBImportedTableModel, \
+		PBLabel, PBTableView, PBTrueFalseCombo, ObjListWindow
 	from physbiblio.gui.catWindows import CatsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -31,13 +31,13 @@ except ImportError:
 	print(traceback.format_exc())
 
 
-class ConfigEditColumns(QDialog):
-	"""Extend `QDialog` to ask the columns
+class ConfigEditColumns(PBDialog):
+	"""Extend `PBDialog` to ask the columns
 	that must appear in the main table
 	"""
 
 	def __init__(self, parent=None, previous=None):
-		"""Extend `QDialog.__init__` and create the form structure
+		"""Extend `PBDialog.__init__` and create the form structure
 
 		Parameters:
 			parent: teh parent widget
@@ -116,11 +116,11 @@ class ConfigEditColumns(QDialog):
 		self.gridlayout.addWidget(self.cancelButton, 2, 1)
 
 
-class ConfigWindow(QDialog):
+class ConfigWindow(PBDialog):
 	"""Create a window for editing the configuration settings"""
 
 	def __init__(self, parent=None):
-		"""Simple extension of `QDialog.__init__`"""
+		"""Simple extension of `PBDialog.__init__`"""
 		super(ConfigWindow, self).__init__(parent)
 		self.textValues = []
 		self.initUI()
@@ -270,7 +270,7 @@ class ConfigWindow(QDialog):
 		self.setLayout(grid)
 
 
-class LogFileContentDialog(QDialog):
+class LogFileContentDialog(PBDialog):
 	"""Create a window for showing the logFile content"""
 
 	def __init__(self, parent=None):
@@ -279,7 +279,7 @@ class LogFileContentDialog(QDialog):
 		Parameter:
 			parent: the parent widget
 		"""
-		QDialog.__init__(self, parent)
+		PBDialog.__init__(self, parent)
 		self.title = "Log File Content"
 		self.initUI()
 
@@ -329,7 +329,7 @@ class LogFileContentDialog(QDialog):
 		self.setLayout(grid)
 
 
-class PrintText(QDialog):
+class PrintText(PBDialog):
 	"""Create a window for printing text of command line output"""
 
 	stopped = Signal()
@@ -430,15 +430,6 @@ class PrintText(QDialog):
 		self.setLayout(grid)
 		self.centerWindow()
 
-	def centerWindow(self):
-		"""Use the `QDesktopWidget` to get the relevant information
-		and center the widget in the screen.
-		"""
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
-
 	def appendText(self, text):
 		"""Add the given text to the end of the `self.textEdit` content.
 		If a `self.progressBar` is set, try to obtain
@@ -493,11 +484,11 @@ class PrintText(QDialog):
 		self.closeButton.setEnabled(True)
 
 
-class AdvancedImportDialog(QDialog):
+class AdvancedImportDialog(PBDialog):
 	"""create a window for the advanced import"""
 
 	def __init__(self, parent=None):
-		"""Simple extension of `QDialog.__init__`"""
+		"""Simple extension of `PBDialog.__init__`"""
 		super(AdvancedImportDialog, self).__init__(parent)
 		self.initUI()
 
@@ -544,6 +535,7 @@ class AdvancedImportDialog(QDialog):
 		self.setGeometry(100,100,400, 100)
 		self.setLayout(grid)
 		self.searchStr.setFocus()
+		self.centerWindow()
 
 
 class AdvancedImportSelect(ObjListWindow):
@@ -651,11 +643,11 @@ class AdvancedImportSelect(ObjListWindow):
 		pass
 
 
-class DailyArxivDialog(QDialog):
+class DailyArxivDialog(PBDialog):
 	"""create a window for the advanced import"""
 
 	def __init__(self, parent=None):
-		"""Simple extension of `QDialog.__init__`"""
+		"""Simple extension of `PBDialog.__init__`"""
 		super(DailyArxivDialog, self).__init__(parent)
 		self.initUI()
 
@@ -713,10 +705,7 @@ class DailyArxivDialog(QDialog):
 		self.setLayout(self.grid)
 
 		self.setGeometry(100, 100, 400, 100)
-		qr = self.frameGeometry()
-		cp = QDesktopWidget().availableGeometry().center()
-		qr.moveCenter(cp)
-		self.move(qr.topLeft())
+		self.centerWindow()
 
 
 class DailyArxivSelect(AdvancedImportSelect):
