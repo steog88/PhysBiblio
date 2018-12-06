@@ -175,6 +175,8 @@ def editBibtex(parentObject, editKey=None):
 		for m, ckb in newBibWin.markValues.items():
 			if ckb.isChecked():
 				data["marks"] += "%s,"%m
+		failed = False
+		data["abstract"] = ""
 		if data["bibtex"].strip() != "":
 			try:
 				tmpBibDict = bibtexparser.loads(data["bibtex"]).entries[0]
@@ -213,16 +215,22 @@ def editBibtex(parentObject, editKey=None):
 							data["bibkey"] = editKey
 					pBLogger.info(
 						"Updating bibtex '%s'..."%data["bibkey"])
-					pBDB.bibs.update(data, data["bibkey"])
+					if not pBDB.bibs.update(data, data["bibkey"]):
+						failed = True
 				else:
-					pBDB.bibs.insert(data)
-				message = "Bibtex entry saved"
-				try:
-					parentObject.mainWindowTitle("PhysBiblio*")
-				except AttributeError:
-					pBLogger.debug(
-						"parentObject has no attribute 'mainWindowTitle'",
-						exc_info=True)
+					if not pBDB.bibs.insert(data):
+						failed = True
+				if failed:
+					message = "Cannot insert/modify the entry!"
+					pBGUILogger.error(message)
+				else:
+					message = "Bibtex entry saved"
+					try:
+						parentObject.mainWindowTitle("PhysBiblio*")
+					except AttributeError:
+						pBLogger.debug(
+							"parentObject has no attribute 'mainWindowTitle'",
+							exc_info=True)
 				pBDB.bibs.fetchFromLast()
 				try:
 					parentObject.reloadMainContent(
@@ -1518,7 +1526,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		self.selectToolBar.addWidget(self.mergeLabel)
 		self.selectToolBar.addSeparator()
 
-		self.filterInput = QLineEdit("",  self)
+		self.filterInput = QLineEdit("", self)
 		self.filterInput.setPlaceholderText("Filter bibliography")
 		self.filterInput.textChanged.connect(self.changeFilter)
 		self.selectToolBar.addWidget(self.filterInput)
@@ -2357,7 +2365,7 @@ class MergeBibtexs(EditBibtexDialog):
 		"""
 		try:
 			val = self.dataOld[ix][k] \
-				if self.dataOld[ix][k] is not None  \
+				if self.dataOld[ix][k] is not None \
 				else ""
 		except KeyError:
 			val = ""
@@ -2405,7 +2413,7 @@ class MergeBibtexs(EditBibtexDialog):
 		k = "bibtex"
 		try:
 			val = self.dataOld[ix][k] \
-				if self.dataOld[ix][k] is not None  \
+				if self.dataOld[ix][k] is not None \
 				else ""
 		except KeyError:
 			val = ""

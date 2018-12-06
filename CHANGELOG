@@ -1,6 +1,8 @@
+0.9.4 (2018-12-06):
 	* now asking to close when the database is locked by another PhysBiblio instance
 	* more accurate tests in databaseCore and few improvements
 	* initial value in profile selection dialog fixed
+	* bug in editBibtex fixed
 
 0.9.3 (2018-11-30):
 	* forgot to rename executable in setup.py

@@ -24,8 +24,8 @@ try:
 	from physbiblio.gui.bibWindows import *
 	from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 
@@ -504,6 +504,45 @@ class TestFunctions(GUIwMainWTestCase):
 			_sbm.assert_called_once_with('Bibtex entry saved')
 			_rmc.assert_called_once_with(["fake"])
 			_swt.assert_called_once_with("PhysBiblio*")
+		with patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("logging.Logger.error") as _le,\
+				patch("physbiblio.database.Entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.Entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.Entries.update") as _u,\
+				patch("physbiblio.database.Entries.insert",
+					return_value=False) as _ins,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.Entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey=None)
+			_lw.assert_not_called()
+			_li.assert_not_called()
+			_le.assert_called_once_with('Cannot insert/modify the entry!')
+			_gbk.assert_not_called()
+			_pi.assert_called_once_with(testentry["bibtex"])
+			_ub.assert_not_called()
+			_u.assert_not_called()
+			_ins.assert_called_once_with(testentry)
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Cannot insert/modify the entry!')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_not_called()
 
 		#test edit with various field contents
 		#* no change bibkey: fix code?
@@ -550,7 +589,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-				+ '= "1507.08204",\n}',
+				+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 				+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
@@ -565,7 +604,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-				+ '= "1507.08204",\n}',
+				+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
 				+ "'article', 'ID': 'Gariazzo:2015rra'}"},
@@ -577,6 +616,76 @@ class TestFunctions(GUIwMainWTestCase):
 			_sbm.assert_called_once_with('Bibtex entry saved')
 			_rmc.assert_called_once_with(["fake"])
 			_swt.assert_called_once_with("PhysBiblio*")
+		with patch("logging.Logger.warning") as _lw,\
+				patch("logging.Logger.info") as _li,\
+				patch("logging.Logger.error") as _le,\
+				patch("physbiblio.database.Entries.getByKey",
+					return_value=[testentry]) as _gbk,\
+				patch("physbiblio.database.Entries.prepareInsert",
+					return_value=testentry) as _pi,\
+				patch("physbiblio.database.Entries.updateBibkey",
+					return_value=True) as _ub,\
+				patch("physbiblio.database.Entries.update",
+					return_value=False) as _u,\
+				patch("physbiblio.database.Entries.insert") as _ins,\
+				patch("physbiblio.pdf.LocalPDF.renameFolder") as _rf,\
+				patch("physbiblio.database.Entries.fetchFromLast",
+					return_value=pBDB.bibs) as _ffl,\
+				patch("physbiblio.gui.bibWindows.infoMessage") as _im,\
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
+					) as _sbm,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadMainContent"
+					) as _rmc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.mainWindowTitle"
+					) as _swt,\
+				patch("physbiblio.gui.bibWindows.EditBibtexDialog",
+					return_value=ebd) as _i:
+			editBibtex(self.mainW, editKey="Gariazzo:2015rra")
+			_lw.assert_not_called()
+			_li.assert_called_once_with(
+				"Updating bibtex 'Gariazzo:2015rra'...")
+			_le.assert_called_once_with(
+				'Cannot insert/modify the entry!')
+			_gbk.assert_called_once_with('Gariazzo:2015rra', saveQuery=False)
+			_pi.assert_not_called()
+			_ub.assert_not_called()
+			if sys.version_info[0]<3:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'some text', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+				+ '= "1507.08204",\n}', 'abstract': "",
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
+				+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
+				u'Gariazzo:2015rra')
+			else:
+				_u.assert_called_once_with(
+				{'isbn': u'', 'inspire': u'', 'pubdate': u'',
+				'year': u'2015', 'phd_thesis': 0,
+				'bibkey': u'Gariazzo:2015rra', 'proceeding': 0,
+				'ads': u'', 'review': 0, 'comments': u'some text', 'book': 0,
+				'marks': '', 'lecture': 0, 'crossref': u'', 'noUpdate': 0,
+				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
+				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
+				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
+				+ '= "1507.08204",\n}', 'abstract': "",
+				'firstdate': u'2018-09-01', 'old_keys': u'',
+				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
+				+ "'article', 'ID': 'Gariazzo:2015rra'}"},
+				u'Gariazzo:2015rra')
+			_ins.assert_not_called()
+			_rf.assert_not_called()
+			_ffl.assert_called_once_with()
+			_im.assert_not_called()
+			_sbm.assert_called_once_with('Cannot insert/modify the entry!')
+			_rmc.assert_called_once_with(["fake"])
+			_swt.assert_not_called()
 
 		#* invalid key
 		ebd = EditBibtexDialog(self.mainW, bib=testentry)
@@ -622,7 +731,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
@@ -637,7 +746,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'',
 				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
 					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
@@ -696,7 +805,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'old testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
@@ -711,7 +820,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{Gariazzo:2015rra,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'old testkey',
 				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
 					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
@@ -770,7 +879,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
@@ -785,7 +894,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
 					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
@@ -845,7 +954,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{u'arxiv': u'1507.08204', 'ENTRYTYPE': "
 					+ "u'article', 'ID': u'Gariazzo:2015rra'}"},
@@ -860,7 +969,7 @@ class TestFunctions(GUIwMainWTestCase):
 				'link': u'https://arxiv.org/abs/1507.08204', 'exp_paper': 0,
 				'doi': u'', 'scholar': u'', 'arxiv': u'1507.08204',
 				'bibtex': u'@Article{testkey,\n         arxiv '
-					+ '= "1507.08204",\n}',
+					+ '= "1507.08204",\n}', 'abstract': "",
 				'firstdate': u'2018-09-01', 'old_keys': u'testkey',
 				'bibdict': "{'arxiv': '1507.08204', 'ENTRYTYPE': "
 					+ "'article', 'ID': 'Gariazzo:2015rra'}"},
