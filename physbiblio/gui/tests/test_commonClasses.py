@@ -420,6 +420,15 @@ class TestEditObjectWindow(GUITestCase):
 		self.assertEqual(eow.layout(), eow.currGrid)
 		self.assertEqual(eow.currGrid.spacing(), 1)
 
+	def test_cleanLayout(self):
+		"""Test cleanLayout"""
+		olw = EditObjectWindow()
+		olw.layout().addWidget(QLabel("empty"))
+		olw.layout().addWidget(QLabel("empty1"))
+		self.assertEqual(olw.layout().count(), 2)
+		olw.cleanLayout()
+		self.assertEqual(olw.layout().count(), 0)
+
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestPBThread(GUITestCase):

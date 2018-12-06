@@ -315,6 +315,13 @@ class EditObjectWindow(PBDialog):
 		self.currGrid.setSpacing(1)
 		self.setLayout(self.currGrid)
 
+	def cleanLayout(self):
+		"""Delete previous widget content"""
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None: break
+			o.widget().deleteLater()
+
 
 class PBThread(QThread):
 	"""Extend `QThread`, but further extension is needed"""
