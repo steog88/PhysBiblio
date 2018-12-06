@@ -1929,9 +1929,16 @@ class AskPDFAction(PBMenu):
 
 
 class SearchBibsWindow(EditObjectWindow):
-	"""create a window for searching a bibtex entry"""
+	"""Create a window for searching a bibtex entry"""
 
 	def __init__(self, parent=None, bib=None, replace=False):
+		"""Create the window and save some properties
+
+		Parameters:
+			parent
+			bib
+			replace
+		"""
 		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
@@ -1948,16 +1955,7 @@ class SearchBibsWindow(EditObjectWindow):
 			"proceeding": {"desc": "Proceeding"},
 			"book": {"desc": "Book"}
 			}
-		self.values = {}
-		self.values["cats"] = []
-		self.values["exps"] = []
-		self.values["catsOperator"] = "AND"
-		self.values["expsOperator"] = "AND"
-		self.values["catExpOperator"] = "AND"
-		self.values["marks"] = []
-		self.values["marksConn"] = "AND"
-		self.values["type"] = []
-		self.values["typeConn"] = "AND"
+		self.values = []
 		self.numberOfRows = 1
 		self.replOld = None
 		self.replNew = None
@@ -1985,13 +1983,6 @@ class SearchBibsWindow(EditObjectWindow):
 			replaceFields = []
 		return (searchDict, replaceFields, limit, offset)
 
-	def cleanLayout(self):
-		"""delete previous table widget"""
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
-
 	def changeCurrentContent(self, index):
 		self.cleanLayout()
 		self.createForm(index)
@@ -2000,58 +1991,40 @@ class SearchBibsWindow(EditObjectWindow):
 		self.save = True
 		self.onOk()
 
-	def onAskCats(self):
+	def onAskCats(self, ix):
+		previous = self.readLine(ix)
+		if previous["content"] == "":
+			previous["content"] = []
 		selectCats = CatsTreeWindow(
 			parent=self,
 			askCats=True,
 			expButton=False,
-			previous=self.values["cats"])
+			previous=previous["content"])
 		selectCats.exec_()
 		if selectCats.result == "Ok":
-			self.values["cats"] = self.selectedCats
+			self.textValues[ix]["content"].setText(
+				"%s"%self.selectedCats)
 
-	def onAskExps(self):
+	def onAskExps(self, ix):
+		previous = self.readLine(ix)
+		if previous["content"] == "":
+			previous["content"] = []
 		selectExps = ExpsListWindow(
-			parent=self.parent(),
+			parent=self,
 			askExps=True,
-			previous=self.values["exps"])
+			previous=previous["content"])
 		selectExps.exec_()
 		if selectExps.result == "Ok":
-			self.values["exps"] = self.parent().selectedExps
-
-	def onComboCatsChange(self, text):
-		self.values["catsOperator"] = text
-
-	def onComboExpsChange(self, text):
-		self.values["expsOperator"] = text
-
-	def onComboCEChange(self, text):
-		self.values["CatExpOperator"] = text
-
-	def getMarksValues(self):
-		self.values["marksConn"] = self.marksConn.currentText()
-		self.values["marks"] = []
-		for m in self.markValues.keys():
-			if self.markValues[m].isChecked():
-				self.values["marks"].append(m)
-
-	def getTypeValues(self):
-		self.values["typeConn"] = self.typeConn.currentText()
-		self.values["type"] = []
-		for m in self.typeValues.keys():
-			if self.typeValues[m].isChecked():
-				self.values["type"].append(m)
-
-	def onAddField(self):
-		self.numberOfRows = self.numberOfRows + 1
-		self.getMarksValues()
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
-		self.createForm()
+			self.textValues[ix]["content"].setText(
+				"%s"%self.selectedExps)
 
 	def eventFilter(self, widget, event):
+		"""Filter the events in a text widget. If 'Esc' is pressed, exit
+
+		Parameters:
+			widget: the widget of the event
+			event: a `QEvent` instance
+		"""
 		if (event.type() == QEvent.KeyPress
 				and (widget in [a["content"] for a in self.textValues]
 					+ [self.replOld, self.replNew,
@@ -2062,133 +2035,244 @@ class SearchBibsWindow(EditObjectWindow):
 				return True
 		return QWidget.eventFilter(self, widget, event)
 
+	def resetForm(self):
+		"""Clear the current form content and recreate the form"""
+		self.cleanLayout()
+		self.createForm()
+
+	def addRow(self):
+		"""Function called when a new line is requested.
+		Increase the line number and recreate the form
+		"""
+		self.readForm()
+		self.numberOfRows = self.numberOfRows + 1
+		self.textValues.append({})
+		self.resetForm()
+
+	def saveTypeRow(self, ix, text):
+		"""Function called when the type of a row is changed.
+		Clear the layout after having saved the row type
+
+		Parameters:
+			ix: the line index
+			text: the new value
+		"""
+		self.textValues[ix]["type"].setCurrentText(text)
+		self.readForm()
+		self.resetForm()
+
+	def readLine(self, ix):
+		"""Read the content of a line in the form and
+		return a dictionary with the field contents, or the default ones
+		if the line is empty or its type has been changed
+
+		Parameter:
+			ix: the line index
+
+		Output:
+			a dictionary
+		"""
+		try:
+			line = self.textValues[ix]
+		except IndexError:
+			return {"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}
+		previous = {
+			"type": "%s"%line["type"].currentText(),
+		}
+		if ix > 0:
+			previous["logical"] = "%s"%(
+				line["logical"].currentText())
+		if previous["type"] == "Text":
+			try:
+				previous["field"] = "%s"%line["field"].currentText()
+				previous["operator"] = "%s"%(
+					line["operator"].currentText())
+				previous["content"] = "%s"%line["content"].text()
+			except AttributeError:
+				previous["field"] = None
+				previous["operator"] = None
+				previous["content"] = ""
+		elif (previous["type"] == "Categories"
+					or previous["type"] == "Experiments"):
+			previous["field"] = ""
+			try:
+				previous["operator"] = "%s"%line["operator"].currentText()
+				previous["content"] = ast.literal_eval(line["content"].text())
+			except (AttributeError, SyntaxError):
+				previous["operator"] = None
+				previous["content"] = []
+		elif previous["type"] == "Marks":
+			previous["field"] = None
+			previous["operator"] = None
+			previous["content"] = []
+			try:
+				for m in line["content"].keys():
+					if line["content"][m].isChecked():
+						previous["content"].append(m)
+			except AttributeError:
+				pass
+		elif previous["type"] == "Type":
+			previous["field"] = None
+			previous["operator"] = None
+			previous["content"] = []
+			try:
+				for m in line["content"].keys():
+					if line["content"][m].isChecked():
+						previous["content"].append(m)
+			except AttributeError:
+				pass
+		return previous
+
+	def readForm(self):
+		"""Read the form content and save the values in self.values"""
+		for ix in range(self.numberOfRows):
+			try:
+				self.values[ix] = self.readLine(ix)
+			except IndexError:
+				self.values.append({"logical": None,
+					"field": None,
+					"type": "Text",
+					"operator": None,
+					"content": ""})
+
+	def createLine(self, ix, previous):
+		"""Create a new line in the form, with the necessary fields
+		depending on the line type
+
+		Parameters:
+			i: the line index
+			previous: a dictionary with the initial content of the line
+		"""
+		if ix >= len(self.textValues):
+			self.textValues.append({})
+
+		if ix > 0:
+			self.textValues[ix]["logical"] = PBAndOrCombo(self,
+				current=previous["logical"])
+			self.currGrid.addWidget(self.textValues[ix]["logical"], ix, 0)
+
+		self.textValues[ix]["type"] = PBComboBox(self,
+			["Text", "Categories", "Experiments", "Marks", "Type"],
+			current=previous["type"])
+		self.textValues[ix]["type"].currentTextChanged.connect(
+			lambda t, x=ix: self.saveTypeRow(x, t))
+		self.currGrid.addWidget(self.textValues[ix]["type"], ix, 1)
+
+		if previous["type"] == "Text":
+			self.textValues[ix]["field"] = PBComboBox(self,
+				["bibtex", "bibkey", "arxiv", "doi", "year",
+				"firstdate", "pubdate", "comment"],
+				current=previous["field"])
+			self.currGrid.addWidget(self.textValues[ix]["field"], ix, 2)
+
+			self.textValues[ix]["operator"] = PBComboBox(self,
+				["contains", "exact match"],
+				current=previous["operator"])
+			self.currGrid.addWidget(self.textValues[ix]["operator"], ix, 3)
+
+			self.textValues[ix]["content"] = QLineEdit(previous["content"])
+			self.currGrid.addWidget(
+				self.textValues[ix]["content"], ix, 4, 1, 4)
+			self.textValues[ix]["content"].installEventFilter(self)
+
+		elif (previous["type"] == "Categories"
+				or previous["type"] == "Experiments"):
+			self.textValues[ix]["field"] = None
+
+			self.textValues[ix]["operator"] = PBComboBox(self,
+				["all the following",
+				"at least one among",
+				"none of the following"],
+				current=previous["operator"])
+			self.currGrid.addWidget(
+				self.textValues[ix]["operator"], ix, 2, 1, 2)
+
+			if previous["content"] == "":
+				previous["content"] = []
+			self.textValues[ix]["content"] = QPushButton(
+				"%s"%previous["content"], self)
+			self.currGrid.addWidget(
+				self.textValues[ix]["content"], ix, 4, 1, 4)
+			if previous["type"] == "Categories":
+				self.textValues[ix]["content"].clicked.connect(
+					lambda s=False, l=ix: self.onAskCats(l))
+			elif previous["type"] == "Experiments":
+				self.textValues[ix]["content"].clicked.connect(
+					lambda s=False, l=ix: self.onAskExps(l))
+
+		elif previous["type"] == "Marks":
+			self.textValues[ix]["field"] = None
+			self.textValues[ix]["operator"] = None
+			groupBox, markValues = pBMarks.getGroupbox(
+				previous["content"],
+				description="",
+				radio=True,
+				addAny=True)
+			self.textValues[ix]["field"] = groupBox
+			self.textValues[ix]["content"] = markValues
+			self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
+
+		elif previous["type"] == "Type":
+			self.textValues[ix]["field"] = None
+			self.textValues[ix]["operator"] = None
+			groupBox = QGroupBox()
+			typeValues = {}
+			groupBox.setFlat(True)
+			vbox = QHBoxLayout()
+			for m, cont in self.possibleTypes.items():
+				typeValues[m] = QRadioButton(cont["desc"])
+				if m in previous["content"]:
+					typeValues[m].setChecked(True)
+				vbox.addWidget(typeValues[m])
+			vbox.addStretch(1)
+			groupBox.setLayout(vbox)
+			self.textValues[ix]["field"] = groupBox
+			self.textValues[ix]["content"] = typeValues
+			self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
+
 	def createForm(self, defaultIndex=0, spaceRowHeight=25):
 		if defaultIndex > len(self.historic):
 			defaultIndex = 0
 		self.setWindowTitle('Search bibtex entries')
-		# tempEl["f"] = QComboBox(self)
-		# tempEl["f"].setEditable(True)
-		# dbFiles = [f.split(os.sep)[-1]
-			# for f in list(glob.iglob(
-				# os.path.join(pbConfig.dataPath, "*.db")))]
-		# registeredDb = [a["db"].split(os.sep)[-1]
-			# for a in profilesData.values()]
-		# tempEl["f"].addItems(
-			# [newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
-		# self.currGrid.addWidget(tempEl["f"], i, 2)
-		# tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
-
-		self.currGrid.addWidget(PBLabelRight(
-			"Filter by categories, using the following operator:"),
-			0, 0, 1, 3)
-		self.catsButton = QPushButton('Categories', self)
-		self.catsButton.clicked.connect(self.onAskCats)
-		self.currGrid.addWidget(self.catsButton, 0, 3, 1, 2)
-		self.comboCats = PBAndOrCombo(self)
-		self.comboCats.activated[str].connect(self.onComboCatsChange)
-		self.currGrid.addWidget(self.comboCats, 0, 5)
-
-		self.currGrid.addWidget(PBLabelRight(
-			"Filter by experiments, using the following operator:"),
-			1, 0, 1, 3)
-		self.expsButton = QPushButton('Experiments', self)
-		self.expsButton.clicked.connect(self.onAskExps)
-		self.currGrid.addWidget(self.expsButton, 1, 3, 1, 2)
-		self.comboExps = PBAndOrCombo(self)
-		self.comboExps.activated[str].connect(self.onComboExpsChange)
-		self.currGrid.addWidget(self.comboExps, 1, 5)
-
-		self.currGrid.addWidget(PBLabelRight(
-			"If using both categories and experiments, "
-			+ "which operator between them?"),
-			2, 0, 1, 4)
-		self.comboCE = PBAndOrCombo(self)
-		self.comboCE.activated[str].connect(self.onComboCEChange)
-		self.currGrid.addWidget(self.comboCE, 2, 5)
-
-		self.currGrid.setRowMinimumHeight(3, spaceRowHeight)
-
-		self.marksConn = PBAndOrCombo(self, current=self.values["marksConn"])
-		self.currGrid.addWidget(self.marksConn, 4, 0)
-		self.currGrid.addWidget(PBLabelRight("Filter by marks:"), 4, 1)
-		groupBox, markValues = pBMarks.getGroupbox(
-			self.values["marks"],
-			description="",
-			radio=True,
-			addAny=True)
-		self.markValues = markValues
-		self.currGrid.addWidget(groupBox, 4, 2, 1, 5)
-
-		self.typeConn = PBAndOrCombo(self, current=self.values["typeConn"])
-		self.currGrid.addWidget(self.typeConn, 5, 0)
-		self.currGrid.addWidget(PBLabelRight("Entry type:"), 5, 1)
-		groupBox = QGroupBox()
-		self.typeValues = {}
-		groupBox.setFlat(True)
-		vbox = QHBoxLayout()
-		for m, cont in self.possibleTypes.items():
-			self.typeValues[m] = QRadioButton(cont["desc"])
-			if m in self.values["type"]:
-				self.typeValues[m].setChecked(True)
-			vbox.addWidget(self.typeValues[m])
-		vbox.addStretch(1)
-		groupBox.setLayout(vbox)
-		self.currGrid.addWidget(groupBox, 5, 2, 1, 5)
-
-		self.currGrid.addWidget(PBLabel(
-			"Select more: the operator to use, the field to match, "
-			+ "(exact match vs contains) and the content to match"),
-			7, 0, 1, 7)
-		firstFields = 8
-		self.currGrid.setRowMinimumHeight(6, spaceRowHeight)
 
 		for i in range(self.numberOfRows):
 			try:
-				previous = {
-					"logical": "%s"%(
-						self.textValues[i]["logical"].currentText()),
-					"field": "%s"%self.textValues[i]["field"].currentText(),
-					"operator": "%s"%(
-						self.textValues[i]["operator"].currentText()),
-					"content": "%s"%self.textValues[i]["content"].text()
-				}
+				previous = self.values[i]
 			except IndexError:
 				previous = {"logical": None,
 					"field": None,
+					"type": "Text",
 					"operator": None,
 					"content": ""}
-				self.textValues.append({})
+				self.values.append(previous)
+			self.createLine(i, previous)
 
-			self.textValues[i]["logical"] = PBAndOrCombo(self,
-				current=previous["logical"])
-			self.currGrid.addWidget(self.textValues[i]["logical"],
-				i + firstFields, 0)
+		# # tempEl["f"] = QComboBox(self)
+		# # tempEl["f"].setEditable(True)
+		# # dbFiles = [f.split(os.sep)[-1]
+			# # for f in list(glob.iglob(
+				# # os.path.join(pbConfig.dataPath, "*.db")))]
+		# # registeredDb = [a["db"].split(os.sep)[-1]
+			# # for a in profilesData.values()]
+		# # tempEl["f"].addItems(
+			# # [newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+		# # self.currGrid.addWidget(tempEl["f"], i, 2)
+		# # tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
 
-			self.textValues[i]["field"] = PBComboBox(self,
-				["bibtex", "bibkey", "arxiv", "doi", "year",
-				"firstdate", "pubdate", "comment"],
-				current=previous["field"])
-			self.currGrid.addWidget(
-				self.textValues[i]["field"], i + firstFields, 1)
+		try:
+			self.textValues[-1]["content"].setFocus()
+		except AttributeError:
+			pass
 
-			self.textValues[i]["operator"] = PBComboBox(self,
-				["contains", "exact match"],
-				current=previous["operator"])
-			self.currGrid.addWidget(self.textValues[i]["operator"],
-				i + firstFields, 2)
-
-			self.textValues[i]["content"] = QLineEdit(previous["content"])
-			self.currGrid.addWidget(self.textValues[i]["content"],
-				i + firstFields, 3, 1, 4)
-			self.textValues[i]["content"].installEventFilter(self)
-
-		self.textValues[-1]["content"].setFocus()
-
-		i = self.numberOfRows + firstFields + 1
+		i = self.numberOfRows + 1
 		self.currGrid.addWidget(PBLabelRight(
 			"Click here if you want more fields:"), i-1, 0, 1, 2)
 		self.addFieldButton = QPushButton("Add another line", self)
-		self.addFieldButton.clicked.connect(self.onAddField)
+		self.addFieldButton.clicked.connect(self.addRow)
 		self.currGrid.addWidget(self.addFieldButton, i-1, 2, 1, 2)
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)

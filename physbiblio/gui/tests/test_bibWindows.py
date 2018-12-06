@@ -4738,10 +4738,6 @@ class TestSearchBibsWindow(GUITestCase):
 		"""test"""
 		pass
 
-	def test_cleanLayout(self):
-		"""test"""
-		pass
-
 	def test_changeCurrentContent(self):
 		"""test"""
 		pass
@@ -4758,37 +4754,86 @@ class TestSearchBibsWindow(GUITestCase):
 		"""test"""
 		pass
 
-	def test_onComboCatsChange(self):
-		"""test"""
-		pass
-
-	def test_onComboExpsChange(self):
-		"""test"""
-		pass
-
-	def test_onComboCEChange(self):
-		"""test"""
-		pass
-
-	def test_getMarksValues(self):
-		"""test"""
-		pass
-
-	def test_getTypeValues(self):
-		"""test"""
-		pass
-
-	def test_onAddField(self):
-		"""test"""
-		pass
-
 	def test_eventFilter(self):
 		"""test"""
 		pass
 
+	def test_resetForm(self):
+		"""test resetForm"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout"
+				) as _cl,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+					) as _cf:
+			sbw.resetForm()
+			_cl.assert_called_once_with()
+			_cf.assert_called_once_with()
+
+	def test_addRow(self):
+		"""test addRow"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+			sbw.numberOfRows = 1
+			sbw.textValues = [{"a": "A"}]
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.resetForm"
+					) as _f,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.readForm"
+					) as _rf:
+			sbw.addRow()
+			_f.assert_called_once_with()
+			_rf.assert_called_once_with()
+			self.assertEqual(sbw.numberOfRows, 2)
+			self.assertEqual(sbw.textValues, [{"a": "A"}, {}])
+
+	def test_saveTypeRow(self):
+		"""test saveTypeRow"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		sbw.textValues.append({})
+		sbw.textValues[0]["type"] = PBComboBox(sbw,
+			["Text", "Categories", "Experiments", "Marks", "Type"],
+			current="Text")
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readForm"
+				) as _a,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.resetForm"
+					) as _s:
+			sbw.saveTypeRow(0, "Marks")
+			self.assertEqual(sbw.textValues[0]["type"].currentText(), "Marks")
+			_a.assert_called_once_with()
+			_s.assert_called_once_with()
+
+	def test_readLine(self):
+		"""test readLine"""
+		raise NotImplementedError
+
+	def test_readForm(self):
+		"""test readForm"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		sbw.values = ["a", "b"]
+		sbw.numberOfRows = 3
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+				side_effect=["A", "B", "C"]) as _rl:
+			sbw.readForm()
+			_rl.assert_has_calls([call(0), call(1), call(2)])
+			self.assertEqual(sbw.values, ['A', 'B', {"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}])
+
+	def test_createLine(self):
+		"""test createLine"""
+		raise NotImplementedError
+
 	def test_createForm(self):
-		"""test"""
-		pass
+		"""test createForm"""
+		raise NotImplementedError
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
