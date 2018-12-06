@@ -40,18 +40,18 @@ class TestWebImportMethods(unittest.TestCase):
 				+ '\n archiveprefix = "arXiv",\n  primaryclass = ' \
 				+ '"hep-ph",\n           doi = ' \
 				+ '"10.1088/0954-3899/43/3/033001",\n      abstract = ' \
-				+ '"{The theory and phenomenology of light sterile neutrinos ' \
-				+ 'at the eV mass scale is reviewed. The reactor, Gallium ' \
+				+ '"{The theory and phenomenology of light sterile neutrinos' \
+				+ ' at the eV mass scale is reviewed. The reactor, Gallium ' \
 				+ 'and LSND anomalies are briefly described and interpreted ' \
 				+ 'as indications of the existence of short-baseline ' \
 				+ 'oscillations which require the existence of light sterile' \
-				+ ' neutrinos. The global fits of short-baseline oscillation ' \
-				+ 'data in 3+1 and 3+2 schemes are discussed, together ' \
+				+ ' neutrinos. The global fits of short-baseline oscillation' \
+				+ ' data in 3+1 and 3+2 schemes are discussed, together ' \
 				+ 'with the implications for beta-decay and neutrinoless ' \
 				+ 'double-beta decay. The cosmological effects of light ' \
 				+ 'sterile neutrinos are briefly reviewed and the ' \
-				+ 'implications of existing cosmological data are discussed. ' \
-				+ 'The review concludes with a summary of future ' \
+				+ 'implications of existing cosmological data are discussed.' \
+				+ ' The review concludes with a summary of future ' \
 				+ 'perspectives.}",\n         arxiv = "1507.08204",\n    ' \
 				+ '   authors = "S. Gariazzo and C. Giunti and M. Laveder ' \
 				+ 'and Y. F. Li and E. M. Zavanin",\n}'],

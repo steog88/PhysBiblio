@@ -263,8 +263,8 @@ class TestObjListWindow(GUITestCase):
 		olw.addFilterInput("plch")
 		self.assertIsInstance(olw.filterInput, QLineEdit)
 		self.assertEqual(olw.filterInput.placeholderText(), "plch")
-		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
-				"changeFilter") as _cf:
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+				+ "changeFilter") as _cf:
 			olw.filterInput.textChanged.emit("sss")
 			_cf.assert_called_once_with("sss")
 
@@ -322,16 +322,16 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.tableview.width(), tW)
 		self.assertEqual(olw.minimumHeight(), 600)
 		ix = QModelIndex()
-		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
-				"handleItemEntered") as _f:
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+				+ "handleItemEntered") as _f:
 			olw.tableview.entered.emit(ix)
 			_f.assert_called_once_with(ix)
-		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
-				"cellClick") as _f:
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+				+ "cellClick") as _f:
 			olw.tableview.clicked.emit(ix)
 			_f.assert_called_once_with(ix)
-		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
-				"cellDoubleClick") as _f:
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+				+ "cellDoubleClick") as _f:
 			olw.tableview.doubleClicked.emit(ix)
 			_f.assert_called_once_with(ix)
 		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tableview)
@@ -356,10 +356,10 @@ class TestObjListWindow(GUITestCase):
 	def test_recreateTable(self):
 		"""Test recreateTable"""
 		olw = ObjListWindow()
-		with patch("physbiblio.gui.commonClasses.ObjListWindow." +
-				"cleanLayout") as _cl, \
-				patch("physbiblio.gui.commonClasses.ObjListWindow." +
-					"createTable") as _ct:
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+				+ "cleanLayout") as _cl, \
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
+					+ "createTable") as _ct:
 			olw.recreateTable()
 			self.assertEqual(_cl.call_count, 1)
 			self.assertEqual(_ct.call_count, 1)
@@ -504,8 +504,8 @@ class TestPBTableView(GUITestCase):
 					return_value=0) as _r,\
 				patch("PySide2.QtWidgets.QTableView.columnAt",
 					return_value=1) as _c,\
-				patch("physbiblio.gui.commonClasses.ObjListWindow." +
-					"triggeredContextMenuEvent") as _t:
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
+					+ "triggeredContextMenuEvent") as _t:
 			mtw.contextMenuEvent(e)
 			_x.assert_called_once_with()
 			_y.assert_called_once_with()
@@ -983,42 +983,42 @@ class TestLeafFilterProxyModel(GUITestCase):
 	def test_filterAcceptsRow(self):
 		"""Test filterAcceptsRow with all possible combinations"""
 		lf = LeafFilterProxyModel()
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value=True) as _its, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent") as _par, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren") as _chi:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+				+ "filterAcceptsRowItself", return_value=True) as _its, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsAnyParent") as _par, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "hasAcceptedChildren") as _chi:
 			self.assertTrue(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_not_called()
 			_chi.assert_not_called()
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value=False) as _its, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value=True) as _par, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren") as _chi:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+				+ "filterAcceptsRowItself", return_value=False) as _its, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsAnyParent", return_value=True) as _par, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "hasAcceptedChildren") as _chi:
 			self.assertTrue(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_called_once_with(None)
 			_chi.assert_not_called()
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRowItself", return_value=False) as _its, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value=False) as _par, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren", return_value=True) as _chi:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+				+ "filterAcceptsRowItself", return_value=False) as _its, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsAnyParent", return_value=False) as _par, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "hasAcceptedChildren", return_value=True) as _chi:
 			self.assertTrue(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_called_once_with(None)
 			_chi.assert_called_once_with(0, None)
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value=False) as _its, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsAnyParent", return_value=False) as _par, \
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"hasAcceptedChildren", return_value=False) as _chi:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsRowItself", return_value=False) as _its, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsAnyParent", return_value=False) as _par, \
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "hasAcceptedChildren", return_value=False) as _chi:
 			self.assertFalse(lf.filterAcceptsRow(0, None))
 			_its.assert_called_once_with(0, None)
 			_par.assert_called_once_with(None)
@@ -1046,16 +1046,16 @@ class TestLeafFilterProxyModel(GUITestCase):
 			lf.filterAcceptsAnyParent(lf.index(2,0,QModelIndex())))
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value=False) as _its:
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsRowItself", return_value=False) as _its:
 			self.assertFalse(
 				lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 			self.assertEqual(_iv.call_count, 3)
 			self.assertEqual(_its.call_count, 2)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value=False) as _its,\
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsRowItself", return_value=False) as _its,\
 				patch("physbiblio.gui.commonClasses.QModelIndex.parent",
 					return_value=QModelIndex()) as _pa:
 			self.assertFalse(
@@ -1065,16 +1065,16 @@ class TestLeafFilterProxyModel(GUITestCase):
 			self.assertEqual(_pa.call_count, 4)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value=True) as _its:
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsRowItself", return_value=True) as _its:
 			self.assertTrue(
 				lf.filterAcceptsAnyParent(lf.index(0,0,QModelIndex())))
 			self.assertEqual(_iv.call_count, 1)
 			self.assertEqual(_its.call_count, 1)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				side_effect=[True, True, False]) as _iv,\
-				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-					"filterAcceptsRowItself", return_value=True) as _its,\
+				patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+					+ "filterAcceptsRowItself", return_value=True) as _its,\
 				patch("physbiblio.gui.commonClasses.QModelIndex.parent") \
 					as _pa:
 			self.assertTrue(
@@ -1091,17 +1091,17 @@ class TestLeafFilterProxyModel(GUITestCase):
 		tm = EmptyTreeModel([main])
 		lf.setSourceModel(tm)
 		self.assertTrue(lf.hasAcceptedChildren(0, QModelIndex()))
-		with patch("physbiblio.gui.tests.test_commonClasses.EmptyTreeModel." +
-				"rowCount", return_value=1) as _rc:
+		with patch("physbiblio.gui.tests.test_commonClasses.EmptyTreeModel."
+				+ "rowCount", return_value=1) as _rc:
 			self.assertTrue(lf.hasAcceptedChildren(1, QModelIndex()))
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRow", return_value=True) as _acc:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+				+ "filterAcceptsRow", return_value=True) as _acc:
 			self.assertTrue(lf.hasAcceptedChildren(5, QModelIndex()))
 			self.assertEqual(_acc.call_count, 1)
-		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel." +
-				"filterAcceptsRow", return_value=False) as _acc,\
-				patch("physbiblio.gui.tests.test_commonClasses." +
-					"EmptyTreeModel.rowCount", return_value=1) as _rc:
+		with patch("physbiblio.gui.commonClasses.LeafFilterProxyModel."
+				+ "filterAcceptsRow", return_value=False) as _acc,\
+				patch("physbiblio.gui.tests.test_commonClasses."
+					+ "EmptyTreeModel.rowCount", return_value=1) as _rc:
 			self.assertFalse(lf.hasAcceptedChildren(1, QModelIndex()))
 
 
@@ -1121,8 +1121,8 @@ class TestPBDDTableWidget(GUITestCase):
 		self.assertFalse(mddtw.dragDropOverwriteMode())
 		self.assertEqual(mddtw.selectionBehavior(),
 			QAbstractItemView.SelectRows)
-		with patch("physbiblio.gui.commonClasses.QTableWidget." +
-				"setHorizontalHeaderLabels") as _shl:
+		with patch("physbiblio.gui.commonClasses.QTableWidget."
+				+ "setHorizontalHeaderLabels") as _shl:
 			mddtw = PBDDTableWidget(p, "head")
 			_shl.assert_called_once_with(["head"])
 
@@ -1345,8 +1345,8 @@ class TestPBImportedTableModel(GUITestCase):
 
 	def test_init(self):
 		"""test init"""
-		with patch("physbiblio.gui.commonClasses.PBTableModel." +
-				"prepareSelected") as _ps:
+		with patch("physbiblio.gui.commonClasses.PBTableModel."
+				+ "prepareSelected") as _ps:
 			mitm = PBImportedTableModel(QWidget(),
 				{
 				"a": {"exist": False, "bibpars": {"ID": "a"}},

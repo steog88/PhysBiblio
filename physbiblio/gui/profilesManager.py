@@ -67,7 +67,7 @@ def editProfile(parentObject):
 					os.path.join(pbConfig.dataPath, fileName),
 					"name",
 					name,
-					identifierField = "databasefile")
+					identifierField="databasefile")
 				pbConfig.globalDb.updateProfileField(name,
 					"description",
 					currEl["d"].text())
@@ -84,9 +84,9 @@ def editProfile(parentObject):
 						(fileName.split(os.sep)[-1] + ".db").replace(
 							".db.db", ".db"))
 					pbConfig.globalDb.createProfile(
-						name = name,
-						description = currEl["d"].text(),
-						databasefile = newFileName,
+						name=name,
+						description=currEl["d"].text(),
+						databasefile=newFileName,
 						)
 					if currEl["c"].currentText() != "None":
 						shutil.copy2(os.path.join(pbConfig.dataPath,
@@ -159,9 +159,9 @@ class SelectProfiles(PBDialog):
 		self.combo = PBComboBox(self,
 			["%s -- %s"%(p, pbConfig.profiles[p]["d"])
 				for p in pbConfig.profileOrder],
-			current = "%s -- %s"%(
+			current="%s -- %s"%(
 				pbConfig.currentProfileName,
-				pbConfig.currentProfile["d"])
+				pbConfig.profiles[pbConfig.currentProfileName]["d"])
 				)
 		grid.addWidget(self.combo, i, 1)
 		i += 1

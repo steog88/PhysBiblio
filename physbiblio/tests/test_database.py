@@ -464,8 +464,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".loadSubClasses") as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
-		if (sys.version_info[0] == 3 and
-				sys.version_info[1] > 2):
+		if (sys.version_info[0] == 3
+				and sys.version_info[1] > 2):
 			dbc.conn = MagicMock()
 			dbc.conn.in_transaction = "abc"
 			self.assertEqual(dbc.checkUncommitted(), "abc")

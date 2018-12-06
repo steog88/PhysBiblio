@@ -67,15 +67,15 @@ class Test_Thread_checkUpdated(GUITestCase):
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
-			_w.assert_called_once_with('Error when executing check_outdated. ' +
-				'Maybe you are using a developing version', exc_info=True)
+			_w.assert_called_once_with('Error when executing check_outdated. '
+				+ 'Maybe you are using a developing version', exc_info=True)
 		h1.assert_not_called()
 		with patch("physbiblio.gui.threadElements.check_outdated",
 				new = fake_urlerror) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
-			_w.assert_called_once_with('Error when trying to check ' +
-				'new versions. Are you offline?', exc_info=True)
+			_w.assert_called_once_with('Error when trying to check '
+				+ 'new versions. Are you offline?', exc_info=True)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

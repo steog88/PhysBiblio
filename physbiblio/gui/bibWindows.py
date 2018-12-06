@@ -2044,10 +2044,10 @@ class SearchBibsWindow(EditObjectWindow):
 		self.createForm()
 
 	def eventFilter(self, widget, event):
-		if (event.type() == QEvent.KeyPress and
-				widget in [a["content"] for a in self.textValues] \
-				+ [self.replOld, self.replNew,
-				self.limitValue, self.limitOffs]):
+		if (event.type() == QEvent.KeyPress
+				and (widget in [a["content"] for a in self.textValues]
+					+ [self.replOld, self.replNew,
+					self.limitValue, self.limitOffs])):
 			key = event.key()
 			if key == Qt.Key_Return or key == Qt.Key_Enter:
 				self.acceptButton.setFocus()
@@ -2060,9 +2060,13 @@ class SearchBibsWindow(EditObjectWindow):
 		self.setWindowTitle('Search bibtex entries')
 		# tempEl["f"] = QComboBox(self)
 		# tempEl["f"].setEditable(True)
-		# dbFiles = [f.split(os.sep)[-1] for f in list(glob.iglob(os.path.join(pbConfig.dataPath, "*.db")))]
-		# registeredDb = [a["db"].split(os.sep)[-1] for a in profilesData.values()]
-		# tempEl["f"].addItems([newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
+		# dbFiles = [f.split(os.sep)[-1]
+			# for f in list(glob.iglob(
+				# os.path.join(pbConfig.dataPath, "*.db")))]
+		# registeredDb = [a["db"].split(os.sep)[-1]
+			# for a in profilesData.values()]
+		# tempEl["f"].addItems(
+			# [newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
 		# self.currGrid.addWidget(tempEl["f"], i, 2)
 		# tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
 

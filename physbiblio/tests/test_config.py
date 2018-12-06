@@ -36,7 +36,7 @@ class TestConfigMethods(unittest.TestCase):
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout_multi(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
 		function()
 		pBErrorManager.rmTempHandler()
 		for e in expected_output:
@@ -54,7 +54,7 @@ class TestConfigMethods(unittest.TestCase):
 			tempPbConfig = ConfigVars()
 			tempPbConfig.prepareLogger("physbibliotestlog")
 			tempDb = PhysBiblioDBCore(tempCfgName,
-				tempPbConfig.logger, info = False)
+				tempPbConfig.logger, info=False)
 			configDb = ConfigurationDB(tempDb)
 
 			self.assertTrue(os.path.exists(tempCfgName))
@@ -70,11 +70,11 @@ class TestConfigMethods(unittest.TestCase):
 			tempPbConfig1.params["maxAuthorNames"] = 5
 			tempPbConfig1.params["defaultCategories"] = [1]
 			with open(tempOldCfgName, "w") as f:
-				f.write("logFileName = otherfilename\n"+
-					"timeoutWebSearch = 10.0\n"+
-					"askBeforeExit = True\n"+
-					"maxAuthorNames = 5\n"+
-					"defaultCategories = [1]\n")
+				f.write("logFileName = otherfilename\n"
+					+ "timeoutWebSearch = 10.0\n"
+					+ "askBeforeExit = True\n"
+					+ "maxAuthorNames = 5\n"
+					+ "defaultCategories = [1]\n")
 			tempPbConfig = ConfigVars()
 			tempPbConfig.prepareLogger("physbibliotestlog")
 			tempPbConfig.configMainFile = tempOldCfgName
@@ -144,6 +144,8 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profileOrder,
 			["default", "other", "temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentProfile,
+			tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 
 		tempPbConfig.reInit("other")
@@ -154,23 +156,31 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(tempPbConfig.profileOrder,
 			["default", "other", "temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "other")
+		self.assertEqual(tempPbConfig.currentProfile,
+			tempPbConfig.profiles["other"])
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName2)
 
 		tempPbConfig.reInit("other", tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "other")
+		self.assertEqual(tempPbConfig.currentProfile,
+			tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 
 		tempPbConfig.reInit("temp", tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentProfile,
+			tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 
 		tempPbConfig.reInit("nonexistent")
 		self.assertEqual(tempPbConfig.currentProfileName, "temp")
+		self.assertEqual(tempPbConfig.currentProfile,
+			tempPbConfig.profiles["temp"])
 		self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
 		self.assertEqual(tempPbConfig.params, tempParams)
 
 		tempDb = PhysBiblioDBCore(tempProfName1,
-			tempPbConfig.logger, info = False)
+			tempPbConfig.logger, info=False)
 		configDb = ConfigurationDB(tempDb)
 		configDb.insert("defaultCategories", "[0")
 		configDb.commit()
@@ -200,7 +210,7 @@ class TestConfigMethods(unittest.TestCase):
 		tempPbConfig.readConfig()
 		self.assertEqual(tempPbConfig.params, tempParams)
 
-		tempDb.closeDB(info = False)
+		tempDb.closeDB(info=False)
 		if os.path.exists(tempProfName1):
 			os.remove(tempProfName1)
 		if os.path.exists(tempProfName2):
@@ -288,7 +298,7 @@ class TestProfilesDB(unittest.TestCase):
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
 		function()
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())
@@ -298,7 +308,7 @@ class TestProfilesDB(unittest.TestCase):
 		if os.path.exists(tempProfName):
 			os.remove(tempProfName)
 		self.globalDb = GlobalDB(tempProfName,
-			pbConfig.logger, pbConfig.dataPath, info = False)
+			pbConfig.logger, pbConfig.dataPath, info=False)
 		self.assertEqual(self.globalDb.countProfiles(), 1)
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
@@ -308,7 +318,7 @@ class TestProfilesDB(unittest.TestCase):
 			self.assertFalse(self.globalDb.createProfile("default1"))
 		with self.assertRaises(SystemExit):
 			self.assertFalse(self.globalDb.createProfile(
-				databasefile = "database1.db"))
+				databasefile="database1.db"))
 
 		self.assertEqual(self.globalDb.countProfiles(), 1)
 		self.assertTrue(self.globalDb.createProfile("temp1",
@@ -334,7 +344,7 @@ class TestProfilesDB(unittest.TestCase):
 
 		self.assertEqual(dict(self.globalDb.getProfile("temp")), output)
 		self.assertEqual(dict(self.globalDb.getProfile(
-			filename = "somefile.db")), output)
+			filename="somefile.db")), output)
 		self.assertEqual(dict(self.globalDb.getProfile()), {})
 		self.assertEqual(dict(self.globalDb.getProfile("temp", "somefile.db")),
 			{})
@@ -386,8 +396,8 @@ class TestProfilesDB(unittest.TestCase):
 			self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
 			self.assert_in_stdout(lambda: self.globalDb.setProfileOrder(
 				["abc", "default"]),
-				"Something went wrong when setting new profile order. " +
-				"Undoing...")
+				"Something went wrong when setting new profile order. "
+				+ "Undoing...")
 
 		self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 		self.assertTrue(self.globalDb.setDefaultProfile("abc"))
@@ -403,8 +413,8 @@ class TestProfilesDB(unittest.TestCase):
 			self.assertFalse(self.globalDb.setDefaultProfile("abc"))
 			self.assert_in_stdout(
 				lambda: self.globalDb.setDefaultProfile("abc"),
-				"Something went wrong when setting new default profile. " +
-				"Undoing...")
+				"Something went wrong when setting new default profile. "
+				+ "Undoing...")
 		self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
 
 		self.assertFalse(self.globalDb.deleteProfile(""))

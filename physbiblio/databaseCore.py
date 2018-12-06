@@ -123,8 +123,8 @@ class PhysBiblioDBCore():
 		Output:
 			True/False
 		"""
-		if (sys.version_info[0] == 3 and
-				sys.version_info[1] > 2):
+		if (sys.version_info[0] == 3
+				and sys.version_info[1] > 2):
 			return self.conn.in_transaction
 		else:
 			return self.dbChanged

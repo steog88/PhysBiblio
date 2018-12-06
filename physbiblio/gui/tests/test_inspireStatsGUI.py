@@ -910,8 +910,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		"""Test __init__"""
 		self.mainW.lastAuthorStats = {"h": 999}
 		self.mainW.lastPaperStats = {}
-		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
-				"updatePlots") as _up:
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
+				+ "updatePlots") as _up:
 			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"])
 			self.assertEqual(asp.figs, ["a", "b", "c", "d", "e", "f"])
 			_up.assert_called_once_with()
@@ -935,8 +935,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertEqual(asp.saveButton.text(), "Save")
 			self.assertEqual(asp.layout().itemAtPosition(6, 0).widget(),
 				asp.saveButton)
-			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
-					"saveAction") as _sa:
+			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
+					+ "saveAction") as _sa:
 				QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 				self.assertEqual(_sa.call_count, 1)
 			self.assertIsInstance(asp.clButton, QPushButton)
@@ -944,8 +944,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertTrue(asp.clButton.autoDefault())
 			self.assertEqual(asp.layout().itemAtPosition(6, 1).widget(),
 				asp.clButton)
-			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
-					"onClose") as _cl:
+			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
+					+ "onClose") as _cl:
 				QTest.mouseClick(asp.clButton, Qt.LeftButton)
 				self.assertEqual(_cl.call_count, 1)
 
@@ -965,8 +965,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 	def test_saveAction(self):
 		"""Test saveAction"""
 		self.mainW.lastAuthorStats = {"h": 999}
-		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
-				"updatePlots") as _up:
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
+				+ "updatePlots") as _up:
 			time.sleep(0.01)
 			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent=self.mainW)
@@ -1014,8 +1014,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 	def test_updatePlots(self):
 		"""Test updatePlots"""
 		self.mainW.lastAuthorStats = {"h": 999}
-		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." +
-				"updatePlots") as _up:
+		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
+				+ "updatePlots") as _up:
 			asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 			self.assertEqual(asp.figs, testData["figs"])
 			_up.assert_called_once_with()
@@ -1066,8 +1066,8 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertEqual(asp.saveButton.text(), "Save")
 		self.assertEqual(asp.layout().itemAtPosition(4, 0).widget(),
 			asp.saveButton)
-		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots." +
-				"saveAction") as _sa:
+		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots."
+				+ "saveAction") as _sa:
 			QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 			self.assertEqual(_sa.call_count, 1)
 		self.assertIsInstance(asp.clButton, QPushButton)

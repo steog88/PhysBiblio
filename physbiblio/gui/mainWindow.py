@@ -921,7 +921,8 @@ class MainWindow(QMainWindow):
 			replace (default False): to be passed to SearchBibsWindow,
 				in order to show (or not) the replace field inputs
 		"""
-		#maybe part of this should be implemented inside the SearchBibsWindow class?
+		# maybe part of this should be implemented
+		# inside the SearchBibsWindow class?
 		newSearchWin = SearchBibsWindow(self, replace=replace)
 		newSearchWin.exec_()
 		searchDict = {}
@@ -1423,8 +1424,8 @@ class MainWindow(QMainWindow):
 						saveQuery=False) ) > 0)
 					for f in ["arxiv", "doi"]:
 						try:
-							exist = (exist or
-								(el[f].strip() != "" and len(
+							exist = (exist
+								or (el[f].strip() != "" and len(
 									pBDB.bibs.getAll(
 										params={f: el[f]},
 										saveQuery=False)) > 0))
@@ -1452,7 +1453,8 @@ class MainWindow(QMainWindow):
 					entry = pbWriter.write(db)
 					data = pBDB.bibs.prepareInsert(entry)
 					if not pBDB.bibs.insert(data):
-						pBLogger.warning("Failed in inserting entry '%s'\n"%key)
+						pBLogger.warning(
+							"Failed in inserting entry '%s'\n"%key)
 						continue
 					try:
 						if method == "inspire":

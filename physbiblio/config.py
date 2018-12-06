@@ -840,6 +840,7 @@ class ConfigVars():
 				self.logger.error("Profile not found!")
 				return
 		self.currentProfileName = newShort
+		self.currentProfile = newProfile
 		self.currentDatabase = newProfile["db"]
 		self.params = {}
 		for k, v in config_defaults.items():
