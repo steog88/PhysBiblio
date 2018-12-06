@@ -27,9 +27,9 @@ from oaipmh.error import ErrorBase
 from oaipmh.metadata import MetadataRegistry
 
 if sys.version_info[0] < 3:
-    from StringIO import StringIO
+	from StringIO import StringIO
 else:
-    from io import StringIO
+	from io import StringIO
 from lxml.etree import tostring
 from pymarc import marcxml, MARCWriter, field
 from oaipmh import metadata
@@ -204,9 +204,9 @@ class WebSearch(WebInterf):
 		except Exception as e:
 			pBLogger.warning("Error in readRecord!", exc_info=True)
 		try:
-			tmpDict["arxiv"]  = None
+			tmpDict["arxiv"] = None
 			tmpDict["bibkey"] = None
-			tmpDict["ads"]    = None
+			tmpDict["ads"] = None
 			for q in record.get_fields('035'):
 				if q["9"] == "arXiv":
 					tmp = q["a"]
@@ -231,18 +231,18 @@ class WebSearch(WebInterf):
 		try:
 			j, v, y, p, m, x, t, w = get_journal_ref_xml(record)
 			tmpDict["journal"] = j[0]
-			tmpDict["volume"]  = v[0]
-			tmpDict["year"]    = y[0]
-			tmpDict["pages"]   = p[0]
+			tmpDict["volume"] = v[0]
+			tmpDict["year"] = y[0]
+			tmpDict["pages"] = p[0]
 			if w[0] is not None:
 				conferenceCode = w[0]
 			else:
 				conferenceCode = None
 		except IndexError:
 			tmpDict["journal"] = None
-			tmpDict["volume"]  = None
-			tmpDict["year"]    = None
-			tmpDict["pages"]   = None
+			tmpDict["volume"] = None
+			tmpDict["year"] = None
+			tmpDict["pages"] = None
 			conferenceCode = None
 		try:
 			firstdate = record["269"]

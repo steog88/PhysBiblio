@@ -208,7 +208,7 @@ class WebSearch(WebInterf):
 		except Exception:#intercept all other possible errors
 			pBLogger.exception("Impossible to get results")
 			if fullDict:
-				return "",  {}
+				return "", {}
 			else:
 				return ""
 

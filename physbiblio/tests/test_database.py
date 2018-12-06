@@ -26,8 +26,8 @@ try:
 	from physbiblio.databaseCore import *
 	from physbiblio.database import dbStats, catString, cats_alphabetical
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

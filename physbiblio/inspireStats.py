@@ -41,7 +41,7 @@ class InspireStatsLoader():
 		self.urlBase = pbConfig.inspireSearchBase
 		self.timeout = float(pbConfig.params["timeoutWebSearch"])
 		self.authorStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
-		self.paperStatsOpts  = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
+		self.paperStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
 		self.skipPageOpt = "&jrec="
 		self.maxPerPage = 250
 		self.authorPlotInfo = None
@@ -355,7 +355,7 @@ class InspireStatsLoader():
 				plt.title("Papers per year")
 				ax.hist([int(q.strftime("%Y")) \
 					for q in self.authorPlotInfo["paLi"][0]],
-					bins=range(ymin,  ymax), picker=True)
+					bins=range(ymin, ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:
@@ -389,7 +389,7 @@ class InspireStatsLoader():
 				plt.title("Citations per year")
 				ax.hist([int(q.strftime("%Y")) \
 					for q in self.authorPlotInfo["allLi"][0]],
-					bins=range(ymin,  ymax), picker=True)
+					bins=range(ymin, ymax), picker=True)
 				ax.get_xaxis().get_major_formatter().set_useOffset(False)
 				plt.xlim([ymin, ymax])
 				if save:

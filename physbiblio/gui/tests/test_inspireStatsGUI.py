@@ -28,8 +28,8 @@ try:
 	from physbiblio.gui.basicDialogs import askDirName
 	from physbiblio.gui.commonClasses import PBLabel
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -1075,7 +1075,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertTrue(asp.clButton.autoDefault())
 		self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(),
 			asp.clButton)
-		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots.onClose")  \
+		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots.onClose") \
 				as _cl:
 			QTest.mouseClick(asp.clButton, Qt.LeftButton)
 			self.assertEqual(_cl.call_count, 1)

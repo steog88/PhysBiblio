@@ -462,7 +462,7 @@ class CatsTreeWindow(PBDialog):
 
 		catsTree = pBDB.cats.getHier()
 
-		self.filterInput = QLineEdit("",  self)
+		self.filterInput = QLineEdit("", self)
 		self.filterInput.setPlaceholderText("Filter categories")
 		self.filterInput.textChanged.connect(self.changeFilter)
 		self.currLayout.addWidget(self.filterInput)

@@ -23,8 +23,8 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.inspireStats import pBStats
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

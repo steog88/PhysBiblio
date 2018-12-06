@@ -30,8 +30,8 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.commonClasses import *
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 
@@ -161,9 +161,9 @@ class TestPBComboBox(GUITestCase):
 		self.assertEqual(mb.itemText(1), "2")
 		self.assertEqual(mb.itemText(2), "")
 		self.assertEqual(mb.currentText(), "1")
-		mb = PBComboBox(ew, ["1", "2"],  "0")
+		mb = PBComboBox(ew, ["1", "2"], "0")
 		self.assertEqual(mb.currentText(), "1")
-		mb = PBComboBox(ew, ["1", "2"],  "2")
+		mb = PBComboBox(ew, ["1", "2"], "2")
 		self.assertEqual(mb.currentText(), "2")
 		mb = PBComboBox(ew, [1, 2])
 		self.assertEqual(mb.itemText(0), "1")

@@ -16,9 +16,8 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.bibtexWriter import pbWriter
 except ImportError:
-    print("Could not find physbiblio and its contents: "
-		+ "configure your PYTHONPATH!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

@@ -71,7 +71,7 @@ class Thread_updateAllBibtexs(PBThread):
 				(see `physbiblio.database.Entries.searchOAIUpdates`)
 			force: force the update of all entries
 				(see `physbiblio.database.Entries.searchOAIUpdates`)
-			reloadAll:  reload the entry completely, without trying
+			reloadAll: reload the entry completely, without trying
 				to simply update the existing one
 				(see `physbiblio.database.Entries.searchOAIUpdates`)
 		"""

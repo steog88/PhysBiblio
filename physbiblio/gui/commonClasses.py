@@ -190,7 +190,7 @@ class ObjListWindow(PBDialog):
 			gridPos (tuple): if gridLayout is active,
 				the position of the `QLineEdit` in the `QGridLayout`
 		"""
-		self.filterInput = QLineEdit("",  self)
+		self.filterInput = QLineEdit("", self)
 		self.filterInput.setPlaceholderText(placeholderText)
 		self.filterInput.textChanged.connect(self.changeFilter)
 
@@ -321,7 +321,7 @@ class PBThread(QThread):
 
 	finished = Signal()
 
-	def __init__(self,  parent=None):
+	def __init__(self, parent=None):
 		"""Construct the class using `QThread.__init__`
 
 		Parameters:
@@ -399,7 +399,7 @@ class PBTableModel(QAbstractTableModel):
 	used for experiments and bibtex entries
 	"""
 
-	def __init__(self, parent, header, ask=False,  previous=[], *args):
+	def __init__(self, parent, header, ask=False, previous=[], *args):
 		"""Constructor, based on `QAbstractTableModel.__init__`
 
 		Parameters:
@@ -802,7 +802,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 		model = self.sourceModel()
 		source_index = model.index(row_num, 0, parent)
 
-		children_count =  model.rowCount(source_index)
+		children_count = model.rowCount(source_index)
 		for i in range(children_count):
 			if self.filterAcceptsRow(i, source_index):
 				return True

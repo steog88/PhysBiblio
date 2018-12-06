@@ -20,6 +20,7 @@ try:
 	from physbiblio.bibtexWriter import pbWriter
 	from physbiblio.errors import pBLogger
 	from physbiblio.webimport.webInterf import physBiblioWeb
+	from physbiblio.webimport.arxiv import getYear
 	from physbiblio.parseAccents import parse_accents_str
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -36,7 +37,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
 		"""Wrapper for PhysBiblioDBCore.__init__"""
 		PhysBiblioDBCore.__init__(self, *args, **kwargs)
 
-	def reOpenDB(self, newDB = None):
+	def reOpenDB(self, newDB=None):
 		"""Close the currently open database and
 		open a new one (the same if newDB is None).
 
@@ -168,7 +169,7 @@ class Categories(PhysBiblioDBSub):
 		else:
 			return False
 
-	def delete(self, idCat, name = None):
+	def delete(self, idCat, name=None):
 		"""Delete a category, its subcategories and all their connections.
 		Cannot delete categories with id ==0 or ==1
 		(Main and Tags, the default categories).
@@ -289,7 +290,7 @@ class Categories(PhysBiblioDBSub):
 			+ "where cats1.idCat=?\n", (child, ))
 		return self.curs.fetchall()
 
-	def getHier(self, cats = None, startFrom = 0, replace = True):
+	def getHier(self, cats=None, startFrom=0, replace=True):
 		"""Builds a tree with the parent/child structure of the categories
 
 		Parameters:
@@ -329,11 +330,11 @@ class Categories(PhysBiblioDBSub):
 		return catsHier
 
 	def printHier(self,
-			startFrom = 0,
-			sp = 5*" ",
-			withDesc = False,
-			depth = 10,
-			replace = False):
+			startFrom=0,
+			sp=5*" ",
+			withDesc=False,
+			depth=10,
+			replace=False):
 		"""Print categories and subcategories in a tree-like form
 
 		Parameters:
@@ -353,8 +354,8 @@ class Categories(PhysBiblioDBSub):
 			pBLogger.warning(
 				"Invalid depth in printCatHier (must be greater than 2)")
 			depth = 10
-		catsHier = self.getHier(cats, startFrom=startFrom, replace = replace)
-		def printSubGroup(tree, indent = "", startDepth = 0):
+		catsHier = self.getHier(cats, startFrom=startFrom, replace=replace)
+		def printSubGroup(tree, indent="", startDepth=0):
 			"""The subfunction that recursively builds
 			the list of child categories
 
@@ -367,7 +368,7 @@ class Categories(PhysBiblioDBSub):
 			if startDepth <= depth:
 				for l in cats_alphabetical(tree.keys(), self.mainDB):
 					print(indent
-						+ catString(l, self.mainDB, withDesc = withDesc))
+						+ catString(l, self.mainDB, withDesc=withDesc))
 					printSubGroup(tree[l],
 						(startDepth + 1) * sp,
 						startDepth + 1)
@@ -948,7 +949,7 @@ class Experiments(PhysBiblioDBSub):
 			self.cursExec("delete from expCats where idExp=?", (idExp, ))
 			self.cursExec("delete from entryExps where idExp=?", (idExp, ))
 
-	def getAll(self, orderBy = "name", order = "ASC"):
+	def getAll(self, orderBy="name", order="ASC"):
 		"""Get all the experiments
 
 		Parameters:
@@ -1037,7 +1038,7 @@ class Experiments(PhysBiblioDBSub):
 		return "%3d: %-20s [%-40s] [%s]"%(
 			q["idExp"], q["name"], q["homepage"], q["inspire"])
 
-	def printInCats(self, startFrom = 0, sp = 5 * " ", withDesc = False):
+	def printInCats(self, startFrom=0, sp=5*" ", withDesc=False):
 		"""Prints the experiments under the corresponding categories
 
 		Parameters:
@@ -1048,7 +1049,7 @@ class Experiments(PhysBiblioDBSub):
 		"""
 		cats = self.mainDB.cats.getAll()
 		exps = self.getAll()
-		catsHier = self.mainDB.cats.getHier(cats, startFrom = startFrom)
+		catsHier = self.mainDB.cats.getHier(cats, startFrom=startFrom)
 		showCat = {}
 		for c in cats:
 			showCat[c["idCat"]] = False
@@ -1149,7 +1150,7 @@ class Experiments(PhysBiblioDBSub):
 								print(4*sp + catString(l4, self.mainDB))
 								printExpCats(l4, 5)
 
-	def printAll(self, exps = None, orderBy = "name", order = "ASC"):
+	def printAll(self, exps=None, orderBy="name", order="ASC"):
 		"""Print all the experiments
 
 		Parameters:
@@ -1160,7 +1161,7 @@ class Experiments(PhysBiblioDBSub):
 			order: which order, if exps is not given
 		"""
 		if exps is None:
-			exps = self.getAll(orderBy = orderBy, order = order)
+			exps = self.getAll(orderBy=orderBy, order=order)
 		for q in exps:
 			print(self.to_str(q))
 
@@ -1286,7 +1287,7 @@ class Entries(PhysBiblioDBSub):
 				except ParseException:
 					pBLogger.warning("Problem in parsing the following "
 						+ "bibtex code:\n%s"%el["bibtex"],
-						exc_info = True)
+						exc_info=True)
 					tmp["bibtexDict"] = {}
 					tmp["bibdict"] = {}
 				self.updateField(el["bibkey"], "bibdict",
@@ -1348,13 +1349,13 @@ class Entries(PhysBiblioDBSub):
 		return self
 
 	def fetchFromDict(self,
-			queryDict = {},
-			catExpOperator = "and",
-			defaultConnection = "and",
-			orderBy = "firstdate",
-			orderType = "ASC",
-			limitTo = None,
-			limitOffset = None,
+			queryDict={},
+			catExpOperator="and",
+			defaultConnection="and",
+			orderBy="firstdate",
+			orderType="ASC",
+			limitTo=None,
+			limitOffset=None,
 			saveQuery=True,
 			doFetch=True):
 		"""Fetch entries using a number of criterions
@@ -1494,7 +1495,7 @@ class Entries(PhysBiblioDBSub):
 			query += " OFFSET %s"%(str(limitOffset))
 		if saveQuery and doFetch:
 			self.lastQuery = query
-			self.lastVals  = vals
+			self.lastVals = vals
 		if doFetch:
 			cursor = self.curs
 		else:
@@ -1514,13 +1515,13 @@ class Entries(PhysBiblioDBSub):
 		return self
 
 	def fetchAll(self,
-			params = None,
-			connection = "and",
-			operator = "=",
-			orderBy = "firstdate",
-			orderType = "ASC",
-			limitTo = None,
-			limitOffset = None,
+			params=None,
+			connection="and",
+			operator="=",
+			orderBy="firstdate",
+			orderType="ASC",
+			limitTo=None,
+			limitOffset=None,
 			saveQuery=True,
 			doFetch=True):
 		"""Fetch entries using a number of criterions.
@@ -1595,7 +1596,7 @@ class Entries(PhysBiblioDBSub):
 				query += " OFFSET %s"%(str(limitOffset))
 		if saveQuery and doFetch:
 			self.lastQuery = query
-			self.lastVals  = vals
+			self.lastVals = vals
 		if doFetch:
 			cursor = self.curs
 		else:
@@ -1623,13 +1624,13 @@ class Entries(PhysBiblioDBSub):
 		return self
 
 	def getAll(self,
-			params = None,
-			connection = "and",
-			operator = "=",
-			orderBy = "firstdate",
-			orderType = "ASC",
-			limitTo = None,
-			limitOffset = None,
+			params=None,
+			connection="and",
+			operator="=",
+			orderBy="firstdate",
+			orderType="ASC",
+			limitTo=None,
+			limitOffset=None,
 			saveQuery=True):
 		"""Use self.fetchAll and returns the dictionary of fetched entries
 
@@ -1638,14 +1639,14 @@ class Entries(PhysBiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchAll(params = params,
-			connection = connection,
-			operator = operator,
-			orderBy = orderBy,
-			orderType = orderType,
-			limitTo = limitTo,
-			limitOffset = limitOffset,
-			saveQuery = saveQuery,
+		return self.fetchAll(params=params,
+			connection=connection,
+			operator=operator,
+			orderBy=orderBy,
+			orderType=orderType,
+			limitTo=limitTo,
+			limitOffset=limitOffset,
+			saveQuery=saveQuery,
 			doFetch=True).lastFetched
 
 	def fetchByBibkey(self, bibkey, saveQuery=True):
@@ -1814,7 +1815,7 @@ class Entries(PhysBiblioDBSub):
 			if url != "" and url is not False and url is not None \
 			else False
 
-	def getArxivUrl(self, key, urlType = "abs"):
+	def getArxivUrl(self, key, urlType="abs"):
 		"""Get the arxiv.org url for the entry,
 		if it has something in the arxiv field
 
@@ -1875,14 +1876,14 @@ class Entries(PhysBiblioDBSub):
 
 	def prepareInsert(self,
 			bibtex,
-			bibkey = None, inspire = None, arxiv = None,
-			ads = None, scholar = None, doi = None, isbn = None,
-			year = None, link = None, comments = None,
-			old_keys = None, crossref = None,
-			exp_paper = None, lecture = None, phd_thesis = None,
-			review = None, proceeding = None, book = None,
-			marks = None, firstdate = None, pubdate = None,
-			noUpdate = None, abstract = None, number = None):
+			bibkey=None, inspire=None, arxiv=None,
+			ads=None, scholar=None, doi=None, isbn=None,
+			year=None, link=None, comments=None,
+			old_keys=None, crossref=None,
+			exp_paper=None, lecture=None, phd_thesis=None,
+			review=None, proceeding=None, book=None,
+			marks=None, firstdate=None, pubdate=None,
+			noUpdate=None, abstract=None, number=None):
 		"""Convert a bibtex into a dictionary,
 		eventually using also additional info
 
@@ -1926,7 +1927,7 @@ class Entries(PhysBiblioDBSub):
 		db = bibtexparser.bibdatabase.BibDatabase()
 		db.entries = []
 		db.entries.append(element)
-		data["bibtex"]  = self.rmBibtexComments(self.rmBibtexACapo(
+		data["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(
 			pbWriter.write(db).strip()))
 		#most of the fields have standard behaviour:
 		for k in ["abstract", "crossref", "doi", "isbn"]:
@@ -1952,15 +1953,7 @@ class Entries(PhysBiblioDBSub):
 				data["year"] = element["year"]
 			except KeyError:
 				try:
-					identif = re.compile("([0-9]{4}.[0-9]{4,5}|[0-9]{7})*")
-					for t in identif.finditer(data["arxiv"]):
-						if len(t.group()) > 0:
-							e = t.group()
-							a = e[0:2]
-							if int(a) > 80:
-								data["year"] = "19"+a
-							else:
-								data["year"] = "20"+a
+					data["year"] = getYear(data["arxiv"])
 				except KeyError:
 					data["year"]=None
 		#link
@@ -2200,7 +2193,7 @@ class Entries(PhysBiblioDBSub):
 			pBLogger.warning("Impossible to update bibkey", exc_info=True)
 			return False
 
-	def getDailyInfoFromOAI(self, date1 = None, date2 = None):
+	def getDailyInfoFromOAI(self, date1=None, date2=None):
 		"""Use inspire OAI webinterface to get updated information
 		on the entries between two dates
 
@@ -2258,11 +2251,11 @@ class Entries(PhysBiblioDBSub):
 
 	def updateInfoFromOAI(self,
 			inspireID,
-			bibtex = None,
+			bibtex=None,
 			verbose=0,
-			readConferenceTitle = False,
-			reloadAll = False,
-			originalKey = None):
+			readConferenceTitle=False,
+			reloadAll=False,
+			originalKey=None):
 		"""Use inspire OAI to retrieve the info for a single entry
 
 		Parameters:
@@ -2390,7 +2383,7 @@ class Entries(PhysBiblioDBSub):
 		"""
 		self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
 		match = "%"+"%s"%old+"%"
-		self.lastVals  = {"match": match}
+		self.lastVals = {"match": match}
 		self.cursExec(self.lastQuery, self.lastVals)
 		self.lastFetched = self.completeFetched(self.curs.fetchall())
 		keys = [k["bibkey"] for k in self.lastFetched]
@@ -2612,7 +2605,7 @@ class Entries(PhysBiblioDBSub):
 			return False
 		try:
 			arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"] \
-				.retrieveUrlAll(arxiv, searchType = "id", fullDict = True)
+				.retrieveUrlAll(arxiv, searchType="id", fullDict=True)
 			tmp = bibtexparser.bparser.BibTexParser(common_strings=True
 				).parse(bibtex).entries[0]
 			for k in fields:
@@ -2644,11 +2637,11 @@ class Entries(PhysBiblioDBSub):
 
 	def loadAndInsert(self,
 			entry,
-			method = "inspire",
-			imposeKey = None,
-			number = None,
-			returnBibtex = False,
-			childProcess = False):
+			method="inspire",
+			imposeKey=None,
+			number=None,
+			returnBibtex=False,
+			childProcess=False):
 		"""Read a list of keywords and look for inspire contents,
 		then load in the database all the info
 
@@ -2718,7 +2711,7 @@ class Entries(PhysBiblioDBSub):
 			exist = (len(existing) > 0)
 			for f in ["arxiv", "doi"]:
 				try:
-					temp = self.fetchAll(params = {f: entry},
+					temp = self.fetchAll(params={f: entry},
 						saveQuery=False).lastFetched
 					exist = (exist or (len(temp) > 0))
 					existing += temp
@@ -2731,7 +2724,7 @@ class Entries(PhysBiblioDBSub):
 					db = bibtexparser.bibdatabase.BibDatabase()
 					db.entries = bibtexparser.bparser.BibTexParser(
 						common_strings=True).parse(entry).entries
-					e  = self.rmBibtexComments(self.rmBibtexACapo(
+					e = self.rmBibtexComments(self.rmBibtexACapo(
 						pbWriter.write(db).strip()))
 				except ParseException:
 					pBLogger.exception(
@@ -2770,7 +2763,7 @@ class Entries(PhysBiblioDBSub):
 					if data[f] is not None \
 							and isinstance(data[f], six.string_types) \
 							and data[f].strip() != "":
-						temp = self.fetchAll(params = {f: data[f]},
+						temp = self.fetchAll(params={f: data[f]},
 							saveQuery=False).lastFetched
 						exist = (exist or (len(temp) > 0))
 						existing += temp
@@ -2782,8 +2775,8 @@ class Entries(PhysBiblioDBSub):
 			if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
 				arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"]\
 					.retrieveUrlAll(data["arxiv"],
-						searchType = "id",
-						fullDict = True)
+						searchType="id",
+						fullDict=True)
 				data["abstract"] = arxivDict["abstract"]
 			try:
 				self.insert(data)
@@ -2797,7 +2790,7 @@ class Entries(PhysBiblioDBSub):
 					if not requireAll:
 						eid = self.updateInspireID(entry, key)
 					else:
-						eid = self.updateInspireID(entry, key, number = number)
+						eid = self.updateInspireID(entry, key, number=number)
 					self.updateInfoFromOAI(eid)
 				elif method == "isbn":
 					self.setBook(key)
@@ -2829,7 +2822,7 @@ class Entries(PhysBiblioDBSub):
 					pBLogger.info(
 						"%5d / %d (%5.2f%%) - looking for string: '%s'\n"%(
 						ix+1, tot, 100.*(ix+1)/tot, e))
-					if not self.loadAndInsert(e, childProcess = True):
+					if not self.loadAndInsert(e, childProcess=True):
 						failed.append(e)
 					ix += 1
 			if len(self.lastInserted) > 0:
@@ -2846,22 +2839,22 @@ class Entries(PhysBiblioDBSub):
 
 	def loadAndInsertWithCats(self,
 			entry,
-			method = "inspire",
-			imposeKey = None,
-			number = None,
-			returnBibtex = False,
-			childProcess = False):
+			method="inspire",
+			imposeKey=None,
+			number=None,
+			returnBibtex=False,
+			childProcess=False):
 		"""Load the entries, then ask for their categories.
 		Uses self.loadAndInsert and self.mainDB.catBib.askCats
 
 		Parameters: see self.loadAndInsert
 		"""
 		self.loadAndInsert(entry,
-			method = method,
-			imposeKey = imposeKey,
-			number = number,
-			returnBibtex = returnBibtex,
-			childProcess = childProcess)
+			method=method,
+			imposeKey=imposeKey,
+			number=number,
+			returnBibtex=returnBibtex,
+			childProcess=childProcess)
 		for key in self.lastInserted:
 			self.mainDB.catBib.delete(
 				pbConfig.params["defaultCategories"], key)
@@ -2949,7 +2942,7 @@ class Entries(PhysBiblioDBSub):
 							and data["arxiv"] is not "":
 						arxivBibtex, arxivDict = physBiblioWeb\
 							.webSearch["arxiv"].retrieveUrlAll(
-							data["arxiv"], searchType = "id", fullDict = True)
+							data["arxiv"], searchType="id", fullDict=True)
 						data["abstract"] = arxivDict["abstract"]
 					pBLogger.info("Entry will have key: '%s'"%key)
 					if not self.insert(data):
@@ -2974,7 +2967,7 @@ class Entries(PhysBiblioDBSub):
 			+ "%d successfully inserted and %d errors."%(
 				len(self.lastInserted), len(errors)))
 
-	def setBook(self, key, value = 1):
+	def setBook(self, key, value=1):
 		"""Set (or unset) the book field for an entry
 
 		Parameters:
@@ -2990,7 +2983,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "book", value, 0)
 
-	def setLecture(self, key, value = 1):
+	def setLecture(self, key, value=1):
 		"""Set (or unset) the Lecture field for an entry
 
 		Parameters:
@@ -3006,7 +2999,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "lecture", value, 0)
 
-	def setPhdThesis(self, key, value = 1):
+	def setPhdThesis(self, key, value=1):
 		"""Set (or unset) the PhD thesis field for an entry
 
 		Parameters:
@@ -3022,7 +3015,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "phd_thesis", value, 0)
 
-	def setProceeding(self, key, value = 1):
+	def setProceeding(self, key, value=1):
 		"""Set (or unset) the proceeding field for an entry
 
 		Parameters:
@@ -3038,7 +3031,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "proceeding", value, 0)
 
-	def setReview(self, key, value = 1):
+	def setReview(self, key, value=1):
 		"""Set (or unset) the review field for an entry
 
 		Parameters:
@@ -3054,7 +3047,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "review", value, 0)
 
-	def setNoUpdate(self, key, value = 1):
+	def setNoUpdate(self, key, value=1):
 		"""Set (or unset) the noUpdate field for an entry
 
 		Parameters:
@@ -3070,7 +3063,7 @@ class Entries(PhysBiblioDBSub):
 		else:
 			return self.updateField(key, "noUpdate", value, 0)
 
-	def printAllBibtexs(self, entriesIn = None):
+	def printAllBibtexs(self, entriesIn=None):
 		"""Print the bibtex codes for all the entries
 		(or for a given subset)
 
@@ -3086,13 +3079,13 @@ class Entries(PhysBiblioDBSub):
 				_print(i, e)
 				total += 1
 		else:
-			self.fetchAll(orderBy = "firstdate", doFetch=False)
+			self.fetchAll(orderBy="firstdate", doFetch=False)
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
 		pBLogger.info("%d elements found"%total)
 
-	def printAllBibkeys(self, entriesIn = None):
+	def printAllBibkeys(self, entriesIn=None):
 		"""Print the bibtex keys for all the entries
 		(or for a given subset)
 
@@ -3108,16 +3101,16 @@ class Entries(PhysBiblioDBSub):
 				_print(i, e)
 				total += 1
 		else:
-			self.fetchAll(orderBy = "firstdate", doFetch=False)
+			self.fetchAll(orderBy="firstdate", doFetch=False)
 			for i, e in enumerate(self.fetchCursor()):
 				_print(i, e)
 				total += 1
 		pBLogger.info("%d elements found"%total)
 
 	def printAllInfo(self,
-			entriesIn = None,
-			orderBy = "firstdate",
-			addFields = None):
+			entriesIn=None,
+			orderBy="firstdate",
+			addFields=None):
 		"""Print a short resume for all the bibtex entries
 		(or for a given subset)
 
@@ -3132,7 +3125,7 @@ class Entries(PhysBiblioDBSub):
 		if entriesIn is not None:
 			iterator = entriesIn
 		else:
-			self.fetchAll(orderBy = orderBy, doFetch=False)
+			self.fetchAll(orderBy=orderBy, doFetch=False)
 			iterator = self.fetchCursor()
 		total = 0
 		for i, e in enumerate(iterator):
@@ -3178,7 +3171,8 @@ class Entries(PhysBiblioDBSub):
 
 	def fetchByCat(self,
 			idCat,
-			orderBy = "entries.firstdate", orderType = "ASC"):
+			orderBy="entries.firstdate",
+			orderType="ASC"):
 		"""Fetch all the entries associated to a given category
 
 		Parameters:
@@ -3209,7 +3203,8 @@ class Entries(PhysBiblioDBSub):
 
 	def getByCat(self,
 			idCat,
-			orderBy = "entries.firstdate", orderType = "ASC"):
+			orderBy="entries.firstdate",
+			orderType="ASC"):
 		"""Use self.fetchByCat and returns
 		the dictionary of fetched entries
 
@@ -3219,11 +3214,12 @@ class Entries(PhysBiblioDBSub):
 			a dictionary
 		"""
 		return self.fetchByCat(idCat,
-			orderBy = orderBy, orderType = orderType).lastFetched
+			orderBy=orderBy, orderType=orderType).lastFetched
 
 	def fetchByExp(self,
 			idExp,
-			orderBy = "entries.firstdate", orderType = "ASC"):
+			orderBy="entries.firstdate",
+			orderType="ASC"):
 		"""Fetch all the entries associated to a given experiment
 
 		Parameters:
@@ -3254,7 +3250,8 @@ class Entries(PhysBiblioDBSub):
 
 	def getByExp(self,
 			idExp,
-			orderBy = "entries.firstdate", orderType = "ASC"):
+			orderBy="entries.firstdate",
+			orderType="ASC"):
 		"""Use self.fetchByExp and returns
 		the dictionary of fetched entries
 
@@ -3264,7 +3261,7 @@ class Entries(PhysBiblioDBSub):
 			a dictionary
 		"""
 		return self.fetchByExp(idExp,
-			orderBy = orderBy, orderType = orderType).lastFetched
+			orderBy=orderBy, orderType=orderType).lastFetched
 
 	def cleanBibtexs(self, startFrom=0, entries=None):
 		"""Clean (remove comments, unwanted fields, newlines, accents)
@@ -3320,7 +3317,7 @@ class Entries(PhysBiblioDBSub):
 						common_strings=True).parse(e["bibtex"]).entries[0]
 					db.entries = []
 					db.entries.append(element)
-					newbibtex  = self.rmBibtexComments(self.rmBibtexACapo(
+					newbibtex = self.rmBibtexComments(self.rmBibtexACapo(
 						parse_accents_str(pbWriter.write(db).strip())))
 					if e["bibtex"] != newbibtex and self.updateField(
 							e["bibkey"], "bibtex", newbibtex):
@@ -3495,18 +3492,18 @@ class Utilities(PhysBiblioDBSub):
 					func(e[0], e[1])
 
 		self.mainDB.bibs.fetchAll(saveQuery=False, doFetch=False)
-		bibkeys = [ e["bibkey"] for e in self.mainDB.bibs.fetchCursor() ]
-		idCats  = [ e["idCat"]  for e in self.mainDB.cats.getAll() ]
-		idExps  = [ e["idExp"]  for e in self.mainDB.exps.getAll() ]
+		bibkeys = [e["bibkey"] for e in self.mainDB.bibs.fetchCursor()]
+		idCats = [e["idCat"] for e in self.mainDB.cats.getAll()]
+		idExps = [e["idExp"] for e in self.mainDB.exps.getAll()]
 
 		deletePresent(bibkeys, idExps,
-			[ [e["bibkey"], e["idExp"]] for e in self.mainDB.bibExp.getAll()],
+			[[e["bibkey"], e["idExp"]] for e in self.mainDB.bibExp.getAll()],
 			self.mainDB.bibExp.delete)
 		deletePresent(idCats, bibkeys,
-			[ [e["idCat"], e["bibkey"]] for e in self.mainDB.catBib.getAll()],
+			[[e["idCat"], e["bibkey"]] for e in self.mainDB.catBib.getAll()],
 			self.mainDB.catBib.delete)
 		deletePresent(idCats, idExps,
-			[ [e["idCat"], e["idExp"]] for e in self.mainDB.catExp.getAll()],
+			[[e["idCat"], e["idExp"]] for e in self.mainDB.catExp.getAll()],
 			self.mainDB.catExp.delete)
 
 	def cleanAllBibtexs(self, verbose=0):
@@ -3526,7 +3523,7 @@ class Utilities(PhysBiblioDBSub):
 			b.updateField(e["bibkey"], "bibtex", t, verbose=verbose)
 
 
-def catString(idCat, db, withDesc = False):
+def catString(idCat, db, withDesc=False):
 	"""Return the string describing the category
 	(id, name, description if required)
 

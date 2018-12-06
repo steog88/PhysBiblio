@@ -22,8 +22,8 @@ try:
 	from physbiblio.database import pBDB
 	from physbiblio.export import pBExport
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

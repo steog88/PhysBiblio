@@ -10,9 +10,8 @@ try:
 	from physbiblio import __version__, __version_date__
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Could not find physbiblio and its contents: "
-		+ "configure your PYTHONPATH!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 
 
 def call_clean(args):
@@ -119,8 +118,7 @@ def call_gui(args = None):
 		from physbiblio.gui.mainWindow import MainWindow
 		from physbiblio.gui.errorManager import pBGUIErrorManager
 	except ImportError:
-		print("Could not find physbiblio and its contents:"
-			+ "configure your PYTHONPATH!")
+		print("Could not find physbiblio and its modules!")
 		raise
 	try:
 		app = QApplication(sys.argv)

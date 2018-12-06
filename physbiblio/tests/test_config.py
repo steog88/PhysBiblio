@@ -20,8 +20,8 @@ try:
 	from physbiblio.config import \
 		pbConfig, ConfigVars, config_defaults, ConfigurationDB, GlobalDB
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

@@ -56,4 +56,4 @@ class PBScanningLoader(TestLoader):
 		if len(tests) != 1:
 			return self.suiteClass(tests)
 		else:
-			return tests[0]  # don't create a nested suite for only one return
+			return tests[0] # don't create a nested suite for only one return

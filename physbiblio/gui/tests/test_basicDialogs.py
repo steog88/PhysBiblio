@@ -22,8 +22,8 @@ try:
 	from physbiblio.gui.setuptests import *
 	from physbiblio.gui.basicDialogs import *
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 except Exception:
 	print(traceback.format_exc())
 

@@ -9,8 +9,8 @@ from setuptools import setup
 import physbiblio
 
 def readme():
-    with open('README.md') as f:
-        return f.read()
+	with open('README.md') as f:
+		return f.read()
 
 setup(name='physbiblio',
 		version=physbiblio.__version__,
