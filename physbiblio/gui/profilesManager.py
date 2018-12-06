@@ -476,10 +476,3 @@ class EditProfileWindow(EditObjectWindow):
 		self.cleanLayout()
 		self.createForm(currentValues, tempOrder, newLine)
 		return True
-
-	def cleanLayout(self):
-		"""Delete all the existing items in the layout"""
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()

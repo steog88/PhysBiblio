@@ -1089,14 +1089,6 @@ class TestEditProfile(GUITestCase):
 			_cl.assert_not_called()
 			_cf.assert_not_called()
 
-	def test_cleanLayout(self):
-		"""test cleanLayout"""
-		p = QWidget()
-		ep = EditProfileWindow(p)
-		self.assertEqual(ep.layout().count(), 36)
-		ep.cleanLayout()
-		self.assertEqual(ep.layout().count(), 0)
-
 
 if __name__=='__main__':
 	unittest.main()
