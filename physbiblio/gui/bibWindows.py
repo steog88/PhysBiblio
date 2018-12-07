@@ -1931,13 +1931,13 @@ class AskPDFAction(PBMenu):
 class SearchBibsWindow(EditObjectWindow):
 	"""Create a window for searching a bibtex entry"""
 
-	def __init__(self, parent=None, bib=None, replace=False):
+	def __init__(self, parent=None, replace=False):
 		"""Create the window and save some properties
 
 		Parameters:
-			parent
-			bib
-			replace
+			parent (default None): the parent widget
+			replace (default False): if True, add the replace fields
+				in the dialog
 		"""
 		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
@@ -1954,6 +1954,16 @@ class SearchBibsWindow(EditObjectWindow):
 			"review": {"desc": "Review"},
 			"proceeding": {"desc": "Proceeding"},
 			"book": {"desc": "Book"}
+			}
+		self.operators = {
+			"text": ["contains", "exact match"],
+			"catexp": ["all the following",
+				"at least one among",
+				"none of the following"],
+			}
+		self.fields = {
+			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
+				"firstdate", "pubdate", "comment"]
 			}
 		self.values = []
 		self.numberOfRows = 1
@@ -1984,14 +1994,27 @@ class SearchBibsWindow(EditObjectWindow):
 		return (searchDict, replaceFields, limit, offset)
 
 	def changeCurrentContent(self, index):
+		"""Reset the form content using the selected historical search
+
+		Parameter:
+			index: the search index in the history
+		"""
 		self.cleanLayout()
 		self.createForm(index)
 
 	def onSave(self):
+		"""Set for saving the search/replace and run `self.onOk`"""
 		self.save = True
 		self.onOk()
 
 	def onAskCats(self, ix):
+		"""When clicking on a Categories button, open a dialog
+		to select the required categories.
+		If confirmed, save the selection in the button text.
+
+		Parameter:
+			ix: the line index
+		"""
 		previous = self.readLine(ix)
 		if previous["content"] == "":
 			previous["content"] = []
@@ -2006,6 +2029,13 @@ class SearchBibsWindow(EditObjectWindow):
 				"%s"%self.selectedCats)
 
 	def onAskExps(self, ix):
+		"""When clicking on an Experiments button, open a dialog
+		to select the required experiments.
+		If confirmed, save the selection in the button text.
+
+		Parameter:
+			ix: the line index
+		"""
 		previous = self.readLine(ix)
 		if previous["content"] == "":
 			previous["content"] = []
@@ -2019,7 +2049,8 @@ class SearchBibsWindow(EditObjectWindow):
 				"%s"%self.selectedExps)
 
 	def eventFilter(self, widget, event):
-		"""Filter the events in a text widget. If 'Esc' is pressed, exit
+		"""Filter the "enter" events in a text widget.
+		If 'Enter' or "Return" is pressed, set focus on the "Ok" button
 
 		Parameters:
 			widget: the widget of the event
@@ -2089,22 +2120,40 @@ class SearchBibsWindow(EditObjectWindow):
 		if previous["type"] == "Text":
 			try:
 				previous["field"] = "%s"%line["field"].currentText()
-				previous["operator"] = "%s"%(
-					line["operator"].currentText())
-				previous["content"] = "%s"%line["content"].text()
 			except AttributeError:
 				previous["field"] = None
+			else:
+				if previous["field"] not in self.fields["text"]:
+					previous["field"] = None
+			try:
+				previous["operator"] = "%s"%(
+					line["operator"].currentText())
+			except AttributeError:
 				previous["operator"] = None
+			else:
+				if previous["operator"] not in self.operators["text"]:
+					previous["operator"] = None
+			try:
+				previous["content"] = "%s"%line["content"].text()
+			except AttributeError:
 				previous["content"] = ""
 		elif (previous["type"] == "Categories"
 					or previous["type"] == "Experiments"):
 			previous["field"] = ""
 			try:
 				previous["operator"] = "%s"%line["operator"].currentText()
-				previous["content"] = ast.literal_eval(line["content"].text())
 			except (AttributeError, SyntaxError):
 				previous["operator"] = None
+			else:
+				if previous["operator"] not in self.operators["catexp"]:
+					previous["operator"] = None
+			try:
+				previous["content"] = ast.literal_eval(line["content"].text())
+			except (AttributeError, SyntaxError, ValueError):
 				previous["content"] = []
+			else:
+				if not isinstance(previous["content"], list):
+					previous["content"] = []
 		elif previous["type"] == "Marks":
 			previous["field"] = None
 			previous["operator"] = None
@@ -2164,13 +2213,12 @@ class SearchBibsWindow(EditObjectWindow):
 
 		if previous["type"] == "Text":
 			self.textValues[ix]["field"] = PBComboBox(self,
-				["bibtex", "bibkey", "arxiv", "doi", "year",
-				"firstdate", "pubdate", "comment"],
+				self.fields["text"],
 				current=previous["field"])
 			self.currGrid.addWidget(self.textValues[ix]["field"], ix, 2)
 
 			self.textValues[ix]["operator"] = PBComboBox(self,
-				["contains", "exact match"],
+				self.operators["text"],
 				current=previous["operator"])
 			self.currGrid.addWidget(self.textValues[ix]["operator"], ix, 3)
 
@@ -2184,9 +2232,7 @@ class SearchBibsWindow(EditObjectWindow):
 			self.textValues[ix]["field"] = None
 
 			self.textValues[ix]["operator"] = PBComboBox(self,
-				["all the following",
-				"at least one among",
-				"none of the following"],
+				self.operators["catexp"],
 				current=previous["operator"])
 			self.currGrid.addWidget(
 				self.textValues[ix]["operator"], ix, 2, 1, 2)

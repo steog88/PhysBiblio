@@ -4728,35 +4728,221 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestSearchBibsWindow(GUITestCase):
-	"""test"""
+	"""test the SearchBibsWindow class"""
 
 	def test_init(self):
-		"""test"""
-		raise NotImplementedError
+		"""test __init__"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow"
+					+ ".processHistoric", side_effect=["a", "b"]) as _ph,\
+				patch("physbiblio.config.GlobalDB.getSearchList",
+					return_value=["abc", "def"]) as _sl:
+			sbw = SearchBibsWindow()
+			_cf.assert_called_once_with()
+			_ph.assert_has_calls([call("abc"), call("def")])
+			_sl.assert_called_once_with(manual=False, replacement=False)
+		self.assertEqual(sbw.textValues, [])
+		self.assertFalse(sbw.result)
+		self.assertFalse(sbw.save)
+		self.assertFalse(sbw.replace)
+		self.assertEqual(sbw.historic, ["a", "b"])
+		self.assertEqual(sbw.possibleTypes, {
+			"exp_paper": {"desc": "Experimental"},
+			"lecture": {"desc": "Lecture"},
+			"phd_thesis": {"desc": "PhD thesis"},
+			"review": {"desc": "Review"},
+			"proceeding": {"desc": "Proceeding"},
+			"book": {"desc": "Book"}
+			})
+		self.assertEqual(sbw.operators, {
+			"text": ["contains", "exact match"],
+			"catexp": ["all the following",
+				"at least one among",
+				"none of the following"],
+			})
+		self.assertEqual(sbw.fields, {
+			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
+				"firstdate", "pubdate", "comment"]
+			})
+		self.assertEqual(sbw.values, [])
+		self.assertEqual(sbw.numberOfRows, 1)
+		self.assertEqual(sbw.replOld, None)
+		self.assertEqual(sbw.replNew, None)
+		self.assertEqual(sbw.replNew1, None)
+		self.assertEqual(sbw.limitValue, None)
+		self.assertEqual(sbw.limitOffs, None)
+
+		p = QWidget()
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow"
+					+ ".processHistoric", side_effect=["a", "b"]) as _ph,\
+				patch("physbiblio.config.GlobalDB.getSearchList",
+					return_value=["abc", "def"]) as _sl:
+			sbw = SearchBibsWindow(parent=p, replace=True)
+			_sl.assert_called_once_with(manual=False, replacement=True)
+		self.assertTrue(sbw.replace)
+		self.assertEqual(sbw.parent(), p)
 
 	def test_processHistoric(self):
-		"""test"""
-		pass
+		"""test processHistoric"""
+		raise NotImplementedError
 
 	def test_changeCurrentContent(self):
-		"""test"""
-		pass
+		"""test changeCurrentContent"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		self.assertFalse(sbw.save)
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout"
+				) as _cl,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+					) as _cf:
+			sbw.changeCurrentContent(2)
+			_cl.assert_called_once_with()
+			_cf.assert_called_once_with(2)
 
 	def test_onSave(self):
-		"""test"""
-		pass
+		"""test onSave"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		self.assertFalse(sbw.save)
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.onOk") as _o:
+			sbw.onSave()
+			_o.assert_called_once_with()
+		self.assertTrue(sbw.save)
 
 	def test_onAskCats(self):
-		"""test"""
-		pass
+		"""test onAskCats"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		sbw.createLine(0, {"logical": None,
+			"field": None,
+			"type": "Categories",
+			"operator": None,
+			"content": ""})
+		sbw.textValues[0]["content"].setText("")
+
+		sc = CatsTreeWindow(
+			parent=sbw,
+			askCats=True,
+			expButton=False,
+			previous=[])
+		sc.exec_ = MagicMock()
+		sc.result = False
+		with patch("physbiblio.gui.bibWindows.CatsTreeWindow",
+				return_value=sc) as _sc,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+					return_value={"content": ""}) as _cf:
+			sbw.onAskCats(0)
+			_sc.assert_called_once_with(parent=sbw, askCats=True,
+				expButton=False, previous=[])
+			sc.exec_.assert_called_once_with()
+			self.assertEqual(sbw.textValues[0]["content"].text(), "")
+
+		sbw.textValues[0]["content"].setText("[0]")
+		sc = CatsTreeWindow(
+			parent=sbw,
+			askCats=True,
+			expButton=False,
+			previous=[0])
+		sbw.selectedCats = [0, 1]
+		sc.exec_ = MagicMock()
+		sc.result = "Ok"
+		with patch("physbiblio.gui.bibWindows.CatsTreeWindow",
+				return_value=sc) as _sc:
+			sbw.onAskCats(0)
+			_sc.assert_called_once_with(parent=sbw, askCats=True,
+				expButton=False, previous=[0])
+			sc.exec_.assert_called_once_with()
+			self.assertEqual(sbw.textValues[0]["content"].text(), "[0, 1]")
 
 	def test_onAskExps(self):
-		"""test"""
-		pass
+		"""test onAskExps"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		sbw.createLine(0, {"logical": None,
+			"field": None,
+			"type": "Experiments",
+			"operator": None,
+			"content": ""})
+		sbw.textValues[0]["content"].setText("")
+
+		se = ExpsListWindow(
+			parent=sbw,
+			askExps=True,
+			previous=[])
+		se.exec_ = MagicMock()
+		se.result = False
+		with patch("physbiblio.gui.bibWindows.ExpsListWindow",
+				return_value=se) as _se,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+					return_value={"content": ""}) as _cf:
+			sbw.onAskExps(0)
+			_se.assert_called_once_with(parent=sbw, askExps=True,
+				previous=[])
+			se.exec_.assert_called_once_with()
+			self.assertEqual(sbw.textValues[0]["content"].text(), "")
+
+		sbw.textValues[0]["content"].setText("[0]")
+		se = ExpsListWindow(
+			parent=sbw,
+			askExps=True,
+			previous=[])
+		sbw.selectedExps = [0, 1]
+		se.exec_ = MagicMock()
+		se.result = "Ok"
+		with patch("physbiblio.gui.bibWindows.ExpsListWindow",
+				return_value=se) as _se:
+			sbw.onAskExps(0)
+			_se.assert_called_once_with(parent=sbw, askExps=True,
+				previous=[0])
+			se.exec_.assert_called_once_with()
+			self.assertEqual(sbw.textValues[0]["content"].text(), "[0, 1]")
 
 	def test_eventFilter(self):
-		"""test"""
-		pass
+		"""test eventFilter"""
+		sbw = SearchBibsWindow(replace=True)
+		w = None
+		e = MagicMock()
+		e.type.return_value = "a"
+		e.key.return_value = "b"
+		sbw.acceptButton.setFocus = MagicMock()
+		with patch("PySide2.QtWidgets.QWidget.eventFilter",
+				return_value="abc") as _ef:
+			self.assertEqual(sbw.eventFilter(w, e), "abc")
+			_ef.assert_called_once_with(sbw, w, e)
+			e.key.assert_not_called()
+		e.type.return_value = QEvent.KeyPress
+		with patch("PySide2.QtWidgets.QWidget.eventFilter",
+				return_value="abc") as _ef:
+			self.assertEqual(sbw.eventFilter(w, e), "abc")
+			_ef.assert_called_once_with(sbw, w, e)
+			e.key.assert_not_called()
+		for x in [sbw.textValues[0]["content"], sbw.replOld, sbw.replNew,
+				sbw.limitValue, sbw.limitOffs]:
+			w = x
+			with patch("PySide2.QtWidgets.QWidget.eventFilter",
+					return_value="abc") as _ef:
+				self.assertEqual(sbw.eventFilter(w, e), "abc")
+				_ef.assert_called_once_with(sbw, w, e)
+				e.key.assert_called_once_with()
+				sbw.acceptButton.setFocus.assert_not_called()
+			e.key.reset_mock()
+		for x in [Qt.Key_Return, Qt.Key_Enter]:
+			e.key.return_value = x
+			with patch("PySide2.QtWidgets.QWidget.eventFilter",
+					return_value="abc") as _ef:
+				self.assertTrue(sbw.eventFilter(w, e))
+				_ef.assert_not_called()
+				e.key.assert_called_once_with()
+				sbw.acceptButton.setFocus.assert_called_once_with()
+			e.key.reset_mock()
+			sbw.acceptButton.setFocus.reset_mock()
 
 	def test_resetForm(self):
 		"""test resetForm"""
