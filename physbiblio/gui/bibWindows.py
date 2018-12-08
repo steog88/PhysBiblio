@@ -2103,20 +2103,36 @@ class SearchBibsWindow(EditObjectWindow):
 		Output:
 			a dictionary
 		"""
+		default = {"logical": None,
+			"field": None,
+			"type": "Text",
+			"operator": None,
+			"content": ""}
 		try:
 			line = self.textValues[ix]
 		except IndexError:
-			return {"logical": None,
-				"field": None,
-				"type": "Text",
-				"operator": None,
-				"content": ""}
-		previous = {
-			"type": "%s"%line["type"].currentText(),
-		}
+			pBLogger.debug("Missing index %d (there are %d elements)"%(
+				ix, len(self.textValues)))
+			return default
+
+		try:
+			previous = {
+				"type": "%s"%line["type"].currentText(),
+			}
+		except (KeyError, AttributeError):
+			pBLogger.debug("Missing or wrong 'type' in line %d"%ix)
+			return default
+
 		if ix > 0:
-			previous["logical"] = "%s"%(
-				line["logical"].currentText())
+			try:
+				previous["logical"] = "%s"%(
+					line["logical"].currentText())
+			except (KeyError, AttributeError):
+				pBLogger.debug("Missing or wrong 'logical' in line %d"%ix)
+				previous["logical"] = None
+		else:
+			previous["logical"] = None
+
 		if previous["type"] == "Text":
 			try:
 				previous["field"] = "%s"%line["field"].currentText()
@@ -2142,7 +2158,7 @@ class SearchBibsWindow(EditObjectWindow):
 			previous["field"] = ""
 			try:
 				previous["operator"] = "%s"%line["operator"].currentText()
-			except (AttributeError, SyntaxError):
+			except AttributeError:
 				previous["operator"] = None
 			else:
 				if previous["operator"] not in self.operators["catexp"]:
@@ -2196,13 +2212,24 @@ class SearchBibsWindow(EditObjectWindow):
 			i: the line index
 			previous: a dictionary with the initial content of the line
 		"""
-		if ix >= len(self.textValues):
+		if not isinstance(previous, dict) or sorted(previous) != [
+				"content", "field", "logical", "operator", "type"]:
+			pBLogger.debug("Invalid previous! set to empty.\n%s"%previous)
+			previous = {"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}
+
+		while ix >= len(self.textValues):
 			self.textValues.append({})
 
 		if ix > 0:
 			self.textValues[ix]["logical"] = PBAndOrCombo(self,
 				current=previous["logical"])
 			self.currGrid.addWidget(self.textValues[ix]["logical"], ix, 0)
+		else:
+			self.textValues[ix]["logical"] = None
 
 		self.textValues[ix]["type"] = PBComboBox(self,
 			["Text", "Categories", "Experiments", "Marks", "Type"],
@@ -2251,7 +2278,6 @@ class SearchBibsWindow(EditObjectWindow):
 					lambda s=False, l=ix: self.onAskExps(l))
 
 		elif previous["type"] == "Marks":
-			self.textValues[ix]["field"] = None
 			self.textValues[ix]["operator"] = None
 			groupBox, markValues = pBMarks.getGroupbox(
 				previous["content"],
@@ -2263,7 +2289,6 @@ class SearchBibsWindow(EditObjectWindow):
 			self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
 
 		elif previous["type"] == "Type":
-			self.textValues[ix]["field"] = None
 			self.textValues[ix]["operator"] = None
 			groupBox = QGroupBox()
 			typeValues = {}

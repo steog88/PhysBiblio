@@ -4787,6 +4787,9 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_processHistoric(self):
 		"""test processHistoric"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
 		raise NotImplementedError
 
 	def test_changeCurrentContent(self):
@@ -4994,7 +4997,167 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_readLine(self):
 		"""test readLine"""
-		raise NotImplementedError
+		sbw = SearchBibsWindow()
+		sbw.addRow()
+		default = {"logical": None,
+			"field": None,
+			"type": "Text",
+			"operator": None,
+			"content": ""}
+		with patch("logging.Logger.debug") as _d:
+			self.assertEqual(sbw.readLine(2), default)
+			_d.assert_called_once_with(
+				'Missing index 2 (there are 2 elements)')
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "bibtex",
+			"type": "Text",
+			"operator": "contains",
+			"content": ""})
+
+		self.assertEqual(sbw.readLine(1), {
+			"logical": "AND",
+			"field": "bibtex",
+			"type": "Text",
+			"operator": "contains",
+			"content": ""})
+		del sbw.textValues[1]["logical"]
+		with patch("logging.Logger.debug") as _d:
+			self.assertEqual(sbw.readLine(1), {
+				"logical": None,
+				"field": "bibtex",
+				"type": "Text",
+				"operator": "contains",
+				"content": ""})
+			_d.assert_called_once_with("Missing or wrong 'logical' in line 1")
+
+		del sbw.textValues[1]["type"]
+		with patch("logging.Logger.debug") as _d:
+			self.assertEqual(sbw.readLine(1), default)
+			_d.assert_called_once_with("Missing or wrong 'type' in line 1")
+			sbw.textValues[1]["type"] = None
+			_d.reset_mock()
+			self.assertEqual(sbw.readLine(1), default)
+			_d.assert_called_once_with("Missing or wrong 'type' in line 1")
+
+		#Text
+		sbw.textValues[0]["field"].setCurrentText("arxiv")
+		sbw.textValues[0]["operator"].setCurrentText("exact match")
+		sbw.textValues[0]["content"].setText("myself")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "arxiv",
+			"type": "Text",
+			"operator": "exact match",
+			"content": "myself"})
+		sbw.textValues[0]["field"] = PBLabel("")
+		sbw.textValues[0]["operator"] = PBLabel("")
+		sbw.textValues[0]["content"] = sbw.textValues[1]["field"]
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Text",
+			"operator": None,
+			"content": ""})
+		sbw.textValues[0]["field"] = MagicMock()
+		sbw.textValues[0]["field"].currentText.return_value = "ABC"
+		sbw.textValues[0]["operator"] = MagicMock()
+		sbw.textValues[0]["operator"].currentText.return_value = "DEF"
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Text",
+			"operator": None,
+			"content": ""})
+
+		#Categories or Experiments
+		sbw.createLine(0, {
+			"logical": None,
+			"field": None,
+			"type": "Categories",
+			"operator": "at least one among",
+			"content": "[0, 1]"})
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "",
+			"type": "Categories",
+			"operator": "at least one among",
+			"content": [0, 1]})
+		sbw.textValues[0]["type"].setCurrentText("Experiments")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "",
+			"type": "Experiments",
+			"operator": "at least one among",
+			"content": [0, 1]})
+		sbw.textValues[0]["operator"] = PBLabel("")
+		sbw.textValues[0]["content"].setText("[0, 1")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "",
+			"type": "Experiments",
+			"operator": None,
+			"content": []})
+		sbw.textValues[0]["operator"] = MagicMock()
+		sbw.textValues[0]["operator"].currentText.return_value = "DEF"
+		sbw.textValues[0]["content"].setText("{'0': 1}")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "",
+			"type": "Experiments",
+			"operator": None,
+			"content": []})
+		sbw.textValues[0]["content"] = sbw.textValues[1]["field"]
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": "",
+			"type": "Experiments",
+			"operator": None,
+			"content": []})
+
+		#Marks
+		sbw.createLine(0, {
+			"logical": None,
+			"field": None,
+			"type": "Marks",
+			"operator": None,
+			"content": []})
+		sbw.textValues[0]["content"]["new"].setChecked(True)
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Marks",
+			"operator": None,
+			"content": ["new"]})
+		sbw.textValues[0]["content"] = PBLabel("")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Marks",
+			"operator": None,
+			"content": []})
+
+		#Types
+		sbw.createLine(0, {
+			"logical": None,
+			"field": None,
+			"type": "Type",
+			"operator": None,
+			"content": []})
+		sbw.textValues[0]["content"]["book"].setChecked(True)
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Type",
+			"operator": None,
+			"content": ["book"]})
+		sbw.textValues[0]["content"] = PBLabel("")
+		self.assertEqual(sbw.readLine(0), {
+			"logical": None,
+			"field": None,
+			"type": "Type",
+			"operator": None,
+			"content": []})
 
 	def test_readForm(self):
 		"""test readForm"""
@@ -5015,10 +5178,175 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_createLine(self):
 		"""test createLine"""
-		raise NotImplementedError
+		sbw = SearchBibsWindow()
+		self.assertEqual(len(sbw.textValues), 1)
+		with patch("logging.Logger.debug") as _d:
+			sbw.createLine(0, [])
+			_d.assert_called_once_with(
+				'Invalid previous! set to empty.\n[]')
+			sbw.createLine(0, {"content": ""})
+			_d.assert_any_call(
+				"Invalid previous! set to empty.\n{'content': ''}")
+		self.assertEqual(len(sbw.textValues), 1)
+		sbw.createLine(2, {"logical": "OR",
+			"field": "doi",
+			"type": "Text",
+			"operator": "exact match",
+			"content": "abc"})
+		self.assertEqual(len(sbw.textValues), 3)
+		self.assertEqual(sbw.textValues[0]["logical"], None)
+		self.assertEqual(sbw.currGrid.itemAtPosition(0, 0), None)
+		self.assertIsInstance(sbw.textValues[2]["logical"], PBAndOrCombo)
+		self.assertEqual(sbw.textValues[2]["logical"].currentText(),
+			"OR")
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 0).widget(),
+			sbw.textValues[2]["logical"])
+		self.assertIsInstance(sbw.textValues[2]["type"], PBComboBox)
+		self.assertEqual(sbw.textValues[2]["type"].currentText(),
+			"Text")
+		self.assertEqual(sbw.textValues[2]["type"].count(), 5)
+		self.assertEqual(sbw.textValues[2]["type"].itemText(0), "Text")
+		self.assertEqual(sbw.textValues[2]["type"].itemText(1), "Categories")
+		self.assertEqual(sbw.textValues[2]["type"].itemText(2), "Experiments")
+		self.assertEqual(sbw.textValues[2]["type"].itemText(3), "Marks")
+		self.assertEqual(sbw.textValues[2]["type"].itemText(4), "Type")
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 1).widget(),
+			sbw.textValues[2]["type"])
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.saveTypeRow"
+				) as _str:
+			sbw.textValues[2]["type"].setCurrentText("Marks")
+			_str.assert_called_once_with(2, u'Marks')
+
+		#Type
+		self.assertIsInstance(sbw.textValues[2]["field"], PBComboBox)
+		self.assertEqual(sbw.textValues[2]["field"].currentText(), "doi")
+		self.assertEqual(sbw.textValues[2]["field"].count(),
+			len(sbw.fields["text"]))
+		for i, c in enumerate(sbw.fields["text"]):
+			self.assertEqual(sbw.textValues[2]["field"].itemText(i), c)
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 2).widget(),
+			sbw.textValues[2]["field"])
+
+		self.assertIsInstance(sbw.textValues[2]["operator"], PBComboBox)
+		self.assertEqual(sbw.textValues[2]["operator"].currentText(),
+			"exact match")
+		self.assertEqual(sbw.textValues[2]["operator"].count(),
+			len(sbw.operators["text"]))
+		for i, c in enumerate(sbw.operators["text"]):
+			self.assertEqual(sbw.textValues[2]["operator"].itemText(i), c)
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 3).widget(),
+			sbw.textValues[2]["operator"])
+
+		self.assertIsInstance(sbw.textValues[2]["content"], QLineEdit)
+		self.assertEqual(sbw.textValues[2]["content"].text(), "abc")
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 4).widget(),
+			sbw.textValues[2]["content"])
+
+		#Categories
+		sbw.cleanLayout()
+		sbw.createLine(1, {"logical": "OR",
+			"field": None,
+			"type": "Categories",
+			"operator": "none of the following",
+			"content": ""})
+		self.assertEqual(sbw.textValues[1]["type"].currentText(),
+			"Categories")
+		self.assertEqual(sbw.textValues[1]["field"], None)
+		self.assertIsInstance(sbw.textValues[1]["operator"], PBComboBox)
+		self.assertEqual(sbw.textValues[1]["operator"].currentText(),
+			"none of the following")
+		self.assertEqual(sbw.textValues[1]["operator"].count(),
+			len(sbw.operators["catexp"]))
+		for i, c in enumerate(sbw.operators["catexp"]):
+			self.assertEqual(sbw.textValues[1]["operator"].itemText(i), c)
+		self.assertEqual(sbw.currGrid.itemAtPosition(1, 2).widget(),
+			sbw.textValues[1]["operator"])
+		self.assertIsInstance(sbw.textValues[1]["content"], QPushButton)
+		self.assertEqual(sbw.textValues[1]["content"].text(), "[]")
+		self.assertEqual(sbw.currGrid.itemAtPosition(1, 4).widget(),
+			sbw.textValues[1]["content"])
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.onAskCats"
+				) as _oac:
+			QTest.mouseClick(sbw.textValues[1]["content"], Qt.LeftButton)
+			_oac.assert_called_once_with(1)
+
+		sbw.createLine(0, {"logical": "OR",
+			"field": None,
+			"type": "Experiments",
+			"operator": "none of the following",
+			"content": [0]})
+		self.assertEqual(sbw.textValues[0]["type"].currentText(),
+			"Experiments")
+		self.assertEqual(sbw.textValues[0]["field"], None)
+		self.assertIsInstance(sbw.textValues[0]["operator"], PBComboBox)
+		self.assertEqual(sbw.textValues[0]["operator"].currentText(),
+			"none of the following")
+		self.assertEqual(sbw.textValues[0]["operator"].count(),
+			len(sbw.operators["catexp"]))
+		for i, c in enumerate(sbw.operators["catexp"]):
+			self.assertEqual(sbw.textValues[0]["operator"].itemText(i), c)
+		self.assertEqual(sbw.currGrid.itemAtPosition(0, 2).widget(),
+			sbw.textValues[0]["operator"])
+		self.assertIsInstance(sbw.textValues[0]["content"], QPushButton)
+		self.assertEqual(sbw.textValues[0]["content"].text(), "[0]")
+		self.assertEqual(sbw.currGrid.itemAtPosition(0, 4).widget(),
+			sbw.textValues[0]["content"])
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.onAskExps"
+				) as _oae:
+			QTest.mouseClick(sbw.textValues[0]["content"], Qt.LeftButton)
+			_oae.assert_called_once_with(0)
+
+		#Marks
+		sbw.cleanLayout()
+		gb, mv = pBMarks.getGroupbox(
+			["new"], description="", radio=True, addAny=True)
+		with patch("physbiblio.gui.marks.Marks.getGroupbox",
+				return_value=(gb, mv)) as _gg:
+			sbw.createLine(0, {"logical": "OR",
+				"field": None,
+				"type": "Marks",
+				"operator": None,
+				"content": ["new"]})
+			_gg.assert_called_once_with(["new"],
+				description="", radio=True, addAny=True)
+		self.assertEqual(sbw.textValues[0]["type"].currentText(), "Marks")
+		self.assertEqual(sbw.textValues[0]["operator"], None)
+		self.assertEqual(sbw.textValues[0]["field"], gb)
+		self.assertEqual(sbw.textValues[0]["content"], mv)
+		self.assertEqual(sbw.currGrid.itemAtPosition(0, 2).widget(), gb)
+
+		#Marks
+		sbw.createLine(1, {"logical": "OR",
+			"field": None,
+			"type": "Type",
+			"operator": None,
+			"content": ["book"]})
+		self.assertEqual(sbw.textValues[1]["type"].currentText(), "Type")
+		self.assertEqual(sbw.textValues[1]["operator"], None)
+		self.assertIsInstance(sbw.textValues[1]["field"], QGroupBox)
+		self.assertIsInstance(sbw.textValues[1]["content"], dict)
+		self.assertEqual(sbw.currGrid.itemAtPosition(1, 2).widget(),
+			sbw.textValues[1]["field"])
+		self.assertTrue(sbw.textValues[1]["field"].isFlat())
+		self.assertIsInstance(sbw.textValues[1]["field"].layout(), QHBoxLayout)
+		for i, (m, c) in enumerate(sbw.possibleTypes.items()):
+			self.assertIsInstance(sbw.textValues[1]["content"][m],
+				QRadioButton)
+			self.assertEqual(sbw.textValues[1]["content"][m].text(),
+				c["desc"])
+			if m == "book":
+				self.assertTrue(sbw.textValues[1]["content"][m].isChecked())
+			else:
+				self.assertFalse(sbw.textValues[1]["content"][m].isChecked())
+			self.assertEqual(
+				sbw.textValues[1]["field"].layout().itemAt(i).widget(),
+				sbw.textValues[1]["content"][m])
 
 	def test_createForm(self):
 		"""test createForm"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
 		raise NotImplementedError
 
 
