@@ -4765,6 +4765,13 @@ class TestSearchBibsWindow(GUITestCase):
 			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
 				"firstdate", "pubdate", "comment"]
 			})
+
+		self.assertEqual(sbw.replaceFields, {
+			"old": ["arxiv", "doi", "year", "author", "title",
+				"journal", "number", "volume", "published"],
+			"new": ["arxiv", "doi", "year", "author", "title",
+				"journal", "number", "volume"]
+			})
 		self.assertEqual(sbw.values, [])
 		self.assertEqual(sbw.numberOfRows, 1)
 		self.assertEqual(sbw.replOld, None)
@@ -4910,7 +4917,7 @@ class TestSearchBibsWindow(GUITestCase):
 	def test_eventFilter(self):
 		"""test eventFilter"""
 		sbw = SearchBibsWindow(replace=True)
-		w = None
+		w = "123"
 		e = MagicMock()
 		e.type.return_value = "a"
 		e.key.return_value = "b"
@@ -4927,7 +4934,7 @@ class TestSearchBibsWindow(GUITestCase):
 			_ef.assert_called_once_with(sbw, w, e)
 			e.key.assert_not_called()
 		for x in [sbw.textValues[0]["content"], sbw.replOld, sbw.replNew,
-				sbw.limitValue, sbw.limitOffs]:
+				sbw.replNew1, sbw.limitValue, sbw.limitOffs]:
 			w = x
 			with patch("PySide2.QtWidgets.QWidget.eventFilter",
 					return_value="abc") as _ef:
@@ -5188,11 +5195,13 @@ class TestSearchBibsWindow(GUITestCase):
 			_d.assert_any_call(
 				"Invalid previous! set to empty.\n{'content': ''}")
 		self.assertEqual(len(sbw.textValues), 1)
-		sbw.createLine(2, {"logical": "OR",
-			"field": "doi",
-			"type": "Text",
-			"operator": "exact match",
-			"content": "abc"})
+		with patch("PySide2.QtCore.QObject.installEventFilter") as _ief:
+			sbw.createLine(2, {"logical": "OR",
+				"field": "doi",
+				"type": "Text",
+				"operator": "exact match",
+				"content": "abc"})
+			self.assertEqual(_ief.call_count, 1)
 		self.assertEqual(len(sbw.textValues), 3)
 		self.assertEqual(sbw.textValues[0]["logical"], None)
 		self.assertEqual(sbw.currGrid.itemAtPosition(0, 0), None)
@@ -5342,12 +5351,269 @@ class TestSearchBibsWindow(GUITestCase):
 				sbw.textValues[1]["field"].layout().itemAt(i).widget(),
 				sbw.textValues[1]["content"][m])
 
-	def test_createForm(self):
-		"""test createForm"""
+	def test_createLimits(self):
+		"""test createLimits"""
 		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
 				) as _cf:
 			sbw = SearchBibsWindow()
-		raise NotImplementedError
+		with patch("PySide2.QtCore.QObject.installEventFilter") as _ief:
+			sbw.createLimits(12)
+			self.assertEqual(_ief.call_count, 2)
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 0).widget().text(),
+			"Max number of results:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 3).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 3).widget().text(),
+			"Start from:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 2).widget(),
+			QLineEdit)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 2).widget(),
+			sbw.limitValue)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 2).widget().text(),
+			str(pbConfig.params["defaultLimitBibtexs"]))
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 5).widget(),
+			QLineEdit)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 5).widget(),
+			sbw.limitOffs)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 5).widget().text(),
+			"0")
+
+		sbw.limitValue.setText("123")
+		sbw.limitOffs.setText("321")
+		sbw.createLimits(24)
+		self.assertEqual(sbw.limitValue.text(), "123")
+		self.assertEqual(sbw.limitOffs.text(), "321")
+		sbw.createLimits(5, defLim="444", defOffs="22")
+		self.assertEqual(sbw.limitValue.text(), "123")
+		self.assertEqual(sbw.limitOffs.text(), "321")
+		del sbw.limitValue
+		del sbw.limitOffs
+		sbw.createLimits(5, defLim="444", defOffs="22")
+		self.assertEqual(sbw.limitValue.text(), "444")
+		self.assertEqual(sbw.limitOffs.text(), "22")
+		sbw.createLimits(5, defLim="9999", defOffs="1", override=True)
+		self.assertEqual(sbw.limitValue.text(), "9999")
+		self.assertEqual(sbw.limitOffs.text(), "1")
+
+	def test_createReplace(self):
+		"""test createReplace"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		with patch("PySide2.QtCore.QObject.installEventFilter") as _ief:
+			self.assertEqual(sbw.createReplace(10), 13)
+			self.assertEqual(_ief.call_count, 2)
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(9, 0).widget(),
+			PBLabel)
+		self.assertEqual(sbw.currGrid.itemAtPosition(9, 0).widget().text(),
+			"Replace:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(9, 2).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(9, 2).widget().text(),
+			"regex:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(9, 3).widget(),
+			QCheckBox)
+		self.assertEqual(sbw.currGrid.itemAtPosition(9, 3).widget(),
+			sbw.replRegex)
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(10, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(10, 0).widget().text(),
+			"From field:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(11, 0).widget().text(),
+			"Into field:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(12, 0).widget(),
+			QCheckBox)
+		self.assertEqual(sbw.currGrid.itemAtPosition(12, 0).widget(),
+			sbw.doubleEdit)
+		self.assertEqual(sbw.currGrid.itemAtPosition(12, 0).widget().text(),
+			"and also:")
+		self.assertIsInstance(sbw.limitValue, QLineEdit)
+		self.assertIsInstance(sbw.limitOffs, QLineEdit)
+		self.assertEqual(sbw.limitValue.text(), "100000")
+		self.assertEqual(sbw.limitOffs.text(), "0")
+
+		self.assertIsInstance(sbw.replOldField, PBComboBox)
+		self.assertEqual(sbw.currGrid.itemAtPosition(10, 1).widget(),
+			sbw.replOldField)
+		for i, f in enumerate(sbw.replaceFields["old"]):
+			self.assertEqual(sbw.replOldField.itemText(i), f)
+		self.assertIsInstance(sbw.replOld, QLineEdit)
+		self.assertEqual(sbw.currGrid.itemAtPosition(10, 3).widget(),
+			sbw.replOld)
+
+		for ix, itemF, item in [
+				(11, sbw.replNewField, sbw.replNew),
+				(12, sbw.replNewField1, sbw.replNew1)]:
+			self.assertIsInstance(itemF, PBComboBox)
+			self.assertEqual(sbw.currGrid.itemAtPosition(ix, 1).widget(),
+				itemF)
+			for i, f in enumerate(sbw.replaceFields["new"]):
+				self.assertEqual(itemF.itemText(i), f)
+			self.assertIsInstance(item, QLineEdit)
+			self.assertEqual(sbw.currGrid.itemAtPosition(ix, 3).widget(),
+				item)
+
+		self.assertFalse(sbw.replRegex.isChecked())
+		self.assertEqual(sbw.replOldField.currentText(), "author")
+		self.assertEqual(sbw.replNewField.currentText(), "author")
+		self.assertEqual(sbw.replNewField1.currentText(), "author")
+		self.assertFalse(sbw.doubleEdit.isChecked())
+		self.assertEqual(sbw.replOld.text(), "")
+		self.assertEqual(sbw.replNew.text(), "")
+		self.assertEqual(sbw.replNew1.text(), "")
+
+		#now try with modified values
+		sbw.replRegex.setChecked(True)
+		sbw.replOldField.setCurrentText("published")
+		sbw.replNewField.setCurrentText("journal")
+		sbw.replNewField1.setCurrentText("volume")
+		sbw.doubleEdit.setChecked(True)
+		sbw.replOld.setText("PRD")
+		sbw.replNew.setText(r"\1")
+		sbw.replNew1.setText(r"\2")
+		sbw.cleanLayout()
+		self.assertEqual(sbw.createReplace(13), 16)
+		self.assertTrue(sbw.replRegex.isChecked())
+		self.assertEqual(sbw.replOldField.currentText(), "published")
+		self.assertEqual(sbw.replNewField.currentText(), "journal")
+		self.assertEqual(sbw.replNewField1.currentText(), "volume")
+		self.assertTrue(sbw.doubleEdit.isChecked())
+		self.assertEqual(sbw.replOld.text(), "PRD")
+		self.assertEqual(sbw.replNew.text(), r"\1")
+		self.assertEqual(sbw.replNew1.text(), r"\2")
+
+		#now with previous
+		with patch("logging.Logger.debug") as _d:
+			self.assertEqual(sbw.createReplace(13, previous=[]), 16)
+			_d.assert_called_once_with(
+				"Invalid previous, must have lenght==8!\n[]")
+		self.assertFalse(sbw.replRegex.isChecked())
+		self.assertEqual(sbw.replOldField.currentText(), "author")
+		self.assertEqual(sbw.replNewField.currentText(), "author")
+		self.assertEqual(sbw.replNewField1.currentText(), "author")
+		self.assertFalse(sbw.doubleEdit.isChecked())
+		self.assertEqual(sbw.replOld.text(), "")
+		self.assertEqual(sbw.replNew.text(), "")
+		self.assertEqual(sbw.replNew1.text(), "")
+		sbw.createReplace(13, previous=[
+			False, "volume", "number", "year",
+			True, "([0-9]{2})([0-9]{2})", r"\2", r"20\1"])
+		self.assertFalse(sbw.replRegex.isChecked())
+		self.assertEqual(sbw.replOldField.currentText(), "volume")
+		self.assertEqual(sbw.replNewField.currentText(), "number")
+		self.assertEqual(sbw.replNewField1.currentText(), "year")
+		self.assertTrue(sbw.doubleEdit.isChecked())
+		self.assertEqual(sbw.replOld.text(), "([0-9]{2})([0-9]{2})")
+		self.assertEqual(sbw.replNew.text(), r"\2")
+		self.assertEqual(sbw.replNew1.text(), r"20\1")
+
+	def test_createForm(self):
+		"""test createForm"""
+		clsName = "physbiblio.gui.bibWindows.SearchBibsWindow."
+		with patch(clsName + "createForm") as _cf:
+			sbw = SearchBibsWindow()
+		sbw.historic = [
+			{"nrows": 1,
+			"searchvalues": ["sw"],
+			"replacevalues": "av"},
+			{"nrows": 2,
+			"searchvalues": ["lor", "th"],
+			"replacevalues": "hp"}]
+		sbw.numberOfRows = 2
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm()
+			_crlin.assert_has_calls([
+				call(0, {'operator': None, 'field': None, 'content': '',
+					'type': 'Text', 'logical': None}),
+				call(1, {'operator': None, 'field': None, 'content': '',
+					'type': 'Text', 'logical': None})])
+			_crlim.assert_called_once_with(5)
+			_crre.assert_not_called()
+		sbw.cleanLayout()
+		sbw.createForm()
+		self.assertEqual(sbw.windowTitle(), 'Search bibtex entries')
+		# addFieldButton and label
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(2, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 0).widget().text(),
+			"Click here if you want more fields:")
+		self.assertIsInstance(sbw.currGrid.itemAtPosition(2, 2).widget(),
+			QPushButton)
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 2).widget(),
+			sbw.addFieldButton)
+		self.assertEqual(sbw.currGrid.itemAtPosition(2, 2).widget().text(),
+			"Add another line")
+		with patch(clsName + "addRow") as _ar:
+			QTest.mouseClick(sbw.addFieldButton, Qt.LeftButton)
+			_ar.assert_called_once_with()
+		# acceptbutton
+		self.assertEqual(sbw.currGrid.itemAtPosition(6, 2).widget(),
+			sbw.acceptButton)
+		self.assertIsInstance(sbw.acceptButton, QPushButton)
+		self.assertEqual(sbw.acceptButton.text(), "OK")
+		with patch(clsName + "onOk") as _o:
+			QTest.mouseClick(sbw.acceptButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		# cancelbutton
+		self.assertEqual(sbw.currGrid.itemAtPosition(6, 3).widget(),
+			sbw.cancelButton)
+		self.assertIsInstance(sbw.cancelButton, QPushButton)
+		self.assertEqual(sbw.cancelButton.text(), "Cancel")
+		with patch(clsName + "onCancel") as _o:
+			QTest.mouseClick(sbw.cancelButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+		# savebutton
+		self.assertEqual(sbw.currGrid.itemAtPosition(6, 5).widget(),
+			sbw.saveButton)
+		self.assertIsInstance(sbw.saveButton, QPushButton)
+		self.assertEqual(sbw.saveButton.text(), "Run and save")
+		with patch(clsName + "onSave") as _o:
+			QTest.mouseClick(sbw.saveButton, Qt.LeftButton)
+			_o.assert_called_once_with()
+
+		sbw.saveTypeRow(0, "Categories")
+		with patch(clsName + "createLine") as _crlin:
+			sbw.createForm()
+			_crlin.assert_has_calls([
+				call(0, {'operator': u'all the following', 'field': '',
+					'content': [], 'type': u'Categories', 'logical': None}),
+				call(1, {'operator': u'contains', 'field': u'bibtex',
+					'content': u'', 'type': u'Text', 'logical': u'AND'})])
+
+		sbw.replace = True
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm()
+			_crlin.assert_has_calls([
+				call(0, {'operator': u'all the following', 'field': '',
+					'content': [], 'type': u'Categories', 'logical': None}),
+				call(1, {'operator': u'contains', 'field': u'bibtex',
+					'content': u'', 'type': u'Text', 'logical': u'AND'})])
+			_crre.assert_called_once_with(5)
+			_crlim.assert_not_called()
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm(histIndex=1)
+			self.assertEqual(sbw.numberOfRows, 1)
+			_crlin.assert_has_calls([call(0, 'sw')])
+			_crre.assert_called_once_with(4, previous='av')
+			_crlim.assert_not_called()
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm(histIndex=2)
+			self.assertEqual(sbw.numberOfRows, 2)
+			_crlin.assert_has_calls([call(0, 'lor'), call(1, 'th')])
+			_crre.assert_called_once_with(5, previous='hp')
+			_crlim.assert_not_called()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

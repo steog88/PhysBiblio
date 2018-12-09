@@ -1965,6 +1965,12 @@ class SearchBibsWindow(EditObjectWindow):
 			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
 				"firstdate", "pubdate", "comment"]
 			}
+		self.replaceFields = {
+			"old": ["arxiv", "doi", "year", "author", "title",
+				"journal", "number", "volume", "published"],
+			"new": ["arxiv", "doi", "year", "author", "title",
+				"journal", "number", "volume"]
+			}
 		self.values = []
 		self.numberOfRows = 1
 		self.replOld = None
@@ -2058,12 +2064,15 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		if (event.type() == QEvent.KeyPress
 				and (widget in [a["content"] for a in self.textValues]
-					+ [self.replOld, self.replNew,
+					+ [self.replOld, self.replNew, self.replNew1,
 					self.limitValue, self.limitOffs])):
 			key = event.key()
 			if key == Qt.Key_Return or key == Qt.Key_Enter:
 				self.acceptButton.setFocus()
 				return True
+			# elif key == Qt.Key_Up or key == Qt.Key_Down:
+				# recreate form with appropriate historic entry
+				# return True
 		return QWidget.eventFilter(self, widget, event)
 
 	def resetForm(self):
@@ -2305,38 +2314,166 @@ class SearchBibsWindow(EditObjectWindow):
 			self.textValues[ix]["content"] = typeValues
 			self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
 
-	def createForm(self, defaultIndex=0, spaceRowHeight=25):
-		if defaultIndex > len(self.historic):
-			defaultIndex = 0
+	def createLimits(self,
+			ix,
+			defLim=str(pbConfig.params["defaultLimitBibtexs"]),
+			defOffs="0",
+			override=False):
+		"""Create the fields for "limit to" and "limit offset"
+
+		Parameter:
+			ix: the line index
+			defLim (default from configuration): the default value for
+				the limit of results
+			defOffs (default "0"): the default value for the offset
+			override (default False):
+				if True, ignore previous form content
+		"""
+		try:
+			lim = self.limitValue.text()
+			offs = self.limitOffs.text()
+		except AttributeError:
+			lim = defLim
+			offs = defOffs
+		if override:
+			lim = defLim
+			offs = defOffs
+		self.currGrid.addWidget(
+			PBLabelRight("Max number of results:"), ix - 1, 0, 1, 2)
+		self.limitValue = QLineEdit(lim)
+		self.limitValue.setMaxLength(6)
+		self.limitValue.setFixedWidth(75)
+		self.currGrid.addWidget(self.limitValue, ix - 1, 2)
+		self.currGrid.addWidget(
+			PBLabelRight("Start from:"), ix - 1, 3, 1, 2)
+		self.limitOffs = QLineEdit(offs)
+		self.limitOffs.setMaxLength(6)
+		self.limitOffs.setFixedWidth(75)
+		self.currGrid.addWidget(self.limitOffs, ix - 1, 5)
+		self.limitValue.installEventFilter(self)
+		self.limitOffs.installEventFilter(self)
+
+	def createReplace(self, ix, previous=None):
+		"""Create the form fields for a replace action
+
+		Parameter:
+			ix: the initial row index for the first field
+			previous (default None): the previous content
+				(used when restoring previous save)
+
+		Output:
+			the row index for the last field plus one
+		"""
+		if previous is not None:
+			try:
+				regex, fieOld, fieNew, fieNew1, double, old, new, new1 = \
+					previous
+			except ValueError:
+				pBLogger.debug("Invalid previous, must have lenght==8!\n"
+					+ "%s"%previous)
+				regex = False
+				fieOld = "author"
+				fieNew = "author"
+				fieNew1 = "author"
+				double = False
+				old = ""
+				new = ""
+				new1 = ""
+		else:
+			try:
+				regex = self.replRegex.isChecked()
+				fieOld = self.replOldField.currentText()
+				fieNew = self.replNewField.currentText()
+				fieNew1 = self.replNewField1.currentText()
+				double = self.doubleEdit.isChecked()
+				old = self.replOld.text()
+				new = self.replNew.text()
+				new1 = self.replNew1.text()
+			except AttributeError:
+				regex = False
+				fieOld = "author"
+				fieNew = "author"
+				fieNew1 = "author"
+				double = False
+				old = ""
+				new = ""
+				new1 = ""
+		self.currGrid.addWidget(PBLabel("Replace:"), ix - 1, 0)
+		self.currGrid.addWidget(PBLabelRight("regex:"), ix - 1, 2)
+		self.replRegex = QCheckBox("", self)
+		self.replRegex.setChecked(regex)
+		self.currGrid.addWidget(self.replRegex, ix - 1, 3)
+		self.currGrid.addWidget(PBLabelRight("From field:"), ix, 0)
+		self.replOldField = PBComboBox(self,
+			self.replaceFields["old"],
+			current=fieOld)
+		self.currGrid.addWidget(self.replOldField, ix, 1, 1, 2)
+		self.replOld = QLineEdit(old)
+		self.currGrid.addWidget(self.replOld, ix, 3, 1, 3)
+		ix += 1
+		self.currGrid.addWidget(PBLabelRight("Into field:"), ix, 0)
+		self.replNewField = PBComboBox(self,
+			self.replaceFields["new"],
+			current=fieNew)
+		self.currGrid.addWidget(self.replNewField, ix, 1, 1, 2)
+		self.replNew = QLineEdit(new)
+		self.currGrid.addWidget(self.replNew, ix, 3, 1, 3)
+		ix += 1
+		self.doubleEdit = QCheckBox("and also:")
+		self.doubleEdit.setChecked(double)
+		self.currGrid.addWidget(self.doubleEdit, ix, 0)
+		self.replNewField1 = PBComboBox(self,
+			self.replaceFields["new"],
+			current=fieNew1)
+		self.currGrid.addWidget(self.replNewField1, ix, 1, 1, 2)
+		self.replNew1 = QLineEdit(new1)
+		self.currGrid.addWidget(self.replNew1, ix, 3, 1, 3)
+		self.replOld.installEventFilter(self)
+		self.replNew.installEventFilter(self)
+		self.limitValue = QLineEdit("100000")
+		self.limitOffs = QLineEdit("0")
+		return ix + 1
+
+	def createForm(self, histIndex=0, spaceRowHeight=25):
+		"""Create the form structure,
+		using history information if required
+
+		Parameters:
+			histIndex (default 0): if >0, the index in the history
+				of the search/replace to use to build the form
+			spaceRowHeight (default 25): used as height for some rows
+		"""
 		self.setWindowTitle('Search bibtex entries')
 
-		for i in range(self.numberOfRows):
-			try:
-				previous = self.values[i]
-			except IndexError:
-				previous = {"logical": None,
-					"field": None,
-					"type": "Text",
-					"operator": None,
-					"content": ""}
-				self.values.append(previous)
-			self.createLine(i, previous)
+		if histIndex > len(self.historic):
+			histIndex = 0
 
-		# # tempEl["f"] = QComboBox(self)
-		# # tempEl["f"].setEditable(True)
-		# # dbFiles = [f.split(os.sep)[-1]
-			# # for f in list(glob.iglob(
-				# # os.path.join(pbConfig.dataPath, "*.db")))]
-		# # registeredDb = [a["db"].split(os.sep)[-1]
-			# # for a in profilesData.values()]
-		# # tempEl["f"].addItems(
-			# # [newLine["db"]] + [f for f in dbFiles if f not in registeredDb])
-		# # self.currGrid.addWidget(tempEl["f"], i, 2)
-		# # tempEl["f"].currentIndexChanged[int].connect(changeCurrentContent)
+		if histIndex > 0:
+			self.currentHistoric = histIndex
+			self.numberOfRows = self.historic[histIndex-1]["nrows"]
+			for i in range(self.numberOfRows):
+				previous = self.historic[histIndex-1]["searchvalues"][i]
+				try:
+					self.values[i] = previous
+				except IndexError:
+					self.values.append(previous)
+				self.createLine(i, previous)
+		else:
+			for i in range(self.numberOfRows):
+				try:
+					previous = self.values[i]
+				except IndexError:
+					previous = {"logical": None,
+						"field": None,
+						"type": "Text",
+						"operator": None,
+						"content": ""}
+					self.values.append(previous)
+				self.createLine(i, previous)
 
 		try:
 			self.textValues[-1]["content"].setFocus()
-		except AttributeError:
+		except (IndexError, AttributeError):
 			pass
 
 		i = self.numberOfRows + 1
@@ -2350,78 +2487,13 @@ class SearchBibsWindow(EditObjectWindow):
 
 		i += 2
 		if self.replace:
-			self.currGrid.addWidget(PBLabel("Replace:"), i - 1, 0)
-			self.currGrid.addWidget(PBLabelRight("regex:"), i - 1, 2)
-			self.replRegex = QCheckBox("", self)
-			self.currGrid.addWidget(self.replRegex, i - 1, 3)
-			try:
-				fieOld = self.replOldField.currentText()
-				fieNew = self.replNewField.currentText()
-				fieNew1 = self.replNewField1.currentText()
-				double = self.doubleEdit.isChecked()
-				old = self.replOld.text()
-				new = self.replNew.text()
-				new1 = self.replNew1.text()
-			except AttributeError:
-				fieOld = "author"
-				fieNew = "author"
-				fieNew1 = "author"
-				double = False
-				old = ""
-				new = ""
-				new1 = ""
-			self.currGrid.addWidget(PBLabelRight("From field:"), i, 0)
-			self.replOldField = PBComboBox(self,
-				["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume", "published"],
-				current = fieNew)
-			self.currGrid.addWidget(self.replOldField, i, 1, 1, 2)
-			self.replOld = QLineEdit(old)
-			self.currGrid.addWidget(self.replOld, i, 3, 1, 3)
-			i += 1
-			self.currGrid.addWidget(PBLabelRight("Into field:"), i, 0)
-			self.replNewField = PBComboBox(self,
-				["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"], current=fieNew)
-			self.currGrid.addWidget(self.replNewField, i, 1, 1, 2)
-			self.replNew = QLineEdit(new)
-			self.currGrid.addWidget(self.replNew, i, 3, 1, 3)
-			i += 1
-			self.doubleEdit = QCheckBox("and also:")
-			self.currGrid.addWidget(self.doubleEdit, i, 0)
-			self.replNewField1 = PBComboBox(self,
-				["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"], current=fieNew)
-			self.currGrid.addWidget(self.replNewField1, i, 1, 1, 2)
-			self.replNew1 = QLineEdit(new1)
-			self.currGrid.addWidget(self.replNew1, i, 3, 1, 3)
-			self.replOld.installEventFilter(self)
-			self.replNew.installEventFilter(self)
-			self.limitValue = QLineEdit("100000")
-			self.limitOffs = QLineEdit("0")
-			i += 1
+			if histIndex > 0:
+				i = self.createReplace(i,
+					previous=self.historic[histIndex-1]["replacevalues"])
+			else:
+				i = self.createReplace(i)
 		else:
-			#limit to, limit offset
-			try:
-				lim = self.limitValue.text()
-				offs = self.limitOffs.text()
-			except AttributeError:
-				lim = str(pbConfig.params["defaultLimitBibtexs"])
-				offs = "0"
-			self.currGrid.addWidget(PBLabelRight("Max number of results:"),
-				i - 1, 0, 1, 2)
-			self.limitValue = QLineEdit(lim)
-			self.limitValue.setMaxLength(6)
-			self.limitValue.setFixedWidth(75)
-			self.currGrid.addWidget(self.limitValue, i - 1, 2)
-			self.currGrid.addWidget(PBLabelRight("Start from:"),
-				i - 1, 3, 1, 2)
-			self.limitOffs = QLineEdit(offs)
-			self.limitOffs.setMaxLength(6)
-			self.limitOffs.setFixedWidth(75)
-			self.currGrid.addWidget(self.limitOffs, i - 1, 5)
-			self.limitValue.installEventFilter(self)
-			self.limitOffs.installEventFilter(self)
+			self.createLimits(i)
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 		i += 1
