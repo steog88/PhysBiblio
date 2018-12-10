@@ -1,3 +1,5 @@
+	* fixing a crash when firstdate is removed from the bibtex list columns
+
 0.9.4 (2018-12-06):
 	* now asking to close when the database is locked by another PhysBiblio instance
 	* more accurate tests in databaseCore and few improvements

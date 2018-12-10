@@ -1544,7 +1544,10 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			previous=self.previous)
 
 		self.changeEnableActions()
-		self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
+		if "firstdate" in self.columns:
+			self.setProxyStuff(self.columns.index("firstdate"), Qt.DescendingOrder)
+		else:
+			self.setProxyStuff(self.columns.index("bibkey"), Qt.AscendingOrder)
 		self.tableview.hideColumn(
 			len(self.columns) + len(self.additionalCols))
 
