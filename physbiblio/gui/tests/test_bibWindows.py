@@ -5203,20 +5203,65 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_readForm(self):
 		"""test readForm"""
-		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
-				) as _cf:
-			sbw = SearchBibsWindow()
+		sbw = SearchBibsWindow()
 		sbw.values = ["a", "b"]
 		sbw.numberOfRows = 3
 		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
-				side_effect=["A", "B", "C"]) as _rl:
+				side_effect=["A", "B", "C", "D", "E", "F"]) as _rl:
 			sbw.readForm()
 			_rl.assert_has_calls([call(0), call(1), call(2)])
-			self.assertEqual(sbw.values, ['A', 'B', {"logical": None,
+			self.assertEqual(sbw.values,
+				['A', 'B',
+				{"logical": None,
 				"field": None,
 				"type": "Text",
 				"operator": None,
 				"content": ""}])
+			self.assertEqual(sbw.limit, pbConfig.params["defaultLimitBibtexs"])
+			self.assertEqual(sbw.offset, 0)
+			sbw.limitValue.setText("413")
+			sbw.limitOffs.setText("99")
+			sbw.readForm()
+			self.assertEqual(sbw.limit, 413)
+			self.assertEqual(sbw.offset, 99)
+
+		sbw = SearchBibsWindow(replace=True)
+		sbw.values = ["a", "b"]
+		sbw.numberOfRows = 2
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+				side_effect=["A", "B", "C", "D", "E", "F"]) as _rl:
+			sbw.readForm()
+			_rl.assert_has_calls([call(0), call(1)])
+			self.assertEqual(sbw.replaceFields,
+				{"regex": False,
+				"double": False,
+				"replOldField": "author",
+				"replOld": "",
+				"replNewField": "author",
+				"replNew": "",
+				"replNewField1": "author",
+				"replNew1": "",
+				})
+			sbw.replRegex.setChecked(True)
+			sbw.doubleEdit.setChecked(False)
+			sbw.replOldField.setCurrentText("published")
+			sbw.replOld.setText("a b c")
+			sbw.replNewField.setCurrentText("volume")
+			sbw.replNew.setText("AA")
+			sbw.replNewField1.setCurrentText("journal")
+			sbw.replNew1.setText("BB")
+			sbw.readForm()
+			_rl.assert_has_calls([call(0), call(1)])
+			self.assertEqual(sbw.replaceFields,
+				{"regex": True,
+				"double": False,
+				"replOldField": "published",
+				"replOld": "a b c",
+				"replNewField": "volume",
+				"replNew": "AA",
+				"replNewField1": "journal",
+				"replNew1": "BB",
+				})
 
 	def test_createLine(self):
 		"""test createLine"""

@@ -2232,6 +2232,25 @@ class SearchBibsWindow(EditObjectWindow):
 					"type": "Text",
 					"operator": None,
 					"content": ""})
+		if self.replace:
+			self.replaceFields = {
+				"regex": self.replRegex.isChecked(),
+				"double": self.doubleEdit.isChecked(),
+				"replOldField": self.replOldField.currentText(),
+				"replOld": self.replOld.text(),
+				"replNewField": self.replNewField.currentText(),
+				"replNew": self.replNew.text(),
+				"replNewField1": self.replNewField1.currentText(),
+				"replNew1": self.replNew1.text(),
+				}
+		try:
+			self.limit = int(self.limitValue.text())
+		except ValueError:
+			self.limit = pbConfig.params["defaultLimitBibtexs"]
+		try:
+			self.offset = int(self.limitOffs.text())
+		except ValueError:
+			self.offset = 0
 
 	def createLine(self, ix, previous):
 		"""Create a new line in the form, with the necessary fields
