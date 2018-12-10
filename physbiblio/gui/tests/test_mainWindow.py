@@ -1329,20 +1329,29 @@ class TestMainWindow(GUITestCase):
 				patch(self.modName + ".LongInfoMessage") as _lim,\
 				patch(self.modName + ".askYesNo",
 					side_effect=[False, True]) as _ay:
-			self.mainW.runReplace(("bibtex", "bibkey", "", ["a"], "r"))
+			self.mainW.runReplace(
+				{"fieOld": "bibtex", "fieNew": "bibkey", "old": "",
+				"new": "a", "regex": "r", "double": False,
+				"fieNew1": "", "new1": ""})
 			_soc.assert_not_called()
 			_rit.assert_not_called()
 			_im.assert_called_once_with("The string to substitute is empty!")
 			_im.reset_mock()
 
-			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
+			self.mainW.runReplace(
+				{"fieOld": "bibtex", "fieNew": "bibkey", "old": "o",
+				"new": "a", "regex": "r", "double": True,
+				"fieNew1": "", "new1": ""})
 			_soc.assert_not_called()
 			_rit.assert_not_called()
 			_ay.assert_called_once_with("Empty new string. "
 				+ "Are you sure you want to continue?")
 			_ay.reset_mock()
 
-			self.mainW.runReplace(("bibtex", "bibkey", "o", ["a", ""], "r"))
+			self.mainW.runReplace(
+				{"fieOld": "bibtex", "fieNew": "bibkey", "old": "o",
+				"new": "a", "regex": "r", "double": True,
+				"fieNew1": "volume", "new1": ""})
 			_soc.assert_called_once_with(Qt.WaitCursor)
 			_roc.assert_called_once_with()
 			_ay.assert_called_once_with("Empty new string. "
@@ -1353,7 +1362,7 @@ class TestMainWindow(GUITestCase):
 				+ "Are you sure you want to continue?")
 			_rit.assert_called_once_with(
 				Thread_replace, 'Replace',
-				'bibtex', 'bibkey', 'o', ['a', ''],
+				'bibtex', ['bibkey', 'volume'], 'o', ['a', ''],
 				minProgress=0.0, progrStr='%): entry ',
 				regex='r', stopFlag=True, totStr='Replace will process ')
 			_ffl.assert_called_once_with()

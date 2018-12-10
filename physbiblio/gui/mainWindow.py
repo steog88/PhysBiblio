@@ -921,66 +921,14 @@ class MainWindow(QMainWindow):
 			replace (default False): to be passed to SearchBibsWindow,
 				in order to show (or not) the replace field inputs
 		"""
-		# maybe part of this should be implemented
-		# inside the SearchBibsWindow class?
 		newSearchWin = SearchBibsWindow(self, replace=replace)
 		newSearchWin.exec_()
-		searchDict = {}
 		if newSearchWin.result is True:
-			searchDict["catExpOperator"] = \
-				newSearchWin.values["catExpOperator"]
-			if len(newSearchWin.values["cats"]) > 0:
-				searchDict["cats"] = {
-					"id": newSearchWin.values["cats"],
-					"operator": newSearchWin.values["catsOperator"].lower(),
-				}
-			if len(newSearchWin.values["exps"]) > 0:
-				searchDict["exps"] = {
-					"id": newSearchWin.values["exps"],
-					"operator": newSearchWin.values["expsOperator"].lower(),
-				}
-			newSearchWin.getMarksValues()
-			if len(newSearchWin.values["marks"]) > 0:
-				if "any" in newSearchWin.values["marks"]:
-					searchDict["marks"] = {"str": "",
-						"operator": "!=",
-						"connection": newSearchWin.values["marksConn"]}
-				else:
-					searchDict["marks"] = {
-						"str": ", ".join(newSearchWin.values["marks"]),
-						"operator": "like",
-						"connection": newSearchWin.values["marksConn"]}
-			newSearchWin.getTypeValues()
-			if len(newSearchWin.values["type"]) > 0:
-				for k in newSearchWin.values["type"]:
-					searchDict[k] = {"str": "1",
-						"operator": "=",
-						"connection": newSearchWin.values["typeConn"]}
-					print(searchDict[k])
-			for i, dic in enumerate(newSearchWin.textValues):
-				k="%s#%d"%(dic["field"].currentText(), i)
-				s = "%s"%dic["content"].text()
-				op = "like" \
-					if "%s"%dic["operator"].currentText() == "contains" \
-					else "="
-				if s.strip() != "":
-					searchDict[k] = {"str": s,
-						"operator": op,
-						"connection": dic["logical"].currentText()}
-			try:
-				lim = int(newSearchWin.limitValue.text())
-			except ValueError:
-				lim = pbConfig.params["defaultLimitBibtexs"]
-			try:
-				offs = int(newSearchWin.limitOffs.text())
-			except ValueError:
-				offs = 0
+			searchFields = newSearchWin.values
+			lim = newSearchWin.limit
+			offs = newSearchWin.offset
 			if replace:
-				fieldsNew = [ newSearchWin.replNewField.currentText() ]
-				replNew = [ newSearchWin.replNew.text() ]
-				if newSearchWin.doubleEdit.isChecked():
-					fieldsNew.append(newSearchWin.replNewField1.currentText())
-					replNew.append(newSearchWin.replNew1.text())
+				replaceFields = newSearchWin.replaceFields
 				if newSearchWin.save:
 					name = ""
 					cancel = False
@@ -998,40 +946,27 @@ class MainWindow(QMainWindow):
 						pbConfig.globalDb.insertSearch(
 							name=name,
 							count=0,
-							searchDict=searchDict,
+							searchFields=searchFields,
 							manual=True,
 							replacement=True,
 							limit=lim,
 							offset=offs,
-							replaceFields=[
-								newSearchWin.replOldField.currentText(),
-								fieldsNew,
-								newSearchWin.replOld.text(),
-								replNew,
-								newSearchWin.replRegex.isChecked()])
+							replaceFields=replaceFields)
 						self.createMenusAndToolBar()
 				else:
 					pbConfig.globalDb.updateSearchOrder(replacement=True)
 					pbConfig.globalDb.insertSearch(count=0,
-						searchDict=searchDict,
+						searchFields=searchFields,
 						manual=False,
 						replacement=True,
 						limit=lim,
 						offset=offs,
-						replaceFields=[
-							newSearchWin.replOldField.currentText(),
-							fieldsNew,
-							newSearchWin.replOld.text(),
-							replNew, newSearchWin.replRegex.isChecked()])
+						replaceFields=replaceFields)
 				noLim = pBDB.bibs.fetchFromDict(
-					searchDict.copy(),
+					searchFields,
 					limitOffset=offs,
 					doFetch=False)
-				return (newSearchWin.replOldField.currentText(),
-					fieldsNew,
-					newSearchWin.replOld.text(),
-					replNew,
-					newSearchWin.replRegex.isChecked())
+				return replaceFields
 			if newSearchWin.save:
 				name = ""
 				cancel = False
@@ -1047,29 +982,30 @@ class MainWindow(QMainWindow):
 				if not cancel:
 					pbConfig.globalDb.insertSearch(name=name,
 						count=0,
-						searchDict=searchDict,
+						searchFields=searchFields,
 						manual=True,
 						replacement=False,
 						limit=lim,
 						offset=offs)
 					self.createMenusAndToolBar()
-			self.runSearchBiblio(searchDict, lim, offs)
+			self.runSearchBiblio(searchFields, lim, offs)
 		elif replace:
 			return False
 
-	def runSearchBiblio(self, searchDict, lim, offs):
+	def runSearchBiblio(self, searchFields, lim, offs):
 		"""Run a search with some parameters
 
 		Parameters:
-			searchDict: the dictionary with the search parameters
+			searchFields: the lsit of dictionaries
+				with the search parameters
 				to be used in `database.Entries.fetchFromDict`
 			lim: the maximum number of entries to fetch
 			offs: the offset for the search
 		"""
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		noLim = pBDB.bibs.fetchFromDict(
-			searchDict.copy(), limitOffset=offs).lastFetched
-		lastFetched = pBDB.bibs.fetchFromDict(searchDict,
+			searchFields, limitOffset=offs).lastFetched
+		lastFetched = pBDB.bibs.fetchFromDict(searchFields,
 			limitTo=lim, limitOffset=offs
 			).lastFetched
 		if len(noLim) > len(lastFetched):
@@ -1081,17 +1017,18 @@ class MainWindow(QMainWindow):
 		self.reloadMainContent(lastFetched)
 		QApplication.restoreOverrideCursor()
 
-	def runSearchReplaceBiblio(self, searchDict, replaceFields, offs):
+	def runSearchReplaceBiblio(self, searchFields, replaceFields, offs):
 		"""Run a search&replace with some parameters
 
 		Parameters:
-			searchDict: the dictionary with the search parameters
+			searchFields: the list of dictionaries
+				with the search parameters
 				to be used in `database.Entries.fetchFromDict`
 			replaceFields: a tuple/list of 5 elements,
 				as in the output of `self.searchBiblio`
 			offs: the offset for the search
 		"""
-		pBDB.bibs.fetchFromDict(searchDict.copy(), limitOffset=offs)
+		pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
 		self.runReplace(replaceFields)
 
 	def delSearchBiblio(self, idS, name):
@@ -1123,7 +1060,15 @@ class MainWindow(QMainWindow):
 			replace: a tuple/list of 5 elements,
 				as in the output of `self.searchBiblio`
 		"""
-		fiOld, fiNew, old, new, regex = replace
+		regex = replace["regex"]
+		fiOld = replace["fieOld"]
+		old = replace["old"]
+		if replace["double"]:
+			fiNew = [replace["fieNew"], replace["fieNew1"]]
+			new = [replace["new"], replace["new1"]]
+		else:
+			fiNew = [replace["fieNew"]]
+			new = [replace["new"]]
 		if old == "":
 			infoMessage("The string to substitute is empty!")
 			return

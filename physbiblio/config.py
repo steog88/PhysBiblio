@@ -441,7 +441,7 @@ class GlobalDB(PhysBiblioDBCore):
 	def insertSearch(self,
 			name="",
 			count=0,
-			searchDict={},
+			searchFields=[],
 			replaceFields=[],
 			manual=False,
 			replacement=False,
@@ -452,7 +452,7 @@ class GlobalDB(PhysBiblioDBCore):
 		Parameters:
 			name: the config name
 			count: the order in the cronology or in the menu
-			searchDict: the dictionary which is meant
+			searchFields: the list of dictionaries which is meant
 				to be passed to fetchByDict
 			replaceFields: the replace fields used in searchAndReplace
 			manual (boolean, default False): manually saved entry
@@ -467,11 +467,11 @@ class GlobalDB(PhysBiblioDBCore):
 			limit = pbConfig.params["defaultLimitBibtexs"]
 		output = self.connExec("INSERT into searches "
 			+ "(name, count, searchDict, limitNum, offsetNum, replaceFields,"
-			+ " manual, isReplace) values (:name, :count, :searchDict,"
+			+ " manual, isReplace) values (:name, :count, :searchFields,"
 			+ " :limit, :offset, :replaceFields, :manual, :isReplace)\n",
 			{"name": name,
 			"count": count,
-			"searchDict": "%s"%searchDict,
+			"searchFields": "%s"%searchFields,
 			"limit": limit,
 			"offset": offset,
 			"replaceFields": "%s"%replaceFields,
