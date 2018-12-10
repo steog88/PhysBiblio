@@ -2236,12 +2236,12 @@ class SearchBibsWindow(EditObjectWindow):
 			self.replaceFields = {
 				"regex": self.replRegex.isChecked(),
 				"double": self.doubleEdit.isChecked(),
-				"replOldField": self.replOldField.currentText(),
-				"replOld": self.replOld.text(),
-				"replNewField": self.replNewField.currentText(),
-				"replNew": self.replNew.text(),
-				"replNewField1": self.replNewField1.currentText(),
-				"replNew1": self.replNew1.text(),
+				"fieOld": self.replOldField.currentText(),
+				"old": self.replOld.text(),
+				"fieNew": self.replNewField.currentText(),
+				"new": self.replNew.text(),
+				"fieNew1": self.replNewField1.currentText(),
+				"new1": self.replNew1.text(),
 				}
 		try:
 			self.limit = int(self.limitValue.text())
@@ -2405,10 +2405,16 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		if previous is not None:
 			try:
-				regex, fieOld, fieNew, fieNew1, double, old, new, new1 = \
-					previous
-			except ValueError:
-				pBLogger.debug("Invalid previous, must have lenght==8!\n"
+				regex = previous["regex"]
+				double = previous["double"]
+				fieOld = previous["fieOld"]
+				old = previous["old"]
+				fieNew = previous["fieNew"]
+				new = previous["new"]
+				fieNew1 = previous["fieNew1"]
+				new1 = previous["new1"]
+			except (TypeError, KeyError):
+				pBLogger.debug("Invalid previous, some key is missing!\n"
 					+ "%s"%previous)
 				regex = False
 				fieOld = "author"

@@ -5235,12 +5235,12 @@ class TestSearchBibsWindow(GUITestCase):
 			self.assertEqual(sbw.replaceFields,
 				{"regex": False,
 				"double": False,
-				"replOldField": "author",
-				"replOld": "",
-				"replNewField": "author",
-				"replNew": "",
-				"replNewField1": "author",
-				"replNew1": "",
+				"fieOld": "author",
+				"old": "",
+				"fieNew": "author",
+				"new": "",
+				"fieNew1": "author",
+				"new1": "",
 				})
 			sbw.replRegex.setChecked(True)
 			sbw.doubleEdit.setChecked(False)
@@ -5255,12 +5255,12 @@ class TestSearchBibsWindow(GUITestCase):
 			self.assertEqual(sbw.replaceFields,
 				{"regex": True,
 				"double": False,
-				"replOldField": "published",
-				"replOld": "a b c",
-				"replNewField": "volume",
-				"replNew": "AA",
-				"replNewField1": "journal",
-				"replNew1": "BB",
+				"fieOld": "published",
+				"old": "a b c",
+				"fieNew": "volume",
+				"new": "AA",
+				"fieNew1": "journal",
+				"new1": "BB",
 				})
 
 	def test_createLine(self):
@@ -5568,9 +5568,9 @@ class TestSearchBibsWindow(GUITestCase):
 
 		#now with previous
 		with patch("logging.Logger.debug") as _d:
-			self.assertEqual(sbw.createReplace(13, previous=[]), 16)
+			self.assertEqual(sbw.createReplace(13, previous={}), 16)
 			_d.assert_called_once_with(
-				"Invalid previous, must have lenght==8!\n[]")
+				"Invalid previous, some key is missing!\n{}")
 		self.assertFalse(sbw.replRegex.isChecked())
 		self.assertEqual(sbw.replOldField.currentText(), "author")
 		self.assertEqual(sbw.replNewField.currentText(), "author")
@@ -5579,9 +5579,10 @@ class TestSearchBibsWindow(GUITestCase):
 		self.assertEqual(sbw.replOld.text(), "")
 		self.assertEqual(sbw.replNew.text(), "")
 		self.assertEqual(sbw.replNew1.text(), "")
-		sbw.createReplace(13, previous=[
-			False, "volume", "number", "year",
-			True, "([0-9]{2})([0-9]{2})", r"\2", r"20\1"])
+		sbw.createReplace(13, previous={
+			"regex": False, "double": True,
+			"fieOld": "volume", "fieNew": "number", "fieNew1": "year",
+			"old": "([0-9]{2})([0-9]{2})", "new": r"\2", "new1": r"20\1"})
 		self.assertFalse(sbw.replRegex.isChecked())
 		self.assertEqual(sbw.replOldField.currentText(), "volume")
 		self.assertEqual(sbw.replNewField.currentText(), "number")
