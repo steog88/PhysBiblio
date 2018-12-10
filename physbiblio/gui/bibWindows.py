@@ -1944,9 +1944,6 @@ class SearchBibsWindow(EditObjectWindow):
 		self.result = False
 		self.save = False
 		self.replace = replace
-		self.historic = [self.processHistoric(a) \
-			for a in pbConfig.globalDb.getSearchList(
-				manual=False, replacement=replace)]
 		self.possibleTypes = {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -1978,26 +1975,41 @@ class SearchBibsWindow(EditObjectWindow):
 		self.replNew1 = None
 		self.limitValue = None
 		self.limitOffs = None
+		self.historic = [self.processHistoric(a) \
+			for a in pbConfig.globalDb.getSearchList(
+				manual=False, replacement=replace)]
+		self.currentHistoric = 0
 		self.createForm()
 
 	def processHistoric(self, record):
-		limit = record["limitNum"]
-		offset = record["offsetNum"]
+		"""Process the information stored in the database
+		to later use it for restoring a previous search/replace
+
+		Parameter:
+			record: the database record
+		"""
 		replace = record["replaceFields"] if record["isReplace"] == 1 else []
+		#bad name choice: searchDict is no more a dictionary...
 		try:
-			searchDict = ast.literal_eval(record["searchDict"])
-		except:
+			searchValues = ast.literal_eval(record["searchDict"])
+		except ValueError:
 			pBLogger.warning("Something went wrong when processing "
-				+ "the saved search dict:\n%s"%record["searchDict"])
-			searchDict = {}
+				+ "the saved search fields:\n%s"%record["searchDict"])
+			searchValues = []
 		try:
 			replaceFields = ast.literal_eval(replace)
-		except:
+		except ValueError:
 			pBLogger.warning("Something went wrong when processing "
 				+ "the saved search/replace:\n%s"%replace,
 				exc_info=True)
 			replaceFields = []
-		return (searchDict, replaceFields, limit, offset)
+		return {
+			"nrows": len(searchValues),
+			"searchValues": searchValues,
+			"limit": record["limitNum"],
+			"offset": record["offsetNum"],
+			"replaceFields": replaceFields
+			}
 
 	def changeCurrentContent(self, index):
 		"""Reset the form content using the selected historical search
@@ -2007,6 +2019,12 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		self.cleanLayout()
 		self.createForm(index)
+
+	def onOk(self):
+		"""Set that the result should be considered and exit"""
+		self.readForm()
+		self.result	= True
+		self.close()
 
 	def onSave(self):
 		"""Set for saving the search/replace and run `self.onOk`"""
@@ -2071,7 +2089,9 @@ class SearchBibsWindow(EditObjectWindow):
 				self.acceptButton.setFocus()
 				return True
 			# elif key == Qt.Key_Up or key == Qt.Key_Down:
+				# clear previous form content and values/textValues
 				# recreate form with appropriate historic entry
+				# use self.currentHistoric
 				# return True
 		return QWidget.eventFilter(self, widget, event)
 
@@ -2452,7 +2472,7 @@ class SearchBibsWindow(EditObjectWindow):
 			self.currentHistoric = histIndex
 			self.numberOfRows = self.historic[histIndex-1]["nrows"]
 			for i in range(self.numberOfRows):
-				previous = self.historic[histIndex-1]["searchvalues"][i]
+				previous = self.historic[histIndex-1]["searchValues"][i]
 				try:
 					self.values[i] = previous
 				except IndexError:
@@ -2489,11 +2509,17 @@ class SearchBibsWindow(EditObjectWindow):
 		if self.replace:
 			if histIndex > 0:
 				i = self.createReplace(i,
-					previous=self.historic[histIndex-1]["replacevalues"])
+					previous=self.historic[histIndex-1]["replaceFields"])
 			else:
 				i = self.createReplace(i)
 		else:
-			self.createLimits(i)
+			if histIndex > 0:
+				self.createLimits(i,
+					defLim=self.historic[histIndex-1]["limit"],
+					defOffs=self.historic[histIndex-1]["offset"],
+					override=True)
+			else:
+				self.createLimits(i)
 
 		self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
 		i += 1

@@ -4747,6 +4747,7 @@ class TestSearchBibsWindow(GUITestCase):
 		self.assertFalse(sbw.save)
 		self.assertFalse(sbw.replace)
 		self.assertEqual(sbw.historic, ["a", "b"])
+		self.assertEqual(sbw.currentHistoric, 0)
 		self.assertEqual(sbw.possibleTypes, {
 			"exp_paper": {"desc": "Experimental"},
 			"lecture": {"desc": "Lecture"},
@@ -4794,6 +4795,26 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_processHistoric(self):
 		"""test processHistoric"""
+		# records = [
+			# {"idS": 0,
+			# "name": "test1",
+			# "count": 0,
+			# "searchDict": [...],
+			# "limitNum": 1111,
+			# "offsetNum": 12,
+			# "replaceFields": [...],
+			# "manual": 0,
+			# "isReplace": 0,},
+			# {"idS": 1,
+			# "name": "test2",
+			# "count": 1,
+			# "searchDict": [...],
+			# "limitNum": 123,
+			# "offsetNum": 99,
+			# "replaceFields": [...],
+			# "manual": 0,
+			# "isReplace": 0,}
+		# ]
 		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
 				) as _cf:
 			sbw = SearchBibsWindow()
@@ -4812,6 +4833,20 @@ class TestSearchBibsWindow(GUITestCase):
 			sbw.changeCurrentContent(2)
 			_cl.assert_called_once_with()
 			_cf.assert_called_once_with(2)
+
+	def test_onOk(self):
+		"""test onOk"""
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf:
+			sbw = SearchBibsWindow()
+		sbw.close = MagicMock()
+		self.assertFalse(sbw.result)
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readForm"
+				) as _r:
+			sbw.onOk()
+			_r.assert_called_once_with()
+		self.assertTrue(sbw.result)
+		sbw.close.assert_called_once_with()
 
 	def test_onSave(self):
 		"""test onSave"""
@@ -5518,11 +5553,15 @@ class TestSearchBibsWindow(GUITestCase):
 			sbw = SearchBibsWindow()
 		sbw.historic = [
 			{"nrows": 1,
-			"searchvalues": ["sw"],
-			"replacevalues": "av"},
+			"searchValues": ["sw"],
+			"replaceFields": "av",
+			"limit": 321,
+			"offset": 22},
 			{"nrows": 2,
-			"searchvalues": ["lor", "th"],
-			"replacevalues": "hp"}]
+			"searchValues": ["lor", "th"],
+			"replaceFields": "hp",
+			"limit": 654,
+			"offset": 8}]
 		sbw.numberOfRows = 2
 		with patch(clsName + "createLine") as _crlin,\
 				patch(clsName + "createLimits") as _crlim,\
@@ -5614,6 +5653,26 @@ class TestSearchBibsWindow(GUITestCase):
 			_crlin.assert_has_calls([call(0, 'lor'), call(1, 'th')])
 			_crre.assert_called_once_with(5, previous='hp')
 			_crlim.assert_not_called()
+
+		sbw.replace = False
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm(histIndex=1)
+			self.assertEqual(sbw.numberOfRows, 1)
+			_crlin.assert_has_calls([call(0, 'sw')])
+			_crlim.assert_called_once_with(
+				4, defLim=321, defOffs=22, override=True)
+			_crre.assert_not_called()
+		with patch(clsName + "createLine") as _crlin,\
+				patch(clsName + "createLimits") as _crlim,\
+				patch(clsName + "createReplace") as _crre:
+			sbw.createForm(histIndex=2)
+			self.assertEqual(sbw.numberOfRows, 2)
+			_crlin.assert_has_calls([call(0, 'lor'), call(1, 'th')])
+			_crlim.assert_called_once_with(
+				5, defLim=654, defOffs=8, override=True)
+			_crre.assert_not_called()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
