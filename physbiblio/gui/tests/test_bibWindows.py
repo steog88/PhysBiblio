@@ -4757,10 +4757,11 @@ class TestSearchBibsWindow(GUITestCase):
 			"book": {"desc": "Book"}
 			})
 		self.assertEqual(sbw.operators, {
-			"text": ["contains", "exact match"],
+			"text": ["contains", "does not contain", "exact match"],
 			"catexp": ["all the following",
 				"at least one among",
-				"none of the following"],
+				# "none of the following"
+				],
 			})
 		self.assertEqual(sbw.fields, {
 			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
@@ -5336,14 +5337,14 @@ class TestSearchBibsWindow(GUITestCase):
 		sbw.createLine(1, {"logical": "OR",
 			"field": None,
 			"type": "Categories",
-			"operator": "none of the following",
+			"operator": "at least one among",
 			"content": ""})
 		self.assertEqual(sbw.textValues[1]["type"].currentText(),
 			"Categories")
 		self.assertEqual(sbw.textValues[1]["field"], None)
 		self.assertIsInstance(sbw.textValues[1]["operator"], PBComboBox)
 		self.assertEqual(sbw.textValues[1]["operator"].currentText(),
-			"none of the following")
+			"at least one among")
 		self.assertEqual(sbw.textValues[1]["operator"].count(),
 			len(sbw.operators["catexp"]))
 		for i, c in enumerate(sbw.operators["catexp"]):
@@ -5362,14 +5363,14 @@ class TestSearchBibsWindow(GUITestCase):
 		sbw.createLine(0, {"logical": "OR",
 			"field": None,
 			"type": "Experiments",
-			"operator": "none of the following",
+			"operator": "at least one among",
 			"content": [0]})
 		self.assertEqual(sbw.textValues[0]["type"].currentText(),
 			"Experiments")
 		self.assertEqual(sbw.textValues[0]["field"], None)
 		self.assertIsInstance(sbw.textValues[0]["operator"], PBComboBox)
 		self.assertEqual(sbw.textValues[0]["operator"].currentText(),
-			"none of the following")
+			"at least one among")
 		self.assertEqual(sbw.textValues[0]["operator"].count(),
 			len(sbw.operators["catexp"]))
 		for i, c in enumerate(sbw.operators["catexp"]):

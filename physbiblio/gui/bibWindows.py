@@ -1944,30 +1944,11 @@ class SearchBibsWindow(EditObjectWindow):
 		self.result = False
 		self.save = False
 		self.replace = replace
-		self.possibleTypes = {
-			"exp_paper": {"desc": "Experimental"},
-			"lecture": {"desc": "Lecture"},
-			"phd_thesis": {"desc": "PhD thesis"},
-			"review": {"desc": "Review"},
-			"proceeding": {"desc": "Proceeding"},
-			"book": {"desc": "Book"}
-			}
-		self.operators = {
-			"text": ["contains", "exact match"],
-			"catexp": ["all the following",
-				"at least one among",
-				"none of the following"],
-			}
-		self.fields = {
-			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
-				"firstdate", "pubdate", "comment"]
-			}
-		self.replaceFields = {
-			"old": ["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume", "published"],
-			"new": ["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"]
-			}
+		self.possibleTypes = pBDB.bibs.searchPossibleTypes
+		self.operators = {k: sorted([e for e in v.keys()])
+			for k, v in pBDB.bibs.searchOperators.items()}
+		self.fields = pBDB.bibs.searchFields
+		self.replaceFields = pBDB.bibs.replaceFields
 		self.values = []
 		self.numberOfRows = 1
 		self.replOld = None
