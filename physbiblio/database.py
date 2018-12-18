@@ -1455,7 +1455,10 @@ class Entries(PhysBiblioDBSub):
 			joinStr = ""
 			whereStr = ""
 			valsTmp = tuple()
-			idxs = [str(i) for i in idxs]
+			if isinstance(idxs, list):
+				idxs = [str(i) for i in idxs]
+			else:
+				idxs = [str(idxs)]
 			if len(idxs) > 1:
 				if operator == "at least one among":
 					joinStr += " left join %s on entries.bibkey=%s.bibkey"%(
@@ -1503,9 +1506,8 @@ class Entries(PhysBiblioDBSub):
 		jC, wC, vC, jE, wE, vE = ["", "", tuple(), "", "", tuple()]
 
 		for di in queryFields:
-			if di["logical"] is None:
-				di["logical"] = ""
-			elif di["logical"].lower() not in ["and", "or"]:
+			if (di["logical"] is None
+					or di["logical"].lower() not in ["and", "or"]):
 				di["logical"] = defaultConnection
 			if ((di["content"] == "" and di["type"] not in ["Marks", "Type"])
 					or (di["type"] in ["Marks", "Type"]
@@ -1529,14 +1531,14 @@ class Entries(PhysBiblioDBSub):
 			elif di["type"] == "Categories":
 				jC, wC, vC = catExpStrings(
 					di["content"], di["operator"], "entryCats", "idCat")
-				joinQ += jC
-				whereQ += wC
+				joinQ += jC if "join entryCats" not in joinQ else ""
+				whereQ += "%s %s "%(di["logical"], wC)
 				vals += vC
 			elif di["type"] == "Experiments":
 				jE, wE, vE = catExpStrings(
 					di["content"], di["operator"], "entryExps", "idExp")
-				joinQ += jE
-				whereQ += wE
+				joinQ += jE if "join entryExps" not in joinQ else ""
+				whereQ += "%s %s "%(di["logical"], wE)
 				vals += vE
 			elif di["type"] == "Marks":
 				if "any" in di["content"]:
