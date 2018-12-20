@@ -1509,10 +1509,12 @@ class Entries(PhysBiblioDBSub):
 			if (di["logical"] is None
 					or di["logical"].lower() not in ["and", "or"]):
 				di["logical"] = defaultConnection
-			if ((di["content"] == "" and di["type"] not in ["Marks", "Type"])
+			if ((di["type"] not in ["Marks", "Type"] and di["content"] == "")
 					or (di["type"] in ["Marks", "Type"]
-						and len(di["content"]) != 1)):
-				pBLogger.info("Invalid 'content' in search: %s"%di)
+						and (not isinstance(di["content"], list)
+						or len(di["content"]) != 1))):
+				pBLogger.warning("Invalid 'content' in search: '%s' (%s)"%(
+					di["content"], di["type"]))
 				continue
 			if first:
 				first = False
@@ -1543,16 +1545,16 @@ class Entries(PhysBiblioDBSub):
 			elif di["type"] == "Marks":
 				if "any" in di["content"]:
 					di["operator"] = "!="
-					di["content"] = ""
-				if di["operator"] is None:
+					di["content"] = [""]
+				if (di["operator"] is None
+						or di["operator"] not in ["=", "!=", "like"]):
 					di["operator"] = "like"
-					di["content"] = di["content"][0]
 				whereQ += "%s %s%s %s ? "%(
 					di["logical"],
 					prependTab,
 					"marks",
 					di["operator"])
-				vals += (getQueryStr(di["content"], di["operator"]), )
+				vals += (getQueryStr(di["content"][0], di["operator"]), )
 			elif di["type"] == "Type":
 				whereQ += "%s %s%s %s ? "%(
 					di["logical"],

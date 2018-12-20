@@ -1770,6 +1770,13 @@ class TestDatabaseEntries(DBTestCase):
 			"select * from entries  where  bibkey like ?  " \
 			+ "order by firstdate ASC")
 
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "invalid", "logical": "", "operator": "=",
+				"content": "new", "field": None}]
+			).lastFetched]),
+			['abc', 'def', 'ghi'])
+
 		#try with different cats and exps
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
 			[{"type": "Experiments", "logical": "", "operator": "one",
@@ -1977,7 +1984,8 @@ class TestDatabaseEntries(DBTestCase):
 				"operator": "at least one among",
 				"content": [0], "field": None},
 			{"type": "Experiments", "operator": "at least one among",
-				"logical": "or", "content": [2], "field": None}]
+				"logical": None, "content": [2], "field": None}],
+			defaultConnection="or"
 			).lastFetched]),
 			["abc", "def"])
 		with patch("logging.Logger.warning") as _w:
@@ -1986,6 +1994,120 @@ class TestDatabaseEntries(DBTestCase):
 					"operator": "at least one among",
 					"content": [], "field": None}])
 			_w.assert_called_once_with("Invalid list of ids! '[]'")
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Categories", "logical": "", "operator": "like",
+				"content": [1], "field": None},
+			{"type": "Experiments", "logical": "", "operator": "like",
+				"content": [1], "field": None}]
+			).lastFetched]),
+			["def"])
+
+		#test marks
+		self.pBDB.bibs.updateField("jkl", "marks", "new")
+		self.pBDB.bibs.updateField("mno", "marks", "imp")
+		self.pBDB.bibs.updateField("pqr", "marks", "fav,new")
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": None,
+				"content": ["any"], "field": None}]
+			).lastFetched]),
+			["jkl", "mno", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": None,
+				"content": ["new"], "field": None}]
+			).lastFetched]),
+			["jkl", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "abc",
+				"content": ["new"], "field": None}]
+			).lastFetched]),
+			["jkl", "pqr"])
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Marks", "logical": "", "operator": "=",
+					"content": "new", "field": None}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: 'new' (Marks)")
+			_w.reset_mock()
+			self.pBDB.bibs.fetchFromDict(
+				[{"type": "Marks", "logical": "", "operator": "=",
+					"content": [], "field": None}])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '[]' (Marks)")
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "abc",
+				"content": ["imp"], "field": None}]
+			).lastFetched]),
+			["mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "like",
+				"content": ["imp"], "field": None},
+			{"type": "Marks", "logical": "or", "operator": "like",
+				"content": ["fav"], "field": None}]
+			).lastFetched]),
+			["mno", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "like",
+				"content": ["imp"], "field": None},
+			{"type": "Marks", "logical": "and", "operator": "like",
+				"content": ["fav"], "field": None}]
+			).lastFetched]),
+			[])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "like",
+				"content": ["new"], "field": None},
+			{"type": "Marks", "logical": "and", "operator": "like",
+				"content": ["fav"], "field": None}]
+			).lastFetched]),
+			["pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "like",
+				"content": ["any"], "field": None},
+			{"type": "Marks", "logical": "and", "operator": "like",
+				"content": ["imp"], "field": None}]
+			).lastFetched]),
+			["mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "!=",
+				"content": ["new"], "field": None}]
+			).lastFetched]),
+			['abc', 'def', 'ghi', 'mno', 'pqr'])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "like",
+				"content": ["any"], "field": None},
+			{"type": "Categories", "logical": "and", "operator": "like",
+				"content": [2], "field": None}]
+			).lastFetched]),
+			["mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Categories", "logical": "", "operator": "like",
+				"content": [2], "field": None},
+			{"type": "Marks", "logical": "and", "operator": "like",
+				"content": ["any"], "field": None}]
+			).lastFetched]),
+			["mno"])
+
+		#test type
+		self.pBDB.bibs.setBook("abc", 1)
+		self.pBDB.bibs.setBook("def", 1)
+		self.pBDB.bibs.setLecture("def", 1)
+		self.pBDB.bibs.setReview("ghi", 1)
+
+		#test text
 
 	def test_fetchAll(self):
 		"""Test the fetchAll and getAll functions"""
