@@ -1139,21 +1139,19 @@ class TestCatsTreeWindow(GUITestCase):
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 
-			pBDB.bibs.lastFetched = ["a"]
 			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByCat",
+					return_value=["a"]) as _ffd:
 				ctw.contextMenuEvent(ev)
-				_ffd.assert_called_once_with(
-					{'cats': {'operator': 'and', 'id': [u'0']}})
+				_ffd.assert_called_once_with('0')
 			_rmc.assert_called_once_with(["a"])
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 			_rmc.reset_mock()
 
 			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByCat",
+					return_value=["a"]) as _ffd:
 				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(ctw, p, '0')
@@ -1161,8 +1159,8 @@ class TestCatsTreeWindow(GUITestCase):
 			_ec.reset_mock()
 
 			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByCat",
+					return_value=["a"]) as _ffd:
 				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_not_called()
@@ -1170,8 +1168,8 @@ class TestCatsTreeWindow(GUITestCase):
 			_dc.reset_mock()
 
 			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByCat",
+					return_value=["a"]) as _ffd:
 				ctw.contextMenuEvent(ev)
 			_rmc.assert_not_called()
 			_ec.assert_called_once_with(ctw, p, useParent='0')

@@ -4757,7 +4757,10 @@ class TestSearchBibsWindow(GUITestCase):
 			"book": {"desc": "Book"}
 			})
 		self.assertEqual(sbw.operators, {
-			"text": ["contains", "does not contain", "exact match"],
+			"text": ["contains",
+				"different from",
+				"does not contain",
+				"exact match"],
 			"catexp": ["all the following",
 				"at least one among",
 				# "none of the following"

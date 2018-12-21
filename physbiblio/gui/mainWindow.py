@@ -438,6 +438,7 @@ class MainWindow(QMainWindow):
 		if len(freqSearches) > 0:
 			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
 			for fs in freqSearches:
+				#add function to check and change to new format!
 				self.searchMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
@@ -462,6 +463,7 @@ class MainWindow(QMainWindow):
 		if len(freqReplaces) > 0:
 			self.replaceMenu = self.menuBar().addMenu("Frequent &replaces")
 			for fs in freqReplaces:
+				#add function to check and change to new format!
 				self.replaceMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
@@ -1004,9 +1006,13 @@ class MainWindow(QMainWindow):
 		"""
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		noLim = pBDB.bibs.fetchFromDict(
-			searchFields, limitOffset=offs).lastFetched
-		lastFetched = pBDB.bibs.fetchFromDict(searchFields,
-			limitTo=lim, limitOffset=offs
+				searchFields,
+				limitOffset=offs
+			).lastFetched
+		lastFetched = pBDB.bibs.fetchFromDict(
+				searchFields,
+				limitTo=lim,
+				limitOffset=offs
 			).lastFetched
 		if len(noLim) > len(lastFetched):
 			infoMessage("Warning: more entries match the current search, "

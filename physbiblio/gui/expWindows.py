@@ -387,9 +387,7 @@ class ExpsListWindow(ObjListWindow):
 		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
-			searchDict = {"exps": {"id": [idExp], "operator": "and"}}
-			self.parent().reloadMainContent(
-				pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+			self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
 		elif action == modAction:
 			editExperiment(self, self.parent(), idExp)
 		elif action == delAction:

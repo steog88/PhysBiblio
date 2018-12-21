@@ -602,9 +602,7 @@ class CatsTreeWindow(PBDialog):
 		action = menu.exec_(event.globalPos())
 
 		if action == bibAction:
-			searchDict = {"cats": {"id": [idCat], "operator": "and"}}
-			self.parent().reloadMainContent(
-				pBDB.bibs.fetchFromDict(searchDict).lastFetched)
+			self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
 		elif action == modAction:
 			editCategory(self, self.parent(), idCat)
 		elif action == delAction:

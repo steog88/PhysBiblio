@@ -731,22 +731,20 @@ class TestExpsListWindow(GUITestCase):
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 
-			pBDB.bibs.lastFetched = ["a"]
 			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByExp",
+					return_value=["a"]) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
-				_ffd.assert_called_once_with(
-					{'exps': {'operator': 'and', 'id': [u'0']}})
+				_ffd.assert_called_once_with('0')
 			_rmc.assert_called_once_with(["a"])
 			_ec.assert_not_called()
 			_dc.assert_not_called()
 			_rmc.reset_mock()
 
 			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByExp",
+					return_value=["a"]) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 			_rmc.assert_not_called()
@@ -755,8 +753,8 @@ class TestExpsListWindow(GUITestCase):
 			_ec.reset_mock()
 
 			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd:
+			with patch("physbiblio.database.Entries.getByExp",
+					return_value=["a"]) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
 			_rmc.assert_not_called()
@@ -778,8 +776,8 @@ class TestExpsListWindow(GUITestCase):
 			sc.result = "Ok"
 			p.selectedCats = [9, 13]
 			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
-			with patch("physbiblio.database.Entries.fetchFromDict",
-					return_value=pBDB.bibs) as _ffd,\
+			with patch("physbiblio.database.Entries.getByExp",
+					return_value=["a"]) as _ffd,\
 					patch("physbiblio.gui.expWindows.CatsTreeWindow",
 						return_value=sc) as _i,\
 					patch("physbiblio.gui.mainWindow.MainWindow."
