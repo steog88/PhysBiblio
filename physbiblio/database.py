@@ -1234,7 +1234,8 @@ class Entries(PhysBiblioDBSub):
 			"text": {
 				"contains": "like",
 				"exact match": "=",
-				"does not contain": "not like"
+				"does not contain": "not like",
+				"different from": "!="
 				},
 			"catexp": {
 				"all the following": "",
@@ -1509,7 +1510,12 @@ class Entries(PhysBiblioDBSub):
 			if (di["logical"] is None
 					or di["logical"].lower() not in ["and", "or"]):
 				di["logical"] = defaultConnection
-			if ((di["type"] not in ["Marks", "Type"] and di["content"] == "")
+			if ((di["type"] in ["Categories", "Experiments"]
+					and di["content"] == "")
+					or (di["type"] == "Text"
+						and (di["content"] == ""
+							and di["operator"] not in
+							["different from", "!=", "exact match", "="]))
 					or (di["type"] in ["Marks", "Type"]
 						and (not isinstance(di["content"], list)
 						or len(di["content"]) != 1))):
@@ -1523,6 +1529,10 @@ class Entries(PhysBiblioDBSub):
 				if di["operator"] in self.searchOperators["text"]:
 					di["operator"] = \
 						self.searchOperators["text"][di["operator"]]
+				elif (di["operator"] not in
+						[v for v in self.searchOperators["text"].values()]):
+					pBLogger.warning("Invalid operator: '%s'"%di["operator"])
+					continue
 				if di["field"] in self.tableCols["entries"]:
 					whereQ += "%s %s%s %s ? "%(
 						di["logical"],
@@ -1530,6 +1540,9 @@ class Entries(PhysBiblioDBSub):
 						di["field"],
 						di["operator"])
 					vals += (getQueryStr(di["content"], di["operator"]), )
+				else:
+					pBLogger.warning("Invalid field: '%s'"%di["field"])
+					continue
 			elif di["type"] == "Categories":
 				jC, wC, vC = catExpStrings(
 					di["content"], di["operator"], "entryCats", "idCat")

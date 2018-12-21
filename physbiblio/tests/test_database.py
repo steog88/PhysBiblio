@@ -1886,7 +1886,7 @@ class TestDatabaseEntries(DBTestCase):
 			+ "probably unsupported type.")
 
 		data = self.pBDB.bibs.prepareInsert(
-			u'@article{jkl,\nauthor = "me",\ntitle = "jkl",}', arxiv="jkl")
+			u'@article{jkl,\nauthor = "me",\ntitle = "jkl",}')
 		self.assertTrue(self.pBDB.bibs.insert(data))
 		data = self.pBDB.bibs.prepareInsert(
 			u'@article{mno,\nauthor = "me",\ntitle = "mno",}', arxiv="mno1")
@@ -2040,6 +2040,12 @@ class TestDatabaseEntries(DBTestCase):
 					"content": [], "field": None}])
 			_w.assert_called_once_with(
 				"Invalid 'content' in search: '[]' (Marks)")
+			_w.reset_mock()
+			self.pBDB.bibs.fetchFromDict(
+				[{"type": "Marks", "logical": "", "operator": "=",
+					"content": [1, 2], "field": None}])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '[1, 2]' (Marks)")
 		self.assertEqual(sorted(
 			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
 			[{"type": "Marks", "logical": "", "operator": "abc",
@@ -2106,8 +2112,271 @@ class TestDatabaseEntries(DBTestCase):
 		self.pBDB.bibs.setBook("def", 1)
 		self.pBDB.bibs.setLecture("def", 1)
 		self.pBDB.bibs.setReview("ghi", 1)
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Type", "logical": "", "operator": "=",
+					"content": "new", "field": None}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: 'new' (Type)")
+			_w.reset_mock()
+			self.pBDB.bibs.fetchFromDict(
+				[{"type": "Type", "logical": "", "operator": "=",
+					"content": [], "field": None}])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '[]' (Type)")
+			_w.reset_mock()
+			self.pBDB.bibs.fetchFromDict(
+				[{"type": "Type", "logical": "", "operator": "=",
+					"content": [1, 2], "field": None}])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '[1, 2]' (Type)")
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None}]
+			).lastFetched]),
+			['abc', 'def'])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['lecture'], "field": None}]
+			).lastFetched]),
+			['def'])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Type", "logical": "or", "operator": "abc",
+				"content": ['review'], "field": None}]
+			).lastFetched]),
+			['abc', 'def', 'ghi'])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Type", "logical": "and", "operator": "abc",
+				"content": ['review'], "field": None}]
+			).lastFetched]),
+			[])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Marks", "logical": "or", "operator": "abc",
+				"content": ['imp'], "field": None}]
+			).lastFetched]),
+			["abc", "def", "mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Categories", "logical": "and", "operator": "abc",
+				"content": 1, "field": None}]
+			).lastFetched]),
+			["def"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "abc",
+				"content": ['book'], "field": None},
+			{"type": "Experiments", "logical": "and", "operator": "abc",
+				"content": [1], "field": None}]
+			).lastFetched]),
+			["def"])
 
 		#test text
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Text", "logical": "", "operator": "like",
+					"content": "", "field": None}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '' (Text)")
+			_w.reset_mock()
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Text", "logical": "", "operator": "not like",
+					"content": "", "field": None}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid 'content' in search: '' (Text)")
+			_w.reset_mock()
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Text", "logical": "", "operator": "=",
+					"content": "abc", "field": "abc"}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid field: 'abc'")
+			_w.reset_mock()
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Text", "logical": "", "operator": "abc",
+					"content": "abc", "field": "arxiv"}]
+				).lastFetched]),
+				['abc', 'def', 'ghi', 'jkl', 'mno', 'pqr'])
+			_w.assert_called_once_with(
+				"Invalid operator: 'abc'")
+		# fields
+		for f in self.pBDB.bibs.tableCols["entries"]:
+			with patch("logging.Logger.warning") as _w:
+				self.pBDB.bibs.fetchFromDict(
+					[{"type": "Text", "logical": "", "operator": "=",
+						"content": "abc", "field": f}])
+				_w.assert_not_called()
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "pq.r", "field": "arxiv"}]
+			).lastFetched]),
+			["pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "pq.r", "field": "arxiv"},
+			{"type": "Text", "logical": "or", "operator": "like",
+				"content": "o1", "field": "arxiv"}]
+			).lastFetched]),
+			["mno", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "pq.r", "field": "arxiv"},
+			{"type": "Text", "logical": "and", "operator": "like",
+				"content": "pqr", "field": "bibkey"}]
+			).lastFetched]),
+			["pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "pq.r", "field": "arxiv"},
+			{"type": "Text", "logical": "or", "operator": "like",
+				"content": "PQr", "field": "bibkey"}]
+			).lastFetched]),
+			["pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "!=",
+				"content": "", "field": "arxiv"}]
+			).lastFetched]),
+			['abc', 'def', 'ghi', 'mno', "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "", "field": "arxiv"}]
+			).lastFetched]),
+			["jkl"])
+		# operators
+		for f in self.pBDB.bibs.searchOperators["text"]:
+			with patch("logging.Logger.warning") as _w:
+				self.pBDB.bibs.fetchFromDict(
+					[{"type": "Text", "logical": "", "operator": f,
+						"content": "abc", "field": "bibtex"}])
+				_w.assert_not_called()
+		for f in [v for v in self.pBDB.bibs.searchOperators["text"].values()]:
+			with patch("logging.Logger.warning") as _w:
+				self.pBDB.bibs.fetchFromDict(
+					[{"type": "Text", "logical": "", "operator": f,
+						"content": "abc", "field": "bibtex"}])
+				_w.assert_not_called()
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "=",
+				"content": "abc", "field": "bibkey"}]
+			).lastFetched]),
+			["abc"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "exact match",
+				"content": "abc", "field": "bibkey"}]
+			).lastFetched]),
+			["abc"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "like",
+				"content": "abc", "field": "bibtex"}]
+			).lastFetched]),
+			["abc"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "contains",
+				"content": "abc", "field": "bibtex"}]
+			).lastFetched]),
+			["abc"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "not like",
+				"content": "mno", "field": "arxiv"}]
+			).lastFetched]),
+			["abc", "def", "ghi", "jkl", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "does not contain",
+				"content": "mno", "field": "arxiv"}]
+			).lastFetched]),
+			["abc", "def", "ghi", "jkl", "pqr"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "different from",
+				"content": "pq.r", "field": "arxiv"}]
+			).lastFetched]),
+			["abc", "def", "ghi", "jkl", "mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Text", "logical": "", "operator": "!=",
+				"content": "pq.r", "field": "arxiv"}]
+			).lastFetched]),
+			["abc", "def", "ghi", "jkl", "mno"])
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sorted(
+				[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+				[{"type": "Text", "logical": "", "operator": "like",
+					"content": "abc", "field": "bibtex"},
+				{"type": "Text", "logical": "", "operator": "different",
+					"content": "abc", "field": "bibtex"}]
+				).lastFetched]),
+				["abc"])
+			_w.assert_called_once_with("Invalid operator: 'different'")
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Categories", "logical": "", "operator": "",
+				"content": 1, "field": "bibtex"},
+			{"type": "Text", "logical": "", "operator": "like",
+				"content": "de", "field": "bibtex"}]
+			).lastFetched]),
+			["def"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Experiments", "logical": "", "operator": "",
+				"content": 0, "field": "bibtex"},
+			{"type": "Text", "logical": "", "operator": "like",
+				"content": "me", "field": "bibtex"}]
+			).lastFetched]),
+			["abc", "def"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Marks", "logical": "", "operator": "",
+				"content": ["imp"], "field": "bibtex"},
+			{"type": "Text", "logical": "or", "operator": "like",
+				"content": "d", "field": "bibtex"}]
+			).lastFetched]),
+			["def", "mno"])
+		self.assertEqual(sorted(
+			[e["bibkey"] for e in self.pBDB.bibs.fetchFromDict(
+			[{"type": "Type", "logical": "", "operator": "",
+				"content": ["book"], "field": "bibtex"},
+			{"type": "Text", "logical": "and", "operator": "like",
+				"content": "me", "field": "bibtex"}]
+			).lastFetched]),
+			["abc", "def"])
 
 	def test_fetchAll(self):
 		"""Test the fetchAll and getAll functions"""
