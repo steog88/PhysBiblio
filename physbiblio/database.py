@@ -3264,7 +3264,7 @@ class Entries(PhysBiblioDBSub):
 
 	def fetchByCat(self,
 			idCat,
-			orderBy="entries.firstdate",
+			orderBy="firstdate",
 			orderType="ASC"):
 		"""Fetch all the entries associated to a given category
 
@@ -3277,26 +3277,16 @@ class Entries(PhysBiblioDBSub):
 		Output:
 			self
 		"""
-		query = "select * from entries " \
-			+ "join entryCats on entries.bibkey=entryCats.bibkey " \
-			+ "where entryCats.idCat=?"
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
-		self.cursExec(query, (idCat,))
-		fetched_in = self.curs.fetchall()
-		fetched_out = []
-		for el in fetched_in:
-			tmp = {}
-			for k in el.keys():
-				tmp[k] = el[k]
-			tmp["bibtexDict"] = bibtexparser.bparser.BibTexParser(
-				common_strings=True).parse(el["bibtex"]).entries[0]
-			fetched_out.append(tmp)
-		self.lastFetched = fetched_out
+		self.fetchFromDict(
+			[{"type": "Categories", "content": idCat,
+				"field": "", "operator": "", "logical": ""}],
+			orderBy=orderBy,
+			orderType=orderType)
 		return self
 
 	def getByCat(self,
 			idCat,
-			orderBy="entries.firstdate",
+			orderBy="firstdate",
 			orderType="ASC"):
 		"""Use self.fetchByCat and returns
 		the dictionary of fetched entries
@@ -3306,12 +3296,15 @@ class Entries(PhysBiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchByCat(idCat,
-			orderBy=orderBy, orderType=orderType).lastFetched
+		return self.fetchByCat(
+				idCat,
+				orderBy=orderBy,
+				orderType=orderType
+			).lastFetched
 
 	def fetchByExp(self,
 			idExp,
-			orderBy="entries.firstdate",
+			orderBy="firstdate",
 			orderType="ASC"):
 		"""Fetch all the entries associated to a given experiment
 
@@ -3324,26 +3317,16 @@ class Entries(PhysBiblioDBSub):
 		Output:
 			self
 		"""
-		query = "select * from entries " \
-			+ "join entryExps on entries.bibkey=entryExps.bibkey " \
-			+ "where entryExps.idExp=?"
-		query += " order by " + orderBy + " " + orderType if orderBy else ""
-		self.cursExec(query, (idExp,))
-		fetched_in = self.curs.fetchall()
-		fetched_out = []
-		for el in fetched_in:
-			tmp = {}
-			for k in el.keys():
-				tmp[k] = el[k]
-			tmp["bibtexDict"] = bibtexparser.bparser.BibTexParser(
-				common_strings=True).parse(el["bibtex"]).entries[0]
-			fetched_out.append(tmp)
-		self.lastFetched = fetched_out
+		self.fetchFromDict(
+			[{"type": "Experiments", "content": idExp,
+				"field": "", "operator": "", "logical": ""}],
+			orderBy=orderBy,
+			orderType=orderType)
 		return self
 
 	def getByExp(self,
 			idExp,
-			orderBy="entries.firstdate",
+			orderBy="firstdate",
 			orderType="ASC"):
 		"""Use self.fetchByExp and returns
 		the dictionary of fetched entries
@@ -3353,8 +3336,11 @@ class Entries(PhysBiblioDBSub):
 		Output:
 			a dictionary
 		"""
-		return self.fetchByExp(idExp,
-			orderBy=orderBy, orderType=orderType).lastFetched
+		return self.fetchByExp(
+				idExp,
+				orderBy=orderBy,
+				orderType=orderType
+			).lastFetched
 
 	def cleanBibtexs(self, startFrom=0, entries=None):
 		"""Clean (remove comments, unwanted fields, newlines, accents)
