@@ -1247,7 +1247,7 @@ class Entries(PhysBiblioDBSub):
 			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
 				"firstdate", "pubdate", "comment"]
 			}
-		self.replaceFields = {
+		self.validReplaceFields = {
 			"old": ["arxiv", "doi", "year", "author", "title",
 				"journal", "number", "volume", "published"],
 			"new": ["arxiv", "doi", "year", "author", "title",

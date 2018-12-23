@@ -1948,7 +1948,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.operators = {k: sorted([e for e in v.keys()])
 			for k, v in pBDB.bibs.searchOperators.items()}
 		self.fields = pBDB.bibs.searchFields
-		self.replaceFields = pBDB.bibs.replaceFields
+		self.replaceComboFields = pBDB.bibs.validReplaceFields
 		self.values = []
 		self.numberOfRows = 1
 		self.replOld = None
@@ -2431,7 +2431,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.currGrid.addWidget(self.replRegex, ix - 1, 3)
 		self.currGrid.addWidget(PBLabelRight("From field:"), ix, 0)
 		self.replOldField = PBComboBox(self,
-			self.replaceFields["old"],
+			self.replaceComboFields["old"],
 			current=fieOld)
 		self.currGrid.addWidget(self.replOldField, ix, 1, 1, 2)
 		self.replOld = QLineEdit(old)
@@ -2439,7 +2439,7 @@ class SearchBibsWindow(EditObjectWindow):
 		ix += 1
 		self.currGrid.addWidget(PBLabelRight("Into field:"), ix, 0)
 		self.replNewField = PBComboBox(self,
-			self.replaceFields["new"],
+			self.replaceComboFields["new"],
 			current=fieNew)
 		self.currGrid.addWidget(self.replNewField, ix, 1, 1, 2)
 		self.replNew = QLineEdit(new)
@@ -2449,7 +2449,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.doubleEdit.setChecked(double)
 		self.currGrid.addWidget(self.doubleEdit, ix, 0)
 		self.replNewField1 = PBComboBox(self,
-			self.replaceFields["new"],
+			self.replaceComboFields["new"],
 			current=fieNew1)
 		self.currGrid.addWidget(self.replNewField1, ix, 1, 1, 2)
 		self.replNew1 = QLineEdit(new1)

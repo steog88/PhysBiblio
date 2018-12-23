@@ -973,16 +973,20 @@ class MainWindow(QMainWindow):
 				name = ""
 				cancel = False
 				while name.strip() == "":
-					res = askGenericText("Insert a name / short description "
+					res = askGenericText(
+						"Insert a name / short description "
 						+ "to be able to recognise this search "
-						+ "in the future:", "Search name", parent=self)
+						+ "in the future:",
+						"Search name",
+						parent=self)
 					if res[1]:
 						name = res[0]
 					else:
 						cancel = True
 						break
 				if not cancel:
-					pbConfig.globalDb.insertSearch(name=name,
+					pbConfig.globalDb.insertSearch(
+						name=name,
 						count=0,
 						searchFields=searchFields,
 						manual=True,
@@ -990,6 +994,15 @@ class MainWindow(QMainWindow):
 						limit=lim,
 						offset=offs)
 					self.createMenusAndToolBar()
+			else:
+				pbConfig.globalDb.updateSearchOrder()
+				pbConfig.globalDb.insertSearch(
+					count=0,
+					searchFields=searchFields,
+					manual=False,
+					replacement=False,
+					limit=lim,
+					offset=offs)
 			self.runSearchBiblio(searchFields, lim, offs)
 		elif replace:
 			return False

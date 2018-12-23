@@ -1238,7 +1238,167 @@ class TestMainWindow(GUITestCase):
 
 	def test_searchBiblio(self):
 		"""test searchBiblio"""
-		raise NotImplementedError
+		sbw = SearchBibsWindow(self.mainW)
+		sbw.exec_ = MagicMock()
+		self.assertFalse(sbw.result)
+		with patch(self.modName + ".SearchBibsWindow", return_value=sbw
+				) as _sbw:
+			self.assertEqual(self.mainW.searchBiblio(), None)
+			_sbw.assert_called_once_with(self.mainW, replace=False)
+			sbw.exec_.assert_called_once_with()
+		sbw.onOk()
+		self.assertFalse(sbw.save)
+		with patch(self.modName + ".SearchBibsWindow", return_value=sbw
+				) as _sbw,\
+				patch("physbiblio.config.GlobalDB.updateSearchOrder") as _us,\
+				patch("physbiblio.config.GlobalDB.insertSearch") as _is,\
+				patch(self.clsName + ".runSearchBiblio") as _rsb:
+			self.assertEqual(self.mainW.searchBiblio(), None)
+			_rsb.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+					'operator': 'contains', 'content': ''}],
+				100, 0)
+			_is.assert_called_once_with(count=0, manual=False,
+				limit=100, offset=0, replacement=False,
+				searchFields=[{'type': 'Text', 'logical': None,
+				'field': 'bibtex', 'operator': 'contains', 'content': ''}])
+			_us.assert_called_once_with()
+		sbw.textValues[0]["type"].setCurrentText("Categories")
+		sbw.limitValue.setText("444")
+		sbw.limitOffs.setText("123")
+		sbw.onSave()
+		self.assertTrue(sbw.save)
+		with patch(self.modName + ".SearchBibsWindow", return_value=sbw
+				) as _sbw,\
+				patch(self.clsName + ".runSearchBiblio") as _rsb,\
+				patch("physbiblio.config.GlobalDB.updateSearchOrder") as _us,\
+				patch("physbiblio.config.GlobalDB.insertSearch") as _is,\
+				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
+				patch(self.modName + ".askGenericText",
+					side_effect=[["abc", False], ["", True], ["def", True]]
+					) as _agt:
+			self.assertEqual(self.mainW.searchBiblio(), None)
+			_rsb.assert_called_once_with(
+				[{'type': 'Categories', 'logical': None, 'field': '',
+					'operator': 'all the following', 'content': []}],
+				444, 123)
+			_is.assert_not_called()
+			_cm.assert_not_called()
+			_agt.assert_called_once_with(
+				'Insert a name / short description to be able to '
+				+ 'recognise this search in the future:',
+				'Search name', parent=self.mainW)
+			_rsb.reset_mock()
+			self.assertEqual(self.mainW.searchBiblio(), None)
+			self.assertEqual(_agt.call_count, 3)
+			_is.assert_called_once_with(
+				count=0, manual=True, name='def',
+				limit=444, offset=123, replacement=False,
+				searchFields=[{'type': 'Categories', 'logical': None,
+				'field': '', 'operator': 'all the following', 'content': []}])
+			_cm.assert_called_once_with()
+			_rsb.assert_called_once_with(
+				[{'type': 'Categories', 'logical': None, 'field': '',
+					'operator': 'all the following', 'content': []}],
+				444, 123)
+			_us.assert_not_called()
+
+		# replace=True
+		sbw = SearchBibsWindow(self.mainW, replace=True)
+		sbw.exec_ = MagicMock()
+		self.assertFalse(sbw.result)
+		with patch(self.modName + ".SearchBibsWindow", return_value=sbw
+				) as _sbw:
+			self.assertFalse(self.mainW.searchBiblio(replace=True))
+			_sbw.assert_called_once_with(self.mainW, replace=True)
+			sbw.exec_.assert_called_once_with()
+		sbw.onOk()
+		self.assertFalse(sbw.save)
+		with patch(self.modName + ".SearchBibsWindow", return_value=sbw
+				) as _sbw,\
+				patch(self.clsName + ".runSearchBiblio") as _rsb,\
+				patch("physbiblio.config.GlobalDB.updateSearchOrder") as _us,\
+				patch("physbiblio.config.GlobalDB.insertSearch") as _is,\
+				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
+				patch("physbiblio.database.Entries.fetchFromDict") as _fd,\
+				patch(self.modName + ".askGenericText",
+					side_effect=[["abc", False], ["", True], ["def", True]]
+					) as _agt:
+			self.assertEqual(self.mainW.searchBiblio(replace=True),
+				{'double': False,
+				'fieNew': 'author',
+				'fieNew1': 'author',
+				'fieOld': 'author',
+				'new': '',
+				'new1': '',
+				'old': '',
+				'regex': False})
+			_rsb.assert_not_called()
+			_agt.assert_not_called()
+			_cm.assert_not_called()
+			_us.assert_called_once_with(replacement=True)
+			_is.assert_called_once_with(
+				count=0, manual=False, limit=100000, offset=0,
+				replacement=True,
+				replaceFields={'regex': False, 'double': False,
+					'fieOld': 'author', 'old': '', 'fieNew': 'author',
+					'new': '', 'fieNew1': 'author', 'new1': ''},
+				searchFields=[{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains', 'content': ''}])
+			_fd.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': ''}],
+				doFetch=False, limitOffset=0)
+			sbw.replOld.setText("asfa")
+			sbw.replNew.setText("afsa")
+			sbw.onSave()
+			_us.reset_mock()
+			_is.reset_mock()
+			_fd.reset_mock()
+			self.assertEqual(self.mainW.searchBiblio(replace=True),
+				{'double': False,
+				'fieNew': 'author',
+				'fieNew1': 'author',
+				'fieOld': 'author',
+				'new': 'afsa',
+				'new1': '',
+				'old': 'asfa',
+				'regex': False})
+			_agt.assert_called_once_with(
+				'Insert a name / short description to be able to recognise'
+				+ ' this replace in the future:',
+				'Replace name', parent=self.mainW)
+			_rsb.assert_not_called()
+			_cm.assert_not_called()
+			_us.assert_not_called()
+			_is.assert_not_called()
+			_fd.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': ''}],
+				doFetch=False, limitOffset=0)
+			_fd.reset_mock()
+			self.assertEqual(self.mainW.searchBiblio(replace=True),
+				{'double': False,
+				'fieNew': 'author',
+				'fieNew1': 'author',
+				'fieOld': 'author',
+				'new': 'afsa',
+				'new1': '',
+				'old': 'asfa',
+				'regex': False})
+			_us.assert_not_called()
+			_is.assert_called_once_with(
+				count=0, manual=True, name='def', limit=100000, offset=0,
+				replacement=True,
+				replaceFields={'regex': False, 'double': False,
+					'fieOld': 'author', 'old': 'asfa', 'fieNew': 'author',
+					'new': 'afsa', 'fieNew1': 'author', 'new1': ''},
+				searchFields=[{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains', 'content': ''}])
+			_fd.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': ''}],
+				doFetch=False, limitOffset=0)
 
 	def test_runSearchBiblio(self):
 		"""test runSearchBiblio"""

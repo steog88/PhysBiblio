@@ -4771,7 +4771,7 @@ class TestSearchBibsWindow(GUITestCase):
 				"firstdate", "pubdate", "comment"]
 			})
 
-		self.assertEqual(sbw.replaceFields, {
+		self.assertEqual(sbw.replaceComboFields, {
 			"old": ["arxiv", "doi", "year", "author", "title",
 				"journal", "number", "volume", "published"],
 			"new": ["arxiv", "doi", "year", "author", "title",
@@ -5523,7 +5523,7 @@ class TestSearchBibsWindow(GUITestCase):
 		self.assertIsInstance(sbw.replOldField, PBComboBox)
 		self.assertEqual(sbw.currGrid.itemAtPosition(10, 1).widget(),
 			sbw.replOldField)
-		for i, f in enumerate(sbw.replaceFields["old"]):
+		for i, f in enumerate(sbw.replaceComboFields["old"]):
 			self.assertEqual(sbw.replOldField.itemText(i), f)
 		self.assertIsInstance(sbw.replOld, QLineEdit)
 		self.assertEqual(sbw.currGrid.itemAtPosition(10, 3).widget(),
@@ -5535,7 +5535,7 @@ class TestSearchBibsWindow(GUITestCase):
 			self.assertIsInstance(itemF, PBComboBox)
 			self.assertEqual(sbw.currGrid.itemAtPosition(ix, 1).widget(),
 				itemF)
-			for i, f in enumerate(sbw.replaceFields["new"]):
+			for i, f in enumerate(sbw.replaceComboFields["new"]):
 				self.assertEqual(itemF.itemText(i), f)
 			self.assertIsInstance(item, QLineEdit)
 			self.assertEqual(sbw.currGrid.itemAtPosition(ix, 3).widget(),
