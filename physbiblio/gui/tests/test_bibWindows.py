@@ -4746,7 +4746,29 @@ class TestSearchBibsWindow(GUITestCase):
 		self.assertFalse(sbw.result)
 		self.assertFalse(sbw.save)
 		self.assertFalse(sbw.replace)
-		self.assertEqual(sbw.historic, ["a", "b"])
+		self.assertFalse(sbw.edit)
+		self.assertEqual(sbw.historic,
+			[{
+			"nrows": 1,
+			"searchValues": [{"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}],
+			"limit": "%s"%pbConfig.params["defaultLimitBibtexs"],
+			"offset": "0",
+			"replaceFields": {
+				"regex": False,
+				"double": False,
+				"fieOld": "author",
+				"old": "",
+				"fieNew": "author",
+				"new": "",
+				"fieNew1": "author",
+				"new1": "",
+				}
+			},
+			"a", "b"])
 		self.assertEqual(sbw.currentHistoric, 0)
 		self.assertEqual(sbw.possibleTypes, {
 			"exp_paper": {"desc": "Experimental"},
@@ -4952,6 +4974,19 @@ class TestSearchBibsWindow(GUITestCase):
 				previous=[0])
 			se.exec_.assert_called_once_with()
 			self.assertEqual(sbw.textValues[0]["content"].text(), "[0, 1]")
+
+	def test_keyPressEvent(self):
+		"""test keyPressEvent"""
+		sbw = SearchBibsWindow(replace=True)
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.onCancel") \
+				as _oc:
+			QTest.keyPress(sbw.acceptButton, "a")
+			_oc.assert_not_called()
+			QTest.keyPress(sbw.acceptButton, Qt.Key_Enter)
+			_oc.assert_not_called()
+			QTest.keyPress(sbw.acceptButton, Qt.Key_Escape)
+			self.assertEqual(_oc.call_count, 1)
+		raise NotImplementedError
 
 	def test_eventFilter(self):
 		"""test eventFilter"""
@@ -5602,6 +5637,26 @@ class TestSearchBibsWindow(GUITestCase):
 		with patch(clsName + "createForm") as _cf:
 			sbw = SearchBibsWindow()
 		sbw.historic = [
+			{
+			"nrows": 1,
+			"searchValues": [{"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}],
+			"limit": "%s"%pbConfig.params["defaultLimitBibtexs"],
+			"offset": "0",
+			"replaceFields": {
+				"regex": False,
+				"double": False,
+				"fieOld": "author",
+				"old": "",
+				"fieNew": "author",
+				"new": "",
+				"fieNew1": "author",
+				"new1": "",
+				}
+			},
 			{"nrows": 1,
 			"searchValues": ["sw"],
 			"replaceFields": "av",

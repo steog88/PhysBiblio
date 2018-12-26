@@ -1931,19 +1931,22 @@ class AskPDFAction(PBMenu):
 class SearchBibsWindow(EditObjectWindow):
 	"""Create a window for searching a bibtex entry"""
 
-	def __init__(self, parent=None, replace=False):
+	def __init__(self, parent=None, replace=False, edit=False):
 		"""Create the window and save some properties
 
 		Parameters:
 			parent (default None): the parent widget
 			replace (default False): if True, add the replace fields
 				in the dialog
+			edit (default False): if not False, it should be the index
+				of the search/replace to be modified
 		"""
 		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
 		self.save = False
 		self.replace = replace
+		self.edit = edit
 		self.possibleTypes = pBDB.bibs.searchPossibleTypes
 		self.operators = {k: sorted([e for e in v.keys()])
 			for k, v in pBDB.bibs.searchOperators.items()}
@@ -1959,6 +1962,27 @@ class SearchBibsWindow(EditObjectWindow):
 		self.historic = [self.processHistoric(a) \
 			for a in pbConfig.globalDb.getSearchList(
 				manual=False, replacement=replace)]
+		self.historic.insert(0, {
+			"nrows": 1,
+			"searchValues": [{"logical": None,
+				"field": None,
+				"type": "Text",
+				"operator": None,
+				"content": ""}],
+			"limit": "100000" \
+				if replace else "%s"%pbConfig.params["defaultLimitBibtexs"],
+			"offset": "0",
+			"replaceFields": {
+				"regex": False,
+				"double": False,
+				"fieOld": "author",
+				"old": "",
+				"fieNew": "author",
+				"new": "",
+				"fieNew1": "author",
+				"new1": "",
+				}
+			})
 		self.currentHistoric = 0
 		self.createForm()
 
@@ -1969,26 +1993,27 @@ class SearchBibsWindow(EditObjectWindow):
 		Parameter:
 			record: the database record
 		"""
-		replace = record["replaceFields"] if record["isReplace"] == 1 else []
-		#bad name choice: searchDict is no more a dictionary...
 		try:
 			searchValues = ast.literal_eval(record["searchDict"])
 		except ValueError:
 			pBLogger.warning("Something went wrong when processing "
 				+ "the saved search fields:\n%s"%record["searchDict"])
 			searchValues = []
-		try:
-			replaceFields = ast.literal_eval(replace)
-		except ValueError:
-			pBLogger.warning("Something went wrong when processing "
-				+ "the saved search/replace:\n%s"%replace,
-				exc_info=True)
+		if record["isReplace"] == 1:
+			try:
+				replaceFields = ast.literal_eval(record["replaceFields"])
+			except ValueError:
+				pBLogger.warning("Something went wrong when processing "
+					+ "the saved search/replace:\n%s"%replace,
+					exc_info=True)
+				replaceFields = []
+		else:
 			replaceFields = []
 		return {
 			"nrows": len(searchValues),
 			"searchValues": searchValues,
-			"limit": record["limitNum"],
-			"offset": record["offsetNum"],
+			"limit": "%s"%record["limitNum"],
+			"offset": "%s"%record["offsetNum"],
 			"replaceFields": replaceFields
 			}
 
@@ -2053,6 +2078,25 @@ class SearchBibsWindow(EditObjectWindow):
 			self.textValues[ix]["content"].setText(
 				"%s"%self.selectedExps)
 
+	def keyPressEvent(self, e):
+		"""Intercept press keys and exit if escape is pressed
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
+		"""
+		if e.key() == Qt.Key_Escape:
+			self.onCancel()
+		elif e.key() == Qt.Key_Up or e.key() == Qt.Key_Down:
+			#save current content to historic 0
+			if (e.key() == Qt.Key_Up
+					and self.currentHistoric < len(self.historic) - 1):
+				self.currentHistoric += 1
+			elif (e.key() == Qt.Key_Down
+					and self.currentHistoric > 0):
+				self.currentHistoric -= 1
+			self.cleanLayout()
+			self.createForm(histIndex=self.currentHistoric)
+
 	def eventFilter(self, widget, event):
 		"""Filter the "enter" events in a text widget.
 		If 'Enter' or "Return" is pressed, set focus on the "Ok" button
@@ -2069,11 +2113,6 @@ class SearchBibsWindow(EditObjectWindow):
 			if key == Qt.Key_Return or key == Qt.Key_Enter:
 				self.acceptButton.setFocus()
 				return True
-			# elif key == Qt.Key_Up or key == Qt.Key_Down:
-				# clear previous form content and values/textValues
-				# recreate form with appropriate historic entry
-				# use self.currentHistoric
-				# return True
 		return QWidget.eventFilter(self, widget, event)
 
 	def resetForm(self):
@@ -2475,10 +2514,9 @@ class SearchBibsWindow(EditObjectWindow):
 			histIndex = 0
 
 		if histIndex > 0:
-			self.currentHistoric = histIndex
-			self.numberOfRows = self.historic[histIndex-1]["nrows"]
+			self.numberOfRows = self.historic[histIndex]["nrows"]
 			for i in range(self.numberOfRows):
-				previous = self.historic[histIndex-1]["searchValues"][i]
+				previous = self.historic[histIndex]["searchValues"][i]
 				try:
 					self.values[i] = previous
 				except IndexError:
@@ -2515,14 +2553,14 @@ class SearchBibsWindow(EditObjectWindow):
 		if self.replace:
 			if histIndex > 0:
 				i = self.createReplace(i,
-					previous=self.historic[histIndex-1]["replaceFields"])
+					previous=self.historic[histIndex]["replaceFields"])
 			else:
 				i = self.createReplace(i)
 		else:
 			if histIndex > 0:
 				self.createLimits(i,
-					defLim=self.historic[histIndex-1]["limit"],
-					defOffs=self.historic[histIndex-1]["offset"],
+					defLim=self.historic[histIndex]["limit"],
+					defOffs=self.historic[histIndex]["offset"],
 					override=True)
 			else:
 				self.createLimits(i)
