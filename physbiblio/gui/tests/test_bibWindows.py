@@ -4821,30 +4821,107 @@ class TestSearchBibsWindow(GUITestCase):
 
 	def test_processHistoric(self):
 		"""test processHistoric"""
-		# records = [
-			# {"idS": 0,
-			# "name": "test1",
-			# "count": 0,
-			# "searchDict": [...],
-			# "limitNum": 1111,
-			# "offsetNum": 12,
-			# "replaceFields": [...],
-			# "manual": 0,
-			# "isReplace": 0,},
-			# {"idS": 1,
-			# "name": "test2",
-			# "count": 1,
-			# "searchDict": [...],
-			# "limitNum": 123,
-			# "offsetNum": 99,
-			# "replaceFields": [...],
-			# "manual": 0,
-			# "isReplace": 0,}
-		# ]
+		records = [
+			{"idS": 0,
+			"name": "test1",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["e1"]',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 1,
+			"name": "test2",
+			"count": 1,
+			"searchDict": '[{"a": "abc"}, {',
+			"limitNum": 123,
+			"offsetNum": 99,
+			"replaceFields": 'abc',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 2,
+			"name": "test3",
+			"count": 0,
+			"searchDict": [{"a": "abc"}, {}],
+			"limitNum": 123,
+			"offsetNum": 99,
+			"replaceFields": '{"old": "e1"}',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 3,
+			"name": "test4",
+			"count": 1,
+			"searchDict": '[{"a": "abc"}]',
+			"limitNum": 123,
+			"offsetNum": 99,
+			"replaceFields": 'abc',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 4,
+			"name": "test4",
+			"count": 2,
+			"searchDict": '[{"a": "abc"}]',
+			"limitNum": 123,
+			"offsetNum": 99,
+			"replaceFields": '{"abc": ',
+			"manual": 0,
+			"isReplace": 1,}
+		]
 		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
 				) as _cf:
 			sbw = SearchBibsWindow()
-		raise NotImplementedError
+		self.assertEqual(sbw.processHistoric(records[0]), {
+			"nrows": 2,
+			"searchValues": [{"a": "abc"}, {"b": "def"}],
+			"limit": "1111",
+			"offset": "12",
+			"replaceFields": {}
+			})
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sbw.processHistoric(records[1]), {
+				"nrows": 0,
+				"searchValues": [],
+				"limit": "123",
+				"offset": "99",
+				"replaceFields": {}
+				})
+			_w.assert_called_once_with(
+				'Something went wrong when processing the saved search'
+				+ ' fields:\n[{"a": "abc"}, {', exc_info=True)
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sbw.processHistoric(records[2]), {
+				"nrows": 0,
+				"searchValues": [],
+				"limit": "123",
+				"offset": "99",
+				"replaceFields": {'old': 'e1'}
+				})
+			_w.assert_called_once_with(
+				"Something went wrong when processing the saved search"
+				+ " fields:\n[{'a': 'abc'}, {}]", exc_info=True)
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sbw.processHistoric(records[3]), {
+				"nrows": 1,
+				"searchValues": [{'a': 'abc'}],
+				"limit": "123",
+				"offset": "99",
+				"replaceFields": {}
+				})
+			_w.assert_called_once_with(
+				'Something went wrong when processing the saved'
+				+ ' search/replace:\nabc', exc_info=True)
+		with patch("logging.Logger.warning") as _w:
+			self.assertEqual(sbw.processHistoric(records[4]), {
+				"nrows": 1,
+				"searchValues": [{'a': 'abc'}],
+				"limit": "123",
+				"offset": "99",
+				"replaceFields": {}
+				})
+			_w.assert_called_once_with(
+				'Something went wrong when processing the saved '
+				+ 'search/replace:\n{"abc": ', exc_info=True)
 
 	def test_changeCurrentContent(self):
 		"""test changeCurrentContent"""

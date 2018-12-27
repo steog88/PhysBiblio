@@ -1995,20 +1995,21 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		try:
 			searchValues = ast.literal_eval(record["searchDict"])
-		except ValueError:
+		except (ValueError, SyntaxError):
 			pBLogger.warning("Something went wrong when processing "
-				+ "the saved search fields:\n%s"%record["searchDict"])
+				+ "the saved search fields:\n%s"%record["searchDict"],
+				exc_info=True)
 			searchValues = []
 		if record["isReplace"] == 1:
 			try:
 				replaceFields = ast.literal_eval(record["replaceFields"])
-			except ValueError:
+			except (ValueError, SyntaxError):
 				pBLogger.warning("Something went wrong when processing "
-					+ "the saved search/replace:\n%s"%replace,
+					+ "the saved search/replace:\n%s"%record["replaceFields"],
 					exc_info=True)
-				replaceFields = []
+				replaceFields = {}
 		else:
-			replaceFields = []
+			replaceFields = {}
 		return {
 			"nrows": len(searchValues),
 			"searchValues": searchValues,
@@ -2088,6 +2089,7 @@ class SearchBibsWindow(EditObjectWindow):
 			self.onCancel()
 		elif e.key() == Qt.Key_Up or e.key() == Qt.Key_Down:
 			#save current content to historic 0
+			# if self.edit, disable use of arrows
 			if (e.key() == Qt.Key_Up
 					and self.currentHistoric < len(self.historic) - 1):
 				self.currentHistoric += 1
