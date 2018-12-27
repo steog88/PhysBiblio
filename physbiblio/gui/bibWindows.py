@@ -2087,9 +2087,29 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		if e.key() == Qt.Key_Escape:
 			self.onCancel()
-		elif e.key() == Qt.Key_Up or e.key() == Qt.Key_Down:
-			#save current content to historic 0
-			# if self.edit, disable use of arrows
+		elif (not self.edit and
+				(e.key() == Qt.Key_Up or e.key() == Qt.Key_Down)):
+			self.readForm()
+			if self.replace:
+				replace = self.replaceFields.copy()
+			else:
+				replace = {
+					"regex": False,
+					"double": False,
+					"fieOld": "author",
+					"old": "",
+					"fieNew": "author",
+					"new": "",
+					"fieNew1": "author",
+					"new1": "",
+					}
+			self.historic[self.currentHistoric] = {
+				"nrows": len(self.values),
+				"searchValues": [v.copy() for v in self.values],
+				"limit": "%s"%self.limit,
+				"offset": "%s"%self.offset,
+				"replaceFields": replace
+				}
 			if (e.key() == Qt.Key_Up
 					and self.currentHistoric < len(self.historic) - 1):
 				self.currentHistoric += 1
@@ -2265,6 +2285,8 @@ class SearchBibsWindow(EditObjectWindow):
 				"fieNew1": self.replNewField1.currentText(),
 				"new1": self.replNew1.text(),
 				}
+		else:
+			self.replaceFields = {}
 		try:
 			self.limit = int(self.limitValue.text())
 		except ValueError:
@@ -2501,7 +2523,7 @@ class SearchBibsWindow(EditObjectWindow):
 		self.limitOffs = QLineEdit("0")
 		return ix + 1
 
-	def createForm(self, histIndex=0, spaceRowHeight=25):
+	def createForm(self, histIndex=-1, spaceRowHeight=25):
 		"""Create the form structure,
 		using history information if required
 
@@ -2513,9 +2535,9 @@ class SearchBibsWindow(EditObjectWindow):
 		self.setWindowTitle('Search bibtex entries')
 
 		if histIndex > len(self.historic):
-			histIndex = 0
+			histIndex = -1
 
-		if histIndex > 0:
+		if histIndex > -1:
 			self.numberOfRows = self.historic[histIndex]["nrows"]
 			for i in range(self.numberOfRows):
 				previous = self.historic[histIndex]["searchValues"][i]
@@ -2553,13 +2575,13 @@ class SearchBibsWindow(EditObjectWindow):
 
 		i += 2
 		if self.replace:
-			if histIndex > 0:
+			if histIndex > -1:
 				i = self.createReplace(i,
 					previous=self.historic[histIndex]["replaceFields"])
 			else:
 				i = self.createReplace(i)
 		else:
-			if histIndex > 0:
+			if histIndex > -1:
 				self.createLimits(i,
 					defLim=self.historic[histIndex]["limit"],
 					defOffs=self.historic[histIndex]["offset"],

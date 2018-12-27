@@ -5063,7 +5063,170 @@ class TestSearchBibsWindow(GUITestCase):
 			_oc.assert_not_called()
 			QTest.keyPress(sbw.acceptButton, Qt.Key_Escape)
 			self.assertEqual(_oc.call_count, 1)
-		raise NotImplementedError
+		sbw = SearchBibsWindow(edit=True)
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readForm"
+				) as _rf:
+			QTest.keyPress(sbw.acceptButton, "a")
+			_rf.assert_not_called()
+			QTest.keyPress(sbw.acceptButton, Qt.Key_Up)
+			_rf.assert_not_called()
+			QTest.keyPress(sbw.acceptButton, Qt.Key_Down)
+			_rf.assert_not_called()
+		sbw = SearchBibsWindow()
+		sbw.historic = ["a", "b", "c", "d"]
+		sbw.currentHistoric = 0
+		with patch.object(SearchBibsWindow, "readForm",
+					wraps=sbw.readForm
+					) as _rf,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout"
+					) as _cl,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+					) as _cf:
+			QTest.keyPress(sbw, Qt.Key_Down)
+			_rf.assert_called_once_with()
+			_cl.assert_called_once_with()
+			self.assertEqual(sbw.currentHistoric, 0)
+			self.assertEqual(sbw.historic[0],
+				{'limit': '100',
+				'nrows': 1,
+				'offset': '0',
+				'replaceFields': {'double': False,
+					'fieNew': 'author',
+					'fieNew1': 'author',
+					'fieOld': 'author',
+					'new': '',
+					'new1': '',
+					'old': '',
+					'regex': False},
+				'searchValues': [{'content': '',
+					'field': 'bibtex',
+					'logical': None,
+					'operator': 'contains',
+					'type': 'Text'}]})
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 3)
+			self.assertEqual(_cl.call_count, 3)
+			self.assertEqual(sbw.currentHistoric, 1)
+			_cf.assert_called_once_with(histIndex=1)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 4)
+			self.assertEqual(_cl.call_count, 4)
+			self.assertEqual(sbw.currentHistoric, 2)
+			_cf.assert_called_once_with(histIndex=2)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 5)
+			self.assertEqual(_cl.call_count, 5)
+			self.assertEqual(sbw.currentHistoric, 3)
+			_cf.assert_called_once_with(histIndex=3)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 6)
+			self.assertEqual(_cl.call_count, 6)
+			self.assertEqual(sbw.currentHistoric, 3)
+			_cf.assert_called_once_with(histIndex=3)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 7)
+			self.assertEqual(_cl.call_count, 7)
+			self.assertEqual(sbw.currentHistoric, 2)
+			_cf.assert_called_once_with(histIndex=2)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 8)
+			self.assertEqual(_cl.call_count, 8)
+			self.assertEqual(sbw.currentHistoric, 1)
+			_cf.assert_called_once_with(histIndex=1)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 9)
+			self.assertEqual(_cl.call_count, 9)
+			self.assertEqual(sbw.currentHistoric, 0)
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 10)
+			self.assertEqual(_cl.call_count, 10)
+			self.assertEqual(sbw.currentHistoric, 0)
+			_cf.assert_called_once_with(histIndex=0)
+
+		sbw = SearchBibsWindow(replace=True)
+		sbw.historic = ["a", "b", "c"]
+		self.assertEqual(sbw.currentHistoric, 0)
+		with patch.object(SearchBibsWindow, "readForm",
+					wraps=sbw.readForm
+					) as _rf,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout"
+					) as _cl,\
+				patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+					) as _cf:
+			QTest.keyPress(sbw, Qt.Key_Down)
+			_rf.assert_called_once_with()
+			_cl.assert_called_once_with()
+			self.assertEqual(sbw.currentHistoric, 0)
+			self.assertEqual(sbw.historic[0],
+				{'limit': '100000',
+				'nrows': 1,
+				'offset': '0',
+				'replaceFields': {'double': False,
+					'fieNew': 'author',
+					'fieNew1': 'author',
+					'fieOld': 'author',
+					'new': '',
+					'new1': '',
+					'old': '',
+					'regex': False},
+				'searchValues': [{'content': '',
+					'field': 'bibtex',
+					'logical': None,
+					'operator': 'contains',
+					'type': 'Text'}]})
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 3)
+			self.assertEqual(_cl.call_count, 3)
+			self.assertEqual(sbw.currentHistoric, 1)
+			_cf.assert_called_once_with(histIndex=1)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 4)
+			self.assertEqual(_cl.call_count, 4)
+			self.assertEqual(sbw.currentHistoric, 2)
+			_cf.assert_called_once_with(histIndex=2)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Up)
+			self.assertEqual(_rf.call_count, 5)
+			self.assertEqual(_cl.call_count, 5)
+			self.assertEqual(sbw.currentHistoric, 2)
+			_cf.assert_called_once_with(histIndex=2)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 6)
+			self.assertEqual(_cl.call_count, 6)
+			self.assertEqual(sbw.currentHistoric, 1)
+			_cf.assert_called_once_with(histIndex=1)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 7)
+			self.assertEqual(_cl.call_count, 7)
+			self.assertEqual(sbw.currentHistoric, 0)
+			_cf.assert_called_once_with(histIndex=0)
+			_cf.reset_mock()
+			QTest.keyPress(sbw, Qt.Key_Down)
+			self.assertEqual(_rf.call_count, 8)
+			self.assertEqual(_cl.call_count, 8)
+			self.assertEqual(sbw.currentHistoric, 0)
+			_cf.assert_called_once_with(histIndex=0)
 
 	def test_eventFilter(self):
 		"""test eventFilter"""
