@@ -569,6 +569,28 @@ class GlobalDB(PhysBiblioDBCore):
 		self.commit()
 		return True
 
+	def updateSearchField(self, idS, field, value):
+		"""Update a single field of an entry
+
+		Parameters:
+			idS: the search ID
+			field: the field name
+			value: the new value of the field
+
+		Output:
+			the output of self.connExec or
+				False (empty value or not valid field)
+		"""
+		if field in ["searchDict", "replaceFields"] \
+				and value is not None and value != "":
+			query = "update searches set " + field \
+				+ "=:field where idS=:idS\n"
+			return self.connExec(query, {"field": value, "idS": idS})
+		else:
+			self.logger.warning(
+				"Empty value or field not in: [searchDict, replaceFields]")
+			return False
+
 
 class ConfigurationDB(PhysBiblioDBSub):
 	"""Subclass that manages the functions for the categories."""

@@ -267,6 +267,33 @@ class TestConfigMethods(unittest.TestCase):
 			[e["name"] for e in \
 				tempPbConfig.globalDb.getSearchList(True, True)],
 			["test2", "testname"])
+		with patch("logging.Logger.warning") as _e:
+			self.assertFalse(
+				tempPbConfig.globalDb.updateSearchField(1, "abc", "ab"))
+			_e.assert_called_once_with(
+				'Empty value or field not in: [searchDict, replaceFields]')
+			_e.reset_mock()
+			self.assertFalse(
+				tempPbConfig.globalDb.updateSearchField(1, "searchDict", ""))
+			_e.assert_called_once_with(
+				'Empty value or field not in: [searchDict, replaceFields]')
+			_e.reset_mock()
+			self.assertFalse(
+				tempPbConfig.globalDb.updateSearchField(
+					1, "replaceFields", None))
+			_e.assert_called_once_with(
+				'Empty value or field not in: [searchDict, replaceFields]')
+			_e.reset_mock()
+			self.assertTrue(
+				tempPbConfig.globalDb.updateSearchField(1, "searchDict", "ab"))
+			_e.assert_not_called()
+			self.assertTrue(
+				tempPbConfig.globalDb.updateSearchField(
+					1, "replaceFields", "cd"))
+			_e.assert_not_called()
+		search = tempPbConfig.globalDb.getSearchByID(1)[0]
+		self.assertEqual(search["searchDict"], "ab")
+		self.assertEqual(search["replaceFIelds"], "cd")
 
 		pbConfig.params["maxSavedSearches"] = 5
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
