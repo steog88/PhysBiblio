@@ -1934,14 +1934,14 @@ class AskPDFAction(PBMenu):
 class SearchBibsWindow(EditObjectWindow):
 	"""Create a window for searching a bibtex entry"""
 
-	def __init__(self, parent=None, replace=False, edit=False):
+	def __init__(self, parent=None, replace=False, edit=None):
 		"""Create the window and save some properties
 
 		Parameters:
 			parent (default None): the parent widget
 			replace (default False): if True, add the replace fields
 				in the dialog
-			edit (default False): if not False, it should be the index
+			edit (default None): if not None, it should be the index
 				of the search/replace to be modified
 		"""
 		super(SearchBibsWindow, self).__init__(parent)
@@ -1987,7 +1987,16 @@ class SearchBibsWindow(EditObjectWindow):
 				}
 			})
 		self.currentHistoric = 0
-		self.createForm()
+		if self.edit is not None:
+			if not (isinstance(self.edit, int) or self.edit.isdigit()):
+				pBLogger.error("Wrong 'edit', it is not an ID: '%s'"%self.edit)
+				self.createForm()
+			else:
+				self.historic = [self.processHistoric(a) \
+					for a in pbConfig.globalDb.getSearchByID(self.edit)]
+				self.createForm(histIndex=0)
+		else:
+			self.createForm()
 
 	def processHistoric(self, record):
 		"""Process the information stored in the database
@@ -2090,7 +2099,7 @@ class SearchBibsWindow(EditObjectWindow):
 		"""
 		if e.key() == Qt.Key_Escape:
 			self.onCancel()
-		elif (not self.edit and
+		elif (self.edit is None and
 				(e.key() == Qt.Key_Up or e.key() == Qt.Key_Down)):
 			self.readForm()
 			if self.replace:

@@ -4768,7 +4768,7 @@ class TestSearchBibsWindow(GUITestCase):
 		self.assertFalse(sbw.result)
 		self.assertFalse(sbw.save)
 		self.assertFalse(sbw.replace)
-		self.assertFalse(sbw.edit)
+		self.assertEqual(sbw.edit, None)
 		self.assertEqual(sbw.historic,
 			[{
 			"nrows": 1,
@@ -4840,6 +4840,64 @@ class TestSearchBibsWindow(GUITestCase):
 			_sl.assert_called_once_with(manual=False, replacement=True)
 		self.assertTrue(sbw.replace)
 		self.assertEqual(sbw.parent(), p)
+
+		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.createForm"
+				) as _cf,\
+				patch("physbiblio.config.GlobalDB.getSearchByID",
+					return_value=[{"idS": 0,
+						"name": "test1",
+						"count": 0,
+						"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+						"limitNum": 1111,
+						"offsetNum": 12,
+						"replaceFields": '["e1"]',
+						"manual": 0,
+						"isReplace": 0,}]) as _gsbi:
+			sbw = SearchBibsWindow(edit="123")
+			_cf.assert_called_once_with(histIndex=0)
+			_gsbi.assert_called_once_with("123")
+			self.assertEqual(sbw.historic, [
+				{'limit': '1111',
+				'nrows': 2,
+				'offset': '12',
+				'replaceFields': {},
+				'searchValues': [{'a': 'abc'}, {'b': 'def'}]}])
+			_cf.reset_mock()
+			_gsbi.reset_mock()
+			sbw = SearchBibsWindow(edit=123)
+			_cf.assert_called_once_with(histIndex=0)
+			_gsbi.assert_called_once_with(123)
+			self.assertEqual(sbw.historic, [
+				{'limit': '1111',
+				'nrows': 2,
+				'offset': '12',
+				'replaceFields': {},
+				'searchValues': [{'a': 'abc'}, {'b': 'def'}]}])
+			_cf.reset_mock()
+			_gsbi.reset_mock()
+			with patch("logging.Logger.error") as _e:
+				sbw = SearchBibsWindow(edit="ab1")
+				_e.assert_called_once_with(
+					"Wrong 'edit', it is not an ID: 'ab1'")
+			_cf.assert_called_once_with()
+			_gsbi.assert_not_called()
+			self.assertEqual(sbw.historic[0], {
+				'limit': '100',
+				'nrows': 1,
+				'offset': '0',
+				'replaceFields': {'double': False,
+					'fieNew': 'author',
+					'fieNew1': 'author',
+					'fieOld': 'author',
+					'new': '',
+					'new1': '',
+					'old': '',
+					'regex': False},
+				'searchValues': [{'content': '',
+					'field': None,
+					'logical': None,
+					'operator': None,
+					'type': 'Text'}]})
 
 	def test_processHistoric(self):
 		"""test processHistoric"""
@@ -5085,7 +5143,17 @@ class TestSearchBibsWindow(GUITestCase):
 			_oc.assert_not_called()
 			QTest.keyPress(sbw.acceptButton, Qt.Key_Escape)
 			self.assertEqual(_oc.call_count, 1)
-		sbw = SearchBibsWindow(edit=True)
+		with patch("physbiblio.config.GlobalDB.getSearchByID",
+				return_value=[{"idS": 0,
+					"name": "test1",
+					"count": 0,
+					"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+					"limitNum": 1111,
+					"offsetNum": 12,
+					"replaceFields": '["e1"]',
+					"manual": 0,
+					"isReplace": 0,}]) as _gsbi:
+			sbw = SearchBibsWindow(edit="123")
 		with patch("physbiblio.gui.bibWindows.SearchBibsWindow.readForm"
 				) as _rf:
 			QTest.keyPress(sbw.acceptButton, "a")
