@@ -201,6 +201,8 @@ Two (regex) search and replace examples:
 
 **New in 0.5.0**: you can now save the searches/replaces you use more frequently. They will be re-usable with two clicks in the new menu and shared among all the profiles.
 
+**New in 0.9.5**: you can now re-use the recent searches/replaces that you have not explicitely saved but that have been stored temporarily in the database. They are available using the Up/Down arrows in the search/replace form.
+
 ### INSPIRE-OAI
 INSPIRE-HEP has a dedicated interface for massive harvesting, see [this page](http://inspirehep.net/info/hep/api).  
 In order to avoid heavy traffic on the server when using the `update` functions on a long list of entries, you should rely on the OAI functions.

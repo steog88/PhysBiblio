@@ -1099,6 +1099,8 @@ class MainWindow(QMainWindow):
 		if not cancel:
 			pbConfig.globalDb.updateSearchField(
 				idS, "name", name)
+			pbConfig.globalDb.commit()
+			self.createMenusAndToolBar()
 
 	def editSearchBiblio(self, idS, name):
 		"""Edit a saved search
@@ -1126,12 +1128,18 @@ class MainWindow(QMainWindow):
 						idS, "searchDict", searchFields)
 					pbConfig.globalDb.updateSearchField(
 						idS, "replaceFields", replaceFields)
+					pbConfig.globalDb.commit()
 				pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
 				self.runReplace(replaceFields)
 			else:
 				if newSearchWin.save:
 					pbConfig.globalDb.updateSearchField(
 						idS, "searchDict", searchFields)
+					pbConfig.globalDb.updateSearchField(
+						idS, "limitNum", lim)
+					pbConfig.globalDb.updateSearchField(
+						idS, "offsetNum", offs)
+					pbConfig.globalDb.commit()
 				self.runSearchBiblio(searchFields, lim, offs)
 
 	def delSearchBiblio(self, idS, name):

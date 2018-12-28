@@ -1504,6 +1504,9 @@ class TestMainWindow(GUITestCase):
 		with patch(self.modName + ".askGenericText",
 				side_effect=[["abc", False], ["", True], ["def", True]]
 				) as _agt,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
+					) as _c,\
+				patch(self.clsName + ".createMenusAndToolBar") as _t,\
 				patch("physbiblio.config.GlobalDB.updateSearchField") as _usf:
 			self.mainW.renameSearchBiblio(999, "old")
 			_agt.assert_called_once_with(
@@ -1516,6 +1519,8 @@ class TestMainWindow(GUITestCase):
 			self.mainW.renameSearchBiblio(999, "old")
 			self.assertEqual(_agt.call_count, 3)
 			_usf.assert_called_once_with(999, 'name', 'def')
+			_c.assert_called_once_with()
+			_t.assert_called_once_with()
 
 	def test_editSearchBiblio(self):
 		"""test editSearchBiblio"""
@@ -1602,6 +1607,8 @@ class TestMainWindow(GUITestCase):
 				side_effect=sbws) as _sbw,\
 				patch("physbiblio.config.GlobalDB.getSearchByID",
 					side_effect=[[r] for r in records]) as _gsi,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
+					) as _c,\
 				patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
 				patch("physbiblio.database.Entries.fetchFromDict") as _ffd,\
 				patch(self.clsName + ".runSearchBiblio") as _rsb,\
@@ -1636,11 +1643,16 @@ class TestMainWindow(GUITestCase):
 				'operator': 'contains', 'content': 'ghi'}], limitOffset=0)
 			_rre.reset_mock()
 			_ffd.reset_mock()
+			_c.assert_not_called()
 			self.mainW.editSearchBiblio(999, "test")
 			sbws[3].exec_.assert_called_once_with()
-			_usf.assert_called_once_with(999, 'searchDict',
+			_usf.assert_has_calls([
+				call(999, 'searchDict',
 				[{'type': 'Marks', 'logical': None, 'field': None,
-				'operator': None, 'content': []}])
+				'operator': None, 'content': []}]),
+				call(999, 'limitNum', 111),
+				call(999, 'offsetNum', 12)])
+			_c.assert_called_once_with()
 			_rsb.assert_called_once_with(
 				[{'type': 'Marks', 'logical': None, 'field': None,
 				'operator': None, 'content': []}], 111, 12)

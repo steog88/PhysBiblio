@@ -272,20 +272,20 @@ class TestConfigMethods(unittest.TestCase):
 				tempPbConfig.globalDb.updateSearchField(1, "abc", "ab"))
 			_e.assert_called_once_with(
 				'Empty value or field not in the following list: '
-				+ '[searchDict, replaceFields, name]')
+				+ '[searchDict, replaceFields, name, limitNum, offsetNum]')
 			_e.reset_mock()
 			self.assertFalse(
 				tempPbConfig.globalDb.updateSearchField(1, "searchDict", ""))
 			_e.assert_called_once_with(
 				'Empty value or field not in the following list: '
-				+ '[searchDict, replaceFields, name]')
+				+ '[searchDict, replaceFields, name, limitNum, offsetNum]')
 			_e.reset_mock()
 			self.assertFalse(
 				tempPbConfig.globalDb.updateSearchField(
 					1, "replaceFields", None))
 			_e.assert_called_once_with(
 				'Empty value or field not in the following list: '
-				+ '[searchDict, replaceFields, name]')
+				+ '[searchDict, replaceFields, name, limitNum, offsetNum]')
 			_e.reset_mock()
 			self.assertTrue(
 				tempPbConfig.globalDb.updateSearchField(1, "searchDict", "ab"))
@@ -297,10 +297,18 @@ class TestConfigMethods(unittest.TestCase):
 			self.assertTrue(
 				tempPbConfig.globalDb.updateSearchField(1, "name", "BA"))
 			_e.assert_not_called()
+			self.assertTrue(
+				tempPbConfig.globalDb.updateSearchField(1, "limitNum", "91"))
+			_e.assert_not_called()
+			self.assertTrue(
+				tempPbConfig.globalDb.updateSearchField(1, "offsetNum", "19"))
+			_e.assert_not_called()
 		search = tempPbConfig.globalDb.getSearchByID(1)[0]
 		self.assertEqual(search["searchDict"], "ab")
 		self.assertEqual(search["name"], "BA")
 		self.assertEqual(search["replaceFIelds"], "cd")
+		self.assertEqual(search["limitNum"], 91)
+		self.assertEqual(search["offsetNum"], 19)
 
 		pbConfig.params["maxSavedSearches"] = 5
 		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
