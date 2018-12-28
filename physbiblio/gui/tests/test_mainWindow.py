@@ -577,12 +577,16 @@ class TestMainWindow(GUITestCase):
 				["Manage 's1'", [
 					["Edit 's1'", self.clsName + ".editSearchBiblio",
 						[0, "s1"]],
+					["Rename 's1'", self.clsName + ".renameSearchBiblio",
+						[0, "s1"]],
 					["Delete 's1'", self.clsName + ".delSearchBiblio",
 						[0, "s1"]]
 					]
 				],
 				["Manage 's2'", [
 					["Edit 's2'", self.clsName + ".editSearchBiblio",
+						[1, "s2"]],
+					["Rename 's2'", self.clsName + ".renameSearchBiblio",
 						[1, "s2"]],
 					["Delete 's2'", self.clsName + ".delSearchBiblio",
 						[1, "s2"]]
@@ -617,12 +621,16 @@ class TestMainWindow(GUITestCase):
 				["Manage 's3'", [
 					["Edit 's3'", self.clsName + ".editSearchBiblio",
 						[2, "s3"]],
+					["Rename 's3'", self.clsName + ".renameSearchBiblio",
+						[2, "s3"]],
 					["Delete 's3'", self.clsName + ".delSearchBiblio",
 						[2, "s3"]]
 					]
 				],
 				["Manage 's4'", [
 					["Edit 's4'", self.clsName + ".editSearchBiblio",
+						[3, "s4"]],
+					["Rename 's4'", self.clsName + ".renameSearchBiblio",
 						[3, "s4"]],
 					["Delete 's4'", self.clsName + ".delSearchBiblio",
 						[3, "s4"]]
@@ -1491,9 +1499,176 @@ class TestMainWindow(GUITestCase):
 			_ffd.assert_called_once_with({'s': 'a'}, limitOffset=12)
 			_rr.assert_called_once_with(["b"])
 
+	def test_renameSearchBiblio(self):
+		"""test renameSearchBiblio"""
+		with patch(self.modName + ".askGenericText",
+				side_effect=[["abc", False], ["", True], ["def", True]]
+				) as _agt,\
+				patch("physbiblio.config.GlobalDB.updateSearchField") as _usf:
+			self.mainW.renameSearchBiblio(999, "old")
+			_agt.assert_called_once_with(
+				"Insert a new name / short description to be able to"
+				+ " recognise this search/replace in the future"
+				+ " (current name: 'old'):",
+				'New name',
+				parent=self.mainW)
+			_usf.assert_not_called()
+			self.mainW.renameSearchBiblio(999, "old")
+			self.assertEqual(_agt.call_count, 3)
+			_usf.assert_called_once_with(999, 'name', 'def')
+
 	def test_editSearchBiblio(self):
 		"""test editSearchBiblio"""
-		raise NotImplementedError
+		records = [
+			{"idS": 0,
+			"name": "test1",
+			"count": 0,
+			"searchDict": "[{'type': 'Text', 'logical': None, 'field': "
+				+ "'bibtex', 'operator': 'contains', 'content': 'abc'}]",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '{}',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 1,
+			"name": "test1",
+			"count": 0,
+			"searchDict": "[{'type': 'Text', 'logical': None, 'field': "
+				+ "'bibtex', 'operator': 'contains', 'content': 'def'}]",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '{}',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 2,
+			"name": "test1",
+			"count": 0,
+			"searchDict": "[{'type': 'Text', 'logical': None, 'field': "
+				+ "'bibtex', 'operator': 'contains', 'content': 'ghi'}]",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '{"fieOld": "bibtex", "fieNew": '
+				+ '"bibkey", "old": "o", "new": "a", "regex": False, '
+				+ '"double": True, "fieNew1": "", "new1": ""}',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 3,
+			"name": "test1",
+			"count": 0,
+			"searchDict": "[{'type': 'Text', 'logical': None, 'field': "
+				+ "'bibtex', 'operator': 'contains', 'content': 'jkl'}]",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '{}',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 4,
+			"name": "test1",
+			"count": 0,
+			"searchDict": "[{'type': 'Text', 'logical': None, 'field': "
+				+ "'bibtex', 'operator': 'contains', 'content': 'mno'}]",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '{"fieOld": "bibtex", "fieNew": '
+				+ '"bibkey", "old": "o", "new": "a", "regex": True, '
+				+ '"double": True, "fieNew1": "", "new1": ""}',
+			"manual": 0,
+			"isReplace": 1,},
+			]
+		with patch("physbiblio.config.GlobalDB.getSearchByID",
+				side_effect=[[r] for r in records]) as _gsi:
+			sbws = [SearchBibsWindow(replace=r["isReplace"], edit=r["idS"])
+				for r in records]
+		for s in sbws:
+			s.exec_ = MagicMock()
+		sbws[3].textValues[0]["type"].setCurrentText("Marks")
+		sbws[3].limitValue.setText("111")
+		sbws[4].addRow()
+		sbws[4].replNewField1.setCurrentText("doi")
+		for i in range(1, 3):
+			sbws[i].onOk()
+		for i in range(3, 5):
+			sbws[i].onSave()
+		with patch("physbiblio.config.GlobalDB.getSearchByID",
+					return_value=[]) as _gsi,\
+				patch("logging.Logger.error") as _e,\
+				patch(self.modName + ".SearchBibsWindow") as _sbw:
+			self.mainW.editSearchBiblio(999, "test")
+			_gsi.assert_called_once_with(999)
+			_e.assert_called_once_with(
+				"Cannot find the requested search! id:999")
+			_sbw.assert_not_called()
+		with patch(self.modName + ".SearchBibsWindow",
+				side_effect=sbws) as _sbw,\
+				patch("physbiblio.config.GlobalDB.getSearchByID",
+					side_effect=[[r] for r in records]) as _gsi,\
+				patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
+				patch("physbiblio.database.Entries.fetchFromDict") as _ffd,\
+				patch(self.clsName + ".runSearchBiblio") as _rsb,\
+				patch(self.clsName + ".runReplace") as _rre:
+			self.mainW.editSearchBiblio(999, "test")
+			_sbw.assert_called_once_with(edit=999, replace=0)
+			sbws[0].exec_.assert_called_once_with()
+			_usf.assert_not_called()
+			_rsb.assert_not_called()
+			_rre.assert_not_called()
+			_ffd.assert_not_called()
+			self.mainW.editSearchBiblio(999, "test")
+			sbws[1].exec_.assert_called_once_with()
+			_usf.assert_not_called()
+			_rsb.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': 'def'}], 1111, 12)
+			_rre.assert_not_called()
+			_ffd.assert_not_called()
+			_sbw.reset_mock()
+			_rsb.reset_mock()
+			self.mainW.editSearchBiblio(999, "test")
+			_sbw.assert_called_once_with(edit=999, replace=1)
+			sbws[2].exec_.assert_called_once_with()
+			_usf.assert_not_called()
+			_rsb.assert_not_called()
+			_rre.assert_called_once_with({'regex': False, 'double': True,
+				'fieOld': 'arxiv', 'old': 'o', 'fieNew': 'arxiv',
+				'new': 'a', 'fieNew1': 'arxiv', 'new1': ''})
+			_ffd.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': 'ghi'}], limitOffset=0)
+			_rre.reset_mock()
+			_ffd.reset_mock()
+			self.mainW.editSearchBiblio(999, "test")
+			sbws[3].exec_.assert_called_once_with()
+			_usf.assert_called_once_with(999, 'searchDict',
+				[{'type': 'Marks', 'logical': None, 'field': None,
+				'operator': None, 'content': []}])
+			_rsb.assert_called_once_with(
+				[{'type': 'Marks', 'logical': None, 'field': None,
+				'operator': None, 'content': []}], 111, 12)
+			_rre.assert_not_called()
+			_ffd.assert_not_called()
+			_usf.reset_mock()
+			_rsb.reset_mock()
+			self.mainW.editSearchBiblio(999, "test")
+			sbws[4].exec_.assert_called_once_with()
+			_usf.assert_has_calls([
+				call(999, 'searchDict',
+					[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+					'operator': 'contains', 'content': 'mno'},
+					{'type': 'Text', 'logical': 'AND', 'field': 'bibtex',
+					'operator': 'contains', 'content': ''}]),
+				call(999, 'replaceFields',
+					{'regex': True, 'double': True, 'fieOld': 'arxiv',
+					'old': 'o', 'fieNew': 'arxiv', 'new': 'a',
+					'fieNew1': 'doi', 'new1': ''})])
+			_rsb.assert_not_called()
+			_rre.assert_called_once_with({'regex': True, 'double': True,
+				'fieOld': 'arxiv', 'old': 'o', 'fieNew': 'arxiv',
+				'new': 'a', 'fieNew1': 'doi', 'new1': ''})
+			_ffd.assert_called_once_with(
+				[{'type': 'Text', 'logical': None, 'field': 'bibtex',
+				'operator': 'contains', 'content': 'mno'},
+				{'type': 'Text', 'logical': 'AND', 'field': 'bibtex',
+				'operator': 'contains', 'content': ''}], limitOffset=0)
 
 	def test_delSearchBiblio(self):
 		"""test delSearchBiblio"""

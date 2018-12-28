@@ -1962,40 +1962,42 @@ class SearchBibsWindow(EditObjectWindow):
 		self.replNew1 = None
 		self.limitValue = None
 		self.limitOffs = None
-		self.historic = [self.processHistoric(a) \
-			for a in pbConfig.globalDb.getSearchList(
-				manual=False, replacement=replace)]
-		self.historic.insert(0, {
-			"nrows": 1,
-			"searchValues": [{"logical": None,
-				"field": None,
-				"type": "Text",
-				"operator": None,
-				"content": ""}],
-			"limit": "100000" \
-				if replace else "%s"%pbConfig.params["defaultLimitBibtexs"],
-			"offset": "0",
-			"replaceFields": {
-				"regex": False,
-				"double": False,
-				"fieOld": "author",
-				"old": "",
-				"fieNew": "author",
-				"new": "",
-				"fieNew1": "author",
-				"new1": "",
-				}
-			})
 		self.currentHistoric = 0
 		if self.edit is not None:
 			if not (isinstance(self.edit, int) or self.edit.isdigit()):
-				pBLogger.error("Wrong 'edit', it is not an ID: '%s'"%self.edit)
-				self.createForm()
+				pBGUILogger.error(
+					"Wrong 'edit', it is not an ID: '%s'"%self.edit)
+				return
 			else:
 				self.historic = [self.processHistoric(a) \
 					for a in pbConfig.globalDb.getSearchByID(self.edit)]
 				self.createForm(histIndex=0)
 		else:
+			self.historic = [self.processHistoric(a) \
+				for a in pbConfig.globalDb.getSearchList(
+					manual=False, replacement=replace)]
+			self.historic.insert(0, {
+				"nrows": 1,
+				"searchValues": [{"logical": None,
+					"field": None,
+					"type": "Text",
+					"operator": None,
+					"content": ""}],
+				"limit": "100000" \
+					if replace \
+					else "%s"%pbConfig.params["defaultLimitBibtexs"],
+				"offset": "0",
+				"replaceFields": {
+					"regex": False,
+					"double": False,
+					"fieOld": "author",
+					"old": "",
+					"fieNew": "author",
+					"new": "",
+					"fieNew1": "author",
+					"new1": "",
+					}
+				})
 			self.createForm()
 
 	def processHistoric(self, record):

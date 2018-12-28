@@ -1,3 +1,5 @@
+	* search/replace form completely rewritten
+	* up/down arrows in search/replace form enable use of recent searches
 	* PySide2 version 5.12+ currently not working
 	* fixing a crash when firstdate is removed from the bibtex list columns
 

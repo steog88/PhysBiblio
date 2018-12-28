@@ -4879,25 +4879,9 @@ class TestSearchBibsWindow(GUITestCase):
 				sbw = SearchBibsWindow(edit="ab1")
 				_e.assert_called_once_with(
 					"Wrong 'edit', it is not an ID: 'ab1'")
-			_cf.assert_called_once_with()
+			_cf.assert_not_called()
 			_gsbi.assert_not_called()
-			self.assertEqual(sbw.historic[0], {
-				'limit': '100',
-				'nrows': 1,
-				'offset': '0',
-				'replaceFields': {'double': False,
-					'fieNew': 'author',
-					'fieNew1': 'author',
-					'fieOld': 'author',
-					'new': '',
-					'new1': '',
-					'old': '',
-					'regex': False},
-				'searchValues': [{'content': '',
-					'field': None,
-					'logical': None,
-					'operator': None,
-					'type': 'Text'}]})
+			self.assertFalse(hasattr(sbw, "historic"))
 
 	def test_processHistoric(self):
 		"""test processHistoric"""

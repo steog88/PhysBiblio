@@ -457,6 +457,12 @@ class MainWindow(QMainWindow):
 							self.editSearchBiblio(idS, n)
 					))
 				tmp.addAction(QAction(
+					"Rename '%s'"%fs["name"], self,
+					triggered=\
+						lambda idS=fs["idS"], n=fs["name"]: \
+							self.renameSearchBiblio(idS, n)
+					))
+				tmp.addAction(QAction(
 					"Delete '%s'"%fs["name"], self,
 					triggered=\
 						lambda idS=fs["idS"], n=fs["name"]: \
@@ -486,6 +492,12 @@ class MainWindow(QMainWindow):
 					triggered=\
 						lambda idS=fs["idS"], n=fs["name"]: \
 							self.editSearchBiblio(idS, n)
+					))
+				tmp.addAction(QAction(
+					"Rename '%s'"%fs["name"], self,
+					triggered=\
+						lambda idS=fs["idS"], n=fs["name"]: \
+							self.renameSearchBiblio(idS, n)
 					))
 				tmp.addAction(QAction(
 					"Delete '%s'"%fs["name"], self,
@@ -1063,18 +1075,64 @@ class MainWindow(QMainWindow):
 		pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
 		self.runReplace(replaceFields)
 
+	def renameSearchBiblio(self, idS, oldname):
+		"""Rename a saved search
+
+		Parameters:
+			idS: the search id in the database
+			oldname: the old search name
+		"""
+		name = ""
+		cancel = False
+		while name.strip() == "":
+			res = askGenericText(
+				"Insert a new name / short description "
+				+ "to be able to recognise this search/replace "
+				+ "in the future (current name: '%s'):"%oldname,
+				"New name",
+				parent=self)
+			if res[1]:
+				name = res[0]
+			else:
+				cancel = True
+				break
+		if not cancel:
+			pbConfig.globalDb.updateSearchField(
+				idS, "name", name)
+
 	def editSearchBiblio(self, idS, name):
-		"""Edit a saved search from the database
+		"""Edit a saved search
 
 		Parameters:
 			idS: the search id in the database
 			name: the search name
 		"""
-		raise NotImplementedError
-		if askYesNo("Are you sure you want to delete "
-				+ "the saved search '%s'?"%name):
-			pbConfig.globalDb.deleteSearch(idS)
-			self.createMenusAndToolBar()
+		record = pbConfig.globalDb.getSearchByID(idS)
+		if len(record) < 1:
+			pBLogger.error("Cannot find the requested search! id:%s"%idS)
+			return
+		newSearchWin = SearchBibsWindow(
+			replace=record[0]["isReplace"],
+			edit=idS)
+		newSearchWin.exec_()
+		if newSearchWin.result is True:
+			searchFields = newSearchWin.values
+			lim = newSearchWin.limit
+			offs = newSearchWin.offset
+			if newSearchWin.replace:
+				replaceFields = newSearchWin.replaceFields
+				if newSearchWin.save:
+					pbConfig.globalDb.updateSearchField(
+						idS, "searchDict", searchFields)
+					pbConfig.globalDb.updateSearchField(
+						idS, "replaceFields", replaceFields)
+				pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
+				self.runReplace(replaceFields)
+			else:
+				if newSearchWin.save:
+					pbConfig.globalDb.updateSearchField(
+						idS, "searchDict", searchFields)
+				self.runSearchBiblio(searchFields, lim, offs)
 
 	def delSearchBiblio(self, idS, name):
 		"""Delete a saved search from the database
@@ -1164,7 +1222,7 @@ class MainWindow(QMainWindow):
 				pBLogger.error("Something went wrong when processing "
 					+ "the search fields: '%s'"%sr["searchDict"])
 				pbConfig.globalDb.updateSearchField(
-					sr["idS"], "searchDict", "%s"%defSeF)
+					sr["idS"], "searchDict", defSeF)
 				searchFields = defSeF
 			if not isinstance(searchFields, list) \
 					and isinstance(searchFields, dict):
@@ -1230,7 +1288,7 @@ class MainWindow(QMainWindow):
 						'operator': searchFields[fi]["operator"],
 						'content': searchFields[fi]["str"]})
 				pbConfig.globalDb.updateSearchField(
-					sr["idS"], "searchDict", "%s"%newContent)
+					sr["idS"], "searchDict", newContent)
 
 			if sr["replaceFields"] == "[]":
 				pbConfig.globalDb.updateSearchField(
@@ -1268,7 +1326,7 @@ class MainWindow(QMainWindow):
 							newContent["double"] = defReF["double"]
 				if "%s"%newContent != sr["replaceFields"]:
 					pbConfig.globalDb.updateSearchField(
-						sr["idS"], "replaceFields", "%s"%newContent)
+						sr["idS"], "replaceFields", newContent)
 			pbConfig.globalDb.commit(verbose=False)
 
 	def updateAllBibtexsAsk(self):
