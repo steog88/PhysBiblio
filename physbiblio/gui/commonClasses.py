@@ -551,7 +551,7 @@ class PBTableModel(QAbstractTableModel):
 			all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
 		"""
 		if not index.isValid():
-			return None
+			return Qt.NoItemFlags
 		if index.column() == 0 and self.ask:
 			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -1071,7 +1071,7 @@ class PBImportedTableModel(PBTableModel):
 			index: a `QModelIndex`
 		"""
 		if not index.isValid():
-			return None
+			return Qt.NoItemFlags
 		if index.column() == 0 and self.existList[index.row()] is False:
 			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \
 				Qt.ItemIsEnabled | Qt.ItemIsSelectable
