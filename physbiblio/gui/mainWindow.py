@@ -1143,13 +1143,95 @@ class MainWindow(QMainWindow):
 		QApplication.restoreOverrideCursor()
 
 	def convertSearchFormat(self):
-		""" """
+		"""Read the old saved searches/replaces and convert them
+		to the new format for future use"""
+		defSeF = [{'type': 'Text', 'logical': None,
+			'field': 'bibtex', 'operator': 'contains', 'content': ''}]
+		defReF = {
+			"regex": False,
+			"fieOld": "author",
+			"fieNew": "author",
+			"old": "",
+			"new": "",
+			"fieNew1": "author",
+			"new1": "",
+			"double": False
+			}
 		for sr in pbConfig.globalDb.getAllSearches():
-			if not isinstance(sr["searchDict"], list):
+			try:
+				searchFields = ast.literal_eval(sr["searchDict"])
+			except (ValueError, SyntaxError):
+				pBLogger.error("Something went wrong when processing "
+					+ "the search fields: '%s'"%sr["searchDict"])
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "searchDict", "%s"%defSeF)
+				searchFields = defSeF
+			if not isinstance(searchFields, list) \
+					and isinstance(searchFields, dict):
 				newContent = []
-				print(sr["searchDict"])
-				# pbConfig.globalDb.updateSearchField(
-					# sr["idS"], "searchFields", newContent)
+				first = True
+				if "cats" in searchFields.keys():
+					first = False
+					newContent.append(
+						{'type': 'Categories',
+						'logical': None,
+						'field': '',
+						'operator': "all the following" \
+							if searchFields["cats"]["operator"] == "and" \
+							else "at least one among",
+						'content': searchFields["cats"]["id"]})
+					del searchFields["cats"]
+				if not first:
+					try:
+						ceop = searchFields["catExpOperator"]
+					except KeyError:
+						ceop = None
+				else:
+					ceop = None
+				try:
+					del searchFields["catExpOperator"]
+				except KeyError:
+					pass
+				if "exps" in searchFields.keys():
+					newContent.append(
+						{'type': 'Experiments',
+						'logical': ceop,
+						'field': '',
+						'operator': "all the following" \
+							if searchFields["exps"]["operator"] == "and" \
+							else "at least one among",
+						'content': searchFields["exps"]["id"]})
+					del searchFields["exps"]
+				if "marks" in searchFields.keys():
+					newContent.append(
+						{'type': 'Marks',
+						'logical': searchFields["marks"]["connection"],
+						'field': None,
+						'operator': None,
+						'content': ["any"] \
+							if searchFields["marks"]["operator"] == "!=" \
+							else [searchFields["marks"]["str"]]})
+					del searchFields["marks"]
+				for t in pBDB.bibs.searchPossibleTypes:
+					if t in searchFields.keys():
+						newContent.append(
+							{'type': 'Type',
+							'logical': searchFields[t]["connection"],
+							'field': None,
+							'operator': None,
+							'content': [t]})
+						del searchFields[t]
+				for fi in sorted(searchFields.keys()):
+					f, i = fi.split("#")
+					newContent.append(
+						{'type': 'Text',
+						'logical': searchFields[fi]["connection"],
+						'field': f,
+						'operator': searchFields[fi]["operator"],
+						'content': searchFields[fi]["str"]})
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "searchDict", "%s"%newContent)
+
 			if sr["replaceFields"] == "[]":
 				pbConfig.globalDb.updateSearchField(
 					sr["idS"], "replaceFields", "{}")
@@ -1161,16 +1243,7 @@ class MainWindow(QMainWindow):
 					pBLogger.error("Something went wrong when processing "
 						+ "the saved replace: '%s'"%sr["replaceFields"])
 					replaceFields = {}
-					newContent = {
-						"regex": False,
-						"fieOld": "author",
-						"fieNew": "author",
-						"old": "",
-						"new": "",
-						"fieNew1": "",
-						"new1": "",
-						"double": False
-						}
+					newContent = defReF
 				if isinstance(replaceFields, list):
 					newContent = {}
 					if sr["isReplace"]:
@@ -1184,23 +1257,19 @@ class MainWindow(QMainWindow):
 							pBLogger.error(
 								"Not enough elements for conversion: "
 								+ sr["replaceFields"])
-							newContent["regex"] = False
-							newContent["fieOld"] = "author"
-							newContent["fieNew"] = "author"
-							newContent["old"] = ""
-							newContent["new"] = ""
+							newContent = defReF
 						try:
 							newContent["fieNew1"] = replaceFields[1][1]
 							newContent["new1"] = replaceFields[3][1]
 							newContent["double"] = True
 						except IndexError:
-							newContent["fieNew1"] = ""
-							newContent["new1"] = ""
-							newContent["double"] = False
+							newContent["fieNew1"] = defReF["fieNew1"]
+							newContent["new1"] = defReF["new1"]
+							newContent["double"] = defReF["double"]
 				if "%s"%newContent != sr["replaceFields"]:
 					pbConfig.globalDb.updateSearchField(
 						sr["idS"], "replaceFields", "%s"%newContent)
-			# pbConfig.globalDb.commit()
+			pbConfig.globalDb.commit(verbose=False)
 
 	def updateAllBibtexsAsk(self):
 		"""Same as updateAllBibtexs, but ask the values of

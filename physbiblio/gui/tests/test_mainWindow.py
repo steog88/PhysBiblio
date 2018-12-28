@@ -1594,7 +1594,7 @@ class TestMainWindow(GUITestCase):
 			{"idS": 1,
 			"name": "test2",
 			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"searchDict": '{"a": "abc"}, {"b": "def"}]',
 			"limitNum": 1111,
 			"offsetNum": 12,
 			"replaceFields": '["e1"]',
@@ -1603,7 +1603,11 @@ class TestMainWindow(GUITestCase):
 			{"idS": 2,
 			"name": "test3",
 			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
+				+ " 'operator': 'and'}, 'marks': {'str': 'bad', 'operator':"
+				+ " 'like', 'connection': 'AND'}, 'exp_paper': {'str': '1',"
+				+ " 'operator': '=', 'connection': 'AND'}, 'bibtex#0':"
+				+ " {'str': 'abc', 'operator': 'like', 'connection': 'AND'}}",
 			"limitNum": 1111,
 			"offsetNum": 12,
 			"replaceFields": '["of", ["nf"], "os", ["ns"], False]',
@@ -1612,7 +1616,11 @@ class TestMainWindow(GUITestCase):
 			{"idS": 3,
 			"name": "test4",
 			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
+				+ " 'operator': 'or'}, 'exps': {'id': [1],"
+				+ " 'operator': 'and'}, 'marks': {'str': '', 'operator':"
+				+ " '!=', 'connection': 'AND'}, 'arxiv#0': {'str': '1801',"
+				+ " 'operator': 'like', 'connection': 'AND'}}",
 			"limitNum": 1111,
 			"offsetNum": 12,
 			"replaceFields": '["of", ["nf", "n1"], "os", ["ns", "n1"], False]',
@@ -1621,7 +1629,12 @@ class TestMainWindow(GUITestCase):
 			{"idS": 4,
 			"name": "test5",
 			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"searchDict": "{'catExpOperator': 'AND', 'book': {'str': '1',"
+				+ " 'operator': '=', 'connection': 'OR'}, 'exps': {'id': [1],"
+				+ " 'operator': 'or'}, 'bibtex#0': {'str':"
+				+ " '123', 'operator': 'like', 'connection': 'AND'},"
+				+ " 'bibtex#1': {'str': 'me', 'operator': '=', "
+				+ "'connection': 'AND'}}",
 			"limitNum": 1111,
 			"offsetNum": 12,
 			"replaceFields": 'of',
@@ -1630,7 +1643,7 @@ class TestMainWindow(GUITestCase):
 			{"idS": 5,
 			"name": "test6",
 			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"searchDict": 'abc',
 			"limitNum": 1111,
 			"offsetNum": 12,
 			"replaceFields": '[]',
@@ -1646,25 +1659,69 @@ class TestMainWindow(GUITestCase):
 			self.mainW.convertSearchFormat()
 			_gas.assert_called_once_with()
 			_e.assert_has_calls([
+				call('Something went wrong when processing the search '
+					+ 'fields: \'{"a": "abc"}, {"b": "def"}]\''),
 				call('Not enough elements for conversion: ["e1"]'),
 				call("Something went wrong when processing the "
-					+ "saved replace: 'of'")
+					+ "saved replace: 'of'"),
+				call("Something went wrong when processing the search "
+					+ "fields: 'abc'")
 				])
 			_usf.assert_has_calls([
+				call(1, 'searchDict', "[{'type': 'Text', 'logical': None, "
+					+ "'field': 'bibtex', 'operator': 'contains', "
+					+ "'content': ''}]"),
 				call(1, 'replaceFields', "{'regex': False, 'fieOld': "
 					+ "'author', 'fieNew': 'author', 'old': '', 'new': '', "
-					+ "'fieNew1': '', 'new1': '', 'double': False}"),
+					+ "'fieNew1': 'author', 'new1': '', 'double': False}")
+				])
+			_usf.assert_has_calls([
+				call(2, 'searchDict', "[{'type': 'Categories', 'logical':"
+					+ " None, 'field': '', 'operator': 'all the following',"
+					+ " 'content': [0, 1]}, {'type': 'Marks', 'logical': "
+					+ "'AND', 'field': None, 'operator': None, 'content': "
+					+ "['bad']}, {'type': 'Type', 'logical': 'AND', "
+					+ "'field': None, 'operator': None, 'content': "
+					+ "['exp_paper']}, {'type': 'Text', 'logical': 'AND',"
+					+ " 'field': 'bibtex', 'operator': 'like', "
+					+ "'content': 'abc'}]"),
 				call(2, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
 					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
-					+ "'fieNew1': '', 'new1': '', 'double': False}"),
+					+ "'fieNew1': 'author', 'new1': '', 'double': False}")
+				])
+			_usf.assert_has_calls([
+				call(3, 'searchDict', "[{'type': 'Categories', 'logical':"
+					+ " None, 'field': '', 'operator': 'at least one among',"
+					+ " 'content': [0, 1]}, {'type': 'Experiments', "
+					+ "'logical': 'AND', 'field': '', 'operator': 'all the "
+					+ "following', 'content': [1]}, {'type': 'Marks', "
+					+ "'logical': 'AND', 'field': None, 'operator': None, "
+					+ "'content': ['any']}, {'type': 'Text', 'logical': 'AND',"
+					+ " 'field': 'arxiv', 'operator': 'like', "
+					+ "'content': '1801'}]"),
 				call(3, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
 					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
-					+ "'fieNew1': 'n1', 'new1': 'n1', 'double': True}"),
+					+ "'fieNew1': 'n1', 'new1': 'n1', 'double': True}")
+				])
+			_usf.assert_has_calls([
+				call(4, 'searchDict', "[{'type': 'Experiments', 'logical':"
+					+ " None, 'field': '', 'operator': 'at least one among',"
+					+ " 'content': [1]}, {'type': 'Type', 'logical': 'OR', "
+					+ "'field': None, 'operator': None, 'content': "
+					+ "['book']}, {'type': 'Text', 'logical': 'AND', "
+					+ "'field': 'bibtex', 'operator': 'like', 'content': "
+					+ "'123'}, {'type': 'Text', 'logical': 'AND', 'field': "
+					+ "'bibtex', 'operator': '=', 'content': 'me'}]"),
 				call(4, 'replaceFields', "{'regex': False, 'fieOld': "
 					+ "'author', 'fieNew': 'author', 'old': '', 'new': '',"
-					+ " 'fieNew1': '', 'new1': '', 'double': False}"),
+					+ " 'fieNew1': 'author', 'new1': '', 'double': False}")
+				])
+			_usf.assert_has_calls([
+				call(5, 'searchDict', "[{'type': 'Text', 'logical': None, "
+					+ "'field': 'bibtex', 'operator': 'contains', "
+					+ "'content': ''}]"),
 				call(5, 'replaceFields', '{}')])
-			_c.assert_called_once_with()
+			self.assertEqual(_c.call_count, 6)
 
 	def test_updateAllBibtexsAsk(self):
 		"""test updateAllBibtexsAsk"""
