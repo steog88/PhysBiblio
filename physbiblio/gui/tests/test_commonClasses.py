@@ -727,7 +727,7 @@ class TestPBTableModel(GUITestCase):
 		idx = QModelIndex()
 		p = ObjListWindow()
 		mtm = PBTableModel(p, ["a", "b"])
-		self.assertEqual(mtm.flags(idx), None)
+		self.assertEqual(mtm.flags(idx), Qt.NoItemFlags)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=True) as _iv:
 			with patch("PySide2.QtCore.QModelIndex.column",
@@ -1495,7 +1495,7 @@ class TestPBImportedTableModel(GUITestCase):
 			["key", "id"])
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=False) as _iv:
-			self.assertEqual(mitm.flags(QModelIndex()), None)
+			self.assertEqual(mitm.flags(QModelIndex()), Qt.NoItemFlags)
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=True) as _iv,\
 				patch("PySide2.QtCore.QModelIndex.column",

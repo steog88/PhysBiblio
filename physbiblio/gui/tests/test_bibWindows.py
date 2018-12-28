@@ -3862,6 +3862,10 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
 	def test_createTable(self):
 		"""test createTable"""
+		oldcols = pbConfig.params["bibtexListColumns"]
+		pbConfig.params["bibtexListColumns"] = [
+			"bibkey", "author", "title", "year", "firstdate",
+			"pubdate", "doi", "arxiv", "isbn", "inspire"]
 		bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
 		bw.cleanLayout()
 		pBDB.bibs.lastQuery = "myquery"
@@ -3929,6 +3933,24 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			bw.createTable()
 			_ga.assert_called_once_with(orderType="DESC",
 				limitTo=pbConfig.params["defaultLimitBibtexs"])
+		# check if firstdate is missing
+		pbConfig.params["bibtexListColumns"] = [
+			"bibkey", "author", "title", "year",
+			"pubdate", "doi", "arxiv", "isbn", "inspire"]
+		bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "changeEnableActions") as _cea,\
+				patch("physbiblio.gui.commonClasses.ObjListWindow."
+					+ "setProxyStuff") as _sps,\
+				patch("PySide2.QtWidgets.QTableView.hideColumn") as _hc,\
+				patch("physbiblio.gui.bibWindows.BibTableModel",
+					autospec=True) as _tm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "finalizeTable") as _ft:
+			bw.createTable()
+			_sps.assert_called_once_with(bw.columns.index("bibkey"),
+				Qt.AscendingOrder)
+		pbConfig.params["bibtexListColumns"] = oldcols
 
 	def test_updateInfo(self):
 		"""test updateInfo"""

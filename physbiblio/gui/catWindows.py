@@ -216,7 +216,7 @@ class CatsModel(TreeModel):
 			the cell flags otherwise
 		"""
 		if not index.isValid():
-			return None
+			return Qt.NoItemFlags
 		if index.column() == 0 and (hasattr(self.parentObj, "askCats")
 				and self.parentObj.askCats):
 			return Qt.ItemIsUserCheckable | Qt.ItemIsEditable | \

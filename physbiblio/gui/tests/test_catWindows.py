@@ -343,7 +343,7 @@ class TestCatsModel(GUITestCase):
 		cm = CatsModel([], [])
 		with patch("PySide2.QtCore.QModelIndex.isValid",
 				return_value=False) as _iv:
-			self.assertEqual(cm.flags(QModelIndex()), None)
+			self.assertEqual(cm.flags(QModelIndex()), Qt.NoItemFlags)
 			_iv.assert_called_once_with()
 
 		with patch("PySide2.QtCore.QModelIndex.isValid",
