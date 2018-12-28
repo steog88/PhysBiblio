@@ -1143,7 +1143,64 @@ class MainWindow(QMainWindow):
 		QApplication.restoreOverrideCursor()
 
 	def convertSearchFormat(self):
-		pass
+		""" """
+		for sr in pbConfig.globalDb.getAllSearches():
+			if not isinstance(sr["searchDict"], list):
+				newContent = []
+				print(sr["searchDict"])
+				# pbConfig.globalDb.updateSearchField(
+					# sr["idS"], "searchFields", newContent)
+			if sr["replaceFields"] == "[]":
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "replaceFields", "{}")
+			if sr["isReplace"]:
+				newContent = sr["replaceFields"]
+				try:
+					replaceFields = ast.literal_eval(sr["replaceFields"])
+				except (ValueError, SyntaxError):
+					pBLogger.error("Something went wrong when processing "
+						+ "the saved replace: '%s'"%sr["replaceFields"])
+					replaceFields = {}
+					newContent = {
+						"regex": False,
+						"fieOld": "author",
+						"fieNew": "author",
+						"old": "",
+						"new": "",
+						"fieNew1": "",
+						"new1": "",
+						"double": False
+						}
+				if isinstance(replaceFields, list):
+					newContent = {}
+					if sr["isReplace"]:
+						try:
+							newContent["regex"] = replaceFields[4]
+							newContent["fieOld"] = replaceFields[0]
+							newContent["fieNew"] = replaceFields[1][0]
+							newContent["old"] = replaceFields[2]
+							newContent["new"] = replaceFields[3][0]
+						except IndexError:
+							pBLogger.error(
+								"Not enough elements for conversion: "
+								+ sr["replaceFields"])
+							newContent["regex"] = False
+							newContent["fieOld"] = "author"
+							newContent["fieNew"] = "author"
+							newContent["old"] = ""
+							newContent["new"] = ""
+						try:
+							newContent["fieNew1"] = replaceFields[1][1]
+							newContent["new1"] = replaceFields[3][1]
+							newContent["double"] = True
+						except IndexError:
+							newContent["fieNew1"] = ""
+							newContent["new1"] = ""
+							newContent["double"] = False
+				if "%s"%newContent != sr["replaceFields"]:
+					pbConfig.globalDb.updateSearchField(
+						sr["idS"], "replaceFields", "%s"%newContent)
+			# pbConfig.globalDb.commit()
 
 	def updateAllBibtexsAsk(self):
 		"""Same as updateAllBibtexs, but ask the values of

@@ -551,7 +551,8 @@ class TestMainWindow(GUITestCase):
 			self.mainW.helpMenu])
 
 		#create with mock getSearchList for searches and replaces
-		with patch("physbiblio.config.GlobalDB.getSearchList",
+		with patch(self.clsName + ".convertSearchFormat") as _csf,\
+				patch("physbiblio.config.GlobalDB.getSearchList",
 				side_effect=[
 					[{"idS": 0, "name": "s1", "searchDict": "{'n': 'abc'}",
 						"limitNum": 101, "offsetNum": 99},
@@ -1493,15 +1494,6 @@ class TestMainWindow(GUITestCase):
 	def test_editSearchBiblio(self):
 		"""test editSearchBiblio"""
 		raise NotImplementedError
-		pBDB.lastFetched = ["a"]
-		with patch("physbiblio.config.GlobalDB.deleteSearch") as _ds,\
-				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
-				patch(self.modName + ".askYesNo") as _ay:
-			self.mainW.delSearchBiblio(999, "search")
-			_ay.assert_called_once_with("Are you sure you want to delete "
-				+ "the saved search 'search'?")
-			_cm.assert_called_once_with()
-			_ds.assert_called_once_with(999)
 
 	def test_delSearchBiblio(self):
 		"""test delSearchBiblio"""
@@ -1589,7 +1581,90 @@ class TestMainWindow(GUITestCase):
 
 	def test_convertSearchFormat(self):
 		"""test convertSearchFormat"""
-		raise NotImplementedError
+		old = [
+			{"idS": 0,
+			"name": "test1",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["e1"]',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 1,
+			"name": "test2",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["e1"]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 2,
+			"name": "test3",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["of", ["nf"], "os", ["ns"], False]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 3,
+			"name": "test4",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["of", ["nf", "n1"], "os", ["ns", "n1"], False]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 4,
+			"name": "test5",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": 'of',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 5,
+			"name": "test6",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '[]',
+			"manual": 0,
+			"isReplace": 0,},
+			]
+		with patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
+				patch("physbiblio.config.GlobalDB.getAllSearches",
+					return_value=old) as _gas,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
+					) as _c,\
+				patch("logging.Logger.error") as _e:
+			self.mainW.convertSearchFormat()
+			_gas.assert_called_once_with()
+			_e.assert_has_calls([
+				call('Not enough elements for conversion: ["e1"]'),
+				call("Something went wrong when processing the "
+					+ "saved replace: 'of'")
+				])
+			_usf.assert_has_calls([
+				call(1, 'replaceFields', "{'regex': False, 'fieOld': "
+					+ "'author', 'fieNew': 'author', 'old': '', 'new': '', "
+					+ "'fieNew1': '', 'new1': '', 'double': False}"),
+				call(2, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
+					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
+					+ "'fieNew1': '', 'new1': '', 'double': False}"),
+				call(3, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
+					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
+					+ "'fieNew1': 'n1', 'new1': 'n1', 'double': True}"),
+				call(4, 'replaceFields', "{'regex': False, 'fieOld': "
+					+ "'author', 'fieNew': 'author', 'old': '', 'new': '',"
+					+ " 'fieNew1': '', 'new1': '', 'double': False}"),
+				call(5, 'replaceFields', '{}')])
+			_c.assert_called_once_with()
 
 	def test_updateAllBibtexsAsk(self):
 		"""test updateAllBibtexsAsk"""
