@@ -535,8 +535,10 @@ class TestMainWindow(GUITestCase):
 
 		#test empty search/replace menu
 		with patch("physbiblio.config.GlobalDB.getSearchList",
-				side_effect=[[], []]) as _gs:
+				side_effect=[[], []]) as _gs,\
+				patch(self.clsName + ".convertSearchFormat") as _csf:
 			self.mainW.createMenusAndToolBar()
+			_csf.assert_called_once_with()
 			self.assertEqual(self.mainW.searchMenu, None)
 			self.assertEqual(self.mainW.replaceMenu, None)
 		#test order of menus
@@ -571,12 +573,31 @@ class TestMainWindow(GUITestCase):
 				["s2", self.clsName + ".runSearchBiblio",
 					[{'n': 'def'}, 102, 100]],
 				None,
-				["Delete 's1'", self.clsName + ".delSearchBiblio", [0, "s1"]],
-				["Delete 's2'", self.clsName + ".delSearchBiblio", [1, "s2"]]
-				]
+				["Manage 's1'", [
+					["Edit 's1'", self.clsName + ".editSearchBiblio",
+						[0, "s1"]],
+					["Delete 's1'", self.clsName + ".delSearchBiblio",
+						[0, "s1"]]
+					]
+				],
+				["Manage 's2'", [
+					["Edit 's2'", self.clsName + ".editSearchBiblio",
+						[1, "s2"]],
+					["Delete 's2'", self.clsName + ".delSearchBiblio",
+						[1, "s2"]]
+					],
+				]]
 			for i, a in enumerate(acts):
 				if a is None:
 					self.assertTrue(macts[i].isSeparator())
+				elif isinstance(a[1], list):
+					self.assertEqual(macts[i].text(), a[0])
+					mas = macts[i].menu().actions()
+					for j, b in enumerate(a[1]):
+						self.assertEqual(mas[j].text(), b[0])
+						with patch(b[1]) as _f:
+							mas[j].trigger()
+							_f.assert_called_once_with(*b[2])
 				else:
 					self.assertEqual(macts[i].text(), a[0])
 					with patch(a[1]) as _f:
@@ -592,12 +613,31 @@ class TestMainWindow(GUITestCase):
 				["s4", self.clsName + ".runSearchReplaceBiblio",
 					[{'n': 'jkl'}, ['c', 'd'], 2]],
 				None,
-				["Delete 's3'", self.clsName + ".delSearchBiblio", [2, "s3"]],
-				["Delete 's4'", self.clsName + ".delSearchBiblio", [3, "s4"]]
-				]
+				["Manage 's3'", [
+					["Edit 's3'", self.clsName + ".editSearchBiblio",
+						[2, "s3"]],
+					["Delete 's3'", self.clsName + ".delSearchBiblio",
+						[2, "s3"]]
+					]
+				],
+				["Manage 's4'", [
+					["Edit 's4'", self.clsName + ".editSearchBiblio",
+						[3, "s4"]],
+					["Delete 's4'", self.clsName + ".delSearchBiblio",
+						[3, "s4"]]
+					],
+				]]
 			for i, a in enumerate(acts):
 				if a is None:
 					self.assertTrue(macts[i].isSeparator())
+				elif isinstance(a[1], list):
+					self.assertEqual(macts[i].text(), a[0])
+					mas = macts[i].menu().actions()
+					for j, b in enumerate(a[1]):
+						self.assertEqual(mas[j].text(), b[0])
+						with patch(b[1]) as _f:
+							mas[j].trigger()
+							_f.assert_called_once_with(*b[2])
 				else:
 					self.assertEqual(macts[i].text(), a[0])
 					with patch(a[1]) as _f:
@@ -1450,6 +1490,19 @@ class TestMainWindow(GUITestCase):
 			_ffd.assert_called_once_with({'s': 'a'}, limitOffset=12)
 			_rr.assert_called_once_with(["b"])
 
+	def test_editSearchBiblio(self):
+		"""test editSearchBiblio"""
+		raise NotImplementedError
+		pBDB.lastFetched = ["a"]
+		with patch("physbiblio.config.GlobalDB.deleteSearch") as _ds,\
+				patch(self.clsName + ".createMenusAndToolBar") as _cm,\
+				patch(self.modName + ".askYesNo") as _ay:
+			self.mainW.delSearchBiblio(999, "search")
+			_ay.assert_called_once_with("Are you sure you want to delete "
+				+ "the saved search 'search'?")
+			_cm.assert_called_once_with()
+			_ds.assert_called_once_with(999)
+
 	def test_delSearchBiblio(self):
 		"""test delSearchBiblio"""
 		pBDB.lastFetched = ["a"]
@@ -1533,6 +1586,10 @@ class TestMainWindow(GUITestCase):
 				+ "3 failures (see below).<br><br>"
 				+ "<b>Changed</b>: ['e', 'f']<br><br>"
 				+ "<b>Failed</b>: ['g', 'h', 'i']")
+
+	def test_convertSearchFormat(self):
+		"""test convertSearchFormat"""
+		raise NotImplementedError
 
 	def test_updateAllBibtexsAsk(self):
 		"""test updateAllBibtexsAsk"""

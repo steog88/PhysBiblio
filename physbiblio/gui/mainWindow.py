@@ -433,12 +433,12 @@ class MainWindow(QMainWindow):
 		self.toolMenu.addSeparator()
 		self.toolMenu.addAction(self.authorStatsAct)
 
+		self.convertSearchFormat()
 		freqSearches = pbConfig.globalDb.getSearchList(
 			manual=True, replacement=False)
 		if len(freqSearches) > 0:
 			self.searchMenu = self.menuBar().addMenu("Frequent &searches")
 			for fs in freqSearches:
-				#add function to check and change to new format!
 				self.searchMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
@@ -449,7 +449,14 @@ class MainWindow(QMainWindow):
 					))
 			self.searchMenu.addSeparator()
 			for fs in freqSearches:
-				self.searchMenu.addAction(QAction(
+				tmp = self.searchMenu.addMenu("Manage '%s'"%fs["name"])
+				tmp.addAction(QAction(
+					"Edit '%s'"%fs["name"], self,
+					triggered=\
+						lambda idS=fs["idS"], n=fs["name"]: \
+							self.editSearchBiblio(idS, n)
+					))
+				tmp.addAction(QAction(
 					"Delete '%s'"%fs["name"], self,
 					triggered=\
 						lambda idS=fs["idS"], n=fs["name"]: \
@@ -463,7 +470,6 @@ class MainWindow(QMainWindow):
 		if len(freqReplaces) > 0:
 			self.replaceMenu = self.menuBar().addMenu("Frequent &replaces")
 			for fs in freqReplaces:
-				#add function to check and change to new format!
 				self.replaceMenu.addAction(QAction(
 					fs["name"], self,
 					triggered=\
@@ -474,7 +480,14 @@ class MainWindow(QMainWindow):
 					))
 			self.replaceMenu.addSeparator()
 			for fs in freqReplaces:
-				self.replaceMenu.addAction(QAction(
+				tmp = self.replaceMenu.addMenu("Manage '%s'"%fs["name"])
+				tmp.addAction(QAction(
+					"Edit '%s'"%fs["name"], self,
+					triggered=\
+						lambda idS=fs["idS"], n=fs["name"]: \
+							self.editSearchBiblio(idS, n)
+					))
+				tmp.addAction(QAction(
 					"Delete '%s'"%fs["name"], self,
 					triggered=\
 						lambda idS=fs["idS"], n=fs["name"]: \
@@ -1050,6 +1063,19 @@ class MainWindow(QMainWindow):
 		pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
 		self.runReplace(replaceFields)
 
+	def editSearchBiblio(self, idS, name):
+		"""Edit a saved search from the database
+
+		Parameters:
+			idS: the search id in the database
+			name: the search name
+		"""
+		raise NotImplementedError
+		if askYesNo("Are you sure you want to delete "
+				+ "the saved search '%s'?"%name):
+			pbConfig.globalDb.deleteSearch(idS)
+			self.createMenusAndToolBar()
+
 	def delSearchBiblio(self, idS, name):
 		"""Delete a saved search from the database
 
@@ -1115,6 +1141,9 @@ class MainWindow(QMainWindow):
 		QApplication.setOverrideCursor(Qt.WaitCursor)
 		self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 		QApplication.restoreOverrideCursor()
+
+	def convertSearchFormat(self):
+		pass
 
 	def updateAllBibtexsAsk(self):
 		"""Same as updateAllBibtexs, but ask the values of
