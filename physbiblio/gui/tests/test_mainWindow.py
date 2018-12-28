@@ -1668,58 +1668,58 @@ class TestMainWindow(GUITestCase):
 					+ "fields: 'abc'")
 				])
 			_usf.assert_has_calls([
-				call(1, 'searchDict', "[{'type': 'Text', 'logical': None, "
-					+ "'field': 'bibtex', 'operator': 'contains', "
-					+ "'content': ''}]"),
-				call(1, 'replaceFields', "{'regex': False, 'fieOld': "
-					+ "'author', 'fieNew': 'author', 'old': '', 'new': '', "
-					+ "'fieNew1': 'author', 'new1': '', 'double': False}")
+				call(1, 'searchDict', [{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains',
+					'content': ''}]),
+				call(1, 'replaceFields', {'regex': False, 'fieOld':
+					'author', 'fieNew': 'author', 'old': '', 'new': '',
+					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(2, 'searchDict', "[{'type': 'Categories', 'logical':"
-					+ " None, 'field': '', 'operator': 'all the following',"
-					+ " 'content': [0, 1]}, {'type': 'Marks', 'logical': "
-					+ "'AND', 'field': None, 'operator': None, 'content': "
-					+ "['bad']}, {'type': 'Type', 'logical': 'AND', "
-					+ "'field': None, 'operator': None, 'content': "
-					+ "['exp_paper']}, {'type': 'Text', 'logical': 'AND',"
-					+ " 'field': 'bibtex', 'operator': 'like', "
-					+ "'content': 'abc'}]"),
-				call(2, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
-					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
-					+ "'fieNew1': 'author', 'new1': '', 'double': False}")
+				call(2, 'searchDict', [{'type': 'Categories', 'logical':
+					None, 'field': '', 'operator': 'all the following',
+					'content': [0, 1]}, {'type': 'Marks', 'logical':
+					'AND', 'field': None, 'operator': None, 'content':
+					['bad']}, {'type': 'Type', 'logical': 'AND',
+					'field': None, 'operator': None, 'content':
+					['exp_paper']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'bibtex', 'operator': 'like',
+					'content': 'abc'}]),
+				call(2, "replaceFields", {'regex': False, 'fieOld': 'of',
+					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
+					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(3, 'searchDict', "[{'type': 'Categories', 'logical':"
-					+ " None, 'field': '', 'operator': 'at least one among',"
-					+ " 'content': [0, 1]}, {'type': 'Experiments', "
-					+ "'logical': 'AND', 'field': '', 'operator': 'all the "
-					+ "following', 'content': [1]}, {'type': 'Marks', "
-					+ "'logical': 'AND', 'field': None, 'operator': None, "
-					+ "'content': ['any']}, {'type': 'Text', 'logical': 'AND',"
-					+ " 'field': 'arxiv', 'operator': 'like', "
-					+ "'content': '1801'}]"),
-				call(3, 'replaceFields', "{'regex': False, 'fieOld': 'of',"
-					+ " 'fieNew': 'nf', 'old': 'os', 'new': 'ns', "
-					+ "'fieNew1': 'n1', 'new1': 'n1', 'double': True}")
+				call(3, 'searchDict', [{'type': 'Categories', 'logical':
+					None, 'field': '', 'operator': 'at least one among',
+					'content': [0, 1]}, {'type': 'Experiments',
+					'logical': 'AND', 'field': '', 'operator':
+					'all the following', 'content': [1]}, {'type': 'Marks',
+					'logical': 'AND', 'field': None, 'operator': None,
+					'content': ['any']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'arxiv', 'operator': 'like',
+					'content': '1801'}]),
+				call(3, 'replaceFields', {'regex': False, 'fieOld': 'of',
+					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
+					'fieNew1': 'n1', 'new1': 'n1', 'double': True})
 				])
 			_usf.assert_has_calls([
-				call(4, 'searchDict', "[{'type': 'Experiments', 'logical':"
-					+ " None, 'field': '', 'operator': 'at least one among',"
-					+ " 'content': [1]}, {'type': 'Type', 'logical': 'OR', "
-					+ "'field': None, 'operator': None, 'content': "
-					+ "['book']}, {'type': 'Text', 'logical': 'AND', "
-					+ "'field': 'bibtex', 'operator': 'like', 'content': "
-					+ "'123'}, {'type': 'Text', 'logical': 'AND', 'field': "
-					+ "'bibtex', 'operator': '=', 'content': 'me'}]"),
-				call(4, 'replaceFields', "{'regex': False, 'fieOld': "
-					+ "'author', 'fieNew': 'author', 'old': '', 'new': '',"
-					+ " 'fieNew1': 'author', 'new1': '', 'double': False}")
+				call(4, 'searchDict', [{'type': 'Experiments', 'logical':
+					None, 'field': '', 'operator': 'at least one among',
+					'content': [1]}, {'type': 'Type', 'logical': 'OR',
+					'field': None, 'operator': None, 'content':
+					['book']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'bibtex', 'operator': 'like', 'content':
+					'123'}, {'type': 'Text', 'logical': 'AND', 'field':
+					'bibtex', 'operator': '=', 'content': 'me'}]),
+				call(4, 'replaceFields', {'regex': False, 'fieOld':
+					'author', 'fieNew': 'author', 'old': '', 'new': '',
+					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(5, 'searchDict', "[{'type': 'Text', 'logical': None, "
-					+ "'field': 'bibtex', 'operator': 'contains', "
-					+ "'content': ''}]"),
+				call(5, 'searchDict', [{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains',
+					'content': ''}]),
 				call(5, 'replaceFields', '{}')])
 			self.assertEqual(_c.call_count, 6)
 

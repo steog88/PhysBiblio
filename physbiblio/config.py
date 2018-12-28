@@ -581,14 +581,15 @@ class GlobalDB(PhysBiblioDBCore):
 			the output of self.connExec or
 				False (empty value or not valid field)
 		"""
-		if field in ["searchDict", "replaceFields"] \
+		if field in ["searchDict", "replaceFields", "name"] \
 				and value is not None and value != "":
 			query = "update searches set " + field \
 				+ "=:field where idS=:idS\n"
-			return self.connExec(query, {"field": value, "idS": idS})
+			return self.connExec(query, {"field": "%s"%value, "idS": idS})
 		else:
 			self.logger.warning(
-				"Empty value or field not in: [searchDict, replaceFields]")
+				"Empty value or field not in the following list: "
+				+ "[searchDict, replaceFields, name]")
 			return False
 
 
