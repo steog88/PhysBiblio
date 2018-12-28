@@ -2604,6 +2604,7 @@ class Entries(PhysBiblioDBSub):
 				success.append(entry["bibkey"])
 				if any(b != a for a,b in zip(aft, bef)):
 					changed.append(entry["bibkey"])
+		pBLogger.info("Done!")
 		return success, changed, failed
 
 	def rmBibtexComments(self, bibtex):
