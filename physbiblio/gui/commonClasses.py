@@ -37,6 +37,16 @@ class PBDialog(QDialog):
 		qr.moveCenter(cp)
 		self.move(qr.topLeft())
 
+	def cleanLayout(self):
+		"""Delete the previous table widget and other layout items"""
+		if self.layout() is None:
+			return
+		while True:
+			o = self.layout().takeAt(0)
+			if o is None:
+				break
+			o.widget().deleteLater()
+
 
 class PBLabel(QLabel):
 	"""Extension of `QLabel` with text interaction flags
@@ -262,13 +272,6 @@ class ObjListWindow(PBDialog):
 		else:
 			self.currLayout.addWidget(self.tableview)
 
-	def cleanLayout(self):
-		"""Delete the previous table widget and other layout items"""
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
-
 	def recreateTable(self):
 		"""Delete the previous table widget and other layout items,
 		then create new ones
@@ -314,13 +317,6 @@ class EditObjectWindow(PBDialog):
 		self.currGrid = QGridLayout()
 		self.currGrid.setSpacing(1)
 		self.setLayout(self.currGrid)
-
-	def cleanLayout(self):
-		"""Delete previous widget content"""
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
 
 
 class PBThread(QThread):

@@ -1175,13 +1175,6 @@ class TestCatsTreeWindow(GUITestCase):
 			_ec.assert_called_once_with(ctw, p, useParent='0')
 			_dc.assert_not_called()
 
-	def test_cleanLayout(self):
-		"""test cleanLayout"""
-		ctw = CatsTreeWindow()
-		self.assertEqual(ctw.layout().count(), 3)
-		ctw.cleanLayout()
-		self.assertEqual(ctw.layout().count(), 0)
-
 	def test_recreateTable(self):
 		"""test recreateTable"""
 		ctw = CatsTreeWindow()

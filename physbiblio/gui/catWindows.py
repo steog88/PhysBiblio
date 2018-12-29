@@ -610,13 +610,6 @@ class CatsTreeWindow(PBDialog):
 		elif action == subAction:
 			editCategory(self, self.parent(), useParent=idCat)
 
-	def cleanLayout(self):
-		"""Delete the previous widgets"""
-		while True:
-			o = self.layout().takeAt(0)
-			if o is None: break
-			o.widget().deleteLater()
-
 	def recreateTable(self):
 		"""Delete the previous widgets and recreate them with new data"""
 		self.cleanLayout()

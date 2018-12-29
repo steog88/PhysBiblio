@@ -115,6 +115,17 @@ class TestPBDialog(GUITestCase):
 			self.assertEqual(_tl.call_count, 1)
 			self.assertEqual(_mo.call_count, 1)
 
+	def test_cleanLayout(self):
+		"""Test cleanLayout"""
+		p = PBDialog()
+		p.currLayout = QGridLayout()
+		p.setLayout(p.currLayout)
+		p.layout().addWidget(QLabel("empty"))
+		p.layout().addWidget(QLabel("empty1"))
+		self.assertEqual(p.layout().count(), 2)
+		p.cleanLayout()
+		self.assertEqual(p.layout().count(), 0)
+
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestLabels(GUITestCase):
@@ -344,15 +355,6 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.layout().itemAtPosition(4, 1).widget(),
 			olw.tableview)
 
-	def test_cleanLayout(self):
-		"""Test cleanLayout"""
-		olw = ObjListWindow()
-		olw.layout().addWidget(QLabel("empty"))
-		olw.layout().addWidget(QLabel("empty1"))
-		self.assertEqual(olw.layout().count(), 2)
-		olw.cleanLayout()
-		self.assertEqual(olw.layout().count(), 0)
-
 	def test_recreateTable(self):
 		"""Test recreateTable"""
 		olw = ObjListWindow()
@@ -419,15 +421,6 @@ class TestEditObjectWindow(GUITestCase):
 		self.assertIsInstance(eow.currGrid, QGridLayout)
 		self.assertEqual(eow.layout(), eow.currGrid)
 		self.assertEqual(eow.currGrid.spacing(), 1)
-
-	def test_cleanLayout(self):
-		"""Test cleanLayout"""
-		olw = EditObjectWindow()
-		olw.layout().addWidget(QLabel("empty"))
-		olw.layout().addWidget(QLabel("empty1"))
-		self.assertEqual(olw.layout().count(), 2)
-		olw.cleanLayout()
-		self.assertEqual(olw.layout().count(), 0)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
