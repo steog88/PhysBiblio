@@ -466,7 +466,11 @@ class Thread_exportTexBib(PBThread):
 	`physbiblio.export.PBExport.exportForTexFile`
 	"""
 
-	def __init__(self, receiver, texFiles, outFName, parent=None):
+	def __init__(self,
+			receiver, texFiles, outFName,
+			parent=None,
+			updateExisting=False,
+			removeUnused=False):
 		"""Instantiate the object
 
 		Parameters:
@@ -474,19 +478,29 @@ class Thread_exportTexBib(PBThread):
 				(a `WriteStream` object)
 			texFiles: a list of '.tex' file names or a single file name
 			outFName: the file name of the output '.bib' file
-			parent: the parent widget
+			parent (default None): the parent widget
+			updateExisting (default False): update bibtexs that are
+				already in the bibtex file
+			removeUnused (default False): remove bibtex from bib file
+				if they are not used
 		"""
 		super(Thread_exportTexBib, self).__init__(parent)
 		self.texFiles = texFiles
 		self.outFName = outFName
 		self.receiver = receiver
+		self.updateExisting = updateExisting
+		self.removeUnused = removeUnused
 
 	def run(self):
 		"""Start the receiver,
 		run `pBExport.exportForTexFile` and finish
 		"""
 		self.receiver.start()
-		pBExport.exportForTexFile(self.texFiles, self.outFName)
+		pBExport.exportForTexFile(
+			self.texFiles,
+			self.outFName,
+			updateExisting=self.updateExisting,
+			removeUnused=self.removeUnused)
 		time.sleep(0.1)
 		self.receiver.running = False
 

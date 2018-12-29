@@ -590,6 +590,17 @@ class Test_Thread_exportTexBib(GUITestCase):
 		self.assertEqual(thr.receiver, ws)
 		self.assertEqual(thr.outFName, "biblio.bib")
 		self.assertEqual(thr.texFiles, ["main.tex"])
+		self.assertFalse(thr.updateExisting)
+		self.assertFalse(thr.removeUnused)
+		thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib",
+			removeUnused=True, updateExisting=True, parent=p)
+		self.assertIsInstance(thr, PBThread)
+		self.assertEqual(thr.parent(), p)
+		self.assertEqual(thr.receiver, ws)
+		self.assertEqual(thr.outFName, "biblio.bib")
+		self.assertEqual(thr.texFiles, ["main.tex"])
+		self.assertTrue(thr.updateExisting)
+		self.assertTrue(thr.removeUnused)
 
 	def test_run(self):
 		"""test run"""
@@ -602,7 +613,20 @@ class Test_Thread_exportTexBib(GUITestCase):
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
 			thr.run()
-			_fun.assert_called_once_with(["main.tex"], "biblio.bib")
+			_fun.assert_called_once_with(["main.tex"], "biblio.bib",
+				removeUnused=False, updateExisting=False)
+			self.assertFalse(ws.running)
+			_st.assert_called_once_with()
+			_sl.assert_called_once_with(0.1)
+		ws = WriteStream(q)
+		thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib", p, True, True)
+		self.assertTrue(ws.running)
+		with patch("physbiblio.export.PBExport.exportForTexFile") as _fun,\
+				patch("time.sleep") as _sl,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+			thr.run()
+			_fun.assert_called_once_with(["main.tex"], "biblio.bib",
+				removeUnused=True, updateExisting=True)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)
