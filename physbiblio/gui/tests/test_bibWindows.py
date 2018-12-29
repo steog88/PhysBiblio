@@ -2074,15 +2074,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 2)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
 				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][1], None)
-			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Download arXiv PDF")
 			_b.assert_not_called()
-			c.menu.possibleActions[0][1][2].trigger()
+			c.menu.possibleActions[0][1][1].trigger()
 			_b.assert_called_once_with()
 
 		#only arxiv, w file
@@ -2113,22 +2112,28 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
+				"Open arXiv PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][1], None)
 			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
-				"Open arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3], None)
+			self.assertIsInstance(c.menu.possibleActions[0][1][4], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][4]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][4][0],
+				"Manage arXiv PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][4][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][4][1][0].text(),
 				"Delete arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][4][1][1].text(),
 				"Copy arXiv PDF")
 			_l.assert_not_called()
-			c.menu.possibleActions[0][1][2].trigger()
+			c.menu.possibleActions[0][1][0].trigger()
 			_l.assert_called_once_with('abc', 'file', fileArg='arxiv.pdf')
 			_a.assert_not_called()
-			c.menu.possibleActions[0][1][3].trigger()
+			c.menu.possibleActions[0][1][4][1][0].trigger()
 			_a.assert_called_once_with('abc', 'arxiv', 'arxiv PDF')
 			_b.assert_not_called()
-			c.menu.possibleActions[0][1][4].trigger()
+			c.menu.possibleActions[0][1][4][1][1].trigger()
 			_b.assert_called_once_with('abc', 'arxiv')
 
 		#only doi, w/o file
@@ -2156,15 +2161,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 2)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
 				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][1], None)
-			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Assign DOI PDF")
 			_a.assert_not_called()
-			c.menu.possibleActions[0][1][2].trigger()
+			c.menu.possibleActions[0][1][1].trigger()
 			_a.assert_called_once_with("doi")
 
 		#only doi, w file
@@ -2195,22 +2199,28 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
+				"Open DOI PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][1], None)
 			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
-				"Open DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][3], None)
+			self.assertIsInstance(c.menu.possibleActions[0][1][4], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][4]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][4][0],
+				"Manage DOI PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][4][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][4][1][0].text(),
 				"Delete DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][4][1][1].text(),
 				"Copy DOI PDF")
 			_l.assert_not_called()
-			c.menu.possibleActions[0][1][2].trigger()
+			c.menu.possibleActions[0][1][0].trigger()
 			_l.assert_called_once_with('abc', 'file', fileArg='doi.pdf')
 			_a.assert_not_called()
-			c.menu.possibleActions[0][1][3].trigger()
+			c.menu.possibleActions[0][1][4][1][0].trigger()
 			_a.assert_called_once_with('abc', 'doi', 'DOI PDF')
 			_b.assert_not_called()
-			c.menu.possibleActions[0][1][4].trigger()
+			c.menu.possibleActions[0][1][4][1][1].trigger()
 			_b.assert_called_once_with('abc', 'doi')
 
 		#both, w files, no extra
@@ -2238,23 +2248,33 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 9)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][1], None)
-			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
 				"Open arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"Delete arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
-				"Copy arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][5], None)
-			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Open DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][2], None)
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4], None)
+			self.assertIsInstance(c.menu.possibleActions[0][1][5], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][5]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][5][0],
+				"Manage arXiv PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][5][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][5][1][0].text(),
+				"Delete arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][5][1][1].text(),
+				"Copy arXiv PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][6], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][6]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][6][0],
+				"Manage DOI PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][6][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][6][1][0].text(),
 				"Delete DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][8].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][6][1][1].text(),
 				"Copy DOI PDF")
 
 		#no arxiv, no doi, some extra
@@ -2282,40 +2302,51 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 8)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][1], None)
-			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
 				"Open a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"Delete a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
-				"Copy a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Open b.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][2], None)
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4], None)
+			self.assertIsInstance(c.menu.possibleActions[0][1][5], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][5]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][5][0],
+				"Manage a.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][5][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][5][1][0].text(),
+				"Delete a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][5][1][1].text(),
+				"Copy a.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][6], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][6]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][6][0],
+				"Manage b.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][6][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][6][1][0].text(),
 				"Delete b.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][6][1][1].text(),
 				"Copy b.pdf")
 			_l.assert_not_called()
-			c.menu.possibleActions[0][1][2].trigger()
+			c.menu.possibleActions[0][1][0].trigger()
 			_l.assert_called_once_with('abc', 'file', fileArg='a.pdf')
 			_a.assert_not_called()
-			c.menu.possibleActions[0][1][3].trigger()
+			c.menu.possibleActions[0][1][5][1][0].trigger()
 			_a.assert_called_once_with('abc', 'a.pdf', 'a.pdf', 'a.pdf')
 			_b.assert_not_called()
-			c.menu.possibleActions[0][1][4].trigger()
+			c.menu.possibleActions[0][1][5][1][1].trigger()
 			_b.assert_called_once_with('abc', 'a.pdf', 'a.pdf')
 			_l.reset_mock()
-			c.menu.possibleActions[0][1][5].trigger()
+			c.menu.possibleActions[0][1][1].trigger()
 			_l.assert_called_once_with('abc', 'file', fileArg='b.pdf')
 			_a.reset_mock()
-			c.menu.possibleActions[0][1][6].trigger()
+			c.menu.possibleActions[0][1][6][1][0].trigger()
 			_a.assert_called_once_with('abc', 'b.pdf', 'b.pdf', '/fd/b.pdf')
 			_b.reset_mock()
-			c.menu.possibleActions[0][1][7].trigger()
+			c.menu.possibleActions[0][1][6][1][1].trigger()
 			_b.assert_called_once_with('abc', 'b.pdf', '/fd/b.pdf')
 
 		#arxiv, doi, extra
@@ -2344,36 +2375,55 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 16)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 11)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][1], None)
-			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
 				"Open arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"Delete arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
-				"Copy arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][5], None)
-			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Open DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][7].text(),
-				"Delete DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][8].text(),
-				"Copy DOI PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][9], None)
-			self.assertEqual(c.menu.possibleActions[0][1][10].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
 				"Open a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][11].text(),
-				"Delete a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][12].text(),
-				"Copy a.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][13].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
 				"Open b.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][14].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][4], None)
+			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
+				"Add generic PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][6], None)
+			self.assertIsInstance(c.menu.possibleActions[0][1][7], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][7]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][7][0],
+				"Manage arXiv PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][7][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][7][1][0].text(),
+				"Delete arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][7][1][1].text(),
+				"Copy arXiv PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][8], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][8]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][8][0],
+				"Manage DOI PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][8][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][8][1][0].text(),
+				"Delete DOI PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][8][1][1].text(),
+				"Copy DOI PDF")
+			self.assertIsInstance(c.menu.possibleActions[0][1][9], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][9]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][9][0],
+				"Manage a.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][9][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][9][1][0].text(),
+				"Delete a.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][9][1][1].text(),
+				"Copy a.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][10], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][10]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][10][0],
+				"Manage b.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][10][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][10][1][0].text(),
 				"Delete b.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][15].text(),
+			self.assertEqual(c.menu.possibleActions[0][1][10][1][1].text(),
 				"Copy b.pdf")
 
 	def test_createContextMenu(self):

@@ -836,58 +836,67 @@ class CommonBibActions():
 			arxivFile = pBPDF.getFilePath(bibkey, "arxiv")
 			doiFile = pBPDF.getFilePath(bibkey, "doi")
 			pdfDir = pBPDF.getFileDir(bibkey)
-			menuP.append(
-				QAction("Add generic PDF", self.menu,
-					triggered=self.onAddPDF))
-			if (len(files) > 0 and arxivFile in files) \
-					or (arxiv is not None and arxiv != ""):
-				menuP.append(None)
+			shortfiles = {f.replace(pdfDir+os.sep, ""): f for f in files}
 			if arxivFile in files:
-				files.remove(arxivFile)
 				menuP.append(QAction("Open arXiv PDF", self.menu,
 					triggered=lambda k=bibkey, t="file", f=arxivFile:
 						pBGuiView.openLink(k, t, fileArg=f)))
-				menuP.append(QAction("Delete arXiv PDF", self.menu,
+			if doiFile in files:
+				menuP.append(QAction("Open DOI PDF", self.menu,
+					triggered=lambda k=bibkey, t="file", f=doiFile:
+						pBGuiView.openLink(k, t, fileArg=f)))
+			for fn in sorted(shortfiles):
+				f = shortfiles[fn]
+				if f not in [arxivFile, doiFile]:
+					menuP.append(QAction("Open %s"%fn, self.menu,
+						triggered=lambda k=bibkey, t="file", f=fn:
+							pBGuiView.openLink(k, t, fileArg=f)))
+			if len(menuP) > 0:
+				menuP.append(None)
+			menuP.append(
+				QAction("Add generic PDF", self.menu,
+					triggered=self.onAddPDF))
+			if len(files) > 0:
+				menuP.append(None)
+			if arxivFile in files:
+				files.remove(arxivFile)
+				tmpM = []
+				tmpM.append(QAction("Delete arXiv PDF", self.menu,
 					triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF":
 						self.onDeletePDFFile(k, a, t)))
-				menuP.append(QAction("Copy arXiv PDF", self.menu,
+				tmpM.append(QAction("Copy arXiv PDF", self.menu,
 					triggered=lambda k=bibkey, a="arxiv":
 						self.onCopyPDFFile(k, a)))
+				menuP.append(["Manage arXiv PDF", tmpM])
 			elif arxiv is not None and arxiv != "":
 				menuP.append(
 					QAction("Download arXiv PDF", self.menu,
 						triggered=self.onDown))
-			if (len(files) > 0 and doiFile in files) \
-					or (doi is not None and doi != ""):
-				menuP.append(None)
 			if doiFile in files:
 				files.remove(doiFile)
-				menuP.append(QAction("Open DOI PDF", self.menu,
-					triggered=lambda k=bibkey, t="file", f=doiFile:
-						pBGuiView.openLink(k, t, fileArg=f)))
-				menuP.append(QAction("Delete DOI PDF", self.menu,
+				tmpM = []
+				tmpM.append(QAction("Delete DOI PDF", self.menu,
 					triggered=lambda k=bibkey, a="doi", t="DOI PDF":
 						self.onDeletePDFFile(k, a, t)))
-				menuP.append(QAction("Copy DOI PDF", self.menu,
+				tmpM.append(QAction("Copy DOI PDF", self.menu,
 					triggered=lambda k=bibkey, a="doi":
 						self.onCopyPDFFile(k, a)))
+				menuP.append(["Manage DOI PDF", tmpM])
 			elif doi is not None and doi != "":
 				menuP.append(
 					QAction("Assign DOI PDF", self.menu,
 						triggered=lambda g="doi": self.onAddPDF(g)))
-			if len(files) > 0:
-				menuP.append(None)
-			for i,f in enumerate(files):
-				fn = f.replace(pdfDir+"/", "")
-				menuP.append(QAction("Open %s"%fn, self.menu,
-					triggered=lambda k=bibkey, t="file", f=fn:
-						pBGuiView.openLink(k, t, fileArg=f)))
-				menuP.append(QAction("Delete %s"%fn, self.menu,
+			shortfiles = {f.replace(pdfDir+os.sep, ""): f for f in files}
+			for fn in sorted(shortfiles):
+				f = shortfiles[fn]
+				tmpM = []
+				tmpM.append(QAction("Delete %s"%fn, self.menu,
 					triggered=lambda k=bibkey, a=fn, t=f:
 						self.onDeletePDFFile(k, a, a, t)))
-				menuP.append(QAction("Copy %s"%fn, self.menu,
+				tmpM.append(QAction("Copy %s"%fn, self.menu,
 					triggered=lambda k=bibkey, a=fn, t=f:
 						self.onCopyPDFFile(k, a, t)))
+				menuP.append(["Manage %s"%fn, tmpM])
 			self.menu.possibleActions.append(["PDF", menuP])
 		else:
 			self.menu.possibleActions.append(
