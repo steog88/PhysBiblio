@@ -1173,33 +1173,72 @@ class TestMainWindow(GUITestCase):
 
 	def test_exportFile(self):
 		"""test exportFile"""
-		with patch(self.modName + ".askSaveFileName",
-				side_effect=["a.bib", "a.bib", ""]) as _asn,\
-				patch(self.modName + ".askFileNames",
-					side_effect=[["a.tex", "b.tex"], ""]) as _afn,\
-				patch(self.clsName + "._runInThread") as _ex,\
+		eft = ExportForTexDialog(self.mainW)
+		eft.exec_ = MagicMock()
+		eft.result = False
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
 				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.exportFile()
-			_asn.assert_called_once_with(self.mainW,
-				title="Where do you want to export the entries?",
-				filter="Bibtex (*.bib)"),
-			_afn.assert_called_once_with(self.mainW,
-				title="Which is/are the *.tex file(s) you want to compile?",
-				filter="Latex (*.tex)")
-			_ex.assert_called_once_with(
-					Thread_exportTexBib, "Exporting...",
-					["a.tex", "b.tex"], "a.bib",
-					minProgress=0, stopFlag=True,
-					outMessage="All entries saved into 'a.bib'")
-			_ex.reset_mock()
+			_sbm.assert_called_once_with("Nothing to do...")
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_not_called()
+		eft.result = True
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
 			self.mainW.exportFile()
-			_ex.assert_not_called()
-			_sbm.assert_called_once_with("Empty input filename/folder!")
-			_ex.reset_mock()
-			_sbm.reset_mock()
-			self.mainW.exportFile()
-			_ex.assert_not_called()
 			_sbm.assert_called_once_with("Empty output filename!")
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_not_called()
+		eft.bibName = "/nonexistent/file.bib"
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportFile()
+			_sbm.assert_called_once_with("Empty input filename(s)!")
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_not_called()
+		eft.texNames = []
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportFile()
+			_sbm.assert_called_once_with("Empty input filename(s)!")
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_not_called()
+		eft.texNames = "/nonexistent/file.tex"
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportFile()
+			_sbm.assert_not_called()
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_called_once_with(Thread_exportTexBib, 'Exporting...',
+				'/nonexistent/file.tex', '/nonexistent/file.bib',
+				minProgress=0,
+				outMessage="All entries saved into '/nonexistent/file.bib'",
+				removeUnused=False, stopFlag=True, updateExisting=False)
+		eft.texNames = ["/nonexistent/file1.tex", "/nonexistent/file2.tex"]
+		eft.remove = "r"
+		eft.update = "u"
+		with patch(self.modName + ".ExportForTexDialog",
+				return_value=eft) as _eft,\
+				patch(self.clsName + "._runInThread") as _rit,\
+				patch(self.clsName + ".statusBarMessage") as _sbm:
+			self.mainW.exportFile()
+			_sbm.assert_not_called()
+			_eft.assert_called_once_with(self.mainW)
+			_rit.assert_called_once_with(Thread_exportTexBib, 'Exporting...',
+				['/nonexistent/file1.tex', '/nonexistent/file2.tex'],
+				'/nonexistent/file.bib', minProgress=0,
+				outMessage="All entries saved into '/nonexistent/file.bib'",
+				removeUnused="r", stopFlag=True, updateExisting="u")
 
 	def test_exportUpdate(self):
 		"""test exportUpdate"""

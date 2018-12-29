@@ -1242,5 +1242,120 @@ class TestDailyArxivSelect(GUITestCase):
 			_d.assert_called_once_with()
 
 
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestExportForTexDialog(GUITestCase):
+	"""Test ExportForTexDialog"""
+
+	def test_init(self):
+		"""test init"""
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".initUI") as _iu:
+			eft = ExportForTexDialog()
+			_iu.assert_called_once_with()
+		self.assertIsInstance(eft, PBDialog)
+		self.assertEqual(eft.numTexFields, 1)
+		self.assertEqual(eft.bibName, "")
+		self.assertEqual(eft.texFileNames, [""])
+		self.assertEqual(eft.texNames, [])
+		self.assertFalse(eft.update)
+		self.assertFalse(eft.remove)
+		self.assertFalse(eft.result)
+		self.assertIsInstance(eft.grid, QGridLayout)
+		self.assertEqual(eft.layout(), eft.grid)
+
+	def test_readForm(self):
+		"""test readForm"""
+		eft = ExportForTexDialog()
+		eft.onAddTex()
+		eft.bibButton.setText("file.bib")
+		eft.updateCheck.setChecked(True)
+		eft.removeCheck.setChecked(False)
+		eft.texButtons[0].setText("%s"%["a.tex", "b.tex", "", "Select file"])
+		eft.texButtons[1].setText("c.tex")
+		eft.readForm()
+		self.assertEqual(eft.update, True)
+		self.assertEqual(eft.remove, False)
+		self.assertEqual(eft.bibName, "file.bib")
+		self.assertEqual(eft.texFileNames,
+			[['a.tex', 'b.tex', "", "Select file"], 'c.tex'])
+		self.assertEqual(eft.texNames, ['a.tex', 'b.tex', 'c.tex'])
+		eft.bibButton.setText("Select file")
+		eft.readForm()
+		self.assertEqual(eft.bibName, "")
+
+	def test_onAddTex(self):
+		"""test onAddTex"""
+		eft = ExportForTexDialog()
+		eft.numTexFields = 3
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+					+ ".cleanLayout") as _cl,\
+				patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+					+ ".initUI") as _iu,\
+				patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+					+ ".readForm") as _rf:
+			eft.onAddTex()
+			self.assertEqual(eft.numTexFields, 4)
+			self.assertEqual(eft.texFileNames, ["", "", "", ""])
+			_cl.assert_called_once_with()
+			_iu.assert_called_once_with()
+			_rf.assert_called_once_with()
+
+	def test_onCancel(self):
+		"""test onCancel"""
+		eow = ExportForTexDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+			eow.onCancel()
+			self.assertFalse(eow.result)
+			self.assertEqual(_c.call_count, 1)
+
+	def test_onOk(self):
+		"""test onOk"""
+		eow = ExportForTexDialog()
+		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
+				patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+					+ ".readForm") as _rf:
+			eow.onOk()
+			self.assertTrue(eow.result)
+			_rf.assert_called_once_with()
+			self.assertEqual(_c.call_count, 1)
+
+	def test_onAskBib(self):
+		"""test onAskBib"""
+		eft = ExportForTexDialog()
+		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
+				return_value="") as _af:
+			eft.onAskBib()
+		self.assertEqual(eft.bibButton.text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.askSaveFileName",
+				return_value="f.bib") as _af:
+			eft.onAskBib()
+		self.assertEqual(eft.bibButton.text(), "f.bib")
+
+	def test_onAskTex(self):
+		"""test onAskTex"""
+		eft = ExportForTexDialog()
+		eft.onAddTex()
+		with patch("physbiblio.gui.dialogWindows.askFileNames",
+				return_value="") as _af:
+			eft.onAskTex(0)
+		self.assertEqual(eft.texButtons[0].text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.askFileNames",
+				return_value=[]) as _af:
+			eft.onAskTex(0)
+		self.assertEqual(eft.texButtons[0].text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.askFileNames",
+				return_value="a.tex") as _af:
+			eft.onAskTex(0)
+		self.assertEqual(eft.texButtons[0].text(), "a.tex")
+		with patch("physbiblio.gui.dialogWindows.askFileNames",
+				return_value=["b.tex"]) as _af:
+			eft.onAskTex(1)
+		self.assertEqual(eft.texButtons[1].text(), "['b.tex']")
+
+	def test_initUI(self):
+		"""test initUI"""
+		raise NotImplementedError
+
+
 if __name__=='__main__':
 	unittest.main()

@@ -20,10 +20,10 @@ try:
 	from physbiblio.webimport.webInterf import physBiblioWeb
 	from physbiblio.gui.errorManager import pBGUILogger
 	from physbiblio.gui.basicDialogs import \
-		askDirName, askSaveFileName, askYesNo, infoMessage
+		askDirName, askFileNames, askSaveFileName, askYesNo, infoMessage
 	from physbiblio.gui.commonClasses import \
 		PBComboBox, PBDDTableWidget, PBDialog, PBImportedTableModel, \
-		PBLabel, PBTableView, PBTrueFalseCombo, ObjListWindow
+		PBLabel, PBLabelRight, PBTableView, PBTrueFalseCombo, ObjListWindow
 	from physbiblio.gui.catWindows import CatsTreeWindow
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
@@ -776,3 +776,133 @@ class DailyArxivSelect(AdvancedImportSelect):
 		else:
 			pBLogger.debug("self.abstractFormulas not present in "
 				+ "DailyArxivSelect. Eprint: %s"%eprint)
+
+
+class ExportForTexDialog(PBDialog):
+	"""create a window for the "export for tex" function"""
+
+	def __init__(self, parent=None):
+		"""Simple extension of `PBDialog.__init__`"""
+		super(ExportForTexDialog, self).__init__(parent)
+		self.numTexFields = 1
+		self.bibName = ""
+		self.texFileNames = [""]
+		self.texNames = []
+		self.update = False
+		self.remove = False
+		self.result = False
+		self.grid = QGridLayout()
+		self.setLayout(self.grid)
+		self.initUI()
+
+	def readForm(self):
+		"""Read the form content"""
+		self.update = self.updateCheck.isChecked()
+		self.remove = self.removeCheck.isChecked()
+		self.bibName = self.bibButton.text()
+		if self.bibName == "Select file":
+			self.bibName = ""
+		self.texFileNames = []
+		for button in self.texButtons:
+			txt = button.text()
+			if "[" in txt:
+				try:
+					txt = ast.literal_eval(txt)
+				except ValueError:
+					pBLogger.warning("Invalid text: %s"%s)
+			self.texFileNames.append(txt)
+		tmp = []
+		for fn in self.texFileNames:
+			if isinstance(fn, list):
+				tmp += fn
+			else:
+				tmp.append(fn)
+		self.texNames = [f for f in tmp if f != "Select file" and f != ""]
+
+	def onAddTex(self):
+		"""Add a new line for the texs"""
+		self.numTexFields += 1
+		self.readForm()
+		for ix in range(self.numTexFields):
+			try:
+				a = self.texFileNames[ix]
+			except IndexError:
+				self.texFileNames.append("")
+		self.cleanLayout()
+		self.initUI()
+
+	def onCancel(self):
+		"""Reject the output (set self.result to False and close)"""
+		self.result	= False
+		self.close()
+
+	def onOk(self):
+		"""Accept the output (set self.result to True and close)"""
+		self.result	= True
+		self.readForm()
+		self.close()
+
+	def onAskBib(self):
+		"""Accept the output (set self.result to True and close)"""
+		outFName = askSaveFileName(self,
+			title="Where do you want to export the entries?",
+			filter="Bibtex (*.bib)")
+		if outFName != "":
+			self.bibButton.setText(outFName)
+
+	def onAskTex(self, ix):
+		"""Accept the output (set self.result to True and close)"""
+		texFile = askFileNames(self,
+			title="Which is/are the *.tex file(s) you want to compile?",
+			filter="Latex (*.tex)")
+		if texFile != "" and texFile != []:
+			self.texButtons[ix].setText("%s"%texFile)
+
+	def initUI(self):
+		"""Create and fill the `QGridLayout`"""
+		self.setWindowTitle('Export for tex file')
+		self.grid.setSpacing(1)
+
+		##combo boxes
+		self.grid.addWidget(PBLabelRight("Bib file name: "), 0, 0)
+		self.bibButton = QPushButton(
+			"Select file" if self.bibName == "" else self.bibName,
+			self)
+		self.bibButton.clicked.connect(self.onAskBib)
+		self.grid.addWidget(self.bibButton, 0, 1)
+
+		self.texButtons = []
+		for ix in range(self.numTexFields):
+			self.grid.addWidget(PBLabelRight("Tex file name(s): "), ix+1, 0)
+			self.texButtons.append(QPushButton(
+				"Select file"
+					if self.texFileNames[ix] == ""
+					else "%s"%self.texFileNames[ix],
+				self))
+			self.texButtons[ix].clicked.connect(
+				lambda s=False, p=ix: self.onAskTex(p))
+			self.grid.addWidget(self.texButtons[ix], ix+1, 1)
+
+		i = 3 + self.numTexFields
+		self.addTexButton = QPushButton("Add more tex files", self)
+		self.addTexButton.clicked.connect(self.onAddTex)
+		self.grid.addWidget(self.addTexButton, i-1, 1)
+
+		self.removeCheck = QCheckBox("Remove unused bibtexs?", self)
+		self.grid.addWidget(self.removeCheck, i, 0)
+		self.updateCheck = QCheckBox("Update existing bibtexs?", self)
+		self.grid.addWidget(self.updateCheck, i, 1)
+
+		# OK button
+		self.acceptButton = QPushButton('OK', self)
+		self.acceptButton.clicked.connect(self.onOk)
+		self.grid.addWidget(self.acceptButton, i+1, 0)
+
+		# cancel button
+		self.cancelButton = QPushButton('Cancel', self)
+		self.cancelButton.clicked.connect(self.onCancel)
+		self.cancelButton.setAutoDefault(True)
+		self.grid.addWidget(self.cancelButton, i+1, 1)
+
+		self.setGeometry(100, 100, 400, 25*(ix+1))
+		self.centerWindow()

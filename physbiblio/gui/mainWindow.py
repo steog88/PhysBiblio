@@ -43,7 +43,8 @@ try:
 	from physbiblio.gui.catWindows import CatsTreeWindow, editCategory
 	from physbiblio.gui.dialogWindows import \
 		ConfigWindow, LogFileContentDialog, PrintText, AdvancedImportDialog, \
-		AdvancedImportSelect, DailyArxivDialog, DailyArxivSelect
+		AdvancedImportSelect, DailyArxivDialog, DailyArxivSelect, \
+		ExportForTexDialog
 	from physbiblio.gui.expWindows import \
 		editExperiment, ExpsListWindow, EditExperimentDialog
 	from physbiblio.gui.inspireStatsGUI import \
@@ -867,27 +868,30 @@ class MainWindow(QMainWindow):
 		"""Ask and export in a .bib file the bibtex entries
 		which are needed to compile one or more tex files
 		"""
-		outFName = askSaveFileName(self,
-			title="Where do you want to export the entries?",
-			filter="Bibtex (*.bib)")
-		if outFName != "":
-			texFile = askFileNames(self,
-				title="Which is/are the *.tex file(s) you want to compile?",
-				filter="Latex (*.tex)")
-			if (not isinstance(texFile, list) and texFile != "") \
-					or (isinstance(texFile, list) and len(texFile)>0):
-				self._runInThread(
-					Thread_exportTexBib,
-					"Exporting...",
-					texFile,
-					outFName,
-					minProgress=0,
-					stopFlag=True,
-					outMessage="All entries saved into '%s'"%outFName)
+		eft = ExportForTexDialog(self)
+		eft.exec_()
+		if eft.result:
+			outFName = eft.bibName
+			if outFName != "":
+				texFNames = eft.texNames
+				if (not isinstance(texFNames, list) and texFNames != "") \
+						or (isinstance(texFNames, list) and len(texFNames)>0):
+					self._runInThread(
+						Thread_exportTexBib,
+						"Exporting...",
+						texFNames,
+						outFName,
+						minProgress=0,
+						stopFlag=True,
+						updateExisting=eft.update,
+						removeUnused=eft.remove,
+						outMessage="All entries saved into '%s'"%outFName)
+				else:
+					self.statusBarMessage("Empty input filename(s)!")
 			else:
-				self.statusBarMessage("Empty input filename/folder!")
+				self.statusBarMessage("Empty output filename!")
 		else:
-			self.statusBarMessage("Empty output filename!")
+			self.statusBarMessage("Nothing to do...")
 
 	def exportUpdate(self):
 		"""Ask and update a .bib file
