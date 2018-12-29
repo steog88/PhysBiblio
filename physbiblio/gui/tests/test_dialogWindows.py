@@ -1354,7 +1354,141 @@ class TestExportForTexDialog(GUITestCase):
 
 	def test_initUI(self):
 		"""test initUI"""
-		raise NotImplementedError
+		eft = ExportForTexDialog()
+		self.assertEqual(eft.numTexFields, 1)
+		self.assertEqual(eft.bibName, "")
+		self.assertEqual(eft.texFileNames, [""])
+		self.assertEqual(eft.windowTitle(), 'Export for tex file')
+		self.assertIsInstance(eft.grid.itemAtPosition(0, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(eft.grid.itemAtPosition(0, 0).widget().text(),
+			"Bib file name:")
+		self.assertIsInstance(eft.grid.itemAtPosition(0, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(0, 2).widget(),
+			eft.bibButton)
+		self.assertEqual(eft.bibButton.text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onAskBib") as _f:
+			QTest.mouseClick(eft.bibButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(eft.grid.itemAtPosition(1, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(eft.grid.itemAtPosition(1, 0).widget().text(),
+			"Tex file name(s):")
+		self.assertIsInstance(eft.texButtons, list)
+		self.assertEqual(len(eft.texButtons), eft.numTexFields)
+		self.assertIsInstance(eft.grid.itemAtPosition(1, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(1, 2).widget(),
+			eft.texButtons[0])
+		self.assertEqual(eft.texButtons[0].text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onAskTex") as _f:
+			QTest.mouseClick(eft.texButtons[0], Qt.LeftButton)
+			_f.assert_called_once_with(0)
+
+		self.assertIsInstance(eft.grid.itemAtPosition(2, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(2, 2).widget(),
+			eft.addTexButton)
+		self.assertEqual(eft.addTexButton.text(), "Add more tex files")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onAddTex") as _f:
+			QTest.mouseClick(eft.addTexButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(eft.grid.itemAtPosition(3, 0).widget(),
+			QCheckBox)
+		self.assertEqual(eft.grid.itemAtPosition(3, 0).widget(),
+			eft.removeCheck)
+		self.assertEqual(eft.removeCheck.text(), "Remove unused bibtexs?")
+		self.assertFalse(eft.removeCheck.isChecked())
+		self.assertIsInstance(eft.grid.itemAtPosition(3, 2).widget(),
+			QCheckBox)
+		self.assertEqual(eft.grid.itemAtPosition(3, 2).widget(),
+			eft.updateCheck)
+		self.assertEqual(eft.updateCheck.text(), "Update existing bibtexs?")
+		self.assertFalse(eft.updateCheck.isChecked())
+
+		self.assertIsInstance(eft.grid.itemAtPosition(4, 1).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(4, 1).widget(),
+			eft.acceptButton)
+		self.assertEqual(eft.acceptButton.text(), "OK")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onOk") as _f:
+			QTest.mouseClick(eft.acceptButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		self.assertIsInstance(eft.grid.itemAtPosition(4, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(4, 2).widget(),
+			eft.cancelButton)
+		self.assertEqual(eft.cancelButton.text(), "Cancel")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onCancel") as _f:
+			QTest.mouseClick(eft.cancelButton, Qt.LeftButton)
+			_f.assert_called_once_with()
+
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".initUI") as _iu:
+			eft = ExportForTexDialog()
+		eft.numTexFields = 2
+		eft.bibName = "file.bib"
+		eft.texFileNames = ["a.tex", ""]
+		eft.update = True
+		eft.remove = True
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".centerWindow") as _cw,\
+				patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+					+ ".setGeometry") as _sg:
+			eft.initUI()
+			_cw.assert_called_once_with()
+			_sg.assert_called_once_with(100, 100, 400, 150)
+		self.assertEqual(eft.bibButton.text(), "file.bib")
+
+		self.assertIsInstance(eft.grid.itemAtPosition(1, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(eft.grid.itemAtPosition(1, 0).widget().text(),
+			"Tex file name(s):")
+		self.assertIsInstance(eft.texButtons, list)
+		self.assertEqual(len(eft.texButtons), eft.numTexFields)
+		self.assertIsInstance(eft.grid.itemAtPosition(1, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(1, 2).widget(),
+			eft.texButtons[0])
+		self.assertEqual(eft.texButtons[0].text(), "a.tex")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onAskTex") as _f:
+			QTest.mouseClick(eft.texButtons[0], Qt.LeftButton)
+			_f.assert_called_once_with(0)
+		self.assertIsInstance(eft.grid.itemAtPosition(2, 0).widget(),
+			PBLabelRight)
+		self.assertEqual(eft.grid.itemAtPosition(2, 0).widget().text(),
+			"Tex file name(s):")
+		self.assertIsInstance(eft.grid.itemAtPosition(2, 2).widget(),
+			QPushButton)
+		self.assertEqual(eft.grid.itemAtPosition(2, 2).widget(),
+			eft.texButtons[1])
+		self.assertEqual(eft.texButtons[1].text(), "Select file")
+		with patch("physbiblio.gui.dialogWindows.ExportForTexDialog"
+				+ ".onAskTex") as _f:
+			QTest.mouseClick(eft.texButtons[1], Qt.LeftButton)
+			_f.assert_called_once_with(1)
+		self.assertEqual(eft.grid.itemAtPosition(3, 2).widget(),
+			eft.addTexButton)
+		self.assertEqual(eft.grid.itemAtPosition(4, 0).widget(),
+			eft.removeCheck)
+		self.assertTrue(eft.removeCheck.isChecked())
+		self.assertEqual(eft.grid.itemAtPosition(4, 2).widget(),
+			eft.updateCheck)
+		self.assertTrue(eft.updateCheck.isChecked())
+		self.assertEqual(eft.grid.itemAtPosition(5, 1).widget(),
+			eft.acceptButton)
+		self.assertEqual(eft.grid.itemAtPosition(5, 2).widget(),
+			eft.cancelButton)
 
 
 if __name__=='__main__':

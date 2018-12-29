@@ -863,17 +863,18 @@ class ExportForTexDialog(PBDialog):
 		self.setWindowTitle('Export for tex file')
 		self.grid.setSpacing(1)
 
-		##combo boxes
-		self.grid.addWidget(PBLabelRight("Bib file name: "), 0, 0)
+		self.grid.addWidget(PBLabelRight("Bib file name:"), 0, 0, 1, 2)
 		self.bibButton = QPushButton(
 			"Select file" if self.bibName == "" else self.bibName,
 			self)
 		self.bibButton.clicked.connect(self.onAskBib)
-		self.grid.addWidget(self.bibButton, 0, 1)
+		self.grid.addWidget(self.bibButton, 0, 2, 1, 2)
 
 		self.texButtons = []
 		for ix in range(self.numTexFields):
-			self.grid.addWidget(PBLabelRight("Tex file name(s): "), ix+1, 0)
+			self.grid.addWidget(
+				PBLabelRight("Tex file name(s):"),
+				ix+1, 0, 1, 2)
 			self.texButtons.append(QPushButton(
 				"Select file"
 					if self.texFileNames[ix] == ""
@@ -881,28 +882,32 @@ class ExportForTexDialog(PBDialog):
 				self))
 			self.texButtons[ix].clicked.connect(
 				lambda s=False, p=ix: self.onAskTex(p))
-			self.grid.addWidget(self.texButtons[ix], ix+1, 1)
+			self.grid.addWidget(self.texButtons[ix], ix+1, 2, 1, 2)
 
-		i = 3 + self.numTexFields
+		i = 2 + self.numTexFields
 		self.addTexButton = QPushButton("Add more tex files", self)
 		self.addTexButton.clicked.connect(self.onAddTex)
-		self.grid.addWidget(self.addTexButton, i-1, 1)
+		self.grid.addWidget(self.addTexButton, i-1, 2)
 
 		self.removeCheck = QCheckBox("Remove unused bibtexs?", self)
-		self.grid.addWidget(self.removeCheck, i, 0)
+		if self.remove:
+			self.removeCheck.setChecked(True)
+		self.grid.addWidget(self.removeCheck, i, 0, 1, 2)
 		self.updateCheck = QCheckBox("Update existing bibtexs?", self)
-		self.grid.addWidget(self.updateCheck, i, 1)
+		if self.update:
+			self.updateCheck.setChecked(True)
+		self.grid.addWidget(self.updateCheck, i, 2, 1, 2)
 
 		# OK button
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
-		self.grid.addWidget(self.acceptButton, i+1, 0)
+		self.grid.addWidget(self.acceptButton, i+1, 1)
 
 		# cancel button
 		self.cancelButton = QPushButton('Cancel', self)
 		self.cancelButton.clicked.connect(self.onCancel)
 		self.cancelButton.setAutoDefault(True)
-		self.grid.addWidget(self.cancelButton, i+1, 1)
+		self.grid.addWidget(self.cancelButton, i+1, 2)
 
-		self.setGeometry(100, 100, 400, 25*(ix+1))
+		self.setGeometry(100, 100, 400, 25*(i+2))
 		self.centerWindow()
