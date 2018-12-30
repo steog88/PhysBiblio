@@ -660,7 +660,7 @@ class MainWindow(QMainWindow):
 				pbConfig.params["pdfFolder"])
 		self.bibtexListWindow.reloadColumnContents()
 
-	def showAbout(self, testing=False):
+	def showAbout(self):
 		"""Function to show the About dialog"""
 		mbox = QMessageBox(QMessageBox.Information,
 			"About PhysBiblio",
@@ -682,20 +682,15 @@ class MainWindow(QMainWindow):
 			+ "<i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"
 			+ "<b>Version:</b> %s (%s)<br>"%(
 				physbiblio.__version__, physbiblio.__version_date__)
-			+ "<b>Python version</b>: %s"%sys.version)
+			+ "<b>Python version</b>: %s"%sys.version,
+			parent=self)
 		mbox.setTextFormat(Qt.RichText)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
-		if testing:
-			return mbox
 		mbox.exec_()
 
-	def showDBStats(self, testing=False):
+	def showDBStats(self):
 		"""Function to show a dialog with the statistics
 		of the database content and on the number of stored PDF files
-
-		Parameter:
-			testing (default False): if True, return the QMessageBox
-				instead of running `show()` (used for testing)
 		"""
 		dbStats(pBDB)
 		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
@@ -717,8 +712,6 @@ class MainWindow(QMainWindow):
 				pBPDF.getSizeWUnits(pBPDF.dirSize(pBPDF.pdfDir))),
 			parent=self)
 		mbox.setIconPixmap(QPixmap(':/images/icon.png'))
-		if testing:
-			return mbox
 		mbox.show()
 
 	def _runInThread(self, Thread_func, title, *args, **kwargs):

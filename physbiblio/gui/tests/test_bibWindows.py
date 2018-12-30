@@ -4036,25 +4036,31 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
 	def test_getEventEntry(self):
 		"""test getEventEntry"""
+		oldcols = pbConfig.params["bibtexListColumns"]
+		pbConfig.params["bibtexListColumns"] = ["bibkey"]
 		bw = BibtexListWindow(bibs=[
 			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}])
 		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []]) as _gbb,\
 				patch("logging.Logger.debug") as _d:
-			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 0)),
-				(0, 0, "abc", "Rabc"))
-			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 3)),
-				(0, 3, "abc", "Rabc"))
 			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(1, 0)),
-				(1, 0, "def", "Rdef"))
+				(1, 0, "abc", "Rabc"))
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(1, 3)),
+				(1, 3, "abc", "Rabc"))
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(2, 0)),
+				(2, 0, "def", "Rdef"))
 			#will fail because of no DB correspondence:
-			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(1, 0)),
-				None)
-			_d.assert_called_once_with("The entry cannot be found!")
 			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(2, 0)),
 				None)
+			_d.assert_called_once_with("The entry cannot be found!")
+			_gbb.reset_mock()
+			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 0)),
+				None)
+			_gbb.assert_not_called()
 			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(12, 0)),
 				None)
+			_gbb.assert_not_called()
+		pbConfig.params["bibtexListColumns"] = oldcols
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
@@ -4314,9 +4320,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			bw.finalizeTable()
 			_rc.assert_called_once_with()
 			_rr.assert_called_once_with()
-			self.assertIsInstance(bw.tableview.font(), QFont)
-			self.assertEqual(bw.tableview.font().pointSize(),
-				pbConfig.params["bibListFontSize"])
+			_sps.assert_called_once_with(pbConfig.params["bibListFontSize"])
 			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tableview)
 		bw.cleanLayout()
 		pbConfig.params["resizeTable"] = False

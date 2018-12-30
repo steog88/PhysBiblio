@@ -880,75 +880,74 @@ class TestMainWindow(GUITestCase):
 
 	def test_showAbout(self):
 		"""test showAbout"""
-		mbox = self.mainW.showAbout(testing=True)
-		self.assertEqual(mbox.windowTitle(), "About PhysBiblio")
-		self.assertEqual(mbox.text(),
-			"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>"
-			+ "https://github.com/steog88/physBiblio</a>) is "
-			+ "a cross-platform tool for managing a LaTeX/BibTeX database. "
-			+ "It is written in <code>python</code>, "
-			+ "using <code>sqlite3</code> for the database management "
-			+ "and <code>PySide</code> for the graphical part."
-			+ "<br>"
-			+ "It supports grouping, tagging, import/export, "
-			+ "automatic update and various different other functions."
-			+ "<br><br>"
-			+ "<b>Paths:</b><br>"
-			+ "<i>Configuration:</i> %s<br>"%pbConfig.configPath
-			+ "<i>Data:</i> %s<br>"%pbConfig.dataPath
-			+ "<br>"
-			+ "<b>Author:</b> Stefano Gariazzo "
-			+ "<i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"
-			+ "<b>Version:</b> %s (%s)<br>"%(
-				physbiblio.__version__, physbiblio.__version_date__)
-			+ "<b>Python version</b>: %s"%sys.version)
-		self.assertEqual(mbox.textFormat(), Qt.RichText)
-		img = QImage(":/images/icon.png").convertToFormat(
-			QImage.Format_ARGB32_Premultiplied)
-		self.assertEqual(img, mbox.iconPixmap().toImage())
-
-		mb = QMessageBox(QMessageBox.Information, "title", "PhysBiblio")
-		mb.exec_ = MagicMock()
-		with patch(self.modName + ".QMessageBox", return_value=mb) as _mb:
+		mb = MagicMock()
+		with patch(self.modName + ".QMessageBox",
+				return_value=mb) as _mb,\
+				patch(self.modName + ".QPixmap",
+					return_value="qpm") as _qpm:
 			self.mainW.showAbout()
-			mb.exec_.assert_called_once_with()
+			_mb.assert_called_once_with(_mb.Information,
+				"About PhysBiblio",
+				"PhysBiblio (<a href='https://github.com/steog88/physBiblio'>"
+				+ "https://github.com/steog88/physBiblio</a>) is "
+				+ "a cross-platform tool for managing a LaTeX/BibTeX "
+				+ "database. It is written in <code>python</code>, "
+				+ "using <code>sqlite3</code> for the database management "
+				+ "and <code>PySide</code> for the graphical part."
+				+ "<br>"
+				+ "It supports grouping, tagging, import/export, "
+				+ "automatic update and various different other functions."
+				+ "<br><br>"
+				+ "<b>Paths:</b><br>"
+				+ "<i>Configuration:</i> %s<br>"%pbConfig.configPath
+				+ "<i>Data:</i> %s<br>"%pbConfig.dataPath
+				+ "<br>"
+				+ "<b>Author:</b> Stefano Gariazzo "
+				+ "<i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"
+				+ "<b>Version:</b> %s (%s)<br>"%(
+					physbiblio.__version__, physbiblio.__version_date__)
+				+ "<b>Python version</b>: %s"%sys.version,
+				parent=self.mainW)
+			_qpm.assert_called_once_with(':/images/icon.png')
+		mb.setTextFormat.assert_called_once_with(Qt.RichText)
+		mb.setIconPixmap.assert_called_once_with("qpm")
+		mb.exec_.assert_called_once_with()
 
 	def test_showDBStats(self):
 		"""test showDBStats"""
 		dbStats(pBDB)
-		with patch(self.modName + ".dbStats") as _dbs,\
+		mb = MagicMock()
+		with patch(self.modName + ".QMessageBox",
+				return_value=mb) as _mb,\
+				patch(self.modName + ".QPixmap",
+					return_value="qpm") as _qpm,\
+				patch(self.modName + ".dbStats") as _dbs,\
 				patch("physbiblio.pdf.LocalPDF.dirSize",
 					return_value=4096**2) as _ds,\
 				patch("glob.iglob", return_value=["a", "b"]) as _ig:
-			mbox = self.mainW.showDBStats(testing=True)
+			mbox = self.mainW.showDBStats()
 			_dbs.assert_called_once_with(pBDB)
 			_ig.assert_called_once_with("%s/*/*.pdf"%pBPDF.pdfDir)
 			_ds.assert_called_once_with(pBPDF.pdfDir)
-		self.assertEqual(mbox.windowTitle(), "PhysBiblio database statistics")
-		self.assertEqual(mbox.text(),
-			"The PhysBiblio database currently contains "
-			+ "the following number of records:\n"
-			+ "- %d bibtex entries\n"%(pBDB.stats["bibs"])
-			+ "- %d categories\n"%(pBDB.stats["cats"])
-			+ "- %d experiments,\n"%(pBDB.stats["exps"])
-			+ "- %d bibtex entries to categories connections\n"%(
-				pBDB.stats["catBib"])
-			+ "- %d experiment to categories connections\n"%(
-				pBDB.stats["catExp"])
-			+ "- %d bibtex entries to experiment connections.\n\n"%(
-				pBDB.stats["bibExp"])
-			+ "The number of currently stored PDF files is 2.\n"
-			+ "The size of the PDF folder is 16.00MB.")
-		img = QImage(":/images/icon.png").convertToFormat(
-			QImage.Format_ARGB32_Premultiplied)
-		self.assertEqual(img, mbox.iconPixmap().toImage())
-		self.assertEqual(mbox.parent(), self.mainW)
-
-		mb = QMessageBox(QMessageBox.Information, "title", "PhysBiblio")
-		mb.show = MagicMock()
-		with patch(self.modName + ".QMessageBox", return_value=mb) as _mb:
-			self.mainW.showDBStats()
-			mb.show.assert_called_once_with()
+			_mb.assert_called_once_with(_mb.Information,
+				"PhysBiblio database statistics",
+				"The PhysBiblio database currently contains "
+				+ "the following number of records:\n"
+				+ "- %d bibtex entries\n"%(pBDB.stats["bibs"])
+				+ "- %d categories\n"%(pBDB.stats["cats"])
+				+ "- %d experiments,\n"%(pBDB.stats["exps"])
+				+ "- %d bibtex entries to categories connections\n"%(
+					pBDB.stats["catBib"])
+				+ "- %d experiment to categories connections\n"%(
+					pBDB.stats["catExp"])
+				+ "- %d bibtex entries to experiment connections.\n\n"%(
+					pBDB.stats["bibExp"])
+				+ "The number of currently stored PDF files is 2.\n"
+				+ "The size of the PDF folder is 16.00MB.",
+				parent=self.mainW)
+			_qpm.assert_called_once_with(':/images/icon.png')
+		mb.setIconPixmap.assert_called_once_with("qpm")
+		mb.show.assert_called_once_with()
 
 	def test_runInThread(self):
 		"""test _runInThread"""
