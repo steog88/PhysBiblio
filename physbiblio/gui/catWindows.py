@@ -20,7 +20,7 @@ try:
 		askYesNo
 	from physbiblio.gui.commonClasses import \
 		EditObjectWindow, LeafFilterProxyModel, PBDialog, PBLabel, PBMenu, \
-		NamedElement, NamedNode, TreeModel
+		NamedElement, NamedNode, TreeModel, TreeNode
 	import physbiblio.gui.resourcesPyside2
 except ImportError:
 	print("Could not find physbiblio and its modules!")
@@ -186,8 +186,9 @@ class CatsModel(TreeModel):
 			return None
 		row = index.row()
 		column = index.column()
-		value = index.internalPointer().element.text
-		idCat = index.internalPointer().element.idCat
+		item = TreeNode.cast(index)
+		value = item.element.text
+		idCat = item.element.idCat
 		if role == Qt.CheckStateRole and \
 				column == 0 and \
 				hasattr(self.parentObj, "askCats") and \
@@ -255,7 +256,7 @@ class CatsModel(TreeModel):
 		"""
 		if not index.isValid():
 			return False
-		idCat = index.internalPointer().element.idCat
+		idCat = TreeNode.cast(index).element.idCat
 		if role == Qt.CheckStateRole and index.column() == 0:
 			self.previousSaved[idCat] = False
 			if value == Qt.Checked:

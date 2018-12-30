@@ -87,7 +87,7 @@ class EmptyTreeModel(TreeModel):
 		if not index.isValid():
 			return None
 		if role == Qt.DisplayRole and index.column() == 0:
-			return index.internalPointer().element.text
+			return TreeNode.cast(index).element.text
 		return None
 
 
@@ -846,7 +846,8 @@ class TestTreeModel(GUITestCase):
 		qmi = tm.index(0, 0)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "main")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"main")
 		qmi = tm.index(1, 0)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertFalse(qmi.isValid())
@@ -854,11 +855,13 @@ class TestTreeModel(GUITestCase):
 		qmi = tm.index(0, 0, parent = p)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "test1")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"test1")
 		qmi = tm.index(1, 0, parent = p)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "test3")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"test3")
 		qmi = tm.index(2, 0, parent = p)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertFalse(qmi.isValid())
@@ -868,11 +871,13 @@ class TestTreeModel(GUITestCase):
 		qmi = tm.index(0, 0, parent = tm.index(0, 0, parent = p))
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "test2")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"test2")
 		qmi = tm.index(0, 0, parent = tm.index(5, 0))
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "main")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"main")
 		qmi = tm.index(3, 0, parent = tm.index(5, 0))
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertFalse(qmi.isValid())
@@ -902,15 +907,18 @@ class TestTreeModel(GUITestCase):
 		qmi = tm.parent(t1)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "main")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"main")
 		qmi = tm.parent(t3)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "main")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"main")
 		qmi = tm.parent(t2)
 		self.assertIsInstance(qmi, QModelIndex)
 		self.assertTrue(qmi.isValid())
-		self.assertEqual(qmi.internalPointer().element.name, "test1")
+		self.assertEqual(TreeNode.cast(qmi).element.name,
+			"test1")
 
 	def test_rowCount(self):
 		"""test the counting of rows"""

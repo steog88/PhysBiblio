@@ -5,6 +5,8 @@ This file is part of the physbiblio package.
 """
 import traceback
 import time
+from weakref import WeakValueDictionary
+import PySide2
 from PySide2.QtCore import Qt, Signal, \
 	QAbstractItemModel, QAbstractTableModel, QModelIndex, \
 	QObject, QSortFilterProxyModel, QThread, QUrl
@@ -13,6 +15,7 @@ from PySide2.QtWidgets import \
 	QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, \
 	QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, \
 	QTableWidget, QTableWidgetItem, QVBoxLayout
+from shiboken2 import VoidPtr
 
 try:
 	from physbiblio.errors import PBErrorManagerClass, pBLogger
@@ -23,6 +26,13 @@ try:
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
+
+
+def PtrKey(ptr):
+	"""Retrieve a key to identify the VoidPtr.
+	This is needed because VoidPtr is not hashable
+	"""
+	return str(ptr).split()[1]
 
 
 class PBDialog(QDialog):
@@ -598,8 +608,30 @@ class PBTableModel(QAbstractTableModel):
 
 
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
-class TreeNode(object):
+class TreeNode(QObject):
 	"""Create an object that will work as a tree node"""
+
+	# map `void*` -> `TreeNode` instance
+	# see https://bugreports.qt.io/browse/PYSIDE-883
+	_instances = WeakValueDictionary()
+
+	@classmethod
+	def cast(cls, obj):
+		"""Convert a VoidPtr to TreeNode, if possible and if necessary.
+
+		Parameters:
+			cls: the class instance
+			obj: an index, from which the VoidPtr is extracted
+				by internalPointer
+
+		Output:
+			should be a TreeNode instance
+		"""
+		if (PySide2.__version_info__[0] == 5
+				and PySide2.__version_info__[1] == 11):
+			return obj.internalPointer()
+		else:
+			return cls._instances.get(PtrKey(obj.internalPointer()))
 
 	def __init__(self, parent, row):
 		"""Constructor, set basic properties
@@ -608,6 +640,10 @@ class TreeNode(object):
 			parent: the parent node
 			row: the content of the data row
 		"""
+		super(TreeNode, self).__init__()
+		if (not (PySide2.__version_info__[0] == 5
+				and PySide2.__version_info__[1] == 11)):
+			self._instances[PtrKey(VoidPtr(self))] = self
 		self.parentObj = parent
 		self.row = row
 		self.subnodes = self._getChildren()
@@ -655,7 +691,7 @@ class TreeModel(QAbstractItemModel):
 				return self.createIndex(row, column, self.rootNodes[row])
 			except IndexError:
 				return QModelIndex()
-		parentNode = parent.internalPointer()
+		parentNode = TreeNode.cast(parent)
 		try:
 			return self.createIndex(row, column, parentNode.subnodes[row])
 		except IndexError:
@@ -678,7 +714,7 @@ class TreeModel(QAbstractItemModel):
 			return QModelIndex()
 		if not index.isValid():
 			return QModelIndex()
-		nodeParent = index.internalPointer().parent()
+		nodeParent = TreeNode.cast(index).parent()
 		if nodeParent is None:
 			return QModelIndex()
 		else:
@@ -699,7 +735,7 @@ class TreeModel(QAbstractItemModel):
 			return len(self.rootNodes)
 		if not parent.isValid():
 			return len(self.rootNodes)
-		node = parent.internalPointer()
+		node = TreeNode.cast(parent)
 		return len(node.subnodes)
 
 
