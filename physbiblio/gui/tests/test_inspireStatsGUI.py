@@ -967,28 +967,40 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		self.mainW.lastAuthorStats = {"h": 999}
 		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
 				+ "updatePlots") as _up:
-			time.sleep(0.01)
 			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent=self.mainW)
 		self.assertTrue(asp.saveButton.isEnabled())
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
 				return_value="fakeval") as _ps:
-			with patch('PySide2.QtWidgets.QFileDialog.exec_',
-					new=lambda x: fakeExec(x, "/tmp", False)):
+			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="") as _adn:
 				asp.saveAction()
+				_adn.assert_called_once_with(asp,
+					'Where do you want to save the plots of the stats?')
 				self.assertTrue(asp.saveButton.isEnabled())
 				self.assertNotIn("figs", self.mainW.lastAuthorStats.keys())
 				_ps.assert_not_called()
-			with patch('PySide2.QtWidgets.QFileDialog.exec_',
-					new=lambda x: fakeExec(x, "/tmp", True)),\
-					patch('PySide2.QtWidgets.QMessageBox.exec_') as _ex:
+			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="/tmp"),\
+					patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
 				asp.saveAction()
+				_im.assert_called_once_with('Plots saved.')
 				self.assertFalse(asp.saveButton.isEnabled())
 				_ps.assert_called_once_with(
 					author=True, path='/tmp', save=True)
-				self.assertEqual(_ex.call_count, 1)
 				self.assertEqual(self.mainW.lastAuthorStats["figs"],
 					"fakeval")
+		asp.saveButton.setEnabled(True)
+		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
+				side_effect=AttributeError) as _ps,\
+				patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="tmp") as _adn,\
+				patch("logging.Logger.warning") as _w,\
+				patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+			asp.saveAction()
+			_w.assert_called_once_with('', exc_info=True)
+			_im.assert_not_called()
+			self.assertTrue(asp.saveButton.isEnabled())
 
 	def test_pickEvent(self):
 		"""Test pickEvent"""
@@ -1097,22 +1109,35 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertTrue(asp.saveButton.isEnabled())
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
 				return_value="fakeval") as _ps:
-			with patch('PySide2.QtWidgets.QFileDialog.exec_',
-					new=lambda x: fakeExec(x, "/tmp", False)):
+			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="") as _adn:
 				asp.saveAction()
+				_adn.assert_called_once_with(asp,
+					'Where do you want to save the plot of the stats?')
 				self.assertTrue(asp.saveButton.isEnabled())
+				self.assertNotIn("fig", self.mainW.lastPaperStats.keys())
 				_ps.assert_not_called()
-			with patch('PySide2.QtWidgets.QFileDialog.exec_',
-					new=lambda x: fakeExec(x, "/tmp", True)),\
-					patch('PySide2.QtWidgets.QMessageBox.exec_') as _ex:
+			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="/tmp"),\
+					patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
 				asp.saveAction()
+				_im.assert_called_once_with('Plot saved.')
 				self.assertFalse(asp.saveButton.isEnabled())
 				_ps.assert_called_once_with(
-					paper=True,
-					path='/tmp',
-					save=True)
-				self.assertEqual(_ex.call_count, 1)
-				self.assertEqual(self.mainW.lastPaperStats["fig"], "fakeval")
+					paper=True, path='/tmp', save=True)
+				self.assertEqual(self.mainW.lastPaperStats["fig"],
+					"fakeval")
+		asp.saveButton.setEnabled(True)
+		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
+				side_effect=AttributeError) as _ps,\
+				patch('physbiblio.gui.inspireStatsGUI.askDirName',
+					return_value="tmp") as _adn,\
+				patch("logging.Logger.warning") as _w,\
+				patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+			asp.saveAction()
+			_w.assert_called_once_with('', exc_info=True)
+			_im.assert_not_called()
+			self.assertTrue(asp.saveButton.isEnabled())
 
 	def test_pickEvent(self):
 		"""Test pickEvent"""

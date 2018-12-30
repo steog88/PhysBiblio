@@ -42,7 +42,7 @@ class ErrorStream(StringIO):
 		"""
 		self.priority = prio
 
-	def write(self, text, testing = False):
+	def write(self, text):
 		"""Override the `write` method of `StringIO`
 		to show a `QMessageBox`,
 		with icon according to the current priority.
@@ -50,13 +50,9 @@ class ErrorStream(StringIO):
 
 		Parameters:
 			text: the text to display. "\n" is replaced with "<br>".
-			testing (boolean, optional, default False): when doing tests,
-				interrupt the execution before `exec_` is run and
-				return the `QMessageBox` object.
 
 		Output:
 			if text is empty or testing is False, return None
-			if testing is True, return the `QMessageBox` object
 		"""
 		if text.strip() == "":
 			return
@@ -73,10 +69,7 @@ class ErrorStream(StringIO):
 			self.lastMBox.setIcon(QMessageBox.Warning)
 			self.lastMBox.setWindowTitle("Warning")
 		self.priority = 1
-		if testing:
-			return self.lastMBox
 		self.lastMBox.exec_()
-		return
 
 
 class PBErrorManagerClassGui(PBErrorManagerClass):

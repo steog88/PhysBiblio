@@ -22,6 +22,7 @@ try:
 	from physbiblio.inspireStats import pBStats
 	from physbiblio.gui.basicDialogs import askDirName, infoMessage
 	from physbiblio.gui.commonClasses import PBDialog, PBLabel
+	from physbiblio.gui.errorManager import pBGUILogger
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	print(traceback.format_exc())
@@ -99,9 +100,10 @@ class AuthorStatsPlots(PBDialog):
 				self.parent().lastAuthorStats["figs"] = pBStats.plotStats(
 					author=True, save=True, path=savePath)
 			except AttributeError:
-				pBLogger.warning("", exc_info=True)
-			infoMessage("Plots saved.")
-			self.saveButton.setDisabled(True)
+				pBGUILogger.warning("", exc_info=True)
+			else:
+				infoMessage("Plots saved.")
+				self.saveButton.setDisabled(True)
 
 	def onPress(self, event):
 		"""Print the plot coordinates where a click was performed.
@@ -216,9 +218,10 @@ class PaperStatsPlots(PBDialog):
 				self.parent().lastPaperStats["fig"] = pBStats.plotStats(
 					paper=True, save=True, path=savePath)
 			except AttributeError:
-				pBLogger.warning("", exc_info=True)
-			infoMessage("Plot saved.")
-			self.saveButton.setDisabled(True)
+				pBGUILogger.warning("", exc_info=True)
+			else:
+				infoMessage("Plot saved.")
+				self.saveButton.setDisabled(True)
 
 	def pickEvent(self,event):
 		"""Save into `self.textBox` the coordinates

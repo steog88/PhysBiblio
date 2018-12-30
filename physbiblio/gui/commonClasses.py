@@ -15,7 +15,9 @@ from PySide2.QtWidgets import \
 	QAbstractItemView, QAction, QComboBox, QDesktopWidget, QDialog, \
 	QGridLayout, QLabel, QLineEdit, QMenu, QStyle, QTableView, \
 	QTableWidget, QTableWidgetItem, QVBoxLayout
-from shiboken2 import VoidPtr
+if (not (PySide2.__version_info__[0] == 5
+		and PySide2.__version_info__[1] == 11)):
+	from shiboken2 import VoidPtr
 
 try:
 	from physbiblio.errors import PBErrorManagerClass, pBLogger

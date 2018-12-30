@@ -320,23 +320,19 @@ class TestCatsModel(GUITestCase):
 		p = QWidget()
 		p.askCats = False
 		cm = CatsModel(self.cats, self.rootElements, p)
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole), None)
+		ix = cm.index(0, 0)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), None)
 		p.askCats = True
 		cm = CatsModel(self.cats, self.rootElements, p)
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
-			Qt.Unchecked)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Unchecked)
 		cm = CatsModel(self.cats, self.rootElements, p, [0])
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
-			Qt.Checked)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Checked)
 		cm = CatsModel(self.cats, self.rootElements, p, [0], True)
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
-			Qt.PartiallyChecked)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.PartiallyChecked)
 		self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
-			Qt.Unchecked)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Unchecked)
 		self.assertEqual(cm.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
-		self.assertEqual(cm.data(cm.index(0, 0), Qt.CheckStateRole),
-			Qt.Checked)
+		self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Checked)
 
 	def test_flags(self):
 		"""test flags"""
