@@ -11,6 +11,7 @@ if sys.version_info[0] < 3:
 	from urllib2 import URLError
 else:
 	from urllib.request import URLError
+from requests.exceptions import ConnectionError
 import bibtexparser
 
 try:
@@ -45,7 +46,7 @@ class Thread_checkUpdated(PBThread):
 		except ValueError:
 			pBLogger.warning("Error when executing check_outdated. "
 				+ "Maybe you are using a developing version", exc_info=True)
-		except URLError:
+		except (URLError, ConnectionError):
 			pBLogger.warning("Error when trying to check new versions. "
 				+ "Are you offline?", exc_info=True)
 

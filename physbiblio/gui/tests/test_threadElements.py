@@ -71,7 +71,13 @@ class Test_Thread_checkUpdated(GUITestCase):
 				+ 'Maybe you are using a developing version', exc_info=True)
 		h1.assert_not_called()
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				new = fake_urlerror) as _cho,\
+				new=fake_urlerror) as _cho,\
+				patch("logging.Logger.warning") as _w:
+			thr.run()
+			_w.assert_called_once_with('Error when trying to check '
+				+ 'new versions. Are you offline?', exc_info=True)
+		with patch("physbiblio.gui.threadElements.check_outdated",
+				side_effect=ConnectionError) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_w.assert_called_once_with('Error when trying to check '
@@ -109,9 +115,9 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
 			thr.run()
 			_sou.assert_called_once_with(
 				123,
-				entries = [[]],
-				force = True,
-				reloadAll = True)
+				entries=[[]],
+				force=True,
+				reloadAll=True)
 			self.assertFalse(ws.running)
 			_st.assert_called_once_with()
 			_sl.assert_called_once_with(0.1)

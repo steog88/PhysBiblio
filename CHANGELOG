@@ -1,7 +1,10 @@
+	* bug: outdated package failing when no connection caused a crash
+
 0.9.6 (2018-12-30):
 	* compatibility with PySide2 version 5.12 fixed
 	* tests on MacOS Mojave (python 3.7 only) and related bug fixes
 	* order of PDF submenu in bibtexs table revisited
+	* new GUI form for "Export for tex" command
 
 0.9.5 (2018-12-28):
 	* search/replace form completely rewritten
