@@ -4416,6 +4416,13 @@ class TestEditBibtexDialog(GUITestCase):
 			self.assertEqual(eb.onOk(), False)
 			_c.assert_not_called()
 			_e.assert_called_once_with("Invalid form contents: empty bibtex!")
+		eb.textValues["bibtex"].setPlainText('@article{abc, title="}')
+		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
+				patch("logging.Logger.error") as _e:
+			self.assertEqual(eb.onOk(), False)
+			_c.assert_not_called()
+			_e.assert_called_once_with(
+				"Invalid form contents: cannot read bibtex properly!")
 		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
 		with patch("PySide2.QtWidgets.QDialog.close") as _c,\
 				patch("logging.Logger.error") as _e:
@@ -4444,6 +4451,11 @@ class TestEditBibtexDialog(GUITestCase):
 		eb.updateBibkey()
 		self.assertEqual(eb.textValues["bibkey"].text(), "abc")
 		eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"')
+		eb.updateBibkey()
+		self.assertEqual(eb.textValues["bibkey"].text(), "not valid bibtex!")
+		eb.textValues["bibkey"].setText("")
+		eb.textValues["bibtex"].setPlainText(
+			'@article{abc, author= title="ABC"}')
 		eb.updateBibkey()
 		self.assertEqual(eb.textValues["bibkey"].text(), "not valid bibtex!")
 

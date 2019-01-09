@@ -1754,6 +1754,10 @@ class EditBibtexDialog(EditObjectWindow):
 		if self.textValues["bibtex"].toPlainText() == "":
 			pBGUILogger.error("Invalid form contents: empty bibtex!")
 			return False
+		elif self.textValues["bibkey"].text() == "not valid bibtex!":
+			pBGUILogger.error(
+				"Invalid form contents: cannot read bibtex properly!")
+			return False
 		elif not self.textValues["bibkey"].isReadOnly() \
 				and self.textValues["bibkey"].text() != "" \
 				and self.textValues["bibtex"].toPlainText() != "":
@@ -1771,7 +1775,8 @@ class EditBibtexDialog(EditObjectWindow):
 		try:
 			element = bibtexparser.loads(bibtex).entries[0]
 			bibkey = element["ID"]
-		except (ValueError, IndexError, ParseException):
+		except (ValueError, IndexError, KeyError, ParseException,
+				bibtexparser.bibdatabase.UndefinedString):
 			bibkey = "not valid bibtex!"
 		self.textValues["bibkey"].setText(bibkey)
 
