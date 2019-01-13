@@ -847,7 +847,8 @@ class TestMainWindow(GUITestCase):
 		pbConfig.params["pdfFolder"] = "pdf/folder"
 		with patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "reloadColumnContents") as _rcc:
+					+ "reloadColumnContents") as _rcc,\
+				patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cfe:
 			self.mainW.reloadConfig()
 			_sbm.assert_called_once_with("Reloading configuration...")
 			_rcc.assert_called_once_with()
@@ -857,25 +858,30 @@ class TestMainWindow(GUITestCase):
 				os.path.join(os.path.split(
 				os.path.abspath(sys.argv[0]))[0],
 				"pdf/folder"))
+			_cfe.assert_called_once_with()
 		pbConfig.params["webApplication"] = "webApp"
 		pbConfig.params["pdfApplication"] = "pdfApp"
 		pbConfig.params["pdfFolder"] = "/pdf/folder"
 		with patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "reloadColumnContents") as _rcc:
+					+ "reloadColumnContents") as _rcc,\
+				patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cfe:
 			self.mainW.reloadConfig()
 			_sbm.assert_called_once_with("Reloading configuration...")
 			_rcc.assert_called_once_with()
 			self.assertEqual(pBView.webApp, "webApp")
 			self.assertEqual(pBPDF.pdfApp, "pdfApp")
 			self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
+			_cfe.assert_called_once_with()
 		pbConfig.params["webApplication"] = oldWebA
 		pbConfig.params["pdfApplication"] = oldPdfA
 		pbConfig.params["pdfFolder"] = oldPdfF
 		with patch(self.clsName + ".statusBarMessage") as _sbm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "reloadColumnContents") as _rcc:
+					+ "reloadColumnContents") as _rcc,\
+				patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cfe:
 			self.mainW.reloadConfig()
+			_cfe.assert_called_once_with()
 		pBPDF.pdfDir = oldPdfD
 
 	def test_showAbout(self):

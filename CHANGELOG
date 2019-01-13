@@ -1,3 +1,4 @@
+	* create PDF folder when it is missing, avoid error in dirSize
 	* bug: outdated package failing when no connection caused a crash
 	* bug: explicit error message still shown when editing bibtexs and having incomplete text
 	* bug: prevent closing the edit bibtex dialog when a non-valid bibtex is present

@@ -19,7 +19,7 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.config import pbConfig
 	from physbiblio.database import pBDB, PhysBiblioDB
-	from physbiblio.pdf import pBPDF
+	from physbiblio.pdf import pBPDF, LocalPDF
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	raise
@@ -33,6 +33,37 @@ pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s"%today_ymd)
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestPdfMethods(unittest.TestCase):
 	"""Test the methods and functions in the pdf module"""
+
+	def test_init(self):
+		"""Test the __init__ method"""
+		with patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cf,\
+				patch.dict(pbConfig.params,
+					{"pdfFolder": "/a/b/c", "pdfApplication": "someapp"},
+					clear=False):
+			pdf = LocalPDF()
+			self.assertEqual(pdf.pdfDir, "/a/b/c")
+			self.assertEqual(pdf.pdfApp, "someapp")
+			self.assertEqual(pdf.badFNameCharacters, '\\/:*?"<>|\'')
+			_cf.assert_called_once_with()
+
+	def test_checkFolderExists(self):
+		"""Test the checkFolderExists method"""
+		with patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cf,\
+				patch.dict(pbConfig.params,
+					{"pdfFolder": "/a/b/c", "pdfApplication": "someapp"},
+					clear=False):
+			pdf = LocalPDF()
+		with patch("os.path.isdir", side_effect=[True, False]) as _id,\
+				patch("logging.Logger.info") as _if,\
+				patch("os.makedirs") as _mk:
+			pdf.checkFolderExists()
+			_id.assert_called_once_with('/a/b/c')
+			_if.assert_not_called()
+			_mk.assert_not_called()
+			pdf.checkFolderExists()
+			_if.assert_called_once_with(
+				"PDF folder missing: /a/b/c. Creating it.")
+			_mk.assert_called_once_with('/a/b/c')
 
 	def test_fnames(self):
 		"""Test names of folders and directories"""
@@ -119,6 +150,16 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_dirSize(self):
 		"""test dirSize"""
+		with patch("logging.Logger.error") as _e,\
+				patch("os.makedirs") as _md,\
+				patch("os.path.getsize",
+					side_effect=[FileNotFoundError, 123]) as _gs:
+			self.assertEqual(pBPDF.dirSize("/surely/non/existent/folder"), 123)
+			_e.assert_called_once_with(
+				"PDF folder is missing: "
+				+ "/surely/non/existent/folder. Creating it.")
+			_md.assert_called_once_with("/surely/non/existent/folder")
+			_gs.assert_any_call("/surely/non/existent/folder")
 		if sys.version_info[0] < 3:
 			with patch("os.path.getsize",
 					side_effect=[1, 100, 1, 100, 100]) as _gs,\

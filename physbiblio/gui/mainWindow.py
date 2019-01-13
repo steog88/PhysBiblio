@@ -658,6 +658,7 @@ class MainWindow(QMainWindow):
 			pBPDF.pdfDir = os.path.join(os.path.split(
 				os.path.abspath(sys.argv[0]))[0],
 				pbConfig.params["pdfFolder"])
+		pBPDF.checkFolderExists()
 		self.bibtexListWindow.reloadColumnContents()
 
 	def showAbout(self):

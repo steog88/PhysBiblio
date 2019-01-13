@@ -32,8 +32,15 @@ class LocalPDF():
 	def __init__(self):
 		"""Init the class and set some default variables"""
 		self.pdfDir = pbConfig.params["pdfFolder"]
+		self.checkFolderExists()
 		self.badFNameCharacters = r'\/:*?"<>|' + "'"
 		self.pdfApp = pbConfig.params["pdfApplication"]
+
+	def checkFolderExists(self):
+		"""Check if the PDF folder exists. If not, create it"""
+		if not os.path.isdir(self.pdfDir):
+			pBLogger.info("PDF folder missing: %s. Creating it."%self.pdfDir)
+			os.makedirs(self.pdfDir)
 
 	def badFName(self, filename):
 		"""Clean the filename substituting the bad characters with '_'
@@ -432,7 +439,13 @@ class LocalPDF():
 			the size in bytes
 		"""
 		if dirs:
-			total_size = os.path.getsize(folder)
+			try:
+				total_size = os.path.getsize(folder)
+			except FileNotFoundError:
+				pBLogger.error(
+					"PDF folder is missing: %s. Creating it."%folder)
+				os.makedirs(folder)
+				return os.path.getsize(folder)
 		else:
 			total_size = 0
 		if sys.version_info[0] < 3:
