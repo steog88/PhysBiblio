@@ -84,12 +84,12 @@ class DBTestCase(unittest.TestCase):
 
 	def tearDown(self):
 		"""Clean temporary database"""
-		self.pBDB.undo(verbose = False)
+		self.pBDB.undo(verbose=False)
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and test stdout of the function"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
 		function()
 		pBErrorManager.rmTempHandler()
 		self.assertEqual(mock_stdout.getvalue(), expected_output)
@@ -97,7 +97,7 @@ class DBTestCase(unittest.TestCase):
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout(self, function, expected_output, mock_stdout):
 		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
+		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
 		function()
 		pBErrorManager.rmTempHandler()
 		self.assertIn(expected_output, mock_stdout.getvalue())

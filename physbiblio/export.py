@@ -24,12 +24,13 @@ except ImportError:
 class PBExport():
 	"""Class that contains the export functions and related."""
 
+	exportForTexFlag = True
+	backupExtension = ".bck"
+	unwantedFields = ["owner", "timestamp", "__markedentry", "abstract"]
+
 	def __init__(self):
 		"""Initialize the class instance and set some default variables."""
 		self.exportForTexFlag = True
-		self.backupExtension = ".bck"
-		self.unwantedFields = [
-			"owner", "timestamp", "__markedentry", "abstract"]
 
 	def backupCopy(self, fileName):
 		"""Creates a backup copy of the given file.

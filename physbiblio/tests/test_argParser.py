@@ -20,6 +20,8 @@ try:
 	from physbiblio.setuptests import *
 	from physbiblio.argParser import *
 	from physbiblio.config import pbConfig
+	from physbiblio.database import pBDB
+	from physbiblio.export import pBExport
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	raise
@@ -28,15 +30,6 @@ except Exception:
 
 class TestParser(unittest.TestCase):
 	"""Tests for main parser and stuff"""
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_in_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format = '%(message)s')
-		function()
-		pBErrorManager.rmTempHandler()
-		string = mock_stdout.getvalue()
-		for text in expected_output:
-			self.assertIn(text, string)
 
 	@patch('sys.stdout', new_callable=StringIO)
 	def assert_in_stdout_sysexit(self, function, expected_output, mock_stdout):
@@ -76,10 +69,11 @@ class TestParser(unittest.TestCase):
 				'{clean,cli,daily,dates,export,test,tex,update,weekly,gui}'])
 		for opt in ["-p", "--profile"]:
 			profile = list(pbConfig.profiles.keys())[0]
-			with patch("physbiblio.cli.cli") as mock:
-				self.assert_in_stdout(lambda: parser.parse_args(
-					[opt, "%s"%profile, "cli"]),
-					["Starting with profile '%s', database"%profile])
+			with patch("physbiblio.cli.cli", autospec=True) as mock,\
+					patch("logging.Logger.info") as _i:
+				parser.parse_args([opt, "%s"%profile, "cli"])
+				self.assertIn("Starting with profile '%s', database"%profile,
+					_i.call_args[0][0])
 				args = parser.parse_args([opt, "%s"%profile, "cli"])
 				args.func(args)
 				mock.assert_called_once_with()
@@ -96,87 +90,88 @@ class TestParser(unittest.TestCase):
 			self.assertIs(args.func, func)
 		tests = [
 			["clean", "physbiblio.database.Entries.cleanBibtexs", [],
-				([], {"startFrom": 0})],
+				([pBDB.bibs], {"startFrom": 0})],
 			["clean", "physbiblio.database.Entries.cleanBibtexs",
-				["-s", "100"], ([], {"startFrom": 100})],
+				["-s", "100"], ([pBDB.bibs], {"startFrom": 100})],
 			["clean", "physbiblio.database.Entries.cleanBibtexs",
-				["--startFrom", "1000"], ([], {"startFrom": 1000})],
+				["--startFrom", "1000"], ([pBDB.bibs], {"startFrom": 1000})],
 			["cli", "physbiblio.cli.cli", [], ([], {})],
 			["daily", "physbiblio.database.Entries.getDailyInfoFromOAI", [],
-				([(datetime.date.today() - \
+				([pBDB.bibs, (datetime.date.today() - \
 					datetime.timedelta(1)).strftime("%Y-%m-%d"),
 				datetime.date.today().strftime("%Y-%m-%d")], {})],
 			["dates", "physbiblio.database.Entries.getDailyInfoFromOAI",
 				["2018-04-01", "2018-05-01"],
-				(["2018-04-01", "2018-05-01"], {})],
+				([pBDB.bibs, "2018-04-01", "2018-05-01"], {})],
 			["export", "physbiblio.export.PBExport.exportAll", ["testname"],
-				(["testname"], {})],
+				([pBExport, "testname"], {})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile", ["f1", "f2"],
-				([["f2"], "f1"], {"autosave": True, "overwrite": False,
+				([pBExport, ["f2"], "f1"], {"autosave": True, "overwrite": False,
 					"removeUnused": False, "updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
 				["f1", "f2", "-o"],
-				([["f2"], "f1"], {"autosave": True, "overwrite": True,
+				([pBExport, ["f2"], "f1"], {"autosave": True, "overwrite": True,
 					"removeUnused": False, "updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--overwrite"], ([["f2"], "f1"],
+				["f1", "f2", "--overwrite"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": True,
 				"removeUnused": False, "updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--ov"], ([["f2"], "f1"],
+				["f1", "f2", "--ov"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": True, "removeUnused": False,
 				"updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "-s"], ([["f2"], "f1"],
+				["f1", "f2", "-s"], ([pBExport, ["f2"], "f1"],
 					{"autosave": False, "overwrite": False,
 					"removeUnused": False, "updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--save"], ([["f2"], "f1"],
+				["f1", "f2", "--save"], ([pBExport, ["f2"], "f1"],
 				{"autosave": False, "overwrite": False, "removeUnused": False,
 				"updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--sa"], ([["f2"], "f1"],
+				["f1", "f2", "--sa"], ([pBExport, ["f2"], "f1"],
 				{"autosave": False, "overwrite": False, "removeUnused": False,
 				"updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "f3", "--sa"], ([["f2", "f3"], "f1"],
+				["f1", "f2", "f3", "--sa"], ([pBExport, ["f2", "f3"], "f1"],
 				{"autosave": False, "overwrite": False, "removeUnused": False,
 				"updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "-u"], ([["f2"], "f1"],
+				["f1", "f2", "-u"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": False, "removeUnused": False,
 				"updateExisting": True})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--updateExisting"], ([["f2"], "f1"],
+				["f1", "f2", "--updateExisting"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": False, "removeUnused": False,
 				"updateExisting": True})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "-r"], ([["f2"], "f1"],
+				["f1", "f2", "-r"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": False, "removeUnused": True,
 				"updateExisting": False})],
 			["tex", "physbiblio.export.PBExport.exportForTexFile",
-				["f1", "f2", "--removeUnused"], ([["f2"], "f1"],
+				["f1", "f2", "--removeUnused"], ([pBExport, ["f2"], "f1"],
 				{"autosave": True, "overwrite": False, "removeUnused": True,
 				"updateExisting": False})],
 			["update", "physbiblio.database.Entries.searchOAIUpdates", [],
-				([], {"startFrom": 0, "force": False})],
+				([pBDB.bibs], {"startFrom": 0, "force": False})],
 			["update", "physbiblio.database.Entries.searchOAIUpdates", ["-f"],
-				([], {"startFrom": 0, "force": True})],
+				([pBDB.bibs], {"startFrom": 0, "force": True})],
 			["update", "physbiblio.database.Entries.searchOAIUpdates",
-				["--force"], ([], {"startFrom": 0, "force": True})],
+				["--force"], ([pBDB.bibs], {"startFrom": 0, "force": True})],
 			["update", "physbiblio.database.Entries.searchOAIUpdates",
-				["-s", "100"], ([], {"startFrom": 100, "force": False})],
+				["-s", "100"], ([pBDB.bibs], {"startFrom": 100, "force": False})],
 			["update", "physbiblio.database.Entries.searchOAIUpdates",
 				["--startFrom", "100"],
-				([], {"startFrom": 100, "force": False})],
+				([pBDB.bibs], {"startFrom": 100, "force": False})],
 			["weekly", "physbiblio.database.Entries.getDailyInfoFromOAI", [],
-				([(datetime.date.today() - datetime.timedelta(7)
+				([pBDB.bibs, (datetime.date.today() - datetime.timedelta(7)
 				).strftime("%Y-%m-%d"),
 				datetime.date.today().strftime("%Y-%m-%d")], {})],
 		]
-		with patch("physbiblio.database.PhysBiblioDB.commit") as _comm_mock:
+		with patch("physbiblio.database.PhysBiblioDB.commit",
+				autospec=True) as _comm_mock:
 			for sub, func, options, expected in tests:
-				with patch(func) as mock:
+				with patch(func, autospec=True) as mock:
 					args = parser.parse_args([sub] + options)
 					args.func(args)
 					mock.assert_called_once_with(*expected[0], **expected[1])
@@ -203,7 +198,8 @@ class TestParser(unittest.TestCase):
 			["update", ["--startFrom"]],
 			["weekly", ["any"]],
 		]
-		with patch("physbiblio.database.PhysBiblioDB.commit") as _comm_mock:
+		with patch("physbiblio.database.PhysBiblioDB.commit",
+				autospec=True) as _comm_mock:
 			for sub, options in tests:
 				with self.assertRaises(SystemExit):
 					args = parser.parse_args([sub] + options)
@@ -232,7 +228,7 @@ class TestParser(unittest.TestCase):
 		]
 		for options, _db, _gui, _lon, _oai, _onl in tests:
 			skipTestsSettings.default()
-			with patch(patchString) as _run:
+			with patch(patchString, autospec=True) as _run:
 				args = parser.parse_args(options)
 				call_tests(args)
 				self.assertEqual(skipTestsSettings.db, _db)

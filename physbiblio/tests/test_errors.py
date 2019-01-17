@@ -25,6 +25,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 class TestErrors(unittest.TestCase):
 	"""Test PBErrorManagerClass stuff"""
 	@classmethod
@@ -117,7 +118,7 @@ class TestErrors(unittest.TestCase):
 		self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
 		with patch('sys.stdout', new_callable=StringIO) as _mock:
 			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
-				format = '%(message)s'))
+				format='%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
 			self.assertEqual(len(self.pBErrorManager.tempsh), 1)
 			self.reset(_mock)
@@ -132,13 +133,13 @@ class TestErrors(unittest.TestCase):
 			self.pBErrorManager.logger.critical("Fake critical")
 			self.assertEqual(_mock.getvalue(), "")
 			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
-				format = '%(message)s'))
+				format='%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 3)
 			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
-				format = '%(message)s'))
+				format='%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 4)
 			self.assertTrue(self.pBErrorManager.tempHandler(sys.stdout,
-				format = '%(message)s'))
+				format='%(message)s'))
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 5)
 			self.assertEqual(len(self.pBErrorManager.tempsh), 3)
 			self.pBErrorManager.rmTempHandler()
@@ -147,6 +148,7 @@ class TestErrors(unittest.TestCase):
 			self.pBErrorManager.rmAllTempHandlers()
 			self.assertEqual(len(self.pBErrorManager.logger.handlers), 2)
 			self.assertEqual(len(self.pBErrorManager.tempsh), 0)
+
 
 if __name__=='__main__':
 	unittest.main()

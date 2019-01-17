@@ -18,17 +18,19 @@ except ImportError:
 class ViewEntry():
 	"""Contains methods to print or open a web link to the entry"""
 
+	inspireRecord = pbConfig.inspireRecord
+	inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
+
 	def __init__(self):
 		"""Init the class, storing the name of
 		the external web application
 		and the base strings to build some links
 		"""
 		self.webApp = pbConfig.params["webApplication"]
-
 		self.inspireRecord = pbConfig.inspireRecord
 		self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 
-	def getLink(self, key, arg = "arxiv", fileArg = None):
+	def getLink(self, key, arg="arxiv", fileArg=None):
 		"""Uses database information to construct and
 		print the web link, or the pdf module to open a pdf
 
@@ -79,7 +81,7 @@ class ViewEntry():
 
 		return link
 
-	def openLink(self, key, arg = "arxiv", fileArg = None):
+	def openLink(self, key, arg="arxiv", fileArg=None):
 		"""Uses the getLink method to generate the web link
 		and opens it in an external application
 
@@ -91,21 +93,21 @@ class ViewEntry():
 				self.openLink(k, arg, fileArg)
 		else:
 			if arg is "file":
-				self.getLink(key, arg = arg, fileArg = fileArg)
+				self.getLink(key, arg=arg, fileArg=fileArg)
 				return
 			elif arg is "link":
 				link = key
 			else:
-				link = self.getLink(key, arg = arg, fileArg = fileArg)
+				link = self.getLink(key, arg=arg, fileArg=fileArg)
 			if link:
-				try:
-					if self.webApp != "":
-						pBLogger.info("Opening '%s'..."%link)
+				if self.webApp != "":
+					pBLogger.info("Opening '%s'..."%link)
+					try:
 						subprocess.Popen([self.webApp, link],
-							stdout = subprocess.PIPE,
-							stderr = subprocess.STDOUT)
-				except OSError:
-					pBLogger.warning("Opening link for '%s' failed!"%key)
+							stdout=subprocess.PIPE,
+							stderr=subprocess.STDOUT)
+					except OSError:
+						pBLogger.warning("Opening link for '%s' failed!"%key)
 			else:
 				pBLogger.warning("Impossible to get the '%s'"%arg
 					+ " link for entry '%s'"%key)

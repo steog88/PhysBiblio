@@ -20,12 +20,12 @@ class PBErrorManagerClass():
 	stores the messages into a log file
 	"""
 
-	def __init__(self, loggerString = "physbibliolog"):
+	def __init__(self, loggerString="physbibliolog"):
 		"""Constructor for PBErrorManagerClass.
 
 		Parameter:
 			loggerString: the `Logger` identifier string to use
-				(default = "physbibliolog")
+				(default="physbibliolog")
 		"""
 		self.tempsh = []
 		if pbConfig.params["loggingLevel"] == 0:
@@ -66,9 +66,9 @@ class PBErrorManagerClass():
 		self.logger.addHandler(self.defaultStream)
 
 	def tempHandler(self,
-			stream = sys.stdout,
-			level = logging.INFO,
-			format = '[%(module)s.%(funcName)s] %(message)s'):
+			stream=sys.stdout,
+			level=logging.INFO,
+			format='[%(module)s.%(funcName)s] %(message)s'):
 		"""Set a temporary StreamHandler for the logger,
 		given the stream, with default level logging.INFO.
 		Useful when redirecting stdout
@@ -109,7 +109,7 @@ class PBErrorManagerClass():
 			cls, exception, trcbk as in `sys.excepthook`
 		"""
 		self.logger.error("Unhandled exception",
-			exc_info = (cls, exception, trcbk))
+			exc_info=(cls, exception, trcbk))
 
 
 pBErrorManager = PBErrorManagerClass(pbConfig.loggerString)

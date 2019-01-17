@@ -14,16 +14,37 @@ else:
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.config import pbConfig
-	from physbiblio.bibtexWriter import pbWriter
+	from physbiblio.bibtexWriter import *
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	raise
 except Exception:
 	print(traceback.format_exc())
 
-@unittest.skipIf(skipTestsSettings.long, "Online tests")
+
+@unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestWebImportMethods(unittest.TestCase):
 	"""Test the functions that writes bibtexs."""
+
+	def test_properties(self):
+		"""Test properties of the pbWriter object"""
+		self.assertIsInstance(pbWriter, PBBibTexWriter)
+		self.assertIsInstance(pbWriter, BibTexWriter)
+		self.assertEqual(pbWriter._max_field_width, 13)
+		#order of fields in output
+		self.assertEqual(pbWriter.display_order, [
+			'author', 'collaboration', 'title', 'booktitle', 'publisher',
+			'journal', 'volume', 'year', 'pages',
+			'russian',
+			'archiveprefix', 'primaryclass', 'eprint', 'doi',
+			'reportNumber'])
+		self.assertEqual(pbWriter.bracket_fields,
+			['title', 'booktitle', 'www', 'note',
+			'abstract', 'comment', 'article', 'url'])
+		self.assertEqual(pbWriter.excluded_fields,
+			["adsnote", "adsurl", "slaccitation"])
+		self.assertEqual(pbWriter.order_entries_by, None)
+		self.assertEqual(pbWriter.comma_first, False)
 
 	def test_bibtexWrite(self):
 		"""Test _entry_to_bibtex"""
@@ -53,6 +74,7 @@ class TestWebImportMethods(unittest.TestCase):
 			'@Custom{test,\n        author = "me",\n         ' \
 			+ 'title = "{{My} title}",\n       journal = "JCAP",' \
 			+ '\n       myfield = "abcd",\n}')
+
 
 if __name__=='__main__':
 	unittest.main()

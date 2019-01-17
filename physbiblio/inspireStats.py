@@ -34,16 +34,21 @@ class InspireStatsLoader():
 	to collect information from INSPIRE-HEP
 	"""
 
+	urlBase = pbConfig.inspireSearchBase
+	timeout = float(pbConfig.params["timeoutWebSearch"])
+	authorStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
+	paperStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
+	skipPageOpt = "&jrec="
+	maxPerPage = 250
+	authorPlotInfo = {}
+	paperPlotInfo = {}
+
 	def __init__(self):
 		"""The class constructor,
 		defines some constants and search options
 		"""
 		self.urlBase = pbConfig.inspireSearchBase
 		self.timeout = float(pbConfig.params["timeoutWebSearch"])
-		self.authorStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
-		self.paperStatsOpts = "&of=recjson&ot=recid,creation_date&so=a&rg=250"
-		self.skipPageOpt = "&jrec="
-		self.maxPerPage = 250
 		self.authorPlotInfo = None
 		self.paperPlotInfo = None
 

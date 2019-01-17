@@ -21,7 +21,7 @@ else:
 try:
 	from physbiblio.errors import pBErrorManager
 	from physbiblio.setuptests import *
-	from physbiblio.inspireStats import pBStats
+	from physbiblio.inspireStats import *
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	raise
@@ -31,13 +31,22 @@ except Exception:
 @unittest.skipIf(skipTestsSettings.online, "Online tests")
 class TestInspireStatsMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.inspireStats"""
-	@patch('sys.stdout', new_callable=StringIO)
-	def assert_in_stdout(self, function, expected_output, mock_stdout):
-		"""Catch and if test stdout of the function contains a string"""
-		pBErrorManager.tempHandler(sys.stdout, format='%(message)s')
-		function()
-		pBErrorManager.rmTempHandler()
-		self.assertIn(expected_output, mock_stdout.getvalue())
+
+	def test_init(self):
+		"""test some properties"""
+		self.assertIsInstance(pBStats, InspireStatsLoader)
+		self.assertEqual(pBStats.urlBase,
+			pbConfig.inspireSearchBase)
+		self.assertEqual(pBStats.timeout,
+			float(pbConfig.params["timeoutWebSearch"]))
+		self.assertEqual(pBStats.authorStatsOpts,
+			"&of=recjson&ot=recid,creation_date&so=a&rg=250")
+		self.assertEqual(pBStats.paperStatsOpts,
+			"&of=recjson&ot=recid,creation_date&so=a&rg=250")
+		self.assertEqual(pBStats.skipPageOpt, "&jrec=")
+		self.assertEqual(pBStats.maxPerPage, 250)
+		self.assertEqual(pBStats.authorPlotInfo, {})
+		self.assertEqual(pBStats.paperPlotInfo, {})
 
 	def test_paperStats(self):
 		"""Test paperStats function downloading real and fake data"""

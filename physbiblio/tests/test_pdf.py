@@ -6,6 +6,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
+import six
 import shutil
 
 if sys.version_info[0] < 3:
@@ -36,7 +37,8 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_init(self):
 		"""Test the __init__ method"""
-		with patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cf,\
+		with patch("physbiblio.pdf.LocalPDF.checkFolderExists",
+				autospec=True) as _cf,\
 				patch.dict(pbConfig.params,
 					{"pdfFolder": "/a/b/c", "pdfApplication": "someapp"},
 					clear=False):
@@ -44,16 +46,18 @@ class TestPdfMethods(unittest.TestCase):
 			self.assertEqual(pdf.pdfDir, "/a/b/c")
 			self.assertEqual(pdf.pdfApp, "someapp")
 			self.assertEqual(pdf.badFNameCharacters, '\\/:*?"<>|\'')
-			_cf.assert_called_once_with()
+			_cf.assert_called_once_with(pdf)
 
 	def test_checkFolderExists(self):
 		"""Test the checkFolderExists method"""
-		with patch("physbiblio.pdf.LocalPDF.checkFolderExists") as _cf,\
+		with patch("physbiblio.pdf.LocalPDF.checkFolderExists",
+				autospec=True) as _cf,\
 				patch.dict(pbConfig.params,
 					{"pdfFolder": "/a/b/c", "pdfApplication": "someapp"},
 					clear=False):
 			pdf = LocalPDF()
-		with patch("os.path.isdir", side_effect=[True, False]) as _id,\
+		with patch("os.path.isdir", side_effect=[True, False],
+					autospec=True) as _id,\
 				patch("logging.Logger.info") as _if,\
 				patch("os.makedirs") as _mk:
 			pdf.checkFolderExists()
@@ -74,7 +78,8 @@ class TestPdfMethods(unittest.TestCase):
 			os.path.join(pBPDF.pdfDir, "a_b_c_d_e_f_g_h_i_j_"))
 		testPaperFolder = pBPDF.getFileDir("abc.def")
 		with patch('physbiblio.database.Entries.getField',
-				return_value="12345678") as _mock:
+				return_value="12345678",
+				autospec=True) as _mock:
 			self.assertEqual(pBPDF.getFilePath("abc.def", "arxiv"),
 				os.path.join(testPaperFolder, "12345678.pdf"))
 
@@ -88,7 +93,8 @@ class TestPdfMethods(unittest.TestCase):
 		self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
 		open(emptyPdfName, 'a').close()
 		with patch('physbiblio.database.Entries.getField',
-				return_value="12345678") as _mock:
+				return_value="12345678",
+				autospec=True) as _mock:
 			pBPDF.copyNewFile("abc.fed", emptyPdfName, "arxiv")
 			pBPDF.copyNewFile("abc.fed", emptyPdfName,
 				customName="empty.pdf")
@@ -112,13 +118,15 @@ class TestPdfMethods(unittest.TestCase):
 	def test_download(self):
 		"""Test downloadArxiv"""
 		with patch('physbiblio.database.Entries.getField',
-				return_value="1806.11344") as _mock:
+				return_value="1806.11344",
+				autospec=True) as _mock:
 			self.assertTrue(pBPDF.downloadArxiv("abc.def"))
 			self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath=False),
 				["1806.11344.pdf"])
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath=True),
-				[os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344.pdf")])
+				[os.path.join(pBPDF.getFileDir("abc.def"),
+					"1806.11344.pdf")])
 			open(os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344"),
 				"w").close()
 			self.assertEqual(pBPDF.getExisting("abc.def", fullPath=False),
@@ -128,7 +136,8 @@ class TestPdfMethods(unittest.TestCase):
 				os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344")))
 			self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
 		with patch('physbiblio.database.Entries.getField',
-				side_effect=["1801.15000", "1801.15000", "", "", None, None]
+				side_effect=["1801.15000", "1801.15000", "", "", None, None],
+				autospec=True
 				) as _mock:
 			self.assertFalse(pBPDF.downloadArxiv("abc.def"))
 			self.assertFalse(pBPDF.downloadArxiv("abc.def"))
@@ -138,7 +147,8 @@ class TestPdfMethods(unittest.TestCase):
 	def test_removeSpare(self):
 		"""Test finding spare folders"""
 		with patch('physbiblio.database.Entries.fetchCursor',
-				return_value=[{"bibkey":"abc"}, {"bibkey":"def"}]) as _mock:
+				return_value=[{"bibkey":"abc"}, {"bibkey":"def"}],
+				autospec=True) as _mock:
 			for q in ["abc", "def", "ghi"]:
 				pBPDF.createFolder(q)
 				self.assertTrue(os.path.exists(pBPDF.getFileDir(q)))
@@ -150,11 +160,16 @@ class TestPdfMethods(unittest.TestCase):
 
 	def test_dirSize(self):
 		"""test dirSize"""
+		if six.PY2:
+			error_class = OSError
+		else:
+			error_class = FileNotFoundError
 		with patch("logging.Logger.error") as _e,\
 				patch("os.makedirs") as _md,\
 				patch("os.path.getsize",
-					side_effect=[FileNotFoundError, 123]) as _gs:
-			self.assertEqual(pBPDF.dirSize("/surely/non/existent/folder"), 123)
+					side_effect=[error_class, 123]) as _gs:
+			self.assertEqual(
+				pBPDF.dirSize("/surely/non/existent/folder"), 123)
 			_e.assert_called_once_with(
 				"PDF folder is missing: "
 				+ "/surely/non/existent/folder. Creating it.")
@@ -162,13 +177,17 @@ class TestPdfMethods(unittest.TestCase):
 			_gs.assert_any_call("/surely/non/existent/folder")
 		if sys.version_info[0] < 3:
 			with patch("os.path.getsize",
-					side_effect=[1, 100, 1, 100, 100]) as _gs,\
+						side_effect=[1, 100, 1, 100, 100],
+						autospec=True) as _gs,\
 					patch("os.listdir",
-						side_effect=[["a", "b"], ["c", "d", "e"]]) as _ld,\
+						side_effect=[["a", "b"], ["c", "d", "e"]],
+						autospec=True) as _ld,\
 					patch("os.path.isfile",
-						side_effect=[True, False, True, True, False]) as _if,\
+						side_effect=[True, False, True, True, False],
+						autospec=True) as _if,\
 					patch("os.path.isdir",
-						side_effect=[True, False]) as _id:
+						side_effect=[True, False],
+						autospec=True) as _id:
 				self.assertEqual(pBPDF.dirSize("f"), 302)
 				_gs.assert_has_calls([
 					call('f'),
@@ -182,13 +201,17 @@ class TestPdfMethods(unittest.TestCase):
 					call('f/b/d'), call('f/b/e')])
 				_id.assert_has_calls([call('f/b'), call('f/b/e')])
 			with patch("os.path.getsize",
-						return_value=100) as _gs,\
+						return_value=100,
+						autospec=True) as _gs,\
 					patch("os.listdir",
-						side_effect=[["a", "b"], ["c", "d", "e"]]) as _ld,\
+						side_effect=[["a", "b"], ["c", "d", "e"]],
+						autospec=True) as _ld,\
 					patch("os.path.isfile",
-						side_effect=[True, False, True, True, False]) as _if,\
+						side_effect=[True, False, True, True, False],
+						autospec=True) as _if,\
 					patch("os.path.isdir",
-						side_effect=[True, False]) as _id:
+						side_effect=[True, False],
+						autospec=True) as _id:
 				self.assertEqual(pBPDF.dirSize("f", dirs=False), 300)
 				_gs.assert_has_calls([
 					call('f/a'),
@@ -201,12 +224,15 @@ class TestPdfMethods(unittest.TestCase):
 				_id.assert_has_calls([call('f/b'), call('f/b/e')])
 		else:
 			with patch("os.path.getsize",
-					side_effect=[1, 1, 100, 100, 100]) as _gs,\
+						side_effect=[1, 1, 100, 100, 100],
+						autospec=True) as _gs,\
 					patch("os.walk",
 						return_value=[["f", ["b"],
-							["a", "b/c", "b/d", "b/e"]]]) as _wa,\
+							["a", "b/c", "b/d", "b/e"]]],
+						autospec=True) as _wa,\
 					patch("os.path.isfile",
-						side_effect=[True, True, True, False]) as _if:
+						side_effect=[True, True, True, False],
+						autospec=True) as _if:
 				self.assertEqual(pBPDF.dirSize("f"), 302)
 				_gs.assert_has_calls([
 					call('f'),
@@ -219,12 +245,15 @@ class TestPdfMethods(unittest.TestCase):
 					call('f/a'), call('f/b/c'),
 					call('f/b/d'), call('f/b/e')])
 			with patch("os.path.getsize",
-					side_effect=[100, 100, 100]) as _gs,\
+						side_effect=[100, 100, 100],
+						autospec=True) as _gs,\
 					patch("os.walk",
 						return_value=[["f", ["b"],
-							["a", "b/c", "b/d", "b/e"]]]) as _wa,\
+							["a", "b/c", "b/d", "b/e"]]],
+						autospec=True) as _wa,\
 					patch("os.path.isfile",
-						side_effect=[True, True, True, False]) as _if:
+						side_effect=[True, True, True, False],
+						autospec=True) as _if:
 				self.assertEqual(pBPDF.dirSize("f", dirs=False), 300)
 				_gs.assert_has_calls([
 					call('f/a'),

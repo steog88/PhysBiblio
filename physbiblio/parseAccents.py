@@ -83,7 +83,7 @@ def texToHtml(text):
 			text = text.replace(
 				t.group(),
 				"<{html}>{cont}</{html}>".format(
-					html = html, cont = t.group(1)))
+					html=html, cont=t.group(1)))
 	for tex, html in latex2Html_strings:
 		text = text.replace(tex, html)
 	for tex, new in latex_replace:

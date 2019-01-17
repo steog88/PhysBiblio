@@ -29,11 +29,14 @@ class LocalPDF():
 	and the stored material
 	"""
 
+	pdfDir = pbConfig.params["pdfFolder"]
+	pdfApp = pbConfig.params["pdfApplication"]
+	badFNameCharacters = r'\/:*?"<>|' + "'"
+
 	def __init__(self):
 		"""Init the class and set some default variables"""
-		self.pdfDir = pbConfig.params["pdfFolder"]
 		self.checkFolderExists()
-		self.badFNameCharacters = r'\/:*?"<>|' + "'"
+		self.pdfDir = pbConfig.params["pdfFolder"]
 		self.pdfApp = pbConfig.params["pdfApplication"]
 
 	def checkFolderExists(self):
@@ -439,9 +442,13 @@ class LocalPDF():
 			the size in bytes
 		"""
 		if dirs:
+			if six.PY2:
+				error_class = OSError
+			else:
+				error_class = FileNotFoundError
 			try:
 				total_size = os.path.getsize(folder)
-			except FileNotFoundError:
+			except error_class:
 				pBLogger.error(
 					"PDF folder is missing: %s. Creating it."%folder)
 				os.makedirs(folder)
