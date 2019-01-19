@@ -102,6 +102,43 @@ class PhysBiblioDB(PhysBiblioDBCore):
 		"""
 		PhysBiblioDBCore.checkDatabaseUpdates(self)
 		self.convertSearchFormat()
+		self.checkCaseInsensitiveBibkey()
+
+	def checkCaseInsensitiveBibkey(self):
+		"""Check if the 'bibkey' field in the 'entries' table
+		is case insensitive or not.
+		If not, update the table structure
+		"""
+		testQ = "SELECT sql FROM sqlite_master WHERE type='table' " \
+			+ "AND tbl_name='entries'"
+		self.cursExec(testQ)
+		try:
+			createQ = self.curs.fetchall()[0][0]
+		except IndexError:
+			pBLogger.exception("Impossible to read create table for 'entries'")
+			return
+		if "bibkey text primary key not null," in createQ:
+			pBLogger.info("Performing conversion of 'entries' table"
+				+ " to case-insensitive key")
+			for fixQ in ["BEGIN TRANSACTION;",
+					"ALTER TABLE entries RENAME TO tmp_entries;"]:
+				if not self.connExec(fixQ):
+					pBLogger.exception(
+						"Impossible to rename table 'entries'")
+					self.undo()
+					return
+			self.createTable("entries", self.tableFields["entries"])
+			for fixQ in ["INSERT INTO entries SELECT * FROM tmp_entries;",
+					"DROP TABLE tmp_entries;"]:
+				if not self.connExec(fixQ):
+					pBLogger.exception(
+						"Impossible to read create table for 'entries'")
+					self.undo()
+					return
+			self.commit()
+		else:
+			pBLogger.debug("'bibkey' was not created without 'collate nocase'."
+				+ " Nothing to do here.")
 
 	def convertSearchFormat(self):
 		"""Read the old saved searches/replaces and convert them

@@ -34,7 +34,7 @@ searchesTableDescriptions = {
 
 tableFields = {}
 tableFields["entries"] = [
-	["bibkey", 	"text", "primary key not null"],
+	["bibkey", 	"text", "primary key not null collate nocase"],
 	["inspire", "text", ""],
 	["arxiv", 	"text", ""],
 	["ads", 	"text", ""],

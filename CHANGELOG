@@ -1,3 +1,4 @@
+	* 'entries' table now has a case-insensitive key
 	* accept djvu and ps files, not only pdf ones
 	* create PDF folder when it is missing, avoid error in dirSize
 	* bug: outdated package failing when no connection caused a crash

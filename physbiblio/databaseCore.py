@@ -254,6 +254,27 @@ class PhysBiblioDBCore():
 		tables = [name[0] for name in self.curs]
 		return not all(t in tables for t in wantedTables)
 
+	def createTable(self, q, fields):
+		"""Create the table 'q'
+
+		Parameters:
+			q: the table name
+			fieldsDict: the list containing the column information
+				for the table
+		"""
+		command = "CREATE TABLE %s (\n"%q
+		first = True
+		for el in fields:
+			if first:
+				first = False
+			else:
+				command += ",\n"
+			command += " ".join(el)
+		command += ");"
+		self.logger.info(command + "\n")
+		if not self.connExec(command):
+			self.logger.critical("Create %s failed"%q)
+
 	def createTables(self, fieldsDict=None):
 		"""Create tables for the database
 		(and insert the default categories), if it is missing.
@@ -269,18 +290,7 @@ class PhysBiblioDBCore():
 		for q in fieldsDict.keys():
 			if q in existingTables:
 				continue
-			command = "CREATE TABLE %s (\n"%q
-			first = True
-			for el in fieldsDict[q]:
-				if first:
-					first = False
-				else:
-					command += ",\n"
-				command += " ".join(el)
-			command += ");"
-			self.logger.info(command + "\n")
-			if not self.connExec(command):
-				self.logger.critical("Create %s failed"%q)
+			self.createTable(q, fieldsDict[q])
 		self.cursExec("select * from categories where "
 			+ "idCat = 0 or idCat = 1\n")
 		if len(self.curs.fetchall()) < 2:

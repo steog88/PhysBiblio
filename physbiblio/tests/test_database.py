@@ -198,8 +198,8 @@ class TestCreateTables(unittest.TestCase):
 				'CREATE TABLE expCats (\nidExC integer primary key,\n'
 					+ 'idExp integer not null,\nidCat integer not null);\n')
 			_i.assert_any_call(
-				'CREATE TABLE entries (\nbibkey text primary key '
-					+ 'not null,\ninspire text ,\narxiv text ,\nads '
+				'CREATE TABLE entries (\nbibkey text primary key not null '
+					+ 'collate nocase,\ninspire text ,\narxiv text ,\nads '
 					+ 'text ,\nscholar text ,\ndoi text ,\nisbn text ,'
 					+ '\nyear integer ,\nlink text ,\ncomments text ,'
 					+ '\nold_keys text ,\ncrossref text ,\nbibtex text '
@@ -802,8 +802,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				+ ".cursExec") as _ce:
 			self.assertFalse(dbc.checkExistingTables())
 
-	def test_checkDatabaseUpdates(self):
-		"""test checkDatabaseUpdates"""
+	def test_checkDatabaseUpdates_DBC(self):
+		"""test checkDatabaseUpdates in PhysBiblioDBCore"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".loadSubClasses") as _lsc:
@@ -891,6 +891,101 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				+ ".cursor", return_value="curs") as _f:
 			self.assertEqual(dbs.cursor(), "curs")
 			_f.assert_called_once_with()
+
+	def test_checkDatabaseUpdates_DB(self):
+		"""test checkDatabaseUpdates in PhysBiblioDB"""
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".checkDatabaseUpdates", autospec=True) as _su,\
+				patch("physbiblio.database.PhysBiblioDB"
+				+ ".convertSearchFormat", autospec=True) as _cf,\
+				patch("physbiblio.database.PhysBiblioDB"
+				+ ".checkCaseInsensitiveBibkey", autospec=True) as _ci:
+			self.pBDB.checkDatabaseUpdates()
+			_su.assert_called_once_with(self.pBDB)
+			_cf.assert_called_once_with(self.pBDB)
+			_ci.assert_called_once_with(self.pBDB)
+
+	def test_checkCaseInsensitiveBibkey(self):
+		"""test checkCaseInsensitiveBibkey"""
+		self.pBDB.curs = MagicMock()
+		self.pBDB.curs.fetchall.return_value = [""]
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", autospec=True) as _cur,\
+				patch("logging.Logger.exception") as _ex:
+			self.pBDB.checkCaseInsensitiveBibkey()
+			_cur.assert_called_once_with(self.pBDB,
+				"SELECT sql FROM sqlite_master WHERE type='table' "
+				+ "AND tbl_name='entries'")
+			_ex.assert_called_once_with(
+				"Impossible to read create table for 'entries'")
+			self.pBDB.curs.fetchall.assert_called_once_with()
+		self.pBDB.curs.fetchall.return_value = [("abced",)]
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", autospec=True) as _cur,\
+				patch("logging.Logger.debug") as _dbg:
+			self.pBDB.checkCaseInsensitiveBibkey()
+			_cur.assert_called_once_with(self.pBDB,
+				"SELECT sql FROM sqlite_master WHERE type='table' "
+				+ "AND tbl_name='entries'")
+			_dbg.assert_called_once_with(
+				"'bibkey' was not created without 'collate nocase'."
+				+ " Nothing to do here.")
+		self.pBDB.curs.fetchall.return_value = [
+			("\nbibkey text primary key not null,\n",)]
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", autospec=True) as _cur,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".connExec",
+					autospec=True,
+					return_value=False) as _con,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.exception") as _ex,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.undo",
+					autospec=True) as _un:
+			self.pBDB.checkCaseInsensitiveBibkey()
+			_cur.assert_called_once_with(self.pBDB,
+				"SELECT sql FROM sqlite_master WHERE type='table' "
+				+ "AND tbl_name='entries'")
+			_con.assert_called_once_with(self.pBDB,
+				'BEGIN TRANSACTION;')
+			_in.assert_called_once_with(
+				"Performing conversion of 'entries' table to "
+				+ "case-insensitive key")
+			_ex.assert_called_once_with(
+				"Impossible to rename table 'entries'")
+			_un.assert_called_once_with(self.pBDB)
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
+				+ ".cursExec", autospec=True) as _cur,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore"
+					+ ".connExec",
+					autospec=True,
+					return_value=True) as _con,\
+				patch("logging.Logger.info") as _in,\
+				patch("logging.Logger.exception") as _ex,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.createTable",
+					autospec=True) as _ct,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit",
+					autospec=True) as _com,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.undo") as _un:
+			self.pBDB.checkCaseInsensitiveBibkey()
+			_cur.assert_called_once_with(self.pBDB,
+				"SELECT sql FROM sqlite_master WHERE type='table' "
+				+ "AND tbl_name='entries'")
+			_ct.assert_called_once_with(self.pBDB, "entries",
+				self.pBDB.tableFields["entries"])
+			_con.assert_has_calls([
+				call(self.pBDB, "BEGIN TRANSACTION;"),
+				call(self.pBDB, "ALTER TABLE entries RENAME TO tmp_entries;"),
+				call(self.pBDB,
+					"INSERT INTO entries SELECT * FROM tmp_entries;"),
+				call(self.pBDB, "DROP TABLE tmp_entries;")])
+			_in.assert_called_once_with(
+				"Performing conversion of 'entries' table to "
+				+ "case-insensitive key")
+			_com.assert_called_once_with(self.pBDB)
+			_ex.assert_not_called()
+			_un.assert_not_called()
+		self.pBDB.curs = self.pBDB.conn.cursor()
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
