@@ -42,7 +42,7 @@ class PhysBiblioDBCore():
 		#names of the columns
 		self.tableCols = {}
 		for q in self.tableFields.keys():
-			self.tableCols[q] = [ a[0] for a in self.tableFields[q] ]
+			self.tableCols[q] = [a[0] for a in self.tableFields[q]]
 
 		self.dbChanged = False
 		self.conn = None
@@ -58,7 +58,7 @@ class PhysBiblioDBCore():
 				self.logger.info("-------New database or missing tables.\n"
 					+ "Creating them!\n\n")
 				self.createTables()
-			self.checkCols()
+			self.checkDatabaseUpdates()
 
 		self.lastFetched = None
 		self.catsHier = None
@@ -295,7 +295,7 @@ class PhysBiblioDBCore():
 				self.logger.error("Insert main categories failed")
 		self.commit()
 
-	def checkCols(self):
+	def checkDatabaseUpdates(self):
 		"""Run when new columns are added to the database with respect
 		to previous versions of the software
 		Check if bibdict column is present in entries table
@@ -311,6 +311,7 @@ class PhysBiblioDBCore():
 			else:
 				self.logger.error("Cannot alter table 'entries'!")
 				self.undo()
+
 
 class PhysBiblioDBSub():
 	"""Uses PhysBiblioDB instance 'self.mainDB = parent'

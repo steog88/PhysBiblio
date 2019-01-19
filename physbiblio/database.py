@@ -57,7 +57,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
 			if db_is_new or self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
-			self.checkCols()
+			self.checkDatabaseUpdates()
 
 			self.lastFetched = None
 			self.catsHier = None
@@ -67,7 +67,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
 			if self.checkExistingTables():
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
-			self.checkCols()
+			self.checkDatabaseUpdates()
 			self.lastFetched = None
 			self.catsHier = None
 		return True
@@ -94,6 +94,143 @@ class PhysBiblioDB(PhysBiblioDBCore):
 		self.catExp = CatsExps(self)
 		self.config = ConfigurationDB(self)
 		return True
+
+	def checkDatabaseUpdates(self):
+		"""Run when new columns are added to the database with respect
+		to previous versions of the software
+		Check if bibdict column is present in entries table
+		"""
+		PhysBiblioDBCore.checkDatabaseUpdates(self)
+		self.convertSearchFormat()
+
+	def convertSearchFormat(self):
+		"""Read the old saved searches/replaces and convert them
+		to the new format for future use"""
+		defSeF = [{'type': 'Text', 'logical': None,
+			'field': 'bibtex', 'operator': 'contains', 'content': ''}]
+		defReF = {
+			"regex": False,
+			"fieOld": "author",
+			"fieNew": "author",
+			"old": "",
+			"new": "",
+			"fieNew1": "author",
+			"new1": "",
+			"double": False
+			}
+		for sr in pbConfig.globalDb.getAllSearches():
+			try:
+				searchFields = ast.literal_eval(sr["searchDict"])
+			except (ValueError, SyntaxError):
+				pBLogger.error("Something went wrong when processing "
+					+ "the search fields: '%s'"%sr["searchDict"])
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "searchDict", defSeF)
+				searchFields = defSeF
+			if not isinstance(searchFields, list) \
+					and isinstance(searchFields, dict):
+				newContent = []
+				first = True
+				if "cats" in searchFields.keys():
+					first = False
+					newContent.append(
+						{'type': 'Categories',
+						'logical': None,
+						'field': '',
+						'operator': "all the following" \
+							if searchFields["cats"]["operator"] == "and" \
+							else "at least one among",
+						'content': searchFields["cats"]["id"]})
+					del searchFields["cats"]
+				if not first:
+					try:
+						ceop = searchFields["catExpOperator"]
+					except KeyError:
+						ceop = None
+				else:
+					ceop = None
+				try:
+					del searchFields["catExpOperator"]
+				except KeyError:
+					pass
+				if "exps" in searchFields.keys():
+					newContent.append(
+						{'type': 'Experiments',
+						'logical': ceop,
+						'field': '',
+						'operator': "all the following" \
+							if searchFields["exps"]["operator"] == "and" \
+							else "at least one among",
+						'content': searchFields["exps"]["id"]})
+					del searchFields["exps"]
+				if "marks" in searchFields.keys():
+					newContent.append(
+						{'type': 'Marks',
+						'logical': searchFields["marks"]["connection"],
+						'field': None,
+						'operator': None,
+						'content': ["any"] \
+							if searchFields["marks"]["operator"] == "!=" \
+							else [searchFields["marks"]["str"]]})
+					del searchFields["marks"]
+				for t in self.bibs.searchPossibleTypes:
+					if t in searchFields.keys():
+						newContent.append(
+							{'type': 'Type',
+							'logical': searchFields[t]["connection"],
+							'field': None,
+							'operator': None,
+							'content': [t]})
+						del searchFields[t]
+				for fi in sorted(searchFields.keys()):
+					f, i = fi.split("#")
+					newContent.append(
+						{'type': 'Text',
+						'logical': searchFields[fi]["connection"],
+						'field': f,
+						'operator': searchFields[fi]["operator"],
+						'content': searchFields[fi]["str"]})
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "searchDict", newContent)
+
+			if sr["replaceFields"] == "[]":
+				pbConfig.globalDb.updateSearchField(
+					sr["idS"], "replaceFields", "{}")
+			if sr["isReplace"]:
+				newContent = sr["replaceFields"]
+				try:
+					replaceFields = ast.literal_eval(sr["replaceFields"])
+				except (ValueError, SyntaxError):
+					pBLogger.error("Something went wrong when processing "
+						+ "the saved replace: '%s'"%sr["replaceFields"])
+					replaceFields = {}
+					newContent = defReF
+				if isinstance(replaceFields, list):
+					newContent = {}
+					if sr["isReplace"]:
+						try:
+							newContent["regex"] = replaceFields[4]
+							newContent["fieOld"] = replaceFields[0]
+							newContent["fieNew"] = replaceFields[1][0]
+							newContent["old"] = replaceFields[2]
+							newContent["new"] = replaceFields[3][0]
+						except IndexError:
+							pBLogger.error(
+								"Not enough elements for conversion: "
+								+ sr["replaceFields"])
+							newContent = defReF
+						try:
+							newContent["fieNew1"] = replaceFields[1][1]
+							newContent["new1"] = replaceFields[3][1]
+							newContent["double"] = True
+						except IndexError:
+							newContent["fieNew1"] = defReF["fieNew1"]
+							newContent["new1"] = defReF["new1"]
+							newContent["double"] = defReF["double"]
+				if "%s"%newContent != sr["replaceFields"]:
+					pbConfig.globalDb.updateSearchField(
+						sr["idS"], "replaceFields", newContent)
+			pbConfig.globalDb.commit(verbose=False)
 
 
 class Categories(PhysBiblioDBSub):

@@ -536,7 +536,8 @@ class TestMainWindow(GUITestCase):
 		#test empty search/replace menu
 		with patch("physbiblio.config.GlobalDB.getSearchList",
 				side_effect=[[], []]) as _gs,\
-				patch(self.clsName + ".convertSearchFormat") as _csf:
+				patch("physbiblio.database.PhysBiblioDB"
+					+ ".convertSearchFormat") as _csf:
 			self.mainW.createMenusAndToolBar()
 			_csf.assert_called_once_with()
 			self.assertEqual(self.mainW.searchMenu, None)
@@ -551,7 +552,8 @@ class TestMainWindow(GUITestCase):
 			self.mainW.helpMenu])
 
 		#create with mock getSearchList for searches and replaces
-		with patch(self.clsName + ".convertSearchFormat") as _csf,\
+		with patch("physbiblio.database.PhysBiblioDB"
+				+ ".convertSearchFormat") as _csf,\
 				patch("physbiblio.config.GlobalDB.getSearchList",
 				side_effect=[
 					[{"idS": 0, "name": "s1", "searchDict": "{'n': 'abc'}",
@@ -1813,150 +1815,6 @@ class TestMainWindow(GUITestCase):
 				+ "3 failures (see below).<br><br>"
 				+ "<b>Changed</b>: ['e', 'f']<br><br>"
 				+ "<b>Failed</b>: ['g', 'h', 'i']")
-
-	def test_convertSearchFormat(self):
-		"""test convertSearchFormat"""
-		old = [
-			{"idS": 0,
-			"name": "test1",
-			"count": 0,
-			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": '["e1"]',
-			"manual": 0,
-			"isReplace": 0,},
-			{"idS": 1,
-			"name": "test2",
-			"count": 0,
-			"searchDict": '{"a": "abc"}, {"b": "def"}]',
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": '["e1"]',
-			"manual": 0,
-			"isReplace": 1,},
-			{"idS": 2,
-			"name": "test3",
-			"count": 0,
-			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
-				+ " 'operator': 'and'}, 'marks': {'str': 'bad', 'operator':"
-				+ " 'like', 'connection': 'AND'}, 'exp_paper': {'str': '1',"
-				+ " 'operator': '=', 'connection': 'AND'}, 'bibtex#0':"
-				+ " {'str': 'abc', 'operator': 'like', 'connection': 'AND'}}",
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": '["of", ["nf"], "os", ["ns"], False]',
-			"manual": 0,
-			"isReplace": 1,},
-			{"idS": 3,
-			"name": "test4",
-			"count": 0,
-			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
-				+ " 'operator': 'or'}, 'exps': {'id': [1],"
-				+ " 'operator': 'and'}, 'marks': {'str': '', 'operator':"
-				+ " '!=', 'connection': 'AND'}, 'arxiv#0': {'str': '1801',"
-				+ " 'operator': 'like', 'connection': 'AND'}}",
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": '["of", ["nf", "n1"], "os", ["ns", "n1"], False]',
-			"manual": 0,
-			"isReplace": 1,},
-			{"idS": 4,
-			"name": "test5",
-			"count": 0,
-			"searchDict": "{'catExpOperator': 'AND', 'book': {'str': '1',"
-				+ " 'operator': '=', 'connection': 'OR'}, 'exps': {'id': [1],"
-				+ " 'operator': 'or'}, 'bibtex#0': {'str':"
-				+ " '123', 'operator': 'like', 'connection': 'AND'},"
-				+ " 'bibtex#1': {'str': 'me', 'operator': '=', "
-				+ "'connection': 'AND'}}",
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": 'of',
-			"manual": 0,
-			"isReplace": 1,},
-			{"idS": 5,
-			"name": "test6",
-			"count": 0,
-			"searchDict": 'abc',
-			"limitNum": 1111,
-			"offsetNum": 12,
-			"replaceFields": '[]',
-			"manual": 0,
-			"isReplace": 0,},
-			]
-		with patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
-				patch("physbiblio.config.GlobalDB.getAllSearches",
-					return_value=old) as _gas,\
-				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
-					) as _c,\
-				patch("logging.Logger.error") as _e:
-			self.mainW.convertSearchFormat()
-			_gas.assert_called_once_with()
-			_e.assert_has_calls([
-				call('Something went wrong when processing the search '
-					+ 'fields: \'{"a": "abc"}, {"b": "def"}]\''),
-				call('Not enough elements for conversion: ["e1"]'),
-				call("Something went wrong when processing the "
-					+ "saved replace: 'of'"),
-				call("Something went wrong when processing the search "
-					+ "fields: 'abc'")
-				])
-			_usf.assert_has_calls([
-				call(1, 'searchDict', [{'type': 'Text', 'logical': None,
-					'field': 'bibtex', 'operator': 'contains',
-					'content': ''}]),
-				call(1, 'replaceFields', {'regex': False, 'fieOld':
-					'author', 'fieNew': 'author', 'old': '', 'new': '',
-					'fieNew1': 'author', 'new1': '', 'double': False})
-				])
-			_usf.assert_has_calls([
-				call(2, 'searchDict', [{'type': 'Categories', 'logical':
-					None, 'field': '', 'operator': 'all the following',
-					'content': [0, 1]}, {'type': 'Marks', 'logical':
-					'AND', 'field': None, 'operator': None, 'content':
-					['bad']}, {'type': 'Type', 'logical': 'AND',
-					'field': None, 'operator': None, 'content':
-					['exp_paper']}, {'type': 'Text', 'logical': 'AND',
-					'field': 'bibtex', 'operator': 'like',
-					'content': 'abc'}]),
-				call(2, "replaceFields", {'regex': False, 'fieOld': 'of',
-					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
-					'fieNew1': 'author', 'new1': '', 'double': False})
-				])
-			_usf.assert_has_calls([
-				call(3, 'searchDict', [{'type': 'Categories', 'logical':
-					None, 'field': '', 'operator': 'at least one among',
-					'content': [0, 1]}, {'type': 'Experiments',
-					'logical': 'AND', 'field': '', 'operator':
-					'all the following', 'content': [1]}, {'type': 'Marks',
-					'logical': 'AND', 'field': None, 'operator': None,
-					'content': ['any']}, {'type': 'Text', 'logical': 'AND',
-					'field': 'arxiv', 'operator': 'like',
-					'content': '1801'}]),
-				call(3, 'replaceFields', {'regex': False, 'fieOld': 'of',
-					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
-					'fieNew1': 'n1', 'new1': 'n1', 'double': True})
-				])
-			_usf.assert_has_calls([
-				call(4, 'searchDict', [{'type': 'Experiments', 'logical':
-					None, 'field': '', 'operator': 'at least one among',
-					'content': [1]}, {'type': 'Type', 'logical': 'OR',
-					'field': None, 'operator': None, 'content':
-					['book']}, {'type': 'Text', 'logical': 'AND',
-					'field': 'bibtex', 'operator': 'like', 'content':
-					'123'}, {'type': 'Text', 'logical': 'AND', 'field':
-					'bibtex', 'operator': '=', 'content': 'me'}]),
-				call(4, 'replaceFields', {'regex': False, 'fieOld':
-					'author', 'fieNew': 'author', 'old': '', 'new': '',
-					'fieNew1': 'author', 'new1': '', 'double': False})
-				])
-			_usf.assert_has_calls([
-				call(5, 'searchDict', [{'type': 'Text', 'logical': None,
-					'field': 'bibtex', 'operator': 'contains',
-					'content': ''}]),
-				call(5, 'replaceFields', '{}')])
-			self.assertEqual(_c.call_count, 6)
 
 	def test_updateAllBibtexsAsk(self):
 		"""test updateAllBibtexsAsk"""

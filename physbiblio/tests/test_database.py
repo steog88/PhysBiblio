@@ -31,6 +31,7 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 fullRecordAde = {
 	'bibkey': 'Ade:2013zuv',
 	'inspire': '1224741',
@@ -159,9 +160,11 @@ fullRecordGariazzo = {
 		u'pages': u'033001'}}
 tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db"%today_ymd)
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestCreateTables(unittest.TestCase):
 	"""Test creation of tables"""
+
 	def test_createTables(self):
 		"""Test that all the tables are created at first time,
 		if DB is empty
@@ -243,9 +246,155 @@ class TestCreateTables(unittest.TestCase):
 		if os.path.exists(tempFDBName):
 			os.remove(tempFDBName)
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 	"""Test main database class PhysBiblioDB and PhysBiblioDBSub structures"""
+
+	def test_convertSearchFormat(self):
+		"""test convertSearchFormat"""
+		old = [
+			{"idS": 0,
+			"name": "test1",
+			"count": 0,
+			"searchDict": '[{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["e1"]',
+			"manual": 0,
+			"isReplace": 0,},
+			{"idS": 1,
+			"name": "test2",
+			"count": 0,
+			"searchDict": '{"a": "abc"}, {"b": "def"}]',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["e1"]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 2,
+			"name": "test3",
+			"count": 0,
+			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
+				+ " 'operator': 'and'}, 'marks': {'str': 'bad', 'operator':"
+				+ " 'like', 'connection': 'AND'}, 'exp_paper': {'str': '1',"
+				+ " 'operator': '=', 'connection': 'AND'}, 'bibtex#0':"
+				+ " {'str': 'abc', 'operator': 'like', 'connection': 'AND'}}",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["of", ["nf"], "os", ["ns"], False]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 3,
+			"name": "test4",
+			"count": 0,
+			"searchDict": "{'catExpOperator': 'AND', 'cats': {'id': [0, 1],"
+				+ " 'operator': 'or'}, 'exps': {'id': [1],"
+				+ " 'operator': 'and'}, 'marks': {'str': '', 'operator':"
+				+ " '!=', 'connection': 'AND'}, 'arxiv#0': {'str': '1801',"
+				+ " 'operator': 'like', 'connection': 'AND'}}",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '["of", ["nf", "n1"], "os", ["ns", "n1"], False]',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 4,
+			"name": "test5",
+			"count": 0,
+			"searchDict": "{'catExpOperator': 'AND', 'book': {'str': '1',"
+				+ " 'operator': '=', 'connection': 'OR'}, 'exps': {'id': [1],"
+				+ " 'operator': 'or'}, 'bibtex#0': {'str':"
+				+ " '123', 'operator': 'like', 'connection': 'AND'},"
+				+ " 'bibtex#1': {'str': 'me', 'operator': '=', "
+				+ "'connection': 'AND'}}",
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": 'of',
+			"manual": 0,
+			"isReplace": 1,},
+			{"idS": 5,
+			"name": "test6",
+			"count": 0,
+			"searchDict": 'abc',
+			"limitNum": 1111,
+			"offsetNum": 12,
+			"replaceFields": '[]',
+			"manual": 0,
+			"isReplace": 0,},
+			]
+		with patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
+				patch("physbiblio.config.GlobalDB.getAllSearches",
+					return_value=old) as _gas,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
+					) as _c,\
+				patch("logging.Logger.error") as _e:
+			self.pBDB.convertSearchFormat()
+			_gas.assert_called_once_with()
+			_e.assert_has_calls([
+				call('Something went wrong when processing the search '
+					+ 'fields: \'{"a": "abc"}, {"b": "def"}]\''),
+				call('Not enough elements for conversion: ["e1"]'),
+				call("Something went wrong when processing the "
+					+ "saved replace: 'of'"),
+				call("Something went wrong when processing the search "
+					+ "fields: 'abc'")
+				])
+			_usf.assert_has_calls([
+				call(1, 'searchDict', [{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains',
+					'content': ''}]),
+				call(1, 'replaceFields', {'regex': False, 'fieOld':
+					'author', 'fieNew': 'author', 'old': '', 'new': '',
+					'fieNew1': 'author', 'new1': '', 'double': False})
+				])
+			_usf.assert_has_calls([
+				call(2, 'searchDict', [{'type': 'Categories', 'logical':
+					None, 'field': '', 'operator': 'all the following',
+					'content': [0, 1]}, {'type': 'Marks', 'logical':
+					'AND', 'field': None, 'operator': None, 'content':
+					['bad']}, {'type': 'Type', 'logical': 'AND',
+					'field': None, 'operator': None, 'content':
+					['exp_paper']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'bibtex', 'operator': 'like',
+					'content': 'abc'}]),
+				call(2, "replaceFields", {'regex': False, 'fieOld': 'of',
+					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
+					'fieNew1': 'author', 'new1': '', 'double': False})
+				])
+			_usf.assert_has_calls([
+				call(3, 'searchDict', [{'type': 'Categories', 'logical':
+					None, 'field': '', 'operator': 'at least one among',
+					'content': [0, 1]}, {'type': 'Experiments',
+					'logical': 'AND', 'field': '', 'operator':
+					'all the following', 'content': [1]}, {'type': 'Marks',
+					'logical': 'AND', 'field': None, 'operator': None,
+					'content': ['any']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'arxiv', 'operator': 'like',
+					'content': '1801'}]),
+				call(3, 'replaceFields', {'regex': False, 'fieOld': 'of',
+					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
+					'fieNew1': 'n1', 'new1': 'n1', 'double': True})
+				])
+			_usf.assert_has_calls([
+				call(4, 'searchDict', [{'type': 'Experiments', 'logical':
+					None, 'field': '', 'operator': 'at least one among',
+					'content': [1]}, {'type': 'Type', 'logical': 'OR',
+					'field': None, 'operator': None, 'content':
+					['book']}, {'type': 'Text', 'logical': 'AND',
+					'field': 'bibtex', 'operator': 'like', 'content':
+					'123'}, {'type': 'Text', 'logical': 'AND', 'field':
+					'bibtex', 'operator': '=', 'content': 'me'}]),
+				call(4, 'replaceFields', {'regex': False, 'fieOld':
+					'author', 'fieNew': 'author', 'old': '', 'new': '',
+					'fieNew1': 'author', 'new1': '', 'double': False})
+				])
+			_usf.assert_has_calls([
+				call(5, 'searchDict', [{'type': 'Text', 'logical': None,
+					'field': 'bibtex', 'operator': 'contains',
+					'content': ''}]),
+				call(5, 'replaceFields', '{}')])
+			self.assertEqual(_c.call_count, 6)
+
 	def test_operations(self):
 		"""Test main database functions (open/close, basic commands)"""
 		self.assertFalse(self.pBDB.checkUncommitted())
@@ -351,7 +500,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".createTables") as _ct,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkCols") as _cc,\
+					+ ".checkDatabaseUpdates") as _cc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".loadSubClasses") as _lsc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
@@ -379,7 +528,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".createTables") as _ct,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkCols") as _cc,\
+					+ ".checkDatabaseUpdates") as _cc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".loadSubClasses") as _lsc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
@@ -653,8 +802,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				+ ".cursExec") as _ce:
 			self.assertFalse(dbc.checkExistingTables())
 
-	def test_checkCols(self):
-		"""test checkCols"""
+	def test_checkDatabaseUpdates(self):
+		"""test checkDatabaseUpdates"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".loadSubClasses") as _lsc:
@@ -670,11 +819,11 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					+ ".cursExec") as _cue,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
 					+ ".connExec", side_effect=[True, False]) as _coe:
-			dbc.checkCols()
+			dbc.checkDatabaseUpdates()
 			_cue.assert_called_once_with("PRAGMA table_info(entries);")
 			_coe.assert_not_called()
 			dbc.curs = [[0, "title"], [1, "column"]]
-			dbc.checkCols()
+			dbc.checkDatabaseUpdates()
 			_coe.assert_called_once_with(
 				"ALTER TABLE entries ADD COLUMN bibdict text;")
 			_co.assert_called_once_with()
@@ -682,7 +831,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					+ "'bibdict' (text).")
 			_e.assert_not_called()
 			_un.assert_not_called()
-			dbc.checkCols()
+			dbc.checkDatabaseUpdates()
 			_co.assert_called_once_with()
 			_e.assert_called_once_with("Cannot alter table 'entries'!")
 			_un.assert_called_once_with()
@@ -747,6 +896,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseLinks(DBTestCase):
 	"""Test subclasses connecting categories, experiments, entries"""
+
 	def test_CatsEntries(self):
 		"""Test CatsEntries functions"""
 		self.pBDB.utils.cleanSpareEntries()
@@ -848,9 +998,11 @@ class TestDatabaseLinks(DBTestCase):
 		self.assertEqual(self.pBDB.bibExp.countByExp(1), 2)
 		self.assertTrue(self.pBDB.bibExp.insert("test", "test"))
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseExperiments(DBTestCase):
 	"""Tests for the methods in the experiments subclass"""
+
 	def checkNumberExperiments(self, number):
 		"""Check the number of experiments"""
 		self.assertEqual(self.pBDB.exps.count(), number)
@@ -998,9 +1150,11 @@ class TestDatabaseExperiments(DBTestCase):
 			{'inspire': u'', 'comments': u'', 'name': u'exp2',
 			'bibkey': u'defghi', 'idEnEx': 2, 'homepage': u'', 'idExp': 2}])
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseCategories(DBTestCase):
 	"""Tests for the methods in the categories subclass"""
+
 	def checkNumberCategories(self, number):
 		"""Check the number of experiments"""
 		self.assertEqual(self.pBDB.cats.count(), number)
@@ -1219,9 +1373,11 @@ class TestDatabaseCategories(DBTestCase):
 			"   0: Main\n        1: Tags\n             2: c\n" \
 			+ "             4: e\n")
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseEntries(DBTestCase):
 	"""Tests for the methods in the entries subclass"""
+
 	def insert_three(self):
 		"""Insert three elements in the DB for testing"""
 		data = self.pBDB.bibs.prepareInsert(
@@ -3804,9 +3960,11 @@ class TestDatabaseEntries(DBTestCase):
 			"def", "bibtex", u'@article{def,author = "me",title = "def"}'))
 		self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
 
+
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
 class TestDatabaseUtilities(DBTestCase):
 	"""Tests for the methods in the utilities subclass"""
+
 	def test_spare(self):
 		"""create spare connections just to delete them
 		with cleanSpareEntries
@@ -3840,9 +3998,11 @@ class TestDatabaseUtilities(DBTestCase):
 			+ u'title = "{{\`e} {\~n}}",\n}\n\n')
 		self.pBDB.bibs.delete("abc")
 
+
 def tearDownModule():
 	if os.path.exists(tempDBName):
 		os.remove(tempDBName)
+
 
 if __name__=='__main__':
 	unittest.main()
