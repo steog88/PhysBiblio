@@ -158,6 +158,40 @@ class TestPdfMethods(unittest.TestCase):
 			self.assertFalse(os.path.exists(pBPDF.getFileDir("ghi")))
 		shutil.rmtree(pBPDF.pdfDir)
 
+	def test_numberOfFiles(self):
+		"""test numberOfFiles"""
+		self.assertEqual(
+			pBPDF.numberOfFiles("/surely/non/existent/folder"), 0)
+		if sys.version_info[0] < 3:
+			with patch("os.listdir",
+						side_effect=[["a", "b"], ["c", "d", "e"]],
+						autospec=True) as _ld,\
+					patch("os.path.isfile",
+						side_effect=[True, False, True, True, False],
+						autospec=True) as _if,\
+					patch("os.path.isdir",
+						side_effect=[True, False],
+						autospec=True) as _id:
+				self.assertEqual(pBPDF.numberOfFiles("f"), 3)
+				_ld.assert_has_calls([call('f'), call('f/b')])
+				_if.assert_has_calls([
+					call('f/a'), call('f/b'), call('f/b/c'),
+					call('f/b/d'), call('f/b/e')])
+				_id.assert_has_calls([call('f/b'), call('f/b/e')])
+		else:
+			with patch("os.walk",
+						return_value=[["f", ["b"],
+							["a", "b/c", "b/d", "b/e"]]],
+						autospec=True) as _wa,\
+					patch("os.path.isfile",
+						side_effect=[True, True, True, False],
+						autospec=True) as _if:
+				self.assertEqual(pBPDF.numberOfFiles("f"), 3)
+				_wa.assert_called_once_with('f')
+				_if.assert_has_calls([
+					call('f/a'), call('f/b/c'),
+					call('f/b/d'), call('f/b/e')])
+
 	def test_dirSize(self):
 		"""test dirSize"""
 		if six.PY2:

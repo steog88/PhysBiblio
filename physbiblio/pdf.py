@@ -352,10 +352,15 @@ class LocalPDF():
 		fileDir = self.getFileDir(key)
 		try:
 			if fullPath:
-				return [ osp.join(fileDir, e) for e in os.listdir(fileDir) \
-					if e[-4:] == ".pdf" ]
+				return [osp.join(fileDir, e) for e in os.listdir(fileDir) \
+					if (e.endswith(".pdf")
+						or e.endswith(".djvu")
+						or e.endswith(".ps"))]
 			else:
-				return [ e for e in os.listdir(fileDir) if e[-4:] == ".pdf" ]
+				return [e for e in os.listdir(fileDir)
+					if (e.endswith(".pdf")
+						or e.endswith(".djvu")
+						or e.endswith(".ps"))]
 		except:
 			return []
 
@@ -430,6 +435,39 @@ class LocalPDF():
 			except:
 				pBLogger.exception(
 					"Impossible to copy %s to %s"%(o, outFolder))
+
+	def numberOfFiles(self, folder):
+		"""Get the total number of files inside the given folder
+
+		Parameters:
+			folder: the path of the folder to scan
+
+		Output:
+			the number of files
+		"""
+		total_number = 0
+		if six.PY2:
+			error_class = OSError
+		else:
+			error_class = FileNotFoundError
+		if sys.version_info[0] < 3:
+			try:
+				dirlist = os.listdir(folder)
+			except error_class:
+				dirlist = []
+			for item in dirlist:
+				itempath = os.path.join(folder, item)
+				if os.path.isfile(itempath):
+					total_number += 1
+				elif os.path.isdir(itempath):
+					total_number += self.numberOfFiles(itempath)
+		else:
+			for dirpath, dirnames, filenames in os.walk(folder):
+				for f in filenames:
+					fp = os.path.join(dirpath, f)
+					if os.path.isfile(fp):
+						total_number += 1
+		return total_number
 
 	def dirSize(self, folder, dirs=True):
 		"""Get the size of a single directory and its content
