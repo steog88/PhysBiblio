@@ -927,14 +927,18 @@ class TestMainWindow(GUITestCase):
 				return_value=mb) as _mb,\
 				patch(self.modName + ".QPixmap",
 					return_value="qpm") as _qpm,\
-				patch(self.modName + ".dbStats") as _dbs,\
+				patch(self.modName + ".dbStats",
+					autospec=True) as _dbs,\
 				patch("physbiblio.pdf.LocalPDF.dirSize",
+					autospec=True,
 					return_value=4096**2) as _ds,\
-				patch("glob.iglob", return_value=["a", "b"]) as _ig:
+				patch("physbiblio.pdf.LocalPDF.numberOfFiles",
+					autospec=True,
+					return_value=2) as _ig:
 			mbox = self.mainW.showDBStats()
 			_dbs.assert_called_once_with(pBDB)
-			_ig.assert_called_once_with("%s/*/*.pdf"%pBPDF.pdfDir)
-			_ds.assert_called_once_with(pBPDF.pdfDir)
+			_ig.assert_called_once_with(pBPDF, pBPDF.pdfDir)
+			_ds.assert_called_once_with(pBPDF, pBPDF.pdfDir)
 			_mb.assert_called_once_with(_mb.Information,
 				"PhysBiblio database statistics",
 				"The PhysBiblio database currently contains "

@@ -2632,7 +2632,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			_cp.assert_called_once_with('abc',
 				'/h/c/file.pdf', customName='file.pdf')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter="PDF (*.pdf)")
+				"Where is the PDF located?",
+				filter="Documents (*.pdf *.ps *.djvu)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2645,7 +2646,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			c.onAddPDF(ftype="doi")
 			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter="PDF (*.pdf)")
+				"Where is the PDF located?",
+				filter="Documents (*.pdf *.ps *.djvu)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2658,7 +2660,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			c.onAddPDF("doi")
 			_cp.assert_called_once_with('abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?", filter="PDF (*.pdf)")
+				"Where is the PDF located?",
+				filter="Documents (*.pdf *.ps *.djvu)")
 			_e.assert_called_once_with("Could not copy the new file!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 

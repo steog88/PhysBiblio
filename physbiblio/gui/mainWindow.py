@@ -694,7 +694,7 @@ class MainWindow(QMainWindow):
 		of the database content and on the number of stored PDF files
 		"""
 		dbStats(pBDB)
-		onlyfiles = len(list(glob.iglob("%s/*/*.pdf"%pBPDF.pdfDir)))
+		onlyfiles = pBPDF.numberOfFiles(pBPDF.pdfDir)
 		mbox = QMessageBox(QMessageBox.Information,
 			"PhysBiblio database statistics",
 			"The PhysBiblio database currently contains "

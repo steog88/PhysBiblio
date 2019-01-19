@@ -991,7 +991,7 @@ class CommonBibActions():
 		"""
 		bibkey = self.keys[0]
 		newPdf = askFileName(self.parent(),
-			"Where is the PDF located?", filter="PDF (*.pdf)")
+			"Where is the PDF located?", filter="Documents (*.pdf *.ps *.djvu)")
 		if newPdf != "" and os.path.isfile(newPdf):
 			if ftype == "generic":
 				newName = newPdf.split("/")[-1]
