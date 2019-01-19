@@ -35,18 +35,19 @@ class TestInspireStatsMethods(unittest.TestCase):
 	def test_init(self):
 		"""test some properties"""
 		self.assertIsInstance(pBStats, InspireStatsLoader)
-		self.assertEqual(pBStats.urlBase,
+		tpBStats = InspireStatsLoader()
+		self.assertEqual(tpBStats.urlBase,
 			pbConfig.inspireSearchBase)
-		self.assertEqual(pBStats.timeout,
+		self.assertEqual(tpBStats.timeout,
 			float(pbConfig.params["timeoutWebSearch"]))
-		self.assertEqual(pBStats.authorStatsOpts,
+		self.assertEqual(tpBStats.authorStatsOpts,
 			"&of=recjson&ot=recid,creation_date&so=a&rg=250")
-		self.assertEqual(pBStats.paperStatsOpts,
+		self.assertEqual(tpBStats.paperStatsOpts,
 			"&of=recjson&ot=recid,creation_date&so=a&rg=250")
-		self.assertEqual(pBStats.skipPageOpt, "&jrec=")
-		self.assertEqual(pBStats.maxPerPage, 250)
-		self.assertEqual(pBStats.authorPlotInfo, {})
-		self.assertEqual(pBStats.paperPlotInfo, {})
+		self.assertEqual(tpBStats.skipPageOpt, "&jrec=")
+		self.assertEqual(tpBStats.maxPerPage, 250)
+		self.assertEqual(tpBStats.authorPlotInfo, None)
+		self.assertEqual(tpBStats.paperPlotInfo, None)
 
 	def test_paperStats(self):
 		"""Test paperStats function downloading real and fake data"""
