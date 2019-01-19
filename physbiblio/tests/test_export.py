@@ -27,9 +27,11 @@ except ImportError:
 except Exception:
 	print(traceback.format_exc())
 
+
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
 class TestExportMethods(unittest.TestCase):
 	"""Tests for methods in physbiblio.export"""
+
 	def test_backup(self):
 		"""Test backup file creation and related"""
 		emptyFileName = os.path.join(pbConfig.dataPath,
@@ -232,7 +234,7 @@ class TestExportMethods(unittest.TestCase):
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
-			f.write("\cite{newcite:now18}")
+			f.write("\cite{newcite:NOW18}")
 		with patch('physbiblio.database.Entries.getByBibtex', side_effect=[
 				[{"bibkey": "newcite:now18", "bibtexDict": {},
 				"bibtex": '@article{newcite:now18,\nauthor= "myself",\ntitle='
@@ -240,7 +242,7 @@ class TestExportMethods(unittest.TestCase):
 				]) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, overwrite=True, autosave=False)
-		self.assertEqual(output[0], ['newcite:now18']) #requiredBibkeys
+		self.assertEqual(output[0], ['newcite:NOW18']) #requiredBibkeys
 		self.assertEqual(output[1], []) #missing
 		self.assertEqual(output[2], []) #retrieved
 		self.assertEqual(output[3], []) #notFound
@@ -252,12 +254,12 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite:now18,\n        author = "myself",\n         '
+				'@Article{newcite:NOW18,\n        author = "myself",\n         '
 					+ 'title = "{some paper}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
-			f.write("\cite{newcite:now18}\cite{bib1}\cite{bib2}")
+			f.write("\cite{newcite:NOW18}\cite{bib1}\cite{bib2}")
 		bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' \
 			+ '"{newtitle}"\n}'
 		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
@@ -289,7 +291,7 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite:now18,\n        author = "S. Gariazzo",'
+				'@Article{newcite:NOW18,\n        author = "S. Gariazzo",'
 					+ '\n         title = "{newtitle}",\n}\n\n',
 				'@Article{bib1,\n        author = "SG",\n         title = '
 					+ '"{Light sterile neutrinos}",\n}\n\n',
@@ -298,7 +300,7 @@ class TestExportMethods(unittest.TestCase):
 			self.assertIn(t, newTextBib)
 
 		with open(testTexName, "w") as f:
-			f.write("\cite{newcite:now18}\cite{bib1}")
+			f.write("\cite{newcite:NOW18}\cite{bib1}")
 		bibtex1 = '@Article{newcite:now18,\nauthor="S. Gariazzo",\ntitle=' \
 			+ '"{newtitle}"\n}'
 		bibtex2 = '@article{bib1,\nauthor="SG",\ntitle=' \
@@ -326,7 +328,7 @@ class TestExportMethods(unittest.TestCase):
 		with open(testBibName) as f:
 			newTextBib = f.read()
 		for t in ['%file written by PhysBiblio\n',
-				'@Article{newcite:now18,\n        author = "S. Gariazzo",'
+				'@Article{newcite:NOW18,\n        author = "S. Gariazzo",'
 					+ '\n         title = "{newtitle}",\n}\n\n',
 				'@Article{bib1,\n        author = "SG",\n         '
 					+ 'title = "{Light sterile neutrinos}",\n}\n\n']:

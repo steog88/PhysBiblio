@@ -9,6 +9,7 @@ import shutil
 import traceback
 import codecs
 import bibtexparser
+from requests.structures import CaseInsensitiveDict
 
 try:
 	from physbiblio.errors import pBLogger
@@ -228,7 +229,7 @@ class PBExport():
 					pass
 			if m is not None:
 				m = m.strip()
-				if m.lower() != entry["ID"].strip().lower():
+				if m != entry["ID"].strip():
 					entry["ID"] = m
 			db.entries = [entry]
 			bibf = pbWriter.write(db)
@@ -318,7 +319,9 @@ class PBExport():
 				self.existingBibsList = []
 		# work with dictionary, so that if there are repeated entries
 		# (entries with same ID) they are automatically discarded
-		existingBibsDict = { e["ID"]: e for e in self.existingBibsList}
+		existingBibsDict = CaseInsensitiveDict()
+		for e in self.existingBibsList:
+			existingBibsDict[e["ID"]] = e
 
 		#if requested, do some cleaning
 		if updateExisting:

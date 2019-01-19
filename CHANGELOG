@@ -1,4 +1,5 @@
-	* 'entries' table now has a case-insensitive key
+	* exportForTexFile now distinguishes the case of the keys when saving the output
+	* 'entries' table now has a case-insensitive primary key
 	* accept djvu and ps files, not only pdf ones
 	* create PDF folder when it is missing, avoid error in dirSize
 	* bug: outdated package failing when no connection caused a crash
