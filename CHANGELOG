@@ -1,3 +1,4 @@
+	* unhandled exception should not cause crashes now
 	* exportForTexFile now distinguishes the case of the keys when saving the output
 	* 'entries' table now has a case-insensitive primary key
 	* accept djvu and ps files, not only pdf ones

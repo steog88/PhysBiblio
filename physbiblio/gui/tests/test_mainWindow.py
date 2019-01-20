@@ -47,27 +47,34 @@ class TestMainWindow(GUITestCase):
 		tcu = Thread_checkUpdated()
 		tcu.start = MagicMock()
 		pBDB.onIsLocked = None
-		with patch(self.clsName + ".createActions") as _ca,\
-				patch(self.clsName + ".createMenusAndToolBar") as _mt,\
-				patch(self.clsName + ".createMainLayout") as _ml,\
-				patch(self.clsName + ".setIcon") as _si,\
-				patch(self.clsName + ".createStatusBar") as _sb,\
+		with patch(self.clsName + ".createActions",
+					autospec=True) as _ca,\
+				patch(self.clsName + ".createMenusAndToolBar",
+					autospec=True) as _mt,\
+				patch(self.clsName + ".createMainLayout",
+					autospec=True) as _ml,\
+				patch(self.clsName + ".setIcon",
+					autospec=True) as _si,\
+				patch(self.clsName + ".createStatusBar",
+					autospec=True) as _sb,\
 				patch(self.modName + ".Thread_checkUpdated",
+					autospec=True,
 					return_value=tcu) as _cu:
 			mw = MainWindow()
-			_ca.assert_called_once_with()
-			_mt.assert_called_once_with()
-			_ml.assert_called_once_with()
-			_si.assert_called_once_with()
-			_sb.assert_called_once_with()
+			_ca.assert_called_once_with(mw)
+			_mt.assert_called_once_with(mw)
+			_ml.assert_called_once_with(mw)
+			_si.assert_called_once_with(mw)
+			_sb.assert_called_once_with(mw)
 			_cu.assert_called_once_with(mw)
 			tcu.start.assert_called_once_with()
 			mw1 = MainWindow(testing=True)
-			_ca.assert_called_once_with()
-		with patch(self.clsName + ".printNewVersion") as _pnw:
+			_ca.assert_called_once_with(mw)
+		with patch(self.clsName + ".printNewVersion", autospec=True) as _pnw:
 			mw.checkUpdated.result.emit(True, "0.0.0")
-			_pnw.assert_called_once_with(True, "0.0.0")
+			_pnw.assert_called_once_with(mw, True, "0.0.0")
 		self.assertIsInstance(mw, QMainWindow)
+		self.assertIsInstance(mw.errormessage, Signal)
 		self.assertEqual(mw.minimumWidth(), 600)
 		self.assertEqual(mw.minimumHeight(), 400)
 		self.assertIsInstance(mw.mainStatusBar, QStatusBar)
@@ -81,9 +88,12 @@ class TestMainWindow(GUITestCase):
 		self.assertTrue(hasattr(mw, "onIsLockedClass"))
 		self.assertIsInstance(mw.onIsLockedClass, ObjectWithSignal)
 		self.assertEqual(pBDB.onIsLocked, mw.onIsLockedClass.customSignal)
-		with patch(self.clsName + ".lockedDatabase") as _ld:
+		with patch(self.clsName + ".lockedDatabase", autospec=True) as _ld:
 			pBDB.onIsLocked.emit()
-			_ld.assert_called_once_with()
+			_ld.assert_called_once_with(mw)
+		with patch(self.clsName + ".excepthook", autospec=True) as _eh:
+			mw.errormessage.emit("a", "b", "c")
+			_eh.assert_called_once_with(mw, "a", "b", "c")
 
 	def test_closeEvent(self):
 		"""test closeEvent"""
@@ -122,6 +132,18 @@ class TestMainWindow(GUITestCase):
 			self.mainW.closeEvent(e)
 			_ei.assert_called_once_with()
 		pbConfig.params["askBeforeExit"] = oldcfg
+
+	def test_excepthook(self):
+		"""test excepthook"""
+		e = Exception
+		t = traceback
+		with patch("logging.Logger.error") as _e:
+			self.mainW.excepthook("mytitle", e, t)
+			_e.assert_called_once_with(
+				'Unhandled exception', exc_info=('mytitle', e, t))
+		with patch(self.clsName + ".excepthook", autospec=True) as _e:
+			self.mainW.errormessage.emit("a", e, t)
+			_e.assert_called_once_with(self.mainW, "a", e, t)
 
 	def test_mainWindowTitle(self):
 		"""test mainWindowTitle"""

@@ -15,7 +15,7 @@ if sys.version_info[0] < 3:
 else:
 	from queue import Queue
 
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtWidgets import \
 	QAction, QApplication, QDesktopWidget, QFrame, QMainWindow, \
@@ -70,6 +70,8 @@ class MainWindow(QMainWindow):
 	graphical interface
 	"""
 
+	errormessage = Signal(type, type, Exception, traceback)
+
 	def __init__(self, testing=False):
 		"""Main window constructor.
 		Call many functions to set all the widgets and the properties
@@ -79,6 +81,7 @@ class MainWindow(QMainWindow):
 				executing all the creation of objects (used for tests)
 		"""
 		QMainWindow.__init__(self)
+		self.errormessage.connect(self.excepthook)
 		availableWidth = QDesktopWidget().availableGeometry().width()
 		availableHeight = QDesktopWidget().availableGeometry().height()
 		self.setWindowTitle('PhysBiblio')
@@ -128,6 +131,16 @@ class MainWindow(QMainWindow):
 			event.ignore()
 		else:
 			event.accept()
+
+	def excepthook(self, cls, exception, trcbk):
+		"""Function that will replace `sys.excepthook` to log
+		any error that occurs
+
+		Parameters:
+			cls, exception, trcbk as in `sys.excepthook`
+		"""
+		pBGUILogger.error("Unhandled exception",
+			exc_info=(cls, exception, trcbk))
 
 	def mainWindowTitle(self, title):
 		"""Set the window title

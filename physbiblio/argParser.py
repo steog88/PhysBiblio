@@ -109,7 +109,7 @@ def call_weekly(args):
 		dateLast)
 
 
-def call_gui(args = None):
+def call_gui(args=None):
 	"""Function that runs the PhysBiblio GUI"""
 	from PySide2.QtWidgets import QApplication
 	try:
@@ -122,8 +122,8 @@ def call_gui(args = None):
 		raise
 	try:
 		app = QApplication(sys.argv)
-		sys.excepthook = pBGUIErrorManager.excepthook
 		mainWin = MainWindow()
+		sys.excepthook = mainWin.errormessage.emit
 		mainWin.show()
 		mainWin.raise_()
 		sys.exit(app.exec_())
