@@ -129,6 +129,13 @@ def writeBibtexInfo(entry):
 	exps = pBDB.exps.getByEntry(entry["bibkey"])
 	infoText += "\n<br/>Experiments: <i>%s</i>"%(
 		", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None")
+	try:
+		if (isinstance(entry["comments"], six.string_types)
+				and entry["comments"].strip() != ""):
+			infoText += "\n<br/><br/>Comments:<br/>%s"%(
+				entry["comments"])
+	except KeyError:
+		pBLogger.debug("KeyError: 'comments' not in %s"%(sorted(entry.keys())))
 	return infoText
 
 

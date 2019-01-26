@@ -67,6 +67,7 @@ class TestFunctions(GUIwMainWTestCase):
 			"arxiv": "1234.5678",
 			"doi": "a/b/12",
 			"inspire": "1234",
+			"comments": "some thing",
 			}
 		with patch("physbiblio.database.Categories.getByEntry",
 				return_value=[]) as _gc,\
@@ -79,7 +80,8 @@ class TestFunctions(GUIwMainWTestCase):
 				+ "<br/>\n<br/>DOI of the record: <u>a/b/12</u><br/>"
 				+ "arXiv ID of the record: <u>1234.5678</u><br/>"
 				+ "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
-				+ "Categories: <i>None</i>\n<br/>Experiments: <i>None</i>")
+				+ "Categories: <i>None</i>\n<br/>Experiments: <i>None</i>"
+				+ "\n<br/><br/>Comments:<br/>some thing")
 			_d.assert_not_called()
 
 		entry = {
@@ -121,6 +123,10 @@ class TestFunctions(GUIwMainWTestCase):
 					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
 					+ "'exp_paper', 'inspire', 'isbn', 'lecture', "
 					+ "'phd_thesis', 'proceeding', 'review']"),
+				call("KeyError: 'comments' not in ['arxiv', 'bibkey',"
+					+ " 'bibtexDict', 'book', 'doi', 'exp_paper', 'inspire',"
+					+ " 'isbn', 'lecture', 'phd_thesis', 'proceeding', "
+					+ "'review']"),
 				])
 
 		entry = {
@@ -167,6 +173,9 @@ class TestFunctions(GUIwMainWTestCase):
 					+ "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
 					+ "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
 					+ "'review']"),
+				call("KeyError: 'comments' not in ['arxiv', 'bibkey',"
+					+ " 'bibtexDict', 'book', 'doi', 'exp_paper', "
+					+ "'inspire', 'lecture', 'phd_thesis', 'review']"),
 				])
 
 		entry = {
@@ -188,6 +197,7 @@ class TestFunctions(GUIwMainWTestCase):
 			"isbn": "",
 			"doi": "",
 			"inspire": "",
+			"comments": "",
 			}
 		with patch("physbiblio.database.Categories.getByEntry",
 				return_value=[{"name": "Main"}, {"name": "second"}]) as _gc,\
@@ -204,7 +214,7 @@ class TestFunctions(GUIwMainWTestCase):
 			_d.assert_has_calls([
 				call("KeyError: 'proceeding' not in "
 					+ "['ads', 'arxiv', 'bibkey', 'bibtexDict', 'book', "
-					+ "'doi', 'exp_paper', 'inspire', 'isbn', "
+					+ "'comments', 'doi', 'exp_paper', 'inspire', 'isbn', "
 					+ "'lecture', 'phd_thesis', 'review']"),
 				call("KeyError: 'author' not in "
 					+ "['journal', 'pages', 'title', 'volume', 'year']"),
@@ -231,6 +241,7 @@ class TestFunctions(GUIwMainWTestCase):
 			"isbn": None,
 			"doi": None,
 			"inspire": None,
+			"comments": None,
 			}
 		with patch("physbiblio.database.Categories.getByEntry",
 				return_value=[{"name": "Main"}, {"name": "second"}]) as _gc,\
