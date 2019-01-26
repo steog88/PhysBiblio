@@ -1,11 +1,16 @@
-	* unhandled exception should not cause crashes now
+0.9.7 (2019-01-27):
+	New features / improvements
+	* accept djvu and ps files, not only pdf ones
+	* more importance to "comments" field in bibtex entries
 	* exportForTexFile now distinguishes the case of the keys when saving the output
 	* 'entries' table now has a case-insensitive primary key
-	* accept djvu and ps files, not only pdf ones
+	* unhandled exception should not cause crashes now
+
+	Bug fixes
 	* create PDF folder when it is missing, avoid error in dirSize
-	* bug: outdated package failing when no connection caused a crash
-	* bug: explicit error message still shown when editing bibtexs and having incomplete text
-	* bug: prevent closing the edit bibtex dialog when a non-valid bibtex is present
+	* outdated package failing when no connection caused a crash
+	* explicit error message still shown when editing bibtexs and having incomplete text
+	* prevent closing the edit bibtex dialog when a non-valid bibtex is present
 
 0.9.6 (2018-12-30):
 	* compatibility with PySide2 version 5.12 fixed

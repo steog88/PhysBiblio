@@ -1802,6 +1802,7 @@ class EditBibtexDialog(EditObjectWindow):
 		if k == "bibdict" \
 				or k == "abstract" \
 				or k == "bibtex" \
+				or k == "comments" \
 				or k in self.checkboxes:
 			return i
 		i += 1
@@ -1828,7 +1829,7 @@ class EditBibtexDialog(EditObjectWindow):
 				i + i%2, 0, 1, 4)
 		return i
 
-	def createCheckbox(self, k, i, j):
+	def createCheckbox(self, k):
 		"""Create a QCheckBox (eventually checked)
 		and the corresponding labels
 
@@ -1841,16 +1842,11 @@ class EditBibtexDialog(EditObjectWindow):
 			the updated index
 		"""
 		if k in self.checkboxes:
-			j += 2
-			self.currGrid.addWidget(
-				PBLabel("(%s)"%pBDB.descriptions["entries"][k]),
-				i + i%2 + j - 1, 2, 1, 2)
 			self.checkValues[k] = QCheckBox(k, self)
 			if self.data[k] == 1:
 				self.checkValues[k].toggle()
-			self.currGrid.addWidget(self.checkValues[k],
-				i + i%2 + j - 2, 2)
-		return j
+			self.typeBox.layout().addWidget(self.checkValues[k])
+			self.checkValues[k].setToolTip(pBDB.descriptions["entries"][k])
 
 	def createForm(self):
 		"""Create the form content:
@@ -1862,25 +1858,35 @@ class EditBibtexDialog(EditObjectWindow):
 		for k in pBDB.tableCols["entries"]:
 			i = self.createField(k, i)
 
-		i += 1 + i%2
-		j = 0
+		i += 3 + i%2
+		self.typeBox = QGroupBox("Entry type")
+		self.typeBox.setFlat(True)
+		vbox = QHBoxLayout()
+		self.typeBox.setLayout(vbox)
 		for k in pBDB.tableCols["entries"]:
-			j = self.createCheckbox(k, i, j)
+			self.createCheckbox(k)
+		self.currGrid.addWidget(self.typeBox,
+			i - 2 + i%2, 0, 1, 4)
 
 		#bibtex text editor
 		k = "bibtex"
-		self.currGrid.addWidget(PBLabel(k),
+		self.currGrid.addWidget(PBLabel(pBDB.descriptions["entries"][k]),
 			i + i%2 - 1, 0)
-		self.currGrid.addWidget(
-			PBLabel("(%s)"%pBDB.descriptions["entries"][k]),
-			i + i%2 - 1, 1)
 		self.textValues[k] = QPlainTextEdit(self.data[k])
 		self.textValues[k].textChanged.connect(self.updateBibkey)
 		self.currGrid.addWidget(self.textValues[k],
-			i + i%2, 0, j, 2)
+			i + i%2, 0, 14, 2)
+
+		#comments editor
+		k = "comments"
+		self.currGrid.addWidget(PBLabel(pBDB.descriptions["entries"][k]),
+			i + i%2 - 1, 2, 1, 2)
+		self.textValues[k] = QPlainTextEdit(self.data[k])
+		self.currGrid.addWidget(self.textValues[k],
+			i + i%2, 2, 14, 2)
 
 		# OK button
-		i += j
+		i += 14
 		self.acceptButton = QPushButton('OK', self)
 		self.acceptButton.clicked.connect(self.onOk)
 		self.currGrid.addWidget(self.acceptButton, i + i%2 + 1, 0, 1, 2)
