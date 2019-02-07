@@ -362,6 +362,35 @@ class TestExportMethods(unittest.TestCase):
 				+ '\n         title = "{title}",\n}\n\n']:
 			self.assertIn(t, newTextBib)
 
+		with open(testBibName, "w") as f:
+			f.write('%file written by PhysBiblio\n'
+				+ '@Article{empty,\n    author = "me",\n         title = '
+					+ '"{no}",\n}\n\n'
+				+ '@Article{prova,\n  author = "Gariazzo, S. and others",'
+					+ '\n         title = "{Light sterile neutrinos}",'
+					+ '\n\n'
+				+ '@Article{empty2,\n   author = "",\n         title = '
+					+ '"{yes}",\n}\n\n'
+				+ '@Article{Gariazzo:2015rra,\n        author = '
+					+ '"Gariazzo, S. and others",\n         %title = '
+					+ '"{Light sterile neutrinos}",\n}\n\n')
+		with patch('physbiblio.database.Entries.getByBibtex') as _getbbibt:
+			output = pBExport.exportForTexFile(testTexName,
+				testBibName, autosave=False,
+				removeUnused=True, updateExisting=True)
+		self.assertEqual(output[0], ['newcite']) #requiredBibkeys
+		self.assertEqual(output[1], ['newcite']) #missing
+		self.assertEqual(output[2], []) #retrieved
+		self.assertEqual(output[3], ['newcite']) #notFound
+		self.assertEqual(output[4], []) #unexpected
+		self.assertEqual(output[5], {}) #newKeys
+		self.assertEqual(output[6], 1) #warnings
+		self.assertEqual(output[7], 1) #total
+		self.assertTrue(os.path.exists(testBibName))
+		with open(testBibName) as f:
+			newTextBib = f.read()
+		self.assertEqual(newTextBib, '%file written by PhysBiblio\n')
+
 		os.remove(testBibName)
 		with patch("logging.Logger.error") as _er:
 			output = pBExport.exportForTexFile(testTexName,

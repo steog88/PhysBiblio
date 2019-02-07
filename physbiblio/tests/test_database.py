@@ -3183,6 +3183,38 @@ class TestDatabaseEntries(DBTestCase):
 			self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'%abc'), "")
 			_w.assert_called_once_with('No entries found:\n%abc')
 
+	def test_parseAllBibtexs(self):
+		"""test parseAllBibtexs"""
+		text = [u'@article{abc,\n', 'author = "me",\n', 'title = "",}',
+			'%"abc",', '}\n', "\n",
+			'@article{def,\n', 'author = "me",\n', 'title = "def",}']
+		errors = []
+		with patch("logging.Logger.debug") as _i:
+			self.pBDB.bibs.parseAllBibtexs(
+				text,
+				errors=errors,
+				verbose=True)
+			_i.assert_has_calls([call('Processing:\n')])
+			self.assertEqual(len(errors), 0)
+			_i.reset_mock()
+			res = self.pBDB.bibs.parseAllBibtexs(
+				text,
+				errors=errors,
+				verbose=False)
+			self.assertEqual(_i.call_count, 2)
+			self.assertEqual([a["ID"] for a in res], ["abc", "def"])
+		text = [u'@article{abc,\n', 'author = "me",\n', 'title = "",}',
+			'%"abc",', "\n",
+			'@article{def,\n', 'author = "me",\n', 'title = "def",}']
+		with patch("logging.Logger.exception") as _e,\
+				patch("logging.Logger.debug") as _i:
+			res = self.pBDB.bibs.parseAllBibtexs(
+				text,
+				errors=errors,
+				verbose=False)
+			self.assertEqual(len(errors), 1)
+			self.assertEqual([a["ID"] for a in res], ["def"])
+
 	def test_importFromBib(self):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = ' \
@@ -3199,6 +3231,17 @@ class TestDatabaseEntries(DBTestCase):
 		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
 			"tmpbib.bib", completeInfo=False),
 			"Impossible to parse text:")
+		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
+			["abc"])
+
+		self.pBDB.undo(verbose=0)
+		with open("tmpbib.bib", "w") as f:
+			f.write(u'@article{abc,\nauthor = "me",\n' \
+			+ 'title = "abc",\n}\n@article{def,\n}\n')
+		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
+			"tmpbib.bib", completeInfo=False),
+			"and 1 errors.")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
 

@@ -313,8 +313,8 @@ class PBExport():
 		if newOperation:
 			self.allCitations = set([])
 			if existingBibText != "":
-				self.existingBibsList = bibtexparser.bparser.BibTexParser(
-					common_strings=True).parse(existingBibText).entries
+				self.existingBibsList = pBDB.bibs.parseAllBibtexs(
+					existingBibText, verbose=False)
 			else:
 				self.existingBibsList = []
 		# work with dictionary, so that if there are repeated entries

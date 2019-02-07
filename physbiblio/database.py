@@ -3128,6 +3128,68 @@ class Entries(PhysBiblioDBSub):
 				pbConfig.params["defaultCategories"], key)
 		self.mainDB.catBib.askCats(self.lastInserted)
 
+	def parseSingleBibtex(self, text, errors=[], verbose=False):
+		"""Parse the text corresponding to an entry and returns
+		the list of parsed entries from `bibtexparser`.
+		If an exception occurs, return an empty list
+
+		Parameter:
+			text: the text to be processed
+			errors (default []): a list that contains the errors.
+				It should add to the existing list if passed
+			verbose (default False): if True, print some more messages
+
+		Output:
+			a list with the parsed entries
+		"""
+		if verbose:
+			pBLogger.debug("Processing:\n%s"%text)
+		if text.strip() == "":
+			if verbose:
+				pBLogger.warning("Impossible to parse empty text!")
+			return []
+		bp = bibtexparser.bparser.BibTexParser(common_strings=True)
+		try:
+			entries = bp.parse(text).entries
+		except ParseException:
+			errors.append(text)
+			pBLogger.exception("Impossible to parse text:\n%s"%text)
+			entries = []
+		return entries
+
+	def parseAllBibtexs(self, fullBibText, errors=[], verbose=False):
+		"""Parse the text containing several bibtex entries and return
+		the list of parsed entries from `bibtexparser`.
+		It should deal well with a number of errors
+
+		Parameter:
+			fullBibText: the text to be processed
+			errors (default []): a list that contains the errors.
+				It should add to the existing list if passed
+			verbose (default False): if True, print some more messages
+
+		Output:
+			a list of parsed entries
+		"""
+		bibText = ""
+		elements = []
+		for line in fullBibText:
+			if "@" in line and not line.strip().startswith("%"):
+				elements += self.parseSingleBibtex(
+					bibText,
+					errors=errors,
+					verbose=verbose)
+				bibText = line
+			else:
+				if (not line.strip().startswith("%")
+						and not '""' in line):
+					bibText += line
+		elements += self.parseSingleBibtex(
+			bibText,
+			errors=errors,
+			verbose=verbose)
+		return elements
+
 	def importFromBib(self, filename, completeInfo=True):
 		"""Read a .bib file and add the contained entries in the database
 
@@ -3149,41 +3211,13 @@ class Entries(PhysBiblioDBSub):
 		exist = []
 		errors = []
 
-		def parseSingle(text):
-			"""Parse the text corresponding to an entry and returns
-			the list of parsed entries from `bibtexparser`.
-			If an exception occurs, return an empty list
-
-			Parameter:
-				text: the text to be processed
-
-			Output:
-				a list
-			"""
-			pBLogger.debug("Processing:\n%s"%text)
-			if text.strip() == "":
-				pBLogger.warning("Impossible to parse empty text!")
-				return []
-			bp = bibtexparser.bparser.BibTexParser(common_strings=True)
-			try:
-				return bp.parse(text).entries
-			except ParseException:
-				errors.append(text)
-				pBLogger.exception("Impossible to parse text:\n%s"%text)
-				return []
-
 		pBLogger.info("Importing from file bib: %s"%filename)
 		with open(filename) as r:
 			fullBibText = r.read()
-		bibText = ""
-		elements = []
-		for line in fullBibText:
-			if "@" in line:
-				elements += parseSingle(bibText)
-				bibText = line
-			else:
-				bibText += line
-		elements += parseSingle(bibText)
+		elements = self.parseAllBibtexs(
+			fullBibText,
+			errors=errors,
+			verbose=True)
 		db = bibtexparser.bibdatabase.BibDatabase()
 		self.importFromBibFlag = True
 		pBLogger.info("Entries to be processed: %d"%len(elements))
