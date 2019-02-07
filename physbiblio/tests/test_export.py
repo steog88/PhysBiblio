@@ -86,7 +86,8 @@ class TestExportMethods(unittest.TestCase):
 		with patch('physbiblio.database.Entries.getByBibkey',
 				return_value=[{"bibtexDict":
 					{"ID": "empty2", "ENTRYTYPE": "Article",
-					"author": "me et al", "title": "yes"}}]) as _mock:
+					"author": "me et al", "title": "yes"}}],
+				autospec=True) as _mock:
 			pBExport.updateExportedBib(testBibName, overwrite=True)
 		with open(testBibName) as f:
 			self.assertEqual(f.read().replace(" ","").replace("\n",""),
@@ -105,7 +106,7 @@ class TestExportMethods(unittest.TestCase):
 		sampleTxt = '@Article{empty,\nauthor="me",\ntitle="no"\n}\n' \
 			+ '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}\n'
 		with patch('physbiblio.database.Entries.fetchCursor',
-				return_value=sampleList) as _curs:
+				return_value=sampleList, autospec=True) as _curs:
 			pBExport.exportAll(testBibName)
 		with open(testBibName) as f:
 			self.assertEqual(f.read(), sampleTxt)
@@ -129,8 +130,8 @@ class TestExportMethods(unittest.TestCase):
 
 		self.assertFalse(os.path.exists(testBibName))
 		with patch('physbiblio.database.CatsEntries.insert',
-				return_value=True) as _ceins:
-			with patch('physbiblio.database.Entries.getByBibtex',
+				return_value=True, autospec=True) as _ceins,\
+				patch('physbiblio.database.Entries.getByBibtex',
 					side_effect=[
 					[{"bibkey": "empty", "bibtexDict": {}, "bibtex":
 						'@Article{empty,\nauthor="me",\ntitle="no"\n}'}],
@@ -148,19 +149,19 @@ class TestExportMethods(unittest.TestCase):
 					+ '"{Light sterile neutrinos}",\n}'}],
 					[],
 					[],
-					]) as _getbbibt:
-				with patch('physbiblio.database.Entries.loadAndInsert',
-						side_effect=[
-						'@article{Gariazzo:2015rra,\nauthor= '
-						+ '"Gariazzo, S. and others",\ntitle='
-						+ '"{Light sterile neutrinos}",\n}',
-						'@article{Gariazzo:2015rra,\nauthor= '
-						+ '"Gariazzo, S. and others",\ntitle='
-						+ '"{Light sterile neutrinos}",\n}',
-						'']) as _mock:
-					output = pBExport.exportForTexFile(
-						testTexName, testBibName, overwrite=True,
-						autosave=False)
+					], autospec=True) as _getbbibt,\
+				patch('physbiblio.database.Entries.loadAndInsert',
+					side_effect=[
+					'@article{Gariazzo:2015rra,\nauthor= '
+					+ '"Gariazzo, S. and others",\ntitle='
+					+ '"{Light sterile neutrinos}",\n}',
+					'@article{Gariazzo:2015rra,\nauthor= '
+					+ '"Gariazzo, S. and others",\ntitle='
+					+ '"{Light sterile neutrinos}",\n}',
+					''], autospec=True) as _mock:
+			output = pBExport.exportForTexFile(
+				testTexName, testBibName, overwrite=True,
+				autosave=False)
 		self.assertEqual(output[0],
 			['empty', 'prova', 'empty2', 'Gariazzo:2015rra',
 			'Gariazzo:2017rra']) #requiredBibkeys
@@ -191,7 +192,7 @@ class TestExportMethods(unittest.TestCase):
 		with open(testTexName, "a") as f:
 			f.write("\cite{newcite}")
 		with patch('physbiblio.database.CatsEntries.insert',
-				return_value=True) as _ceins, \
+				return_value=True, autospec=True) as _ceins, \
 				patch('physbiblio.database.Entries.getByBibtex',
 					side_effect=[
 					[],
@@ -200,11 +201,11 @@ class TestExportMethods(unittest.TestCase):
 					[{"bibkey": "newcite", "bibtexDict": {}, "bibtex":
 						'@article{newcite,\nauthor= "myself",\ntitle='
 						+ '"{some paper}",\n}'}],
-					]) as _getbbibt,\
+					], autospec=True) as _getbbibt,\
 				patch('physbiblio.database.Entries.loadAndInsert',
 					side_effect=['',
 					'@article{newcite,\nauthor= "myself",\ntitle='
-						+ '"{some paper}",\n}']) as _mock:
+						+ '"{some paper}",\n}'], autospec=True) as _mock:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave=False)
 		self.assertEqual(output[0],
@@ -239,7 +240,7 @@ class TestExportMethods(unittest.TestCase):
 				[{"bibkey": "newcite:now18", "bibtexDict": {},
 				"bibtex": '@article{newcite:now18,\nauthor= "myself",\ntitle='
 					+ '"{some paper}",\n}'}],
-				]) as _getbbibt:
+				], autospec=True) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, overwrite=True, autosave=False)
 		self.assertEqual(output[0], ['newcite:NOW18']) #requiredBibkeys
@@ -275,7 +276,7 @@ class TestExportMethods(unittest.TestCase):
 				[{"bibkey": "bib2", "bibtexDict":
 					bibtexparser.loads(bibtex3).entries[0],
 					"bibtex": bibtex3}],
-				]) as _getbbibt:
+				], autospec=True) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave=False, updateExisting=True)
 		self.assertEqual(output[0], ['bib1', 'bib2']) #requiredBibkeys
@@ -312,7 +313,7 @@ class TestExportMethods(unittest.TestCase):
 				[{"bibkey": "bib1", "bibtexDict":
 					bibtexparser.loads(bibtex2).entries[0],
 					"bibtex": bibtex2}],
-				]) as _getbbibt:
+				], autospec=True) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave=False, removeUnused=True)
 		self.assertEqual(output[0], []) #requiredBibkeys
@@ -342,7 +343,7 @@ class TestExportMethods(unittest.TestCase):
 				[{"bibkey": "newcite", "bibtexDict":
 					bibtexparser.loads(bibtex1).entries[0],
 					"bibtex": bibtex1}],
-				]) as _getbbibt:
+				], autospec=True) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave=False, overwrite=True)
 		self.assertEqual(output[0], ['newcite']) #requiredBibkeys
@@ -374,7 +375,8 @@ class TestExportMethods(unittest.TestCase):
 				+ '@Article{Gariazzo:2015rra,\n        author = '
 					+ '"Gariazzo, S. and others",\n         %title = '
 					+ '"{Light sterile neutrinos}",\n}\n\n')
-		with patch('physbiblio.database.Entries.getByBibtex') as _getbbibt:
+		with patch('physbiblio.database.Entries.getByBibtex',
+				autospec=True) as _getbbibt:
 			output = pBExport.exportForTexFile(testTexName,
 				testBibName, autosave=False,
 				removeUnused=True, updateExisting=True)

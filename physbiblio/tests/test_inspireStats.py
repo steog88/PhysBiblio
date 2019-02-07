@@ -96,14 +96,16 @@ class TestInspireStatsMethods(unittest.TestCase):
 				datetime.datetime(2018, 3, 14, 4, 53, 45),
 				datetime.datetime(2018, 3, 26, 3, 25, 34),
 				datetime.datetime(2018, 3, 29, 5, 8, 58),
-				datetime.date(2018, 4, 16)], [1, 2, 3, 4, 5, 5]]}) as _mock:
+				datetime.date(2018, 4, 16)], [1, 2, 3, 4, 5, 5]]},
+				autospec=True) as _mock:
 			testGood = pBStats.authorStats("E.M.Zavanin.1", plot=True)
 			for i in ['1229039', '1345462', '1366180',
 					'1385583', '1387736', '1404176',
 					'1460832', '1519902']:
 				self.assertIn(i, testGood["aI"].keys())
 			_mock.assert_has_calls(
-				[call(i, paperDate=testGood["aI"][i]["date"], verbose=0)
+				[call(pBStats, i,
+					paperDate=testGood["aI"][i]["date"], verbose=0)
 					for i in sorted(testGood["aI"].keys())])
 			self.assertTrue(testGood.keys(),
 				['meanLi', 'allLi', 'aI', 'paLi', 'h', 'name'])

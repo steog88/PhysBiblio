@@ -25,6 +25,8 @@ try:
 	from physbiblio.config import pbConfig
 	from physbiblio.databaseCore import *
 	from physbiblio.database import dbStats, catString, cats_alphabetical
+	from physbiblio.pdf import pBPDF
+	from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
 	print("Could not find physbiblio and its modules!")
 	raise
@@ -322,14 +324,15 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			"manual": 0,
 			"isReplace": 0,},
 			]
-		with patch("physbiblio.config.GlobalDB.updateSearchField") as _usf,\
+		with patch("physbiblio.config.GlobalDB.updateSearchField",
+					autospec=True) as _usf,\
 				patch("physbiblio.config.GlobalDB.getAllSearches",
-					return_value=old) as _gas,\
-				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit"
-					) as _c,\
+					return_value=old, autospec=True) as _gas,\
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit",
+					autospec=True) as _c,\
 				patch("logging.Logger.error") as _e:
 			self.pBDB.convertSearchFormat()
-			_gas.assert_called_once_with()
+			_gas.assert_called_once_with(pbConfig.globalDb)
 			_e.assert_has_calls([
 				call('Something went wrong when processing the search '
 					+ 'fields: \'{"a": "abc"}, {"b": "def"}]\''),
@@ -340,15 +343,18 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					+ "fields: 'abc'")
 				])
 			_usf.assert_has_calls([
-				call(1, 'searchDict', [{'type': 'Text', 'logical': None,
+				call(pbConfig.globalDb,
+					1, 'searchDict', [{'type': 'Text', 'logical': None,
 					'field': 'bibtex', 'operator': 'contains',
 					'content': ''}]),
-				call(1, 'replaceFields', {'regex': False, 'fieOld':
+				call(pbConfig.globalDb,
+					1, 'replaceFields', {'regex': False, 'fieOld':
 					'author', 'fieNew': 'author', 'old': '', 'new': '',
 					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(2, 'searchDict', [{'type': 'Categories', 'logical':
+				call(pbConfig.globalDb,
+					2, 'searchDict', [{'type': 'Categories', 'logical':
 					None, 'field': '', 'operator': 'all the following',
 					'content': [0, 1]}, {'type': 'Marks', 'logical':
 					'AND', 'field': None, 'operator': None, 'content':
@@ -357,12 +363,14 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					['exp_paper']}, {'type': 'Text', 'logical': 'AND',
 					'field': 'bibtex', 'operator': 'like',
 					'content': 'abc'}]),
-				call(2, "replaceFields", {'regex': False, 'fieOld': 'of',
+				call(pbConfig.globalDb,
+					2, "replaceFields", {'regex': False, 'fieOld': 'of',
 					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
 					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(3, 'searchDict', [{'type': 'Categories', 'logical':
+				call(pbConfig.globalDb,
+					3, 'searchDict', [{'type': 'Categories', 'logical':
 					None, 'field': '', 'operator': 'at least one among',
 					'content': [0, 1]}, {'type': 'Experiments',
 					'logical': 'AND', 'field': '', 'operator':
@@ -371,12 +379,14 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					'content': ['any']}, {'type': 'Text', 'logical': 'AND',
 					'field': 'arxiv', 'operator': 'like',
 					'content': '1801'}]),
-				call(3, 'replaceFields', {'regex': False, 'fieOld': 'of',
+				call(pbConfig.globalDb,
+					3, 'replaceFields', {'regex': False, 'fieOld': 'of',
 					'fieNew': 'nf', 'old': 'os', 'new': 'ns',
 					'fieNew1': 'n1', 'new1': 'n1', 'double': True})
 				])
 			_usf.assert_has_calls([
-				call(4, 'searchDict', [{'type': 'Experiments', 'logical':
+				call(pbConfig.globalDb,
+					4, 'searchDict', [{'type': 'Experiments', 'logical':
 					None, 'field': '', 'operator': 'at least one among',
 					'content': [1]}, {'type': 'Type', 'logical': 'OR',
 					'field': None, 'operator': None, 'content':
@@ -384,15 +394,18 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					'field': 'bibtex', 'operator': 'like', 'content':
 					'123'}, {'type': 'Text', 'logical': 'AND', 'field':
 					'bibtex', 'operator': '=', 'content': 'me'}]),
-				call(4, 'replaceFields', {'regex': False, 'fieOld':
+				call(pbConfig.globalDb,
+					4, 'replaceFields', {'regex': False, 'fieOld':
 					'author', 'fieNew': 'author', 'old': '', 'new': '',
 					'fieNew1': 'author', 'new1': '', 'double': False})
 				])
 			_usf.assert_has_calls([
-				call(5, 'searchDict', [{'type': 'Text', 'logical': None,
+				call(pbConfig.globalDb,
+					5, 'searchDict', [{'type': 'Text', 'logical': None,
 					'field': 'bibtex', 'operator': 'contains',
 					'content': ''}]),
-				call(5, 'replaceFields', '{}')])
+				call(pbConfig.globalDb,
+					5, 'replaceFields', '{}')])
 			self.assertEqual(_c.call_count, 6)
 
 	def test_operations(self):
@@ -460,23 +473,23 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		self.assertEqual(self.pBDB.cats.literal_eval("[test f]"), None)
 		self.assertEqual(self.pBDB.cats.literal_eval("'test g','test h'"),
 			["test g", "test h"])
-		with patch("physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked"
-				) as _s:
+		with patch("physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked",
+				autospec=True) as _s:
 			self.pBDB.cats.mainDB.sendDBIsLocked()
-			_s.assert_called_once_with()
+			_s.assert_called_once_with(self.pBDB.cats.mainDB)
 
 	def test_init(self):
 		"""test init"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc,\
+					+ ".loadSubClasses", autospec=True) as _lsc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".openDB") as _o:
+					+ ".openDB", autospec=True) as _o:
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, noOpen=True, info=False)
 			_e.assert_called_once_with(tempDBName)
 			_o.assert_not_called()
-			_lsc.assert_called_once_with()
+			_lsc.assert_called_once_with(dbc)
 		self.assertEqual(dbc.tableFields, physbiblio.tablesDef.tableFields)
 		self.assertEqual(dbc.descriptions,
 			physbiblio.tablesDef.fieldsDescriptions)
@@ -496,15 +509,16 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("logging.Logger.info") as _i,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkExistingTables", return_value=True) as _ce,\
+					+ ".checkExistingTables", return_value=True,
+					autospec=True) as _ce,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".createTables") as _ct,\
+					+ ".createTables", autospec=True) as _ct,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkDatabaseUpdates") as _cc,\
+					+ ".checkDatabaseUpdates", autospec=True) as _cc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc,\
+					+ ".loadSubClasses", autospec=True) as _lsc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".openDB") as _o:
+					+ ".openDB", autospec=True) as _o:
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, noOpen=True, info=False)
 			_o.assert_not_called()
@@ -514,31 +528,32 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			_cc.assert_not_called()
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, info=False)
-			_o.assert_called_once_with(info=False)
+			_o.assert_called_once_with(dbc, info=False)
 			_i.assert_called_once_with(
 				"-------New database or missing tables.\nCreating them!\n\n")
-			_ct.assert_called_once_with()
-			_ce.assert_called_once_with()
-			_cc.assert_called_once_with()
+			_ct.assert_called_once_with(dbc)
+			_ce.assert_called_once_with(dbc)
+			_cc.assert_called_once_with(dbc)
 
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("logging.Logger.info") as _i,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkExistingTables", return_value=False) as _ce,\
+					+ ".checkExistingTables", return_value=False,
+					autospec=True) as _ce,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".createTables") as _ct,\
+					+ ".createTables", autospec=True) as _ct,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".checkDatabaseUpdates") as _cc,\
+					+ ".checkDatabaseUpdates", autospec=True) as _cc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc,\
+					+ ".loadSubClasses", autospec=True) as _lsc,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".openDB") as _o:
+					+ ".openDB", autospec=True) as _o:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger)
-			_o.assert_called_once_with(info=True)
+			_o.assert_called_once_with(dbc, info=True)
 			_i.assert_not_called()
 			_ct.assert_not_called()
-			_ce.assert_called_once_with()
-			_cc.assert_called_once_with()
+			_ce.assert_called_once_with(dbc)
+			_cc.assert_called_once_with(dbc)
 
 		self.assertTrue(hasattr(dbc, "reOpenDB"))
 		self.assertTrue(hasattr(dbc, "loadSubClasses"))
@@ -547,30 +562,30 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test openDB"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		self.assertEqual(dbc.conn, None)
 		with patch("logging.Logger.info") as _i,\
 				patch("sqlite3.connect") as _c,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc.openDB()
 			_i.assert_called_once_with("Opening database: %s"%tempDBName)
 			_c.assert_called_once_with(tempDBName, check_same_thread=False)
 			_c().cursor.assert_called_once_with()
-			_lsc.assert_called_once_with()
+			_lsc.assert_called_once_with(dbc)
 			self.assertEqual(dbc.conn, _c())
 			self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
 			self.assertEqual(dbc.curs, _c().cursor())
 		with patch("logging.Logger.debug") as _d,\
 				patch("sqlite3.connect") as _c,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc.openDB(info=False)
 			_d.assert_called_once_with("Opening database: %s"%tempDBName)
 			_c.assert_called_once_with(tempDBName, check_same_thread=False)
 			_c().cursor.assert_called_once_with()
-			_lsc.assert_called_once_with()
+			_lsc.assert_called_once_with(dbc)
 			self.assertEqual(dbc.conn, _c())
 			self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
 			self.assertEqual(dbc.curs, _c().cursor())
@@ -579,7 +594,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test closeDB"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.conn = MagicMock()
 		with patch("logging.Logger.info") as _i:
@@ -611,7 +626,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test checkUncommitted"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		if (sys.version_info[0] == 3
 				and sys.version_info[1] > 2):
@@ -626,7 +641,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test commit"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.conn = MagicMock()
 		dbc.dbChanged = "abc"
@@ -653,7 +668,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test undo"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.conn = MagicMock()
 		dbc.dbChanged = "abc"
@@ -704,7 +719,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		with patch("logging.Logger.exception") as _ex,\
 				patch("logging.Logger.error") as _er,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".sendDBIsLocked", return_value=True) as _lo:
+					+ ".sendDBIsLocked", return_value=True,
+					autospec=True) as _lo:
 			self.assertFalse(self.pBDB.connExec("a"))
 			_ex.assert_called_once_with('Connection error: e\nquery: a')
 			_er.assert_not_called()
@@ -714,21 +730,23 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		with patch("logging.Logger.exception") as _ex,\
 				patch("logging.Logger.error") as _er,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".sendDBIsLocked", return_value=True) as _lo:
+					+ ".sendDBIsLocked", return_value=True,
+					autospec=True) as _lo:
 			self.assertFalse(self.pBDB.connExec("a"))
 			_ex.assert_not_called()
 			_er.assert_not_called()
-			_lo.assert_called_once_with()
+			_lo.assert_called_once_with(self.pBDB)
 		with patch("logging.Logger.exception") as _ex,\
 				patch("logging.Logger.error") as _er,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".sendDBIsLocked", return_value=False) as _lo:
+					+ ".sendDBIsLocked", return_value=False,
+					autospec=True) as _lo:
 			self.assertFalse(self.pBDB.connExec("a"))
 			_ex.assert_not_called()
 			_er.assert_called_once_with(
 				'OperationalError: the database is already open '
 				+ 'in another instance of the application\nquery failed: a')
-			_lo.assert_called_once_with()
+			_lo.assert_called_once_with(self.pBDB)
 
 		self.pBDB.conn.execute.reset_mock()
 		self.pBDB.conn.execute.side_effect = None
@@ -774,7 +792,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test cursor"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.curs = "curs"
 		self.assertEqual(dbc.cursor(), "curs")
@@ -783,64 +801,65 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 		"""test checkExistingTables"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.curs = [["tab1", "1"], ["tab2", "2"]]
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursExec") as _ce:
+				+ ".cursExec", autospec=True) as _ce:
 			self.assertTrue(dbc.checkExistingTables())
-			_ce.assert_called_once_with(
+			_ce.assert_called_once_with(dbc,
 				"SELECT name FROM sqlite_master WHERE type='table';")
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursExec") as _ce:
+				+ ".cursExec", autospec=True) as _ce:
 			self.assertFalse(dbc.checkExistingTables(
 				wantedTables=["tab1", "tab2"]))
 		dbc.curs = [["categories"], ["entries"],
 				["entryCats"], ["entryExps"], ["expCats"],
 				["experiments"], ["settings"]]
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursExec") as _ce:
+				+ ".cursExec", autospec=True) as _ce:
 			self.assertFalse(dbc.checkExistingTables())
 
 	def test_checkDatabaseUpdates_DBC(self):
 		"""test checkDatabaseUpdates in PhysBiblioDBCore"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
 		dbc.curs = [[0, "title"], [1, "column"], [2, "bibdict"]]
 		with patch("logging.Logger.info") as _i,\
 				patch("logging.Logger.error") as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".commit") as _co,\
+					+ ".commit", autospec=True) as _co,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".undo") as _un,\
+					+ ".undo", autospec=True) as _un,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".cursExec") as _cue,\
+					+ ".cursExec", autospec=True) as _cue,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".connExec", side_effect=[True, False]) as _coe:
+					+ ".connExec", side_effect=[True, False],
+					autospec=True) as _coe:
 			dbc.checkDatabaseUpdates()
-			_cue.assert_called_once_with("PRAGMA table_info(entries);")
+			_cue.assert_called_once_with(dbc, "PRAGMA table_info(entries);")
 			_coe.assert_not_called()
 			dbc.curs = [[0, "title"], [1, "column"]]
 			dbc.checkDatabaseUpdates()
-			_coe.assert_called_once_with(
+			_coe.assert_called_once_with(dbc,
 				"ALTER TABLE entries ADD COLUMN bibdict text;")
-			_co.assert_called_once_with()
+			_co.assert_called_once_with(dbc)
 			_i.assert_called_once_with("New column in table 'entries': "
 					+ "'bibdict' (text).")
 			_e.assert_not_called()
 			_un.assert_not_called()
 			dbc.checkDatabaseUpdates()
-			_co.assert_called_once_with()
+			_co.assert_called_once_with(dbc)
 			_e.assert_called_once_with("Cannot alter table 'entries'!")
-			_un.assert_called_once_with()
+			_un.assert_called_once_with(dbc)
 
 	def test_PhysBiblioDBSub(self):
 		"""test methods in PhysBiblioDBSub"""
 		with patch("os.path.exists", return_value=True) as _e,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore"
-					+ ".loadSubClasses") as _lsc:
+					+ ".loadSubClasses", autospec=True) as _lsc:
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger)
 
 		# __init__
@@ -856,41 +875,46 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 
 		# closeDB
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".closeDB") as _f:
+				+ ".closeDB", autospec=True) as _f:
 			dbs.closeDB()
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(dbs.mainDB)
 
 		# commit
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".commit") as _f:
+				+ ".commit", autospec=True) as _f:
 			dbs.commit()
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(dbs.mainDB)
 
 		# connExec
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".connExec", return_value="abc") as _f:
+				+ ".connExec", return_value="abc",
+				autospec=True) as _f:
 			self.assertEqual(dbs.connExec("a"), "abc")
-			_f.assert_called_once_with("a", data=None)
+			_f.assert_called_once_with(dbs.mainDB, "a", data=None)
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".connExec", return_value="abc") as _f:
+				+ ".connExec", return_value="abc",
+				autospec=True) as _f:
 			self.assertEqual(dbs.connExec("a", data="b"), "abc")
-			_f.assert_called_once_with("a", data="b")
+			_f.assert_called_once_with(dbs.mainDB, "a", data="b")
 
 		# cursExec
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursExec", return_value="abc") as _f:
+				+ ".cursExec", return_value="abc",
+				autospec=True) as _f:
 			self.assertEqual(dbs.cursExec("a"), "abc")
-			_f.assert_called_once_with("a", data=None)
+			_f.assert_called_once_with(dbs.mainDB, "a", data=None)
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursExec", return_value="abc") as _f:
+				+ ".cursExec", return_value="abc",
+				autospec=True) as _f:
 			self.assertEqual(dbs.cursExec("a", data="b"), "abc")
-			_f.assert_called_once_with("a", data="b")
+			_f.assert_called_once_with(dbs.mainDB, "a", data="b")
 
 		# cursor
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore"
-				+ ".cursor", return_value="curs") as _f:
+				+ ".cursor", return_value="curs",
+				autospec=True) as _f:
 			self.assertEqual(dbs.cursor(), "curs")
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(dbs.mainDB)
 
 	def test_checkDatabaseUpdates_DB(self):
 		"""test checkDatabaseUpdates in PhysBiblioDB"""
@@ -966,7 +990,8 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					autospec=True) as _ct,\
 				patch("physbiblio.databaseCore.PhysBiblioDBCore.commit",
 					autospec=True) as _com,\
-				patch("physbiblio.databaseCore.PhysBiblioDBCore.undo") as _un:
+				patch("physbiblio.databaseCore.PhysBiblioDBCore.undo",
+					autospec=True) as _un:
 			self.pBDB.checkCaseInsensitiveBibkey()
 			_cur.assert_called_once_with(self.pBDB,
 				"SELECT sql FROM sqlite_master WHERE type='table' "
@@ -1679,9 +1704,10 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertEqual(self.pBDB.stats,
 			{"bibs": 1, "cats": 2, "exps": 0, "catBib": 1,
 			"catExp": 0, "bibExp": 1})
-		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
+		with patch('physbiblio.pdf.LocalPDF.renameFolder',
+				autospec=True) as _mock_ren:
 			self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
-			_mock_ren.assert_called_once_with("abc", "def")
+			_mock_ren.assert_called_once_with(pBPDF, "abc", "def")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["bibtex"],
 			'@Article{abc,\n        author = "me",\n         ' \
 			+ 'title = "{abc}",\n}')
@@ -1712,16 +1738,18 @@ class TestDatabaseEntries(DBTestCase):
 			"Updating 'inspires' for entry 'def'\nNon-existing field " \
 			+ "or unappropriated value: (def, inspires, 1234)\n")
 
-		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
+		with patch('physbiblio.pdf.LocalPDF.renameFolder',
+				autospec=True) as _mock_ren:
 			self.assertTrue(self.pBDB.bibs.updateBibkey("def", "abc"))
-			_mock_ren.assert_called_once_with("def", "abc")
+			_mock_ren.assert_called_once_with(pBPDF, "def", "abc")
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"],
 			'@Article{abc,\n        author = "me",\n         ' \
 			+ 'title = "{abc}",\n}')
 		self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"],
 			'abc,def')
 
-		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
+		with patch('physbiblio.pdf.LocalPDF.renameFolder',
+				autospec=True) as _mock_ren:
 			self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
 		self.assertTrue(self.pBDB.bibs.updateField(
 			"def", "bibdict", "{}", verbose=0))
@@ -1741,7 +1769,8 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.pBDB.bibs.delete("def")
 		self.insert_three()
-		with patch('physbiblio.pdf.LocalPDF.renameFolder') as _mock_ren:
+		with patch('physbiblio.pdf.LocalPDF.renameFolder',
+				autospec=True) as _mock_ren:
 			self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
 
 	def test_prepareUpdate(self):
@@ -2798,7 +2827,8 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'title = "{ghi}",\n}\n'
 		self.pBDB.bibs.fetchAll(doFetch=False)
 		with patch('physbiblio.database.Entries.fetchCursor',
-				return_value=self.pBDB.bibs.fetchCursor()) as _curs:
+				return_value=self.pBDB.bibs.fetchCursor(),
+				autospec=True) as _curs:
 			pBExport.exportAll(testBibName)
 		with open(testBibName) as f:
 			self.assertEqual(f.read(), sampleTxt)
@@ -3266,10 +3296,12 @@ class TestDatabaseEntries(DBTestCase):
 			+ 'Gariazzo:2014rra,\nauthor="me",\n}\n')
 		with patch('physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 				side_effect=[
-				("bibtex_not_used", {"abstract": "some fake abstract"})]
+				("bibtex_not_used", {"abstract": "some fake abstract"})],
+				autospec=True
 				) as _retrieve, \
 				patch('physbiblio.database.Entries.updateInspireID',
-					side_effect=["1385583", False]) as _inspireid, \
+					side_effect=["1385583", False],
+					autospec=True) as _inspireid, \
 				patch('physbiblio.webimport.inspireoai.WebSearch.' \
 					+ 'retrieveOAIData',
 					side_effect=[
@@ -3280,7 +3312,8 @@ class TestDatabaseEntries(DBTestCase):
 						 'id': '1385583', 'volume': u'G43', 'bibtex': None,
 						 'year': u'2016', 'oldkeys': '',
 						 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'},
-						[]]) as _oai:
+						[]],
+					autospec=True) as _oai:
 			self.pBDB.bibs.importFromBib("tmpbib.bib")
 			self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 				["Gariazzo:2015rra", "Gariazzo:2014rra"])
@@ -3335,10 +3368,13 @@ class TestDatabaseEntries(DBTestCase):
 		for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
 			with patch('physbiblio.webimport.' \
 					+ '%s.WebSearch.retrieveUrlAll'%method,
-					return_value="") as _mock:
+					return_value="",
+					autospec=True) as _mock:
 				self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef",
 					method=method))
-				_mock.assert_called_once_with("abcdef")
+				_mock.assert_called_once_with(
+					physBiblioWeb.webSearch[method],
+					"abcdef")
 		self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef",
 			method="nonexistent"))
 		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
@@ -3389,13 +3425,14 @@ class TestDatabaseEntries(DBTestCase):
 		pbConfig.params["defaultCategories"] = [1]
 		pbConfig.params["fetchAbstract"] = False
 		with patch('physbiblio.database.Entries.updateInspireID',
-				return_value="1") as _mock_uiid, \
+				return_value="1", autospec=True) as _mock_uiid, \
 				patch('physbiblio.database.Entries.updateInfoFromOAI',
-					return_value=True) as _mock_uio:
+					return_value=True, autospec=True) as _mock_uio:
 			#test add categories
 			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'\n@article{key0,\n' \
-					+ 'author = "Gariazzo",\ntitle = "{title}",}\n') as _mock:
+					+ 'author = "Gariazzo",\ntitle = "{title}",}\n',
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
 				self.assertEqual([e["idCat"] for e in \
 					self.pBDB.cats.getByEntry("key0")],
@@ -3407,11 +3444,14 @@ class TestDatabaseEntries(DBTestCase):
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
-					+ 'title = "{title}",}\n']) as _mock:
+					+ 'title = "{title}",}\n'],
+					autospec=True) as _mock:
 				self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
 					["key0", "key1"]),
 					"Already existing: key0")
-				_mock.assert_has_calls([call("key0"), call("key1")])
+				_mock.assert_has_calls([
+					call(physBiblioWeb.webSearch["inspire"], "key0"),
+					call(physBiblioWeb.webSearch["inspire"], "key1")])
 				self.assertEqual(self.pBDB.bibs.count(), 1)
 			self.pBDB.undo(verbose=0)
 			#test with number>0
@@ -3422,7 +3462,8 @@ class TestDatabaseEntries(DBTestCase):
 					+ '"Gariazzo",\ntitle = "{title}",}\n',
 					u'@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n@article{key1,\n' \
-					+ 'author = "Gariazzo",\ntitle = "{title}",}\n']) as _mock:
+					+ 'author = "Gariazzo",\ntitle = "{title}",}\n'],
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					number=1))
 				self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
@@ -3435,7 +3476,8 @@ class TestDatabaseEntries(DBTestCase):
 			#test setBook when using isbn
 			with patch('physbiblio.webimport.isbn.WebSearch.retrieveUrlAll',
 					return_value=u'@article{key0,\n' \
-					+ 'author = "Gariazzo",\ntitle = "{title}",}') as _mock:
+					+ 'author = "Gariazzo",\ntitle = "{title}",}',
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					method="isbn"))
 				self.assertEqual([e["book"] for e in self.pBDB.bibs.getAll()],
@@ -3448,11 +3490,13 @@ class TestDatabaseEntries(DBTestCase):
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{key1,\nauthor = "Gariazzo",\n' \
-					+ 'title = "{title}",\narxiv="1234.5678",}\n']) as _mock, \
+					+ 'title = "{title}",\narxiv="1234.5678",}\n'],
+					autospec=True) as _mock, \
 					patch('physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 						return_value=(u'\n@article{key0,\n' \
 						+ 'author = "Gariazzo",\ntitle = "{title}",}\n',
-						{"abstract": "some fake abstract"})) as _mock:
+						{"abstract": "some fake abstract"}),
+						autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
 				self.assertEqual(
 					self.pBDB.bibs.getByBibkey("key0")[0]["abstract"], None)
@@ -3470,7 +3514,8 @@ class TestDatabaseEntries(DBTestCase):
 					u'\n@article{ ,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',
 					u'\n@article{ ,\nauthor = "Gariazzo",\n' \
-					+ 'title = "{title}",}\n',]) as _mock:
+					+ 'title = "{title}",}\n',],
+					autospec=True) as _mock:
 				self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
 					"key0"),
@@ -3489,10 +3534,12 @@ class TestDatabaseEntries(DBTestCase):
 			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'\n@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
-					+ '\narxiv="1234.5678",}') as _mock:
+					+ '\narxiv="1234.5678",}',
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
-				_mock_uiid.assert_called_once_with('key0', 'key0')
-				_mock_uio.assert_called_once_with('1')
+				_mock_uiid.assert_called_once_with(
+					self.pBDB.bibs, 'key0', 'key0')
+				_mock_uio.assert_called_once_with(self.pBDB.bibs, '1')
 			self.pBDB.undo(verbose=0)
 			_mock_uiid.reset_mock()
 			_mock_uio.reset_mock()
@@ -3501,11 +3548,13 @@ class TestDatabaseEntries(DBTestCase):
 					return_value=u'@article{key0,\nauthor = "Gariazzo",' \
 					+ '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{' \
 					+ 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",' \
-					+ '\narxiv="1234.5678",}\n') as _mock:
+					+ '\narxiv="1234.5678",}\n',
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					number=0))
-				_mock_uiid.assert_called_once_with('key0', 'key0', number=0)
-				_mock_uio.assert_called_once_with('1')
+				_mock_uiid.assert_called_once_with(
+					self.pBDB.bibs, 'key0', 'key0', number=0)
+				_mock_uio.assert_called_once_with(self.pBDB.bibs, '1')
 			self.pBDB.undo(verbose=0)
 			_mock_uiid.reset_mock()
 			_mock_uio.reset_mock()
@@ -3514,7 +3563,8 @@ class TestDatabaseEntries(DBTestCase):
 				'physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll',
 					return_value=u'@article{key0,\n' \
 					+ 'author = "Gariazzo",\ntitle = "{title}",' \
-					+ '\narxiv="1234.5678",}') as _mock:
+					+ '\narxiv="1234.5678",}',
+					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					method="arxiv"))
 				_mock_uiid.assert_not_called()
@@ -3621,7 +3671,7 @@ class TestDatabaseEntries(DBTestCase):
 				True, True,
 				True, True,
 				False, True,
-				]) as _mock_uioai, \
+				], autospec=True) as _mock_uioai, \
 				patch("physbiblio.database.Entries.fetchCursor",
 					side_effect=[
 					[entry1, entry2],#1
@@ -3629,14 +3679,14 @@ class TestDatabaseEntries(DBTestCase):
 					[entry1a, entry2a],#3
 					[entry2],#4
 					[entry1, entry2],#6
-					]) as _mock_ga, \
+					], autospec=True) as _mock_ga, \
 				patch("physbiblio.database.Entries.getByKey",
 					side_effect=[
 					[entry1a], [entry2a],#1
 					[entry1a], [entry2a],#3
 					[entry1a], [entry2a],#4,5
 					[entry2a]#6
-					]) as _mock_gbk:
+					], autospec=True) as _mock_gbk:
 			self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
 				(2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]))#1
 			self.assertEqual(self.pBDB.bibs.searchOAIUpdates(),
@@ -3685,7 +3735,8 @@ class TestDatabaseEntries(DBTestCase):
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
 		self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
 		with patch('physbiblio.database.Entries.getField',
-				side_effect=["abcd", False, "12345"]) as mock:
+				side_effect=["abcd", False, "12345"],
+				autospec=True) as mock:
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 			self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
 
@@ -3708,10 +3759,11 @@ class TestDatabaseEntries(DBTestCase):
 					'bibkey': "Gariazzo:2015rra", },
 					{'doi': u'10.1088/0954-3899/43/3/033001',
 					'bibkey': "Gariazzo:2015rra", },
-					]) as mock_function:
+					], autospec=True) as mock_function:
 				self.assertFalse(
 					self.pBDB.bibs.updateInfoFromOAI("abc", verbose=2))
-				mock_function.assert_called_once_with("12345",
+				mock_function.assert_called_once_with(
+					physBiblioWeb.webSearch["inspireoai"], "12345",
 					bibtex=None, readConferenceTitle=False, verbose=2)
 				self.assertTrue(self.pBDB.bibs.updateInfoFromOAI(
 					"12345", verbose=2))
@@ -3720,7 +3772,8 @@ class TestDatabaseEntries(DBTestCase):
 					lambda: self.pBDB.bibs.updateInfoFromOAI("12345",
 						verbose=2),
 					"Inspire OAI info for 12345 saved.")
-				mock_function.assert_called_once_with("12345",
+				mock_function.assert_called_once_with(
+					physBiblioWeb.webSearch["inspireoai"], "12345",
 					bibtex=None, readConferenceTitle=False, verbose=2)
 				self.assertEqual(
 					self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
@@ -3749,7 +3802,8 @@ class TestDatabaseEntries(DBTestCase):
 						bibtex=u'@article{Gariazzo:2015rra,\n' \
 						+ 'arxiv="1507.08204"\n}', verbose=2),
 					"doi = 10.1088/0954-3899/43/3/033001 (None)")
-				mock_function.assert_called_once_with("12345",
+				mock_function.assert_called_once_with(
+					physBiblioWeb.webSearch["inspireoai"], "12345",
 					bibtex=u'@article{Gariazzo:2015rra,\n' \
 					+ 'arxiv="1507.08204"\n}',
 					readConferenceTitle=False, verbose=2)
@@ -3832,7 +3886,8 @@ class TestDatabaseEntries(DBTestCase):
 				autospec=True,
 				side_effect=["a", "b", "c", "d", "e", "f"]) as mock_function:
 			with patch('physbiblio.database.Entries.updateInspireID',
-					side_effect=["54321", False]) as _updateid:
+					side_effect=["54321", False],
+					autospec=True) as _updateid:
 				self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
 				mock_function.assert_called_once_with(
 					self.pBDB.bibs, "12345", verbose=0)
@@ -3914,7 +3969,7 @@ class TestDatabaseEntries(DBTestCase):
 				'arxiv': u'1507.08204', 'id': '1385583', 'volume': u'G43',
 				'bibtex': None, 'year': u'2016', 'oldkeys': '',
 				'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}]
-				]) as _mock:
+				], autospec=True) as _mock:
 			self.assert_in_stdout(lambda: self.pBDB.bibs.getDailyInfoFromOAI(),
 				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(
 					d1t, d2t))
@@ -4025,7 +4080,7 @@ class TestDatabaseEntries(DBTestCase):
 				'id': '1385583', 'volume': u'G43', 'bibtex': None,
 				'year': u'2016', 'oldkeys': '',
 				'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'}]
-				]) as _mock:
+				], autospec=True) as _mock:
 			self.assert_in_stdout(
 				lambda: self.pBDB.bibs.getDailyInfoFromOAI(d1, d2),
 				"Calling INSPIRE-HEP OAI harvester between dates %s and %s"%(
