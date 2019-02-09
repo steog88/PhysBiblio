@@ -38,7 +38,7 @@ class TestDialogWindows(GUITestCase):
 		mb.addButton.side_effect = ["yes", "no", "yes", "no"]
 		mb.clickedButton.side_effect = ["yes", "no"]
 		with patch("physbiblio.gui.basicDialogs.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			self.assertTrue(askYesNo("mymessage"))
 			_mb.assert_called_once_with(_mb.Question, "Question", "mymessage")
 			mb.addButton.assert_has_calls([call(_mb.Yes), call(_mb.No)])
@@ -53,7 +53,7 @@ class TestDialogWindows(GUITestCase):
 		"""Test infoMessage"""
 		mb = MagicMock()
 		with patch("physbiblio.gui.basicDialogs.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			infoMessage("mymessage")
 			_mb.assert_called_once_with(
 				_mb.Information, "Information", "mymessage")
@@ -65,7 +65,8 @@ class TestDialogWindows(GUITestCase):
 
 	def test_LongInfoMessage(self):
 		"""Test LongInfoMessage"""
-		with patch("physbiblio.gui.basicDialogs.LongInfoMessage.exec_") as _e:
+		with patch("physbiblio.gui.basicDialogs.LongInfoMessage.exec_",
+				autospec=True) as _e:
 			win = LongInfoMessage("mymessage")
 			_e.assert_called_once_with()
 		self.assertIsInstance(win, QDialog)
@@ -87,7 +88,8 @@ class TestDialogWindows(GUITestCase):
 			QTest.mouseClick(win.okbutton, Qt.LeftButton)
 			_c.assert_called_once_with(win)
 		mb = MagicMock()
-		with patch("physbiblio.gui.basicDialogs.LongInfoMessage.exec_") as _e:
+		with patch("physbiblio.gui.basicDialogs.LongInfoMessage.exec_",
+				autospec=True) as _e:
 			win = LongInfoMessage("mymessage", "mytitle")
 		self.assertEqual(win.windowTitle(), "mytitle")
 
@@ -98,7 +100,7 @@ class TestDialogWindows(GUITestCase):
 		qid.exec_.side_effect = [True, False]
 		qid.textValue.side_effect = ["abc", "def"]
 		with patch("physbiblio.gui.basicDialogs.QInputDialog",
-				return_value=qid) as _qid:
+				return_value=qid, autospec=True) as _qid:
 			self.assertEqual(askGenericText("mymessage", "mytitle"),
 				("abc", True))
 			qid.setInputMode.assert_called_once_with(_qid.TextInput)
@@ -115,7 +117,7 @@ class TestDialogWindows(GUITestCase):
 		fd.exec_.side_effect = [False, True, True]
 		fd.selectedFiles.side_effect = [["abc", "def"], []]
 		with patch("physbiblio.gui.basicDialogs.QFileDialog",
-				return_value=fd) as _fd:
+				return_value=fd, autospec=True) as _fd:
 			self.assertEqual(askFileName(parent=None,
 					title="mytitle",
 					dir="/tmp",
@@ -137,7 +139,7 @@ class TestDialogWindows(GUITestCase):
 		fd.exec_.side_effect = [False, True]
 		fd.selectedFiles.return_value = ["abc", "def"]
 		with patch("physbiblio.gui.basicDialogs.QFileDialog",
-				return_value=fd) as _fd:
+				return_value=fd, autospec=True) as _fd:
 			self.assertEqual(askFileNames(parent=None,
 					title="mytitle",
 					dir="/tmp",
@@ -160,7 +162,7 @@ class TestDialogWindows(GUITestCase):
 		fd.exec_.side_effect = [False, True, True]
 		fd.selectedFiles.side_effect = [["abc", "def"], []]
 		with patch("physbiblio.gui.basicDialogs.QFileDialog",
-				return_value=fd) as _fd:
+				return_value=fd, autospec=True) as _fd:
 			self.assertEqual(askSaveFileName(parent=None,
 					title="mytitle",
 					dir="/tmp",
@@ -184,7 +186,7 @@ class TestDialogWindows(GUITestCase):
 		fd.exec_.side_effect = [False, True, True]
 		fd.selectedFiles.side_effect = [["abc", "def"], []]
 		with patch("physbiblio.gui.basicDialogs.QFileDialog",
-				return_value=fd) as _fd:
+				return_value=fd, autospec=True) as _fd:
 			self.assertEqual(askDirName(parent=None,
 					title="mytitle",
 					dir="/tmp"),

@@ -57,13 +57,13 @@ class Test_Thread_checkUpdated(GUITestCase):
 		thr = Thread_checkUpdated(p)
 		thr.result.connect(h1)
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				return_value=(False, __version__)) as _cho:
+				return_value=(False, __version__), autospec=True) as _cho:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
 		h1.assert_called_once_with(False, __version__)
 		h1.reset_mock()
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				return_value=()) as _cho,\
+				return_value=(), autospec=True) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_cho.assert_called_once_with('physbiblio', __version__)
@@ -77,7 +77,7 @@ class Test_Thread_checkUpdated(GUITestCase):
 			_w.assert_called_once_with('Error when trying to check '
 				+ 'new versions. Are you offline?', exc_info=True)
 		with patch("physbiblio.gui.threadElements.check_outdated",
-				side_effect=ConnectionError) as _cho,\
+				side_effect=ConnectionError, autospec=True) as _cho,\
 				patch("logging.Logger.warning") as _w:
 			thr.run()
 			_w.assert_called_once_with('Error when trying to check '
@@ -109,17 +109,20 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_updateAllBibtexs(ws, 123, p, [[]], True, True)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.searchOAIUpdates") as _sou,\
+		with patch("physbiblio.database.Entries.searchOAIUpdates",
+					autospec=True) as _sou,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
 			_sou.assert_called_once_with(
+				pBDB.bibs,
 				123,
 				entries=[[]],
 				force=True,
 				reloadAll=True)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -162,23 +165,27 @@ class Test_Thread_replace(GUITestCase):
 		self.assertTrue(ws.running)
 		pBDB.bibs.lastFetched = ["e", "f"]
 		with patch("physbiblio.database.Entries.replace",
-					return_value=("r1", "r2", "r3")) as _rep,\
+					return_value=("r1", "r2", "r3"), autospec=True) as _rep,\
 				patch("time.sleep") as _sl,\
 				patch("physbiblio.database.Entries.fetchFromLast",
-					return_value=pBDB.bibs) as _ffl,\
+					return_value=pBDB.bibs, autospec=True) as _ffl,\
 				patch("physbiblio.database.Entries.fetchCursor",
-					return_value="curs") as _fc,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+					return_value="curs", autospec=True) as _fc,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
 			_rep.assert_called_once_with(
+				pBDB.bibs,
 				"a", ["b"], "1", ["2"],
 				entries="curs", lenEntries=2,
 				regex=True)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
-			_ffl.assert_has_calls([call(doFetch=False), call()])
-			_fc.assert_called_once_with()
+			_ffl.assert_has_calls([
+				call(pBDB.bibs, doFetch=False),
+				call(pBDB.bibs)])
+			_fc.assert_called_once_with(pBDB.bibs)
 			self.assertEqual(p.replaceResults, ("r1", "r2", "r3"))
 
 	def test_setStopFlag(self):
@@ -217,48 +224,56 @@ class Test_Thread_updateInspireInfo(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_updateInspireInfo(ws, "Gariazzo:2015rra", 1385583, p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.updateInfoFromOAI") as _fun,\
+		with patch("physbiblio.database.Entries.updateInfoFromOAI",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
 			_fun.assert_called_once_with(
+				pBDB.bibs,
 				1385583,
 				originalKey='Gariazzo:2015rra',
 				verbose=1)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 		thr = Thread_updateInspireInfo(ws, "Gariazzo:2015rra", None, p)
-		with patch("physbiblio.database.Entries.updateInfoFromOAI") as _fun,\
+		with patch("physbiblio.database.Entries.updateInfoFromOAI",
+					autospec=True) as _fun,\
 				patch("physbiblio.database.Entries.updateInspireID",
-					return_value= 1385) as _uiid,\
+					return_value=1385, autospec=True) as _uiid,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_uiid.assert_called_once_with('Gariazzo:2015rra')
-			_fun.assert_called_once_with(1385, originalKey=None, verbose=1)
+			_uiid.assert_called_once_with(pBDB.bibs, 'Gariazzo:2015rra')
+			_fun.assert_called_once_with(
+				pBDB.bibs, 1385, originalKey=None, verbose=1)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 		ws = WriteStream(q)
 		thr = Thread_updateInspireInfo(ws,
 			["Gariazzo:2015rra", "Gariazzo:2018mwd"], [1385583, None], p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.updateInfoFromOAI") as _fun,\
+		with patch("physbiblio.database.Entries.updateInfoFromOAI",
+					autospec=True) as _fun,\
 				patch("physbiblio.database.Entries.updateInspireID",
-					return_value= 1385) as _uiid,\
+					return_value=1385, autospec=True) as _uiid,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
 			_fun.assert_has_calls([
-				call(1385583,
+				call(pBDB.bibs, 1385583,
 				originalKey='Gariazzo:2015rra',
 				verbose=1),
-				call(1385, originalKey=None, verbose=1)])
-			_uiid.assert_called_once_with('Gariazzo:2018mwd')
+				call(pBDB.bibs, 1385, originalKey=None, verbose=1)])
+			_uiid.assert_called_once_with(pBDB.bibs, 'Gariazzo:2018mwd')
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 
@@ -279,9 +294,10 @@ class Test_Thread_downloadArxiv(GUITestCase):
 		"""test run"""
 		p = QWidget()
 		thr = Thread_downloadArxiv("Gariazzo:2015rra", p)
-		with patch("physbiblio.pdf.LocalPDF.downloadArxiv") as _fun:
+		with patch("physbiblio.pdf.LocalPDF.downloadArxiv",
+				autospec=True) as _fun:
 			thr.run()
-			_fun.assert_called_once_with("Gariazzo:2015rra")
+			_fun.assert_called_once_with(pBPDF, "Gariazzo:2015rra")
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -337,13 +353,14 @@ class Test_Thread_authorStats(GUITestCase):
 		thr = Thread_authorStats(ws, "Stefano.Gariazzo.1", p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.inspireStats.InspireStatsLoader.authorStats",
-					return_value={"a": "b"}) as _fun,\
+					return_value={"a": "b"}, autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with("Stefano.Gariazzo.1")
+			_fun.assert_called_once_with(pBStats, "Stefano.Gariazzo.1")
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 			self.assertEqual(p.lastAuthorStats, {"a": "b"})
 
@@ -386,13 +403,14 @@ class Test_Thread_paperStats(GUITestCase):
 		thr = Thread_paperStats(ws, 1385583, p)
 		self.assertTrue(ws.running)
 		with patch("physbiblio.inspireStats.InspireStatsLoader.paperStats",
-					return_value={"a": "b"}) as _fun,\
+					return_value={"a": "b"}, autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(1385583)
+			_fun.assert_called_once_with(pBStats, 1385583)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 			self.assertEqual(p.lastPaperStats, {"a": "b"})
 
@@ -423,13 +441,14 @@ class Test_Thread_loadAndInsert(GUITestCase):
 		self.assertTrue(ws.running)
 		pBDB.bibs.lastInserted = ["def"]
 		with patch("physbiblio.database.Entries.loadAndInsert",
-					side_effect=[True, False]) as _fun,\
+					side_effect=[True, False], autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with("Gariazzo:2015rra")
+			_fun.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra")
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 			self.assertEqual(p.loadedAndInserted, ["def"])
 			thr.run()
@@ -470,13 +489,15 @@ class Test_Thread_cleanAllBibtexs(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_cleanAllBibtexs(ws, 123, p, [[]])
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.cleanBibtexs") as _fun,\
+		with patch("physbiblio.database.Entries.cleanBibtexs",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(123, entries=[[]])
+			_fun.assert_called_once_with(pBDB.bibs, 123, entries=[[]])
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -516,13 +537,15 @@ class Test_Thread_findBadBibtexs(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_findBadBibtexs(ws, 123, p, [[]])
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.findCorruptedBibtexs") as _fun,\
+		with patch("physbiblio.database.Entries.findCorruptedBibtexs",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(123, entries=[[]])
+			_fun.assert_called_once_with(pBDB.bibs, 123, entries=[[]])
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -560,13 +583,15 @@ class Test_Thread_importFromBib(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_importFromBib(ws, "tmp.bib", False, p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.importFromBib") as _fun,\
+		with patch("physbiblio.database.Entries.importFromBib",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with("tmp.bib", False)
+			_fun.assert_called_once_with(pBDB.bibs, "tmp.bib", False)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -615,26 +640,30 @@ class Test_Thread_exportTexBib(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib", p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.export.PBExport.exportForTexFile") as _fun,\
+		with patch("physbiblio.export.PBExport.exportForTexFile",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(["main.tex"], "biblio.bib",
+			_fun.assert_called_once_with(pBExport, ["main.tex"], "biblio.bib",
 				removeUnused=False, updateExisting=False)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 		ws = WriteStream(q)
 		thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib", p, True, True)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.export.PBExport.exportForTexFile") as _fun,\
+		with patch("physbiblio.export.PBExport.exportForTexFile",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(["main.tex"], "biblio.bib",
+			_fun.assert_called_once_with(pBExport, ["main.tex"], "biblio.bib",
 				removeUnused=True, updateExisting=True)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -671,12 +700,14 @@ class Test_Thread_cleanSpare(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_cleanSpare(ws, p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Utilities.cleanSpareEntries") as _fun,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+		with patch("physbiblio.database.Utilities.cleanSpareEntries",
+					autospec=True) as _fun,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with()
+			_fun.assert_called_once_with(pBDB.utils)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -701,12 +732,14 @@ class Test_Thread_cleanSparePDF(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_cleanSparePDF(ws, p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.pdf.LocalPDF.removeSparePDFFolders") as _fun,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+		with patch("physbiblio.pdf.LocalPDF.removeSparePDFFolders",
+					autospec=True) as _fun,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with()
+			_fun.assert_called_once_with(pBPDF)
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -732,13 +765,16 @@ class Test_Thread_fieldsArxiv(GUITestCase):
 		ws = WriteStream(q)
 		thr = Thread_fieldsArxiv(ws, ["a", "b"], ["abstract", "arxiv"], p)
 		self.assertTrue(ws.running)
-		with patch("physbiblio.database.Entries.getFieldsFromArxiv") as _fun,\
+		with patch("physbiblio.database.Entries.getFieldsFromArxiv",
+					autospec=True) as _fun,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
-			_fun.assert_called_once_with(["a", "b"], ["abstract", "arxiv"])
+			_fun.assert_called_once_with(
+				pBDB.bibs, ["a", "b"], ["abstract", "arxiv"])
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 
 	def test_setStopFlag(self):
@@ -789,18 +825,19 @@ class Test_Thread_importDailyArxiv(GUITestCase):
 				"exist": 1}},
 			p)
 		with patch("physbiblio.database.Entries.loadAndInsert",
-					return_value=True) as _lai,\
+					return_value=True, autospec=True) as _lai,\
 				patch("physbiblio.database.Entries.getByKey",
-					return_value=[{"bibkey": "12.345"}]) as _gbk,\
+					return_value=[{"bibkey": "12.345"}],
+					autospec=True) as _gbk,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start"
-					) as _st,\
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st,\
 				patch("logging.Logger.info") as _in:
 			thr.run()
-			_lai.assert_called_once_with("12.345")
-			_gbk.assert_called_once_with("12.345")
+			_lai.assert_called_once_with(pBDB.bibs, "12.345")
+			_gbk.assert_called_once_with(pBDB.bibs, "12.345")
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 			_in.assert_has_calls([
 				call("Entries successfully imported:\n['12.345']"),
@@ -856,36 +893,41 @@ class Test_Thread_importDailyArxiv(GUITestCase):
 				"exist": 1}},
 			p)
 		with patch("physbiblio.database.Entries.loadAndInsert",
-					side_effect=[True, False, False, False]) as _lai,\
+					side_effect=[True, False, False, False],
+					autospec=True) as _lai,\
 				patch("physbiblio.database.Entries.prepareInsert",
-					side_effect=["data1", "data2", "data3"]) as _pi,\
+					side_effect=["data1", "data2", "data3"],
+					autospec=True) as _pi,\
 				patch("physbiblio.database.Entries.updateInspireID",
-					return_value="123") as _uid,\
-				patch("physbiblio.database.Entries.searchOAIUpdates"
-					) as _sou,\
+					return_value="123", autospec=True) as _uid,\
+				patch("physbiblio.database.Entries.searchOAIUpdates",
+					autospec=True) as _sou,\
 				patch("physbiblio.database.Entries.insert",
-					side_effect=[False, True, True]) as _bi,\
+					side_effect=[False, True, True], autospec=True) as _bi,\
 				patch("physbiblio.database.Entries.getByKey",
 					side_effect=[
 						[{"bibkey": "12.345"}],
 						[],
 						[{"bibkey": "12.350"}],
-						]) as _gbk,\
+						], autospec=True) as _gbk,\
 				patch("physbiblio.database.Entries.getByBibkey",
-					return_value=[{"bibkey": "12.346"}]) as _gbb,\
+					return_value=[{"bibkey": "12.346"}],
+					autospec=True) as _gbb,\
 				patch("logging.Logger.info") as _in,\
 				patch("logging.Logger.warning") as _wa,\
 				patch("time.sleep") as _sl,\
-				patch("physbiblio.gui.commonClasses.WriteStream.start") as _st:
+				patch("physbiblio.gui.commonClasses.WriteStream.start",
+					autospec=True) as _st:
 			thr.run()
 			self.assertFalse(ws.running)
-			_st.assert_called_once_with()
+			_st.assert_called_once_with(ws)
 			_sl.assert_called_once_with(0.1)
 			_lai.assert_has_calls([
-				call("12.345"), call("12.346"),
-				call('12.348'), call("12.349")])
+				call(pBDB.bibs, "12.345"), call(pBDB.bibs, "12.346"),
+				call(pBDB.bibs, '12.348'), call(pBDB.bibs, "12.349")])
 			_gbk.assert_has_calls([
-				call('12.345'), call('12.348'), call('12.349')])
+				call(pBDB.bibs, '12.345'), call(pBDB.bibs, '12.348'),
+				call(pBDB.bibs, '12.349')])
 			_in.assert_has_calls([
 				call("Element '12.348' successfully inserted.\n"),
 				call("Element '12.349' successfully inserted.\n"),
@@ -896,26 +938,32 @@ class Test_Thread_importDailyArxiv(GUITestCase):
 				call('Failed in inserting entry 12.346\n'),
 				call('Failed in completing info for entry 12.348\n')])
 			_pi.assert_has_calls([
-				call('@Article{12.346,\n        author = "me2",\n'
+				call(pBDB.bibs, '@Article{12.346,\n        author = "me2",\n'
 				+ '         title = "{title2}",\n archiveprefix '
 				+ '= "arXiv",\n  primaryclass = "astro-ph.CO",\n'
 				+ '        eprint = "12.346",\n}\n\n'),
-				call('@Article{12.348,\n        author = "me4",\n'
+				call(pBDB.bibs, '@Article{12.348,\n        author = "me4",\n'
 				+ '         title = "{title4}",\n archiveprefix '
 				+ '= "arXiv",\n  primaryclass = "hep-ph",\n'
 				+ '        eprint = "12.348",\n}\n\n'),
-				call('@Article{12.349,\n        author = "me5",\n'
+				call(pBDB.bibs, '@Article{12.349,\n        author = "me5",\n'
 				+ '         title = "{title5}",\n archiveprefix '
 				+ '= "arXiv",\n  primaryclass = "hep-ex",\n'
 				+ '        eprint = "12.349",\n}\n\n')])
-			_bi.assert_has_calls([call("data1"), call("data2")])
-			_uid.assert_has_calls([call('12.348'), call('12.349')])
+			_bi.assert_has_calls([
+				call(pBDB.bibs, "data1"),
+				call(pBDB.bibs, "data2")])
+			_uid.assert_has_calls([
+				call(pBDB.bibs, '12.348'),
+				call(pBDB.bibs, '12.349')])
 			_sou.assert_has_calls([
-				call(0, entries=[{'bibkey': '12.346'}],
+				call(pBDB.bibs, 0, entries=[{'bibkey': '12.346'}],
 					force=True, reloadAll=True),
-				call(0, entries=[{'bibkey': '12.346'}],
+				call(pBDB.bibs, 0, entries=[{'bibkey': '12.346'}],
 					force=True, reloadAll=True)])
-			_gbb.assert_has_calls([call('12.348'), call('12.349')])
+			_gbb.assert_has_calls([
+				call(pBDB.bibs, '12.348'),
+				call(pBDB.bibs, '12.349')])
 
 	def test_setStopFlag(self):
 		"""test setStopFlag"""

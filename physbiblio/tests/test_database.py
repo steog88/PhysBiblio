@@ -488,7 +488,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, noOpen=True, info=False)
 			_e.assert_called_once_with(tempDBName)
-			_o.assert_not_called()
+			self.assertEqual(_o.call_count, 0)
 			_lsc.assert_called_once_with(dbc)
 		self.assertEqual(dbc.tableFields, physbiblio.tablesDef.tableFields)
 		self.assertEqual(dbc.descriptions,
@@ -521,11 +521,11 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					+ ".openDB", autospec=True) as _o:
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, noOpen=True, info=False)
-			_o.assert_not_called()
+			self.assertEqual(_o.call_count, 0)
 			_i.assert_not_called()
-			_ct.assert_not_called()
-			_ce.assert_not_called()
-			_cc.assert_not_called()
+			self.assertEqual(_ct.call_count, 0)
+			self.assertEqual(_ce.call_count, 0)
+			self.assertEqual(_cc.call_count, 0)
 			dbc = PhysBiblioDBCore(
 				tempDBName, pBLogger, info=False)
 			_o.assert_called_once_with(dbc, info=False)
@@ -551,7 +551,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			dbc = PhysBiblioDBCore(tempDBName, pBLogger)
 			_o.assert_called_once_with(dbc, info=True)
 			_i.assert_not_called()
-			_ct.assert_not_called()
+			self.assertEqual(_ct.call_count, 0)
 			_ce.assert_called_once_with(dbc)
 			_cc.assert_called_once_with(dbc)
 
@@ -724,7 +724,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			self.assertFalse(self.pBDB.connExec("a"))
 			_ex.assert_called_once_with('Connection error: e\nquery: a')
 			_er.assert_not_called()
-			_lo.assert_not_called()
+			self.assertEqual(_lo.call_count, 0)
 		self.pBDB.conn.execute.side_effect = OperationalError(
 			"database is locked")
 		with patch("logging.Logger.exception") as _ex,\
@@ -840,7 +840,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 					autospec=True) as _coe:
 			dbc.checkDatabaseUpdates()
 			_cue.assert_called_once_with(dbc, "PRAGMA table_info(entries);")
-			_coe.assert_not_called()
+			self.assertEqual(_coe.call_count, 0)
 			dbc.curs = [[0, "title"], [1, "column"]]
 			dbc.checkDatabaseUpdates()
 			_coe.assert_called_once_with(dbc,
@@ -849,7 +849,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 			_i.assert_called_once_with("New column in table 'entries': "
 					+ "'bibdict' (text).")
 			_e.assert_not_called()
-			_un.assert_not_called()
+			self.assertEqual(_un.call_count, 0)
 			dbc.checkDatabaseUpdates()
 			_co.assert_called_once_with(dbc)
 			_e.assert_called_once_with("Cannot alter table 'entries'!")
@@ -1009,7 +1009,7 @@ class TestDatabaseMain(DBTestCase):#using cats just for simplicity
 				+ "case-insensitive key")
 			_com.assert_called_once_with(self.pBDB)
 			_ex.assert_not_called()
-			_un.assert_not_called()
+			self.assertEqual(_un.call_count, 0)
 		self.pBDB.curs = self.pBDB.conn.cursor()
 
 
@@ -3567,8 +3567,8 @@ class TestDatabaseEntries(DBTestCase):
 					autospec=True) as _mock:
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0",
 					method="arxiv"))
-				_mock_uiid.assert_not_called()
-				_mock_uio.assert_not_called()
+				self.assertEqual(_mock_uiid.call_count, 0)
+				self.assertEqual(_mock_uio.call_count, 0)
 
 		# loadAndInsertWithCats
 		self.pBDB.bibs.lastInserted = ["abc"]

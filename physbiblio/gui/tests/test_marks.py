@@ -10,13 +10,6 @@ from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QHBoxLayout
 
-if sys.version_info[0] < 3:
-	import unittest2 as unittest
-	from mock import patch
-else:
-	import unittest
-	from unittest.mock import patch
-
 try:
 	from physbiblio.setuptests import *
 	from physbiblio.gui.setuptests import *
