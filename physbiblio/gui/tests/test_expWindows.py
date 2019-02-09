@@ -42,16 +42,16 @@ class TestFunctions(GUIwMainWTestCase):
 		ncw = EditExperimentDialog(p)
 		ncw.exec_ = MagicMock()
 		ncw.onCancel()
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i:
+					return_value=ncw, autospec=True) as _i:
 			editExperiment(p, m)
 			_i.assert_called_once_with(p, experiment=None)
-			_s.assert_called_once_with("No modifications to experiments")
+			_s.assert_called_once_with(m, "No modifications to experiments")
 
 		with patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("logging.Logger.debug") as _l:
 			editExperiment(p, p)
 			_i.assert_called_once_with(p, experiment=None)
@@ -59,16 +59,16 @@ class TestFunctions(GUIwMainWTestCase):
 				"mainWinObject has no attribute 'statusBarMessage'",
 				exc_info=True)
 
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("physbiblio.database.Experiments.getDictByID",
-					return_value="abc") as _g:
+					return_value="abc", autospec=True) as _g:
 			editExperiment(p, m, 9999)
 			_i.assert_called_once_with(p, experiment="abc")
-			_g.assert_called_once_with(9999)
-			_s.assert_called_once_with("No modifications to experiments")
+			_g.assert_called_once_with(pBDB.exps, 9999)
+			_s.assert_called_once_with(m, "No modifications to experiments")
 
 		ncw = EditExperimentDialog(p)
 		ncw.selectedExps = [9999]
@@ -77,59 +77,59 @@ class TestFunctions(GUIwMainWTestCase):
 		ncw.textValues["inspire"].setText("1234")
 		ncw.exec_ = MagicMock()
 		ncw.onOk()
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("physbiblio.database.Experiments.getDictByID",
-					return_value="abc") as _g:
+					return_value="abc", autospec=True) as _g:
 			editExperiment(p, m, editIdExp=9999)
 			_i.assert_called_once_with(p, experiment="abc")
-			_g.assert_called_once_with(9999)
-			_s.assert_called_once_with("ERROR: empty experiment name")
+			_g.assert_called_once_with(pBDB.exps, 9999)
+			_s.assert_called_once_with(m, "ERROR: empty experiment name")
 
 		ncw.textValues["name"].setText("myexp")
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("physbiblio.database.Experiments.getDictByID",
-					return_value="abc") as _g,\
+					return_value="abc", autospec=True) as _g,\
 				patch("physbiblio.database.Experiments.insert",
-					return_value="abc") as _n,\
+					return_value="abc", autospec=True) as _n,\
 				patch("logging.Logger.debug") as _l:
 			editExperiment(p, m, 9999)
 			_i.assert_called_once_with(p, experiment="abc")
-			_g.assert_called_once_with(9999)
-			_n.assert_called_once_with(
+			_g.assert_called_once_with(pBDB.exps, 9999)
+			_n.assert_called_once_with(pBDB.exps,
 				{'name': u'myexp', 'inspire': u'1234',
 				'homepage': 'www.some.thing.com', 'comments': u'comm'})
-			_s.assert_called_once_with("Experiment saved")
+			_s.assert_called_once_with(m, "Experiment saved")
 			_l.assert_called_once_with(
 				"parentObject has no attribute 'recreateTable'", exc_info=True)
 
 		ncw.textValues["name"].setText("myexp")
 		ctw = ExpsListWindow(p)
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("physbiblio.database.Experiments.getDictByID",
-					return_value="abc") as _g,\
+					return_value="abc", autospec=True) as _g,\
 				patch("physbiblio.database.Experiments.insert",
-					return_value="abc") as _n,\
+					return_value="abc", autospec=True) as _n,\
 				patch("logging.Logger.debug") as _l,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
-					) as _r:
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable",
+					autospec=True) as _r:
 			editExperiment(ctw, m, 9999)
 			_i.assert_called_once_with(ctw, experiment="abc")
-			_g.assert_called_once_with(9999)
-			_n.assert_called_once_with(
+			_g.assert_called_once_with(pBDB.exps, 9999)
+			_n.assert_called_once_with(pBDB.exps,
 				{'name': u'myexp', 'inspire': u'1234',
 				'homepage': 'www.some.thing.com', 'comments': u'comm'})
-			_s.assert_called_once_with("Experiment saved")
+			_s.assert_called_once_with(m, "Experiment saved")
 			_l.assert_not_called()
-			_r.assert_called_once_with()
+			_r.assert_called_once_with(ctw)
 
 		exp = {
 			'idExp': 9999,
@@ -147,44 +147,44 @@ class TestFunctions(GUIwMainWTestCase):
 		ncw.exec_ = MagicMock()
 		ncw.onOk()
 		ctw = ExpsListWindow(p)
-		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-				) as _s,\
+		with patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+				autospec=True) as _s,\
 				patch("physbiblio.gui.expWindows.EditExperimentDialog",
-					return_value=ncw) as _i,\
+					return_value=ncw, autospec=True) as _i,\
 				patch("physbiblio.database.Experiments.getDictByID",
-					return_value="abc") as _g,\
+					return_value="abc", autospec=True) as _g,\
 				patch("physbiblio.database.Experiments.update",
-					return_value="abc") as _n,\
+					return_value="abc", autospec=True) as _n,\
 				patch("logging.Logger.info") as _l,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
-					) as _r:
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable",
+					autospec=True) as _r:
 			editExperiment(ctw, m, 9999)
 			_i.assert_called_once_with(ctw, experiment="abc")
-			_g.assert_called_once_with(9999)
-			_n.assert_called_once_with(
+			_g.assert_called_once_with(pBDB.exps, 9999)
+			_n.assert_called_once_with(pBDB.exps,
 				{'idExp': u'9999', 'name': u'myexp1',
 				'homepage': u'www.page.com', 'comments': u'comm',
 				'inspire': u'4321'}, '9999')
-			_s.assert_called_once_with("Experiment saved")
+			_s.assert_called_once_with(m, "Experiment saved")
 			_l.assert_called_once_with("Updating experiment 9999...")
-			_r.assert_called_once_with()
+			_r.assert_called_once_with(ctw)
 
 	def test_deleteExperiment(self):
 		"""test deleteExperiment"""
 		p = QWidget()
 		m = self.mainW
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value=False) as _a, \
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _s:
+				return_value=False, autospec=True) as _a, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+					autospec=True) as _s:
 			deleteExperiment(p, m, 9999, "myexp")
 			_a.assert_called_once_with(
 				"Do you really want to delete this experiment "
 				+ "(ID = '9999', name = 'myexp')?")
-			_s.assert_called_once_with("Nothing changed")
+			_s.assert_called_once_with(m, "Nothing changed")
 
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value=False) as _a, \
+				return_value=False, autospec=True) as _a, \
 				patch("logging.Logger.debug") as _d:
 			deleteExperiment(p, p, 9999, "myexp")
 			_a.assert_called_once_with(
@@ -195,40 +195,44 @@ class TestFunctions(GUIwMainWTestCase):
 				exc_info=True)
 
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value=True) as _a, \
-				patch("physbiblio.database.Experiments.delete") as _c, \
-				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _s, \
+				return_value=True, autospec=True) as _a, \
+				patch("physbiblio.database.Experiments.delete",
+					autospec=True) as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle",
+					autospec=True) as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+					autospec=True) as _s, \
 				patch("logging.Logger.debug") as _d:
 			deleteExperiment(p, m, 9999, "myexp")
 			_a.assert_called_once_with(
 				"Do you really want to delete this experiment "
 				+ "(ID = '9999', name = 'myexp')?")
-			_c.assert_called_once_with(9999)
+			_c.assert_called_once_with(pBDB.exps, 9999)
 			_t.assert_called_once_with("PhysBiblio*")
-			_s.assert_called_once_with("Experiment deleted")
+			_s.assert_called_once_with(m, "Experiment deleted")
 			_d.assert_called_once_with(
 				"parentObject has no attribute 'recreateTable'",
 				exc_info=True)
 
 		elw = ExpsListWindow(p)
 		with patch("physbiblio.gui.expWindows.askYesNo",
-				return_value=True) as _a, \
-				patch("physbiblio.database.Experiments.delete") as _c, \
-				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle") as _t, \
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _s, \
-				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable"
-					) as _r:
+				return_value=True, autospec=True) as _a, \
+				patch("physbiblio.database.Experiments.delete",
+					autospec=True) as _c, \
+				patch("PySide2.QtWidgets.QMainWindow.setWindowTitle",
+					autospec=True) as _t, \
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+					autospec=True) as _s, \
+				patch("physbiblio.gui.expWindows.ExpsListWindow.recreateTable",
+					autospec=True) as _r:
 			deleteExperiment(elw, m, 9999, "myexp")
 			_a.assert_called_once_with(
 				"Do you really want to delete this experiment "
 				+ "(ID = '9999', name = 'myexp')?")
-			_c.assert_called_once_with(9999)
+			_c.assert_called_once_with(pBDB.exps, 9999)
 			_t.assert_called_once_with("PhysBiblio*")
-			_s.assert_called_once_with("Experiment deleted")
-			_r.assert_called_once_with()
+			_s.assert_called_once_with(m, "Experiment deleted")
+			_r.assert_called_once_with(elw)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -244,14 +248,14 @@ class TestExpTableModel(GUITestCase):
 		self.assertIsInstance(em, PBTableModel)
 		self.assertEqual(em.typeClass, "Exps")
 		self.assertEqual(em.dataList, exp_list)
-		with patch("physbiblio.gui.commonClasses.PBTableModel.__init__"
-				) as _i,\
+		with patch("physbiblio.gui.commonClasses.PBTableModel.__init__",
+				autospec=True) as _i,\
 				patch("physbiblio.gui.commonClasses.PBTableModel."
-					+ "prepareSelected") as _s:
+					+ "prepareSelected", autospec=True) as _s:
 			em = ExpTableModel(p, exp_list, header,
 				askExps=True, previous=[9999])
-			_i.assert_called_once_with(p, ['id', 'name'], True, [9999])
-			_s.assert_called_once_with()
+			_i.assert_called_once_with(em, p, ['id', 'name'], True, [9999])
+			_s.assert_called_once_with(em)
 
 	def test_getIdentifier(self):
 		"""test getIdentifier"""
@@ -351,11 +355,11 @@ class TestExpsListWindow(GUITestCase):
 		"""test init"""
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _cf:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _cf:
 			elw = ExpsListWindow(p)
-			_cf.assert_called_once_with()
+			_cf.assert_called_once_with(elw)
 		self.assertIsInstance(elw, ObjListWindow)
 		self.assertEqual(elw.parent(), p)
 		self.assertEqual(elw.colcnt, 5)
@@ -368,15 +372,15 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.windowTitle(), 'List of experiments')
 
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _cf:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _cf:
 			elw = ExpsListWindow(parent=p,
 				askExps=True,
 				askForBib="mybib",
 				askForCat="mycat",
 				previous=[9999])
-			_cf.assert_called_once_with()
+			_cf.assert_called_once_with(elw)
 		self.assertIsInstance(elw, ObjListWindow)
 		self.assertEqual(elw.parent(), p)
 		self.assertEqual(elw.colcnt, 5)
@@ -392,9 +396,9 @@ class TestExpsListWindow(GUITestCase):
 		"""test populateAskExp"""
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _c:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _c:
 			elw = ExpsListWindow(p)
 		#test with askCats = False (nothing happens)
 		self.assertTrue(elw.populateAskExp())
@@ -404,16 +408,16 @@ class TestExpsListWindow(GUITestCase):
 
 		#test with askCats = True and askForBib
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _c:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _c:
 			elw = ExpsListWindow(p, askExps=True, askForBib="bib")
 		# bibkey not in db
 		with patch("physbiblio.database.Entries.getByBibkey",
-				return_value=[]) as _gbb,\
+				return_value=[], autospec=True) as _gbb,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(elw.populateAskExp(), None)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
 			_w.assert_called_once_with(
 				"The entry 'bib' is not in the database!",
 				exc_info=True)
@@ -424,9 +428,10 @@ class TestExpsListWindow(GUITestCase):
 		with patch("physbiblio.database.Entries.getByBibkey",
 				side_effect=[
 					[{"inspire": None, "doi": None, "arxiv": None}]
-					]) as _gbb:
+					],
+				autospec=True) as _gbb:
 			self.assertEqual(elw.populateAskExp(), True)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
 				PBLabel)
@@ -443,9 +448,10 @@ class TestExpsListWindow(GUITestCase):
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": None, "arxiv": None}]
-					]) as _gbb:
+					],
+				autospec=True) as _gbb:
 			self.assertEqual(elw.populateAskExp(), True)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
 				PBLabel)
@@ -460,12 +466,13 @@ class TestExpsListWindow(GUITestCase):
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": "1234", "doi": "1/2/3", "arxiv": "123456"}]
-					]) as _gbb, \
+					],
+					autospec=True) as _gbb, \
 				patch("physbiblio.view.ViewEntry.getLink",
-					return_value="inspirelink") as _l:
+					return_value="inspirelink", autospec=True) as _l:
 			self.assertEqual(elw.populateAskExp(), True)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
-			_l.assert_called_once_with("bib", "inspire")
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+			_l.assert_called_once_with(pBView, "bib", "inspire")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
 				PBLabel)
@@ -480,12 +487,12 @@ class TestExpsListWindow(GUITestCase):
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": "1/2/3", "arxiv": "123456"}]
-					]) as _gbb, \
+					], autospec=True) as _gbb, \
 				patch("physbiblio.view.ViewEntry.getLink",
-					return_value="arxivlink") as _l:
+					return_value="arxivlink", autospec=True) as _l:
 			self.assertEqual(elw.populateAskExp(), True)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
-			_l.assert_called_once_with("bib", "arxiv")
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+			_l.assert_called_once_with(pBView, "bib", "arxiv")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
 				PBLabel)
@@ -500,12 +507,12 @@ class TestExpsListWindow(GUITestCase):
 				side_effect=[
 					[{"author": "sg", "title": "title",
 					"inspire": None, "doi": "1/2/3", "arxiv": ""}]
-					]) as _gbb, \
+					], autospec=True) as _gbb, \
 				patch("physbiblio.view.ViewEntry.getLink",
-					return_value="doilink") as _l:
+					return_value="doilink", autospec=True) as _l:
 			self.assertEqual(elw.populateAskExp(), True)
-			_gbb.assert_called_once_with("bib", saveQuery=False)
-			_l.assert_called_once_with("bib", "doi")
+			_gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+			_l.assert_called_once_with(pBView, "bib", "doi")
 			self.assertEqual(elw.currLayout.count(), 1)
 			self.assertIsInstance(elw.layout().itemAt(0).widget(),
 				PBLabel)
@@ -518,9 +525,9 @@ class TestExpsListWindow(GUITestCase):
 		#test with askCats = True and askForExp
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _c:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _c:
 			elw = ExpsListWindow(p, askExps=True, askForCat="cat")
 			with self.assertRaises(NotImplementedError):
 				elw.populateAskExp()
@@ -528,9 +535,9 @@ class TestExpsListWindow(GUITestCase):
 		# #test with no askForBib, askForExp
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-					) as _c:
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+					autospec=True) as _c:
 			elw = ExpsListWindow(p, askExps=True)
 		self.assertEqual(elw.populateAskExp(), True)
 		self.assertEqual(elw.currLayout.count(), 1)
@@ -542,7 +549,7 @@ class TestExpsListWindow(GUITestCase):
 	def test_onCancel(self):
 		"""test onCancel"""
 		elw = ExpsListWindow()
-		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+		with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
 			elw.onCancel()
 		self.assertFalse(elw.result)
 
@@ -550,13 +557,13 @@ class TestExpsListWindow(GUITestCase):
 		"""test onOk"""
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=self.exps, autospec=True) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertFalse(hasattr(p, "selectedExps"))
 		elw.tableModel.selectedElements[0] = True
 		elw.tableModel.selectedElements[2] = False
 		elw.tableModel.selectedElements[3] = True
-		with patch("PySide2.QtWidgets.QDialog.close") as _c:
+		with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
 			elw.onOk()
 			_c.assert_called_once_with()
 		self.assertEqual(hasattr(p, "selectedExps"), True)
@@ -567,14 +574,15 @@ class TestExpsListWindow(GUITestCase):
 		"""test onNewExp"""
 		p = QWidget()
 		elw = ExpsListWindow(p)
-		with patch("physbiblio.gui.expWindows.editExperiment") as _ec:
+		with patch("physbiblio.gui.expWindows.editExperiment",
+				autospec=True) as _ec:
 			elw.onNewExp()
 			_ec.assert_called_once_with(elw, p)
 
 	def test_keyPressEvent(self):
 		"""test keyPressEvent"""
 		elw = ExpsListWindow()
-		with patch("PySide2.QtWidgets.QDialog.close") as _oc:
+		with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc:
 			QTest.keyPress(elw, "a")
 			_oc.assert_not_called()
 			QTest.keyPress(elw, Qt.Key_Enter)
@@ -585,32 +593,32 @@ class TestExpsListWindow(GUITestCase):
 	def test_createTable(self):
 		"""test createTable"""
 		p = QWidget()
-		with patch("physbiblio.gui.expWindows.ExpsListWindow.createTable"
-				) as _c:
+		with patch("physbiblio.gui.expWindows.ExpsListWindow.createTable",
+				autospec=True) as _c:
 			elw = ExpsListWindow(p)
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
-				patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
-					) as _pae,\
+				return_value=self.exps, autospec=True) as _gh,\
+				patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp",
+					autospec=True) as _pae,\
 				patch("physbiblio.gui.expWindows.ExpTableModel.__init__",
-					return_value=None) as _etm,\
+					return_value=None, autospec=True) as _etm,\
 				patch("physbiblio.gui.commonClasses.ObjListWindow."
-					+ "addFilterInput") as _afi,\
+					+ "addFilterInput", autospec=True) as _afi,\
 				patch("physbiblio.gui.commonClasses.ObjListWindow."
-					+ "setProxyStuff") as _sps,\
+					+ "setProxyStuff", autospec=True) as _sps,\
 				patch("physbiblio.gui.commonClasses.ObjListWindow."
-					+ "finalizeTable") as _ft:
+					+ "finalizeTable", autospec=True) as _ft:
 			elw.createTable()
-			_pae.assert_called_once_with()
-			_gh.assert_called_once_with()
-			_afi.assert_called_once_with("Filter experiment")
-			_sps.assert_called_once_with(1, Qt.AscendingOrder)
-			_ft.assert_called_once_with()
-			_etm.assert_called_once_with(elw, self.exps,
+			_pae.assert_called_once_with(elw)
+			_gh.assert_called_once_with(pBDB.exps)
+			_afi.assert_called_once_with(elw, "Filter experiment")
+			_sps.assert_called_once_with(elw, 1, Qt.AscendingOrder)
+			_ft.assert_called_once_with(elw)
+			_etm.assert_called_once_with(elw.tableModel , elw, self.exps,
 				pBDB.tableCols["experiments"], askExps=False, previous=[])
 		elw.cleanLayout()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=self.exps, autospec=True) as _gh:
 			elw.createTable()
 		self.assertEqual(self.exps, elw.exps)
 		self.assertIsInstance(elw.tableModel, ExpTableModel)
@@ -620,9 +628,9 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.filterInput.placeholderText(),
 			"Filter experiment")
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "changeFilter") as _cf:
+				+ "changeFilter", autospec=True) as _cf:
 			elw.filterInput.textChanged.emit("a")
-			_cf.assert_called_once_with("a")
+			_cf.assert_called_once_with(elw, "a")
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
 			PBTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
@@ -631,13 +639,13 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
 		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "onNewExp") as _f:
+				+ "onNewExp", autospec=True) as _f:
 			QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(elw)
 
 		#repeat with askExps=True, but ignore populateAskExp
-		with patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp"
-				) as _c:
+		with patch("physbiblio.gui.expWindows.ExpsListWindow.populateAskExp",
+				autospec=True) as _c:
 			elw = ExpsListWindow(p, askExps=True)
 		self.assertEqual(elw.layout().count(), 5)
 		self.assertIsInstance(elw.layout().itemAt(0).widget(), QLineEdit)
@@ -645,9 +653,9 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.filterInput.placeholderText(),
 			"Filter experiment")
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "changeFilter") as _cf:
+				+ "changeFilter", autospec=True) as _cf:
 			elw.filterInput.textChanged.emit("a")
-			_cf.assert_called_once_with("a")
+			_cf.assert_called_once_with(elw, "a")
 		self.assertIsInstance(elw.layout().itemAt(1).widget(),
 			PBTableView)
 		self.assertEqual(elw.layout().itemAt(1).widget(),
@@ -656,24 +664,24 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
 		self.assertEqual(elw.newExpButton.text(), "Add new experiment")
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "onNewExp") as _f:
+				+ "onNewExp", autospec=True) as _f:
 			QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(elw)
 		self.assertIsInstance(elw.layout().itemAt(3).widget(), QPushButton)
 		self.assertEqual(elw.layout().itemAt(3).widget(), elw.acceptButton)
 		self.assertEqual(elw.acceptButton.text(), "OK")
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "onOk") as _f:
+				+ "onOk", autospec=True) as _f:
 			QTest.mouseClick(elw.acceptButton, Qt.LeftButton)
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(elw)
 		self.assertIsInstance(elw.layout().itemAt(4).widget(), QPushButton)
 		self.assertEqual(elw.layout().itemAt(4).widget(), elw.cancelButton)
 		self.assertEqual(elw.cancelButton.text(), "Cancel")
 		self.assertTrue(elw.cancelButton.autoDefault())
 		with patch("physbiblio.gui.expWindows.ExpsListWindow."
-				+ "onCancel") as _f:
+				+ "onCancel", autospec=True) as _f:
 			QTest.mouseClick(elw.cancelButton, Qt.LeftButton)
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(elw)
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
@@ -687,24 +695,27 @@ class TestExpsListWindow(GUITestCase):
 		mm = PBMenu()
 		mm.exec_ = MagicMock()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh,\
+				return_value=self.exps, autospec=True) as _gh,\
 				patch("physbiblio.gui.expWindows.PBMenu",
-					return_value=mm) as _mm:
+					return_value=mm, autospec=True) as _mm:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.triggeredContextMenuEvent(9999, 0, ev), None)
 		self.assertFalse(hasattr(elw, "menu"))
 		with patch("physbiblio.gui.mainWindow.MainWindow."
-					+ "reloadMainContent") as _rmc,\
+					+ "reloadMainContent", autospec=True) as _rmc,\
 				patch("physbiblio.gui.expWindows.PBMenu",
-					return_value=mm) as _mm,\
-				patch("physbiblio.gui.expWindows.editExperiment") as _ec,\
-				patch("physbiblio.gui.expWindows.deleteExperiment") as _dc,\
-				patch("physbiblio.gui.commonClasses.PBMenu.fillMenu") as _f:
+					return_value=mm, autospec=True) as _mm,\
+				patch("physbiblio.gui.expWindows.editExperiment",
+					autospec=True) as _ec,\
+				patch("physbiblio.gui.expWindows.deleteExperiment",
+					autospec=True) as _dc,\
+				patch("physbiblio.gui.commonClasses.PBMenu.fillMenu",
+					autospec=True) as _f:
 			self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-			_f.assert_called_once_with()
-			_rmc.assert_not_called()
-			_ec.assert_not_called()
-			_dc.assert_not_called()
+			_f.assert_called_once_with(elw.menu)
+			self.assertEqual(_rmc.call_count, 0)
+			self.assertEqual(_ec.call_count, 0)
+			self.assertEqual(_dc.call_count, 0)
 
 			self.assertIsInstance(elw.menu, PBMenu)
 			self.assertIsInstance(elw.menu.possibleActions, list)
@@ -727,45 +738,45 @@ class TestExpsListWindow(GUITestCase):
 
 			mm.exec_ = lambda x, i=0: mm.possibleActions[i]
 			self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-			_rmc.assert_not_called()
-			_ec.assert_not_called()
-			_dc.assert_not_called()
+			self.assertEqual(_rmc.call_count, 0)
+			self.assertEqual(_ec.call_count, 0)
+			self.assertEqual(_dc.call_count, 0)
 
 			mm.exec_ = lambda x, i=2: mm.possibleActions[i]
 			with patch("physbiblio.database.Entries.getByExp",
-					return_value=["a"]) as _ffd:
+					return_value=["a"], autospec=True) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
-				_ffd.assert_called_once_with('0')
-			_rmc.assert_called_once_with(["a"])
-			_ec.assert_not_called()
-			_dc.assert_not_called()
+				_ffd.assert_called_once_with(pBDB.bibs, '0')
+			_rmc.assert_called_once_with(p, ["a"])
+			self.assertEqual(_ec.call_count, 0)
+			self.assertEqual(_dc.call_count, 0)
 			_rmc.reset_mock()
 
 			mm.exec_ = lambda x, i=4: mm.possibleActions[i]
 			with patch("physbiblio.database.Entries.getByExp",
-					return_value=["a"]) as _ffd:
+					return_value=["a"], autospec=True) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
-			_rmc.assert_not_called()
+			self.assertEqual(_rmc.call_count, 0)
 			_ec.assert_called_once_with(elw, p, '0')
-			_dc.assert_not_called()
+			self.assertEqual(_dc.call_count, 0)
 			_ec.reset_mock()
 
 			mm.exec_ = lambda x, i=5: mm.possibleActions[i]
 			with patch("physbiblio.database.Entries.getByExp",
-					return_value=["a"]) as _ffd:
+					return_value=["a"], autospec=True) as _ffd:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
-			_rmc.assert_not_called()
-			_ec.assert_not_called()
+			self.assertEqual(_rmc.call_count, 0)
+			self.assertEqual(_ec.call_count, 0)
 			_dc.assert_called_once_with(elw, p, '0', 'test0')
 			_dc.reset_mock()
 
 			with patch("physbiblio.database.Experiments.getByID",
-					return_value=[self.exps[0]]) as _gbi,\
+					return_value=[self.exps[0]], autospec=True) as _gbi,\
 					patch("physbiblio.gui.catWindows.CatsTreeWindow."
-						+ "createForm") as _cf:
+						+ "createForm", autospec=True) as _cf:
 				sc = CatsTreeWindow(
 					parent=p,
 					askCats=True,
@@ -777,63 +788,67 @@ class TestExpsListWindow(GUITestCase):
 			p.selectedCats = [9, 13]
 			mm.exec_ = lambda x, i=7: mm.possibleActions[i]
 			with patch("physbiblio.database.Entries.getByExp",
-					return_value=["a"]) as _ffd,\
+					return_value=["a"], autospec=True) as _ffd,\
 					patch("physbiblio.gui.expWindows.CatsTreeWindow",
-						return_value=sc) as _i,\
+						return_value=sc, autospec=True) as _i,\
 					patch("physbiblio.gui.mainWindow.MainWindow."
-						+ "statusBarMessage") as _sbm,\
-					patch("physbiblio.database.CatsExps.delete") as _d,\
-					patch("physbiblio.database.CatsExps.insert") as _a,\
+						+ "statusBarMessage", autospec=True) as _sbm,\
+					patch("physbiblio.database.CatsExps.delete",
+						autospec=True) as _d,\
+					patch("physbiblio.database.CatsExps.insert",
+						autospec=True) as _a,\
 					patch("physbiblio.database.Categories.getByExp",
-						return_value=[{"idCat": 0}, {"idCat": 13}]) as _gbe:
+						return_value=[{"idCat": 0}, {"idCat": 13}],
+						autospec=True) as _gbe:
 				self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev),
 					True)
-				_ffd.assert_not_called()
-				_gbe.assert_called_once_with('0')
+				self.assertEqual(_ffd.call_count, 0)
+				_gbe.assert_called_once_with(pBDB.cats, '0')
 				_i.assert_called_once_with(parent=p, previous=[0, 13],
 					askCats=True, askForExp='0', expButton=False)
-				_d.assert_called_once_with(0, '0')
-				_a.assert_called_once_with(9, '0')
-				_sbm.assert_called_once_with(
+				_d.assert_called_once_with(pBDB.catExp, 0, '0')
+				_a.assert_called_once_with(pBDB.catExp, 9, '0')
+				_sbm.assert_called_once_with(p,
 					"Categories for 'test0' successfully inserted")
-			_rmc.assert_not_called()
-			_ec.assert_not_called()
-			_dc.assert_not_called()
+			self.assertEqual(_rmc.call_count, 0)
+			self.assertEqual(_ec.call_count, 0)
+			self.assertEqual(_dc.call_count, 0)
 
 	def test_handleItemEntered(self):
 		"""test handleItemEntered"""
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=self.exps, autospec=True) as _gh:
 			elw = ExpsListWindow(p)
 		ix = elw.proxyModel.index(0, 0)
 		with patch("logging.Logger.exception") as _l,\
-				patch("PySide2.QtCore.QTimer.start") as _st,\
-				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
+				patch("PySide2.QtCore.QTimer.start", autospec=True) as _st,\
+				patch("PySide2.QtWidgets.QToolTip.showText",
+					autospec=True) as _sh,\
 				patch("physbiblio.database.Experiments.getByID",
-					return_value=[]) as _gbi:
+					return_value=[], autospec=True) as _gbi:
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_l.assert_called_once_with("Failed in finding experiment")
-			_gbi.assert_called_once_with('0')
-			_st.assert_not_called()
-			_sh.assert_not_called()
+			_gbi.assert_called_once_with(pBDB.exps, '0')
+			self.assertEqual(_st.call_count, 0)
+			self.assertEqual(_sh.call_count, 0)
 		with patch("logging.Logger.exception") as _l,\
-				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtCore.QTimer.start", autospec=True) as _st,\
 				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
 				patch("physbiblio.database.Experiments.getByID",
-					return_value=[self.exps[0]]) as _gbi,\
+					return_value=[self.exps[0]], autospec=True) as _gbi,\
 				patch("physbiblio.database.EntryExps.countByExp",
-					return_value=33) as _cb,\
+					return_value=33, autospec=True) as _cb,\
 				patch("physbiblio.database.CatsExps.countByExp",
-					return_value=12) as _ce:
+					return_value=12, autospec=True) as _ce:
 			position = QCursor.pos()
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_l.assert_not_called()
 			self.assertIsInstance(elw.timer, QTimer)
 			self.assertTrue(elw.timer.isSingleShot())
-			_gbi.assert_called_once_with('0')
+			_gbi.assert_called_once_with(pBDB.exps, '0')
 			_st.assert_called_once_with(500)
-			_sh.assert_not_called()
+			self.assertEqual(_sh.call_count, 0)
 			elw.timer.timeout.emit()
 			_sh.assert_called_once_with(position,
 				'0: test0\nCorresponding entries: 33\n'
@@ -842,14 +857,14 @@ class TestExpsListWindow(GUITestCase):
 				elw.tableview.visualRect(ix),
 				3000)
 		with patch("logging.Logger.exception") as _l,\
-				patch("PySide2.QtCore.QTimer.start") as _st,\
+				patch("PySide2.QtCore.QTimer.start", autospec=True) as _st,\
 				patch("PySide2.QtWidgets.QToolTip.showText") as _sh,\
 				patch("physbiblio.database.Experiments.getByID",
-					return_value=[self.exps[0]]) as _gbi,\
+					return_value=[self.exps[0]], autospec=True) as _gbi,\
 				patch("physbiblio.database.EntryExps.countByExp",
-					return_value=33) as _cb,\
+					return_value=33, autospec=True) as _cb,\
 				patch("physbiblio.database.CatsExps.countByExp",
-					return_value=12) as _ce:
+					return_value=12, autospec=True) as _ce:
 			self.assertEqual(elw.handleItemEntered(ix), None)
 			_sh.assert_called_once_with(
 				QCursor.pos(), '', elw.tableview.viewport())
@@ -858,7 +873,7 @@ class TestExpsListWindow(GUITestCase):
 		"""test cellClick"""
 		p = QWidget()
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=self.exps) as _gh:
+				return_value=self.exps, autospec=True) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.cellClick(QModelIndex()), None)
 		self.assertEqual(elw.cellClick(elw.tableModel.index(0, 0)), True)
@@ -872,7 +887,7 @@ class TestExpsListWindow(GUITestCase):
 			{"idExp": 1, "name": "test1",
 				"homepage": "www.some.com", "comments": "", "inspire": "1234"}]
 		with patch("physbiblio.database.Experiments.getAll",
-				return_value=exps) as _gh:
+				return_value=exps, autospec=True) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.cellDoubleClick(QModelIndex()), None)
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 0)), None)
@@ -883,29 +898,29 @@ class TestExpsListWindow(GUITestCase):
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 0)), None)
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 1)), None)
 		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 2)), None)
-		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink"
-				) as _ol,\
+		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink",
+				autospec=True) as _ol,\
 				patch("logging.Logger.debug") as _l:
 			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 3)),
 				True)
-			_ol.assert_called_once_with('www.some.com', 'link')
+			_ol.assert_called_once_with(pBGuiView, 'www.some.com', 'link')
 			_l.assert_called_once_with("Opening 'www.some.com'...")
-		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink"
-				) as _ol,\
+		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink",
+				autospec=True) as _ol,\
 				patch("logging.Logger.debug") as _l:
 			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)),
 				True)
-			_ol.assert_called_once_with(
+			_ol.assert_called_once_with(pBGuiView,
 				pbConfig.inspireRecord + '1234', 'link')
 			_l.assert_called_once_with("Opening '%s'..."%(
 				pbConfig.inspireRecord + '1234'))
 		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink",
-				side_effect=Exception("some error")) as _ol,\
+				side_effect=Exception("some error"), autospec=True) as _ol,\
 				patch("logging.Logger.debug") as _l,\
 				patch("logging.Logger.warning") as _w:
 			self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)),
 				True)
-			_ol.assert_called_once_with(
+			_ol.assert_called_once_with(pBGuiView,
 				pbConfig.inspireRecord + '1234', 'link')
 			_l.assert_called_once_with("Opening '%s'..."%(
 				pbConfig.inspireRecord + '1234'))
@@ -920,10 +935,10 @@ class TestEditExperimentDialog(GUITestCase):
 	def test_init(self):
 		"""test init"""
 		p = QWidget()
-		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm"
-				) as _cf:
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm",
+				autospec=True) as _cf:
 			eed = EditExperimentDialog(p)
-			_cf.assert_called_once_with()
+			_cf.assert_called_once_with(eed)
 		self.assertIsInstance(eed, EditObjectWindow)
 		self.assertEqual(eed.parent(), p)
 		self.assertIsInstance(eed.data, dict)
@@ -931,10 +946,10 @@ class TestEditExperimentDialog(GUITestCase):
 			"name": "", "homepage": "", "inspire": "", "comments": ""})
 		exp = {"idExp": "9999", "name": "myexp", "homepage": "www.some.exp",
 			"inspire": "1234", "comments": "no comments"}
-		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm"
-				) as _cf:
+		with patch("physbiblio.gui.expWindows.EditExperimentDialog.createForm",
+				autospec=True) as _cf:
 			eed = EditExperimentDialog(parent=p, experiment=exp)
-			_cf.assert_called_once_with()
+			_cf.assert_called_once_with(eed)
 		self.assertEqual(eed.data, exp)
 
 	def test_createForm(self):
@@ -1014,14 +1029,14 @@ class TestEditExperimentDialog(GUITestCase):
 			eed.cancelButton)
 		self.assertEqual(eed.cancelButton.text(), "Cancel")
 		self.assertTrue(eed.cancelButton.autoDefault())
-		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onOk"
-				) as _f:
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onOk",
+				autospec=True) as _f:
 			QTest.mouseClick(eed.acceptButton, Qt.LeftButton)
-			_f.assert_called_once_with()
-		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onCancel"
-				) as _f:
+			_f.assert_called_once_with(eed)
+		with patch("physbiblio.gui.commonClasses.EditObjectWindow.onCancel",
+				autospec=True) as _f:
 			QTest.mouseClick(eed.cancelButton, Qt.LeftButton)
-			_f.assert_called_once_with()
+			_f.assert_called_once_with(eed)
 
 		exp = {"idExp": "9999", "name": "myexp", "homepage": "www.some.exp",
 			"inspire": "1234", "comments": "no comments"}

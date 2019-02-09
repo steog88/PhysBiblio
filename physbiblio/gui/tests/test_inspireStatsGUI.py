@@ -911,10 +911,10 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		self.mainW.lastAuthorStats = {"h": 999}
 		self.mainW.lastPaperStats = {}
 		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
-				+ "updatePlots") as _up:
+				+ "updatePlots", autospec=True) as _up:
 			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"])
 			self.assertEqual(asp.figs, ["a", "b", "c", "d", "e", "f"])
-			_up.assert_called_once_with()
+			_up.assert_called_once_with(asp)
 			self.assertIsInstance(asp.layout(), QGridLayout)
 			self.assertEqual(asp.layout().columnCount(), 2)
 			self.assertEqual(asp.layout().rowCount(), 7)
@@ -936,7 +936,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertEqual(asp.layout().itemAtPosition(6, 0).widget(),
 				asp.saveButton)
 			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
-					+ "saveAction") as _sa:
+					+ "saveAction", autospec=True) as _sa:
 				QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 				self.assertEqual(_sa.call_count, 1)
 			self.assertIsInstance(asp.clButton, QPushButton)
@@ -945,7 +945,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 			self.assertEqual(asp.layout().itemAtPosition(6, 1).widget(),
 				asp.clButton)
 			with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
-					+ "onClose") as _cl:
+					+ "onClose", autospec=True) as _cl:
 				QTest.mouseClick(asp.clButton, Qt.LeftButton)
 				self.assertEqual(_cl.call_count, 1)
 
@@ -966,40 +966,42 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		"""Test saveAction"""
 		self.mainW.lastAuthorStats = {"h": 999}
 		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
-				+ "updatePlots") as _up:
+				+ "updatePlots", autospec=True) as _up:
 			asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"],
 				parent=self.mainW)
 		self.assertTrue(asp.saveButton.isEnabled())
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
-				return_value="fakeval") as _ps:
+				return_value="fakeval", autospec=True) as _ps:
 			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="") as _adn:
+					return_value="", autospec=True) as _adn:
 				asp.saveAction()
 				_adn.assert_called_once_with(asp,
 					'Where do you want to save the plots of the stats?')
 				self.assertTrue(asp.saveButton.isEnabled())
 				self.assertNotIn("figs", self.mainW.lastAuthorStats.keys())
-				_ps.assert_not_called()
+				self.assertEqual(_ps.call_count, 0)
 			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="/tmp"),\
-					patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+					return_value="/tmp", autospec=True),\
+					patch('physbiblio.gui.inspireStatsGUI.infoMessage',
+						autospec=True) as _im:
 				asp.saveAction()
 				_im.assert_called_once_with('Plots saved.')
 				self.assertFalse(asp.saveButton.isEnabled())
-				_ps.assert_called_once_with(
+				_ps.assert_called_once_with(pBStats,
 					author=True, path='/tmp', save=True)
 				self.assertEqual(self.mainW.lastAuthorStats["figs"],
 					"fakeval")
 		asp.saveButton.setEnabled(True)
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
-				side_effect=AttributeError) as _ps,\
+				side_effect=AttributeError, autospec=True) as _ps,\
 				patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="tmp") as _adn,\
+					return_value="tmp", autospec=True) as _adn,\
 				patch("logging.Logger.warning") as _w,\
-				patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+				patch('physbiblio.gui.inspireStatsGUI.infoMessage',
+					autospec=True) as _im:
 			asp.saveAction()
 			_w.assert_called_once_with('', exc_info=True)
-			_im.assert_not_called()
+			self.assertEqual(_im.call_count, 0)
 			self.assertTrue(asp.saveButton.isEnabled())
 
 	def test_pickEvent(self):
@@ -1027,10 +1029,10 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
 		"""Test updatePlots"""
 		self.mainW.lastAuthorStats = {"h": 999}
 		with patch("physbiblio.gui.inspireStatsGUI.AuthorStatsPlots."
-				+ "updatePlots") as _up:
+				+ "updatePlots", autospec=True) as _up:
 			asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 			self.assertEqual(asp.figs, testData["figs"])
-			_up.assert_called_once_with()
+			_up.assert_called_once_with(asp)
 		asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
 		self.assertEqual(asp.figs, testData["figs"])
 		self.assertIsInstance(asp.canvas, list)
@@ -1079,7 +1081,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertEqual(asp.layout().itemAtPosition(4, 0).widget(),
 			asp.saveButton)
 		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots."
-				+ "saveAction") as _sa:
+				+ "saveAction", autospec=True) as _sa:
 			QTest.mouseClick(asp.saveButton, Qt.LeftButton)
 			self.assertEqual(_sa.call_count, 1)
 		self.assertIsInstance(asp.clButton, QPushButton)
@@ -1087,8 +1089,8 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		self.assertTrue(asp.clButton.autoDefault())
 		self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(),
 			asp.clButton)
-		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots.onClose") \
-				as _cl:
+		with patch("physbiblio.gui.inspireStatsGUI.PaperStatsPlots.onClose",
+				autospec=True) as _cl:
 			QTest.mouseClick(asp.clButton, Qt.LeftButton)
 			self.assertEqual(_cl.call_count, 1)
 
@@ -1108,35 +1110,37 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
 		asp = PaperStatsPlots(testData['figs'][2], parent=self.mainW)
 		self.assertTrue(asp.saveButton.isEnabled())
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
-				return_value="fakeval") as _ps:
+				return_value="fakeval", autospec=True) as _ps:
 			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="") as _adn:
+					return_value="", autospec=True) as _adn:
 				asp.saveAction()
 				_adn.assert_called_once_with(asp,
 					'Where do you want to save the plot of the stats?')
 				self.assertTrue(asp.saveButton.isEnabled())
 				self.assertNotIn("fig", self.mainW.lastPaperStats.keys())
-				_ps.assert_not_called()
+				self.assertEqual(_ps.call_count, 0)
 			with patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="/tmp"),\
-					patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+					return_value="/tmp", autospec=True),\
+					patch('physbiblio.gui.inspireStatsGUI.infoMessage',
+						autospec=True) as _im:
 				asp.saveAction()
 				_im.assert_called_once_with('Plot saved.')
 				self.assertFalse(asp.saveButton.isEnabled())
-				_ps.assert_called_once_with(
+				_ps.assert_called_once_with(pBStats,
 					paper=True, path='/tmp', save=True)
 				self.assertEqual(self.mainW.lastPaperStats["fig"],
 					"fakeval")
 		asp.saveButton.setEnabled(True)
 		with patch("physbiblio.inspireStats.InspireStatsLoader.plotStats",
-				side_effect=AttributeError) as _ps,\
+				side_effect=AttributeError, autospec=True) as _ps,\
 				patch('physbiblio.gui.inspireStatsGUI.askDirName',
-					return_value="tmp") as _adn,\
+					return_value="tmp", autospec=True) as _adn,\
 				patch("logging.Logger.warning") as _w,\
-				patch('physbiblio.gui.inspireStatsGUI.infoMessage') as _im:
+				patch('physbiblio.gui.inspireStatsGUI.infoMessage',
+					autospec=True) as _im:
 			asp.saveAction()
 			_w.assert_called_once_with('', exc_info=True)
-			_im.assert_not_called()
+			self.assertEqual(_im.call_count, 0)
 			self.assertTrue(asp.saveButton.isEnabled())
 
 	def test_pickEvent(self):

@@ -76,10 +76,10 @@ class TestEditProf(GUIwMainWTestCase):
 			_m.assert_called_once_with(mw, "No modifications")
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow",
 				return_value=ep, autospec=True) as _epw,\
-				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage"
-					) as _m:
+				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
+					autospec=True) as _m:
 			editProfile(p)
-			_m.assert_not_called()
+			self.assertEqual(_m.call_count, 0)
 
 		# test switch lines and some description
 		ep = EditProfileWindow()
@@ -91,11 +91,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
@@ -103,14 +106,14 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test2', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb, u'test3', 'description', u'descrip'),
 			])
-			_dp.assert_not_called()
-			_cp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test2', u'test1', u'test3'])
 			_copy.assert_not_called()
@@ -128,8 +131,10 @@ class TestEditProf(GUIwMainWTestCase):
 					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow"
@@ -143,8 +148,8 @@ class TestEditProf(GUIwMainWTestCase):
 				call(pbConfig.globalDb, u'test2', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
-			_dp.assert_not_called()
-			_cp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test1', u'test2', u'test3'])
 			_copy.assert_not_called()
@@ -158,12 +163,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
 				patch("physbiblio.config.GlobalDB.deleteProfile",
 					autospec=True) as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
@@ -173,14 +180,14 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb, u'test2', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
 			_dp.assert_called_once_with(pbConfig.globalDb, "test2")
-			_cp.assert_not_called()
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test1', u'test3'])
 			_ayn.assert_called_once_with("Do you really want to cancel the "
@@ -198,11 +205,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.mainWindow.MainWindow.statusBarMessage",
@@ -210,7 +220,7 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb,
@@ -221,8 +231,8 @@ class TestEditProf(GUIwMainWTestCase):
 				call(pbConfig.globalDb, u'testA', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
-			_dp.assert_not_called()
-			_cp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test1', u'testA', u'test3'])
 			_copy.assert_not_called()
@@ -237,12 +247,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
 				patch("physbiblio.config.GlobalDB.deleteProfile",
 					autospec=True) as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
@@ -252,7 +264,7 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb,
@@ -264,7 +276,7 @@ class TestEditProf(GUIwMainWTestCase):
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
 			_dp.assert_called_once_with(pbConfig.globalDb, "testA")
-			_cp.assert_not_called()
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test1', u'test3'])
 			_ayn.assert_called_once_with("Do you really want to cancel the "
@@ -283,11 +295,14 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
-				patch("physbiblio.config.GlobalDB.createProfile") as _cp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
+				patch("physbiblio.config.GlobalDB.createProfile",
+					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
 					autospec=True) as _spo,\
 				patch("physbiblio.gui.profilesManager.askYesNo",
@@ -297,7 +312,7 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb,
@@ -308,8 +323,8 @@ class TestEditProf(GUIwMainWTestCase):
 				call(pbConfig.globalDb, u'testA', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
-			_dp.assert_not_called()
-			_cp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
+			self.assertEqual(_cp.call_count, 0)
 			_spo.assert_called_once_with(
 				pbConfig.globalDb, [u'test1', u'testA', u'test3'])
 			_ayn.assert_called_once_with("Do you really want to cancel the "
@@ -328,10 +343,12 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
 				patch("physbiblio.config.GlobalDB.createProfile",
 					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
@@ -342,13 +359,13 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb, u'test2', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
-			_dp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
 			_cp.assert_called_once_with(
 				pbConfig.globalDb,
 				databasefile=os.path.join(pbConfig.dataPath, 'testNew.db'),
@@ -370,10 +387,12 @@ class TestEditProf(GUIwMainWTestCase):
 				return_value=ep, autospec=True) as _epw,\
 				patch("physbiblio.config.ConfigVars.loadProfiles",
 					autospec=True) as _lp,\
-				patch("physbiblio.config.GlobalDB.setDefaultProfile") as _sdp,\
+				patch("physbiblio.config.GlobalDB.setDefaultProfile",
+					autospec=True) as _sdp,\
 				patch("physbiblio.config.GlobalDB.updateProfileField",
 					autospec=True) as _upf,\
-				patch("physbiblio.config.GlobalDB.deleteProfile") as _dp,\
+				patch("physbiblio.config.GlobalDB.deleteProfile",
+					autospec=True) as _dp,\
 				patch("physbiblio.config.GlobalDB.createProfile",
 					autospec=True) as _cp,\
 				patch("physbiblio.config.GlobalDB.setProfileOrder",
@@ -384,13 +403,13 @@ class TestEditProf(GUIwMainWTestCase):
 				patch("shutil.copy2") as _copy:
 			editProfile(mw)
 			_lp.assert_called_once_with(pbConfig)
-			_sdp.assert_not_called()
+			self.assertEqual(_sdp.call_count, 0)
 			_upf.assert_has_calls([
 				call(pbConfig.globalDb, u'test1', 'description', u'test1'),
 				call(pbConfig.globalDb, u'test2', 'description', u'test2'),
 				call(pbConfig.globalDb, u'test3', 'description', u'test3'),
 			])
-			_dp.assert_not_called()
+			self.assertEqual(_dp.call_count, 0)
 			_cp.assert_called_once_with(
 				pbConfig.globalDb,
 				databasefile=os.path.join(pbConfig.dataPath, 'testNew.db'),
@@ -466,16 +485,18 @@ class TestSelectProfiles(GUIwMainWTestCase):
 		sp = SelectProfiles(p)
 		with patch("physbiblio.gui.profilesManager.PBDialog.close",
 					autospec=True) as _c,\
-				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig"
-					) as _rc,\
+				patch("physbiblio.gui.mainWindow.MainWindow.reloadConfig",
+					autospec=True) as _rc,\
 				patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent", autospec=True) as _rm,\
-				patch("physbiblio.config.ConfigVars.reInit") as _ri,\
-				patch("physbiblio.database.PhysBiblioDB.reOpenDB") as _ro:
+				patch("physbiblio.config.ConfigVars.reInit",
+					autospec=True) as _ri,\
+				patch("physbiblio.database.PhysBiblioDB.reOpenDB",
+					autospec=True) as _ro:
 			sp.onLoad()
-			_ri.assert_not_called()
-			_ro.assert_not_called()
-			_rc.assert_not_called()
+			self.assertEqual(_ri.call_count, 0)
+			self.assertEqual(_ro.call_count, 0)
+			self.assertEqual(_rc.call_count, 0)
 			_rm.assert_called_once_with(p)
 			_c.assert_called_once_with()
 		sp = SelectProfiles(p)
@@ -576,7 +597,7 @@ class TestPBOrderPushButton(GUITestCase):
 			QTest.mouseClick(opb, Qt.LeftButton)
 			_s.assert_called_once_with(p, 1)
 		with patch("physbiblio.gui.profilesManager.QPushButton.__init__",
-				return_value=QPushButton()) as _i:
+				return_value=QPushButton(), autospec=True) as _i:
 			opb = PBOrderPushButton(p, 1, qi, "txt", True)
 			_i.assert_called_once_with(opb, qi, "txt")
 
@@ -1122,15 +1143,15 @@ class TestEditProfile(GUITestCase):
 				[u'test1', u'test3', u'test2'],
 				{'r': False, 'db': u'testA.db', 'd': u'', 'n': u'testA'})
 		with patch("physbiblio.gui.profilesManager.EditProfileWindow"
-				+ ".createForm") as _cf,\
+				+ ".createForm", autospec=True) as _cf,\
 				patch("physbiblio.gui.profilesManager."
-					+ "EditProfileWindow.cleanLayout") as _cl,\
+					+ "EditProfileWindow.cleanLayout", autospec=True) as _cl,\
 				patch("logging.Logger.warning") as _i:
 			self.assertFalse(ep.switchLines(2))
 			_i.assert_called_once_with("Impossible to switch lines: "
 				+ "index out of range")
-			_cl.assert_not_called()
-			_cf.assert_not_called()
+			self.assertEqual(_cl.call_count, 0)
+			self.assertEqual(_cf.call_count, 0)
 
 
 if __name__=='__main__':

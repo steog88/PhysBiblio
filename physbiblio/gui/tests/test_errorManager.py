@@ -44,7 +44,7 @@ class TestGUIErrorManager(GUITestCase):
 		self.assertEqual(es.priority, 2)
 		mb = MagicMock()
 		with patch("physbiblio.gui.errorManager.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			es.write("sometext")
 			_mb.assert_called_once_with(_mb.Information, "Information", "")
 		mb.setText.assert_called_once_with("sometext")
@@ -55,7 +55,7 @@ class TestGUIErrorManager(GUITestCase):
 		es.setPriority(0)
 		mb = MagicMock()
 		with patch("physbiblio.gui.errorManager.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			es.write("some\ntext")
 			_mb.assert_called_once_with(_mb.Information, "Information", "")
 		mb.setText.assert_called_once_with("some<br>text")
@@ -64,7 +64,7 @@ class TestGUIErrorManager(GUITestCase):
 		mb.exec_.assert_called_once_with()
 		mb = MagicMock()
 		with patch("physbiblio.gui.errorManager.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			es.write("some new text")
 			_mb.assert_called_once_with(_mb.Information, "Information", "")
 		mb.setText.assert_called_once_with("some new text")
@@ -72,9 +72,9 @@ class TestGUIErrorManager(GUITestCase):
 		mb.setIcon.assert_called_once_with(_mb.Warning)
 		mb.exec_.assert_called_once_with()
 		with patch("physbiblio.gui.errorManager.QMessageBox",
-				return_value=mb) as _mb:
+				return_value=mb, autospec=True) as _mb:
 			self.assertEqual(es.write(" "), None)
-			_mb.assert_not_called()
+			self.assertEqual(_mb.call_count, 0)
 
 	def test_PBErrorManagerClassGui(self):
 		"""Test functions in ErrorStream"""
