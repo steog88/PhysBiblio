@@ -1990,6 +1990,9 @@ class SearchBibsWindow(EditObjectWindow):
 		self.replNew1 = None
 		self.limitValue = None
 		self.limitOffs = None
+		self.limit = None
+		self.offset = None
+		self.replaceFields = {}
 		self.currentHistoric = 0
 		if self.edit is not None:
 			if not (isinstance(self.edit, int) or self.edit.isdigit()):
