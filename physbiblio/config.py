@@ -686,11 +686,25 @@ class ConfigVars():
 	and their configuration.
 	"""
 
-	def __init__(self, profileFileName = "profiles.db"):
+	arxivUrl = "https://arxiv.org"
+	doiUrl = "https://doi.org/"
+	inspireRecord = "https://inspirehep.net/record/"
+	inspireSearchBase = "https://inspirehep.net/search"
+
+	def __init__(self, profileFileName="profiles.db"):
 		"""Initialize the configuration.
 		Check the profiles first, then load the default profile
 		and its configuration.
 		"""
+		self.defaultProfileName = None
+		self.profiles = None
+		self.profileOrder = None
+		self.currentProfileName = None
+		self.currentProfile = None
+		self.currentDatabase = None
+		self.loggerString = None
+		self.logger = None
+
 		#needed because the main logger will be loaded later!
 		logging.basicConfig(
 			format='[%(module)s.%(funcName)s] %(message)s',
@@ -726,12 +740,6 @@ class ConfigVars():
 
 		self.checkOldProfiles()
 		self.loadProfiles()
-
-		#some urls
-		self.arxivUrl = "https://arxiv.org"
-		self.doiUrl = "https://doi.org/"
-		self.inspireRecord = "https://inspirehep.net/record/"
-		self.inspireSearchBase = "https://inspirehep.net/search"
 
 	def prepareLogger(self, string):
 		"""Replace the logger used by this module

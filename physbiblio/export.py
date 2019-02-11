@@ -32,6 +32,8 @@ class PBExport():
 	def __init__(self):
 		"""Initialize the class instance and set some default variables."""
 		self.exportForTexFlag = True
+		self.existingBibsList = None
+		self.allCitations = set([])
 
 	def backupCopy(self, fileName):
 		"""Creates a backup copy of the given file.

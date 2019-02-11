@@ -51,6 +51,12 @@ class InspireStatsLoader():
 		self.timeout = float(pbConfig.params["timeoutWebSearch"])
 		self.authorPlotInfo = None
 		self.paperPlotInfo = None
+		self.allInfoA = {}
+		self.authorPapersList = [[],[]]
+		self.allCitations = []
+		self.runningAuthorStats = True
+		self.allInfoP = {}
+		self.citingPapersList = [[],[]]
 
 	def changeBackend(self, wantBackend):
 		"""Changes the matplotlib backend currently in use.
