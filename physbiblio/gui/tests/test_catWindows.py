@@ -1216,6 +1216,17 @@ class TestCatsTreeWindow(GUITestCase):
 			_ec.assert_called_once_with(ctw, p, useParentCat='0')
 			self.assertEqual(_dc.call_count, 0)
 
+		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
+					return_value=[],
+					autospec=True) as _si,\
+				patch("logging.Logger.debug") as _d,\
+				patch("PySide2.QtCore.QModelIndex.isValid",
+					return_value=False, autospec=True) as _iv:
+			ctw.contextMenuEvent(ev)
+			_si.assert_called_once_with()
+			_d.assert_called_once_with("Click on missing index")
+			self.assertEqual(_iv.call_count, 0)
+
 	def test_recreateTable(self):
 		"""test recreateTable"""
 		ctw = CatsTreeWindow()

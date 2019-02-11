@@ -1,3 +1,4 @@
+	* unhandled error in catWindows.contextMenuEvent solved
 	* solved some bugs when reading existing bibtex files with comments or empty fields
 
 0.9.7 (2019-01-27):

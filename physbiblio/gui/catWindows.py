@@ -575,7 +575,12 @@ class CatsTreeWindow(PBDialog):
 		Parameter:
 			event: a `QEvent`
 		"""
-		index = self.tree.selectedIndexes()[0]
+		indexes = self.tree.selectedIndexes()
+		try:
+			index = indexes[0]
+		except IndexError:
+			pBLogger.debug("Click on missing index")
+			return
 		if index.isValid():
 			row = index.row()
 		else:
@@ -610,6 +615,7 @@ class CatsTreeWindow(PBDialog):
 			deleteCategory(self, self.parent(), idCat, catName)
 		elif action == subAction:
 			editCategory(self, self.parent(), useParentCat=idCat)
+		return
 
 	def recreateTable(self):
 		"""Delete the previous widgets and recreate them with new data"""
