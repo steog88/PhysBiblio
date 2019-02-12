@@ -42,6 +42,47 @@ class WebSearch(WebInterf):
 	to perform searches
 	"""
 
+	name = "arXiv"
+	description = "arXiv fetcher"
+	url = "https://export.arxiv.org/api/query"
+	urlRss = "https://export.arxiv.org/rss/"
+	urlArgs = {"start":"0"}
+	categories = {
+		"astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
+		"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other",
+			"quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
+		"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV",
+			"CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL",
+			"GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM",
+			"MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO",
+			"SC", "SD", "SE", "SI", "SY"],
+		"econ": ["EM", "GN", "TH"],
+		"eess": ["AS", "IV", "SP"],
+		"gr-qc": [],
+		"hep-ex": [],
+		"hep-lat": [],
+		"hep-ph": [],
+		"hep-th": [],
+		"math": ["AC", "AG", "AP", "AT", "CA", "CO", "CT", "CV", "DG",
+			"DS", "FA", "GM", "GN", "GR", "GT", "HO", "IT", "KT", "LO",
+			"MG", "MP", "NA", "NT", "OA", "OC", "PR", "QA", "RA", "RT",
+			"SG", "SP", "ST"],
+		"math-ph": [],
+		"nlin": ["AO", "CD", "CG", "PS", "SI"],
+		"nucl-ex": [],
+		"nucl-th": [],
+		"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph",
+			"bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an",
+			"ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det",
+			"med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph",
+			"space-ph"],
+		"q-bio": [
+			"BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
+		"q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
+		"quant-ph": [],
+		"stat": ["AP", "CO", "ME", "ML", "OT", "TH"]
+		}
+
 	def __init__(self):
 		"""Initializes the class variables using
 		the WebInterf constructor.
@@ -53,43 +94,7 @@ class WebSearch(WebInterf):
 		self.description = "arXiv fetcher"
 		self.url = "https://export.arxiv.org/api/query"
 		self.urlRss = "https://export.arxiv.org/rss/"
-		self.urlArgs = {
-			"start":"0"}
-		self.categories = {
-			"astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
-			"cond-mat": ["dis-nn", "mes-hall", "mtrl-sci", "other",
-				"quant-gas", "soft", "stat-mech", "str-el", "supr-con"],
-			"cs": ["AI", "AR", "CC", "CE", "CG", "CL", "CR", "CV",
-				"CY", "DB", "DC", "DL", "DM", "DS", "ET", "FL", "GL",
-				"GR", "GT", "HC", "IR", "IT", "LG", "LO", "MA", "MM",
-				"MS", "NA", "NE", "NI", "OH", "OS", "PF", "PL", "RO",
-				"SC", "SD", "SE", "SI", "SY"],
-			"econ": ["EM", "GN", "TH"],
-			"eess": ["AS", "IV", "SP"],
-			"gr-qc": [],
-			"hep-ex": [],
-			"hep-lat": [],
-			"hep-ph": [],
-			"hep-th": [],
-			"math": ["AC", "AG", "AP", "AT", "CA", "CO", "CT", "CV", "DG",
-				"DS", "FA", "GM", "GN", "GR", "GT", "HO", "IT", "KT", "LO",
-				"MG", "MP", "NA", "NT", "OA", "OC", "PR", "QA", "RA", "RT",
-				"SG", "SP", "ST"],
-			"math-ph": [],
-			"nlin": ["AO", "CD", "CG", "PS", "SI"],
-			"nucl-ex": [],
-			"nucl-th": [],
-			"physics": ["acc-ph", "ao-ph", "app-ph", "atm-clus", "atom-ph",
-				"bio-ph", "chem-ph", "class-ph", "comp-ph", "data-an",
-				"ed-ph", "flu-dyn", "gen-ph", "geo-ph", "hist-ph", "ins-det",
-				"med-ph", "optics", "plasm-ph", "pop-ph", "soc-ph",
-				"space-ph"],
-			"q-bio": [
-				"BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
-			"q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
-			"quant-ph": [],
-			"stat": ["AP", "CO", "ME", "ML", "OT", "TH"]
-			}
+		self.urlArgs = {"start":"0"}
 
 	def getYear(self, string):
 		"""Use the arxiv id to compute the year"""

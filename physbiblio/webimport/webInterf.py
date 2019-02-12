@@ -38,6 +38,13 @@ class WebInterf():
 	a function to load other webinterfaces
 	"""
 
+	url = None
+	urlArgs = None
+	urlTimeout = 1000.
+	interfaces = []
+	webSearch = {}
+	loaded = False
+
 	def __init__(self):
 		"""Initializes the class variables."""
 		self.url = None

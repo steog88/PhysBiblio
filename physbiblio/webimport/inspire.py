@@ -20,6 +20,22 @@ class WebSearch(WebInterf):
 	to INSPIRE-HEP to perform searches
 	"""
 
+	name = "inspire"
+	description = "INSPIRE fetcher"
+	url = pbConfig.inspireSearchBase
+	urlRecord = pbConfig.inspireRecord
+	urlArgs = {
+		#"action_search": "Search",
+		"sf": "year",
+		"so": "a",
+		"rg": "250",
+		"sc": "0",
+		"eb": "B",
+		"of": "hx"
+			# for bibtex format ---- hb for standard format,
+			# for retrieving inspireid
+		}
+
 	def __init__(self):
 		"""Initializes the class variables
 		using the WebInterf constructor.

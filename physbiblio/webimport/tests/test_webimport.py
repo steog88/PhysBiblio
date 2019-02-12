@@ -32,7 +32,6 @@ class TestWebImportMethods(unittest.TestCase):
 
 	def test_methods_success(self):
 		"""Test webimport with known results"""
-		print(physBiblioWeb.webSearch.keys())
 		tests = {
 			"arxiv": ["1507.08204",
 				u'@Article{1507.08204,\n         title = ' \
@@ -127,11 +126,11 @@ class TestWebImportMethods(unittest.TestCase):
 			elif method == "arxiv":
 				self.assertEqual(
 					physBiblioWeb.webSearch[method].retrieveUrlFirst(
-						strings[0], searchType = "id").strip(),
+						strings[0], searchType="id").strip(),
 					strings[1].strip())
 				self.assertEqual(
 					physBiblioWeb.webSearch[method].retrieveUrlAll(
-						strings[0], searchType = "id").strip(),
+						strings[0], searchType="id").strip(),
 					strings[1].strip())
 			else:
 				self.assertEqual(
@@ -187,11 +186,11 @@ class TestWebImportMethods(unittest.TestCase):
 		"""test auxiliary functions in inspireoai module"""
 		self.maxDiff = None
 		marcxmlRecord1 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(
-			metadataPrefix = 'marcxml',
-			identifier = "oai:inspirehep.net:1385583")[1]
+			metadataPrefix='marcxml',
+			identifier="oai:inspirehep.net:1385583")[1]
 		marcxmlRecord2 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(
-			metadataPrefix = 'marcxml',
-			identifier = "oai:inspirehep.net:1414175")[1]
+			metadataPrefix='marcxml',
+			identifier="oai:inspirehep.net:1414175")[1]
 		self.assertEqual(get_journal_ref_xml(marcxmlRecord1),
 			(['J.Phys.'], ['G43'], ['2016'], ['033001'],
 			[None], [None], [None], [None]))
@@ -201,7 +200,7 @@ class TestWebImportMethods(unittest.TestCase):
 		dict1a = physBiblioWeb.webSearch["inspireoai"].readRecord(
 			marcxmlRecord1)
 		dict1b = physBiblioWeb.webSearch["inspireoai"].readRecord(
-			marcxmlRecord1, readConferenceTitle = True)
+			marcxmlRecord1, readConferenceTitle=True)
 		self.assertEqual(dict1a, dict1b)
 		self.assertEqual(dict1a,
 			{'doi': '10.1088/0954-3899/43/3/033001',
@@ -226,7 +225,7 @@ class TestWebImportMethods(unittest.TestCase):
 			+ '"1507.08204",\n           doi = ' \
 			+ '"10.1088/0954-3899/43/3/033001",\n}\n\n'})
 		dict2 = physBiblioWeb.webSearch["inspireoai"].readRecord(
-			marcxmlRecord2, readConferenceTitle = True)
+			marcxmlRecord2, readConferenceTitle=True)
 		self.assertEqual(dict2,
 			{'doi': '10.1142/9789813224568_0076', 'arxiv': '1601.01475',
 			'bibkey': 'Gariazzo:2016ehl', 'ads': None, 'journal': None,

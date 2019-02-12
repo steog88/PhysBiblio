@@ -18,6 +18,11 @@ class WebSearch(WebInterf):
 	to perform searches
 	"""
 
+	name = "isbn"
+	description = "ISBN to bibtex"
+	url = "http://www.ebook.de/de/tools/isbn2bibtex"
+	urlArgs = {}
+
 	def __init__(self):
 		"""Initializes the class variables
 		using the WebInterf constructor.

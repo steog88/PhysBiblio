@@ -19,6 +19,11 @@ class WebSearch(WebInterf):
 	to doi.org to perform searches
 	"""
 
+	name = "doi"
+	description = "Doi fetcher"
+	url = pbConfig.doiUrl
+	headers = {'accept': 'application/x-bibtex'}
+
 	def __init__(self):
 		"""Initializes the class variables using the WebInterf constructor.
 

@@ -131,6 +131,29 @@ class WebSearch(WebInterf):
 	to perform searches using the OAI API
 	"""
 
+	name = "inspireoai"
+	description = "INSPIRE OAI interface"
+	url = "https://inspirehep.net/oai2d"
+	correspondences = [
+		["id", "inspire"],
+		["year", "year"],
+		["arxiv", "arxiv"],
+		# ["oldkeys", "old_keys"],
+		["firstdate", "firstdate"],
+		["pubdate", "pubdate"],
+		["doi", "doi"],
+		["ads", "ads"],
+		["isbn", "isbn"],
+		["bibtex", "bibtex"],
+		["link", "link"],
+	]
+	bibtexFields = [
+		"author", "title",
+		"journal", "volume", "year", "pages",
+		"arxiv", "primaryclass", "archiveprefix", "eprint",
+		"doi", "isbn",
+		"school", "reportnumber", "booktitle", "collaboration"]
+
 	def __init__(self):
 		"""Initializes the class variables using
 		the WebInterf constructor.
@@ -143,25 +166,6 @@ class WebSearch(WebInterf):
 		self.description = "INSPIRE OAI interface"
 		self.url = "https://inspirehep.net/oai2d"
 		self.oai = Client(self.url, registry)
-		self.correspondences = [
-			["id", "inspire"],
-			["year", "year"],
-			["arxiv", "arxiv"],
-			# ["oldkeys", "old_keys"],
-			["firstdate", "firstdate"],
-			["pubdate", "pubdate"],
-			["doi", "doi"],
-			["ads", "ads"],
-			["isbn", "isbn"],
-			["bibtex", "bibtex"],
-			["link", "link"],
-		]
-		self.bibtexFields = [
-			"author", "title",
-			"journal", "volume", "year", "pages",
-			"arxiv", "primaryclass", "archiveprefix", "eprint",
-			"doi", "isbn",
-			"school", "reportnumber", "booktitle", "collaboration"]
 
 	def retrieveUrlFirst(self, string):
 		"""The OAI interface is not for string searches:

@@ -33,10 +33,6 @@ class PhysBiblioDB(PhysBiblioDBCore):
 	and loadSubClasses implementations.
 	"""
 
-	def __init__(self, *args, **kwargs):
-		"""Wrapper for PhysBiblioDBCore.__init__"""
-		PhysBiblioDBCore.__init__(self, *args, **kwargs)
-
 	def reOpenDB(self, newDB=None):
 		"""Close the currently open database and
 		open a new one (the same if newDB is None).
@@ -47,6 +43,14 @@ class PhysBiblioDB(PhysBiblioDBCore):
 		Output:
 			True if successfull
 		"""
+		self.utils = None
+		self.bibs = None
+		self.cats = None
+		self.exps = None
+		self.bibExp = None
+		self.catBib = None
+		self.catExp = None
+		self.config = None
 		if newDB is not None:
 			self.closeDB()
 			del self.conn
@@ -58,7 +62,6 @@ class PhysBiblioDB(PhysBiblioDBCore):
 				self.logger.info("-------New database. Creating tables!\n\n")
 				self.createTables()
 			self.checkDatabaseUpdates()
-
 			self.lastFetched = None
 			self.catsHier = None
 		else:
@@ -1389,6 +1392,49 @@ class Experiments(PhysBiblioDBSub):
 class Entries(PhysBiblioDBSub):
 	"""Functions to manage the bibtex entries"""
 
+	searchPossibleTypes = {
+		"exp_paper": {"desc": "Experimental"},
+		"lecture": {"desc": "Lecture"},
+		"phd_thesis": {"desc": "PhD thesis"},
+		"review": {"desc": "Review"},
+		"proceeding": {"desc": "Proceeding"},
+		"book": {"desc": "Book"}
+		}
+	searchOperators = {
+		"text": {
+			"contains": "like",
+			"exact match": "=",
+			"does not contain": "not like",
+			"different from": "!="
+			},
+		"catexp": {
+			"all the following": "",
+			"at least one among": "",
+			# "none of the following": "",
+			},
+		}
+	searchFields = {
+		"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
+			"firstdate", "pubdate", "comment"]
+		}
+	validReplaceFields = {
+		"old": ["arxiv", "doi", "year", "author", "title",
+			"journal", "number", "volume", "published"],
+		"new": ["arxiv", "doi", "year", "author", "title",
+			"journal", "number", "volume"]
+		}
+	lastFetched = []
+	lastQuery = "select * from entries limit 10"
+	lastVals = ()
+	lastInserted = []
+	runningReplace = False
+	getArxivFieldsFlag = False
+	runningLoadAndInsert = False
+	runningCleanBibtexs = False
+	runningOAIUpdates = False
+	newKey = None
+	fetchCurs = None
+
 	def __init__(self, parent):
 		"""Call parent __init__ and create an empty lastFetched & c."""
 		PhysBiblioDBSub.__init__(self, parent)
@@ -1396,37 +1442,12 @@ class Entries(PhysBiblioDBSub):
 		self.lastQuery = "select * from entries limit 10"
 		self.lastVals = ()
 		self.lastInserted = []
-		self.searchPossibleTypes = {
-			"exp_paper": {"desc": "Experimental"},
-			"lecture": {"desc": "Lecture"},
-			"phd_thesis": {"desc": "PhD thesis"},
-			"review": {"desc": "Review"},
-			"proceeding": {"desc": "Proceeding"},
-			"book": {"desc": "Book"}
-			}
-		self.searchOperators = {
-			"text": {
-				"contains": "like",
-				"exact match": "=",
-				"does not contain": "not like",
-				"different from": "!="
-				},
-			"catexp": {
-				"all the following": "",
-				"at least one among": "",
-				# "none of the following": "",
-				},
-			}
-		self.searchFields = {
-			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
-				"firstdate", "pubdate", "comment"]
-			}
-		self.validReplaceFields = {
-			"old": ["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume", "published"],
-			"new": ["arxiv", "doi", "year", "author", "title",
-				"journal", "number", "volume"]
-			}
+		self.runningReplace = False
+		self.getArxivFieldsFlag = False
+		self.runningLoadAndInsert = False
+		self.runningCleanBibtexs = False
+		self.runningOAIUpdates = False
+		self.newKey = None
 		try:
 			self.fetchCurs = self.conn.cursor()
 		except AttributeError:
@@ -2095,9 +2116,9 @@ class Entries(PhysBiblioDBSub):
 		"""
 		url = self.getField(key, "arxiv")
 		return pbConfig.arxivUrl + "/" + urlType + "/" + url \
-			if url != "" and url is not False \
-				and url is not None \
-				and url is not "" \
+			if (url != "" and url is not False
+				and url is not None
+				and url is not "") \
 			else False
 
 	def insert(self, data):
