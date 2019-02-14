@@ -351,18 +351,17 @@ class LocalPDF():
 		"""
 		fileDir = self.getFileDir(key)
 		try:
-			if fullPath:
-				return [osp.join(fileDir, e) for e in os.listdir(fileDir) \
-					if (e.endswith(".pdf")
-						or e.endswith(".djvu")
-						or e.endswith(".ps"))]
-			else:
-				return [e for e in os.listdir(fileDir)
-					if (e.endswith(".pdf")
-						or e.endswith(".djvu")
-						or e.endswith(".ps"))]
-		except:
+			dircontent = os.listdir(fileDir)
+		except Exception:
 			return []
+		try:
+			files = [e for e in dircontent if osp.isfile(osp.join(fileDir, e))]
+		except (FileNotFoundError, IOError):
+			pBLogger.exception("Error in listing the files")
+			return []
+		if fullPath:
+			files = [osp.join(fileDir, e) for e in files]
+		return files
 
 	def printExisting(self, key, fullPath=False):
 		"""Print the list of existing files for a given entry,

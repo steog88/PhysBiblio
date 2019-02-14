@@ -1005,7 +1005,7 @@ class GUIViewEntry(ViewEntry):
 			elif arg is "link":
 				url = QUrl(key)
 			else:
-				link = self.getLink(key, arg = arg, fileArg = fileArg)
+				link = self.getLink(key, arg=arg, fileArg=fileArg)
 				url = QUrl(link)
 			if QDesktopServices.openUrl(url):
 				pBLogger.debug("Opening link '%s' for entry '%s' successful!"%(
@@ -1097,11 +1097,11 @@ class PBImportedTableModel(PBTableModel):
 			return False
 		if role == Qt.CheckStateRole and index.column() == 0:
 			if value == Qt.Checked:
-				self.selectedElements[self.dataList[index.row()][self.idName]] \
-					= True
+				self.selectedElements[self.dataList[index.row()][
+					self.idName]] = True
 			else:
-				self.selectedElements[self.dataList[index.row()][self.idName]] \
-					= False
+				self.selectedElements[self.dataList[index.row()][
+					self.idName]] = False
 		self.dataChanged.emit(index, index)
 		return True
 

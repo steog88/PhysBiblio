@@ -2139,12 +2139,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(_a.call_count, 0)
 			c.menu.possibleActions[0][1][0].trigger()
 			_a.assert_called_once_with(c)
@@ -2170,12 +2170,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 2)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Download arXiv PDF")
 			self.assertEqual(_b.call_count, 0)
@@ -2207,7 +2207,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
@@ -2215,7 +2215,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Open arXiv PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][1], None)
 			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][3], None)
 			self.assertIsInstance(c.menu.possibleActions[0][1][4], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][4]), 2)
@@ -2260,12 +2260,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 2)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][1].text(),
 				"Assign DOI PDF")
 			self.assertEqual(_a.call_count, 0)
@@ -2297,7 +2297,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
@@ -2305,7 +2305,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Open DOI PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][1], None)
 			self.assertEqual(c.menu.possibleActions[0][1][2].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][3], None)
 			self.assertIsInstance(c.menu.possibleActions[0][1][4], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][4]), 2)
@@ -2354,7 +2354,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
@@ -2364,7 +2364,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Open DOI PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][2], None)
 			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][4], None)
 			self.assertIsInstance(c.menu.possibleActions[0][1][5], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][5]), 2)
@@ -2411,7 +2411,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
@@ -2421,7 +2421,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Open b.pdf")
 			self.assertEqual(c.menu.possibleActions[0][1][2], None)
 			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
-				"Add generic PDF")
+				"Add generic file")
 			self.assertEqual(c.menu.possibleActions[0][1][4], None)
 			self.assertIsInstance(c.menu.possibleActions[0][1][5], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][5]), 2)
@@ -2454,7 +2454,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			_l.reset_mock()
 			c.menu.possibleActions[0][1][1].trigger()
 			_l.assert_called_once_with(
-				pBGuiView, 'abc', 'file', fileArg='b.pdf')
+				pBGuiView, 'abc', 'file', fileArg='/fd/b.pdf')
 			_a.reset_mock()
 			c.menu.possibleActions[0][1][6][1][0].trigger()
 			_a.assert_called_once_with(c, 'abc', 'b.pdf', 'b.pdf', '/fd/b.pdf')
@@ -2470,7 +2470,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 		c.menu = PBMenu(self.mainW)
 		with patch("physbiblio.pdf.LocalPDF.getExisting",
 					return_value=["arxiv.pdf", "doi.pdf",
-						"a.pdf", "/fd/b.pdf"],
+						"a.pdf", "/fd/b.pdf", "/fd/c.txt"],
 					autospec=True) as _ge,\
 				patch("physbiblio.pdf.LocalPDF.getFilePath",
 					side_effect=["arxiv.pdf", "doi.pdf"],
@@ -2490,9 +2490,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
-			self.assertEqual(c.menu.possibleActions[0][0], "PDF")
+			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 11)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 13)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
 				"Open arXiv PDF")
@@ -2502,46 +2502,57 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Open a.pdf")
 			self.assertEqual(c.menu.possibleActions[0][1][3].text(),
 				"Open b.pdf")
-			self.assertEqual(c.menu.possibleActions[0][1][4], None)
-			self.assertEqual(c.menu.possibleActions[0][1][5].text(),
-				"Add generic PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][6], None)
-			self.assertIsInstance(c.menu.possibleActions[0][1][7], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1][7]), 2)
-			self.assertEqual(c.menu.possibleActions[0][1][7][0],
-				"Manage arXiv PDF")
-			self.assertIsInstance(c.menu.possibleActions[0][1][7][1], list)
-			self.assertEqual(c.menu.possibleActions[0][1][7][1][0].text(),
-				"Delete arXiv PDF")
-			self.assertEqual(c.menu.possibleActions[0][1][7][1][1].text(),
-				"Copy arXiv PDF")
+			self.assertEqual(c.menu.possibleActions[0][1][4].text(),
+				"Open c.txt")
+			self.assertEqual(c.menu.possibleActions[0][1][5], None)
+			self.assertEqual(c.menu.possibleActions[0][1][6].text(),
+				"Add generic file")
+			self.assertEqual(c.menu.possibleActions[0][1][7], None)
 			self.assertIsInstance(c.menu.possibleActions[0][1][8], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][8]), 2)
 			self.assertEqual(c.menu.possibleActions[0][1][8][0],
-				"Manage DOI PDF")
+				"Manage arXiv PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1][8][1], list)
 			self.assertEqual(c.menu.possibleActions[0][1][8][1][0].text(),
-				"Delete DOI PDF")
+				"Delete arXiv PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][8][1][1].text(),
-				"Copy DOI PDF")
+				"Copy arXiv PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1][9], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][9]), 2)
 			self.assertEqual(c.menu.possibleActions[0][1][9][0],
-				"Manage a.pdf")
+				"Manage DOI PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1][9][1], list)
 			self.assertEqual(c.menu.possibleActions[0][1][9][1][0].text(),
-				"Delete a.pdf")
+				"Delete DOI PDF")
 			self.assertEqual(c.menu.possibleActions[0][1][9][1][1].text(),
-				"Copy a.pdf")
+				"Copy DOI PDF")
 			self.assertIsInstance(c.menu.possibleActions[0][1][10], list)
 			self.assertEqual(len(c.menu.possibleActions[0][1][10]), 2)
 			self.assertEqual(c.menu.possibleActions[0][1][10][0],
-				"Manage b.pdf")
+				"Manage a.pdf")
 			self.assertIsInstance(c.menu.possibleActions[0][1][10][1], list)
 			self.assertEqual(c.menu.possibleActions[0][1][10][1][0].text(),
-				"Delete b.pdf")
+				"Delete a.pdf")
 			self.assertEqual(c.menu.possibleActions[0][1][10][1][1].text(),
+				"Copy a.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][11], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][11]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][11][0],
+				"Manage b.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][11][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][11][1][0].text(),
+				"Delete b.pdf")
+			self.assertEqual(c.menu.possibleActions[0][1][11][1][1].text(),
 				"Copy b.pdf")
+			self.assertIsInstance(c.menu.possibleActions[0][1][12], list)
+			self.assertEqual(len(c.menu.possibleActions[0][1][12]), 2)
+			self.assertEqual(c.menu.possibleActions[0][1][12][0],
+				"Manage c.txt")
+			self.assertIsInstance(c.menu.possibleActions[0][1][12][1], list)
+			self.assertEqual(c.menu.possibleActions[0][1][12][1][0].text(),
+				"Delete c.txt")
+			self.assertEqual(c.menu.possibleActions[0][1][12][1][1].text(),
+				"Copy c.txt")
 
 	def test_createContextMenu(self):
 		"""test createContextMenu"""
@@ -2752,8 +2763,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			_cp.assert_called_once_with(pBPDF, 'abc',
 				'/h/c/file.pdf', customName='file.pdf')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?",
-				filter="Documents (*.pdf *.ps *.djvu)")
+				"Where is the file located?", filter="Files (*)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2767,8 +2777,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			c.onAddPDF(ftype="doi")
 			_cp.assert_called_once_with(pBPDF, 'abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?",
-				filter="Documents (*.pdf *.ps *.djvu)")
+				"Where is the file located?", filter="Files (*)")
 			_im.assert_called_once_with("PDF successfully copied!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 
@@ -2781,8 +2790,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 			c.onAddPDF("doi")
 			_cp.assert_called_once_with(pBPDF, 'abc', '/h/c/file.pdf', 'doi')
 			_afn.assert_called_once_with(p,
-				"Where is the PDF located?",
-				filter="Documents (*.pdf *.ps *.djvu)")
+				"Where is the file located?", filter="Files (*)")
 			_e.assert_called_once_with("Could not copy the new file!")
 			_if.assert_called_once_with("/h/c/file.pdf")
 

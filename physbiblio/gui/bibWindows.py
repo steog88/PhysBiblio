@@ -856,12 +856,12 @@ class CommonBibActions():
 				f = shortfiles[fn]
 				if f not in [arxivFile, doiFile]:
 					menuP.append(QAction("Open %s"%fn, self.menu,
-						triggered=lambda k=bibkey, t="file", f=fn:
+						triggered=lambda k=bibkey, t="file", f=f:
 							pBGuiView.openLink(k, t, fileArg=f)))
 			if len(menuP) > 0:
 				menuP.append(None)
 			menuP.append(
-				QAction("Add generic PDF", self.menu,
+				QAction("Add generic file", self.menu,
 					triggered=self.onAddPDF))
 			if len(files) > 0:
 				menuP.append(None)
@@ -904,7 +904,7 @@ class CommonBibActions():
 					triggered=lambda k=bibkey, a=fn, t=f:
 						self.onCopyPDFFile(k, a, t)))
 				menuP.append(["Manage %s"%fn, tmpM])
-			self.menu.possibleActions.append(["PDF", menuP])
+			self.menu.possibleActions.append(["Files", menuP])
 		else:
 			self.menu.possibleActions.append(
 				QAction("Download PDF from arXiv", self.menu,
@@ -998,7 +998,7 @@ class CommonBibActions():
 		"""
 		bibkey = self.keys[0]
 		newPdf = askFileName(self.parent(),
-			"Where is the PDF located?", filter="Documents (*.pdf *.ps *.djvu)")
+			"Where is the file located?", filter="Files (*)")
 		if newPdf != "" and os.path.isfile(newPdf):
 			if ftype == "generic":
 				newName = newPdf.split("/")[-1]
