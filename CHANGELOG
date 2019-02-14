@@ -1,3 +1,4 @@
+	* "open folder" in "Files" menu
 	* manage all file types, not only PDF
 	* unhandled error in catWindows.contextMenuEvent solved
 	* solved some bugs when reading existing bibtex files with comments or empty fields

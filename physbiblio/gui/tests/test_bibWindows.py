@@ -2477,6 +2477,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 					autospec=True) as _gf,\
 				patch("physbiblio.pdf.LocalPDF.getFileDir",
 					return_value="/fd", autospec=True) as _gd,\
+				patch("os.path.exists", return_value=True) as _ope,\
 				patch("physbiblio.gui.bibWindows.CommonBibActions."
 					+ "onDeletePDFFile", autospec=True) as _a,\
 				patch("physbiblio.gui.bibWindows.CommonBibActions."
@@ -2489,10 +2490,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				call(pBPDF, "abc", "arxiv"),
 				call(pBPDF, "abc", "doi")])
 			_gd.assert_called_once_with(pBPDF, "abc")
+			_ope.assert_called_once_with("/fd")
 			self.assertIsInstance(c.menu.possibleActions[0], list)
 			self.assertEqual(c.menu.possibleActions[0][0], "Files")
 			self.assertIsInstance(c.menu.possibleActions[0][1], list)
-			self.assertEqual(len(c.menu.possibleActions[0][1]), 13)
+			self.assertEqual(len(c.menu.possibleActions[0][1]), 15)
 			self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
 			self.assertEqual(c.menu.possibleActions[0][1][0].text(),
 				"Open arXiv PDF")
@@ -2553,6 +2555,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
 				"Delete c.txt")
 			self.assertEqual(c.menu.possibleActions[0][1][12][1][1].text(),
 				"Copy c.txt")
+			self.assertEqual(c.menu.possibleActions[0][1][13], None)
+			c.menu.possibleActions[0][1][14].trigger()
+			_l.assert_called_once_with(pBGuiView, 'abc', 'file', fileArg='/fd')
 
 	def test_createContextMenu(self):
 		"""test createContextMenu"""

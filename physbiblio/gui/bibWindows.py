@@ -904,6 +904,11 @@ class CommonBibActions():
 					triggered=lambda k=bibkey, a=fn, t=f:
 						self.onCopyPDFFile(k, a, t)))
 				menuP.append(["Manage %s"%fn, tmpM])
+			if os.path.exists(pdfDir):
+				menuP.append(None)
+				menuP.append(QAction("Open directory", self.menu,
+					triggered=lambda k=bibkey, t="file", f=pdfDir:
+						pBGuiView.openLink(k, t, fileArg=f)))
 			self.menu.possibleActions.append(["Files", menuP])
 		else:
 			self.menu.possibleActions.append(
