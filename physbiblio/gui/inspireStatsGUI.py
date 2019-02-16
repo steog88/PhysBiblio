@@ -53,6 +53,7 @@ class AuthorStatsPlots(PBDialog):
 		"""
 		super(AuthorStatsPlots, self).__init__(parent)
 		self.figs = figs
+		self.canvas = None
 		if title is not None:
 			self.setWindowTitle(title)
 		layout = QGridLayout(self)
@@ -180,6 +181,7 @@ class PaperStatsPlots(PBDialog):
 		"""
 		super(PaperStatsPlots, self).__init__(parent)
 		self.fig = fig
+		self.canvas = None
 		if title is not None:
 			self.setWindowTitle(title)
 		layout = QGridLayout(self)

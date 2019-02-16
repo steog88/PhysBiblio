@@ -318,6 +318,7 @@ class AbstractFormulas():
 		self.fontsize = fontsize
 		self.mainWin = mainWin
 		self.statusMessages = statusMessages
+		self.thr = None
 		self.editor = self.mainWin.bottomCenter.text \
 			if customEditor is None else customEditor
 		self.document = QTextDocument()
@@ -663,6 +664,8 @@ class CommonBibActions():
 		self.bibs = bibs
 		self.keys = [e["bibkey"] for e in bibs]
 		self.parentObj = parent
+		self.menu = None
+		self.downArxiv_thr = []
 
 	def parent(self):
 		"""Return the parent widget"""
@@ -1429,6 +1432,16 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		for j in range(self.colcnt):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
+		self.tableModel = None
+		self.selAct = None
+		self.okAct = None
+		self.clearAct = None
+		self.selAllAct = None
+		self.unselAllAct = None
+		self.lastLabel = None
+		self.mergeLabel = None
+		self.filterInput = None
+		self.tableModel = None
 
 		QFrame.__init__(self, parent)
 		ObjListWindow.__init__(self, parent)
@@ -1733,6 +1746,9 @@ class BibtexListWindow(QFrame, ObjListWindow):
 class EditBibtexDialog(EditObjectWindow):
 	"""Create a window for editing or creating a new bibtex entry"""
 
+	checkboxes = ["exp_paper", "lecture", "phd_thesis", "review",
+		"proceeding", "book", "noUpdate"]
+
 	def __init__(self, parent=None, bib=None):
 		"""Set some basic properties.
 		If `bib` is None, prepare a new empty record.
@@ -1742,6 +1758,12 @@ class EditBibtexDialog(EditObjectWindow):
 			bib (default None): the bibtex record from the database,
 				or None to create a new entry
 		"""
+		self.acceptButton = None
+		self.cancelButton = None
+		self.textValues = {}
+		self.typeBox = None
+		self.currGrid = None
+		self.result = False
 		super(EditBibtexDialog, self).__init__(parent)
 		if bib is None:
 			self.data = {}
@@ -1754,8 +1776,6 @@ class EditBibtexDialog(EditObjectWindow):
 				self.data[k] = ""
 		self.checkValues = {}
 		self.markValues = {}
-		self.checkboxes = ["exp_paper", "lecture", "phd_thesis", "review",
-			"proceeding", "book", "noUpdate"]
 		self.createForm()
 
 	def onOk(self):
@@ -1977,6 +1997,13 @@ class SearchBibsWindow(EditObjectWindow):
 			edit (default None): if not None, it should be the index
 				of the search/replace to be modified
 		"""
+		self.acceptButton = None
+		self.cancelButton = None
+		self.saveButton = None
+		self.currGrid = None
+		self.addFieldButton = None
+		self.selectedCats = []
+		self.selectedExps = []
 		super(SearchBibsWindow, self).__init__(parent)
 		self.textValues = []
 		self.result = False
@@ -1997,6 +2024,11 @@ class SearchBibsWindow(EditObjectWindow):
 		self.limitOffs = None
 		self.limit = None
 		self.offset = None
+		self.replRegex = None
+		self.replOldField = None
+		self.replNewField = None
+		self.replNewField1 = None
+		self.doubleEdit = None
 		self.replaceFields = {}
 		self.currentHistoric = 0
 		if self.edit is not None:
@@ -2667,6 +2699,16 @@ class SearchBibsWindow(EditObjectWindow):
 class MergeBibtexs(EditBibtexDialog):
 	"""Dialog used to merge two bibtex entries"""
 
+	checkboxes = [
+		"exp_paper", "lecture", "phd_thesis", "review",
+		"proceeding", "book", "noUpdate"]
+	generic = [
+		"year", "doi", "arxiv", "inspire", "isbn", "firstdate",
+		"pubdate", "ads", "scholar", "link", "comments",
+		"old_keys", "crossref"]
+	bibtexEditLines = 8
+	bibtexWidth = 330
+
 	def __init__(self, bib1, bib2, parent=None):
 		"""Initialize some parameters that are later used to construct
 		the merge dialog form
@@ -2677,24 +2719,18 @@ class MergeBibtexs(EditBibtexDialog):
 			parent (default None): the parent widget
 		"""
 		super(EditBibtexDialog, self).__init__(parent)
-		self.bibtexEditLines = 8
-		self.bibtexWidth = 330
 		self.dataOld = {"0": bib1, "1": bib2}
 		self.data = {}
 		for k in pBDB.tableCols["entries"]:
 			self.data[k] = ""
 		self.checkValues = {}
 		self.markValues = {}
+		self.textValues = {}
 		self.radioButtons = {"0": {}, "1": {}}
 		self.textValues["0"] = {}
 		self.textValues["1"] = {}
-		self.checkboxes = [
-			"exp_paper", "lecture", "phd_thesis", "review",
-			"proceeding", "book", "noUpdate"]
-		self.generic = [
-			"year", "doi", "arxiv", "inspire", "isbn", "firstdate",
-			"pubdate", "ads", "scholar", "link", "comments",
-			"old_keys", "crossref"]
+		self.acceptButton = None
+		self.cancelButton = None
 		self.createForm()
 
 	def radioToggled(self, ix, k):
@@ -2947,6 +2983,8 @@ class FieldsFromArxiv(PBDialog):
 			parent: the parent widget
 		"""
 		super(FieldsFromArxiv, self).__init__(parent)
+		self.result = False
+		self.output = []
 		self.setWindowTitle("Import fields from arXiv")
 		self.checkBoxes = {}
 		self.arxivDict = [

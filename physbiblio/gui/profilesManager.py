@@ -122,6 +122,10 @@ class SelectProfiles(PBDialog):
 			raise Exception("Cannot run SelectProfiles: invalid parent")
 		PBDialog.__init__(self, parent)
 		self.message = message
+		self.result = False
+		self.combo = None
+		self.loadButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -214,6 +218,11 @@ class EditProfileWindow(EditObjectWindow):
 	def __init__(self, parent=None):
 		"""Prepare instance and create form"""
 		EditObjectWindow.__init__(self, parent)
+		self.def_group = None
+		self.elements = []
+		self.arrows = []
+		self.acceptButton = None
+		self.cancelButton = None
 		self.createForm()
 
 	def onOk(self):

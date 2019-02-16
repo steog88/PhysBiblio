@@ -169,6 +169,9 @@ class ObjListWindow(PBDialog):
 		self.tableWidth = None
 		self.proxyModel = None
 		self.gridLayout = gridLayout
+		self.filterInput = None
+		self.proxyModel = None
+		self.tableview = None
 		if gridLayout:
 			self.currLayout = QGridLayout()
 		else:
@@ -303,6 +306,8 @@ class EditObjectWindow(PBDialog):
 		"""
 		super(EditObjectWindow, self).__init__(parent)
 		self.textValues = {}
+		self.result = False
+		self.currGrid = None
 		self.initUI()
 
 	def keyPressEvent(self, e):
@@ -429,6 +434,8 @@ class PBTableModel(QAbstractTableModel):
 		self.parentObj = parent
 		self.previous = previous
 		self.ask = ask
+		self.selectedElements = {}
+		self.painter = None
 
 	def parent(self):
 		"""Return the parent object"""
@@ -498,7 +505,7 @@ class PBTableModel(QAbstractTableModel):
 		"""
 		return QPixmap(imagePath).scaledToHeight(height)
 
-	def addImages(self, imagePaths, outHeight, height = 48):
+	def addImages(self, imagePaths, outHeight, height=48):
 		"""Create a cell containing multiple images, using a `QPainter`
 
 		Parameters:
@@ -520,7 +527,7 @@ class PBTableModel(QAbstractTableModel):
 		self.painter.end()
 		return pm.scaledToHeight(outHeight)
 
-	def rowCount(self, parent = None):
+	def rowCount(self, parent=None):
 		"""Count the rows of the given model based on the header
 
 		Parameter:
@@ -534,7 +541,7 @@ class PBTableModel(QAbstractTableModel):
 		except (TypeError, AttributeError):
 			return 0
 
-	def columnCount(self, parent = None):
+	def columnCount(self, parent=None):
 		"""Count the columns of the given model based on the header
 
 		Parameter:
@@ -866,6 +873,7 @@ class PBDDTableWidget(QTableWidget):
 		self.setAcceptDrops(True)
 		self.setSelectionBehavior(QAbstractItemView.SelectRows)
 		self.setDragDropOverwriteMode(False)
+		self.last_drop_row = None
 
 	# Override this method to get the correct row index for insertion
 	def dropMimeData(self, row, col, mimeData, action):

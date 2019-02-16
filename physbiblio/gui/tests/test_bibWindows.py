@@ -6950,7 +6950,7 @@ class TestFieldsFromArxiv(GUITestCase):
 			ffa.onCancel()
 			self.assertEqual(_c.call_count, 1)
 		self.assertFalse(ffa.result)
-		self.assertFalse(hasattr(ffa, "output"))
+		self.assertEqual(ffa.output, [])
 
 if __name__=='__main__':
 	unittest.main()

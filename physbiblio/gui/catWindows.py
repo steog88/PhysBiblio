@@ -316,6 +316,18 @@ class CatsTreeWindow(PBDialog):
 		self.previous = previous
 		self.single = single
 		self.multipleRecords = multipleRecords
+		self.result	= False
+		self.marked = []
+		self.root_model = None
+		self.proxyModel = None
+		self.tree = None
+		self.menu = None
+		self.timer = None
+		self.expsButton = None
+		self.filterInput = None
+		self.newCatButton = None
+		self.acceptButton = None
+		self.cancelButton = None
 
 		self.setMinimumWidth(400)
 		self.setMinimumHeight(600)
@@ -418,10 +430,7 @@ class CatsTreeWindow(PBDialog):
 				self.parent().selectedCats[0] == 0:
 			self.parent().selectedCats.pop(0)
 			self.parent().selectedCats = [self.parent().selectedCats[0]]
-		if exps:
-			self.result	= "Exps"
-		else:
-			self.result	= "Ok"
+		self.result	= "Exps" if exps else "Ok"
 		self.close()
 
 	def changeFilter(self, string):
@@ -439,7 +448,7 @@ class CatsTreeWindow(PBDialog):
 		will be folloed by the selection of experiments.
 		Call `self.onOk` with `exps = True`.
 		"""
-		self.onOk(exps = True)
+		self.onOk(exps=True)
 
 	def onNewCat(self):
 		"""Action to perform when the creation
@@ -635,6 +644,9 @@ class EditCategoryDialog(EditObjectWindow):
 			useParentCat: the id of the parent category
 				of the given one in the tree
 		"""
+		self.acceptButton = None
+		self.cancelButton = None
+		self.textValues = None
 		super(EditCategoryDialog, self).__init__(parent)
 		if category is None:
 			self.data = {}

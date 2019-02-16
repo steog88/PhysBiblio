@@ -419,7 +419,7 @@ class TestEditObjectWindow(GUITestCase):
 		with patch("physbiblio.gui.commonClasses.EditObjectWindow.initUI",
 				autospec=True) as _iu:
 			eow = EditObjectWindow()
-		self.assertFalse(hasattr(eow, "currGrid"))
+		self.assertEqual(eow.currGrid, None)
 		eow = EditObjectWindow()
 		self.assertIsInstance(eow.currGrid, QGridLayout)
 		self.assertEqual(eow.layout(), eow.currGrid)

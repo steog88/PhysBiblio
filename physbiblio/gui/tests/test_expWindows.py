@@ -402,7 +402,7 @@ class TestExpsListWindow(GUITestCase):
 			elw = ExpsListWindow(p)
 		#test with askCats = False (nothing happens)
 		self.assertTrue(elw.populateAskExp())
-		self.assertFalse(hasattr(elw, "marked"))
+		self.assertEqual(elw.marked, [])
 		self.assertFalse(hasattr(p, "selectedExps"))
 		self.assertEqual(elw.currLayout.count(), 0)
 
@@ -421,7 +421,7 @@ class TestExpsListWindow(GUITestCase):
 			_w.assert_called_once_with(
 				"The entry 'bib' is not in the database!",
 				exc_info=True)
-		self.assertFalse(hasattr(elw, "marked"))
+		self.assertEqual(elw.marked, [])
 		self.assertFalse(hasattr(p, "selectedExps"))
 		self.assertEqual(elw.currLayout.count(), 0)
 		# dict has no "title" or "author"
@@ -438,7 +438,6 @@ class TestExpsListWindow(GUITestCase):
 			self.assertEqual(elw.layout().itemAt(0).widget().text(),
 				"Mark experiments for the following "
 				+ "entry:<br><b>key</b>:<br>bib<br>")
-		self.assertTrue(hasattr(elw, "marked"))
 		self.assertEqual(elw.marked, [])
 		self.assertTrue(hasattr(p, "selectedExps"))
 		self.assertEqual(p.selectedExps, [])
@@ -700,7 +699,7 @@ class TestExpsListWindow(GUITestCase):
 					return_value=mm, autospec=True) as _mm:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.triggeredContextMenuEvent(9999, 0, ev), None)
-		self.assertFalse(hasattr(elw, "menu"))
+		self.assertEqual(elw.menu, None)
 		with patch("physbiblio.gui.mainWindow.MainWindow."
 					+ "reloadMainContent", autospec=True) as _rmc,\
 				patch("physbiblio.gui.expWindows.PBMenu",

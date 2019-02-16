@@ -36,6 +36,14 @@ class ConfigEditColumns(PBDialog):
 	that must appear in the main table
 	"""
 
+	excludeCols = [
+		"crossref", "bibtex", "exp_paper", "lecture",
+		"phd_thesis", "review", "proceeding", "book", "noUpdate",
+		"bibdict", "abstract"]
+	moreCols = [
+		"title", "author", "journal", "volume", "pages",
+		"primaryclass", "booktitle", "reportnumber"]
+
 	def __init__(self, parent=None, previous=None):
 		"""Extend `PBDialog.__init__` and create the form structure
 
@@ -45,17 +53,19 @@ class ConfigEditColumns(PBDialog):
 				as selected at the beginning
 		"""
 		super(ConfigEditColumns, self).__init__(parent)
-		self.excludeCols = [
-			"crossref", "bibtex", "exp_paper", "lecture",
-			"phd_thesis", "review", "proceeding", "book", "noUpdate",
-			"bibdict", "abstract"]
-		self.moreCols = [
-			"title", "author", "journal", "volume", "pages",
-			"primaryclass", "booktitle", "reportnumber"]
+		self.gridlayout = None
+		self.items = []
+		self.listAll = None
+		self.listSel = None
+		self.allItems = None
+		self.selItems = None
 		self.previousSelected = previous \
 			if previous is not None \
 			else pbConfig.params["bibtexListColumns"]
 		self.selected = self.previousSelected
+		self.result	= False
+		self.acceptButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -123,6 +133,12 @@ class ConfigWindow(PBDialog):
 		"""Simple extension of `PBDialog.__init__`"""
 		super(ConfigWindow, self).__init__(parent)
 		self.textValues = []
+		self.result	= False
+		self.selectedCats = None
+		self.selectedExps = None
+		self.grid = None
+		self.acceptButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -273,6 +289,8 @@ class ConfigWindow(PBDialog):
 class LogFileContentDialog(PBDialog):
 	"""Create a window for showing the logFile content"""
 
+	title = "Log File Content"
+
 	def __init__(self, parent=None):
 		"""Instantiate class and create its widgets
 
@@ -280,7 +298,9 @@ class LogFileContentDialog(PBDialog):
 			parent: the parent widget
 		"""
 		PBDialog.__init__(self, parent)
-		self.title = "Log File Content"
+		self.textEdit = None
+		self.closeButton = None
+		self.clearButton = None
 		self.initUI()
 
 	def clearLog(self):
@@ -362,6 +382,11 @@ class PrintText(PBDialog):
 		"""
 		super(PrintText, self).__init__(parent)
 		self._wantToClose = False
+		self.grid = None
+		self.progressBar = None
+		self.textEdit = None
+		self.closeButton = None
+		self.cancelButton = None
 		if title != "":
 			self.title = title
 		else:
@@ -421,8 +446,7 @@ class PrintText(PBDialog):
 			self.cancelButton.setAutoDefault(True)
 			grid.addWidget(self.cancelButton)
 		self.closeButton = QPushButton('Close', self)
-		self.closeButton.clicked.connect(
-			lambda: self.reject())
+		self.closeButton.clicked.connect(lambda: self.reject())
 		self.closeButton.setDisabled(True)
 		grid.addWidget(self.closeButton)
 
@@ -490,6 +514,12 @@ class AdvancedImportDialog(PBDialog):
 	def __init__(self, parent=None):
 		"""Simple extension of `PBDialog.__init__`"""
 		super(AdvancedImportDialog, self).__init__(parent)
+		self.result	= False
+		self.grid = None
+		self.searchStr = None
+		self.comboMethod = None
+		self.acceptButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -555,6 +585,12 @@ class AdvancedImportSelect(ObjListWindow):
 		self.bibs = bibs
 		super(AdvancedImportSelect, self).__init__(parent, gridLayout=True)
 		self.checkBoxes = []
+		self.result	= False
+		self.askCats = None
+		self.tableModel = None
+		self.askCats = None
+		self.acceptButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -649,6 +685,12 @@ class DailyArxivDialog(PBDialog):
 	def __init__(self, parent=None):
 		"""Simple extension of `PBDialog.__init__`"""
 		super(DailyArxivDialog, self).__init__(parent)
+		self.result	= False
+		self.grid = None
+		self.comboSub = None
+		self.comboCat = None
+		self.acceptButton = None
+		self.cancelButton = None
 		self.initUI()
 
 	def onCancel(self):
@@ -710,6 +752,24 @@ class DailyArxivDialog(PBDialog):
 
 class DailyArxivSelect(AdvancedImportSelect):
 	"""create a window for the advanced import"""
+
+	def __init__(self, bibs={}, parent=None):
+		"""Set some properties and call `initUI`
+
+		Parameters:
+			bibs: a dictionary containing the imported bibtex entries.
+				Each element should be a dictionary containing at least
+				a "bibpars" item, a dictionary with at least the keys
+				["ID", "title", "author", "eprint", "doi"],
+				and a boolean "exist" item.
+			parent: the parent widget
+		"""
+		self.tableModel = None
+		self.askCats = None
+		self.acceptButton = None
+		self.cancelButton = None
+		self.abstractArea = None
+		super(DailyArxivSelect, self).__init__(bibs, parent)
 
 	def initUI(self):
 		"""Initialize the widget content, with the buttons and labels"""
@@ -791,6 +851,13 @@ class ExportForTexDialog(PBDialog):
 		self.update = False
 		self.remove = False
 		self.result = False
+		self.texButtons = None
+		self.bibButton = None
+		self.removeCheck = None
+		self.updateCheck = None
+		self.addTexButton = None
+		self.acceptButton = None
+		self.cancelButton = None
 		self.grid = QGridLayout()
 		self.setLayout(self.grid)
 		self.initUI()

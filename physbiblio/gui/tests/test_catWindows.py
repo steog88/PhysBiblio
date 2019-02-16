@@ -511,7 +511,7 @@ class TestCatsTreeWindow(GUITestCase):
 
 		#test with askCats = False (nothing happens)
 		self.assertTrue(ctw.populateAskCat())
-		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertEqual(ctw.marked, [])
 		self.assertFalse(hasattr(p, "selectedCats"))
 		self.assertEqual(ctw.currLayout.count(), 0)
 
@@ -528,7 +528,7 @@ class TestCatsTreeWindow(GUITestCase):
 			_w.assert_called_once_with(
 				"The entry 'bib' is not in the database!",
 				exc_info=True)
-		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertEqual(ctw.marked, [])
 		self.assertFalse(hasattr(p, "selectedCats"))
 		self.assertEqual(ctw.currLayout.count(), 0)
 		# dict has no "title" or "author"
@@ -645,7 +645,7 @@ class TestCatsTreeWindow(GUITestCase):
 			_w.assert_called_once_with(
 				"The experiment ID exp is not in the database!",
 				exc_info=True)
-		self.assertFalse(hasattr(ctw, "marked"))
+		self.assertEqual(ctw.marked, [])
 		self.assertFalse(hasattr(p, "selectedCats"))
 		self.assertEqual(ctw.currLayout.count(), 0)
 		# dict has no "name" or "comments"
@@ -662,7 +662,6 @@ class TestCatsTreeWindow(GUITestCase):
 			self.assertEqual(ctw.layout().itemAt(0).widget().text(),
 				"Mark categories for the following "
 				+ "experiment:<br><b>id</b>:<br>exp<br>")
-		self.assertTrue(hasattr(ctw, "marked"))
 		self.assertEqual(ctw.marked, [])
 		self.assertTrue(hasattr(p, "selectedCats"))
 		self.assertEqual(p.selectedCats, [])
@@ -1135,7 +1134,7 @@ class TestCatsTreeWindow(GUITestCase):
 				patch("physbiblio.gui.catWindows.deleteCategory",
 					autospec=True) as _dc:
 			ctw.contextMenuEvent(ev)
-			self.assertFalse(hasattr(ctw, "menu"))
+		self.assertEqual(ctw.menu, None)
 		with patch("PySide2.QtWidgets.QTreeView.selectedIndexes",
 					return_value=[ctw.tree.indexAt(QPoint(0, 0))],
 					autospec=True) as _si,\

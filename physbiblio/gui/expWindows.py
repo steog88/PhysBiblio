@@ -105,6 +105,8 @@ def deleteExperiment(parentObject, mainWinObject, idExp, name):
 class ExpTableModel(PBTableModel):
 	"""Model for the experiment list"""
 
+	typeClass = "Exps"
+
 	def __init__(self,
 			parent,
 			exp_list,
@@ -124,7 +126,6 @@ class ExpTableModel(PBTableModel):
 			previous: the list of previously selected experiments
 				(default: an empty list)
 		"""
-		self.typeClass = "Exps"
 		self.dataList = exp_list
 		super(ExpTableModel, self).__init__(
 			parent, header, askExps, previous, *args)
@@ -200,6 +201,10 @@ class ExpTableModel(PBTableModel):
 class ExpsListWindow(ObjListWindow):
 	"""create a window for printing the list of experiments"""
 
+	colcnt = len(pBDB.tableCols["experiments"])
+	colContents = [pBDB.tableCols["experiments"][j]
+		for j in range(len(pBDB.tableCols["experiments"]))]
+
 	def __init__(self,
 			parent=None,
 			askExps=False,
@@ -219,16 +224,18 @@ class ExpsListWindow(ObjListWindow):
 			previous: the list (default empty) of initially selected
 				experiments
 		"""
-		#table dimensions and column names
-		self.colcnt = len(pBDB.tableCols["experiments"])
-		self.colContents = []
-		for j in range(self.colcnt):
-			self.colContents.append(pBDB.tableCols["experiments"][j])
-
 		self.askExps = askExps
 		self.askForBib = askForBib
 		self.askForCat = askForCat
 		self.previous = previous
+		self.marked = []
+		self.result	= False
+		self.exps = []
+		self.newExpButton = None
+		self.acceptButton = None
+		self.cancelButton = None
+		self.menu = None
+		self.timer = None
 
 		ObjListWindow.__init__(self, parent)
 		self.setWindowTitle('List of experiments')
@@ -513,6 +520,8 @@ class EditExperimentDialog(EditObjectWindow):
 				self.data[k] = ""
 		else:
 			self.data = experiment
+		self.acceptButton = None
+		self.cancelButton = None
 		self.createForm()
 
 	def createForm(self):

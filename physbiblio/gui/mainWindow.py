@@ -92,6 +92,25 @@ class MainWindow(QMainWindow):
 		self.mainStatusBar = QStatusBar()
 		self.lastAuthorStats = None
 		self.lastPaperStats = None
+		self.fileMenu = None
+		self.bibMenu = None
+		self.catMenu = None
+		self.expMenu = None
+		self.toolMenu = None
+		self.searchMenu = None
+		self.replaceMenu = None
+		self.helpMenu = None
+		self.mainToolBar = None
+		self.bibtexListWindow = None
+		self.bottomLeft = None
+		self.bottomCenter = None
+		self.bottomRight = None
+		self.replaceResults = []
+		self.loadedAndInserted = []
+		self.selectedCats = []
+		self.selectedExps = []
+		self.badBibtexs = []
+		self.importArXivResults = []
 		if testing:
 			return
 		self.createActions()
@@ -394,7 +413,7 @@ class MainWindow(QMainWindow):
 
 	def createMenusAndToolBar(self):
 		"""Set the content of the menus and of the toolbar."""
-		self.fileMenu = self.menuBar().clear()
+		self.menuBar().clear()
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.undoAct)
 		self.fileMenu.addAction(self.saveAct)
@@ -1701,8 +1720,7 @@ class MainWindow(QMainWindow):
 					)
 				inserted, failed = self.importArXivResults
 				self.statusBarMessage(
-					"Entries successfully imported: %s"%(
-						inserted))
+					"Entries successfully imported: %s"%(inserted))
 				if selImpo.askCats.isChecked():
 					for key in inserted:
 						pBDB.catBib.delete(
