@@ -2369,7 +2369,7 @@ class Entries(PhysBiblioDBSub):
 				return False
 		else:
 			doi = self.getField(key, "doi")
-			if doi is not "" and doi is not None:
+			if isinstance(doi, six.string_types) and doi.strip() != "":
 				newid = physBiblioWeb.webSearch["inspire"]\
 					.retrieveInspireID("doi+%s"%doi, number=0)
 				if newid is not "":
@@ -2383,7 +2383,7 @@ class Entries(PhysBiblioDBSub):
 							"Something went wrong in updateInspireID "
 							+ "with doi search")
 			arxiv = self.getField(key, "arxiv")
-			if arxiv is not "" and arxiv is not None:
+			if isinstance(arxiv, six.string_types) and arxiv.strip() != "":
 				newid = physBiblioWeb.webSearch["inspire"]\
 					.retrieveInspireID("eprint+%s"%arxiv, number=0)
 				if newid is not "":

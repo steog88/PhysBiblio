@@ -1,6 +1,7 @@
 	* "open folder" in "Files" menu
 	* manage all file types, not only PDF
 	* unhandled error in catWindows.contextMenuEvent solved
+	* updateInspireID uses both doi and arxiv before declaring a failure
 	* solved some bugs when reading existing bibtex files with comments or empty fields
 
 0.9.7 (2019-01-27):
