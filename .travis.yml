@@ -7,4 +7,4 @@ python:
   - "2.7"
   - "3.6"
 install: python setup.py install
-script: ./PhysBiblio.exe --data-folder=. test
+script: ./PhysBiblio.exe --config-path=. --data-path=. test
