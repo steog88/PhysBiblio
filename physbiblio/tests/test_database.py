@@ -3628,7 +3628,14 @@ class TestDatabaseEntries(DBTestCase):
 			"1385583")
 		self.pBDB.bibs.delete("Gariazzo:2015")
 		self.pBDB.bibs.insertFromBibtex(
-			u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"\n}')
+			u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+			+ '\narxiv="150708204"\n}')
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"),
+			"1385583")
+		self.pBDB.bibs.delete("Gariazzo:2015")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\ndoi="10.10880954-3899433033001"'
+			+ '\narxiv="1507.08204"\n}')
 		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"),
 			"1385583")
 		self.pBDB.bibs.delete("Gariazzo:2015")
@@ -3636,6 +3643,20 @@ class TestDatabaseEntries(DBTestCase):
 			u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}')
 		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015r",
 			"Gariazzo:2015rra"))
+		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
+		self.pBDB.bibs.delete("Gariazzo:2015")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+			+ '\narxiv="150708204"\n}')
+		self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
+		self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"),
+			"1385583")
+		self.pBDB.bibs.delete("Gariazzo:2015")
+		self.pBDB.bibs.insertFromBibtex(
+			u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}')
+		self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
+		self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015"))
+
 		self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
 	@unittest.skipIf(skipTestsSettings.online, "Online tests")

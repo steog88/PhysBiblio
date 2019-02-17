@@ -2380,25 +2380,23 @@ class Entries(PhysBiblioDBSub):
 						return newid
 					else:
 						pBLogger.warning(
-							"Something went wrong in updateInspireID")
-						return False
-			else:
-				arxiv = self.getField(key, "arxiv")
-				if arxiv is not "" and arxiv is not None:
-					newid = physBiblioWeb.webSearch["inspire"]\
-						.retrieveInspireID("eprint+%s"%arxiv, number=0)
-					if newid is not "":
-						if self.connExec(
-								"update entries set inspire=:inspire " \
-								+ "where bibkey=:bibkey\n",
-								{"inspire": newid, "bibkey": key}):
-							return newid
-						else:
-							pBLogger.warning(
-								"Something went wrong in updateInspireID")
-							return False
-				else:
-					return False
+							"Something went wrong in updateInspireID "
+							+ "with doi search")
+			arxiv = self.getField(key, "arxiv")
+			if arxiv is not "" and arxiv is not None:
+				newid = physBiblioWeb.webSearch["inspire"]\
+					.retrieveInspireID("eprint+%s"%arxiv, number=0)
+				if newid is not "":
+					if self.connExec(
+							"update entries set inspire=:inspire " \
+							+ "where bibkey=:bibkey\n",
+							{"inspire": newid, "bibkey": key}):
+						return newid
+					else:
+						pBLogger.warning(
+							"Something went wrong in updateInspireID "
+							+ "with arxiv search")
+			return False
 
 	def updateField(self, key, field, value, verbose=1):
 		"""Update a single field of an entry
