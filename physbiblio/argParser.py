@@ -134,6 +134,28 @@ def call_gui(args=None):
 		pBLogger.info("Closing main window...")
 
 
+class NewConfigPathAction(argparse.Action):
+	"""Used to overwrite the default config path"""
+
+	def __init__(self, option_strings, dest, **kwargs):
+		super(NewConfigPathAction, self).__init__(option_strings, dest, **kwargs)
+
+	def __call__(self, parser, namespace, values, option_string=None):
+		pbConfig.configPath = values[0]
+		setattr(namespace, self.dest, values)
+
+
+class NewDataPathAction(argparse.Action):
+	"""Used to overwrite the default data path"""
+
+	def __init__(self, option_strings, dest, **kwargs):
+		super(NewDataPathAction, self).__init__(option_strings, dest, **kwargs)
+
+	def __call__(self, parser, namespace, values, option_string=None):
+		pbConfig.dataPath = values[0]
+		setattr(namespace, self.dest, values)
+
+
 class NewProfileAction(argparse.Action):
 	"""Used to trigger a reload of the settings
 	if a profile is specified as an argument
@@ -159,6 +181,18 @@ def setParser():
 		nargs=1,
 		choices=pbConfig.profiles.keys(),
 		help='define the profile that must be used'
+		)
+	parser.add_argument(
+		'--config-path',
+		action=NewConfigPathAction,
+		default=pbConfig.configPath,
+		help='define the config path'
+		)
+	parser.add_argument(
+		'--data-path',
+		action=NewDataPathAction,
+		default=pbConfig.dataPath,
+		help='define the data path'
 		)
 	parser.add_argument(
 		'-v',

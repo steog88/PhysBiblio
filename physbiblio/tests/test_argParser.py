@@ -77,6 +77,18 @@ class TestParser(unittest.TestCase):
 				args = parser.parse_args([opt, "%s"%profile, "cli"])
 				args.func(args)
 				mock.assert_called_once_with()
+		oldConfigPath = pbConfig.configPath
+		oldDataPath = pbConfig.dataPath
+		self.assertNotEqual(pbConfig.configPath, ".")
+		with patch("logging.Logger.info") as _i:
+			parser.parse_args(["--config-path", ".", "cli"])
+			self.assertEqual(pbConfig.configPath, ".")
+		self.assertNotEqual(pbConfig.dataPath, ".")
+		with patch("logging.Logger.info") as _i:
+			parser.parse_args(["--data-path", ".", "cli"])
+			self.assertEqual(pbConfig.dataPath, ".")
+		pbConfig.configPath = oldConfigPath
+		pbConfig.dataPath = oldDataPath
 
 	def test_subcommands_ok(self):
 		"""Test that the options are recognised correctly"""
