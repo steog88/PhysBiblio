@@ -4138,12 +4138,13 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			tmp.exec_.assert_called_once_with(position)
 			self.assertEqual(self.mainW.selectedBibs, [])
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": [
+			"bibkey", "author", "title", "year", "firstdate",
+			"pubdate", "doi", "arxiv", "isbn", "inspire"]},
+		clear=False)
 	def test_createTable(self):
 		"""test createTable"""
-		oldcols = pbConfig.params["bibtexListColumns"]
-		pbConfig.params["bibtexListColumns"] = [
-			"bibkey", "author", "title", "year", "firstdate",
-			"pubdate", "doi", "arxiv", "isbn", "inspire"]
 		bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
 		bw.cleanLayout()
 		pBDB.bibs.lastQuery = "myquery"
@@ -4213,24 +4214,25 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			_ga.assert_called_once_with(pBDB.bibs, orderType="DESC",
 				limitTo=pbConfig.params["defaultLimitBibtexs"])
 		# check if firstdate is missing
-		pbConfig.params["bibtexListColumns"] = [
-			"bibkey", "author", "title", "year",
-			"pubdate", "doi", "arxiv", "isbn", "inspire"]
-		bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
-		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
-				+ "changeEnableActions", autospec=True) as _cea,\
-				patch("physbiblio.gui.commonClasses.ObjListWindow."
-					+ "setProxyStuff", autospec=True) as _sps,\
-				patch("PySide2.QtWidgets.QTableView.hideColumn",
-					autospec=True) as _hc,\
-				patch("physbiblio.gui.bibWindows.BibTableModel",
-					autospec=True) as _tm,\
-				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "finalizeTable", autospec=True) as _ft:
-			bw.createTable()
-			_sps.assert_called_once_with(bw, bw.columns.index("bibkey"),
-				Qt.AscendingOrder)
-		pbConfig.params["bibtexListColumns"] = oldcols
+		with patch.dict(pbConfig.params,
+				{"bibtexListColumns": [
+					"bibkey", "author", "title", "year",
+					"pubdate", "doi", "arxiv", "isbn", "inspire"]},
+				clear=False):
+			bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
+			with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "changeEnableActions", autospec=True) as _cea,\
+					patch("physbiblio.gui.commonClasses.ObjListWindow."
+						+ "setProxyStuff", autospec=True) as _sps,\
+					patch("PySide2.QtWidgets.QTableView.hideColumn",
+						autospec=True) as _hc,\
+					patch("physbiblio.gui.bibWindows.BibTableModel",
+						autospec=True) as _tm,\
+					patch("physbiblio.gui.bibWindows.BibtexListWindow."
+						+ "finalizeTable", autospec=True) as _ft:
+				bw.createTable()
+				_sps.assert_called_once_with(bw, bw.columns.index("bibkey"),
+					Qt.AscendingOrder)
 
 	def test_updateInfo(self):
 		"""test updateInfo"""
@@ -4268,10 +4270,10 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				{"bibkey": "def", "bibtex": "text"})
 			self.assertEqual(bw.currentAbstractKey, "def")
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": ["bibkey"]}, clear=False)
 	def test_getEventEntry(self):
 		"""test getEventEntry"""
-		oldcols = pbConfig.params["bibtexListColumns"]
-		pbConfig.params["bibtexListColumns"] = ["bibkey"]
 		bw = BibtexListWindow(bibs=[
 			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}])
 		with patch("physbiblio.database.Entries.getByBibkey",
@@ -4295,7 +4297,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(12, 0)),
 				None)
 			self.assertEqual(_gbb.call_count, 0)
-		pbConfig.params["bibtexListColumns"] = oldcols
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
@@ -4558,7 +4559,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
 	def test_finalizeTable(self):
 		"""test finalizeTable"""
-		resTab = pbConfig.params["resizeTable"]
 		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
 				+ "cellClick", autospec=True) as _f:
@@ -4569,25 +4569,28 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			bw.tableview.doubleClicked.emit(QModelIndex())
 			self.assertEqual(_f.call_count, 1)
 		bw.cleanLayout()
-		pbConfig.params["resizeTable"] = True
+		
 		with patch("PySide2.QtGui.QFont.setPointSize", autospec=True) as _sps,\
 				patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents",
 					autospec=True) as _rc,\
 				patch("PySide2.QtWidgets.QTableView.resizeRowsToContents",
-					autospec=True) as _rr:
+					autospec=True) as _rr,\
+				patch.dict(pbConfig.params,
+					{"resizeTable": True}, clear=False):
 			bw.finalizeTable()
 			_rc.assert_called_once_with()
 			_rr.assert_called_once_with()
 			_sps.assert_called_once_with(pbConfig.params["bibListFontSize"])
 			self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tableview)
 		bw.cleanLayout()
-		pbConfig.params["resizeTable"] = False
 		with patch("PySide2.QtWidgets.QTableView.resizeColumnsToContents",
 					autospec=True) as _rc,\
 				patch("PySide2.QtWidgets.QTableView.resizeColumnToContents",
 					autospec=True) as _rsc,\
 				patch("PySide2.QtWidgets.QTableView.resizeRowsToContents",
-					autospec=True) as _rr:
+					autospec=True) as _rr,\
+				patch.dict(pbConfig.params,
+					{"resizeTable": False}, clear=False):
 			bw.finalizeTable()
 			self.assertEqual(_rc.call_count, 0)
 			self.assertEqual(_rr.call_count, 0)
@@ -4595,7 +4598,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				if f in bw.colContents:
 					_rsc.assert_any_call(
 						bw.colContents.index(f))
-		pbConfig.params["resizeTable"] = resTab
 
 	def test_recreateTable(self):
 		"""test recreateTable"""

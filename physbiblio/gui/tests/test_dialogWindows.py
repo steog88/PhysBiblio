@@ -63,16 +63,14 @@ class TestConfigEditColumns(GUITestCase):
 	@classmethod
 	def setUpClass(self):
 		"""set temporary settings"""
-		self.oldColumns = pbConfig.params["bibtexListColumns"]
+		super(TestConfigEditColumns, self).setUpClass()
 		self.defCols = [a["default"] for a in configuration_params \
 			if a["name"] == "bibtexListColumns"][0]
-		pbConfig.params["bibtexListColumns"] = self.defCols
 
-	@classmethod
-	def tearDownClass(self):
-		"""restore previous settings"""
-		pbConfig.params["bibtexListColumns"] = self.oldColumns
-
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": [a["default"] for a in configuration_params
+			if a["name"] == "bibtexListColumns"][0]},
+		clear=False)
 	def test_init(self):
 		"""Test __init__"""
 		p = QWidget()
@@ -100,6 +98,10 @@ class TestConfigEditColumns(GUITestCase):
 			self.assertEqual(cec.previousSelected,
 				['bibkey', 'author', 'title'])
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": [a["default"] for a in configuration_params
+			if a["name"] == "bibtexListColumns"][0]},
+		clear=False)
 	def test_onCancel(self):
 		"""test onCancel"""
 		cec = ConfigEditColumns()
@@ -108,6 +110,10 @@ class TestConfigEditColumns(GUITestCase):
 			self.assertFalse(cec.result)
 			self.assertEqual(_c.call_count, 1)
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": [a["default"] for a in configuration_params
+			if a["name"] == "bibtexListColumns"][0]},
+		clear=False)
 	def test_onOk(self):
 		"""test onOk"""
 		p = QWidget()
@@ -126,6 +132,10 @@ class TestConfigEditColumns(GUITestCase):
 		self.assertEqual(cec.selected,
 			['bibkey', 'author', 'title', 'arxiv'])
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": [a["default"] for a in configuration_params
+			if a["name"] == "bibtexListColumns"][0]},
+		clear=False)
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
@@ -426,14 +436,15 @@ class TestConfigWindow(GUITestCase):
 			_f.assert_called_once_with(cw)
 
 		# test non valid value for loggingLevel
-		oldLevel = pbConfig.params["loggingLevel"]
-		pbConfig.params["loggingLevel"] = "10"
-		with patch("logging.Logger.warning") as _w:
+		with patch("logging.Logger.warning") as _w,\
+				patch.dict(pbConfig.params, {"loggingLevel": "10"},
+					clear=False):
 			cw = ConfigWindow()
 			_w.assert_called_once_with("Invalid string for 'loggingLevel' "
 				+ "param. Reset to default")
-		pbConfig.params["loggingLevel"] = "abc"
-		with patch("logging.Logger.warning") as _w:
+		with patch("logging.Logger.warning") as _w,\
+				patch.dict(pbConfig.params, {"loggingLevel": "abc"},
+					clear=False):
 			cw = ConfigWindow()
 			_w.assert_called_once_with("Invalid string for 'loggingLevel' "
 				+ "param. Reset to default")
@@ -450,7 +461,6 @@ class TestConfigWindow(GUITestCase):
 				for j, l in enumerate(pbConfig.loggingLevels):
 					self.assertEqual(currWidget.itemText(j),
 						pbConfig.loggingLevels[j])
-		pbConfig.params["loggingLevel"] = oldLevel
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

@@ -3288,8 +3288,6 @@ class TestDatabaseEntries(DBTestCase):
 
 		self.pBDB.undo(verbose=0)
 		#test with completeInfo
-		pbConfig.params["fetchAbstract"] = True
-		pbConfig.params["defaultCategories"] = 1
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{Gariazzo:2015rra,\nauthor = "me",\n' \
 			+ 'arxiv = "1507.08204",\n}\n@article{' \
@@ -3313,7 +3311,10 @@ class TestDatabaseEntries(DBTestCase):
 						 'year': u'2016', 'oldkeys': '',
 						 'bibkey': u'Gariazzo:2015rra', 'pages': u'033001'},
 						[]],
-					autospec=True) as _oai:
+					autospec=True) as _oai,\
+				patch.dict(pbConfig.params,
+					{"fetchAbstract": True, "defaultCategories": 1},
+					clear=False):
 			self.pBDB.bibs.importFromBib("tmpbib.bib")
 			self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 				["Gariazzo:2015rra", "Gariazzo:2014rra"])
@@ -3331,20 +3332,21 @@ class TestDatabaseEntries(DBTestCase):
 				["Gariazzo:2015rra", "Gariazzo:2014rra"])
 
 		self.pBDB.undo(verbose=0)
-		pbConfig.params["fetchAbstract"] = False
-		pbConfig.params["defaultCategories"] = {"ab"}
-		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo=False),
-			"2 entries processed, of which 2 existing")
+		with patch.dict(pbConfig.params,
+				{"fetchAbstract": False, "defaultCategories": {"ab"}},
+				clear=False):
+			self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+			self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
+				"tmpbib.bib", completeInfo=False),
+				"2 entries processed, of which 2 existing")
 
-		self.pBDB.undo(verbose=0)
-		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo=False),
-			"Error binding parameter :idCat - probably unsupported type.")
-		self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
+			self.pBDB.undo(verbose=0)
+			self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
+				"tmpbib.bib", completeInfo=False),
+				"Error binding parameter :idCat - probably unsupported type.")
+			self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
 
-		os.remove("tmpbib.bib")
+			os.remove("tmpbib.bib")
 
 	@unittest.skipIf(skipTestsSettings.online, "Online tests")
 	def test_loadAndInsert_online(self):
@@ -3422,12 +3424,13 @@ class TestDatabaseEntries(DBTestCase):
 			"Error while reading the bibtex ")
 
 		self.pBDB.undo(verbose=0)
-		pbConfig.params["defaultCategories"] = [1]
-		pbConfig.params["fetchAbstract"] = False
 		with patch('physbiblio.database.Entries.updateInspireID',
 				return_value="1", autospec=True) as _mock_uiid, \
 				patch('physbiblio.database.Entries.updateInfoFromOAI',
-					return_value=True, autospec=True) as _mock_uio:
+					return_value=True, autospec=True) as _mock_uio,\
+				patch.dict(pbConfig.params,
+					{"fetchAbstract": False, "defaultCategories": [1]},
+					clear=False):
 			#test add categories
 			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					return_value=u'\n@article{key0,\n' \
@@ -3484,7 +3487,6 @@ class TestDatabaseEntries(DBTestCase):
 					[1])
 			self.pBDB.undo(verbose=0)
 			#test abstract download
-			pbConfig.params["fetchAbstract"] = True
 			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
 					side_effect=[
 					u'\n@article{key0,\nauthor = "Gariazzo",\n' \
@@ -3496,7 +3498,10 @@ class TestDatabaseEntries(DBTestCase):
 						return_value=(u'\n@article{key0,\n' \
 						+ 'author = "Gariazzo",\ntitle = "{title}",}\n',
 						{"abstract": "some fake abstract"}),
-						autospec=True) as _mock:
+						autospec=True) as _mock,\
+					patch.dict(pbConfig.params,
+						{"fetchAbstract": True, "defaultCategories": [1]},
+						clear=False):
 				self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
 				self.assertEqual(
 					self.pBDB.bibs.getByBibkey("key0")[0]["abstract"], None)
@@ -3504,7 +3509,6 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertEqual(
 					self.pBDB.bibs.getByBibkey("key1")[0]["abstract"],
 					"some fake abstract")
-			pbConfig.params["fetchAbstract"] = False
 			self.pBDB.undo(verbose=0)
 			#unreadable bibtex, empty bibkey (any other method)
 			with patch('physbiblio.webimport.inspire.WebSearch.retrieveUrlAll',
@@ -3515,7 +3519,10 @@ class TestDatabaseEntries(DBTestCase):
 					+ 'title = "{title}",}\n',
 					u'\n@article{ ,\nauthor = "Gariazzo",\n' \
 					+ 'title = "{title}",}\n',],
-					autospec=True) as _mock:
+					autospec=True) as _mock,\
+					patch.dict(pbConfig.params,
+						{"fetchAbstract": False, "defaultCategories": [1]},
+						clear=False):
 				self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
 					"key0"),
@@ -3583,9 +3590,9 @@ class TestDatabaseEntries(DBTestCase):
 				number=1, returnBibtex=True)
 
 	@unittest.skipIf(skipTestsSettings.online, "Online tests")
+	@patch.dict(pbConfig.params, {"maxAuthorSave": 5}, clear=False)
 	def test_getFieldsFromArxiv(self):
 		"""tests for getFieldsFromArxiv (online)"""
-		pbConfig.params["maxAuthorSave"] = 5
 		self.pBDB.bibs.insertFromBibtex(
 			u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}')
 		self.pBDB.bibs.insertFromBibtex(

@@ -31,9 +31,10 @@ class TestErrors(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		"""settings"""
-		pbConfig.params["loggingLevel"] = 3
-		pbConfig.params["logFileName"] = logFileName
-		self.pBErrorManager = PBErrorManagerClass("testlogger")
+		with patch.dict(pbConfig.params,
+				{"loggingLevel": 3, "logFileName": logFileName},
+				clear=False):
+			self.pBErrorManager = PBErrorManagerClass("testlogger")
 
 	def reset(self, m):
 		"""Clear a StringIO object"""

@@ -310,30 +310,33 @@ class TestConfigMethods(unittest.TestCase):
 		self.assertEqual(search["limitNum"], 91)
 		self.assertEqual(search["offsetNum"], 19)
 
-		pbConfig.params["maxSavedSearches"] = 5
-		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in \
-			tempPbConfig.globalDb.getSearchList(False, True)],
-			["test4", "test3"])
-		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in \
-			tempPbConfig.globalDb.getSearchList(False, True)],
-			["test4"])
-		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
-		self.assertEqual([e["name"] for e in \
-			tempPbConfig.globalDb.getAllSearches()],
-			["test2", "test1", "test4", "BA"])
+		with patch.dict(pbConfig.params,
+				{"maxSavedSearches": 5},
+				clear=False):
+			self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
+			self.assertEqual([e["name"] for e in \
+				tempPbConfig.globalDb.getSearchList(False, True)],
+				["test4", "test3"])
+			self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
+			self.assertEqual([e["name"] for e in \
+				tempPbConfig.globalDb.getSearchList(False, True)],
+				["test4"])
+			self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(True))
+			self.assertEqual([e["name"] for e in \
+				tempPbConfig.globalDb.getAllSearches()],
+				["test2", "test1", "test4", "BA"])
 
-		self.assertTrue(tempPbConfig.globalDb.insertSearch(
-			"testA", 1, {}, [], False, False))
-		self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(False))
-		self.assertEqual([e["count"] for e in \
-			tempPbConfig.globalDb.getSearchList(False, False)], [2])
+			self.assertTrue(tempPbConfig.globalDb.insertSearch(
+				"testA", 1, {}, [], False, False))
+			self.assertTrue(tempPbConfig.globalDb.updateSearchOrder(False))
+			self.assertEqual([e["count"] for e in \
+				tempPbConfig.globalDb.getSearchList(False, False)], [2])
 
-		self.assertEqual(tempPbConfig.globalDb.countSearches(), 5)
-		for idS in [e["idS"] for e in tempPbConfig.globalDb.getAllSearches()]:
-			self.assertTrue(tempPbConfig.globalDb.deleteSearch(idS))
-		self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
+			self.assertEqual(tempPbConfig.globalDb.countSearches(), 5)
+			for idS in [e["idS"]
+					for e in tempPbConfig.globalDb.getAllSearches()]:
+				self.assertTrue(tempPbConfig.globalDb.deleteSearch(idS))
+			self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 class TestProfilesDB(unittest.TestCase):
 	"""Test GlobalDB"""

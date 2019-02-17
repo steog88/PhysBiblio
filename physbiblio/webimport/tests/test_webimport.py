@@ -407,11 +407,12 @@ as force and matter fields.
 </item>
 </rdf:RDF>'''
 		with patch('physbiblio.webimport.webInterf.WebInterf.textFromUrl',
-				return_value=content_example, autospec=True) as _fromUrl:
+				return_value=content_example, autospec=True) as _fromUrl,\
+				patch.dict(pbConfig.params, {"maxAuthorNames": 3},
+					clear=False):
 			result = physBiblioWeb.webSearch["arxiv"].arxivDaily("hep-ex")
 			_fromUrl.assert_called_once_with(physBiblioWeb.webSearch["arxiv"],
 				"https://export.arxiv.org/rss/hep-ex")
-			pbConfig.params["maxAuthorNames"] = 3
 			self.assertEqual(result[0],
 				{'primaryclass': u'hep-ex', 'author': u'Christopher Dilks',
 				'title': u'Measurement of Transverse Single ' \

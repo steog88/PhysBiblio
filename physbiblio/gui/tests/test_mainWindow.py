@@ -113,8 +113,6 @@ class TestMainWindow(GUITestCase):
 			_ea.assert_called_once_with()
 			self.mainW.closeEvent(e)
 			_ei.assert_called_once_with()
-		oldcfg = pbConfig.params["askBeforeExit"]
-		pbConfig.params["askBeforeExit"] = False
 		with patch("physbiblio.databaseCore.PhysBiblioDBCore."
 					+ "checkUncommitted", return_value=False,
 					autospec=True) as _c,\
@@ -122,18 +120,20 @@ class TestMainWindow(GUITestCase):
 					side_effect=[True, False], autospec=True) as _a,\
 				patch("PySide2.QtCore.QEvent.accept", autospec=True) as _ea,\
 				patch("PySide2.QtCore.QEvent.ignore", autospec=True) as _ei:
-			self.mainW.closeEvent(e)
-			_c.assert_called_once_with(pBDB)
-			_ea.assert_called_once_with()
-			_ea.reset_mock()
-			pbConfig.params["askBeforeExit"] = True
-			self.mainW.closeEvent(e)
-			_a.assert_called_once_with(
-				"Do you really want to exit?")
-			_ea.assert_called_once_with()
-			self.mainW.closeEvent(e)
-			_ei.assert_called_once_with()
-		pbConfig.params["askBeforeExit"] = oldcfg
+			with patch.dict(pbConfig.params,
+					{"askBeforeExit": False}, clear=False):
+				self.mainW.closeEvent(e)
+				_c.assert_called_once_with(pBDB)
+				_ea.assert_called_once_with()
+				_ea.reset_mock()
+			with patch.dict(pbConfig.params,
+					{"askBeforeExit": True}, clear=False):
+				self.mainW.closeEvent(e)
+				_a.assert_called_once_with(
+					"Do you really want to exit?")
+				_ea.assert_called_once_with()
+				self.mainW.closeEvent(e)
+				_ei.assert_called_once_with()
 
 	def test_excepthook(self):
 		"""test excepthook"""
@@ -879,48 +879,46 @@ class TestMainWindow(GUITestCase):
 
 	def test_reloadConfig(self):
 		"""test reloadConfig"""
-		oldWebA = pbConfig.params["webApplication"]
-		oldPdfA = pbConfig.params["pdfApplication"]
-		oldPdfF = pbConfig.params["pdfFolder"]
 		oldPdfD = pBPDF.pdfDir
-		pbConfig.params["webApplication"] = "webApp"
-		pbConfig.params["pdfApplication"] = "pdfApp"
-		pbConfig.params["pdfFolder"] = "pdf/folder"
-		with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,\
-				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "reloadColumnContents", autospec=True) as _rcc,\
-				patch("physbiblio.pdf.LocalPDF.checkFolderExists",
-					autospec=True) as _cfe:
-			self.mainW.reloadConfig()
-			_sbm.assert_called_once_with(self.mainW,
-				"Reloading configuration...")
-			_rcc.assert_called_once_with(self.mainW.bibtexListWindow)
-			self.assertEqual(pBView.webApp, "webApp")
-			self.assertEqual(pBPDF.pdfApp, "pdfApp")
-			self.assertEqual(pBPDF.pdfDir,
-				os.path.join(os.path.split(
-				os.path.abspath(sys.argv[0]))[0],
-				"pdf/folder"))
-			_cfe.assert_called_once_with(pBPDF)
-		pbConfig.params["webApplication"] = "webApp"
-		pbConfig.params["pdfApplication"] = "pdfApp"
-		pbConfig.params["pdfFolder"] = "/pdf/folder"
-		with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,\
-				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "reloadColumnContents", autospec=True) as _rcc,\
-				patch("physbiblio.pdf.LocalPDF.checkFolderExists",
-					autospec=True) as _cfe:
-			self.mainW.reloadConfig()
-			_sbm.assert_called_once_with(self.mainW,
-				"Reloading configuration...")
-			_rcc.assert_called_once_with(self.mainW.bibtexListWindow)
-			self.assertEqual(pBView.webApp, "webApp")
-			self.assertEqual(pBPDF.pdfApp, "pdfApp")
-			self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
-			_cfe.assert_called_once_with(pBPDF)
-		pbConfig.params["webApplication"] = oldWebA
-		pbConfig.params["pdfApplication"] = oldPdfA
-		pbConfig.params["pdfFolder"] = oldPdfF
+		with patch.dict(pbConfig.params,
+				{"webApplication": "webApp",
+				"pdfApplication": "pdfApp",
+				"pdfFolder": "pdf/folder"}, clear=False):
+			with patch(self.clsName + ".statusBarMessage",
+						autospec=True) as _sbm,\
+					patch("physbiblio.gui.bibWindows.BibtexListWindow."
+						+ "reloadColumnContents", autospec=True) as _rcc,\
+					patch("physbiblio.pdf.LocalPDF.checkFolderExists",
+						autospec=True) as _cfe:
+				self.mainW.reloadConfig()
+				_sbm.assert_called_once_with(self.mainW,
+					"Reloading configuration...")
+				_rcc.assert_called_once_with(self.mainW.bibtexListWindow)
+				self.assertEqual(pBView.webApp, "webApp")
+				self.assertEqual(pBPDF.pdfApp, "pdfApp")
+				self.assertEqual(pBPDF.pdfDir,
+					os.path.join(os.path.split(
+					os.path.abspath(sys.argv[0]))[0],
+					"pdf/folder"))
+				_cfe.assert_called_once_with(pBPDF)
+		with patch.dict(pbConfig.params,
+				{"webApplication": "webApp",
+				"pdfApplication": "pdfApp",
+				"pdfFolder": "/pdf/folder"}, clear=False):
+			with patch(self.clsName + ".statusBarMessage",
+						autospec=True) as _sbm,\
+					patch("physbiblio.gui.bibWindows.BibtexListWindow."
+						+ "reloadColumnContents", autospec=True) as _rcc,\
+					patch("physbiblio.pdf.LocalPDF.checkFolderExists",
+						autospec=True) as _cfe:
+				self.mainW.reloadConfig()
+				_sbm.assert_called_once_with(self.mainW,
+					"Reloading configuration...")
+				_rcc.assert_called_once_with(self.mainW.bibtexListWindow)
+				self.assertEqual(pBView.webApp, "webApp")
+				self.assertEqual(pBPDF.pdfApp, "pdfApp")
+				self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
+				_cfe.assert_called_once_with(pBPDF)
 		with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "reloadColumnContents", autospec=True) as _rcc,\
