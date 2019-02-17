@@ -1,0 +1,10 @@
+dist: xenial
+language: python
+branches:
+  only:
+    - master
+python:
+  - "2.7"
+  - "3.6"
+install: python setup.py install
+script: python setup.py test
