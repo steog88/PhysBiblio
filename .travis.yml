@@ -4,7 +4,7 @@ services:
 language: python
 branches:
   only:
-    - master
+    - travis
 python:
   - "2.7"
   - "3.6"
