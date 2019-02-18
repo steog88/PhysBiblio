@@ -6,6 +6,7 @@ This file is part of the physbiblio package.
 """
 
 import sys
+import faulthandler
 
 try:
 	from physbiblio.argParser import setParser, call_gui
@@ -15,6 +16,7 @@ except ImportError:
     raise
 
 if __name__=='__main__':
+	faulthandler.enable()
 	if len(sys.argv) > 1:
 		parser = setParser()
 		args = parser.parse_args(sys.argv[1:])
