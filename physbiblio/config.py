@@ -7,6 +7,7 @@ import traceback
 import ast
 import os
 import logging
+import six
 from appdirs import AppDirs
 
 try:
@@ -712,8 +713,20 @@ class ConfigVars():
 		self.prepareLogger("physbibliolog")
 		self.defaultDirs = AppDirs("PhysBiblio")
 
-		self.configPath = self.defaultDirs.user_config_dir + os.sep
-		self.dataPath = self.defaultDirs.user_data_dir + os.sep
+		configPath = os.getenv(
+			"PHYSBIBLIO_CONFIG",
+			self.defaultDirs.user_config_dir + os.sep)
+		self.configPath = configPath \
+			if isinstance(configPath, six.string_types) \
+				and configPath.strip() != "" \
+			else self.defaultDirs.user_config_dir + os.sep
+		dataPath = os.getenv(
+			"PHYSBIBLIO_DATA",
+			self.defaultDirs.user_data_dir + os.sep)
+		self.dataPath = dataPath \
+			if isinstance(dataPath, six.string_types) \
+				and dataPath.strip() != "" \
+			else self.defaultDirs.user_data_dir + os.sep
 		self.logger.info("Default configuration path: %s"%self.configPath)
 		if not os.path.exists(self.configPath):
 			os.makedirs(self.configPath)

@@ -80,6 +80,23 @@ class TestConfigMethods(unittest.TestCase):
 			tempPbConfig.configMainFile = tempOldCfgName
 			tempPbConfig.oldReadConfigFile()
 			self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
+
+			with patch.dict(os.environ,
+						{"PHYSBIBLIO_CONFIG": "", "PHYSBIBLIO_DATA": ""},
+						clear=False),\
+					patch("physbiblio.config.GlobalDB",
+						return_value=tempPbConfig.globalDb) as _c:
+				tempPbConfig1 = ConfigVars()
+				self.assertNotEqual(tempPbConfig1.configPath, ".")
+				self.assertNotEqual(tempPbConfig1.dataPath, ".")
+			with patch.dict(os.environ,
+						{"PHYSBIBLIO_CONFIG": ".", "PHYSBIBLIO_DATA": "."},
+						clear=False),\
+					patch("physbiblio.config.GlobalDB",
+						return_value=tempPbConfig.globalDb) as _c:
+				tempPbConfig1 = ConfigVars()
+				self.assertEqual(tempPbConfig1.configPath, ".")
+				self.assertEqual(tempPbConfig1.dataPath, ".")
 		os.remove(tempCfgName)
 		os.remove(tempOldCfgName)
 
