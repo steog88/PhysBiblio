@@ -1,0 +1,17 @@
+dist: xenial
+services:
+  - xvfb
+language: python
+branches:
+  only:
+    - master
+python:
+  - "2.7"
+  - "3.6"
+env:
+  - PHYSBIBLIO_CONFIG="." PHYSBIBLIO_DATA="."
+install: python setup.py install
+before_script:
+  - sudo apt-get install -y libqt5gui5
+  - sudo ln -sf /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/ /usr/bin/platforms
+script: xvfb-run python PhysBiblio.exe test
