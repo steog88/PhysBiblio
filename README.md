@@ -279,4 +279,6 @@ You can change some of the paths and file names in the configuration.
 Please note that changing the configuration **will not move** the existing files into the new locations.
 
 ## 5. Acknowledgments
+This software is part of a project that has received funding from the European Union's Horizon 2020 research and innovation programme, under the Marie Skłodowska-Curie grant agreement No 796941.
+
 Icons adopted in the GUI are mainly from the [Breeze-icons](https://github.com/KDE/breeze-icons) theme, from [KDE](https://www.kde.org/).
