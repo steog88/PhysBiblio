@@ -5168,7 +5168,7 @@ class TestSearchBibsWindow(GUITestCase):
 			})
 		self.assertEqual(sbw.fields, {
 			"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
-				"firstdate", "pubdate", "comment"]
+				"firstdate", "pubdate", "comments", "abstract"]
 			})
 
 		self.assertEqual(sbw.replaceComboFields, {

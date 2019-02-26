@@ -1415,7 +1415,7 @@ class Entries(PhysBiblioDBSub):
 		}
 	searchFields = {
 		"text": ["bibtex", "bibkey", "arxiv", "doi", "year",
-			"firstdate", "pubdate", "comment"]
+			"firstdate", "pubdate", "comments", "abstract"]
 		}
 	validReplaceFields = {
 		"old": ["arxiv", "doi", "year", "author", "title",

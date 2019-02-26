@@ -1,3 +1,5 @@
+	* bug solved when searching on "comment(s)"
+
 1.0.0 (2019-02-18)
 	* "open folder" in "Files" menu
 	* manage all file types, not only PDF
