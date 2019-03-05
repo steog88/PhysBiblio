@@ -1519,11 +1519,11 @@ class MainWindow(QMainWindow):
 							pBLogger.debug("KeyError '%s', entry: %s"%(
 								f, el["ID"]))
 					found[el["ID"]] = {"bibpars": el, "exist": exist}
+			QApplication.restoreOverrideCursor()
 			if len(found) == 0:
 				infoMessage("No results obtained.")
 				return False
 
-			QApplication.restoreOverrideCursor()
 			selImpo = AdvancedImportSelect(found, self)
 			selImpo.exec_()
 			if selImpo.result == True:

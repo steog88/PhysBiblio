@@ -1,4 +1,5 @@
 	* bug solved when searching on "comment(s)"
+	* cursor did not restore when no results are found in advanced import
 
 1.0.0 (2019-02-18)
 	* "open folder" in "Files" menu
