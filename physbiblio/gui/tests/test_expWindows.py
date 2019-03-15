@@ -879,7 +879,7 @@ class TestExpsListWindow(GUITestCase):
 
 	def test_cellDoubleClick(self):
 		"""test cellDoubleClick"""
-		p = QWidget()
+		p = MainWindow(testing=True)
 		exps = [
 			{"idExp": 0, "name": "test0",
 				"homepage": "", "comments": "", "inspire": ""},
@@ -889,14 +889,28 @@ class TestExpsListWindow(GUITestCase):
 				return_value=exps, autospec=True) as _gh:
 			elw = ExpsListWindow(p)
 		self.assertEqual(elw.cellDoubleClick(QModelIndex()), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 0)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 1)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 2)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 3)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(0, 4)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 0)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 1)), None)
-		self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 2)), None)
+		with patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent", autospec=True) as _rmc,\
+				patch("physbiblio.database.Entries.getByExp",
+					return_value=["a"], autospec=True) as _ffd:
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(0, 0)), True)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(0, 1)), True)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(0, 2)), True)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(0, 3)), None)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(0, 4)), None)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(1, 0)), True)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(1, 1)), True)
+			self.assertEqual(
+				elw.cellDoubleClick(elw.proxyModel.index(1, 2)), True)
+			self.assertEqual(_rmc.call_count, 8)
+			_rmc.assert_has_calls([call(p, ["a"])])
 		with patch("physbiblio.gui.commonClasses.GUIViewEntry.openLink",
 				autospec=True) as _ol,\
 				patch("logging.Logger.debug") as _l:

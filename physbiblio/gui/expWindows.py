@@ -488,17 +488,19 @@ class ExpsListWindow(ObjListWindow):
 				self.colContents[col] == "homepage":
 			link = self.proxyModel.sibling(row, col, index).data()
 			if link == "" or link is None:
+				self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
 				return
 			if self.colContents[col] == "inspire":
 				link = pbConfig.inspireRecord + link
+			pBLogger.debug("Opening '%s'..."%link)
 			try:
-				pBLogger.debug("Opening '%s'..."%link)
 				pBGuiView.openLink(link, "link")
 			except Exception:
 				pBLogger.warning("Opening link '%s' failed!"%link,
 					exc_info=True)
-			return True
-		return None
+		else:
+			self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
+		return True
 
 
 class EditExperimentDialog(EditObjectWindow):

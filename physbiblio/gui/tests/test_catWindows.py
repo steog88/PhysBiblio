@@ -848,6 +848,12 @@ class TestCatsTreeWindow(GUITestCase):
 				+ "handleItemEntered", autospec=True) as _f:
 			ctw.tree.entered.emit(QModelIndex())
 			_f.assert_called_once_with(ctw, QModelIndex())
+		self.assertFalse(ctw.tree.expandsOnDoubleClick())
+		qmi = QModelIndex()
+		with patch("physbiblio.gui.catWindows.CatsTreeWindow."
+				+ "cellDoubleClick", autospec=True) as _dc:
+			ctw.tree.doubleClicked.emit(qmi)
+			_dc.assert_called_once_with(ctw, qmi)
 
 		self.assertIsInstance(ctw.root_model, CatsModel)
 		self.assertEqual(ctw.root_model.cats, self.cats)
@@ -1225,6 +1231,26 @@ class TestCatsTreeWindow(GUITestCase):
 			_si.assert_called_once_with()
 			_d.assert_called_once_with("Click on missing index")
 			self.assertEqual(_iv.call_count, 0)
+
+	def test_cellDoubleClick(self):
+		"""test cellDoubleClick"""
+		p = MainWindow(testing=True)
+		ctw = CatsTreeWindow(p)
+		ix = ctw.proxyModel.index(0, 0)
+		with patch("PySide2.QtCore.QModelIndex.isValid",
+					return_value=False, autospec=True) as _iv,\
+				patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent", autospec=True) as _rmc:
+			self.assertEqual(ctw.cellDoubleClick(ix), None)
+			_iv.assert_called_once_with()
+			self.assertEqual(_rmc.call_count, 0)
+		with patch("physbiblio.gui.mainWindow.MainWindow."
+					+ "reloadMainContent", autospec=True) as _rmc,\
+				patch("physbiblio.database.Entries.getByCat",
+					return_value=["a"], autospec=True) as _ffd:
+			self.assertEqual(ctw.cellDoubleClick(ix), None)
+			_rmc.assert_called_once_with(ctw.parent(), ["a"])
+			_ffd.assert_called_once_with(pBDB.bibs, '0')
 
 	def test_recreateTable(self):
 		"""test recreateTable"""

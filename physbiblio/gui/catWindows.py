@@ -482,6 +482,8 @@ class CatsTreeWindow(PBDialog):
 		self.currLayout.addWidget(self.tree)
 		self.tree.setMouseTracking(True)
 		self.tree.entered.connect(self.handleItemEntered)
+		self.tree.doubleClicked.connect(self.cellDoubleClick)
+		self.tree.setExpandsOnDoubleClick(False)
 
 		catsNamedTree = self._populateTree(catsTree[0], 0)
 
@@ -624,6 +626,24 @@ class CatsTreeWindow(PBDialog):
 			deleteCategory(self, self.parent(), idCat, catName)
 		elif action == subAction:
 			editCategory(self, self.parent(), useParentCat=idCat)
+		return
+
+	def cellDoubleClick(self, index):
+		"""Process event when mouse double clicks an item.
+		Opens a link if some columns
+
+		Parameter:
+			index: a `QModelIndex` instance
+		"""
+		if index.isValid():
+			row = index.row()
+			col = index.column()
+		else:
+			return
+		idCat, catName = self.proxyModel.sibling(row, 0, index) \
+			.data().split(": ")
+		idCat = idCat.strip()
+		self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
 		return
 
 	def recreateTable(self):
