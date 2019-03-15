@@ -303,6 +303,8 @@ class TestObjListWindow(GUITestCase):
 		self.assertEqual(olw.tableview.model(), olw.proxyModel)
 		self.assertTrue(olw.tableview.isSortingEnabled())
 		self.assertTrue(olw.tableview.hasMouseTracking())
+		self.assertTrue(olw.tableview.selectionBehavior(),
+			QAbstractItemView.SelectRows)
 		self.assertEqual(olw.layout().itemAt(0).widget(), olw.tableview)
 
 	def test_finalizeTable(self):

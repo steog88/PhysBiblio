@@ -244,6 +244,7 @@ class ObjListWindow(PBDialog):
 		self.tableview.setModel(self.proxyModel)
 		self.tableview.setSortingEnabled(True)
 		self.tableview.setMouseTracking(True)
+		self.tableview.setSelectionBehavior(QAbstractItemView.SelectRows)
 		self.proxyModel.sort(sortColumn, sortOrder)
 		self.currLayout.addWidget(self.tableview)
 
