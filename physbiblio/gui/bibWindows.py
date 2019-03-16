@@ -15,12 +15,35 @@ import bibtexparser
 import re
 from pyparsing import ParseException
 from pylatexenc.latex2text import LatexNodes2Text
-from PySide2.QtCore import Qt, QEvent, QUrl
-from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
-from PySide2.QtWidgets import \
-	QAction, QApplication, QCheckBox, QComboBox, QFrame, QGroupBox, \
-	QHBoxLayout, QLineEdit, QPlainTextEdit, QPushButton, \
-	QRadioButton, QTextEdit, QToolBar, QVBoxLayout, QWidget
+from PySide2.QtCore import (
+	Qt,
+	QEvent,
+	QUrl,
+	)
+from PySide2.QtGui import (
+	QCursor,
+	QFont,
+	QIcon,
+	QImage,
+	QTextDocument,
+	)
+from PySide2.QtWidgets import (
+	QAction,
+	QApplication,
+	QCheckBox,
+	QComboBox,
+	QFrame,
+	QGroupBox,
+	QHBoxLayout,
+	QLineEdit,
+	QPlainTextEdit,
+	QPushButton,
+	QRadioButton,
+	QTextEdit,
+	QToolBar,
+	QVBoxLayout,
+	QWidget,
+	)
 
 try:
 	from physbiblio.errors import pBLogger
@@ -1549,7 +1572,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		self.tableModel.prepareSelected()
 		self.tableModel.changeAsk(False)
 		self.tableview.clearSelection()
-		self.changeEnableActions()
+		self.changeEnableActions(status=False)
 
 	def createActions(self):
 		"""Create a number of `QAction`s related to bibtex selection"""
@@ -1700,6 +1723,39 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			pBGUILogger.debug("The entry cannot be found!")
 			return
 		return row, col, bibkey, entry
+
+	def keyPressEvent(self, e):
+		"""Manage the key press events.
+		Do nothing unless `Ctrl+c` is pressed:
+		in this case open a "copy to clipboard" menu
+		for the current selection
+
+		Parameters:
+			e: the `PySide2.QtGui.QKeyEvent`
+		"""
+		if (e.key() == Qt.Key_C
+				and QApplication.keyboardModifiers() == Qt.ControlModifier):
+			currentRows = self.tableview.selectionModel().selectedRows(0)
+			if len(currentRows) > 0:
+				bibkeys = []
+				for ix in currentRows:
+					b = self.getRowBibkey(self.tableModel, ix)
+					if b is not None:
+						bibkeys.append(b)
+				ac = CommonBibActions(
+					[pBDB.bibs.getByBibkey(k)[0] for k in bibkeys])
+				ac.menu = PBMenu()
+				selection = len(bibkeys)>1
+				ac._createMenuCopy(
+					selection, ac.bibs[0] if not selection else None)
+				ac.menu.possibleActions = [
+					QAction("--Copy to clipboard--", ac.menu), None
+					] + ac.menu.possibleActions[0][1]
+				ac.menu.possibleActions[0].setDisabled(True)
+				ac.menu.fillMenu()
+				position = QCursor.pos()
+				ac.menu.exec_(position)
+				self.clearSelection()
 
 	def triggeredContextMenuEvent(self, row, col, event):
 		"""Process event when mouse right-clicks an item.

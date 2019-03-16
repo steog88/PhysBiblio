@@ -1,3 +1,5 @@
+	* ctrl+c triggers "copy from clipboard" menu in main table
+
 1.1.0 (2019-03-16)
 	* selection of entries is now possible with Ctrl+click
 	* double click on categories and experiments now opens list of corresponding entries

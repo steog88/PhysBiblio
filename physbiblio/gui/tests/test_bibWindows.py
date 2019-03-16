@@ -4002,6 +4002,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		self.assertFalse(bw.tableModel.ask)
 		itemSelection = bw.tableview.selectionModel().selectedRows()
 		selectedItems = bw.tableview.selectionModel().selection()
+		bw.tableview.selectionModel().clearSelection()
 		bw.tableview.selectRow(2)
 		self.assertFalse(bw.clearAct.isEnabled())
 		self.assertFalse(bw.selAllAct.isEnabled())
@@ -4011,10 +4012,10 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		selectedItems.merge(
 			bw.tableview.selectionModel().selection(),
 			QItemSelectionModel.Select)
-		bw.tableview.selectionModel().clearSelection()
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow"
 					+ ".getRowBibkey", autospec=True,
 					side_effect=["abc", "ghi", "abc", "ghi"]) as _gb:
+			bw.tableview.selectionModel().clearSelection()
 			bw.tableview.selectionModel().select(
 				selectedItems, QItemSelectionModel.Select)
 			self.assertTrue(bw.clearAct.isEnabled())
@@ -4027,7 +4028,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				{'abc': True, 'def': False, 'ghi': True})
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow"
 					+ ".getRowBibkey", autospec=True,
-					side_effect=["def", "abc", "ghi"]) as _gb:
+					side_effect=["abc", "ghi", "def"]) as _gb:
+			bw.tableview.selectionModel().clearSelection()
 			bw.tableview.selectRow(1)
 			self.assertTrue(bw.clearAct.isEnabled())
 			self.assertTrue(bw.selAllAct.isEnabled())
@@ -4094,7 +4096,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			self.assertEqual(bw.tableModel.previous, [])
 			_ps.assert_called_once_with(bw.tableModel)
 			_ca.assert_called_once_with(bw.tableModel, False)
-			_ea.assert_called_once_with(bw)
+			_ea.assert_called_once_with(bw, status=False)
 			_cs.assert_called_once_with()
 
 	def test_createActions(self):
@@ -4408,6 +4410,75 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			self.assertEqual(bw.getEventEntry(bw.proxyModel.index(12, 0)),
 				None)
 			self.assertEqual(_gbb.call_count, 0)
+
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": ["bibkey"]}, clear=False)
+	def test_keyPressEvent(self):
+		"""test keyPressEvent"""
+		bw = BibtexListWindow(bibs=[
+			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}])
+		m = PBMenu()
+		m.exec_ = MagicMock()
+		cba = CommonBibActions([{"bibkey": "ghi"}])
+		m.possibleActions = [["copy", ["a", "b"]]]
+		with patch("physbiblio.gui.bibWindows.CommonBibActions"
+					+ "._createMenuCopy", autospec=True) as _cmc,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions",
+					return_value=cba, autospec=True) as _cba,\
+				patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[[{"bibkey": "ghi"}], [{"bibkey": "ghi"}]],
+					autospec=True) as _gbb,\
+				patch("physbiblio.gui.bibWindows.PBMenu",
+					return_value=m, autospec=True) as _pbm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow"
+					+ ".clearSelection", autospec=True) as _cs:
+			QTest.keyPress(bw, "C", Qt.ShiftModifier)
+			self.assertEqual(_cmc.call_count, 0)
+			QTest.keyPress(bw, "C", Qt.ControlModifier)
+			self.assertEqual(_cmc.call_count, 0)
+			bw.tableview.selectRow(2)
+			QTest.keyPress(bw, "C", Qt.ShiftModifier)
+			self.assertEqual(_cmc.call_count, 0)
+			QTest.keyPress(bw, "C", Qt.ControlModifier)
+			_pbm.assert_called_once_with()
+			_cmc.assert_called_once_with(cba, False, {'bibkey': 'ghi'})
+			cba.menu.exec_.assert_called_once_with(QCursor.pos())
+			_cs.assert_called_once_with(bw)
+		m = PBMenu()
+		m.exec_ = MagicMock()
+		cba = CommonBibActions([{"bibkey": "ghi", "bibtex": "@a{ghi}"}])
+		with patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[
+						[{"bibkey": "ghi", "bibtex": "@a{ghi}"}],
+						[{"bibkey": "ghi", "bibtex": "@a{ghi}"}]],
+					autospec=True) as _gbb,\
+				patch("physbiblio.gui.bibWindows.CommonBibActions",
+					return_value=cba, autospec=True) as _cba,\
+				patch("physbiblio.gui.bibWindows.PBMenu",
+					return_value=m, autospec=True) as _pbm,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow"
+					+ ".clearSelection", autospec=True) as _cs:
+			QTest.keyPress(bw, "C", Qt.ControlModifier)
+			_pbm.assert_called_once_with()
+			cba.menu.exec_.assert_called_once_with(QCursor.pos())
+			_cs.assert_called_once_with(bw)
+		pa = m.possibleActions
+		self.assertIsInstance(pa, list)
+		for ix in [0, 2, 3, 4]:
+			self.assertIsInstance(pa[ix], QAction)
+		self.assertEqual(pa[1], None)
+		self.assertEqual(pa[0].text(), "--Copy to clipboard--")
+		self.assertFalse(pa[0].isEnabled())
+		self.assertEqual(pa[2].text(), "key(s)")
+		self.assertEqual(pa[3].text(), r"\cite{key(s)}")
+		self.assertEqual(pa[4].text(), "bibtex(s)")
+		with patch("logging.Logger.info") as _i:
+			pa[2].trigger()
+			self.assertEqual(QApplication.clipboard().text(), "ghi")
+			pa[3].trigger()
+			self.assertEqual(QApplication.clipboard().text(), r"\cite{ghi}")
+			pa[4].trigger()
+			self.assertEqual(QApplication.clipboard().text(), "@a{ghi}")
 
 	def test_triggeredContextMenuEvent(self):
 		"""test triggeredContextMenuEvent"""
