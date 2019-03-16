@@ -1,3 +1,5 @@
+1.1.0 (2019-03-16)
+	* selection of entries is now possible with Ctrl+click
 	* double click on categories and experiments now opens list of corresponding entries
 	* bug solved when searching on "comment(s)"
 	* cursor did not restore when no results are found in advanced import

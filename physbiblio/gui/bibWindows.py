@@ -1449,6 +1449,79 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		self.createActions()
 		self.createTable()
 
+	def getRowBibkey(self, model, index):
+		"""Use the model index to return the bibkey for the given row
+
+		Parameter:
+			model: the model to use
+				(e.g. self.tableModel or self.proxyModel)
+			index: a `QModelIndex` instance
+
+		Output:
+			None for invalid rows or missing content,
+			a string otherwise
+		"""
+		if not index.isValid():
+			return
+		row = index.row()
+		col = index.column()
+		try:
+			bibkey = str(model.sibling(
+				row, self.columns.index("bibkey"), index).data())
+		except AttributeError:
+			pBLogger.debug("Error in reading table content")
+			return
+		if bibkey is None or bibkey is "":
+			return
+		try:
+			entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
+		except IndexError:
+			pBGUILogger.debug("The entry cannot be found!")
+			return
+		return bibkey
+
+	def onSelectionChanged(self, sel, unsel):
+		"""When the selection is changed,
+		if more than one row is currently selected,
+		enable the checkboxes and mark the selected rows as checked.
+		Following selections with e.g. Ctrl+click will update
+		the checkboxes until the selection is cleared
+		or an action performed
+
+		Parameters:
+			sel: list of QItemSelection objects that have been selected
+				with the last action
+			unsel: list of QItemSelection objects that have been
+				unselected with the last action
+		"""
+		currentSelRows = self.tableview.selectionModel().selectedRows(0)
+		if len(currentSelRows) > 1:
+			self.tableModel.changeAsk(new=True)
+			self.changeEnableActions(status=True)
+			self.tableModel.layoutAboutToBeChanged.emit()
+			for ix in currentSelRows:
+				bibkey = self.getRowBibkey(self.tableModel, ix)
+				if (bibkey is not None
+						and isinstance(bibkey, six.string_types)
+						and bibkey != ""):
+					self.tableModel.selectedElements[bibkey] = True
+			self.tableModel.layoutChanged.emit()
+		if self.tableModel.ask:
+			self.tableModel.layoutAboutToBeChanged.emit()
+			for un in sel:
+				for ix in un.indexes():
+					if ix.column() == self.columns.index("bibkey"):
+						bibkey = self.getRowBibkey(self.tableModel, ix)
+						if bibkey is not None:
+							self.tableModel.selectedElements[bibkey] = True
+			for un in unsel:
+				for ix in un.indexes():
+					if ix.column() == self.columns.index("bibkey"):
+						bibkey = self.getRowBibkey(self.tableModel, ix)
+						if bibkey is not None:
+							self.tableModel.selectedElements[bibkey] = False
+			self.tableModel.layoutChanged.emit()
+
 	def reloadColumnContents(self):
 		"""Reload the list of column names
 		(it may have been changed if a profile change occurred)
@@ -1460,11 +1533,11 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			self.colContents.append(self.columns[j])
 		self.colContents += [a.lower() for a in self.additionalCols]
 
-	def changeEnableActions(self):
+	def changeEnableActions(self, status=None):
 		"""Enable or disable the buttons related
 		to the bibtex selection
 		"""
-		status = self.tableModel.ask
+		status = self.tableModel.ask if status is None else status
 		self.clearAct.setEnabled(status)
 		self.selAllAct.setEnabled(status)
 		self.unselAllAct.setEnabled(status)
@@ -1475,6 +1548,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		self.tableModel.previous = []
 		self.tableModel.prepareSelected()
 		self.tableModel.changeAsk(False)
+		self.tableview.clearSelection()
 		self.changeEnableActions()
 
 	def createActions(self):
@@ -1585,6 +1659,8 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			self.setProxyStuff(self.columns.index("bibkey"), Qt.AscendingOrder)
 		self.tableview.hideColumn(
 			len(self.columns) + len(self.additionalCols))
+		self.tableview.selectionModel().selectionChanged.connect(
+			self.onSelectionChanged)
 
 		self.finalizeTable()
 

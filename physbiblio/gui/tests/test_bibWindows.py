@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import os
-from PySide2.QtCore import Qt, QModelIndex
+from PySide2.QtCore import Qt, QItemSelectionModel, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtGui import QMouseEvent, QPixmap
 from PySide2.QtWidgets import QMenu, QWidget
@@ -3948,6 +3948,96 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		self.assertEqual(bw.askBibs, True)
 		self.assertEqual(bw.previous, ["abc"])
 
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": ["bibkey"]}, clear=False)
+	def test_getRowBibkey(self):
+		"""test getRowBibkey"""
+		bw = BibtexListWindow(bibs=[
+			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}])
+		with patch("physbiblio.database.Entries.getByBibkey",
+					side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []],
+					autospec=True) as _gbb,\
+				patch("logging.Logger.debug") as _d:
+			self.assertEqual(
+				bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(1, 0)),
+				"abc")
+			self.assertEqual(
+				bw.getRowBibkey(bw.tableModel, bw.tableModel.index(1, 3)),
+				"def",)
+			self.assertEqual(
+				bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(2, 0)),
+				"def",)
+			#will fail because of no DB correspondence:
+			self.assertEqual(
+				bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(2, 0)),
+				None)
+			_d.assert_called_once_with("The entry cannot be found!")
+			_gbb.reset_mock()
+			self.assertEqual(
+				bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(0, 0)),
+				None)
+			self.assertEqual(_gbb.call_count, 0)
+			self.assertEqual(
+				bw.getRowBibkey(bw.tableModel, bw.tableModel.index(12, 0)),
+				None)
+			self.assertEqual(_gbb.call_count, 0)
+
+	@patch.dict(pbConfig.params,
+		{"bibtexListColumns": ["bibkey"]}, clear=False)
+	def test_onSelectionChanged(self):
+		"""test reloadColumnContents"""
+		bw = BibtexListWindow(bibs=[
+			{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}])
+		self.assertEqual(
+			bw.tableModel.selectedElements,
+			{'abc': False, 'def': False, 'ghi': False})
+		bw.tableview.selectRow(0)
+		self.assertEqual(
+			bw.tableModel.selectedElements,
+			{'abc': False, 'def': False, 'ghi': False})
+		self.assertFalse(bw.clearAct.isEnabled())
+		self.assertFalse(bw.selAllAct.isEnabled())
+		self.assertFalse(bw.unselAllAct.isEnabled())
+		self.assertFalse(bw.okAct.isEnabled())
+		self.assertFalse(bw.tableModel.ask)
+		itemSelection = bw.tableview.selectionModel().selectedRows()
+		selectedItems = bw.tableview.selectionModel().selection()
+		bw.tableview.selectRow(2)
+		self.assertFalse(bw.clearAct.isEnabled())
+		self.assertFalse(bw.selAllAct.isEnabled())
+		self.assertFalse(bw.unselAllAct.isEnabled())
+		self.assertFalse(bw.okAct.isEnabled())
+		self.assertFalse(bw.tableModel.ask)
+		selectedItems.merge(
+			bw.tableview.selectionModel().selection(),
+			QItemSelectionModel.Select)
+		bw.tableview.selectionModel().clearSelection()
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow"
+					+ ".getRowBibkey", autospec=True,
+					side_effect=["abc", "ghi", "abc", "ghi"]) as _gb:
+			bw.tableview.selectionModel().select(
+				selectedItems, QItemSelectionModel.Select)
+			self.assertTrue(bw.clearAct.isEnabled())
+			self.assertTrue(bw.selAllAct.isEnabled())
+			self.assertTrue(bw.unselAllAct.isEnabled())
+			self.assertTrue(bw.okAct.isEnabled())
+			self.assertTrue(bw.tableModel.ask)
+			self.assertEqual(
+				bw.tableModel.selectedElements,
+				{'abc': True, 'def': False, 'ghi': True})
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow"
+					+ ".getRowBibkey", autospec=True,
+					side_effect=["def", "abc", "ghi"]) as _gb:
+			bw.tableview.selectRow(1)
+			self.assertTrue(bw.clearAct.isEnabled())
+			self.assertTrue(bw.selAllAct.isEnabled())
+			self.assertTrue(bw.unselAllAct.isEnabled())
+			self.assertTrue(bw.okAct.isEnabled())
+			self.assertTrue(bw.tableModel.ask)
+			self.assertEqual(
+				bw.tableModel.selectedElements,
+				{'abc': False, 'def': True, 'ghi': False})
+
 	def test_reloadColumnContents(self):
 		"""test reloadColumnContents"""
 		bw = BibtexListWindow(bibs=[])
@@ -3975,6 +4065,18 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		self.assertTrue(bw.selAllAct.isEnabled())
 		self.assertTrue(bw.unselAllAct.isEnabled())
 		self.assertTrue(bw.okAct.isEnabled())
+		bw.tableModel.ask = False
+		bw.changeEnableActions()
+		self.assertFalse(bw.clearAct.isEnabled())
+		self.assertFalse(bw.selAllAct.isEnabled())
+		self.assertFalse(bw.unselAllAct.isEnabled())
+		self.assertFalse(bw.okAct.isEnabled())
+		bw.tableModel.ask = True
+		bw.changeEnableActions(status=False)
+		self.assertFalse(bw.clearAct.isEnabled())
+		self.assertFalse(bw.selAllAct.isEnabled())
+		self.assertFalse(bw.unselAllAct.isEnabled())
+		self.assertFalse(bw.okAct.isEnabled())
 
 	def test_clearSelection(self):
 		"""test clearSelection"""
@@ -3985,12 +4087,15 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				patch("physbiblio.gui.bibWindows.BibTableModel."
 					+ "changeAsk", autospec=True) as _ca,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "changeEnableActions", autospec=True) as _ea:
+					+ "changeEnableActions", autospec=True) as _ea,\
+				patch("PySide2.QtWidgets.QTableView."
+					+ "clearSelection", autospec=True) as _cs:
 			bw.clearSelection()
 			self.assertEqual(bw.tableModel.previous, [])
 			_ps.assert_called_once_with(bw.tableModel)
 			_ca.assert_called_once_with(bw.tableModel, False)
 			_ea.assert_called_once_with(bw)
+			_cs.assert_called_once_with()
 
 	def test_createActions(self):
 		"""test createActions"""
@@ -4233,6 +4338,12 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				bw.createTable()
 				_sps.assert_called_once_with(bw, bw.columns.index("bibkey"),
 					Qt.AscendingOrder)
+
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "onSelectionChanged", autospec=True) as _sc:
+			self.assertTrue(_sc.call_count == 0)
+			bw.tableview.selectionModel().selectionChanged.emit("a", "b")
+			self.assertTrue(_sc.call_count > 0)
 
 	def test_updateInfo(self):
 		"""test updateInfo"""
