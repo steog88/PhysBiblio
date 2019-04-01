@@ -16,7 +16,7 @@ else:
 	from unittest.mock import patch
 	from io import StringIO
 
-today_ymd = datetime.datetime.today().strftime('%y%m%d')
+today_ymd = datetime.datetime.today().strftime('%y%m%d_%H%M%S')
 tempLogFileName = "tests_%s.log"%today_ymd
 
 try:

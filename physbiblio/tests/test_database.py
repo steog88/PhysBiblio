@@ -1654,9 +1654,6 @@ class TestDatabaseEntries(DBTestCase):
 			"No elements found?")
 		self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"),
 			{"bibkey": ""})
-		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareInsert(
-			"@article{abc,"),
-			"Impossible to parse bibtex!")
 
 	def test_insert(self):
 		"""Test insertion and of bibtex items"""
@@ -1785,16 +1782,8 @@ class TestDatabaseEntries(DBTestCase):
 			+ '         title = "{abc}",\n         arxiv = "1234",\n}'
 
 		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE), "")
-		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(
-			bibtexA, bibtexE),
-			"Parsing exception in prepareUpdate")
 		self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA), "")
-		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate(
-			bibtexE, bibtexA),
-			"Parsing exception in prepareUpdate")
 		self.assertEqual(self.pBDB.bibs.prepareUpdate("", bibtexA), "")
-		self.assert_in_stdout(lambda: self.pBDB.bibs.prepareUpdate("", bibtexA),
-			"Empty bibtex?")
 
 		bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
 		self.assertEqual(bibtex, resultA + "\n\n")
@@ -3211,7 +3200,7 @@ class TestDatabaseEntries(DBTestCase):
 				+ '@article{ghi,\nauthor = "\"ame",\ntitle = "ghi",\n}')
 		with patch("logging.Logger.warning") as _w:
 			self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u'%abc'), "")
-			_w.assert_called_once_with('No entries found:\n%abc')
+			_w.assert_called_once_with('Cannot parse properly:\n%abc')
 
 	def test_parseAllBibtexs(self):
 		"""test parseAllBibtexs"""
@@ -3242,7 +3231,6 @@ class TestDatabaseEntries(DBTestCase):
 				text,
 				errors=errors,
 				verbose=False)
-			self.assertEqual(len(errors), 1)
 			self.assertEqual([a["ID"] for a in res], ["def"])
 
 	def test_importFromBib(self):
@@ -3258,9 +3246,6 @@ class TestDatabaseEntries(DBTestCase):
 			f.write(u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "abc",\n}\n@article{def,\n}\n')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo=False),
-			"Impossible to parse text:")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
 
@@ -3269,9 +3254,6 @@ class TestDatabaseEntries(DBTestCase):
 			f.write(u'@article{abc,\nauthor = "me",\n' \
 			+ 'title = "abc",\n}\n@article{def,\n}\n')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo=False),
-			"and 1 errors.")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
 
@@ -3280,9 +3262,6 @@ class TestDatabaseEntries(DBTestCase):
 			f.write(u'@article{abc,\nauthor = "me",\n' \
 			+ 'month = jan,\n}\n@article{def,\n}\n')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-		self.assert_in_stdout(lambda: self.pBDB.bibs.importFromBib(
-			"tmpbib.bib", completeInfo=False),
-			"Impossible to parse text:")
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc"])
 
@@ -3419,9 +3398,6 @@ class TestDatabaseEntries(DBTestCase):
 		#unreadable bibtex (bibtex method)
 		self.assertFalse(self.pBDB.bibs.loadAndInsert('@article{jkl,',
 			method="bibtex"))
-		self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
-			'@article{jkl,', method="bibtex"),
-			"Error while reading the bibtex ")
 
 		self.pBDB.undo(verbose=0)
 		with patch('physbiblio.database.Entries.updateInspireID',
@@ -3526,14 +3502,12 @@ class TestDatabaseEntries(DBTestCase):
 				self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
 					"key0"),
-					"Impossible to parse bibtex!\nImpossible to insert " \
-					+ "an entry with empty bibkey")
+					"Impossible to insert an entry with empty bibkey")
 				self.pBDB.undo(verbose=0)
 				self.assertFalse(self.pBDB.bibs.loadAndInsert('key0'))
 				self.assert_in_stdout(lambda: self.pBDB.bibs.loadAndInsert(
 					"key0"),
-					"Wrong type or value for field ID (None)?\n" \
-					+ "Impossible to insert an entry with empty bibkey")
+					"Impossible to insert an entry with empty bibkey")
 			self.pBDB.undo(verbose=0)
 			_mock_uiid.reset_mock()
 			_mock_uio.reset_mock()

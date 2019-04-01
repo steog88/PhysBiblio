@@ -2832,11 +2832,8 @@ class Entries(PhysBiblioDBSub):
 		try:
 			element = bibtexparser.bparser.BibTexParser(common_strings=True
 				).parse(bibtex).entries[0]
-		except ParseException:
+		except (IndexError, ParseException):
 			pBLogger.warning("Cannot parse properly:\n%s"%bibtex)
-			return ""
-		except IndexError:
-			pBLogger.warning("No entries found:\n%s"%bibtex)
 			return ""
 		for k,v in element.items():
 			try:
@@ -3631,7 +3628,7 @@ class Entries(PhysBiblioDBSub):
 							e["bibkey"], "bibtex", newbibtex):
 						pBLogger.info("-- element changed!")
 						changed.append(e["bibkey"])
-				except (ValueError, ParseException):
+				except (IndexError, ValueError, ParseException):
 					pBLogger.warning(
 						"Error while cleaning entry '%s'"%e["bibkey"],
 						exc_info=True)

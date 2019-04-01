@@ -2476,10 +2476,6 @@ class TestMainWindow(GUITestCase):
 			_deb.assert_has_calls([
 				call(u"KeyError 'arxiv', entry: d"),
 				call(u"KeyError 'doi', entry: d")])
-			_wa.assert_called_once_with(
-				"Impossible to insert an entry with empty bibkey!"
-				+ '\n@Article{,\n        author = "me",\n         '
-				+ 'title = "{titl}",\n}\n\n\n')
 
 		aid.exec_.reset_mock()
 		ais.exec_.reset_mock()
