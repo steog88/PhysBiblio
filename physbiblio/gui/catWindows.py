@@ -187,6 +187,8 @@ class CatsModel(TreeModel):
 		row = index.row()
 		column = index.column()
 		item = TreeNode.cast(index)
+		if item is None:
+			return None
 		value = item.element.text
 		idCat = item.element.idCat
 		if role == Qt.CheckStateRole and \
@@ -256,7 +258,13 @@ class CatsModel(TreeModel):
 		"""
 		if not index.isValid():
 			return False
-		idCat = TreeNode.cast(index).element.idCat
+		node = TreeNode.cast(index)
+		if node is None:
+			return False
+		element = node.element
+		if element is None:
+			return False
+		idCat = element.idCat
 		if role == Qt.CheckStateRole and index.column() == 0:
 			self.previousSaved[idCat] = False
 			if value == Qt.Checked:
@@ -551,8 +559,16 @@ class CatsTreeWindow(PBDialog):
 			row = index.row()
 		else:
 			return
-		idCat, catName = self.proxyModel.sibling(row, 0, index) \
-			.data().split(": ")
+		try:
+			idString = self.proxyModel.sibling(row, 0, index).data()
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
+		try:
+			idCat, catName = idString.split(": ")
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
 		idCat = idCat.strip()
 		try:
 			self.timer.stop()
@@ -596,8 +612,16 @@ class CatsTreeWindow(PBDialog):
 			row = index.row()
 		else:
 			return
-		idCat, catName = self.proxyModel.sibling(row, 0, index) \
-			.data().split(": ")
+		try:
+			idString = self.proxyModel.sibling(row, 0, index).data()
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
+		try:
+			idCat, catName = idString.split(": ")
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
 		idCat = idCat.strip()
 
 		menu = PBMenu()
@@ -640,8 +664,16 @@ class CatsTreeWindow(PBDialog):
 			col = index.column()
 		else:
 			return
-		idCat, catName = self.proxyModel.sibling(row, 0, index) \
-			.data().split(": ")
+		try:
+			idString = self.proxyModel.sibling(row, 0, index).data()
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
+		try:
+			idCat, catName = idString.split(": ")
+		except AttributeError:
+			pBLogger.debug("", exc_info=True)
+			return
 		idCat = idCat.strip()
 		self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
 		return

@@ -637,11 +637,12 @@ class TreeNode(QObject):
 		Output:
 			should be a TreeNode instance
 		"""
-		if (PySide2.__version_info__[0] == 5
-				and PySide2.__version_info__[1] == 11):
-			return obj.internalPointer()
-		else:
+		ps2verinfo = PySide2.__version_info__
+		if (ps2verinfo[0:3] == (5, 12, 0)
+				or ps2verinfo[0:3] == (5, 12, 1)):
 			return cls._instances.get(PtrKey(obj.internalPointer()))
+		else:
+			return obj.internalPointer()
 
 	def __init__(self, parent, row):
 		"""Constructor, set basic properties
@@ -651,8 +652,9 @@ class TreeNode(QObject):
 			row: the content of the data row
 		"""
 		super(TreeNode, self).__init__()
-		if (not (PySide2.__version_info__[0] == 5
-				and PySide2.__version_info__[1] == 11)):
+		ps2verinfo = PySide2.__version_info__
+		if (ps2verinfo[0:3] == (5, 12, 0)
+				or ps2verinfo[0:3] == (5, 12, 1)):
 			self._instances[PtrKey(VoidPtr(self))] = self
 		self.parentObj = parent
 		self.row = row
@@ -702,6 +704,8 @@ class TreeModel(QAbstractItemModel):
 			except IndexError:
 				return QModelIndex()
 		parentNode = TreeNode.cast(parent)
+		if parentNode is None:
+			return QModelIndex()
 		try:
 			return self.createIndex(row, column, parentNode.subnodes[row])
 		except IndexError:
@@ -724,7 +728,10 @@ class TreeModel(QAbstractItemModel):
 			return QModelIndex()
 		if not index.isValid():
 			return QModelIndex()
-		nodeParent = TreeNode.cast(index).parent()
+		node = TreeNode.cast(index)
+		if node is None:
+			return QModelIndex()
+		nodeParent = node.parent()
 		if nodeParent is None:
 			return QModelIndex()
 		else:
@@ -746,6 +753,8 @@ class TreeModel(QAbstractItemModel):
 		if not parent.isValid():
 			return len(self.rootNodes)
 		node = TreeNode.cast(parent)
+		if node is None:
+			return len(self.rootNodes)
 		return len(node.subnodes)
 
 
