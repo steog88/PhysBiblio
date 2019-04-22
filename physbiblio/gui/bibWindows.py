@@ -7,6 +7,7 @@ import traceback
 import os
 import ast
 import six
+import datetime
 import matplotlib
 matplotlib.use('Qt5Agg')
 os.environ["QT_API"] = 'pyside2'
@@ -217,6 +218,21 @@ def editBibtex(parentObject, editKey=None):
 					+ "bibtex code:\n%s"%data["bibtex"], exc_info=True)
 				tmpBibDict = {}
 			data["bibdict"] = "%s"%tmpBibDict
+			# if some fields are empty, use bibtex info:
+			if data["arxiv"] == "":
+				if ("arxiv" in tmpBibDict.keys()
+						and tmpBibDict["arxiv"] != ""):
+					data["arxiv"] = tmpBibDict["arxiv"]
+				elif ("eprint" in tmpBibDict.keys()
+						and tmpBibDict["eprint"] != ""):
+					data["arxiv"] = tmpBibDict["eprint"]
+			for f in ["year", "doi", "isbn"]:
+				if (f in tmpBibDict.keys()
+						and tmpBibDict[f] != ""):
+					data[f] = tmpBibDict[f]
+			if data["firstdate"] == "":
+				data["firstdate"] = datetime.date.today().strftime("%Y-%m-%d")
+			# if bibkey is empty, compute it from bibtex
 			if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
 				data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
 			if data["bibkey"].strip() != "":

@@ -2273,6 +2273,18 @@ class Entries(PhysBiblioDBSub):
 				+ "bibtex code:\n%s"%data["bibtex"], exc_info=True)
 			tmpBibDict = {}
 		data["bibdict"] = "%s"%tmpBibDict
+		#if some fields are empty, use bibtex info
+		if arxiv == "":
+			if ("arxiv" in tmpBibDict.keys()
+					and tmpBibDict["arxiv"] != ""):
+				arxiv = tmpBibDict["arxiv"]
+			elif ("eprint" in tmpBibDict.keys()
+					and tmpBibDict["eprint"] != ""):
+				arxiv = tmpBibDict["eprint"]
+		for f in ["year", "doi", "isbn"]:
+			if (f in tmpBibDict.keys()
+					and tmpBibDict[f] != ""):
+				data[f] = tmpBibDict[f]
 		return data
 
 	def prepareUpdateByKey(self, key_old, key_new):
