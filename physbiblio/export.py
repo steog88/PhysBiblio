@@ -298,7 +298,7 @@ class PBExport():
 		#read previous content of output file, if any
 		try:
 			with open(outFileName, "r") as f:
-				existingBibText = f.read()
+				existingBibText = f.readlines()
 		except IOError:
 			pBLogger.error(
 				"Cannot read file %s.\nCreating one."%outFileName)

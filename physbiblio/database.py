@@ -3174,7 +3174,12 @@ class Entries(PhysBiblioDBSub):
 			entries = []
 		return entries
 
-	def parseAllBibtexs(self, fullBibText, errors=[], verbose=False):
+	def parseAllBibtexs(self,
+			fullBibText,
+			errors=[],
+			verbose=False,
+			messageEvery=100,
+			):
 		"""Parse the text containing several bibtex entries and return
 		the list of parsed entries from `bibtexparser`.
 		It should deal well with a number of errors
@@ -3184,27 +3189,35 @@ class Entries(PhysBiblioDBSub):
 			errors (default []): a list that contains the errors.
 				It should add to the existing list if passed
 			verbose (default False): if True, print some more messages
+			messageEvery (default 100): print a message
+				showing the reading progress every N found entries
 
 		Output:
 			a list of parsed entries
 		"""
 		bibText = ""
 		elements = []
-		for line in fullBibText:
-			if "@" in line and not line.strip().startswith("%"):
+		found = 0
+		pBLogger.info("Start reading file content")
+		for il, line in enumerate(fullBibText):
+			if (line.startswith("@")
+					and il>0
+					):
 				elements += self.parseSingleBibtex(
 					bibText,
 					errors=errors,
 					verbose=verbose)
+				found += 1
+				if found % messageEvery == 0:
+					pBLogger.info("Reading bibtex entry #%d"%found)
 				bibText = line
 			else:
-				if (not line.strip().startswith("%")
-						and not '""' in line):
-					bibText += line
+				bibText += line
 		elements += self.parseSingleBibtex(
 			bibText,
 			errors=errors,
 			verbose=verbose)
+		pBLogger.info("%d bibtex entries found."%len(elements))
 		return elements
 
 	def importFromBib(self, filename, completeInfo=True):
@@ -3230,7 +3243,7 @@ class Entries(PhysBiblioDBSub):
 
 		pBLogger.info("Importing from file bib: %s"%filename)
 		with open(filename) as r:
-			fullBibText = r.read()
+			fullBibText = r.readlines()
 		elements = self.parseAllBibtexs(
 			fullBibText,
 			errors=errors,

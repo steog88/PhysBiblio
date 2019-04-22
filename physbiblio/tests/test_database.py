@@ -3206,25 +3206,25 @@ class TestDatabaseEntries(DBTestCase):
 		"""test parseAllBibtexs"""
 		text = [u'@article{abc,\n', 'author = "me",\n', 'title = "",}',
 			'%"abc",', '}\n', "\n",
-			'@article{def,\n', 'author = "me",\n', 'title = "def",}']
+			'@article{def,\n', 'author = "me",\n', 'title = "def@ghi",}']
 		errors = []
 		with patch("logging.Logger.debug") as _i:
 			self.pBDB.bibs.parseAllBibtexs(
 				text,
 				errors=errors,
 				verbose=True)
-			_i.assert_has_calls([call('Processing:\n')])
+			self.assertTrue(_i.call_count >= 4)
 			self.assertEqual(len(errors), 0)
 			_i.reset_mock()
 			res = self.pBDB.bibs.parseAllBibtexs(
 				text,
 				errors=errors,
 				verbose=False)
-			self.assertEqual(_i.call_count, 2)
+			self.assertTrue(_i.call_count >= 2)
 			self.assertEqual([a["ID"] for a in res], ["abc", "def"])
-		text = [u'@article{abc,\n', 'author = "me",\n', 'title = "",}',
+		text = [u'@article{abc,\n', 'author = "me",\n', '%title = "",}',
 			'%"abc",', "\n",
-			'@article{def,\n', 'author = "me",\n', 'title = "def",}']
+			'@article{def,\n', 'author = "me",\n', 'title = "def@ghi",}']
 		with patch("logging.Logger.exception") as _e,\
 				patch("logging.Logger.debug") as _i:
 			res = self.pBDB.bibs.parseAllBibtexs(
@@ -3236,7 +3236,7 @@ class TestDatabaseEntries(DBTestCase):
 	def test_importFromBib(self):
 		with open("tmpbib.bib", "w") as f:
 			f.write(u'@article{abc,\nauthor = "me",\ntitle = ' \
-			+ '"abc",}@article{def,\nauthor = "me",\ntitle = "def",}')
+			+ '"abc",}@article{def,\nauthor = "me",\ntitle = "def@ghi",}')
 		self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
 		self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()],
 			["abc", "def"])
