@@ -1,4 +1,9 @@
+1.1.1 (2019-04-22)
 	* ctrl+c triggers "copy from clipboard" menu in main table
+	* when inserting a new bibtex, automatically read arxiv/doi/yearfrom bibtex content
+	* fix tests with newer bibtexparser versions
+	* fix problems with very old matplotlib
+	* fixes when importing from .bib files and one of the bibtex fields contains "@"
 
 1.1.0 (2019-03-16)
 	* selection of entries is now possible with Ctrl+click
