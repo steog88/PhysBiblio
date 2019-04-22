@@ -12,8 +12,8 @@ try:
 	from physbiblio.argParser import setParser, call_gui
 	from physbiblio.config import pbConfig
 except ImportError:
-    print("Could not find physbiblio and its modules!")
-    raise
+	print("Could not find physbiblio and its modules!")
+	raise
 
 if __name__=='__main__':
 	faulthandler.enable()
