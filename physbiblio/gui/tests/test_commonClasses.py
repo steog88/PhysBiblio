@@ -58,6 +58,7 @@ class EmptyTableModel(QAbstractTableModel):
 
 	def __init__(self, *args):
 		QAbstractTableModel.__init__(self, *args)
+		self.header = []
 
 	def rowCount(self, a = None):
 		return 1
@@ -288,10 +289,13 @@ class TestObjListWindow(GUITestCase):
 		"""test setProxyStuff"""
 		olw = ObjListWindow()
 		olw.tableModel = EmptyTableModel()
-		with patch("PySide2.QtCore.QSortFilterProxyModel.sort",
-				autospec=True) as _s:
+		with patch("PySide2.QtWidgets.QTableView.sortByColumn",
+					autospec=True) as _st,\
+			patch("PySide2.QtCore.QSortFilterProxyModel.sort",
+					autospec=True) as _sf:
 			olw.setProxyStuff(1, Qt.AscendingOrder)
-			_s.assert_called_once_with(1, Qt.AscendingOrder)
+			_st.assert_called_once_with(1, Qt.AscendingOrder)
+			_sf.assert_called_once_with(1, Qt.AscendingOrder)
 		self.assertIsInstance(olw.proxyModel, QSortFilterProxyModel)
 		self.assertEqual(olw.proxyModel.filterCaseSensitivity(),
 			Qt.CaseInsensitive)
@@ -760,34 +764,6 @@ class TestPBTableModel(GUITestCase):
 		p = ObjListWindow()
 		mtm = PBTableModel(p, ["a", "b"])
 		self.assertRaises(NotImplementedError, lambda: mtm.setData(1, 1, 1))
-
-	def test_sort(self):
-		"""test sort function"""
-		def setAbout(cl):
-			cl.about = True
-		def setChanged(cl):
-			cl.changed = True
-		p = ObjListWindow()
-		mtm = PBTableModel(p, ["a", "b"])
-		dl = [{"a": 1, "b": 3}, {"a": 2, "b": 2}, {"a": 3, "b": 1}]
-		mtm.dataList = dl
-		mtm.about = False
-		mtm.changed = False
-		mtm.layoutAboutToBeChanged.connect(lambda: setAbout(mtm))
-		mtm.layoutChanged.connect(lambda: setChanged(mtm))
-		self.assertFalse(mtm.about)
-		self.assertFalse(mtm.changed)
-		self.assert_in_stdout(mtm.sort, "Wrong column name in `sort`: '1'!")
-		self.assertTrue(mtm.about)
-		self.assertTrue(mtm.changed)
-		self.assertEqual(mtm.dataList, dl)
-		mtm.sort("b")
-		self.assertEqual(mtm.dataList,
-			[{"a": 3, "b": 1}, {"a": 2, "b": 2}, {"a": 1, "b": 3}])
-		mtm.sort("b", Qt.DescendingOrder)
-		self.assertEqual(mtm.dataList, dl)
-		mtm.sort("a")
-		self.assertEqual(mtm.dataList, dl)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

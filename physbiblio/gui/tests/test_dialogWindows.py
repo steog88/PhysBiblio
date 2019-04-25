@@ -1144,8 +1144,8 @@ class TestDailyArxivSelect(GUITestCase):
 	def test_initUI(self):
 		"""test initUI"""
 		p = QWidget()
-		with patch("PySide2.QtCore.QSortFilterProxyModel.sort",
-				autospec=True) as _s,\
+		with patch("PySide2.QtWidgets.QTableView.sortByColumn",
+					autospec=True) as _s,\
 				patch("physbiblio.gui.commonClasses."
 					+ "ObjListWindow.finalizeTable", autospec=True) as _f:
 			das = DailyArxivSelect({}, p)

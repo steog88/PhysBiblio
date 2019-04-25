@@ -1256,10 +1256,9 @@ class Experiments(PhysBiblioDBSub):
 			Output:
 				the ordered list of id
 			"""
-			listIn = [ e for e in exps if e["idExp"] in listId ]
-			decorated = [ (x["name"], x) for x in listIn ]
-			decorated.sort()
-			return [ x[1]["idExp"] for x in decorated ]
+			listIn = [e for e in exps if e["idExp"] in listId]
+			decorated = [(x["name"], x) for x in listIn]
+			return [x[1]["idExp"] for x in sorted(decorated)]
 
 		expCats = {}
 		for (a, idE, idC) in self.mainDB.catExp.getAll():
@@ -3892,9 +3891,8 @@ def cats_alphabetical(listId, db):
 			listIn.append(db.cats.getByID(i)[0])
 		except IndexError:
 			pBLogger.warning("Category '%s' not in database"%i)
-	decorated = [ (x["name"].lower(), x) for x in listIn ]
-	decorated.sort()
-	return [ x[1]["idCat"] for x in decorated ]
+	decorated = [(x["name"].lower(), x) for x in listIn]
+	return [x[1]["idCat"] for x in sorted(decorated)]
 
 
 def dbStats(db):

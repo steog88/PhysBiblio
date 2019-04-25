@@ -245,6 +245,19 @@ class ObjListWindow(PBDialog):
 		self.tableview.setSortingEnabled(True)
 		self.tableview.setMouseTracking(True)
 		self.tableview.setSelectionBehavior(QAbstractItemView.SelectRows)
+		try:
+			self.tableview.sortByColumn(
+				self.tableModel.header.index("bibkey"),
+				Qt.AscendingOrder)
+		except (IndexError, ValueError):
+			pass
+		self.tableview.sortByColumn(sortColumn, sortOrder)
+		try:
+			self.proxyModel.sort(
+				self.tableModel.header.index("bibkey"),
+				Qt.AscendingOrder)
+		except (IndexError, ValueError):
+			pass
 		self.proxyModel.sort(sortColumn, sortOrder)
 		self.currLayout.addWidget(self.tableview)
 
@@ -600,22 +613,6 @@ class PBTableModel(QAbstractTableModel):
 		"""Not implemented: requires a subclass"""
 		raise NotImplementedError()
 
-	def sort(self, col=1, order=Qt.AscendingOrder):
-		"""Sort table by the given column, number `col`
-
-		Parameters:
-			col: the column name
-			order: int from `Qt.SortOrder`
-		"""
-		self.layoutAboutToBeChanged.emit()
-		try:
-			self.dataList = sorted(self.dataList, key = lambda x: x[col] )
-			if order == Qt.DescendingOrder:
-				self.dataList.reverse()
-		except KeyError:
-			pBLogger.warning("Wrong column name in `sort`: '%s'!"%col)
-		self.layoutChanged.emit()
-
 
 #https://www.hardcoded.net/articles/using_qtreeview_with_qabstractitemmodel
 class TreeNode(QObject):
@@ -953,8 +950,7 @@ class PBDDTableWidget(QTableWidget):
 			text = item.text()
 			if row not in selectedRows and text != "bibkey":
 				selectedRows.append(row)
-		selectedRows.sort()
-		return selectedRows
+		return sorted(selectedRows)
 
 
 class PBMenu(QMenu):
