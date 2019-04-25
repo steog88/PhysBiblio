@@ -1505,12 +1505,18 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		row = index.row()
 		col = index.column()
 		try:
-			bibkey = str(model.sibling(
-				row, self.columns.index("bibkey"), index).data())
+			newidx = model.sibling(row, self.columns.index("bibkey"), index)
 		except AttributeError:
 			pBLogger.debug("Error in reading table content")
 			return
-		if bibkey is None or bibkey is "":
+		if not newidx.isValid():
+			return
+		try:
+			bibkey = str(newidx.data())
+		except AttributeError:
+			pBLogger.debug("Error in reading table content")
+			return
+		if bibkey is None or bibkey == "" or bibkey == "None":
 			return
 		try:
 			entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
@@ -1533,13 +1539,15 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			unsel: list of QItemSelection objects that have been
 				unselected with the last action
 		"""
-		currentSelRows = self.tableview.selectionModel().selectedRows(0)
+		selectionModel = self.tableview.selectionModel()
+		currentSelRows = selectionModel.selectedRows(
+			self.columns.index("bibkey"))
 		if len(currentSelRows) > 1:
+			bibkeys = [ix.data() for ix in currentSelRows]
 			self.tableModel.changeAsk(new=True)
 			self.changeEnableActions(status=True)
 			self.tableModel.layoutAboutToBeChanged.emit()
-			for ix in currentSelRows:
-				bibkey = self.getRowBibkey(self.tableModel, ix)
+			for bibkey in bibkeys:
 				if (bibkey is not None
 						and isinstance(bibkey, six.string_types)
 						and bibkey != ""):
@@ -1550,16 +1558,17 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			for un in sel:
 				for ix in un.indexes():
 					if ix.column() == self.columns.index("bibkey"):
-						bibkey = self.getRowBibkey(self.tableModel, ix)
+						bibkey = self.getRowBibkey(self.proxyModel, ix)
 						if bibkey is not None:
 							self.tableModel.selectedElements[bibkey] = True
 			for un in unsel:
 				for ix in un.indexes():
 					if ix.column() == self.columns.index("bibkey"):
-						bibkey = self.getRowBibkey(self.tableModel, ix)
+						bibkey = self.getRowBibkey(self.proxyModel, ix)
 						if bibkey is not None:
 							self.tableModel.selectedElements[bibkey] = False
 			self.tableModel.layoutChanged.emit()
+		self.restoreSort()
 
 	def reloadColumnContents(self):
 		"""Reload the list of column names
@@ -1582,11 +1591,21 @@ class BibtexListWindow(QFrame, ObjListWindow):
 		self.unselAllAct.setEnabled(status)
 		self.okAct.setEnabled(status)
 
+	def changeFilterSort(self, string):
+		"""Change the filter of the current view.
+
+		Parameter:
+			string: the filter string to be matched
+		"""
+		self.changeFilter(string)
+		self.restoreSort()
+
 	def clearSelection(self):
 		"""Clear the current selection of bibtex entries"""
 		self.tableModel.previous = []
 		self.tableModel.prepareSelected()
 		self.tableModel.changeAsk(False)
+		self.restoreSort()
 		self.tableview.clearSelection()
 		self.changeEnableActions(status=False)
 
@@ -1613,9 +1632,26 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			statusTip="Unselect all the elements",
 			triggered=self.unselectAll)
 
+	def restoreSort(self):
+		"""Re-establish current sort status for the table:
+		first use the default (ascending on column 0),
+		then apply last settings
+		"""
+		ccol = self.proxyModel.sortColumn()
+		cord = self.proxyModel.sortOrder()
+		self.proxyModel.sort(
+			self.columns.index("bibkey"),
+			Qt.AscendingOrder)
+		self.proxyModel.sort(ccol, cord)
+		self.tableview.sortByColumn(
+			self.columns.index("bibkey"),
+			Qt.AscendingOrder)
+		self.tableview.sortByColumn(ccol, cord)
+
 	def enableSelection(self):
 		"""Enable the selection of entries"""
 		self.tableModel.changeAsk()
+		self.restoreSort()
 		self.changeEnableActions()
 
 	def selectAll(self):
@@ -1675,7 +1711,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 
 		self.filterInput = QLineEdit("", self)
 		self.filterInput.setPlaceholderText("Filter bibliography")
-		self.filterInput.textChanged.connect(self.changeFilter)
+		self.filterInput.textChanged.connect(self.changeFilterSort)
 		self.selectToolBar.addWidget(self.filterInput)
 		self.filterInput.setFocus()
 
@@ -1755,7 +1791,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 			if len(currentRows) > 0:
 				bibkeys = []
 				for ix in currentRows:
-					b = self.getRowBibkey(self.tableModel, ix)
+					b = self.getRowBibkey(self.proxyModel, ix)
 					if b is not None:
 						bibkeys.append(b)
 				ac = CommonBibActions(

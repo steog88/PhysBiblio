@@ -4028,9 +4028,13 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				{'abc': True, 'def': False, 'ghi': True})
 		with patch("physbiblio.gui.bibWindows.BibtexListWindow"
 					+ ".getRowBibkey", autospec=True,
-					side_effect=["abc", "ghi", "def"]) as _gb:
+					side_effect=["abc", "ghi", "def"]) as _gb,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "restoreSort", autospec=True) as _r:
 			bw.tableview.selectionModel().clearSelection()
+			_r.reset_mock()
 			bw.tableview.selectRow(1)
+			_r.assert_called_once_with(bw)
 			self.assertTrue(bw.clearAct.isEnabled())
 			self.assertTrue(bw.selAllAct.isEnabled())
 			self.assertTrue(bw.unselAllAct.isEnabled())
@@ -4080,6 +4084,17 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		self.assertFalse(bw.unselAllAct.isEnabled())
 		self.assertFalse(bw.okAct.isEnabled())
 
+	def test_changeFilterSort(self):
+		"""test changeFilterSort"""
+		bw = BibtexListWindow(bibs=[])
+		with patch("physbiblio.gui.commonClasses.ObjListWindow."
+					+ "changeFilter", autospec=True) as _f,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "restoreSort", autospec=True) as _r:
+			bw.changeFilterSort("abc")
+			_f.assert_called_once_with(bw, "abc")
+			_r.assert_called_once_with(bw)
+
 	def test_clearSelection(self):
 		"""test clearSelection"""
 		bw = BibtexListWindow(bibs=[])
@@ -4091,13 +4106,16 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
 					+ "changeEnableActions", autospec=True) as _ea,\
 				patch("PySide2.QtWidgets.QTableView."
-					+ "clearSelection", autospec=True) as _cs:
+					+ "clearSelection", autospec=True) as _cs,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "restoreSort", autospec=True) as _r:
 			bw.clearSelection()
 			self.assertEqual(bw.tableModel.previous, [])
 			_ps.assert_called_once_with(bw.tableModel)
 			_ca.assert_called_once_with(bw.tableModel, False)
 			_ea.assert_called_once_with(bw, status=False)
 			_cs.assert_called_once_with()
+			_r.assert_called_once_with(bw)
 
 	def test_createActions(self):
 		"""test createActions"""
@@ -4174,16 +4192,37 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 			bw.unselAllAct.trigger()
 			_f.assert_called_once_with(bw)
 
+	def test_restoreSort(self):
+		"""test restoreSort"""
+		bw = BibtexListWindow(bibs=[])
+		cb = bw.columns.index("bibkey")
+		cc = bw.proxyModel.sortColumn()
+		co = bw.proxyModel.sortOrder()
+		with patch("PySide2.QtWidgets.QTableView.sortByColumn",
+					autospec=True) as _st,\
+				patch("PySide2.QtCore.QSortFilterProxyModel.sort",
+					autospec=True) as _sf:
+			bw.restoreSort()
+			_sf.assert_has_calls([
+				call(cb, Qt.AscendingOrder),
+				call(cc, co)])
+			_st.assert_has_calls([
+				call(cb, Qt.AscendingOrder),
+				call(cc, co)])
+
 	def test_enableSelection(self):
 		"""test enableSelection"""
 		bw = BibtexListWindow(bibs=[])
 		with patch("physbiblio.gui.bibWindows.BibTableModel."
 					+ "changeAsk", autospec=True) as _a,\
 				patch("physbiblio.gui.bibWindows.BibtexListWindow."
-					+ "changeEnableActions", autospec=True) as _e:
+					+ "changeEnableActions", autospec=True) as _e,\
+				patch("physbiblio.gui.bibWindows.BibtexListWindow."
+					+ "restoreSort", autospec=True) as _r:
 			bw.enableSelection()
 			_a.assert_called_once_with(bw.tableModel)
 			_e.assert_called_once_with(bw)
+			_r.assert_called_once_with(bw)
 
 	def test_selectAll(self):
 		"""test selectAll"""
@@ -4310,8 +4349,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 		self.assertIsInstance(bw.filterInput, QLineEdit)
 		self.assertEqual(bw.filterInput.placeholderText(),
 			"Filter bibliography")
-		with patch("physbiblio.gui.commonClasses.ObjListWindow."
-				+ "changeFilter", autospec=True) as _cf:
+		with patch("physbiblio.gui.bibWindows.BibtexListWindow."
+				+ "changeFilterSort", autospec=True) as _cf:
 			bw.filterInput.textChanged.emit("abc")
 			_cf.assert_called_once_with(bw, "abc")
 		bw.bibs = None
