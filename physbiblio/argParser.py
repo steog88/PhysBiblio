@@ -55,7 +55,9 @@ def call_tests(args):
 		import unittest
 	suite = PBScanningLoader().discover('physbiblio')
 	testRunner = unittest.runner.TextTestRunner()
-	testRunner.run(suite)
+	result = testRunner.run(suite)
+	if not result.wasSuccessful():
+		raise Exception("Some error occurred during tests")
 
 
 def call_tex(args):
