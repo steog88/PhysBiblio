@@ -1,6 +1,11 @@
-# [PhysBiblio](https://github.com/steog88/physBiblio)
+# [PhysBiblio](https://github.com/steog88/PhysBiblio)
 Bibliography manager in Python  
 by S. Gariazzo (stefano.gariazzo@gmail.com)
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/steog88/PhysBiblio/blob/master/LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/physbiblio.svg?style=flat-square)](https://pypi.org/project/physbiblio/)
+[![PyPI version](https://img.shields.io/pypi/pyversions/physbiblio.svg?style=flat-square)](https://pypi.org/project/physbiblio/)
+[![DOI](https://zenodo.org/badge/116858546.svg)](https://zenodo.org/badge/latestdoi/116858546)
 
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
 It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
@@ -12,7 +17,7 @@ PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 version
 Some tests on a virtual machine running MacOS (10.14, `python 3.7`) have been also performed.  
 It should work equally well in other operating systems or with different python versions, but it has not been tested.  
 In any case, several bugs are surely still present and the program may freeze or crash unexpectedly.
-Please report any bug that you find [here](https://github.com/steog88/physBiblio/issues).
+Please report any bug that you find [here](https://github.com/steog88/PhysBiblio/issues).
 
 ### Installation
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
@@ -84,7 +89,7 @@ python3 /path/to/PhysBiblio.exe test
 
 The entire suite of tests will check that all the functions work properly and should complete without errors and failures in a few minutes, depending on the internet connection speed.  
 A failure may be due to missing packages, incompatible package versions, particular inconsistencies due to specific operating systems and package versions, or missing internet connection (or bugs).
-If you are not sure which is your case, and in any case to report any problem you find, please go [here](https://github.com/steog88/physBiblio/issues).
+If you are not sure which is your case, and in any case to report any problem you find, please go [here](https://github.com/steog88/PhysBiblio/issues).
 
 In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio.exe test -h`).
 As an example, `PhysBiblio.exe test -o` will skip all the online tests.
@@ -178,7 +183,7 @@ You can mark the entries to be able to easily see if they are good/bad, to notic
 ### Search and replace
 Entries in the database can be searched using different field combinations, their associated categories or experiments, marks, entry types (reviews, proceedings, lectures, ...).
 
-The search form should be easy to understand (if not, help me to improve it and submit an [issue](https://github.com/steog88/physBiblio/issues)).
+The search form should be easy to understand (if not, help me to improve it and submit an [issue](https://github.com/steog88/PhysBiblio/issues)).
 You can play with the logical operators and add more fields if necessary.
 You can also save a search or a replace that you need frequently, they will appear in a new menu for future use.
 
