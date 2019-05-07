@@ -9,17 +9,17 @@ import traceback
 from pylatexenc.latexencode import utf8tolatex
 
 try:
-	from physbiblio.errors import pBLogger
+    from physbiblio.errors import pBLogger
 except ImportError:
-	print("Could not find physbiblio and its modules!")
-	print(traceback.format_exc())
-	raise
+    print("Could not find physbiblio and its modules!")
+    print(traceback.format_exc())
+    raise
 
 accents_changed = []
 
 
 def parse_accents_str(string):
-	"""Function that reads a string and translates
+    """Function that reads a string and translates
 	all the known unicode characters into latex commands.
 
 	Parameters:
@@ -28,13 +28,13 @@ def parse_accents_str(string):
 	Output:
 		the processed string
 	"""
-	if string is not None and string is not "":
-		string = utf8tolatex(string, non_ascii_only=True)
-	return string
+    if string is not None and string is not "":
+        string = utf8tolatex(string, non_ascii_only=True)
+    return string
 
 
 def parse_accents_record(record):
-	"""Function that reads the fields inside a bibtex dictionary
+    """Function that reads the fields inside a bibtex dictionary
 	and translates all the known unicode characters into latex commands.
 
 	Parameters:
@@ -43,33 +43,26 @@ def parse_accents_record(record):
 	Output:
 		the dictionary after having processed all the fields
 	"""
-	for val in record:
-		if val is not "ID" and len(record[val].strip()) > 0:
-			tmp = utf8tolatex(record[val], non_ascii_only=True)
-			if tmp != record[val]:
-				pBLogger.info("    -> Converting bad characters in entry "
-					+ "%s: "%record["ID"])
-				pBLogger.info("         -- "+tmp.encode("utf-8"))
-				accents_changed.append(record["ID"])
-			record[val] = tmp
-	return record
+    for val in record:
+        if val is not "ID" and len(record[val].strip()) > 0:
+            tmp = utf8tolatex(record[val], non_ascii_only=True)
+            if tmp != record[val]:
+                pBLogger.info(
+                    "    -> Converting bad characters in entry " + "%s: " % record["ID"]
+                )
+                pBLogger.info("         -- " + tmp.encode("utf-8"))
+                accents_changed.append(record["ID"])
+            record[val] = tmp
+    return record
 
-latex2Html_commands = [
-	["textit","i"],
-	["textbf","b"],
-]
-latex2Html_strings = [
-	["\%","%"],
-	["~"," "],
-	["\ "," "],
-]
-latex_replace = [
-	["text", "rm"],
-]
+
+latex2Html_commands = [["textit", "i"], ["textbf", "b"]]
+latex2Html_strings = [["\%", "%"], ["~", " "], ["\ ", " "]]
+latex_replace = [["text", "rm"]]
 
 
 def texToHtml(text):
-	"""Function that converts some Latex commands into HTML commands.
+    """Function that converts some Latex commands into HTML commands.
 
 	Parameters:
 		text: the string to be processed
@@ -77,17 +70,16 @@ def texToHtml(text):
 	Output:
 		the processed string
 	"""
-	for tex, html in latex2Html_commands:
-		match = re.compile('\\\\%s\{(.*| |\n)?\}'%tex, re.MULTILINE)
-		for t in match.finditer(text):
-			text = text.replace(
-				t.group(),
-				"<{html}>{cont}</{html}>".format(
-					html=html, cont=t.group(1)))
-	for tex, html in latex2Html_strings:
-		text = text.replace(tex, html)
-	for tex, new in latex_replace:
-		match = re.compile('\\\\%s\{(.*| |\n)?\}'%tex, re.MULTILINE)
-		for t in match.finditer(text):
-			text = text.replace(t.group(), "\\%s{%s}"%(new, t.group(1)))
-	return text
+    for tex, html in latex2Html_commands:
+        match = re.compile("\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
+        for t in match.finditer(text):
+            text = text.replace(
+                t.group(), "<{html}>{cont}</{html}>".format(html=html, cont=t.group(1))
+            )
+    for tex, html in latex2Html_strings:
+        text = text.replace(tex, html)
+    for tex, new in latex_replace:
+        match = re.compile("\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
+        for t in match.finditer(text):
+            text = text.replace(t.group(), "\\%s{%s}" % (new, t.group(1)))
+    return text

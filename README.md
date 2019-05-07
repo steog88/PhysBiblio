@@ -6,6 +6,7 @@ by S. Gariazzo (stefano.gariazzo@gmail.com)
 [![PyPI version](https://img.shields.io/pypi/v/physbiblio.svg?style=flat-square)](https://pypi.org/project/physbiblio/)
 [![PyPI version](https://img.shields.io/pypi/pyversions/physbiblio.svg?style=flat-square)](https://pypi.org/project/physbiblio/)
 [![DOI](https://zenodo.org/badge/116858546.svg)](https://zenodo.org/badge/latestdoi/116858546)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
 It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
