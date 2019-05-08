@@ -47,7 +47,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editExperiment(p, m)
             _i.assert_called_once_with(p, experiment=None)
@@ -56,7 +56,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch("logging.Logger.debug") as _l:
             editExperiment(p, p)
             _i.assert_called_once_with(p, experiment=None)
@@ -69,7 +69,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch(
             "physbiblio.database.Experiments.getDictByID",
             return_value="abc",
@@ -92,7 +92,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch(
             "physbiblio.database.Experiments.getDictByID",
             return_value="abc",
@@ -109,7 +109,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch(
             "physbiblio.database.Experiments.getDictByID",
             return_value="abc",
@@ -143,7 +143,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch(
             "physbiblio.database.Experiments.getDictByID",
             return_value="abc",
@@ -192,7 +192,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _s, patch(
             "physbiblio.gui.expWindows.EditExperimentDialog",
             return_value=ncw,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i, patch(
             "physbiblio.database.Experiments.getDictByID",
             return_value="abc",
@@ -312,8 +312,7 @@ class TestExpTableModel(GUITestCase):
         with patch(
             "physbiblio.gui.commonClasses.PBTableModel.__init__", autospec=True
         ) as _i, patch(
-            "physbiblio.gui.commonClasses.PBTableModel." + "prepareSelected",
-            autospec=True,
+            "physbiblio.gui.commonClasses.PBTableModel.prepareSelected", autospec=True
         ) as _s:
             em = ExpTableModel(p, exp_list, header, askExps=True, previous=[9999])
             _i.assert_called_once_with(em, p, ["id", "name"], True, [9999])
@@ -754,14 +753,11 @@ class TestExpsListWindow(GUITestCase):
             return_value=None,
             autospec=True,
         ) as _etm, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "addFilterInput",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.addFilterInput", autospec=True
         ) as _afi, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "setProxyStuff",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff", autospec=True
         ) as _sps, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "finalizeTable",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
         ) as _ft:
             elw.createTable()
             _pae.assert_called_once_with(elw)
@@ -791,7 +787,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.layout().itemAt(0).widget(), elw.filterInput)
         self.assertEqual(elw.filterInput.placeholderText(), "Filter experiment")
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "changeFilter", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.changeFilter", autospec=True
         ) as _cf:
             elw.filterInput.textChanged.emit("a")
             _cf.assert_called_once_with(elw, "a")
@@ -801,7 +797,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
         self.assertEqual(elw.newExpButton.text(), "Add new experiment")
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "onNewExp", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.onNewExp", autospec=True
         ) as _f:
             QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
             _f.assert_called_once_with(elw)
@@ -816,7 +812,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.layout().itemAt(0).widget(), elw.filterInput)
         self.assertEqual(elw.filterInput.placeholderText(), "Filter experiment")
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "changeFilter", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.changeFilter", autospec=True
         ) as _cf:
             elw.filterInput.textChanged.emit("a")
             _cf.assert_called_once_with(elw, "a")
@@ -826,7 +822,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.layout().itemAt(2).widget(), elw.newExpButton)
         self.assertEqual(elw.newExpButton.text(), "Add new experiment")
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "onNewExp", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.onNewExp", autospec=True
         ) as _f:
             QTest.mouseClick(elw.newExpButton, Qt.LeftButton)
             _f.assert_called_once_with(elw)
@@ -834,7 +830,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.layout().itemAt(3).widget(), elw.acceptButton)
         self.assertEqual(elw.acceptButton.text(), "OK")
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "onOk", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.onOk", autospec=True
         ) as _f:
             QTest.mouseClick(elw.acceptButton, Qt.LeftButton)
             _f.assert_called_once_with(elw)
@@ -843,7 +839,7 @@ class TestExpsListWindow(GUITestCase):
         self.assertEqual(elw.cancelButton.text(), "Cancel")
         self.assertTrue(elw.cancelButton.autoDefault())
         with patch(
-            "physbiblio.gui.expWindows.ExpsListWindow." + "onCancel", autospec=True
+            "physbiblio.gui.expWindows.ExpsListWindow.onCancel", autospec=True
         ) as _f:
             QTest.mouseClick(elw.cancelButton, Qt.LeftButton)
             _f.assert_called_once_with(elw)
@@ -866,15 +862,19 @@ class TestExpsListWindow(GUITestCase):
             return_value=self.exps,
             autospec=True,
         ) as _gh, patch(
-            "physbiblio.gui.expWindows.PBMenu", return_value=mm, autospec=True
+            "physbiblio.gui.expWindows.PBMenu",
+            return_value=mm,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _mm:
             elw = ExpsListWindow(p)
         self.assertEqual(elw.triggeredContextMenuEvent(9999, 0, ev), None)
         self.assertEqual(elw.menu, None)
         with patch(
-            "physbiblio.gui.mainWindow.MainWindow." + "reloadMainContent", autospec=True
+            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc, patch(
-            "physbiblio.gui.expWindows.PBMenu", return_value=mm, autospec=True
+            "physbiblio.gui.expWindows.PBMenu",
+            return_value=mm,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _mm, patch(
             "physbiblio.gui.expWindows.editExperiment", autospec=True
         ) as _ec, patch(
@@ -955,8 +955,7 @@ class TestExpsListWindow(GUITestCase):
                 return_value=[self.exps[0]],
                 autospec=True,
             ) as _gbi, patch(
-                "physbiblio.gui.catWindows.CatsTreeWindow." + "createForm",
-                autospec=True,
+                "physbiblio.gui.catWindows.CatsTreeWindow.createForm", autospec=True
             ) as _cf:
                 sc = CatsTreeWindow(
                     parent=p,
@@ -976,10 +975,9 @@ class TestExpsListWindow(GUITestCase):
             ) as _ffd, patch(
                 "physbiblio.gui.expWindows.CatsTreeWindow",
                 return_value=sc,
-                autospec=True,
+                autospec=USE_AUTOSPEC_CLASS,
             ) as _i, patch(
-                "physbiblio.gui.mainWindow.MainWindow." + "statusBarMessage",
-                autospec=True,
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
             ) as _sbm, patch(
                 "physbiblio.database.CatsExps.delete", autospec=True
             ) as _d, patch(
@@ -1052,7 +1050,7 @@ class TestExpsListWindow(GUITestCase):
             elw.timer.timeout.emit()
             _sh.assert_called_once_with(
                 position,
-                "0: test0\nCorresponding entries: 33\n" + "Associated categories: 12",
+                "0: test0\nCorresponding entries: 33\nAssociated categories: 12",
                 elw.tableview.viewport(),
                 elw.tableview.visualRect(ix),
                 3000,
@@ -1108,7 +1106,7 @@ class TestExpsListWindow(GUITestCase):
             elw = ExpsListWindow(p)
         self.assertEqual(elw.cellDoubleClick(QModelIndex()), None)
         with patch(
-            "physbiblio.gui.mainWindow.MainWindow." + "reloadMainContent", autospec=True
+            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc, patch(
             "physbiblio.database.Entries.getByExp", return_value=["a"], autospec=True
         ) as _ffd:

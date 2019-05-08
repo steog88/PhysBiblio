@@ -539,7 +539,7 @@ class TestProfilesDB(unittest.TestCase):
             self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
             self.assert_in_stdout(
                 lambda: self.globalDb.setProfileOrder(["abc", "default"]),
-                "Something went wrong when setting new profile order. " + "Undoing...",
+                "Something went wrong when setting new profile order. Undoing...",
             )
 
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")

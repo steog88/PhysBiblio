@@ -85,7 +85,7 @@ class Test_Thread_checkUpdated(GUITestCase):
         ) as _cho, patch("logging.Logger.warning") as _w:
             thr.run()
             _w.assert_called_once_with(
-                "Error when trying to check " + "new versions. Are you offline?",
+                "Error when trying to check new versions. Are you offline?",
                 exc_info=True,
             )
         with patch(
@@ -95,7 +95,7 @@ class Test_Thread_checkUpdated(GUITestCase):
         ) as _cho, patch("logging.Logger.warning") as _w:
             thr.run()
             _w.assert_called_once_with(
-                "Error when trying to check " + "new versions. Are you offline?",
+                "Error when trying to check new versions. Are you offline?",
                 exc_info=True,
             )
 

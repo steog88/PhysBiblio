@@ -231,7 +231,7 @@ class TestPdfMethods(unittest.TestCase):
         ) as _gs:
             self.assertEqual(pBPDF.dirSize("/surely/non/existent/folder"), 123)
             _e.assert_called_once_with(
-                "PDF folder is missing: " + "/surely/non/existent/folder. Creating it."
+                "PDF folder is missing: /surely/non/existent/folder. Creating it."
             )
             _md.assert_called_once_with("/surely/non/existent/folder")
             _gs.assert_any_call("/surely/non/existent/folder")

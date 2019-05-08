@@ -51,7 +51,7 @@ class Thread_checkUpdated(PBThread):
             )
         except (URLError, ConnectionError):
             pBLogger.warning(
-                "Error when trying to check new versions. " + "Are you offline?",
+                "Error when trying to check new versions. Are you offline?",
                 exc_info=True,
             )
 

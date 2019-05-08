@@ -60,7 +60,7 @@ class PhysBiblioDBCore:
             self.openDB(info=info)
             if db_is_new or self.checkExistingTables():
                 self.logger.info(
-                    "-------New database or missing tables.\n" + "Creating them!\n\n"
+                    "-------New database or missing tables.\nCreating them!\n\n"
                 )
                 self.createTables()
             self.checkDatabaseUpdates()
@@ -305,7 +305,7 @@ class PhysBiblioDBCore:
             if q in existingTables:
                 continue
             self.createTable(q, fieldsDict[q])
-        self.cursExec("select * from categories where " + "idCat = 0 or idCat = 1\n")
+        self.cursExec("select * from categories where idCat = 0 or idCat = 1\n")
         if len(self.curs.fetchall()) < 2:
             command = (
                 "INSERT into categories "
@@ -329,9 +329,7 @@ class PhysBiblioDBCore:
         entriesCols = [name[1] for name in self.curs]
         if "bibdict" not in entriesCols:
             if self.connExec("ALTER TABLE entries ADD COLUMN bibdict text;"):
-                self.logger.info(
-                    "New column in table 'entries': " + "'bibdict' (text)."
-                )
+                self.logger.info("New column in table 'entries': 'bibdict' (text).")
                 self.commit()
             else:
                 self.logger.error("Cannot alter table 'entries'!")

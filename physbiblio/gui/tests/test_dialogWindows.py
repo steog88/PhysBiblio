@@ -353,7 +353,7 @@ class TestConfigWindow(GUITestCase):
         with patch(
             "physbiblio.gui.dialogWindows.ConfigEditColumns",
             return_value=cec,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _cec:
             cw.editColumns()
             _cec.assert_called_once_with(cw, pbConfig.params["bibtexListColumns"])
@@ -367,7 +367,7 @@ class TestConfigWindow(GUITestCase):
         with patch(
             "physbiblio.gui.dialogWindows.ConfigEditColumns",
             return_value=cec,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _cec:
             cw.editColumns()
             _cec.assert_called_once_with(cw, pbConfig.params["bibtexListColumns"])
@@ -389,7 +389,7 @@ class TestConfigWindow(GUITestCase):
         with patch(
             "physbiblio.gui.dialogWindows.CatsTreeWindow",
             return_value=cwl,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _cwl:
             cw.editDefCats()
             _cwl.assert_called_once_with(
@@ -409,7 +409,7 @@ class TestConfigWindow(GUITestCase):
         with patch(
             "physbiblio.gui.dialogWindows.CatsTreeWindow",
             return_value=cwl,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _cwl:
             cw.editDefCats()
             _cwl.assert_called_once_with(
@@ -440,7 +440,7 @@ class TestConfigWindow(GUITestCase):
                 self.assertIsInstance(currWidget, currClass)
                 self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
                 with patch(
-                    "physbiblio.gui.dialogWindows.ConfigWindow." + "editColumns",
+                    "physbiblio.gui.dialogWindows.ConfigWindow.editColumns",
                     autospec=True,
                 ) as _f:
                     QTest.mouseClick(currWidget, Qt.LeftButton)
@@ -451,7 +451,7 @@ class TestConfigWindow(GUITestCase):
                 self.assertIsInstance(currWidget, currClass)
                 self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
                 with patch(
-                    "physbiblio.gui.dialogWindows.ConfigWindow." + "editPDFFolder",
+                    "physbiblio.gui.dialogWindows.ConfigWindow.editPDFFolder",
                     autospec=True,
                 ) as _f:
                     QTest.mouseClick(currWidget, Qt.LeftButton)
@@ -473,8 +473,7 @@ class TestConfigWindow(GUITestCase):
                 self.assertIsInstance(currWidget, currClass)
                 self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
                 with patch(
-                    "physbiblio.gui.dialogWindows.ConfigWindow." + "editFile",
-                    autospec=True,
+                    "physbiblio.gui.dialogWindows.ConfigWindow.editFile", autospec=True
                 ) as _f:
                     QTest.mouseClick(currWidget, Qt.LeftButton)
                     _f.assert_called_once_with(cw)
@@ -484,7 +483,7 @@ class TestConfigWindow(GUITestCase):
                 self.assertIsInstance(currWidget, currClass)
                 self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
                 with patch(
-                    "physbiblio.gui.dialogWindows.ConfigWindow." + "editDefCats",
+                    "physbiblio.gui.dialogWindows.ConfigWindow.editDefCats",
                     autospec=True,
                 ) as _f:
                     QTest.mouseClick(currWidget, Qt.LeftButton)
@@ -527,14 +526,14 @@ class TestConfigWindow(GUITestCase):
         ):
             cw = ConfigWindow()
             _w.assert_called_once_with(
-                "Invalid string for 'loggingLevel' " + "param. Reset to default"
+                "Invalid string for 'loggingLevel' param. Reset to default"
             )
         with patch("logging.Logger.warning") as _w, patch.dict(
             pbConfig.params, {"loggingLevel": "abc"}, clear=False
         ):
             cw = ConfigWindow()
             _w.assert_called_once_with(
-                "Invalid string for 'loggingLevel' " + "param. Reset to default"
+                "Invalid string for 'loggingLevel' param. Reset to default"
             )
         for ix, k in enumerate(pbConfig.paramOrder):
             if k == "loggingLevel":
@@ -560,8 +559,7 @@ class TestLogFileContentDialog(GUITestCase):
         """test __init__"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.dialogWindows." + "LogFileContentDialog.initUI",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.LogFileContentDialog.initUI", autospec=True
         ) as _u:
             lf = LogFileContentDialog(p)
             self.assertIsInstance(lf, PBDialog)
@@ -788,7 +786,7 @@ class TestPrintText(GUITestCase):
             )
         self.assertEqual(
             pt.textEdit.toPlainText(),
-            "process events: 123 45.6\n" + "process events: 45.6\n",
+            "process events: 123 45.6\nprocess events: 45.6\n",
         )
         self.assertEqual(pt.progressBar.maximum(), 123)
         self.assertEqual(pt.progressBar.value(), -1)
@@ -862,8 +860,7 @@ class TestAdvImportDialog(GUITestCase):
         """Test __init__"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportDialog" + ".initUI",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.AdvancedImportDialog.initUI", autospec=True
         ) as _iu:
             aid = AdvancedImportDialog(p)
             self.assertIsInstance(aid, PBDialog)
@@ -889,7 +886,7 @@ class TestAdvImportDialog(GUITestCase):
     def test_initUI(self):
         """test initUI"""
         with patch(
-            "physbiblio.gui.commonClasses.PBDialog." + "centerWindow", autospec=True
+            "physbiblio.gui.commonClasses.PBDialog.centerWindow", autospec=True
         ) as _cw:
             aid = AdvancedImportDialog()
             _cw.assert_called_once_with(aid)
@@ -935,8 +932,7 @@ class TestAdvImportDialog(GUITestCase):
         self.assertEqual(aid.cancelButton.text(), "Cancel")
         self.assertTrue(aid.cancelButton.autoDefault())
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportDialog" + ".onCancel",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.AdvancedImportDialog.onCancel", autospec=True
         ) as _c:
             QTest.mouseClick(aid.cancelButton, Qt.LeftButton)
             _c.assert_called_once_with(aid)
@@ -950,8 +946,7 @@ class TestAdvImportSelect(GUITestCase):
         """test init"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportSelect" + ".initUI",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.AdvancedImportSelect.initUI", autospec=True
         ) as _i:
             ais = AdvancedImportSelect({"abc": "def"}, p)
             _i.assert_called_once_with(ais)
@@ -1071,26 +1066,22 @@ class TestAdvImportSelect(GUITestCase):
         self.assertEqual(ais.cancelButton.text(), "Cancel")
         self.assertTrue(ais.cancelButton.autoDefault())
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportSelect" + ".onOk", autospec=True
+            "physbiblio.gui.dialogWindows.AdvancedImportSelect.onOk", autospec=True
         ) as _o:
             QTest.mouseClick(ais.acceptButton, Qt.LeftButton)
             _o.assert_called_once_with(ais)
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportSelect" + ".onCancel",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.AdvancedImportSelect.onCancel", autospec=True
         ) as _o:
             QTest.mouseClick(ais.cancelButton, Qt.LeftButton)
             _o.assert_called_once_with(ais)
 
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "addFilterInput",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.addFilterInput", autospec=True
         ) as _afi, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "setProxyStuff",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff", autospec=True
         ) as _sps, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "finalizeTable",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
         ) as _ft:
             ais.initUI()
             _afi.assert_called_once_with(ais, "Filter entries", gridPos=(1, 0))
@@ -1245,8 +1236,7 @@ class TestDailyArxivSelect(GUITestCase):
         with patch(
             "PySide2.QtWidgets.QTableView.sortByColumn", autospec=True
         ) as _s, patch(
-            "physbiblio.gui.commonClasses." + "ObjListWindow.finalizeTable",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
         ) as _f:
             das = DailyArxivSelect({}, p)
             _s.assert_called_once_with(0, Qt.AscendingOrder)
@@ -1282,13 +1272,12 @@ class TestDailyArxivSelect(GUITestCase):
         self.assertEqual(das.cancelButton.text(), "Cancel")
         self.assertTrue(das.cancelButton.autoDefault())
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportSelect" + ".onOk", autospec=True
+            "physbiblio.gui.dialogWindows.AdvancedImportSelect.onOk", autospec=True
         ) as _o:
             QTest.mouseClick(das.acceptButton, Qt.LeftButton)
             _o.assert_called_once_with(das)
         with patch(
-            "physbiblio.gui.dialogWindows.AdvancedImportSelect" + ".onCancel",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.AdvancedImportSelect.onCancel", autospec=True
         ) as _o:
             QTest.mouseClick(das.cancelButton, Qt.LeftButton)
             _o.assert_called_once_with(das)
@@ -1367,7 +1356,7 @@ class TestExportForTexDialog(GUITestCase):
     def test_init(self):
         """test init"""
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".initUI", autospec=True
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.initUI", autospec=True
         ) as _iu:
             eft = ExportForTexDialog()
             _iu.assert_called_once_with(eft)
@@ -1408,13 +1397,11 @@ class TestExportForTexDialog(GUITestCase):
         eft = ExportForTexDialog()
         eft.numTexFields = 3
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".cleanLayout",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.cleanLayout", autospec=True
         ) as _cl, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".initUI", autospec=True
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.initUI", autospec=True
         ) as _iu, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".readForm",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm", autospec=True
         ) as _rf:
             eft.onAddTex()
             self.assertEqual(eft.numTexFields, 4)
@@ -1435,8 +1422,7 @@ class TestExportForTexDialog(GUITestCase):
         """test onOk"""
         eow = ExportForTexDialog()
         with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".readForm",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm", autospec=True
         ) as _rf:
             eow.onOk()
             self.assertTrue(eow.result)
@@ -1505,8 +1491,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(0, 2).widget(), eft.bibButton)
         self.assertEqual(eft.bibButton.text(), "Select file")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onAskBib",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onAskBib", autospec=True
         ) as _f:
             QTest.mouseClick(eft.bibButton, Qt.LeftButton)
             _f.assert_called_once_with(eft)
@@ -1521,8 +1506,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(1, 2).widget(), eft.texButtons[0])
         self.assertEqual(eft.texButtons[0].text(), "Select file")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onAskTex",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onAskTex", autospec=True
         ) as _f:
             QTest.mouseClick(eft.texButtons[0], Qt.LeftButton)
             _f.assert_called_once_with(eft, 0)
@@ -1531,8 +1515,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(2, 2).widget(), eft.addTexButton)
         self.assertEqual(eft.addTexButton.text(), "Add more tex files")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onAddTex",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onAddTex", autospec=True
         ) as _f:
             QTest.mouseClick(eft.addTexButton, Qt.LeftButton)
             _f.assert_called_once_with(eft)
@@ -1550,7 +1533,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(4, 1).widget(), eft.acceptButton)
         self.assertEqual(eft.acceptButton.text(), "OK")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onOk", autospec=True
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onOk", autospec=True
         ) as _f:
             QTest.mouseClick(eft.acceptButton, Qt.LeftButton)
             _f.assert_called_once_with(eft)
@@ -1559,14 +1542,13 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(4, 2).widget(), eft.cancelButton)
         self.assertEqual(eft.cancelButton.text(), "Cancel")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onCancel",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onCancel", autospec=True
         ) as _f:
             QTest.mouseClick(eft.cancelButton, Qt.LeftButton)
             _f.assert_called_once_with(eft)
 
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".initUI", autospec=True
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.initUI", autospec=True
         ) as _iu:
             eft = ExportForTexDialog()
         eft.numTexFields = 2
@@ -1575,11 +1557,10 @@ class TestExportForTexDialog(GUITestCase):
         eft.update = True
         eft.remove = True
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".centerWindow",
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.centerWindow",
             autospec=True,
         ) as _cw, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".setGeometry",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.setGeometry", autospec=True
         ) as _sg:
             eft.initUI()
             _cw.assert_called_once_with(eft)
@@ -1596,8 +1577,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(1, 2).widget(), eft.texButtons[0])
         self.assertEqual(eft.texButtons[0].text(), "a.tex")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onAskTex",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onAskTex", autospec=True
         ) as _f:
             QTest.mouseClick(eft.texButtons[0], Qt.LeftButton)
             _f.assert_called_once_with(eft, 0)
@@ -1609,8 +1589,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(2, 2).widget(), eft.texButtons[1])
         self.assertEqual(eft.texButtons[1].text(), "Select file")
         with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog" + ".onAskTex",
-            autospec=True,
+            "physbiblio.gui.dialogWindows.ExportForTexDialog.onAskTex", autospec=True
         ) as _f:
             QTest.mouseClick(eft.texButtons[1], Qt.LeftButton)
             _f.assert_called_once_with(eft, 1)

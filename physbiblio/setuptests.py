@@ -11,10 +11,14 @@ if sys.version_info[0] < 3:
     import unittest2 as unittest
     from mock import patch
     from StringIO import StringIO
+
+    USE_AUTOSPEC_CLASS = False
 else:
     import unittest
     from unittest.mock import patch
     from io import StringIO
+
+    USE_AUTOSPEC_CLASS = True
 
 today_ymd = datetime.datetime.today().strftime("%y%m%d_%H%M%S")
 tempLogFileName = "tests_%s.log" % today_ymd

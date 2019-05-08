@@ -56,7 +56,9 @@ class TestMainWindow(GUITestCase):
         ) as _si, patch(
             self.clsName + ".createStatusBar", autospec=True
         ) as _sb, patch(
-            self.modName + ".Thread_checkUpdated", autospec=True, return_value=tcu
+            self.modName + ".Thread_checkUpdated",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=tcu,
         ) as _cu:
             mw = MainWindow()
             _ca.assert_called_once_with(mw)
@@ -101,7 +103,7 @@ class TestMainWindow(GUITestCase):
         """test closeEvent"""
         e = QEvent(QEvent.Close)
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore." + "checkUncommitted",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkUncommitted",
             return_value=True,
             autospec=True,
         ) as _c, patch(
@@ -121,7 +123,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.closeEvent(e)
             _ei.assert_called_once_with()
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore." + "checkUncommitted",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkUncommitted",
             return_value=False,
             autospec=True,
         ) as _c, patch(
@@ -314,7 +316,7 @@ class TestMainWindow(GUITestCase):
         assertAction(
             self.mainW.exportFileAct,
             "Export for a *.&tex",
-            "Export as *.bib the bibliography needed " + "to compile a .tex file",
+            "Export as *.bib the bibliography needed to compile a .tex file",
             "exportFile",
             s="Ctrl+X",
         )
@@ -322,7 +324,7 @@ class TestMainWindow(GUITestCase):
         assertAction(
             self.mainW.exportUpdateAct,
             "Update an existing *.&bib file",
-            "Read a *.bib file and update " + "the existing elements inside it",
+            "Read a *.bib file and update the existing elements inside it",
             "exportUpdate",
             s="Ctrl+Shift+X",
         )
@@ -471,7 +473,7 @@ class TestMainWindow(GUITestCase):
         assertAction(
             self.mainW.authorStatsAct,
             "&AuthorStats",
-            "Search publication and citation stats " + "of an author from INSPIRES",
+            "Search publication and citation stats of an author from INSPIRES",
             "authorStats",
             s="Ctrl+Shift+A",
         )
@@ -666,7 +668,7 @@ class TestMainWindow(GUITestCase):
             side_effect=[[], []],
             autospec=True,
         ) as _gs, patch(
-            "physbiblio.database.PhysBiblioDB" + ".convertSearchFormat", autospec=True
+            "physbiblio.database.PhysBiblioDB.convertSearchFormat", autospec=True
         ) as _csf:
             self.mainW.createMenusAndToolBar()
             _csf.assert_called_once_with(pBDB)
@@ -687,7 +689,7 @@ class TestMainWindow(GUITestCase):
 
         # create with mock getSearchList for searches and replaces
         with patch(
-            "physbiblio.database.PhysBiblioDB" + ".convertSearchFormat", autospec=True
+            "physbiblio.database.PhysBiblioDB.convertSearchFormat", autospec=True
         ) as _csf, patch(
             "physbiblio.config.GlobalDB.getSearchList",
             side_effect=[
@@ -893,8 +895,7 @@ class TestMainWindow(GUITestCase):
         """test refreshMainContent"""
         pBDB.bibs.lastFetched = []
         with patch(self.clsName + ".done", autospec=True) as _d, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow." + "recreateTable",
-            autospec=True,
+            "physbiblio.gui.bibWindows.BibtexListWindow.recreateTable", autospec=True
         ) as _rt, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm, patch(
@@ -911,8 +912,7 @@ class TestMainWindow(GUITestCase):
     def test_reloadMainContent(self):
         """test reloadMainContent"""
         with patch(self.clsName + ".done", autospec=True) as _d, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow." + "recreateTable",
-            autospec=True,
+            "physbiblio.gui.bibWindows.BibtexListWindow.recreateTable", autospec=True
         ) as _rt, patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm:
             self.mainW.reloadMainContent(bibs="fake")
             _d.assert_called_once_with(self.mainW)
@@ -927,7 +927,9 @@ class TestMainWindow(GUITestCase):
         sp = SelectProfiles(self.mainW)
         sp.exec_ = MagicMock()
         with patch(
-            self.modName + ".SelectProfiles", return_value=sp, autospec=True
+            self.modName + ".SelectProfiles",
+            return_value=sp,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             self.mainW.manageProfiles()
             _i.assert_called_once_with(self.mainW)
@@ -945,7 +947,7 @@ class TestMainWindow(GUITestCase):
         cw.exec_ = MagicMock()
         cw.result = False
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
-            self.modName + ".ConfigWindow", return_value=cw, autospec=True
+            self.modName + ".ConfigWindow", return_value=cw, autospec=USE_AUTOSPEC_CLASS
         ) as _cw:
             self.mainW.config()
             _cw.assert_called_once_with(self.mainW)
@@ -953,7 +955,7 @@ class TestMainWindow(GUITestCase):
             _sbm.assert_called_once_with(self.mainW, "Changes discarded")
         cw.result = True
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
-            self.modName + ".ConfigWindow", return_value=cw, autospec=True
+            self.modName + ".ConfigWindow", return_value=cw, autospec=USE_AUTOSPEC_CLASS
         ) as _cw, patch("logging.Logger.info") as _in, patch(
             "logging.Logger.debug"
         ) as _de, patch(
@@ -999,7 +1001,7 @@ class TestMainWindow(GUITestCase):
                     v.setCurrentText("2 - info")
                     new[k] = "2"
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
-            self.modName + ".ConfigWindow", return_value=cw, autospec=True
+            self.modName + ".ConfigWindow", return_value=cw, autospec=USE_AUTOSPEC_CLASS
         ) as _cw, patch("logging.Logger.info") as _in, patch(
             "logging.Logger.debug"
         ) as _de, patch(
@@ -1037,7 +1039,9 @@ class TestMainWindow(GUITestCase):
             ld = LogFileContentDialog(self.mainW)
         ld.exec_ = MagicMock()
         with patch(
-            self.modName + ".LogFileContentDialog", return_value=ld, autospec=True
+            self.modName + ".LogFileContentDialog",
+            return_value=ld,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             self.mainW.logfile()
             _i.assert_called_once_with(self.mainW)
@@ -1058,7 +1062,7 @@ class TestMainWindow(GUITestCase):
             with patch(
                 self.clsName + ".statusBarMessage", autospec=True
             ) as _sbm, patch(
-                "physbiblio.gui.bibWindows.BibtexListWindow." + "reloadColumnContents",
+                "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
                 autospec=True,
             ) as _rcc, patch(
                 "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
@@ -1087,7 +1091,7 @@ class TestMainWindow(GUITestCase):
             with patch(
                 self.clsName + ".statusBarMessage", autospec=True
             ) as _sbm, patch(
-                "physbiblio.gui.bibWindows.BibtexListWindow." + "reloadColumnContents",
+                "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
                 autospec=True,
             ) as _rcc, patch(
                 "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
@@ -1100,7 +1104,7 @@ class TestMainWindow(GUITestCase):
                 self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
                 _cfe.assert_called_once_with(pBPDF)
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow." + "reloadColumnContents",
+            "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
             autospec=True,
         ) as _rcc, patch(
             "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
@@ -1208,17 +1212,17 @@ class TestMainWindow(GUITestCase):
         thr.finished.connect = MagicMock()
         func = MagicMock(return_value=thr)
         with patch(
-            self.modName + ".PrintText", return_value=app, autospec=True
+            self.modName + ".PrintText", return_value=app, autospec=USE_AUTOSPEC_CLASS
         ) as _pt, patch(
-            "physbiblio.gui.dialogWindows.PrintText" + ".progressBarMin", autospec=True
+            "physbiblio.gui.dialogWindows.PrintText.progressBarMin", autospec=True
         ) as _pbm, patch(
-            self.modName + ".Queue", return_value=q, autospec=True
+            self.modName + ".Queue", return_value=q, autospec=USE_AUTOSPEC_CLASS
         ) as _qu, patch(
-            self.modName + ".WriteStream", return_value=ws, autospec=True
+            self.modName + ".WriteStream", return_value=ws, autospec=USE_AUTOSPEC_CLASS
         ) as _ws, patch(
-            "physbiblio.errors.PBErrorManagerClass" + ".tempHandler", autospec=True
+            "physbiblio.errors.PBErrorManagerClass.tempHandler", autospec=True
         ) as _th, patch(
-            "physbiblio.errors.PBErrorManagerClass" + ".rmTempHandler", autospec=True
+            "physbiblio.errors.PBErrorManagerClass.rmTempHandler", autospec=True
         ) as _rth, patch(
             "logging.Logger.info"
         ) as _info, patch(
@@ -1253,17 +1257,17 @@ class TestMainWindow(GUITestCase):
         thr.start.reset_mock()
         app.exec_.reset_mock()
         with patch(
-            self.modName + ".PrintText", return_value=app, autospec=True
+            self.modName + ".PrintText", return_value=app, autospec=USE_AUTOSPEC_CLASS
         ) as _pt, patch(
-            "physbiblio.gui.dialogWindows.PrintText" + ".progressBarMin", autospec=True
+            "physbiblio.gui.dialogWindows.PrintText.progressBarMin", autospec=True
         ) as _pbm, patch(
-            self.modName + ".Queue", return_value=q, autospec=True
+            self.modName + ".Queue", return_value=q, autospec=USE_AUTOSPEC_CLASS
         ) as _qu, patch(
-            self.modName + ".WriteStream", return_value=ws, autospec=True
+            self.modName + ".WriteStream", return_value=ws, autospec=USE_AUTOSPEC_CLASS
         ) as _ws, patch(
-            "physbiblio.errors.PBErrorManagerClass" + ".tempHandler", autospec=True
+            "physbiblio.errors.PBErrorManagerClass.tempHandler", autospec=True
         ) as _th, patch(
-            "physbiblio.errors.PBErrorManagerClass" + ".rmTempHandler", autospec=True
+            "physbiblio.errors.PBErrorManagerClass.rmTempHandler", autospec=True
         ) as _rth, patch(
             "logging.Logger.info"
         ) as _info, patch(
@@ -1468,7 +1472,9 @@ class TestMainWindow(GUITestCase):
         eft.exec_ = MagicMock()
         eft.result = False
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1478,7 +1484,9 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_rit.call_count, 0)
         eft.result = True
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1488,7 +1496,9 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_rit.call_count, 0)
         eft.bibName = "/nonexistent/file.bib"
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1498,7 +1508,9 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_rit.call_count, 0)
         eft.texNames = []
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1508,7 +1520,9 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_rit.call_count, 0)
         eft.texNames = "/nonexistent/file.tex"
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1531,7 +1545,9 @@ class TestMainWindow(GUITestCase):
         eft.remove = "r"
         eft.update = "u"
         with patch(
-            self.modName + ".ExportForTexDialog", return_value=eft, autospec=True
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _eft, patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
@@ -1605,7 +1621,9 @@ class TestMainWindow(GUITestCase):
         ca = CatsTreeWindow(self.mainW)
         ca.show = MagicMock()
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sm, patch(
-            self.modName + ".CatsTreeWindow", return_value=ca, autospec=True
+            self.modName + ".CatsTreeWindow",
+            return_value=ca,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             self.mainW.categories()
             _sm.assert_called_once_with(self.mainW, "categories triggered")
@@ -1623,7 +1641,9 @@ class TestMainWindow(GUITestCase):
         ex = ExpsListWindow(self.mainW)
         ex.show = MagicMock()
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sm, patch(
-            self.modName + ".ExpsListWindow", return_value=ex, autospec=True
+            self.modName + ".ExpsListWindow",
+            return_value=ex,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             self.mainW.experiments()
             _sm.assert_called_once_with(self.mainW, "experiments triggered")
@@ -1648,7 +1668,9 @@ class TestMainWindow(GUITestCase):
         sbw.exec_ = MagicMock()
         self.assertFalse(sbw.result)
         with patch(
-            self.modName + ".SearchBibsWindow", return_value=sbw, autospec=True
+            self.modName + ".SearchBibsWindow",
+            return_value=sbw,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw:
             self.assertEqual(self.mainW.searchBiblio(), None)
             _sbw.assert_called_once_with(self.mainW, replace=False)
@@ -1656,7 +1678,9 @@ class TestMainWindow(GUITestCase):
         sbw.onOk()
         self.assertFalse(sbw.save)
         with patch(
-            self.modName + ".SearchBibsWindow", return_value=sbw, autospec=True
+            self.modName + ".SearchBibsWindow",
+            return_value=sbw,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw, patch(
             "physbiblio.config.GlobalDB.updateSearchOrder", autospec=True
         ) as _us, patch(
@@ -1703,7 +1727,9 @@ class TestMainWindow(GUITestCase):
         sbw.onSave()
         self.assertTrue(sbw.save)
         with patch(
-            self.modName + ".SearchBibsWindow", return_value=sbw, autospec=True
+            self.modName + ".SearchBibsWindow",
+            return_value=sbw,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw, patch(
             self.clsName + ".runSearchBiblio", autospec=True
         ) as _rsb, patch(
@@ -1783,7 +1809,9 @@ class TestMainWindow(GUITestCase):
         sbw.exec_ = MagicMock()
         self.assertFalse(sbw.result)
         with patch(
-            self.modName + ".SearchBibsWindow", return_value=sbw, autospec=True
+            self.modName + ".SearchBibsWindow",
+            return_value=sbw,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw:
             self.assertFalse(self.mainW.searchBiblio(replace=True))
             _sbw.assert_called_once_with(self.mainW, replace=True)
@@ -1791,7 +1819,9 @@ class TestMainWindow(GUITestCase):
         sbw.onOk()
         self.assertFalse(sbw.save)
         with patch(
-            self.modName + ".SearchBibsWindow", return_value=sbw, autospec=True
+            self.modName + ".SearchBibsWindow",
+            return_value=sbw,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw, patch(
             self.clsName + ".runSearchBiblio", autospec=True
         ) as _rsb, patch(
@@ -1970,9 +2000,9 @@ class TestMainWindow(GUITestCase):
         """test runSearchBiblio"""
         pBDB.lastFetched = []
         with patch(
-            "PySide2.QtWidgets.QApplication." + "setOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication." + "restoreOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromDict",
             return_value=pBDB,
@@ -1994,9 +2024,9 @@ class TestMainWindow(GUITestCase):
         pBDB.lastFetched = ["a"]
         self.lastFetched = ["a", "b"]
         with patch(
-            "PySide2.QtWidgets.QApplication." + "setOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication." + "restoreOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromDict",
             side_effect=[self, pBDB],
@@ -2151,14 +2181,16 @@ class TestMainWindow(GUITestCase):
         with patch(
             "physbiblio.config.GlobalDB.getSearchByID", return_value=[], autospec=True
         ) as _gsi, patch("logging.Logger.error") as _e, patch(
-            self.modName + ".SearchBibsWindow", autospec=True
+            self.modName + ".SearchBibsWindow", autospec=USE_AUTOSPEC_CLASS
         ) as _sbw:
             self.mainW.editSearchBiblio(999, "test")
             _gsi.assert_called_once_with(pbConfig.globalDb, 999)
             _e.assert_called_once_with("Cannot find the requested search! id:999")
             self.assertEqual(_sbw.call_count, 0)
         with patch(
-            self.modName + ".SearchBibsWindow", side_effect=sbws, autospec=True
+            self.modName + ".SearchBibsWindow",
+            side_effect=sbws,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _sbw, patch(
             "physbiblio.config.GlobalDB.getSearchByID",
             side_effect=[[r] for r in records],
@@ -2366,7 +2398,7 @@ class TestMainWindow(GUITestCase):
         ) as _ay:
             self.mainW.delSearchBiblio(999, "search")
             _ay.assert_called_once_with(
-                "Are you sure you want to delete " + "the saved search 'search'?"
+                "Are you sure you want to delete the saved search 'search'?"
             )
             _cm.assert_called_once_with(self.mainW)
             _ds.assert_called_once_with(pbConfig.globalDb, 999)
@@ -2387,9 +2419,9 @@ class TestMainWindow(GUITestCase):
         pBDB.lastFetched = ["z"]
         self.mainW.replaceResults = (["d"], ["e", "f"], ["g", "h", "i"])
         with patch(
-            "PySide2.QtWidgets.QApplication." + "setOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication." + "restoreOverrideCursor", autospec=True
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromLast",
             return_value=pBDB,
@@ -2401,7 +2433,7 @@ class TestMainWindow(GUITestCase):
         ) as _rmc, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
-            self.modName + ".LongInfoMessage", autospec=True
+            self.modName + ".LongInfoMessage", autospec=USE_AUTOSPEC_CLASS
         ) as _lim, patch(
             self.modName + ".askYesNo", side_effect=[False, True], autospec=True
         ) as _ay:
@@ -2437,7 +2469,7 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_soc.call_count, 0)
             self.assertEqual(_rit.call_count, 0)
             _ay.assert_called_once_with(
-                "Empty new string. " + "Are you sure you want to continue?"
+                "Empty new string. Are you sure you want to continue?"
             )
             _ay.reset_mock()
 
@@ -2456,12 +2488,12 @@ class TestMainWindow(GUITestCase):
             _soc.assert_called_once_with(Qt.WaitCursor)
             _roc.assert_called_once_with()
             _ay.assert_called_once_with(
-                "Empty new string. " + "Are you sure you want to continue?"
+                "Empty new string. Are you sure you want to continue?"
             )
             _rmc.assert_called_once_with(self.mainW, ["z"])
             self.assertEqual(_im.call_count, 0)
             _ay.assert_called_once_with(
-                "Empty new string. " + "Are you sure you want to continue?"
+                "Empty new string. Are you sure you want to continue?"
             )
             _rit.assert_called_once_with(
                 self.mainW,
@@ -2660,7 +2692,7 @@ class TestMainWindow(GUITestCase):
         ) as _exc:
             self.assertFalse(self.mainW.authorStats())
             _exc.assert_called_once_with(
-                "Cannot recognize the list sintax. " + "Missing quotes in the string?"
+                "Cannot recognize the list sintax. Missing quotes in the string?"
             )
 
         self.mainW.lastAuthorStats = None
@@ -2743,7 +2775,9 @@ class TestMainWindow(GUITestCase):
         ) as _rit, patch(
             self.clsName + ".done", autospec=True
         ) as _d, patch(
-            self.modName + ".AuthorStatsPlots", return_value=aSP, autospec=True
+            self.modName + ".AuthorStatsPlots",
+            return_value=aSP,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _asp, patch(
             "physbiblio.inspireStats.InspireStatsLoader.plotStats",
             return_value="figs",
@@ -2790,7 +2824,9 @@ class TestMainWindow(GUITestCase):
         with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.clsName + ".done", autospec=True
         ) as _d, patch(
-            self.modName + ".PaperStatsPlots", return_value=psp, autospec=True
+            self.modName + ".PaperStatsPlots",
+            return_value=psp,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _psp, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
@@ -2855,7 +2891,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.inspireLoadAndInsert())
             _sbm.assert_called_once_with(self.mainW, "Starting import from INSPIRE...")
             _ex.assert_called_once_with(
-                "Cannot recognize the list sintax. " + "Missing quotes in the string?"
+                "Cannot recognize the list sintax. Missing quotes in the string?"
             )
             self.assertEqual(_rit.call_count, 0)
 
@@ -2974,13 +3010,15 @@ class TestMainWindow(GUITestCase):
         ) as _gbe, patch(
             self.modName + ".CatsTreeWindow",
             side_effect=[sc1, sc2, sc3, sc3],
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ctw, patch(
             "physbiblio.database.CatsEntries.insert", autospec=True
         ) as _cbi, patch(
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm, patch(
-            self.modName + ".ExpsListWindow", side_effect=[se1, se2], autospec=True
+            self.modName + ".ExpsListWindow",
+            side_effect=[se1, se2],
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _elw, patch(
             "physbiblio.database.EntryExps.insert", autospec=True
         ) as _bei:
@@ -3090,7 +3128,9 @@ class TestMainWindow(GUITestCase):
         aid.comboMethod.setCurrentText("INSPIRE-HEP")
         aid.searchStr.setText("")
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
@@ -3099,7 +3139,9 @@ class TestMainWindow(GUITestCase):
         aid.exec_ = MagicMock()
         aid.result = True
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
@@ -3109,7 +3151,9 @@ class TestMainWindow(GUITestCase):
         aid.exec_ = MagicMock()
         aid.result = True
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(self.modName + ".infoMessage", autospec=True) as _im, patch(
             "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
             return_value="",
@@ -3175,9 +3219,13 @@ class TestMainWindow(GUITestCase):
         ais.result = False
         aid.exec_.reset_mock()
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(
-            self.modName + ".AdvancedImportSelect", return_value=ais, autospec=True
+            self.modName + ".AdvancedImportSelect",
+            return_value=ais,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -3243,9 +3291,13 @@ class TestMainWindow(GUITestCase):
         ais.exec_.reset_mock()
         ais.result = True
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(
-            self.modName + ".AdvancedImportSelect", return_value=ais, autospec=True
+            self.modName + ".AdvancedImportSelect",
+            return_value=ais,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -3377,9 +3429,13 @@ class TestMainWindow(GUITestCase):
         ais.selected = {"a": True, "b": True}
         ais.result = True
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(
-            self.modName + ".AdvancedImportSelect", return_value=ais, autospec=True
+            self.modName + ".AdvancedImportSelect",
+            return_value=ais,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -3480,9 +3536,13 @@ class TestMainWindow(GUITestCase):
         aid.exec_.reset_mock()
         ais.exec_.reset_mock()
         with patch(
-            self.modName + ".AdvancedImportDialog", return_value=aid, autospec=True
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(
-            self.modName + ".AdvancedImportSelect", return_value=ais, autospec=True
+            self.modName + ".AdvancedImportSelect",
+            return_value=ais,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -3755,7 +3815,9 @@ class TestMainWindow(GUITestCase):
         ffa.exec_ = MagicMock()
         ffa.result = False
         with patch(
-            self.modName + ".FieldsFromArxiv", return_value=ffa, autospec=True
+            self.modName + ".FieldsFromArxiv",
+            return_value=ffa,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ffa, patch(
             "physbiblio.database.Entries.fetchAll", autospec=True
         ) as _fa, patch(
@@ -3777,7 +3839,9 @@ class TestMainWindow(GUITestCase):
 
         ffa.result = True
         with patch(
-            self.modName + ".FieldsFromArxiv", return_value=ffa, autospec=True
+            self.modName + ".FieldsFromArxiv",
+            return_value=ffa,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ffa, patch(
             "physbiblio.database.Entries.fetchAll", autospec=True
         ) as _fa, patch(
@@ -3808,7 +3872,9 @@ class TestMainWindow(GUITestCase):
                 totStr="Thread_fieldsArxiv will process ",
             )
         with patch(
-            self.modName + ".FieldsFromArxiv", return_value=ffa, autospec=True
+            self.modName + ".FieldsFromArxiv",
+            return_value=ffa,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _ffa, patch(
             "physbiblio.database.Entries.fetchAll", autospec=True
         ) as _fa, patch(
@@ -3846,7 +3912,9 @@ class TestMainWindow(GUITestCase):
         dad.result = False
         dad.comboCat.setCurrentText("")
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
@@ -3856,7 +3924,9 @@ class TestMainWindow(GUITestCase):
         dad.result = True
         dad.comboCat.setCurrentText("")
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
@@ -3870,7 +3940,9 @@ class TestMainWindow(GUITestCase):
         dad.exec_ = MagicMock()
         dad.result = True
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch("logging.Logger.warning") as _w, patch(
             "physbiblio.webimport.arxiv.WebSearch.arxivDaily",
             return_value=[],
@@ -3884,7 +3956,9 @@ class TestMainWindow(GUITestCase):
 
         dad.comboCat.setCurrentText("astro-ph")
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(self.modName + ".infoMessage", autospec=True) as _im, patch(
             "physbiblio.webimport.arxiv.WebSearch.arxivDaily",
             return_value=[],
@@ -3897,7 +3971,9 @@ class TestMainWindow(GUITestCase):
 
         dad.comboSub.setCurrentText("CO")
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(self.modName + ".infoMessage", autospec=True) as _im, patch(
             "physbiblio.webimport.arxiv.WebSearch.arxivDaily",
             return_value=[],
@@ -3933,9 +4009,13 @@ class TestMainWindow(GUITestCase):
         das.selected = {"12.345": True}
         das.result = False
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(
-            self.modName + ".DailyArxivSelect", return_value=das, autospec=True
+            self.modName + ".DailyArxivSelect",
+            return_value=das,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -3975,9 +4055,13 @@ class TestMainWindow(GUITestCase):
         das.exec_ = MagicMock()
         das.result = True
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(
-            self.modName + ".DailyArxivSelect", return_value=das, autospec=True
+            self.modName + ".DailyArxivSelect",
+            return_value=das,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -4044,9 +4128,13 @@ class TestMainWindow(GUITestCase):
         das.exec_ = MagicMock()
         das.askCats.setCheckState(Qt.Checked)
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(
-            self.modName + ".DailyArxivSelect", return_value=das, autospec=True
+            self.modName + ".DailyArxivSelect",
+            return_value=das,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -4202,9 +4290,13 @@ class TestMainWindow(GUITestCase):
         das.result = True
         das.askCats.setCheckState(Qt.Checked)
         with patch(
-            self.modName + ".DailyArxivDialog", return_value=dad, autospec=True
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _dad, patch(
-            self.modName + ".DailyArxivSelect", return_value=das, autospec=True
+            self.modName + ".DailyArxivSelect",
+            return_value=das,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
             "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
@@ -4415,7 +4507,7 @@ class TestMainWindow(GUITestCase):
             _ace.assert_called_once_with(self.mainW, ["12.345", "12.348", "12.350"])
             _sbm.assert_called_once_with(
                 self.mainW,
-                "Entries successfully imported: " + "['12.345', '12.348', '12.350']",
+                "Entries successfully imported: ['12.345', '12.348', '12.350']",
             )
 
     def test_sendMessage(self):

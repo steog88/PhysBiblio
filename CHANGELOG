@@ -1,4 +1,7 @@
 	* better management of sorting of bibtex table
+	* fixed bug with "Ctrl+C" on selected lines in main table
+	* now using tox for testing
+	* now using black for code formatting
 
 1.1.1 (2019-04-22)
 	* ctrl+c triggers "copy from clipboard" menu in main table

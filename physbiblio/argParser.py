@@ -260,8 +260,7 @@ def setParser():
     parser_test.set_defaults(func=call_tests)
 
     parser_tex = subparsers.add_parser(
-        "tex",
-        help="read .tex file(s) and create a *.bib file " + "with the cited bibtexs",
+        "tex", help="read .tex file(s) and create a *.bib file with the cited bibtexs"
     )
     parser_tex.add_argument(
         "bibFile",

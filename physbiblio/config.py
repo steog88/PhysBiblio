@@ -203,7 +203,7 @@ class GlobalDB(PhysBiblioDBCore):
             command = "CREATE TABLE profiles (\n"
             for el in profilesSettingsTable:
                 command += " ".join(el) + ",\n"
-            command += "CONSTRAINT unique_databasefile " + "UNIQUE (databasefile)\n);"
+            command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
             self.logger.info(command + "\n")
             if not self.connExec(command):
                 self.logger.critical("Create profiles table failed")
@@ -374,7 +374,7 @@ class GlobalDB(PhysBiblioDBCore):
             )
             return {}
         self.cursExec(
-            "SELECT * FROM profiles WHERE name = :name " + "or databasefile = :file\n",
+            "SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
             {"name": name, "file": filename},
         )
         return self.curs.fetchall()[0]
@@ -421,7 +421,7 @@ class GlobalDB(PhysBiblioDBCore):
             self.commit(verbose=False)
         else:
             self.logger.error(
-                "Something went wrong when setting new profile order." + " Undoing..."
+                "Something went wrong when setting new profile order. Undoing..."
             )
             self.undo(verbose=False)
         return not failed
@@ -610,14 +610,14 @@ class GlobalDB(PhysBiblioDBCore):
 			True if successfull, False if some sum failed
 		"""
         self.cursExec(
-            "select * from searches " + "where manual=? and isReplace=?\n",
+            "select * from searches where manual=? and isReplace=?\n",
             (0, 1 if replacement else 0),
         )
         for e in self.curs.fetchall():
             if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
                 self.deleteSearch(e["idS"])
             if not self.connExec(
-                "update searches set " + "count = :count where idS=:idS\n",
+                "update searches set count = :count where idS=:idS\n",
                 {"idS": e["idS"], "count": e["count"] + 1},
             ):
                 self.undo()

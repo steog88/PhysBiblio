@@ -287,8 +287,7 @@ class TestObjListWindow(GUITestCase):
         self.assertIsInstance(olw.filterInput, QLineEdit)
         self.assertEqual(olw.filterInput.placeholderText(), "plch")
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "changeFilter",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.changeFilter", autospec=True
         ) as _cf:
             olw.filterInput.textChanged.emit("sss")
             _cf.assert_called_once_with(olw, "sss")
@@ -353,19 +352,18 @@ class TestObjListWindow(GUITestCase):
         self.assertEqual(olw.minimumHeight(), 600)
         ix = QModelIndex()
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "handleItemEntered",
+            "physbiblio.gui.commonClasses.ObjListWindow.handleItemEntered",
             autospec=True,
         ) as _f:
             olw.tableview.entered.emit(ix)
             _f.assert_called_once_with(olw, ix)
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "cellClick", autospec=True
+            "physbiblio.gui.commonClasses.ObjListWindow.cellClick", autospec=True
         ) as _f:
             olw.tableview.clicked.emit(ix)
             _f.assert_called_once_with(olw, ix)
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "cellDoubleClick",
-            autospec=True,
+            "physbiblio.gui.commonClasses.ObjListWindow.cellDoubleClick", autospec=True
         ) as _f:
             olw.tableview.doubleClicked.emit(ix)
             _f.assert_called_once_with(olw, ix)
@@ -382,9 +380,9 @@ class TestObjListWindow(GUITestCase):
         """Test recreateTable"""
         olw = ObjListWindow()
         with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "cleanLayout", autospec=True
+            "physbiblio.gui.commonClasses.ObjListWindow.cleanLayout", autospec=True
         ) as _cl, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "createTable", autospec=True
+            "physbiblio.gui.commonClasses.ObjListWindow.createTable", autospec=True
         ) as _ct:
             olw.recreateTable()
             self.assertEqual(_cl.call_count, 1)
@@ -535,7 +533,7 @@ class TestPBTableView(GUITestCase):
         ) as _r, patch(
             "PySide2.QtWidgets.QTableView.columnAt", return_value=1, autospec=True
         ) as _c, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow." + "triggeredContextMenuEvent",
+            "physbiblio.gui.commonClasses.ObjListWindow.triggeredContextMenuEvent",
             autospec=True,
         ) as _t:
             mtw.contextMenuEvent(e)
@@ -1217,24 +1215,24 @@ class TestLeafFilterProxyModel(GUITestCase):
         lf.setSourceModel(tm)
         self.assertTrue(lf.hasAcceptedChildren(0, QModelIndex()))
         with patch(
-            "physbiblio.gui.tests.test_commonClasses.EmptyTreeModel." + "rowCount",
+            "physbiblio.gui.tests.test_commonClasses.EmptyTreeModel.rowCount",
             return_value=1,
             autospec=True,
         ) as _rc:
             self.assertTrue(lf.hasAcceptedChildren(1, QModelIndex()))
         with patch(
-            "physbiblio.gui.commonClasses.LeafFilterProxyModel." + "filterAcceptsRow",
+            "physbiblio.gui.commonClasses.LeafFilterProxyModel.filterAcceptsRow",
             return_value=True,
             autospec=True,
         ) as _acc:
             self.assertTrue(lf.hasAcceptedChildren(5, QModelIndex()))
             self.assertEqual(_acc.call_count, 1)
         with patch(
-            "physbiblio.gui.commonClasses.LeafFilterProxyModel." + "filterAcceptsRow",
+            "physbiblio.gui.commonClasses.LeafFilterProxyModel.filterAcceptsRow",
             return_value=False,
             autospec=True,
         ) as _acc, patch(
-            "physbiblio.gui.tests.test_commonClasses." + "EmptyTreeModel.rowCount",
+            "physbiblio.gui.tests.test_commonClasses.EmptyTreeModel.rowCount",
             return_value=1,
             autospec=True,
         ) as _rc:
@@ -1257,7 +1255,7 @@ class TestPBDDTableWidget(GUITestCase):
         self.assertFalse(mddtw.dragDropOverwriteMode())
         self.assertEqual(mddtw.selectionBehavior(), QAbstractItemView.SelectRows)
         with patch(
-            "physbiblio.gui.commonClasses.QTableWidget." + "setHorizontalHeaderLabels",
+            "physbiblio.gui.commonClasses.QTableWidget.setHorizontalHeaderLabels",
             autospec=True,
         ) as _shl:
             mddtw = PBDDTableWidget(p, "head")
@@ -1495,8 +1493,7 @@ class TestPBImportedTableModel(GUITestCase):
     def test_init(self):
         """test init"""
         with patch(
-            "physbiblio.gui.commonClasses.PBTableModel." + "prepareSelected",
-            autospec=True,
+            "physbiblio.gui.commonClasses.PBTableModel.prepareSelected", autospec=True
         ) as _ps:
             mitm = PBImportedTableModel(
                 QWidget(),

@@ -131,7 +131,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
             return
         if "bibkey text primary key not null," in createQ:
             pBLogger.info(
-                "Performing conversion of 'entries' table" + " to case-insensitive key"
+                "Performing conversion of 'entries' table to case-insensitive key"
             )
             for fixQ in [
                 "BEGIN TRANSACTION;",
@@ -895,7 +895,7 @@ class CatsExps(PhysBiblioDBSub):
             if len(self.getOne(idCat, idExp)) == 0:
                 pBLogger.debug("inserting (idCat=%s and idExp=%s)" % (idCat, idExp))
                 return self.connExec(
-                    "INSERT into expCats (idExp, idCat) " + "values (:idExp, :idCat)",
+                    "INSERT into expCats (idExp, idCat) values (:idExp, :idCat)",
                     {"idExp": idExp, "idCat": idCat},
                 )
             else:
@@ -1073,7 +1073,7 @@ class EntryExps(PhysBiblioDBSub):
 			the output of self.connExec
 		"""
         pBLogger.info(
-            "Updating entryCats for bibkey change, " + "from '%s' to '%s'" % (old, new)
+            "Updating entryCats for bibkey change, from '%s' to '%s'" % (old, new)
         )
         query = "update entryExps set bibkey=:new where bibkey=:old\n"
         return self.connExec(query, {"new": new, "old": old})
@@ -2606,7 +2606,7 @@ class Entries(PhysBiblioDBSub):
             key = string
         if newid is not "":
             if self.connExec(
-                "update entries set inspire=:inspire " + "where bibkey=:bibkey\n",
+                "update entries set inspire=:inspire where bibkey=:bibkey\n",
                 {"inspire": newid, "bibkey": key},
             ):
                 return newid
@@ -2675,7 +2675,7 @@ class Entries(PhysBiblioDBSub):
                 tmpBibDict = {}
             except ParseException:
                 pBLogger.warning(
-                    "Problem in parsing the following " + "bibtex code:\n%s" % value,
+                    "Problem in parsing the following bibtex code:\n%s" % value,
                     exc_info=True,
                 )
                 tmpBibDict = {}
@@ -2727,7 +2727,7 @@ class Entries(PhysBiblioDBSub):
                     pBLogger.exception("Cannot rename folder")
                 query = "update entryCats set bibkey=:new where bibkey=:old\n"
                 if self.connExec(query, {"new": newKey, "old": oldKey}):
-                    query = "update entryExps set bibkey=:new " + "where bibkey=:old\n"
+                    query = "update entryExps set bibkey=:new where bibkey=:old\n"
                     return self.connExec(query, {"new": newKey, "old": oldKey})
                 else:
                     return False

@@ -101,7 +101,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _gl, patch("logging.Logger.info") as _i, patch(
             "logging.Logger.warning"
         ) as _w, patch(
-            "subprocess.Popen", autospec=True
+            "subprocess.Popen", autospec=USE_AUTOSPEC_CLASS
         ) as _po:
             pBView.openLink(["a", "b"], arg="file")
             _gl.assert_has_calls(

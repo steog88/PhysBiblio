@@ -297,7 +297,7 @@ class ConfigWindow(PBDialog):
                     )
                 except (IndexError, ValueError):
                     pBGUILogger.warning(
-                        "Invalid string for 'loggingLevel' " + "param. Reset to default"
+                        "Invalid string for 'loggingLevel' param. Reset to default"
                     )
                     self.textValues.append(
                         [

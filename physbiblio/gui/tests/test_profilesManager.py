@@ -71,7 +71,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m:
@@ -80,7 +80,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m:
@@ -96,7 +96,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -139,7 +139,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -153,7 +153,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _cp, patch(
             "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
         ) as _spo, patch(
-            "physbiblio.gui.mainWindow.MainWindow" + ".statusBarMessage", autospec=True
+            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m, patch(
             "shutil.copy2"
         ) as _copy:
@@ -182,7 +182,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -231,7 +231,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -282,7 +282,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -339,7 +339,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -398,7 +398,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -451,7 +451,7 @@ class TestEditProf(GUIwMainWTestCase):
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
             return_value=ep,
-            autospec=True,
+            autospec=USE_AUTOSPEC_CLASS,
         ) as _epw, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
         ) as _lp, patch(
@@ -563,7 +563,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
         ) as _c, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
         ) as _rc, patch(
-            "physbiblio.gui.mainWindow.MainWindow." + "reloadMainContent", autospec=True
+            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rm, patch(
             "physbiblio.config.ConfigVars.reInit", autospec=True
         ) as _ri, patch(
@@ -583,7 +583,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
         ) as _c, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
         ) as _rc, patch(
-            "physbiblio.gui.mainWindow.MainWindow." + "reloadMainContent", autospec=True
+            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rm, patch(
             "physbiblio.config.ConfigVars.reInit", autospec=True
         ) as _ri, patch(
@@ -660,7 +660,7 @@ class TestPBOrderPushButton(GUITestCase):
         self.assertEqual(opb.parent(), p)
         self.assertEqual(opb.parentObj, p)
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".switchLines",
+            "physbiblio.gui.profilesManager.EditProfileWindow.switchLines",
             autospec=True,
         ) as _s:
             opb.onClick()
@@ -712,8 +712,7 @@ class TestEditProfile(GUITestCase):
         """test init"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _s:
             ep = EditProfileWindow(p)
             self.assertIsInstance(ep, EditObjectWindow)
@@ -740,7 +739,7 @@ class TestEditProfile(GUITestCase):
                 ep.onOk()
                 _c.assert_not_called()
                 _i.assert_called_once_with(
-                    "Cannot create a new profile if 'name' or 'filename' " + "is empty."
+                    "Cannot create a new profile if 'name' or 'filename' is empty."
                 )
         ep.elements[-1]["n"].setText("test1")
         ep.elements[-1]["f"].setCurrentText("testA.db")
@@ -767,8 +766,7 @@ class TestEditProfile(GUITestCase):
         """test addButtons"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _s:
             ep = EditProfileWindow(p)
         ep.addButtons()
@@ -898,9 +896,7 @@ class TestEditProfile(GUITestCase):
                         "Missing info: 'd' in ['db', 'n', 'r', 'x']."
                         + " Default to empty."
                     ),
-                    call(
-                        "Missing profile: 'test4' in " + "['test1', 'test2', 'test3A']"
-                    ),
+                    call("Missing profile: 'test4' in ['test1', 'test2', 'test3A']"),
                 ]
             )
         self.assertIsInstance(ep.def_group, QButtonGroup)
@@ -949,14 +945,12 @@ class TestEditProfile(GUITestCase):
         """test createForm"""
         p = QWidget()
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _c:
             ep = EditProfileWindow(p)
         ep.addButtons()
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".addButtons",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.addButtons", autospec=True
         ) as _a, patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g:
             ep.createForm()
             _a.assert_called_once_with(ep, pbConfig.profiles, pbConfig.profileOrder)
@@ -996,13 +990,12 @@ class TestEditProfile(GUITestCase):
         self.assertEqual(ep.cancelButton.text(), "Cancel")
         self.assertTrue(ep.cancelButton.autoDefault())
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".onOk", autospec=True
+            "physbiblio.gui.profilesManager.EditProfileWindow.onOk", autospec=True
         ) as _o:
             QTest.mouseClick(ep.acceptButton, Qt.LeftButton)
             _o.assert_called_once_with(ep)
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".onCancel",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.onCancel", autospec=True
         ) as _o:
             QTest.mouseClick(ep.cancelButton, Qt.LeftButton)
             _o.assert_called_once_with(ep)
@@ -1046,8 +1039,7 @@ class TestEditProfile(GUITestCase):
         pnew = {"db": u"new.db", "n": u"testNew", "r": True, "c": "test1.db"}
         ep.cleanLayout()
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".addButtons",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.addButtons", autospec=True
         ) as _a, patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g, patch(
             "logging.Logger.warning"
         ) as _w:
@@ -1096,10 +1088,9 @@ class TestEditProfile(GUITestCase):
         p = QWidget()
         ep = EditProfileWindow(p)
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _cf, patch(
-            "physbiblio.gui.profilesManager." + "EditProfileWindow.cleanLayout",
+            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
             autospec=True,
         ) as _cl:
             self.assertTrue(ep.switchLines(0))
@@ -1127,10 +1118,9 @@ class TestEditProfile(GUITestCase):
         ep.elements[-1]["n"].setText("testA")
         ep.elements[-1]["f"].setCurrentText("testA.db")
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _cf, patch(
-            "physbiblio.gui.profilesManager." + "EditProfileWindow.cleanLayout",
+            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
             autospec=True,
         ) as _cl:
             self.assertTrue(ep.switchLines(1))
@@ -1156,18 +1146,15 @@ class TestEditProfile(GUITestCase):
                 {"r": False, "db": u"testA.db", "d": u"", "n": u"testA"},
             )
         with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow" + ".createForm",
-            autospec=True,
+            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
         ) as _cf, patch(
-            "physbiblio.gui.profilesManager." + "EditProfileWindow.cleanLayout",
+            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
             autospec=True,
         ) as _cl, patch(
             "logging.Logger.warning"
         ) as _i:
             self.assertFalse(ep.switchLines(2))
-            _i.assert_called_once_with(
-                "Impossible to switch lines: " + "index out of range"
-            )
+            _i.assert_called_once_with("Impossible to switch lines: index out of range")
             self.assertEqual(_cl.call_count, 0)
             self.assertEqual(_cf.call_count, 0)
 

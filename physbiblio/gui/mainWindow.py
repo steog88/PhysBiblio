@@ -1361,9 +1361,7 @@ class MainWindow(QMainWindow):
 			idS: the search id in the database
 			name: the search name
 		"""
-        if askYesNo(
-            "Are you sure you want to delete " + "the saved search '%s'?" % name
-        ):
+        if askYesNo("Are you sure you want to delete the saved search '%s'?" % name):
             pbConfig.globalDb.deleteSearch(idS)
             self.createMenusAndToolBar()
 
@@ -1397,9 +1395,7 @@ class MainWindow(QMainWindow):
             infoMessage("The string to substitute is empty!")
             return
         if any(n == "" for n in new):
-            if not askYesNo(
-                "Empty new string. " + "Are you sure you want to continue?"
-            ):
+            if not askYesNo("Empty new string. Are you sure you want to continue?"):
                 return
         self._runInThread(
             Thread_replace,

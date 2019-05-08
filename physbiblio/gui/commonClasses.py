@@ -1084,7 +1084,7 @@ class PBImportedTableModel(PBTableModel):
 		"""
         self.typeClass = "imports"
         self.idName = idName
-        self.bibsOrder = [k for k in bibdict.keys()]
+        self.bibsOrder = [k for k in sorted(bibdict.keys())]
         self.dataList = [bibdict[k]["bibpars"] for k in self.bibsOrder]
         self.existList = [bibdict[k]["exist"] for k in self.bibsOrder]
         PBTableModel.__init__(self, parent, header, *args)

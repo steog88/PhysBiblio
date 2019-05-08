@@ -106,7 +106,7 @@ def writeBibtexInfo(entry):
 		a string
 	"""
     infoText = ""
-    for t in convertType.keys():
+    for t in sorted(convertType.keys()):
         try:
             if entry[t] == 1:
                 infoText += "(%s) " % convertType[t]
@@ -616,7 +616,7 @@ class BibTableModel(PBTableModel):
 				False and ""
 		"""
         if marks is not None and isinstance(marks, six.string_types):
-            marks = [k for k in pBMarks.marks.keys() if k in marks]
+            marks = [k for k in sorted(pBMarks.marks.keys()) if k in marks]
             if len(marks) > 1:
                 return (
                     True,
@@ -1959,13 +1959,11 @@ class BibtexListWindow(QFrame, ObjListWindow):
             e.key() == Qt.Key_C
             and QApplication.keyboardModifiers() == Qt.ControlModifier
         ):
-            currentRows = self.tableview.selectionModel().selectedRows(0)
+            currentRows = self.tableview.selectionModel().selectedRows(
+                self.columns.index("bibkey")
+            )
             if len(currentRows) > 0:
-                bibkeys = []
-                for ix in currentRows:
-                    b = self.getRowBibkey(self.proxyModel, ix)
-                    if b is not None:
-                        bibkeys.append(b)
+                bibkeys = [ix.data() for ix in currentRows if ix.data() is not None]
                 ac = CommonBibActions([pBDB.bibs.getByBibkey(k)[0] for k in bibkeys])
                 ac.menu = PBMenu()
                 selection = len(bibkeys) > 1
@@ -2949,9 +2947,7 @@ class SearchBibsWindow(EditObjectWindow):
                 fieNew1 = previous["fieNew1"]
                 new1 = previous["new1"]
             except (TypeError, KeyError):
-                pBLogger.debug(
-                    "Invalid previous, some key is missing!\n" + "%s" % previous
-                )
+                pBLogger.debug("Invalid previous, some key is missing!\n%s" % previous)
                 regex = False
                 fieOld = "author"
                 fieNew = "author"

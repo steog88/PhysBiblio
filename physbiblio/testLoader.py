@@ -40,7 +40,7 @@ class PBScanningLoader(TestLoader):
 
         if hasattr(module, "__path__"):
             if "tests" in resource_listdir(module.__name__, ""):
-                tests.append(self.loadTestsFromName(module.__name__ + "." + "tests"))
+                tests.append(self.loadTestsFromName(module.__name__ + ".tests"))
             for file in resource_listdir(module.__name__, ""):
                 if file != "tests" or file != "tmp":
                     continue

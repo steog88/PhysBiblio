@@ -531,7 +531,7 @@ as force and matter fields.
                 {
                     "primaryclass": u"hep-ex",
                     "author": u"Christopher Dilks",
-                    "title": u"Measurement of Transverse Single " + "Spin Asymmetries.",
+                    "title": u"Measurement of Transverse Single Spin Asymmetries.",
                     "abstract": u"In 2015 the first collisions between "
                     + "polarized protons and nuclei occurred at the "
                     + "Relativistic Heavy Ion Collider (RHIC), at a "

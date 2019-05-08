@@ -1428,8 +1428,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         self.mainW.lastAuthorStats = {"h": 999}
         self.mainW.lastPaperStats = {}
         with patch(
-            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." + "updatePlots",
-            autospec=True,
+            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
         ) as _up:
             asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"])
             self.assertEqual(asp.figs, ["a", "b", "c", "d", "e", "f"])
@@ -1451,7 +1450,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertEqual(asp.saveButton.text(), "Save")
             self.assertEqual(asp.layout().itemAtPosition(6, 0).widget(), asp.saveButton)
             with patch(
-                "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." + "saveAction",
+                "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.saveAction",
                 autospec=True,
             ) as _sa:
                 QTest.mouseClick(asp.saveButton, Qt.LeftButton)
@@ -1461,8 +1460,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertTrue(asp.clButton.autoDefault())
             self.assertEqual(asp.layout().itemAtPosition(6, 1).widget(), asp.clButton)
             with patch(
-                "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." + "onClose",
-                autospec=True,
+                "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.onClose", autospec=True
             ) as _cl:
                 QTest.mouseClick(asp.clButton, Qt.LeftButton)
                 self.assertEqual(_cl.call_count, 1)
@@ -1482,8 +1480,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         """Test saveAction"""
         self.mainW.lastAuthorStats = {"h": 999}
         with patch(
-            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." + "updatePlots",
-            autospec=True,
+            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
         ) as _up:
             asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"], parent=self.mainW)
         self.assertTrue(asp.saveButton.isEnabled())
@@ -1561,8 +1558,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         """Test updatePlots"""
         self.mainW.lastAuthorStats = {"h": 999}
         with patch(
-            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots." + "updatePlots",
-            autospec=True,
+            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
         ) as _up:
             asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
             self.assertEqual(asp.figs, testData["figs"])
@@ -1613,8 +1609,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
         self.assertEqual(asp.saveButton.text(), "Save")
         self.assertEqual(asp.layout().itemAtPosition(4, 0).widget(), asp.saveButton)
         with patch(
-            "physbiblio.gui.inspireStatsGUI.PaperStatsPlots." + "saveAction",
-            autospec=True,
+            "physbiblio.gui.inspireStatsGUI.PaperStatsPlots.saveAction", autospec=True
         ) as _sa:
             QTest.mouseClick(asp.saveButton, Qt.LeftButton)
             self.assertEqual(_sa.call_count, 1)

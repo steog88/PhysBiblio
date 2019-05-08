@@ -166,9 +166,7 @@ class CatsModel(TreeModel):
                 else:
                     self.selectedCats[prevIx] = True
             else:
-                pBLogger.warning(
-                    "Invalid idCat in previous selection: " + "%s" % prevIx
-                )
+                pBLogger.warning("Invalid idCat in previous selection: %s" % prevIx)
 
     def _getRootNodes(self):
         """Obtain the list of named nodes which represent the root

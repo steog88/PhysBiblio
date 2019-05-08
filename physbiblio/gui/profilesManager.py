@@ -267,22 +267,20 @@ class EditProfileWindow(EditObjectWindow):
             and self.elements[-1]["n"].text().strip() != ""
         ):
             pBGUILogger.info(
-                "Cannot create a new profile if 'name' or " + "'filename' is empty."
+                "Cannot create a new profile if 'name' or 'filename' is empty."
             )
             return
         if self.elements[-1]["n"].text().strip() in [
             a["n"].text() for a in self.elements[:-1]
         ]:
-            pBGUILogger.info("Cannot create new profile: " + "'name' already in use.")
+            pBGUILogger.info("Cannot create new profile: 'name' already in use.")
             return
         if (
             self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] + ".db"
         ).replace(".db.db", ".db") in [
             a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]
         ]:
-            pBGUILogger.info(
-                "Cannot create new profile: " + "'filename' already in use."
-            )
+            pBGUILogger.info("Cannot create new profile: 'filename' already in use.")
             return
         self.result = True
         self.close()

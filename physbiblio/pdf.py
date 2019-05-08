@@ -161,7 +161,7 @@ class LocalPDF:
             newFileName = self.getFilePath(key, fileType)
         else:
             pBLogger.warning(
-                "You should supply a fileType " + "('doi' or 'arxiv') or a customName!"
+                "You should supply a fileType ('doi' or 'arxiv') or a customName!"
             )
             return False
         try:
@@ -195,7 +195,7 @@ class LocalPDF:
             origFile = self.getFilePath(key, fileType)
         else:
             pBLogger.warning(
-                "You should supply a fileType " + "('doi' or 'arxiv') or a customName!"
+                "You should supply a fileType ('doi' or 'arxiv') or a customName!"
             )
             return False
         try:

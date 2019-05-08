@@ -52,7 +52,7 @@ class PBErrorManagerClass:
             )
         fh.setLevel(self.loglevel)
         formatter = logging.Formatter(
-            "%(asctime)s %(levelname)10s : " + "[%(module)s.%(funcName)s] %(message)s"
+            "%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s"
         )
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)

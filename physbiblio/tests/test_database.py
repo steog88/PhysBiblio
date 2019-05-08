@@ -735,10 +735,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_init(self):
         """test init"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".openDB", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.openDB", autospec=True
         ) as _o:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True, info=False)
             _e.assert_called_once_with(tempDBName)
@@ -763,19 +762,18 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("os.path.exists", return_value=True) as _e, patch(
             "logging.Logger.info"
         ) as _i, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".checkExistingTables",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkExistingTables",
             return_value=True,
             autospec=True,
         ) as _ce, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".createTables", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.createTables", autospec=True
         ) as _ct, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".checkDatabaseUpdates",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkDatabaseUpdates",
             autospec=True,
         ) as _cc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".openDB", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.openDB", autospec=True
         ) as _o:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True, info=False)
             self.assertEqual(_o.call_count, 0)
@@ -795,19 +793,18 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("os.path.exists", return_value=True) as _e, patch(
             "logging.Logger.info"
         ) as _i, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".checkExistingTables",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkExistingTables",
             return_value=False,
             autospec=True,
         ) as _ce, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".createTables", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.createTables", autospec=True
         ) as _ct, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".checkDatabaseUpdates",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkDatabaseUpdates",
             autospec=True,
         ) as _cc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".openDB", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.openDB", autospec=True
         ) as _o:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger)
             _o.assert_called_once_with(dbc, info=True)
@@ -822,14 +819,12 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_openDB(self):
         """test openDB"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         self.assertEqual(dbc.conn, None)
         with patch("logging.Logger.info") as _i, patch("sqlite3.connect") as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc.openDB()
             _i.assert_called_once_with("Opening database: %s" % tempDBName)
@@ -840,8 +835,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
             self.assertEqual(dbc.curs, _c().cursor())
         with patch("logging.Logger.debug") as _d, patch("sqlite3.connect") as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc.openDB(info=False)
             _d.assert_called_once_with("Opening database: %s" % tempDBName)
@@ -855,8 +849,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_closeDB(self):
         """test closeDB"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.conn = MagicMock()
@@ -888,8 +881,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_checkUncommitted(self):
         """test checkUncommitted"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         if sys.version_info[0] == 3 and sys.version_info[1] > 2:
@@ -903,8 +895,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_commit(self):
         """test commit"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.conn = MagicMock()
@@ -931,8 +922,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_undo(self):
         """test undo"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.conn = MagicMock()
@@ -986,7 +976,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("logging.Logger.exception") as _ex, patch(
             "logging.Logger.error"
         ) as _er, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".sendDBIsLocked",
+            "physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked",
             return_value=True,
             autospec=True,
         ) as _lo:
@@ -998,7 +988,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("logging.Logger.exception") as _ex, patch(
             "logging.Logger.error"
         ) as _er, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".sendDBIsLocked",
+            "physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked",
             return_value=True,
             autospec=True,
         ) as _lo:
@@ -1009,7 +999,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("logging.Logger.exception") as _ex, patch(
             "logging.Logger.error"
         ) as _er, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".sendDBIsLocked",
+            "physbiblio.databaseCore.PhysBiblioDBCore.sendDBIsLocked",
             return_value=False,
             autospec=True,
         ) as _lo:
@@ -1064,8 +1054,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_cursor(self):
         """test cursor"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.curs = "curs"
@@ -1074,20 +1063,19 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_checkExistingTables(self):
         """test checkExistingTables"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.curs = [["tab1", "1"], ["tab2", "2"]]
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _ce:
             self.assertTrue(dbc.checkExistingTables())
             _ce.assert_called_once_with(
                 dbc, "SELECT name FROM sqlite_master WHERE type='table';"
             )
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _ce:
             self.assertFalse(dbc.checkExistingTables(wantedTables=["tab1", "tab2"]))
         dbc.curs = [
@@ -1100,28 +1088,27 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             ["settings"],
         ]
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _ce:
             self.assertFalse(dbc.checkExistingTables())
 
     def test_checkDatabaseUpdates_DBC(self):
         """test checkDatabaseUpdates in PhysBiblioDBCore"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
         dbc.curs = [[0, "title"], [1, "column"], [2, "bibdict"]]
         with patch("logging.Logger.info") as _i, patch(
             "logging.Logger.error"
         ) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".commit", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
         ) as _co, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".undo", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.undo", autospec=True
         ) as _un, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cue, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".connExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             side_effect=[True, False],
             autospec=True,
         ) as _coe:
@@ -1135,7 +1122,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             )
             _co.assert_called_once_with(dbc)
             _i.assert_called_once_with(
-                "New column in table 'entries': " + "'bibdict' (text)."
+                "New column in table 'entries': 'bibdict' (text)."
             )
             _e.assert_not_called()
             self.assertEqual(_un.call_count, 0)
@@ -1147,8 +1134,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_PhysBiblioDBSub(self):
         """test methods in PhysBiblioDBSub"""
         with patch("os.path.exists", return_value=True) as _e, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".loadSubClasses",
-            autospec=True,
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger)
 
@@ -1165,28 +1151,28 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
         # closeDB
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".closeDB", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.closeDB", autospec=True
         ) as _f:
             dbs.closeDB()
             _f.assert_called_once_with(dbs.mainDB)
 
         # commit
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".commit", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
         ) as _f:
             dbs.commit()
             _f.assert_called_once_with(dbs.mainDB)
 
         # connExec
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".connExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             return_value="abc",
             autospec=True,
         ) as _f:
             self.assertEqual(dbs.connExec("a"), "abc")
             _f.assert_called_once_with(dbs.mainDB, "a", data=None)
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".connExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             return_value="abc",
             autospec=True,
         ) as _f:
@@ -1195,14 +1181,14 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
         # cursExec
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec",
             return_value="abc",
             autospec=True,
         ) as _f:
             self.assertEqual(dbs.cursExec("a"), "abc")
             _f.assert_called_once_with(dbs.mainDB, "a", data=None)
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec",
             return_value="abc",
             autospec=True,
         ) as _f:
@@ -1211,7 +1197,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
         # cursor
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursor",
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursor",
             return_value="curs",
             autospec=True,
         ) as _f:
@@ -1221,13 +1207,12 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     def test_checkDatabaseUpdates_DB(self):
         """test checkDatabaseUpdates in PhysBiblioDB"""
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".checkDatabaseUpdates",
+            "physbiblio.databaseCore.PhysBiblioDBCore.checkDatabaseUpdates",
             autospec=True,
         ) as _su, patch(
-            "physbiblio.database.PhysBiblioDB" + ".convertSearchFormat", autospec=True
+            "physbiblio.database.PhysBiblioDB.convertSearchFormat", autospec=True
         ) as _cf, patch(
-            "physbiblio.database.PhysBiblioDB" + ".checkCaseInsensitiveBibkey",
-            autospec=True,
+            "physbiblio.database.PhysBiblioDB.checkCaseInsensitiveBibkey", autospec=True
         ) as _ci:
             self.pBDB.checkDatabaseUpdates()
             _su.assert_called_once_with(self.pBDB)
@@ -1239,7 +1224,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.pBDB.curs = MagicMock()
         self.pBDB.curs.fetchall.return_value = [""]
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cur, patch("logging.Logger.exception") as _ex:
             self.pBDB.checkCaseInsensitiveBibkey()
             _cur.assert_called_once_with(
@@ -1251,7 +1236,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.pBDB.curs.fetchall.assert_called_once_with()
         self.pBDB.curs.fetchall.return_value = [("abced",)]
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cur, patch("logging.Logger.debug") as _dbg:
             self.pBDB.checkCaseInsensitiveBibkey()
             _cur.assert_called_once_with(
@@ -1267,9 +1252,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             ("\nbibkey text primary key not null,\n",)
         ]
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cur, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".connExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             autospec=True,
             return_value=False,
         ) as _con, patch(
@@ -1287,14 +1272,14 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             )
             _con.assert_called_once_with(self.pBDB, "BEGIN TRANSACTION;")
             _in.assert_called_once_with(
-                "Performing conversion of 'entries' table to " + "case-insensitive key"
+                "Performing conversion of 'entries' table to case-insensitive key"
             )
             _ex.assert_called_once_with("Impossible to rename table 'entries'")
             _un.assert_called_once_with(self.pBDB)
         with patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".cursExec", autospec=True
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cur, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore" + ".connExec",
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             autospec=True,
             return_value=True,
         ) as _con, patch(
@@ -1326,7 +1311,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
                 ]
             )
             _in.assert_called_once_with(
-                "Performing conversion of 'entries' table to " + "case-insensitive key"
+                "Performing conversion of 'entries' table to case-insensitive key"
             )
             _com.assert_called_once_with(self.pBDB)
             _ex.assert_not_called()
@@ -2260,7 +2245,7 @@ class TestDatabaseCategories(DBTestCase):
         )
         self.assert_stdout(
             lambda: self.pBDB.cats.printHier(replace=True, depth=2),
-            "   0: Main\n        1: Tags\n             2: c\n" + "             4: e\n",
+            "   0: Main\n        1: Tags\n             2: c\n             4: e\n",
         )
 
 
@@ -2430,7 +2415,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["year"], None)
 
         # test link
-        self.assertEqual(data["link"], pbConfig.arxivUrl + "/abs/" + "1801.00000")
+        self.assertEqual(data["link"], pbConfig.arxivUrl + "/abs/1801.00000")
         self.assertEqual(
             self.pBDB.bibs.prepareInsert(bibtex, link="http://some.thing")["link"],
             "http://some.thing",
@@ -2970,7 +2955,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.lastQuery,
-            "select * from entries  where  bibkey like ?  " + "order by firstdate ASC",
+            "select * from entries  where  bibkey like ?  order by firstdate ASC",
         )
 
         self.assertEqual(
@@ -2993,7 +2978,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.lastQuery,
-            "select * from entries  where  bibkey like ?  " + "order by firstdate ASC",
+            "select * from entries  where  bibkey like ?  order by firstdate ASC",
         )
 
         self.assertEqual(
@@ -5667,7 +5652,7 @@ class TestDatabaseEntries(DBTestCase):
             side_effect=["1385583", False],
             autospec=True,
         ) as _inspireid, patch(
-            "physbiblio.webimport.inspireoai.WebSearch." + "retrieveOAIData",
+            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIData",
             side_effect=[
                 {
                     "doi": u"10.1088/0954-3899/43/3/033001",
@@ -5759,7 +5744,7 @@ class TestDatabaseEntries(DBTestCase):
         # methods
         for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
             with patch(
-                "physbiblio.webimport." + "%s.WebSearch.retrieveUrlAll" % method,
+                "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
                 return_value="",
                 autospec=True,
             ) as _mock:
@@ -6239,7 +6224,7 @@ class TestDatabaseEntries(DBTestCase):
 
             self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
             with patch(
-                "physbiblio.webimport.inspireoai.WebSearch." + "retrieveOAIData",
+                "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIData",
                 side_effect=[
                     False,
                     mockOut,
@@ -6652,7 +6637,7 @@ class TestDatabaseEntries(DBTestCase):
             ],
         )
         with patch(
-            "physbiblio.webimport.inspireoai.WebSearch." + "retrieveOAIUpdates",
+            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIUpdates",
             side_effect=[
                 [],
                 [],
@@ -6916,7 +6901,7 @@ class TestDatabaseEntries(DBTestCase):
             ],
         )
         with patch(
-            "physbiblio.webimport.inspireoai.WebSearch." + "retrieveOAIUpdates",
+            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIUpdates",
             side_effect=[
                 [
                     {
