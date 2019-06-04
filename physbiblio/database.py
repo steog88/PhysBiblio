@@ -1656,8 +1656,8 @@ class Entries(PhysBiblioDBSub):
                 tmp["published"] = ""
             try:
                 author = tmp["bibtexDict"]["author"]
-                if author.count("and") > pbConfig.params["maxAuthorNames"] - 1:
-                    author = author[: author.index("and")] + "et al."
+                if author.count(" and ") > pbConfig.params["maxAuthorNames"] - 1:
+                    author = author[: author.index(" and ")] + " et al."
                 tmp["author"] = author
             except KeyError:
                 tmp["author"] = ""

@@ -1,5 +1,6 @@
 	* better management of sorting of bibtex table
 	* fixed bug with "Ctrl+C" on selected lines in main table
+	* bug when looking for 'and' in authors list solved
 	* now using tox for testing
 	* now using black for code formatting
 
