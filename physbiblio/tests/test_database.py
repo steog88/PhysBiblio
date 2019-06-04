@@ -3468,7 +3468,7 @@ class TestDatabaseEntries(DBTestCase):
                     ]
                 ).lastFetched
             ],
-            ["abc", "abc", "mno"],
+            ["abc", "mno"],
         )
         self.assertEqual(
             [
@@ -3492,7 +3492,7 @@ class TestDatabaseEntries(DBTestCase):
                     ]
                 ).lastFetched
             ],
-            ["abc", "abc", "mno"],
+            ["abc", "mno"],
         )
         self.assertEqual(
             [
@@ -3597,7 +3597,7 @@ class TestDatabaseEntries(DBTestCase):
                     ).lastFetched
                 ]
             ),
-            ["abc", "def", "def", "jkl"],
+            ["abc", "def", "jkl"],
         )
         self.assertEqual(
             sorted(

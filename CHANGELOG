@@ -1,3 +1,4 @@
+	* removed repeated entries in searches which require matching multiple categories/experiments
 	* better management of sorting of bibtex table
 	* fixed bug with "Ctrl+C" on selected lines in main table
 	* bug when looking for 'and' in authors list solved

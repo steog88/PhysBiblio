@@ -1603,6 +1603,7 @@ class Entries(PhysBiblioDBSub):
 			a dictionary with the original and the new fields
 		"""
         fetched_out = []
+        fetched_keys = set([])
         for el in fetched_in:
             tmp = {}
             for k in el.keys():
@@ -1661,7 +1662,9 @@ class Entries(PhysBiblioDBSub):
                 tmp["author"] = author
             except KeyError:
                 tmp["author"] = ""
-            fetched_out.append(tmp)
+            if tmp["bibkey"] not in fetched_keys:
+                fetched_keys.add(tmp["bibkey"])
+                fetched_out.append(tmp)
         return fetched_out
 
     def fetchFromLast(self, doFetch=True):
