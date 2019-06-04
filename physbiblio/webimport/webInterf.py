@@ -34,10 +34,10 @@ webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 class WebInterf:
     """This is the main class for the web search methods.
 
-	It contains a constructor, a function to create an appropriate url
-	and to retrieve text from the url,
-	a function to load other webinterfaces
-	"""
+    It contains a constructor, a function to create an appropriate url
+    and to retrieve text from the url,
+    a function to load other webinterfaces
+    """
 
     url = None
     urlArgs = None
@@ -61,9 +61,9 @@ class WebInterf:
     def createUrl(self):
         """Joins the arguments of the GET query to get the full url.
 
-		Uses the self.urlArgs dictionary to generate the list
-		of HTTP GET parameters.
-		"""
+        Uses the self.urlArgs dictionary to generate the list
+        of HTTP GET parameters.
+        """
         return (
             self.url
             + "?"
@@ -73,14 +73,14 @@ class WebInterf:
     def textFromUrl(self, url, headers=None):
         """Use urllib to get the html content of the given url.
 
-		Parameters:
-			url: the url to be opened
-			headers (default None): the additional headers
-				to be passed to urllib.Request
+        Parameters:
+            url: the url to be opened
+            headers (default None): the additional headers
+                to be passed to urllib.Request
 
-		Output:
-			text: the content of the url
-		"""
+        Output:
+            text: the content of the url
+        """
         try:
             if headers is not None:
                 req = Request(url, headers=headers)
@@ -108,37 +108,37 @@ class WebInterf:
 
     def retrieveUrlFirst(self, search):
         """Retrieves the first bibtexs that the search gives,
-		using the subclass specific instructions.
+        using the subclass specific instructions.
 
-		Parameter:
-			search: the string to be searched
+        Parameter:
+            search: the string to be searched
 
-		Output:
-			returns None in the default implementation
-				(must be subclassed)
-		"""
+        Output:
+            returns None in the default implementation
+                (must be subclassed)
+        """
         return None
 
     def retrieveUrlAll(self, search):
         """Retrieves all the bibtexs that the search gives,
-		using the subclass specific instructions
+        using the subclass specific instructions
 
-		Parameter:
-			search: the string to be searched
+        Parameter:
+            search: the string to be searched
 
-		Output:
-			returns None in the default implementation
-				(must be subclassed)
-		"""
+        Output:
+            returns None in the default implementation
+                (must be subclassed)
+        """
         return None
 
     def loadInterfaces(self):
         """Load the subclasses that will interface
-		with the main websites to search bibtex info
-		and saves them into a dictionary (`self.webSearch`).
+        with the main websites to search bibtex info
+        and saves them into a dictionary (`self.webSearch`).
 
-		The subclasses are read scanning the package directory.
-		"""
+        The subclasses are read scanning the package directory.
+        """
         if self.loaded:
             return
         for method in self.interfaces:
@@ -153,15 +153,15 @@ class WebInterf:
 
     def retrieveUrlFirstFrom(self, search, method):
         """Calls the function retrieveUrlFirst
-		given the subclass method.
+        given the subclass method.
 
-		Parameters:
-			search: the search string
-			method: the key of the method in `self.webSearch`
+        Parameters:
+            search: the search string
+            method: the key of the method in `self.webSearch`
 
-		Output:
-			None in the default implementation (must be subclassed)
-		"""
+        Output:
+            None in the default implementation (must be subclassed)
+        """
         try:
             return getattr(self.webSearch[method], retrieveUrlFirst)(search)
         except KeyError:
@@ -171,13 +171,13 @@ class WebInterf:
     def retrieveUrlAllFrom(self, search, method):
         """Calls the function retrieveUrlAll given the subclass method.
 
-		Parameters:
-			search: the search string
-			method: the key of the method in `self.webSearch`
+        Parameters:
+            search: the search string
+            method: the key of the method in `self.webSearch`
 
-		Output:
-			None in the default implementation (must be subclassed)
-		"""
+        Output:
+            None in the default implementation (must be subclassed)
+        """
         try:
             return getattr(self.webSearch[method], retrieveUrlAll)(search)
         except KeyError:

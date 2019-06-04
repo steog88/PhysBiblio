@@ -1437,8 +1437,8 @@ class TestGuiViewEntry(GUITestCase):
 
     def test_methods(self):
         """Test that the object is instance of `ViewEntry`
-		and that openLink works
-		"""
+        and that openLink works
+        """
         gve = GUIViewEntry()
         self.assertIsInstance(gve, ViewEntry)
         self.assertIsInstance(pBGuiView, GUIViewEntry)

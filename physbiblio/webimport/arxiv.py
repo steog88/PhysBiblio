@@ -40,8 +40,8 @@ def getYear(string):
 
 class WebSearch(WebInterf):
     """Subclass of WebInterf that can connect to arxiv.org
-	to perform searches
-	"""
+    to perform searches
+    """
 
     name = "arXiv"
     description = "arXiv fetcher"
@@ -180,10 +180,10 @@ class WebSearch(WebInterf):
 
     def __init__(self):
         """Initializes the class variables using
-		the WebInterf constructor.
+        the WebInterf constructor.
 
-		Define additional specific parameters for the arxiv.org API.
-		"""
+        Define additional specific parameters for the arxiv.org API.
+        """
         WebInterf.__init__(self)
         self.name = "arXiv"
         self.description = "arXiv fetcher"
@@ -197,32 +197,32 @@ class WebSearch(WebInterf):
 
     def retrieveUrlFirst(self, string, searchType="all", **kwargs):
         """Retrieves the first result from the content
-		of the given web page.
-		The function calls arxivRetriever which will do the job.
+        of the given web page.
+        The function calls arxivRetriever which will do the job.
 
-		Parameters:
-			string: the search string
-			searchType: the search method in arxiv API (default 'all')
+        Parameters:
+            string: the search string
+            searchType: the search method in arxiv API (default 'all')
 
-		Output:
-			returns the bibtex string built from arxivRetriever
-		"""
+        Output:
+            returns the bibtex string built from arxivRetriever
+        """
         return self.arxivRetriever(
             string, searchType, additionalArgs={"max_results": "1"}, **kwargs
         )
 
     def retrieveUrlAll(self, string, searchType="all", **kwargs):
         """Retrieves all the results from the content
-		of the given web page.
-		The function calls arxivRetriever which will do the job.
+        of the given web page.
+        The function calls arxivRetriever which will do the job.
 
-		Parameters:
-			string: the search string
-			searchType: the search method in arxiv API (default 'all')
+        Parameters:
+            string: the search string
+            searchType: the search method in arxiv API (default 'all')
 
-		Output:
-			returns the bibtex string built from arxivRetriever
-		"""
+        Output:
+            returns the bibtex string built from arxivRetriever
+        """
         return self.arxivRetriever(
             string,
             searchType,
@@ -234,30 +234,30 @@ class WebSearch(WebInterf):
         self, string, searchType="all", additionalArgs=None, fullDict=False
     ):
         """Reads the feed content got from arxiv into a dictionary,
-		used to return a bibtex.
+        used to return a bibtex.
 
-		Parameters:
-			string: the search string
-			searchType: the search method in arxiv API (default 'all').
-			The possible values are:
-				ti->	Title
-				au	->	Author
-				abs	->	Abstract
-				co	->	Comment
-				jr	->	Journal Reference
-				cat	->	Subject Category
-				rn	->	Report Number
-				id	->	Id (use id_list instead)
-				all	->	All of the above
-			additionalArgs: a dictionary of additional arguments
-				that can be passed to self.urlArgs (default None)
-			fullDict (logical): return the bibtex dictionary in addition
-				to the bibtex text (default False)
+        Parameters:
+            string: the search string
+            searchType: the search method in arxiv API (default 'all').
+            The possible values are:
+                ti->    Title
+                au    ->    Author
+                abs    ->    Abstract
+                co    ->    Comment
+                jr    ->    Journal Reference
+                cat    ->    Subject Category
+                rn    ->    Report Number
+                id    ->    Id (use id_list instead)
+                all    ->    All of the above
+            additionalArgs: a dictionary of additional arguments
+                that can be passed to self.urlArgs (default None)
+            fullDict (logical): return the bibtex dictionary in addition
+                to the bibtex text (default False)
 
-		Output:
-			the bibtex text
-			(optional, depending on fullDict): the bibtex Dictionary
-		"""
+        Output:
+            the bibtex text
+            (optional, depending on fullDict): the bibtex Dictionary
+        """
         if additionalArgs:
             for k, v in additionalArgs.items():
                 self.urlArgs[k] = v
@@ -317,9 +317,9 @@ class WebSearch(WebInterf):
     def arxivDaily(self, category):
         """Read daily RSS feed for a given category
 
-		Parameter:
-			category: the selected category (see `self.categories)
-		"""
+        Parameter:
+            category: the selected category (see `self.categories)
+        """
         if "." in category:
             main, sub = category.split(".")
         else:

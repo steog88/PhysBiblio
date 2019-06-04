@@ -24,31 +24,31 @@ class ViewEntry:
 
     def __init__(self):
         """Init the class, storing the name of
-		the external web application
-		and the base strings to build some links
-		"""
+        the external web application
+        and the base strings to build some links
+        """
         self.webApp = pbConfig.params["webApplication"]
         self.inspireRecord = pbConfig.inspireRecord
         self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
 
     def getLink(self, key, arg="arxiv", fileArg=None):
         """Uses database information to construct and
-		print the web link, or the pdf module to open a pdf
+        print the web link, or the pdf module to open a pdf
 
-		Parameters:
-			key: the bibtex identifier as stored in the database.
-				It may be a list (calls recursively itself)
-			arg: the string defining the type of link/action
-				("arxiv", "doi", "inspire", "file")
-			fileArg: additional argument for the PDF module,
-				used only if arg == "file"
+        Parameters:
+            key: the bibtex identifier as stored in the database.
+                It may be a list (calls recursively itself)
+            arg: the string defining the type of link/action
+                ("arxiv", "doi", "inspire", "file")
+            fileArg: additional argument for the PDF module,
+                used only if arg == "file"
 
-		Output:
-			link: the string of the web link
-				if arg in ("arxiv", "doi", "inspire"),
-				True if arg == "file",
-				False if arg is invalid
-		"""
+        Output:
+            link: the string of the web link
+                if arg in ("arxiv", "doi", "inspire"),
+                True if arg == "file",
+                False if arg is invalid
+        """
         if isinstance(key, list):
             links = []
             for k in key:
@@ -86,11 +86,11 @@ class ViewEntry:
 
     def openLink(self, key, arg="arxiv", fileArg=None):
         """Uses the getLink method to generate the web link
-		and opens it in an external application
+        and opens it in an external application
 
-		Parameters:
-			key, arg, fileArg as in the getLink method
-		"""
+        Parameters:
+            key, arg, fileArg as in the getLink method
+        """
         if isinstance(key, list):
             for k in key:
                 self.openLink(k, arg, fileArg)

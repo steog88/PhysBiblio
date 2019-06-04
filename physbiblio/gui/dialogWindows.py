@@ -55,8 +55,8 @@ except ImportError:
 
 class ConfigEditColumns(PBDialog):
     """Extend `PBDialog` to ask the columns
-	that must appear in the main table
-	"""
+    that must appear in the main table
+    """
 
     excludeCols = [
         "crossref",
@@ -85,11 +85,11 @@ class ConfigEditColumns(PBDialog):
     def __init__(self, parent=None, previous=None):
         """Extend `PBDialog.__init__` and create the form structure
 
-		Parameters:
-			parent: teh parent widget
-			previous: list of columns which must appear
-				as selected at the beginning
-		"""
+        Parameters:
+            parent: teh parent widget
+            previous: list of columns which must appear
+                as selected at the beginning
+        """
         super(ConfigEditColumns, self).__init__(parent)
         self.gridlayout = None
         self.items = []
@@ -121,8 +121,8 @@ class ConfigEditColumns(PBDialog):
 
     def initUI(self):
         """Initialize the `PBDDTableWidget`s and their content,
-		plus the buttons and labels
-		"""
+        plus the buttons and labels
+        """
         self.gridlayout = QGridLayout()
         self.setLayout(self.gridlayout)
 
@@ -190,9 +190,9 @@ class ConfigWindow(PBDialog):
 
     def editPDFFolder(self):
         """Open a dialog to select a new folder name
-		for the PDF path, and save the result
-		in the `ConfigWindow` interface
-		"""
+        for the PDF path, and save the result
+        in the `ConfigWindow` interface
+        """
         ix = pbConfig.paramOrder.index("pdfFolder")
         folder = askDirName(
             parent=None,
@@ -206,14 +206,14 @@ class ConfigWindow(PBDialog):
         self, paramkey="logFileName", text="Name for the log file", filter="*.log"
     ):
         """Open a dialog to select a new file name
-		for a configuration parameter, and save the result
-		in the `ConfigWindow` interface
+        for a configuration parameter, and save the result
+        in the `ConfigWindow` interface
 
-		Parameters:
-			paramkey: the parameter name in the configuration dictionary
-			text: description in the file dialog
-			filter: filter the folder content in the file dialog
-		"""
+        Parameters:
+            paramkey: the parameter name in the configuration dictionary
+            text: description in the file dialog
+            filter: filter the folder content in the file dialog
+        """
         if paramkey not in pbConfig.paramOrder:
             pBLogger.warning("Invalid paramkey: '%s'" % paramkey)
             return
@@ -226,9 +226,9 @@ class ConfigWindow(PBDialog):
 
     def editColumns(self):
         """Open a dialog to select and/or reorder the list of columns
-		to show in the entries list, and save the result
-		in the `ConfigWindow` interface
-		"""
+        to show in the entries list, and save the result
+        in the `ConfigWindow` interface
+        """
         ix = pbConfig.paramOrder.index("bibtexListColumns")
         window = ConfigEditColumns(
             self, ast.literal_eval(self.textValues[ix][1].text().strip())
@@ -240,9 +240,9 @@ class ConfigWindow(PBDialog):
 
     def editDefCats(self):
         """Open a dialog to select a the default categories
-		for the imported entries, and save the result
-		in the `ConfigWindow` interface
-		"""
+        for the imported entries, and save the result
+        in the `ConfigWindow` interface
+        """
         ix = pbConfig.paramOrder.index("defaultCategories")
         selectCats = CatsTreeWindow(
             parent=self,
@@ -350,9 +350,9 @@ class LogFileContentDialog(PBDialog):
     def __init__(self, parent=None):
         """Instantiate class and create its widgets
 
-		Parameter:
-			parent: the parent widget
-		"""
+        Parameter:
+            parent: the parent widget
+        """
         PBDialog.__init__(self, parent)
         self.textEdit = None
         self.closeButton = None
@@ -361,8 +361,8 @@ class LogFileContentDialog(PBDialog):
 
     def clearLog(self):
         """Ask confirmation, then eventually clear
-		the content of the log file
-		"""
+        the content of the log file
+        """
         if askYesNo("Are you sure you want to clear the log file?"):
             try:
                 open(pbConfig.params["logFileName"], "w").close()
@@ -374,8 +374,8 @@ class LogFileContentDialog(PBDialog):
 
     def initUI(self):
         """Create window layout and buttons,
-		read log file content and print it in the `QPlainTextEdit`
-		"""
+        read log file content and print it in the `QPlainTextEdit`
+        """
         self.setWindowTitle(self.title)
 
         grid = QVBoxLayout()
@@ -421,23 +421,23 @@ class PrintText(PBDialog):
         message=None,
     ):
         """Constructor.
-		Set some properties and create the GUI of the dialog
+        Set some properties and create the GUI of the dialog
 
-		Parameters:
-			parent: the parent widget
-			title: the window title. If an empty string,
-				"Redirect print" will be used
-			progressBar: True (default) if the widget must have a progress bar
-			totStr: string to be searched in the printed text in order to
-				obtain the number of total iterations to be processed.
-				Used to set the progress bar value appropriately.
-			progrStr: string to be searched in the printed text in order
-				to obtain the iteration number.
-				Used to set the progress bar value appropriately.
-			noStopButton (default False): True if the widget must have
-				a "stop" button to stop the iterations
-			message: a text to be inserted as a `PBLabel` in the dialog
-		"""
+        Parameters:
+            parent: the parent widget
+            title: the window title. If an empty string,
+                "Redirect print" will be used
+            progressBar: True (default) if the widget must have a progress bar
+            totStr: string to be searched in the printed text in order to
+                obtain the number of total iterations to be processed.
+                Used to set the progress bar value appropriately.
+            progrStr: string to be searched in the printed text in order
+                to obtain the iteration number.
+                Used to set the progress bar value appropriately.
+            noStopButton (default False): True if the widget must have
+                a "stop" button to stop the iterations
+            message: a text to be inserted as a `PBLabel` in the dialog
+        """
         super(PrintText, self).__init__(parent)
         self._wantToClose = False
         self.grid = None
@@ -458,21 +458,21 @@ class PrintText(PBDialog):
 
     def keyPressEvent(self, e):
         """Intercept press keys and only exit if escape is pressed
-		when closing is enabled
+        when closing is enabled
 
-		Parameters:
-			e: the `PySide2.QtGui.QKeyEvent`
-		"""
+        Parameters:
+            e: the `PySide2.QtGui.QKeyEvent`
+        """
         if e.key() == Qt.Key_Escape and self._wantToClose:
             self.close()
 
     def closeEvent(self, event):
         """Manage the `closeEvent` of the dialog.
-		Reject unless `self._wantToClose` is True
+        Reject unless `self._wantToClose` is True
 
-		Parameter:
-			event: a `QEvent`
-		"""
+        Parameter:
+            event: a `QEvent`
+        """
         if self._wantToClose:
             super(PrintText, self).closeEvent(event)
         else:
@@ -513,13 +513,13 @@ class PrintText(PBDialog):
 
     def appendText(self, text):
         """Add the given text to the end of the `self.textEdit` content.
-		If a `self.progressBar` is set, try to obtain
-		the maximum and the current value,
-		looking for the expected `self.totString` and `self.progressString`
+        If a `self.progressBar` is set, try to obtain
+        the maximum and the current value,
+        looking for the expected `self.totString` and `self.progressString`
 
-		Parameter:
-			text: the string to be appended
-		"""
+        Parameter:
+            text: the string to be appended
+        """
         if self.setProgressBar:
             try:
                 if self.totString in text:
@@ -536,25 +536,25 @@ class PrintText(PBDialog):
     def progressBarMin(self, minimum):
         """Set the minimum value for the progress bar
 
-		Parameter:
-			minimum (int or float): the value
-		"""
+        Parameter:
+            minimum (int or float): the value
+        """
         if self.setProgressBar:
             self.progressBar.setMinimum(minimum)
 
     def progressBarMax(self, maximum):
         """Set the maximum value for the progress bar
 
-		Parameter:
-			maximum (int or float): the value
-		"""
+        Parameter:
+            maximum (int or float): the value
+        """
         if self.setProgressBar:
             self.progressBar.setMaximum(maximum)
 
     def stopExec(self):
         """Stop the iterations through the `stopped` Signal
-		and disable the `cancelButton`
-		"""
+        and disable the `cancelButton`
+        """
         self.cancelButton.setDisabled(True)
         self.stopped.emit()
 
@@ -630,14 +630,14 @@ class AdvancedImportSelect(ObjListWindow):
     def __init__(self, bibs={}, parent=None):
         """Set some properties and call `initUI`
 
-		Parameters:
-			bibs: a dictionary containing the imported bibtex entries.
-				Each element should be a dictionary containing at least
-				a "bibpars" item, a dictionary with at least the keys
-				["ID", "title", "author", "eprint", "doi"],
-				and a boolean "exist" item.
-			parent: the parent widget
-		"""
+        Parameters:
+            bibs: a dictionary containing the imported bibtex entries.
+                Each element should be a dictionary containing at least
+                a "bibpars" item, a dictionary with at least the keys
+                ["ID", "title", "author", "eprint", "doi"],
+                and a boolean "exist" item.
+            parent: the parent widget
+        """
         self.bibs = bibs
         super(AdvancedImportSelect, self).__init__(parent, gridLayout=True)
         self.checkBoxes = []
@@ -663,9 +663,9 @@ class AdvancedImportSelect(ObjListWindow):
     def keyPressEvent(self, e):
         """Intercept press keys and exit if escape is pressed
 
-		Parameters:
-			e: the `PySide2.QtGui.QKeyEvent`
-		"""
+        Parameters:
+            e: the `PySide2.QtGui.QKeyEvent`
+        """
         if e.key() == Qt.Key_Escape:
             self.result = False
             self.close()
@@ -764,12 +764,12 @@ class DailyArxivDialog(PBDialog):
 
     def updateCat(self, category):
         """Replace the current content of the `self.comboSub` combobox
-		with the new list of subcategories of the given category
+        with the new list of subcategories of the given category
 
-		Parameter:
-			category: the name of the category in the
-				`physBiblioWeb.webSearch["arxiv"].categories` dictionary
-		"""
+        Parameter:
+            category: the name of the category in the
+                `physBiblioWeb.webSearch["arxiv"].categories` dictionary
+        """
         self.comboSub.clear()
         self.comboSub.addItems(
             ["--"] + physBiblioWeb.webSearch["arxiv"].categories[category]
@@ -817,14 +817,14 @@ class DailyArxivSelect(AdvancedImportSelect):
     def __init__(self, bibs={}, parent=None):
         """Set some properties and call `initUI`
 
-		Parameters:
-			bibs: a dictionary containing the imported bibtex entries.
-				Each element should be a dictionary containing at least
-				a "bibpars" item, a dictionary with at least the keys
-				["ID", "title", "author", "eprint", "doi"],
-				and a boolean "exist" item.
-			parent: the parent widget
-		"""
+        Parameters:
+            bibs: a dictionary containing the imported bibtex entries.
+                Each element should be a dictionary containing at least
+                a "bibpars" item, a dictionary with at least the keys
+                ["ID", "title", "author", "eprint", "doi"],
+                and a boolean "exist" item.
+            parent: the parent widget
+        """
         self.tableModel = None
         self.askCats = None
         self.acceptButton = None
@@ -876,9 +876,9 @@ class DailyArxivSelect(AdvancedImportSelect):
     def cellClick(self, index):
         """Click action
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if not index.isValid():
             return
         row = index.row()

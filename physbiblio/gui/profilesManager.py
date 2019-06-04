@@ -40,11 +40,11 @@ except ImportError:
 def editProfile(parentObject):
     """Use `EditProfileWindow` and process the form output
 
-	Parameters:
-		parentObject: the parent object,
-			which has the function `statusBarMessage`
-			(a `MainWindow` instance)
-	"""
+    Parameters:
+        parentObject: the parent object,
+            which has the function `statusBarMessage`
+            (a `MainWindow` instance)
+    """
     oldOrder = pbConfig.profileOrder
     newProfWin = EditProfileWindow(parentObject)
     newProfWin.exec_()
@@ -136,10 +136,10 @@ class SelectProfiles(PBDialog):
     def __init__(self, parent, message=None):
         """Instantiate the class
 
-		Parameters:
-			parent: the parent window (a `MainWindow` instance)
-			message: a message used as a description
-		"""
+        Parameters:
+            parent: the parent window (a `MainWindow` instance)
+            message: a message used as a description
+        """
         if not hasattr(parent, "reloadConfig"):
             raise Exception("Cannot run SelectProfiles: invalid parent")
         PBDialog.__init__(self, parent)
@@ -169,8 +169,8 @@ class SelectProfiles(PBDialog):
 
     def initUI(self):
         """Create a `QGridLayout` with the `PBComboBox` and
-		the two selection buttons
-		"""
+        the two selection buttons
+        """
         self.setWindowTitle("Select profile")
 
         grid = QGridLayout()
@@ -215,14 +215,14 @@ class PBOrderPushButton(QPushButton):
     def __init__(self, parent, data, qicon, text, testing=False):
         """Extend `QPushButton.__init__`
 
-		Parameters:
-			parent: the parent object (an `EditProfileWindow` instance)
-			data: the index of the row that will be switched
-			qicon: the `QIcon` that will be used to build the `QPushButton`
-			text: the `QPushButton` text
-			testing (boolean, default False):
-				if True, do not connect the clicked signal
-		"""
+        Parameters:
+            parent: the parent object (an `EditProfileWindow` instance)
+            data: the index of the row that will be switched
+            qicon: the `QIcon` that will be used to build the `QPushButton`
+            text: the `QPushButton` text
+            testing (boolean, default False):
+                if True, do not connect the clicked signal
+        """
         self.qicon = qicon
         QPushButton.__init__(self, self.qicon, text)
         self.data = data
@@ -254,11 +254,11 @@ class EditProfileWindow(EditObjectWindow):
 
     def onOk(self):
         """In case "Ok" is pressed, decide if the result is valid:
-			* if the name or filename of the new profile are empty, reject;
-			* if the name or filename of the new profile are already in use,
-				reject;
-			* in all the other cases, accept and close the dialog.
-		"""
+            * if the name or filename of the new profile are empty, reject;
+            * if the name or filename of the new profile are already in use,
+                reject;
+            * in all the other cases, accept and close the dialog.
+        """
         if (
             self.elements[-1]["f"].currentText().strip() != ""
             and self.elements[-1]["n"].text().strip() == ""
@@ -287,24 +287,24 @@ class EditProfileWindow(EditObjectWindow):
 
     def addButtons(self, profilesData=None, profileOrder=None, defaultProfile=None):
         """Read profiles configuration and add `QLineEdits` and buttons
-		for the existing profiles, using previous form content if requested
+        for the existing profiles, using previous form content if requested
 
-		Parameters:
-			profilesData (optional): a dictionary of dictionaries,
-				containing the information of each profile.
-				Each element has the profile name as key, and this structure:
-					"n": profile name
-					"d": description
-					"f": name of the database file
-					"r": True if the profile was marked as default in the form
-					"x": True if the profile was selected for deletion
-				If `None`, use `pbConfig.profiles`
-			profileOrder (optional): the list containing the order
-				of the profiles, by their name in the database.
-				If `None`, use `pbConfig.profileOrder`
-			defaultProfile (optional): the name of the default profile.
-				If `None`, use `pbConfig.defaultProfileName`
-		"""
+        Parameters:
+            profilesData (optional): a dictionary of dictionaries,
+                containing the information of each profile.
+                Each element has the profile name as key, and this structure:
+                    "n": profile name
+                    "d": description
+                    "f": name of the database file
+                    "r": True if the profile was marked as default in the form
+                    "x": True if the profile was selected for deletion
+                If `None`, use `pbConfig.profiles`
+            profileOrder (optional): the list containing the order
+                of the profiles, by their name in the database.
+                If `None`, use `pbConfig.profileOrder`
+            defaultProfile (optional): the name of the default profile.
+                If `None`, use `pbConfig.defaultProfileName`
+        """
         if profilesData is None:
             profilesData = pbConfig.profiles
         if profileOrder is None:
@@ -383,32 +383,32 @@ class EditProfileWindow(EditObjectWindow):
         newLine={"r": False, "n": "", "db": "", "d": "", "c": "None"},
     ):
         """Create the form for managing profiles,
-		using previous form content if requested.
+        using previous form content if requested.
 
-		Parameters:
-			profilesData (optional): a dictionary of dictionaries,
-				containing the information of each profile.
-				Each element has the profile name as key, and this structure:
-					"n": profile name
-					"d": description
-					"db": name of the database file
-					"r": True if the profile was marked as default in the form
-					"x": True if the profile was selected for deletion
-				If `None`, use `pbConfig.profiles`
-			profileOrder (optional): the list containing the order
-				of the profiles, by their name in the database.
-				If `None`, use `pbConfig.profileOrder`
-			defaultProfile (optional): the name of the default profile.
-				If `None`, use `pbConfig.defaultProfileName`
-			newLine (optional): the content of the line corresponding
-				to the potentially new profile.
-				It is a dictionary with the following fields:
-					"n": profile name
-					"d": description
-					"db": name of the database file
-					"r": True if the profile was marked as default in the form
-					"c": previous content of "Copy from:"
-		"""
+        Parameters:
+            profilesData (optional): a dictionary of dictionaries,
+                containing the information of each profile.
+                Each element has the profile name as key, and this structure:
+                    "n": profile name
+                    "d": description
+                    "db": name of the database file
+                    "r": True if the profile was marked as default in the form
+                    "x": True if the profile was selected for deletion
+                If `None`, use `pbConfig.profiles`
+            profileOrder (optional): the list containing the order
+                of the profiles, by their name in the database.
+                If `None`, use `pbConfig.profileOrder`
+            defaultProfile (optional): the name of the default profile.
+                If `None`, use `pbConfig.defaultProfileName`
+            newLine (optional): the content of the line corresponding
+                to the potentially new profile.
+                It is a dictionary with the following fields:
+                    "n": profile name
+                    "d": description
+                    "db": name of the database file
+                    "r": True if the profile was marked as default in the form
+                    "c": previous content of "Copy from:"
+        """
         if profilesData is None:
             profilesData = pbConfig.profiles
         if profileOrder is None:
@@ -496,13 +496,13 @@ class EditProfileWindow(EditObjectWindow):
 
     def switchLines(self, ix):
         """Save the current form content,
-		switch the order of the rows as required,
-		create a new form with the new order.
+        switch the order of the rows as required,
+        create a new form with the new order.
 
-		Parameter:
-			ix: the index of the first of the two rows involved in the switch
-				(e.g., to switch the first and second rows, use ix = 0)
-		"""
+        Parameter:
+            ix: the index of the first of the two rows involved in the switch
+                (e.g., to switch the first and second rows, use ix = 0)
+        """
         currentValues = {}
         currentOrder = []
         for el in self.elements[: len(pbConfig.profiles)]:

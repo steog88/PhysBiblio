@@ -27,9 +27,9 @@ except ImportError:
 def cli():
     """Open a command line interface.
 
-	Many initial imports allow the user
-	to automatically access the useful classes.
-	"""
+    Many initial imports allow the user
+    to automatically access the useful classes.
+    """
     vars = globals().copy()
     vars.update(locals())
     shell = code.InteractiveConsole(vars)

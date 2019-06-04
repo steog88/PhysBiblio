@@ -27,19 +27,19 @@ encoding_default = "iso-8859-15"
 
 class PhysBiblioDBCore:
     """Contains most of the basic functions on the database.
-	Will be subclassed to do everything else.
-	"""
+    Will be subclassed to do everything else.
+    """
 
     def __init__(self, dbname, logger, noOpen=False, info=True):
         """Initialize database class (column names, descriptions)
-		and opens the database.
+        and opens the database.
 
-		Parameters:
-			dbname: the name of the database to be opened
-			logger: the logger used for messages
-			noOpen (boolean, default False): open the database or not
-			info (boolean, default True): show some output when opening DB
-		"""
+        Parameters:
+            dbname: the name of the database to be opened
+            logger: the logger used for messages
+            noOpen (boolean, default False): open the database or not
+            info (boolean, default True): show some output when opening DB
+        """
         # structure of the tables
         self.tableFields = physbiblio.tablesDef.tableFields
         self.descriptions = physbiblio.tablesDef.fieldsDescriptions
@@ -72,14 +72,14 @@ class PhysBiblioDBCore:
 
     def openDB(self, info=True):
         """Open the database and creates the self.conn (connection)
-		and self.curs (cursor) objects.
+        and self.curs (cursor) objects.
 
-		Parameters:
-			info (boolean, default True): show some output when opening DB
+        Parameters:
+            info (boolean, default True): show some output when opening DB
 
-		Output:
-			True
-		"""
+        Output:
+            True
+        """
         if info:
             self.logger.info("Opening database: %s" % self.dbname)
         else:
@@ -97,9 +97,9 @@ class PhysBiblioDBCore:
     def closeDB(self, info=True):
         """Close the database.
 
-		Parameters:
-			info (boolean, default True): show some output when opening DB
-		"""
+        Parameters:
+            info (boolean, default True): show some output when opening DB
+        """
         if info:
             self.logger.info("Closing database...")
         else:
@@ -109,9 +109,9 @@ class PhysBiblioDBCore:
 
     def sendDBIsLocked(self):
         """If the database is open in another instance
-		and no writing operation are allowed,
-		try to emit a signal to the main GUI
-		"""
+        and no writing operation are allowed,
+        try to emit a signal to the main GUI
+        """
         if self.onIsLocked is not None:
             try:
                 self.onIsLocked.emit()
@@ -125,9 +125,9 @@ class PhysBiblioDBCore:
     def checkUncommitted(self):
         """Check if there are uncommitted changes.
 
-		Output:
-			True/False
-		"""
+        Output:
+            True/False
+        """
         if sys.version_info[0] == 3 and sys.version_info[1] > 2:
             return self.conn.in_transaction
         else:
@@ -136,13 +136,13 @@ class PhysBiblioDBCore:
     def commit(self, verbose=True):
         """Commit the changes.
 
-		Parameters:
-			verbose (boolean, default True):
-				show some output when opening DB
+        Parameters:
+            verbose (boolean, default True):
+                show some output when opening DB
 
-		Output:
-			True if successfull, False if an exception occurred
-		"""
+        Output:
+            True if successfull, False if an exception occurred
+        """
         try:
             self.conn.commit()
         except Exception:
@@ -156,15 +156,15 @@ class PhysBiblioDBCore:
 
     def undo(self, verbose=True):
         """Undo the uncommitted changes
-		and roll back to the last commit.
+        and roll back to the last commit.
 
-		Parameters:
-			verbose (boolean, default True):
-				show some output when opening DB
+        Parameters:
+            verbose (boolean, default True):
+                show some output when opening DB
 
-		Output:
-			True if successfull, False if an exception occurred
-		"""
+        Output:
+            True if successfull, False if an exception occurred
+        """
         try:
             self.conn.rollback()
         except Exception:
@@ -179,14 +179,14 @@ class PhysBiblioDBCore:
     def connExec(self, query, data=None):
         """Execute connection.
 
-		Parameters:
-			query (string): the query to be executed
-			data (dictionary or list):
-				the values of the parameters in the query
+        Parameters:
+            query (string): the query to be executed
+            data (dictionary or list):
+                the values of the parameters in the query
 
-		Output:
-			True if successfull, False if an exception occurred
-		"""
+        Output:
+            True if successfull, False if an exception occurred
+        """
         try:
             if data:
                 self.conn.execute(query, data)
@@ -218,14 +218,14 @@ class PhysBiblioDBCore:
     def cursExec(self, query, data=None):
         """Execute cursor.
 
-		Parameters:
-			query (string): the query to be executed
-			data (dictionary or list):
-				the values of the parameters in the query
+        Parameters:
+            query (string): the query to be executed
+            data (dictionary or list):
+                the values of the parameters in the query
 
-		Output:
-			True if successfull, False if an exception occurred
-		"""
+        Output:
+            True if successfull, False if an exception occurred
+        """
         try:
             if data:
                 self.curs.execute(query, data)
@@ -262,8 +262,8 @@ class PhysBiblioDBCore:
         ],
     ):
         """Check that all the required tables
-		are present in the database
-		"""
+        are present in the database
+        """
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [name[0] for name in self.curs]
         return not all(t in tables for t in wantedTables)
@@ -271,11 +271,11 @@ class PhysBiblioDBCore:
     def createTable(self, q, fields):
         """Create the table 'q'
 
-		Parameters:
-			q: the table name
-			fieldsDict: the list containing the column information
-				for the table
-		"""
+        Parameters:
+            q: the table name
+            fieldsDict: the list containing the column information
+                for the table
+        """
         command = "CREATE TABLE %s (\n" % q
         first = True
         for el in fields:
@@ -291,12 +291,12 @@ class PhysBiblioDBCore:
 
     def createTables(self, fieldsDict=None):
         """Create tables for the database
-		(and insert the default categories), if it is missing.
+        (and insert the default categories), if it is missing.
 
-		Parameters:
-			fieldsDict (default None):
-				the structure of the tables (see physbiblio.tablesDef)
-		"""
+        Parameters:
+            fieldsDict (default None):
+                the structure of the tables (see physbiblio.tablesDef)
+        """
         if fieldsDict is None:
             fieldsDict = self.tableFields
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
@@ -322,9 +322,9 @@ class PhysBiblioDBCore:
 
     def checkDatabaseUpdates(self):
         """Run when new columns are added to the database with respect
-		to previous versions of the software
-		Check if bibdict column is present in entries table
-		"""
+        to previous versions of the software
+        Check if bibdict column is present in entries table
+        """
         entryFields = self.cursExec("PRAGMA table_info(entries);")
         entriesCols = [name[1] for name in self.curs]
         if "bibdict" not in entriesCols:
@@ -338,15 +338,15 @@ class PhysBiblioDBCore:
 
 class PhysBiblioDBSub:
     """Uses PhysBiblioDB instance 'self.mainDB = parent'
-	to act on the database.
-	All the subcategories of PhysBiblioDB are defined
-	starting from this one.
-	"""
+    to act on the database.
+    All the subcategories of PhysBiblioDB are defined
+    starting from this one.
+    """
 
     def __init__(self, parent):
         """Initialize DB class, connecting to
-		the main PhysBiblioDB instance (parent).
-		"""
+        the main PhysBiblioDB instance (parent).
+        """
         self.mainDB = parent
 
         self.tableFields = self.mainDB.tableFields
@@ -366,12 +366,12 @@ class PhysBiblioDBSub:
     def literal_eval(self, string):
         """Wrapper for ast.literal_eval
 
-		Parameters:
-			string: the string to evaluate
+        Parameters:
+            string: the string to evaluate
 
-		Output:
-			a string or None
-		"""
+        Output:
+            a string or None
+        """
         try:
             if "[" in string and "]" in string:
                 return ast.literal_eval(string.strip())

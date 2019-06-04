@@ -40,12 +40,12 @@ class Fake_abstractFormulas:
     def __call__(self, p, abstract, customEditor=None, statusMessages=True):
         """Save some attributes and return self.el
 
-		Parameters: (see also `physbiblio.gui.bibWindows.AbstractFormulas`)
-			p: parent widget
-			abstract: the abstract
-			customEditor: widget where to store the processed text
-			statusMessages: print status messages
-		"""
+        Parameters: (see also `physbiblio.gui.bibWindows.AbstractFormulas`)
+            p: parent widget
+            abstract: the abstract
+            customEditor: widget where to store the processed text
+            statusMessages: print status messages
+        """
         self.par = p
         self.abstract = abstract
         self.ce = customEditor

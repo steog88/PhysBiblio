@@ -214,16 +214,16 @@ class TestMainWindow(GUITestCase):
         def assertAction(act, t, tip, trig, s=None, i=None, p=None):
             """test the properties of a single action
 
-			Parameters:
-				act: the QAction to be tested
-				t: the title/text
-				tip: the status tip
-				trig: the name of the triggered function
-					(must be a MainWindow method)
-				s (default None): the shortcut, if any, or None
-				i (default None): the icon filename, if any, or None
-				p (default None): the mocked triggered function or None
-			"""
+            Parameters:
+                act: the QAction to be tested
+                t: the title/text
+                tip: the status tip
+                trig: the name of the triggered function
+                    (must be a MainWindow method)
+                s (default None): the shortcut, if any, or None
+                i (default None): the icon filename, if any, or None
+                p (default None): the mocked triggered function or None
+            """
             self.assertIsInstance(act, QAction)
             self.assertEqual(act.text(), t)
             if s is not None:

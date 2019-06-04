@@ -16,8 +16,8 @@ except ImportError:
 
 class WebSearch(WebInterf):
     """Subclass of WebInterf that can connect to ISBN2Bibtex
-	to perform searches
-	"""
+    to perform searches
+    """
 
     name = "isbn"
     description = "ISBN to bibtex"
@@ -26,10 +26,10 @@ class WebSearch(WebInterf):
 
     def __init__(self):
         """Initializes the class variables
-		using the WebInterf constructor.
+        using the WebInterf constructor.
 
-		Define additional specific parameters for the ISBN2Bibtex API.
-		"""
+        Define additional specific parameters for the ISBN2Bibtex API.
+        """
         WebInterf.__init__(self)
         self.name = "isbn"
         self.description = "ISBN to bibtex"
@@ -38,14 +38,14 @@ class WebSearch(WebInterf):
 
     def retrieveUrlFirst(self, string):
         """Retrieves the first (only) result from the content
-		of the given web page.
+        of the given web page.
 
-		Parameters:
-			string: the search string (the ISBN)
+        Parameters:
+            string: the search string (the ISBN)
 
-		Output:
-			returns the bibtex string
-		"""
+        Output:
+            returns the bibtex string
+        """
         self.urlArgs["isbn"] = string
         url = self.createUrl()
         pBLogger.info("Search '%s' -> %s" % (string, url))

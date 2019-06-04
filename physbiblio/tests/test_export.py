@@ -57,8 +57,8 @@ class TestExportMethods(unittest.TestCase):
 
     def test_offlineExports(self):
         """Test of offline export functions exportSelected,
-		updateExportedBib
-		"""
+        updateExportedBib
+        """
         testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
         sampleList = [
             {"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'},

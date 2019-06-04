@@ -52,8 +52,8 @@ except ImportError:
 
 def PtrKey(ptr):
     """Retrieve a key to identify the VoidPtr.
-	This is needed because VoidPtr is not hashable
-	"""
+    This is needed because VoidPtr is not hashable
+    """
     return str(ptr).split()[1]
 
 
@@ -62,8 +62,8 @@ class PBDialog(QDialog):
 
     def centerWindow(self):
         """Use the `QDesktopWidget` to get the relevant information
-		and center the dialog in the screen.
-		"""
+        and center the dialog in the screen.
+        """
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
@@ -82,13 +82,13 @@ class PBDialog(QDialog):
 
 class PBLabel(QLabel):
     """Extension of `QLabel` with text interaction flags
-	which enable text selection with the mouse
-	"""
+    which enable text selection with the mouse
+    """
 
     def __init__(self, *args, **kwargs):
         """Extend `QLabel.__init__` and call `setTextInteractionFlags`
-		to allow text selection with the mouse
-		"""
+        to allow text selection with the mouse
+        """
         QLabel.__init__(self, *args, **kwargs)
         self.setTextFormat(Qt.RichText)
         self.setOpenExternalLinks(True)
@@ -103,9 +103,9 @@ class PBLabelRight(PBLabel):
     def __init__(self, label):
         """The constructor.
 
-		Parameter:
-			label: the text label to be passed to QLabel
-		"""
+        Parameter:
+            label: the text label to be passed to QLabel
+        """
         super(PBLabelRight, self).__init__(label)
         self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
@@ -116,9 +116,9 @@ class PBLabelCenter(PBLabel):
     def __init__(self, label):
         """The constructor.
 
-		Parameter:
-			label: the text label to be passed to QLabel
-		"""
+        Parameter:
+            label: the text label to be passed to QLabel
+        """
         super(PBLabelCenter, self).__init__(label)
         self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
@@ -129,12 +129,12 @@ class PBComboBox(QComboBox):
     def __init__(self, parent, fields, current=None):
         """Constructor.
 
-		Parameters:
-			parent: the parent widget
-			fields: the list of (string or printable) contents
-				to be added to the QComboBox
-			current (default None): the value to be set as the initial value
-		"""
+        Parameters:
+            parent: the parent widget
+            fields: the list of (string or printable) contents
+                to be added to the QComboBox
+            current (default None): the value to be set as the initial value
+        """
         super(PBComboBox, self).__init__(parent)
         for f in fields:
             self.addItem("%s" % f)
@@ -151,11 +151,11 @@ class PBAndOrCombo(PBComboBox):
     def __init__(self, parent, current=None):
         """Constructor.
 
-		Parameters:
-			parent: the parent widget
-			current (default None): the value to be set
-				as selected at the beginning
-		"""
+        Parameters:
+            parent: the parent widget
+            current (default None): the value to be set
+                as selected at the beginning
+        """
         super(PBAndOrCombo, self).__init__(parent, ["AND", "OR"], current=current)
 
 
@@ -165,11 +165,11 @@ class PBTrueFalseCombo(PBComboBox):
     def __init__(self, parent, current=None):
         """Constructor.
 
-		Parameters:
-			parent: the parent widget
-			current (default None): the value to be set as selected
-				at the beginning
-		"""
+        Parameters:
+            parent: the parent widget
+            current (default None): the value to be set as selected
+                at the beginning
+        """
         super(PBTrueFalseCombo, self).__init__(
             parent, ["True", "False"], current=current
         )
@@ -181,11 +181,11 @@ class ObjListWindow(PBDialog):
     def __init__(self, parent=None, gridLayout=False):
         """Init using parent class and create common definitions
 
-		Parameters:
-			parent: the parent object
-			gridLayout (boolean, default False):
-				if True, use a QGridLayout, otherwise a QVBoxLayout
-		"""
+        Parameters:
+            parent: the parent object
+            gridLayout (boolean, default False):
+                if True, use a QGridLayout, otherwise a QVBoxLayout
+        """
         super(ObjListWindow, self).__init__(parent)
         self.tableWidth = None
         self.proxyModel = None
@@ -222,20 +222,20 @@ class ObjListWindow(PBDialog):
     def changeFilter(self, string):
         """Change the filter of the current view.
 
-		Parameter:
-			string: the filter string to be matched
-		"""
+        Parameter:
+            string: the filter string to be matched
+        """
         self.proxyModel.setFilterRegExp(str(string))
 
     def addFilterInput(self, placeholderText, gridPos=(1, 0)):
         """Add a `QLineEdit` to change the filter of the list.
 
-		Parameter:
-			placeholderText: the text to be shown
-				when no filter is present
-			gridPos (tuple): if gridLayout is active,
-				the position of the `QLineEdit` in the `QGridLayout`
-		"""
+        Parameter:
+            placeholderText: the text to be shown
+                when no filter is present
+            gridPos (tuple): if gridLayout is active,
+                the position of the `QLineEdit` in the `QGridLayout`
+        """
         self.filterInput = QLineEdit("", self)
         self.filterInput.setPlaceholderText(placeholderText)
         self.filterInput.textChanged.connect(self.changeFilter)
@@ -249,12 +249,12 @@ class ObjListWindow(PBDialog):
     def setProxyStuff(self, sortColumn, sortOrder):
         """Prepare the proxy model to filter and sort the view.
 
-		Parameter:
-			sortColumn: the index of the column to use
-				for sorting at the beginning
-			sortOrder: the order for sorting
-				(`Qt.AscendingOrder` or `Qt.DescendingOrder`)
-		"""
+        Parameter:
+            sortColumn: the index of the column to use
+                for sorting at the beginning
+            sortOrder: the order for sorting
+                (`Qt.AscendingOrder` or `Qt.DescendingOrder`)
+        """
         self.proxyModel = QSortFilterProxyModel(self)
         self.proxyModel.setSourceModel(self.tableModel)
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
@@ -284,12 +284,12 @@ class ObjListWindow(PBDialog):
 
     def finalizeTable(self, gridPos=(1, 0)):
         """Resize the table to fit the contents,
-		connect functions, add to layout
+        connect functions, add to layout
 
-		Parameter:
-			gridPos (tuple): if gridLayout is active,
-			the position of the `QLineEdit` in the `QGridLayout`
-		"""
+        Parameter:
+            gridPos (tuple): if gridLayout is active,
+            the position of the `QLineEdit` in the `QGridLayout`
+        """
         self.tableview.resizeColumnsToContents()
 
         maxh = QDesktopWidget().availableGeometry().height()
@@ -324,8 +324,8 @@ class ObjListWindow(PBDialog):
 
     def recreateTable(self):
         """Delete the previous table widget and other layout items,
-		then create new ones
-		"""
+        then create new ones
+        """
         self.cleanLayout()
         self.createTable()
 
@@ -336,9 +336,9 @@ class EditObjectWindow(PBDialog):
     def __init__(self, parent=None):
         """Constructor.
 
-		Parameter:
-			parent: the parent object
-		"""
+        Parameter:
+            parent: the parent object
+        """
         super(EditObjectWindow, self).__init__(parent)
         self.textValues = {}
         self.result = False
@@ -348,9 +348,9 @@ class EditObjectWindow(PBDialog):
     def keyPressEvent(self, e):
         """Intercept press keys and exit if escape is pressed
 
-		Parameters:
-			e: the `PySide2.QtGui.QKeyEvent`
-		"""
+        Parameters:
+            e: the `PySide2.QtGui.QKeyEvent`
+        """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
 
@@ -379,9 +379,9 @@ class PBThread(QThread):
     def __init__(self, parent=None):
         """Construct the class using `QThread.__init__`
 
-		Parameters:
-			parent: the parent object (default None)
-		"""
+        Parameters:
+            parent: the parent object (default None)
+        """
         QThread.__init__(self, parent)
 
     def run(self):
@@ -394,8 +394,8 @@ class PBThread(QThread):
 
     def start(self, *args, **kwargs):
         """Wait 0.3s and then call `QThread.start`
-		(pass all the arguments)
-		"""
+        (pass all the arguments)
+        """
         time.sleep(0.3)
         QThread.start(self, *args, **kwargs)
 
@@ -410,10 +410,10 @@ class WriteStream(PBThread):
     def __init__(self, queue, parent=None, *args, **kwargs):
         """Constructor
 
-		Parameters:
-			queue: a Queue instance
-			parent (optional): the parent widget
-		"""
+        Parameters:
+            queue: a Queue instance
+            parent (optional): the parent widget
+        """
         super(WriteStream, self).__init__(parent, *args, **kwargs)
         self.queue = queue
         self.running = True
@@ -421,9 +421,9 @@ class WriteStream(PBThread):
     def write(self, text):
         """Write the given text
 
-		Parameters:
-			text: the text to send to the output stream
-		"""
+        Parameters:
+            text: the text to send to the output stream
+        """
         self.queue.put(text)
 
     def run(self):
@@ -440,9 +440,9 @@ class PBTableView(QTableView):
     def contextMenuEvent(self, event):
         """Connect the context menu event to the parent function
 
-		Parameter:
-			event: the `PySide2.QtGui.QContextMenuEvent`
-		"""
+        Parameter:
+            event: the `PySide2.QtGui.QContextMenuEvent`
+        """
         self.parent().triggeredContextMenuEvent(
             self.rowAt(event.y()), self.columnAt(event.x()), event
         )
@@ -450,19 +450,19 @@ class PBTableView(QTableView):
 
 class PBTableModel(QAbstractTableModel):
     """Extension of `QAbstractTableModel`,
-	used for experiments and bibtex entries
-	"""
+    used for experiments and bibtex entries
+    """
 
     def __init__(self, parent, header, ask=False, previous=[], *args):
         """Constructor, based on `QAbstractTableModel.__init__`
 
-		Parameters:
-			parent: the parent widget
-			header: the list of column names which constitute the table
-			ask (boolean, default False):
-				when True, allow to select the lines with a checkbox
-			previous: the list of lines which must be selected at the beginning
-		"""
+        Parameters:
+            parent: the parent widget
+            header: the list of column names which constitute the table
+            ask (boolean, default False):
+                when True, allow to select the lines with a checkbox
+            previous: the list of lines which must be selected at the beginning
+        """
         QAbstractTableModel.__init__(self, parent, *args)
         self.header = header
         self.parentObj = parent
@@ -478,10 +478,10 @@ class PBTableModel(QAbstractTableModel):
     def changeAsk(self, new=None):
         """Change the value of `self.ask` to show/hide checkboxes
 
-		Parameters:
-			new: `None` to just swap the current value of `self.ask`,
-				`True` or `False` to set it to the desired value
-		"""
+        Parameters:
+            new: `None` to just swap the current value of `self.ask`,
+                `True` or `False` to set it to the desired value
+        """
         self.layoutAboutToBeChanged.emit()
         if new is None:
             self.ask = not self.ask
@@ -495,8 +495,8 @@ class PBTableModel(QAbstractTableModel):
 
     def prepareSelected(self):
         """Fill the dictionary `self.selectedElements`
-		according to previous selection
-		"""
+        according to previous selection
+        """
         self.layoutAboutToBeChanged.emit()
         self.selectedElements = {}
         try:
@@ -531,28 +531,28 @@ class PBTableModel(QAbstractTableModel):
     def addImage(self, imagePath, height):
         """Create a cell containing an image
 
-		Parameters:
-			imagePath: the path of the image
-			height: the height to give to the image
+        Parameters:
+            imagePath: the path of the image
+            height: the height to give to the image
 
-		Output:
-			a QPixmap
-		"""
+        Output:
+            a QPixmap
+        """
         return QPixmap(imagePath).scaledToHeight(height)
 
     def addImages(self, imagePaths, outHeight, height=48):
         """Create a cell containing multiple images, using a `QPainter`
 
-		Parameters:
-			imagePaths: a list of image paths
-				for creating the single `QPixmap`s
-			outHeight: the final height for rescaling the image
-			height (default 48): the height and width
-				to be used when painting
+        Parameters:
+            imagePaths: a list of image paths
+                for creating the single `QPixmap`s
+            outHeight: the final height for rescaling the image
+            height (default 48): the height and width
+                to be used when painting
 
-		Output:
-			a `QPixmap`
-		"""
+        Output:
+            a `QPixmap`
+        """
         width = len(imagePaths) * height
         pm = QPixmap(width, height)
         pm.fill(Qt.transparent)
@@ -565,12 +565,12 @@ class PBTableModel(QAbstractTableModel):
     def rowCount(self, parent=None):
         """Count the rows of the given model based on the header
 
-		Parameter:
-			parent: `QModelIndex` (required by the parent signature)
+        Parameter:
+            parent: `QModelIndex` (required by the parent signature)
 
-		Output:
-			the number od rows or zero (if error occurred)
-		"""
+        Output:
+            the number od rows or zero (if error occurred)
+        """
         try:
             return len(self.dataList)
         except (TypeError, AttributeError):
@@ -579,12 +579,12 @@ class PBTableModel(QAbstractTableModel):
     def columnCount(self, parent=None):
         """Count the columns of the given model based on the header
 
-		Parameter:
-			parent: `QModelIndex` (required by the parent signature)
+        Parameter:
+            parent: `QModelIndex` (required by the parent signature)
 
-		Output:
-			the number of columns or zero (if error occurred)
-		"""
+        Output:
+            the number of columns or zero (if error occurred)
+        """
         try:
             return len(self.header)
         except TypeError:
@@ -597,16 +597,16 @@ class PBTableModel(QAbstractTableModel):
     def flags(self, index):
         """Determine the flags of a given item
 
-		Parameter:
-			index: a `QModelIndex`
+        Parameter:
+            index: a `QModelIndex`
 
-		Output:
-			None if the index is not valid
-			if `self.ask` and first column, show checkboxes:
-			Qt.ItemIsUserCheckable | Qt.ItemIsEditable |
-				Qt.ItemIsEnabled | Qt.ItemIsSelectable
-			all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
-		"""
+        Output:
+            None if the index is not valid
+            if `self.ask` and first column, show checkboxes:
+            Qt.ItemIsUserCheckable | Qt.ItemIsEditable |
+                Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            all the other cases: Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        """
         if not index.isValid():
             return Qt.NoItemFlags
         if index.column() == 0 and self.ask:
@@ -622,14 +622,14 @@ class PBTableModel(QAbstractTableModel):
     def headerData(self, col, orientation, role):
         """Obtain column name if correctly asked
 
-		Parameters:
-			col: the column index in `self.header`
-			orientation: int from `Qt.Orientation`
-			role: int from `Qt.ItemDataRole`
+        Parameters:
+            col: the column index in `self.header`
+            orientation: int from `Qt.Orientation`
+            role: int from `Qt.ItemDataRole`
 
-		Output:
-			the column name or `None`
-		"""
+        Output:
+            the column name or `None`
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.header[col]
         return None
@@ -651,14 +651,14 @@ class TreeNode(QObject):
     def cast(cls, obj):
         """Convert a VoidPtr to TreeNode, if possible and if necessary.
 
-		Parameters:
-			cls: the class instance
-			obj: an index, from which the VoidPtr is extracted
-				by internalPointer
+        Parameters:
+            cls: the class instance
+            obj: an index, from which the VoidPtr is extracted
+                by internalPointer
 
-		Output:
-			should be a TreeNode instance
-		"""
+        Output:
+            should be a TreeNode instance
+        """
         ps2verinfo = PySide2.__version_info__
         if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
             return cls._instances.get(PtrKey(obj.internalPointer()))
@@ -668,10 +668,10 @@ class TreeNode(QObject):
     def __init__(self, parent, row):
         """Constructor, set basic properties
 
-		Parameters:
-			parent: the parent node
-			row: the content of the data row
-		"""
+        Parameters:
+            parent: the parent node
+            row: the content of the data row
+        """
         super(TreeNode, self).__init__()
         ps2verinfo = PySide2.__version_info__
         if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
@@ -694,8 +694,8 @@ class TreeModel(QAbstractItemModel):
 
     def __init__(self):
         """Class constructor. Calls `_getRootNodes`
-		to build the tree structure
-		"""
+        to build the tree structure
+        """
         QAbstractItemModel.__init__(self)
         self.rootNodes = self._getRootNodes()
 
@@ -706,14 +706,14 @@ class TreeModel(QAbstractItemModel):
     def index(self, row, column, parent=QModelIndex()):
         """Retrieve the `QModelIndex` of the requested object
 
-		Parameters:
-			row (int): the row index
-			column (int): the column index
-			parent: the parent `QModelIndex`
+        Parameters:
+            row (int): the row index
+            column (int): the column index
+            parent: the parent `QModelIndex`
 
-		Output:
-			A `QModelIndex` instance
-		"""
+        Output:
+            A `QModelIndex` instance
+        """
         if not isinstance(parent, QModelIndex):
             pBLogger.debug(
                 "Invalid parent '%s' in TreeModel.index" % parent, exc_info=True
@@ -734,15 +734,15 @@ class TreeModel(QAbstractItemModel):
 
     def parent(self, index):
         """Retrieve the `QModelIndex` of the parent of
-		the item with the given index, if it exists,
-		or an invalid `QModelIndex` instead
+        the item with the given index, if it exists,
+        or an invalid `QModelIndex` instead
 
-		Parameters:
-			index: the `QModelIndex` of the node
+        Parameters:
+            index: the `QModelIndex` of the node
 
-		Output:
-			A `QModelIndex` instance
-		"""
+        Output:
+            A `QModelIndex` instance
+        """
         if not isinstance(index, QModelIndex):
             pBLogger.debug(
                 "Invalid index '%s' in TreeModel.parent" % index, exc_info=True
@@ -762,12 +762,12 @@ class TreeModel(QAbstractItemModel):
     def rowCount(self, parent=QModelIndex()):
         """Count the rows in a given tree branch
 
-		Parameter:
-			parent: the `QModelIndex` of the branch parent
+        Parameter:
+            parent: the `QModelIndex` of the branch parent
 
-		Output:
-			the line number
-		"""
+        Output:
+            the line number
+        """
         if not isinstance(parent, QModelIndex):
             pBLogger.debug(
                 "Invalid parent '%s' in TreeModel.rowCount" % parent, exc_info=True
@@ -787,11 +787,11 @@ class NamedElement(object):
     def __init__(self, idCat, name, subelements):
         """Class constructor, set some element properties
 
-		Parameters:
-			idCat: the category id
-			name: the name of the category
-			subelements: the list of children elements
-		"""
+        Parameters:
+            idCat: the category id
+            name: the name of the category
+            subelements: the list of children elements
+        """
         self.idCat = idCat
         self.name = name
         self.text = catString(idCat, pBDB)
@@ -804,18 +804,18 @@ class NamedNode(TreeNode):
     def __init__(self, element, parent, row):
         """Define `self.element` and call `TreeNode.__init__`
 
-		Parameters:
-			element: the `NamedElement` of the object
-			parent: the parent node
-			row: the row index
-		"""
+        Parameters:
+            element: the `NamedElement` of the object
+            parent: the parent node
+            row: the row index
+        """
         self.element = element
         TreeNode.__init__(self, parent, row)
 
     def _getChildren(self):
         """Return a list of `NamedNode`s, containing the children nodes.
-		Overrides `TreeNode._getChildren`
-		"""
+        Overrides `TreeNode._getChildren`
+        """
         return [
             NamedNode(elem, self, index)
             for index, elem in enumerate(self.element.subelements)
@@ -825,20 +825,20 @@ class NamedNode(TreeNode):
 # http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
 class LeafFilterProxyModel(QSortFilterProxyModel):
     """Class to override the following behaviour:
-		If a parent item doesn't match the filter,
-		none of its children will be shown.
+        If a parent item doesn't match the filter,
+        none of its children will be shown.
 
-	This Model matches items which are descendants
-	or ascendants of matching items.
-	"""
+    This Model matches items which are descendants
+    or ascendants of matching items.
+    """
 
     def filterAcceptsRow(self, row_num, source_parent):
         """Overriding the parent function
 
-		Parameters:
-			row_num: the row number
-			source_parent: the parent node in the tree
-		"""
+        Parameters:
+            row_num: the row number
+            source_parent: the parent node in the tree
+        """
         # Check if the current row matches
         if self.filterAcceptsRowItself(row_num, source_parent):
             return True
@@ -852,21 +852,21 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 
     def filterAcceptsRowItself(self, row_num, parent):
         """New name for the original `filterAcceptsRow`,
-		which has been overridden
+        which has been overridden
 
-		Parameters:
-			row_num: the row number
-			parent: the parent node in the tree
-		"""
+        Parameters:
+            row_num: the row number
+            parent: the parent node in the tree
+        """
         return super(LeafFilterProxyModel, self).filterAcceptsRow(row_num, parent)
 
     def filterAcceptsAnyParent(self, parent):
         """Traverse to the root node and check if any of the
-		ancestors match the filter
+        ancestors match the filter
 
-		Parameter:
-			parent: the parent node in the tree
-		"""
+        Parameter:
+            parent: the parent node in the tree
+        """
         while parent.isValid():
             if self.filterAcceptsRowItself(parent.row(), parent.parent()):
                 return True
@@ -875,12 +875,12 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
 
     def hasAcceptedChildren(self, row_num, parent):
         """Starting from the current node as root, traverse all
-		the descendants and test if any of the children match
+        the descendants and test if any of the children match
 
-		Parameters:
-			row_num: the row number
-			parent: the parent node in the tree
-		"""
+        Parameters:
+            row_num: the row number
+            parent: the parent node in the tree
+        """
         model = self.sourceModel()
         source_index = model.index(row_num, 0, parent)
 
@@ -897,9 +897,9 @@ class PBDDTableWidget(QTableWidget):
     def __init__(self, parent, header):
         """Set some properties and settings.
 
-		Parameters:
-			header: the title of the column
-		"""
+        Parameters:
+            header: the title of the column
+        """
         super(PBDDTableWidget, self).__init__(parent)
         self.setColumnCount(1)
         self.setHorizontalHeaderLabels([header])
@@ -913,21 +913,21 @@ class PBDDTableWidget(QTableWidget):
     def dropMimeData(self, row, col, mimeData, action):
         """Overridden method to get the row index for insertion
 
-		Parameters:
-			row: the index of the dropped row
-			col, mimeData, action: not used params
-				(see the signature of `QTableWidget.dropMimeData`)
-		"""
+        Parameters:
+            row: the index of the dropped row
+            col, mimeData, action: not used params
+                (see the signature of `QTableWidget.dropMimeData`)
+        """
         self.last_drop_row = row
         return True
 
     def dropEvent(self, event):
         """Accept dropEvent and move the selected item
-		to the new position
+        to the new position
 
-		Parameter:
-			event: a `QDropEvent`
-		"""
+        Parameter:
+            event: a `QDropEvent`
+        """
         # The QTableWidget from which selected rows will be moved
         sender = event.source()
 
@@ -971,9 +971,9 @@ class PBDDTableWidget(QTableWidget):
     def getselectedRowsFast(self):
         """Return the list of selected rows
 
-		Output:
-			a list with the row indexes of the selected rows
-		"""
+        Output:
+            a list with the row indexes of the selected rows
+        """
         selectedRows = []
         for item in self.selectedItems():
             row = item.row()
@@ -989,17 +989,17 @@ class PBMenu(QMenu):
     def __init__(self, parent=None):
         """Construct the element defining some basic properties
 
-		Parameter:
-			parent: the parent widget
-		"""
+        Parameter:
+            parent: the parent widget
+        """
         super(PBMenu, self).__init__(parent)
         self.possibleActions = []
         self.result = False
 
     def fillMenu(self):
         """Add actions, separators or submenus according to the content
-		of `self.possibleActions` (recursively for submenus)
-		"""
+        of `self.possibleActions` (recursively for submenus)
+        """
         for act in self.possibleActions:
             if act is None:
                 self.addSeparator()
@@ -1015,9 +1015,9 @@ class PBMenu(QMenu):
     def keyPressEvent(self, e):
         """Intercept press keys and exit if escape is pressed
 
-		Parameters:
-			e: the `PySide2.QtGui.QKeyEvent`
-		"""
+        Parameters:
+            e: the `PySide2.QtGui.QKeyEvent`
+        """
         if e.key() == Qt.Key_Escape:
             self.close()
 
@@ -1027,19 +1027,19 @@ class GUIViewEntry(ViewEntry):
 
     def openLink(self, key, arg="", fileArg=None):
         """Use `QDesktopServices` to open an url using
-		the system default applications
+        the system default applications
 
-		Parameters:
-			key: the entry key or the link (if `arg` == "link")
-			arg:
-				if `arg` == "file", `fileArg` must be the file name
-				if `arg` == "link", `key` must be the link to be opened
-				for any other values, the link will be generated using
-					the `physbiblio.view.viewWntry.getLink` method
-			fileArg: the file name if `arg` == "file", or
-				the argument passed to `physbiblio.view.viewWntry.getLink`
-				if needed
-		"""
+        Parameters:
+            key: the entry key or the link (if `arg` == "link")
+            arg:
+                if `arg` == "file", `fileArg` must be the file name
+                if `arg` == "link", `key` must be the link to be opened
+                for any other values, the link will be generated using
+                    the `physbiblio.view.viewWntry.getLink` method
+            fileArg: the file name if `arg` == "file", or
+                the argument passed to `physbiblio.view.viewWntry.getLink`
+                if needed
+        """
         if isinstance(key, list):
             for k in key:
                 self.openLink(k, arg, fileArg)
@@ -1065,23 +1065,23 @@ pBGuiView = GUIViewEntry()
 
 class PBImportedTableModel(PBTableModel):
     """Extend `PBTableModel` to manage the selection
-	during the import of entries
-	"""
+    during the import of entries
+    """
 
     def __init__(self, parent, bibdict, header, idName="ID", *args):
         """Set some properties and settings
 
-		Parameters:
-			parent: the parent widget (pass to `PBTableModel.__init__`)
-			bibdict: a dictionary with the info
-				of the imported bibtex entries.
-				It should contain dictionaries with two items:
-					"bibpars", "exist"
-			header: the header names to be passed
-				to `PBTableModel.__init__`
-			idName: the key of the field representing
-				the unique ID of the item
-		"""
+        Parameters:
+            parent: the parent widget (pass to `PBTableModel.__init__`)
+            bibdict: a dictionary with the info
+                of the imported bibtex entries.
+                It should contain dictionaries with two items:
+                    "bibpars", "exist"
+            header: the header names to be passed
+                to `PBTableModel.__init__`
+            idName: the key of the field representing
+                the unique ID of the item
+        """
         self.typeClass = "imports"
         self.idName = idName
         self.bibsOrder = [k for k in sorted(bibdict.keys())]
@@ -1093,18 +1093,18 @@ class PBImportedTableModel(PBTableModel):
     def getIdentifier(self, element):
         """Return the unique identifier of the given element
 
-		Parameters:
-			element: a dictionary
-		"""
+        Parameters:
+            element: a dictionary
+        """
         return element[self.idName]
 
     def data(self, index, role):
         """Return the data for the requested cell and role
 
-		Parameters:
-			index: a `QModelIndex`
-			role: the requested role for the given cell
-		"""
+        Parameters:
+            index: a `QModelIndex`
+            role: the requested role for the given cell
+        """
         if not index.isValid():
             return None
         row = index.row()
@@ -1135,12 +1135,12 @@ class PBImportedTableModel(PBTableModel):
     def setData(self, index, value, role):
         """Set the selection data for a given index
 
-		Parameters:
-			index: a `QModelIndex`
-			value: `Qt.Checked` to set the row as selected
-			role: `Qt.CheckStateRole` for performing an action,
-				or any other role
-		"""
+        Parameters:
+            index: a `QModelIndex`
+            value: `Qt.Checked` to set the row as selected
+            role: `Qt.CheckStateRole` for performing an action,
+                or any other role
+        """
         if not index.isValid():
             return False
         if role == Qt.CheckStateRole and index.column() == 0:
@@ -1154,9 +1154,9 @@ class PBImportedTableModel(PBTableModel):
     def flags(self, index):
         """Return the flags for the requested row
 
-		Parameters:
-			index: a `QModelIndex`
-		"""
+        Parameters:
+            index: a `QModelIndex`
+        """
         if not index.isValid():
             return Qt.NoItemFlags
         if index.column() == 0 and self.existList[index.row()] is False:

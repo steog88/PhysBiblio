@@ -17,8 +17,8 @@ except ImportError:
 
 class WebSearch(WebInterf):
     """Subclass of WebInterf that can connect
-	to doi.org to perform searches
-	"""
+    to doi.org to perform searches
+    """
 
     name = "doi"
     description = "Doi fetcher"
@@ -28,8 +28,8 @@ class WebSearch(WebInterf):
     def __init__(self):
         """Initializes the class variables using the WebInterf constructor.
 
-		Define additional specific parameters for the DOI.org API.
-		"""
+        Define additional specific parameters for the DOI.org API.
+        """
         WebInterf.__init__(self)
         self.name = "doi"
         self.description = "Doi fetcher"
@@ -39,21 +39,21 @@ class WebSearch(WebInterf):
     def createUrl(self, doi):
         """Joins the base url and the search string to get the full url.
 
-		(DOI.org url Behaves differently than other APIs
-		in the modules of this subpackage)
-		"""
+        (DOI.org url Behaves differently than other APIs
+        in the modules of this subpackage)
+        """
         return self.url + doi
 
     def retrieveUrlFirst(self, string):
         """Retrieves the first (only) result from the content
-		of the given web page.
+        of the given web page.
 
-		Parameters:
-			string: the search string (the DOI)
+        Parameters:
+            string: the search string (the DOI)
 
-		Output:
-			returns the bibtex string
-		"""
+        Output:
+            returns the bibtex string
+        """
         url = self.createUrl(string)
         pBLogger.info("Search '%s' -> %s" % (string, url))
         text = self.textFromUrl(url, self.headers)
@@ -65,6 +65,6 @@ class WebSearch(WebInterf):
 
     def retrieveUrlAll(self, string):
         """Alias for retrieveUrlFirst
-		(no more than one object should match a doi)
-		"""
+        (no more than one object should match a doi)
+        """
         return self.retrieveUrlFirst(string)

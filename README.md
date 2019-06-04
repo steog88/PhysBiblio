@@ -135,7 +135,7 @@ PhysBiblio depends on several python packages:
 * outdated (check if new versions are available)
 * pylatexenc (conversion of accented and other utf-8 characters to latex commands)
 * pymarc (to deal with arXiv data)
-* pyoai	(for massively harvesting the INSPIRE-HEP database)
+* pyoai (for massively harvesting the INSPIRE-HEP database)
 * requests (download json pages)
 * six (compatibility between python2 and python3)
 * unittest2+mock (python2.x) / unittest (python3.x) (for testing the methods and functions)
@@ -249,19 +249,19 @@ The list of available commands includes:
 * `daily`: see [here](#inspire-oai).
 * `dates`: see [here](#inspire-oai).
 * `export`:
-	export all the bibtex entries in the database, creating a file with the given `filename`.
-	If already existing, the file will be overwritten.
+    export all the bibtex entries in the database, creating a file with the given `filename`.
+    If already existing, the file will be overwritten.
 * `tex`:
-	read one or more `.tex` files,
-	scanning for `\cite` or similar commands, and generate a single `.bib` file
-	with the required bibtex entries to compile the set of `.tex` files.
-	If they are in the local database, the bibtexs are just copied into the output file,
-	otherwise the script will connect to INSPIRE-HEP to download the entries,
-	which will be stored in the database and in the output file.
-	If `outputfile` exists, a backup copy will be created.
+    read one or more `.tex` files,
+    scanning for `\cite` or similar commands, and generate a single `.bib` file
+    with the required bibtex entries to compile the set of `.tex` files.
+    If they are in the local database, the bibtexs are just copied into the output file,
+    otherwise the script will connect to INSPIRE-HEP to download the entries,
+    which will be stored in the database and in the output file.
+    If `outputfile` exists, a backup copy will be created.
 * `update`:
-	for each of the entries in the database, if required, get updated information from INSPIRE-HEP (publication info or title updates, for example).
-	You are encouraged not to use this function if you have a large database, see [here](#inspire-oai) instead.
+    for each of the entries in the database, if required, get updated information from INSPIRE-HEP (publication info or title updates, for example).
+    You are encouraged not to use this function if you have a large database, see [here](#inspire-oai) instead.
 * `weekly`: see [here](#inspire-oai).
 
 The best ways to know how to use the various sub-commands and options are

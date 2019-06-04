@@ -32,15 +32,15 @@ except ImportError:
 
 def editExperiment(parentObject, mainWinObject, editIdExp=None):
     """Open a dialog (`EditExperimentDialog`) to edit an experiment
-	and process the output.
+    and process the output.
 
-	Parameters:
-		parentObject: the parent widget
-		mainWinObject: the object which has
-			the `statusBarMessage` and `setWindowTitle` methods
-		editIdCat: the id of the experiment to be edited,
-			or `None` to create a new one
-	"""
+    Parameters:
+        parentObject: the parent widget
+        mainWinObject: the object which has
+            the `statusBarMessage` and `setWindowTitle` methods
+        editIdCat: the id of the experiment to be edited,
+            or `None` to create a new one
+    """
     if editIdExp is not None:
         edit = pBDB.exps.getDictByID(editIdExp)
     else:
@@ -81,13 +81,13 @@ def editExperiment(parentObject, mainWinObject, editIdExp=None):
 def deleteExperiment(parentObject, mainWinObject, idExp, name):
     """Ask confirmation and eventually delete the selected experiment
 
-	Parameters:
-		parentObject: the parent widget
-		mainWinObject: the object which has
-			the `statusBarMessage` and `setWindowTitle` methods
-		idExp: the id of the experiment to be deleted
-		name: the name of the experiment to be deleted
-	"""
+    Parameters:
+        parentObject: the parent widget
+        mainWinObject: the object which has
+            the `statusBarMessage` and `setWindowTitle` methods
+        idExp: the id of the experiment to be deleted
+        name: the name of the experiment to be deleted
+    """
     if askYesNo(
         "Do you really want to delete this experiment "
         + "(ID = '%s', name = '%s')?" % (idExp, name)
@@ -118,41 +118,41 @@ class ExpTableModel(PBTableModel):
 
     def __init__(self, parent, exp_list, header, askExps=False, previous=[], *args):
         """Extension of `PBTableModel`
-		Initialize the model, save the data and the initial selection
+        Initialize the model, save the data and the initial selection
 
-		Parameters:
-			parent: the parent widget
-			exp_list: the list of experiments records from the database
-			header: the names of the column fields
-			askExps (default False): if True, enable checkboxes for
-				selection of experiments
-			previous: the list of previously selected experiments
-				(default: an empty list)
-		"""
+        Parameters:
+            parent: the parent widget
+            exp_list: the list of experiments records from the database
+            header: the names of the column fields
+            askExps (default False): if True, enable checkboxes for
+                selection of experiments
+            previous: the list of previously selected experiments
+                (default: an empty list)
+        """
         self.dataList = exp_list
         super(ExpTableModel, self).__init__(parent, header, askExps, previous, *args)
         self.prepareSelected()
 
     def getIdentifier(self, element):
         """Get the string that identifies the given element
-		in the database
+        in the database
 
-		Parameter:
-			element: the database record
-		"""
+        Parameter:
+            element: the database record
+        """
         return element["idExp"]
 
     def data(self, index, role):
         """Return the cell data for the given index and role
 
-		Parameters:
-			index: the `QModelIndex` for which the data are required
-			role: the desired Qt role for the data
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            role: the desired Qt role for the data
 
-		Output:
-			None if the index or the role are not valid,
-			the cell content or properties otherwise
-		"""
+        Output:
+            None if the index or the role are not valid,
+            the cell content or properties otherwise
+        """
         if not index.isValid():
             return None
         row = index.row()
@@ -176,15 +176,15 @@ class ExpTableModel(PBTableModel):
     def setData(self, index, value, role):
         """Set the cell data for the given index and role
 
-		Parameters:
-			index: the `QModelIndex` for which the data are required
-			value: the new data value
-			role: the desired Qt role for the data
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            value: the new data value
+            role: the desired Qt role for the data
 
-		Output:
-			True if correctly completed,
-			False if the `index` is not valid
-		"""
+        Output:
+            True if correctly completed,
+            False if the `index` is not valid
+        """
         if not index.isValid():
             return False
         if role == Qt.CheckStateRole and index.column() == 0:
@@ -210,18 +210,18 @@ class ExpsListWindow(ObjListWindow):
         self, parent=None, askExps=False, askForBib=None, askForCat=None, previous=[]
     ):
         """Constructor, extends `ObjListWindow.__init__`
-		with more settings and parameters
+        with more settings and parameters
 
-		Parameters:
-			parent: the parent widget
-			askExps: if True, checkboxes will be used
-			askForBib: the key identifying the bibtex entry for which
-				the experiments are asked
-			askForCat: the ID identifying the category for which
-				the experiments are asked
-			previous: the list (default empty) of initially selected
-				experiments
-		"""
+        Parameters:
+            parent: the parent widget
+            askExps: if True, checkboxes will be used
+            askForBib: the key identifying the bibtex entry for which
+                the experiments are asked
+            askForCat: the ID identifying the category for which
+                the experiments are asked
+            previous: the list (default empty) of initially selected
+                experiments
+        """
         self.askExps = askExps
         self.askForBib = askForBib
         self.askForCat = askForCat
@@ -242,9 +242,9 @@ class ExpsListWindow(ObjListWindow):
 
     def populateAskExp(self):
         """If selection of experiments is allowed, add some information
-		on the bibtex/category for which the experiments are requested
-		and a simple message, then create few required empty lists
-		"""
+        on the bibtex/category for which the experiments are requested
+        and a simple message, then create few required empty lists
+        """
         if self.askExps:
             if self.askForBib is not None:
                 try:
@@ -300,9 +300,9 @@ class ExpsListWindow(ObjListWindow):
 
     def onOk(self):
         """Accept the dialog content
-		(update the list of selected experiments)
-		and close the window.
-		"""
+        (update the list of selected experiments)
+        and close the window.
+        """
         self.parent().selectedExps = [
             idE
             for idE in self.tableModel.selectedElements.keys()
@@ -313,22 +313,22 @@ class ExpsListWindow(ObjListWindow):
 
     def onNewExp(self):
         """Action to perform when the creation
-		of a new experiment is requested
-		"""
+        of a new experiment is requested
+        """
         editExperiment(self, self.parent())
 
     def keyPressEvent(self, e):
         """Manage the key press events.
-		Do nothing unless `Esc` is pressed:
-		in this case close the dialog
-		"""
+        Do nothing unless `Esc` is pressed:
+        in this case close the dialog
+        """
         if e.key() == Qt.Key_Escape:
             self.close()
 
     def createTable(self):
         """Create the dialog content, connect the model to the view
-		and eventually add the buttons at the end
-		"""
+        and eventually add the buttons at the end
+        """
         self.populateAskExp()
 
         self.exps = pBDB.exps.getAll()
@@ -362,14 +362,14 @@ class ExpsListWindow(ObjListWindow):
 
     def triggeredContextMenuEvent(self, row, col, event):
         """Process event when mouse right-clicks an item.
-		Opens a menu with a number of actions
+        Opens a menu with a number of actions
 
-		Parameter:
-			row: the row number
-			col: a the column number
-			event: a `QEvent` instance, used to obtain the mouse
-				position where to open the menu
-		"""
+        Parameter:
+            row: the row number
+            col: a the column number
+            event: a `QEvent` instance, used to obtain the mouse
+                position where to open the menu
+        """
         index = self.proxyModel.index(row, col)
         if not index.isValid():
             return
@@ -432,11 +432,11 @@ class ExpsListWindow(ObjListWindow):
 
     def handleItemEntered(self, index):
         """Process event when mouse enters an item and
-		create a `QTooltip` which describes the category, with a timer
+        create a `QTooltip` which describes the category, with a timer
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if index.isValid():
             row = index.row()
         else:
@@ -472,11 +472,11 @@ class ExpsListWindow(ObjListWindow):
 
     def cellClick(self, index):
         """Process event when mouse clicks an item.
-		Currently not used
+        Currently not used
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if index.isValid():
             row = index.row()
         else:
@@ -486,11 +486,11 @@ class ExpsListWindow(ObjListWindow):
 
     def cellDoubleClick(self, index):
         """Process event when mouse double clicks an item.
-		Opens a link if some columns
+        Opens a link if some columns
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if index.isValid():
             row = index.row()
             col = index.column()
@@ -519,13 +519,13 @@ class EditExperimentDialog(EditObjectWindow):
 
     def __init__(self, parent=None, experiment=None):
         """Extend `EditObjectWindow.__init__` to define self.data
-		and call createForm
+        and call createForm
 
-		Parameters:
-			parent: the parent widget
-			experiment: the database record or dictionary which
-				contains the experiment information
-		"""
+        Parameters:
+            parent: the parent widget
+            experiment: the database record or dictionary which
+                contains the experiment information
+        """
         super(EditExperimentDialog, self).__init__(parent)
         if experiment is None:
             self.data = {}

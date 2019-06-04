@@ -27,8 +27,8 @@ except ImportError:
 
 class LocalPDF:
     """Class with functions to manage the PDF folder content
-	and the stored material
-	"""
+    and the stored material
+    """
 
     pdfDir = pbConfig.params["pdfFolder"]
     pdfApp = pbConfig.params["pdfApplication"]
@@ -49,12 +49,12 @@ class LocalPDF:
     def badFName(self, filename):
         """Clean the filename substituting the bad characters with '_'
 
-		Parameters:
-			filename (string): the string containing the file name
+        Parameters:
+            filename (string): the string containing the file name
 
-		Output:
-			the cleaned filename
-		"""
+        Output:
+            the cleaned filename
+        """
         newFilename = ""
         if not isinstance(filename, six.string_types):
             pBLogger.warning("Wrong filename type! %s" % filename)
@@ -68,33 +68,33 @@ class LocalPDF:
 
     def getFileDir(self, key):
         """Obtain the name of the directory for a given entry.
-		The name is cleaned and the absolute path is generated.
+        The name is cleaned and the absolute path is generated.
 
-		Parameters:
-			key (string): the bibtex key of the entry
+        Parameters:
+            key (string): the bibtex key of the entry
 
-		Output:
-			the (cleaned) absolute path for the PDF files
-				associated with the entry
-		"""
+        Output:
+            the (cleaned) absolute path for the PDF files
+                associated with the entry
+        """
         return osp.join(self.pdfDir, self.badFName(key))
 
     def getFilePath(self, key, fileType):
         """Obtain the file path for a given file type (arxiv, doi, ...)
-		of a given entry.
-		It reads the field from the database in order
-		to generate the file name.
+        of a given entry.
+        It reads the field from the database in order
+        to generate the file name.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			fileType (string in
-				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-				basically the field in the database
-				from which the name must be taken
+        Parameters:
+            key (string): the bibtex key of the entry
+            fileType (string in
+                ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                basically the field in the database
+                from which the name must be taken
 
-		Output:
-			the (cleaned) absolute path for the PDF file
-		"""
+        Output:
+            the (cleaned) absolute path for the PDF file
+        """
         if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
             pBLogger.warning("Required field does not exist or is not valid")
             return ""
@@ -112,23 +112,23 @@ class LocalPDF:
     def createFolder(self, key, noCheck=False):
         """Create the PDF folder for a given entry.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			noCheck (bool): True to avoid checking
-				if the directory exists. Default False
-		"""
+        Parameters:
+            key (string): the bibtex key of the entry
+            noCheck (bool): True to avoid checking
+                if the directory exists. Default False
+        """
         directory = self.getFileDir(key)
         if noCheck or not osp.exists(directory):
             os.makedirs(directory)
 
     def renameFolder(self, oldkey, newkey):
         """Rename the PDF folder for a given entry
-		for which the bibtex key has been changed.
+        for which the bibtex key has been changed.
 
-		Parameters:
-			oldkey (string): the old bibtex key of the entry
-			newkey (string): the new bibtex key of the entry
-		"""
+        Parameters:
+            oldkey (string): the old bibtex key of the entry
+            newkey (string): the new bibtex key of the entry
+        """
         olddir = self.getFileDir(oldkey)
         if osp.exists(olddir):
             newdir = self.getFileDir(newkey)
@@ -139,20 +139,20 @@ class LocalPDF:
 
     def copyNewFile(self, key, origFileName, fileType=None, customName=None):
         """Copy a file in any place of the filesystem
-		into the directory corresponding to the given entry
+        into the directory corresponding to the given entry
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			origFileName (string): the name of the file to be copied
-			fileType (string in
-				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-				basically the field in the database
-				from which the name must be taken.
-				`customName` can be given instead.
-			customName (string):
-				a completely independent name for the file.
-				It may be given instead of fileType.
-		"""
+        Parameters:
+            key (string): the bibtex key of the entry
+            origFileName (string): the name of the file to be copied
+            fileType (string in
+                ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                basically the field in the database
+                from which the name must be taken.
+                `customName` can be given instead.
+            customName (string):
+                a completely independent name for the file.
+                It may be given instead of fileType.
+        """
         if not osp.exists(self.getFileDir(key)):
             self.createFolder(key, True)
         if customName is not None:
@@ -176,19 +176,19 @@ class LocalPDF:
 
     def copyToDir(self, outFolder, key, fileType=None, customName=None):
         """Copy a file from the directory corresponding
-		to the given entry to the a directory in the filesystem.
+        to the given entry to the a directory in the filesystem.
 
-		Parameters:
-			outFolder (string): the name of the destination folder
-			key (string): the bibtex key of the entry
-			fileType (string in
-				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-				basically the field in the database from which
-				the name must be taken. customName can be given instead.
-			customName (string):
-				a completely independent name for the file.
-				It may be given instead of fileType.
-		"""
+        Parameters:
+            outFolder (string): the name of the destination folder
+            key (string): the bibtex key of the entry
+            fileType (string in
+                ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                basically the field in the database from which
+                the name must be taken. customName can be given instead.
+            customName (string):
+                a completely independent name for the file.
+                It may be given instead of fileType.
+        """
         if customName is not None:
             origFile = osp.join(self.getFileDir(key), customName)
         elif fileType is not None:
@@ -208,15 +208,15 @@ class LocalPDF:
 
     def downloadArxiv(self, key, force=False):
         """Download the PDF file from arXiv for a given entry
-		and save it in the proper folder.
+        and save it in the proper folder.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			force (boolean, optional, default False):
-				force the replacement of the file if it already exists.
-				If False and there is a PDF with the same name,
-				no action is performed.
-		"""
+        Parameters:
+            key (string): the bibtex key of the entry
+            force (boolean, optional, default False):
+                force the replacement of the file if it already exists.
+                If False and there is a PDF with the same name,
+                no action is performed.
+        """
         filename = self.getFilePath(key, "arxiv")
         if osp.exists(filename) and not force:
             pBLogger.info("There is already a pdf and overwrite not requested.")
@@ -248,21 +248,21 @@ class LocalPDF:
 
     def openFile(self, key, arg=None, fileType=None, fileNum=None, fileName=None):
         """Open a PDF file in an external application
-		(if defined in the configuration).
-		Does nothing if there is self.pdfApp is empty.
+        (if defined in the configuration).
+        Does nothing if there is self.pdfApp is empty.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			at least one of the following (they are considered in this order):
-				arg: used to guess the fileType, fileNum or fileName
-				fileType (string in
-					["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-					basically the field in the database
-					from which the name must be taken
-				fileNum: the number of the desired PDF
-					in the list of existing PDF files for the considered entry
-				filaName: the specific file name
-		"""
+        Parameters:
+            key (string): the bibtex key of the entry
+            at least one of the following (they are considered in this order):
+                arg: used to guess the fileType, fileNum or fileName
+                fileType (string in
+                    ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                    basically the field in the database
+                    from which the name must be taken
+                fileNum: the number of the desired PDF
+                    in the list of existing PDF files for the considered entry
+                filaName: the specific file name
+        """
         try:
             if arg == "arxiv" or arg == "doi":
                 fileType = arg
@@ -296,18 +296,18 @@ class LocalPDF:
 
     def checkFile(self, key, fileType):
         """Check if a file of a given type (arxiv, doi, ...)
-		and a given entry exists.
+        and a given entry exists.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			fileType (string in
-				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-				basically the field in the database
-				from which the name must be taken
+        Parameters:
+            key (string): the bibtex key of the entry
+            fileType (string in
+                ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                basically the field in the database
+                from which the name must be taken
 
-		Output:
-			boolean (if the arguments are valid) or None (if fileType is bad)
-		"""
+        Output:
+            boolean (if the arguments are valid) or None (if fileType is bad)
+        """
         if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
             pBLogger.warning("Invalid argument to checkFile!")
             return
@@ -316,18 +316,18 @@ class LocalPDF:
     def removeFile(self, key, fileType, fileName=None):
         """Delete a PDF file.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			fileType (any string if fileName is not None or string in
-				["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
-				basically the field in the database
-				from which the name must be taken
-			fileName (default None): specify the file name instead
-				of computing it from the database information
+        Parameters:
+            key (string): the bibtex key of the entry
+            fileType (any string if fileName is not None or string in
+                ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]):
+                basically the field in the database
+                from which the name must be taken
+            fileName (default None): specify the file name instead
+                of computing it from the database information
 
-		Output:
-			True if successful, False if exception occurred
-		"""
+        Output:
+            True if successful, False if exception occurred
+        """
         if fileName is None:
             fileName = self.getFilePath(key, fileType)
         try:
@@ -341,14 +341,14 @@ class LocalPDF:
     def getExisting(self, key, fullPath=False):
         """Obtain the list of existing files for a given entry.
 
-		Parameters:
-			key (string): the bibtex key of the entry
-			fullPath (boolean, default False):
-				return the list with absolute paths
+        Parameters:
+            key (string): the bibtex key of the entry
+            fullPath (boolean, default False):
+                return the list with absolute paths
 
-		Output:
-			a list, possibly empty
-		"""
+        Output:
+            a list, possibly empty
+        """
         fileDir = self.getFileDir(key)
         try:
             dircontent = os.listdir(fileDir)
@@ -365,9 +365,9 @@ class LocalPDF:
 
     def printExisting(self, key, fullPath=False):
         """Print the list of existing files for a given entry,
-		using self.getExisting to get it.
-		Same parameters as self.getExisting.
-		"""
+        using self.getExisting to get it.
+        Same parameters as self.getExisting.
+        """
         pBLogger.info(
             "Listing file for entry '%s', located in %s:" % (key, self.getFileDir(key))
         )
@@ -376,15 +376,15 @@ class LocalPDF:
 
     def printAllExisting(self, entries=None, fullPath=False):
         """Print the complete list of all the existing PDF files
-		in the PDF folder, given all the entries in the database
-		or a specific subset
+        in the PDF folder, given all the entries in the database
+        or a specific subset
 
-		Parameters:
-			entries (list, optional): the list of bibtex keys to consider.
-				If None, get all the database content
-			fullPath (boolean, default False):
-				print the list with absolute paths
-		"""
+        Parameters:
+            entries (list, optional): the list of bibtex keys to consider.
+                If None, get all the database content
+            fullPath (boolean, default False):
+                print the list with absolute paths
+        """
         iterator = entries
         if entries is None:
             pBDB.bibs.fetchAll(orderBy="firstdate", saveQuery=False, doFetch=False)
@@ -396,10 +396,10 @@ class LocalPDF:
 
     def removeSparePDFFolders(self):
         """Scans the PDF folder in order to find single unassociated
-		directories (their name is not matched by any database entry).
-		The unassociated directories are removed without asking any
-		additional confirmation. Be careful!
-		"""
+        directories (their name is not matched by any database entry).
+        The unassociated directories are removed without asking any
+        additional confirmation. Be careful!
+        """
         pBDB.bibs.fetchAll(doFetch=False)
         folders = os.listdir(self.pdfDir)
         for e in pBDB.bibs.fetchCursor():
@@ -421,10 +421,10 @@ class LocalPDF:
     def mergePDFFolders(self, oldkey, newkey):
         """Copy the PDF files that exist in one folder to a new one
 
-		Parameters:
-			oldkey: the old bibtex key
-			newkey: the new bibtex key
-		"""
+        Parameters:
+            oldkey: the old bibtex key
+            newkey: the new bibtex key
+        """
         oldPDFs = self.getExisting(oldkey, fullPath=True)
         outFolder = self.getFileDir(newkey)
         self.createFolder(newkey)
@@ -438,12 +438,12 @@ class LocalPDF:
     def numberOfFiles(self, folder):
         """Get the total number of files inside the given folder
 
-		Parameters:
-			folder: the path of the folder to scan
+        Parameters:
+            folder: the path of the folder to scan
 
-		Output:
-			the number of files
-		"""
+        Output:
+            the number of files
+        """
         total_number = 0
         if six.PY2:
             error_class = OSError
@@ -471,13 +471,13 @@ class LocalPDF:
     def dirSize(self, folder, dirs=True):
         """Get the size of a single directory and its content
 
-		Parameters:
-			folder: the path of the folder to scan
-			dirs (default True): if True, include the size of folders
+        Parameters:
+            folder: the path of the folder to scan
+            dirs (default True): if True, include the size of folders
 
-		Output:
-			the size in bytes
-		"""
+        Output:
+            the size in bytes
+        """
         if dirs:
             if six.PY2:
                 error_class = OSError
@@ -512,14 +512,14 @@ class LocalPDF:
     def getSizeWUnits(self, size, units="MB", fmt="%.2f"):
         """Print a size obtained with `self.dirSize`
 
-		Parameters:
-			size:
-			units (default "MB"):
-			format (default "%.2f"): the format
+        Parameters:
+            size:
+            units (default "MB"):
+            format (default "%.2f"): the format
 
-		Output:
-			the string with the size in the appropriate units
-		"""
+        Output:
+            the string with the size in the appropriate units
+        """
         allowedUnits = ["B", "KB", "MB", "GB", "TB", "PB"]
         try:
             exponent = allowedUnits.index(units.upper())

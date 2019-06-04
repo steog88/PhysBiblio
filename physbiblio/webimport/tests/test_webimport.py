@@ -28,8 +28,8 @@ except Exception:
 @unittest.skipIf(skipTestsSettings.online, "Online tests")
 class TestWebImportMethods(unittest.TestCase):
     """Test the functions that import entries from the web.
-	Should not fail if everything works fine.
-	"""
+    Should not fail if everything works fine.
+    """
 
     def test_methods_success(self):
         """Test webimport with known results"""

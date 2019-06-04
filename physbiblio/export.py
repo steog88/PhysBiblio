@@ -38,9 +38,9 @@ class PBExport:
     def backupCopy(self, fileName):
         """Creates a backup copy of the given file.
 
-		Parameters:
-			fileName: the name of the file to be backed up
-		"""
+        Parameters:
+            fileName: the name of the file to be backed up
+        """
         if os.path.isfile(fileName):
             try:
                 shutil.copy2(fileName, fileName + self.backupExtension)
@@ -56,9 +56,9 @@ class PBExport:
     def restoreBackupCopy(self, fileName):
         """Restores the backup copy of the given file, if any.
 
-		Parameters:
-			fileName: the name of the file to be restore
-		"""
+        Parameters:
+            fileName: the name of the file to be restore
+        """
         if os.path.isfile(fileName + self.backupExtension):
             try:
                 shutil.copy2(fileName + self.backupExtension, fileName)
@@ -74,10 +74,10 @@ class PBExport:
     def rmBackupCopy(self, fileName):
         """Deletes the backup copy of the given file, if any.
 
-		Parameters:
-			fileName: the name of the file of which
-				the backup should be deleted
-		"""
+        Parameters:
+            fileName: the name of the file of which
+                the backup should be deleted
+        """
         if os.path.isfile(fileName + self.backupExtension):
             try:
                 os.remove(fileName + self.backupExtension)
@@ -92,11 +92,11 @@ class PBExport:
 
     def exportLast(self, fileName):
         """Export the last queried entries into a .bib file,
-		if the list is not empty.
+        if the list is not empty.
 
-		Parameters:
-			fileName: the name of the output bibtex file
-		"""
+        Parameters:
+            fileName: the name of the output bibtex file
+        """
         if pBDB.bibs.lastFetched:
             self.exportRows(fileName, pBDB.bibs.lastFetched)
         else:
@@ -105,9 +105,9 @@ class PBExport:
     def exportAll(self, fileName):
         """Export all the entries in the database into a .bib file.
 
-		Parameters:
-			fileName: the name of the output bibtex file
-		"""
+        Parameters:
+            fileName: the name of the output bibtex file
+        """
         pBDB.bibs.fetchAll(saveQuery=False, doFetch=False)
         self.exportRows(fileName, pBDB.bibs.fetchCursor())
 
@@ -118,10 +118,10 @@ class PBExport:
     def exportRows(self, fileName, rows):
         """Export the given entries into a .bib file.
 
-		Parameters:
-			fileName: the name of the output bibtex file
-			rows: the list of entries to be exported
-		"""
+        Parameters:
+            fileName: the name of the output bibtex file
+            rows: the list of entries to be exported
+        """
         self.backupCopy(fileName)
         if rows != []:
             try:
@@ -146,36 +146,36 @@ class PBExport:
         newOperation=True,
     ):
         """Reads a .tex file looking for the \cite{} commands,
-		collects the bibtex entries cited in the text and
-		stores them in a bibtex file.
-		The entries are taken from the database first,
-		or from INSPIRE-HEP if possible.
-		The downloaded entries are saved in the database.
+        collects the bibtex entries cited in the text and
+        stores them in a bibtex file.
+        The entries are taken from the database first,
+        or from INSPIRE-HEP if possible.
+        The downloaded entries are saved in the database.
 
-		Parameters:
-			texFileName: the name (or a list of names)
-				of the considered .tex file(s)
-			outFileName: the name of the output file,
-				where the required entries will be added
-			overwrite (boolean, default False):
-				if True, the previous version of the file is replaced
-				and no backup copy is created
-			autosave (boolean, default True):
-				if True, the changes to the database are automatically saved.
-			updateExisting (boolean, default False):
-				if True, remove duplicates and update entries
-				that have been chenged in the DB
-			removeUnused (boolean, default False):
-				if True, remove bibtex entries that are no more cited
-				in the tex files
-			newOperation (boolean, default True):
-				reset the self.existingBibsList and read file .bib content.
-				Time consuming! better to just keep it updated
-				when using multiple texs...
+        Parameters:
+            texFileName: the name (or a list of names)
+                of the considered .tex file(s)
+            outFileName: the name of the output file,
+                where the required entries will be added
+            overwrite (boolean, default False):
+                if True, the previous version of the file is replaced
+                and no backup copy is created
+            autosave (boolean, default True):
+                if True, the changes to the database are automatically saved.
+            updateExisting (boolean, default False):
+                if True, remove duplicates and update entries
+                that have been chenged in the DB
+            removeUnused (boolean, default False):
+                if True, remove bibtex entries that are no more cited
+                in the tex files
+            newOperation (boolean, default True):
+                reset the self.existingBibsList and read file .bib content.
+                Time consuming! better to just keep it updated
+                when using multiple texs...
 
-		Output:
-			True if successful, False if errors occurred
-		"""
+        Output:
+            True if successful, False if errors occurred
+        """
         db = bibtexparser.bibdatabase.BibDatabase()
 
         def printOutput(
@@ -213,13 +213,13 @@ class PBExport:
 
         def saveEntryOutBib(a, m=None):
             """Remove unwanted fields and add the bibtex entry
-			to the output file
+            to the output file
 
-			Parameters:
-				a: the bibtex entry
-				m: the ID (bibtex key) of the entry,
-					if it is not the default one
-			"""
+            Parameters:
+                a: the bibtex entry
+                m: the ID (bibtex key) of the entry,
+                    if it is not the default one
+            """
             entry = (
                 bibtexparser.bparser.BibTexParser(common_strings=True)
                 .parse(a)
@@ -246,9 +246,9 @@ class PBExport:
 
         def removeUnusedBibtexs(existingBibsDict):
             """Functions that reads the list of bibtex entries
-			in the existing .bib file and removes
-			the ones that are not inside \cite commands
-			"""
+            in the existing .bib file and removes
+            the ones that are not inside \cite commands
+            """
             newDict = {}
             notFound = []
             for k, v in existingBibsDict.items():
@@ -533,17 +533,17 @@ class PBExport:
 
     def updateExportedBib(self, fileName, overwrite=False):
         """Reads a bibtex file and updates the entries that it contains,
-		for example if the entry has been published.
+        for example if the entry has been published.
 
-		Parameters:
-			fileName: the name of the considered bibtex file
-			overwrite (boolean, default False): if True,
-				the previous version of the file is replaced
-				and no backup copy is created
+        Parameters:
+            fileName: the name of the considered bibtex file
+            overwrite (boolean, default False): if True,
+                the previous version of the file is replaced
+                and no backup copy is created
 
-		Output:
-			True if successful, False if errors occurred
-		"""
+        Output:
+            True if successful, False if errors occurred
+        """
         self.backupCopy(fileName)
         bibfile = ""
         try:

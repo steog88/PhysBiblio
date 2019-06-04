@@ -173,18 +173,18 @@ for p in configuration_params:
 
 class GlobalDB(PhysBiblioDBCore):
     """Class that manages the operations on the global DB:
-	profiles and frequent searches/replaces
-	"""
+    profiles and frequent searches/replaces
+    """
 
     def __init__(self, dbname, logger, datapath, info=True):
         """Class constructor
 
-		Parameters:
-			dbname: the name of the database to open
-			logger: the logger used for messages
-			datapath: the path where to store database files
-			info (boolean, default True): print some output messages
-		"""
+        Parameters:
+            dbname: the name of the database to open
+            logger: the logger used for messages
+            datapath: the path where to store database files
+            info (boolean, default True): print some output messages
+        """
         self.dataPath = datapath
         PhysBiblioDBCore.__init__(self, dbname, logger, noOpen=True)
         self.openDB(info=info)
@@ -229,9 +229,9 @@ class GlobalDB(PhysBiblioDBCore):
     def countProfiles(self):
         """Obtain the number of profiles in the database
 
-		Output:
-			the number of profiles
-		"""
+        Output:
+            the number of profiles
+        """
         self.cursExec("SELECT Count(*) FROM profiles")
         return self.curs.fetchall()[0][0]
 
@@ -240,17 +240,17 @@ class GlobalDB(PhysBiblioDBCore):
     ):
         """Create a new profile
 
-		Parameters:
-			name: the name of the profile
-			description: a short description of the profile
-			databasefile: the name of the database file
-				which will contain data
-			oldCfg: the name of the old .cfg file
-				(backwards compatibility only)
+        Parameters:
+            name: the name of the profile
+            description: a short description of the profile
+            databasefile: the name of the database file
+                which will contain data
+            oldCfg: the name of the old .cfg file
+                (backwards compatibility only)
 
-		Output:
-			True if successful, sys.exit(1) otherwise
-		"""
+        Output:
+            True if successful, sys.exit(1) otherwise
+        """
         if databasefile is None:
             databasefile = os.path.join(
                 self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")
@@ -279,22 +279,22 @@ class GlobalDB(PhysBiblioDBCore):
     def updateProfileField(self, identifier, field, value, identifierField="name"):
         """Update a field of an existing profile
 
-		Parameters:
-			identifier: the identifier of the profile.
-				It may be 1 if `identifierField` == "isDefault",
-				the name of the profile or the database filename
-				if `identifierField` == "name" or "databasefile",
-				respectively.
-			field: the name of the field to update.
-			value: the new vallue of the field
-			identifierField: "name", "databasefile" or "isDefault".
-				It must be "databasefile" if you want to change
-				the profile name and "name" if you want to change
-				the databasefile (discouraged, however)
+        Parameters:
+            identifier: the identifier of the profile.
+                It may be 1 if `identifierField` == "isDefault",
+                the name of the profile or the database filename
+                if `identifierField` == "name" or "databasefile",
+                respectively.
+            field: the name of the field to update.
+            value: the new vallue of the field
+            identifierField: "name", "databasefile" or "isDefault".
+                It must be "databasefile" if you want to change
+                the profile name and "name" if you want to change
+                the databasefile (discouraged, however)
 
-		Output:
-			True if successful, False otherwise
-		"""
+        Output:
+            True if successful, False otherwise
+        """
         if (
             (field == "databasefile" and identifierField != "name")
             or (field == "name" and identifierField != "databasefile")
@@ -321,12 +321,12 @@ class GlobalDB(PhysBiblioDBCore):
     def deleteProfile(self, name):
         """Delete a profile given the name
 
-		Parameters:
-			name: the profile name
+        Parameters:
+            name: the profile name
 
-		Output:
-			True if successful, False otherwise
-		"""
+        Output:
+            True if successful, False otherwise
+        """
         if name.strip() == "":
             self.logger.error("You must provide the profile name!")
             return False
@@ -344,23 +344,23 @@ class GlobalDB(PhysBiblioDBCore):
     def getProfiles(self):
         """Get the list of profiles
 
-		Output:
-			the list of `sqlite3.Row` objects
-		"""
+        Output:
+            the list of `sqlite3.Row` objects
+        """
         self.cursExec("SELECT * FROM profiles order by ord ASC, name ASC\n")
         return self.curs.fetchall()
 
     def getProfile(self, name="", filename=""):
         """Get a profile given its name or the name of the database file.
-		Note that only one of the two may be given
+        Note that only one of the two may be given
 
-		Parameters:
-			name: the name of the profile
-			filename: the database filename of the profile
+        Parameters:
+            name: the name of the profile
+            filename: the database filename of the profile
 
-		Output:
-			the `sqlite3.Row` object
-		"""
+        Output:
+            the `sqlite3.Row` object
+        """
         if name.strip() == "" and filename.strip() == "":
             self.logger.warning(
                 "You should specify the name or the filename"
@@ -382,9 +382,9 @@ class GlobalDB(PhysBiblioDBCore):
     def getProfileOrder(self):
         """Obtain the order of profiles
 
-		Output:
-			a list with the names of the ordered profiles
-		"""
+        Output:
+            a list with the names of the ordered profiles
+        """
         if self.countProfiles() == 0:
             self.createProfile()
             self.setDefaultProfile("default")
@@ -394,12 +394,12 @@ class GlobalDB(PhysBiblioDBCore):
     def setProfileOrder(self, order=[]):
         """Set the new order of profiles
 
-		Parameters:
-			order: the ordered list of profile names
+        Parameters:
+            order: the ordered list of profile names
 
-		Output:
-			True if successful, False otherwise
-		"""
+        Output:
+            True if successful, False otherwise
+        """
         if order == []:
             self.logger.warning("No order given!")
             return False
@@ -429,9 +429,9 @@ class GlobalDB(PhysBiblioDBCore):
     def getDefaultProfile(self):
         """Obtain the name of the default profile
 
-		Output:
-			the `sqlite3.Row` objects
-		"""
+        Output:
+            the `sqlite3.Row` objects
+        """
         if self.countProfiles() == 0:
             self.createProfile()
             self.setDefaultProfile("default")
@@ -448,12 +448,12 @@ class GlobalDB(PhysBiblioDBCore):
     def setDefaultProfile(self, name=None):
         """Set the new default profile
 
-		Parameters:
-			name: the profile name
+        Parameters:
+            name: the profile name
 
-		Output:
-			True if successful, False otherwise
-		"""
+        Output:
+            True if successful, False otherwise
+        """
         if name is None or name.strip() == "":
             self.logger.warning("No name given!")
             return False
@@ -480,9 +480,9 @@ class GlobalDB(PhysBiblioDBCore):
     def countSearches(self):
         """Obtain the number of searches in the table
 
-		Output:
-			the number of searches
-		"""
+        Output:
+            the number of searches
+        """
         self.cursExec("SELECT Count(*) FROM searches")
         return self.curs.fetchall()[0][0]
 
@@ -499,20 +499,20 @@ class GlobalDB(PhysBiblioDBCore):
     ):
         """Insert a new search/replace
 
-		Parameters:
-			name: the config name
-			count: the order in the cronology or in the menu
-			searchFields: the list of dictionaries which is meant
-				to be passed to fetchByDict
-			replaceFields: the replace fields used in searchAndReplace
-			manual (boolean, default False): manually saved entry
-			replacement (boolean, default False): replace or simple search
-			limit: the number of requested entries
-			offset: the offset
+        Parameters:
+            name: the config name
+            count: the order in the cronology or in the menu
+            searchFields: the list of dictionaries which is meant
+                to be passed to fetchByDict
+            replaceFields: the replace fields used in searchAndReplace
+            manual (boolean, default False): manually saved entry
+            replacement (boolean, default False): replace or simple search
+            limit: the number of requested entries
+            offset: the offset
 
-		Output:
-			the output of self.connExec
-		"""
+        Output:
+            the output of self.connExec
+        """
         if limit == 0:
             limit = pbConfig.params["defaultLimitBibtexs"]
         output = self.connExec(
@@ -537,12 +537,12 @@ class GlobalDB(PhysBiblioDBCore):
     def deleteSearch(self, idS):
         """Delete a search/replace given the id.
 
-		Parameters:
-			idS: the unique identifier
+        Parameters:
+            idS: the unique identifier
 
-		Output:
-			the output of cursExec
-		"""
+        Output:
+            the output of cursExec
+        """
         output = self.cursExec("delete from searches where idS=?\n", (idS,))
         self.commit()
         return output
@@ -550,48 +550,48 @@ class GlobalDB(PhysBiblioDBCore):
     def getAllSearches(self):
         """Get all the searches
 
-		Output:
-			the list of `sqlite3.Row` objects
-				with all the searches in the database
-		"""
+        Output:
+            the list of `sqlite3.Row` objects
+                with all the searches in the database
+        """
         self.cursExec("select * from searches order by count asc\n")
         return self.curs.fetchall()
 
     def getSearchByID(self, idS):
         """Get a search given its name
 
-		Parameters:
-			idS: the name of the search/replace
+        Parameters:
+            idS: the name of the search/replace
 
-		Output:
-			the list (len = 1) of `sqlite3.Row` objects
-				with all the matching searches
-		"""
+        Output:
+            the list (len = 1) of `sqlite3.Row` objects
+                with all the matching searches
+        """
         self.cursExec("select * from searches where idS=?\n", (idS,))
         return self.curs.fetchall()
 
     def getSearchByName(self, name):
         """Get a search given its name
 
-		Parameters:
-			name: the name of the search/replace
+        Parameters:
+            name: the name of the search/replace
 
-		Output:
-			the list of `sqlite3.Row` objects with all the matching searches
-		"""
+        Output:
+            the list of `sqlite3.Row` objects with all the matching searches
+        """
         self.cursExec("select * from searches where name=?\n", (name,))
         return self.curs.fetchall()
 
     def getSearchList(self, manual=False, replacement=False):
         """Get searches or replaces which were not manually saved
 
-		Parameters:
-			manual (boolean, default False): manually saved entry
-			replacement (boolean, default False): replace or simple search
+        Parameters:
+            manual (boolean, default False): manually saved entry
+            replacement (boolean, default False): replace or simple search
 
-		Output:
-			the list of `sqlite3.Row` objects with all the matching searches
-		"""
+        Output:
+            the list of `sqlite3.Row` objects with all the matching searches
+        """
         self.cursExec(
             "select * from searches where manual=? "
             + "and isReplace=? order by count ASC\n",
@@ -601,14 +601,14 @@ class GlobalDB(PhysBiblioDBCore):
 
     def updateSearchOrder(self, replacement=False):
         """Update the cronology order for searches or replaces
-		which were not manually saved
+        which were not manually saved
 
-		Parameters:
-			replacement (boolean, default False): replace or simple search
+        Parameters:
+            replacement (boolean, default False): replace or simple search
 
-		Output:
-			True if successfull, False if some sum failed
-		"""
+        Output:
+            True if successfull, False if some sum failed
+        """
         self.cursExec(
             "select * from searches where manual=? and isReplace=?\n",
             (0, 1 if replacement else 0),
@@ -628,15 +628,15 @@ class GlobalDB(PhysBiblioDBCore):
     def updateSearchField(self, idS, field, value):
         """Update a single field of an entry
 
-		Parameters:
-			idS: the search ID
-			field: the field name
-			value: the new value of the field
+        Parameters:
+            idS: the search ID
+            field: the field name
+            value: the new value of the field
 
-		Output:
-			the output of self.connExec or
-				False (empty value or not valid field)
-		"""
+        Output:
+            the output of self.connExec or
+                False (empty value or not valid field)
+        """
         if (
             field in ["searchDict", "replaceFields", "name", "limitNum", "offsetNum"]
             and value is not None
@@ -658,22 +658,22 @@ class ConfigurationDB(PhysBiblioDBSub):
     def count(self):
         """Obtain the number of settings in the table
 
-		Output:
-			the number of settings
-		"""
+        Output:
+            the number of settings
+        """
         self.cursExec("SELECT Count(*) FROM settings")
         return self.curs.fetchall()[0][0]
 
     def insert(self, name, value):
         """Insert a new setting. If already existing, update it
 
-		Parameters:
-			name: the config name
-			value: the content of the setting
+        Parameters:
+            name: the config name
+            value: the content of the setting
 
-		Output:
-			the output of self.connExec
-		"""
+        Output:
+            the output of self.connExec
+        """
         self.cursExec("select * from settings where name=?\n", (name,))
         if len(self.curs.fetchall()) > 0:
             self.mainDB.logger.info(
@@ -689,13 +689,13 @@ class ConfigurationDB(PhysBiblioDBSub):
     def update(self, name, value):
         """Update an existing setting
 
-		Parameters:
-			name: the config name
-			value: the content of the setting
+        Parameters:
+            name: the config name
+            value: the content of the setting
 
-		Output:
-			the output of self.connExec
-		"""
+        Output:
+            the output of self.connExec
+        """
         self.cursExec("select * from settings where name=?\n", (name,))
         if len(self.curs.fetchall()) == 0:
             self.mainDB.logger.info("No settings found with this name. Inserting it")
@@ -709,42 +709,42 @@ class ConfigurationDB(PhysBiblioDBSub):
     def delete(self, name):
         """Delete a setting.
 
-		Parameters:
-			name: the setting name
+        Parameters:
+            name: the setting name
 
-		Output:
-			the output of cursExec
-		"""
+        Output:
+            the output of cursExec
+        """
         return self.cursExec("delete from settings where name=?\n", (name,))
 
     def getAll(self):
         """Get all the settings
 
-		Output:
-			the list of `sqlite3.Row` objects with
-				all the settings in the database
-		"""
+        Output:
+            the list of `sqlite3.Row` objects with
+                all the settings in the database
+        """
         self.cursExec("select * from settings\n")
         return self.curs.fetchall()
 
     def getByName(self, name):
         """Get a setting given its name
 
-		Parameters:
-			name: the name of the setting
+        Parameters:
+            name: the name of the setting
 
-		Output:
-			the list (len = 1) of `sqlite3.Row` objects
-			with all the matching settings
-		"""
+        Output:
+            the list (len = 1) of `sqlite3.Row` objects
+            with all the matching settings
+        """
         self.cursExec("select * from settings where name=?\n", (name,))
         return self.curs.fetchall()
 
 
 class ConfigVars:
     """Contains all the common settings, the information on the profiles
-	and their configuration.
-	"""
+    and their configuration.
+    """
 
     arxivUrl = "https://arxiv.org"
     doiUrl = "https://doi.org/"
@@ -753,9 +753,9 @@ class ConfigVars:
 
     def __init__(self, profileFileName="profiles.db"):
         """Initialize the configuration.
-		Check the profiles first, then load the default profile
-		and its configuration.
-		"""
+        Check the profiles first, then load the default profile
+        and its configuration.
+        """
         self.defaultProfileName = None
         self.profiles = None
         self.profileOrder = None
@@ -817,9 +817,9 @@ class ConfigVars:
     def prepareLogger(self, string):
         """Replace the logger used by this module
 
-		Parameters:
-			string: the string used in getLogger
-		"""
+        Parameters:
+            string: the string used in getLogger
+        """
         self.loggerString = string
         self.logger = logging.getLogger(self.loggerString)
 
@@ -835,12 +835,12 @@ class ConfigVars:
 
     def reloadProfiles(self, useProfile=None):
         """Load the information from the profile database,
-		reset the default and current profile and the settings
+        reset the default and current profile and the settings
 
-		Parameters:
-			useProfile (optional): the name of the profile
-				to be used instead of the default one
-		"""
+        Parameters:
+            useProfile (optional): the name of the profile
+                to be used instead of the default one
+        """
         self.loadProfiles()
 
         self.currentProfileName = (
@@ -865,9 +865,9 @@ class ConfigVars:
 
     def checkOldProfiles(self):
         """Intended for backwards compatibility.
-		Check if there is a profiles.dat file in the self.configPath folder.
-		If yes, move it and the related information into the databases.
-		"""
+        Check if there is a profiles.dat file in the self.configPath folder.
+        If yes, move it and the related information into the databases.
+        """
         if os.path.isfile(self.configProfilesFile):
             self.logger.info("Moving info from profiles.dat into the profiles.db")
             for k in self.globalDb.getProfileOrder():
@@ -906,8 +906,8 @@ class ConfigVars:
 
     def oldReadProfiles(self):
         """Reads the list of profiles and the related parameters
-		from the profiles.dat file.
-		"""
+        from the profiles.dat file.
+        """
         with open(self.configProfilesFile) as r:
             txtarr = r.readlines()
         txt = "".join(txtarr)
@@ -918,12 +918,12 @@ class ConfigVars:
 
     def readProfiles(self):
         """Reads the list of profiles and the related parameters
-		from the profiles database.
+        from the profiles database.
 
-		Output:
-			the name of the default profile, the dictionary
-				with the profiles and the list of ordered profile names
-		"""
+        Output:
+            the name of the default profile, the dictionary
+                with the profiles and the list of ordered profile names
+        """
         allProf = self.globalDb.getProfiles()
         profiles = {}
         for e in allProf:
@@ -941,12 +941,12 @@ class ConfigVars:
 
     def reInit(self, newShort, newProfile=None):
         """Used when changing profile.
-		Reload all the configuration given the new profile name.
+        Reload all the configuration given the new profile name.
 
-		Parameters:
-			newShort (str): short name for the new profile to be loaded
-			newProfile (dict, optional): the profile file dictionary
-		"""
+        Parameters:
+            newShort (str): short name for the new profile to be loaded
+            newProfile (dict, optional): the profile file dictionary
+        """
         if newProfile is None:
             try:
                 newProfile = self.profiles[newShort]
@@ -967,8 +967,8 @@ class ConfigVars:
 
     def readConfig(self):
         """Read the configuration from the current database.
-		Parses the various parameters given their declared type.
-		"""
+        Parses the various parameters given their declared type.
+        """
         self.logger.debug("Reading configuration.\n")
         for k, v in config_defaults.items():
             if k == "mainDatabaseName":
@@ -1018,12 +1018,12 @@ class ConfigVars:
 
     def oldReInit(self, newShort, newProfile):
         """Old function used when changing profile.
-		Reloads all the configuration from scratch given the new profile name.
+        Reloads all the configuration from scratch given the new profile name.
 
-		Parameters:
-			newShort (str): short name for the new profile to be loaded
-			newProfile (dict): the profile file dictionary
-		"""
+        Parameters:
+            newShort (str): short name for the new profile to be loaded
+            newProfile (dict): the profile file dictionary
+        """
         self.currentProfileName = newShort
         self.params = {}
         for k, v in config_defaults.items():
@@ -1038,9 +1038,9 @@ class ConfigVars:
 
     def oldReadConfigFile(self):
         """Read the configuration from a file,
-		whose name is stored in self.configMainFile.
-		Parses the various parameters given their declared type.
-		"""
+        whose name is stored in self.configMainFile.
+        Parses the various parameters given their declared type.
+        """
         for k, v in config_defaults.items():
             if isinstance(v, str) and "PBDATA" in v:
                 v = os.path.join(self.dataPath, v.replace("PBDATA", ""))

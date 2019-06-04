@@ -18,8 +18,8 @@ except ImportError:
 
 class WebSearch(WebInterf):
     """Subclass of WebInterf that can connect
-	to INSPIRE-HEP to perform searches
-	"""
+    to INSPIRE-HEP to perform searches
+    """
 
     name = "inspire"
     description = "INSPIRE fetcher"
@@ -39,10 +39,10 @@ class WebSearch(WebInterf):
 
     def __init__(self):
         """Initializes the class variables
-		using the WebInterf constructor.
+        using the WebInterf constructor.
 
-		Define additional specific parameters for the INSPIRE-HEP API.
-		"""
+        Define additional specific parameters for the INSPIRE-HEP API.
+        """
         WebInterf.__init__(self)
         self.name = "inspire"
         self.description = "INSPIRE fetcher"
@@ -62,14 +62,14 @@ class WebSearch(WebInterf):
 
     def retrieveUrlFirst(self, string):
         """Retrieves the first result
-		from the content of the given web page.
+        from the content of the given web page.
 
-		Parameters:
-			string: the search string
+        Parameters:
+            string: the search string
 
-		Output:
-			returns the bibtex string obtained from the API
-		"""
+        Output:
+            returns the bibtex string obtained from the API
+        """
         self.urlArgs["p"] = string.replace(" ", "+")
         url = self.createUrl()
         pBLogger.info("Search '%s' -> %s" % (string, url))
@@ -88,14 +88,14 @@ class WebSearch(WebInterf):
 
     def retrieveUrlAll(self, string):
         """Retrieves all the result
-		from the content of the given web page.
+        from the content of the given web page.
 
-		Parameters:
-			string: the search string
+        Parameters:
+            string: the search string
 
-		Output:
-			returns the bibtex string obtained from the API
-		"""
+        Output:
+            returns the bibtex string obtained from the API
+        """
         self.urlArgs["p"] = string.replace(" ", "+")
         url = self.createUrl()
         pBLogger.info("Search '%s' -> %s" % (string, url))
@@ -114,14 +114,14 @@ class WebSearch(WebInterf):
 
     def retrieveInspireID(self, string, number=None):
         """Read the fetched content for a given entry
-		to obtain its INSPIRE-HEP ID
+        to obtain its INSPIRE-HEP ID
 
-		Parameters:
-			string: the search string
-			number (optional): the integer corresponding
-				to the desired entry in the list,
-				if more than one is present
-		"""
+        Parameters:
+            string: the search string
+            number (optional): the integer corresponding
+                to the desired entry in the list,
+                if more than one is present
+        """
         i = 0
         self.urlArgs["p"] = string.replace(" ", "+")
         self.urlArgs["of"] = "hb"  # do not ask bibtex, but standard

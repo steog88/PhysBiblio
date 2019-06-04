@@ -32,8 +32,8 @@ except ImportError:
 
 class InspireStatsLoader:
     """Class that contains the methods
-	to collect information from INSPIRE-HEP
-	"""
+    to collect information from INSPIRE-HEP
+    """
 
     urlBase = pbConfig.inspireSearchBase
     timeout = float(pbConfig.params["timeoutWebSearch"])
@@ -46,8 +46,8 @@ class InspireStatsLoader:
 
     def __init__(self):
         """The class constructor,
-		defines some constants and search options
-		"""
+        defines some constants and search options
+        """
         self.urlBase = pbConfig.inspireSearchBase
         self.timeout = float(pbConfig.params["timeoutWebSearch"])
         self.authorPlotInfo = None
@@ -62,9 +62,9 @@ class InspireStatsLoader:
     def changeBackend(self, wantBackend):
         """Changes the matplotlib backend currently in use.
 
-		Parameters:
-			wantBackend: a string that defines the wanted backend
-		"""
+        Parameters:
+            wantBackend: a string that defines the wanted backend
+        """
         if wantBackend != matplotlib.get_backend():
             matplotlib.use(wantBackend, warn=False, force=True)
             from matplotlib import pyplot as plt
@@ -73,14 +73,14 @@ class InspireStatsLoader:
 
     def JsonFromUrl(self, url):
         """Function that downloads the url content
-		and returns a Json object
+        and returns a Json object
 
-		Parameters:
-			url: string containing the url to be opened
+        Parameters:
+            url: string containing the url to be opened
 
-		Output:
-			the json object generated from the url content
-		"""
+        Output:
+            the json object generated from the url content
+        """
 
         def getSeries(url):
             response = requests.get(url, timeout=self.timeout)
@@ -107,38 +107,38 @@ class InspireStatsLoader:
 
     def authorStats(self, authorName, plot=False, reset=True):
         """Function that gets the data and
-		constructs the statistics for a given author.
+        constructs the statistics for a given author.
 
-		Parameters:
-			authorName: the author name as identified into INSPIRE-HEP,
-				or a list of author names
-				(it calls itself recursively for all the list elements)
-			plot (boolean, default False): True to call self.plotStats
-			reset (boolean, default False): True to delete
-				all previous existing data
-				(used as False when processing a list of authors)
+        Parameters:
+            authorName: the author name as identified into INSPIRE-HEP,
+                or a list of author names
+                (it calls itself recursively for all the list elements)
+            plot (boolean, default False): True to call self.plotStats
+            reset (boolean, default False): True to delete
+                all previous existing data
+                (used as False when processing a list of authors)
 
-		Output:
-			a dictionary containing all the statistic information.
-			For a single author, the structure is the following:
-			{
-				"name": the author name,
-				"aI": The complete information,
-					including the dictionaries with the single papers info
-					(see self.paperStats), the citations
-					and the corresponding dates,
-				"paLi": a list of [id, date] of the papers
-					associated with the author,
-				"allLi": the complete list of [date, total citations]
-					with all the citations to the papers,
-				"meanLi": the complete list of
-					[date, total citations/number of papers]
-					computed at each point from "allLi" content,
-				"h": the h-index,
-				"figs" (only if `plot` is True): contains the figures.
-					See self.plotStats
-			}
-		"""
+        Output:
+            a dictionary containing all the statistic information.
+            For a single author, the structure is the following:
+            {
+                "name": the author name,
+                "aI": The complete information,
+                    including the dictionaries with the single papers info
+                    (see self.paperStats), the citations
+                    and the corresponding dates,
+                "paLi": a list of [id, date] of the papers
+                    associated with the author,
+                "allLi": the complete list of [date, total citations]
+                    with all the citations to the papers,
+                "meanLi": the complete list of
+                    [date, total citations/number of papers]
+                    computed at each point from "allLi" content,
+                "h": the h-index,
+                "figs" (only if `plot` is True): contains the figures.
+                    See self.plotStats
+            }
+        """
         if reset:
             self.allInfoA = {}
             self.authorPapersList = [[], []]
@@ -230,31 +230,31 @@ class InspireStatsLoader:
 
     def paperStats(self, paperID, plot=False, verbose=1, paperDate=None, reset=True):
         """Function that gets the data and
-		constructs the statistics for a given paper.
+        constructs the statistics for a given paper.
 
-		Parameters:
-			paperID (string): the INSPIRE-HEP id of the paper (a number)
-			plot (boolean): whether or not the citations
-				should be plotted (default False)
-			verbose (int, default 1): increase the verbosity level
-			paperDate (datetime, optional): the date of at which
-				the paper was published
-			reset (boolean, default False): True to delete
-				all previous existing data
-				(used as False when processing a list of IDs)
+        Parameters:
+            paperID (string): the INSPIRE-HEP id of the paper (a number)
+            plot (boolean): whether or not the citations
+                should be plotted (default False)
+            verbose (int, default 1): increase the verbosity level
+            paperDate (datetime, optional): the date of at which
+                the paper was published
+            reset (boolean, default False): True to delete
+                all previous existing data
+                (used as False when processing a list of IDs)
 
-		Output:
-			a dictionary containing all the desired information.
-			The structure is the following:
-			{
-				"id": the paper ID,
-				"aI": the list of creation date for all the papers,
-					in INSPIRE-HEP order,
-				"citList": the ordered list of citing papers,
-				"fig" (only if `plot` is True): contains the figure.
-					See self.plotStats
-			}
-		"""
+        Output:
+            a dictionary containing all the desired information.
+            The structure is the following:
+            {
+                "id": the paper ID,
+                "aI": the list of creation date for all the papers,
+                    in INSPIRE-HEP order,
+                "citList": the ordered list of citing papers,
+                "fig" (only if `plot` is True): contains the figure.
+                    See self.plotStats
+            }
+        """
         if reset:
             self.allInfoP = {}
             self.citingPapersList = [[], []]
@@ -312,27 +312,27 @@ class InspireStatsLoader:
     ):
         """Plot the collected information, using matplotlib.pyplot.
 
-		Parameters:
-			paper (boolean, default False): plot statistics
-				for the last analyzed paper
-			author (boolean, default False): plot statistics
-				for the last analyzed author
-			show (boolean, default False): True to show the plots
-				in a separate window (with matplotlib.pyplot.show())
-			save (boolean, default False): True to save the plots into files.
-			path (string): where to save the plots
-			markPapers (boolean, default False): True to draw
-				a vertical lines at the dates
-				corresponding to a paper appearing
-			pickVal (float, default 6): the picker tolerance
+        Parameters:
+            paper (boolean, default False): plot statistics
+                for the last analyzed paper
+            author (boolean, default False): plot statistics
+                for the last analyzed author
+            show (boolean, default False): True to show the plots
+                in a separate window (with matplotlib.pyplot.show())
+            save (boolean, default False): True to save the plots into files.
+            path (string): where to save the plots
+            markPapers (boolean, default False): True to draw
+                a vertical lines at the dates
+                corresponding to a paper appearing
+            pickVal (float, default 6): the picker tolerance
 
-		Output:
-			False if paper==False and author==False,
-			the matplotlib.pyplot figure containing
-				the citation plot if paper==True,
-			a list of matplotlib.pyplot figures containing
-				the various plots if author==True
-		"""
+        Output:
+            False if paper==False and author==False,
+            the matplotlib.pyplot figure containing
+                the citation plot if paper==True,
+            a list of matplotlib.pyplot figures containing
+                the various plots if author==True
+        """
         if paper and self.paperPlotInfo is not None:
             if len(self.paperPlotInfo["citList"][0]) > 0:
                 pBLogger.info("Plotting for paper '%s'..." % self.paperPlotInfo["id"])

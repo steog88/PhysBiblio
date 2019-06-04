@@ -187,8 +187,8 @@ class TestCreateTables(unittest.TestCase):
 
     def test_createTables(self):
         """Test that all the tables are created at first time,
-		if DB is empty
-		"""
+        if DB is empty
+        """
         if os.path.exists(tempFDBName):
             os.remove(tempFDBName)
         open(tempFDBName, "a").close()
@@ -642,9 +642,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertTrue(
             self.pBDB.connExec(
                 """
-			INSERT into categories (name, description, parentCat, comments, ord)
-				values (:name, :description, :parentCat, :comments, :ord)
-			""",
+            INSERT into categories (name, description, parentCat, comments, ord)
+                values (:name, :description, :parentCat, :comments, :ord)
+            """,
                 {
                     "name": "abc",
                     "description": "d",
@@ -661,9 +661,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertTrue(
             self.pBDB.cats.connExec(
                 """
-			INSERT into categories (name, description, parentCat, comments, ord)
-				values (:name, :description, :parentCat, :comments, :ord)
-			""",
+            INSERT into categories (name, description, parentCat, comments, ord)
+                values (:name, :description, :parentCat, :comments, :ord)
+            """,
                 {
                     "name": "abc",
                     "description": "d",
@@ -679,9 +679,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertTrue(
             self.pBDB.connExec(
                 """
-			INSERT into categories (name, description, parentCat, comments, ord)
-				values (:name, :description, :parentCat, :comments, :ord)
-			""",
+            INSERT into categories (name, description, parentCat, comments, ord)
+                values (:name, :description, :parentCat, :comments, :ord)
+            """,
                 {
                     "name": "abcd",
                     "description": "e",
@@ -697,9 +697,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertFalse(
             self.pBDB.connExec(
                 """
-			INSERT into categories (name, description, parentCat, comments, ord)
-				values (:name, :description, :parentCat, :comments, :ord)
-			""",
+            INSERT into categories (name, description, parentCat, comments, ord)
+                values (:name, :description, :parentCat, :comments, :ord)
+            """,
                 {"name": "abcd", "description": "e", "parentCat": 0, "comments": ""},
             )
         )
@@ -1566,8 +1566,8 @@ class TestDatabaseExperiments(DBTestCase):
 
     def test_filterAll(self):
         """test the filterAll function, that looks into all the fields
-		for a matching string
-		"""
+        for a matching string
+        """
         self.assertTrue(
             self.pBDB.exps.insert(
                 {"name": "exp1match", "comments": "", "homepage": "", "inspire": ""}
@@ -5472,8 +5472,8 @@ class TestDatabaseEntries(DBTestCase):
 
     def test_setStuff(self):
         """test ["setBook", "setLecture", "setPhdThesis",
-		"setProceeding", "setReview", "setNoUpdate"]
-		"""
+        "setProceeding", "setReview", "setNoUpdate"]
+        """
         self.insert_three()
         for procedure, field in zip(
             [
@@ -6483,8 +6483,8 @@ class TestDatabaseEntries(DBTestCase):
 
     def test_updateFromOAI(self):
         """test updateFromOAI without relying
-		on the true pBDB.bibs.updateInfoFromOAI (mocked)
-		"""
+        on the true pBDB.bibs.updateInfoFromOAI (mocked)
+        """
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
                 u'@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
@@ -6525,10 +6525,10 @@ class TestDatabaseEntries(DBTestCase):
 
     def test_getDailyInfoFromOAI(self):
         """test the function getDailyInfoFromOAI,
-		without relying on the true
-		physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates
-		(mocked)
-		"""
+        without relying on the true
+        physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates
+        (mocked)
+        """
         self.maxDiff = None
         self.pBDB.bibs.insertFromBibtex(
             u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
@@ -7078,8 +7078,8 @@ class TestDatabaseUtilities(DBTestCase):
 
     def test_spare(self):
         """create spare connections just to delete them
-		with cleanSpareEntries
-		"""
+        with cleanSpareEntries
+        """
         self.pBDB.utils.cleanSpareEntries()
         self.assertTrue(self.pBDB.catBib.insert(1, "test"))
         self.assertEqual(self.pBDB.catExp.insert(1, [0, 1]), None)

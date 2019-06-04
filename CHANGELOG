@@ -1,244 +1,245 @@
-	* removed repeated entries in searches which require matching multiple categories/experiments
-	* better management of sorting of bibtex table
-	* fixed bug with "Ctrl+C" on selected lines in main table
-	* bug when looking for 'and' in authors list solved
-	* now using tox for testing
-	* now using black for code formatting
+1.2.0 (2019-06-04)
+    * removed repeated entries in searches which require matching multiple categories/experiments
+    * better management of sorting of bibtex table
+    * fixed bug with "Ctrl+C" on selected lines in main table
+    * bug when looking for 'and' in authors list solved
+    * now using tox for testing
+    * now using black for code formatting
 
 1.1.1 (2019-04-22)
-	* ctrl+c triggers "copy from clipboard" menu in main table
-	* when inserting a new bibtex, automatically read arxiv/doi/yearfrom bibtex content
-	* fix tests with newer bibtexparser versions
-	* fix problems with very old matplotlib
-	* fixes when importing from .bib files and one of the bibtex fields contains "@"
+    * ctrl+c triggers "copy from clipboard" menu in main table
+    * when inserting a new bibtex, automatically read arxiv/doi/yearfrom bibtex content
+    * fix tests with newer bibtexparser versions
+    * fix problems with very old matplotlib
+    * fixes when importing from .bib files and one of the bibtex fields contains "@"
 
 1.1.0 (2019-03-16)
-	* selection of entries is now possible with Ctrl+click
-	* double click on categories and experiments now opens list of corresponding entries
-	* bug solved when searching on "comment(s)"
-	* cursor did not restore when no results are found in advanced import
+    * selection of entries is now possible with Ctrl+click
+    * double click on categories and experiments now opens list of corresponding entries
+    * bug solved when searching on "comment(s)"
+    * cursor did not restore when no results are found in advanced import
 
 1.0.0 (2019-02-18)
-	* "open folder" in "Files" menu
-	* manage all file types, not only PDF
-	* unhandled error in catWindows.contextMenuEvent solved
-	* updateInspireID uses both doi and arxiv before declaring a failure
-	* solved some bugs when reading existing bibtex files with comments or empty fields
-	* --data-path and --config-path arguments are now parsed
+    * "open folder" in "Files" menu
+    * manage all file types, not only PDF
+    * unhandled error in catWindows.contextMenuEvent solved
+    * updateInspireID uses both doi and arxiv before declaring a failure
+    * solved some bugs when reading existing bibtex files with comments or empty fields
+    * --data-path and --config-path arguments are now parsed
 
 0.9.7 (2019-01-27):
-	New features / improvements
-	* accept djvu and ps files, not only pdf ones
-	* more importance to "comments" field in bibtex entries
-	* exportForTexFile now distinguishes the case of the keys when saving the output
-	* 'entries' table now has a case-insensitive primary key
-	* unhandled exception should not cause crashes now
+    New features / improvements
+    * accept djvu and ps files, not only pdf ones
+    * more importance to "comments" field in bibtex entries
+    * exportForTexFile now distinguishes the case of the keys when saving the output
+    * 'entries' table now has a case-insensitive primary key
+    * unhandled exception should not cause crashes now
 
-	Bug fixes
-	* create PDF folder when it is missing, avoid error in dirSize
-	* outdated package failing when no connection caused a crash
-	* explicit error message still shown when editing bibtexs and having incomplete text
-	* prevent closing the edit bibtex dialog when a non-valid bibtex is present
+    Bug fixes
+    * create PDF folder when it is missing, avoid error in dirSize
+    * outdated package failing when no connection caused a crash
+    * explicit error message still shown when editing bibtexs and having incomplete text
+    * prevent closing the edit bibtex dialog when a non-valid bibtex is present
 
 0.9.6 (2018-12-30):
-	* compatibility with PySide2 version 5.12 fixed
-	* tests on MacOS Mojave (python 3.7 only) and related bug fixes
-	* order of PDF submenu in bibtexs table revisited
-	* new GUI form for "Export for tex" command
+    * compatibility with PySide2 version 5.12 fixed
+    * tests on MacOS Mojave (python 3.7 only) and related bug fixes
+    * order of PDF submenu in bibtexs table revisited
+    * new GUI form for "Export for tex" command
 
 0.9.5 (2018-12-28):
-	* search/replace form completely rewritten
-	* up/down arrows in search/replace form enable use of recent searches
-	* PySide2 version 5.12+ currently not working
-	* fixing a crash when firstdate is removed from the bibtex list columns
+    * search/replace form completely rewritten
+    * up/down arrows in search/replace form enable use of recent searches
+    * PySide2 version 5.12+ currently not working
+    * fixing a crash when firstdate is removed from the bibtex list columns
 
 0.9.4 (2018-12-06):
-	* now asking to close when the database is locked by another PhysBiblio instance
-	* more accurate tests in databaseCore and few improvements
-	* initial value in profile selection dialog fixed
-	* bug in editBibtex fixed
+    * now asking to close when the database is locked by another PhysBiblio instance
+    * more accurate tests in databaseCore and few improvements
+    * initial value in profile selection dialog fixed
+    * bug in editBibtex fixed
 
 0.9.3 (2018-11-30):
-	* forgot to rename executable in setup.py
+    * forgot to rename executable in setup.py
 
 0.9.2 (2018-11-29):
-	* executable renamed to PhysBiblio.exe to avoid case conflicts
-	* Prevent closing window with 'Esc' when a thread is running
+    * executable renamed to PhysBiblio.exe to avoid case conflicts
+    * Prevent closing window with 'Esc' when a thread is running
 
 0.9.1 (2018-11-20):
-	New features:
-	* improved merge function (deals with categories/experiments and PDF)
-	* replace functions now show progress
-	* statistics dialog now shows total size of the PDF folder
-	* browseDailyArxiv now shows import progress
+    New features:
+    * improved merge function (deals with categories/experiments and PDF)
+    * replace functions now show progress
+    * statistics dialog now shows total size of the PDF folder
+    * browseDailyArxiv now shows import progress
 
-	Improvements/bug fixes:
-	* Fixed bug related to format of saving marks in the database
-	* Fixed bug which prevented saved replaces to run properly
-	* Fixed possible python3 bug in advancedImport
+    Improvements/bug fixes:
+    * Fixed bug related to format of saving marks in the database
+    * Fixed bug which prevented saved replaces to run properly
+    * Fixed possible python3 bug in advancedImport
 
 0.9.0 (2018-11-10):
-	New features:
-	* now runs with PySide2 (based on Qt5)
-	* `Physbiblio test` options through command line
-	* filter of arxiv daily imports also considers the abstract text
-	* text selection with the mouse is allowed for all the labels in the widgets
-	* link to the entry web page in the category selection dialog
-	* complete info from INSPIRE works with multiple entries
+    New features:
+    * now runs with PySide2 (based on Qt5)
+    * `Physbiblio test` options through command line
+    * filter of arxiv daily imports also considers the abstract text
+    * text selection with the mouse is allowed for all the labels in the widgets
+    * link to the entry web page in the category selection dialog
+    * complete info from INSPIRE works with multiple entries
 
-	Improvements/bug fixes:
-	* construction of the main table can be speed up (a lot!) disabling the auto resize of columns and rows (see in the settings)
-	* database.Entries.replace is running a bit faster now
-	* importFromBib splits the input file into segments, so that it will eventually fail only on single entries
-	* several functions improved
-	* several performance improvements
-	* many bugs fixed during code review for test writing
-	* moving towards PEP 8 (many code adjustments and object renamed)
+    Improvements/bug fixes:
+    * construction of the main table can be speed up (a lot!) disabling the auto resize of columns and rows (see in the settings)
+    * database.Entries.replace is running a bit faster now
+    * importFromBib splits the input file into segments, so that it will eventually fail only on single entries
+    * several functions improved
+    * several performance improvements
+    * many bugs fixed during code review for test writing
+    * moving towards PEP 8 (many code adjustments and object renamed)
 
 0.6.1 (2018-10-09):
-	* bug when extracting the default profile solved
+    * bug when extracting the default profile solved
 
 0.6.0 (2018-10-03):
-	* new field in database, entries table: bibdict. Needed to save time when building the main table
-	* much faster loading of the main table (for reasonable number of entries, still slow when requesting many of them)
+    * new field in database, entries table: bibdict. Needed to save time when building the main table
+    * much faster loading of the main table (for reasonable number of entries, still slow when requesting many of them)
 
 0.5.3 (2018-09-04):
-	* update arXiv "econ" subcategories
-	* improved tooltips in categories and experiments
-	* bug in inspireStatsGUI plot clicking
-	* typos
+    * update arXiv "econ" subcategories
+    * improved tooltips in categories and experiments
+    * bug in inspireStatsGUI plot clicking
+    * typos
 
 0.5.2 (2018-07-05):
-	New features:
-	* tooltips show the number of entries and categories/experiments associated to each experiment/category
-	* use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
-	* delete from multiple entries selection
-	* functions to detect bibtexs that cannot be parsed and to edit them to fix the errors
+    New features:
+    * tooltips show the number of entries and categories/experiments associated to each experiment/category
+    * use logging.handlers.RotatingFileHandler to have max 5 logfiles, max 5MB each.
+    * delete from multiple entries selection
+    * functions to detect bibtexs that cannot be parsed and to edit them to fix the errors
 
-	Improvements/bug fixes:
-	* bug in right click menu when marks or inspireID is None
-	* solved bug in a test of default configuration
-	* bibkey not replaced if bibtex is edited in a non valid way
-	* catch SSLError in textFromUrl
-	* speedup of some online tests with arXiv and Inspire-HEP
-	* IntegrityError causes connExec returns False
-	* update of bibkey after manual edit improved in case of existing key
+    Improvements/bug fixes:
+    * bug in right click menu when marks or inspireID is None
+    * solved bug in a test of default configuration
+    * bibkey not replaced if bibtex is edited in a non valid way
+    * catch SSLError in textFromUrl
+    * speedup of some online tests with arXiv and Inspire-HEP
+    * IntegrityError causes connExec returns False
+    * update of bibkey after manual edit improved in case of existing key
 
 0.5.1 (2018-07-02):
-	* edit marks and entry types from right-click menu
-	* fix missing year in unpublished papers from Inspire-HEP OAI
+    * edit marks and entry types from right-click menu
+    * fix missing year in unpublished papers from Inspire-HEP OAI
 
 0.5.0 (2018-06-24):
-	New features:
-	* frequent searches and frequent replaces can be saved and reused without needing to insert the field info all the times
-	* saving most recent replace fields in a chronology (reuse possibility not yet implemented)
+    New features:
+    * frequent searches and frequent replaces can be saved and reused without needing to insert the field info all the times
+    * saving most recent replace fields in a chronology (reuse possibility not yet implemented)
 
-	Improvements/bug fixes:
-	* fixed bug when bibtex key in tex file not matching the one in the DB and updating the existing bibtex file
-	* order of bibtex in updated bibtex file is now alphabetical in the bibtex keys
-	* problem with recognising existing tables in main DB solved
-	* bug when bibtex key changed during update solved
-	* updateBibkey now renames the pdf folder and updates old_keys
-	* arxiv and inspire data retrieved using https
+    Improvements/bug fixes:
+    * fixed bug when bibtex key in tex file not matching the one in the DB and updating the existing bibtex file
+    * order of bibtex in updated bibtex file is now alphabetical in the bibtex keys
+    * problem with recognising existing tables in main DB solved
+    * bug when bibtex key changed during update solved
+    * updateBibkey now renames the pdf folder and updates old_keys
+    * arxiv and inspire data retrieved using https
 
 0.4.4 (2018-06-13):
-	* speed up load when non-default profile is required
-	* fixing cross-list mark from arXiv daily
-	* default categories removed if "ask categories" is checked in daily arxiv import
-	* better treatment of json conversion of empty response in inspireStats
-	* avoid writing on the user log file when performing tests
-	* tests fixed
-	* copy keys / \cite{keys} / bibtexs from selection
+    * speed up load when non-default profile is required
+    * fixing cross-list mark from arXiv daily
+    * default categories removed if "ask categories" is checked in daily arxiv import
+    * better treatment of json conversion of empty response in inspireStats
+    * avoid writing on the user log file when performing tests
+    * tests fixed
+    * copy keys / \cite{keys} / bibtexs from selection
 
 0.4.3 (2018-05-28):
-	New features:
-	* browse daily listing and directly import from arxiv (or INSPIRE, if possible)
+    New features:
+    * browse daily listing and directly import from arxiv (or INSPIRE, if possible)
 
-	Improvements/bug fixes:
-	* KeyErrors in advanced import less verbose
-	* crash when local version is newer than PyPI one solved
-	* crash when offline and checking version solved
-	* abstract formulas are not reprocessed if the entry abstract is the one already shown
-	* upload to PyPI with twine, to solve problem with reStructuredText which only appeared today
+    Improvements/bug fixes:
+    * KeyErrors in advanced import less verbose
+    * crash when local version is newer than PyPI one solved
+    * crash when offline and checking version solved
+    * abstract formulas are not reprocessed if the entry abstract is the one already shown
+    * upload to PyPI with twine, to solve problem with reStructuredText which only appeared today
 
 0.4.2 (2018-05-24):
-	* arxivDaily function to retrieve arxiv daily updates with RSS
-	* improved some regex use
-	* "reload from INSPIRE" function for trying fixing broken entries
-	* fixed advanced import selection window
-	* waiting mouse cursor for some long loading operations
+    * arxivDaily function to retrieve arxiv daily updates with RSS
+    * improved some regex use
+    * "reload from INSPIRE" function for trying fixing broken entries
+    * fixed advanced import selection window
+    * waiting mouse cursor for some long loading operations
 
 0.4.1 (2018-05-21):
-	* bug when dealing with accents
-	* Conda instructions in readme
-	* config and data paths in About
+    * bug when dealing with accents
+    * Conda instructions in readme
+    * config and data paths in About
 
 0.4.0 (2018-05-20):
-	Improvements:
-	* improved advanced import using a tablemodel
-	* advanced import and loadAndInsert check arxiv and doi to mark entries as existing
-	* context menu action for opening entries corresponding to clicked category/experiment
-	* argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
-	* full resume of exportForTexFile after many tex file processed
-	* cellDoubleClick supports opening any pdf when double clicking on pdf cell
-	* improved utf-8 to latex conversion with pylatexenc
-	* exportForTexFile improved quite a lot
-	* speed-up of exportAll, exportLast, exportSelected
+    Improvements:
+    * improved advanced import using a tablemodel
+    * advanced import and loadAndInsert check arxiv and doi to mark entries as existing
+    * context menu action for opening entries corresponding to clicked category/experiment
+    * argparser for 'tex' now supports many tex files as input (but the order has been changed! the bib file is the first argument!)
+    * full resume of exportForTexFile after many tex file processed
+    * cellDoubleClick supports opening any pdf when double clicking on pdf cell
+    * improved utf-8 to latex conversion with pylatexenc
+    * exportForTexFile improved quite a lot
+    * speed-up of exportAll, exportLast, exportSelected
 
-	New features:
-	* enabled deleting of categories for selected entries
-	* check if new versions are available at startup
+    New features:
+    * enabled deleting of categories for selected entries
+    * check if new versions are available at startup
 
-	Bugs:
-	* bug when managing gui warning messages in some python versions solved
-	* new shortcuts for refresh and reload
-	* bugs in config dialog solved
-	* fixed broken argParser tests
+    Bugs:
+    * bug when managing gui warning messages in some python versions solved
+    * new shortcuts for refresh and reload
+    * bugs in config dialog solved
+    * fixed broken argParser tests
 
 0.3.0 (2018-05-08):
-	* profiles management goes through dedicated database
-	* configuration settings saved inside the database
-	* few bugs solved
+    * profiles management goes through dedicated database
+    * configuration settings saved inside the database
+    * few bugs solved
 
 0.2.2 (2018-05-01):
-	* readme updates
-	* settings for profile order and rename (due to a new format in profiles.dat, some information may be lost in the transition)
-	* main executable sub-commands improved with argparse
-	* call PhysBiblio sub-commands with the "-p" option to select the profile to use
-	* python3 bugs
+    * readme updates
+    * settings for profile order and rename (due to a new format in profiles.dat, some information may be lost in the transition)
+    * main executable sub-commands improved with argparse
+    * call PhysBiblio sub-commands with the "-p" option to select the profile to use
+    * python3 bugs
 
 0.2.1 (2018-04-27):
-	Code improvements:
-	* custom excepthook for non-gui and then gui when ready
-	* pBGUIErrorManager improved with a subclass of pBErrorManagerClass and a new dedicated logger
-	* QDesktopServices takes care of opening pdf and web pages (GUI)
+    Code improvements:
+    * custom excepthook for non-gui and then gui when ready
+    * pBGUIErrorManager improved with a subclass of pBErrorManagerClass and a new dedicated logger
+    * QDesktopServices takes care of opening pdf and web pages (GUI)
 
-	New/updated features:
-	* copy some contents to clipboard from main table
-	* improved window for configuration settings
-	* updated "About" content
+    New/updated features:
+    * copy some contents to clipboard from main table
+    * improved window for configuration settings
+    * updated "About" content
 
-	Bugs solved:
-	* multiple matches when looking for record in arxiv given the id
-	* no newlines in abstracts
-	* progress bar count
-	* default categories after import
+    Bugs solved:
+    * multiple matches when looking for record in arxiv given the id
+    * no newlines in abstracts
+    * progress bar count
+    * default categories after import
 
 0.2.0 (2018-04-21):
-	Code improvements:
-	* python3 compatibility
-	* setup.py
-	* test suite for non-graphical part
-	* docstrings for non-graphical part
-	* default paths with appdirs
-	* logging
-	* several optimizations/adjustments/improvements/speed-ups/bugfixes
-	
-	New features:
-	* import from bibtex file
-	* command line usage of main executable
-	* more fields are read from INSPIRE
-	* daily/weekly INSPIRE-HEP OAI harvesting
+    Code improvements:
+    * python3 compatibility
+    * setup.py
+    * test suite for non-graphical part
+    * docstrings for non-graphical part
+    * default paths with appdirs
+    * logging
+    * several optimizations/adjustments/improvements/speed-ups/bugfixes
+
+    New features:
+    * import from bibtex file
+    * command line usage of main executable
+    * more fields are read from INSPIRE
+    * daily/weekly INSPIRE-HEP OAI harvesting
 
 0.1.0 (2018-02-18):
-	first release
+    first release

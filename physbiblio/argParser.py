@@ -100,8 +100,8 @@ dateLast = datetime.date.today().strftime("%Y-%m-%d")
 
 def call_dates(args):
     """Use call_oaiDates to fetch updates between two dates
-	specified in the command line
-	"""
+    specified in the command line
+    """
     call_oaiDates(args.start, args.end)
 
 
@@ -147,8 +147,8 @@ def call_gui(args=None):
 
 class NewProfileAction(argparse.Action):
     """Used to trigger a reload of the settings
-	if a profile is specified as an argument
-	"""
+    if a profile is specified as an argument
+    """
 
     def __init__(self, option_strings, dest, **kwargs):
         super(NewProfileAction, self).__init__(option_strings, dest, **kwargs)

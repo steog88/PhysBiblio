@@ -39,18 +39,18 @@ figTitles = [
 
 class AuthorStatsPlots(PBDialog):
     """Class that constructs a window to show
-	the results of `authorStats`
-	"""
+    the results of `authorStats`
+    """
 
     def __init__(self, figs, title=None, parent=None):
         """Constructor.
 
-		Parameters:
-			figs: the list of figures
-			title (optional): the window title
-			parent (default None): the parent object,
-				which should have a property `lastAuthorStats`
-		"""
+        Parameters:
+            figs: the list of figures
+            title (optional): the window title
+            parent (default None): the parent object,
+                which should have a property `lastAuthorStats`
+        """
         super(AuthorStatsPlots, self).__init__(parent)
         self.figs = figs
         self.canvas = None
@@ -93,8 +93,8 @@ class AuthorStatsPlots(PBDialog):
 
     def saveAction(self):
         """Save the plot into a file,
-		after asking the directory where to save them
-		"""
+        after asking the directory where to save them
+        """
         savePath = askDirName(self, "Where do you want to save the plots of the stats?")
         if savePath != "":
             try:
@@ -109,21 +109,21 @@ class AuthorStatsPlots(PBDialog):
 
     def onPress(self, event):
         """Print the plot coordinates where a click was performed.
-		To be connected through `mpl_connect`.
-		Used for testing.
+        To be connected through `mpl_connect`.
+        Used for testing.
 
-		Parameter:
-			a `matplotlib.backend_bases.Event`
-		"""
+        Parameter:
+            a `matplotlib.backend_bases.Event`
+        """
         print(event.xdata, event.ydata)
 
     def pickEvent(self, event):
         """Save into `self.textBox` the coordinates
-		of the clicked object (`Line2D` or `Rectangle`) in the plot.
+        of the clicked object (`Line2D` or `Rectangle`) in the plot.
 
-		Parameter:
-			a `matplotlib.backend_bases.Event`
-		"""
+        Parameter:
+            a `matplotlib.backend_bases.Event`
+        """
         ob = event.artist
         ix = -1
         for i, f in enumerate(self.figs):
@@ -153,8 +153,8 @@ class AuthorStatsPlots(PBDialog):
 
     def updatePlots(self):
         """Reset the dialog window removing all the previous items
-		and create new canvas for the figures.
-		"""
+        and create new canvas for the figures.
+        """
         i = 0
         while True:
             item = self.layout().takeAt(i)
@@ -175,19 +175,19 @@ class AuthorStatsPlots(PBDialog):
 
 class PaperStatsPlots(PBDialog):
     """Class that constructs a window
-	to show the results of `paperStats`
-	"""
+    to show the results of `paperStats`
+    """
 
     def __init__(self, fig, title=None, parent=None):
         """Constructor.
-		Defines some properties and buttons
+        Defines some properties and buttons
 
-		Parameters:
-			fig: the figure to be shown
-			title (optional): the window title
-			parent (default None): the parent object,
-				which should have a property lastPaperStats
-		"""
+        Parameters:
+            fig: the figure to be shown
+            title (optional): the window title
+            parent (default None): the parent object,
+                which should have a property lastPaperStats
+        """
         super(PaperStatsPlots, self).__init__(parent)
         self.fig = fig
         self.canvas = None
@@ -221,8 +221,8 @@ class PaperStatsPlots(PBDialog):
 
     def saveAction(self):
         """Save the plot into a file,
-		after asking the directory where to save them
-		"""
+        after asking the directory where to save them
+        """
         savePath = askDirName(self, "Where do you want to save the plot of the stats?")
         if savePath != "":
             try:
@@ -237,11 +237,11 @@ class PaperStatsPlots(PBDialog):
 
     def pickEvent(self, event):
         """Save into `self.textBox` the coordinates
-		of the clicked object (`Line2D`) in the plot.
+        of the clicked object (`Line2D`) in the plot.
 
-		Parameter:
-			a `matplotlib.backend_bases.Event`
-		"""
+        Parameter:
+            a `matplotlib.backend_bases.Event`
+        """
         ob = event.artist
         ix = -1
         if isinstance(ob, Line2D):
@@ -260,8 +260,8 @@ class PaperStatsPlots(PBDialog):
 
     def updatePlots(self):
         """Reset the dialog window removing all the previous items
-		and create a new canvas for the figure.
-		"""
+        and create a new canvas for the figure.
+        """
         i = 0
         while True:
             item = self.layout().takeAt(i)

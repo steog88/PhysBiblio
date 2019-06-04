@@ -51,13 +51,13 @@ except ImportError:
 
 def safe_list_get(l, idx, default=""):
     """Safely get an element from a list.
-	No error if it doesn't exist...
+    No error if it doesn't exist...
 
-	Parameters:
-		l: the list from which to get the element
-		idx: the index
-		default: the default return value if `l[idx]` does not exist
-	"""
+    Parameters:
+        l: the list from which to get the element
+        idx: the index
+        default: the default return value if `l[idx]` does not exist
+    """
     if l is not None:
         try:
             return l[idx]
@@ -70,9 +70,9 @@ def safe_list_get(l, idx, default=""):
 def get_journal_ref_xml(marcxml):
     """Read the marcxml record and write the info on the publication
 
-	Parameter:
-		marcxml: the marcxml record to read
-	"""
+    Parameter:
+        marcxml: the marcxml record to read
+    """
     p = []
     y = []
     v = []
@@ -107,9 +107,9 @@ class MARCXMLReader(object):
     def __call__(self, element):
         """Call the xml parser and return the records
 
-		Parameter:
-			element: the xml text to read
-		"""
+        Parameter:
+            element: the xml text to read
+        """
         handler = marcxml.XmlHandler()
         if sys.version_info[0] < 3:
             marcxml.parse_xml(StringIO(tostring(element[0], encoding="UTF-8")), handler)
@@ -126,8 +126,8 @@ registry.registerReader("marcxml", marcxml_reader)
 
 class WebSearch(WebInterf):
     """Subclass of WebInterf that can connect to INSPIRE-HEP
-	to perform searches using the OAI API
-	"""
+    to perform searches using the OAI API
+    """
 
     name = "inspireoai"
     description = "INSPIRE OAI interface"
@@ -166,11 +166,11 @@ class WebSearch(WebInterf):
 
     def __init__(self):
         """Initializes the class variables using
-		the WebInterf constructor.
+        the WebInterf constructor.
 
-		Define additional specific parameters
-		for the INSPIRE-HEP OAI API.
-		"""
+        Define additional specific parameters
+        for the INSPIRE-HEP OAI API.
+        """
         WebInterf.__init__(self)
         self.name = "inspireoai"
         self.description = "INSPIRE OAI interface"
@@ -179,32 +179,32 @@ class WebSearch(WebInterf):
 
     def retrieveUrlFirst(self, string):
         """The OAI interface is not for string searches:
-		use the retrieveOAIData function if you have the INSPIRE ID
-		of the desired record
-		"""
+        use the retrieveOAIData function if you have the INSPIRE ID
+        of the desired record
+        """
         pBLogger.warning("Inspireoai cannot search strings in the DB")
         return ""
 
     def retrieveUrlAll(self, string):
         """The OAI interface is not for string searches:
-		use the retrieveOAIData function if you have the INSPIRE ID
-		of the desired record
-		"""
+        use the retrieveOAIData function if you have the INSPIRE ID
+        of the desired record
+        """
         pBLogger.warning("Inspireoai cannot search strings in the DB")
         return ""
 
     def readRecord(self, record, readConferenceTitle=False):
         """Read the content of a marcxml record
-		to return a bibtex string
+        to return a bibtex string
 
-		Parameters:
-			record: the marcxml record to read
-			readConferenceTitle (default False): if True, look for
-				the proceedings info to get the title of the conference
+        Parameters:
+            record: the marcxml record to read
+            readConferenceTitle (default False): if True, look for
+                the proceedings info to get the title of the conference
 
-		Output:
-			a dictionary with the obtained fields
-		"""
+        Output:
+            a dictionary with the obtained fields
+        """
         tmpDict = {}
         record.to_unicode = True
         record.force_utf8 = True
@@ -390,19 +390,19 @@ class WebSearch(WebInterf):
     ):
         """Get the marcxml entry for a given record
 
-		Parameters:
-			inspireID: the INSPIRE-HEP identifier (a number)
-				of the desired entry
-			bibtex (default None): whether the bibtex should be
-				included in the output dictionary
-			verbose (default 0): increase the output level
-			readConferenceTitle (boolean, default False):
-				try to read the conference title if dealing
-				with a proceeding
+        Parameters:
+            inspireID: the INSPIRE-HEP identifier (a number)
+                of the desired entry
+            bibtex (default None): whether the bibtex should be
+                included in the output dictionary
+            verbose (default 0): increase the output level
+            readConferenceTitle (boolean, default False):
+                try to read the conference title if dealing
+                with a proceeding
 
-		Output:
-			the dictionary containing the bibtex information
-		"""
+        Output:
+            the dictionary containing the bibtex information
+        """
         try:
             record = self.oai.getRecord(
                 metadataPrefix="marcxml", identifier="oai:inspirehep.net:" + inspireID
@@ -429,15 +429,15 @@ class WebSearch(WebInterf):
 
     def updateBibtex(self, res, bibtex):
         """use OAI data to update the (existing) bibtex information
-		of an entry
+        of an entry
 
-		Parameters:
-			res: the recent search results
-			bibtex: the old bibtex to be updated
+        Parameters:
+            res: the recent search results
+            bibtex: the old bibtex to be updated
 
-		Output:
-			True/False and a string containing the bibtex of the entry
-		"""
+        Output:
+            True/False and a string containing the bibtex of the entry
+        """
         try:
             element = bibtexparser.loads(bibtex).entries[0]
         except:
@@ -461,15 +461,15 @@ class WebSearch(WebInterf):
 
     def retrieveOAIUpdates(self, date1, date2):
         """Harvest the OAI API to get all the updates
-		and new occurrences between two dates
+        and new occurrences between two dates
 
-		Parameters:
-			date1, date2: dates that define
-				the time interval to be searched
+        Parameters:
+            date1, date2: dates that define
+                the time interval to be searched
 
-		Output:
-			a list of dictionaries containing the bibtex information
-		"""
+        Output:
+            a list of dictionaries containing the bibtex information
+        """
         recs = self.oai.listRecords(
             metadataPrefix="marcxml", from_=date1, until=date2, set="INSPIRE:HEP"
         )

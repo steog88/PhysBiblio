@@ -104,19 +104,19 @@ except ImportError as e:
 
 class MainWindow(QMainWindow):
     """This is the class that manages the main window of the PhysBiblio
-	graphical interface
-	"""
+    graphical interface
+    """
 
     errormessage = Signal(type, type, Exception, traceback)
 
     def __init__(self, testing=False):
         """Main window constructor.
-		Call many functions to set all the widgets and the properties
+        Call many functions to set all the widgets and the properties
 
-		Parameter:
-			testing (default False): if True, return without
-				executing all the creation of objects (used for tests)
-		"""
+        Parameter:
+            testing (default False): if True, return without
+                executing all the creation of objects (used for tests)
+        """
         QMainWindow.__init__(self)
         self.errormessage.connect(self.excepthook)
         availableWidth = QDesktopWidget().availableGeometry().width()
@@ -171,11 +171,11 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Intercept close events. If uncommitted changes exist,
-		ask before closing the application
+        ask before closing the application
 
-		Parameter:
-			event: a QEvent
-		"""
+        Parameter:
+            event: a QEvent
+        """
         if pBDB.checkUncommitted():
             if not askYesNo(
                 "There may be unsaved changes to the database.\n"
@@ -193,30 +193,30 @@ class MainWindow(QMainWindow):
 
     def excepthook(self, cls, exception, trcbk):
         """Function that will replace `sys.excepthook` to log
-		any error that occurs
+        any error that occurs
 
-		Parameters:
-			cls, exception, trcbk as in `sys.excepthook`
-		"""
+        Parameters:
+            cls, exception, trcbk as in `sys.excepthook`
+        """
         pBGUILogger.error("Unhandled exception", exc_info=(cls, exception, trcbk))
 
     def mainWindowTitle(self, title):
         """Set the window title
 
-		Parameter:
-			title: the window title
-		"""
+        Parameter:
+            title: the window title
+        """
         self.setWindowTitle(title)
 
     def printNewVersion(self, outdated, newVersion):
         """Open a warning notifying the existence of a new version,
-		if present, or just save an info in the log
+        if present, or just save an info in the log
 
-		Parameters:
-			outdated: boolean, tells if there is a new version available
-				in the PyPI repositories for update
-			newVersion: the number of the new version or an empty string
-		"""
+        Parameters:
+            outdated: boolean, tells if there is a new version available
+                in the PyPI repositories for update
+            newVersion: the number of the new version or an empty string
+        """
         if outdated:
             pBGUILogger.warning(
                 "New version available (%s)!\n" % newVersion
@@ -228,9 +228,9 @@ class MainWindow(QMainWindow):
 
     def lockedDatabase(self):
         """Action to be performed when the database is locked
-		by another instance of the program.
-		Ask what to do and close the main window.
-		"""
+        by another instance of the program.
+        Ask what to do and close the main window.
+        """
         if askYesNo(
             "The database is locked.\n"
             + "Probably another instance of the program is"
@@ -735,8 +735,8 @@ class MainWindow(QMainWindow):
 
     def createMainLayout(self):
         """Set the layout of the main window, i.e. create the splitters
-		and locate the bibtex list widget and the info panels
-		"""
+        and locate the bibtex list widget and the info panels
+        """
         # will contain the list of bibtex entries
         self.bibtexListWindow = BibtexListWindow(parent=self)
         self.bibtexListWindow.setFrameShape(QFrame.StyledPanel)
@@ -777,16 +777,16 @@ class MainWindow(QMainWindow):
 
     def refreshMainContent(self):
         """Delete the previous table widget and create a new one,
-		using last used query
-		"""
+        using last used query
+        """
         self.statusBarMessage("Reloading main table...")
         self.bibtexListWindow.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
         self.done()
 
     def reloadMainContent(self, bibs=None):
         """Delete the previous table widget and create a new one,
-		using the default query
-		"""
+        using the default query
+        """
         self.statusBarMessage("Reloading main table...")
         self.bibtexListWindow.recreateTable(bibs)
         self.done()
@@ -802,8 +802,8 @@ class MainWindow(QMainWindow):
 
     def config(self):
         """Open a window to manage the configuration of PhysBiblio,
-		then read its output and save the results
-		"""
+        then read its output and save the results
+        """
         cfgWin = ConfigWindow(self)
         cfgWin.exec_()
         if cfgWin.result:
@@ -842,8 +842,8 @@ class MainWindow(QMainWindow):
 
     def reloadConfig(self):
         """Reload the configuration from the database.
-		Typically used when a new profile has been opened
-		"""
+        Typically used when a new profile has been opened
+        """
         self.statusBarMessage("Reloading configuration...")
         pBView.webApp = pbConfig.params["webApplication"]
         pBPDF.pdfApp = pbConfig.params["pdfApplication"]
@@ -889,8 +889,8 @@ class MainWindow(QMainWindow):
 
     def showDBStats(self):
         """Function to show a dialog with the statistics
-		of the database content and on the number of stored PDF files
-		"""
+        of the database content and on the number of stored PDF files
+        """
         dbStats(pBDB)
         onlyfiles = pBPDF.numberOfFiles(pBPDF.pdfDir)
         mbox = QMessageBox(
@@ -915,19 +915,19 @@ class MainWindow(QMainWindow):
 
     def _runInThread(self, Thread_func, title, *args, **kwargs):
         """Function which simplifies the creation of the objects which
-		are needed to run a function in a thread
+        are needed to run a function in a thread
 
-		Parameters:
-			Thread_func: the thread class name
-			title: the title of the window where the output is shown
-			*args, **kwargs: all the other parameters which will
-				be passed to the thread constructor
-		"""
+        Parameters:
+            Thread_func: the thread class name
+            title: the title of the window where the output is shown
+            *args, **kwargs: all the other parameters which will
+                be passed to the thread constructor
+        """
 
         def getDelKwargs(key):
             """Extract a parameter from kwargs and delete it
-			from the original dictionary
-			"""
+            from the original dictionary
+            """
             if key in kwargs.keys():
                 tmp = kwargs.get(key)
                 del kwargs[key]
@@ -975,14 +975,14 @@ class MainWindow(QMainWindow):
 
     def cleanSpare(self):
         """Run a thread to clean the spare connections and records
-		in the database (if something has not been properly deleted)
-		"""
+        in the database (if something has not been properly deleted)
+        """
         self._runInThread(Thread_cleanSpare, "Clean spare entries")
 
     def cleanSparePDF(self):
         """Ask and run a thread to remove the spare PDF files/folder
-		in the database (if something has not been properly deleted)
-		"""
+        in the database (if something has not been properly deleted)
+        """
         if askYesNo(
             "Do you really want to delete the unassociated "
             + "PDF folders?\nThere may be some (unlikely) "
@@ -998,10 +998,10 @@ class MainWindow(QMainWindow):
     def statusBarMessage(self, message, time=4000):
         """Show a message in the status bar
 
-		Parameters:
-			message: the message text
-			time (default 4000): how long (in ms) to display the message
-		"""
+        Parameters:
+            message: the message text
+            time (default 4000): how long (in ms) to display the message
+        """
         pBLogger.info(message)
         self.mainStatusBar.showMessage(message, time)
 
@@ -1055,9 +1055,9 @@ class MainWindow(QMainWindow):
     def exportSelection(self, entries):
         """Ask and export the last selected entries in a .bib file
 
-		Parameter:
-			entries: the list of entries to be exported
-		"""
+        Parameter:
+            entries: the list of entries to be exported
+        """
         filename = askSaveFileName(
             self,
             title="Where do you want to export the selected entries?",
@@ -1071,8 +1071,8 @@ class MainWindow(QMainWindow):
 
     def exportFile(self):
         """Ask and export in a .bib file the bibtex entries
-		which are needed to compile one or more tex files
-		"""
+        which are needed to compile one or more tex files
+        """
         eft = ExportForTexDialog(self)
         eft.exec_()
         if eft.result:
@@ -1102,9 +1102,9 @@ class MainWindow(QMainWindow):
 
     def exportUpdate(self):
         """Ask and update a .bib file
-		which already contains bibtex entries
-		with the newer information from the database
-		"""
+        which already contains bibtex entries
+        with the newer information from the database
+        """
         filename = askSaveFileName(
             self, title="File to update?", filter="Bibtex (*.bib)"
         )
@@ -1157,10 +1157,10 @@ class MainWindow(QMainWindow):
     def searchBiblio(self, replace=False):
         """Open a dialog for performing searches in the database
 
-		Parameter:
-			replace (default False): to be passed to SearchBibsWindow,
-				in order to show (or not) the replace field inputs
-		"""
+        Parameter:
+            replace (default False): to be passed to SearchBibsWindow,
+                in order to show (or not) the replace field inputs
+        """
         newSearchWin = SearchBibsWindow(self, replace=replace)
         newSearchWin.exec_()
         if newSearchWin.result is True:
@@ -1256,13 +1256,13 @@ class MainWindow(QMainWindow):
     def runSearchBiblio(self, searchFields, lim, offs):
         """Run a search with some parameters
 
-		Parameters:
-			searchFields: the lsit of dictionaries
-				with the search parameters
-				to be used in `database.Entries.fetchFromDict`
-			lim: the maximum number of entries to fetch
-			offs: the offset for the search
-		"""
+        Parameters:
+            searchFields: the lsit of dictionaries
+                with the search parameters
+                to be used in `database.Entries.fetchFromDict`
+            lim: the maximum number of entries to fetch
+            offs: the offset for the search
+        """
         QApplication.setOverrideCursor(Qt.WaitCursor)
         noLim = pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs).lastFetched
         lastFetched = pBDB.bibs.fetchFromDict(
@@ -1281,24 +1281,24 @@ class MainWindow(QMainWindow):
     def runSearchReplaceBiblio(self, searchFields, replaceFields, offs):
         """Run a search&replace with some parameters
 
-		Parameters:
-			searchFields: the list of dictionaries
-				with the search parameters
-				to be used in `database.Entries.fetchFromDict`
-			replaceFields: a tuple/list of 5 elements,
-				as in the output of `self.searchBiblio`
-			offs: the offset for the search
-		"""
+        Parameters:
+            searchFields: the list of dictionaries
+                with the search parameters
+                to be used in `database.Entries.fetchFromDict`
+            replaceFields: a tuple/list of 5 elements,
+                as in the output of `self.searchBiblio`
+            offs: the offset for the search
+        """
         pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
         self.runReplace(replaceFields)
 
     def renameSearchBiblio(self, idS, oldname):
         """Rename a saved search
 
-		Parameters:
-			idS: the search id in the database
-			oldname: the old search name
-		"""
+        Parameters:
+            idS: the search id in the database
+            oldname: the old search name
+        """
         name = ""
         cancel = False
         while name.strip() == "":
@@ -1322,10 +1322,10 @@ class MainWindow(QMainWindow):
     def editSearchBiblio(self, idS, name):
         """Edit a saved search
 
-		Parameters:
-			idS: the search id in the database
-			name: the search name
-		"""
+        Parameters:
+            idS: the search id in the database
+            name: the search name
+        """
         record = pbConfig.globalDb.getSearchByID(idS)
         if len(record) < 1:
             pBLogger.error("Cannot find the requested search! id:%s" % idS)
@@ -1357,18 +1357,18 @@ class MainWindow(QMainWindow):
     def delSearchBiblio(self, idS, name):
         """Delete a saved search from the database
 
-		Parameters:
-			idS: the search id in the database
-			name: the search name
-		"""
+        Parameters:
+            idS: the search id in the database
+            name: the search name
+        """
         if askYesNo("Are you sure you want to delete the saved search '%s'?" % name):
             pbConfig.globalDb.deleteSearch(idS)
             self.createMenusAndToolBar()
 
     def searchAndReplace(self):
         """Open a search+replace form,
-		then use the result to run the replace function
-		"""
+        then use the result to run the replace function
+        """
         result = self.searchBiblio(replace=True)
         if result is False:
             return
@@ -1376,12 +1376,12 @@ class MainWindow(QMainWindow):
 
     def runReplace(self, replace):
         """Run the `database.Entries.replace` function,
-		then print some output in a dialog
+        then print some output in a dialog
 
-		Parameter:
-			replace: a tuple/list of 5 elements,
-				as in the output of `self.searchBiblio`
-		"""
+        Parameter:
+            replace: a tuple/list of 5 elements,
+                as in the output of `self.searchBiblio`
+        """
         regex = replace["regex"]
         fiOld = replace["fieOld"]
         old = replace["old"]
@@ -1425,8 +1425,8 @@ class MainWindow(QMainWindow):
 
     def updateAllBibtexsAsk(self):
         """Same as updateAllBibtexs, but ask the values of
-		`startFrom` and `force` before the execution
-		"""
+        `startFrom` and `force` before the execution
+        """
         force = askYesNo(
             "Do you want to force the update of already "
             + "existing items?\n(Only regular articles not "
@@ -1462,20 +1462,20 @@ class MainWindow(QMainWindow):
         reloadAll=False,
     ):
         """Use INSPIRE to obtain updated information of a list of papers
-		and update their bibtex with the new data.
-		Typically used to add journal information to arXiv papers.
+        and update their bibtex with the new data.
+        Typically used to add journal information to arXiv papers.
 
-		Parameters (see `physbiblio.database.Entries.searchOAIUpdates`):
-			startFrom (default from the app settings): the index
-				of the entry where to start from
-			useEntries (default None): None (then use all)
-				or a list of entries
-			force (default False): if True, force the update
-				also of entries which already have journal information
-			reloadAll (default False): if True, completely reload
-				the bibtex instead of updating it
-				(may solve some format problems)
-		"""
+        Parameters (see `physbiblio.database.Entries.searchOAIUpdates`):
+            startFrom (default from the app settings): the index
+                of the entry where to start from
+            useEntries (default None): None (then use all)
+                or a list of entries
+            force (default False): if True, force the update
+                also of entries which already have journal information
+            reloadAll (default False): if True, completely reload
+                the bibtex instead of updating it
+                (may solve some format problems)
+        """
         self.statusBarMessage("Starting update of bibtexs from %s..." % startFrom)
         self._runInThread(
             Thread_updateAllBibtexs,
@@ -1493,14 +1493,14 @@ class MainWindow(QMainWindow):
 
     def updateInspireInfo(self, bibkey, inspireID=None):
         """Use a thread to look for the INSPIRE ID of one or more papers
-		and then use it to obtain more information
-		(identifiers like DOI/arXiv, first appearance date, publication)
+        and then use it to obtain more information
+        (identifiers like DOI/arXiv, first appearance date, publication)
 
-		Parameters:
-			bibkey: the (list of) bibtex key of the entry
-			inspireID (default None): the (list of) INSPIRE ID,
-				if already known
-		"""
+        Parameters:
+            bibkey: the (list of) bibtex key of the entry
+            inspireID (default None): the (list of) INSPIRE ID,
+                if already known
+        """
         self.statusBarMessage("Starting generic info update from INSPIRE-HEP...")
         self._runInThread(
             Thread_updateInspireInfo,
@@ -1514,9 +1514,9 @@ class MainWindow(QMainWindow):
 
     def authorStats(self):
         """Ask the author name(s) and then
-		use a thread to obtain the citation statistics
-		for one or more authors using the INSPIRE-HEP database
-		"""
+        use a thread to obtain the citation statistics
+        for one or more authors using the INSPIRE-HEP database
+        """
         authorName, out = askGenericText(
             "Insert the INSPIRE name of the author of which you want "
             + "the publication and citation statistics:",
@@ -1569,11 +1569,11 @@ class MainWindow(QMainWindow):
 
     def getInspireStats(self, inspireId):
         """Use a thread to obtain the citation statistics
-		of a paper using the INSPIRE-HEP database
+        of a paper using the INSPIRE-HEP database
 
-		Parameter:
-			inspireId: the ID of the paper in the INSPIRE database
-		"""
+        Parameter:
+            inspireId: the ID of the paper in the INSPIRE database
+        """
         self._runInThread(
             Thread_paperStats,
             "Paper Stats",
@@ -1597,12 +1597,12 @@ class MainWindow(QMainWindow):
 
     def inspireLoadAndInsert(self, doReload=True):
         """Ask a search string, then use inspire to import the entries
-		which correspond, if unique results are obtained
+        which correspond, if unique results are obtained
 
-		Parameter:
-			doReload (default True): if True, reload
-				the main entries list at the end
-		"""
+        Parameter:
+            doReload (default True): if True, reload
+                the main entries list at the end
+        """
         queryStr, out = askGenericText(
             "Insert the query string you want to use for importing "
             + "from INSPIRE-HEP:\n(It will be interpreted as a list, "
@@ -1650,11 +1650,11 @@ class MainWindow(QMainWindow):
 
     def askCatsForEntries(self, entriesList):
         """Open a selection dialog for asking the categories
-		for a given list of entries
+        for a given list of entries
 
-		Parameter:
-			entriesList: the list of entries to be used
-		"""
+        Parameter:
+            entriesList: the list of entries to be used
+        """
         for entry in entriesList:
             selectCats = CatsTreeWindow(
                 parent=self,
@@ -1679,8 +1679,8 @@ class MainWindow(QMainWindow):
 
     def inspireLoadAndInsertWithCats(self):
         """Extend `self.inspireLoadAndInsert` to ask the categories
-		to associate the entry with, if the import was successful
-		"""
+        to associate the entry with, if the import was successful
+        """
         if (
             self.inspireLoadAndInsert(doReload=False)
             and len(self.loadedAndInserted) > 0
@@ -1692,10 +1692,10 @@ class MainWindow(QMainWindow):
 
     def advancedImport(self):
         """Advanced import dialog.
-		Open a dialog where you can select which method to use
-		and insert the search string,
-		then import a selection among the obtained results
-		"""
+        Open a dialog where you can select which method to use
+        and insert the search string,
+        then import a selection among the obtained results
+        """
         adIm = AdvancedImportDialog()
         adIm.exec_()
         method = adIm.comboMethod.currentText().lower()
@@ -1786,9 +1786,9 @@ class MainWindow(QMainWindow):
 
     def cleanAllBibtexsAsk(self):
         """Use a thread to clean and reformat the bibtex entries.
-		Ask the index of the entry where to start from,
-		before proceeding
-		"""
+        Ask the index of the entry where to start from,
+        before proceeding
+        """
         text, out = askGenericText(
             "Insert the ordinal number of "
             + "the bibtex element from which you want to start "
@@ -1814,13 +1814,13 @@ class MainWindow(QMainWindow):
     def cleanAllBibtexs(self, startFrom=0, useEntries=None):
         """Use a thread to clean and reformat the bibtex entries
 
-		Parameters:
-			startFrom (default 0): the list index of the entry
-				where to start from
-			useEntries (default None): if not None, it must be a list
-				of entries to be processed, otherwise the full database
-				content will be used
-		"""
+        Parameters:
+            startFrom (default 0): the list index of the entry
+                where to start from
+            useEntries (default None): if not None, it must be a list
+                of entries to be processed, otherwise the full database
+                content will be used
+        """
         self.statusBarMessage("Starting cleaning of bibtexs...")
         self._runInThread(
             Thread_cleanAllBibtexs,
@@ -1835,16 +1835,16 @@ class MainWindow(QMainWindow):
 
     def findBadBibtexs(self, startFrom=0, useEntries=None):
         """Use a thread to scan the database for bad bibtex entries.
-		If the user wants, a dialog for fixing each of them one by one
-		may appear at the end of the search
+        If the user wants, a dialog for fixing each of them one by one
+        may appear at the end of the search
 
-		Parameters:
-			startFrom (default 0): the list index of the entry
-				where to start from
-			useEntries (default None): if not None, it must be a list
-				of entries to be processed, otherwise the full database
-				content will be used
-		"""
+        Parameters:
+            startFrom (default 0): the list index of the entry
+                where to start from
+            useEntries (default None): if not None, it must be a list
+                of entries to be processed, otherwise the full database
+                content will be used
+        """
         self.statusBarMessage("Starting checking bibtexs...")
         self.badBibtexs = []
         self._runInThread(
@@ -1875,13 +1875,13 @@ class MainWindow(QMainWindow):
 
     def infoFromArxiv(self, useEntries=None):
         """Use arXiv to obtain more information
-		on a specific selection of entries
+        on a specific selection of entries
 
-		Parameter:
-			useEntries (default None): if not None, it must be a list
-				of entries to be completed, otherwise the full database
-				content will be used
-		"""
+        Parameter:
+            useEntries (default None): if not None, it must be a list
+                of entries to be completed, otherwise the full database
+                content will be used
+        """
         iterator = useEntries
         if useEntries is None:
             pBDB.bibs.fetchAll(doFetch=False)
@@ -1903,9 +1903,9 @@ class MainWindow(QMainWindow):
 
     def browseDailyArxiv(self):
         """Browse daily news from arXiv after showing
-		a dialog for asking the category,
-		and import the selection of entries
-		"""
+        a dialog for asking the category,
+        and import the selection of entries
+        """
         bDA = DailyArxivDialog()
         bDA.exec_()
         cat = bDA.comboCat.currentText().lower()
@@ -1962,9 +1962,9 @@ class MainWindow(QMainWindow):
     def sendMessage(self, message):
         """Show a simple infoMessage
 
-		Parameter:
-			message: the message content
-		"""
+        Parameter:
+            message: the message content
+        """
         infoMessage(message)
 
     def done(self):

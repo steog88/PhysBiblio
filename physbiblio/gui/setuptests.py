@@ -28,8 +28,8 @@ globalQApp = QApplication()
 
 def fakeExec(x, string, out):
     """Simulate the selection of some files and
-	return True/False as if confirmed/canceled
-	"""
+    return True/False as if confirmed/canceled
+    """
     QFileDialog.selectFile(x, string)
     return out
 
@@ -51,13 +51,13 @@ class GUITestCase(unittest.TestCase):
     def assertGeometry(self, obj, x, y, w, h):
         """Test the geometry of an object
 
-		Parameters:
-			obj: the object to be tested
-			x: the expected x position
-			y: the expected y position
-			w: the expected width
-			h: the expected height
-		"""
+        Parameters:
+            obj: the object to be tested
+            x: the expected x position
+            y: the expected y position
+            w: the expected width
+            h: the expected height
+        """
         geom = obj.geometry()
         self.assertEqual(geom.x(), x)
         self.assertEqual(geom.y(), y)
@@ -67,8 +67,8 @@ class GUITestCase(unittest.TestCase):
 
 class GUIwMainWTestCase(unittest.TestCase):
     """Class that manages GUI tests which need a testing instance
-	of the MainWindow class
-	"""
+    of the MainWindow class
+    """
 
     @classmethod
     def setUpClass(self):

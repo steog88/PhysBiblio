@@ -15,8 +15,8 @@ from pkg_resources import resource_listdir, resource_exists
 
 class PBScanningLoader(TestLoader):
     """Custom ScanningLoader implementation to be used
-	when calling `setup.py test`
-	"""
+    when calling `setup.py test`
+    """
 
     def __init__(self):
         TestLoader.__init__(self)
@@ -24,10 +24,10 @@ class PBScanningLoader(TestLoader):
 
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
-		If the module is a package, load tests from all the modules in it.
-		If the module has an ``additional_tests`` function, call it and add
-		the return value to the tests.
-		"""
+        If the module is a package, load tests from all the modules in it.
+        If the module has an ``additional_tests`` function, call it and add
+        the return value to the tests.
+        """
         if module in self._visited:
             return None
         self._visited.add(module)

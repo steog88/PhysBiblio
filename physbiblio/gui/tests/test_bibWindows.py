@@ -33,9 +33,9 @@ except Exception:
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class TestFunctions(GUIwMainWTestCase):
     """Test various functions:
-	copyToClipboard, writeBibtexInfo, writeAbstract,
-	editBibtex, deleteBibtex
-	"""
+    copyToClipboard, writeBibtexInfo, writeAbstract,
+    editBibtex, deleteBibtex
+    """
 
     def test_copyToClipboard(self):
         """test copyToClipboard"""

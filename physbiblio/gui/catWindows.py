@@ -41,17 +41,17 @@ except ImportError:
 
 def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None):
     """Open a dialog (`EditCategoryDialog`) to edit a category
-	and process the output.
+    and process the output.
 
-	Parameters:
-		parentObject: the parent widget
-		mainWinObject: the object which has
-			the `statusBarMessage` and `setWindowTitle` methods
-		editIdCat: the id of the category to be edited,
-			or `None` to create a new category
-		useParentCat: the parent category (if any)
-			of the one to be edited
-	"""
+    Parameters:
+        parentObject: the parent widget
+        mainWinObject: the object which has
+            the `statusBarMessage` and `setWindowTitle` methods
+        editIdCat: the id of the category to be edited,
+            or `None` to create a new category
+        useParentCat: the parent category (if any)
+            of the one to be edited
+    """
     if editIdCat is not None:
         edit = pBDB.cats.getDictByID(editIdCat)
     else:
@@ -100,13 +100,13 @@ def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None)
 def deleteCategory(parentObject, mainWinObject, idCat, name):
     """Ask confirmation and eventually delete the selected category
 
-	Parameters:
-		parentObject: the parent widget
-		mainWinObject: the object which has
-			the `statusBarMessage` and `setWindowTitle` methods
-		idCat: the id of the category to be deleted
-		name: the name of the category to be deleted
-	"""
+    Parameters:
+        parentObject: the parent widget
+        mainWinObject: the object which has
+            the `statusBarMessage` and `setWindowTitle` methods
+        idCat: the id of the category to be deleted
+        name: the name of the category to be deleted
+    """
     if askYesNo(
         "Do you really want to delete this category "
         + "(ID = '%s', name = '%s')?" % (idCat, name)
@@ -138,17 +138,17 @@ class CatsModel(TreeModel):
     ):
         """Initialize the model, save the data and the initial selection
 
-		Parameters:
-			cats: the list of categories records from the database
-			rootElements: the list of root elements of the tree
-			parent: the parent widget
-				(default: None)
-			previous: the list of previously selected categories
-				(default: an empty list)
-			multipleRecords: activate tristate for selecting categories
-				for multiple records
-				(default False)
-		"""
+        Parameters:
+            cats: the list of categories records from the database
+            rootElements: the list of root elements of the tree
+            parent: the parent widget
+                (default: None)
+            previous: the list of previously selected categories
+                (default: an empty list)
+            multipleRecords: activate tristate for selecting categories
+                for multiple records
+                (default False)
+        """
         self.cats = cats
         self.rootElements = rootElements
         TreeModel.__init__(self)
@@ -170,11 +170,11 @@ class CatsModel(TreeModel):
 
     def _getRootNodes(self):
         """Obtain the list of named nodes which represent the root
-		elements of the tree
+        elements of the tree
 
-		Output:
-			a list of `NamedNode`s
-		"""
+        Output:
+            a list of `NamedNode`s
+        """
         return [
             NamedNode(elem, None, index) for index, elem in enumerate(self.rootElements)
         ]
@@ -186,14 +186,14 @@ class CatsModel(TreeModel):
     def data(self, index, role):
         """Return the cell data for the given index and role
 
-		Parameters:
-			index: the `QModelIndex` for which the data are required
-			role: the desired Qt role for the data
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            role: the desired Qt role for the data
 
-		Output:
-			None if the index or the role are not valid,
-			the cell content of properties otherwise
-		"""
+        Output:
+            None if the index or the role are not valid,
+            the cell content of properties otherwise
+        """
         if not index.isValid():
             return None
         row = index.row()
@@ -224,13 +224,13 @@ class CatsModel(TreeModel):
     def flags(self, index):
         """Return the cell flags for the given index
 
-		Parameter:
-			index: the `QModelIndex` for which the data are required
+        Parameter:
+            index: the `QModelIndex` for which the data are required
 
-		Output:
-			None if the index or the role are not valid,
-			the cell flags otherwise
-		"""
+        Output:
+            None if the index or the role are not valid,
+            the cell flags otherwise
+        """
         if not index.isValid():
             return Qt.NoItemFlags
         if index.column() == 0 and (
@@ -248,15 +248,15 @@ class CatsModel(TreeModel):
     def headerData(self, section, orientation, role):
         """Return the header data given section, orientation and role
 
-		Parameters:
-			section: the section number
-			orientation: horizontal or vertical header
-			role: the requested role
+        Parameters:
+            section: the section number
+            orientation: horizontal or vertical header
+            role: the requested role
 
-		Output:
-			the column name ("Name", if the parameters correspond)
-			or None
-		"""
+        Output:
+            the column name ("Name", if the parameters correspond)
+            or None
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
             return "Name"
         return None
@@ -264,15 +264,15 @@ class CatsModel(TreeModel):
     def setData(self, index, value, role):
         """Set the cell data for the given index and role
 
-		Parameters:
-			index: the `QModelIndex` for which the data are required
-			value: the new data value
-			role: the desired Qt role for the data
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            value: the new data value
+            role: the desired Qt role for the data
 
-		Output:
-			True if correctly completed,
-			False if the `index` is not valid
-		"""
+        Output:
+            True if correctly completed,
+            False if the `index` is not valid
+        """
         if not index.isValid():
             return False
         node = TreeNode.cast(index)
@@ -307,31 +307,31 @@ class CatsTreeWindow(PBDialog):
         multipleRecords=False,
     ):
         """Initialize instance parameters and call the function that
-		creates the layout.
+        creates the layout.
 
-		Parameters:
-			parent (default None): the parent widget
-			askCats (default False): if True, enable checkboxes for
-				selection of categories
-			askForBib (default None): the optional key which identifies
-				in the database the bibtex entry for which categories
-				are being selected
-			askForExp (default None): the optional ID which identifies
-				in the database the experiment for which categories
-				are being selected
-			expButton (default True): if True, add a button to accept
-				the widget content and later ask for experiments
-			previous (default []): the list of categories that
-				must be selected at the beginning
-			single (default False): if True, only allow the selection
-				of a single category (the parent category, typically).
-				Multiple checkboxes can be selected,
-				but only the first one will be considered
-			multipleRecords: used when dealing with categories
-				corresponding to multiple records. Activate a tristate
-				checkbox for the initial list of categories, which are
-				typically not the same for all the elements in the list
-		"""
+        Parameters:
+            parent (default None): the parent widget
+            askCats (default False): if True, enable checkboxes for
+                selection of categories
+            askForBib (default None): the optional key which identifies
+                in the database the bibtex entry for which categories
+                are being selected
+            askForExp (default None): the optional ID which identifies
+                in the database the experiment for which categories
+                are being selected
+            expButton (default True): if True, add a button to accept
+                the widget content and later ask for experiments
+            previous (default []): the list of categories that
+                must be selected at the beginning
+            single (default False): if True, only allow the selection
+                of a single category (the parent category, typically).
+                Multiple checkboxes can be selected,
+                but only the first one will be considered
+            multipleRecords: used when dealing with categories
+                corresponding to multiple records. Activate a tristate
+                checkbox for the initial list of categories, which are
+                typically not the same for all the elements in the list
+        """
         PBDialog.__init__(self, parent)
         self.setWindowTitle("Categories")
         self.currLayout = QVBoxLayout(self)
@@ -363,9 +363,9 @@ class CatsTreeWindow(PBDialog):
 
     def populateAskCat(self):
         """If selection of categories is allowed, add some information
-		on the bibtex/experiment for which the categories are requested
-		and a simple message, then create few required empty lists
-		"""
+        on the bibtex/experiment for which the categories are requested
+        and a simple message, then create few required empty lists
+        """
         if self.askCats:
             if self.askForBib is not None:
                 try:
@@ -449,15 +449,15 @@ class CatsTreeWindow(PBDialog):
 
     def onOk(self, exps=False):
         """Accept the dialog content
-		(update the list of selected categories)
-		and close the window.
-		May set `self.result` to "Exps"
-		for later opening of a new dialog to ask for experiments.
+        (update the list of selected categories)
+        and close the window.
+        May set `self.result` to "Exps"
+        for later opening of a new dialog to ask for experiments.
 
-		Parameter:
-			exps (default False): if True, set the result to "Exps",
-				otherwise to "Ok"
-		"""
+        Parameter:
+            exps (default False): if True, set the result to "Exps",
+                otherwise to "Ok"
+        """
         self.parent().selectedCats = [
             idC
             for idC in self.root_model.selectedCats.keys()
@@ -481,39 +481,39 @@ class CatsTreeWindow(PBDialog):
 
     def changeFilter(self, string):
         """When the filter `QLineEdit` is changed,
-		update the `LeafFilterProxyModel` regexp filter
+        update the `LeafFilterProxyModel` regexp filter
 
-		Parameter:
-			string: the new filter string
-		"""
+        Parameter:
+            string: the new filter string
+        """
         self.proxyModel.setFilterRegExp(str(string))
         self.tree.expandAll()
 
     def onAskExps(self):
         """Action to perform when the selection of categories
-		will be folloed by the selection of experiments.
-		Call `self.onOk` with `exps = True`.
-		"""
+        will be folloed by the selection of experiments.
+        Call `self.onOk` with `exps = True`.
+        """
         self.onOk(exps=True)
 
     def onNewCat(self):
         """Action to perform when the creation
-		of a new category is requested
-		"""
+        of a new category is requested
+        """
         editCategory(self, self.parent())
 
     def keyPressEvent(self, e):
         """Manage the key press events.
-		Do nothing unless `Esc` is pressed:
-		in this case close the dialog
-		"""
+        Do nothing unless `Esc` is pressed:
+        in this case close the dialog
+        """
         if e.key() == Qt.Key_Escape:
             self.close()
 
     def createForm(self):
         """Create the dialog content, connect the model to the view
-		and eventually add the buttons at the end
-		"""
+        and eventually add the buttons at the end
+        """
         self.populateAskCat()
 
         catsTree = pBDB.cats.getHier()
@@ -574,13 +574,13 @@ class CatsTreeWindow(PBDialog):
 
     def _populateTree(self, children, idCat):
         """Read the list of categories recursively and
-		populate the categories tree
+        populate the categories tree
 
-		Parameters:
-			children: the list of children categories
-				of the currently considered one
-			idCat: the id of the current category
-		"""
+        Parameters:
+            children: the list of children categories
+                of the currently considered one
+            idCat: the id of the current category
+        """
         name = pBDB.cats.getByID(idCat)[0]["name"]
         children_list = []
         for child in cats_alphabetical(children, pBDB):
@@ -590,11 +590,11 @@ class CatsTreeWindow(PBDialog):
 
     def handleItemEntered(self, index):
         """Process event when mouse enters an item and
-		create a `QTooltip` which describes the category, with a timer
+        create a `QTooltip` which describes the category, with a timer
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if index.isValid():
             row = index.row()
         else:
@@ -640,11 +640,11 @@ class CatsTreeWindow(PBDialog):
 
     def contextMenuEvent(self, event):
         """Create a right click menu with few actions
-		on the selected category
+        on the selected category
 
-		Parameter:
-			event: a `QEvent`
-		"""
+        Parameter:
+            event: a `QEvent`
+        """
         indexes = self.tree.selectedIndexes()
         try:
             index = indexes[0]
@@ -701,11 +701,11 @@ class CatsTreeWindow(PBDialog):
 
     def cellDoubleClick(self, index):
         """Process event when mouse double clicks an item.
-		Opens a link if some columns
+        Opens a link if some columns
 
-		Parameter:
-			index: a `QModelIndex` instance
-		"""
+        Parameter:
+            index: a `QModelIndex` instance
+        """
         if index.isValid():
             row = index.row()
             col = index.column()
@@ -737,12 +737,12 @@ class EditCategoryDialog(EditObjectWindow):
     def __init__(self, parent=None, category=None, useParentCat=None):
         """Set some properties and create the form content
 
-		Parameters:
-			parent: the parent widget
-			category: a category record from the database
-			useParentCat: the id of the parent category
-				of the given one in the tree
-		"""
+        Parameters:
+            parent: the parent widget
+            category: a category record from the database
+            useParentCat: the id of the parent category
+                of the given one in the tree
+        """
         self.acceptButton = None
         self.cancelButton = None
         self.textValues = None

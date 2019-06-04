@@ -17,16 +17,16 @@ except ImportError:
 
 class PBErrorManagerClass:
     """Class that manages the output of the errors and
-	stores the messages into a log file
-	"""
+    stores the messages into a log file
+    """
 
     def __init__(self, loggerString="physbibliolog"):
         """Constructor for PBErrorManagerClass.
 
-		Parameter:
-			loggerString: the `Logger` identifier string to use
-				(default="physbibliolog")
-		"""
+        Parameter:
+            loggerString: the `Logger` identifier string to use
+                (default="physbibliolog")
+        """
         self.tempsh = []
         if pbConfig.params["loggingLevel"] == 0:
             self.loglevel = logging.ERROR
@@ -70,15 +70,15 @@ class PBErrorManagerClass:
         format="[%(module)s.%(funcName)s] %(message)s",
     ):
         """Set a temporary StreamHandler for the logger,
-		given the stream, with default level logging.INFO.
-		Useful when redirecting stdout
+        given the stream, with default level logging.INFO.
+        Useful when redirecting stdout
 
-		Parameters:
-			stream: the stream to be used (default: sys.stdout)
-			level: the level to be used (default: logging.INFO)
-			format: the format, using the logging syntax
-				(default: '[%(module)s.%(funcName)s] %(message)s')
-		"""
+        Parameters:
+            stream: the stream to be used (default: sys.stdout)
+            level: the level to be used (default: logging.INFO)
+            format: the format, using the logging syntax
+                (default: '[%(module)s.%(funcName)s] %(message)s')
+        """
         try:
             self.tempsh.append(logging.StreamHandler(stream))
             self.tempsh[-1].setLevel(level)
@@ -103,11 +103,11 @@ class PBErrorManagerClass:
 
     def excepthook(self, cls, exception, trcbk):
         """Function that will replace `sys.excepthook` to log
-		any error that occurs
+        any error that occurs
 
-		Parameters:
-			cls, exception, trcbk as in `sys.excepthook`
-		"""
+        Parameters:
+            cls, exception, trcbk as in `sys.excepthook`
+        """
         self.logger.error("Unhandled exception", exc_info=(cls, exception, trcbk))
 
 
