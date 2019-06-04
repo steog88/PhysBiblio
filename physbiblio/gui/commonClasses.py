@@ -35,9 +35,7 @@ from PySide2.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
-
-if not (PySide2.__version_info__[0] == 5 and PySide2.__version_info__[1] == 11):
-    from shiboken2 import VoidPtr
+from shiboken2 import VoidPtr
 
 try:
     from physbiblio.errors import PBErrorManagerClass, pBLogger
@@ -659,11 +657,7 @@ class TreeNode(QObject):
         Output:
             should be a TreeNode instance
         """
-        ps2verinfo = PySide2.__version_info__
-        if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
-            return cls._instances.get(PtrKey(obj.internalPointer()))
-        else:
-            return obj.internalPointer()
+        return obj.internalPointer()
 
     def __init__(self, parent, row):
         """Constructor, set basic properties

@@ -38,7 +38,7 @@ setup(
     install_requires=[
         "appdirs",
         "argparse",
-        "bibtexparser(>=1.0.1)",
+        "bibtexparser(>=1.1.0)",
         "dictdiffer",
         'faulthandler;python_version<"3"',
         "feedparser",
@@ -48,7 +48,8 @@ setup(
         "pylatexenc",
         "pymarc",
         "pyoai",
-        "pyside2(!=5.11.0, !=5.12.1)",
+        "pyparsing(>=2.4.0)",
+        "pyside2(>=5.12.2)",
         "requests",
         "six",
         'mock;python_version<"3"',

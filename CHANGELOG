@@ -1,3 +1,6 @@
+1.2.1 (2019-06-04)
+    * updated required versions for some packages (they give errors while importing)
+
 1.2.0 (2019-06-04)
     * removed repeated entries in searches which require matching multiple categories/experiments
     * better management of sorting of bibtex table
