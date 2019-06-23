@@ -8,9 +8,9 @@ import shutil
 import traceback
 
 if sys.version_info[0] < 3:
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, HTTPError, URLError
 else:
-    from urllib.request import urlopen, HTTPError
+    from urllib.request import urlopen, HTTPError, URLError
 import os.path as osp
 import os
 import subprocess
@@ -221,30 +221,31 @@ class LocalPDF:
         if osp.exists(filename) and not force:
             pBLogger.info("There is already a pdf and overwrite not requested.")
             return True
+        self.createFolder(key)
+        url = pBDB.bibs.getArxivUrl(key, "pdf")
+        if url is False:
+            pBLogger.warning(
+                "Invalid arXiv PDF url for '%s'," % key
+                + " probably the field is empty."
+            )
+            return False
+        pBLogger.info("Downloading arXiv PDF from %s" % url)
         try:
-            self.createFolder(key)
-            url = pBDB.bibs.getArxivUrl(key, "pdf")
-            if url is False:
-                pBLogger.warning(
-                    "Invalid arXiv PDF url for '%s'," % key
-                    + " probably the field is empty."
-                )
-                return False
-            pBLogger.info("Downloading arXiv PDF from %s" % url)
             response = urlopen(url)
-            with open(filename, "wb") as newF:
-                newF.write(response.read())
-            pBLogger.info("File saved to %s" % filename)
-        except HTTPError:
+        except (URLError, ConnectionError):
             pBLogger.exception(
                 "ArXiv PDF for '%s' not found " % key + "(404 error on url: %s)" % url
             )
             return False
-        except:
-            pBLogger.exception("Impossible to download the arXiv PDF for '%s'" % key)
-            return False
         else:
-            return os.path.exists(filename)
+            try:
+                with open(filename, "wb") as newF:
+                    newF.write(response.read())
+            except OSError:
+                pBLogger.exception("Impossible to save to '%s'" % filename)
+            else:
+                pBLogger.info("File saved to %s" % filename)
+                return os.path.exists(filename)
 
     def openFile(self, key, arg=None, fileType=None, fileNum=None, fileName=None):
         """Open a PDF file in an external application

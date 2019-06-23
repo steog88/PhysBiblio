@@ -129,6 +129,9 @@ class TestPdfMethods(unittest.TestCase):
             return_value="1806.11344",
             autospec=True,
         ) as _mock:
+            pBPDF.createFolder("abc.def")
+            with open(pBPDF.getFilePath("abc.def", "arxiv"), "w") as _fe:
+                _fe.write("a")
             self.assertTrue(pBPDF.downloadArxiv("abc.def"))
             self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
             self.assertEqual(
