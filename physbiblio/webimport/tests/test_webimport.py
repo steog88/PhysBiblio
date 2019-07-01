@@ -131,17 +131,17 @@ class TestWebImportMethods(unittest.TestCase):
                 },
             ],
             "isbn": [
-                "9780191523229",
-                """@book{9780191523229,
-  Author = {Carlo Giunti, Chung W. Kim},
-  Title = {Fundamentals of Neutrino Physics and Astrophysics},
-  Publisher = {OUP Oxford},
-  Year = {2007},
-  Date = {2007-03-15},
-  PageTotal = {},
-  EAN = {9780191523229},
-  URL = {https://www.ebook.de/de/product/21360145/carlo_giunti_"""
-                + """chung_w_kim_fundamentals_of_neutrino_physics_and_astrophysics.html}
+                "9781107013957",
+                """@book{9781107013957,
+  Author = {Julien Lesgourgues, Gianpiero Mangano, Gennaro Miele},
+  Title = {Neutrino Cosmology},
+  Publisher = {Cambridge University Press},
+  Year = {2014},
+  Date = {2014-02-28},
+  PageTotal = {392 Seiten},
+  EAN = {9781107013957},
+  ISBN = {110701395X},
+  URL = {https://www.ebook.de/de/product/19797496/julien_lesgourgues_gianpiero_mangano_gennaro_miele_neutrino_cosmology.html}
 }""",
             ],
         }
