@@ -129,7 +129,7 @@ class TestExportMethods(unittest.TestCase):
         testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
         testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex" % today_ymd)
         texString = (
-            "\cite{empty,prova, empty2}\citep{empty2}"
+            "\cite{empty,prova., empty2+}\citep{empty2+}"
             + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
         )
         with open(testTexName, "w") as f:
@@ -143,8 +143,8 @@ class TestExportMethods(unittest.TestCase):
                 + 'title = "{no}",\n}',
             },
             {
-                "bibkey": "empty2",
-                "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}',
+                "bibkey": "empty2+",
+                "bibtex": '@Article{empty2+,\nauthor="me2",\ntitle="yes"\n}',
             },
         ]
 
@@ -173,9 +173,9 @@ class TestExportMethods(unittest.TestCase):
                 ],
                 [
                     {
-                        "bibkey": "empty2",
+                        "bibkey": "empty2+",
                         "bibtexDict": {},
-                        "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}',
+                        "bibtex": '@Article{empty2+,\nauthor="me2",\ntitle="yes"\n}',
                     }
                 ],
                 [],
@@ -210,15 +210,15 @@ class TestExportMethods(unittest.TestCase):
             )
         self.assertEqual(
             output[0],
-            ["empty", "prova", "empty2", "Gariazzo:2015rra", "Gariazzo:2017rra"],
+            ["empty", "prova.", "empty2+", "Gariazzo:2015rra", "Gariazzo:2017rra"],
         )  # requiredBibkeys
         self.assertEqual(
-            output[1], ["prova", "Gariazzo:2015rra", "Gariazzo:2017rra"]
+            output[1], ["prova.", "Gariazzo:2015rra", "Gariazzo:2017rra"]
         )  # missing
         self.assertEqual(output[2], ["Gariazzo:2015rra"])  # retrieved
         self.assertEqual(output[3], ["Gariazzo:2017rra"])  # notFound
         self.assertEqual(output[4], [])  # unexpected
-        self.assertEqual(output[5], {"prova": "Gariazzo:2015rra"})  # newKeys
+        self.assertEqual(output[5], {"prova.": "Gariazzo:2015rra"})  # newKeys
         self.assertEqual(output[6], 2)  # warnings
         self.assertEqual(output[7], 5)  # total
         self.assertTrue(os.path.exists(testBibName))
@@ -228,10 +228,10 @@ class TestExportMethods(unittest.TestCase):
             "%file written by PhysBiblio\n",
             '@Article{empty,\n        author = "me",\n         title = '
             + '"{no}",\n}\n\n',
-            '@Article{prova,\n        author = "Gariazzo, S. and others",'
+            '@Article{prova.,\n        author = "Gariazzo, S. and others",'
             + '\n         title = "{Light sterile neutrinos}",'
             + "\n}\n\n",
-            '@Article{empty2,\n        author = "me2",\n         title = '
+            '@Article{empty2+,\n        author = "me2",\n         title = '
             + '"{yes}",\n}\n\n',
             "@Article{Gariazzo:2015rra,\n        author = "
             + '"Gariazzo, S. and others",\n         title = '
@@ -283,9 +283,9 @@ class TestExportMethods(unittest.TestCase):
             "%file written by PhysBiblio\n",
             '@Article{empty,\n        author = "me",\n         title = '
             + '"{no}",\n}\n\n',
-            '@Article{prova,\n        author = "Gariazzo, S. and others"'
+            '@Article{prova.,\n        author = "Gariazzo, S. and others"'
             + ',\n         title = "{Light sterile neutrinos}",\n}\n\n',
-            '@Article{empty2,\n        author = "me2",\n         title = '
+            '@Article{empty2+,\n        author = "me2",\n         title = '
             + '"{yes}",\n}\n\n',
             "@Article{Gariazzo:2015rra,\n        author = "
             + '"Gariazzo, S. and others",\n         title = '
