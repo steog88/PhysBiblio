@@ -2016,12 +2016,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertIsInstance(c.menu.possibleActions[0], list)
         self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
         self.assertIsInstance(c.menu.possibleActions[0][1], list)
-        self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
-        for a in c.menu.possibleActions[0][1]:
-            self.assertIsInstance(a, QAction)
+        self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+        for i, a in enumerate(c.menu.possibleActions[0][1]):
+            if i == 3:
+                self.assertEqual(a, None)
+            else:
+                self.assertIsInstance(a, QAction)
         self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
         self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
         self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
+        self.assertEqual(c.menu.possibleActions[0][1][4].text(), "bibitem")
 
         c = CommonBibActions([{"bibkey": "abc", "abstract": "abc", "link": "def"}], p)
         c.menu = PBMenu(self.mainW)
@@ -2038,7 +2042,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 6)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
                 if i == 3:
                     self.assertEqual(a, None)
@@ -2049,6 +2053,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
             self.assertEqual(c.menu.possibleActions[0][1][4].text(), "abstract")
             self.assertEqual(c.menu.possibleActions[0][1][5].text(), "link")
+            self.assertEqual(c.menu.possibleActions[0][1][6].text(), "bibitem")
             self.assertEqual(_a.call_count, 0)
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
@@ -2064,6 +2069,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.reset_mock()
             c.menu.possibleActions[0][1][5].trigger()
             _d.assert_called_once_with("def")
+            _d.reset_mock()
+            c.menu.possibleActions[0][1][6].trigger()
+            _d.assert_called_once_with("\\bibitem{abc}.")
 
         c = CommonBibActions(
             [
@@ -2100,7 +2108,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 12)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 13)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
                 if i == 3:
                     self.assertEqual(a, None)
@@ -2117,6 +2125,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][9].text(), "journal")
             self.assertEqual(c.menu.possibleActions[0][1][10].text(), "published")
             self.assertEqual(c.menu.possibleActions[0][1][11].text(), "title")
+            self.assertEqual(c.menu.possibleActions[0][1][12].text(), "bibitem")
             self.assertEqual(_a.call_count, 0)
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
@@ -2150,6 +2159,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.reset_mock()
             c.menu.possibleActions[0][1][11].trigger()
             _d.assert_called_once_with("some paper")
+            _d.reset_mock()
+            c.menu.possibleActions[0][1][12].trigger()
+            _d.assert_called_once_with(
+                "\\bibitem{abc}\nme\n% some paper\njou 0 (2018) 12\ndoi: 1/2/3\n[arxiv:1234.5678]."
+            )
 
     def test_createMenuInspire(self):
         """test _createMenuInspire"""

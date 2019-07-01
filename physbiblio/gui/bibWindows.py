@@ -783,7 +783,9 @@ class CommonBibActions:
                 "journal",
                 "published",
                 "title",
+                "bibitem",
             ]:
+                convert_to_latex = True
                 if field == "published":
                     try:
                         content = "%s %s (%s) %s" % (
@@ -799,6 +801,68 @@ class CommonBibActions:
                             % (initialRecord["bibkey"])
                         )
                         content = ""
+                elif field == "bibitem":
+                    convert_to_latex = False
+                    content = r"\bibitem{" + "%s" % initialRecord["bibkey"] + "}\n"
+                    try:
+                        content += initialRecord["bibtexDict"]["authors"] + "\n"
+                    except KeyError:
+                        pBLogger.debug(
+                            "KeyError: 'authors' not found for '%s'"
+                            % (initialRecord["bibkey"])
+                        )
+                        try:
+                            content += initialRecord["bibtexDict"]["author"] + "\n"
+                        except KeyError:
+                            pBLogger.debug(
+                                "KeyError: 'author' not found for '%s'"
+                                % (initialRecord["bibkey"])
+                            )
+                    try:
+                        content += (
+                            "% " + "%s" % initialRecord["bibtexDict"]["title"] + "\n"
+                        )
+                    except KeyError:
+                        pBLogger.debug(
+                            "KeyError: 'title' not found for '%s'"
+                            % (initialRecord["bibkey"])
+                        )
+                    try:
+                        content += "%s %s (%s) %s\n" % (
+                            initialRecord["bibtexDict"]["journal"],
+                            initialRecord["bibtexDict"]["volume"],
+                            initialRecord["bibtexDict"]["year"],
+                            initialRecord["bibtexDict"]["pages"],
+                        )
+                    except KeyError:
+                        pBLogger.debug(
+                            "KeyError: 'journal', 'volume', "
+                            + "'year' or 'pages' not found for '%s'"
+                            % (initialRecord["bibkey"])
+                        )
+                    try:
+                        if (
+                            initialRecord["doi"] is not None
+                            and initialRecord["doi"] != ""
+                        ):
+                            content += "doi: %s\n" % initialRecord["doi"]
+                    except KeyError:
+                        pBLogger.debug(
+                            "KeyError: 'doi' not found for '%s'"
+                            % (initialRecord["bibkey"])
+                        )
+                    try:
+                        if (
+                            initialRecord["arxiv"] is not None
+                            and initialRecord["arxiv"] != ""
+                        ):
+                            content += "[arxiv:%s]\n" % initialRecord["arxiv"]
+                    except KeyError:
+                        pBLogger.debug(
+                            "KeyError: 'doi' not found for '%s'"
+                            % (initialRecord["bibkey"])
+                        )
+                    content = content[:-1] + "."
                 else:
                     try:
                         content = initialRecord[field.lower()]
@@ -812,13 +876,14 @@ class CommonBibActions:
                             )
                             content = ""
                 if content is not None and content.strip() != "":
+                    c = (
+                        latexToText.latex_to_text(content)
+                        if convert_to_latex
+                        else content
+                    )
                     subm.append(
                         QAction(
-                            field,
-                            self.menu,
-                            triggered=lambda t=latexToText.latex_to_text(
-                                content
-                            ): copyToClipboard(t),
+                            field, self.menu, triggered=lambda t=c: copyToClipboard(t)
                         )
                     )
         if len(subm) > 0:
