@@ -544,18 +544,25 @@ class TestExportMethods(unittest.TestCase):
         with patch(
             "physbiblio.database.Entries.getByBibtex",
             return_value=[
-                    {
-                        "bibkey": "newcite:now18",
-                        "bibtexDict": bibtexparser.loads(bibtex1).entries[0],
-                        "bibtex": bibtex1,
-                    }
+                {
+                    "bibkey": "newcite:now18",
+                    "bibtexDict": bibtexparser.loads(bibtex1).entries[0],
+                    "bibtex": bibtex1,
+                }
             ],
             autospec=True,
         ) as _getbbibt:
-            output = pBExport.exportForTexFile(
-                testTexName, testBibName, autosave=False,
-            )
-        self.assertEqual(output[0], ['someA&A...123', 'prova.', 'empty2+', 'Gariazzo:2015rra', 'Gariazzo:2017rra'])  # requiredBibkeys
+            output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
+        self.assertEqual(
+            output[0],
+            [
+                "someA&A...123",
+                "prova.",
+                "empty2+",
+                "Gariazzo:2015rra",
+                "Gariazzo:2017rra",
+            ],
+        )  # requiredBibkeys
         self.assertEqual(output[1], [])  # missing
         self.assertEqual(output[2], [])  # retrieved
         self.assertEqual(output[3], [])  # notFound
