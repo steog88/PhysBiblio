@@ -5255,9 +5255,12 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
     def test_cellDoubleClick(self):
         """test cellDoubleClick"""
-        bw = BibtexListWindow(
-            parent=self.mainW, bibs=[{"bibtex": "text", "bibkey": "abc"}]
-        )
+        defcols = pbConfig.params["bibtexListColumns"]
+        defcols.append("ads")
+        with patch.dict(pbConfig.params, {"bibtexListColumns": defcols}, clear=False):
+            bw = BibtexListWindow(
+                parent=self.mainW, bibs=[{"bibtex": "text", "bibkey": "abc"}]
+            )
         ix = QModelIndex()
         with patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
@@ -5269,6 +5272,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
         currentry = {
             "bibkey": "abc",
+            "ads": "abc...123",
             "doi": "1/2/3",
             "arxiv": "1234.56789",
             "inspire": "9876543",
@@ -5286,6 +5290,19 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _ge.assert_called_once_with(bw, ix)
             _ui.assert_called_once_with(bw, currentry)
             _ol.assert_called_once_with(pBGuiView, "abc", "doi")
+        with patch(
+            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+        ) as _ol, patch(
+            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+            return_value=(0, bw.colContents.index("ads"), "abc", currentry),
+            autospec=True,
+        ) as _ge, patch(
+            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+        ) as _ui:
+            bw.cellDoubleClick(ix)
+            _ge.assert_called_once_with(bw, ix)
+            _ui.assert_called_once_with(bw, currentry)
+            _ol.assert_called_once_with(pBGuiView, "abc", "ads")
         currentry["doi"] = ""
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True

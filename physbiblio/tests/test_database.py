@@ -5227,15 +5227,20 @@ class TestDatabaseEntries(DBTestCase):
     def test_getUrl(self):
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+            ads="abc...123",
             arxiv="1234.5678",
             doi="1/2/3",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertEqual(
+            self.pBDB.bibs.getAdsUrl("abc"), "%sabc...123" % pbConfig.adsUrl
+        )
+        self.assertFalse(self.pBDB.bibs.getAdsUrl("def"))
+        self.assertEqual(
             self.pBDB.bibs.getArxivUrl("abc"), "%s/abs/1234.5678" % pbConfig.arxivUrl
         )
-        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "%s1/2/3" % pbConfig.doiUrl)
         self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
+        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "%s1/2/3" % pbConfig.doiUrl)
         self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(

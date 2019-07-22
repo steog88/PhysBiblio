@@ -45,53 +45,82 @@ class TestViewMethods(unittest.TestCase):
         with patch(
             "physbiblio.database.Entries.getField",
             autospec=True,
-            side_effect=[
-                "1507.08204",
-                "",
-                "",
-                "1507.08204",  # test "arxiv"
-                "",
-                "10.1088/0954-3899/43/3/033001",
-                "",
-                "10.1088/0954-3899/43/3/033001",  # test "doi"
-                "",
-                "",
-                "1385583",  # test "inspire", inspire ID present
-                "1507.08204",
-                "",
-                "",  # test "inspire",
-                # inspire ID not present, arxiv present
-                "",
-                "",
-                False,  # test "inspire",
-                # inspire ID not present, arxiv not present
-                "",
-                "",
-                "",  # test "arxiv", no info
-                "",
-                "",
-                "",  # test "doi", no info
-            ],
+            side_effect=["abc...123", "1507.08204", "", "", "abc...123"],
+        ) as _mock:
+            self.assertEqual(
+                pBView.getLink("a", "ads"), "%sabc...123" % pbConfig.adsUrl
+            )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=["", "1507.08204", "", "", "1507.08204"],
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "arxiv"), "%s/abs/1507.08204" % pbConfig.arxivUrl
             )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=[
+                "abc...123",
+                "1234.56789",
+                "10.1088/0954-3899/43/3/033001",
+                "123456789",
+                "10.1088/0954-3899/43/3/033001",
+            ],
+        ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "doi"),
                 "%s10.1088/0954-3899/43/3/033001" % pbConfig.doiUrl,
             )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=[
+                "abc...123",
+                "1234.56789",
+                "10.1088/0954-3899/43/3/033001",
+                "1385583",
+                "1385583",
+            ],
+        ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"), "https://inspirehep.net/record/1385583"
             )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=[
+                "abc...123",
+                "1507.08204",
+                "10.1088/0954-3899/43/3/033001",
+                "",
+            ],
+        ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"),
                 "https://inspirehep.net/search?p=find+1507.08204",
             )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=["abc...123", "", "10.1088/0954-3899/43/3/033001", False],
+        ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"), "https://inspirehep.net/search?p=find+a"
             )
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=["", "", "", ""],
+        ) as _mock:
             self.assertFalse(pBView.getLink("a", "arxiv"))
-            self.assertFalse(pBView.getLink("a", "doi"))
+        with patch(
+            "physbiblio.database.Entries.getField",
+            autospec=True,
+            side_effect=["", "", "", ""],
+        ) as _mock:
+            self.assertFalse(pBView.getLink("a", "arxiv"))
 
     def test_openLink(self):
         """Test openLink"""
