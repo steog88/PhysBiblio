@@ -2256,9 +2256,9 @@ class Entries(PhysBiblioDBSub):
         """
         return self.prepareInsert(self.getField(key, "bibtex"))
 
-    def getDoiUrl(self, key):
-        """Get the doi.org url for the entry,
-        if it has something in the doi field
+    def getAdsUrl(self, key):
+        """Get the adsabs url for the entry,
+        if it has something in the ads field
 
         Parameters:
             key: the bibtex key
@@ -2266,9 +2266,9 @@ class Entries(PhysBiblioDBSub):
         Output:
             a string
         """
-        url = self.getField(key, "doi")
+        url = self.getField(key, "ads")
         return (
-            pbConfig.doiUrl + url
+            pbConfig.adsUrl + url
             if url != "" and url is not False and url is not None
             else False
         )
@@ -2288,6 +2288,23 @@ class Entries(PhysBiblioDBSub):
         return (
             pbConfig.arxivUrl + "/" + urlType + "/" + url
             if (url != "" and url is not False and url is not None and url is not "")
+            else False
+        )
+
+    def getDoiUrl(self, key):
+        """Get the doi.org url for the entry,
+        if it has something in the doi field
+
+        Parameters:
+            key: the bibtex key
+
+        Output:
+            a string
+        """
+        url = self.getField(key, "doi")
+        return (
+            pbConfig.doiUrl + url
+            if url != "" and url is not False and url is not None
             else False
         )
 

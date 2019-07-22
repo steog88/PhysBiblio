@@ -2099,25 +2099,14 @@ class BibtexListWindow(QFrame, ObjListWindow):
             pBLogger.warning("The index is not valid!")
             return
         self.updateInfo(entry)
-        if (
-            self.colContents[col] == "doi"
-            and entry["doi"] is not None
-            and entry["doi"] != ""
-        ):
-            pBGuiView.openLink(bibkey, "doi")
-        elif (
-            self.colContents[col] == "arxiv"
-            and entry["arxiv"] is not None
-            and entry["arxiv"] != ""
-        ):
-            pBGuiView.openLink(bibkey, "arxiv")
-        elif (
-            self.colContents[col] == "inspire"
-            and entry["inspire"] is not None
-            and entry["inspire"] != ""
-        ):
-            pBGuiView.openLink(bibkey, "inspire")
-        elif self.colContents[col] == "pdf":
+        for column in ["ads", "arxiv", "doi", "inspire"]:
+            if (
+                self.colContents[col] == column
+                and entry[column] is not None
+                and entry[column] != ""
+            ):
+                pBGuiView.openLink(bibkey, column)
+        if self.colContents[col] == "pdf":
             pdfFiles = pBPDF.getExisting(bibkey, fullPath=True)
             if len(pdfFiles) == 1:
                 self.mainWin.statusBarMessage("opening PDF...")

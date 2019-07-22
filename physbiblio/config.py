@@ -746,6 +746,7 @@ class ConfigVars:
     and their configuration.
     """
 
+    adsUrl = "https://ui.adsabs.harvard.edu/abs/"
     arxivUrl = "https://arxiv.org"
     doiUrl = "https://doi.org/"
     inspireRecord = "https://inspirehep.net/record/"

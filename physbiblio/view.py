@@ -57,10 +57,13 @@ class ViewEntry:
                 else:
                     links.append(fileArg)
             return links
+        ads = pBDB.bibs.getField(key, "ads")
         arxiv = pBDB.bibs.getField(key, "arxiv")
         doi = pBDB.bibs.getField(key, "doi")
         inspire = pBDB.bibs.getField(key, "inspire")
-        if arg is "arxiv" and arxiv:
+        if arg is "ads" and ads:
+            link = pBDB.bibs.getAdsUrl(key)
+        elif arg is "arxiv" and arxiv:
             link = pBDB.bibs.getArxivUrl(key, "abs")
         elif arg is "doi" and doi:
             link = pBDB.bibs.getDoiUrl(key)
