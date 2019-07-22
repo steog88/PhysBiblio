@@ -534,6 +534,36 @@ class TestExportMethods(unittest.TestCase):
             _ex.assert_called_once_with(
                 "Cannot create file /surely/not/existing/path.bib!"
             )
+
+        texString = (
+            "\cite{someA&A...123,prova., empty2+}\citep{empty2+}"
+            + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+        )
+        with open(testTexName, "w") as f:
+            f.write(texString)
+        with patch(
+            "physbiblio.database.Entries.getByBibtex",
+            return_value=[
+                    {
+                        "bibkey": "newcite:now18",
+                        "bibtexDict": bibtexparser.loads(bibtex1).entries[0],
+                        "bibtex": bibtex1,
+                    }
+            ],
+            autospec=True,
+        ) as _getbbibt:
+            output = pBExport.exportForTexFile(
+                testTexName, testBibName, autosave=False,
+            )
+        self.assertEqual(output[0], ['someA&A...123', 'prova.', 'empty2+', 'Gariazzo:2015rra', 'Gariazzo:2017rra'])  # requiredBibkeys
+        self.assertEqual(output[1], [])  # missing
+        self.assertEqual(output[2], [])  # retrieved
+        self.assertEqual(output[3], [])  # notFound
+        self.assertEqual(output[4], [])  # unexpected
+        self.assertEqual(output[5], {})  # newKeys
+        self.assertEqual(output[6], 0)  # warnings
+        self.assertEqual(output[7], 5)  # total
+
         os.remove(testBibName)
         os.remove(testTexName)
 
