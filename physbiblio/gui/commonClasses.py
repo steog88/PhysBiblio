@@ -1106,7 +1106,7 @@ class PBImportedTableModel(PBTableModel):
         try:
             value = self.dataList[row][self.header[column]]
         except (IndexError, KeyError):
-            pBLogger.warning("Missing element", exc_info=True)
+            pBLogger.debug("Missing element", exc_info=True)
             return None
 
         if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
