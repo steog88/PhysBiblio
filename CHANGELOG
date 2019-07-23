@@ -3,6 +3,7 @@
     * can now copy full bibitem from the table
     * exportForTexFile now recognizes also bibkeys with "&", "." and "+"
     * double click on corresponding column opens ADS page for the selected entry
+    * renamed configuration parameter 'maxArxivResults' to 'maxExternalAPIResults'
 
 1.2.1 (2019-06-04)
     * updated required versions for some packages (they give errors while importing)

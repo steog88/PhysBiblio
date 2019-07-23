@@ -226,7 +226,7 @@ class WebSearch(WebInterf):
         return self.arxivRetriever(
             string,
             searchType,
-            additionalArgs={"max_results": pbConfig.params["maxArxivResults"]},
+            additionalArgs={"max_results": pbConfig.params["maxExternalAPIResults"]},
             **kwargs
         )
 

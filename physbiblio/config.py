@@ -98,10 +98,10 @@ configuration_params = [
         "special": "int",
     },
     {
-        "name": "maxArxivResults",
+        "name": "maxExternalAPIResults",
         "default": 10,
         "description": "Max number of entries per page "
-        + "when reading arxiv API results",
+        + "when reading external API results",
         "special": "int",
     },
     {
@@ -154,6 +154,12 @@ configuration_params = [
         "description": "Max number of automatically saved "
         + "search/replace arguments",
         "special": "int",
+    },
+    {
+        "name": "ADSToken",
+        "default": "",
+        "description": "Token for connecting to the ADS service by NASA",
+        "special": None,
     },
 ]
 
