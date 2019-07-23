@@ -6,4 +6,13 @@ This module is part of the physbiblio package.
 """
 from physbiblio import __author__, __email__, __version__, __version_date__
 
-__all__ = ["arxiv", "doi", "inspire", "inspireoai", "isbn", "webInterf", "tests"]
+__all__ = [
+    "adsnasa",
+    "arxiv",
+    "doi",
+    "inspire",
+    "inspireoai",
+    "isbn",
+    "webInterf",
+    "tests",
+]

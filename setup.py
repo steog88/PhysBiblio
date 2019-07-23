@@ -36,6 +36,7 @@ setup(
     scripts=["PhysBiblio.exe"],
     package_data={"": ["*.sh", "*.md", "*.png"], "physbiblio.gui": ["images/*.png"]},
     install_requires=[
+        "ads",
         "appdirs",
         "argparse",
         "bibtexparser(>=1.1.0)",

@@ -1,4 +1,4 @@
-1.2.2 (2019-07)
+1.3.0 (2019-07-23)
     * advance import connected with ADS by NASA
     * can now copy full bibitem from the table
     * exportForTexFile now recognizes also bibkeys with "&", "." and "+"

@@ -3636,6 +3636,147 @@ class TestMainWindow(GUITestCase):
             _ui.assert_has_calls([call(pBDB.bibs, "a"), call(pBDB.bibs, "b")])
             _ii.assert_called_once_with(pBDB.bibs, "123")
 
+        # ads
+        aid.comboMethod.setCurrentText("ADS-NASA")
+        aid.exec_.reset_mock()
+        ais.exec_.reset_mock()
+        with patch(
+            self.clsName + ".checkAdsToken", autospec=True, return_value=True
+        ) as _cat, patch(
+            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
+            autospec=True,
+            return_value="lims",
+        ) as _gli, patch(
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _aid, patch(
+            self.modName + ".AdvancedImportSelect",
+            return_value=ais,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _ais, patch(
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+        ) as _sc, patch(
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+        ) as _rc, patch(
+            self.clsName + ".reloadMainContent", autospec=True
+        ) as _rmc, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            "logging.Logger.info"
+        ) as _in, patch(
+            "physbiblio.webimport.adsnasa.WebSearch.retrieveUrlAll",
+            return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+            + '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+            + 'arxiv="1",\ndoi="2"\n}\n',
+            autospec=True,
+        ) as _ru, patch(
+            self.clsName + ".askCatsForEntries", autospec=True
+        ) as _ace, patch(
+            "physbiblio.database.Entries.getByBibkey",
+            side_effect=[["a"], ["b"]],
+            autospec=True,
+        ) as _gbb, patch(
+            "physbiblio.database.Entries.getAll",
+            side_effect=[["b"], [], []],
+            autospec=True,
+        ) as _ga, patch(
+            "physbiblio.database.Entries.prepareInsert",
+            side_effect=[{"data": "1"}, {"data": "2"}],
+            autospec=True,
+        ) as _pi, patch(
+            "physbiblio.database.Entries.insert",
+            side_effect=[True, True],
+            autospec=True,
+        ) as _bi, patch(
+            "physbiblio.database.Entries.setBook", autospec=True
+        ) as _sb, patch(
+            "physbiblio.database.Entries.updateInspireID",
+            side_effect=["123", KeyError],
+            autospec=True,
+        ) as _ui, patch(
+            "physbiblio.database.Entries.updateInfoFromOAI", autospec=True
+        ) as _ii, patch(
+            "physbiblio.database.CatsEntries.delete", autospec=True
+        ) as _cd:
+            self.assertFalse(self.mainW.advancedImport())
+            _aid.assert_called_once_with()
+            aid.exec_.assert_called_once_with()
+            self.assertEqual(_im.call_count, 0)
+            _ru.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"], "test")
+            self.assertEqual(_sc.call_count, 1)
+            self.assertEqual(_rc.call_count, 1)
+            _rmc.assert_called_once_with(self.mainW)
+            _gbb.assert_has_calls(
+                [
+                    call(pBDB.bibs, u"a", saveQuery=False),
+                    call(pBDB.bibs, u"b", saveQuery=False),
+                ]
+            )
+            self.assertEqual(_ga.call_count, 0)
+            _pi.assert_has_calls(
+                [
+                    call(
+                        pBDB.bibs,
+                        u'@Article{a,\n        author = "gs",'
+                        + '\n         title = "{T}",\n}\n\n',
+                    ),
+                    call(
+                        pBDB.bibs,
+                        u'@Article{b,\n        author = "sg",'
+                        + '\n         title = "{tit}",\n           '
+                        + 'doi = "2",\n         arxiv = "1",\n}\n\n',
+                    ),
+                ]
+            )
+            _bi.assert_has_calls(
+                [
+                    call(pBDB.bibs, {"data": "1", "ads": "a"}),
+                    call(pBDB.bibs, {"data": "2", "ads": "b"}),
+                ]
+            )
+            _wa.assert_called_once_with("Failed in completing info for entry 'b'\n")
+            _sbm.assert_has_calls(
+                [
+                    call(self.mainW, "lims"),
+                    call(self.mainW, "Entries successfully imported: ['a', 'b']"),
+                ]
+            )
+            _in.assert_has_calls([call("Element 'a' successfully inserted.\n")])
+            self.assertEqual(_sb.call_count, 0)
+            self.assertEqual(_cd.call_count, 0)
+            self.assertEqual(_ace.call_count, 0)
+            self.assertEqual(_ui.call_count, 0)
+            self.assertEqual(_ii.call_count, 0)
+            _cat.assert_called_once_with(self.mainW)
+            _gli.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"])
+
+        aid.comboMethod.setCurrentText("ADS-NASA")
+        aid.exec_.reset_mock()
+        ais.exec_.reset_mock()
+        with patch(
+            self.clsName + ".checkAdsToken", autospec=True, return_value=False
+        ) as _cat, patch(
+            self.modName + ".AdvancedImportDialog",
+            return_value=aid,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _aid, patch(
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+        ) as _sc, patch(
+            "physbiblio.webimport.adsnasa.WebSearch.retrieveUrlAll",
+            return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
+            + '@article{b,\nauthor="sg",\ntitle="tit"\n,'
+            + 'arxiv="1",\ndoi="2"\n}\n',
+            autospec=True,
+        ) as _ru:
+            self.assertFalse(self.mainW.advancedImport())
+            _aid.assert_called_once_with()
+            aid.exec_.assert_called_once_with()
+            self.assertEqual(_im.call_count, 0)
+            self.assertEqual(_ru.call_count, 0)
+            self.assertEqual(_sc.call_count, 0)
+            _cat.assert_called_once_with(self.mainW)
+
     def test_cleanAllBibtexsAsk(self):
         """test cleanAllBibtexsAsk"""
         with patch(
@@ -4521,6 +4662,46 @@ class TestMainWindow(GUITestCase):
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sm:
             self.mainW.done()
             _sm.assert_called_once_with(self.mainW, "...done!")
+
+    def test_checkAdsToken(self):
+        """test checkAdsToken"""
+        with patch.dict(pbConfig.params, {"ADSToken": None}, clear=False), patch(
+            self.modName + ".askGenericText", return_value=("abc", False), autospec=True
+        ) as _agt:
+            self.assertFalse(self.mainW.checkAdsToken())
+            _agt.assert_called_once_with(
+                "Before using the ADS service by NASA, you need to obtain an API key:"
+                + " the current value is empty.<br/>"
+                + "Sign up for the newest version of ADS search at "
+                + "<a href='https://ui.adsabs.harvard.edu'>https://ui.adsabs.harvard.edu</a>,"
+                + " visit 'Customize settings', 'API token' and 'Generate a new key'.<br/>"
+                + "Then, enter it here and it will be stored in the configuration:",
+                "Token for ADS is missing",
+            )
+        with patch.dict(pbConfig.params, {"ADSToken": ""}, clear=False), patch(
+            self.modName + ".askGenericText",
+            side_effect=[("", True), ("abc", False), ("abc", True)],
+            autospec=True,
+        ) as _agt, patch(
+            "physbiblio.config.ConfigurationDB.insert", autospec=True
+        ) as _i, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
+        ) as _c, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _r:
+            self.assertFalse(self.mainW.checkAdsToken())
+            self.assertEqual(_agt.call_count, 2)
+            self.assertEqual(_i.call_count, 0)
+            self.assertTrue(self.mainW.checkAdsToken())
+            self.assertEqual(_agt.call_count, 3)
+            _i.assert_called_once_with(pBDB.config, "ADSToken", "abc")
+            _c.assert_called_once_with(pBDB)
+            _r.assert_called_once_with(pbConfig)
+        with patch.dict(pbConfig.params, {"ADSToken": "abc"}, clear=False), patch(
+            self.modName + ".askGenericText", autospec=True
+        ) as _agt:
+            self.assertTrue(self.mainW.checkAdsToken())
+            self.assertEqual(_agt.call_count, 0)
 
 
 if __name__ == "__main__":

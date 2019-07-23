@@ -1698,9 +1698,12 @@ class MainWindow(QMainWindow):
         """
         adIm = AdvancedImportDialog()
         adIm.exec_()
-        method = adIm.comboMethod.currentText().lower()
-        if method == "inspire-hep":
+        method = adIm.comboMethod.currentText().lower().replace("-", "")
+        if method == "inspirehep":
             method = "inspire"
+        if method == "adsnasa":
+            if not self.checkAdsToken():
+                return False
         string = adIm.searchStr.text().strip()
         db = bibtexparser.bibdatabase.BibDatabase()
         if adIm.result == True and string != "":
@@ -1745,6 +1748,8 @@ class MainWindow(QMainWindow):
             if len(found) == 0:
                 infoMessage("No results obtained.")
                 return False
+            if method == "adsnasa":
+                self.statusBarMessage(physBiblioWeb.webSearch[method].getLimitInfo())
 
             selImpo = AdvancedImportSelect(found, self)
             selImpo.exec_()
@@ -1760,6 +1765,8 @@ class MainWindow(QMainWindow):
                     db.entries = [el["bibpars"]]
                     entry = pbWriter.write(db)
                     data = pBDB.bibs.prepareInsert(entry)
+                    if method == "adsnasa":
+                        data["ads"] = key
                     if not pBDB.bibs.insert(data):
                         pBLogger.warning("Failed in inserting entry '%s'\n" % key)
                         continue
@@ -1970,6 +1977,28 @@ class MainWindow(QMainWindow):
     def done(self):
         """Send a "done" message to the status bar"""
         self.statusBarMessage("...done!")
+
+    def checkAdsToken(self):
+        """Check that the ADS token is stored in the configuration"""
+        while (
+            not isinstance(pbConfig.params["ADSToken"], six.string_types)
+        ) or pbConfig.params["ADSToken"].strip() == "":
+            newkey, out = askGenericText(
+                "Before using the ADS service by NASA, you need to obtain an API key:"
+                + " the current value is empty.<br/>Sign up for the newest version of ADS search "
+                + "at <a href='https://ui.adsabs.harvard.edu'>https://ui.adsabs.harvard.edu</a>,"
+                + " visit 'Customize settings', 'API token' and 'Generate a new key'.<br/>"
+                + "Then, enter it here and it will be stored in the configuration:",
+                "Token for ADS is missing",
+            )
+            if not out:
+                return False
+            if newkey.strip() != "":
+                pBDB.config.insert("ADSToken", newkey)
+                pBDB.commit()
+                pbConfig.readConfig()
+                return True
+        return True
 
 
 if __name__ == "__main__":

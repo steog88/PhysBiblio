@@ -11,6 +11,7 @@ by S. Gariazzo (stefano.gariazzo@gmail.com)
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
 It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
 
+
 ## 1. Getting started
 
 ### **WARNING:**
@@ -113,7 +114,6 @@ Type=Application
 Exec=/path/to/PhysBiblio.exe
 Icon=/path/to/physbiblio/icon.png
 Name=PhysBiblio
-Path[$e]=/path/to/PhysBiblio/
 ```
 The icon may be located in `/usr/local/physbiblio/icon.png` or `/usr/physbiblio/icon.png`.
 
@@ -126,6 +126,7 @@ PhysBiblio depends on several python packages:
 
 * sqlite3 (for the database)
 * pyside2 (for the graphical interface)
+* ads (package to interact with the ADS API)
 * appdirs (default paths)
 * argparse (arguments from command line)
 * bibtexparser (to manage bibtex entries)
@@ -140,6 +141,7 @@ PhysBiblio depends on several python packages:
 * six (compatibility between python2 and python3)
 * unittest2+mock (python2.x) / unittest (python3.x) (for testing the methods and functions)
 
+
 ## 2. Features
 PhysBiblio has some nice features which may help to manage the bibliography. Some of them are listed here.
 
@@ -149,7 +151,7 @@ It may be useful if you want to maintain separate activities or collections inde
 
 ### Import
 The default import interface can fetch and download information from [INSPIRE-HEP](http://inspirehep.net/).
-The advanced import can also work with [arXiv](www.arxiv.org), [dx.doi.org](dx.doi.org), [ISBN2bibtex](http://www.ebook.de/de/tools/isbn2bibtex).  
+The advanced import can also work with [ADS](https://ui.adsabs.harvard.edu/), [arXiv](www.arxiv.org), [dx.doi.org](dx.doi.org), [ISBN2bibtex](http://www.ebook.de/de/tools/isbn2bibtex).  
 If an arXiv identifier is present, you can download the paper abstract from arXiv (there is an option to do this by default).
 
 ### Export
@@ -231,6 +233,14 @@ You may then check the bottom of the logfile to see the modified entries and scr
 You can also use the more generic `PhysBiblio.exe dates [date1[, date2]]` command, which enables you to fetch the content between the two given dates (which must be in the format `yyyy-mm-dd`).
 If not given, the default dates are the same as for the `daily` command.
 
+### ADS by NASA
+The ADS service by NASA is accessed by means of the API, using the [unofficial python client](https://github.com/andycasey/ads) maintained by Andy Casey.
+Currently, it is only possible to download the bibtex entries from ADS, update of existing entries or other features are not yet available.
+
+The search is performed through the API in the same way it could be performed by writing a complex search string in the [new UI version](https://ui.adsabs.harvard.edu/).
+For a description of the syntax used in the ADS searches, see [this page](https://adsabs.github.io/help/search/search-syntax).
+
+
 ## 3. Command line usage
 Some functions are available also as simple command line instructions,
 so they can be included in any non-graphical script.
@@ -270,6 +280,7 @@ The best ways to know how to use the various sub-commands and options are
 /path/to/PhysBiblio.exe <command> -h
 ```
 
+
 ## 4. Data paths
 PhysBiblio now saves data, by default, in the directories specified by the `appdirs` package using `user_config_dir` and `user_data_dir`.
 Both the directories are indicated at the beginning when launching `PhysBiblio.exe` via command line.
@@ -283,6 +294,7 @@ The stored data include:
 
 You can change some of the paths and file names in the configuration.
 Please note that changing the configuration **will not move** the existing files into the new locations.
+
 
 ## 5. Acknowledgments
 This software is part of a project that has received funding from the European Union's Horizon 2020 research and innovation programme, under the Marie Skłodowska-Curie grant agreement No 796941.
