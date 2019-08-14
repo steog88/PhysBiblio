@@ -47,6 +47,7 @@ class TestADSOnlineMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "fewFields"))
         self.assertIsInstance(physBiblioWeb.webSearch["adsnasa"], WebSearch)
 
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_getGenericInfo(self):
         """Test getGenericInfo"""
         with patch("ads.SearchQuery", return_value=("abc", "def")) as _sq, patch(
@@ -73,6 +74,7 @@ class TestADSOnlineMethods(unittest.TestCase):
                 "Unauthorized use of ADS API. Is your token valid?"
             )
 
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_getBibtexs(self):
         """Test getBibtexs"""
         fr = MagicMock()
@@ -125,6 +127,7 @@ class TestADSOfflineMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "fewFields"))
         self.assertIsInstance(physBiblioWeb.webSearch["adsnasa"], WebSearch)
 
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_getGenericInfo(self):
         """Test getGenericInfo"""
         resp = json.loads(example_solr_response)
@@ -156,6 +159,7 @@ class TestADSOfflineMethods(unittest.TestCase):
             self.assertEqual(_in.call_count, 1)
             self.assertEqual(_ex.call_count, 0)
 
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_getBibtexs(self):
         """Test getBibtexs"""
         fr = MagicMock()
