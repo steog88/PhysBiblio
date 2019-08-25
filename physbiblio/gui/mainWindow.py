@@ -514,6 +514,13 @@ class MainWindow(QMainWindow):
             triggered=self.reloadMainContent,
         )
 
+        self.changesAct = QAction(
+            "&Changelog",
+            self,
+            statusTip="Show recent changes",
+            triggered=self.recentChanges,
+        )
+
         self.aboutAct = QAction(
             QIcon(":/images/help-about.png"),
             "&About",
@@ -708,6 +715,7 @@ class MainWindow(QMainWindow):
         self.helpMenu.addAction(self.dbstatsAct)
         self.helpMenu.addAction(self.logfileAct)
         self.helpMenu.addSeparator()
+        self.helpMenu.addAction(self.changesAct)
         self.helpMenu.addAction(self.aboutAct)
 
         try:
@@ -856,6 +864,20 @@ class MainWindow(QMainWindow):
             )
         pBPDF.checkFolderExists()
         self.bibtexListWindow.reloadColumnContents()
+
+    def recentChanges(self):
+        """Function to show the recent changes in the current version"""
+        mbox = QMessageBox(
+            QMessageBox.Information,
+            "Recent changes",
+            "New in this <b>version %s</b> (%s):<br>"
+            % (physbiblio.__version__, physbiblio.__version_date__)
+            + "%s<br>" % physbiblio.__recent_changes__,
+            parent=self,
+        )
+        mbox.setTextFormat(Qt.RichText)
+        mbox.setIconPixmap(QPixmap(":/images/icon.png"))
+        mbox.exec_()
 
     def showAbout(self):
         """Function to show the About dialog"""

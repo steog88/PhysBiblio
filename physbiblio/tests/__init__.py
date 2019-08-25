@@ -13,6 +13,7 @@ __all__ = [
     "test_errors",
     "test_export",
     "test_inspireStats",
+    "test_package",
     "test_pdf",
     "test_view",
 ]

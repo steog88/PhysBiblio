@@ -629,7 +629,13 @@ class TestMainWindow(GUITestCase):
         assertMenu(
             self.mainW.helpMenu,
             "&Help",
-            [self.mainW.dbstatsAct, self.mainW.logfileAct, None, self.mainW.aboutAct],
+            [
+                self.mainW.dbstatsAct,
+                self.mainW.logfileAct,
+                None,
+                self.mainW.changesAct,
+                self.mainW.aboutAct,
+            ],
         )
 
         tb = self.mainW.mainToolBar
@@ -1112,6 +1118,28 @@ class TestMainWindow(GUITestCase):
             self.mainW.reloadConfig()
             _cfe.assert_called_once_with(pBPDF)
         pBPDF.pdfDir = oldPdfD
+
+    def test_recentChanges(self):
+        """test recentChanges"""
+        mb = MagicMock()
+        with patch(
+            self.modName + ".QMessageBox", return_value=mb, autospec=True
+        ) as _mb, patch(
+            self.modName + ".QPixmap", return_value="qpm", autospec=True
+        ) as _qpm:
+            self.mainW.recentChanges()
+            _mb.assert_called_once_with(
+                _mb.Information,
+                "Recent changes",
+                "New in this <b>version %s</b> (%s):<br>"
+                % (physbiblio.__version__, physbiblio.__version_date__)
+                + "%s<br>" % physbiblio.__recent_changes__,
+                parent=self.mainW,
+            )
+            _qpm.assert_called_once_with(":/images/icon.png")
+        mb.setTextFormat.assert_called_once_with(Qt.RichText)
+        mb.setIconPixmap.assert_called_once_with("qpm")
+        mb.exec_.assert_called_once_with()
 
     def test_showAbout(self):
         """test showAbout"""

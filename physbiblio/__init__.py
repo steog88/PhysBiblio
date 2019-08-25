@@ -26,3 +26,12 @@ __all__ = [
     "gui",
     "webimport",
 ]
+
+__recent_changes__ = """<br>
+* advance import connected with ADS by NASA;<br>
+* can now copy full bibitem from the table;<br>
+* exportForTexFile now recognizes also bibkeys with "&", "." and "+";<br>
+* double click on corresponding column opens ADS page for the selected entry;<br>
+* renamed configuration parameter 'maxArxivResults' to 'maxExternalAPIResults';<br>
+* tests won't work in PySide2 5.12.4 and 5.13.0.<br>
+"""
