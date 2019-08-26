@@ -391,7 +391,7 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec_ = MagicMock()
         ebd.onCancel()
         with patch("logging.Logger.debug") as _ld, patch(
-            "physbiblio.database.Entries.getByKey", autospec=True
+            "physbiblio.database.Entries.getByBibkey", autospec=True
         ) as _gbk, patch(
             "physbiblio.gui.bibWindows.EditBibtexDialog",
             return_value=ebd,
@@ -405,7 +405,7 @@ class TestFunctions(GUIwMainWTestCase):
             )
             self.assertEqual(_gbk.call_count, 0)
         with patch("logging.Logger.debug") as _ld, patch(
-            "physbiblio.database.Entries.getByKey", autospec=True
+            "physbiblio.database.Entries.getByBibkey", autospec=True
         ) as _gbk, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm, patch(
@@ -424,7 +424,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.debug") as _ld, patch(
             "logging.Logger.warning"
         ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -468,7 +468,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.debug") as _ld, patch(
             "logging.Logger.warning"
         ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -518,7 +518,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -567,7 +567,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.debug") as _ld, patch(
             "logging.Logger.warning"
         ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -631,7 +631,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -680,7 +680,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch("logging.Logger.error") as _le, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -737,7 +737,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -817,7 +817,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch("logging.Logger.error") as _le, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -904,7 +904,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -990,7 +990,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -1083,7 +1083,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(
@@ -1181,7 +1181,7 @@ class TestFunctions(GUIwMainWTestCase):
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             return_value=[testentry],
             autospec=True,
         ) as _gbk, patch(

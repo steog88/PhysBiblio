@@ -195,7 +195,7 @@ def editBibtex(parentObject, editKey=None):
             or `None` to create a new one
     """
     if editKey is not None:
-        edit = pBDB.bibs.getByKey(editKey, saveQuery=False)[0]
+        edit = pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
     else:
         edit = None
     newBibWin = EditBibtexDialog(parentObject, bib=edit)

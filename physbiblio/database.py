@@ -2147,18 +2147,14 @@ class Entries(PhysBiblioDBSub):
         if isinstance(key, list):
             strings = ["%%%s%%" % q for q in key]
             return self.fetchAll(
-                params={"bibkey": strings, "old_keys": strings, "bibtex": strings},
+                params={"bibkey": strings, "old_keys": strings},
                 connection="or ",
                 operator=" like ",
                 saveQuery=saveQuery,
             )
         else:
             return self.fetchAll(
-                params={
-                    "bibkey": "%%%s%%" % key,
-                    "old_keys": "%%%s%%" % key,
-                    "bibtex": "%%%s%%" % key,
-                },
+                params={"bibkey": "%%%s%%" % key, "old_keys": "%%%s%%" % key},
                 connection="or ",
                 operator=" like ",
                 saveQuery=saveQuery,

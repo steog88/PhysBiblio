@@ -5115,14 +5115,8 @@ class TestDatabaseEntries(DBTestCase):
         self.assertRegex(
             self.pBDB.bibs.lastQuery, ".*old_keys  like   \?  or  old_keys  like   \?.*"
         )
-        self.assertRegex(
-            self.pBDB.bibs.lastQuery, ".*bibtex  like   \?  or  bibtex  like   \?.*"
-        )
         self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
-        self.assertEqual(
-            self.pBDB.bibs.lastVals,
-            ("%abc%", "%def%", "%abc%", "%def%", "%abc%", "%def%"),
-        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%", "%abc%", "%def%"))
         self.pBDB.bibs.lastQuery = ""
         self.pBDB.bibs.lastVals = ()
         self.assertEqual(
