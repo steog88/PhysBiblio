@@ -169,10 +169,21 @@ class TestMainWindow(GUITestCase):
         with patch("logging.Logger.info") as _i:
             self.mainW.printNewVersion(False, "")
             _i.assert_called_once_with("No new versions available!")
-        with patch("logging.Logger.warning") as _w:
+        with patch("logging.Logger.warning") as _w, patch.dict(
+            pbConfig.params, {"notifyUpdate": True}, clear=False
+        ):
             self.mainW.printNewVersion(True, "0.0.0")
             _w.assert_called_once_with(
                 "New version available (0.0.0)!\n"
+                + "You can upgrade with `pip install -U physbiblio` "
+                + "(with `sudo`, eventually)."
+            )
+        with patch(self.clsName + ".statusBarMessage") as _w, patch.dict(
+            pbConfig.params, {"notifyUpdate": False}, clear=False
+        ):
+            self.mainW.printNewVersion(True, "0.0.0")
+            _w.assert_called_once_with(
+                "New version available (0.0.0)! "
                 + "You can upgrade with `pip install -U physbiblio` "
                 + "(with `sudo`, eventually)."
             )
@@ -1006,6 +1017,10 @@ class TestMainWindow(GUITestCase):
                 else:
                     v.setCurrentText("2 - info")
                     new[k] = "2"
+            elif k == "notifyUpdate":
+                new[k] = "%s" % (not pbConfig.params[k])
+                v.setCurrentText(new[k])
+                old[k] = pbConfig.params[k]
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
             self.modName + ".ConfigWindow", return_value=cw, autospec=USE_AUTOSPEC_CLASS
         ) as _cw, patch("logging.Logger.info") as _in, patch(
@@ -1019,11 +1034,11 @@ class TestMainWindow(GUITestCase):
         ) as _rlc, patch(
             self.clsName + ".refreshMainContent", autospec=True
         ) as _rmc, patch(
-            "physbiblio.database.PhysBiblioDB.commit", autospec=True
+            "physbiblio.database.PhysBiblioDBCore.commit", autospec=True
         ) as _com:
             self.mainW.config()
             _sbm.assert_called_once_with(self.mainW, "Configuration saved")
-            self.assertEqual(_de.call_count + 1, len(pbConfig.params.keys()))
+            self.assertEqual(_de.call_count + 2, len(pbConfig.params.keys()))
             for k in old.keys():
                 _in.assert_has_calls(
                     [
@@ -1033,11 +1048,14 @@ class TestMainWindow(GUITestCase):
                         )
                     ]
                 )
-                _cup.assert_has_calls([call(pBDB.config, k, new[k])])
+                if k == "notifyUpdate":
+                    _cup.assert_has_calls([call(pbConfig.globalDb.config, k, new[k])])
+                else:
+                    _cup.assert_has_calls([call(pBDB.config, k, new[k])])
             _rdc.assert_called_once_with(pbConfig)
             _rlc.assert_called_once_with(self.mainW)
             _rmc.assert_called_once_with(self.mainW)
-            _com.assert_called_once_with(pBDB)
+            _com.assert_has_calls([call(pbConfig.globalDb), call(pBDB)])
 
     def test_logfile(self):
         """test logfile"""

@@ -8,11 +8,11 @@ from PySide2.QtWidgets import QApplication, QFileDialog
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch
+    from mock import MagicMock, patch
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch
+    from unittest.mock import MagicMock, patch
     from io import StringIO
 
 try:
@@ -24,6 +24,7 @@ except Exception:
     print(traceback.format_exc())
 
 globalQApp = QApplication()
+globalQApp.exec_ = MagicMock(return_value=0)
 
 
 def fakeExec(x, string, out):

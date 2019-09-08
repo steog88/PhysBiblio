@@ -209,7 +209,7 @@ configuration_params.add(
     ConfigParameter(
         "bibListFontSize",
         9,
-        description="Font size in the list of bibtex entries " + "and companion boxes",
+        description="Font size in the list of bibtex entries and companion boxes",
         special="float",
     )
 )
@@ -245,7 +245,7 @@ configuration_params.add(
     ConfigParameter(
         "maxSavedSearches",
         5,
-        description="Max number of automatically saved " + "search/replace arguments",
+        description="Max number of automatically saved search/replace arguments",
         special="int",
     )
 )
@@ -257,7 +257,27 @@ configuration_params.add(
         special=None,
     )
 )
+configuration_params.add(
+    ConfigParameter(
+        "openSinceLastUpdate",
+        "0.0.0",
+        description="Parameter that saves the number of the last used version"
+        + " for showing the list of changes when a new one is opened",
+        isGlobal=True,
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "notifyUpdate",
+        True,
+        description="If configured to False, do not show the existence"
+        + " of updates when opening the app",
+        special="boolean",
+        isGlobal=True,
+    )
+)
 
+ignoreParameterOrder = ["mainDatabaseName", "openSinceLastUpdate"]
 loggingLevels = ["0 - errors", "1 - warnings", "2 - info", "3 - all"]
 
 
@@ -286,6 +306,8 @@ class GlobalDB(PhysBiblioDBCore):
 
         if self.countProfiles() == 0:
             self.createProfile()
+
+        self.config = ConfigurationDB(self)
 
     def createTables(self, existing):
         """Create the profiles table"""
@@ -770,7 +792,9 @@ class ConfigurationDB(PhysBiblioDBSub):
         """
         self.cursExec("select * from settings where name=?\n", (name,))
         if len(self.curs.fetchall()) == 0:
-            self.mainDB.logger.info("No settings found with this name. Inserting it")
+            self.mainDB.logger.info(
+                "No settings found with this name (%s). Inserting it." % name
+            )
             return self.insert(name, value)
         else:
             return self.connExec(
@@ -834,7 +858,7 @@ class ConfigVars:
         self.profileOrder = None
         self.currentProfileName = None
         self.currentProfile = None
-        self.currentDatabase = None
+        self.currentDatabase = ""
         self.loggerString = None
         self.logger = None
 
@@ -869,7 +893,7 @@ class ConfigVars:
         self.paramOrder = [
             p.name
             for p in configuration_params.values()
-            if p.name != "mainDatabaseName"
+            if p.name not in ignoreParameterOrder
         ]
         self.loggingLevels = loggingLevels
         self.params = {}
@@ -1055,7 +1079,10 @@ class ConfigVars:
             for k in configuration_params.keys():
                 if k == "mainDatabaseName":
                     continue
-                cont = configDb.getByName(k)
+                if configuration_params[k].isGlobal:
+                    cont = self.globalDb.config.getByName(k)
+                else:
+                    cont = configDb.getByName(k)
                 if len(cont) == 0:
                     continue
                 v = cont[0]["value"]

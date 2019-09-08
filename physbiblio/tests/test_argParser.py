@@ -8,20 +8,24 @@ import traceback
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch
+    from mock import MagicMock, patch
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch
+    from unittest.mock import MagicMock, patch
     from io import StringIO
+
+from PySide2.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__
     from physbiblio.setuptests import *
+    from physbiblio.gui.setuptests import *
     from physbiblio.argParser import *
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.export import pBExport
+    from physbiblio.gui.mainWindow import MainWindow
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -432,6 +436,45 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(SystemExit):
             args = parser.parse_args(["test", "-a"])
         skipTestsSettings = oldSettings
+
+    def test_call_gui(self):
+        """test the call_gui function"""
+        mw = MainWindow()
+        mw.show = MagicMock()
+        mw.raise_ = MagicMock()
+        mw.recentChanges = MagicMock()
+        mw.errormessage = MagicMock()
+        with patch(
+            "physbiblio.argParser.QApplication", return_value=globalQApp
+        ) as _qa, patch(
+            "physbiblio.argParser.MainWindow", return_value=mw
+        ) as _mw, patch(
+            "physbiblio.config.ConfigurationDB.update"
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.commit"
+        ) as _c, patch(
+            "sys.exit"
+        ) as _e:
+            call_gui([])
+            _qa.assert_called_once_with(sys.argv)
+            _mw.assert_called_once_with()
+            mw.show.assert_called_once_with()
+            mw.raise_.assert_called_once_with()
+            _e.assert_called_once_with(0)
+            self.assertEqual(mw.recentChanges.call_count, 0)
+            with patch.dict(
+                pbConfig.params,
+                {"openSinceLastUpdate": __version__ + "abc"},
+                clear=False,
+            ):
+                call_gui([])
+            mw.recentChanges.assert_called_once_with()
+            _u.assert_called_once_with("openSinceLastUpdate", __version__)
+            _c.assert_called_once_with()
+
+    @classmethod
+    def tearDownModule(self):
+        sys.excepthook = sys.__excepthook__
 
 
 if __name__ == "__main__":

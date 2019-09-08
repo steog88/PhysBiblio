@@ -10,10 +10,10 @@ import traceback
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch
+    from mock import call, patch
 else:
     import unittest
-    from unittest.mock import patch
+    from unittest.mock import call, patch
 
 try:
     from physbiblio.setuptests import *
@@ -98,15 +98,6 @@ class TestConfigParametersList(unittest.TestCase):
 
 class TestConfigMethods(unittest.TestCase):
     """Tests for methods in physbiblio.config"""
-
-    @patch("sys.stdout", new_callable=StringIO)
-    def assert_in_stdout_multi(self, function, expected_output, mock_stdout):
-        """Catch and if test stdout of the function contains a string"""
-        pBErrorManager.tempHandler(sys.stdout, format="%(message)s")
-        function()
-        pBErrorManager.rmTempHandler()
-        for e in expected_output:
-            self.assertIn(e, mock_stdout.getvalue())
 
     def test_config(self):
         """Test config methods for config management"""
@@ -297,12 +288,12 @@ class TestConfigMethods(unittest.TestCase):
         configDb.insert("defaultCategories", "[0")
         configDb.commit()
 
-        tempPbConfig.readConfig()
-        self.assertEqual(tempPbConfig.params, tempParams)
-        self.assert_in_stdout_multi(
-            tempPbConfig.readConfig,
-            ["Failed in reading parameter 'defaultCategories'."],
-        )
+        with patch("logging.Logger.warning") as _w:
+            tempPbConfig.readConfig()
+            self.assertEqual(tempPbConfig.params, tempParams)
+            _w.assert_any_call(
+                "Failed in reading parameter 'defaultCategories'.", exc_info=True
+            )
 
         configDb.insert("loggingLevel", "4")
         configDb.insert("pdfFolder", "/nonexistent/")
@@ -313,12 +304,12 @@ class TestConfigMethods(unittest.TestCase):
         tempParams["pdfFolder"] = u"/nonexistent/"
         tempParams["askBeforeExit"] = True
         tempParams["timeoutWebSearch"] = 20.0
-        tempPbConfig.readConfig()
+        with patch("logging.Logger.warning") as _w:
+            tempPbConfig.readConfig()
+            _w.assert_any_call(
+                "Failed in reading parameter 'defaultCategories'.", exc_info=True
+            )
         self.assertEqual(tempPbConfig.params, tempParams)
-        self.assert_in_stdout_multi(
-            tempPbConfig.readConfig,
-            ["Failed in reading parameter 'defaultCategories'."],
-        )
 
         configDb.insert("defaultCategories", "[0]")
         configDb.commit()
@@ -479,14 +470,6 @@ class TestConfigMethods(unittest.TestCase):
 class TestProfilesDB(unittest.TestCase):
     """Test GlobalDB"""
 
-    @patch("sys.stdout", new_callable=StringIO)
-    def assert_in_stdout(self, function, expected_output, mock_stdout):
-        """Catch and if test stdout of the function contains a string"""
-        pBErrorManager.tempHandler(sys.stdout, format="%(message)s")
-        function()
-        pBErrorManager.rmTempHandler()
-        self.assertIn(expected_output, mock_stdout.getvalue())
-
     def test_GlobalDB(self):
         """Test database for profiles"""
         if os.path.exists(tempProfName):
@@ -496,6 +479,8 @@ class TestProfilesDB(unittest.TestCase):
         )
         self.assertEqual(self.globalDb.countProfiles(), 1)
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")
+        self.assertIsInstance(self.globalDb.config, ConfigurationDB)
+        self.assertEqual(self.globalDb.config.mainDB, self.globalDb)
 
         with self.assertRaises(SystemExit):
             self.assertFalse(self.globalDb.createProfile())
@@ -594,44 +579,41 @@ class TestProfilesDB(unittest.TestCase):
         self.assertEqual(self.globalDb.getProfileOrder(), ["abc", "default"])
         self.assertTrue(self.globalDb.setProfileOrder(["default", "abc"]))
         self.assertEqual(self.globalDb.getProfileOrder(), ["default", "abc"])
-        self.assertFalse(self.globalDb.setProfileOrder())
-        self.assert_in_stdout(self.globalDb.setProfileOrder, "No order given!")
-        self.assertFalse(self.globalDb.setProfileOrder(["default", "temp"]))
-        self.assert_in_stdout(
-            lambda: self.globalDb.setProfileOrder(["default", "temp"]),
-            "List of profile names does not match existing profiles!",
-        )
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setProfileOrder())
+            _w.assert_called_once_with("No order given!")
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setProfileOrder(["default", "temp"]))
+            _w.assert_called_once_with(
+                "List of profile names does not match existing profiles!"
+            )
         with patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             side_effect=[True, False, True, False],
             autospec=True,
-        ) as _mock:
+        ) as _mock, patch("logging.Logger.error") as _e:
             self.assertFalse(self.globalDb.setProfileOrder(["abc", "default"]))
-            self.assert_in_stdout(
-                lambda: self.globalDb.setProfileOrder(["abc", "default"]),
-                "Something went wrong when setting new profile order. Undoing...",
+            _e.assert_called_once_with(
+                "Something went wrong when setting new profile order. Undoing..."
             )
 
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")
         self.assertTrue(self.globalDb.setDefaultProfile("abc"))
         self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
-        self.assertFalse(self.globalDb.setDefaultProfile())
-        self.assert_in_stdout(self.globalDb.setDefaultProfile, "No name given!")
-        self.assertFalse(self.globalDb.setDefaultProfile("temp"))
-        self.assert_in_stdout(
-            lambda: self.globalDb.setDefaultProfile("temp"),
-            "No profiles with the given name!",
-        )
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setDefaultProfile())
+            _w.assert_called_once_with("No name given!")
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setDefaultProfile("temp"))
+            _w.assert_called_once_with("No profiles with the given name!")
         with patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
             side_effect=[True, False, True, False],
             autospec=True,
-        ) as _mock:
+        ) as _mock, patch("logging.Logger.error") as _w:
             self.assertFalse(self.globalDb.setDefaultProfile("abc"))
-            self.assert_in_stdout(
-                lambda: self.globalDb.setDefaultProfile("abc"),
-                "Something went wrong when setting new default profile. "
-                + "Undoing...",
+            _w.assert_called_once_with(
+                "Something went wrong when setting new default profile. " + "Undoing..."
             )
         self.assertEqual(self.globalDb.getDefaultProfile(), "abc")
 

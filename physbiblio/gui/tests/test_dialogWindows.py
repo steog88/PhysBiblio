@@ -432,7 +432,12 @@ class TestConfigWindow(GUITestCase):
             self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(), PBLabel)
             self.assertEqual(
                 cw.layout().itemAtPosition(ix, 0).widget().text(),
-                "%s (<i>%s</i>)" % (configuration_params[k].description, k),
+                "%s (<i>%s</i>%s)"
+                % (
+                    configuration_params[k].description,
+                    k,
+                    " - global setting" if configuration_params[k].isGlobal else "",
+                ),
             )
             if k == "bibtexListColumns":
                 currClass = QPushButton

@@ -271,7 +271,14 @@ class ConfigWindow(PBDialog):
                 else str(pbConfig.params[k])
             )
             grid.addWidget(
-                PBLabel("%s (<i>%s</i>)" % (configuration_params[k].description, k)),
+                PBLabel(
+                    "%s (<i>%s</i>%s)"
+                    % (
+                        configuration_params[k].description,
+                        k,
+                        " - global setting" if configuration_params[k].isGlobal else "",
+                    )
+                ),
                 i - 1,
                 0,
                 1,

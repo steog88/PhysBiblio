@@ -6,9 +6,15 @@ import sys
 import datetime
 import argparse
 
+from PySide2.QtWidgets import QApplication
+
 try:
     from physbiblio import __version__, __version_date__
     from physbiblio.config import pbConfig
+    from physbiblio.errors import pBLogger
+    from physbiblio.database import pBDB
+    from physbiblio.gui.mainWindow import MainWindow
+    from physbiblio.gui.errorManager import pBGUIErrorManager
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -121,22 +127,16 @@ def call_weekly(args):
 
 def call_gui(args=None):
     """Function that runs the PhysBiblio GUI"""
-    from PySide2.QtWidgets import QApplication
-
-    try:
-        from physbiblio.errors import pBLogger
-        from physbiblio.database import pBDB
-        from physbiblio.gui.mainWindow import MainWindow
-        from physbiblio.gui.errorManager import pBGUIErrorManager
-    except ImportError:
-        print("Could not find physbiblio and its modules!")
-        raise
     try:
         app = QApplication(sys.argv)
         mainWin = MainWindow()
         sys.excepthook = mainWin.errormessage.emit
         mainWin.show()
         mainWin.raise_()
+        if pbConfig.params["openSinceLastUpdate"] != __version__:
+            mainWin.recentChanges()
+            pbConfig.globalDb.config.update("openSinceLastUpdate", __version__)
+            pbConfig.globalDb.commit()
         sys.exit(app.exec_())
     except NameError:
         pBLogger.critical("NameError:", exc_info=True)

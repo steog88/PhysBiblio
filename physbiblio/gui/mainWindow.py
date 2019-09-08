@@ -34,7 +34,7 @@ try:
     from physbiblio.database import pBDB, dbStats
     from physbiblio.export import pBExport
     from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.config import pbConfig
+    from physbiblio.config import configuration_params, pbConfig
     from physbiblio.pdf import pBPDF
     from physbiblio.view import pBView
     from physbiblio.bibtexWriter import pbWriter
@@ -218,11 +218,18 @@ class MainWindow(QMainWindow):
             newVersion: the number of the new version or an empty string
         """
         if outdated:
-            pBGUILogger.warning(
-                "New version available (%s)!\n" % newVersion
-                + "You can upgrade with `pip install -U physbiblio` "
-                + "(with `sudo`, eventually)."
-            )
+            if pbConfig.params["notifyUpdate"]:
+                pBGUILogger.warning(
+                    "New version available (%s)!\n" % newVersion
+                    + "You can upgrade with `pip install -U physbiblio` "
+                    + "(with `sudo`, eventually)."
+                )
+            else:
+                self.statusBarMessage(
+                    "New version available (%s)! " % newVersion
+                    + "You can upgrade with `pip install -U physbiblio` "
+                    + "(with `sudo`, eventually)."
+                )
         else:
             pBLogger.info("No new versions available!")
 
@@ -829,7 +836,11 @@ class MainWindow(QMainWindow):
                         % (q[0], s, pbConfig.params[q[0]])
                     )
                     pbConfig.params[q[0]] = s
-                    pBDB.config.update(q[0], s)
+                    if configuration_params[q[0]].isGlobal:
+                        pbConfig.globalDb.config.update(q[0], s)
+                        pbConfig.globalDb.commit()
+                    else:
+                        pBDB.config.update(q[0], s)
                     changed = True
                 pBLogger.debug("Using configuration param %s = %s" % (q[0], s))
             if changed:

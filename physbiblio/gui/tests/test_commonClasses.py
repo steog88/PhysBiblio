@@ -548,14 +548,6 @@ class TestPBTableView(GUITestCase):
 class TestPBTableModel(GUITestCase):
     """Test the PBTableModel class"""
 
-    @patch("sys.stdout", new_callable=StringIO)
-    def assert_in_stdout(self, function, expected_output, mock_stdout):
-        """Catch and if test stdout of the function contains a string"""
-        pBErrorManager.tempHandler(sys.stdout, format="%(message)s")
-        function()
-        pBErrorManager.rmTempHandler()
-        self.assertIn(expected_output, mock_stdout.getvalue())
-
     def test_init(self):
         """test constructor"""
         p = ObjListWindow()
@@ -659,10 +651,9 @@ class TestPBTableModel(GUITestCase):
             "physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
             side_effect=[0, 1, 2],
             autospec=True,
-        ) as _gi:
-            self.assert_in_stdout(
-                mtm.prepareSelected, "Invalid identifier in previous selection: 5"
-            )
+        ) as _gi, patch("logging.Logger.exception") as _ex:
+            mtm.prepareSelected()
+            _ex.assert_called_once_with("Invalid identifier in previous selection: 5")
             _gi.assert_has_calls(
                 [
                     call(mtm, {"a": 1, "b": 3}),
@@ -676,8 +667,9 @@ class TestPBTableModel(GUITestCase):
             "physbiblio.gui.commonClasses.PBTableModel.getIdentifier",
             side_effect=[0, 1, 2],
             autospec=True,
-        ) as _gi:
-            self.assert_in_stdout(mtm.prepareSelected, "dataList is not defined!")
+        ) as _gi, patch("logging.Logger.exception") as _ex:
+            mtm.prepareSelected()
+            _ex.assert_called_once_with("dataList is not defined!")
             self.assertEqual(_gi.call_count, 0)
         self.assertEqual(mtm.selectedElements, {})
 
