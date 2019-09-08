@@ -20,6 +20,7 @@ else:
 
 try:
     from physbiblio.setuptests import *
+    from physbiblio.tablesDef import tableFields
     from physbiblio.errors import pBLogger
     from physbiblio.export import pBExport
     from physbiblio.config import pbConfig
@@ -1091,6 +1092,133 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _ce:
             self.assertFalse(dbc.checkExistingTables())
+
+    def test_createTable(self):
+        """test createTable"""
+        if os.path.exists(tempFDBName):
+            os.remove(tempFDBName)
+        open(tempFDBName, "a").close()
+        with patch("os.path.exists", return_value=True) as _e, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
+        ) as _lsc:
+            dbc = PhysBiblioDBCore(tempFDBName, pBLogger, noOpen=True)
+        dbc.openDB()
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
+            side_effect=[True, False],
+            autospec=True,
+        ) as _ce, patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.critical"
+        ) as _c, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
+        ) as _co:
+            dbc.createTable("tablename", [["abc", "def"], ["ghi", "jkl"]])
+            _ce.assert_called_once_with(
+                dbc, "CREATE TABLE tablename (\nabc def,\nghi jkl);"
+            )
+            _i.assert_called_once_with(
+                "CREATE TABLE tablename (\nabc def,\nghi jkl);\n"
+            )
+            dbc.createTable("tablename", [["abc", "def"], ["ghi", "jkl"]])
+            _c.assert_called_once_with("Create table tablename failed")
+            self.assertEqual(_co.call_count, 0)
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
+            side_effect=[True, False],
+            autospec=True,
+        ) as _ce, patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.critical"
+        ) as _c, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
+        ) as _co, patch(
+            "sys.exit"
+        ) as _e:
+            dbc.createTable(
+                "tablename", [["abc", "def"], ["ghi", "jkl"]], critical=True
+            )
+            _ce.assert_called_once_with(
+                dbc, "CREATE TABLE tablename (\nabc def,\nghi jkl);"
+            )
+            _i.assert_called_once_with(
+                "CREATE TABLE tablename (\nabc def,\nghi jkl);\n"
+            )
+            _co.assert_called_once_with(dbc)
+            dbc.createTable(
+                "tablename", [["abc", "def"], ["ghi", "jkl"]], critical=True
+            )
+            _c.assert_called_once_with("Create table tablename failed")
+            _e.assert_called_once_with(1)
+            self.assertEqual(_co.call_count, 1)
+
+    def test_createTables(self):
+        """Test createTables"""
+        if os.path.exists(tempFDBName):
+            os.remove(tempFDBName)
+        open(tempFDBName, "a").close()
+        with patch("os.path.exists", return_value=True) as _e, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
+        ) as _lsc:
+            dbc = PhysBiblioDBCore(tempFDBName, pBLogger, noOpen=True)
+        dbc.openDB()
+        origcurs = dbc.curs
+        dbc.curs = []
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
+        ) as _cur, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.createTable", autospec=True
+        ) as _ct, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.error"
+        ) as _e, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
+        ) as _com:
+            with self.assertRaises(AttributeError):
+                dbc.createTables()
+            _ct.assert_has_calls(
+                [call(dbc, q, tableFields[q]) for q in tableFields.keys()]
+            )
+            _cur.assert_any_call(
+                dbc, "SELECT name FROM sqlite_master WHERE type='table';"
+            )
+            _cur.assert_any_call(
+                dbc, "select * from categories where idCat = 0 or idCat = 1\n"
+            )
+        dbc.closeDB()
+        os.remove(tempFDBName)
+        open(tempFDBName, "a").close()
+        with patch("os.path.exists", return_value=True) as _e, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
+        ) as _lsc:
+            dbc = PhysBiblioDBCore(tempFDBName, pBLogger, noOpen=True)
+        dbc.openDB()
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
+            side_effect=[True, False],
+            autospec=True,
+        ) as _con, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.createTable", autospec=True
+        ) as _ct, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.error"
+        ) as _e, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
+        ) as _com:
+            dbc.createTables()
+            _con.assert_called_once_with(
+                dbc,
+                "INSERT into categories "
+                + "(idCat, name, description, parentCat, ord) values "
+                + '(0,"Main","This is the main category. '
+                + 'All the other ones are subcategories of this one",0,0), '
+                + '(1,"Tags","Use this category to store tags '
+                + '(such as: ongoing projects, temporary cats,...)",0,0)\n',
+            )
+            _com.assert_called_once_with(dbc)
+            dbc.undo()
+            dbc.createTables()  # repeat, now connExec gives False
+            _e.assert_any_call("Insert main categories failed")
 
     def test_checkDatabaseUpdates_DBC(self):
         """test checkDatabaseUpdates in PhysBiblioDBCore"""

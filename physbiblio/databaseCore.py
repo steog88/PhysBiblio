@@ -268,7 +268,7 @@ class PhysBiblioDBCore:
         tables = [name[0] for name in self.curs]
         return not all(t in tables for t in wantedTables)
 
-    def createTable(self, q, fields):
+    def createTable(self, q, fields, critical=False):
         """Create the table 'q'
 
         Parameters:
@@ -287,7 +287,12 @@ class PhysBiblioDBCore:
         command += ");"
         self.logger.info(command + "\n")
         if not self.connExec(command):
-            self.logger.critical("Create %s failed" % q)
+            self.logger.critical("Create table %s failed" % q)
+            if critical:
+                sys.exit(1)
+        else:
+            if critical:
+                self.commit()
 
     def createTables(self, fieldsDict=None):
         """Create tables for the database
@@ -306,7 +311,8 @@ class PhysBiblioDBCore:
                 continue
             self.createTable(q, fieldsDict[q])
         self.cursExec("select * from categories where idCat = 0 or idCat = 1\n")
-        if len(self.curs.fetchall()) < 2:
+        cats = self.curs.fetchall()
+        if len(cats) < 2:
             command = (
                 "INSERT into categories "
                 + "(idCat, name, description, parentCat, ord) values "

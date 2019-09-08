@@ -10,6 +10,7 @@ profilesSettingsTable = [
     ["oldCfg", "text", ""],
     ["isDefault", "integer", "default 0"],
     ["ord", "integer", "default 100"],
+    ["CONSTRAINT", "unique_databasefile", "UNIQUE (databasefile)"],
 ]
 searchesTable = [
     ["idS", "integer", "primary key"],

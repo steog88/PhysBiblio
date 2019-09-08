@@ -13,7 +13,7 @@ from appdirs import AppDirs
 
 try:
     from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
-    from physbiblio.tablesDef import profilesSettingsTable, searchesTable
+    from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -281,7 +281,7 @@ class GlobalDB(PhysBiblioDBCore):
 
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [name[0] for name in self.curs]
-        if not all([a in tables for a in ["profiles", "searches"]]):
+        if not all([a in tables for a in ["profiles", "searches", "settings"]]):
             self.createTables(tables)
 
         if self.countProfiles() == 0:
@@ -290,30 +290,11 @@ class GlobalDB(PhysBiblioDBCore):
     def createTables(self, existing):
         """Create the profiles table"""
         if "profiles" not in existing:
-            command = "CREATE TABLE profiles (\n"
-            for el in profilesSettingsTable:
-                command += " ".join(el) + ",\n"
-            command += "CONSTRAINT unique_databasefile UNIQUE (databasefile)\n);"
-            self.logger.info(command + "\n")
-            if not self.connExec(command):
-                self.logger.critical("Create profiles table failed")
-                sys.exit(1)
-            self.commit()
+            self.createTable("profiles", profilesSettingsTable, critical=True)
         if "searches" not in existing:
-            command = "CREATE TABLE searches (\n"
-            first = True
-            for el in searchesTable:
-                if first:
-                    first = False
-                else:
-                    command += ",\n"
-                command += " ".join(el)
-            command += ");"
-            self.logger.info(command + "\n")
-            if not self.connExec(command):
-                self.logger.critical("Create searches table failed")
-                sys.exit(1)
-            self.commit()
+            self.createTable("searches", searchesTable, critical=True)
+        if "settings" not in existing:
+            self.createTable("settings", tableFields["settings"], critical=True)
         return True
 
     def countProfiles(self):
