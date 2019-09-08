@@ -3,9 +3,10 @@
 
 This file is part of the physbiblio package.
 """
+from collections import OrderedDict
+import os
 import sys
 import traceback
-import os
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -19,9 +20,11 @@ try:
     from physbiblio.databaseCore import PhysBiblioDBCore
     from physbiblio.config import (
         pbConfig,
-        ConfigVars,
-        config_defaults,
+        ConfigParameter,
+        ConfigParametersList,
         ConfigurationDB,
+        configuration_params,
+        ConfigVars,
         GlobalDB,
     )
 except ImportError:
@@ -34,6 +37,63 @@ tempOldCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg" % today_ymd)
 tempCfgName = os.path.join(pbConfig.dataPath, "tests_cfg_%s.db" % today_ymd)
 tempCfgName1 = os.path.join(pbConfig.dataPath, "tests_cfg1_%s.db" % today_ymd)
 tempProfName = os.path.join(pbConfig.dataPath, "tests_prof_%s.db" % today_ymd)
+
+
+class TestConfigParameter(unittest.TestCase):
+    """Tests for ConfigParameter from physbiblio.config"""
+
+    def test_init(self):
+        """Test __init__"""
+        p = ConfigParameter(
+            "name", "abc", description="desc", special="int", isGlobal=True
+        )
+        self.assertEqual(p.name, "name")
+        self.assertEqual(p.default, "abc")
+        self.assertEqual(p.description, "desc")
+        self.assertEqual(p.special, "int")
+        self.assertEqual(p.isGlobal, True)
+        p = ConfigParameter("name", "abc")
+        self.assertEqual(p.name, "name")
+        self.assertEqual(p.default, "abc")
+        self.assertEqual(p.description, "")
+        self.assertEqual(p.special, None)
+        self.assertEqual(p.isGlobal, False)
+
+    def test_getitem(self):
+        """test __getitem__"""
+        p = ConfigParameter(
+            "name", "abc", description="desc", special="int", isGlobal=True
+        )
+        self.assertEqual(p["name"], "name")
+        self.assertEqual(p["default"], "abc")
+        self.assertEqual(p["description"], "desc")
+        self.assertEqual(p["special"], "int")
+        self.assertEqual(p["isGlobal"], True)
+        with patch("logging.Logger.warning") as _w:
+            self.assertEqual(p["nonexistent"], None)
+            _w.assert_called_once_with(
+                "Attribute does not exist for current ConfigParameter: nonexistent"
+            )
+
+
+class TestConfigParametersList(unittest.TestCase):
+    """Tests for ConfigParametersList from physbiblio.config"""
+
+    def test_init(self):
+        """Test __init__"""
+        p = ConfigParametersList()
+        self.assertIsInstance(p, OrderedDict)
+
+    def test_add(self):
+        """Test add"""
+        pl = ConfigParametersList()
+        p1 = ConfigParameter("name", "abc")
+        p2 = ConfigParameter("other", "def")
+        pl.add(p1)
+        self.assertEqual(pl["name"], p1)
+        pl.add(p2)
+        self.assertEqual(pl["other"], p2)
+        self.assertEqual(list(pl.keys()), ["name", "other"])
 
 
 class TestConfigMethods(unittest.TestCase):
@@ -52,7 +112,7 @@ class TestConfigMethods(unittest.TestCase):
         """Test config methods for config management"""
         if os.path.exists(tempCfgName):
             os.remove(tempCfgName)
-        newConfParamsDict = dict(config_defaults)
+        newConfParamsDict = {k: p.default for k, p in configuration_params.items()}
         with patch(
             "physbiblio.config.ConfigVars.readProfiles",
             return_value=("tmp", {"tmp": {"db": tempCfgName, "d": ""}}, ["tmp"]),
@@ -131,7 +191,9 @@ class TestConfigMethods(unittest.TestCase):
                     "db": str(
                         os.path.join(
                             pbConfig.dataPath,
-                            config_defaults["mainDatabaseName"].replace("PBDATA", ""),
+                            configuration_params["mainDatabaseName"].default.replace(
+                                "PBDATA", ""
+                            ),
                         )
                     ),
                 }
@@ -153,7 +215,9 @@ class TestConfigMethods(unittest.TestCase):
             str(
                 os.path.join(
                     pbConfig.dataPath,
-                    config_defaults["mainDatabaseName"].replace("PBDATA", ""),
+                    configuration_params["mainDatabaseName"].default.replace(
+                        "PBDATA", ""
+                    ),
                 )
             ),
         )
@@ -171,7 +235,9 @@ class TestConfigMethods(unittest.TestCase):
                     "db": str(
                         os.path.join(
                             pbConfig.dataPath,
-                            config_defaults["mainDatabaseName"].replace("PBDATA", ""),
+                            configuration_params["mainDatabaseName"].default.replace(
+                                "PBDATA", ""
+                            ),
                         )
                     ),
                 },
@@ -180,7 +246,9 @@ class TestConfigMethods(unittest.TestCase):
         )
         self.assertEqual(ordered, ["default", "temp"])
         tempPbConfig.reloadProfiles()
-        self.assertEqual(tempPbConfig.params, config_defaults)
+        self.assertEqual(
+            tempPbConfig.params, {k: p.default for k, p in configuration_params.items()}
+        )
 
         tempProfName2 = tempProfName1.replace("prof1", "prof2")
         self.assertTrue(
@@ -497,7 +565,9 @@ class TestProfilesDB(unittest.TestCase):
                     "databasefile": str(
                         os.path.join(
                             pbConfig.dataPath,
-                            config_defaults["mainDatabaseName"].replace("PBDATA", ""),
+                            configuration_params["mainDatabaseName"].default.replace(
+                                "PBDATA", ""
+                            ),
                         )
                     ),
                     "oldCfg": u"",
@@ -609,6 +679,7 @@ class TestConfigDB(DBTestCase):
 
 
 def tearDownModule():
+    """actions to perform at the end: remove temporary test files"""
     if os.path.exists(tempCfgName):
         os.remove(tempCfgName)
     if os.path.exists(tempCfgName1):

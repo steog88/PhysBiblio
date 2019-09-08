@@ -5,8 +5,9 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 import ast
-import os
+from collections import OrderedDict
 import logging
+import os
 import six
 from appdirs import AppDirs
 
@@ -18,115 +19,204 @@ except ImportError:
     print(traceback.format_exc())
     raise
 
+
+globalLogName = "physbibliolog"
+
+
+class ConfigParameter:
+    """Instances contain some properties for configuration parameters,
+    such as name, description, special type and default value
+    """
+
+    def __init__(self, name, default, description="", special=None, isGlobal=False):
+        """Store the passed properties
+        
+        Parameters:
+            name: the parameter name in the database
+            default: the default value if not edited by the user
+            description (default ""): a description
+                for the configuration dialog
+            special (default None): define a special type
+                for the parameter (treat as list, int, float, bool, ...)
+            isGlobal (default False): if True, the parameter is global
+                and shared among all the databases.
+                If False, it is relative to the current database only
+        """
+        self.name = name
+        self.default = default
+        self.description = description
+        self.special = special
+        self.isGlobal = isGlobal
+
+    def __getitem__(self, key):
+        """Extract attribute using a [...] syntax,
+        for compatibility with previous code
+        """
+        try:
+            item = getattr(self, key)
+        except AttributeError:
+            item = None
+            logging.getLogger(globalLogName).warning(
+                "Attribute does not exist for current ConfigParameter: %s" % key
+            )
+        return item
+
+
+class ConfigParametersList(OrderedDict):
+    """Inherit from OrderedDict, but add a quick method to add 
+    `ConfigParameter`s to the list"""
+
+    def add(self, cp):
+        """Add a new value, corresponding to the key that is cp.name
+        
+        Parameters:
+            cp: a ConfigParameter instance
+        """
+        if isinstance(cp, ConfigParameter):
+            self[cp.name] = cp
+        else:
+            logging.getLogger(globalLogName).warning(
+                "Invalid parameter type: %s" % type(cp)
+            )
+
+
 # these are the default parameter values, descriptions and types
-configuration_params = [
-    {
-        "name": "mainDatabaseName",
-        "default": "PBDATAphysbiblio.db",
-        "description": "Name of the database file",
-        "special": None,
-    },
-    {
-        "name": "loggingLevel",
-        "default": 1,
-        "description": "How many messages to save in the log file "
+configuration_params = ConfigParametersList()
+configuration_params.add(
+    ConfigParameter(
+        "mainDatabaseName",
+        "PBDATAphysbiblio.db",
+        description="Name of the database file",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "loggingLevel",
+        1,
+        description="How many messages to save in the log file "
         + "(will have effects only after closing the application)",
-        "special": "int",
-    },
-    {
-        "name": "logFileName",
-        "default": "PBDATAparams.log",
-        "description": "Name of the log file",
-        "special": None,
-    },
-    {
-        "name": "pdfFolder",
-        "default": "PBDATApdf",
-        "description": "Folder where to save the PDF files",
-        "special": None,
-    },
-    {
-        "name": "pdfApplication",
-        "default": "",
-        "description": "Application for opening PDF files "
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "logFileName",
+        "PBDATAparams.log",
+        description="Name of the log file",
+        special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "pdfFolder",
+        "PBDATApdf",
+        description="Folder where to save the PDF files",
+        special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "pdfApplication",
+        "",
+        description="Application for opening PDF files "
         + "(used only via command line)",
-        "special": None,
-    },
-    {
-        "name": "webApplication",
-        "default": "",
-        "description": "Web browser (used only via command line)",
-        "special": None,
-    },
-    {
-        "name": "timeoutWebSearch",
-        "default": 20.0,
-        "description": "Timeout for the web queries",
-        "special": "float",
-    },
-    {
-        "name": "askBeforeExit",
-        "default": False,
-        "description": "Confirm before exiting",
-        "special": "boolean",
-    },
-    {
-        "name": "defaultLimitBibtexs",
-        "default": 100,
-        "description": "Number of bibtex entries in the initial view "
+        special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "webApplication",
+        "",
+        description="Web browser (used only via command line)",
+        special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "timeoutWebSearch",
+        20.0,
+        description="Timeout for the web queries",
+        special="float",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "askBeforeExit", False, description="Confirm before exiting", special="boolean"
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "defaultLimitBibtexs",
+        100,
+        description="Number of bibtex entries in the initial view "
         + "of the main table",
-        "special": "int",
-    },
-    {
-        "name": "defaultUpdateFrom",
-        "default": 0,
-        "description": "Index of bibtex entries (firstdate ASC) "
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "defaultUpdateFrom",
+        0,
+        description="Index of bibtex entries (firstdate ASC) "
         + 'from which I should start when using "Update bibtexs"',
-        "special": "int",
-    },
-    {
-        "name": "maxAuthorNames",
-        "default": 3,
-        "description": "Max number of authors to be displayed in the main list",
-        "special": "int",
-    },
-    {
-        "name": "maxAuthorSave",
-        "default": 6,
-        "description": "Max number of authors to be saved "
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "maxAuthorNames",
+        3,
+        description="Max number of authors to be displayed in the main list",
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "maxAuthorSave",
+        6,
+        description="Max number of authors to be saved "
         + "when adding info from arXiv",
-        "special": "int",
-    },
-    {
-        "name": "maxExternalAPIResults",
-        "default": 10,
-        "description": "Max number of entries per page "
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "maxExternalAPIResults",
+        10,
+        description="Max number of entries per page "
         + "when reading external API results",
-        "special": "int",
-    },
-    {
-        "name": "fetchAbstract",
-        "default": False,
-        "description": "Automatically fetch the abstract "
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "fetchAbstract",
+        False,
+        description="Automatically fetch the abstract "
         + "from arXiv if an arxiv number is present",
-        "special": "boolean",
-    },
-    {
-        "name": "defaultCategories",
-        "default": [],
-        "description": "Default categories for imported bibtexs",
-        "special": "list",
-    },
-    {
-        "name": "bibListFontSize",
-        "default": 9,
-        "description": "Font size in the list of bibtex entries "
-        + "and companion boxes",
-        "special": "float",
-    },
-    {
-        "name": "bibtexListColumns",
-        "default": [
+        special="boolean",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "defaultCategories",
+        [],
+        description="Default categories for imported bibtexs",
+        special="list",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "bibListFontSize",
+        9,
+        description="Font size in the list of bibtex entries " + "and companion boxes",
+        special="float",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "bibtexListColumns",
+        [
             "bibkey",
             "author",
             "title",
@@ -138,43 +228,37 @@ configuration_params = [
             "isbn",
             "inspire",
         ],
-        "description": "The columns to be shown in the entries list",
-        "special": "list",
-    },
-    {
-        "name": "resizeTable",
-        "default": True,
-        "description": "Automatically resize columns and rows "
+        description="The columns to be shown in the entries list",
+        special="list",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "resizeTable",
+        True,
+        description="Automatically resize columns and rows "
         + "in the main bibtex table",
-        "special": "boolean",
-    },
-    {
-        "name": "maxSavedSearches",
-        "default": 5,
-        "description": "Max number of automatically saved "
-        + "search/replace arguments",
-        "special": "int",
-    },
-    {
-        "name": "ADSToken",
-        "default": "",
-        "description": "Token for connecting to the ADS service by NASA",
-        "special": None,
-    },
-]
+        special="boolean",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "maxSavedSearches",
+        5,
+        description="Max number of automatically saved " + "search/replace arguments",
+        special="int",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "ADSToken",
+        "",
+        description="Token for connecting to the ADS service by NASA",
+        special=None,
+    )
+)
 
 loggingLevels = ["0 - errors", "1 - warnings", "2 - info", "3 - all"]
-
-config_paramOrder = [
-    p["name"] for p in configuration_params if p["name"] != "mainDatabaseName"
-]
-config_defaults = {}
-config_descriptions = {}
-config_special = {}
-for p in configuration_params:
-    config_defaults[p["name"]] = p["default"]
-    config_descriptions[p["name"]] = p["description"]
-    config_special[p["name"]] = p["special"]
 
 
 class GlobalDB(PhysBiblioDBCore):
@@ -259,7 +343,8 @@ class GlobalDB(PhysBiblioDBCore):
         """
         if databasefile is None:
             databasefile = os.path.join(
-                self.dataPath, config_defaults["mainDatabaseName"].replace("PBDATA", "")
+                self.dataPath,
+                configuration_params["mainDatabaseName"].default.replace("PBDATA", ""),
             )
         command = (
             "INSERT into profiles "
@@ -776,7 +861,7 @@ class ConfigVars:
         logging.basicConfig(
             format="[%(module)s.%(funcName)s] %(message)s", level=logging.INFO
         )
-        self.prepareLogger("physbibliolog")
+        self.prepareLogger(globalLogName)
         self.defaultDirs = AppDirs("PhysBiblio")
 
         configPath = os.getenv(
@@ -800,17 +885,17 @@ class ConfigVars:
         if not os.path.exists(self.dataPath):
             os.makedirs(self.dataPath)
 
-        self.paramOrder = config_paramOrder
-        self.specialTypes = config_special
-        self.defaultsParams = config_defaults
+        self.paramOrder = [
+            p.name
+            for p in configuration_params.values()
+            if p.name != "mainDatabaseName"
+        ]
         self.loggingLevels = loggingLevels
         self.params = {}
-        for k, v in config_defaults.items():
-            if isinstance(v, str) and "PBDATA" in v:
-                v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
-                config_defaults[k] = v
-            self.params[k] = v
-        self.descriptions = config_descriptions
+        for k, p in configuration_params.items():
+            if isinstance(p.default, str) and "PBDATA" in p.default:
+                p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
+            self.params[k] = p.default
 
         self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
         self.globalDbFile = os.path.join(self.configPath, profileFileName)
@@ -894,7 +979,7 @@ class ConfigVars:
                 if k == defProf:
                     self.globalDb.setDefaultProfile(k)
                 for p in self.paramOrder:
-                    if self.params[p] != config_defaults[p]:
+                    if self.params[p] != configuration_params[p].default:
                         configDb.insert(p, str(self.params[p]))
                 tempDb.commit()
                 tempDb.closeDB()
@@ -964,8 +1049,8 @@ class ConfigVars:
         self.currentProfile = newProfile
         self.currentDatabase = newProfile["db"]
         self.params = {}
-        for k, v in config_defaults.items():
-            self.params[k] = v
+        for k, p in configuration_params.items():
+            self.params[k] = p.default
         self.logger.info(
             "Restarting with profile '%s', database: %s"
             % (self.currentProfileName, self.currentProfile["db"])
@@ -977,16 +1062,16 @@ class ConfigVars:
         Parses the various parameters given their declared type.
         """
         self.logger.debug("Reading configuration.\n")
-        for k, v in config_defaults.items():
+        for k, p in configuration_params.items():
             if k == "mainDatabaseName":
                 continue
-            if isinstance(v, str) and "PBDATA" in v:
-                v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
-            self.params[k] = v
+            if isinstance(p.default, str) and "PBDATA" in p.default:
+                p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
+            self.params[k] = p.default
         tempDb = PhysBiblioDBCore(self.currentDatabase, self.logger, info=False)
         configDb = ConfigurationDB(tempDb)
         try:
-            for k in config_defaults.keys():
+            for k in configuration_params.keys():
                 if k == "mainDatabaseName":
                     continue
                 cont = configDb.getByName(k)
@@ -994,18 +1079,18 @@ class ConfigVars:
                     continue
                 v = cont[0]["value"]
                 try:
-                    if config_special[k] == "float":
+                    if configuration_params[k].special == "float":
                         self.params[k] = float(v)
-                    elif config_special[k] == "int":
+                    elif configuration_params[k].special == "int":
                         self.params[k] = int(v)
-                    elif config_special[k] == "boolean":
+                    elif configuration_params[k].special == "boolean":
                         if v.lower() in ("true", "1", "yes", "on"):
                             self.params[k] = True
                         elif v.lower() in ("false", "0", "no", "off"):
                             self.params[k] = False
                         else:
                             raise ValueError
-                    elif config_special[k] == "list":
+                    elif configuration_params[k].special == "list":
                         self.params[k] = ast.literal_eval(v.strip())
                     else:
                         if isinstance(v, str) and "PBDATA" in v:
@@ -1015,7 +1100,7 @@ class ConfigVars:
                     self.logger.warning(
                         "Failed in reading parameter '%s'." % k, exc_info=True
                     )
-                    self.params[k] = config_defaults[k]
+                    self.params[k] = configuration_params[k].default
         except Exception:
             self.logger.error(
                 "ERROR: reading config from '%s' failed." % (self.currentProfile["db"])
@@ -1033,8 +1118,8 @@ class ConfigVars:
         """
         self.currentProfileName = newShort
         self.params = {}
-        for k, v in config_defaults.items():
-            self.params[k] = v
+        for k, p in configuration_params.items():
+            self.params[k] = p.default
         self.currentProfile = newProfile
         self.logger.info(
             "Starting with configuration in '%s'" % self.currentProfile["f"]
@@ -1048,28 +1133,28 @@ class ConfigVars:
         whose name is stored in self.configMainFile.
         Parses the various parameters given their declared type.
         """
-        for k, v in config_defaults.items():
-            if isinstance(v, str) and "PBDATA" in v:
-                v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
-            self.params[k] = v
+        for k, p in configuration_params.items():
+            if isinstance(p.default, str) and "PBDATA" in p.default:
+                p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
+            self.params[k] = p.default
         try:
             with open(self.configMainFile) as r:
                 txt = r.readlines()
             for l in txt:
                 k, v = l.replace("\n", "").split(" = ")
                 try:
-                    if config_special[k] == "float":
+                    if configuration_params[k].special == "float":
                         self.params[k] = float(v)
-                    elif config_special[k] == "int":
+                    elif configuration_params[k].special == "int":
                         self.params[k] = int(v)
-                    elif config_special[k] == "boolean":
+                    elif configuration_params[k].special == "boolean":
                         if v.lower() in ("true", "1", "yes", "on"):
                             self.params[k] = True
                         elif v.lower() in ("false", "0", "no", "off"):
                             self.params[k] = False
                         else:
                             raise ValueError
-                    elif config_special[k] == "list":
+                    elif configuration_params[k].special == "list":
                         self.params[k] = ast.literal_eval(v.strip())
                     else:
                         if isinstance(v, str) and "PBDATA" in v:

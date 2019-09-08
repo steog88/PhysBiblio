@@ -66,7 +66,7 @@ class TestConfigEditColumns(GUITestCase):
         super(TestConfigEditColumns, self).setUpClass()
         self.defCols = [
             a["default"]
-            for a in configuration_params
+            for a in configuration_params.values()
             if a["name"] == "bibtexListColumns"
         ][0]
 
@@ -75,7 +75,7 @@ class TestConfigEditColumns(GUITestCase):
         {
             "bibtexListColumns": [
                 a["default"]
-                for a in configuration_params
+                for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
             ][0]
         },
@@ -133,7 +133,7 @@ class TestConfigEditColumns(GUITestCase):
         {
             "bibtexListColumns": [
                 a["default"]
-                for a in configuration_params
+                for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
             ][0]
         },
@@ -152,7 +152,7 @@ class TestConfigEditColumns(GUITestCase):
         {
             "bibtexListColumns": [
                 a["default"]
-                for a in configuration_params
+                for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
             ][0]
         },
@@ -179,7 +179,7 @@ class TestConfigEditColumns(GUITestCase):
         {
             "bibtexListColumns": [
                 a["default"]
-                for a in configuration_params
+                for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
             ][0]
         },
@@ -432,7 +432,7 @@ class TestConfigWindow(GUITestCase):
             self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(), PBLabel)
             self.assertEqual(
                 cw.layout().itemAtPosition(ix, 0).widget().text(),
-                "%s (<i>%s</i>)" % (pbConfig.descriptions[k], k),
+                "%s (<i>%s</i>)" % (configuration_params[k].description, k),
             )
             if k == "bibtexListColumns":
                 currClass = QPushButton
@@ -488,7 +488,7 @@ class TestConfigWindow(GUITestCase):
                 ) as _f:
                     QTest.mouseClick(currWidget, Qt.LeftButton)
                     _f.assert_called_once_with(cw)
-            elif pbConfig.specialTypes[k] == "boolean":
+            elif configuration_params[k].special == "boolean":
                 currClass = PBTrueFalseCombo
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
@@ -543,7 +543,7 @@ class TestConfigWindow(GUITestCase):
                 self.assertEqual(
                     currWidget.currentText(),
                     pbConfig.loggingLevels[
-                        int(pbConfig.defaultsParams["loggingLevel"])
+                        int(configuration_params["loggingLevel"].default)
                     ],
                 )
                 self.assertEqual(currWidget.count(), len(pbConfig.loggingLevels))

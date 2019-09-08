@@ -23,7 +23,7 @@ from PySide2.QtWidgets import (
 )
 
 try:
-    from physbiblio.config import pbConfig
+    from physbiblio.config import pbConfig, configuration_params
     from physbiblio.errors import pBLogger
     from physbiblio.database import pBDB
     from physbiblio.webimport.webInterf import physBiblioWeb
@@ -271,7 +271,7 @@ class ConfigWindow(PBDialog):
                 else str(pbConfig.params[k])
             )
             grid.addWidget(
-                PBLabel("%s (<i>%s</i>)" % (pbConfig.descriptions[k], k)),
+                PBLabel("%s (<i>%s</i>)" % (configuration_params[k].description, k)),
                 i - 1,
                 0,
                 1,
@@ -306,7 +306,7 @@ class ConfigWindow(PBDialog):
                                 self,
                                 pbConfig.loggingLevels,
                                 pbConfig.loggingLevels[
-                                    int(pbConfig.defaultsParams["loggingLevel"])
+                                    int(configuration_params["loggingLevel"].default)
                                 ],
                             ),
                         ]
@@ -317,7 +317,7 @@ class ConfigWindow(PBDialog):
             elif k == "defaultCategories":
                 self.textValues.append([k, QPushButton(val)])
                 self.textValues[-1][1].clicked.connect(self.editDefCats)
-            elif pbConfig.specialTypes[k] == "boolean":
+            elif configuration_params[k].special == "boolean":
                 self.textValues.append([k, PBTrueFalseCombo(self, val)])
             else:
                 self.textValues.append([k, QLineEdit(val)])
