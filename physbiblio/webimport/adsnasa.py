@@ -3,9 +3,7 @@
 This file is part of the physbiblio package.
 """
 import traceback
-import ads.config as adsconfig
 import ads
-import ads.sandbox as adssand
 
 try:
     from physbiblio.config import pbConfig
@@ -23,7 +21,6 @@ class WebSearch(WebInterf):
     def __init__(self):
         """Initialize the object and define some basic properties"""
         WebInterf.__init__(self)
-        self.mock = False
         self.name = "ADS-NASA fetcher"
         self.url = "https://ui.adsabs.harvard.edu/"
         self.loadFields = [
@@ -54,18 +51,14 @@ class WebSearch(WebInterf):
         Output:
             a list of ads objects with the obtained entries
         """
-        adsconfig.token = pbConfig.params["ADSToken"]
-        if self.mock:
-            mod = adssand
-        else:
-            mod = ads
+        ads.config.token = pbConfig.params["ADSToken"]
         try:
-            self.q = mod.SearchQuery(q=string, fl=fields, rows=rows)
+            self.q = ads.SearchQuery(q=string, fl=fields, rows=rows)
             l = list(self.q)
         except ads.exceptions.APIResponseError:
             pBLogger.exception("Unauthorized use of ADS API. Is your token valid?")
         except Exception:
-            pBLogger.exception("Something went wrong while fetching ADS")
+            pBLogger.exception("Something went wrong while fetching ADS", exc_info=True)
         else:
             pBLogger.info(self.getLimitInfo())
             return l
@@ -83,18 +76,16 @@ class WebSearch(WebInterf):
         Output:
             a string with all the bibtex entries
         """
-        adsconfig.token = pbConfig.params["ADSToken"]
-        if self.mock:
-            mod = adssand
-        else:
-            mod = ads
+        ads.config.token = pbConfig.params["ADSToken"]
         try:
-            self.q = mod.ExportQuery(bibcodes=bibcodes, format="bibtex")
+            self.q = ads.ExportQuery(bibcodes=bibcodes, format="bibtex")
             export = self.q.execute()
         except ads.exceptions.APIResponseError:
             pBLogger.exception("Unauthorized use of ADS API. Is your token valid?")
         except Exception:
-            pBLogger.exception("Something went wrong while exporting ADS query")
+            pBLogger.exception(
+                "Something went wrong while exporting ADS query", exc_info=True
+            )
         else:
             pBLogger.info(self.getLimitInfo())
             return export

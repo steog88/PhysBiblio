@@ -39,8 +39,6 @@ class TestADSOnlineMethods(unittest.TestCase):
         """Test init and basic class properties"""
         ws = WebSearch()
         self.assertIsInstance(ws, WebInterf)
-        self.assertTrue(hasattr(ws, "mock"))
-        self.assertFalse(ws.mock)
         self.assertTrue(hasattr(ws, "name"))
         self.assertTrue(hasattr(ws, "url"))
         self.assertTrue(hasattr(ws, "loadFields"))
@@ -101,92 +99,6 @@ class TestADSOnlineMethods(unittest.TestCase):
             _ex.assert_called_once_with(
                 "Unauthorized use of ADS API. Is your token valid?"
             )
-
-
-class TestADSOfflineMethods(unittest.TestCase):
-    """Test the functions that import entries from the ADS.
-    Should not fail if everything works fine.
-    """
-
-    def setUp(self):
-        """Activate mock"""
-        physBiblioWeb.webSearch["adsnasa"].mock = True
-
-    def tearDown(self):
-        """Deactivate mock"""
-        physBiblioWeb.webSearch["adsnasa"].mock = False
-
-    def test_init(self):
-        """Test init and basic class properties"""
-        ws = WebSearch()
-        self.assertIsInstance(ws, WebInterf)
-        self.assertTrue(hasattr(ws, "mock"))
-        self.assertTrue(hasattr(ws, "name"))
-        self.assertTrue(hasattr(ws, "url"))
-        self.assertTrue(hasattr(ws, "loadFields"))
-        self.assertTrue(hasattr(ws, "fewFields"))
-        self.assertIsInstance(physBiblioWeb.webSearch["adsnasa"], WebSearch)
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_getGenericInfo(self):
-        """Test getGenericInfo"""
-        resp = json.loads(example_solr_response)
-        b2 = [i["bibcode"] for i in resp["response"]["docs"]][0:10]
-        with patch(
-            "ads.sandbox.SearchQuery", return_value=("abc", "def")
-        ) as _sq, patch("logging.Logger.info") as _in, patch(
-            "logging.Logger.exception"
-        ) as _ex, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
-            autospec=True,
-            return_value="nolimit",
-        ) as _gl:
-            a = physBiblioWeb.webSearch["adsnasa"].getGenericInfo("star", ["bibcode"])
-            self.assertEqual(a, ["abc", "def"])
-            _sq.assert_called_once_with(
-                q="star", fl=["bibcode"], rows=pbConfig.params["maxExternalAPIResults"]
-            )
-            _in.assert_called_once_with("nolimit")
-            _gl.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"])
-            self.assertEqual(_ex.call_count, 0)
-        with patch("logging.Logger.info") as _in, patch(
-            "logging.Logger.exception"
-        ) as _ex:
-            sq = physBiblioWeb.webSearch["adsnasa"].getGenericInfo("star", ["bibcode"])
-            self.assertIsInstance(a, list)
-            b1 = [a.bibcode for a in sq]
-            self.assertSequenceEqual(b1, b2)
-            self.assertEqual(_in.call_count, 1)
-            self.assertEqual(_ex.call_count, 0)
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_getBibtexs(self):
-        """Test getBibtexs"""
-        fr = MagicMock()
-        fr.execute = MagicMock(return_value="exported")
-        with patch("ads.sandbox.ExportQuery", return_value=fr) as _eq, patch(
-            "logging.Logger.info"
-        ) as _in, patch("logging.Logger.exception") as _ex, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
-            autospec=True,
-            return_value="nolimit",
-        ) as _gl:
-            a = physBiblioWeb.webSearch["adsnasa"].getBibtexs(["bibcode"])
-            _eq.assert_called_once_with(bibcodes=["bibcode"], format="bibtex")
-            _in.assert_called_once_with("nolimit")
-            _gl.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"])
-            self.assertEqual(_ex.call_count, 0)
-            fr.execute.assert_called_once_with()
-            self.assertEqual(a, "exported")
-        with patch("logging.Logger.info") as _in, patch(
-            "logging.Logger.exception"
-        ) as _ex, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
-            autospec=True,
-            return_value="nolimit",
-        ) as _gl:
-            a = physBiblioWeb.webSearch["adsnasa"].getBibtexs(["bibcode"])
-            self.assertEqual(a, json.loads(example_export_response)["export"])
 
     def test_retrieveUrl(self):
         """Test retrieveUrlFirst and retrieveUrlAll"""
