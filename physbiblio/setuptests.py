@@ -104,14 +104,6 @@ class DBTestCase(unittest.TestCase):
         pBErrorManager.rmTempHandler()
         self.assertEqual(mock_stdout.getvalue(), expected_output)
 
-    @patch("sys.stdout", new_callable=StringIO)
-    def assert_in_stdout(self, function, expected_output, mock_stdout):
-        """Catch and if test stdout of the function contains a string"""
-        pBErrorManager.tempHandler(sys.stdout, format="%(message)s")
-        function()
-        pBErrorManager.rmTempHandler()
-        self.assertIn(expected_output, mock_stdout.getvalue())
-
 
 def tearDownModule():
     """Clean temporary logfile at the end"""
