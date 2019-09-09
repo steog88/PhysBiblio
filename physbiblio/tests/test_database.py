@@ -1917,8 +1917,8 @@ class TestDatabaseCategories(DBTestCase):
                 }
             )
         )
-        self.assert_stdout(
-            lambda: self.pBDB.cats.insert(
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.cats.insert(
                 {
                     "name": "cat1",
                     "comments": "",
@@ -1926,10 +1926,11 @@ class TestDatabaseCategories(DBTestCase):
                     "parentCat": "0",
                     "ord": "1",
                 }
-            ),
-            "An entry with the same name is already present in "
-            + "the same category!\n",
-        )
+            )
+            _i.assert_called_once_with(
+                "An entry with the same name is already present in "
+                + "the same category!"
+            )
         self.assertTrue(
             self.pBDB.cats.insert(
                 {
@@ -2004,15 +2005,13 @@ class TestDatabaseCategories(DBTestCase):
         dbStats(self.pBDB)
         self.assertEqual(self.pBDB.stats["catExp"], 0)
         self.assertEqual(self.pBDB.stats["catBib"], 0)
-        self.assert_stdout(
-            lambda: self.pBDB.cats.delete(0),
-            "You should not delete the category with id: 0.\n",
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.cats.delete(0)
+            _i.assert_called_once_with("You should not delete the category with id: 0.")
         self.checkNumberCategories(2)
-        self.assert_stdout(
-            lambda: self.pBDB.cats.delete(1),
-            "You should not delete the category with id: 1.\n",
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.cats.delete(1)
+            _i.assert_called_once_with("You should not delete the category with id: 1.")
         self.checkNumberCategories(2)
 
     def test_get(self):
@@ -2262,9 +2261,9 @@ class TestDatabaseCategories(DBTestCase):
             + "(such as: ongoing projects, temporary cats,...)</i>",
         )
         self.assertEqual(catString(2, self.pBDB), "")
-        self.assert_stdout(
-            lambda: catString(2, self.pBDB), "Category '2' not in database\n"
-        )
+        with patch("logging.Logger.warning") as _i:
+            catString(2, self.pBDB)
+            _i.assert_any_call("Category '2' not in database")
 
     def test_cats_alphabetical(self):
         """Test alphabetical ordering of idCats with cats_alphabetical"""
@@ -2306,9 +2305,9 @@ class TestDatabaseCategories(DBTestCase):
         self.assertEqual(cats_alphabetical(listId, self.pBDB), [2, 4, 3])
         self.assertEqual(cats_alphabetical([3, 4, 5], self.pBDB), [4, 3])
         self.assertEqual(cats_alphabetical([], self.pBDB), [])
-        self.assert_stdout(
-            lambda: cats_alphabetical([5], self.pBDB), "Category '5' not in database\n"
-        )
+        with patch("logging.Logger.warning") as _i:
+            cats_alphabetical([5], self.pBDB)
+            _i.assert_any_call("Category '5' not in database")
 
     def test_hierarchy(self):
         """Testing the construction and print of the category hierarchies"""
@@ -2664,24 +2663,22 @@ class TestDatabaseEntries(DBTestCase):
 
         self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
         self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose=0))
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.updateField("def", "inspire", "1234"),
-            "Updating 'inspire' for entry 'def'\n",
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.updateField("def", "inspire", "1234")
+            _i.assert_any_call("Updating 'inspire' for entry 'def'")
         self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], "1234")
         self.assertFalse(
             self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=0)
         )
         self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose=0))
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.updateField("def", "inspires", "1234"),
-            "Updating 'inspires' for entry 'def'\n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=2),
-            "Updating 'inspires' for entry 'def'\nNon-existing field "
-            + "or unappropriated value: (def, inspires, 1234)\n",
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.updateField("def", "inspires", "1234")
+            _i.assert_any_call("Updating 'inspires' for entry 'def'")
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=2)
+            _i.assert_any_call(
+                "Non-existing field " + "or unappropriated value: (def, inspires, 1234)"
+            )
 
         with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
             self.assertTrue(self.pBDB.bibs.updateBibkey("def", "abc"))
@@ -5327,15 +5324,17 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "abc")
         self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
         self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.getField("def", "isbn"),
-            "Error in getField('def', 'isbn'): no element found?\n",
-        )
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.getField("def", "isbn")
+            _i.assert_called_once_with(
+                "Error in getField('def', 'isbn'): no element found?"
+            )
         self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.getField("abc", "def"),
-            "Error in getField('abc', 'def'): the field is missing?\n",
-        )
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.getField("abc", "def")
+            _i.assert_called_once_with(
+                "Error in getField('abc', 'def'): the field is missing?"
+            )
 
     def test_toDataDict(self):
         self.insert_three()
@@ -7219,10 +7218,15 @@ class TestDatabaseUtilities(DBTestCase):
             self.pBDB.stats,
             {"bibs": 0, "cats": 2, "exps": 1, "catBib": 1, "catExp": 2, "bibExp": 1},
         )
-        self.assert_stdout(
-            self.pBDB.utils.cleanSpareEntries,
-            "Cleaning (test, 1)\nCleaning (1, test)\nCleaning (1, 0)\n",
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.utils.cleanSpareEntries()
+            _i.assert_has_calls(
+                [
+                    call("Cleaning (test, 1)"),
+                    call("Cleaning (1, test)"),
+                    call("Cleaning (1, 0)"),
+                ]
+            )
         dbStats(self.pBDB)
         self.assertEqual(
             self.pBDB.stats,
