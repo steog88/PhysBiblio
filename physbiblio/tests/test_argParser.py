@@ -447,7 +447,7 @@ class TestParser(unittest.TestCase):
         with patch(
             "physbiblio.argParser.QApplication", return_value=globalQApp
         ) as _qa, patch(
-            "physbiblio.argParser.MainWindow", return_value=mw
+            "physbiblio.gui.mainWindow.MainWindow", return_value=mw
         ) as _mw, patch(
             "physbiblio.config.ConfigurationDB.update"
         ) as _u, patch(

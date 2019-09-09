@@ -12,8 +12,6 @@ try:
     from physbiblio import __version__, __version_date__
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
-    from physbiblio.database import pBDB
-    from physbiblio.gui.mainWindow import MainWindow
     from physbiblio.gui.errorManager import pBGUIErrorManager
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -127,9 +125,17 @@ def call_weekly(args):
 
 def call_gui(args=None):
     """Function that runs the PhysBiblio GUI"""
+    # these two imports must stay here,
+    # so they start after the profile has been loaded properly:
+    try:
+        from physbiblio.database import pBDB
+        import physbiblio.gui.mainWindow
+    except ImportError:
+        print("Could not find physbiblio and its modules!")
+        raise
     try:
         app = QApplication(sys.argv)
-        mainWin = MainWindow()
+        mainWin = physbiblio.gui.mainWindow.MainWindow()
         sys.excepthook = mainWin.errormessage.emit
         mainWin.show()
         mainWin.raise_()
