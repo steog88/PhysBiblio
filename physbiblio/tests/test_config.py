@@ -96,6 +96,20 @@ class TestConfigParametersList(unittest.TestCase):
         self.assertEqual(list(pl.keys()), ["name", "other"])
 
 
+class TestConfigGlobals(unittest.TestCase):
+    """Tests for global variables in physbiblio.config"""
+
+    def test_config(self):
+        """test global variables"""
+        import physbiblio.config as pbc
+
+        self.assertTrue(hasattr(pbc, "globalLogName"))
+        self.assertIsInstance(pbc.configuration_params, ConfigParametersList)
+        self.assertIsInstance(pbc.ignoreParameterOrder, list)
+        self.assertIsInstance(pbc.loggingLevels, list)
+        self.assertIsInstance(pbc.pbConfig, ConfigVars)
+
+
 class TestConfigMethods(unittest.TestCase):
     """Tests for methods in physbiblio.config"""
 
@@ -467,10 +481,10 @@ class TestConfigMethods(unittest.TestCase):
             self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 
-class TestProfilesDB(unittest.TestCase):
+class TestGlobalDB(unittest.TestCase):
     """Test GlobalDB"""
 
-    def test_GlobalDB(self):
+    def test_operations(self):
         """Test database for profiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -624,13 +638,78 @@ class TestProfilesDB(unittest.TestCase):
         self.assertEqual(self.globalDb.countProfiles(), 1)
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
+    def test_init(self):
+        """test __init__"""
+
+    def test_createTables(self):
+        """test createTables"""
+
+    def test_countProfiles(self):
+        """test countProfiles"""
+
+    def test_createProfile(self):
+        """test createProfile"""
+
+    def test_updateProfileField(self):
+        """test updateProfileField"""
+
+    def test_deleteProfile(self):
+        """test deleteProfile"""
+
+    def test_getProfiles(self):
+        """test getProfiles"""
+
+    def test_getProfile(self):
+        """test getProfile"""
+
+    def test_getProfileOrder(self):
+        """test getProfileOrder"""
+
+    def test_setProfileOrder(self):
+        """test setProfileOrder"""
+
+    def test_getDefaultProfile(self):
+        """test getDefaultProfile"""
+
+    def test_setDefaultProfile(self):
+        """test setDefaultProfile"""
+
+    def test_countSearches(self):
+        """test countSearches"""
+
+    def test_insertSearch(self):
+        """test insertSearch"""
+
+    def test_deleteSearch(self):
+        """test deleteSearch"""
+
+    def test_getAllSearches(self):
+        """test getAllSearches"""
+
+    def test_getSearchByID(self):
+        """test getSearchByID"""
+
+    def test_getSearchByName(self):
+        """test getSearchByName"""
+
+    def test_getSearchList(self):
+        """test getSearchList"""
+
+    def test_updateSearchOrder(self):
+        """test updateSearchOrder"""
+
+    def test_updateSearchField(self):
+        """test updateSearchField"""
+
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
-class TestConfigDB(DBTestCase):
+class TestConfigurationDB(DBTestCase):
     """Test ConfigurationDB"""
 
-    def test_configDB(self):
+    def test_operations(self):
         """Test count, insert and update, delete and get methods"""
+        self.assertIsInstance(self.pBDB.config, ConfigurationDB)
+        self.assertIsInstance(self.pBDB.config, PhysBiblioDBSub)
         self.assertEqual(self.pBDB.config.count(), 0)
         self.assertTrue(self.pBDB.config.insert("test", "somevalue"))
         self.assertEqual(self.pBDB.config.count(), 1)
@@ -658,6 +737,49 @@ class TestConfigDB(DBTestCase):
         self.assertEqual(self.pBDB.config.count(), 2)
         if os.path.exists(tempDBName):
             os.remove(tempDBName)
+
+    def test_count(self):
+        """test count"""
+
+    def test_insert(self):
+        """test insert"""
+
+    def test_update(self):
+        """test update"""
+
+    def test_delete(self):
+        """test delete"""
+
+    def test_getAll(self):
+        """test getAll"""
+
+    def test_getByName(self):
+        """test getByName"""
+
+
+class TestConfigVars(unittest.TestCase):
+    """Tests for ConfigVars"""
+
+    def test_init(self):
+        """test __init__"""
+
+    def test_prepareLogger(self):
+        """test prepareLogger"""
+
+    def test_loadProfiles(self):
+        """test loadProfiles"""
+
+    def test_reloadProfiles(self):
+        """test reloadProfiles"""
+
+    def test_readProfiles(self):
+        """test readProfiles"""
+
+    def test_reInit(self):
+        """test reInit"""
+
+    def test_readConfig(self):
+        """test readConfig"""
 
 
 def tearDownModule():
