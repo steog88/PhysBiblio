@@ -10,14 +10,14 @@ import traceback
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import call, patch
+    from mock import call, MagicMock, patch
 else:
     import unittest
-    from unittest.mock import call, patch
+    from unittest.mock import call, MagicMock, patch
 
 try:
     from physbiblio.setuptests import *
-    from physbiblio.databaseCore import PhysBiblioDBCore
+    from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
     from physbiblio.config import (
         pbConfig,
         ConfigParameter,
@@ -481,7 +481,7 @@ class TestConfigMethods(unittest.TestCase):
             self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 
-class TestGlobalDB(unittest.TestCase):
+class TestGlobalDBOperations(unittest.TestCase):
     """Test GlobalDB"""
 
     def test_operations(self):
@@ -638,6 +638,10 @@ class TestGlobalDB(unittest.TestCase):
         self.assertEqual(self.globalDb.countProfiles(), 1)
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
+
+class TestGlobalDB(unittest.TestCase):
+    """Test GlobalDB"""
+
     def test_init(self):
         """test __init__"""
 
@@ -703,7 +707,7 @@ class TestGlobalDB(unittest.TestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
-class TestConfigurationDB(DBTestCase):
+class TestConfigurationDBOperations(DBTestCase):
     """Test ConfigurationDB"""
 
     def test_operations(self):
@@ -738,23 +742,132 @@ class TestConfigurationDB(DBTestCase):
         if os.path.exists(tempDBName):
             os.remove(tempDBName)
 
+
+@unittest.skipIf(skipTestsSettings.db, "Database tests")
+class TestConfigurationDB(DBTestCase):
+    """Test ConfigurationDB"""
+
+    def setUp(self):
+        """overwrite curs"""
+        self.origcurs = self.pBDB.config.curs
+        self.pBDB.config.curs = MagicMock()
+
+    def tearDown(self):
+        """restore curs"""
+        self.pBDB.config.curs = self.origcurs
+
     def test_count(self):
         """test count"""
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _ce:
+            self.assertEqual(self.pBDB.config.count(), 12)
+            _ce.assert_called_once_with(
+                self.pBDB.config, "SELECT Count(*) FROM settings"
+            )
 
     def test_insert(self):
         """test insert"""
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu, patch("logging.Logger.info") as _i, patch(
+            "physbiblio.config.ConfigurationDB.update", return_value="u", autospec=True
+        ) as _u:
+            self.assertEqual(self.pBDB.config.insert("abc", "def"), "u")
+            _cu.assert_called_once_with(
+                self.pBDB.config, "select * from settings where name=?\n", ("abc",)
+            )
+            _i.assert_called_once_with(
+                "An entry with the same name is already present. Updating it"
+            )
+            _u.assert_called_once_with(self.pBDB.config, "abc", "def")
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu, patch("logging.Logger.info") as _i, patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.connExec",
+            return_value="u",
+            autospec=True,
+        ) as _co:
+            self.assertEqual(self.pBDB.config.insert("abc", "def"), "u")
+            _cu.assert_called_once_with(
+                self.pBDB.config, "select * from settings where name=?\n", ("abc",)
+            )
+            self.assertEqual(_i.call_count, 0)
+            _co.assert_called_once_with(
+                self.pBDB.config,
+                "INSERT into settings (name, value) values (:name, :value)\n",
+                {"name": "abc", "value": "def"},
+            )
 
     def test_update(self):
         """test update"""
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu, patch("logging.Logger.info") as _i, patch(
+            "physbiblio.config.ConfigurationDB.insert", return_value="i", autospec=True
+        ) as _u:
+            self.assertEqual(self.pBDB.config.update("abc", "def"), "i")
+            _cu.assert_called_once_with(
+                self.pBDB.config, "select * from settings where name=?\n", ("abc",)
+            )
+            _i.assert_called_once_with(
+                "No settings found with this name (abc). Inserting it."
+            )
+            _u.assert_called_once_with(self.pBDB.config, "abc", "def")
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu, patch("logging.Logger.info") as _i, patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.connExec",
+            return_value="i",
+            autospec=True,
+        ) as _co:
+            self.assertEqual(self.pBDB.config.update("abc", "def"), "i")
+            _cu.assert_called_once_with(
+                self.pBDB.config, "select * from settings where name=?\n", ("abc",)
+            )
+            self.assertEqual(_i.call_count, 0)
+            _co.assert_called_once_with(
+                self.pBDB.config,
+                "update settings set value = :value where name = :name\n",
+                {"name": "abc", "value": "def"},
+            )
 
     def test_delete(self):
         """test delete"""
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec",
+            autospec=True,
+            return_value="u",
+        ) as _cu:
+            self.assertEqual(self.pBDB.config.delete("abc"), "u")
+            _cu.assert_called_once_with(
+                self.pBDB.config, "delete from settings where name=?\n", ("abc",)
+            )
 
     def test_getAll(self):
         """test getAll"""
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu:
+            self.assertEqual(self.pBDB.config.getAll(), [[12]])
+            _cu.assert_called_once_with(self.pBDB.config, "select * from settings\n")
 
     def test_getByName(self):
         """test getByName"""
+        self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch(
+            "physbiblio.databaseCore.PhysBiblioDBSub.cursExec", autospec=True
+        ) as _cu:
+            self.assertEqual(self.pBDB.config.getByName("abc"), [[12]])
+            _cu.assert_called_once_with(
+                self.pBDB.config, "select * from settings where name=?\n", ("abc",)
+            )
 
 
 class TestConfigVars(unittest.TestCase):
