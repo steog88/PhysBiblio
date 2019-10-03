@@ -766,7 +766,12 @@ class TestGlobalDB(unittest.TestCase):
             }
             _i.assert_called_once()
             _co.assert_called_once_with(self.globalDb, verbose=False)
-            self.globalDb.createProfile("test", "a test", "somefilename", "what")
+            self.globalDb.createProfile(
+                name="test",
+                description="a test",
+                databasefile="somefilename",
+                oldCfg="what",
+            )
             data = {
                 "name": "test",
                 "description": "a test",
@@ -781,9 +786,90 @@ class TestGlobalDB(unittest.TestCase):
 
     def test_updateProfileField(self):
         """test updateProfileField"""
+        with patch("logging.Logger.error") as _e:
+            self.assertFalse(
+                self.globalDb.updateProfileField(1, "databasefile", "new", "a")
+            )
+            _e.assert_called_once_with(
+                "Invalid field or identifierField: %s, %s" % ("databasefile", "a")
+            )
+            self.assertFalse(self.globalDb.updateProfileField(1, "name", "new"))
+            _e.assert_any_call(
+                "Invalid field or identifierField: %s, %s" % ("name", "name")
+            )
+            self.assertFalse(
+                self.globalDb.updateProfileField(0, "name", "new", "isDefault")
+            )
+            _e.assert_any_call(
+                "Invalid field or identifierField: %s, %s" % ("name", "isDefault")
+            )
+            self.assertFalse(
+                self.globalDb.updateProfileField(
+                    1, "name", "new", identifierField="abc"
+                )
+            )
+            _e.assert_any_call(
+                "Invalid field or identifierField: %s, %s" % ("name", "abc")
+            )
+            self.assertFalse(self.globalDb.updateProfileField(1, "abc", "new"))
+            _e.assert_any_call(
+                "Invalid field or identifierField: %s, %s" % ("abc", "name")
+            )
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.error"
+        ) as _e, patch(
+            "physbiblio.config.GlobalDB.connExec",
+            side_effect=[False, True],
+            autospec=True,
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co:
+            self.assertFalse(self.globalDb.updateProfileField(1, "databasefile", "new"))
+            _d.assert_called_once()
+            _e.assert_called_once_with("Cannot update profile")
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "update profiles set %s = :val " % "databasefile"
+                + " where %s = :iden\n" % "name",
+                data={"val": "new", "iden": 1},
+            )
+            self.assertEqual(_co.call_count, 0)
+            self.assertTrue(self.globalDb.updateProfileField(1, "databasefile", "new"))
+            _co.assert_called_once_with(self.globalDb, verbose=False)
 
     def test_deleteProfile(self):
         """test deleteProfile"""
+        with patch("logging.Logger.error") as _e:
+            self.assertFalse(self.globalDb.deleteProfile(""))
+            _e.assert_called_once_with("You must provide the profile name!")
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.error"
+        ) as _e, patch(
+            "physbiblio.config.GlobalDB.connExec",
+            side_effect=[False, True, True],
+            autospec=True,
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.getDefaultProfile",
+            autospec=True,
+            side_effect=["a", "a", "a", "b"],
+        ) as _gd, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co:
+            self.assertFalse(self.globalDb.deleteProfile("a"))
+            _d.assert_called_once()
+            _e.assert_called_once_with("Cannot delete profile")
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "delete from profiles where name = :name\n",
+                {"name": "a"},
+            )
+            self.assertEqual(_co.call_count, 0)
+            _gd.assert_called_once_with(self.globalDb)
+            self.assertTrue(self.globalDb.deleteProfile("a"))
+            _co.assert_called_once_with(self.globalDb, verbose=False)
+            self.assertEqual(_gd.call_count, 3)
+            self.assertTrue(self.globalDb.deleteProfile("a"))
+            self.assertEqual(_gd.call_count, 4)
 
     def test_getProfiles(self):
         """test getProfiles"""
@@ -796,18 +882,240 @@ class TestGlobalDB(unittest.TestCase):
 
     def test_getProfile(self):
         """test getProfile"""
+        with patch("logging.Logger.warning") as _w:
+            self.assertEqual(self.globalDb.getProfile(), {})
+            _w.assert_called_once_with(
+                "You should specify the name or the filename"
+                + "associated with the profile"
+            )
+            self.assertEqual(self.globalDb.getProfile("a", "b"), {})
+            _w.assert_any_call(
+                "You should specify only the name "
+                + "or only the filename associated with the profile"
+            )
+        self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
+        with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
+            self.assertEqual(self.globalDb.getProfile(name="a"), [12])
+            _ct.assert_called_once_with(
+                self.globalDb,
+                "SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
+                {"name": "a", "file": ""},
+            )
+            self.assertEqual(self.globalDb.getProfile(filename="a"), [12])
+            _ct.assert_any_call(
+                self.globalDb,
+                "SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
+                {"name": "", "file": "a"},
+            )
 
     def test_getProfileOrder(self):
         """test getProfileOrder"""
+        self.globalDb.curs.fetchall = MagicMock(
+            return_value=[{"name": "a"}, {"name": "b"}]
+        )
+        with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct, patch(
+            "physbiblio.config.GlobalDB.countProfiles",
+            autospec=True,
+            side_effect=[1, 0],
+        ) as _co, patch(
+            "physbiblio.config.GlobalDB.createProfile", autospec=True
+        ) as _cp, patch(
+            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+        ) as _se:
+            self.assertEqual(self.globalDb.getProfileOrder(), ["a", "b"])
+            _ct.assert_called_once_with(
+                self.globalDb, "SELECT * FROM profiles order by ord ASC, name ASC\n"
+            )
+            _co.assert_called_once_with(self.globalDb)
+            self.assertEqual(_cp.call_count, 0)
+            self.assertEqual(_se.call_count, 0)
+            self.assertEqual(self.globalDb.getProfileOrder(), ["a", "b"])
+            _cp.assert_called_once_with(self.globalDb)
+            _se.assert_called_once_with(self.globalDb, "default")
 
     def test_setProfileOrder(self):
         """test setProfileOrder"""
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setProfileOrder())
+            _w.assert_called_once_with("No order given!")
+        with patch("logging.Logger.warning") as _w, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.GlobalDB.getProfiles",
+            autospec=True,
+            return_value=[{"name": "a"}, {"name": "b"}, {"name": "c"}],
+        ) as _gp:
+            self.assertFalse(self.globalDb.setProfileOrder(["b", "a"]))
+            _i.assert_any_call(["a", "b"])
+            _i.assert_any_call(["a", "b", "c"])
+            _gp.assert_any_call(self.globalDb)
+            _w.assert_called_once_with(
+                "List of profile names does not match existing profiles!"
+            )
+        with patch("logging.Logger.error") as _e, patch(
+            "physbiblio.config.GlobalDB.getProfiles",
+            autospec=True,
+            return_value=[{"name": "a"}, {"name": "b"}, {"name": "c"}],
+        ) as _gp, patch(
+            "physbiblio.config.GlobalDB.connExec",
+            autospec=True,
+            side_effect=[True, True, False],
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.undo", autospec=True
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co:
+            self.assertFalse(self.globalDb.setProfileOrder(["b", "a", "c"]))
+            _ce.assert_has_calls(
+                [
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "b", "ord": 0},
+                    ),
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "a", "ord": 1},
+                    ),
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "c", "ord": 2},
+                    ),
+                ]
+            )
+            _e.assert_called_once_with(
+                "Something went wrong when setting new profile order. Undoing..."
+            )
+            _u.assert_called_once_with(self.globalDb, verbose=False)
+            self.assertEqual(_co.call_count, 0)
+        with patch("logging.Logger.error") as _e, patch(
+            "physbiblio.config.GlobalDB.getProfiles",
+            autospec=True,
+            return_value=[{"name": "a"}, {"name": "b"}, {"name": "c"}],
+        ) as _gp, patch(
+            "physbiblio.config.GlobalDB.connExec", autospec=True, return_value=True
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.undo", autospec=True
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co:
+            self.assertTrue(self.globalDb.setProfileOrder(order=["b", "a", "c"]))
+            _ce.assert_has_calls(
+                [
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "b", "ord": 0},
+                    ),
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "a", "ord": 1},
+                    ),
+                    call(
+                        self.globalDb,
+                        "update profiles set ord=:ord where name=:name\n",
+                        {"name": "c", "ord": 2},
+                    ),
+                ]
+            )
+            _co.assert_called_once_with(self.globalDb, verbose=False)
+            self.assertEqual(_e.call_count, 0)
+            self.assertEqual(_u.call_count, 0)
 
     def test_getDefaultProfile(self):
         """test getDefaultProfile"""
+        self.globalDb.curs.fetchall = MagicMock(
+            return_value=[{"name": "b"}, {"name": "a"}]
+        )
+        with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct, patch(
+            "physbiblio.config.GlobalDB.countProfiles", autospec=True, return_value=1
+        ) as _co, patch(
+            "physbiblio.config.GlobalDB.createProfile", autospec=True
+        ) as _cp, patch(
+            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+        ) as _se:
+            self.assertEqual(self.globalDb.getDefaultProfile(), "b")
+            _ct.assert_called_once_with(
+                self.globalDb, "SELECT * FROM profiles WHERE isDefault = 1\n"
+            )
+            _co.assert_called_once_with(self.globalDb)
+            self.assertEqual(_cp.call_count, 0)
+            self.assertEqual(_se.call_count, 0)
+        self.globalDb.curs.fetchall = MagicMock(side_effect=[[], [{"name": "c"}]])
+        with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct, patch(
+            "physbiblio.config.GlobalDB.countProfiles", autospec=True, return_value=0
+        ) as _co, patch(
+            "physbiblio.config.GlobalDB.createProfile", autospec=True
+        ) as _cp, patch(
+            "physbiblio.config.GlobalDB.setDefaultProfile",
+            autospec=True,
+            return_value=True,
+        ) as _se, patch(
+            "logging.Logger.info"
+        ) as _i:
+            self.assertEqual(self.globalDb.getDefaultProfile(), "c")
+            _ct.assert_any_call(self.globalDb, "SELECT * FROM profiles\n")
+            _cp.assert_called_once_with(self.globalDb)
+            _se.assert_any_call(self.globalDb, "default")
+            _se.assert_any_call(self.globalDb, "c")
+            _i.assert_called_once_with("Default profile changed to %s" % "c")
 
     def test_setDefaultProfile(self):
         """test setDefaultProfile"""
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.setDefaultProfile())
+            _w.assert_called_once_with("No name given!")
+        self.globalDb.curs.fetchall = MagicMock(return_value=[])
+        with patch("logging.Logger.warning") as _w, patch(
+            "physbiblio.config.GlobalDB.cursExec", autospec=True
+        ) as _ce:
+            self.assertFalse(self.globalDb.setDefaultProfile("a"))
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "SELECT * FROM profiles WHERE name = :name\n",
+                {"name": "a"},
+            )
+            _w.assert_called_once_with("No profiles with the given name!")
+        self.globalDb.curs.fetchall = MagicMock(return_value=[1])
+        with patch("logging.Logger.error") as _e, patch(
+            "physbiblio.config.GlobalDB.cursExec", autospec=True
+        ) as _cu, patch(
+            "physbiblio.config.GlobalDB.connExec",
+            autospec=True,
+            side_effect=[True, True, True, False, False, True],
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.undo", autospec=True
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co:
+            self.assertTrue(self.globalDb.setDefaultProfile(name="a"))
+            _co.assert_called_once_with(self.globalDb, verbose=False)
+            _cu.assert_called_once_with(
+                self.globalDb,
+                "SELECT * FROM profiles WHERE name = :name\n",
+                {"name": "a"},
+            )
+            _ce.assert_any_call(
+                self.globalDb, "update profiles set isDefault=0 where 1\n"
+            )
+            _ce.assert_any_call(
+                self.globalDb,
+                "update profiles set isDefault=1 where name = :name\n",
+                {"name": "a"},
+            )
+            self.assertEqual(_e.call_count, 0)
+            self.assertEqual(_u.call_count, 0)
+            self.assertFalse(self.globalDb.setDefaultProfile("a"))
+            _e.assert_called_once_with(
+                "Something went wrong when setting new default profile." + " Undoing..."
+            )
+            _u.assert_called_once_with(self.globalDb, verbose=False)
+            self.assertFalse(self.globalDb.setDefaultProfile("a"))
+            self.assertEqual(_e.call_count, 2)
+            self.assertEqual(_u.call_count, 2)
 
     def test_countSearches(self):
         """test countSearches"""
@@ -818,6 +1126,59 @@ class TestGlobalDB(unittest.TestCase):
 
     def test_insertSearch(self):
         """test insertSearch"""
+        with patch(
+            "physbiblio.config.GlobalDB.connExec",
+            autospec=True,
+            side_effect=[True, False],
+        ) as _ce, patch("physbiblio.config.GlobalDB.commit", autospec=True) as _co:
+            self.assertTrue(self.globalDb.insertSearch(replacement=True))
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "INSERT into searches "
+                + "(name, count, searchDict, limitNum, offsetNum, replaceFields,"
+                + " manual, isReplace) values (:name, :count, :searchFields,"
+                + " :limit, :offset, :replaceFields, :manual, :isReplace)\n",
+                {
+                    "name": "",
+                    "count": 0,
+                    "searchFields": "%s" % [],
+                    "limit": pbConfig.params["defaultLimitBibtexs"],
+                    "offset": 0,
+                    "replaceFields": "%s" % [],
+                    "manual": 0,
+                    "isReplace": 1,
+                },
+            )
+            _co.assert_called_once_with(self.globalDb)
+            self.assertFalse(
+                self.globalDb.insertSearch(
+                    name="myname",
+                    count=12,
+                    searchFields=["a"],
+                    replaceFields=["b"],
+                    manual=True,
+                    replacement=False,
+                    limit=34,
+                    offset=56,
+                )
+            )
+            _ce.assert_any_call(
+                self.globalDb,
+                "INSERT into searches "
+                + "(name, count, searchDict, limitNum, offsetNum, replaceFields,"
+                + " manual, isReplace) values (:name, :count, :searchFields,"
+                + " :limit, :offset, :replaceFields, :manual, :isReplace)\n",
+                {
+                    "name": "myname",
+                    "count": 12,
+                    "searchFields": "%s" % ["a"],
+                    "limit": 34,
+                    "offset": 56,
+                    "replaceFields": "%s" % ["b"],
+                    "manual": 1,
+                    "isReplace": 0,
+                },
+            )
 
     def test_deleteSearch(self):
         """test deleteSearch"""
@@ -877,7 +1238,9 @@ class TestGlobalDB(unittest.TestCase):
                 (1, 0),
             )
             _ct.reset_mock()
-            self.assertEqual(self.globalDb.getSearchList(False, False), [[12]])
+            self.assertEqual(
+                self.globalDb.getSearchList(manual=False, replacement=False), [[12]]
+            )
             _ct.assert_called_once_with(
                 self.globalDb,
                 "select * from searches where manual=? "
@@ -887,9 +1250,100 @@ class TestGlobalDB(unittest.TestCase):
 
     def test_updateSearchOrder(self):
         """test updateSearchOrder"""
+        self.globalDb.curs.fetchall = MagicMock(
+            return_value=[
+                {"idS": 14, "count": 3},
+                {"idS": 11, "count": 0},
+                {"idS": 12, "count": 1},
+                {"idS": 13, "count": 2},
+            ]
+        )
+        with patch.dict(pbConfig.params, {"maxSavedSearches": 3}, clear=False), patch(
+            "physbiblio.config.GlobalDB.cursExec", autospec=True
+        ) as _ct, patch(
+            "physbiblio.config.GlobalDB.connExec", autospec=True, return_value=True
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co, patch(
+            "physbiblio.config.GlobalDB.undo", autospec=True
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.deleteSearch", autospec=True
+        ) as _d:
+            self.assertTrue(self.globalDb.updateSearchOrder())
+            _ct.assert_called_once_with(
+                self.globalDb,
+                "select * from searches where manual=? and isReplace=?\n",
+                (0, 0),
+            )
+            _co.assert_called_once_with(self.globalDb)
+            self.assertEqual(_u.call_count, 0)
+            self.assertEqual(_ce.call_count, 2)
+            _ce.assert_any_call(
+                self.globalDb,
+                "update searches set count = :count where idS=:idS\n",
+                {"idS": 11, "count": 1},
+            )
+            _ce.assert_any_call(
+                self.globalDb,
+                "update searches set count = :count where idS=:idS\n",
+                {"idS": 12, "count": 2},
+            )
+            self.assertEqual(_d.call_count, 2)
+            _d.assert_any_call(self.globalDb, 13)
+            _d.assert_any_call(self.globalDb, 14)
+        with patch.dict(pbConfig.params, {"maxSavedSearches": 3}, clear=False), patch(
+            "physbiblio.config.GlobalDB.cursExec", autospec=True
+        ) as _ct, patch(
+            "physbiblio.config.GlobalDB.connExec", autospec=True, return_value=False
+        ) as _ce, patch(
+            "physbiblio.config.GlobalDB.commit", autospec=True
+        ) as _co, patch(
+            "physbiblio.config.GlobalDB.undo", autospec=True
+        ) as _u, patch(
+            "physbiblio.config.GlobalDB.deleteSearch", autospec=True
+        ) as _d:
+            self.assertFalse(self.globalDb.updateSearchOrder(replacement=True))
+            _ct.assert_called_once_with(
+                self.globalDb,
+                "select * from searches where manual=? and isReplace=?\n",
+                (0, 1),
+            )
+            _u.assert_called_once_with(self.globalDb)
+            self.assertEqual(_co.call_count, 0)
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "update searches set count = :count where idS=:idS\n",
+                {"idS": 11, "count": 1},
+            )
+            _d.assert_called_once_with(self.globalDb, 14)
 
     def test_updateSearchField(self):
         """test updateSearchField"""
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(self.globalDb.updateSearchField(1, "test", "abc"))
+            _w.assert_called_once_with(
+                "Empty value or field not in the following list: "
+                + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+            )
+            self.assertFalse(self.globalDb.updateSearchField(1, "name", ""))
+            self.assertEqual(_w.call_count, 2)
+            self.assertFalse(self.globalDb.updateSearchField(1, "name", " "))
+            self.assertEqual(_w.call_count, 3)
+            self.assertFalse(self.globalDb.updateSearchField(1, "name", None))
+            self.assertEqual(_w.call_count, 4)
+            self.assertFalse(self.globalDb.updateSearchField(1, "name", []))
+            self.assertEqual(_w.call_count, 5)
+            self.assertFalse(self.globalDb.updateSearchField(1, "name", {}))
+            self.assertEqual(_w.call_count, 6)
+        with patch(
+            "physbiblio.config.GlobalDB.connExec", autospec=True, return_value="r"
+        ) as _ce:
+            self.assertEqual(self.globalDb.updateSearchField(1, "name", "abc"), "r")
+            _ce.assert_called_once_with(
+                self.globalDb,
+                "update searches set name=:field where idS=:idS\n",
+                {"field": "abc", "idS": 1},
+            )
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")

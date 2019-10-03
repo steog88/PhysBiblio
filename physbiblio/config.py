@@ -407,7 +407,7 @@ class GlobalDB(PhysBiblioDBCore):
         data = {"val": value, "iden": identifier}
         self.logger.debug("%s\n%s" % (command, data))
         if not self.connExec(command, data):
-            self.logger.error("Cannot insert profile")
+            self.logger.error("Cannot update profile")
             return False
         self.commit(verbose=False)
         return True
@@ -710,7 +710,7 @@ class GlobalDB(PhysBiblioDBCore):
         for e in self.curs.fetchall():
             if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
                 self.deleteSearch(e["idS"])
-            if not self.connExec(
+            elif not self.connExec(
                 "update searches set count = :count where idS=:idS\n",
                 {"idS": e["idS"], "count": e["count"] + 1},
             ):
@@ -734,7 +734,7 @@ class GlobalDB(PhysBiblioDBCore):
         if (
             field in ["searchDict", "replaceFields", "name", "limitNum", "offsetNum"]
             and value is not None
-            and value != ""
+            and ("%s" % value).strip() not in ["", "[]", "{}"]
         ):
             query = "update searches set " + field + "=:field where idS=:idS\n"
             return self.connExec(query, {"field": "%s" % value, "idS": idS})
