@@ -4,9 +4,12 @@
 This file is part of the physbiblio package.
 """
 from collections import OrderedDict
+import logging
 import os
+import six
 import sys
 import traceback
+from appdirs import AppDirs
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -27,6 +30,9 @@ try:
         configuration_params,
         ConfigVars,
         GlobalDB,
+        globalLogName,
+        ignoreParameterOrder,
+        loggingLevels,
     )
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -1515,24 +1521,170 @@ class TestConfigVars(unittest.TestCase):
 
     def test_init(self):
         """test __init__"""
+        self.assertTrue(hasattr(ConfigVars, "adsUrl"))
+        self.assertTrue(hasattr(ConfigVars, "arxivUrl"))
+        self.assertTrue(hasattr(ConfigVars, "doiUrl"))
+        self.assertTrue(hasattr(ConfigVars, "inspireRecord"))
+        self.assertTrue(hasattr(ConfigVars, "inspireSearchBase"))
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        with patch("logging.Logger.info") as _i, patch(
+            "os.path.exists", return_value=False
+        ) as _ope, patch("os.makedirs") as _omd, patch(
+            "physbiblio.config.GlobalDB", return_value="globaldb"
+        ) as _gdb, patch(
+            "physbiblio.config.ConfigVars.checkOldProfiles", autospec=True
+        ) as _cop, patch(
+            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
+        ) as _lp:
+            cv = ConfigVars(tempProfName)
+            self.assertEqual(_i.call_count, 2)
+            _ope.assert_has_calls([call(cv.configPath), call(cv.dataPath)])
+            _omd.assert_has_calls([call(cv.configPath), call(cv.dataPath)])
+            _gdb.assert_called_once_with(
+                cv.globalDbFile, cv.logger, cv.dataPath, info=False
+            )
+            _cop.assert_called_once_with(cv)
+            _lp.assert_called_once_with(cv)
+        self.assertIsInstance(cv.defaultDirs, AppDirs)
+        self.assertIsInstance(cv.configPath, six.string_types)
+        self.assertIsInstance(cv.dataPath, six.string_types)
+        self.assertEqual(cv.loggerString, globalLogName)
+        self.assertIsInstance(cv.logger, logging.Logger)
+        self.assertEqual(cv.loggingLevels, loggingLevels)
+        self.assertEqual(
+            cv.paramOrder,
+            [
+                p.name
+                for p in configuration_params.values()
+                if p.name not in ignoreParameterOrder
+            ],
+        )
+        self.assertIsInstance(cv.params, dict)
+        for k in configuration_params:
+            self.assertIn(k, cv.params.keys())
+            pd = configuration_params[k].default
+            self.assertEqual(
+                cv.params[k],
+                os.path.join(cv.dataPath, pd.replace("PBDATA", ""))
+                if isinstance(pd, six.string_types) and "PBDATA" in pd
+                else pd,
+            )
+        self.assertEqual(
+            cv.oldConfigProfilesFile, os.path.join(cv.configPath, "profiles.dat")
+        )
+        self.assertEqual(cv.globalDbFile, os.path.join(cv.configPath, tempProfName))
+        self.assertEqual(cv.globalDb, "globaldb")
+
+        ad = AppDirs("PhysBiblio")
+        with patch("logging.Logger.info") as _i, patch(
+            "os.path.exists", return_value=True
+        ) as _ope, patch("os.makedirs") as _omd, patch(
+            "physbiblio.config.GlobalDB", return_value="globaldb"
+        ) as _gdb, patch(
+            "physbiblio.config.AppDirs", return_value=ad
+        ) as _ad, patch(
+            "physbiblio.config.ConfigVars.checkOldProfiles", autospec=True
+        ) as _cop, patch(
+            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
+        ) as _lp:
+            cv = ConfigVars()
+            self.assertEqual(_i.call_count, 2)
+            _ope.assert_has_calls([call(cv.configPath), call(cv.dataPath)])
+            self.assertEqual(_omd.call_count, 0)
+            _gdb.assert_called_once_with(
+                cv.globalDbFile, cv.logger, cv.dataPath, info=False
+            )
+            _cop.assert_called_once_with(cv)
+            _lp.assert_called_once_with(cv)
+            _ad.assert_called_once_with("PhysBiblio")
+        self.assertEqual(cv.globalDbFile, os.path.join(cv.configPath, "profiles.db"))
 
     def test_prepareLogger(self):
         """test prepareLogger"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        self.assertEqual(cv.loggerString, globalLogName)
+        with patch("logging.getLogger") as _gl:
+            cv.prepareLogger("abcd")
+            _gl.assert_called_once_with("abcd")
+        self.assertEqual(cv.loggerString, "abcd")
 
     def test_loadProfiles(self):
         """test loadProfiles"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        with patch(
+            "physbiblio.config.ConfigVars.readProfiles", return_value=["a", "b", "c"]
+        ) as _rp:
+            cv.loadProfiles()
+            self.assertEqual(cv.defaultProfileName, "a")
+            self.assertEqual(cv.profiles, "b")
+            self.assertEqual(cv.profileOrder, "c")
+        for e in (IOError, ValueError, SyntaxError):
+            with patch(
+                "physbiblio.config.ConfigVars.readProfiles", side_effect=e
+            ) as _rp, patch("logging.Logger.warning") as _w, patch(
+                "physbiblio.config.GlobalDB.createProfile", autospec=True
+            ) as _cp:
+                cv.loadProfiles()
+                _w.assert_called_once()
+                _cp.assert_called_once_with(cv.globalDb)
 
     def test_reloadProfiles(self):
         """test reloadProfiles"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
 
     def test_readProfiles(self):
         """test readProfiles"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        with patch(
+            "physbiblio.config.GlobalDB.getProfiles",
+            autospec=True,
+            return_value=[
+                {
+                    "name": "a",
+                    "description": "desc",
+                    "oldCfg": "no",
+                    "databasefile": "test.db",
+                }
+            ],
+        ) as _gp, patch(
+            "physbiblio.config.GlobalDB.getDefaultProfile",
+            autospec=True,
+            return_value="def",
+        ) as _gd, patch(
+            "physbiblio.config.GlobalDB.getProfileOrder",
+            autospec=True,
+            return_value="ord",
+        ) as _go:
+            res = cv.readProfiles()
+            _gp.assert_called_once_with(cv.globalDb)
+            _gd.assert_called_once_with(cv.globalDb)
+            _go.assert_called_once_with(cv.globalDb)
+            self.assertEqual(res[0], "def")
+            self.assertEqual(
+                res[1], {"a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"}}
+            )
+            self.assertEqual(res[2], "ord")
 
     def test_reInit(self):
         """test reInit"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
 
     def test_readConfig(self):
         """test readConfig"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
 
 
 def tearDownModule():
