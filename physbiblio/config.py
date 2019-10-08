@@ -407,7 +407,7 @@ class GlobalDB(PhysBiblioDBCore):
         data = {"val": value, "iden": identifier}
         self.logger.debug("%s\n%s" % (command, data))
         if not self.connExec(command, data):
-            self.logger.error("Cannot insert profile")
+            self.logger.error("Cannot update profile")
             return False
         self.commit(verbose=False)
         return True
@@ -710,7 +710,7 @@ class GlobalDB(PhysBiblioDBCore):
         for e in self.curs.fetchall():
             if e["count"] + 1 >= pbConfig.params["maxSavedSearches"]:
                 self.deleteSearch(e["idS"])
-            if not self.connExec(
+            elif not self.connExec(
                 "update searches set count = :count where idS=:idS\n",
                 {"idS": e["idS"], "count": e["count"] + 1},
             ):
@@ -734,7 +734,7 @@ class GlobalDB(PhysBiblioDBCore):
         if (
             field in ["searchDict", "replaceFields", "name", "limitNum", "offsetNum"]
             and value is not None
-            and value != ""
+            and ("%s" % value).strip() not in ["", "[]", "{}"]
         ):
             query = "update searches set " + field + "=:field where idS=:idS\n"
             return self.connExec(query, {"field": "%s" % value, "idS": idS})
@@ -890,19 +890,19 @@ class ConfigVars:
         if not os.path.exists(self.dataPath):
             os.makedirs(self.dataPath)
 
+        self.loggingLevels = loggingLevels
         self.paramOrder = [
             p.name
             for p in configuration_params.values()
             if p.name not in ignoreParameterOrder
         ]
-        self.loggingLevels = loggingLevels
         self.params = {}
         for k, p in configuration_params.items():
-            if isinstance(p.default, str) and "PBDATA" in p.default:
+            if isinstance(p.default, six.string_types) and "PBDATA" in p.default:
                 p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
             self.params[k] = p.default
 
-        self.configProfilesFile = os.path.join(self.configPath, "profiles.dat")
+        self.oldConfigProfilesFile = os.path.join(self.configPath, "profiles.dat")
         self.globalDbFile = os.path.join(self.configPath, profileFileName)
         self.globalDb = GlobalDB(
             self.globalDbFile, self.logger, self.dataPath, info=False
@@ -965,7 +965,7 @@ class ConfigVars:
         Check if there is a profiles.dat file in the self.configPath folder.
         If yes, move it and the related information into the databases.
         """
-        if os.path.isfile(self.configProfilesFile):
+        if os.path.isfile(self.oldConfigProfilesFile):
             self.logger.info("Moving info from profiles.dat into the profiles.db")
             for k in self.globalDb.getProfileOrder():
                 self.globalDb.deleteProfile(k)
@@ -995,17 +995,17 @@ class ConfigVars:
                 )
             self.globalDb.setProfileOrder(profileOrder)
             self.logger.info([dict(e) for e in self.globalDb.getProfiles()])
-            os.rename(self.configProfilesFile, self.configProfilesFile + "_bck")
+            os.rename(self.oldConfigProfilesFile, self.oldConfigProfilesFile + "_bck")
             self.logger.info(
                 "Old '%s' renamed to '%s'."
-                % (self.configProfilesFile, self.configProfilesFile + "_bck")
+                % (self.oldConfigProfilesFile, self.configProfilesFile + "_bck")
             )
 
     def oldReadProfiles(self):
         """Reads the list of profiles and the related parameters
         from the profiles.dat file.
         """
-        with open(self.configProfilesFile) as r:
+        with open(self.oldConfigProfilesFile) as r:
             txtarr = r.readlines()
         txt = "".join(txtarr)
         parsed = ast.literal_eval(txt.replace("\n", ""))
