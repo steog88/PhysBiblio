@@ -1,9 +1,9 @@
-1.3.1 (2019-)
-    * function to show recent changes from the GUI (shown when opening the program for the first time with a new version)
+1.4.0 (2019-10-08)
+    * function to show recent version changes from the GUI (shown when opening the program for the first time with a new version)
     * option to make the update notification less invasive (it will be shown in the status bar instead of as a message at startup)
-    * solved bug affecting getByKey when simple keys are used
+    * solved bug affecting database.Entries.getByKey when simple keys are used
     * some new tests for package properties and fixes to adsnasa offline tests
-    * several internal changes
+    * several internal changes and test improvements
 
 1.3.0 (2019-07-23)
     * advance import connected with ADS by NASA
