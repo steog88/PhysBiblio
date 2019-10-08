@@ -455,7 +455,10 @@ class TestParser(unittest.TestCase):
         ) as _c, patch(
             "sys.exit"
         ) as _e:
-            call_gui([])
+            with patch.dict(
+                pbConfig.params, {"openSinceLastUpdate": __version__}, clear=False
+            ):
+                call_gui([])
             _qa.assert_called_once_with(sys.argv)
             _mw.assert_called_once_with()
             mw.show.assert_called_once_with()
