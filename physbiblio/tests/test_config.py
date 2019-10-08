@@ -124,7 +124,8 @@ class TestConfigMethods(unittest.TestCase):
         """Test config methods for config management"""
         if os.path.exists(tempCfgName):
             os.remove(tempCfgName)
-        newConfParamsDict = {k: p.default for k, p in configuration_params.items()}
+        newConfParamsDict_or = {k: p.default for k, p in configuration_params.items()}
+        del newConfParamsDict_or["mainDatabaseName"]
         with patch(
             "physbiblio.config.ConfigVars.readProfiles",
             return_value=("tmp", {"tmp": {"db": tempCfgName, "d": ""}}, ["tmp"]),
@@ -142,12 +143,10 @@ class TestConfigMethods(unittest.TestCase):
 
             tempPbConfig1 = ConfigVars()
             tempPbConfig1.prepareLogger("physbibliotestlog")
+            newConfParamsDict = newConfParamsDict_or.copy()
+            for k, v in newConfParamsDict.items():
+                newConfParamsDict[k] = tempPbConfig1.replacePBDATA(v)
             self.assertEqual(tempPbConfig1.params, newConfParamsDict)
-            tempPbConfig1.params["logFileName"] = "otherfilename"
-            tempPbConfig1.params["timeoutWebSearch"] = 10.0
-            tempPbConfig1.params["askBeforeExit"] = True
-            tempPbConfig1.params["maxAuthorNames"] = 5
-            tempPbConfig1.params["defaultCategories"] = [1]
             with open(tempOldCfgName, "w") as f:
                 f.write(
                     "logFileName = otherfilename\n"
@@ -160,7 +159,19 @@ class TestConfigMethods(unittest.TestCase):
             tempPbConfig.prepareLogger("physbibliotestlog")
             tempPbConfig.configMainFile = tempOldCfgName
             tempPbConfig.oldReadConfigFile()
-            self.assertEqual(tempPbConfig.params, tempPbConfig1.params)
+            newConfParamsDict = newConfParamsDict_or.copy()
+            for k, v in newConfParamsDict.items():
+                newConfParamsDict[k] = tempPbConfig.replacePBDATA(v)
+            newConfParamsDict["logFileName"] = "otherfilename"
+            newConfParamsDict["timeoutWebSearch"] = 10.0
+            newConfParamsDict["askBeforeExit"] = True
+            newConfParamsDict["maxAuthorNames"] = 5
+            newConfParamsDict["defaultCategories"] = [1]
+            newConfParamsDict["mainDatabaseName"] = tempPbConfig.replacePBDATA(
+                configuration_params["mainDatabaseName"].default
+            )
+            self.maxDiff = None
+            self.assertEqual(tempPbConfig.params, newConfParamsDict)
 
             with patch.dict(
                 os.environ,
@@ -233,7 +244,8 @@ class TestConfigMethods(unittest.TestCase):
                 )
             ),
         )
-        tempParams = tempPbConfig.params
+        tempPbConfig.setDefaultParams()
+        defaultParams = tempPbConfig.params
 
         default, profiles, ordered = tempPbConfig.readProfiles()
         self.assertEqual(default, "temp")
@@ -258,9 +270,7 @@ class TestConfigMethods(unittest.TestCase):
         )
         self.assertEqual(ordered, ["default", "temp"])
         tempPbConfig.reloadProfiles()
-        self.assertEqual(
-            tempPbConfig.params, {k: p.default for k, p in configuration_params.items()}
-        )
+        self.assertEqual(tempPbConfig.params, defaultParams)
 
         tempProfName2 = tempProfName1.replace("prof1", "prof2")
         self.assertTrue(
@@ -302,7 +312,7 @@ class TestConfigMethods(unittest.TestCase):
         self.assertEqual(tempPbConfig.currentProfileName, "temp")
         self.assertEqual(tempPbConfig.currentProfile, tempPbConfig.profiles["temp"])
         self.assertEqual(tempPbConfig.currentDatabase, tempProfName1)
-        self.assertEqual(tempPbConfig.params, tempParams)
+        self.assertEqual(tempPbConfig.params, defaultParams)
 
         tempDb = PhysBiblioDBCore(tempProfName1, tempPbConfig.logger, info=False)
         configDb = ConfigurationDB(tempDb)
@@ -311,7 +321,7 @@ class TestConfigMethods(unittest.TestCase):
 
         with patch("logging.Logger.warning") as _w:
             tempPbConfig.readConfig()
-            self.assertEqual(tempPbConfig.params, tempParams)
+            self.assertEqual(tempPbConfig.params, defaultParams)
             _w.assert_any_call(
                 "Failed in reading parameter 'defaultCategories'.", exc_info=True
             )
@@ -321,22 +331,22 @@ class TestConfigMethods(unittest.TestCase):
         configDb.insert("askBeforeExit", "True")
         configDb.insert("timeoutWebSearch", "20.")
         configDb.commit()
-        tempParams["loggingLevel"] = 4
-        tempParams["pdfFolder"] = u"/nonexistent/"
-        tempParams["askBeforeExit"] = True
-        tempParams["timeoutWebSearch"] = 20.0
+        defaultParams["loggingLevel"] = 4
+        defaultParams["pdfFolder"] = u"/nonexistent/"
+        defaultParams["askBeforeExit"] = True
+        defaultParams["timeoutWebSearch"] = 20.0
         with patch("logging.Logger.warning") as _w:
             tempPbConfig.readConfig()
             _w.assert_any_call(
                 "Failed in reading parameter 'defaultCategories'.", exc_info=True
             )
-        self.assertEqual(tempPbConfig.params, tempParams)
+        self.assertEqual(tempPbConfig.params, defaultParams)
 
         configDb.insert("defaultCategories", "[0]")
         configDb.commit()
-        tempParams["defaultCategories"] = [0]
+        defaultParams["defaultCategories"] = [0]
         tempPbConfig.readConfig()
-        self.assertEqual(tempPbConfig.params, tempParams)
+        self.assertEqual(tempPbConfig.params, defaultParams)
 
         tempDb.closeDB(info=False)
         if os.path.exists(tempProfName1):
@@ -1536,7 +1546,9 @@ class TestConfigVars(unittest.TestCase):
             "physbiblio.config.ConfigVars.checkOldProfiles", autospec=True
         ) as _cop, patch(
             "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp:
+        ) as _lp, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _dp:
             cv = ConfigVars(tempProfName)
             self.assertEqual(_i.call_count, 2)
             _ope.assert_has_calls([call(cv.configPath), call(cv.dataPath)])
@@ -1546,6 +1558,7 @@ class TestConfigVars(unittest.TestCase):
             )
             _cop.assert_called_once_with(cv)
             _lp.assert_called_once_with(cv)
+            _dp.assert_called_once_with(cv)
         self.assertIsInstance(cv.defaultDirs, AppDirs)
         self.assertIsInstance(cv.configPath, six.string_types)
         self.assertIsInstance(cv.dataPath, six.string_types)
@@ -1560,16 +1573,6 @@ class TestConfigVars(unittest.TestCase):
                 if p.name not in ignoreParameterOrder
             ],
         )
-        self.assertIsInstance(cv.params, dict)
-        for k in configuration_params:
-            self.assertIn(k, cv.params.keys())
-            pd = configuration_params[k].default
-            self.assertEqual(
-                cv.params[k],
-                os.path.join(cv.dataPath, pd.replace("PBDATA", ""))
-                if isinstance(pd, six.string_types) and "PBDATA" in pd
-                else pd,
-            )
         self.assertEqual(
             cv.oldConfigProfilesFile, os.path.join(cv.configPath, "profiles.dat")
         )
@@ -1599,17 +1602,8 @@ class TestConfigVars(unittest.TestCase):
             _lp.assert_called_once_with(cv)
             _ad.assert_called_once_with("PhysBiblio")
         self.assertEqual(cv.globalDbFile, os.path.join(cv.configPath, "profiles.db"))
-
-    def test_prepareLogger(self):
-        """test prepareLogger"""
-        if os.path.exists(tempProfName):
-            os.remove(tempProfName)
-        cv = ConfigVars(tempProfName)
-        self.assertEqual(cv.loggerString, globalLogName)
-        with patch("logging.getLogger") as _gl:
-            cv.prepareLogger("abcd")
-            _gl.assert_called_once_with("abcd")
-        self.assertEqual(cv.loggerString, "abcd")
+        self.assertIsInstance(cv.params, dict)
+        self.assertEqual(len(cv.params), len(configuration_params) - 1)
 
     def test_loadProfiles(self):
         """test loadProfiles"""
@@ -1633,11 +1627,218 @@ class TestConfigVars(unittest.TestCase):
                 _w.assert_called_once()
                 _cp.assert_called_once_with(cv.globalDb)
 
-    def test_reloadProfiles(self):
-        """test reloadProfiles"""
+    def test_prepareLogger(self):
+        """test prepareLogger"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
         cv = ConfigVars(tempProfName)
+        self.assertEqual(cv.loggerString, globalLogName)
+        with patch("logging.getLogger") as _gl:
+            cv.prepareLogger("abcd")
+            _gl.assert_called_once_with("abcd")
+        self.assertEqual(cv.loggerString, "abcd")
+
+    def test_readConfig(self):
+        """test readConfig"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        tempDb = PhysBiblioDBCore(tempCfgName, cv.logger, info=False)
+        tempDb.closeDB = MagicMock()
+        configDb = ConfigurationDB(tempDb)
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.exception"
+        ) as _e, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sdp, patch(
+            "physbiblio.config.PhysBiblioDBCore", return_value=tempDb
+        ) as _dbc, patch(
+            "physbiblio.config.ConfigurationDB", return_value=configDb
+        ) as _cdb, patch(
+            "physbiblio.config.ConfigVars.readParam", autospec=True
+        ) as _rp:
+            cv.readConfig()
+            _d.assert_has_calls(
+                [call("Reading configuration.\n"), call("Configuration loaded.\n")]
+            )
+            self.assertEqual(_e.call_count, 0)
+            _sdp.assert_called_once_with(cv)
+            _dbc.assert_called_once_with(cv.currentDatabase, cv.logger, info=False)
+            _cdb.assert_called_once_with(tempDb)
+            _rp.assert_has_calls([call(cv, k, configDb) for k in configuration_params])
+            tempDb.closeDB.assert_called_once_with(info=False)
+        tempDb.closeDB.reset_mock()
+
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.exception"
+        ) as _e, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sdp, patch(
+            "physbiblio.config.PhysBiblioDBCore", return_value=tempDb
+        ) as _dbc, patch(
+            "physbiblio.config.ConfigurationDB", return_value=configDb
+        ) as _cdb, patch(
+            "physbiblio.config.ConfigVars.readParam",
+            autospec=True,
+            side_effect=ValueError,
+        ) as _rp:
+            cv.readConfig()
+            _d.assert_has_calls(
+                [call("Reading configuration.\n"), call("Configuration loaded.\n")]
+            )
+            _e.assert_called_once_with(
+                "ERROR: reading config from '%s' failed." % (cv.currentDatabase)
+            )
+            _sdp.assert_called_once_with(cv)
+            _dbc.assert_called_once_with(cv.currentDatabase, cv.logger, info=False)
+            _cdb.assert_called_once_with(tempDb)
+            tempDb.closeDB.assert_called_once_with(info=False)
+            _rp.assert_called_once_with(
+                cv, list(configuration_params.keys())[0], configDb
+            )
+
+    def test_readParam(self):
+        """test readConfig"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        cv.globalDb.config.getByName = MagicMock(return_value=[{"value": "global"}])
+        tempDb = PhysBiblioDBCore(tempCfgName, cv.logger, info=False)
+        configDb = ConfigurationDB(tempDb)
+        configDb.getByName = MagicMock(return_value=[])
+        cv.params = {}
+
+        # ignored
+        cv.readParam("mainDatabaseName", configDb)
+        self.assertNotIn("mainDatabaseName", cv.params.keys())
+        self.assertEqual(cv.globalDb.config.getByName.call_count, 0)
+        self.assertEqual(configDb.getByName.call_count, 0)
+
+        # not found
+        cv.readParam("pdfFolder", configDb)
+        self.assertEqual(
+            cv.params["pdfFolder"],
+            os.path.join(
+                cv.dataPath,
+                configuration_params["pdfFolder"].default.replace("PBDATA", ""),
+            ),
+        )
+        configDb.getByName.assert_called_once_with("pdfFolder")
+        cv.readParam("timeoutWebSearch", configDb)
+        self.assertEqual(
+            cv.params["timeoutWebSearch"],
+            configuration_params["timeoutWebSearch"].default,
+        )
+        cv.readParam("pdfApplication", configDb)
+        self.assertEqual(
+            cv.params["pdfApplication"], configuration_params["pdfApplication"].default
+        )
+
+        # global
+        configDb.getByName.reset_mock()
+        cv.readParam("notifyUpdate", configDb)
+        cv.globalDb.config.getByName.assert_called_once_with("notifyUpdate")
+        self.assertEqual(configDb.getByName.call_count, 0)
+
+        # float
+        key = "timeoutWebSearch"
+        configDb.getByName = MagicMock(return_value=[{"value": "local"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        configDb.getByName = MagicMock(return_value=[{"value": "123.123"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], 123.123)
+
+        # int
+        key = "defaultLimitBibtexs"
+        configDb.getByName = MagicMock(return_value=[{"value": "local"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        configDb.getByName = MagicMock(return_value=[{"value": "123.13"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        configDb.getByName = MagicMock(return_value=[{"value": "123"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], 123)
+
+        # boolean
+        key = "fetchAbstract"
+        configDb.getByName = MagicMock(return_value=[{"value": "local"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        for v in ("True", "1", "yes", "On"):
+            configDb.getByName = MagicMock(return_value=[{"value": v}])
+            with patch("logging.Logger.warning") as _w:
+                cv.readParam(key, configDb)
+                self.assertEqual(_w.call_count, 0)
+            self.assertEqual(cv.params[key], True)
+        for v in ("False", "0", "no", "Off"):
+            configDb.getByName = MagicMock(return_value=[{"value": v}])
+            with patch("logging.Logger.warning") as _w:
+                cv.readParam(key, configDb)
+                self.assertEqual(_w.call_count, 0)
+            self.assertEqual(cv.params[key], False)
+
+        # list
+        key = "defaultCategories"
+        configDb.getByName = MagicMock(return_value=[{"value": "local"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        configDb.getByName = MagicMock(return_value=[{"value": "['a'"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            _w.assert_called_once_with(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+        self.assertEqual(cv.params[key], configuration_params[key].default)
+        configDb.getByName = MagicMock(return_value=[{"value": "['a', 'b']"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], ["a", "b"])
+        configDb.getByName = MagicMock(return_value=[{"value": "('a', 'b')"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], ("a", "b"))
+
+        # str
+        key = "pdfApplication"
+        configDb.getByName = MagicMock(return_value=[{"value": "local"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], "local")
+        key = "logFileName"
+        configDb.getByName = MagicMock(return_value=[{"value": "PBDATAlocal"}])
+        with patch("logging.Logger.warning") as _w:
+            cv.readParam(key, configDb)
+            self.assertEqual(_w.call_count, 0)
+        self.assertEqual(cv.params[key], os.path.join(cv.dataPath, "local"))
 
     def test_readProfiles(self):
         """test readProfiles"""
@@ -1679,12 +1880,140 @@ class TestConfigVars(unittest.TestCase):
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
         cv = ConfigVars(tempProfName)
+        cv.defaultProfileName = "b"
+        cv.profiles = {
+            "a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"},
+            "b": {"n": "b", "d": "ript", "f": "si", "db": "tset.db"},
+        }
+        with patch("logging.Logger.error") as _e, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc:
+            cv.reInit("c")
+            _e.assert_called_once_with("Profile not found!")
+            self.assertEqual(_rc.call_count, 0)
 
-    def test_readConfig(self):
-        """test readConfig"""
+        with patch("logging.Logger.error") as _e, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sd:
+            cv.reInit("a")
+            self.assertEqual(_e.call_count, 0)
+            _rc.assert_called_once_with(cv)
+            _sd.assert_called_once_with(cv)
+            _i.assert_called_once()
+        self.assertEqual(cv.currentProfileName, "a")
+        self.assertEqual(cv.currentProfile, cv.profiles["a"])
+        self.assertEqual(cv.currentDatabase, cv.profiles["a"]["db"])
+
+        with patch("logging.Logger.error") as _e, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sd:
+            cv.reInit("c", newProfile=cv.profiles["b"])
+            self.assertEqual(_e.call_count, 0)
+            _rc.assert_called_once_with(cv)
+            _sd.assert_called_once_with(cv)
+            _i.assert_called_once()
+        self.assertEqual(cv.currentProfileName, "c")
+        self.assertEqual(cv.currentProfile, cv.profiles["b"])
+        self.assertEqual(cv.currentDatabase, cv.profiles["b"]["db"])
+
+    def test_reloadProfiles(self):
+        """test reloadProfiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
         cv = ConfigVars(tempProfName)
+        with patch("logging.Logger.critical") as _c, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
+        ) as _lp, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc:
+            cv.reloadProfiles("no")
+            _lp.assert_called_once_with(cv)
+            _c.assert_called_once_with(
+                "The profile '%s' does not exist!" % "no"
+                + " Back to the default one ('%s')" % cv.defaultProfileName
+            )
+            _i.assert_called_once()
+            _rc.assert_called_once_with(cv)
+        self.assertEqual(cv.currentProfileName, cv.defaultProfileName)
+        self.assertEqual(cv.currentProfile, cv.profiles[cv.defaultProfileName])
+        self.assertEqual(cv.currentDatabase, cv.profiles[cv.defaultProfileName]["db"])
+
+        cv.defaultProfileName = "b"
+        cv.profiles = {
+            "a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"},
+            "b": {"n": "b", "d": "ript", "f": "si", "db": "tset.db"},
+        }
+        with patch("logging.Logger.critical") as _c, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
+        ) as _lp, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc:
+            cv.reloadProfiles(useProfile="a")
+            _lp.assert_called_once_with(cv)
+            self.assertEqual(_c.call_count, 0)
+            _i.assert_called_once()
+            _rc.assert_called_once_with(cv)
+        self.assertEqual(cv.currentProfileName, "a")
+        self.assertEqual(cv.currentProfile, cv.profiles["a"])
+        self.assertEqual(cv.currentDatabase, cv.profiles["a"]["db"])
+
+        with patch("logging.Logger.critical") as _c, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
+        ) as _lp, patch(
+            "physbiblio.config.ConfigVars.readConfig", autospec=True
+        ) as _rc:
+            cv.reloadProfiles()
+            _lp.assert_called_once_with(cv)
+            self.assertEqual(_c.call_count, 0)
+            _i.assert_called_once()
+            _rc.assert_called_once_with(cv)
+        self.assertEqual(cv.currentProfileName, "b")
+        self.assertEqual(cv.currentProfile, cv.profiles["b"])
+        self.assertEqual(cv.currentDatabase, cv.profiles["b"]["db"])
+
+    def test_replacePBDATA(self):
+        """test replacePBDATA"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        self.assertEqual(cv.replacePBDATA(123), 123)
+        self.assertEqual(cv.replacePBDATA("abcd"), "abcd")
+        self.assertEqual(
+            cv.replacePBDATA("PBDATAabcd"), os.path.join(cv.dataPath, "abcd")
+        )
+
+    def test_setDefaultParams(self):
+        """test setDefaultParams"""
+        if os.path.exists(tempProfName):
+            os.remove(tempProfName)
+        cv = ConfigVars(tempProfName)
+        cv.params["mainDatabaseName"] = "no"
+        cv.params["pdfFolder"] = "PBDATA"
+        cv.setDefaultParams()
+        self.assertIsInstance(cv.params, dict)
+        for k, p in configuration_params.items():
+            if k == "mainDatabaseName":
+                self.assertNotIn(k, cv.params.keys())
+            else:
+                if isinstance(p.default, str) and "PBDATA" in p.default:
+                    v = os.path.join(cv.dataPath, p.default.replace("PBDATA", ""))
+                else:
+                    v = p.default
+                self.assertEqual(cv.params[k], v)
 
 
 def tearDownModule():

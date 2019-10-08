@@ -896,11 +896,7 @@ class ConfigVars:
             for p in configuration_params.values()
             if p.name not in ignoreParameterOrder
         ]
-        self.params = {}
-        for k, p in configuration_params.items():
-            if isinstance(p.default, six.string_types) and "PBDATA" in p.default:
-                p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
-            self.params[k] = p.default
+        self.setDefaultParams()
 
         self.oldConfigProfilesFile = os.path.join(self.configPath, "profiles.dat")
         self.globalDbFile = os.path.join(self.configPath, profileFileName)
@@ -911,15 +907,6 @@ class ConfigVars:
         self.checkOldProfiles()
         self.loadProfiles()
 
-    def prepareLogger(self, string):
-        """Replace the logger used by this module
-
-        Parameters:
-            string: the string used in getLogger
-        """
-        self.loggerString = string
-        self.logger = logging.getLogger(self.loggerString)
-
     def loadProfiles(self):
         """Load the information from the profile database"""
         try:
@@ -929,6 +916,121 @@ class ConfigVars:
         except (IOError, ValueError, SyntaxError) as e:
             self.logger.warning(e)
             self.globalDb.createProfile()
+
+    def prepareLogger(self, string):
+        """Replace the logger used by this module
+
+        Parameters:
+            string: the string used in getLogger
+        """
+        self.loggerString = string
+        self.logger = logging.getLogger(self.loggerString)
+
+    def readConfig(self):
+        """Read the configuration from the current database.
+        Single parameters are read by self.readParam
+        """
+        self.logger.debug("Reading configuration.\n")
+        self.setDefaultParams()
+        tempDb = PhysBiblioDBCore(self.currentDatabase, self.logger, info=False)
+        configDb = ConfigurationDB(tempDb)
+        try:
+            for k in configuration_params.keys():
+                self.readParam(k, configDb)
+        except Exception:
+            self.logger.exception(
+                "ERROR: reading config from '%s' failed." % (self.currentDatabase)
+            )
+        tempDb.closeDB(info=False)
+        self.logger.debug("Configuration loaded.\n")
+
+    def readParam(self, key, configDb):
+        """Read the value of a single parameter from the database,
+        and process it according to the parameter type.
+        The result is stored in `self.params[key]`
+
+        Parameters:
+            key: the parameter name
+            configDb: the configuration database where to read from
+        """
+        if key == "mainDatabaseName":
+            return
+        if configuration_params[key].isGlobal:
+            cont = self.globalDb.config.getByName(key)
+        else:
+            cont = configDb.getByName(key)
+        if len(cont) == 0:
+            self.params[key] = self.replacePBDATA(configuration_params[key].default)
+            return
+        v = cont[0]["value"]
+        try:
+            if configuration_params[key].special == "float":
+                self.params[key] = float(v)
+            elif configuration_params[key].special == "int":
+                self.params[key] = int(v)
+            elif configuration_params[key].special == "boolean":
+                if v.lower() in ("true", "1", "yes", "on"):
+                    self.params[key] = True
+                elif v.lower() in ("false", "0", "no", "off"):
+                    self.params[key] = False
+                else:
+                    raise ValueError
+            elif configuration_params[key].special == "list":
+                self.params[key] = ast.literal_eval(v.strip())
+            else:
+                self.params[key] = self.replacePBDATA(v)
+        except Exception:
+            self.logger.warning(
+                "Failed in reading parameter '%s'." % key, exc_info=True
+            )
+            self.params[key] = configuration_params[key].default
+
+    def readProfiles(self):
+        """Reads the list of profiles and the related parameters
+        from the profiles database.
+
+        Output:
+            the name of the default profile, the dictionary
+                with the profiles and the list of ordered profile names
+        """
+        allProf = self.globalDb.getProfiles()
+        profiles = {}
+        for e in allProf:
+            profiles[e["name"]] = {
+                "n": e["name"],
+                "d": e["description"],
+                "f": e["oldCfg"],
+                "db": e["databasefile"],
+            }
+        return (
+            self.globalDb.getDefaultProfile(),
+            profiles,
+            self.globalDb.getProfileOrder(),
+        )
+
+    def reInit(self, newShort, newProfile=None):
+        """Used when changing profile.
+        Reload all the configuration given the new profile name.
+
+        Parameters:
+            newShort (str): short name for the new profile to be loaded
+            newProfile (dict, optional): the profile file dictionary
+        """
+        if newProfile is None:
+            try:
+                newProfile = self.profiles[newShort]
+            except KeyError:
+                self.logger.error("Profile not found!")
+                return
+        self.currentProfileName = newShort
+        self.currentProfile = newProfile
+        self.currentDatabase = newProfile["db"]
+        self.setDefaultParams()
+        self.logger.info(
+            "Restarting with profile '%s', database: %s"
+            % (self.currentProfileName, self.currentDatabase)
+        )
+        self.readConfig()
 
     def reloadProfiles(self, useProfile=None):
         """Load the information from the profile database,
@@ -959,6 +1061,31 @@ class ConfigVars:
         )
 
         self.readConfig()
+
+    def replacePBDATA(self, var):
+        """Replace the PBDATA placeholder in the given variable,
+        if it is a string, or just return the variable otherwise
+
+        Parameters:
+            var: the input variable
+
+        Output:
+            the input variable or a string with replaced "PBDATA" 
+        """
+        if isinstance(var, six.string_types) and "PBDATA" in var:
+            var = os.path.join(self.dataPath, var.replace("PBDATA", ""))
+        return var
+
+    def setDefaultParams(self):
+        """Reset the list of params,
+        setting their value to the default
+        as defined in configuration_params
+        """
+        self.params = {}
+        for k, p in configuration_params.items():
+            if k == "mainDatabaseName":
+                continue
+            self.params[k] = self.replacePBDATA(p.default)
 
     def checkOldProfiles(self):
         """Intended for backwards compatibility.
@@ -1001,141 +1128,6 @@ class ConfigVars:
                 % (self.oldConfigProfilesFile, self.configProfilesFile + "_bck")
             )
 
-    def oldReadProfiles(self):
-        """Reads the list of profiles and the related parameters
-        from the profiles.dat file.
-        """
-        with open(self.oldConfigProfilesFile) as r:
-            txtarr = r.readlines()
-        txt = "".join(txtarr)
-        parsed = ast.literal_eval(txt.replace("\n", ""))
-        if len(parsed) < 3:
-            parsed = parsed + tuple(sorted(parsed[1].keys()))
-        return parsed
-
-    def readProfiles(self):
-        """Reads the list of profiles and the related parameters
-        from the profiles database.
-
-        Output:
-            the name of the default profile, the dictionary
-                with the profiles and the list of ordered profile names
-        """
-        allProf = self.globalDb.getProfiles()
-        profiles = {}
-        for e in allProf:
-            profiles[e["name"]] = {
-                "n": e["name"],
-                "d": e["description"],
-                "f": e["oldCfg"],
-                "db": e["databasefile"],
-            }
-        return (
-            self.globalDb.getDefaultProfile(),
-            profiles,
-            self.globalDb.getProfileOrder(),
-        )
-
-    def reInit(self, newShort, newProfile=None):
-        """Used when changing profile.
-        Reload all the configuration given the new profile name.
-
-        Parameters:
-            newShort (str): short name for the new profile to be loaded
-            newProfile (dict, optional): the profile file dictionary
-        """
-        if newProfile is None:
-            try:
-                newProfile = self.profiles[newShort]
-            except KeyError:
-                self.logger.error("Profile not found!")
-                return
-        self.currentProfileName = newShort
-        self.currentProfile = newProfile
-        self.currentDatabase = newProfile["db"]
-        self.params = {}
-        for k, p in configuration_params.items():
-            self.params[k] = p.default
-        self.logger.info(
-            "Restarting with profile '%s', database: %s"
-            % (self.currentProfileName, self.currentProfile["db"])
-        )
-        self.readConfig()
-
-    def readConfig(self):
-        """Read the configuration from the current database.
-        Parses the various parameters given their declared type.
-        """
-        self.logger.debug("Reading configuration.\n")
-        for k, p in configuration_params.items():
-            if k == "mainDatabaseName":
-                continue
-            if isinstance(p.default, str) and "PBDATA" in p.default:
-                p.default = os.path.join(self.dataPath, p.default.replace("PBDATA", ""))
-            self.params[k] = p.default
-        tempDb = PhysBiblioDBCore(self.currentDatabase, self.logger, info=False)
-        configDb = ConfigurationDB(tempDb)
-        try:
-            for k in configuration_params.keys():
-                if k == "mainDatabaseName":
-                    continue
-                if configuration_params[k].isGlobal:
-                    cont = self.globalDb.config.getByName(k)
-                else:
-                    cont = configDb.getByName(k)
-                if len(cont) == 0:
-                    continue
-                v = cont[0]["value"]
-                try:
-                    if configuration_params[k].special == "float":
-                        self.params[k] = float(v)
-                    elif configuration_params[k].special == "int":
-                        self.params[k] = int(v)
-                    elif configuration_params[k].special == "boolean":
-                        if v.lower() in ("true", "1", "yes", "on"):
-                            self.params[k] = True
-                        elif v.lower() in ("false", "0", "no", "off"):
-                            self.params[k] = False
-                        else:
-                            raise ValueError
-                    elif configuration_params[k].special == "list":
-                        self.params[k] = ast.literal_eval(v.strip())
-                    else:
-                        if isinstance(v, str) and "PBDATA" in v:
-                            v = os.path.join(self.dataPath, v.replace("PBDATA", ""))
-                        self.params[k] = v
-                except Exception:
-                    self.logger.warning(
-                        "Failed in reading parameter '%s'." % k, exc_info=True
-                    )
-                    self.params[k] = configuration_params[k].default
-        except Exception:
-            self.logger.error(
-                "ERROR: reading config from '%s' failed." % (self.currentProfile["db"])
-            )
-        tempDb.closeDB(info=False)
-        self.logger.debug("Configuration loaded.\n")
-
-    def oldReInit(self, newShort, newProfile):
-        """Old function used when changing profile.
-        Reloads all the configuration from scratch given the new profile name.
-
-        Parameters:
-            newShort (str): short name for the new profile to be loaded
-            newProfile (dict): the profile file dictionary
-        """
-        self.currentProfileName = newShort
-        self.params = {}
-        for k, p in configuration_params.items():
-            self.params[k] = p.default
-        self.currentProfile = newProfile
-        self.logger.info(
-            "Starting with configuration in '%s'" % self.currentProfile["f"]
-        )
-        self.configMainFile = os.path.join(self.configPath, self.currentProfile["f"])
-        self.params = {}
-        self.oldReadConfigFile()
-
     def oldReadConfigFile(self):
         """Read the configuration from a file,
         whose name is stored in self.configMainFile.
@@ -1177,6 +1169,38 @@ class ConfigVars:
             )
         except Exception:
             self.logger.error("ERROR: reading %s file failed." % self.configMainFile)
+
+    def oldReadProfiles(self):
+        """Reads the list of profiles and the related parameters
+        from the profiles.dat file.
+        """
+        with open(self.oldConfigProfilesFile) as r:
+            txtarr = r.readlines()
+        txt = "".join(txtarr)
+        parsed = ast.literal_eval(txt.replace("\n", ""))
+        if len(parsed) < 3:
+            parsed = parsed + tuple(sorted(parsed[1].keys()))
+        return parsed
+
+    def oldReInit(self, newShort, newProfile):
+        """Old function used when changing profile.
+        Reloads all the configuration from scratch given the new profile name.
+
+        Parameters:
+            newShort (str): short name for the new profile to be loaded
+            newProfile (dict): the profile file dictionary
+        """
+        self.currentProfileName = newShort
+        self.params = {}
+        for k, p in configuration_params.items():
+            self.params[k] = p.default
+        self.currentProfile = newProfile
+        self.logger.info(
+            "Starting with configuration in '%s'" % self.currentProfile["f"]
+        )
+        self.configMainFile = os.path.join(self.configPath, self.currentProfile["f"])
+        self.params = {}
+        self.oldReadConfigFile()
 
 
 pbConfig = ConfigVars()
