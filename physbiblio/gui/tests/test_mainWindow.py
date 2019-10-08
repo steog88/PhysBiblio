@@ -1038,7 +1038,7 @@ class TestMainWindow(GUITestCase):
         ) as _com:
             self.mainW.config()
             _sbm.assert_called_once_with(self.mainW, "Configuration saved")
-            self.assertEqual(_de.call_count + 2, len(pbConfig.params.keys()))
+            self.assertEqual(_de.call_count + 2, len(configuration_params.keys()))
             for k in old.keys():
                 _in.assert_has_calls(
                     [
