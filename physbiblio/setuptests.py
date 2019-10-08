@@ -81,6 +81,9 @@ logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])
 tempDBName = os.path.join(pbConfig.dataPath, "tests_%s.db" % today_ymd)
 if os.path.exists(tempDBName):
     os.remove(tempDBName)
+tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db" % today_ymd)
+if os.path.exists(tempFDBName):
+    os.remove(tempFDBName)
 
 
 class DBTestCase(unittest.TestCase):
@@ -106,6 +109,10 @@ class DBTestCase(unittest.TestCase):
 
 
 def tearDownModule():
-    """Clean temporary logfile at the end"""
+    """Clean temporary files at the end"""
     if os.path.exists(logFileName):
         os.remove(logFileName)
+    if os.path.exists(tempDBName):
+        os.remove(tempDBName)
+    if os.path.exists(tempFDBName):
+        os.remove(tempFDBName)

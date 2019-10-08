@@ -179,7 +179,6 @@ fullRecordGariazzo = {
         u"pages": u"033001",
     },
 }
-tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db" % today_ymd)
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
