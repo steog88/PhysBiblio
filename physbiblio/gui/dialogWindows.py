@@ -568,6 +568,10 @@ class PrintText(PBDialog):
         """Enable the close button and set `self._wantToClose` to True"""
         self._wantToClose = True
         self.closeButton.setEnabled(True)
+        try:
+            self.cancelButton.setEnabled(False)
+        except Exception:
+            pass
 
 
 class AdvancedImportDialog(PBDialog):
