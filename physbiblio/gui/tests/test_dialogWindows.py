@@ -755,8 +755,6 @@ class TestPrintText(GUITestCase):
             _s.assert_not_called()
             pt.enableClose()
             self.assertTrue(pt.closeButton.isEnabled())
-            QTest.mouseClick(pt.closeButton, Qt.LeftButton, delay=10)
-            _s.assert_called_once_with()
 
         with patch(
             "physbiblio.gui.dialogWindows.PrintText.centerWindow", autospec=True

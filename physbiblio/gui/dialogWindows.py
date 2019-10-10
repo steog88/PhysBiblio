@@ -510,7 +510,6 @@ class PrintText(PBDialog):
             self.cancelButton.setAutoDefault(True)
             grid.addWidget(self.cancelButton)
         self.closeButton = QPushButton("Close", self)
-        self.closeButton.clicked.connect(lambda: self.reject())
         self.closeButton.setDisabled(True)
         grid.addWidget(self.closeButton)
 

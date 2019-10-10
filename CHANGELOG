@@ -1,3 +1,6 @@
+1.4.1 (2019-)
+    * attempt to fix "QThread: Destroyed while thread is still running"
+
 1.4.0 (2019-10-08)
     * function to show recent version changes from the GUI (shown when opening the program for the first time with a new version)
     * option to make the update notification less invasive (it will be shown in the status bar instead of as a message at startup)

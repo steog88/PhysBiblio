@@ -968,6 +968,13 @@ class MainWindow(QMainWindow):
             else:
                 return None
 
+        def closePrintText(a, t):
+            try:
+                t.wait()
+            except RuntimeError:
+                pass
+            a.reject()
+
         totStr = getDelKwargs("totStr")
         progrStr = getDelKwargs("progrStr")
         addMessage = getDelKwargs("addMessage")
@@ -991,6 +998,7 @@ class MainWindow(QMainWindow):
         ws.finished.connect(ws.deleteLater)
         thr.finished.connect(app.enableClose)
         thr.finished.connect(thr.deleteLater)
+        app.closeButton.clicked.connect(lambda a=app, t=thr: closePrintText(a, t))
         if stopFlag:
             app.stopped.connect(thr.setStopFlag)
 

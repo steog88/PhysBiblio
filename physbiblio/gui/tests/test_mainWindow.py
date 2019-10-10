@@ -1295,6 +1295,13 @@ class TestMainWindow(GUITestCase):
             _rth.assert_called_once_with(pBErrorManager)
             self.assertEqual(_sbm.call_count, 0)
             _done.assert_called_once_with(self.mainW)
+        app.reject = MagicMock()
+        thr.wait = MagicMock()
+        app.enableClose()
+        QTest.mouseClick(app.closeButton, Qt.LeftButton, delay=10)
+        app.reject.assert_called_once()
+        thr.wait.assert_called_once()
+
         ws.newText.connect.reset_mock()
         func.reset_mock()
         ws.finished.connect.reset_mock()
