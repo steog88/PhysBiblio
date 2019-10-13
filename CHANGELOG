@@ -1,6 +1,7 @@
 1.4.1 (2019-)
     * disable already useless stop button when a thread is finished
     * attempt to fix "QThread: Destroyed while thread is still running"
+    * fixing bugs with progress reporting in GUI for threaded process (and some functions improved meanwhile)
 
 1.4.0 (2019-10-08)
     * function to show recent version changes from the GUI (shown when opening the program for the first time with a new version)

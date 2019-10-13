@@ -975,16 +975,9 @@ class MainWindow(QMainWindow):
                 pass
             a.reject()
 
-        totStr = getDelKwargs("totStr")
-        progrStr = getDelKwargs("progrStr")
         addMessage = getDelKwargs("addMessage")
         stopFlag = getDelKwargs("stopFlag")
-        app = PrintText(
-            title=title,
-            totStr=totStr,
-            progrStr=progrStr,
-            noStopButton=True if stopFlag is False else False,
-        )
+        app = PrintText(title=title, noStopButton=True if stopFlag is False else False)
 
         outMessage = getDelKwargs("outMessage")
         minProgress = getDelKwargs("minProgress")
@@ -993,6 +986,8 @@ class MainWindow(QMainWindow):
         queue = Queue()
         ws = WriteStream(queue)
         ws.newText.connect(app.appendText)
+        kwargs["progressBarMax"] = app.progressBarMax
+        kwargs["progressBarValue"] = app.progressBarValue
         thr = Thread_func(ws, *args, parent=self, **kwargs)
 
         ws.finished.connect(ws.deleteLater)
@@ -1069,8 +1064,6 @@ class MainWindow(QMainWindow):
                     "Do you want to use INSPIRE "
                     + "to find more information about the imported entries?"
                 ),
-                totStr="Entries to be processed: ",
-                progrStr="%), processing entry ",
                 minProgress=0,
                 stopFlag=True,
                 outMessage="All entries into '%s' have been imported" % filename,
@@ -1446,8 +1439,6 @@ class MainWindow(QMainWindow):
             old,
             new,
             regex=regex,
-            totStr="Replace will process ",
-            progrStr="%): entry ",
             minProgress=0.0,
             stopFlag=True,
         )
@@ -1525,8 +1516,6 @@ class MainWindow(QMainWindow):
             useEntries=useEntries,
             force=force,
             reloadAll=reloadAll,
-            totStr="SearchOAIUpdates will process ",
-            progrStr="%) - looking for update: ",
             minProgress=0.0,
             stopFlag=True,
         )
@@ -1586,8 +1575,6 @@ class MainWindow(QMainWindow):
             Thread_authorStats,
             "Author Stats",
             authorName,
-            totStr="AuthorStats will process ",
-            progrStr="%) - looking for paper: ",
             minProgress=0.0,
             stopFlag=True,
         )
@@ -1616,13 +1603,7 @@ class MainWindow(QMainWindow):
             inspireId: the ID of the paper in the INSPIRE database
         """
         self._runInThread(
-            Thread_paperStats,
-            "Paper Stats",
-            inspireId,
-            totStr="PaperStats will process ",
-            progrStr="%) - looking for paper: ",
-            minProgress=0.0,
-            stopFlag=False,
+            Thread_paperStats, "Paper Stats", inspireId, minProgress=0.0, stopFlag=True
         )
         if self.lastPaperStats is None:
             infoMessage("No results obtained. Maybe there was an error.")
@@ -1672,8 +1653,6 @@ class MainWindow(QMainWindow):
             Thread_loadAndInsert,
             "Import from INSPIRE-HEP",
             queryStr,
-            totStr="LoadAndInsert will process ",
-            progrStr="%) - looking for string: ",
             minProgress=0.0,
             stopFlag=True,
             addMessage="Searching:\n%s" % queryStr,
@@ -1875,8 +1854,6 @@ class MainWindow(QMainWindow):
             "Clean Bibtexs",
             startFrom,
             useEntries=useEntries,
-            totStr="CleanBibtexs will process ",
-            progrStr="%) - cleaning: ",
             minProgress=0.0,
             stopFlag=True,
         )
@@ -1900,8 +1877,6 @@ class MainWindow(QMainWindow):
             "Check Bibtexs",
             startFrom,
             useEntries=useEntries,
-            totStr="findCorruptedBibtexs will process ",
-            progrStr="%) - processing: ",
             minProgress=0.0,
             stopFlag=True,
         )
@@ -1943,8 +1918,6 @@ class MainWindow(QMainWindow):
                 "Get info from arXiv",
                 [e["bibkey"] for e in iterator],
                 askFieldsWin.output,
-                totStr="Thread_fieldsArxiv will process ",
-                progrStr="%) - processing: arxiv:",
                 minProgress=0.0,
                 stopFlag=True,
             )

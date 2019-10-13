@@ -56,6 +56,7 @@ class InspireStatsLoader:
         self.authorPapersList = [[], []]
         self.allCitations = []
         self.runningAuthorStats = True
+        self.runningPaperStats = True
         self.allInfoP = {}
         self.citingPapersList = [[], []]
 
@@ -105,7 +106,7 @@ class InspireStatsLoader:
                 complete += temp
                 ser += 1
 
-    def authorStats(self, authorName, plot=False, reset=True):
+    def authorStats(self, authorName, plot=False, reset=True, pbMax=None, pbVal=None):
         """Function that gets the data and
         constructs the statistics for a given author.
 
@@ -117,6 +118,10 @@ class InspireStatsLoader:
             reset (boolean, default False): True to delete
                 all previous existing data
                 (used as False when processing a list of authors)
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             a dictionary containing all the statistic information.
@@ -144,7 +149,15 @@ class InspireStatsLoader:
             self.authorPapersList = [[], []]
             self.allCitations = []
         if isinstance(authorName, list):
-            for a in authorName:
+            try:
+                pbMax(len(authorName))
+            except TypeError:
+                pass
+            for ia, a in enumerate(authorName):
+                try:
+                    pbVal(ia + 1)
+                except TypeError:
+                    pass
                 self.authorStats(a, reset=False)
             self.authorPlotInfo["name"] = authorName
             return self.authorPlotInfo
@@ -228,7 +241,16 @@ class InspireStatsLoader:
         pBLogger.info("Stats for author '%s' completed!" % authorName)
         return self.authorPlotInfo
 
-    def paperStats(self, paperID, plot=False, verbose=1, paperDate=None, reset=True):
+    def paperStats(
+        self,
+        paperID,
+        plot=False,
+        verbose=1,
+        paperDate=None,
+        reset=True,
+        pbMax=None,
+        pbVal=None,
+    ):
         """Function that gets the data and
         constructs the statistics for a given paper.
 
@@ -242,6 +264,10 @@ class InspireStatsLoader:
             reset (boolean, default False): True to delete
                 all previous existing data
                 (used as False when processing a list of IDs)
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             a dictionary containing all the desired information.
@@ -259,8 +285,18 @@ class InspireStatsLoader:
             self.allInfoP = {}
             self.citingPapersList = [[], []]
         if isinstance(paperID, list):
-            for a in paperID:
-                self.paperStats(a, reset=False)
+            self.runningPaperStats = True
+            try:
+                pbMax(len(paperID))
+            except TypeError:
+                pass
+            for ia, a in enumerate(paperID):
+                try:
+                    pbVal(ia + 1)
+                except TypeError:
+                    pass
+                if self.runningPaperStats:
+                    self.paperStats(a, reset=False)
             self.paperPlotInfo["id"] = paperID
             return self.paperPlotInfo
         if verbose > 0:

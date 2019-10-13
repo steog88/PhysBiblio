@@ -2965,7 +2965,16 @@ class Entries(PhysBiblioDBSub):
             return False
 
     def replace(
-        self, fiOld, fiNews, old, news, entries=None, regex=False, lenEntries=1
+        self,
+        fiOld,
+        fiNews,
+        old,
+        news,
+        entries=None,
+        regex=False,
+        lenEntries=1,
+        pbMax=None,
+        pbVal=None,
     ):
         """Replace a string with a new one, in the given field
         of the (previously) selected bibtex entries
@@ -2983,6 +2992,10 @@ class Entries(PhysBiblioDBSub):
                 for matching and replacing
             lenEntries (default 1): if `entries` is passed, this must be
                 the length of `entries`
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             success, changed, failed:
@@ -3030,7 +3043,15 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info("Replace will process %d entries" % tot)
         if tot < 1:
             tot = 1
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         for ix, entry in enumerate(iterator):
+            try:
+                pbVal(ix + 1)
+            except TypeError:
+                pass
             if not self.runningReplace:
                 continue
             if not "bibtexDict" in entry.keys():
@@ -3138,13 +3159,17 @@ class Entries(PhysBiblioDBSub):
         db.entries = [tmp]
         return pbWriter.write(db)
 
-    def getFieldsFromArxiv(self, bibkey, fields):
+    def getFieldsFromArxiv(self, bibkey, fields, pbMax=None, pbVal=None):
         """Use arxiv.org to retrieve more fields for the entry
 
         Parameters:
             bibkey: the bibtex key of the entry
             fields: the fields to be updated
                 using information from arxiv.org
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             False if some error occurred,
@@ -3159,8 +3184,16 @@ class Entries(PhysBiblioDBSub):
             success = []
             fail = []
             pBLogger.info("getFieldsFromArxiv will process %d entries." % tot)
+            try:
+                pbMax(tot)
+            except TypeError:
+                pass
             for ix, k in enumerate(bibkey):
                 arxiv = str(self.getField(k, "arxiv"))
+                try:
+                    pbVal(ix + 1)
+                except TypeError:
+                    pass
                 if self.getArxivFieldsFlag and arxiv.strip() != "":
                     pBLogger.info(
                         "%5d / %d (%5.2f%%) - processing: arxiv:%s\n"
@@ -3227,6 +3260,8 @@ class Entries(PhysBiblioDBSub):
         number=None,
         returnBibtex=False,
         childProcess=False,
+        pbMax=None,
+        pbVal=None,
     ):
         """Read a list of keywords and look for inspire contents,
         then load in the database all the info
@@ -3243,6 +3278,10 @@ class Entries(PhysBiblioDBSub):
                 the bibtex of the entry
             childProcess (boolean, default False): if True, do not reset
                 the self.lastInserted (used when recursively called)
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             False if some error occurred,
@@ -3407,18 +3446,24 @@ class Entries(PhysBiblioDBSub):
             self.runningLoadAndInsert = True
             tot = len(entry)
             pBLogger.info("LoadAndInsert will process %d total entries" % tot)
-            ix = 0
-            for e in entry:
+            try:
+                pbMax(tot)
+            except TypeError:
+                pass
+            for ie, e in enumerate(entry):
+                try:
+                    pbVal(ie + 1)
+                except TypeError:
+                    pass
                 if isinstance(e, float):
                     e = str(e)
                 if self.runningLoadAndInsert:
                     pBLogger.info(
                         "%5d / %d (%5.2f%%) - looking for string: '%s'\n"
-                        % (ix + 1, tot, 100.0 * (ix + 1) / tot, e)
+                        % (ie + 1, tot, 100.0 * (ie + 1) / tot, e)
                     )
                     if not self.loadAndInsert(e, childProcess=True):
                         failed.append(e)
-                    ix += 1
             if len(self.lastInserted) > 0:
                 pBLogger.info("Imported entries:\n%s" % ", ".join(self.lastInserted))
             if len(failed) > 0:
@@ -3521,13 +3566,17 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info("%d bibtex entries found." % len(elements))
         return elements
 
-    def importFromBib(self, filename, completeInfo=True):
+    def importFromBib(self, filename, completeInfo=True, pbMax=None, pbVal=None):
         """Read a .bib file and add the contained entries in the database
 
         Parameters:
             filename: the name of the .bib file
             completeInfo (boolean, default True): use the bibtex key
                 and other fields to look for more information online
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
 
         def printExisting(entry):
@@ -3549,9 +3598,17 @@ class Entries(PhysBiblioDBSub):
         elements = self.parseAllBibtexs(fullBibText, errors=errors, verbose=True)
         db = bibtexparser.bibdatabase.BibDatabase()
         self.importFromBibFlag = True
-        pBLogger.info("Entries to be processed: %d" % len(elements))
         tot = len(elements)
+        pBLogger.info("Entries to be processed: %d" % tot)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         for ie, e in enumerate(elements):
+            try:
+                pbVal(ie + 1)
+            except TypeError:
+                pass
             if self.importFromBibFlag and e != []:
                 db.entries = [e]
                 bibtex = self.rmBibtexComments(
@@ -3886,7 +3943,7 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
-    def cleanBibtexs(self, startFrom=0, entries=None):
+    def cleanBibtexs(self, startFrom=0, entries=None, pbMax=None, pbVal=None):
         """Clean (remove comments, unwanted fields, newlines, accents)
         and reformat the bibtexs
 
@@ -3894,6 +3951,10 @@ class Entries(PhysBiblioDBSub):
             startFrom (default 0): the index where to start from
             entries: the list of entries to be considered.
                 If None, the output of self.getAll
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             num, err, changed:
@@ -3919,8 +3980,16 @@ class Entries(PhysBiblioDBSub):
         changed = []
         self.runningCleanBibtexs = True
         pBLogger.info("CleanBibtexs will process %d total entries" % tot)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         db = bibtexparser.bibdatabase.BibDatabase()
         for ix, e in enumerate(iterator):
+            try:
+                pbVal(ix + 1)
+            except TypeError:
+                pass
             if self.runningCleanBibtexs:
                 num += 1
                 pBLogger.info(
@@ -3968,13 +4037,17 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info("%d bibtex entries changed" % len(changed))
         return num, err, changed
 
-    def findCorruptedBibtexs(self, startFrom=0, entries=None):
+    def findCorruptedBibtexs(self, startFrom=0, entries=None, pbMax=None, pbVal=None):
         """Find bibtexs that cannot be read properly
 
         Parameters:
             startFrom (default 0): the index where to start from
             entries: the list of entries to be considered.
                 If None, the output of self.getAll
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             bibtexs: the list of problematic entries
@@ -3995,8 +4068,16 @@ class Entries(PhysBiblioDBSub):
         bibtexs = []
         self.runningFindBadBibtexs = True
         pBLogger.info("findCorruptedBibtexs will process %d total entries" % tot)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         db = bibtexparser.bibdatabase.BibDatabase()
         for ix, e in enumerate(iterator):
+            try:
+                pbVal(ix + 1)
+            except TypeError:
+                pass
             if self.runningFindBadBibtexs:
                 pBLogger.info(
                     "%5d / %d (%5.2f%%) - processing: '%s'"
@@ -4009,13 +4090,21 @@ class Entries(PhysBiblioDBSub):
                         .entries[0]
                     )
                     pBLogger.info("%s is readable.\n" % element["ID"])
-                except:
+                except Exception:
                     bibtexs.append(e["bibkey"])
                     pBLogger.warning("%s is NOT readable!\n" % e["bibkey"])
         pBLogger.info("%d bad entries found:\n %s" % (len(bibtexs), bibtexs))
         return bibtexs
 
-    def searchOAIUpdates(self, startFrom=0, entries=None, force=False, reloadAll=False):
+    def searchOAIUpdates(
+        self,
+        startFrom=0,
+        entries=None,
+        force=False,
+        reloadAll=False,
+        pbMax=None,
+        pbVal=None,
+    ):
         """Select unpublished papers and look for updates using inspireOAI
 
         Parameters:
@@ -4027,6 +4116,10 @@ class Entries(PhysBiblioDBSub):
                 of entries which already have journal information
             reloadAll (boolean, default False): reload the entire content,
                 without trying to simply update the existing one
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             num, err, changed:
@@ -4052,7 +4145,15 @@ class Entries(PhysBiblioDBSub):
         changed = []
         self.runningOAIUpdates = True
         pBLogger.info("SearchOAIUpdates will process %d total entries" % tot)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         for ix, e in enumerate(iterator):
+            try:
+                pbVal(ix + 1)
+            except TypeError:
+                pass
             if not "bibtexDict" in e.keys():
                 e = self.completeFetched([e])[0]
             if (

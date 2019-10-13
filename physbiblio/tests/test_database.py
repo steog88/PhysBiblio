@@ -2814,12 +2814,22 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
 
+        pbm = MagicMock()
+        pbv = MagicMock()
         self.assertEqual(
             self.pBDB.bibs.replace(
-                "volume", ["volume"], "([0-9]{2})([0-9]{2})", [r"\2"], regex=True
+                "volume",
+                ["volume"],
+                "([0-9]{2})([0-9]{2})",
+                [r"\2"],
+                regex=True,
+                pbMax=pbm,
+                pbVal=pbv,
             ),
             (["abc"], ["abc"], []),
         )
+        pbm.assert_called_once_with(1)
+        pbv.assert_called_once_with(1)
         self.assertEqual(
             self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("1803", "03")
         )
@@ -2925,6 +2935,8 @@ class TestDatabaseEntries(DBTestCase):
             + 'title = "ghi",\neprint="1234.56789",\n}'
         )
         self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
+        pbm = MagicMock()
+        pbv = MagicMock()
         with patch("logging.Logger.info") as _i:
             self.assertEqual(
                 self.pBDB.bibs.replace(
@@ -2934,6 +2946,8 @@ class TestDatabaseEntries(DBTestCase):
                     ["56789"],
                     lenEntries=5,
                     entries=self.pBDB.bibs.fetchAll(saveQuery=False).lastFetched,
+                    pbMax=pbm,
+                    pbVal=pbv,
                 ),
                 (["ghi"], ["ghi"], ["abc", "def"]),
             )
@@ -2945,6 +2959,8 @@ class TestDatabaseEntries(DBTestCase):
                     call(u"processing     3 / 5 (60.00%): entry ghi"),
                 ]
             )
+        pbm.assert_called_once_with(5)
+        pbv.assert_has_calls([call(i + 1) for i in range(3)])
         with patch("logging.Logger.exception") as _i:
             self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ["56789"])
         self.assertEqual(
@@ -5435,9 +5451,15 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.cleanBibtexs(startFrom=1)
             _i.assert_any_call("CleanBibtexs will process 2 total entries")
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
+        pbm = MagicMock()
+        pbv = MagicMock()
         with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs(entries=self.pBDB.bibs.getByBibkey("def"))
+            self.pBDB.bibs.cleanBibtexs(
+                entries=self.pBDB.bibs.getByBibkey("def"), pbMax=pbm, pbVal=pbv
+            )
             _i.assert_any_call("CleanBibtexs will process 1 total entries")
+        pbm.assert_called_once_with(1)
+        pbv.assert_has_calls([call(1)])
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
         with patch("logging.Logger.exception") as _e:
             self.pBDB.bibs.cleanBibtexs(startFrom="a"),
@@ -5450,8 +5472,10 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
         self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
         self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+        pbm = MagicMock()
+        pbv = MagicMock()
         with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs()
+            self.pBDB.bibs.cleanBibtexs(pbMax=pbm, pbVal=pbv)
             _i.assert_has_calls(
                 [
                     call("3 entries processed"),
@@ -5459,6 +5483,8 @@ class TestDatabaseEntries(DBTestCase):
                     call("1 bibtex entries changed"),
                 ]
             )
+        pbm.assert_called_once_with(3)
+        pbv.assert_has_calls([call(1), call(2), call(3)])
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
 
         self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
@@ -5727,7 +5753,13 @@ class TestDatabaseEntries(DBTestCase):
                 u'@article{abc,\nauthor = "me",\ntitle = '
                 + '"abc",}@article{def,\nauthor = "me",\ntitle = "def@ghi",}'
             )
-        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+        pbm = MagicMock()
+        pbv = MagicMock()
+        self.pBDB.bibs.importFromBib(
+            "tmpbib.bib", completeInfo=False, pbMax=pbm, pbVal=pbv
+        )
+        pbm.assert_called_once_with(2)
+        pbv.assert_has_calls([call(1), call(2)])
         self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
 
         self.pBDB.undo(verbose=0)
@@ -5962,9 +5994,15 @@ class TestDatabaseEntries(DBTestCase):
                 )
             self.pBDB.undo(verbose=0)
             # test with list entry (also nested lists)
+            pbm = MagicMock()
+            pbv = MagicMock()
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
                     u'\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
                     u'\n@article{key0,\nauthor = "Gariazzo",\n'
@@ -5982,8 +6020,15 @@ class TestDatabaseEntries(DBTestCase):
                     ]
                 )
                 self.assertEqual(self.pBDB.bibs.count(), 1)
+                with patch("logging.Logger.info") as _i:
+                    self.pBDB.bibs.loadAndInsert(["key0", "key1"], pbMax=pbm, pbVal=pbv)
+                    _i.assert_any_call("Already existing: key0\n")
+            pbm.assert_called_once_with(2)
+            pbv.assert_has_calls([call(1), call(2)])
             self.pBDB.undo(verbose=0)
             # test with number>0
+            pbm = MagicMock()
+            pbv = MagicMock()
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
@@ -5996,7 +6041,9 @@ class TestDatabaseEntries(DBTestCase):
                 ],
                 autospec=True,
             ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number=1))
+                self.assertTrue(
+                    self.pBDB.bibs.loadAndInsert("key0", number=1, pbMax=pbm, pbVal=pbv)
+                )
                 self.assertEqual(
                     [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1"]
                 )
@@ -6004,6 +6051,8 @@ class TestDatabaseEntries(DBTestCase):
                 self.assertEqual(
                     [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1", "key0"]
                 )
+            self.assertEqual(pbm.call_count, 0)
+            self.assertEqual(pbv.call_count, 0)
             self.pBDB.undo(verbose=0)
             # test setBook when using isbn
             with patch(
@@ -6157,6 +6206,20 @@ class TestDatabaseEntries(DBTestCase):
             ),
             (["Gariazzo:2015rra", "Ade:2013zuv"], []),
         )
+        pbm = MagicMock()
+        pbv = MagicMock()
+        self.assertEqual(
+            self.pBDB.bibs.getFieldsFromArxiv(
+                ["Gariazzo:2015rra", "Ade:2013zuv"],
+                "primaryclass",
+                pbMax=pbm,
+                pbVal=pbv,
+            ),
+            (["Gariazzo:2015rra", "Ade:2013zuv"], []),
+        )
+        pbm.assert_called_once_with(2)
+        pbv.assert_has_calls([call(1), call(2)])
+
         self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
         self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
 
@@ -6297,10 +6360,14 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs.searchOAIUpdates(entries=[entry1]),
                 (1, [], ["Gariazzo:2015rra"]),
             )  # 5
+            pbm = MagicMock()
+            pbv = MagicMock()
             self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(),
+                self.pBDB.bibs.searchOAIUpdates(pbMax=pbm, pbVal=pbv),
                 (2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]),
             )  # 6
+            pbm.assert_called_once_with(2)
+            pbv.assert_has_calls([call(1), call(2)])
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_updateInfoFromOAI_online(self):
@@ -7188,7 +7255,13 @@ class TestDatabaseEntries(DBTestCase):
                 "def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'
             )
         )
-        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
+        pbm = MagicMock()
+        pbv = MagicMock()
+        self.assertEqual(
+            self.pBDB.bibs.findCorruptedBibtexs(pbMax=pbm, pbVal=pbv), ["def"]
+        )
+        pbm.assert_called_once_with(2)
+        pbv.assert_has_calls([call(1), call(2)])
         self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom=1), ["def"])
         self.assertTrue(
             self.pBDB.bibs.updateField(

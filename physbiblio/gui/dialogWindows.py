@@ -418,14 +418,7 @@ class PrintText(PBDialog):
     stopped = Signal()
 
     def __init__(
-        self,
-        parent=None,
-        title="",
-        progressBar=True,
-        totStr=None,
-        progrStr=None,
-        noStopButton=False,
-        message=None,
+        self, parent=None, title="", progressBar=True, noStopButton=False, message=None
     ):
         """Constructor.
         Set some properties and create the GUI of the dialog
@@ -435,12 +428,6 @@ class PrintText(PBDialog):
             title: the window title. If an empty string,
                 "Redirect print" will be used
             progressBar: True (default) if the widget must have a progress bar
-            totStr: string to be searched in the printed text in order to
-                obtain the number of total iterations to be processed.
-                Used to set the progress bar value appropriately.
-            progrStr: string to be searched in the printed text in order
-                to obtain the iteration number.
-                Used to set the progress bar value appropriately.
             noStopButton (default False): True if the widget must have
                 a "stop" button to stop the iterations
             message: a text to be inserted as a `PBLabel` in the dialog
@@ -457,8 +444,6 @@ class PrintText(PBDialog):
         else:
             self.title = "Redirect print"
         self.setProgressBar = progressBar
-        self.totString = totStr if totStr is not None else "emptyString"
-        self.progressString = progrStr if progrStr is not None else "emptyString"
         self.noStopButton = noStopButton
         self.message = message
         self.initUI()
@@ -519,23 +504,10 @@ class PrintText(PBDialog):
 
     def appendText(self, text):
         """Add the given text to the end of the `self.textEdit` content.
-        If a `self.progressBar` is set, try to obtain
-        the maximum and the current value,
-        looking for the expected `self.totString` and `self.progressString`
 
         Parameter:
             text: the string to be appended
         """
-        if self.setProgressBar:
-            try:
-                if self.totString in text:
-                    tot = [int(s) for s in text.split() if s.isdigit()][0]
-                    self.progressBarMax(tot)
-                elif self.progressString in text:
-                    curr = [int(s) for s in text.split() if s.isdigit()][0]
-                    self.progressBar.setValue(curr)
-            except IndexError:
-                pBLogger.warning("PrintText.progressBar cannot work with float numbers")
         self.textEdit.moveCursor(QTextCursor.End)
         self.textEdit.insertPlainText(text)
 
@@ -556,6 +528,15 @@ class PrintText(PBDialog):
         """
         if self.setProgressBar:
             self.progressBar.setMaximum(maximum)
+
+    def progressBarValue(self, value):
+        """Set the current value for the progress bar
+
+        Parameter:
+            value (int or float): the value
+        """
+        if self.setProgressBar:
+            self.progressBar.setValue(value)
 
     def stopExec(self):
         """Stop the iterations through the `stopped` Signal

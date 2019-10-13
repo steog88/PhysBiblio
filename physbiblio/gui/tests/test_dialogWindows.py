@@ -663,20 +663,14 @@ class TestPrintText(GUITestCase):
         self.assertEqual(pt.parent(), None)
         self.assertEqual(pt.title, "Redirect print")
         self.assertEqual(pt.setProgressBar, True)
-        self.assertEqual(pt.totString, "emptyString")
-        self.assertEqual(pt.progressString, "emptyString")
         self.assertEqual(pt.noStopButton, False)
         self.assertEqual(pt.message, None)
 
         p = QWidget()
-        pt = PrintText(
-            p, "title", False, "some tot string", "some progr string", True, "mymessage"
-        )
+        pt = PrintText(p, "title", False, True, "mymessage")
         self.assertEqual(pt.parent(), p)
         self.assertEqual(pt.title, "title")
         self.assertEqual(pt.setProgressBar, False)
-        self.assertEqual(pt.totString, "some tot string")
-        self.assertEqual(pt.progressString, "some progr string")
         self.assertEqual(pt.noStopButton, True)
         self.assertEqual(pt.message, "mymessage")
 
@@ -724,9 +718,7 @@ class TestPrintText(GUITestCase):
         self.assertEqual(pt.closeButton.text(), "Close")
         self.assertFalse(pt.closeButton.isEnabled())
 
-        pt = PrintText(
-            p, "title", True, "some tot string", "some progr string", False, "mymessage"
-        )
+        pt = PrintText(p, "title", True, False, "mymessage")
         self.assertIsInstance(pt.grid.itemAtPosition(0, 0).widget(), PBLabel)
         self.assertEqual(pt.grid.itemAtPosition(0, 0).widget().text(), pt.message)
         self.assertIsInstance(pt.grid.itemAtPosition(1, 0).widget(), QTextEdit)
@@ -773,49 +765,6 @@ class TestPrintText(GUITestCase):
         pt.appendText("\nefgh")
         self.assertEqual(pt.textEdit.toPlainText(), "abcd\nefgh")
 
-        pt = PrintText(
-            p, progressBar=True, totStr="process events: ", progrStr="step: "
-        )
-        self.assertEqual(pt.progressBar.value(), -1)
-        self.assertEqual(pt.progressBar.maximum(), 100)
-        self.assertEqual(pt.textEdit.toPlainText(), "")
-        pt.appendText("process events: 123 45.6\n")
-        self.assertEqual(pt.textEdit.toPlainText(), "process events: 123 45.6\n")
-        self.assertEqual(pt.progressBar.maximum(), 123)
-        with patch("logging.Logger.warning") as _l:
-            pt.appendText("process events: 45.6\n")
-            _l.assert_called_once_with(
-                "PrintText.progressBar cannot work with float numbers"
-            )
-        self.assertEqual(
-            pt.textEdit.toPlainText(),
-            "process events: 123 45.6\nprocess events: 45.6\n",
-        )
-        self.assertEqual(pt.progressBar.maximum(), 123)
-        self.assertEqual(pt.progressBar.value(), -1)
-        pt.appendText("step: 98.7 6 54\n")
-        self.assertEqual(
-            pt.textEdit.toPlainText(),
-            "process events: 123 45.6\n"
-            + "process events: 45.6\n"
-            + "step: 98.7 6 54\n",
-        )
-        self.assertEqual(pt.progressBar.value(), 6)
-        with patch("logging.Logger.warning") as _l:
-            pt.appendText("step: 98.7\n")
-            _l.assert_called_once_with(
-                "PrintText.progressBar cannot work with float numbers"
-            )
-        self.assertEqual(
-            pt.textEdit.toPlainText(),
-            "process events: 123 45.6\n"
-            + "process events: 45.6\n"
-            + "step: 98.7 6 54\n"
-            + "step: 98.7\n",
-        )
-        self.assertEqual(pt.progressBar.value(), 6)
-        self.assertEqual(pt.progressBar.maximum(), 123)
-
     def test_progressBarMin(self):
         """test progressBarMin"""
         pt = PrintText()
@@ -829,6 +778,14 @@ class TestPrintText(GUITestCase):
         self.assertIsInstance(pt.progressBar, QProgressBar)
         pt.progressBarMax(1234)
         self.assertEqual(pt.progressBar.maximum(), 1234)
+
+    def test_progressBarValue(self):
+        """test progressBarValue"""
+        pt = PrintText()
+        self.assertIsInstance(pt.progressBar, QProgressBar)
+        pt.progressBarMax(4321)
+        pt.progressBarValue(1234.0)
+        self.assertEqual(pt.progressBar.value(), 1234.0)
 
     def test_stopExec(self):
         """test stopExec"""

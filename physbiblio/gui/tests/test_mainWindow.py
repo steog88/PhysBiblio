@@ -1277,12 +1277,15 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".done", autospec=True
         ) as _done:
             self.mainW._runInThread(func, "title")
-            _pt.assert_called_once_with(
-                noStopButton=False, progrStr=None, title="title", totStr=None
-            )
+            _pt.assert_called_once_with(noStopButton=False, title="title")
             self.assertEqual(_pbm.call_count, 0)
             ws.newText.connect.assert_called_once_with(app.appendText)
-            func.assert_called_once_with(ws, parent=self.mainW)
+            func.assert_called_once_with(
+                ws,
+                parent=self.mainW,
+                progressBarMax=app.progressBarMax,
+                progressBarValue=app.progressBarValue,
+            )
             ws.finished.connect.assert_called_once_with(ws.deleteLater)
             thr.finished.connect.assert_has_calls(
                 [call(app.enableClose), call(thr.deleteLater)]
@@ -1332,19 +1335,21 @@ class TestMainWindow(GUITestCase):
                 func,
                 "title",
                 "abc",
-                totStr="tot",
-                progrStr="progr",
                 addMessage="add",
                 stopFlag=True,
                 outMessage="out",
                 minProgress=12,
             )
-            _pt.assert_called_once_with(
-                noStopButton=False, progrStr="progr", title="title", totStr="tot"
-            )
+            _pt.assert_called_once_with(noStopButton=False, title="title")
             _pbm.assert_called_once_with(app, 12)
             ws.newText.connect.assert_called_once_with(app.appendText)
-            func.assert_called_once_with(ws, "abc", parent=self.mainW)
+            func.assert_called_once_with(
+                ws,
+                "abc",
+                parent=self.mainW,
+                progressBarMax=app.progressBarMax,
+                progressBarValue=app.progressBarValue,
+            )
             ws.finished.connect.assert_called_once_with(ws.deleteLater)
             thr.finished.connect.assert_has_calls(
                 [call(app.enableClose), call(thr.deleteLater)]
@@ -1451,8 +1456,6 @@ class TestMainWindow(GUITestCase):
                 "Importing...",
                 "a.bib",
                 True,
-                totStr="Entries to be processed: ",
-                progrStr="%), processing entry ",
                 minProgress=0,
                 stopFlag=True,
                 outMessage="All entries into 'a.bib' have been imported",
@@ -2557,10 +2560,8 @@ class TestMainWindow(GUITestCase):
                 "o",
                 ["a", ""],
                 minProgress=0.0,
-                progrStr="%): entry ",
                 regex="r",
                 stopFlag=True,
-                totStr="Replace will process ",
             )
             _ffl.assert_called_once_with(pBDB.bibs)
             _lim.assert_called_once_with(
@@ -2649,10 +2650,8 @@ class TestMainWindow(GUITestCase):
                 pbConfig.params["defaultUpdateFrom"],
                 force=False,
                 minProgress=0.0,
-                progrStr="%) - looking for update: ",
                 reloadAll=False,
                 stopFlag=True,
-                totStr="SearchOAIUpdates will process ",
                 useEntries=None,
             )
             _rmc.assert_called_once_with(self.mainW)
@@ -2672,10 +2671,8 @@ class TestMainWindow(GUITestCase):
                 12,
                 force=True,
                 minProgress=0.0,
-                progrStr="%) - looking for update: ",
                 reloadAll=True,
                 stopFlag=True,
-                totStr="SearchOAIUpdates will process ",
                 useEntries="abc",
             )
             _rmc.assert_called_once_with(self.mainW)
@@ -2771,8 +2768,6 @@ class TestMainWindow(GUITestCase):
                 Thread_authorStats,
                 "Author Stats",
                 ["a1", "a2"],
-                totStr="AuthorStats will process ",
-                progrStr="%) - looking for paper: ",
                 minProgress=0.0,
                 stopFlag=True,
             )
@@ -2804,8 +2799,6 @@ class TestMainWindow(GUITestCase):
                 Thread_authorStats,
                 "Author Stats",
                 "author",
-                totStr="AuthorStats will process ",
-                progrStr="%) - looking for paper: ",
                 minProgress=0.0,
                 stopFlag=True,
             )
@@ -2863,9 +2856,7 @@ class TestMainWindow(GUITestCase):
                 "Paper Stats",
                 "1234",
                 minProgress=0.0,
-                progrStr="%) - looking for paper: ",
-                stopFlag=False,
-                totStr="PaperStats will process ",
+                stopFlag=True,
             )
             _im.assert_called_once_with(
                 "No results obtained. Maybe there was an error."
@@ -2895,9 +2886,7 @@ class TestMainWindow(GUITestCase):
                 "Paper Stats",
                 "1234",
                 minProgress=0.0,
-                progrStr="%) - looking for paper: ",
-                stopFlag=False,
-                totStr="PaperStats will process ",
+                stopFlag=True,
             )
             _ps.assert_called_once_with(pBStats, paper=True)
             _psp.assert_called_once_with(
@@ -2970,8 +2959,6 @@ class TestMainWindow(GUITestCase):
                 Thread_loadAndInsert,
                 "Import from INSPIRE-HEP",
                 ["ab", "cd"],
-                totStr="LoadAndInsert will process ",
-                progrStr="%) - looking for string: ",
                 minProgress=0.0,
                 stopFlag=True,
                 addMessage="Searching:\n['ab', 'cd']",
@@ -2997,8 +2984,6 @@ class TestMainWindow(GUITestCase):
                 Thread_loadAndInsert,
                 "Import from INSPIRE-HEP",
                 "abcd",
-                totStr="LoadAndInsert will process ",
-                progrStr="%) - looking for string: ",
                 minProgress=0.0,
                 stopFlag=True,
                 addMessage="Searching:\nabcd",
@@ -3920,9 +3905,7 @@ class TestMainWindow(GUITestCase):
                 "Clean Bibtexs",
                 0,
                 minProgress=0.0,
-                progrStr="%) - cleaning: ",
                 stopFlag=True,
-                totStr="CleanBibtexs will process ",
                 useEntries=None,
             )
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
@@ -3936,9 +3919,7 @@ class TestMainWindow(GUITestCase):
                 "Clean Bibtexs",
                 12,
                 minProgress=0.0,
-                progrStr="%) - cleaning: ",
                 stopFlag=True,
-                totStr="CleanBibtexs will process ",
                 useEntries=["a"],
             )
 
@@ -3960,8 +3941,6 @@ class TestMainWindow(GUITestCase):
                 "Check Bibtexs",
                 0,
                 useEntries=None,
-                totStr="findCorruptedBibtexs will process ",
-                progrStr="%) - processing: ",
                 minProgress=0.0,
                 stopFlag=True,
             )
@@ -3977,8 +3956,6 @@ class TestMainWindow(GUITestCase):
                 "Check Bibtexs",
                 12,
                 useEntries=["abc"],
-                totStr="findCorruptedBibtexs will process ",
-                progrStr="%) - processing: ",
                 minProgress=0.0,
                 stopFlag=True,
             )
@@ -4061,9 +4038,7 @@ class TestMainWindow(GUITestCase):
                 ["a"],
                 ["title"],
                 minProgress=0.0,
-                progrStr="%) - processing: arxiv:",
                 stopFlag=True,
-                totStr="Thread_fieldsArxiv will process ",
             )
         with patch(
             self.modName + ".FieldsFromArxiv",
@@ -4094,9 +4069,7 @@ class TestMainWindow(GUITestCase):
                 ["a", "b"],
                 ["title"],
                 minProgress=0.0,
-                progrStr="%) - processing: arxiv:",
                 stopFlag=True,
-                totStr="Thread_fieldsArxiv will process ",
             )
 
     def test_browseDailyArxiv(self):

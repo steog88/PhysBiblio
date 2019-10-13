@@ -67,6 +67,8 @@ class Thread_updateAllBibtexs(PBThread):
         useEntries=None,
         force=False,
         reloadAll=False,
+        progressBarMax=None,
+        progressBarValue=None,
     ):
         """Initialize the thread and store the required settings
 
@@ -82,6 +84,10 @@ class Thread_updateAllBibtexs(PBThread):
             reloadAll: reload the entry completely, without trying
                 to simply update the existing one
                 (see `physbiblio.database.Entries.searchOAIUpdates`)
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_updateAllBibtexs, self).__init__(parent)
         self.startFrom = startFrom
@@ -89,6 +95,8 @@ class Thread_updateAllBibtexs(PBThread):
         self.useEntries = useEntries
         self.force = force
         self.reloadAll = reloadAll
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver,
@@ -100,6 +108,8 @@ class Thread_updateAllBibtexs(PBThread):
             entries=self.useEntries,
             force=self.force,
             reloadAll=self.reloadAll,
+            pbMax=self.pbMax,
+            pbVal=self.pbVal,
         )
         time.sleep(0.1)
         self.receiver.running = False
@@ -112,7 +122,18 @@ class Thread_updateAllBibtexs(PBThread):
 class Thread_replace(PBThread):
     """Thread that uses `pBDB.bibs.replace`"""
 
-    def __init__(self, receiver, fiOld, fiNew, old, new, parent, regex=False):
+    def __init__(
+        self,
+        receiver,
+        fiOld,
+        fiNew,
+        old,
+        new,
+        parent,
+        regex=False,
+        progressBarMax=None,
+        progressBarValue=None,
+    ):
         """Initialize the thread and store the required settings
 
         Parameters:
@@ -126,6 +147,10 @@ class Thread_replace(PBThread):
             parent: the parent widget
             regex (default False): if True, use regular expressions.
                 if False, just do normal string replacement
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_replace, self).__init__(parent)
         self.fiOld = fiOld
@@ -134,6 +159,8 @@ class Thread_replace(PBThread):
         self.new = new
         self.receiver = receiver
         self.regex = regex
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver,
@@ -149,6 +176,8 @@ class Thread_replace(PBThread):
             entries=pBDB.bibs.fetchCursor(),
             regex=self.regex,
             lenEntries=len(pBDB.bibs.fetchFromLast().lastFetched),
+            pbMax=self.pbMax,
+            pbVal=self.pbVal,
         )
         self.parent().replaceResults = (success, changed, failed)
         time.sleep(0.1)
@@ -263,7 +292,9 @@ class Thread_authorStats(PBThread):
     for downloading the author citation statistics
     """
 
-    def __init__(self, receiver, name, parent):
+    def __init__(
+        self, receiver, name, parent, progressBarMax=None, progressBarValue=None
+    ):
         """Initialize the object
 
         Parameters:
@@ -271,6 +302,10 @@ class Thread_authorStats(PBThread):
                 (a `WriteStream` instance)
             name: the author identifier in INSPIRE
             parent: the parent widget. Cannot be None
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_authorStats, self).__init__(parent)
         try:
@@ -279,11 +314,15 @@ class Thread_authorStats(PBThread):
             raise Exception("Cannot run Thread_authorStats: invalid parent")
         self.authorName = name
         self.receiver = receiver
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver, run `pBStats.authorStats` and finish"""
         self.receiver.start()
-        self.parent().lastAuthorStats = pBStats.authorStats(self.authorName)
+        self.parent().lastAuthorStats = pBStats.authorStats(
+            self.authorName, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
 
@@ -297,13 +336,19 @@ class Thread_paperStats(PBThread):
     for downloading the paper citation statistics
     """
 
-    def __init__(self, receiver, inspireId, parent):
+    def __init__(
+        self, receiver, inspireId, parent, progressBarMax=None, progressBarValue=None
+    ):
         """Initialize the object
 
         Parameters:
             receiver: the receiver for the text output (a `WriteStream` instance)
             inspireId: the paper identifier in INSPIRE
             parent: the parent widget. Cannot be None
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_paperStats, self).__init__(parent)
         try:
@@ -312,25 +357,39 @@ class Thread_paperStats(PBThread):
             raise Exception("Cannot run Thread_paperStats: invalid parent")
         self.inspireId = inspireId
         self.receiver = receiver
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver, run `pBStats.paperStats` and finish"""
         self.receiver.start()
-        self.parent().lastPaperStats = pBStats.paperStats(self.inspireId)
+        self.parent().lastPaperStats = pBStats.paperStats(
+            self.inspireId, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
+
+    def setStopFlag(self):
+        """Set the stop flag for the threaded process"""
+        pBStats.runningPaperStats = False
 
 
 class Thread_loadAndInsert(PBThread):
     """Thread the execution of `pBDB.bibs.loadAndInsert`"""
 
-    def __init__(self, receiver, content, parent):
+    def __init__(
+        self, receiver, content, parent, progressBarMax=None, progressBarValue=None
+    ):
         """Instantiate object.
 
         Parameters:
             receiver: the receiver for the text output (a `WriteStream` object)
             content: the string to be searched in INSPIRE
             parent: the parent widget. Cannot be None
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_loadAndInsert, self).__init__(parent)
         try:
@@ -339,11 +398,15 @@ class Thread_loadAndInsert(PBThread):
             raise Exception("Cannot run Thread_loadAndInsert: invalid parent")
         self.content = content
         self.receiver = receiver
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver, run `pBDB.bibs.loadAndInsert` and finish"""
         self.receiver.start()
-        loadAndInsert = pBDB.bibs.loadAndInsert(self.content)
+        loadAndInsert = pBDB.bibs.loadAndInsert(
+            self.content, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         if loadAndInsert is False:
             self.parent().loadedAndInserted = []
         else:
@@ -361,7 +424,15 @@ class Thread_cleanAllBibtexs(PBThread):
     of `physbiblio.database.Entries.cleanBibtexs`
     """
 
-    def __init__(self, receiver, startFrom, parent=None, useEntries=None):
+    def __init__(
+        self,
+        receiver,
+        startFrom,
+        parent=None,
+        useEntries=None,
+        progressBarMax=None,
+        progressBarValue=None,
+    ):
         """Instantiate the object
 
         Parameters:
@@ -372,16 +443,24 @@ class Thread_cleanAllBibtexs(PBThread):
             parent: the parent widget
             useEntries (optional): the list of entries to be processed
                 (see `physbiblio.database.Entries.cleanBibtexs`)
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_cleanAllBibtexs, self).__init__(parent)
         self.startFrom = startFrom
         self.receiver = receiver
         self.useEntries = useEntries
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver, run `pBDB.bibs.cleanBibtexs` and finish"""
         self.receiver.start()
-        pBDB.bibs.cleanBibtexs(self.startFrom, entries=self.useEntries)
+        pBDB.bibs.cleanBibtexs(
+            self.startFrom, entries=self.useEntries, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
 
@@ -395,7 +474,15 @@ class Thread_findBadBibtexs(PBThread):
     `physbiblio.database.Entries.findCorruptedBibtexs`
     """
 
-    def __init__(self, receiver, startFrom, parent, useEntries=None):
+    def __init__(
+        self,
+        receiver,
+        startFrom,
+        parent,
+        useEntries=None,
+        progressBarMax=None,
+        progressBarValue=None,
+    ):
         """Instantiate the object
 
         Parameters:
@@ -406,6 +493,10 @@ class Thread_findBadBibtexs(PBThread):
             parent: the parent widget. Cannot be None
             useEntries (optional): the list of entries to be processed
                 (see `physbiblio.database.Entries.findCorruptedBibtexs`)
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_findBadBibtexs, self).__init__(parent)
         try:
@@ -415,6 +506,8 @@ class Thread_findBadBibtexs(PBThread):
         self.startFrom = startFrom
         self.receiver = receiver
         self.useEntries = useEntries
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver,
@@ -422,7 +515,7 @@ class Thread_findBadBibtexs(PBThread):
         """
         self.receiver.start()
         self.parent().badBibtexs = pBDB.bibs.findCorruptedBibtexs(
-            self.startFrom, entries=self.useEntries
+            self.startFrom, entries=self.useEntries, pbMax=self.pbMax, pbVal=self.pbVal
         )
         time.sleep(0.1)
         self.receiver.running = False
@@ -437,7 +530,15 @@ class Thread_importFromBib(PBThread):
     `physbiblio.database.Entries.importFromBib`
     """
 
-    def __init__(self, receiver, bibFile, complete, parent=None):
+    def __init__(
+        self,
+        receiver,
+        bibFile,
+        complete,
+        parent=None,
+        progressBarMax=None,
+        progressBarValue=None,
+    ):
         """Instantiate the object
 
         Parameters:
@@ -447,18 +548,26 @@ class Thread_importFromBib(PBThread):
             complete: complete info online, using INSPIRE
                 (see `physbiblio.database.Entries.importFromBib`)
             parent: the parent widget
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_importFromBib, self).__init__(parent)
         self.bibFile = bibFile
         self.complete = complete
         self.receiver = receiver
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver,
         run `pBDB.bibs.importFromBib` and finish
         """
         self.receiver.start()
-        pBDB.bibs.importFromBib(self.bibFile, self.complete)
+        pBDB.bibs.importFromBib(
+            self.bibFile, self.complete, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
 
@@ -575,7 +684,15 @@ class Thread_fieldsArxiv(PBThread):
     `physbiblio.database.Entries.getFieldsFromArxiv`
     """
 
-    def __init__(self, receiver, entries, fields, parent=None):
+    def __init__(
+        self,
+        receiver,
+        entries,
+        fields,
+        parent=None,
+        progressBarMax=None,
+        progressBarValue=None,
+    ):
         """Instantiate the object
 
         Parameters:
@@ -585,18 +702,26 @@ class Thread_fieldsArxiv(PBThread):
                 for which the new fields must be added
             fields: the list of fields to be updated from arXiv
             parent: the parent widget
+            progressBarMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            progressBarValue (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
         """
         super(Thread_fieldsArxiv, self).__init__(parent)
         self.entries = entries
         self.fields = fields
         self.receiver = receiver
+        self.pbMax = progressBarMax
+        self.pbVal = progressBarValue
 
     def run(self):
         """Start the receiver,
         run `pBDB.bibs.getFieldsFromArxiv` and finish
         """
         self.receiver.start()
-        pBDB.bibs.getFieldsFromArxiv(self.entries, self.fields)
+        pBDB.bibs.getFieldsFromArxiv(
+            self.entries, self.fields, pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
 

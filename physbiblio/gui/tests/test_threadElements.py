@@ -109,7 +109,9 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_updateAllBibtexs(ws, 123, p, [[]], True, "r")
+        thr = Thread_updateAllBibtexs(
+            ws, 123, p, [[]], True, "r", progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
@@ -117,13 +119,17 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
         self.assertEqual(thr.useEntries, [[]])
         self.assertEqual(thr.force, True)
         self.assertEqual(thr.reloadAll, "r")
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_updateAllBibtexs(ws, 123, p, [[]], True, True)
+        thr = Thread_updateAllBibtexs(
+            ws, 123, p, [[]], True, True, progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.searchOAIUpdates", autospec=True
@@ -132,7 +138,13 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
         ) as _st:
             thr.run()
             _sou.assert_called_once_with(
-                pBDB.bibs, 123, entries=[[]], force=True, reloadAll=True
+                pBDB.bibs,
+                123,
+                entries=[[]],
+                force=True,
+                reloadAll=True,
+                pbMax="m",
+                pbVal="v",
             )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
@@ -158,7 +170,17 @@ class Test_Thread_replace(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_replace(ws, "a", ["b"], "1", ["2"], parent=p, regex=True)
+        thr = Thread_replace(
+            ws,
+            "a",
+            ["b"],
+            "1",
+            ["2"],
+            parent=p,
+            regex=True,
+            progressBarMax="m",
+            progressBarValue="v",
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.fiOld, "a")
@@ -167,13 +189,25 @@ class Test_Thread_replace(GUITestCase):
         self.assertEqual(thr.new, ["2"])
         self.assertEqual(thr.receiver, ws)
         self.assertEqual(thr.regex, True)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_replace(ws, "a", ["b"], "1", ["2"], p, True)
+        thr = Thread_replace(
+            ws,
+            "a",
+            ["b"],
+            "1",
+            ["2"],
+            p,
+            True,
+            progressBarMax="m",
+            progressBarValue="v",
+        )
         self.assertTrue(ws.running)
         pBDB.bibs.lastFetched = ["e", "f"]
         with patch(
@@ -201,6 +235,8 @@ class Test_Thread_replace(GUITestCase):
                 entries="curs",
                 lenEntries=2,
                 regex=True,
+                pbMax="m",
+                pbVal="v",
             )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
@@ -363,12 +399,16 @@ class Test_Thread_authorStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_authorStats(ws, "Stefano.Gariazzo.1", p)
+        thr = Thread_authorStats(
+            ws, "Stefano.Gariazzo.1", p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.authorName, "Stefano.Gariazzo.1")
         self.assertEqual(thr.receiver, ws)
         self.assertFalse(p.lastAuthorStats)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
         self.assertRaises(
             Exception, lambda: Thread_authorStats(ws, "Stefano.Gariazzo.1", None)
         )
@@ -378,7 +418,9 @@ class Test_Thread_authorStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_authorStats(ws, "Stefano.Gariazzo.1", p)
+        thr = Thread_authorStats(
+            ws, "Stefano.Gariazzo.1", p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.authorStats",
@@ -388,7 +430,9 @@ class Test_Thread_authorStats(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBStats, "Stefano.Gariazzo.1")
+            _fun.assert_called_once_with(
+                pBStats, "Stefano.Gariazzo.1", pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -415,21 +459,26 @@ class Test_Thread_paperStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_paperStats(ws, 1385583, p)
+        thr = Thread_paperStats(
+            ws, 1385583, p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.inspireId, 1385583)
         self.assertEqual(thr.receiver, ws)
         self.assertFalse(p.lastPaperStats)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
         self.assertRaises(Exception, lambda: Thread_paperStats(ws, 1385583, None))
-        self.assertRaises(NotImplementedError, thr.setStopFlag)
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_paperStats(ws, 1385583, p)
+        thr = Thread_paperStats(
+            ws, 1385583, p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.paperStats",
@@ -439,11 +488,22 @@ class Test_Thread_paperStats(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBStats, 1385583)
+            _fun.assert_called_once_with(pBStats, 1385583, pbMax="m", pbVal="v")
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
             self.assertEqual(p.lastPaperStats, {"a": "b"})
+
+    def test_setStopFlag(self):
+        """test setStopFlag"""
+        p = QWidget()
+        q = Queue()
+        ws = WriteStream(q)
+        thr = Thread_paperStats(ws, [1385583], p)
+        pBStats.runningAuthorStats = True
+        self.assertTrue(pBStats.runningPaperStats)
+        thr.setStopFlag()
+        self.assertFalse(pBStats.runningPaperStats)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -455,11 +515,15 @@ class Test_Thread_loadAndInsert(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_loadAndInsert(ws, "Gariazzo:2015rra", p)
+        thr = Thread_loadAndInsert(
+            ws, "Gariazzo:2015rra", p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.content, "Gariazzo:2015rra")
         self.assertEqual(thr.receiver, ws)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
         self.assertRaises(Exception, lambda: Thread_loadAndInsert(ws, 1385583, None))
 
     def test_run(self):
@@ -467,7 +531,9 @@ class Test_Thread_loadAndInsert(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_loadAndInsert(ws, "Gariazzo:2015rra", p)
+        thr = Thread_loadAndInsert(
+            ws, "Gariazzo:2015rra", p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         pBDB.bibs.lastInserted = ["def"]
         with patch(
@@ -478,7 +544,9 @@ class Test_Thread_loadAndInsert(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra")
+            _fun.assert_called_once_with(
+                pBDB.bibs, "Gariazzo:2015rra", pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -507,19 +575,25 @@ class Test_Thread_cleanAllBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_cleanAllBibtexs(ws, 123, p, [[]])
+        thr = Thread_cleanAllBibtexs(
+            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
         self.assertEqual(thr.receiver, ws)
         self.assertEqual(thr.useEntries, [[]])
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_cleanAllBibtexs(ws, 123, p, [[]])
+        thr = Thread_cleanAllBibtexs(
+            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.cleanBibtexs", autospec=True
@@ -527,7 +601,9 @@ class Test_Thread_cleanAllBibtexs(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBDB.bibs, 123, entries=[[]])
+            _fun.assert_called_once_with(
+                pBDB.bibs, 123, entries=[[]], pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -553,12 +629,16 @@ class Test_Thread_findBadBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_findBadBibtexs(ws, 123, p, [[]])
+        thr = Thread_findBadBibtexs(
+            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
         self.assertEqual(thr.receiver, ws)
         self.assertEqual(thr.useEntries, [[]])
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
         self.assertRaises(Exception, lambda: Thread_loadAndInsert(ws, 1385583, None))
 
     def test_run(self):
@@ -566,7 +646,9 @@ class Test_Thread_findBadBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_findBadBibtexs(ws, 123, p, [[]])
+        thr = Thread_findBadBibtexs(
+            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.findCorruptedBibtexs", autospec=True
@@ -574,7 +656,9 @@ class Test_Thread_findBadBibtexs(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBDB.bibs, 123, entries=[[]])
+            _fun.assert_called_once_with(
+                pBDB.bibs, 123, entries=[[]], pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -600,19 +684,25 @@ class Test_Thread_importFromBib(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_importFromBib(ws, "tmp.bib", False, p)
+        thr = Thread_importFromBib(
+            ws, "tmp.bib", False, p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.receiver, ws)
         self.assertEqual(thr.bibFile, "tmp.bib")
         self.assertFalse(thr.complete)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_importFromBib(ws, "tmp.bib", False, p)
+        thr = Thread_importFromBib(
+            ws, "tmp.bib", False, p, progressBarMax="m", progressBarValue="v"
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.importFromBib", autospec=True
@@ -620,7 +710,9 @@ class Test_Thread_importFromBib(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBDB.bibs, "tmp.bib", False)
+            _fun.assert_called_once_with(
+                pBDB.bibs, "tmp.bib", False, pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -800,19 +892,35 @@ class Test_Thread_fieldsArxiv(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_fieldsArxiv(ws, ["a", "b"], ["abstract", "arxiv"], p)
+        thr = Thread_fieldsArxiv(
+            ws,
+            ["a", "b"],
+            ["abstract", "arxiv"],
+            p,
+            progressBarMax="m",
+            progressBarValue="v",
+        )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.receiver, ws)
         self.assertEqual(thr.entries, ["a", "b"])
         self.assertEqual(thr.fields, ["abstract", "arxiv"])
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
 
     def test_run(self):
         """test run"""
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_fieldsArxiv(ws, ["a", "b"], ["abstract", "arxiv"], p)
+        thr = Thread_fieldsArxiv(
+            ws,
+            ["a", "b"],
+            ["abstract", "arxiv"],
+            p,
+            progressBarMax="m",
+            progressBarValue="v",
+        )
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.getFieldsFromArxiv", autospec=True
@@ -820,7 +928,9 @@ class Test_Thread_fieldsArxiv(GUITestCase):
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
             thr.run()
-            _fun.assert_called_once_with(pBDB.bibs, ["a", "b"], ["abstract", "arxiv"])
+            _fun.assert_called_once_with(
+                pBDB.bibs, ["a", "b"], ["abstract", "arxiv"], pbMax="m", pbVal="v"
+            )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)

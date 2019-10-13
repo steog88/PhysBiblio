@@ -11,11 +11,11 @@ import matplotlib
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call
+    from mock import patch, call, MagicMock
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch, call
+    from unittest.mock import patch, call, MagicMock
     from io import StringIO
 
 try:
@@ -83,6 +83,13 @@ class TestInspireStatsMethods(unittest.TestCase):
         testGood = pBStats.paperStats(["1358853", "1385583"])
         self.assertTrue(testGood["id"], ["1358853", "1385583"])
         self.assertTrue(len(testGood["aI"]) > 120)
+        pbm = MagicMock()
+        pbv = MagicMock()
+        testGood = pBStats.paperStats(["1358853", "1385583"], pbMax=pbm, pbVal=pbv)
+        self.assertTrue(testGood["id"], ["1358853", "1385583"])
+        self.assertTrue(len(testGood["aI"]) > 120)
+        pbm.assert_called_once_with(2)
+        pbv.assert_has_calls([call(1), call(2)])
 
     def test_authorStats(self):
         """Test paperStats function downloading real and fake data"""
@@ -143,6 +150,15 @@ class TestInspireStatsMethods(unittest.TestCase):
             self.assertEqual(len(testGood["figs"]), 6)
             for f in testGood["figs"]:
                 self.assertIsInstance(f, matplotlib.figure.Figure)
+
+            testGood = pBStats.authorStats(["S.Gariazzo.1", "E.M.Zavanin.1"])
+            pbm = MagicMock()
+            pbv = MagicMock()
+            testGood = pBStats.authorStats(
+                ["S.Gariazzo.1", "E.M.Zavanin.1"], pbMax=pbm, pbVal=pbv
+            )
+            pbm.assert_called_once_with(2)
+            pbv.assert_has_calls([call(1), call(2)])
 
 
 if __name__ == "__main__":
