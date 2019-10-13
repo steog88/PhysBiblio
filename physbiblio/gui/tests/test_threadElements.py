@@ -109,9 +109,7 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_updateAllBibtexs(
-            ws, 123, p, [[]], True, "r", progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_updateAllBibtexs(ws, 123, p, [[]], True, "r", pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
@@ -128,7 +126,7 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
         q = Queue()
         ws = WriteStream(q)
         thr = Thread_updateAllBibtexs(
-            ws, 123, p, [[]], True, True, progressBarMax="m", progressBarValue="v"
+            ws, 123, p, [[]], True, True, pbMax="m", pbVal="v"
         )
         self.assertTrue(ws.running)
         with patch(
@@ -171,15 +169,7 @@ class Test_Thread_replace(GUITestCase):
         q = Queue()
         ws = WriteStream(q)
         thr = Thread_replace(
-            ws,
-            "a",
-            ["b"],
-            "1",
-            ["2"],
-            parent=p,
-            regex=True,
-            progressBarMax="m",
-            progressBarValue="v",
+            ws, "a", ["b"], "1", ["2"], parent=p, regex=True, pbMax="m", pbVal="v"
         )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
@@ -197,17 +187,7 @@ class Test_Thread_replace(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_replace(
-            ws,
-            "a",
-            ["b"],
-            "1",
-            ["2"],
-            p,
-            True,
-            progressBarMax="m",
-            progressBarValue="v",
-        )
+        thr = Thread_replace(ws, "a", ["b"], "1", ["2"], p, True, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         pBDB.bibs.lastFetched = ["e", "f"]
         with patch(
@@ -399,9 +379,7 @@ class Test_Thread_authorStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_authorStats(
-            ws, "Stefano.Gariazzo.1", p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_authorStats(ws, "Stefano.Gariazzo.1", p, pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.authorName, "Stefano.Gariazzo.1")
@@ -418,9 +396,7 @@ class Test_Thread_authorStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_authorStats(
-            ws, "Stefano.Gariazzo.1", p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_authorStats(ws, "Stefano.Gariazzo.1", p, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.authorStats",
@@ -459,9 +435,7 @@ class Test_Thread_paperStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_paperStats(
-            ws, 1385583, p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_paperStats(ws, 1385583, p, pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.inspireId, 1385583)
@@ -476,9 +450,7 @@ class Test_Thread_paperStats(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_paperStats(
-            ws, 1385583, p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_paperStats(ws, 1385583, p, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.paperStats",
@@ -515,9 +487,7 @@ class Test_Thread_loadAndInsert(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_loadAndInsert(
-            ws, "Gariazzo:2015rra", p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_loadAndInsert(ws, "Gariazzo:2015rra", p, pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.content, "Gariazzo:2015rra")
@@ -531,9 +501,7 @@ class Test_Thread_loadAndInsert(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_loadAndInsert(
-            ws, "Gariazzo:2015rra", p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_loadAndInsert(ws, "Gariazzo:2015rra", p, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         pBDB.bibs.lastInserted = ["def"]
         with patch(
@@ -575,9 +543,7 @@ class Test_Thread_cleanAllBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_cleanAllBibtexs(
-            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_cleanAllBibtexs(ws, 123, p, [[]], pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
@@ -591,9 +557,7 @@ class Test_Thread_cleanAllBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_cleanAllBibtexs(
-            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_cleanAllBibtexs(ws, 123, p, [[]], pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.cleanBibtexs", autospec=True
@@ -629,9 +593,7 @@ class Test_Thread_findBadBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_findBadBibtexs(
-            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_findBadBibtexs(ws, 123, p, [[]], pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.startFrom, 123)
@@ -646,9 +608,7 @@ class Test_Thread_findBadBibtexs(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_findBadBibtexs(
-            ws, 123, p, [[]], progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_findBadBibtexs(ws, 123, p, [[]], pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.findCorruptedBibtexs", autospec=True
@@ -684,9 +644,7 @@ class Test_Thread_importFromBib(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_importFromBib(
-            ws, "tmp.bib", False, p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_importFromBib(ws, "tmp.bib", False, p, pbMax="m", pbVal="v")
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
         self.assertEqual(thr.receiver, ws)
@@ -700,9 +658,7 @@ class Test_Thread_importFromBib(GUITestCase):
         p = QWidget()
         q = Queue()
         ws = WriteStream(q)
-        thr = Thread_importFromBib(
-            ws, "tmp.bib", False, p, progressBarMax="m", progressBarValue="v"
-        )
+        thr = Thread_importFromBib(ws, "tmp.bib", False, p, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.database.Entries.importFromBib", autospec=True
@@ -893,12 +849,7 @@ class Test_Thread_fieldsArxiv(GUITestCase):
         q = Queue()
         ws = WriteStream(q)
         thr = Thread_fieldsArxiv(
-            ws,
-            ["a", "b"],
-            ["abstract", "arxiv"],
-            p,
-            progressBarMax="m",
-            progressBarValue="v",
+            ws, ["a", "b"], ["abstract", "arxiv"], p, pbMax="m", pbVal="v"
         )
         self.assertIsInstance(thr, PBThread)
         self.assertEqual(thr.parent(), p)
@@ -914,12 +865,7 @@ class Test_Thread_fieldsArxiv(GUITestCase):
         q = Queue()
         ws = WriteStream(q)
         thr = Thread_fieldsArxiv(
-            ws,
-            ["a", "b"],
-            ["abstract", "arxiv"],
-            p,
-            progressBarMax="m",
-            progressBarValue="v",
+            ws, ["a", "b"], ["abstract", "arxiv"], p, pbMax="m", pbVal="v"
         )
         self.assertTrue(ws.running)
         with patch(

@@ -986,8 +986,8 @@ class MainWindow(QMainWindow):
         queue = Queue()
         ws = WriteStream(queue)
         ws.newText.connect(app.appendText)
-        kwargs["progressBarMax"] = app.progressBarMax
-        kwargs["progressBarValue"] = app.progressBarValue
+        kwargs["pbMax"] = app.pbMax.emit
+        kwargs["pbVal"] = app.pbVal.emit
         thr = Thread_func(ws, *args, parent=self, **kwargs)
 
         ws.finished.connect(ws.deleteLater)

@@ -659,12 +659,27 @@ class TestPrintText(GUITestCase):
             _u.assert_called_once_with(pt)
         self.assertIsInstance(pt, PBDialog)
         self.assertIsInstance(pt.stopped, Signal)
+        self.assertIsInstance(pt.pbMax, Signal)
+        self.assertIsInstance(pt.pbVal, Signal)
         self.assertEqual(pt._wantToClose, False)
         self.assertEqual(pt.parent(), None)
         self.assertEqual(pt.title, "Redirect print")
         self.assertEqual(pt.setProgressBar, True)
         self.assertEqual(pt.noStopButton, False)
         self.assertEqual(pt.message, None)
+        with patch(
+            "physbiblio.gui.dialogWindows.PrintText.progressBarMax", autospec=True
+        ) as _m, patch(
+            "physbiblio.gui.dialogWindows.PrintText.progressBarValue", autospec=True
+        ) as _v, patch(
+            "physbiblio.gui.dialogWindows.PrintText.initUI", autospec=True
+        ) as _u:
+            pt = PrintText()
+            _u.assert_called_once_with(pt)
+            pt.pbMax.emit(1)
+            _m.assert_called_once_with(pt, 1)
+            pt.pbVal.emit(2)
+            _v.assert_called_once_with(pt, 2)
 
         p = QWidget()
         pt = PrintText(p, "title", False, True, "mymessage")

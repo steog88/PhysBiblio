@@ -1281,10 +1281,7 @@ class TestMainWindow(GUITestCase):
             self.assertEqual(_pbm.call_count, 0)
             ws.newText.connect.assert_called_once_with(app.appendText)
             func.assert_called_once_with(
-                ws,
-                parent=self.mainW,
-                progressBarMax=app.progressBarMax,
-                progressBarValue=app.progressBarValue,
+                ws, parent=self.mainW, pbMax=app.pbMax.emit, pbVal=app.pbVal.emit
             )
             ws.finished.connect.assert_called_once_with(ws.deleteLater)
             thr.finished.connect.assert_has_calls(
@@ -1344,11 +1341,7 @@ class TestMainWindow(GUITestCase):
             _pbm.assert_called_once_with(app, 12)
             ws.newText.connect.assert_called_once_with(app.appendText)
             func.assert_called_once_with(
-                ws,
-                "abc",
-                parent=self.mainW,
-                progressBarMax=app.progressBarMax,
-                progressBarValue=app.progressBarValue,
+                ws, "abc", parent=self.mainW, pbMax=app.pbMax.emit, pbVal=app.pbVal.emit
             )
             ws.finished.connect.assert_called_once_with(ws.deleteLater)
             thr.finished.connect.assert_has_calls(

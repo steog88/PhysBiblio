@@ -416,6 +416,8 @@ class PrintText(PBDialog):
     """Create a window for printing text of command line output"""
 
     stopped = Signal()
+    pbMax = Signal(float)
+    pbVal = Signal(float)
 
     def __init__(
         self, parent=None, title="", progressBar=True, noStopButton=False, message=None
@@ -446,6 +448,8 @@ class PrintText(PBDialog):
         self.setProgressBar = progressBar
         self.noStopButton = noStopButton
         self.message = message
+        self.pbMax.connect(self.progressBarMax)
+        self.pbVal.connect(self.progressBarValue)
         self.initUI()
 
     def keyPressEvent(self, e):
