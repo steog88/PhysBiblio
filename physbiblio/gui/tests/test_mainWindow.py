@@ -1364,20 +1364,60 @@ class TestMainWindow(GUITestCase):
                 self.mainW, Thread_cleanSpare, "Clean spare entries"
             )
 
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_cleanSpare(
+            ws, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_cleanSpare",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws:
+            self.mainW.cleanSpare()
+            _thr.assert_called_once_with(
+                ws, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+            )
+
     def test_cleanSparePDF(self):
         """test cleanSparePDF"""
         with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
-            self.modName + ".askYesNo", return_value=True
-        ):
+            self.modName + ".askYesNo", return_value=True, autospec=True
+        ) as _a:
             self.mainW.cleanSparePDF()
             _rit.assert_called_once_with(
                 self.mainW, Thread_cleanSparePDF, "Clean spare PDF folders"
             )
+            _a.assert_called_once()
         with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
             self.modName + ".askYesNo", return_value=False, autospec=True
-        ):
+        ) as _a:
             self.mainW.cleanSparePDF()
             self.assertEqual(_rit.call_count, 0)
+            _a.assert_called_once()
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_cleanSparePDF(
+            ws, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_cleanSparePDF",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".askYesNo", return_value=True
+        ) as _a:
+            self.mainW.cleanSparePDF()
+            _thr.assert_called_once_with(
+                ws, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+            )
 
     def test_createStatusBar(self):
         """test createStatusBar"""
@@ -1464,6 +1504,42 @@ class TestMainWindow(GUITestCase):
             self.mainW.importFromBib()
             self.assertEqual(_rit.call_count, 0)
             _sbm.assert_called_once_with(self.mainW, "Empty filename given!")
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_importFromBib(
+            ws,
+            "abc",
+            False,
+            parent=self.mainW,
+            pbMax=pt.pbMax.emit,
+            pbVal=pt.pbVal.emit,
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_importFromBib",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".askFileName", side_effect=["a.bib", ""], autospec=True
+        ) as _afn, patch(
+            self.modName + ".askYesNo", return_value=True, autospec=True
+        ) as _ayn, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".reloadMainContent", autospec=True
+        ) as _rmc:
+            self.mainW.importFromBib()
+            _thr.assert_called_once_with(
+                ws,
+                "a.bib",
+                True,
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+            )
 
     def test_export(self):
         """test export"""
@@ -1613,6 +1689,40 @@ class TestMainWindow(GUITestCase):
                 outMessage="All entries saved into '/nonexistent/file.bib'",
                 removeUnused="r",
                 stopFlag=True,
+                updateExisting="u",
+            )
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_exportTexBib(
+            ws,
+            ["a.tex", "b.tex"],
+            "c.bib",
+            parent=self.mainW,
+            pbMax=pt.pbMax.emit,
+            pbVal=pt.pbVal.emit,
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".ExportForTexDialog",
+            return_value=eft,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _eft, patch(self.modName + ".Thread_exportTexBib") as _thr, patch(
+            self.modName + ".PrintText", return_value=pt
+        ) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm:
+            self.mainW.exportFile()
+            _thr.assert_called_once_with(
+                ws,
+                ["/nonexistent/file1.tex", "/nonexistent/file2.tex"],
+                "/nonexistent/file.bib",
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+                removeUnused="r",
                 updateExisting="u",
             )
 
@@ -2566,6 +2676,66 @@ class TestMainWindow(GUITestCase):
                 + "<b>Failed</b>: ['g', 'h', 'i']"
             )
 
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_replace(
+            ws,
+            "bibtex",
+            "bibkey",
+            "o",
+            "a",
+            parent=self.mainW,
+            pbMax=pt.pbMax.emit,
+            pbVal=pt.pbVal.emit,
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_replace",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+        ) as _soc, patch(
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+        ) as _roc, patch(
+            "physbiblio.database.Entries.fetchFromLast",
+            return_value=pBDB,
+            autospec=True,
+        ) as _ffl, patch(
+            self.clsName + ".reloadMainContent", autospec=True
+        ) as _rmc, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im, patch(
+            self.modName + ".LongInfoMessage", autospec=USE_AUTOSPEC_CLASS
+        ) as _lim, patch(
+            self.modName + ".askYesNo", return_value=True, autospec=True
+        ) as _ay:
+            self.mainW.runReplace(
+                {
+                    "fieOld": "bibtex",
+                    "fieNew": "bibkey",
+                    "old": "o",
+                    "new": "a",
+                    "regex": "r",
+                    "double": False,
+                    "fieNew1": "",
+                    "new1": "",
+                }
+            )
+            _thr.assert_called_once_with(
+                ws,
+                "bibtex",
+                ["bibkey"],
+                "o",
+                ["a"],
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+                regex="r",
+            )
+
     def test_updateAllBibtexsAsk(self):
         """test updateAllBibtexsAsk"""
         with patch(
@@ -2670,6 +2840,37 @@ class TestMainWindow(GUITestCase):
             )
             _rmc.assert_called_once_with(self.mainW)
 
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_updateAllBibtexs(
+            ws, 0, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_updateAllBibtexs",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".refreshMainContent", autospec=True
+        ) as _rmc:
+            self.mainW.updateAllBibtexs(
+                startFrom=12, useEntries="abc", force=True, reloadAll=True
+            )
+            _thr.assert_called_once_with(
+                ws,
+                12,
+                force=True,
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+                reloadAll=True,
+                useEntries="abc",
+            )
+
     def test_updateInspireInfo(self):
         """test updateInspireInfo"""
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
@@ -2706,6 +2907,38 @@ class TestMainWindow(GUITestCase):
                 stopFlag=False,
             )
             _rmc.assert_called_once_with(self.mainW)
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_updateInspireInfo(
+            ws,
+            "Update Info",
+            "key",
+            parent=self.mainW,
+            pbMax=pt.pbMax.emit,
+            pbVal=pt.pbVal.emit,
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_updateInspireInfo",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".refreshMainContent", autospec=True
+        ) as _rmc:
+            self.mainW.updateInspireInfo("key", inspireID="1234")
+            _thr.assert_called_once_with(
+                ws,
+                "key",
+                "1234",
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+            )
 
     def test_authorStats(self):
         """test authorStats"""
@@ -2834,6 +3067,51 @@ class TestMainWindow(GUITestCase):
             aSP.show.assert_called_once_with()
             _d.assert_called_once_with(self.mainW)
 
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_authorStats(
+            ws, "a", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        self.mainW.lastAuthorStats = {"paLi": [["a"]]}
+        with patch(
+            self.modName + ".Thread_authorStats",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".askGenericText",
+            return_value=("author", True),
+            autospec=True,
+        ) as _at, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".done", autospec=True
+        ) as _d, patch(
+            self.modName + ".AuthorStatsPlots",
+            return_value=aSP,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _asp, patch(
+            "physbiblio.inspireStats.InspireStatsLoader.plotStats",
+            return_value="figs",
+            autospec=True,
+        ) as _ps, patch(
+            "logging.Logger.exception"
+        ) as _exc, patch(
+            "logging.Logger.warning"
+        ) as _w:
+            self.assertTrue(self.mainW.authorStats())
+            _thr.assert_called_once_with(
+                ws,
+                "author",
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+            )
+
     def test_getInspireStats(self):
         """test getInspireStats"""
         self.mainW.lastPaperStats = None
@@ -2888,6 +3166,37 @@ class TestMainWindow(GUITestCase):
             psp.show.assert_called_once_with()
             _d.assert_called_once_with(self.mainW)
             self.assertEqual(self.mainW.lastPaperStats["fig"], "something")
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_paperStats(
+            ws, "1234567", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        self.mainW.lastPaperStats = {"id": "1234"}
+        psp = MagicMock()
+        psp.show = MagicMock()
+        with patch(self.clsName + ".done", autospec=True) as _d, patch(
+            self.modName + ".PaperStatsPlots",
+            return_value=psp,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _psp, patch(self.modName + ".infoMessage", autospec=True) as _im, patch(
+            "physbiblio.inspireStats.InspireStatsLoader.plotStats",
+            return_value="something",
+            autospec=True,
+        ) as _ps, patch(
+            self.modName + ".Thread_paperStats",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(
+            self.modName + ".PrintText", return_value=pt
+        ) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws:
+            self.assertEqual(self.mainW.getInspireStats("1234"), None)
+            _thr.assert_called_once_with(
+                ws, "1234", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+            )
 
     def test_inspireLoadAndInsert(self):
         """test inspireLoadAndInsert"""
@@ -2980,6 +3289,31 @@ class TestMainWindow(GUITestCase):
                 minProgress=0.0,
                 stopFlag=True,
                 addMessage="Searching:\nabcd",
+            )
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_loadAndInsert(
+            ws, "abc", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        self.mainW.loadedAndInserted = []
+        with patch(
+            self.modName + ".Thread_loadAndInsert",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".askGenericText", return_value=("abcd", True), autospec=True
+        ) as _gt, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im:
+            self.assertFalse(self.mainW.inspireLoadAndInsert())
+            _thr.assert_called_once_with(
+                ws, "abcd", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
             )
 
         mainW = MainWindow(testing=True)
@@ -3916,6 +4250,33 @@ class TestMainWindow(GUITestCase):
                 useEntries=["a"],
             )
 
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_cleanAllBibtexs(
+            ws, 0, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_cleanAllBibtexs",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".refreshMainContent", autospec=True
+        ) as _rmc:
+            self.mainW.cleanAllBibtexs(startFrom=12, useEntries=["a"])
+            _thr.assert_called_once_with(
+                ws,
+                12,
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+                useEntries=["a"],
+            )
+
     def test_findBadBibtexs(self):
         """test findBadBibtexs"""
         mainW = MainWindow(testing=True)
@@ -3971,6 +4332,33 @@ class TestMainWindow(GUITestCase):
         ) as _ay, patch(self.modName + ".editBibtex", autospec=True) as _eb:
             mainW.findBadBibtexs()
             _eb.assert_has_calls([call(mainW, "a"), call(mainW, "b")])
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_findBadBibtexs(
+            ws, 0, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_findBadBibtexs",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im:
+            self.mainW.findBadBibtexs(startFrom=12, useEntries=["abc"])
+            _thr.assert_called_once_with(
+                ws,
+                12,
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
+                useEntries=["abc"],
+            )
 
     def test_infoFromArxiv(self):
         """test infoFromArxiv"""
@@ -4033,6 +4421,7 @@ class TestMainWindow(GUITestCase):
                 minProgress=0.0,
                 stopFlag=True,
             )
+
         with patch(
             self.modName + ".FieldsFromArxiv",
             return_value=ffa,
@@ -4063,6 +4452,46 @@ class TestMainWindow(GUITestCase):
                 ["title"],
                 minProgress=0.0,
                 stopFlag=True,
+            )
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_fieldsArxiv(
+            ws,
+            ["abc"],
+            ["abstract"],
+            parent=self.mainW,
+            pbMax=pt.pbMax.emit,
+            pbVal=pt.pbVal.emit,
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_fieldsArxiv",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".FieldsFromArxiv",
+            return_value=ffa,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _ffa, patch(
+            "physbiblio.database.Entries.fetchAll", autospec=True
+        ) as _fa, patch(
+            "physbiblio.database.Entries.fetchCursor",
+            return_value=[{"bibkey": "a"}],
+            autospec=True,
+        ) as _fc, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm:
+            self.mainW.infoFromArxiv(useEntries=[{"bibkey": "a"}, {"bibkey": "b"}])
+            _thr.assert_called_once_with(
+                ws,
+                ["a", "b"],
+                ["title"],
+                parent=self.mainW,
+                pbMax=pt.pbMax.emit,
+                pbVal=pt.pbVal.emit,
             )
 
     def test_browseDailyArxiv(self):
@@ -4449,6 +4878,112 @@ class TestMainWindow(GUITestCase):
         }
         das.result = True
         das.askCats.setCheckState(Qt.Checked)
+        found = {
+            "12.346": {
+                "exist": False,
+                "bibpars": {
+                    "eprint": "12.346",
+                    "primaryclass": "astro-ph.CO",
+                    "author": "me2",
+                    "abstract": "some other text",
+                    "title": "title2",
+                    "type": "[replacement][cross-listed]",
+                    "cross": True,
+                    "replacement": True,
+                },
+            },
+            "12.345": {
+                "exist": False,
+                "bibpars": {
+                    "eprint": "12.345",
+                    "primaryclass": "astro-ph",
+                    "author": "me1",
+                    "abstract": "some text",
+                    "title": "title1",
+                    "type": "[replacement]",
+                    "cross": False,
+                    "replacement": True,
+                },
+            },
+            "12.348": {
+                "exist": False,
+                "bibpars": {
+                    "eprint": "12.348",
+                    "primaryclass": "hep-ph",
+                    "author": "me4",
+                    "abstract": "some more text",
+                    "title": "title4",
+                    "type": "",
+                    "cross": False,
+                    "replacement": False,
+                },
+            },
+            "12.349": {
+                "exist": False,
+                "bibpars": {
+                    "eprint": "12.349",
+                    "primaryclass": "hep-ex",
+                    "author": "me5",
+                    "abstract": "some more text",
+                    "title": "title5",
+                    "type": "",
+                    "cross": False,
+                    "replacement": False,
+                },
+            },
+        }
+        adreturn = [
+            {
+                "author": "me1",
+                "title": "title1",
+                "type": "",
+                "eprint": "12.345",
+                "replacement": True,
+                "cross": False,
+                "abstract": "some text",
+                "primaryclass": "astro-ph",
+            },
+            {
+                "author": "me2",
+                "title": "title2",
+                "type": "",
+                "eprint": "12.346",
+                "replacement": True,
+                "cross": True,
+                "abstract": "some other text",
+                "primaryclass": "astro-ph.CO",
+            },
+            {
+                "author": "me3",
+                "title": "title3",
+                "type": "",
+                "eprint": "12.347",
+                "replacement": False,
+                "cross": True,
+                "abstract": "some more text",
+                "primaryclass": "hep-ph",
+            },
+            {
+                "author": "me4",
+                "title": "title4",
+                "type": "",
+                "eprint": "12.348",
+                "replacement": False,
+                "cross": False,
+                "abstract": "some more text",
+                "primaryclass": "hep-ph",
+            },
+            {
+                "author": "me5",
+                "title": "title5",
+                "type": "",
+                "eprint": "12.349",
+                "replacement": False,
+                "cross": False,
+                "abstract": "some more text",
+                "primaryclass": "hep-ex",
+            },
+        ]
         with patch(
             self.modName + ".DailyArxivDialog",
             return_value=dad,
@@ -4471,58 +5006,7 @@ class TestMainWindow(GUITestCase):
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
             "physbiblio.webimport.arxiv.WebSearch.arxivDaily",
-            return_value=[
-                {
-                    "author": "me1",
-                    "title": "title1",
-                    "type": "",
-                    "eprint": "12.345",
-                    "replacement": True,
-                    "cross": False,
-                    "abstract": "some text",
-                    "primaryclass": "astro-ph",
-                },
-                {
-                    "author": "me2",
-                    "title": "title2",
-                    "type": "",
-                    "eprint": "12.346",
-                    "replacement": True,
-                    "cross": True,
-                    "abstract": "some other text",
-                    "primaryclass": "astro-ph.CO",
-                },
-                {
-                    "author": "me3",
-                    "title": "title3",
-                    "type": "",
-                    "eprint": "12.347",
-                    "replacement": False,
-                    "cross": True,
-                    "abstract": "some more text",
-                    "primaryclass": "hep-ph",
-                },
-                {
-                    "author": "me4",
-                    "title": "title4",
-                    "type": "",
-                    "eprint": "12.348",
-                    "replacement": False,
-                    "cross": False,
-                    "abstract": "some more text",
-                    "primaryclass": "hep-ph",
-                },
-                {
-                    "author": "me5",
-                    "title": "title5",
-                    "type": "",
-                    "eprint": "12.349",
-                    "replacement": False,
-                    "cross": False,
-                    "abstract": "some more text",
-                    "primaryclass": "hep-ex",
-                },
-            ],
+            return_value=adreturn,
             autospec=True,
         ) as _ad, patch(
             self.clsName + "._runInThread", autospec=True
@@ -4608,66 +5092,55 @@ class TestMainWindow(GUITestCase):
                 self.mainW,
                 Thread_importDailyArxiv,
                 "Import from arXiv",
-                {
-                    "12.346": {
-                        "exist": False,
-                        "bibpars": {
-                            "eprint": "12.346",
-                            "primaryclass": "astro-ph.CO",
-                            "author": "me2",
-                            "abstract": "some other text",
-                            "title": "title2",
-                            "type": "[replacement][cross-listed]",
-                            "cross": True,
-                            "replacement": True,
-                        },
-                    },
-                    "12.345": {
-                        "exist": False,
-                        "bibpars": {
-                            "eprint": "12.345",
-                            "primaryclass": "astro-ph",
-                            "author": "me1",
-                            "abstract": "some text",
-                            "title": "title1",
-                            "type": "[replacement]",
-                            "cross": False,
-                            "replacement": True,
-                        },
-                    },
-                    "12.348": {
-                        "exist": False,
-                        "bibpars": {
-                            "eprint": "12.348",
-                            "primaryclass": "hep-ph",
-                            "author": "me4",
-                            "abstract": "some more text",
-                            "title": "title4",
-                            "type": "",
-                            "cross": False,
-                            "replacement": False,
-                        },
-                    },
-                    "12.349": {
-                        "exist": False,
-                        "bibpars": {
-                            "eprint": "12.349",
-                            "primaryclass": "hep-ex",
-                            "author": "me5",
-                            "abstract": "some more text",
-                            "title": "title5",
-                            "type": "",
-                            "cross": False,
-                            "replacement": False,
-                        },
-                    },
-                },
+                found,
                 stopFlag=True,
             )
             _ace.assert_called_once_with(self.mainW, ["12.345", "12.348", "12.350"])
             _sbm.assert_called_once_with(
                 self.mainW,
                 "Entries successfully imported: ['12.345', '12.348', '12.350']",
+            )
+
+        pt = MagicMock()
+        ws = MagicMock()
+        thr = Thread_importDailyArxiv(
+            ws, "abc", parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
+        )
+        thr.run = MagicMock()
+        with patch(
+            self.modName + ".Thread_importDailyArxiv",
+            autospec=USE_AUTOSPEC_CLASS,
+            return_value=thr,
+        ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
+            self.modName + ".WriteStream", return_value=ws
+        ) as _ws, patch(
+            self.modName + ".DailyArxivDialog",
+            return_value=dad,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _dad, patch(
+            self.modName + ".DailyArxivSelect",
+            return_value=das,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _das, patch(
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+        ) as _sc, patch(
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+        ) as _rc, patch(
+            self.clsName + ".askCatsForEntries", autospec=True
+        ) as _ace, patch(
+            self.clsName + ".reloadMainContent", autospec=True
+        ) as _rmc, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im, patch(
+            "physbiblio.webimport.arxiv.WebSearch.arxivDaily",
+            return_value=adreturn,
+            autospec=True,
+        ) as _ad:
+            self.assertFalse(self.mainW.browseDailyArxiv())
+            _thr.assert_called_once_with(
+                ws, found, parent=self.mainW, pbMax=pt.pbMax.emit, pbVal=pt.pbVal.emit
             )
 
     def test_sendMessage(self):

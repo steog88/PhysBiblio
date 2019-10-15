@@ -195,7 +195,9 @@ class Thread_updateInspireInfo(PBThread):
     use `physbiblio.database.Entries.updateInspireID` to retrieve it.
     """
 
-    def __init__(self, receiver, bibkey, inspireID=None, parent=None):
+    def __init__(
+        self, receiver, bibkey, inspireID=None, parent=None, pbMax=None, pbVal=None
+    ):
         """Initialize the thread and store the required settings
 
         Parameters:
@@ -205,6 +207,8 @@ class Thread_updateInspireInfo(PBThread):
             inspireID: the identifier of the entry
                 in the INSPIRE database
             parent: the parent widget
+            pbMax: ignored
+            pbVal: ignored
         """
         super(Thread_updateInspireInfo, self).__init__(parent)
         self.bibkey = bibkey
@@ -565,6 +569,8 @@ class Thread_exportTexBib(PBThread):
         parent=None,
         updateExisting=False,
         removeUnused=False,
+        pbMax=None,
+        pbVal=None,
     ):
         """Instantiate the object
 
@@ -578,6 +584,8 @@ class Thread_exportTexBib(PBThread):
                 already in the bibtex file
             removeUnused (default False): remove bibtex from bib file
                 if they are not used
+            pbMax: ignored
+            pbVal: ignored
         """
         super(Thread_exportTexBib, self).__init__(parent)
         self.texFiles = texFiles
@@ -610,13 +618,15 @@ class Thread_cleanSpare(PBThread):
     `physbiblio.database.Utilities.cleanSpareEntries`
     """
 
-    def __init__(self, receiver, parent):
+    def __init__(self, receiver, parent, pbMax=None, pbVal=None):
         """Instantiate the object
 
         Parameters:
             receiver: the receiver for the text output
                 (a `WriteStream` object)
             parent: the parent widget
+            pbMax: ignored
+            pbVal: ignored
         """
         PBThread.__init__(self, parent)
         self.receiver = receiver
@@ -635,13 +645,15 @@ class Thread_cleanSparePDF(PBThread):
     `physbiblio.pdf.LocalPDF.removeSparePDFFolders`
     """
 
-    def __init__(self, receiver, parent=None):
+    def __init__(self, receiver, parent=None, pbMax=None, pbVal=None):
         """Instantiate the object
 
         Parameters:
             receiver: the receiver for the text output
                 (a `WriteStream` object)
             parent: the parent widget
+            pbMax: ignored
+            pbVal: ignored
         """
         super(Thread_cleanSparePDF, self).__init__(parent)
         self.receiver = receiver
@@ -701,7 +713,7 @@ class Thread_fieldsArxiv(PBThread):
 class Thread_importDailyArxiv(PBThread):
     """Thread that uses `pBDB.bibs.replace`"""
 
-    def __init__(self, receiver, found, parent):
+    def __init__(self, receiver, found, parent, pbMax=None, pbVal=None):
         """Initialize the thread and store the required settings
 
         Parameters:
@@ -709,6 +721,8 @@ class Thread_importDailyArxiv(PBThread):
                 (a `WriteStream` object)
             found: the list of records to be imported
             parent: the parent widget
+            pbMax: ignored
+            pbVal: ignored
         """
         super(Thread_importDailyArxiv, self).__init__(parent)
         self.found = found
