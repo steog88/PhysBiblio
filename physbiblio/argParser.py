@@ -80,6 +80,7 @@ def call_tex(args):
         autosave=args.save,
         updateExisting=args.updateExisting,
         removeUnused=args.removeUnused,
+        reorder=args.reorder,
     )
 
 
@@ -294,6 +295,12 @@ def setParser():
         action="store_true",
         help="remove from the .bib file those elements "
         + "that are not more used in the tex",
+    )
+    parser_tex.add_argument(
+        "--reorder",
+        dest="reorder",
+        action="store_true",
+        help="reorder the elements in the .bib file and add new ones",
     )
     parser_tex.add_argument(
         "-s",

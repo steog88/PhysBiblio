@@ -32,9 +32,21 @@ except Exception:
 class TestExportMethods(unittest.TestCase):
     """Tests for methods in physbiblio.export"""
 
+    def setUp(self):
+        """Generate filenames"""
+        self.testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        self.testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex" % today_ymd)
+
+    def tearDown(self):
+        """remove files"""
+        if os.path.exists(self.testBibName):
+            os.remove(self.testBibName)
+        if os.path.exists(self.testTexName):
+            os.remove(self.testTexName)
+
     def test_backup(self):
         """Test backup file creation and related"""
-        emptyFileName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        emptyFileName = self.testBibName
         if os.path.exists(emptyFileName):
             os.remove(emptyFileName)
         if os.path.exists(emptyFileName + pBExport.backupExtension):
@@ -59,7 +71,7 @@ class TestExportMethods(unittest.TestCase):
         """Test of offline export functions exportSelected,
         updateExportedBib
         """
-        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        testBibName = self.testBibName
         sampleList = [
             {"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'},
             {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'},
@@ -101,11 +113,10 @@ class TestExportMethods(unittest.TestCase):
                 sampleTxt.replace("me2", "me et al").replace(" ", "").replace("\n", ""),
             )
         pBExport.rmBackupCopy(testBibName)
-        os.remove(testBibName)
 
     def test_exportAll(self):
         """Test of exportAll"""
-        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        testBibName = self.testBibName
         sampleList = [
             {"bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}'},
             {"bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}'},
@@ -122,12 +133,11 @@ class TestExportMethods(unittest.TestCase):
             pBExport.exportAll(testBibName)
         with open(testBibName) as f:
             self.assertEqual(f.read(), sampleTxt)
-        os.remove(testBibName)
 
     def test_exportForTexFile(self):
         """test exportForTexFile function with a fake tex and database"""
-        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
-        testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex" % today_ymd)
+        testBibName = self.testBibName
+        testTexName = self.testTexName
         texString = (
             "\cite{empty,prova., empty2+}\citep{empty2+}"
             + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
@@ -310,7 +320,9 @@ class TestExportMethods(unittest.TestCase):
                 ]
             ],
             autospec=True,
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(
                 testTexName, testBibName, overwrite=True, autosave=False
             )
@@ -365,7 +377,9 @@ class TestExportMethods(unittest.TestCase):
                 ],
             ],
             autospec=True,
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(
                 testTexName, testBibName, autosave=False, updateExisting=True
             )
@@ -419,7 +433,9 @@ class TestExportMethods(unittest.TestCase):
                 ],
             ],
             autospec=True,
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(
                 testTexName, testBibName, autosave=False, removeUnused=True
             )
@@ -459,7 +475,9 @@ class TestExportMethods(unittest.TestCase):
                 ]
             ],
             autospec=True,
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(
                 testTexName, testBibName, autosave=False, overwrite=True
             )
@@ -498,7 +516,9 @@ class TestExportMethods(unittest.TestCase):
             )
         with patch(
             "physbiblio.database.Entries.getByBibtex", autospec=True
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(
                 testTexName,
                 testBibName,
@@ -520,12 +540,16 @@ class TestExportMethods(unittest.TestCase):
         self.assertEqual(newTextBib, "%file written by PhysBiblio\n")
 
         os.remove(testBibName)
-        with patch("logging.Logger.error") as _er:
+        with patch("logging.Logger.error") as _er, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
             _er.assert_any_call("Cannot read file %s.\nCreating one." % testBibName)
         self.assertEqual(len(output), 8)
         self.assertTrue(os.path.exists(testBibName))
-        with patch("logging.Logger.exception") as _ex:
+        with patch("logging.Logger.exception") as _ex, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             self.assertFalse(
                 pBExport.exportForTexFile(
                     testTexName, "/surely/not/existing/path.bib", autosave=False
@@ -551,7 +575,9 @@ class TestExportMethods(unittest.TestCase):
                 }
             ],
             autospec=True,
-        ) as _getbbibt:
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
             output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
         self.assertEqual(
             output[0],
@@ -571,8 +597,46 @@ class TestExportMethods(unittest.TestCase):
         self.assertEqual(output[6], 0)  # warnings
         self.assertEqual(output[7], 5)  # total
 
-        os.remove(testBibName)
-        os.remove(testTexName)
+        with open(testBibName, "w") as f:
+            f.write(
+                "%file written by PhysBiblio\n"
+                + '@Article{empty,\n    author = "me",\n         title = '
+                + '"{no}",\n}\n\n'
+                + '@Article{prova,\n  author = "Gariazzo, S. and others",'
+                + '\n         title = "{Light sterile neutrinos}",'
+                + "}\n\n"
+                + '@Article{empty2,\n   author = "boh",\n         title = '
+                + '"{yes}",\n}\n\n'
+                + "@Article{Gariazzo:2015rra,\n        author = "
+                + '"Gariazzo, S. and others",\n         title = '
+                + '"{Light sterile neutrinos}",\n}\n\n'
+            )
+        with open(testTexName, "w") as f:
+            f.write(
+                "\cite{prova,empty2}\citep{empty}"
+                + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+            )
+        with patch(
+            "physbiblio.database.Entries.getByBibtex", return_value=[], autospec=True
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
+        ) as _lai:
+            output = pBExport.exportForTexFile(
+                testTexName, testBibName, autosave=False, reorder=True
+            )
+        self.assertEqual(output[0], ["Gariazzo:2017rra"])  # requiredBibkeys
+        self.assertEqual(output[1], ["Gariazzo:2017rra"])  # missing
+        self.assertEqual(output[2], [])  # retrieved
+        self.assertEqual(output[3], ["Gariazzo:2017rra"])  # notFound
+        self.assertEqual(output[4], [])  # unexpected
+        self.assertEqual(output[5], {})  # newKeys
+        self.assertEqual(output[6], 1)  # warnings
+        self.assertEqual(output[7], 5)  # total
+        with open(testBibName) as f:
+            newTextBib = f.readlines()
+        useful = [l for l in newTextBib if "@" in l]
+        for i, e in enumerate(["empty", "empty2", "Gariazzo:2015rra", "prova"]):
+            self.assertIn(e, useful[i])
 
 
 if __name__ == "__main__":

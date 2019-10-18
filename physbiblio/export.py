@@ -143,6 +143,7 @@ class PBExport:
         autosave=True,
         updateExisting=False,
         removeUnused=False,
+        reorder=False,
         newOperation=True,
     ):
         """Reads a .tex file looking for the \cite{} commands,
@@ -168,6 +169,9 @@ class PBExport:
             removeUnused (boolean, default False):
                 if True, remove bibtex entries that are no more cited
                 in the tex files
+            reorder (boolean, default False):
+                if True, reorder (not update!) the bibtex entries
+                in the bib files before adding the new ones
             newOperation (boolean, default True):
                 reset the self.existingBibsList and read file .bib content.
                 Time consuming! better to just keep it updated
@@ -292,6 +296,7 @@ class PBExport:
         if overwrite:
             updateExisting = False
             removeUnused = False
+            reorder = False
             try:
                 with open(outFileName, "w") as o:
                     o.write("%file written by PhysBiblio\n")
@@ -329,14 +334,15 @@ class PBExport:
             existingBibsDict[e["ID"]] = e
 
         # if requested, do some cleaning
-        if updateExisting:
+        if updateExisting or reorder:
             # update entry from DB if existing
-            for k, v in existingBibsDict.items():
-                e = pBDB.bibs.getByBibtex(k, saveQuery=False)
-                if len(e) > 0 and e[0]["bibtexDict"] != v:
-                    existingBibsDict[k] = e[0]["bibtexDict"]
-                    if existingBibsDict[k]["ID"].lower() != k.lower():
-                        existingBibsDict[k]["ID"] = k
+            if updateExisting:
+                for k, v in existingBibsDict.items():
+                    e = pBDB.bibs.getByBibtex(k, saveQuery=False)
+                    if len(e) > 0 and e[0]["bibtexDict"] != v:
+                        existingBibsDict[k] = e[0]["bibtexDict"]
+                        if existingBibsDict[k]["ID"].lower() != k.lower():
+                            existingBibsDict[k]["ID"] = k
 
             # write new (updated) bib content
             # (so also repeated entries are removed)
@@ -371,6 +377,7 @@ class PBExport:
                         autosave=autosave,
                         updateExisting=False,
                         removeUnused=False,
+                        reorder=False,
                         newOperation=False,
                     )
                     requiredBibkeys += req
