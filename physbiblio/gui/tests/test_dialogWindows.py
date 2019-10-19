@@ -1351,6 +1351,7 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.texNames, [])
         self.assertFalse(eft.update)
         self.assertFalse(eft.remove)
+        self.assertFalse(eft.reorder)
         self.assertFalse(eft.result)
         self.assertIsInstance(eft.grid, QGridLayout)
         self.assertEqual(eft.layout(), eft.grid)
@@ -1359,14 +1360,17 @@ class TestExportForTexDialog(GUITestCase):
         """test readForm"""
         eft = ExportForTexDialog()
         eft.onAddTex()
+        eft.remove = "o"
         eft.bibButton.setText("file.bib")
         eft.updateCheck.setChecked(True)
         eft.removeCheck.setChecked(False)
+        eft.reorderCheck.setChecked(True)
         eft.texButtons[0].setText("%s" % ["a.tex", "b.tex", "", "Select file"])
         eft.texButtons[1].setText("c.tex")
         eft.readForm()
         self.assertEqual(eft.update, True)
         self.assertEqual(eft.remove, False)
+        self.assertEqual(eft.reorder, True)
         self.assertEqual(eft.bibName, "file.bib")
         self.assertEqual(
             eft.texFileNames, [["a.tex", "b.tex", "", "Select file"], "c.tex"]
@@ -1512,9 +1516,16 @@ class TestExportForTexDialog(GUITestCase):
         self.assertEqual(eft.grid.itemAtPosition(3, 2).widget(), eft.updateCheck)
         self.assertEqual(eft.updateCheck.text(), "Update existing bibtexs?")
         self.assertFalse(eft.updateCheck.isChecked())
+        self.assertIsInstance(eft.grid.itemAtPosition(4, 0).widget(), QCheckBox)
+        self.assertEqual(eft.grid.itemAtPosition(4, 0).widget(), eft.reorderCheck)
+        self.assertEqual(
+            eft.reorderCheck.text(),
+            "Reorder existing bibtexs? (includes removing unused ones)",
+        )
+        self.assertFalse(eft.reorderCheck.isChecked())
 
-        self.assertIsInstance(eft.grid.itemAtPosition(4, 1).widget(), QPushButton)
-        self.assertEqual(eft.grid.itemAtPosition(4, 1).widget(), eft.acceptButton)
+        self.assertIsInstance(eft.grid.itemAtPosition(5, 1).widget(), QPushButton)
+        self.assertEqual(eft.grid.itemAtPosition(5, 1).widget(), eft.acceptButton)
         self.assertEqual(eft.acceptButton.text(), "OK")
         with patch(
             "physbiblio.gui.dialogWindows.ExportForTexDialog.onOk", autospec=True
@@ -1522,8 +1533,8 @@ class TestExportForTexDialog(GUITestCase):
             QTest.mouseClick(eft.acceptButton, Qt.LeftButton)
             _f.assert_called_once_with(eft)
 
-        self.assertIsInstance(eft.grid.itemAtPosition(4, 2).widget(), QPushButton)
-        self.assertEqual(eft.grid.itemAtPosition(4, 2).widget(), eft.cancelButton)
+        self.assertIsInstance(eft.grid.itemAtPosition(5, 2).widget(), QPushButton)
+        self.assertEqual(eft.grid.itemAtPosition(5, 2).widget(), eft.cancelButton)
         self.assertEqual(eft.cancelButton.text(), "Cancel")
         with patch(
             "physbiblio.gui.dialogWindows.ExportForTexDialog.onCancel", autospec=True
@@ -1540,6 +1551,7 @@ class TestExportForTexDialog(GUITestCase):
         eft.texFileNames = ["a.tex", ""]
         eft.update = True
         eft.remove = True
+        eft.reorder = True
         with patch(
             "physbiblio.gui.dialogWindows.ExportForTexDialog.centerWindow",
             autospec=True,
@@ -1548,7 +1560,7 @@ class TestExportForTexDialog(GUITestCase):
         ) as _sg:
             eft.initUI()
             _cw.assert_called_once_with(eft)
-            _sg.assert_called_once_with(100, 100, 400, 150)
+            _sg.assert_called_once_with(100, 100, 400, 25 * (5 + 2))
         self.assertEqual(eft.bibButton.text(), "file.bib")
 
         self.assertIsInstance(eft.grid.itemAtPosition(1, 0).widget(), PBLabelRight)
@@ -1582,8 +1594,10 @@ class TestExportForTexDialog(GUITestCase):
         self.assertTrue(eft.removeCheck.isChecked())
         self.assertEqual(eft.grid.itemAtPosition(4, 2).widget(), eft.updateCheck)
         self.assertTrue(eft.updateCheck.isChecked())
-        self.assertEqual(eft.grid.itemAtPosition(5, 1).widget(), eft.acceptButton)
-        self.assertEqual(eft.grid.itemAtPosition(5, 2).widget(), eft.cancelButton)
+        self.assertEqual(eft.grid.itemAtPosition(5, 0).widget(), eft.reorderCheck)
+        self.assertTrue(eft.reorderCheck.isChecked())
+        self.assertEqual(eft.grid.itemAtPosition(6, 1).widget(), eft.acceptButton)
+        self.assertEqual(eft.grid.itemAtPosition(6, 2).widget(), eft.cancelButton)
 
 
 if __name__ == "__main__":

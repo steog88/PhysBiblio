@@ -1,5 +1,5 @@
 1.4.3 (2019-)
-    * option to reorder bibtexs without updating in "tex" shell command
+    * option to reorder bibtexs without updating, in "tex" shell command and in GUI
 
 1.4.2 (2019-10-15)
     * fix bug introduced in 1.4.1 (some Thread_* were not properly modified)

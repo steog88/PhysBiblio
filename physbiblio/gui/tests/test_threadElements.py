@@ -702,12 +702,14 @@ class Test_Thread_exportTexBib(GUITestCase):
         self.assertEqual(thr.texFiles, ["main.tex"])
         self.assertFalse(thr.updateExisting)
         self.assertFalse(thr.removeUnused)
+        self.assertFalse(thr.reorder)
         thr = Thread_exportTexBib(
             ws,
             ["main.tex"],
             "biblio.bib",
             removeUnused=True,
             updateExisting=True,
+            reorder=True,
             parent=p,
         )
         self.assertIsInstance(thr, PBThread)
@@ -717,6 +719,7 @@ class Test_Thread_exportTexBib(GUITestCase):
         self.assertEqual(thr.texFiles, ["main.tex"])
         self.assertTrue(thr.updateExisting)
         self.assertTrue(thr.removeUnused)
+        self.assertTrue(thr.reorder)
 
     def test_run(self):
         """test run"""
@@ -737,12 +740,22 @@ class Test_Thread_exportTexBib(GUITestCase):
                 "biblio.bib",
                 removeUnused=False,
                 updateExisting=False,
+                reorder=False,
             )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
         ws = WriteStream(q)
-        thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib", p, True, True)
+        thr = Thread_exportTexBib(
+            ws,
+            ["main.tex"],
+            "biblio.bib",
+            p,
+            updateExisting=True,
+            removeUnused=True,
+            reorder=True,
+        )
+        thr = Thread_exportTexBib(ws, ["main.tex"], "biblio.bib", p, True, True, True)
         self.assertTrue(ws.running)
         with patch(
             "physbiblio.export.PBExport.exportForTexFile", autospec=True
@@ -756,6 +769,7 @@ class Test_Thread_exportTexBib(GUITestCase):
                 "biblio.bib",
                 removeUnused=True,
                 updateExisting=True,
+                reorder=True,
             )
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)

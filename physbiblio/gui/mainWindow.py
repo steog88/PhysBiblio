@@ -1125,6 +1125,7 @@ class MainWindow(QMainWindow):
                         stopFlag=True,
                         updateExisting=eft.update,
                         removeUnused=eft.remove,
+                        reorder=eft.reorder,
                         outMessage="All entries saved into '%s'" % outFName,
                     )
                 else:

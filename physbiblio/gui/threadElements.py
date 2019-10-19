@@ -569,6 +569,7 @@ class Thread_exportTexBib(PBThread):
         parent=None,
         updateExisting=False,
         removeUnused=False,
+        reorder=False,
         pbMax=None,
         pbVal=None,
     ):
@@ -584,6 +585,8 @@ class Thread_exportTexBib(PBThread):
                 already in the bibtex file
             removeUnused (default False): remove bibtex from bib file
                 if they are not used
+            reorder (default False): reorder the entries in the bib file
+                and remove unused, but without updating them
             pbMax: ignored
             pbVal: ignored
         """
@@ -593,6 +596,7 @@ class Thread_exportTexBib(PBThread):
         self.receiver = receiver
         self.updateExisting = updateExisting
         self.removeUnused = removeUnused
+        self.reorder = reorder
 
     def run(self):
         """Start the receiver,
@@ -604,6 +608,7 @@ class Thread_exportTexBib(PBThread):
             self.outFName,
             updateExisting=self.updateExisting,
             removeUnused=self.removeUnused,
+            reorder=self.reorder,
         )
         time.sleep(0.1)
         self.receiver.running = False

@@ -1663,11 +1663,13 @@ class TestMainWindow(GUITestCase):
                 minProgress=0,
                 outMessage="All entries saved into '/nonexistent/file.bib'",
                 removeUnused=False,
+                reorder=False,
                 stopFlag=True,
                 updateExisting=False,
             )
         eft.texNames = ["/nonexistent/file1.tex", "/nonexistent/file2.tex"]
         eft.remove = "r"
+        eft.reorder = "o"
         eft.update = "u"
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -1688,6 +1690,7 @@ class TestMainWindow(GUITestCase):
                 minProgress=0,
                 outMessage="All entries saved into '/nonexistent/file.bib'",
                 removeUnused="r",
+                reorder="o",
                 stopFlag=True,
                 updateExisting="u",
             )
@@ -1723,6 +1726,7 @@ class TestMainWindow(GUITestCase):
                 pbMax=pt.pbMax.emit,
                 pbVal=pt.pbVal.emit,
                 removeUnused="r",
+                reorder="o",
                 updateExisting="u",
             )
 

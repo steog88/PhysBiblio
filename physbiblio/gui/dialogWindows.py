@@ -913,10 +913,12 @@ class ExportForTexDialog(PBDialog):
         self.texNames = []
         self.update = False
         self.remove = False
+        self.reorder = False
         self.result = False
         self.texButtons = None
         self.bibButton = None
         self.removeCheck = None
+        self.reorderCheck = None
         self.updateCheck = None
         self.addTexButton = None
         self.acceptButton = None
@@ -929,6 +931,7 @@ class ExportForTexDialog(PBDialog):
         """Read the form content"""
         self.update = self.updateCheck.isChecked()
         self.remove = self.removeCheck.isChecked()
+        self.reorder = self.reorderCheck.isChecked()
         self.bibName = self.bibButton.text()
         if self.bibName == "Select file":
             self.bibName = ""
@@ -1031,17 +1034,23 @@ class ExportForTexDialog(PBDialog):
         if self.update:
             self.updateCheck.setChecked(True)
         self.grid.addWidget(self.updateCheck, i, 2, 1, 2)
+        self.reorderCheck = QCheckBox(
+            "Reorder existing bibtexs? (includes removing unused ones)", self
+        )
+        if self.reorder:
+            self.reorderCheck.setChecked(True)
+        self.grid.addWidget(self.reorderCheck, i + 1, 0, 1, 4)
 
         # OK button
         self.acceptButton = QPushButton("OK", self)
         self.acceptButton.clicked.connect(self.onOk)
-        self.grid.addWidget(self.acceptButton, i + 1, 1)
+        self.grid.addWidget(self.acceptButton, i + 2, 1)
 
         # cancel button
         self.cancelButton = QPushButton("Cancel", self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
-        self.grid.addWidget(self.cancelButton, i + 1, 2)
+        self.grid.addWidget(self.cancelButton, i + 2, 2)
 
-        self.setGeometry(100, 100, 400, 25 * (i + 2))
+        self.setGeometry(100, 100, 400, 25 * (i + 3))
         self.centerWindow()
