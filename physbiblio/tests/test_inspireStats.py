@@ -151,14 +151,21 @@ class TestInspireStatsMethods(unittest.TestCase):
             for f in testGood["figs"]:
                 self.assertIsInstance(f, matplotlib.figure.Figure)
 
-            testGood = pBStats.authorStats(["S.Gariazzo.1", "E.M.Zavanin.1"])
+            testGood = pBStats.authorStats(["A.Gallego.Cadavid.1", "E.M.Zavanin.1"])
             pbm = MagicMock()
             pbv = MagicMock()
             testGood = pBStats.authorStats(
-                ["S.Gariazzo.1", "E.M.Zavanin.1"], pbMax=pbm, pbVal=pbv
+                ["A.Gallego.Cadavid.1", "E.M.Zavanin.1"], pbMax=pbm, pbVal=pbv
             )
             pbm.assert_called_once_with(2)
             pbv.assert_has_calls([call(1), call(2)])
+
+            testGood = pBStats.authorStats("E.M.Zavanin.1")
+            pbm = MagicMock()
+            pbv = MagicMock()
+            testGood = pBStats.authorStats("E.M.Zavanin.1", pbMax=pbm, pbVal=pbv)
+            pbm.assert_called_once_with(8)
+            pbv.assert_has_calls([call(i + 1) for i in range(8)])
 
 
 if __name__ == "__main__":

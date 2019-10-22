@@ -1,5 +1,6 @@
 1.4.3 (2019-)
     * option to reorder bibtexs without updating, in "tex" shell command and in GUI
+    * fix progressBar in authorStats when a single name is requested
 
 1.4.2 (2019-10-15)
     * fix bug introduced in 1.4.1 (some Thread_* were not properly modified)

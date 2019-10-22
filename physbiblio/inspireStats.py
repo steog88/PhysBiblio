@@ -175,7 +175,15 @@ class InspireStatsLoader:
             "AuthorStats will process %d " % tot + "total papers to retrieve citations"
         )
         self.runningAuthorStats = True
+        try:
+            pbMax(len(recid_authorPapers))
+        except TypeError:
+            pass
         for i, p in enumerate(recid_authorPapers):
+            try:
+                pbVal(i + 1)
+            except TypeError:
+                pass
             if not self.runningAuthorStats:
                 pBLogger.info(
                     "Received 'stop' signal. "
