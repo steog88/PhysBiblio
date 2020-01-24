@@ -83,6 +83,13 @@ class TestMainWindow(GUITestCase):
         self.assertIsInstance(mw.bibtexListWindows, list)
         self.assertIsInstance(mw.tabWidget, QTabWidget)
         self.assertTrue(mw.tabWidget.tabBarAutoHide())
+        self.assertTrue(mw.tabWidget.tabsClosable())
+        with patch(self.clsName + ".newTabAtEnd") as _f:
+            mw.tabWidget.tabBarClicked.emit(12)
+            _f.assert_called_once_with(12)
+        with patch(self.clsName + ".closeTab") as _f:
+            mw.tabWidget.tabCloseRequested.emit(12)
+            _f.assert_called_once_with(12)
         self.assertIsInstance(mw1, QMainWindow)
         self.assertEqual(mw1.lastPaperStats, None)
         self.assertGeometry(
@@ -870,6 +877,8 @@ class TestMainWindow(GUITestCase):
 
     def test_createMainLayout(self):
         """test createMainLayout"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.assertIsInstance(self.mainW.bibtexListWindows[0][0], BibtexListWindow)
         self.assertIsInstance(self.mainW.bibtexListWindows[0][1], six.string_types)
@@ -922,11 +931,11 @@ class TestMainWindow(GUITestCase):
             _b.assert_any_call(parent=self.mainW, bibs=None, askBibs=False, previous=[])
         self.assertEqual(self.mainW.bibtexListWindows[0], [qw1, "abcd"])
         self.assertEqual(self.mainW.bibtexListWindows[1], [qw2, "1234"])
-        self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
 
     def test_currentTabWidget(self):
         """test currentTabWidget"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
         self.mainW.fillTabs()
@@ -961,11 +970,52 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(
             self.mainW.tabWidget.tabIcon(3).pixmap(icon.size()).toImage(), icon
         )
+
+    def test_closeTab(self):
+        """test closeTab"""
         self.mainW.bibtexListWindows = []
         self.mainW.createMainLayout()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.closeTab(0)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.closeTab(1)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.closeTab(12)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 3)
+        self.mainW.closeTab(0)
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 3)
+        self.mainW.closeTab(3)
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 3)
+        self.mainW.closeTab(15)
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        self.assertEqual(
+            [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
+        )
+        self.mainW.closeTab(1)
+        self.assertEqual(self.mainW.tabWidget.count(), 3)
+        self.assertEqual(
+            [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "b"]
+        )
+        self.mainW.closeTab(1)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual([a[1] for a in self.mainW.bibtexListWindows], ["Main tab"])
 
     def test_newTabAtEnd(self):
         """test newTabAtEnd"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
             self.clsName + ".fillTabs", autospec=True
@@ -998,8 +1048,6 @@ class TestMainWindow(GUITestCase):
             )
             _ft.assert_called_once_with(self.mainW)
             _ci.assert_called_once_with(3)
-        self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
 
     def test_undoDB(self):
         """test undoDB"""

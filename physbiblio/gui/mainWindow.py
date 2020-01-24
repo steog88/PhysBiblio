@@ -27,6 +27,7 @@ from PySide2.QtWidgets import (
     QMessageBox,
     QSplitter,
     QStatusBar,
+    QTabBar,
     QTabWidget,
     QWidget,
 )
@@ -152,6 +153,9 @@ class MainWindow(QMainWindow):
         self.importArXivResults = []
         self.tabWidget = QTabWidget(self)
         self.tabWidget.setTabBarAutoHide(True)
+        self.tabWidget.setTabsClosable(True)
+        self.tabWidget.tabBarClicked.connect(self.newTabAtEnd)
+        self.tabWidget.tabCloseRequested.connect(self.closeTab)
         if testing:
             return
         self.createActions()
@@ -824,7 +828,25 @@ class MainWindow(QMainWindow):
             self.tabWidget.addTab(tab, lab)
         # add fake tab that will allow to add new ones
         self.tabWidget.addTab(QWidget(self), QIcon(":/images/file-add.png"), "")
-        self.tabWidget.tabBarClicked.connect(self.newTabAtEnd)
+        # hide close buttons for first and last tabs
+        for i in [0, self.tabWidget.count() - 1]:
+            self.tabWidget.tabBar().tabButton(i, QTabBar.RightSide).deleteLater()
+            self.tabWidget.tabBar().setTabButton(i, QTabBar.RightSide, None)
+
+    def closeTab(self, index):
+        """Close a tab, if it is not the main nor the "new tab" one:
+        delete the corresponding BibtexListWindow item
+        and recreate the tabs
+
+        Parameter:
+            index: the index of the tab to be deleted
+        """
+        if index != 0 and index != self.tabWidget.count() - 1:
+            try:
+                del self.bibtexListWindows[index]
+            except IndexError:
+                pass
+        self.fillTabs()
 
     def newTabAtEnd(self, index, bibs=None, askBibs=False, previous=[]):
         """Function that checks if the "open new tab" tab is triggered.
