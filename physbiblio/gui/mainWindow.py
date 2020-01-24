@@ -28,6 +28,7 @@ from PySide2.QtWidgets import (
     QSplitter,
     QStatusBar,
     QTabWidget,
+    QWidget,
 )
 
 try:
@@ -821,6 +822,24 @@ class MainWindow(QMainWindow):
         self.tabWidget.clear()
         for tab, lab in self.bibtexListWindows:
             self.tabWidget.addTab(tab, lab)
+        # add fake tab that will allow to add new ones
+        self.tabWidget.addTab(QWidget(self), QIcon(":/images/file-add.png"), "")
+        self.tabWidget.tabBarClicked.connect(self.newTabAtEnd)
+
+    def newTabAtEnd(self, index, bibs=None, askBibs=False, previous=[]):
+        """Function that checks if the "open new tab" tab is triggered.
+        If yes, create a new bibtexListWindow and recreate the tabWidget
+
+        Parameters:
+            index: the index of the clicked tab
+            bibs, askBibs, previous: directly passed to BibtexListWindow
+        """
+        if index == self.tabWidget.count() - 1:
+            self.addBibtexListWindow(
+                "New tab", bibs=bibs, askBibs=askBibs, previous=previous
+            )
+            self.fillTabs()
+            self.tabWidget.setCurrentIndex(index)
 
     def undoDB(self):
         """Reset database changes, window title and table content"""

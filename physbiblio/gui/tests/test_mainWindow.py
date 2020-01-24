@@ -873,7 +873,7 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.assertIsInstance(self.mainW.bibtexListWindows[0][0], BibtexListWindow)
         self.assertIsInstance(self.mainW.bibtexListWindows[0][1], six.string_types)
-        self.assertEqual(self.mainW.tabWidget.count(), 1)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertIsInstance(self.mainW.bottomLeft, BibtexInfo)
         self.assertEqual(self.mainW.bottomLeft.frameShape(), QFrame.StyledPanel)
@@ -901,9 +901,7 @@ class TestMainWindow(GUITestCase):
             QDesktopWidget().availableGeometry().width(),
             QDesktopWidget().availableGeometry().height(),
         )
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.fillTabs", autospec=True
-        ) as _f:
+        with patch(self.clsName + ".fillTabs", autospec=True) as _f:
             self.mainW.createMainLayout()
             _f.assert_called_once_with(self.mainW)
             self.assertEqual(len(self.mainW.bibtexListWindows), 1)
@@ -913,9 +911,7 @@ class TestMainWindow(GUITestCase):
         self.mainW.bibtexListWindows = []
         qw1 = QWidget()
         qw2 = QWidget()
-        with patch(
-            "physbiblio.gui.mainWindow.BibtexListWindow", side_effect=[qw1, qw2]
-        ) as _b:
+        with patch(self.modName + ".BibtexListWindow", side_effect=[qw1, qw2]) as _b:
             self.mainW.addBibtexListWindow(
                 "abcd", bibs="abc", askBibs="ab", previous="a"
             )
@@ -934,7 +930,7 @@ class TestMainWindow(GUITestCase):
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
         self.mainW.fillTabs()
-        self.assertEqual(self.mainW.tabWidget.count(), 3)
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.mainW.tabWidget.setCurrentIndex(0)
         self.assertIsInstance(self.mainW.currentTabWidget(), BibtexListWindow)
         self.assertEqual(
@@ -951,12 +947,57 @@ class TestMainWindow(GUITestCase):
         self.mainW.createMainLayout()
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
-        self.assertEqual(self.mainW.tabWidget.count(), 1)
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.mainW.fillTabs()
-        self.assertEqual(self.mainW.tabWidget.count(), 3)
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
         for i, (t, l) in enumerate(self.mainW.bibtexListWindows):
             self.assertEqual(self.mainW.tabWidget.widget(i), t)
             self.assertEqual(self.mainW.tabWidget.tabText(i), l)
+        self.assertIsInstance(self.mainW.tabWidget.widget(3), QWidget)
+        self.assertEqual(self.mainW.tabWidget.tabText(3), "")
+        icon = QImage(":/images/file-add.png").convertToFormat(
+            QImage.Format_ARGB32_Premultiplied
+        )
+        self.assertEqual(
+            self.mainW.tabWidget.tabIcon(3).pixmap(icon.size()).toImage(), icon
+        )
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
+
+    def test_newTabAtEnd(self):
+        """test newTabAtEnd"""
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
+            self.clsName + ".fillTabs", autospec=True
+        ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
+            self.mainW.newTabAtEnd(0)
+            self.assertEqual(_ab.call_count, 0)
+            self.assertEqual(_ft.call_count, 0)
+            self.assertEqual(_ci.call_count, 0)
+            self.mainW.newTabAtEnd(1)
+            _ab.assert_called_once_with(
+                self.mainW, "New tab", askBibs=False, bibs=None, previous=[]
+            )
+            _ft.assert_called_once_with(self.mainW)
+            _ci.assert_called_once_with(1)
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
+            self.clsName + ".fillTabs", autospec=True
+        ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
+            for i in range(3):
+                self.mainW.newTabAtEnd(i)
+                self.assertEqual(_ab.call_count, 0)
+                self.assertEqual(_ft.call_count, 0)
+                self.assertEqual(_ci.call_count, 0)
+            self.mainW.newTabAtEnd(3, askBibs="a", bibs="b", previous="c")
+            _ab.assert_called_once_with(
+                self.mainW, "New tab", askBibs="a", bibs="b", previous="c"
+            )
+            _ft.assert_called_once_with(self.mainW)
+            _ci.assert_called_once_with(3)
         self.mainW.bibtexListWindows = []
         self.mainW.createMainLayout()
 
