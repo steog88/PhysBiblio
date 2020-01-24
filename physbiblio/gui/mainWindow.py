@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
         self.tabWidget = QTabWidget(self)
         self.tabWidget.setTabBarAutoHide(True)
         self.tabWidget.setTabsClosable(True)
-        self.tabWidget.tabBarClicked.connect(self.newTabAtEnd)
+        self.tabWidget.currentChanged.connect(self.newTabAtEnd)
         self.tabWidget.tabBarDoubleClicked.connect(self.renameTab)
         self.tabWidget.tabCloseRequested.connect(self.closeTab)
         if testing:
@@ -761,10 +761,6 @@ class MainWindow(QMainWindow):
         """Set the layout of the main window, i.e. create the splitters
         and locate the bibtex list widget and the info panels
         """
-        # will contain the list of bibtex entries
-        if len(self.bibtexListWindows) < 1:
-            self.addBibtexListWindow("Main tab")
-
         # tabs with the bibtex tables
         self.fillTabs()
         self.tabWidget.setCurrentIndex(0)
@@ -824,6 +820,11 @@ class MainWindow(QMainWindow):
 
     def fillTabs(self):
         """Create as many tabs as the number of bibtexListWindows items"""
+        # will contain the list of bibtex entries
+        if len(self.bibtexListWindows) < 1:
+            self.addBibtexListWindow("Main tab")
+
+        self.tabWidget.blockSignals(True)
         self.tabWidget.clear()
         for tab, lab in self.bibtexListWindows:
             self.tabWidget.addTab(tab, lab)
@@ -833,6 +834,7 @@ class MainWindow(QMainWindow):
         for i in [0, self.tabWidget.count() - 1]:
             self.tabWidget.tabBar().tabButton(i, QTabBar.RightSide).deleteLater()
             self.tabWidget.tabBar().setTabButton(i, QTabBar.RightSide, None)
+        self.tabWidget.blockSignals(False)
 
     def closeTab(self, index):
         """Close a tab, if it is not the main nor the "new tab" one:
@@ -857,7 +859,7 @@ class MainWindow(QMainWindow):
             index: the index of the clicked tab
             bibs, askBibs, previous: directly passed to BibtexListWindow
         """
-        if index == self.tabWidget.count() - 1:
+        if self.tabWidget.count() > 1 and index == self.tabWidget.count() - 1:
             self.addBibtexListWindow(
                 "New tab", bibs=bibs, askBibs=askBibs, previous=previous
             )

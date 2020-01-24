@@ -85,7 +85,7 @@ class TestMainWindow(GUITestCase):
         self.assertTrue(mw.tabWidget.tabBarAutoHide())
         self.assertTrue(mw.tabWidget.tabsClosable())
         with patch(self.clsName + ".newTabAtEnd") as _f:
-            mw.tabWidget.tabBarClicked.emit(12)
+            mw.tabWidget.currentChanged.emit(12)
             _f.assert_called_once_with(12)
         with patch(self.clsName + ".renameTab") as _f:
             mw.tabWidget.tabBarDoubleClicked.emit(12)
@@ -916,7 +916,6 @@ class TestMainWindow(GUITestCase):
         with patch(self.clsName + ".fillTabs", autospec=True) as _f:
             self.mainW.createMainLayout()
             _f.assert_called_once_with(self.mainW)
-            self.assertEqual(len(self.mainW.bibtexListWindows), 1)
 
     def test_addBibtexListWindow(self):
         """test addBibtexListWindow"""
@@ -938,7 +937,7 @@ class TestMainWindow(GUITestCase):
     def test_currentTabWidget(self):
         """test currentTabWidget"""
         self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
+        self.mainW.fillTabs()
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
         self.mainW.fillTabs()
@@ -956,11 +955,17 @@ class TestMainWindow(GUITestCase):
     def test_fillTabs(self):
         """test fillTabs"""
         self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
-        self.assertEqual(self.mainW.tabWidget.count(), 2)
-        self.mainW.fillTabs()
+        with patch("PySide2.QtWidgets.QTabWidget.blockSignals") as _bl:
+            self.mainW.fillTabs()
+            _bl.assert_has_calls([call(True), call(False)])
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         for i, (t, l) in enumerate(self.mainW.bibtexListWindows):
             self.assertEqual(self.mainW.tabWidget.widget(i), t)
@@ -977,7 +982,7 @@ class TestMainWindow(GUITestCase):
     def test_closeTab(self):
         """test closeTab"""
         self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
+        self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.mainW.closeTab(0)
@@ -1018,7 +1023,7 @@ class TestMainWindow(GUITestCase):
     def test_newTabAtEnd(self):
         """test newTabAtEnd"""
         self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
+        self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
             self.clsName + ".fillTabs", autospec=True
@@ -1055,7 +1060,7 @@ class TestMainWindow(GUITestCase):
     def test_renameTab(self):
         """test renameTab"""
         self.mainW.bibtexListWindows = []
-        self.mainW.createMainLayout()
+        self.mainW.fillTabs()
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
         self.mainW.fillTabs()
