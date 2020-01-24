@@ -757,7 +757,7 @@ class MainWindow(QMainWindow):
         """
         # will contain the list of bibtex entries
         if len(self.bibtexListWindows) < 1:
-            self.bibtexListWindows.append([BibtexListWindow(parent=self), "Main tab"])
+            self.addBibtexListWindow("Main tab")
 
         # tabs with the bibtex tables
         self.fillTabs()
@@ -790,6 +790,23 @@ class MainWindow(QMainWindow):
         splitter.setGeometry(0, 0, availableWidth, availableHeight)
 
         self.setCentralWidget(splitter)
+
+    def addBibtexListWindow(self, label, bibs=None, askBibs=False, previous=[]):
+        """Function that creates a new BibtexListWindow and add its
+        (with a label) to the list bibtexListWindows.
+
+        Parameters:
+            label: a string that identifies the tab
+            bibs, askBibs, previous: directly passed to BibtexListWindow
+        """
+        self.bibtexListWindows.append(
+            [
+                BibtexListWindow(
+                    parent=self, bibs=bibs, askBibs=askBibs, previous=previous
+                ),
+                label,
+            ]
+        )
 
     def currentTabWidget(self):
         """Return the current BibtexListWindow in the self.tabWidget

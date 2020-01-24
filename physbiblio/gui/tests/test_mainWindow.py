@@ -908,6 +908,27 @@ class TestMainWindow(GUITestCase):
             _f.assert_called_once_with(self.mainW)
             self.assertEqual(len(self.mainW.bibtexListWindows), 1)
 
+    def test_addBibtexListWindow(self):
+        """test addBibtexListWindow"""
+        self.mainW.bibtexListWindows = []
+        qw1 = QWidget()
+        qw2 = QWidget()
+        with patch(
+            "physbiblio.gui.mainWindow.BibtexListWindow", side_effect=[qw1, qw2]
+        ) as _b:
+            self.mainW.addBibtexListWindow(
+                "abcd", bibs="abc", askBibs="ab", previous="a"
+            )
+            _b.assert_called_once_with(
+                parent=self.mainW, bibs="abc", askBibs="ab", previous="a"
+            )
+            self.mainW.addBibtexListWindow("1234")
+            _b.assert_any_call(parent=self.mainW, bibs=None, askBibs=False, previous=[])
+        self.assertEqual(self.mainW.bibtexListWindows[0], [qw1, "abcd"])
+        self.assertEqual(self.mainW.bibtexListWindows[1], [qw2, "1234"])
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
+
     def test_currentTabWidget(self):
         """test currentTabWidget"""
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
