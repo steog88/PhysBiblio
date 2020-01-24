@@ -82,7 +82,7 @@ class LongInfoMessage(QDialog):
         self.exec_()
 
 
-def askGenericText(message, title, parent=None):
+def askGenericText(message, title, parent=None, previous=""):
     """Uses `QInputDialog` to ask a text answer for a given question.
 
     Parameters:
@@ -100,6 +100,7 @@ def askGenericText(message, title, parent=None):
     dialog.setInputMode(QInputDialog.TextInput)
     dialog.setWindowTitle(title)
     dialog.setLabelText(message)
+    dialog.setTextValue(previous)
     out = dialog.exec_()
     return dialog.textValue(), out
 

@@ -8,7 +8,7 @@ import traceback
 import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QInputDialog
+from PySide2.QtWidgets import QInputDialog, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -94,21 +94,30 @@ class TestDialogWindows(GUITestCase):
     def test_askGenericText(self):
         """Test askGenericText"""
         p = MagicMock()
+        q = QWidget()
         qid = MagicMock()
-        qid.exec_.side_effect = [True, False]
-        qid.textValue.side_effect = ["abc", "def"]
+        qid.exec_.side_effect = [True, False, True]
+        qid.textValue.side_effect = ["abc", "def", "ghi"]
         with patch(
             "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid, autospec=True
         ) as _qid:
             self.assertEqual(askGenericText("mymessage", "mytitle"), ("abc", True))
             qid.setInputMode.assert_called_once_with(_qid.TextInput)
             qid.setLabelText.assert_called_once_with("mymessage")
+            qid.setTextValue.assert_called_once_with("")
             qid.setWindowTitle.assert_called_once_with("mytitle")
             qid.exec_.assert_called_once_with()
             qid.textValue.assert_called_once_with()
             self.assertEqual(
                 askGenericText("mymessage", "mytitle", parent=p), ("def", False)
             )
+        with patch(
+            "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid, autospec=True
+        ) as _qid:
+            self.assertEqual(
+                askGenericText("mymessage", "mytitle", q, "ABC"), ("ghi", True)
+            )
+            qid.setTextValue.assert_any_call("ABC")
 
     def test_askFileName(self):
         """Test askFileName"""

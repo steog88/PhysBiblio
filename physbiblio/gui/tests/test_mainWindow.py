@@ -87,6 +87,9 @@ class TestMainWindow(GUITestCase):
         with patch(self.clsName + ".newTabAtEnd") as _f:
             mw.tabWidget.tabBarClicked.emit(12)
             _f.assert_called_once_with(12)
+        with patch(self.clsName + ".renameTab") as _f:
+            mw.tabWidget.tabBarDoubleClicked.emit(12)
+            _f.assert_called_once_with(12)
         with patch(self.clsName + ".closeTab") as _f:
             mw.tabWidget.tabCloseRequested.emit(12)
             _f.assert_called_once_with(12)
@@ -1048,6 +1051,43 @@ class TestMainWindow(GUITestCase):
             )
             _ft.assert_called_once_with(self.mainW)
             _ci.assert_called_once_with(3)
+
+    def test_renameTab(self):
+        """test renameTab"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.fillTabs()
+        self.assertEqual(
+            [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
+        )
+        with patch(
+            self.modName + ".askGenericText",
+            side_effect=[["abc", False], ["def", True]],
+        ) as _at:
+            self.mainW.renameTab(0)
+            self.mainW.renameTab(3)
+            self.mainW.renameTab(12)
+            self.assertEqual(_at.call_count, 0)
+            self.assertEqual(
+                [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
+            )
+            for i, l in enumerate(["Main tab", "a", "b"]):
+                self.assertEqual(self.mainW.tabWidget.tabText(i), l)
+            self.mainW.renameTab(1)
+            _at.assert_called_once_with(
+                "Insert the new tab name", "New tab name?", previous="a"
+            )
+            self.assertEqual(
+                [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
+            )
+            self.assertEqual(self.mainW.tabWidget.tabText(1), "a")
+            self.mainW.renameTab(2)
+            self.assertEqual(
+                [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "def"]
+            )
+            self.assertEqual(self.mainW.tabWidget.tabText(2), "def")
 
     def test_undoDB(self):
         """test undoDB"""

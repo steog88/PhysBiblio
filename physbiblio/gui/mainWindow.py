@@ -155,6 +155,7 @@ class MainWindow(QMainWindow):
         self.tabWidget.setTabBarAutoHide(True)
         self.tabWidget.setTabsClosable(True)
         self.tabWidget.tabBarClicked.connect(self.newTabAtEnd)
+        self.tabWidget.tabBarDoubleClicked.connect(self.renameTab)
         self.tabWidget.tabCloseRequested.connect(self.closeTab)
         if testing:
             return
@@ -862,6 +863,24 @@ class MainWindow(QMainWindow):
             )
             self.fillTabs()
             self.tabWidget.setCurrentIndex(index)
+
+    def renameTab(self, index):
+        """Rename a tab, if it is not the main nor the "new tab" one
+
+        Parameter:
+            index: the index of the tab to be renamed
+        """
+        if index != 0 and index != self.tabWidget.count() - 1:
+            try:
+                oldname = self.bibtexListWindows[index][1]
+            except IndexError:
+                return
+            newname, res = askGenericText(
+                "Insert the new tab name", "New tab name?", previous=oldname
+            )
+            if res:
+                self.tabWidget.setTabText(index, newname)
+                self.bibtexListWindows[index][1] = newname
 
     def undoDB(self):
         """Reset database changes, window title and table content"""
