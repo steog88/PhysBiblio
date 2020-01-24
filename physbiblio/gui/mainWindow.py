@@ -27,6 +27,7 @@ from PySide2.QtWidgets import (
     QMessageBox,
     QSplitter,
     QStatusBar,
+    QTabWidget,
 )
 
 try:
@@ -138,7 +139,7 @@ class MainWindow(QMainWindow):
         self.replaceMenu = None
         self.helpMenu = None
         self.mainToolBar = None
-        self.bibtexListWindow = None
+        self.bibtexListWindows = []
         self.bottomLeft = None
         self.bottomCenter = None
         self.bottomRight = None
@@ -148,6 +149,8 @@ class MainWindow(QMainWindow):
         self.selectedExps = []
         self.badBibtexs = []
         self.importArXivResults = []
+        self.tabWidget = QTabWidget(self)
+        self.tabWidget.setTabBarAutoHide(True)
         if testing:
             return
         self.createActions()
@@ -753,8 +756,12 @@ class MainWindow(QMainWindow):
         and locate the bibtex list widget and the info panels
         """
         # will contain the list of bibtex entries
-        self.bibtexListWindow = BibtexListWindow(parent=self)
-        self.bibtexListWindow.setFrameShape(QFrame.StyledPanel)
+        if len(self.bibtexListWindows) < 1:
+            self.bibtexListWindows.append([BibtexListWindow(parent=self), "Main tab"])
+
+        # tabs with the bibtex tables
+        self.fillTabs()
+        self.tabWidget.setCurrentIndex(0)
 
         # will contain the bibtex code:
         self.bottomLeft = BibtexInfo(self)
@@ -769,7 +776,7 @@ class MainWindow(QMainWindow):
         self.bottomRight.setFrameShape(QFrame.StyledPanel)
 
         splitter = QSplitter(Qt.Vertical)
-        splitter.addWidget(self.bibtexListWindow)
+        splitter.addWidget(self.tabWidget)
         splitterBottom = QSplitter(Qt.Horizontal)
         splitterBottom.addWidget(self.bottomLeft)
         splitterBottom.addWidget(self.bottomCenter)
@@ -784,6 +791,20 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(splitter)
 
+    def currentTabWidget(self):
+        """Return the current BibtexListWindow in the self.tabWidget
+        
+        Output:
+            a BibtexListWindow item, currently displayed in the QTabWidget
+        """
+        return self.bibtexListWindows[self.tabWidget.currentIndex()][0]
+
+    def fillTabs(self):
+        """Create as many tabs as the number of bibtexListWindows items"""
+        self.tabWidget.clear()
+        for tab, lab in self.bibtexListWindows:
+            self.tabWidget.addTab(tab, lab)
+
     def undoDB(self):
         """Reset database changes, window title and table content"""
         pBDB.undo()
@@ -795,7 +816,7 @@ class MainWindow(QMainWindow):
         using last used query
         """
         self.statusBarMessage("Reloading main table...")
-        self.bibtexListWindow.recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
+        self.currentTabWidget().recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
         self.done()
 
     def reloadMainContent(self, bibs=None):
@@ -803,7 +824,7 @@ class MainWindow(QMainWindow):
         using the default query
         """
         self.statusBarMessage("Reloading main table...")
-        self.bibtexListWindow.recreateTable(bibs)
+        self.currentTabWidget().recreateTable(bibs)
         self.done()
 
     def manageProfiles(self):
@@ -874,7 +895,7 @@ class MainWindow(QMainWindow):
                 pbConfig.params["pdfFolder"],
             )
         pBPDF.checkFolderExists()
-        self.bibtexListWindow.reloadColumnContents()
+        self.currentTabWidget().reloadColumnContents()
 
     def recentChanges(self):
         """Function to show the recent changes in the current version"""

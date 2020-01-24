@@ -910,9 +910,11 @@ class ConfigVars:
     def loadProfiles(self):
         """Load the information from the profile database"""
         try:
-            self.defaultProfileName, self.profiles, self.profileOrder = (
-                self.readProfiles()
-            )
+            (
+                self.defaultProfileName,
+                self.profiles,
+                self.profileOrder,
+            ) = self.readProfiles()
         except (IOError, ValueError, SyntaxError) as e:
             self.logger.warning(e)
             self.globalDb.createProfile()

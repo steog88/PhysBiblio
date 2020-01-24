@@ -1275,7 +1275,7 @@ class TestFunctions(GUIwMainWTestCase):
         """test deleteBibtex"""
         p = QWidget()
         m = self.mainW
-        m.bibtexListWindow = BibtexListWindow(self.mainW, bibs=[])
+        m.bibtexListWindows.append([BibtexListWindow(self.mainW, bibs=[]), "Main Tab"])
         with patch(
             "physbiblio.gui.bibWindows.askYesNo", return_value=False, autospec=True
         ) as _a, patch(
@@ -1331,6 +1331,7 @@ class TestFunctions(GUIwMainWTestCase):
                 ]
             )
 
+        self.mainW.tabWidget.setCurrentIndex(0)
         with patch(
             "physbiblio.gui.bibWindows.askYesNo", return_value=True, autospec=True
         ) as _a, patch(
@@ -1350,7 +1351,7 @@ class TestFunctions(GUIwMainWTestCase):
             _c.assert_called_once_with(pBDB.bibs, "mykey")
             _t.assert_called_once_with("PhysBiblio*")
             _s.assert_called_once_with(self.mainW, "Bibtex entry deleted")
-            _r.assert_called_once_with(self.mainW.bibtexListWindow)
+            _r.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

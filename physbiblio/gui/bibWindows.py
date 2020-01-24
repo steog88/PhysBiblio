@@ -318,8 +318,8 @@ def deleteBibtex(parentObject, bibkey):
 
     Parameters:
         parentObject: the parent object, which has
-            the `statusBarMessage` and `setWindowTitle` methods
-            and a `bibtexListWindow` attribute
+            the `currentTabWidget`, `statusBarMessage`
+            and `setWindowTitle` methods
         bibkey: the bibtex key of the entry to be deleted
     """
     if askYesNo(
@@ -330,7 +330,7 @@ def deleteBibtex(parentObject, bibkey):
         parentObject.setWindowTitle("PhysBiblio*")
         message = "Bibtex entry deleted"
         try:
-            parentObject.bibtexListWindow.recreateTable()
+            parentObject.currentTabWidget().recreateTable()
         except AttributeError:
             pBLogger.debug(
                 "parentObject has no attribute 'recreateTable'", exc_info=True

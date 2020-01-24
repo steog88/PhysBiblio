@@ -9,7 +9,7 @@ import os
 from PySide2.QtCore import Qt, QEvent
 from PySide2.QtGui import QImage
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QMenu, QToolBar
+from PySide2.QtWidgets import QMenu, QToolBar, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -80,6 +80,9 @@ class TestMainWindow(GUITestCase):
         self.assertIsInstance(mw.mainStatusBar, QStatusBar)
         self.assertEqual(mw.lastAuthorStats, None)
         self.assertEqual(mw.lastPaperStats, None)
+        self.assertIsInstance(mw.bibtexListWindows, list)
+        self.assertIsInstance(mw.tabWidget, QTabWidget)
+        self.assertTrue(mw.tabWidget.tabBarAutoHide())
         self.assertIsInstance(mw1, QMainWindow)
         self.assertEqual(mw1.lastPaperStats, None)
         self.assertGeometry(
@@ -867,8 +870,11 @@ class TestMainWindow(GUITestCase):
 
     def test_createMainLayout(self):
         """test createMainLayout"""
-        self.assertIsInstance(self.mainW.bibtexListWindow, BibtexListWindow)
-        self.assertEqual(self.mainW.bibtexListWindow.frameShape(), QFrame.StyledPanel)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.assertIsInstance(self.mainW.bibtexListWindows[0][0], BibtexListWindow)
+        self.assertIsInstance(self.mainW.bibtexListWindows[0][1], six.string_types)
+        self.assertEqual(self.mainW.tabWidget.count(), 1)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertIsInstance(self.mainW.bottomLeft, BibtexInfo)
         self.assertEqual(self.mainW.bottomLeft.frameShape(), QFrame.StyledPanel)
         self.assertIsInstance(self.mainW.bottomCenter, BibtexInfo)
@@ -879,7 +885,7 @@ class TestMainWindow(GUITestCase):
         spl = self.mainW.centralWidget()
         self.assertIsInstance(spl, QSplitter)
         self.assertEqual(spl.orientation(), Qt.Vertical)
-        self.assertEqual(spl.widget(0), self.mainW.bibtexListWindow)
+        self.assertEqual(spl.widget(0), self.mainW.tabWidget)
         self.assertEqual(spl.widget(0).sizePolicy().verticalStretch(), 3)
         self.assertIsInstance(spl.widget(1), QSplitter)
         self.assertEqual(spl.widget(1).sizePolicy().verticalStretch(), 1)
@@ -895,6 +901,43 @@ class TestMainWindow(GUITestCase):
             QDesktopWidget().availableGeometry().width(),
             QDesktopWidget().availableGeometry().height(),
         )
+        with patch(
+            "physbiblio.gui.mainWindow.MainWindow.fillTabs", autospec=True
+        ) as _f:
+            self.mainW.createMainLayout()
+            _f.assert_called_once_with(self.mainW)
+            self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+
+    def test_currentTabWidget(self):
+        """test currentTabWidget"""
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 3)
+        self.mainW.tabWidget.setCurrentIndex(0)
+        self.assertIsInstance(self.mainW.currentTabWidget(), BibtexListWindow)
+        self.assertEqual(
+            self.mainW.currentTabWidget(), self.mainW.bibtexListWindows[0][0]
+        )
+        self.mainW.tabWidget.setCurrentIndex(2)
+        self.assertEqual(
+            self.mainW.currentTabWidget(), self.mainW.bibtexListWindows[2][0]
+        )
+
+    def test_fillTabs(self):
+        """test fillTabs"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.assertEqual(self.mainW.tabWidget.count(), 1)
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 3)
+        for i, (t, l) in enumerate(self.mainW.bibtexListWindows):
+            self.assertEqual(self.mainW.tabWidget.widget(i), t)
+            self.assertEqual(self.mainW.tabWidget.tabText(i), l)
+        self.mainW.bibtexListWindows = []
+        self.mainW.createMainLayout()
 
     def test_undoDB(self):
         """test undoDB"""
@@ -924,7 +967,7 @@ class TestMainWindow(GUITestCase):
             _d.assert_called_once_with(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "Reloading main table...")
             _fl.assert_called_once_with(pBDB.bibs)
-            _rt.assert_called_once_with(self.mainW.bibtexListWindow, [])
+            _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], [])
 
     def test_reloadMainContent(self):
         """test reloadMainContent"""
@@ -934,10 +977,10 @@ class TestMainWindow(GUITestCase):
             self.mainW.reloadMainContent(bibs="fake")
             _d.assert_called_once_with(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "Reloading main table...")
-            _rt.assert_called_once_with(self.mainW.bibtexListWindow, "fake")
+            _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], "fake")
             _rt.reset_mock()
             self.mainW.reloadMainContent()
-            _rt.assert_called_once_with(self.mainW.bibtexListWindow, None)
+            _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], None)
 
     def test_manageProfiles(self):
         """test manageProfiles"""
@@ -1093,7 +1136,7 @@ class TestMainWindow(GUITestCase):
             ) as _cfe:
                 self.mainW.reloadConfig()
                 _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
-                _rcc.assert_called_once_with(self.mainW.bibtexListWindow)
+                _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
                 self.assertEqual(pBView.webApp, "webApp")
                 self.assertEqual(pBPDF.pdfApp, "pdfApp")
                 self.assertEqual(
@@ -1122,7 +1165,7 @@ class TestMainWindow(GUITestCase):
             ) as _cfe:
                 self.mainW.reloadConfig()
                 _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
-                _rcc.assert_called_once_with(self.mainW.bibtexListWindow)
+                _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
                 self.assertEqual(pBView.webApp, "webApp")
                 self.assertEqual(pBPDF.pdfApp, "pdfApp")
                 self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
