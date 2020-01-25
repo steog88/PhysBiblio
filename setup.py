@@ -28,6 +28,7 @@ setup(
     packages=[
         "physbiblio",
         "physbiblio.gui",
+        "physbiblio.strings",
         "physbiblio.webimport",
         "physbiblio.tests",
         "physbiblio.gui.tests",

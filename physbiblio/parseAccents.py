@@ -10,7 +10,7 @@ from pylatexenc.latexencode import utf8tolatex
 
 try:
     from physbiblio.errors import pBLogger
-    from physbiblio.strings import ParseAccentsStrings as pastr
+    from physbiblio.strings.physbiblio import ParseAccentsStrings as pastr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

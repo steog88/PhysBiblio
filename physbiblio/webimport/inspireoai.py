@@ -43,7 +43,7 @@ try:
     from physbiblio.parseAccents import parse_accents_str
     from bibtexparser.bibdatabase import BibDatabase
     from physbiblio.bibtexWriter import pbWriter
-    from physbiblio.webimport.strings import InspireOAIStrings
+    from physbiblio.strings.webimport import InspireOAIStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

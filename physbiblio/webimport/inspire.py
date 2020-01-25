@@ -10,7 +10,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.parseAccents import parse_accents_str
-    from physbiblio.webimport.strings import InspireStrings
+    from physbiblio.strings.webimport import InspireStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

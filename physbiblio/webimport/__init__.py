@@ -14,6 +14,5 @@ __all__ = [
     "inspireoai",
     "isbn",
     "webInterf",
-    "strings",
     "tests",
 ]

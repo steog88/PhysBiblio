@@ -21,7 +21,7 @@ try:
     from physbiblio.errors import pBLogger
     import physbiblio.webimport as wi
     from physbiblio.config import pbConfig
-    from physbiblio.webimport.strings import WebInterfStrings
+    from physbiblio.strings.webimport import WebInterfStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

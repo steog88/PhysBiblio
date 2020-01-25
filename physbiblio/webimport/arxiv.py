@@ -16,7 +16,7 @@ try:
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.bibtexWriter import pbWriter
-    from physbiblio.webimport.strings import ArxivStrings
+    from physbiblio.strings.webimport import ArxivStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

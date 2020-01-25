@@ -24,7 +24,7 @@ try:
     from physbiblio.inspireStats import pBStats
     from physbiblio.export import pBExport
     from physbiblio.gui.commonClasses import PBThread, WriteStream
-    from physbiblio.gui.strings import ThreadElementsStrings as thestr
+    from physbiblio.strings.gui import ThreadElementsStrings as thestr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

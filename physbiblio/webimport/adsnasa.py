@@ -9,7 +9,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
     from physbiblio.webimport.webInterf import WebInterf
-    from physbiblio.webimport.strings import ADSNasaStrings
+    from physbiblio.strings.webimport import ADSNasaStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

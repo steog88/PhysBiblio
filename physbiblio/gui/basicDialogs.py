@@ -21,7 +21,7 @@ else:
     from io import StringIO
 
 try:
-    from physbiblio.gui.strings import (
+    from physbiblio.strings.gui import (
         BasicStrings as bastr,
         BasicDialogsStrings as bdstr,
     )

@@ -32,7 +32,7 @@ try:
         PBDialog,
         PBLabel,
     )
-    from physbiblio.gui.strings import (
+    from physbiblio.strings.gui import (
         BasicStrings as bastr,
         ProfilesManagerStrings as pmstr,
     )

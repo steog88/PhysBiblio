@@ -18,6 +18,5 @@ __all__ = [
     "profilesManager",
     "resourcesPyside2",
     "setuptests",
-    "strings",
     "threadElements",
 ]
