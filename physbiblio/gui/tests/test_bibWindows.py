@@ -6123,6 +6123,7 @@ class TestSearchBibsWindow(GUITestCase):
                 "catexp": [
                     "all the following",
                     "at least one among",
+                    "this or subcategories",
                     # "none of the following"
                 ],
             },
@@ -7316,9 +7317,9 @@ class TestSearchBibsWindow(GUITestCase):
             sbw.textValues[0]["operator"].currentText(), "at least one among"
         )
         self.assertEqual(
-            sbw.textValues[0]["operator"].count(), len(sbw.operators["catexp"])
+            sbw.textValues[0]["operator"].count(), len(sbw.operators["catexp"]) - 1
         )
-        for i, c in enumerate(sbw.operators["catexp"]):
+        for i, c in enumerate(sbw.operators["catexp"][0:2]):
             self.assertEqual(sbw.textValues[0]["operator"].itemText(i), c)
         self.assertEqual(
             sbw.currGrid.itemAtPosition(0, 2).widget(), sbw.textValues[0]["operator"]

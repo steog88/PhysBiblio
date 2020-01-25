@@ -504,6 +504,32 @@ class Categories(PhysBiblioDBSub):
         )
         return self.curs.fetchall()
 
+    def getAllCatsInTree(self, parent):
+        """Get a list of all the subcategories that are in the tree
+        starting with the given one
+
+        Parameters:
+            parent: the `idCat` of the parent category
+
+        Output:
+            the list of `idCat`s of the categories
+        """
+        try:
+            [a for a in parent]
+        except TypeError:
+            parent = [parent]
+        result = []
+        for c in parent:
+            if len(self.getByID(c)) == 0:
+                continue
+            r = self.getChild(c)
+            result += [c] + [a["idCat"] for a in r]
+        unique = set(result)
+        result = [a for a in unique]
+        for a in unique - set(parent):
+            result += self.getAllCatsInTree(a)
+        return list(set(result))
+
     def getParent(self, child):
         """Get the category that is the parent of the given one
 
@@ -1497,6 +1523,7 @@ class Entries(PhysBiblioDBSub):
         "catexp": {
             "all the following": "",
             "at least one among": "",
+            "this or subcategories": "",
             # "none of the following": "",
         },
     }
@@ -1779,6 +1806,9 @@ class Entries(PhysBiblioDBSub):
                 idxs = [str(i) for i in idxs]
             else:
                 idxs = [str(idxs)]
+            if operator == "this or subcategories" and fieldName == "idCat":
+                idxs = self.mainDB.cats.getAllCatsInTree(idxs)
+                operator = "at least one among"
             if len(idxs) > 1:
                 if operator == "at least one among":
                     joinStr += " left join %s on entries.bibkey=%s.bibkey" % (

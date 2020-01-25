@@ -2895,7 +2895,11 @@ class SearchBibsWindow(EditObjectWindow):
             self.textValues[ix]["field"] = None
 
             self.textValues[ix]["operator"] = PBComboBox(
-                self, self.operators["catexp"], current=previous["operator"]
+                self,
+                self.operators["catexp"]
+                if previous["type"] == "Categories"
+                else self.operators["catexp"][0:2],
+                current=previous["operator"],
             )
             self.currGrid.addWidget(self.textValues[ix]["operator"], ix, 2, 1, 2)
 

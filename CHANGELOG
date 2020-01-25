@@ -1,5 +1,6 @@
 1.5.0 (2020-)
     * tabs in the main window, in order to keep multiple searches available at each time
+    * search in a category or its subcategories
     * option to reorder bibtexs without updating, in "tex" shell command and in GUI
     * fix progressBar in authorStats when a single name is requested
 

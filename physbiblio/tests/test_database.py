@@ -2152,6 +2152,10 @@ class TestDatabaseCategories(DBTestCase):
                 }
             ],
         )
+        self.assertEqual(self.pBDB.cats.getAllCatsInTree(0), [0, 1, 2, 3])
+        self.assertEqual(self.pBDB.cats.getAllCatsInTree(1), [1, 2, 3])
+        self.assertEqual(self.pBDB.cats.getAllCatsInTree(2), [2])
+        self.assertEqual(self.pBDB.cats.getAllCatsInTree(5), [])
 
     def test_getByOthers(self):
         """Test getByExp and getByEntry creating some fake records"""
@@ -3664,6 +3668,44 @@ class TestDatabaseEntries(DBTestCase):
                 ]
             )
             _w.assert_called_once_with("Invalid list of ids! '[]'")
+        self.assertEqual(
+            sorted(
+                [
+                    e["bibkey"]
+                    for e in self.pBDB.bibs.fetchFromDict(
+                        [
+                            {
+                                "type": "Categories",
+                                "field": None,
+                                "logical": "",
+                                "operator": "this or subcategories",
+                                "content": [0],
+                            }
+                        ]
+                    ).lastFetched
+                ]
+            ),
+            ["abc", "def", "ghi", "mno", "pqr"],
+        )
+        self.assertEqual(
+            sorted(
+                [
+                    e["bibkey"]
+                    for e in self.pBDB.bibs.fetchFromDict(
+                        [
+                            {
+                                "type": "Categories",
+                                "field": None,
+                                "logical": "",
+                                "operator": "this or subcategories",
+                                "content": [1],
+                            }
+                        ]
+                    ).lastFetched
+                ]
+            ),
+            ["def", "ghi", "mno", "pqr"],
+        )
 
         # test more combinations of exps
         self.assertEqual(
