@@ -8,13 +8,14 @@ try:
     from physbiblio.errors import pBLogger
     from physbiblio.webimport.webInterf import WebInterf
     from physbiblio.parseAccents import parse_accents_str
+    from physbiblio.webimport.strings import ISBNStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
     raise
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, ISBNStrings):
     """Subclass of WebInterf that can connect to ISBN2Bibtex
     to perform searches
     """
@@ -22,7 +23,6 @@ class WebSearch(WebInterf):
     name = "isbn"
     description = "ISBN to bibtex"
     url = "http://www.ebook.de/de/tools/isbn2bibtex"
-    urlArgs = {}
 
     def __init__(self):
         """Initializes the class variables
@@ -31,9 +31,6 @@ class WebSearch(WebInterf):
         Define additional specific parameters for the ISBN2Bibtex API.
         """
         WebInterf.__init__(self)
-        self.name = "isbn"
-        self.description = "ISBN to bibtex"
-        self.url = "http://www.ebook.de/de/tools/isbn2bibtex"
         self.urlArgs = {}
 
     def retrieveUrlFirst(self, string):
@@ -48,12 +45,12 @@ class WebSearch(WebInterf):
         """
         self.urlArgs["isbn"] = string
         url = self.createUrl()
-        pBLogger.info("Search '%s' -> %s" % (string, url))
+        pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url)
         try:
             return parse_accents_str(text[:])
         except Exception:
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             return ""
 
     def retrieveUrlAll(self, string):

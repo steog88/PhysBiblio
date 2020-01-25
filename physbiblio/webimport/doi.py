@@ -9,32 +9,22 @@ try:
     from physbiblio.webimport.webInterf import WebInterf
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.config import pbConfig
+    from physbiblio.webimport.strings import DOIStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
     raise
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, DOIStrings):
     """Subclass of WebInterf that can connect
     to doi.org to perform searches
     """
 
     name = "doi"
-    description = "Doi fetcher"
+    description = "DOI fetcher"
     url = pbConfig.doiUrl
     headers = {"accept": "application/x-bibtex"}
-
-    def __init__(self):
-        """Initializes the class variables using the WebInterf constructor.
-
-        Define additional specific parameters for the DOI.org API.
-        """
-        WebInterf.__init__(self)
-        self.name = "doi"
-        self.description = "Doi fetcher"
-        self.url = pbConfig.doiUrl
-        self.headers = {"accept": "application/x-bibtex"}
 
     def createUrl(self, doi):
         """Joins the base url and the search string to get the full url.
@@ -55,12 +45,12 @@ class WebSearch(WebInterf):
             returns the bibtex string
         """
         url = self.createUrl(string)
-        pBLogger.info("Search '%s' -> %s" % (string, url))
+        pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url, self.headers)
         try:
             return parse_accents_str(text[:])
         except Exception:
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             return ""
 
     def retrieveUrlAll(self, string):

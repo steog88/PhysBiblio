@@ -10,13 +10,14 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.parseAccents import parse_accents_str
+    from physbiblio.webimport.strings import InspireStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
     raise
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, InspireStrings):
     """Subclass of WebInterf that can connect
     to INSPIRE-HEP to perform searches
     """
@@ -25,17 +26,6 @@ class WebSearch(WebInterf):
     description = "INSPIRE fetcher"
     url = pbConfig.inspireSearchBase
     urlRecord = pbConfig.inspireRecord
-    urlArgs = {
-        # "action_search": "Search",
-        "sf": "year",
-        "so": "a",
-        "rg": "250",
-        "sc": "0",
-        "eb": "B",
-        "of": "hx"
-        # for bibtex format ---- hb for standard format,
-        # for retrieving inspireid
-    }
 
     def __init__(self):
         """Initializes the class variables
@@ -44,10 +34,6 @@ class WebSearch(WebInterf):
         Define additional specific parameters for the INSPIRE-HEP API.
         """
         WebInterf.__init__(self)
-        self.name = "inspire"
-        self.description = "INSPIRE fetcher"
-        self.url = pbConfig.inspireSearchBase
-        self.urlRecord = pbConfig.inspireRecord
         self.urlArgs = {
             # "action_search": "Search",
             "sf": "year",
@@ -72,7 +58,7 @@ class WebSearch(WebInterf):
         """
         self.urlArgs["p"] = string.replace(" ", "+")
         url = self.createUrl()
-        pBLogger.info("Search '%s' -> %s" % (string, url))
+        pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url)
         try:
             i1 = text.find("<pre>")
@@ -83,7 +69,7 @@ class WebSearch(WebInterf):
                 bibtex = ""
             return parse_accents_str(bibtex)
         except Exception:
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             return ""
 
     def retrieveUrlAll(self, string):
@@ -98,7 +84,7 @@ class WebSearch(WebInterf):
         """
         self.urlArgs["p"] = string.replace(" ", "+")
         url = self.createUrl()
-        pBLogger.info("Search '%s' -> %s" % (string, url))
+        pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url)
         try:
             i1 = text.find("<pre>")
@@ -109,7 +95,7 @@ class WebSearch(WebInterf):
                 bibtex = ""
             return parse_accents_str(bibtex.replace("<pre>", "").replace("</pre>", ""))
         except Exception:
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             return ""
 
     def retrieveInspireID(self, string, number=None):
@@ -127,10 +113,10 @@ class WebSearch(WebInterf):
         self.urlArgs["of"] = "hb"  # do not ask bibtex, but standard
         url = self.createUrl()
         self.urlArgs["of"] = "hx"  # restore
-        pBLogger.info("Search ID of %s -> %s" % (string, url))
+        pBLogger.info(self.searchIDInfo % (string, url))
         text = self.textFromUrl(url)
         if text is None:
-            pBLogger.warning("An error occurred. Empty text obtained")
+            pBLogger.warning(self.errorEmptyText)
             return ""
         try:
             searchID = re.compile(
@@ -144,8 +130,8 @@ class WebSearch(WebInterf):
                         break
                     else:
                         i += 1
-            pBLogger.info("Found: %s" % inspireID)
+            pBLogger.info(self.foundID % inspireID)
             return inspireID
         except Exception:
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             return ""

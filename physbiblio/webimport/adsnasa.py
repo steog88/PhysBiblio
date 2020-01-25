@@ -9,33 +9,32 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
     from physbiblio.webimport.webInterf import WebInterf
+    from physbiblio.webimport.strings import ADSNasaStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
     raise
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, ADSNasaStrings):
     """Subclass of WebInterf that can connect to ADS to perform searches"""
 
-    def __init__(self):
-        """Initialize the object and define some basic properties"""
-        WebInterf.__init__(self)
-        self.name = "ADS-NASA fetcher"
-        self.url = "https://ui.adsabs.harvard.edu/"
-        self.loadFields = [
-            "abstract",
-            "arxiv_class",
-            "author",
-            "bibcode",
-            "citation_count",
-            "doi",
-            "first_author",
-            "pubdate",
-            "title",
-            "year",
-        ]
-        self.fewFields = ["author", "first_author", "bibcode", "id", "year", "title"]
+    name = "ADS-NASA fetcher"
+    description = "fetcher for ADS from NASA"
+    url = "https://ui.adsabs.harvard.edu/"
+    loadFields = [
+        "abstract",
+        "arxiv_class",
+        "author",
+        "bibcode",
+        "citation_count",
+        "doi",
+        "first_author",
+        "pubdate",
+        "title",
+        "year",
+    ]
+    fewFields = ["author", "first_author", "bibcode", "id", "year", "title"]
 
     def getGenericInfo(
         self, string, fields, rows=pbConfig.params["maxExternalAPIResults"]
@@ -56,9 +55,9 @@ class WebSearch(WebInterf):
             self.q = ads.SearchQuery(q=string, fl=fields, rows=rows)
             l = list(self.q)
         except ads.exceptions.APIResponseError:
-            pBLogger.exception("Unauthorized use of ADS API. Is your token valid?")
+            pBLogger.exception(self.unauthorized)
         except Exception:
-            pBLogger.exception("Something went wrong while fetching ADS", exc_info=True)
+            pBLogger.exception(self.genericFetchError, exc_info=True)
         else:
             pBLogger.info(self.getLimitInfo())
             return l
@@ -81,11 +80,9 @@ class WebSearch(WebInterf):
             self.q = ads.ExportQuery(bibcodes=bibcodes, format="bibtex")
             export = self.q.execute()
         except ads.exceptions.APIResponseError:
-            pBLogger.exception("Unauthorized use of ADS API. Is your token valid?")
+            pBLogger.exception(self.unauthorized)
         except Exception:
-            pBLogger.exception(
-                "Something went wrong while exporting ADS query", exc_info=True
-            )
+            pBLogger.exception(self.genericExportError, exc_info=True)
         else:
             pBLogger.info(self.getLimitInfo())
             return export
@@ -130,7 +127,7 @@ class WebSearch(WebInterf):
             a list with the field values for all the obtained entries
         """
         if not field in self.loadFields:
-            pBLogger.warning("Invalid requested field in ADS query: %s" % field)
+            pBLogger.warning(self.invalidField % field)
             return []
         a = self.getGenericInfo(string, self.loadFields)
         return [getattr(p, field) for p in a]
@@ -138,4 +135,4 @@ class WebSearch(WebInterf):
     def getLimitInfo(self):
         """Return a dictionary with the information on the query limits"""
         lims = self.q.response.get_ratelimits()
-        return "Remaining queries: %s/%s" % (lims["remaining"], lims["limit"])
+        return self.remainingQueries % (lims["remaining"], lims["limit"])

@@ -43,6 +43,7 @@ try:
     from physbiblio.parseAccents import parse_accents_str
     from bibtexparser.bibdatabase import BibDatabase
     from physbiblio.bibtexWriter import pbWriter
+    from physbiblio.webimport.strings import InspireOAIStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -124,7 +125,7 @@ registry = metadata.MetadataRegistry()
 registry.registerReader("marcxml", marcxml_reader)
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, InspireOAIStrings):
     """Subclass of WebInterf that can connect to INSPIRE-HEP
     to perform searches using the OAI API
     """
@@ -172,9 +173,6 @@ class WebSearch(WebInterf):
         for the INSPIRE-HEP OAI API.
         """
         WebInterf.__init__(self)
-        self.name = "inspireoai"
-        self.description = "INSPIRE OAI interface"
-        self.url = "https://inspirehep.net/oai2d"
         self.oai = Client(self.url, registry)
 
     def retrieveUrlFirst(self, string):
@@ -182,7 +180,7 @@ class WebSearch(WebInterf):
         use the retrieveOAIData function if you have the INSPIRE ID
         of the desired record
         """
-        pBLogger.warning("Inspireoai cannot search strings in the DB")
+        pBLogger.warning(self.cannotSearch)
         return ""
 
     def retrieveUrlAll(self, string):
@@ -190,7 +188,7 @@ class WebSearch(WebInterf):
         use the retrieveOAIData function if you have the INSPIRE ID
         of the desired record
         """
-        pBLogger.warning("Inspireoai cannot search strings in the DB")
+        pBLogger.warning(self.cannotSearch)
         return ""
 
     def readRecord(self, record, readConferenceTitle=False):
@@ -216,7 +214,7 @@ class WebSearch(WebInterf):
                 if q["2"] == "DOI":
                     tmpDict["doi"] = q["a"]
         except Exception as e:
-            pBLogger.warning("Error in readRecord!", exc_info=True)
+            pBLogger.warning(self.errorReadRecord, exc_info=True)
         try:
             tmpDict["arxiv"] = None
             tmpDict["bibkey"] = None
@@ -238,7 +236,7 @@ class WebSearch(WebInterf):
                     if q["a"] is not None:
                         tmpDict["ads"] = q["a"]
         except (IndexError, TypeError) as e:
-            pBLogger.warning("Error in readRecord!", exc_info=True)
+            pBLogger.warning(self.errorReadRecord, exc_info=True)
         if tmpDict["bibkey"] is None and len(tmpOld) > 0:
             tmpDict["bibkey"] = tmpOld[0]
             tmpOld = []
@@ -408,23 +406,23 @@ class WebSearch(WebInterf):
                 metadataPrefix="marcxml", identifier="oai:inspirehep.net:" + inspireID
             )
         except (URLError, ErrorBase, IncompleteRead, SocketError):
-            pBLogger.exception("Impossible to get marcxml for entry %s" % inspireID)
+            pBLogger.exception(self.errorMarcxml % inspireID)
             return False
         nhand = 0
         if verbose > 0:
-            pBLogger.info("Reading data --- " + time.strftime("%c"))
+            pBLogger.info(self.readData + time.strftime("%c"))
         try:
             if record[1] is None:
-                raise ValueError("Empty record!")
+                raise ValueError(self.emptyRecord)
             res = self.readRecord(record[1], readConferenceTitle=readConferenceTitle)
             res["id"] = inspireID
             if bibtex is not None and res["pages"] is not None:
                 outcome, bibtex = self.updateBibtex(res, bibtex)
             if verbose > 0:
-                pBLogger.info("Done.")
+                pBLogger.info(self.doneString)
             return res
         except Exception:
-            pBLogger.exception("Impossible to read marcxml for entry %s" % inspireID)
+            pBLogger.exception(self.errorMarcxml % inspireID)
             return False
 
     def updateBibtex(self, res, bibtex):
@@ -441,19 +439,17 @@ class WebSearch(WebInterf):
         try:
             element = bibtexparser.loads(bibtex).entries[0]
         except:
-            pBLogger.warning("Invalid bibtex!\n%s" % bibtex)
+            pBLogger.warning(self.errorInvalidBibtex % bibtex)
             return False, bibtex
         if res["journal"] is None:
-            pBLogger.warning(
-                "'journal' from OAI is missing or not a string (recid:%s)" % (res["id"])
-            )
+            pBLogger.warning(self.warningJournal % (res["id"]))
             return False, bibtex
         try:
             for k in ["doi", "volume", "pages", "year", "journal"]:
                 if res[k] != "" and res[k] is not None:
                     element[k] = res[k]
         except KeyError:
-            pBLogger.warning("Something from OAI is missing (recid:%s)" % (res["id"]))
+            pBLogger.warning(self.warningMissing % (res["id"]))
             return False, bibtex
         db = BibDatabase()
         db.entries = [element]
@@ -474,12 +470,12 @@ class WebSearch(WebInterf):
             metadataPrefix="marcxml", from_=date1, until=date2, set="INSPIRE:HEP"
         )
         nhand = 0
-        pBLogger.info("\nSTARTING OAI harvester --- " + time.strftime("%c") + "\n\n")
+        pBLogger.info(self.startString % time.strftime("%c"))
         foundObjects = []
         for count, rec in enumerate(recs):
             id = rec[0].identifier()
             if count % 500 == 0:
-                pBLogger.info("Processed %d elements" % count)
+                pBLogger.info(self.processed % count)
             record = rec[1]  # Get pyMARC representation
             if not record:
                 continue
@@ -489,7 +485,7 @@ class WebSearch(WebInterf):
                 tmpDict["id"] = id_
                 foundObjects.append(tmpDict)
             except Exception as e:
-                pBLogger.exception("%s, %s\n%s" % (count, id, e))
-        pBLogger.info("Processed %d elements" % count)
-        pBLogger.info("END --- " + time.strftime("%c") + "\n\n")
+                pBLogger.exception(self.exceptionFormat % (count, id, e))
+        pBLogger.info(self.processed % count)
+        pBLogger.info(self.endString % time.strftime("%c"))
         return foundObjects

@@ -21,6 +21,7 @@ try:
     from physbiblio.errors import pBLogger
     import physbiblio.webimport as wi
     from physbiblio.config import pbConfig
+    from physbiblio.webimport.strings import WebInterfStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -31,7 +32,7 @@ pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
 
 
-class WebInterf:
+class WebInterf(WebInterfStrings):
     """This is the main class for the web search methods.
 
     It contains a constructor, a function to create an appropriate url
@@ -43,17 +44,13 @@ class WebInterf:
     urlArgs = None
     urlTimeout = 1000.0
     interfaces = []
-    webSearch = {}
-    loaded = False
 
     def __init__(self):
         """Initializes the class variables."""
-        self.url = None
-        self.urlArgs = None
         self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
         # save the names of the available web search interfaces
         self.interfaces = [
-            a for a in webInterfaces if a != "webInterf" and a != "tests"
+            a for a in webInterfaces if a not in ["strings", "tests", "webInterf"]
         ]
         self.webSearch = {}
         self.loaded = False
@@ -89,20 +86,18 @@ class WebInterf:
             response = urlopen(req, timeout=self.urlTimeout)
             data = response.read()
         except URLError:
-            pBLogger.warning("[%s] -> Error in retrieving data from url" % self.name)
+            pBLogger.warning(self.errorRetrieve % self.name)
             return ""
         except HTTPError:
-            pBLogger.warning("[%s] -> %s not found" % url)
+            pBLogger.warning(self.errorNotFound % url)
             return ""
         except (ssl.SSLError, socket.timeout):
-            pBLogger.warning("[%s] -> Timed out" % self.name)
+            pBLogger.warning(self.errorTimedOut % self.name)
             return ""
         try:
             text = data.decode("utf-8")
         except Exception:
-            pBLogger.warning(
-                "[%s] -> Bad codification, utf-8 decode failed" % self.name
-            )
+            pBLogger.warning(self.errorBadCodification % self.name)
             return ""
         return text
 
@@ -148,7 +143,7 @@ class WebInterf:
                 )
                 self.webSearch[method] = getattr(_temp, "WebSearch")()
             except Exception:
-                pBLogger.exception("Error importing physbiblio.webimport.%s" % method)
+                pBLogger.exception(self.errorImportMethod % method)
         self.loaded = True
 
     def retrieveUrlFirstFrom(self, search, method):
@@ -165,7 +160,7 @@ class WebInterf:
         try:
             return getattr(self.webSearch[method], retrieveUrlFirst)(search)
         except KeyError:
-            pBLogger.warning("The method '%s' is not available!" % method)
+            pBLogger.warning(self.methodNotAvailable % method)
             return ""
 
     def retrieveUrlAllFrom(self, search, method):
@@ -181,7 +176,7 @@ class WebInterf:
         try:
             return getattr(self.webSearch[method], retrieveUrlAll)(search)
         except KeyError:
-            pBLogger.warning("The method '%s' is not available!" % method)
+            pBLogger.warning(self.methodNotAvailable % method)
             return ""
 
 

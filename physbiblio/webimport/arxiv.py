@@ -16,6 +16,7 @@ try:
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.bibtexWriter import pbWriter
+    from physbiblio.webimport.strings import ArxivStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -34,11 +35,11 @@ def getYear(string):
                 else:
                     return "20" + a
     except Exception:
-        pBLogger.warning("Error in converting year from '%s'" % string)
+        pBLogger.warning(ArxivStrings.errorYearConversion % string)
         return None
 
 
-class WebSearch(WebInterf):
+class WebSearch(WebInterf, ArxivStrings):
     """Subclass of WebInterf that can connect to arxiv.org
     to perform searches
     """
@@ -47,7 +48,6 @@ class WebSearch(WebInterf):
     description = "arXiv fetcher"
     url = "https://export.arxiv.org/api/query"
     urlRss = "https://export.arxiv.org/rss/"
-    urlArgs = {"start": "0"}
     categories = {
         "astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
         "cond-mat": [
@@ -185,10 +185,6 @@ class WebSearch(WebInterf):
         Define additional specific parameters for the arxiv.org API.
         """
         WebInterf.__init__(self)
-        self.name = "arXiv"
-        self.description = "arXiv fetcher"
-        self.url = "https://export.arxiv.org/api/query"
-        self.urlRss = "https://export.arxiv.org/rss/"
         self.urlArgs = {"start": "0"}
 
     def getYear(self, string):
@@ -263,7 +259,7 @@ class WebSearch(WebInterf):
                 self.urlArgs[k] = v
         self.urlArgs["search_query"] = searchType + ":" + string
         url = self.createUrl()
-        pBLogger.info("Search '%s:%s' -> %s" % (searchType, string, url))
+        pBLogger.info(self.searchInfo % (searchType, string, url))
         text = parse_accents_str(self.textFromUrl(url))
         try:
             data = feedparser.parse(text)
@@ -308,7 +304,7 @@ class WebSearch(WebInterf):
             else:
                 return pbWriter.write(db)
         except Exception:  # intercept all other possible errors
-            pBLogger.exception("Impossible to get results")
+            pBLogger.exception(self.genericError)
             if fullDict:
                 return "", {}
             else:
@@ -327,19 +323,19 @@ class WebSearch(WebInterf):
             sub = ""
         url = self.urlRss
         if main not in self.categories.keys():
-            pBLogger.warning("Main category not found: %s" % main)
+            pBLogger.warning(self.mainCatNotFound % main)
             return False
         else:
             url += main
         if sub != "" and sub not in self.categories[main]:
-            pBLogger.warning("Sub category not found: %s" % sub)
+            pBLogger.warning(self.subCatNotFound % sub)
             return False
         elif sub != "" and sub in self.categories[main]:
             url += "." + sub
         pBLogger.info(url)
         text = self.textFromUrl(url)
         if text is None:
-            pBLogger.warning("Url is empty!")
+            pBLogger.warning(self.emptyUrl)
             return False
         author = re.compile("(>|&gt;)([^/]*)(</a>|&lt;/a&gt;)")
         additionalInfo = re.compile(
@@ -396,5 +392,5 @@ class WebSearch(WebInterf):
                 entries.append(tmp)
             return entries
         except Exception:
-            pBLogger.error("Cannot parse arxiv RSS feed:\n%s" % text, exc_info=True)
+            pBLogger.error(self.cannotParseRSS % text, exc_info=True)
             return False
