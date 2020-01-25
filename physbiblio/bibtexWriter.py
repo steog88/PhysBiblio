@@ -5,6 +5,12 @@ This file is part of the physbiblio package.
 """
 from bibtexparser.bwriter import BibTexWriter
 
+try:
+    from physbiblio.strings import BibtexWriterStrings as bwstr
+except ImportError:
+    print("Could not find physbiblio and its modules!")
+    print(traceback.format_exc())
+
 
 class PBBibTexWriter(BibTexWriter):
     """This class is used to override _entry_to_bibtex"""
@@ -100,9 +106,7 @@ class PBBibTexWriter(BibTexWriter):
                     + '"'
                 )
             except TypeError:
-                raise TypeError(
-                    u"The field %s in entry %s must be a string" % (field, entry["ID"])
-                )
+                raise TypeError(bwstr.errorNotString % (field, entry["ID"]))
         bibtex += ",\n}\n" + self.entry_separator
         return bibtex
 

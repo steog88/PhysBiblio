@@ -24,7 +24,7 @@ try:
     from physbiblio.inspireStats import pBStats
     from physbiblio.export import pBExport
     from physbiblio.gui.commonClasses import PBThread, WriteStream
-    from physbiblio.gui.strings import ThreadElementsStrings
+    from physbiblio.gui.strings import ThreadElementsStrings as thestr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -46,11 +46,11 @@ class Thread_checkUpdated(PBThread):
             self.result.emit(outdated, newVersion)
         except ValueError:
             pBLogger.warning(
-                ThreadElementsStrings.outdatedError, exc_info=True,
+                thestr.outdatedError, exc_info=True,
             )
         except (URLError, ConnectionError):
             pBLogger.warning(
-                ThreadElementsStrings.outdatedWarning, exc_info=True,
+                thestr.outdatedWarning, exc_info=True,
             )
 
 
@@ -311,9 +311,7 @@ class Thread_authorStats(PBThread):
         try:
             self.parent().lastAuthorStats = False
         except AttributeError:
-            raise Exception(
-                ThreadElementsStrings.errorInvalidParent % "Thread_authorStats"
-            )
+            raise Exception(thestr.errorInvalidParent % "Thread_authorStats")
         self.authorName = name
         self.receiver = receiver
         self.pbMax = pbMax
@@ -354,9 +352,7 @@ class Thread_paperStats(PBThread):
         try:
             self.parent().lastPaperStats = False
         except AttributeError:
-            raise Exception(
-                ThreadElementsStrings.errorInvalidParent % "Thread_paperStats"
-            )
+            raise Exception(thestr.errorInvalidParent % "Thread_paperStats")
         self.inspireId = inspireId
         self.receiver = receiver
         self.pbMax = pbMax
@@ -395,9 +391,7 @@ class Thread_loadAndInsert(PBThread):
         try:
             self.parent().lastAuthorStats = False
         except AttributeError:
-            raise Exception(
-                ThreadElementsStrings.errorInvalidParent % "Thread_loadAndInsert"
-            )
+            raise Exception(thestr.errorInvalidParent % "Thread_loadAndInsert")
         self.content = content
         self.receiver = receiver
         self.pbMax = pbMax
@@ -492,9 +486,7 @@ class Thread_findBadBibtexs(PBThread):
         try:
             self.parent().badBibtexs = False
         except AttributeError:
-            raise Exception(
-                ThreadElementsStrings.errorInvalidParent % "Thread_findBadBibtexs"
-            )
+            raise Exception(thestr.errorInvalidParent % "Thread_findBadBibtexs")
         self.startFrom = startFrom
         self.receiver = receiver
         self.useEntries = useEntries
@@ -770,10 +762,10 @@ class Thread_importDailyArxiv(PBThread):
                 entry = pbWriter.write(db)
                 data = pBDB.bibs.prepareInsert(entry)
                 if pBDB.bibs.insert(data):
-                    pBLogger.info(ThreadElementsStrings.elementInserted % key)
+                    pBLogger.info(thestr.elementInserted % key)
                     inserted.append(key)
                 else:
-                    pBLogger.warning(ThreadElementsStrings.elementFailed % key)
+                    pBLogger.warning(thestr.elementFailed % key)
                     failed.append(key)
                     continue
                 try:
@@ -788,10 +780,10 @@ class Thread_importDailyArxiv(PBThread):
                     if key != newKey:
                         inserted[-1] = newKey
                 except:
-                    pBLogger.warning(ThreadElementsStrings.elementInfoFailed % (key))
+                    pBLogger.warning(thestr.elementInfoFailed % (key))
                     failed.append(key)
-        pBLogger.info(ThreadElementsStrings.elementImported % (inserted))
-        pBLogger.info(ThreadElementsStrings.errorsEntries % (failed))
+        pBLogger.info(thestr.elementImported % (inserted))
+        pBLogger.info(thestr.errorsEntries % (failed))
         self.parent().importArXivResults = (inserted, failed)
         time.sleep(0.1)
         self.receiver.running = False

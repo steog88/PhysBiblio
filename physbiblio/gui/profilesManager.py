@@ -32,7 +32,10 @@ try:
         PBDialog,
         PBLabel,
     )
-    from physbiblio.gui.strings import BasicStrings, ProfilesManagerStrings
+    from physbiblio.gui.strings import (
+        BasicStrings as bastr,
+        ProfilesManagerStrings as pmstr,
+    )
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -65,9 +68,7 @@ def editProfile(parentObject):
                 pbConfig.globalDb.updateProfileField(
                     name, "description", currEl["d"].text()
                 )
-                if currEl["x"].isChecked() and askYesNo(
-                    ProfilesManagerStrings.askCancel % name
-                ):
+                if currEl["x"].isChecked() and askYesNo(pmstr.askCancel % name):
                     pbConfig.globalDb.deleteProfile(name)
                     deleted.append(name)
             elif fileName in [
@@ -83,9 +84,7 @@ def editProfile(parentObject):
                 pbConfig.globalDb.updateProfileField(
                     name, "description", currEl["d"].text()
                 )
-                if currEl["x"].isChecked() and askYesNo(
-                    ProfilesManagerStrings.askCancel % name
-                ):
+                if currEl["x"].isChecked() and askYesNo(pmstr.askCancel % name):
                     pbConfig.globalDb.deleteProfile(name)
                     deleted.append(name)
             else:
@@ -104,9 +103,7 @@ def editProfile(parentObject):
                             os.path.join(pbConfig.dataPath, currEl["c"].currentText()),
                             newFileName,
                         )
-                    pBGUIErrorManager.loggerPriority(0).info(
-                        ProfilesManagerStrings.newCreated
-                    )
+                    pBGUIErrorManager.loggerPriority(0).info(pmstr.newCreated)
         pbConfig.globalDb.setProfileOrder(
             [
                 e["n"].text()
@@ -115,16 +112,15 @@ def editProfile(parentObject):
             ]
         )
         pbConfig.loadProfiles()
-        message = ProfilesManagerStrings.completed
+        message = pmstr.completed
     else:
         pbConfig.profileOrder = oldOrder
-        message = ProfilesManagerStrings.noModifications
+        message = pmstr.noModifications
     try:
         parentObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            BasicStrings.noAttribute % ("parentObject", "statusBarMessage"),
-            exc_info=True,
+            bastr.noAttribute % ("parentObject", "statusBarMessage"), exc_info=True,
         )
 
 
@@ -139,9 +135,7 @@ class SelectProfiles(PBDialog):
             message: a message used as a description
         """
         if not hasattr(parent, "reloadConfig"):
-            raise Exception(
-                ProfilesManagerStrings.errorInvalidParent % "SelectProfiles"
-            )
+            raise Exception(pmstr.errorInvalidParent % "SelectProfiles")
         PBDialog.__init__(self, parent)
         self.message = message
         self.result = False
@@ -157,10 +151,10 @@ class SelectProfiles(PBDialog):
 
     def onLoad(self):
         """Get current selection and (eventually) load new profile"""
-        prof, desc = self.combo.currentText().split(ProfilesManagerStrings.splitter)
+        prof, desc = self.combo.currentText().split(pmstr.splitter)
         newProfile = pbConfig.profiles[prof]
         if prof != pbConfig.currentProfileName:
-            pBLogger.info(ProfilesManagerStrings.changingProfile)
+            pBLogger.info(pmstr.changingProfile)
             pbConfig.reInit(prof, newProfile)
             pBDB.reOpenDB(pbConfig.currentDatabase)
             self.parent().reloadConfig()
@@ -171,7 +165,7 @@ class SelectProfiles(PBDialog):
         """Create a `QGridLayout` with the `PBComboBox` and
         the two selection buttons
         """
-        self.setWindowTitle(ProfilesManagerStrings.selectProfile)
+        self.setWindowTitle(pmstr.selectProfile)
 
         grid = QGridLayout()
         grid.setSpacing(10)
@@ -181,18 +175,17 @@ class SelectProfiles(PBDialog):
             grid.addWidget(PBLabel("%s" % self.message), 0, 0)
             i += 1
 
-        grid.addWidget(PBLabel(ProfilesManagerStrings.availableProfiles), i, 0)
+        grid.addWidget(PBLabel(pmstr.availableProfiles), i, 0)
         self.combo = PBComboBox(
             self,
             [
-                "%s%s%s"
-                % (p, ProfilesManagerStrings.splitter, pbConfig.profiles[p]["d"])
+                "%s%s%s" % (p, pmstr.splitter, pbConfig.profiles[p]["d"])
                 for p in pbConfig.profileOrder
             ],
             current="%s%s%s"
             % (
                 pbConfig.currentProfileName,
-                ProfilesManagerStrings.splitter,
+                pmstr.splitter,
                 pbConfig.profiles[pbConfig.currentProfileName]["d"],
             ),
         )
@@ -200,10 +193,10 @@ class SelectProfiles(PBDialog):
         i += 1
 
         # Load and Cancel button
-        self.loadButton = QPushButton(BasicStrings.load, self)
+        self.loadButton = QPushButton(bastr.load, self)
         self.loadButton.clicked.connect(self.onLoad)
         grid.addWidget(self.loadButton, i, 0)
-        self.cancelButton = QPushButton(BasicStrings.cancel, self)
+        self.cancelButton = QPushButton(bastr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         grid.addWidget(self.cancelButton, i, 1)
@@ -268,19 +261,19 @@ class EditProfileWindow(EditObjectWindow):
             self.elements[-1]["f"].currentText().strip() == ""
             and self.elements[-1]["n"].text().strip() != ""
         ):
-            pBGUILogger.info(ProfilesManagerStrings.cannotCreateEmpty)
+            pBGUILogger.info(pmstr.cannotCreateEmpty)
             return
         if self.elements[-1]["n"].text().strip() in [
             a["n"].text() for a in self.elements[:-1]
         ]:
-            pBGUILogger.info(ProfilesManagerStrings.cannotCreateFieldInUse % "name")
+            pBGUILogger.info(pmstr.cannotCreateFieldInUse % "name")
             return
         if (
             self.elements[-1]["f"].currentText().strip().split(os.sep)[-1] + ".db"
         ).replace(".db.db", ".db") in [
             a["f"].text().split(os.sep)[-1] for a in self.elements[:-1]
         ]:
-            pBGUILogger.info(ProfilesManagerStrings.cannotCreateFieldInUse % "filename")
+            pBGUILogger.info(pmstr.cannotCreateFieldInUse % "filename")
             return
         self.result = True
         self.close()
@@ -321,17 +314,12 @@ class EditProfileWindow(EditObjectWindow):
             try:
                 prof = profilesData[k]
             except KeyError:
-                pBLogger.warning(
-                    ProfilesManagerStrings.missingProfile
-                    % (k, sorted(list(profilesData)))
-                )
+                pBLogger.warning(pmstr.missingProfile % (k, sorted(list(profilesData))))
                 missing.append(k)
                 continue
             for f in ["db", "d"]:
                 if f not in list(prof):
-                    pBLogger.warning(
-                        ProfilesManagerStrings.missingInfo % (f, sorted(list(prof)))
-                    )
+                    pBLogger.warning(pmstr.missingInfo % (f, sorted(list(prof))))
                     prof[f] = ""
             i += 1
             tempEl = {}
@@ -416,31 +404,29 @@ class EditProfileWindow(EditObjectWindow):
         if defaultProfile is None:
             defaultProfile = pbConfig.defaultProfileName
 
-        self.setWindowTitle(ProfilesManagerStrings.editProfile)
+        self.setWindowTitle(pmstr.editProfile)
 
         labels = [
-            PBLabel(BasicStrings.default),
-            PBLabel(BasicStrings.shortName),
-            PBLabel(BasicStrings.filename),
-            PBLabel(BasicStrings.description),
+            PBLabel(bastr.default),
+            PBLabel(bastr.shortName),
+            PBLabel(bastr.filename),
+            PBLabel(bastr.description),
         ]
         for i, e in enumerate(labels):
             self.currGrid.addWidget(e, 0, i)
-        self.currGrid.addWidget(PBLabel(BasicStrings.order), 0, 4, 1, 2)
-        self.currGrid.addWidget(PBLabel(BasicStrings.deleteQ), 0, 6)
+        self.currGrid.addWidget(PBLabel(bastr.order), 0, 4, 1, 2)
+        self.currGrid.addWidget(PBLabel(bastr.deleteQ), 0, 6)
 
         self.addButtons(profilesData, profileOrder)
 
         for f in ["c", "db", "d", "n", "r"]:
             if f not in newLine.keys():
-                pBLogger.warning(
-                    ProfilesManagerStrings.missingField % (f, sorted(list(newLine)))
-                )
+                pBLogger.warning(pmstr.missingField % (f, sorted(list(newLine))))
                 newLine[f] = ""
         i = len(profilesData) + 3
         self.currGrid.addWidget(PBLabel(""), i - 2, 0)
         tempEl = {}
-        self.currGrid.addWidget(PBLabel(ProfilesManagerStrings.addNew), i - 1, 0)
+        self.currGrid.addWidget(PBLabel(pmstr.addNew), i - 1, 0)
         tempEl["r"] = QRadioButton("")
         self.def_group.addButton(tempEl["r"])
         if newLine["r"]:
@@ -469,7 +455,7 @@ class EditProfileWindow(EditObjectWindow):
         tempEl["d"] = QLineEdit(newLine["d"])
         self.currGrid.addWidget(tempEl["d"], i, 3)
 
-        self.currGrid.addWidget(PBLabel(ProfilesManagerStrings.copyFrom), i, 4, 1, 2)
+        self.currGrid.addWidget(PBLabel(pmstr.copyFrom), i, 4, 1, 2)
         tempEl["c"] = QComboBox(self)
         copyElements = ["None"] + registeredDb
         tempEl["c"].addItems(copyElements)
@@ -483,12 +469,12 @@ class EditProfileWindow(EditObjectWindow):
         i += 1
         self.currGrid.addWidget(PBLabel(""), i, 0)
         # OK button
-        self.acceptButton = QPushButton(BasicStrings.ok, self)
+        self.acceptButton = QPushButton(bastr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i + 1, 1)
 
         # cancel button
-        self.cancelButton = QPushButton(BasicStrings.cancel, self)
+        self.cancelButton = QPushButton(bastr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i + 1, 2)
@@ -523,7 +509,7 @@ class EditProfileWindow(EditObjectWindow):
             tempOrder[ix] = currentOrder[ix + 1]
             tempOrder[ix + 1] = currentOrder[ix]
         except IndexError:
-            pBLogger.warning(ProfilesManagerStrings.errorSwitchLines)
+            pBLogger.warning(pmstr.errorSwitchLines)
             return False
         self.cleanLayout()
         self.createForm(currentValues, tempOrder, newLine)

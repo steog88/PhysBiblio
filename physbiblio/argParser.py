@@ -66,7 +66,7 @@ def call_tests(args):
     testRunner = unittest.runner.TextTestRunner()
     result = testRunner.run(suite)
     if not result.wasSuccessful():
-        raise Exception("Some error occurred during tests")
+        raise Exception(apstr.testFailed)
 
 
 def call_tex(args):

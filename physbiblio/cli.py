@@ -18,6 +18,7 @@ try:
     from physbiblio.view import pBView
     from physbiblio.inspireStats import pBStats
     from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.strings import CLIStrings as clistr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -33,9 +34,6 @@ def cli():
     vars = globals().copy()
     vars.update(locals())
     shell = code.InteractiveConsole(vars)
-    shell.interact(
-        "[CLI] Activating CommandLineInterface\n"
-        + "Write a command and press Enter ('Ctrl+D' or 'exit()' to exit)."
-    )
+    shell.interact(clistr.activate)
     pBDB.closeDB()
-    pBLogger.info("CommandLineInterface closed.")
+    pBLogger.info(clistr.close)

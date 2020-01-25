@@ -10,6 +10,7 @@ from pylatexenc.latexencode import utf8tolatex
 
 try:
     from physbiblio.errors import pBLogger
+    from physbiblio.strings import ParseAccentsStrings as pastr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -47,9 +48,7 @@ def parse_accents_record(record):
         if val is not "ID" and len(record[val].strip()) > 0:
             tmp = utf8tolatex(record[val], non_ascii_only=True)
             if tmp != record[val]:
-                pBLogger.info(
-                    "    -> Converting bad characters in entry %s: " % record["ID"]
-                )
+                pBLogger.info(pastr.converting % record["ID"])
                 pBLogger.info("         -- " + tmp.encode("utf-8"))
                 accents_changed.append(record["ID"])
             record[val] = tmp

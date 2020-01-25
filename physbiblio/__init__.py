@@ -20,6 +20,7 @@ __all__ = [
     "inspireStats",
     "parseAccents",
     "pdf",
+    "strings",
     "tablesDef",
     "view",
     "tests",
