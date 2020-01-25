@@ -20,8 +20,14 @@ if sys.version_info[0] < 3:
 else:
     from io import StringIO
 
+try:
+    from physbiblio.gui.strings import BasicStrings, BasicDialogsStrings
+except ImportError:
+    print("Could not find physbiblio and its modules!")
+    print(traceback.format_exc())
 
-def askYesNo(message, title="Question"):
+
+def askYesNo(message, title=BasicDialogsStrings.question):
     """Uses `QMessageBox` to ask "Yes" or "No" for a given question.
 
     Parameters:
@@ -43,7 +49,7 @@ def askYesNo(message, title="Question"):
         return False
 
 
-def infoMessage(message, title="Information"):
+def infoMessage(message, title=BasicDialogsStrings.information):
     """Uses `QMessageBox` to show a simple message.
 
     Parameters:
@@ -57,7 +63,7 @@ def infoMessage(message, title="Information"):
 class LongInfoMessage(QDialog):
     """`infoMessage` version when a long text is expected"""
 
-    def __init__(self, message, title="Information"):
+    def __init__(self, message, title=BasicDialogsStrings.information):
         """Class constructor.
 
         Parameters:
@@ -70,7 +76,7 @@ class LongInfoMessage(QDialog):
         self.textarea = QTextEdit(message)
         self.textarea.setReadOnly(True)
         self.gridlayout.addWidget(self.textarea, 0, 0, 1, 2)
-        self.okbutton = QPushButton("OK", self)
+        self.okbutton = QPushButton(BasicStrings.ok, self)
         self.okbutton.clicked.connect(lambda: QDialog.close(self))
         self.gridlayout.addWidget(self.okbutton, 1, 1)
         self.setLayout(self.gridlayout)
@@ -105,7 +111,7 @@ def askGenericText(message, title, parent=None, previous=""):
     return dialog.textValue(), out
 
 
-def askFileName(parent=None, title="Filename to use:", filter="", dir=""):
+def askFileName(parent=None, title=BasicDialogsStrings.fn2Use, filter="", dir=""):
     """Uses `QFileDialog` to ask the name of a single, existing file
 
     Parameters (all optional):
@@ -130,7 +136,7 @@ def askFileName(parent=None, title="Filename to use:", filter="", dir=""):
         return ""
 
 
-def askFileNames(parent=None, title="Filename to use:", filter="", dir=""):
+def askFileNames(parent=None, title=BasicDialogsStrings.fn2Use, filter="", dir=""):
     """Uses `QFileDialog` to ask the names of a set of existing files
 
     Parameters (all optional):
@@ -153,7 +159,7 @@ def askFileNames(parent=None, title="Filename to use:", filter="", dir=""):
         return []
 
 
-def askSaveFileName(parent=None, title="Filename to use:", filter="", dir=""):
+def askSaveFileName(parent=None, title=BasicDialogsStrings.fn2Use, filter="", dir=""):
     """Uses `QFileDialog` to ask the names of a single file
     where something will be saved (the file may not exist)
 
@@ -180,7 +186,7 @@ def askSaveFileName(parent=None, title="Filename to use:", filter="", dir=""):
         return ""
 
 
-def askDirName(parent=None, title="Directory to use:", dir=""):
+def askDirName(parent=None, title=BasicDialogsStrings.dir2Use, dir=""):
     """Uses `QFileDialog` to ask the names of a single directory
 
     Parameters (all optional):
