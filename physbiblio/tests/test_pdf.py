@@ -68,7 +68,7 @@ class TestPdfMethods(unittest.TestCase):
             _if.assert_not_called()
             _mk.assert_not_called()
             pdf.checkFolderExists()
-            _if.assert_called_once_with("PDF folder missing: /a/b/c. Creating it.")
+            _if.assert_called_once_with("PDF folder is missing: /a/b/c. Creating it.")
             _mk.assert_called_once_with("/a/b/c")
 
     def test_fnames(self):

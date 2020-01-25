@@ -10,6 +10,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.pdf import pBPDF
+    from physbiblio.strings.main import ViewStrings as vstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -77,12 +78,7 @@ class ViewEntry:
             pBPDF.openFile(key, fileArg)
             return fileArg
         else:
-            pBLogger.warning(
-                "Invalid selection or missing information.\n"
-                + "Use one of (arxiv|doi|inspire|file) and "
-                + "check that all the information is available "
-                + "for entry '%s'." % key
-            )
+            pBLogger.warning(vstr.warningInvalidUse % key)
             return False
 
         return link
@@ -107,7 +103,7 @@ class ViewEntry:
                 link = self.getLink(key, arg=arg, fileArg=fileArg)
             if link:
                 if self.webApp != "":
-                    pBLogger.info("Opening '%s'..." % link)
+                    pBLogger.info(vstr.opening % link)
                     try:
                         subprocess.Popen(
                             [self.webApp, link],
@@ -115,11 +111,9 @@ class ViewEntry:
                             stderr=subprocess.STDOUT,
                         )
                     except OSError:
-                        pBLogger.warning("Opening link for '%s' failed!" % key)
+                        pBLogger.warning(vstr.openingFailed % ("link", key))
             else:
-                pBLogger.warning(
-                    "Impossible to get the '%s'" % arg + " link for entry '%s'" % key
-                )
+                pBLogger.warning(vstr.errorLink % (arg, key))
 
 
 pBView = ViewEntry()

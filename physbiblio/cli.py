@@ -18,7 +18,7 @@ try:
     from physbiblio.view import pBView
     from physbiblio.inspireStats import pBStats
     from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.strings.physbiblio import CLIStrings as clistr
+    from physbiblio.strings.main import CLIStrings as clistr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

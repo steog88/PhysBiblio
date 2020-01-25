@@ -22,7 +22,7 @@ else:
 
 try:
     from physbiblio.strings.gui import (
-        BasicStrings as bastr,
+        CommonStrings as bastr,
         BasicDialogsStrings as bdstr,
     )
 except ImportError:

@@ -1,22 +1,7 @@
-class BasicStrings:
-    """Some common strings for the package"""
-
-    cancel = "Cancel"
-    default = "Default"
-    deleteQ = "Delete?"
-    description = "Description"
-    errorInvalidParent = "Cannot run %s: invalid parent"
-    filename = "Filename"
-    information = "Information"
-    load = "Load"
-    noAttribute = "%s has no attribute '%s'"
-    ok = "OK"
-    order = "Order"
-    question = "Question"
-    shortName = "Short name"
+from .common import CommonStrings
 
 
-class BasicDialogsStrings(BasicStrings):
+class BasicDialogsStrings(CommonStrings):
     """Strings for the basicDialogs module"""
 
     dir2Use = "Directory to use:"
@@ -27,7 +12,7 @@ class BibWindowsStrings:
     """Strings for the bibWindows module"""
 
 
-class ProfilesManagerStrings(BasicStrings):
+class ProfilesManagerStrings(CommonStrings):
     """Strings for the profileManager module"""
 
     addNew = "Add new?"
@@ -54,7 +39,7 @@ class ProfilesManagerStrings(BasicStrings):
     splitter = " -- "
 
 
-class ThreadElementsStrings(BasicStrings):
+class ThreadElementsStrings(CommonStrings):
     """Strings for the threadElements module"""
 
     outdatedError = (

@@ -19,6 +19,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
     from physbiblio.database import pBDB
+    from physbiblio.strings.main import PDFStrings as pstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -43,7 +44,7 @@ class LocalPDF:
     def checkFolderExists(self):
         """Check if the PDF folder exists. If not, create it"""
         if not os.path.isdir(self.pdfDir):
-            pBLogger.info("PDF folder missing: %s. Creating it." % self.pdfDir)
+            pBLogger.info(pstr.folderMissing % self.pdfDir)
             os.makedirs(self.pdfDir)
 
     def badFName(self, filename):
@@ -57,7 +58,7 @@ class LocalPDF:
         """
         newFilename = ""
         if not isinstance(filename, six.string_types):
-            pBLogger.warning("Wrong filename type! %s" % filename)
+            pBLogger.warning(pstr.wrongType % filename)
             return ""
         for i in filename:
             if i not in self.badFNameCharacters:
@@ -96,14 +97,11 @@ class LocalPDF:
             the (cleaned) absolute path for the PDF file
         """
         if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
-            pBLogger.warning("Required field does not exist or is not valid")
+            pBLogger.warning(pstr.errorField)
             return ""
         filename = pBDB.bibs.getField(key, fileType)
         if filename is None:
-            pBLogger.warning(
-                "Impossible to get the type '%s' " % fileType
-                + "filename for entry %s" % key
-            )
+            pBLogger.warning(pstr.errorGetType % (fileType, key))
             return ""
         else:
             filename = self.badFName(filename)
@@ -132,7 +130,7 @@ class LocalPDF:
         olddir = self.getFileDir(oldkey)
         if osp.exists(olddir):
             newdir = self.getFileDir(newkey)
-            pBLogger.info("Renaming %s to %s" % (olddir, newdir))
+            pBLogger.info(pstr.rename % (olddir, newdir))
             return shutil.move(olddir, newdir)
         else:
             return False
@@ -160,18 +158,14 @@ class LocalPDF:
         elif fileType is not None:
             newFileName = self.getFilePath(key, fileType)
         else:
-            pBLogger.warning(
-                "You should supply a fileType ('doi' or 'arxiv') or a customName!"
-            )
+            pBLogger.warning(pstr.errorMissingArg)
             return False
         try:
             shutil.copy2(origFileName, newFileName)
-            pBLogger.info("%s copied to %s" % (origFileName, newFileName))
+            pBLogger.info(pstr.copied % (origFileName, newFileName))
             return True
         except:
-            pBLogger.exception(
-                "Impossible to copy %s to %s" % (origFileName, newFileName)
-            )
+            pBLogger.exception(pstr.errorCopy % (origFileName, newFileName))
             return False
 
     def copyToDir(self, outFolder, key, fileType=None, customName=None):
@@ -194,16 +188,14 @@ class LocalPDF:
         elif fileType is not None:
             origFile = self.getFilePath(key, fileType)
         else:
-            pBLogger.warning(
-                "You should supply a fileType ('doi' or 'arxiv') or a customName!"
-            )
+            pBLogger.warning(pstr.errorMissingArg)
             return False
         try:
             shutil.copy2(origFile, outFolder)
-            pBLogger.info("%s copied to %s" % (origFile, outFolder))
+            pBLogger.info(pstr.copied % (origFile, outFolder))
             return True
         except:
-            pBLogger.exception("Impossible to copy %s to %s" % (origFile, outFolder))
+            pBLogger.exception(pstr.errorCopy % (origFile, outFolder))
             return False
 
     def downloadArxiv(self, key, force=False):
@@ -219,32 +211,27 @@ class LocalPDF:
         """
         filename = self.getFilePath(key, "arxiv")
         if osp.exists(filename) and not force:
-            pBLogger.info("There is already a pdf and overwrite not requested.")
+            pBLogger.info(pstr.pdfPresent)
             return True
         self.createFolder(key)
         url = pBDB.bibs.getArxivUrl(key, "pdf")
         if url is False:
-            pBLogger.warning(
-                "Invalid arXiv PDF url for '%s'," % key
-                + " probably the field is empty."
-            )
+            pBLogger.warning(pstr.errorArxivUrl % key)
             return False
-        pBLogger.info("Downloading arXiv PDF from %s" % url)
+        pBLogger.info(pstr.downloading % url)
         try:
             response = urlopen(url)
         except (URLError, ConnectionError):
-            pBLogger.exception(
-                "ArXiv PDF for '%s' not found " % key + "(404 error on url: %s)" % url
-            )
+            pBLogger.exception(pstr.pdfNotFound % key + pstr.e404 % url)
             return False
         else:
             try:
                 with open(filename, "wb") as newF:
                     newF.write(response.read())
             except OSError:
-                pBLogger.exception("Impossible to save to '%s'" % filename)
+                pBLogger.exception(pstr.errorSave % filename)
             else:
-                pBLogger.info("File saved to %s" % filename)
+                pBLogger.info(pstr.saved % filename)
                 return os.path.exists(filename)
 
     def openFile(self, key, arg=None, fileType=None, fileNum=None, fileName=None):
@@ -280,20 +267,17 @@ class LocalPDF:
             elif fileName is not None:
                 fName = osp.join(self.getFileDir(key), fileName)
             else:
-                pBLogger.warning(
-                    "Invalid selection. "
-                    + "One among fileType, fileNum or fileName must be given!"
-                )
+                pBLogger.warning(pstr.errorInvalidSel)
                 return
             if self.pdfApp != "":
-                pBLogger.info("Opening '%s'..." % fName)
+                pBLogger.info(pstr.opening % fName)
                 subprocess.Popen(
                     [self.pdfApp, fName],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                 )
         except:
-            pBLogger.exception("Opening PDF for '%s' failed!" % key)
+            pBLogger.exception(pstr.openingFailed % ("PDF", key))
 
     def checkFile(self, key, fileType):
         """Check if a file of a given type (arxiv, doi, ...)
@@ -310,7 +294,7 @@ class LocalPDF:
             boolean (if the arguments are valid) or None (if fileType is bad)
         """
         if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
-            pBLogger.warning("Invalid argument to checkFile!")
+            pBLogger.warning(pstr.invalidCheckFileArg)
             return
         return os.path.isfile(self.getFilePath(key, fileType))
 
@@ -334,9 +318,9 @@ class LocalPDF:
         try:
             os.remove(fileName)
         except OSError:
-            pBLogger.exception("Impossible to remove file: %s" % fileName)
+            pBLogger.exception(pstr.errorRemove % fileName)
             return False
-        pBLogger.info("File %s removed" % fileName)
+        pBLogger.info(pstr.removed % fileName)
         return True
 
     def getExisting(self, key, fullPath=False):
@@ -358,7 +342,7 @@ class LocalPDF:
         try:
             files = [e for e in dircontent if osp.isfile(osp.join(fileDir, e))]
         except (FileNotFoundError, IOError):
-            pBLogger.exception("Error in listing the files")
+            pBLogger.exception(pstr.errorList)
             return []
         if fullPath:
             files = [osp.join(fileDir, e) for e in files]
@@ -369,9 +353,7 @@ class LocalPDF:
         using self.getExisting to get it.
         Same parameters as self.getExisting.
         """
-        pBLogger.info(
-            "Listing file for entry '%s', located in %s:" % (key, self.getFileDir(key))
-        )
+        pBLogger.info(pstr.listing % (key, self.getFileDir(key)))
         for i, e in enumerate(self.getExisting(key, fullPath=fullPath)):
             pBLogger.info("%2d: %s" % (i, e))
 
@@ -409,15 +391,12 @@ class LocalPDF:
             if cleaned in folders:
                 del folders[folders.index(cleaned)]
         if len(folders) > 0:
-            pBLogger.info(
-                "Spare PDF folders found: %d\n%s\n" % (len(folders), folders)
-                + "They will be removed now."
-            )
+            pBLogger.info(pstr.spareFound % (len(folders), folders))
             for f in folders:
                 shutil.rmtree(osp.join(self.pdfDir, f))
-            pBLogger.info("Done!")
+            pBLogger.info(pstr.doneE)
         else:
-            pBLogger.warning("Nothing found.")
+            pBLogger.warning(pstr.nothingFound)
 
     def mergePDFFolders(self, oldkey, newkey):
         """Copy the PDF files that exist in one folder to a new one
@@ -432,9 +411,9 @@ class LocalPDF:
         for o in oldPDFs:
             try:
                 shutil.copy2(o, outFolder)
-                pBLogger.info("%s copied to %s" % (o, outFolder))
+                pBLogger.info(pstr.copied % (o, outFolder))
             except:
-                pBLogger.exception("Impossible to copy %s to %s" % (o, outFolder))
+                pBLogger.exception(pstr.errorCopy % (o, outFolder))
 
     def numberOfFiles(self, folder):
         """Get the total number of files inside the given folder
@@ -487,7 +466,7 @@ class LocalPDF:
             try:
                 total_size = os.path.getsize(folder)
             except error_class:
-                pBLogger.error("PDF folder is missing: %s. Creating it." % folder)
+                pBLogger.error(pstr.folderMissing % folder)
                 os.makedirs(folder)
                 return os.path.getsize(folder)
         else:
@@ -526,18 +505,18 @@ class LocalPDF:
             exponent = allowedUnits.index(units.upper())
             unitsU = units.upper()
         except ValueError:
-            pBLogger.warning("Invalid units. Changing to 'MB'.")
+            pBLogger.warning(pstr.errorUnits)
             exponent = 2
             unitsU = "MB"
         try:
             sizeWUnits = size / 1024.0 ** (exponent)
         except TypeError:
-            pBLogger.warning("Invalid size. It must be a number!")
+            pBLogger.warning(pstr.errorSize)
             return "nan"
         try:
             return fmt % sizeWUnits + unitsU
         except (TypeError, ValueError):
-            pBLogger.warning("Invalid format. Using '%.2f'")
+            pBLogger.warning(pstr.errorFormat)
             return "%.2f" % sizeWUnits + unitsU
 
 

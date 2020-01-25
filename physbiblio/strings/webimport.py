@@ -1,5 +1,8 @@
-class GenericStrings:
-    """Generic strings that are used in the entire package"""
+from .common import CommonStrings
+
+
+class GenericStrings(CommonStrings):
+    """Generic strings that are used in the entire module"""
 
     genericError = "Impossible to get results"
     searchInfo = "Search '%s' -> %s"
@@ -38,11 +41,10 @@ class InspireStrings(GenericStrings):
     searchIDInfo = "Search ID of %s -> %s"
 
 
-class InspireOAIStrings:
+class InspireOAIStrings(GenericStrings):
     """Strings for the inspireoai module"""
 
     cannotSearch = "Inspireoai cannot search strings in the DB"
-    doneString = "Done."
     emptyRecord = "Empty record!"
     endString = "END --- %s \n\n"
     errorInvalidBibtex = "Invalid bibtex!\n%s"

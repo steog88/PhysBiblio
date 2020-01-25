@@ -33,7 +33,7 @@ try:
         PBLabel,
     )
     from physbiblio.strings.gui import (
-        BasicStrings as bastr,
+        CommonStrings as bastr,
         ProfilesManagerStrings as pmstr,
     )
 except ImportError:

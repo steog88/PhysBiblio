@@ -419,7 +419,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
             if bibtex is not None and res["pages"] is not None:
                 outcome, bibtex = self.updateBibtex(res, bibtex)
             if verbose > 0:
-                pBLogger.info(self.doneString)
+                pBLogger.info(self.doneD)
             return res
         except Exception:
             pBLogger.exception(self.errorMarcxml % inspireID)

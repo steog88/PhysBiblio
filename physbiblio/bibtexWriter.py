@@ -3,10 +3,11 @@
 
 This file is part of the physbiblio package.
 """
+import traceback
 from bibtexparser.bwriter import BibTexWriter
 
 try:
-    from physbiblio.strings.physbiblio import BibtexWriterStrings as bwstr
+    from physbiblio.strings.main import BibtexWriterStrings as bwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
