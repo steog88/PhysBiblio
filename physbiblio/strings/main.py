@@ -4,7 +4,46 @@ from .common import CommonStrings
 class ArgParserStrings:
     """Strings for the physbiblio.argParser module"""
 
+    cleanHelp = "clean the entries in the database"
+    cleanStartHelp = "the index from which the cleaning should start"
+    cliHelp = "open the internal command line interface"
+    closeMainW = "Closing main window..."
+    dailyHelp = "fetch the daily updates from INSPIRE-HEP OAI"
+    datesEndHelp = "the ending date (format as yyyy-mm-dd)"
+    datesHelp = "fetch the updates from INSPIRE-HEP OAI between the given dates"
+    datesStartHelp = "the starting date (format as yyyy-mm-dd)"
+    exportFilenameHelp = "the filename where to save the entries"
+    exportHelp = "export all the entries in the database in a file"
+    guiHelp = "open the gui"
+    profileHelp = "define the profile that must be used"
+    subHelp = "sub-command help"
     testFailed = "Some error occurred during tests"
+    testHelp = "run the test suite"
+    testDbHelp = "do not perform database tests"
+    testGuiHelp = "do not perform gui tests"
+    testLongHelp = "do not perform long tests"
+    testOAIHelp = "do not perform online tests with INSPIRE OAI"
+    testOnlineHelp = "do not perform online tests"
+    texHelp = "read .tex file(s) and create a *.bib file with the cited bibtexs"
+    texBibHelp = "the filename of the bib file where to write"
+    texOverwriteHelp = "overwrite the bib file, if existing"
+    texRemoveHelp = (
+        "remove from the .bib file those elements "
+        + "that are not more used in the tex"
+    )
+    texReorderHelp = "reorder the elements in the .bib file and add new ones"
+    texSaveHelp = "save the changes in the database"
+    texTexsHelp = (
+        "the filename of the tex file to read. A folder or wildcards are admitted"
+    )
+    texUpdateHelp = (
+        "update the elements in the .bib file if they changed "
+        + "in the database and remove duplicated entries"
+    )
+    updateHelp = "use INSPIRE to update the information in the database"
+    updateForceHelp = "force the update"
+    updateStartHelp = "the index from which the updating should start"
+    weeklyHelp = "fetch the weekly updates from INSPIRE-HEP OAI"
 
 
 class BibtexWriterStrings:
@@ -117,21 +156,36 @@ class ConfigStrings:
     startWProfile = "Starting with profile '%s', database: %s"
 
 
-class DatabaseStrings:
-    """Strings for the physbiblio.database module"""
-
-
 class DatabaseCoreStrings:
     """Strings for the physbiblio.databaseCore module"""
 
     closeDb = "Closing database..."
+    errorAlterEntries = "Cannot alter table 'entries'!"
     errorCannotCommit = "Impossible to commit!"
     errorCannotRollback = "Impossible to rollback!"
-    invalidIsLocked= "Invalid `self.onIsLocked`!"
+    errorConnection = "Connection error: %s\nquery: %s"
+    errorCreateTable = "Create table %s failed"
+    errorCursor = (
+        "Cursor error: %s\n" + 'The query was: "%s"\n' + " and the parameters: %s"
+    )
+    errorInsMainCats = "Insert main categories failed"
+    errorInsUpd = "Cannot insert/update: ID exists!\n%s\nquery: %s"
+    errorLiteralEval = "Error in literal_eval with string '%s'"
+    invalidIsLocked = "Invalid `self.onIsLocked`!"
+    newColEntries = "New column in table 'entries': 'bibdict' (text)."
     noDatabaseCreate = "-------New database or missing tables.\nCreating them!\n\n"
     openDb = "Opening database: %s"
+    opErDbOpen = (
+        "OperationalError: the database is already open "
+        + "in another instance of the application\n"
+        + "query failed: %s"
+    )
     rollbackDb = "Rolled back to last commit."
     savedDb = "Database saved."
+
+
+class DatabaseStrings:
+    """Strings for the physbiblio.database module"""
 
 
 class ErrorsStrings:
@@ -254,6 +308,81 @@ class PDFStrings(CommonStrings):
 
 class TablesDefStrings:
     """Strings for the physbiblio.tablesDef module"""
+
+    catsDescs = {
+        "idCat": "Unique ID that identifies the category",
+        "name": "Name of the category",
+        "description": "Description of the category",
+        "parentCat": "Parent category",
+        "comments": "Comments",
+        "ord": "Ordering when plotting (not yet implemented)",
+    }
+    entriesCatsDescs = {
+        "idEnC": "Unique identifier",
+        "bibkey": "Corresponding bibtex key",
+        "idCat": "Corresponding category ID",
+    }
+    entriesDescs = {
+        "bibkey": "Unique bibtex key that identifies the bibliographic element",
+        "inspire": "INSPIRE-HEP ID of the record",
+        "arxiv": "arXiv ID of the record",
+        "ads": "NASA ADS ID of the record",
+        "scholar": "Google Scholar ID of the record",
+        "doi": "DOI of the record",
+        "isbn": "ISBN code of the record",
+        "year": "Year of publication",
+        "link": "Web link to article or additional material",
+        "comments": "Comments",
+        "old_keys": "Previous bibtex keys of the record",
+        "crossref": "Bibtex crossref reference",
+        "bibtex": "Bibtex entry",
+        "firstdate": "Date of first appearance",
+        "pubdate": "Date of publication",
+        "exp_paper": "(T/F) The entry is a collaboration paper of some experiment",
+        "lecture": "(T/F) The entry is a lecture",
+        "phd_thesis": "(T/F) The entry is a PhD thesis",
+        "review": "(T/F) The entry is a review",
+        "proceeding": "(T/F) The entry is a proceeding",
+        "book": "(T/F) The entry is a book",
+        "noUpdate": "(T/F) The entry has been created/modified by the user "
+        + "and/or should not be updated",
+        "marks": "Mark the record",
+        "abstract": "Abstract of the record",
+        "bibdict": "Dictionary with fields of the bibtex entry from bibtexparser",
+    }
+    entriesExpsDescs = {
+        "idEnEx": "Unique identifier",
+        "bibkey": "Corresponding bibtex key",
+        "idExp": "Corresponding experiment ID",
+    }
+    expsCatsDescs = {
+        "idExC": "Unique identifier",
+        "idExp": "Corresponding experiment ID",
+        "idCat": "Corresponding category ID",
+    }
+    expsDescs = {
+        "idExp": "Unique ID that identifies the experiment",
+        "name": "Name of the experiment",
+        "comments": "Description or comments",
+        "homepage": "Web link to the experiment homepage",
+        "inspire": "INSPIRE-HEP ID of the experiment record",
+    }
+    searchesDescs = {
+        "idS": "Unique identifier",
+        "name": "Custom name of the search/replace",
+        "count": "Order of the entry in the cronology",
+        "searchDict": "Dictionary of fields to be passed to fetchByDict",
+        "limit": "The max number of results in the search",
+        "offset": "The offset in the search",
+        "replaceFields": "List of fields used in replacement",
+        "manual": "Manually saved",
+        "isReplace": "(T/F) A replacement or a simple search",
+    }
+    settingsDescs = {
+        "id": "Unique identifier",
+        "name": "name of the setting",
+        "value": "value of the setting",
+    }
 
 
 class ViewStrings(CommonStrings):

@@ -60,9 +60,7 @@ class PhysBiblioDBCore:
         if not noOpen:
             self.openDB(info=info)
             if db_is_new or self.checkExistingTables():
-                self.logger.info(
-                    dbcstr.noDatabaseCreate
-                )
+                self.logger.info(dbcstr.noDatabaseCreate)
                 self.createTables()
             self.checkDatabaseUpdates()
 
@@ -196,21 +194,15 @@ class PhysBiblioDBCore:
         except OperationalError as err:
             if str(err) == "database is locked":
                 if not self.sendDBIsLocked():
-                    self.logger.error(
-                        "OperationalError: the database is already open "
-                        + "in another instance of the application\n"
-                        + "query failed: %s" % query
-                    )
+                    self.logger.error(dbcstr.opErDbOpen % query)
             else:
-                self.logger.exception("Connection error: %s\nquery: %s" % (err, query))
+                self.logger.exception(dbcstr.errorConnection % (err, query))
             return False
         except IntegrityError as err:
-            self.logger.exception(
-                "Cannot insert/update: ID exists!\n%s\nquery: %s" % (err, query)
-            )
+            self.logger.exception(dbcstr.errorInsUpd % (err, query))
             return False
         except (ProgrammingError, DatabaseError, InterfaceError) as err:
-            self.logger.exception("Connection error: %s\nquery: %s" % (err, query))
+            self.logger.exception(dbcstr.errorConnection % (err, query))
             return False
         else:
             self.dbChanged = True
@@ -233,11 +225,7 @@ class PhysBiblioDBCore:
             else:
                 self.curs.execute(query)
         except Exception as err:
-            self.logger.exception(
-                "Cursor error: %s\n" % err
-                + 'The query was: "%s"\n' % query
-                + " and the parameters: %s" % (data,)
-            )
+            self.logger.exception(dbcstr.errorCursor % (err, query, data,))
             return False
         else:
             return True
@@ -288,7 +276,7 @@ class PhysBiblioDBCore:
         command += ");"
         self.logger.info(command + "\n")
         if not self.connExec(command):
-            self.logger.critical("Create table %s failed" % q)
+            self.logger.critical(dbcstr.errorCreateTable % q)
             if critical:
                 sys.exit(1)
         else:
@@ -324,7 +312,7 @@ class PhysBiblioDBCore:
             )
             self.logger.info(command + "\n")
             if not self.connExec(command):
-                self.logger.error("Insert main categories failed")
+                self.logger.error(dbcstr.errorInsMainCats)
         self.commit()
 
     def checkDatabaseUpdates(self):
@@ -336,10 +324,10 @@ class PhysBiblioDBCore:
         entriesCols = [name[1] for name in self.curs]
         if "bibdict" not in entriesCols:
             if self.connExec("ALTER TABLE entries ADD COLUMN bibdict text;"):
-                self.logger.info("New column in table 'entries': 'bibdict' (text).")
+                self.logger.info(dbcstr.newColEntries)
                 self.commit()
             else:
-                self.logger.error("Cannot alter table 'entries'!")
+                self.logger.error(dbcstr.errorAlterEntries)
                 self.undo()
 
 
@@ -387,9 +375,7 @@ class PhysBiblioDBSub:
             else:
                 return string.strip()
         except SyntaxError:
-            self.mainDB.logger.warning(
-                "Error in literal_eval with string '%s'" % string
-            )
+            self.mainDB.logger.warning(dbcstr.errorLiteralEval % string)
             return None
 
     def closeDB(self):
