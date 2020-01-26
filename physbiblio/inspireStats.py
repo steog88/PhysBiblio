@@ -24,6 +24,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 try:
     from physbiblio.errors import pBLogger
     from physbiblio.config import pbConfig
+    from physbiblio.strings.main import InspireStatsStrings as isstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -70,7 +71,7 @@ class InspireStatsLoader:
             matplotlib.use(wantBackend, warn=False, force=True)
             from matplotlib import pyplot as plt
 
-            pBLogger.info("Changed backend to %s" % matplotlib.get_backend())
+            pBLogger.info(isstr.changeBackend % matplotlib.get_backend())
 
     def JsonFromUrl(self, url):
         """Function that downloads the url content
@@ -88,10 +89,10 @@ class InspireStatsLoader:
             try:
                 return json.loads(response.content.decode("utf-8"))
             except ValueError:
-                pBLogger.warning("Empty response!")
+                pBLogger.warning(isstr.emptyResponse)
                 return []
             except:
-                pBLogger.exception("Cannot read the page content!")
+                pBLogger.exception(isstr.errorReadPage)
                 return []
 
         ser = 0
@@ -161,7 +162,7 @@ class InspireStatsLoader:
                 self.authorStats(a, reset=False)
             self.authorPlotInfo["name"] = authorName
             return self.authorPlotInfo
-        pBLogger.info("Stats for author '%s'" % authorName)
+        pBLogger.info(isstr.authorStats % authorName)
         url = (
             pbConfig.inspireSearchBase
             + "?p=author:"
@@ -171,9 +172,7 @@ class InspireStatsLoader:
         data = self.JsonFromUrl(url)
         recid_authorPapers = ["%d" % a["recid"] for a in data]
         tot = len(recid_authorPapers)
-        pBLogger.info(
-            "AuthorStats will process %d " % tot + "total papers to retrieve citations"
-        )
+        pBLogger.info(isstr.authorStatsProcess % tot)
         self.runningAuthorStats = True
         try:
             pbMax(len(recid_authorPapers))
@@ -185,11 +184,7 @@ class InspireStatsLoader:
             except TypeError:
                 pass
             if not self.runningAuthorStats:
-                pBLogger.info(
-                    "Received 'stop' signal. "
-                    + "Interrupting download of information. "
-                    + "Processing and exiting..."
-                )
+                pBLogger.info(isstr.stopReceived)
                 break
             if tot > 20:
                 time.sleep(1)
@@ -199,8 +194,7 @@ class InspireStatsLoader:
             self.allInfoA[p]["date"] = dateutil.parser.parse(data[i]["creation_date"])
             self.authorPapersList[0].append(self.allInfoA[p]["date"])
             pBLogger.info(
-                "%5d / %d (%5.2f%%) - looking for paper: '%s'"
-                % (i + 1, tot, 100.0 * (i + 1) / tot, p)
+                isstr.authorStatsLooking % (i + 1, tot, 100.0 * (i + 1) / tot, p)
             )
             paperInfo = self.paperStats(
                 p, verbose=0, paperDate=self.allInfoA[p]["date"]
@@ -214,7 +208,7 @@ class InspireStatsLoader:
         for i, p in enumerate(sorted(self.authorPapersList[0])):
             self.authorPapersList[0][i] = p
             self.authorPapersList[1].append(i + 1)
-        pBLogger.info("Saving citation counts...")
+        pBLogger.info(isstr.savingCitations)
         allCitList = [[], []]
         meanCitList = [[], []]
         currPaper = 0
@@ -246,7 +240,7 @@ class InspireStatsLoader:
         }
         if plot:
             self.authorPlotInfo["figs"] = self.plotStats(author=True)
-        pBLogger.info("Stats for author '%s' completed!" % authorName)
+        pBLogger.info(isstr.authorStatsCompleted % authorName)
         return self.authorPlotInfo
 
     def paperStats(
@@ -308,7 +302,7 @@ class InspireStatsLoader:
             self.paperPlotInfo["id"] = paperID
             return self.paperPlotInfo
         if verbose > 0:
-            pBLogger.info("Stats for paper '%s'" % paperID)
+            pBLogger.info(isstr.paperStats % paperID)
         url = (
             pbConfig.inspireSearchBase
             + "?p=refersto:recid:"
@@ -341,7 +335,7 @@ class InspireStatsLoader:
         if plot:
             self.paperPlotInfo["fig"] = self.plotStats(paper=True)
         if verbose > 0:
-            pBLogger.info("Done!")
+            pBLogger.info(isstr.doneE)
         return self.paperPlotInfo
 
     def plotStats(
@@ -379,7 +373,7 @@ class InspireStatsLoader:
         """
         if paper and self.paperPlotInfo is not None:
             if len(self.paperPlotInfo["citList"][0]) > 0:
-                pBLogger.info("Plotting for paper '%s'..." % self.paperPlotInfo["id"])
+                pBLogger.info(isstr.plotPaper % self.paperPlotInfo["id"])
                 fig, ax = plt.subplots()
                 plt.plot(
                     self.paperPlotInfo["citList"][0],
@@ -396,7 +390,7 @@ class InspireStatsLoader:
                 plt.close()
                 return fig
         elif author and self.authorPlotInfo is not None:
-            pBLogger.info("Plotting for author '%s'..." % self.authorPlotInfo["name"])
+            pBLogger.info(isstr.plotAuthor % self.authorPlotInfo["name"])
             try:
                 ymin = min(
                     int(self.authorPlotInfo["allLi"][0][0].strftime("%Y")) - 2,
@@ -411,12 +405,12 @@ class InspireStatsLoader:
                     ymin = int(self.authorPlotInfo["paLi"][0][0].strftime("%Y")) - 2
                     ymax = int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y")) + 2
                 except:
-                    pBLogger.warning("No publications for this author?")
+                    pBLogger.warning(isstr.noPublications)
                     return False
             figs = []
             if len(self.authorPlotInfo["paLi"][0]) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Paper number")
+                plt.title(isstr.paperNumber)
                 plt.plot(
                     self.authorPlotInfo["paLi"][0],
                     self.authorPlotInfo["paLi"][1],
@@ -436,7 +430,7 @@ class InspireStatsLoader:
 
             if len(self.authorPlotInfo["paLi"][0]) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Papers per year")
+                plt.title(isstr.paperYear)
                 ax.hist(
                     [int(q.strftime("%Y")) for q in self.authorPlotInfo["paLi"][0]],
                     bins=range(ymin, ymax),
@@ -457,7 +451,7 @@ class InspireStatsLoader:
 
             if len(self.authorPlotInfo["allLi"][0]) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Total citations")
+                plt.title(isstr.totalCitations)
                 plt.plot(
                     self.authorPlotInfo["allLi"][0],
                     self.authorPlotInfo["allLi"][1],
@@ -477,7 +471,7 @@ class InspireStatsLoader:
 
             if len(self.authorPlotInfo["allLi"][0]) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Citations per year")
+                plt.title(isstr.citationsYear)
                 ax.hist(
                     [int(q.strftime("%Y")) for q in self.authorPlotInfo["allLi"][0]],
                     bins=range(ymin, ymax),
@@ -498,7 +492,7 @@ class InspireStatsLoader:
 
             if len(self.authorPlotInfo["meanLi"][0]) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Mean citations")
+                plt.title(isstr.meanCitations)
                 plt.plot(
                     self.authorPlotInfo["meanLi"][0],
                     self.authorPlotInfo["meanLi"][1],
@@ -529,7 +523,7 @@ class InspireStatsLoader:
 
             if len(self.authorPlotInfo["aI"].keys()) > 0:
                 fig, ax = plt.subplots()
-                plt.title("Citations for each paper")
+                plt.title(isstr.citationsPaper)
                 for i, p in enumerate(self.authorPlotInfo["aI"].keys()):
                     try:
                         plt.plot(
@@ -537,7 +531,7 @@ class InspireStatsLoader:
                             self.authorPlotInfo["aI"][p]["citingPapersList"][1],
                         )
                     except:
-                        pBLogger.exception("Something went wrong while plotting...")
+                        pBLogger.exception(isstr.errorPlotting)
                 fig.autofmt_xdate()
                 if save:
                     pdf = PdfPages(
@@ -551,7 +545,7 @@ class InspireStatsLoader:
                 figs.append(fig)
             return figs
         else:
-            pBLogger.info("Nothing to plot...")
+            pBLogger.info(isstr.noPlot)
             return False
 
 

@@ -9,6 +9,7 @@ import logging.handlers
 
 try:
     from physbiblio.config import pbConfig
+    from physbiblio.strings.main import ErrorsStrings as estr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -87,7 +88,7 @@ class PBErrorManagerClass:
             self.logger.addHandler(self.tempsh[-1])
             return True
         except Exception:
-            self.logger.exception("Failed while trying to add a new handler")
+            self.logger.exception(estr.errorAddHandler)
             return False
 
     def rmTempHandler(self):
@@ -108,7 +109,7 @@ class PBErrorManagerClass:
         Parameters:
             cls, exception, trcbk as in `sys.excepthook`
         """
-        self.logger.error("Unhandled exception", exc_info=(cls, exception, trcbk))
+        self.logger.error(estr.unhandled, exc_info=(cls, exception, trcbk))
 
 
 pBErrorManager = PBErrorManagerClass(pbConfig.loggerString)

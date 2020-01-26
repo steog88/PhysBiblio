@@ -49,7 +49,7 @@ def parse_accents_record(record):
             tmp = utf8tolatex(record[val], non_ascii_only=True)
             if tmp != record[val]:
                 pBLogger.info(pastr.converting % record["ID"])
-                pBLogger.info("         -- " + tmp.encode("utf-8"))
+                pBLogger.info(pastr.infodashes + tmp.encode("utf-8"))
                 accents_changed.append(record["ID"])
             record[val] = tmp
     return record

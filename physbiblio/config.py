@@ -14,6 +14,7 @@ from appdirs import AppDirs
 try:
     from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
     from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
+    from physbiblio.strings.main import ConfigStrings as cstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -56,9 +57,7 @@ class ConfigParameter:
             item = getattr(self, key)
         except AttributeError:
             item = None
-            logging.getLogger(globalLogName).warning(
-                "Attribute does not exist for current ConfigParameter: %s" % key
-            )
+            logging.getLogger(globalLogName).warning(cstr.noAttribute % key)
         return item
 
 
@@ -75,142 +74,83 @@ class ConfigParametersList(OrderedDict):
         if isinstance(cp, ConfigParameter):
             self[cp.name] = cp
         else:
-            logging.getLogger(globalLogName).warning(
-                "Invalid parameter type: %s" % type(cp)
-            )
+            logging.getLogger(globalLogName).warning(cstr.invalidType % type(cp))
 
 
 # these are the default parameter values, descriptions and types
 configuration_params = ConfigParametersList()
 configuration_params.add(
     ConfigParameter(
-        "mainDatabaseName",
-        "PBDATAphysbiblio.db",
-        description="Name of the database file",
+        "mainDatabaseName", "PBDATAphysbiblio.db", description=cstr.descrMainDBName,
+    )
+)
+configuration_params.add(
+    ConfigParameter("loggingLevel", 1, description=cstr.descrLogLevel, special="int",)
+)
+configuration_params.add(
+    ConfigParameter(
+        "logFileName", "PBDATAparams.log", description=cstr.descrLogFName, special=None,
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "loggingLevel",
-        1,
-        description="How many messages to save in the log file "
-        + "(will have effects only after closing the application)",
-        special="int",
+        "pdfFolder", "PBDATApdf", description=cstr.descrPDFFolder, special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter("pdfApplication", "", description=cstr.descrPDFApp, special=None,)
+)
+configuration_params.add(
+    ConfigParameter("webApplication", "", description=cstr.descrWebApp, special=None,)
+)
+configuration_params.add(
+    ConfigParameter(
+        "timeoutWebSearch", 20.0, description=cstr.descrTimeout, special="float",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "logFileName",
-        "PBDATAparams.log",
-        description="Name of the log file",
-        special=None,
+        "askBeforeExit", False, description=cstr.descrConfirmExit, special="boolean"
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "pdfFolder",
-        "PBDATApdf",
-        description="Folder where to save the PDF files",
-        special=None,
+        "defaultLimitBibtexs", 100, description=cstr.descrLimitBibtexs, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "pdfApplication",
-        "",
-        description="Application for opening PDF files "
-        + "(used only via command line)",
-        special=None,
+        "defaultUpdateFrom", 0, description=cstr.descrUpdateFrom, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "webApplication",
-        "",
-        description="Web browser (used only via command line)",
-        special=None,
+        "maxAuthorNames", 3, description=cstr.descrMaxAuthorsD, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "timeoutWebSearch",
-        20.0,
-        description="Timeout for the web queries",
-        special="float",
+        "maxAuthorSave", 6, description=cstr.descrMaxAuthorsS, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "askBeforeExit", False, description="Confirm before exiting", special="boolean"
+        "maxExternalAPIResults", 10, description=cstr.descrMaxAPIRes, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "defaultLimitBibtexs",
-        100,
-        description="Number of bibtex entries in the initial view "
-        + "of the main table",
-        special="int",
+        "fetchAbstract", False, description=cstr.descrFetchAbstract, special="boolean",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "defaultUpdateFrom",
-        0,
-        description="Index of bibtex entries (firstdate ASC) "
-        + 'from which I should start when using "Update bibtexs"',
-        special="int",
+        "defaultCategories", [], description=cstr.descrDefaultCat, special="list",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxAuthorNames",
-        3,
-        description="Max number of authors to be displayed in the main list",
-        special="int",
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "maxAuthorSave",
-        6,
-        description="Max number of authors to be saved "
-        + "when adding info from arXiv",
-        special="int",
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "maxExternalAPIResults",
-        10,
-        description="Max number of entries per page "
-        + "when reading external API results",
-        special="int",
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "fetchAbstract",
-        False,
-        description="Automatically fetch the abstract "
-        + "from arXiv if an arxiv number is present",
-        special="boolean",
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "defaultCategories",
-        [],
-        description="Default categories for imported bibtexs",
-        special="list",
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "bibListFontSize",
-        9,
-        description="Font size in the list of bibtex entries and companion boxes",
-        special="float",
+        "bibListFontSize", 9, description=cstr.descrFontSize, special="float",
     )
 )
 configuration_params.add(
@@ -228,41 +168,28 @@ configuration_params.add(
             "isbn",
             "inspire",
         ],
-        description="The columns to be shown in the entries list",
+        description=cstr.descrBibListCols,
         special="list",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "resizeTable",
-        True,
-        description="Automatically resize columns and rows "
-        + "in the main bibtex table",
-        special="boolean",
+        "resizeTable", True, description=cstr.descrAutoResize, special="boolean",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxSavedSearches",
-        5,
-        description="Max number of automatically saved search/replace arguments",
-        special="int",
+        "maxSavedSearches", 5, description=cstr.descrMaxSavedSearches, special="int",
     )
 )
 configuration_params.add(
-    ConfigParameter(
-        "ADSToken",
-        "",
-        description="Token for connecting to the ADS service by NASA",
-        special=None,
-    )
+    ConfigParameter("ADSToken", "", description=cstr.descrADSToken, special=None,)
 )
 configuration_params.add(
     ConfigParameter(
         "openSinceLastUpdate",
         "0.0.0",
-        description="Parameter that saves the number of the last used version"
-        + " for showing the list of changes when a new one is opened",
+        description=cstr.descrSinceLastUpdate,
         isGlobal=True,
     )
 )
@@ -270,8 +197,7 @@ configuration_params.add(
     ConfigParameter(
         "notifyUpdate",
         True,
-        description="If configured to False, do not show the existence"
-        + " of updates when opening the app",
+        description=cstr.descrNotifyUpdate,
         special="boolean",
         isGlobal=True,
     )
@@ -365,7 +291,7 @@ class GlobalDB(PhysBiblioDBCore):
         }
         self.logger.info("%s\n%s" % (command, data))
         if not self.connExec(command, data):
-            self.logger.exception("Cannot insert profile")
+            self.logger.exception(cstr.errorInsertProfile)
             sys.exit(1)
         self.commit(verbose=False)
         return True
@@ -396,9 +322,7 @@ class GlobalDB(PhysBiblioDBCore):
             or identifierField not in ["name", "databasefile", "isDefault"]
             or field not in [e[0] for e in profilesSettingsTable]
         ):
-            self.logger.error(
-                "Invalid field or identifierField: %s, %s" % (field, identifierField)
-            )
+            self.logger.error(cstr.errorInvalidFieldI % (field, identifierField))
             return False
         command = (
             "update profiles set %s = :val " % field
@@ -407,7 +331,7 @@ class GlobalDB(PhysBiblioDBCore):
         data = {"val": value, "iden": identifier}
         self.logger.debug("%s\n%s" % (command, data))
         if not self.connExec(command, data):
-            self.logger.error("Cannot update profile")
+            self.logger.error(cstr.errorUpdateProfile)
             return False
         self.commit(verbose=False)
         return True
@@ -422,13 +346,13 @@ class GlobalDB(PhysBiblioDBCore):
             True if successful, False otherwise
         """
         if name.strip() == "":
-            self.logger.error("You must provide the profile name!")
+            self.logger.error(cstr.errorProfileName)
             return False
         isDefault = name == self.getDefaultProfile()
         command = "delete from profiles where name = :name\n"
         self.logger.debug("%s\n%s" % (command, {"name": name}))
         if not self.connExec(command, {"name": name}):
-            self.logger.error("Cannot delete profile")
+            self.logger.error(cstr.errorDeleteProfile)
             return False
         if isDefault:
             self.getDefaultProfile()
@@ -456,16 +380,10 @@ class GlobalDB(PhysBiblioDBCore):
             the `sqlite3.Row` object
         """
         if name.strip() == "" and filename.strip() == "":
-            self.logger.warning(
-                "You should specify the name or the filename"
-                + "associated with the profile"
-            )
+            self.logger.warning(cstr.errorNameFilenameOne)
             return {}
         if name.strip() != "" and filename.strip() != "":
-            self.logger.warning(
-                "You should specify only the name "
-                + "or only the filename associated with the profile"
-            )
+            self.logger.warning(cstr.errorNameFilenameOnly)
             return {}
         self.cursExec(
             "SELECT * FROM profiles WHERE name = :name or databasefile = :file\n",
@@ -495,14 +413,12 @@ class GlobalDB(PhysBiblioDBCore):
             True if successful, False otherwise
         """
         if order == []:
-            self.logger.warning("No order given!")
+            self.logger.warning(cstr.errorOrder)
             return False
         if sorted(order) != sorted([e["name"] for e in self.getProfiles()]):
             self.logger.info(sorted(order))
             self.logger.info(sorted([e["name"] for e in self.getProfiles()]))
-            self.logger.warning(
-                "List of profile names does not match existing profiles!"
-            )
+            self.logger.warning(cstr.errorListProfilesMatch)
             return False
         failed = False
         for ix, profName in enumerate(order):
@@ -514,9 +430,7 @@ class GlobalDB(PhysBiblioDBCore):
         if not failed:
             self.commit(verbose=False)
         else:
-            self.logger.error(
-                "Something went wrong when setting new profile order. Undoing..."
-            )
+            self.logger.error(cstr.errorProfileOrdering)
             self.undo(verbose=False)
         return not failed
 
@@ -536,7 +450,7 @@ class GlobalDB(PhysBiblioDBCore):
             self.cursExec("SELECT * FROM profiles\n")
             defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
             if self.setDefaultProfile(defaultProfileName):
-                self.logger.info("Default profile changed to %s" % defaultProfileName)
+                self.logger.info(cstr.defaultProfileChanged % defaultProfileName)
         return defaultProfileName
 
     def setDefaultProfile(self, name=None):
@@ -549,7 +463,7 @@ class GlobalDB(PhysBiblioDBCore):
             True if successful, False otherwise
         """
         if name is None or name.strip() == "":
-            self.logger.warning("No name given!")
+            self.logger.warning(cstr.errorName)
             return False
         self.cursExec("SELECT * FROM profiles WHERE name = :name\n", {"name": name})
         if len(self.curs.fetchall()) == 1:
@@ -561,14 +475,11 @@ class GlobalDB(PhysBiblioDBCore):
                 self.commit(verbose=False)
                 return True
             else:
-                self.logger.error(
-                    "Something went wrong when setting new default profile."
-                    + " Undoing..."
-                )
+                self.logger.error(cstr.errorProfileDefault)
                 self.undo(verbose=False)
                 return False
         else:
-            self.logger.warning("No profiles with the given name!")
+            self.logger.warning(cstr.errorNoProfilesName)
             return False
 
     def countSearches(self):
@@ -739,10 +650,7 @@ class GlobalDB(PhysBiblioDBCore):
             query = "update searches set " + field + "=:field where idS=:idS\n"
             return self.connExec(query, {"field": "%s" % value, "idS": idS})
         else:
-            self.logger.warning(
-                "Empty value or field not in the following list: "
-                + "[searchDict, replaceFields, name, limitNum, offsetNum]"
-            )
+            self.logger.warning(cstr.errorSearchField)
             return False
 
 
@@ -770,9 +678,7 @@ class ConfigurationDB(PhysBiblioDBSub):
         """
         self.cursExec("select * from settings where name=?\n", (name,))
         if len(self.curs.fetchall()) > 0:
-            self.mainDB.logger.info(
-                "An entry with the same name is already present. Updating it"
-            )
+            self.mainDB.logger.info(cstr.confEntryUpdate)
             return self.update(name, value)
         else:
             return self.connExec(
@@ -792,9 +698,7 @@ class ConfigurationDB(PhysBiblioDBSub):
         """
         self.cursExec("select * from settings where name=?\n", (name,))
         if len(self.curs.fetchall()) == 0:
-            self.mainDB.logger.info(
-                "No settings found with this name (%s). Inserting it." % name
-            )
+            self.mainDB.logger.info(cstr.confEntryInsert % name)
             return self.insert(name, value)
         else:
             return self.connExec(
@@ -883,10 +787,10 @@ class ConfigVars:
             if isinstance(dataPath, six.string_types) and dataPath.strip() != ""
             else self.defaultDirs.user_data_dir + os.sep
         )
-        self.logger.info("Default configuration path: %s" % self.configPath)
+        self.logger.info(cstr.defaultCfgPath % self.configPath)
         if not os.path.exists(self.configPath):
             os.makedirs(self.configPath)
-        self.logger.info("Default data path: %s" % self.dataPath)
+        self.logger.info(cstr.defaultDataPath % self.dataPath)
         if not os.path.exists(self.dataPath):
             os.makedirs(self.dataPath)
 
@@ -932,7 +836,7 @@ class ConfigVars:
         """Read the configuration from the current database.
         Single parameters are read by self.readParam
         """
-        self.logger.debug("Reading configuration.\n")
+        self.logger.debug(cstr.readConf)
         self.setDefaultParams()
         tempDb = PhysBiblioDBCore(self.currentDatabase, self.logger, info=False)
         configDb = ConfigurationDB(tempDb)
@@ -940,11 +844,9 @@ class ConfigVars:
             for k in configuration_params.keys():
                 self.readParam(k, configDb)
         except Exception:
-            self.logger.exception(
-                "ERROR: reading config from '%s' failed." % (self.currentDatabase)
-            )
+            self.logger.exception(cstr.errorReadConf % (self.currentDatabase))
         tempDb.closeDB(info=False)
-        self.logger.debug("Configuration loaded.\n")
+        self.logger.debug(cstr.confLoaded)
 
     def readParam(self, key, configDb):
         """Read the value of a single parameter from the database,
@@ -982,9 +884,7 @@ class ConfigVars:
             else:
                 self.params[key] = self.replacePBDATA(v)
         except Exception:
-            self.logger.warning(
-                "Failed in reading parameter '%s'." % key, exc_info=True
-            )
+            self.logger.warning(cstr.errorReadParam % key, exc_info=True)
             self.params[key] = configuration_params[key].default
 
     def readProfiles(self):
@@ -1022,15 +922,14 @@ class ConfigVars:
             try:
                 newProfile = self.profiles[newShort]
             except KeyError:
-                self.logger.error("Profile not found!")
+                self.logger.error(cstr.errorProfileNotFound)
                 return
         self.currentProfileName = newShort
         self.currentProfile = newProfile
         self.currentDatabase = newProfile["db"]
         self.setDefaultParams()
         self.logger.info(
-            "Restarting with profile '%s', database: %s"
-            % (self.currentProfileName, self.currentDatabase)
+            cstr.restartWProfile % (self.currentProfileName, self.currentDatabase)
         )
         self.readConfig()
 
@@ -1051,15 +950,13 @@ class ConfigVars:
             self.currentProfile = self.profiles[self.currentProfileName]
         except KeyError:
             self.logger.critical(
-                "The profile '%s' does not exist!" % useProfile
-                + " Back to the default one ('%s')" % self.defaultProfileName
+                cstr.errorNoProfileUseDef % (useProfile, self.defaultProfileName)
             )
             self.currentProfileName = self.defaultProfileName
             self.currentProfile = self.profiles[self.currentProfileName]
         self.currentDatabase = self.currentProfile["db"]
         self.logger.info(
-            "Starting with profile '%s', database: %s"
-            % (self.currentProfileName, self.currentDatabase)
+            cstr.startWProfile % (self.currentProfileName, self.currentDatabase)
         )
 
         self.readConfig()

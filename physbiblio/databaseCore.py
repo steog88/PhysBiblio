@@ -17,6 +17,7 @@ import ast
 
 try:
     import physbiblio.tablesDef
+    from physbiblio.strings.main import DatabaseCoreStrings as dbcstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -60,7 +61,7 @@ class PhysBiblioDBCore:
             self.openDB(info=info)
             if db_is_new or self.checkExistingTables():
                 self.logger.info(
-                    "-------New database or missing tables.\nCreating them!\n\n"
+                    dbcstr.noDatabaseCreate
                 )
                 self.createTables()
             self.checkDatabaseUpdates()
@@ -81,9 +82,9 @@ class PhysBiblioDBCore:
             True
         """
         if info:
-            self.logger.info("Opening database: %s" % self.dbname)
+            self.logger.info(dbcstr.openDb % self.dbname)
         else:
-            self.logger.debug("Opening database: %s" % self.dbname)
+            self.logger.debug(dbcstr.openDb % self.dbname)
         self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.curs = self.conn.cursor()
@@ -101,9 +102,9 @@ class PhysBiblioDBCore:
             info (boolean, default True): show some output when opening DB
         """
         if info:
-            self.logger.info("Closing database...")
+            self.logger.info(dbcstr.closeDb)
         else:
-            self.logger.debug("Closing database...")
+            self.logger.debug(dbcstr.closeDb)
         self.conn.close()
         return True
 
@@ -116,7 +117,7 @@ class PhysBiblioDBCore:
             try:
                 self.onIsLocked.emit()
             except AttributeError:
-                self.logger.exception("Invalid `self.onIsLocked`!")
+                self.logger.exception(dbcstr.invalidIsLocked)
                 return False
             else:
                 return True
@@ -146,12 +147,12 @@ class PhysBiblioDBCore:
         try:
             self.conn.commit()
         except Exception:
-            self.logger.exception("Impossible to commit!")
+            self.logger.exception(dbcstr.errorCannotCommit)
             return False
         else:
             self.dbChanged = False
             if verbose:
-                self.logger.info("Database saved.")
+                self.logger.info(dbcstr.savedDb)
             return True
 
     def undo(self, verbose=True):
@@ -168,12 +169,12 @@ class PhysBiblioDBCore:
         try:
             self.conn.rollback()
         except Exception:
-            self.logger.exception("Impossible to rollback!")
+            self.logger.exception(dbcstr.errorCannotRollback)
             return False
         else:
             self.dbChanged = False
             if verbose:
-                self.logger.info("Rolled back to last commit.")
+                self.logger.info(dbcstr.rollbackDb)
             return True
 
     def connExec(self, query, data=None):
