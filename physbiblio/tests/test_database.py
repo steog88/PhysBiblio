@@ -1036,12 +1036,12 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         with patch("logging.Logger.exception") as _ex:
             self.assertFalse(self.pBDB.cursExec("a"))
             _ex.assert_called_once_with(
-                'Cursor error: a\nThe query was: "a"\n ' + "and the parameters: None"
+                'Cursor error: a\nThe query was: "a"\n' + "and the parameters: None"
             )
         with patch("logging.Logger.exception") as _ex:
             self.assertFalse(self.pBDB.cursExec("a", data=["b"]))
             _ex.assert_called_once_with(
-                'Cursor error: a\nThe query was: "a"\n ' + "and the parameters: ['b']"
+                'Cursor error: a\nThe query was: "a"\n' + "and the parameters: ['b']"
             )
 
         self.pBDB.curs.execute.reset_mock()
@@ -3572,7 +3572,7 @@ class TestDatabaseEntries(DBTestCase):
                     }
                 ]
             )
-            _w.assert_called_once_with("Invalid operator! 'all of the following'")
+            _w.assert_called_once_with("Invalid operator: 'all of the following'")
         self.assertEqual(
             [
                 e["bibkey"]
@@ -3667,7 +3667,7 @@ class TestDatabaseEntries(DBTestCase):
                     }
                 ]
             )
-            _w.assert_called_once_with("Invalid list of ids! '[]'")
+            _w.assert_called_once_with("Invalid list of ids: '[]'")
         self.assertEqual(
             sorted(
                 [
@@ -3737,7 +3737,7 @@ class TestDatabaseEntries(DBTestCase):
                     }
                 ]
             )
-            _w.assert_called_once_with("Invalid operator! 'all of the following'")
+            _w.assert_called_once_with("Invalid operator: 'all of the following'")
         self.assertEqual(
             [
                 e["bibkey"]
@@ -3813,7 +3813,7 @@ class TestDatabaseEntries(DBTestCase):
                     }
                 ]
             )
-            _w.assert_called_once_with("Invalid list of ids! '[]'")
+            _w.assert_called_once_with("Invalid list of ids: '[]'")
         self.assertEqual(
             sorted(
                 [
@@ -5548,13 +5548,13 @@ class TestDatabaseEntries(DBTestCase):
         self.insert_three()
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllBibkeys(),
-            "   0 abc\n   1 def\n   2 ghi\n3 elements found\n",
+            "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n3 elements found\n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllBibkeys(
                 entriesIn=self.pBDB.bibs.getByBibkey("abc")
             ),
-            "   0 abc\n1 elements found\n",
+            "   0 - abc\n\n1 elements found\n",
         )
 
         self.assert_stdout(

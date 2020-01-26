@@ -902,7 +902,7 @@ class TestGlobalDB(unittest.TestCase):
             self.assertEqual(self.globalDb.getProfile(), {})
             _w.assert_called_once_with(
                 "You should specify the name or the filename"
-                + "associated with the profile"
+                + " associated with the profile"
             )
             self.assertEqual(self.globalDb.getProfile("a", "b"), {})
             _w.assert_any_call(

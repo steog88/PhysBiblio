@@ -73,38 +73,30 @@ class ConfigStrings:
     defaultProfileChanged = "Default profile changed to %s"
 
     descrADSToken = "Token for connecting to the ADS service by NASA"
-    descrAutoResize = (
-        "Automatically resize columns and rows " + "in the main bibtex table"
-    )
+    descrAutoResize = "Automatically resize columns and rows in the main bibtex table"
     descrBibListCols = "The columns to be shown in the entries list"
     descrConfirmExit = "Confirm before exiting"
     descrDefaultCat = "Default categories for imported bibtexs"
     descrFetchAbstract = (
-        "Automatically fetch the abstract " + "from arXiv if an arxiv number is present"
+        "Automatically fetch the abstract from arXiv if an arxiv number is present"
     )
     descrFontSize = "Font size in the list of bibtex entries and companion boxes"
-    descrLimitBibtexs = (
-        "Number of bibtex entries in the initial view " + "of the main table"
-    )
+    descrLimitBibtexs = "Number of bibtex entries in the initial view of the main table"
     descrLogFName = "Name of the log file"
     descrLogLevel = (
         "How many messages to save in the log file "
         + "(will have effects only after closing the application)"
     )
     descrMainDBName = "Name of the database file"
-    descrMaxAPIRes = (
-        "Max number of entries per page " + "when reading external API results"
-    )
+    descrMaxAPIRes = "Max number of entries per page when reading external API results"
     descrMaxAuthorsD = "Max number of authors to be displayed in the main list"
-    descrMaxAuthorsS = (
-        "Max number of authors to be saved " + "when adding info from arXiv"
-    )
+    descrMaxAuthorsS = "Max number of authors to be saved when adding info from arXiv"
     descrMaxSavedSearches = "Max number of automatically saved search/replace arguments"
     descrNotifyUpdate = (
         "If configured to False, do not show the existence"
         + " of updates when opening the app"
     )
-    descrPDFApp = "Application for opening PDF files " + "(used only via command line)"
+    descrPDFApp = "Application for opening PDF files (used only via command line)"
     descrPDFFolder = "Folder where to save the PDF files"
     descrSinceLastUpdate = (
         "Parameter that saves the number of the last used version"
@@ -123,7 +115,7 @@ class ConfigStrings:
     errorListProfilesMatch = "List of profile names does not match existing profiles!"
     errorName = "No name given!"
     errorNameFilenameOne = (
-        "You should specify the name or the filename" + "associated with the profile"
+        "You should specify the name or the filename associated with the profile"
     )
     errorNameFilenameOnly = (
         "You should specify only the name "
@@ -165,9 +157,7 @@ class DatabaseCoreStrings:
     errorCannotRollback = "Impossible to rollback!"
     errorConnection = "Connection error: %s\nquery: %s"
     errorCreateTable = "Create table %s failed"
-    errorCursor = (
-        "Cursor error: %s\n" + 'The query was: "%s"\n' + " and the parameters: %s"
-    )
+    errorCursor = 'Cursor error: %s\nThe query was: "%s"\nand the parameters: %s'
     errorInsMainCats = "Insert main categories failed"
     errorInsUpd = "Cannot insert/update: ID exists!\n%s\nquery: %s"
     errorLiteralEval = "Error in literal_eval with string '%s'"
@@ -184,8 +174,213 @@ class DatabaseCoreStrings:
     savedDb = "Database saved."
 
 
-class DatabaseStrings:
+class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
     """Strings for the physbiblio.database module"""
+
+    catNotInDb = "Category '%s' not in database"
+    cleaning = "Cleaning (%s, %s)"
+    errorReadInput = "Something failed in reading your input '%s'"
+    errorRename = "Cannot rename folder"
+    newDbCreate = "-------New database. Creating tables!\n\n"
+    noElsFound = "No elements found?"
+
+    class Bibs:
+        """Strings for the physbiblio.database. class"""
+
+        alreadyExisting = "Already existing: %s\n"
+        book = "Book"
+        callOAIDates = "Calling INSPIRE-HEP OAI harvester between dates %s and %s"
+        cannotParse = "Cannot parse properly:\n%s"
+        cbError = "Error while cleaning entry '%s'"
+        cbInvalidStart = "Invalid startFrom in cleanBibtexs"
+        cbProcessProgr = "%5d / %d (%5.2f%%) - cleaning: '%s'\n"
+        cbProcessTot = "CleanBibtexs will process %d total entries"
+        cbResChan = "%d bibtex entries changed"
+        cbResEntr = "%d entries processed"
+        cbResErr = "%d errors occurred"
+        delete = "Delete entry, using key = '%s'"
+        elementChanged = "-- element changed!"
+        elementsFound = "%d elements found"
+        emptyBibtex = "Empty bibtex?\n%s\n%s"
+        errorField = "Non-existing field or unappropriated value: (%s, %s, %s)"
+        errorGFNoElement = "Error in getField('%s', '%s'): no element found?"
+        errorGFNoField = "Error in getField('%s', '%s'): the field is missing?"
+        errorOAIEntryDet = "something wrong with entry %s\n%s"
+        errorOAIEntryG = "Something went wrong with this entry..."
+        errorParseBibtex = "Problem in parsing the following bibtex code:\n%s"
+        errorParseBib = "Impossible to parse bibtex!"
+        errorReadBibdict = "Cannot read bibdict:\n'%s'"
+        errorQueryFailed = "Query failed: %s\nvalues: %s"
+        errorUIIDArxiv = "Something went wrong in updateInspireID with arxiv search"
+        errorUIIDDOI = "Something went wrong in updateInspireID with doi search"
+        errorUIIDGeneric = "Something went wrong in updateInspireID"
+        errorUpdateBib = "Impossible to update bibkey"
+        experimental = "Experimental"
+        failedComplete = "Failed in completing info for entry %s\n"
+        fcbBadEntries = "%d bad entries found:\n %s"
+        fcbInvalidStart = "Invalid startFrom in findCorruptedBibtexs"
+        fcbNotReadable = "%s is NOT readable!\n"
+        fcbProcessProgr = "%5d / %d (%5.2f%%) - processing: '%s'"
+        fcbProcessTot = "findCorruptedBibtexs will process %d total entries"
+        fcbReadable = "%s is readable.\n"
+        gffaDone = "\n\ngetFieldsFromArxiv has finished!"
+        gffaFailed = "Cannot get and save info from arXiv!\n"
+        gffaProcessProgr = "%5d / %d (%5.2f%%) - processing: arxiv:%s\n"
+        gffaProcessTot = "getFieldsFromArxiv will process %d entries."
+        gffaSummary = "%d entries processed, of which these %d generated errors:\n%s"
+        ifbCompleteSummary = (
+            "Import completed.\n"
+            + "%d entries processed, of which %d existing, "
+            + "%d successfully inserted and %d errors."
+        )
+        ifbEmptyKey = "Impossible to insert an entry with empty bibkey!\n"
+        ifbExist = "Already existing: %s\n"
+        ifbFailed = "Failed in inserting entry %s\n"
+        ifbFromFile = "Importing from file bib: %s"
+        ifbInserted = "Element successfully inserted.\n"
+        ifbNewKey = "Entry will have key: '%s'"
+        ifbProcessProgr = "%5d / %d (%5.2f%%), processing entry %s"
+        ifbProcessTot = "Entries to be processed: %d"
+        iidEmptyID = "InspireID is empty, cannot proceed."
+        iidEmptyRecord = "Empty record looking for recid:%s!"
+        iidKeyError = "Key error: (%s, %s)"
+        iidSaved = "Inspire OAI info for %s saved."
+        iidStMissing = "Something missing in entry %s"
+        iidWrongType = "Wrong type in inspireID: %s"
+        iidWrongVal = "Wrong value/format in inspireID: %s"
+        invalidComparisonOp = (
+            "Invalid comparison operator "
+            + "('%s') in database operations!\n"
+            + "Reverting to default '='."
+        )
+        invalidLogicalOp = (
+            "Invalid logical connection operator "
+            + "('%s') in database operations!\n"
+            + "Reverting to default 'and'."
+        )
+        invalidOrdering = (
+            "Invalid ordering "
+            + "('%s') in database operations!\n"
+            + "Reverting to default 'ASC'."
+        )
+        laiEmptyKey = "Impossible to insert an entry with empty bibkey!\n%s\n"
+        laiErrors = "ERRORS!\nFailed to load and import entries:\n%s"
+        laiFailed = "Failed in inserting entry %s\n"
+        laiImported = "Imported entries:\n%s"
+        laiInserted = "Element successfully inserted.\n"
+        laiInvalidArgs = "Invalid arguments!"
+        laiInvalidMethod = "Method not valid: %s"
+        laiMismatch = (
+            "Possible mismatch. Specify the number of element "
+            + "to select with 'number'\n%s"
+        )
+        laiNewKey = "Entry will have key: '%s'"
+        laiProcessProgr = "%5d / %d (%5.2f%%) - looking for string: '%s'\n"
+        laiProcessTot = "LoadAndInsert will process %d total entries"
+        laiReadError = "Error while reading the bibtex '%s'"
+        lecture = "Lecture"
+        oaiChanged = "%d changed entries:\n%s"
+        oaiDone = "Inspire OAI harvesting done!"
+        oaiInfoS = "-- %s, '%s' -> '%s'"
+        oaiInfoL = "-- %s"
+        oaiOld = "old:\n%s"
+        oaiNew = "new:\n%s"
+        pabFound = "%d bibtex entries found."
+        pabProgr = "%4d - %s\n"
+        pabRead = "Reading bibtex entry #%d"
+        pabStart = "Start reading file content"
+        parsingExcPU = "Parsing exception in prepareUpdate:\n%s\n%s"
+        phdth = "PhD thesis"
+        proceeding = "Proceeding"
+        psbEmpty = "Impossible to parse empty text!"
+        psbError = "Impossible to parse text:\n%s"
+        psbProcess = "Processing:\n%s"
+        replaceInvalidNew = "Invalid 'fiNews' or 'news' (they must be lists)"
+        replaceMissingField = "Field %s not found in entry %s"
+        replaceProcessProgr = "processing %5d / %d (%5.2f%%): entry %s"
+        replaceProcessTot = "Replace will process %d entries"
+        replaceText = "Replacing text in entries: "
+        replaceError = "Something wrong in replace"
+        review = "Review"
+        souError = (
+            "Something wrong here. "
+            + "Possibly the bibtex key has been changed "
+            + "while processing entry '%s'?"
+        )
+        souInvalidStart = "Invalid startFrom in searchOAIUpdates"
+        souResChan = "%d entries changed"
+        souResErr = "%d errors occurred"
+        souResProc = "%d entries processed"
+        souProcessProgr = "%5d / %d (%5.2f%%) - looking for update: '%s'"
+        souProcessTot = "SearchOAIUpdates will process %d total entries"
+        updateBibkey = "Updating bibkey for entry '%s' into '%s'"
+        updateField = "Updating '%s' for entry '%s'"
+        useQueryVals = "Using query:\n%s\nvalues: %s"
+        wrongTypeField = "Wrong type or value for field %s (%s)?"
+
+        class Search:
+            """Stuff used in searches"""
+
+            invalidContent = "Invalid 'content' in search: '%s' (%s)"
+            invalidField = "Invalid field: '%s'"
+            invalidIds = "Invalid list of ids: '%s'"
+            invalidOperator = "Invalid operator: '%s'"
+            opCEAll = "all the following"
+            opCENone = "none of the following"
+            opCEOne = "at least one among"
+            opCSub = "this or subcategories"
+            opTContains = "contains"
+            opTDifferent = "different from"
+            opTExact = "exact match"
+            opTNotCont = "does not contain"
+
+    class BibsCats:
+        """Strings for the physbiblio.database.CatsEntries class"""
+
+        askInputBib = "entries for '%d': "
+        askInputCat = "categories for '%s': "
+        alreadyPresent = "EntryCat already present: (%d, %s)"
+        insert = "inserting (idCat=%s and key=%s)"
+        updateKey = "Updating entryCats for bibkey change, from '%s' to '%s'"
+
+    class BibsExps:
+        """Strings for the physbiblio.database.EntryExps class"""
+
+        askInputBib = "entries for '%d': "
+        askInputExp = "experiments for '%s': "
+        alreadyPresent = "EntryExp already present: (%s, %d)"
+        insert = "inserting (key=%s and idExp=%s)"
+        updateKey = "Updating entryExps for bibkey change, from '%s' to '%s'"
+
+    class Cats:
+        """Strings for the physbiblio.database.Categories class"""
+
+        alreadyPresent = (
+            "An entry with the same name is already present in the same category!"
+        )
+        cannotDelete = "You should not delete the category with id: %d%s."
+        errorExtract = "Error in extracting category by idCat"
+        invalidDepth = "Invalid depth in printCatHier (must be greater than 2)"
+        lookChild = "Looking for child categories"
+        missingField = "Missing field when inserting category"
+        updateField = "Updating '%s' for category '%s'"
+        useCat = "Using idCat=%d"
+
+    class CatsExps:
+        """Strings for the physbiblio.database.CatsExps class"""
+
+        askInputCat = "categories for '%s': "
+        askInputExp = "experiments for '%d': "
+        alreadyPresent = "ExpCat already present: (%d, %d)"
+        insert = "inserting (idCat=%s and idExp=%s)"
+
+    class Exps:
+        """Strings for the physbiblio.database.Experiments class"""
+
+        errorExtract = "Error in extracting experiment by idExp"
+        errorPrint = "Error printing experiments!"
+        updateField = "Updating '%s' for experiment '%s'"
+        useExp = "Using idExp=%d"
 
 
 class ErrorsStrings:
