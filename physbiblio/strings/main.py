@@ -65,49 +65,52 @@ class CLIStrings:
 class ConfigStrings:
     """Strings for the physbiblio.config module"""
 
+    class Desc:
+        """Description of some parameters"""
+
+        ADSToken = "Token for connecting to the ADS service by NASA"
+        autoResize = "Automatically resize columns and rows in the main bibtex table"
+        bibListCols = "The columns to be shown in the entries list"
+        confirmExit = "Confirm before exiting"
+        defaultCat = "Default categories for imported bibtexs"
+        fetchAbstract = (
+            "Automatically fetch the abstract from arXiv if an arxiv number is present"
+        )
+        fontSize = "Font size in the list of bibtex entries and companion boxes"
+        limitBibtexs = "Number of bibtex entries in the initial view of the main table"
+        logFName = "Name of the log file"
+        logLevel = (
+            "How many messages to save in the log file "
+            + "(will have effects only after closing the application)"
+        )
+        mainDBName = "Name of the database file"
+        maxAPIRes = "Max number of entries per page when reading external API results"
+        maxAuthorsD = "Max number of authors to be displayed in the main list"
+        maxAuthorsS = "Max number of authors to be saved when adding info from arXiv"
+        maxSavedSearches = "Max number of automatically saved search/replace arguments"
+        notifyUpdate = (
+            "If configured to False, do not show the existence"
+            + " of updates when opening the app"
+        )
+        PDFApp = "Application for opening PDF files (used only via command line)"
+        PDFFolder = "Folder where to save the PDF files"
+        sinceLastUpdate = (
+            "Parameter that saves the number of the last used version"
+            + " for showing the list of changes when a new one is opened"
+        )
+        timeout = "Timeout for the web queries"
+        updateFrom = (
+            "Index of bibtex entries (firstdate ASC) "
+            + 'from which I should start when using "Update bibtexs"'
+        )
+        webApp = "Web browser (used only via command line)"
+
     confEntryInsert = "No settings found with this name (%s). Inserting it."
     confEntryUpdate = "An entry with the same name is already present. Updating it"
     confLoaded = "Configuration loaded.\n"
     defaultCfgPath = "Default configuration path: %s"
     defaultDataPath = "Default data path: %s"
     defaultProfileChanged = "Default profile changed to %s"
-
-    descrADSToken = "Token for connecting to the ADS service by NASA"
-    descrAutoResize = "Automatically resize columns and rows in the main bibtex table"
-    descrBibListCols = "The columns to be shown in the entries list"
-    descrConfirmExit = "Confirm before exiting"
-    descrDefaultCat = "Default categories for imported bibtexs"
-    descrFetchAbstract = (
-        "Automatically fetch the abstract from arXiv if an arxiv number is present"
-    )
-    descrFontSize = "Font size in the list of bibtex entries and companion boxes"
-    descrLimitBibtexs = "Number of bibtex entries in the initial view of the main table"
-    descrLogFName = "Name of the log file"
-    descrLogLevel = (
-        "How many messages to save in the log file "
-        + "(will have effects only after closing the application)"
-    )
-    descrMainDBName = "Name of the database file"
-    descrMaxAPIRes = "Max number of entries per page when reading external API results"
-    descrMaxAuthorsD = "Max number of authors to be displayed in the main list"
-    descrMaxAuthorsS = "Max number of authors to be saved when adding info from arXiv"
-    descrMaxSavedSearches = "Max number of automatically saved search/replace arguments"
-    descrNotifyUpdate = (
-        "If configured to False, do not show the existence"
-        + " of updates when opening the app"
-    )
-    descrPDFApp = "Application for opening PDF files (used only via command line)"
-    descrPDFFolder = "Folder where to save the PDF files"
-    descrSinceLastUpdate = (
-        "Parameter that saves the number of the last used version"
-        + " for showing the list of changes when a new one is opened"
-    )
-    descrTimeout = "Timeout for the web queries"
-    descrUpdateFrom = (
-        "Index of bibtex entries (firstdate ASC) "
-        + 'from which I should start when using "Update bibtexs"'
-    )
-    descrWebApp = "Web browser (used only via command line)"
 
     errorDeleteProfile = "Cannot delete profile"
     errorInsertProfile = "Cannot insert profile"

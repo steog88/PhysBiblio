@@ -1,19 +1,69 @@
 from .common import CommonStrings
+from .main import InspireStatsStrings
 
 
 class BasicDialogsStrings(CommonStrings):
-    """Strings for the basicDialogs module"""
+    """Strings for the physbiblio.gui.basicDialogs module"""
 
     dir2Use = "Directory to use:"
     fn2Use = "Filename to use:"
 
 
 class BibWindowsStrings:
-    """Strings for the bibWindows module"""
+    """Strings for the physbiblio.gui.bibWindows module"""
+
+
+class CommonClassesStrings(CommonStrings):
+    """Strings for the physbiblio.gui.commonClasses module"""
+
+    alreadyExisting = " - already existing"
+    dataListNotDef = "dataList is not defined!"
+    invalidIdentif = "Invalid identifier in previous selection: %s"
+    invalidIndexTMP = "Invalid index '%s' in TreeModel.parent"
+    invalidParentTM = "Invalid parent '%s' in TreeModel.%s"
+    missElement = "Missing element"
+    openFailed = "Opening link for '%s' failed!"
+    openSuccess = "Opening link '%s' for entry '%s' successful!"
+
+
+class InspireStatsGUIStrings(InspireStatsStrings):
+    """Strings for the physbiblio.gui.inspireStatsGUI module"""
+
+    citations = "Citations"
+    citationsPaper = "Citations for each paper"
+    citationsYear = "Citations per year"
+    datefmt = "%d/%m/%Y"
+    hIndexE = "ND"
+    hIndexV = "Author h index: %s"
+    lineMoreInfo = "Click on the line to have more information:"
+    linesMoreInfo = "Click on the lines to have more information:"
+    meanCitations = "Mean citations"
+    paperNumber = "Paper number"
+    paperYear = "Papers per year"
+    plotSaved = "Plot saved."
+    plotsSaved = "Plots saved."
+    totalCitations = "Total citations"
+    xInDateIsD = "%s in date %s is %d"
+    xInDateIsF = "%s in date %s is %.2f"
+    xInYearIs = "%s in year %d is: %d"
+    whereSavePlot = "Where do you want to save the plot of the stats?"
+    whereSavePlots = "Where do you want to save the plots of the stats?"
+
+
+class MarksStrings:
+    """Strings for the physbiblio.gui.marks module"""
+
+    anys = "Any"
+    bad = "Bad"
+    favorite = "Favorite"
+    important = "Important"
+    toBeRead = "To be read"
+    unclear = "Unclear"
+    marks = "Marks"
 
 
 class ProfilesManagerStrings(CommonStrings):
-    """Strings for the profileManager module"""
+    """Strings for the physbiblio.gui.profileManager module"""
 
     addNew = "Add new?"
     askCancel = (
@@ -40,7 +90,7 @@ class ProfilesManagerStrings(CommonStrings):
 
 
 class ThreadElementsStrings(CommonStrings):
-    """Strings for the threadElements module"""
+    """Strings for the physbiblio.gui.threadElements module"""
 
     outdatedError = (
         "Error when executing check_outdated. "

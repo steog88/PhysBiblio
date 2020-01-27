@@ -43,6 +43,7 @@ try:
     from physbiblio.pdf import pBPDF
     from physbiblio.database import pBDB, catString
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import CommonClassesStrings as ccstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -154,7 +155,9 @@ class PBAndOrCombo(PBComboBox):
             current (default None): the value to be set
                 as selected at the beginning
         """
-        super(PBAndOrCombo, self).__init__(parent, ["AND", "OR"], current=current)
+        super(PBAndOrCombo, self).__init__(
+            parent, [ccstr.andC, ccstr.orC], current=current
+        )
 
 
 class PBTrueFalseCombo(PBComboBox):
@@ -169,7 +172,7 @@ class PBTrueFalseCombo(PBComboBox):
                 at the beginning
         """
         super(PBTrueFalseCombo, self).__init__(
-            parent, ["True", "False"], current=current
+            parent, [ccstr.true, ccstr.false], current=current
         )
 
 
@@ -501,15 +504,13 @@ class PBTableModel(QAbstractTableModel):
             for bib in self.dataList:
                 self.selectedElements[self.getIdentifier(bib)] = False
         except AttributeError:
-            pBLogger.exception("dataList is not defined!")
+            pBLogger.exception(ccstr.dataListNotDef)
         for prevK in self.previous:
             try:
                 if self.selectedElements[prevK] == False:
                     self.selectedElements[prevK] = True
             except (KeyError, IndexError):
-                pBLogger.exception(
-                    "Invalid identifier in previous selection: %s" % (prevK)
-                )
+                pBLogger.exception(ccstr.invalidIdentif % (prevK))
         self.layoutChanged.emit()
 
     def selectAll(self):
@@ -709,9 +710,7 @@ class TreeModel(QAbstractItemModel):
             A `QModelIndex` instance
         """
         if not isinstance(parent, QModelIndex):
-            pBLogger.debug(
-                "Invalid parent '%s' in TreeModel.index" % parent, exc_info=True
-            )
+            pBLogger.debug(ccstr.invalidParentTM % (parent, "index"), exc_info=True)
             return QModelIndex()
         if not parent.isValid():
             try:
@@ -738,9 +737,7 @@ class TreeModel(QAbstractItemModel):
             A `QModelIndex` instance
         """
         if not isinstance(index, QModelIndex):
-            pBLogger.debug(
-                "Invalid index '%s' in TreeModel.parent" % index, exc_info=True
-            )
+            pBLogger.debug(ccstr.invalidIndexTMP % index, exc_info=True)
             return QModelIndex()
         if not index.isValid():
             return QModelIndex()
@@ -763,9 +760,7 @@ class TreeModel(QAbstractItemModel):
             the line number
         """
         if not isinstance(parent, QModelIndex):
-            pBLogger.debug(
-                "Invalid parent '%s' in TreeModel.rowCount" % parent, exc_info=True
-            )
+            pBLogger.debug(ccstr.invalidParentTM % (parent, "rowCount"), exc_info=True)
             return len(self.rootNodes)
         if not parent.isValid():
             return len(self.rootNodes)
@@ -1046,12 +1041,9 @@ class GUIViewEntry(ViewEntry):
                 link = self.getLink(key, arg=arg, fileArg=fileArg)
                 url = QUrl(link)
             if QDesktopServices.openUrl(url):
-                pBLogger.debug(
-                    "Opening link '%s' for entry '%s' successful!"
-                    % (url.toString(), key)
-                )
+                pBLogger.debug(ccstr.openSuccess % (url.toString(), key))
             else:
-                pBLogger.warning("Opening link for '%s' failed!" % key)
+                pBLogger.warning(ccstr.openFailed % key)
 
 
 pBGuiView = GUIViewEntry()
@@ -1106,7 +1098,7 @@ class PBImportedTableModel(PBTableModel):
         try:
             value = self.dataList[row][self.header[column]]
         except (IndexError, KeyError):
-            pBLogger.debug("Missing element", exc_info=True)
+            pBLogger.debug(ccstr.missElement, exc_info=True)
             return None
 
         if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
@@ -1119,7 +1111,7 @@ class PBImportedTableModel(PBTableModel):
             and column == 0
             and self.existList[row] is True
         ):
-            return value + " - already existing"
+            return value + ccstr.alreadyExisting
         if role == Qt.EditRole:
             return value
         if role == Qt.DisplayRole:

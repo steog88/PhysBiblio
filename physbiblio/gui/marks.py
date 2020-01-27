@@ -7,6 +7,7 @@ from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 
 try:
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import MarksStrings as mstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -18,11 +19,11 @@ class Marks:
     def __init__(self):
         """Class constructor. Creates the 5 default marks."""
         self.marks = {}
-        self.newMark("imp", "Important", "emblem-important-symbolic")
-        self.newMark("fav", "Favorite", "emblem-favorite-symbolic")
-        self.newMark("bad", "Bad", "emblem-remove")
-        self.newMark("que", "Unclear", "emblem-question")
-        self.newMark("new", "To be read", "unread-new")
+        self.newMark("imp", mstr.important, "emblem-important-symbolic")
+        self.newMark("fav", mstr.favorite, "emblem-favorite-symbolic")
+        self.newMark("bad", mstr.bad, "emblem-remove")
+        self.newMark("que", mstr.unclear, "emblem-question")
+        self.newMark("new", mstr.toBeRead, "unread-new")
 
     def newMark(self, key, desc, icon):
         """Add a new mark.
@@ -35,7 +36,7 @@ class Marks:
         """
         self.marks[key] = {"desc": desc, "icon": ":/images/%s.png" % icon}
 
-    def getGroupbox(self, marksData, description="Marks", radio=False, addAny=False):
+    def getGroupbox(self, marksData, description=mstr.marks, radio=False, addAny=False):
         """Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s
         for marks selection
 
@@ -67,7 +68,7 @@ class Marks:
                 markValues[m].setChecked(True)
             boxlayout.addWidget(markValues[m])
         if addAny:
-            markValues["any"] = QRadioButton("Any")
+            markValues["any"] = QRadioButton(mstr.anys)
             boxlayout.addWidget(markValues["any"])
         groupBox.setLayout(boxlayout)
         return groupBox, markValues

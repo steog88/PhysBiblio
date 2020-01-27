@@ -81,76 +81,76 @@ class ConfigParametersList(OrderedDict):
 configuration_params = ConfigParametersList()
 configuration_params.add(
     ConfigParameter(
-        "mainDatabaseName", "PBDATAphysbiblio.db", description=cstr.descrMainDBName,
+        "mainDatabaseName", "PBDATAphysbiblio.db", description=cstr.Desc.mainDBName,
     )
 )
 configuration_params.add(
-    ConfigParameter("loggingLevel", 1, description=cstr.descrLogLevel, special="int",)
+    ConfigParameter("loggingLevel", 1, description=cstr.Desc.logLevel, special="int",)
 )
 configuration_params.add(
     ConfigParameter(
-        "logFileName", "PBDATAparams.log", description=cstr.descrLogFName, special=None,
-    )
-)
-configuration_params.add(
-    ConfigParameter(
-        "pdfFolder", "PBDATApdf", description=cstr.descrPDFFolder, special=None,
-    )
-)
-configuration_params.add(
-    ConfigParameter("pdfApplication", "", description=cstr.descrPDFApp, special=None,)
-)
-configuration_params.add(
-    ConfigParameter("webApplication", "", description=cstr.descrWebApp, special=None,)
-)
-configuration_params.add(
-    ConfigParameter(
-        "timeoutWebSearch", 20.0, description=cstr.descrTimeout, special="float",
+        "logFileName", "PBDATAparams.log", description=cstr.Desc.logFName, special=None,
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "askBeforeExit", False, description=cstr.descrConfirmExit, special="boolean"
+        "pdfFolder", "PBDATApdf", description=cstr.Desc.PDFFolder, special=None,
+    )
+)
+configuration_params.add(
+    ConfigParameter("pdfApplication", "", description=cstr.Desc.PDFApp, special=None,)
+)
+configuration_params.add(
+    ConfigParameter("webApplication", "", description=cstr.Desc.webApp, special=None,)
+)
+configuration_params.add(
+    ConfigParameter(
+        "timeoutWebSearch", 20.0, description=cstr.Desc.timeout, special="float",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "defaultLimitBibtexs", 100, description=cstr.descrLimitBibtexs, special="int",
+        "askBeforeExit", False, description=cstr.Desc.confirmExit, special="boolean"
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "defaultUpdateFrom", 0, description=cstr.descrUpdateFrom, special="int",
+        "defaultLimitBibtexs", 100, description=cstr.Desc.limitBibtexs, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxAuthorNames", 3, description=cstr.descrMaxAuthorsD, special="int",
+        "defaultUpdateFrom", 0, description=cstr.Desc.updateFrom, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxAuthorSave", 6, description=cstr.descrMaxAuthorsS, special="int",
+        "maxAuthorNames", 3, description=cstr.Desc.maxAuthorsD, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxExternalAPIResults", 10, description=cstr.descrMaxAPIRes, special="int",
+        "maxAuthorSave", 6, description=cstr.Desc.maxAuthorsS, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "fetchAbstract", False, description=cstr.descrFetchAbstract, special="boolean",
+        "maxExternalAPIResults", 10, description=cstr.Desc.maxAPIRes, special="int",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "defaultCategories", [], description=cstr.descrDefaultCat, special="list",
+        "fetchAbstract", False, description=cstr.Desc.fetchAbstract, special="boolean",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "bibListFontSize", 9, description=cstr.descrFontSize, special="float",
+        "defaultCategories", [], description=cstr.Desc.defaultCat, special="list",
+    )
+)
+configuration_params.add(
+    ConfigParameter(
+        "bibListFontSize", 9, description=cstr.Desc.fontSize, special="float",
     )
 )
 configuration_params.add(
@@ -168,28 +168,28 @@ configuration_params.add(
             "isbn",
             "inspire",
         ],
-        description=cstr.descrBibListCols,
+        description=cstr.Desc.bibListCols,
         special="list",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "resizeTable", True, description=cstr.descrAutoResize, special="boolean",
+        "resizeTable", True, description=cstr.Desc.autoResize, special="boolean",
     )
 )
 configuration_params.add(
     ConfigParameter(
-        "maxSavedSearches", 5, description=cstr.descrMaxSavedSearches, special="int",
+        "maxSavedSearches", 5, description=cstr.Desc.maxSavedSearches, special="int",
     )
 )
 configuration_params.add(
-    ConfigParameter("ADSToken", "", description=cstr.descrADSToken, special=None,)
+    ConfigParameter("ADSToken", "", description=cstr.Desc.ADSToken, special=None,)
 )
 configuration_params.add(
     ConfigParameter(
         "openSinceLastUpdate",
         "0.0.0",
-        description=cstr.descrSinceLastUpdate,
+        description=cstr.Desc.sinceLastUpdate,
         isGlobal=True,
     )
 )
@@ -197,7 +197,7 @@ configuration_params.add(
     ConfigParameter(
         "notifyUpdate",
         True,
-        description=cstr.descrNotifyUpdate,
+        description=cstr.Desc.notifyUpdate,
         special="boolean",
         isGlobal=True,
     )

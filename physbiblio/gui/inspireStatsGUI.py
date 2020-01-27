@@ -23,17 +23,18 @@ try:
     from physbiblio.gui.basicDialogs import askDirName, infoMessage
     from physbiblio.gui.commonClasses import PBDialog, PBLabel
     from physbiblio.gui.errorManager import pBGUILogger
+    from physbiblio.strings.gui import InspireStatsGUIStrings as igstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
 
 figTitles = [
-    "Paper number",
-    "Papers per year",
-    "Total citations",
-    "Citations per year",
-    "Mean citations",
-    "Citations for each paper",
+    igstr.paperNumber,
+    igstr.paperYear,
+    igstr.totalCitations,
+    igstr.citationsYear,
+    igstr.meanCitations,
+    igstr.citationsPaper,
 ]
 
 
@@ -62,15 +63,13 @@ class AuthorStatsPlots(PBDialog):
         self.updatePlots()
 
         nlines = int(len(figs) / 2)
-        self.layout().addWidget(
-            PBLabel("Click on the lines to have more information:"), nlines + 1, 0
-        )
+        self.layout().addWidget(PBLabel(igstr.linesMoreInfo), nlines + 1, 0)
 
         try:
             hIndex = "%d" % self.parent().lastAuthorStats["h"]
         except (TypeError, AttributeError):
-            hIndex = "ND"
-        self.hIndex = PBLabel("Author h index: %s" % hIndex)
+            hIndex = igstr.hIndexE
+        self.hIndex = PBLabel(igstr.hIndexV % hIndex)
         largerFont = QFont("Times", 15, QFont.Bold)
         self.hIndex.setFont(largerFont)
         self.layout().addWidget(self.hIndex, nlines + 1, 1)
@@ -78,11 +77,11 @@ class AuthorStatsPlots(PBDialog):
         self.textBox = QLineEdit("")
         self.textBox.setReadOnly(True)
         self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)
-        self.saveButton = QPushButton("Save", self)
+        self.saveButton = QPushButton(igstr.save, self)
         self.saveButton.clicked.connect(self.saveAction)
         self.layout().addWidget(self.saveButton, nlines + 3, 0)
 
-        self.clButton = QPushButton("Close", self)
+        self.clButton = QPushButton(igstr.close, self)
         self.clButton.clicked.connect(self.onClose)
         self.clButton.setAutoDefault(True)
         self.layout().addWidget(self.clButton, nlines + 3, 1)
@@ -95,7 +94,7 @@ class AuthorStatsPlots(PBDialog):
         """Save the plot into a file,
         after asking the directory where to save them
         """
-        savePath = askDirName(self, "Where do you want to save the plots of the stats?")
+        savePath = askDirName(self, igstr.whereSavePlots)
         if savePath != "":
             try:
                 self.parent().lastAuthorStats["figs"] = pBStats.plotStats(
@@ -104,7 +103,7 @@ class AuthorStatsPlots(PBDialog):
             except AttributeError:
                 pBGUILogger.warning("", exc_info=True)
             else:
-                infoMessage("Plots saved.")
+                infoMessage(igstr.plotsSaved)
                 self.saveButton.setDisabled(True)
 
     def onPress(self, event):
@@ -131,22 +130,21 @@ class AuthorStatsPlots(PBDialog):
                 ix = i
         if isinstance(ob, Rectangle):
             self.textBox.setText(
-                "%s in year %d is: %d"
-                % (figTitles[ix], int(ob.get_x()), int(ob.get_height()))
+                igstr.xInYearIs % (figTitles[ix], int(ob.get_x()), int(ob.get_height()))
             )
         elif isinstance(ob, Line2D):
             xdata = ob.get_xdata()
             ydata = ob.get_ydata()
             ind = event.ind
             if ix == 4:
-                formatString = "%s in date %s is %.2f"
+                formatString = igstr.xInDateIsF
             else:
-                formatString = "%s in date %s is %d"
+                formatString = igstr.xInDateIsD
             self.textBox.setText(
                 formatString
                 % (
                     figTitles[ix],
-                    np.take(xdata, ind)[0].strftime("%d/%m/%Y"),
+                    np.take(xdata, ind)[0].strftime(igstr.datefmt),
                     np.take(ydata, ind)[0],
                 )
             )
@@ -199,18 +197,16 @@ class PaperStatsPlots(PBDialog):
         self.updatePlots()
 
         nlines = 1
-        self.layout().addWidget(
-            PBLabel("Click on the line to have more information:"), nlines + 1, 0
-        )
+        self.layout().addWidget(PBLabel(igstr.lineMoreInfo), nlines + 1, 0)
 
         self.textBox = QLineEdit("")
         self.textBox.setReadOnly(True)
         self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)
-        self.saveButton = QPushButton("Save", self)
+        self.saveButton = QPushButton(igstr.save, self)
         self.saveButton.clicked.connect(self.saveAction)
         self.layout().addWidget(self.saveButton, nlines + 3, 0)
 
-        self.clButton = QPushButton("Close", self)
+        self.clButton = QPushButton(igstr.close, self)
         self.clButton.clicked.connect(self.onClose)
         self.clButton.setAutoDefault(True)
         self.layout().addWidget(self.clButton, nlines + 3, 1)
@@ -223,7 +219,7 @@ class PaperStatsPlots(PBDialog):
         """Save the plot into a file,
         after asking the directory where to save them
         """
-        savePath = askDirName(self, "Where do you want to save the plot of the stats?")
+        savePath = askDirName(self, igstr.whereSavePlot)
         if savePath != "":
             try:
                 self.parent().lastPaperStats["fig"] = pBStats.plotStats(
@@ -232,7 +228,7 @@ class PaperStatsPlots(PBDialog):
             except AttributeError:
                 pBGUILogger.warning("", exc_info=True)
             else:
-                infoMessage("Plot saved.")
+                infoMessage(igstr.plotSaved)
                 self.saveButton.setDisabled(True)
 
     def pickEvent(self, event):
@@ -248,12 +244,12 @@ class PaperStatsPlots(PBDialog):
             xdata = ob.get_xdata()
             ydata = ob.get_ydata()
             ind = event.ind
-            formatString = "%s in date %s is %d"
+            formatString = igstr.xInDateIsD
             self.textBox.setText(
                 formatString
                 % (
-                    "Citations",
-                    np.take(xdata, ind)[0].strftime("%d/%m/%Y"),
+                    igstr.citations,
+                    np.take(xdata, ind)[0].strftime(igstr.datefmt),
                     np.take(ydata, ind)[0],
                 )
             )
