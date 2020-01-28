@@ -128,11 +128,9 @@ class ConfigEditColumns(PBDialog):
         self.setLayout(self.gridlayout)
 
         self.items = []
-        self.listAll = PBDDTableWidget(self, "Available columns")
-        self.listSel = PBDDTableWidget(self, "Selected columns")
-        self.gridlayout.addWidget(
-            PBLabel("Drag and drop items to order visible columns"), 0, 0, 1, 2
-        )
+        self.listAll = PBDDTableWidget(self, dwstr.colsAvailable)
+        self.listSel = PBDDTableWidget(self, dwstr.colsSelected)
+        self.gridlayout.addWidget(PBLabel(dwstr.colsDragAndDrop), 0, 0, 1, 2)
         self.gridlayout.addWidget(self.listAll, 1, 0)
         self.gridlayout.addWidget(self.listSel, 1, 1)
 
@@ -154,11 +152,11 @@ class ConfigEditColumns(PBDialog):
                 self.listAll.setItem(iall, 0, item)
                 iall += 1
 
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.gridlayout.addWidget(self.acceptButton, 2, 0)
 
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.gridlayout.addWidget(self.cancelButton, 2, 1)
@@ -196,16 +194,12 @@ class ConfigWindow(PBDialog):
         """
         ix = pbConfig.paramOrder.index("pdfFolder")
         folder = askDirName(
-            parent=None,
-            dir=self.textValues[ix][1].text(),
-            title="Directory for saving PDF files:",
+            parent=None, dir=self.textValues[ix][1].text(), title=dwstr.dirPDFSave,
         )
         if folder.strip() != "":
             self.textValues[ix][1].setText(str(folder))
 
-    def editFile(
-        self, paramkey="logFileName", text="Name for the log file", filter="*.log"
-    ):
+    def editFile(self, paramkey="logFileName", text=dwstr.logFileName, filter="*.log"):
         """Open a dialog to select a new file name
         for a configuration parameter, and save the result
         in the `ConfigWindow` interface
@@ -216,7 +210,7 @@ class ConfigWindow(PBDialog):
             filter: filter the folder content in the file dialog
         """
         if paramkey not in pbConfig.paramOrder:
-            pBLogger.warning("Invalid paramkey: '%s'" % paramkey)
+            pBLogger.warning(dwstr.invalidParamkey % paramkey)
             return
         ix = pbConfig.paramOrder.index(paramkey)
         fname = askSaveFileName(
@@ -257,7 +251,7 @@ class ConfigWindow(PBDialog):
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
-        self.setWindowTitle("Configuration")
+        self.setWindowTitle(dwstr.config)
 
         grid = QGridLayout()
         self.grid = grid
@@ -277,7 +271,9 @@ class ConfigWindow(PBDialog):
                     % (
                         configuration_params[k].description,
                         k,
-                        " - global setting" if configuration_params[k].isGlobal else "",
+                        (" - " + dwstr.globalSett)
+                        if configuration_params[k].isGlobal
+                        else "",
                     )
                 ),
                 i - 1,
@@ -304,9 +300,7 @@ class ConfigWindow(PBDialog):
                         ]
                     )
                 except (IndexError, ValueError):
-                    pBGUILogger.warning(
-                        "Invalid string for 'loggingLevel' param. Reset to default"
-                    )
+                    pBGUILogger.warning(dwstr.invalidLoggingLevel)
                     self.textValues.append(
                         [
                             k,
@@ -332,14 +326,14 @@ class ConfigWindow(PBDialog):
             grid.addWidget(self.textValues[i - 1][1], i - 1, 2, 1, 2)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         # width = self.acceptButton.fontMetrics().boundingRect('OK').width() + 7
         # self.acceptButton.setMaximumWidth(width)
         grid.addWidget(self.acceptButton, i, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         # width = self.cancelButton.fontMetrics().boundingRect('Cancel').width() + 7
@@ -353,7 +347,7 @@ class ConfigWindow(PBDialog):
 class LogFileContentDialog(PBDialog):
     """Create a window for showing the logFile content"""
 
-    title = "Log File Content"
+    title = dwstr.logFileContent
 
     def __init__(self, parent=None):
         """Instantiate class and create its widgets
@@ -371,13 +365,13 @@ class LogFileContentDialog(PBDialog):
         """Ask confirmation, then eventually clear
         the content of the log file
         """
-        if askYesNo("Are you sure you want to clear the log file?"):
+        if askYesNo(dwstr.clearLogAsk):
             try:
                 open(pbConfig.params["logFileName"], "w").close()
             except IOError:
-                pBGUILogger.exception("Impossible to clear log file!")
+                pBGUILogger.exception(dwstr.clearLogFailClear)
             else:
-                infoMessage("Log file cleared.")
+                infoMessage(dwstr.clearLogDone)
                 self.close()
 
     def initUI(self):
@@ -389,23 +383,23 @@ class LogFileContentDialog(PBDialog):
         grid = QVBoxLayout()
         grid.setSpacing(1)
 
-        grid.addWidget(PBLabel("Reading %s" % pbConfig.params["logFileName"]))
+        grid.addWidget(PBLabel(dwstr.logFileRead % pbConfig.params["logFileName"]))
         try:
             with open(pbConfig.params["logFileName"]) as r:
                 text = r.read()
         except IOError:
-            text = "Impossible to read log file!"
+            text = dwstr.clearLogFailRead
             pBLogger.exception(text)
         self.textEdit = QPlainTextEdit(text)
         self.textEdit.setReadOnly(True)
         grid.addWidget(self.textEdit)
 
-        self.closeButton = QPushButton("Close", self)
+        self.closeButton = QPushButton(dwstr.close, self)
         self.closeButton.setAutoDefault(True)
         self.closeButton.clicked.connect(self.close)
         grid.addWidget(self.closeButton)
 
-        self.clearButton = QPushButton("Clear log file", self)
+        self.clearButton = QPushButton(dwstr.clearLogTitle, self)
         self.clearButton.clicked.connect(self.clearLog)
         grid.addWidget(self.clearButton)
 
@@ -445,7 +439,7 @@ class PrintText(PBDialog):
         if title != "":
             self.title = title
         else:
-            self.title = "Redirect print"
+            self.title = dwstr.redirectPrint
         self.setProgressBar = progressBar
         self.noStopButton = noStopButton
         self.message = message
@@ -495,11 +489,11 @@ class PrintText(PBDialog):
 
         # cancel button...should learn how to connect it with a thread kill
         if self.noStopButton is not True:
-            self.cancelButton = QPushButton("Stop", self)
+            self.cancelButton = QPushButton(dwstr.stop, self)
             self.cancelButton.clicked.connect(self.stopExec)
             self.cancelButton.setAutoDefault(True)
             grid.addWidget(self.cancelButton)
-        self.closeButton = QPushButton("Close", self)
+        self.closeButton = QPushButton(dwstr.close, self)
         self.closeButton.setDisabled(True)
         grid.addWidget(self.closeButton)
 
@@ -586,18 +580,18 @@ class AdvancedImportDialog(PBDialog):
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
-        self.setWindowTitle("Advanced import")
+        self.setWindowTitle(dwstr.advImpTitle)
 
         grid = QGridLayout()
         self.grid = grid
         grid.setSpacing(1)
 
         ##search
-        grid.addWidget(PBLabel("Search string: "), 0, 0)
+        grid.addWidget(PBLabel(dwstr.advImpSearch), 0, 0)
         self.searchStr = QLineEdit("")
         grid.addWidget(self.searchStr, 0, 1)
 
-        grid.addWidget(PBLabel("Select method: "), 1, 0)
+        grid.addWidget(PBLabel(dwstr.advImpMethod), 1, 0)
         self.comboMethod = PBComboBox(
             self,
             ["INSPIRE-HEP", "ADS-NASA", "arXiv", "DOI", "ISBN"],
@@ -606,12 +600,12 @@ class AdvancedImportDialog(PBDialog):
         grid.addWidget(self.comboMethod, 1, 1)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         grid.addWidget(self.acceptButton, 2, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         grid.addWidget(self.cancelButton, 2, 1)
@@ -670,16 +664,11 @@ class AdvancedImportSelect(ObjListWindow):
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
-        self.setWindowTitle("Advanced import - results")
+        self.setWindowTitle(dwstr.advImpResults)
 
         self.currLayout.setSpacing(1)
 
-        self.currLayout.addWidget(
-            PBLabel(
-                "This is the list of elements found."
-                + "\nSelect the ones that you want to import:"
-            )
-        )
+        self.currLayout.addWidget(PBLabel(dwstr.importSelRes))
 
         headers = ["ID", "title", "author", "eprint", "doi"]
         for k in self.bibs.keys():
@@ -699,22 +688,22 @@ class AdvancedImportSelect(ObjListWindow):
                 except KeyError:
                     pass
         self.tableModel = PBImportedTableModel(self, self.bibs, headers)
-        self.addFilterInput("Filter entries", gridPos=(1, 0))
+        self.addFilterInput(dwstr.filterEntries, gridPos=(1, 0))
         self.setProxyStuff(0, Qt.AscendingOrder)
         self.finalizeTable(gridPos=(2, 0, 1, 2))
 
         i = 3
-        self.askCats = QCheckBox("Ask categories at the end?", self)
+        self.askCats = QCheckBox(dwstr.askCats, self)
         self.askCats.toggle()
         self.currLayout.addWidget(self.askCats, i, 0)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currLayout.addWidget(self.acceptButton, i + 1, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currLayout.addWidget(self.cancelButton, i + 2, 0)
@@ -775,30 +764,30 @@ class DailyArxivDialog(PBDialog):
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
-        self.setWindowTitle("Browse arxiv daily")
+        self.setWindowTitle(dwstr.arxDailyTitle)
 
         self.grid = QGridLayout()
         self.grid.setSpacing(1)
 
         ##combo boxes
-        self.grid.addWidget(PBLabel("Select category: "), 0, 0)
+        self.grid.addWidget(PBLabel(dwstr.arxCat), 0, 0)
         self.comboCat = PBComboBox(
             self, [""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys())
         )
         self.comboCat.currentIndexChanged[str].connect(self.updateCat)
         self.grid.addWidget(self.comboCat, 0, 1)
 
-        self.grid.addWidget(PBLabel("Subcategory: "), 1, 0)
+        self.grid.addWidget(PBLabel(dwstr.arxSub), 1, 0)
         self.comboSub = PBComboBox(self, [""])
         self.grid.addWidget(self.comboSub, 1, 1)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.grid.addWidget(self.acceptButton, 2, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.grid.addWidget(self.cancelButton, 2, 1)
@@ -832,43 +821,38 @@ class DailyArxivSelect(AdvancedImportSelect):
 
     def initUI(self):
         """Initialize the widget content, with the buttons and labels"""
-        self.setWindowTitle("ArXiv daily listing - results")
+        self.setWindowTitle(dwstr.arxResTitle)
 
         self.currLayout.setSpacing(1)
 
-        self.currLayout.addWidget(
-            PBLabel(
-                "This is the list of elements found.\n"
-                + "Select the ones that you want to import:"
-            )
-        )
+        self.currLayout.addWidget(PBLabel(dwstr.importSelRes))
 
         headers = ["eprint", "type", "title", "author", "primaryclass"]
         self.tableModel = PBImportedTableModel(
             self, self.bibs, headers + ["abstract"], idName="eprint"
         )
-        self.addFilterInput("Filter entries", gridPos=(1, 0))
+        self.addFilterInput(dwstr.filterEntries, gridPos=(1, 0))
         self.setProxyStuff(0, Qt.AscendingOrder)
 
         self.finalizeTable(gridPos=(2, 0, 1, 2))
 
         i = 3
-        self.askCats = QCheckBox("Ask categories at the end?", self)
+        self.askCats = QCheckBox(dwstr.askCats, self)
         self.askCats.toggle()
         self.currLayout.addWidget(self.askCats, i, 0)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currLayout.addWidget(self.acceptButton, i + 1, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currLayout.addWidget(self.cancelButton, i + 2, 0)
 
-        self.abstractArea = QTextEdit("Abstract", self)
+        self.abstractArea = QTextEdit(dwstr.abstract, self)
         self.currLayout.addWidget(self.abstractArea, i + 3, 0, 4, 2)
 
     def cellClick(self, index):
@@ -883,10 +867,10 @@ class DailyArxivSelect(AdvancedImportSelect):
         try:
             eprint = str(self.proxyModel.sibling(row, 0, index).data())
         except AttributeError:
-            pBLogger.debug("Data not valid", exc_info=True)
+            pBLogger.debug(dwstr.invalidData, exc_info=True)
             return
         if "already existing" in eprint:
-            eprint = eprint.replace(" - already existing", "")
+            eprint = eprint.replace(dwstr.alreadyExisting, "")
         if hasattr(self, "abstractFormulas") and self.abstractFormulas is not None:
             a = self.abstractFormulas(
                 self.parent(),
@@ -896,10 +880,7 @@ class DailyArxivSelect(AdvancedImportSelect):
             )
             a.doText()
         else:
-            pBLogger.debug(
-                "self.abstractFormulas not present in "
-                + "DailyArxivSelect. Eprint: %s" % eprint
-            )
+            pBLogger.debug(dwstr.errorAF % eprint)
 
 
 class ExportForTexDialog(PBDialog):
@@ -934,7 +915,7 @@ class ExportForTexDialog(PBDialog):
         self.remove = self.removeCheck.isChecked()
         self.reorder = self.reorderCheck.isChecked()
         self.bibName = self.bibButton.text()
-        if self.bibName == "Select file":
+        if self.bibName == dwstr.selFile:
             self.bibName = ""
         self.texFileNames = []
         for button in self.texButtons:
@@ -943,7 +924,7 @@ class ExportForTexDialog(PBDialog):
                 try:
                     txt = ast.literal_eval(txt)
                 except ValueError:
-                    pBLogger.warning("Invalid text: %s" % s)
+                    pBLogger.warning(dwstr.invalidText % s)
             self.texFileNames.append(txt)
         tmp = []
         for fn in self.texFileNames:
@@ -951,7 +932,7 @@ class ExportForTexDialog(PBDialog):
                 tmp += fn
             else:
                 tmp.append(fn)
-        self.texNames = [f for f in tmp if f != "Select file" and f != ""]
+        self.texNames = [f for f in tmp if f != dwstr.selFile and f != ""]
 
     def onAddTex(self):
         """Add a new line for the texs"""
@@ -979,41 +960,35 @@ class ExportForTexDialog(PBDialog):
     def onAskBib(self):
         """Accept the output (set self.result to True and close)"""
         outFName = askSaveFileName(
-            self,
-            title="Where do you want to export the entries?",
-            filter="Bibtex (*.bib)",
+            self, title=dwstr.whereExportBibs, filter="Bibtex (*.bib)",
         )
         if outFName != "":
             self.bibButton.setText(outFName)
 
     def onAskTex(self, ix):
         """Accept the output (set self.result to True and close)"""
-        texFile = askFileNames(
-            self,
-            title="Which is/are the *.tex file(s) you want to compile?",
-            filter="Latex (*.tex)",
-        )
+        texFile = askFileNames(self, title=dwstr.whichTexFiles, filter="Latex (*.tex)",)
         if texFile != "" and texFile != []:
             self.texButtons[ix].setText("%s" % texFile)
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
-        self.setWindowTitle("Export for tex file")
+        self.setWindowTitle(dwstr.exportTexFile)
         self.grid.setSpacing(1)
 
-        self.grid.addWidget(PBLabelRight("Bib file name:"), 0, 0, 1, 2)
+        self.grid.addWidget(PBLabelRight(dwstr.bibName), 0, 0, 1, 2)
         self.bibButton = QPushButton(
-            "Select file" if self.bibName == "" else self.bibName, self
+            dwstr.selFile if self.bibName == "" else self.bibName, self
         )
         self.bibButton.clicked.connect(self.onAskBib)
         self.grid.addWidget(self.bibButton, 0, 2, 1, 2)
 
         self.texButtons = []
         for ix in range(self.numTexFields):
-            self.grid.addWidget(PBLabelRight("Tex file name(s):"), ix + 1, 0, 1, 2)
+            self.grid.addWidget(PBLabelRight(dwstr.texNames), ix + 1, 0, 1, 2)
             self.texButtons.append(
                 QPushButton(
-                    "Select file"
+                    dwstr.selFile
                     if self.texFileNames[ix] == ""
                     else "%s" % self.texFileNames[ix],
                     self,
@@ -1023,32 +998,30 @@ class ExportForTexDialog(PBDialog):
             self.grid.addWidget(self.texButtons[ix], ix + 1, 2, 1, 2)
 
         i = 2 + self.numTexFields
-        self.addTexButton = QPushButton("Add more tex files", self)
+        self.addTexButton = QPushButton(dwstr.exportAddTex, self)
         self.addTexButton.clicked.connect(self.onAddTex)
         self.grid.addWidget(self.addTexButton, i - 1, 2)
 
-        self.removeCheck = QCheckBox("Remove unused bibtexs?", self)
+        self.removeCheck = QCheckBox(dwstr.exportRemove, self)
         if self.remove:
             self.removeCheck.setChecked(True)
         self.grid.addWidget(self.removeCheck, i, 0, 1, 2)
-        self.updateCheck = QCheckBox("Update existing bibtexs?", self)
+        self.updateCheck = QCheckBox(dwstr.exportUpdate, self)
         if self.update:
             self.updateCheck.setChecked(True)
         self.grid.addWidget(self.updateCheck, i, 2, 1, 2)
-        self.reorderCheck = QCheckBox(
-            "Reorder existing bibtexs? (includes removing unused ones)", self
-        )
+        self.reorderCheck = QCheckBox(dwstr.exportReorder, self)
         if self.reorder:
             self.reorderCheck.setChecked(True)
         self.grid.addWidget(self.reorderCheck, i + 1, 0, 1, 4)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(dwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.grid.addWidget(self.acceptButton, i + 2, 1)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(dwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.grid.addWidget(self.cancelButton, i + 2, 2)

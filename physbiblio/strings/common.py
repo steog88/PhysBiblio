@@ -1,6 +1,7 @@
 class CommonStrings:
     """Some common strings for the package"""
 
+    abstract = "Abstract"
     andC = "AND"
     cancel = "Cancel"
     close = "Close"
@@ -27,5 +28,6 @@ class CommonStrings:
     question = "Question"
     save = "Save"
     shortName = "Short name"
+    stop = "Stop"
     true = "True"
     warning = "Warning"
