@@ -96,6 +96,7 @@ try:
         Thread_replace,
         Thread_importDailyArxiv,
     )
+    from physbiblio.strings.gui import MainWindowStrings as mwstr
 except ImportError as e:
     print("Could not find physbiblio and its modules!", e)
     print(traceback.format_exc())

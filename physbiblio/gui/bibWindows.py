@@ -69,6 +69,7 @@ try:
     from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.expWindows import ExpsListWindow
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import BibWindowsStrings as bwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

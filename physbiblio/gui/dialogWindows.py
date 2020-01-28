@@ -48,6 +48,7 @@ try:
     )
     from physbiblio.gui.catWindows import CatsTreeWindow
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import DialogWindowsStrings as dwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

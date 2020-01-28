@@ -34,6 +34,7 @@ try:
         TreeNode,
     )
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import CatWindowsStrings as cwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -73,27 +74,27 @@ def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None)
             data[k] = s
         if data["name"].strip() != "":
             if "idCat" in data.keys():
-                pBLogger.info("Updating category %s..." % data["idCat"])
+                pBLogger.info(cwstr.updateCat % data["idCat"])
                 pBDB.cats.update(data, data["idCat"])
             else:
                 pBDB.cats.insert(data)
-            message = "Category saved"
-            mainWinObject.setWindowTitle("PhysBiblio*")
+            message = cwstr.catSaved
+            mainWinObject.setWindowTitle(cwstr.winTitleModified)
             try:
                 parentObject.recreateTable()
             except AttributeError:
                 pBLogger.debug(
-                    "parentObject has no attribute 'recreateTable'", exc_info=True
+                    cwstr.noAttribute % ("parentObject", "recreateTable"), exc_info=True
                 )
         else:
-            message = "ERROR: empty category name"
+            message = cwstr.emptyName
     else:
-        message = "No modifications to categories"
+        message = cwstr.noModifications
     try:
         mainWinObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "mainWinObject has no attribute 'statusBarMessage'", exc_info=True
+            cwstr.noAttribute % ("mainWinObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -107,26 +108,23 @@ def deleteCategory(parentObject, mainWinObject, idCat, name):
         idCat: the id of the category to be deleted
         name: the name of the category to be deleted
     """
-    if askYesNo(
-        "Do you really want to delete this category "
-        + "(ID = '%s', name = '%s')?" % (idCat, name)
-    ):
+    if askYesNo(cwstr.askDelete % (idCat, name)):
         pBDB.cats.delete(int(idCat))
-        mainWinObject.setWindowTitle("PhysBiblio*")
-        message = "Category deleted"
+        mainWinObject.setWindowTitle(cwstr.winTitleModified)
+        message = cwstr.catDeleted
         try:
             parentObject.recreateTable()
         except AttributeError:
             pBLogger.debug(
-                "parentObject has no attribute 'recreateTable'", exc_info=True
+                cwstr.noAttribute % ("parentObject", "recreateTable"), exc_info=True
             )
     else:
-        message = "Nothing changed"
+        message = cwstr.nothingChanged
     try:
         mainWinObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "mainWinObject has no attribute 'statusBarMessage'", exc_info=True
+            cwstr.noAttribute % ("mainWinObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -166,7 +164,7 @@ class CatsModel(TreeModel):
                 else:
                     self.selectedCats[prevIx] = True
             else:
-                pBLogger.warning("Invalid idCat in previous selection: %s" % prevIx)
+                pBLogger.warning(cwstr.invalidCat % prevIx)
 
     def _getRootNodes(self):
         """Obtain the list of named nodes which represent the root
@@ -333,7 +331,7 @@ class CatsTreeWindow(PBDialog):
                 typically not the same for all the elements in the list
         """
         PBDialog.__init__(self, parent)
-        self.setWindowTitle("Categories")
+        self.setWindowTitle(cwstr.cats)
         self.currLayout = QVBoxLayout(self)
         self.setLayout(self.currLayout)
         self.askCats = askCats
@@ -372,8 +370,7 @@ class CatsTreeWindow(PBDialog):
                     bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        "The entry '%s' " % self.askForBib + "is not in the database!",
-                        exc_info=True,
+                        cwstr.entryNotInDb % self.askForBib, exc_info=True,
                     )
                     return
                 try:
@@ -395,48 +392,33 @@ class CatsTreeWindow(PBDialog):
                     else:
                         link = self.askForBib
                     bibtext = PBLabel(
-                        "Mark categories for the following "
-                        + "entry:<br><b>key</b>:<br>%s<br>" % link
-                        + "<b>author(s)</b>:<br>%s<br>" % bibitem["author"]
-                        + "<b>title</b>:<br>%s<br>" % bibitem["title"]
+                        cwstr.markCatBibKAT
+                        % (link, bibitem["author"], bibitem["title"])
                     )
                 except KeyError:
-                    bibtext = PBLabel(
-                        "Mark categories for the following "
-                        + "entry:<br><b>key</b>:<br>%s<br>" % (self.askForBib)
-                    )
+                    bibtext = PBLabel(cwstr.markCatBibK % (self.askForBib))
                 self.currLayout.addWidget(bibtext)
             elif self.askForExp is not None:
                 try:
                     expitem = pBDB.exps.getByID(self.askForExp)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        "The experiment ID %s" % self.askForExp
-                        + " is not in the database!",
-                        exc_info=True,
+                        cwstr.expNotInDb % self.askForExp, exc_info=True,
                     )
                     return
                 try:
                     exptext = PBLabel(
-                        "Mark categories for the following "
-                        + "experiment:<br><b>id</b>:<br>%s<br>" % self.askForExp
-                        + "<b>name</b>:<br>%s<br>" % expitem["name"]
-                        + "<b>comments</b>:<br>%s<br>" % expitem["comments"]
+                        cwstr.markCatExpINC
+                        % (self.askForExp, expitem["name"], expitem["comments"])
                     )
                 except KeyError:
-                    exptext = PBLabel(
-                        "Mark categories for the following "
-                        + "experiment:<br><b>id</b>:<br>%s<br>" % (self.askForExp)
-                    )
+                    exptext = PBLabel(cwstr.markCatExpI % (self.askForExp))
                 self.currLayout.addWidget(exptext)
             else:
                 if self.single:
-                    comment = PBLabel(
-                        "Select the desired category "
-                        + "(only the first one will be considered):"
-                    )
+                    comment = PBLabel(cwstr.selectCat)
                 else:
-                    comment = PBLabel("Select the desired categories:")
+                    comment = PBLabel(cwstr.selectCats)
                 self.currLayout.addWidget(comment)
             self.marked = []
             self.parent().selectedCats = []
@@ -519,7 +501,7 @@ class CatsTreeWindow(PBDialog):
         catsTree = pBDB.cats.getHier()
 
         self.filterInput = QLineEdit("", self)
-        self.filterInput.setPlaceholderText("Filter categories")
+        self.filterInput.setPlaceholderText(cwstr.filterCat)
         self.filterInput.textChanged.connect(self.changeFilter)
         self.currLayout.addWidget(self.filterInput)
         self.filterInput.setFocus()
@@ -552,22 +534,22 @@ class CatsTreeWindow(PBDialog):
         self.tree.setHeaderHidden(True)
         # self.tree.doubleClicked.connect(self.askAndPerformAction)
 
-        self.newCatButton = QPushButton("Add new category", self)
+        self.newCatButton = QPushButton(cwstr.addNew, self)
         self.newCatButton.clicked.connect(self.onNewCat)
         self.currLayout.addWidget(self.newCatButton)
 
         if self.askCats:
-            self.acceptButton = QPushButton("OK", self)
+            self.acceptButton = QPushButton(cwstr.ok, self)
             self.acceptButton.clicked.connect(self.onOk)
             self.currLayout.addWidget(self.acceptButton)
 
             if self.expButton:
-                self.expsButton = QPushButton("Ask experiments", self)
+                self.expsButton = QPushButton(cwstr.askExp, self)
                 self.expsButton.clicked.connect(self.onAskExps)
                 self.currLayout.addWidget(self.expsButton)
 
             # cancel button
-            self.cancelButton = QPushButton("Cancel", self)
+            self.cancelButton = QPushButton(cwstr.cancel, self)
             self.cancelButton.clicked.connect(self.onCancel)
             self.cancelButton.setAutoDefault(True)
             self.currLayout.addWidget(self.cancelButton)
@@ -618,19 +600,16 @@ class CatsTreeWindow(PBDialog):
         try:
             catData = pBDB.cats.getByID(idCat)[0]
         except IndexError:
-            pBGUILogger.exception("Failed in finding category")
+            pBGUILogger.exception(cwstr.failedFind)
             return
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(
             lambda: QToolTip.showText(
                 QCursor.pos(),
-                "{idC}: {cat}\nCorresponding entries: ".format(
-                    idC=idCat, cat=catData["name"]
-                )
-                + "{en}\nAssociated experiments: {ex}".format(
-                    en=pBDB.catBib.countByCat(idCat), ex=pBDB.catExp.countByCat(idCat)
-                ),
+                cwstr.catId.format(idC=idCat, cat=catData["name"])
+                + cwstr.entriesCorrespondent.format(en=pBDB.catBib.countByCat(idCat))
+                + cwstr.expsAssociated.format(ex=pBDB.catExp.countByCat(idCat)),
                 self.tree.viewport(),
                 self.tree.visualRect(index),
                 3000,
@@ -649,7 +628,7 @@ class CatsTreeWindow(PBDialog):
         try:
             index = indexes[0]
         except IndexError:
-            pBLogger.debug("Click on missing index")
+            pBLogger.debug(cwstr.clickMissingIndex)
             return
         if index.isValid():
             row = index.row()
@@ -669,12 +648,12 @@ class CatsTreeWindow(PBDialog):
 
         menu = PBMenu()
         self.menu = menu
-        titAction = QAction("--Category: %s--" % catName)
+        titAction = QAction(cwstr.catDescr % catName)
         titAction.setDisabled(True)
-        bibAction = QAction("Open list of corresponding entries")
-        modAction = QAction("Modify")
-        delAction = QAction("Delete")
-        subAction = QAction("Add subcategory")
+        bibAction = QAction(cwstr.openEntryList)
+        modAction = QAction(cwstr.modify)
+        delAction = QAction(cwstr.delete)
+        subAction = QAction(cwstr.addSub)
         menu.possibleActions = [
             titAction,
             None,
@@ -782,11 +761,11 @@ class EditCategoryDialog(EditObjectWindow):
                     "%s - %s" % (str(val), pBDB.cats.getByID(val)[0]["name"])
                 )
             except IndexError:
-                self.textValues["parentCat"].setText("Select parent")
+                self.textValues["parentCat"].setText(cwstr.selectParent)
 
     def createForm(self):
         """Prepare the window widgets"""
-        self.setWindowTitle("Edit category")
+        self.setWindowTitle(cwstr.catEdit)
 
         i = 0
         for k in pBDB.tableCols["categories"]:
@@ -805,7 +784,7 @@ class EditCategoryDialog(EditObjectWindow):
                             self,
                         )
                     except IndexError:
-                        self.textValues[k] = QPushButton("Select parent", self)
+                        self.textValues[k] = QPushButton(cwstr.selectParent, self)
                     self.textValues[k].clicked.connect(self.onAskParent)
                 else:
                     self.textValues[k] = QLineEdit(str(val))
@@ -814,12 +793,12 @@ class EditCategoryDialog(EditObjectWindow):
                 self.currGrid.addWidget(self.textValues[k], i * 2, 0, 1, 2)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(cwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i * 2 + 1, 1)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(cwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i * 2 + 1, 0)

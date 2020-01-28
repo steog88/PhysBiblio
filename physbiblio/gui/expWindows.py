@@ -25,6 +25,7 @@ try:
     )
     from physbiblio.gui.catWindows import CatsTreeWindow
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.gui import ExpWindowsStrings as ewstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -54,27 +55,27 @@ def editExperiment(parentObject, mainWinObject, editIdExp=None):
             data[k] = s
         if data["name"].strip() != "":
             if "idExp" in data.keys():
-                pBLogger.info("Updating experiment %s..." % data["idExp"])
+                pBLogger.info(ewstr.updateExp % data["idExp"])
                 pBDB.exps.update(data, data["idExp"])
             else:
                 pBDB.exps.insert(data)
-            message = "Experiment saved"
-            mainWinObject.setWindowTitle("PhysBiblio*")
+            message = ewstr.expSaved
+            mainWinObject.setWindowTitle(ewstr.winTitleModified)
             try:
                 parentObject.recreateTable()
             except AttributeError:
                 pBLogger.debug(
-                    "parentObject has no attribute 'recreateTable'", exc_info=True
+                    ewstr.noAttribute % ("parentObject", "recreateTable"), exc_info=True
                 )
         else:
-            message = "ERROR: empty experiment name"
+            message = ewstr.emptyName
     else:
-        message = "No modifications to experiments"
+        message = ewstr.noModifications
     try:
         mainWinObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "mainWinObject has no attribute 'statusBarMessage'", exc_info=True
+            ewstr.noAttribute % ("mainWinObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -88,26 +89,23 @@ def deleteExperiment(parentObject, mainWinObject, idExp, name):
         idExp: the id of the experiment to be deleted
         name: the name of the experiment to be deleted
     """
-    if askYesNo(
-        "Do you really want to delete this experiment "
-        + "(ID = '%s', name = '%s')?" % (idExp, name)
-    ):
+    if askYesNo(ewstr.askDelete % (idExp, name)):
         pBDB.exps.delete(int(idExp))
-        mainWinObject.setWindowTitle("PhysBiblio*")
-        message = "Experiment deleted"
+        mainWinObject.setWindowTitle(ewstr.winTitleModified)
+        message = ewstr.expDeleted
         try:
             parentObject.recreateTable()
         except AttributeError:
             pBLogger.debug(
-                "parentObject has no attribute 'recreateTable'", exc_info=True
+                ewstr.noAttribute % ("parentObject", "recreateTable"), exc_info=True
             )
     else:
-        message = "Nothing changed"
+        message = ewstr.nothingChanged
     try:
         mainWinObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "mainWinObject has no attribute 'statusBarMessage'", exc_info=True
+            ewstr.noAttribute % ("mainWinObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -236,7 +234,7 @@ class ExpsListWindow(ObjListWindow):
         self.timer = None
 
         ObjListWindow.__init__(self, parent)
-        self.setWindowTitle("List of experiments")
+        self.setWindowTitle(ewstr.listTitle)
 
         self.createTable()
 
@@ -251,8 +249,7 @@ class ExpsListWindow(ObjListWindow):
                     bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        "The entry '%s' " % self.askForBib + "is not in the database!",
-                        exc_info=True,
+                        ewstr.entryNotInDb % self.askForBib, exc_info=True,
                     )
                     return
                 try:
@@ -274,21 +271,15 @@ class ExpsListWindow(ObjListWindow):
                     else:
                         link = self.askForBib
                     bibtext = PBLabel(
-                        "Mark experiments for the following entry:<br>"
-                        + "<b>key</b>:<br>%s<br>" % link
-                        + "<b>author(s)</b>:<br>%s<br>" % bibitem["author"]
-                        + "<b>title</b>:<br>%s<br>" % bibitem["title"]
+                        ewstr.markExpKAT % (link, bibitem["author"], bibitem["title"])
                     )
                 except KeyError:
-                    bibtext = PBLabel(
-                        "Mark experiments for the following entry:<br>"
-                        + "<b>key</b>:<br>%s<br>" % (self.askForBib)
-                    )
+                    bibtext = PBLabel(ewstr.markExpK % (self.askForBib))
                 self.currLayout.addWidget(bibtext)
             elif self.askForCat is not None:
-                raise NotImplementedError("This feature is not implemented")
+                raise NotImplementedError(ewstr.featureNYI)
             else:
-                self.currLayout.addWidget(PBLabel("Select the desired experiments:"))
+                self.currLayout.addWidget(PBLabel(ewstr.selectDesired))
             self.marked = []
             self.parent().selectedExps = []
         return True
@@ -340,22 +331,22 @@ class ExpsListWindow(ObjListWindow):
             askExps=self.askExps,
             previous=self.previous,
         )
-        self.addFilterInput("Filter experiment")
+        self.addFilterInput(ewstr.filterExp)
         self.setProxyStuff(1, Qt.AscendingOrder)
 
         self.finalizeTable()
 
-        self.newExpButton = QPushButton("Add new experiment", self)
+        self.newExpButton = QPushButton(ewstr.addNew, self)
         self.newExpButton.clicked.connect(self.onNewExp)
         self.currLayout.addWidget(self.newExpButton)
 
         if self.askExps:
-            self.acceptButton = QPushButton("OK", self)
+            self.acceptButton = QPushButton(ewstr.ok, self)
             self.acceptButton.clicked.connect(self.onOk)
             self.currLayout.addWidget(self.acceptButton)
 
             # cancel button
-            self.cancelButton = QPushButton("Cancel", self)
+            self.cancelButton = QPushButton(ewstr.cancel, self)
             self.cancelButton.clicked.connect(self.onCancel)
             self.cancelButton.setAutoDefault(True)
             self.currLayout.addWidget(self.cancelButton)
@@ -381,12 +372,12 @@ class ExpsListWindow(ObjListWindow):
 
         menu = PBMenu()
         self.menu = menu
-        titAction = QAction("--Experiment: %s--" % expName)
+        titAction = QAction(ewstr.expDescr % expName)
         titAction.setDisabled(True)
-        bibAction = QAction("Open list of corresponding entries")
-        modAction = QAction("Modify")
-        delAction = QAction("Delete")
-        catAction = menu.addAction("Categories")
+        bibAction = QAction(ewstr.openEntryList)
+        modAction = QAction(ewstr.modify)
+        delAction = QAction(ewstr.delete)
+        catAction = menu.addAction(ewstr.cats)
         menu.possibleActions = [
             titAction,
             None,
@@ -425,9 +416,7 @@ class ExpsListWindow(ObjListWindow):
                 for c in cats:
                     if c not in previous:
                         pBDB.catExp.insert(c, idExp)
-                self.parent().statusBarMessage(
-                    "Categories for '%s' successfully inserted" % expName
-                )
+                self.parent().statusBarMessage(ewstr.catsInserted % expName)
         return True
 
     def handleItemEntered(self, index):
@@ -450,19 +439,16 @@ class ExpsListWindow(ObjListWindow):
         try:
             expData = pBDB.exps.getByID(idExp)[0]
         except IndexError:
-            pBGUILogger.exception("Failed in finding experiment")
+            pBGUILogger.exception(ewstr.failedFind)
             return
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(
             lambda: QToolTip.showText(
                 QCursor.pos(),
-                "{idE}: {exp}\nCorresponding entries: {en}\n".format(
-                    idE=idExp, exp=expData["name"], en=pBDB.bibExp.countByExp(idExp)
-                )
-                + "Associated categories: {ca}".format(
-                    ca=pBDB.catExp.countByExp(idExp)
-                ),
+                ewstr.expId.format(idE=idExp, exp=expData["name"])
+                + ewstr.entriesCorrespondent.format(en=pBDB.bibExp.countByExp(idExp))
+                + ewstr.catsAssociated.format(ca=pBDB.catExp.countByExp(idExp)),
                 self.tableview.viewport(),
                 self.tableview.visualRect(index),
                 3000,
@@ -504,11 +490,11 @@ class ExpsListWindow(ObjListWindow):
                 return
             if self.colContents[col] == "inspire":
                 link = pbConfig.inspireRecord + link
-            pBLogger.debug("Opening '%s'..." % link)
+            pBLogger.debug(ewstr.opening % link)
             try:
                 pBGuiView.openLink(link, "link")
             except Exception:
-                pBLogger.warning("Opening link '%s' failed!" % link, exc_info=True)
+                pBLogger.warning(ewstr.openLinkFailed % link, exc_info=True)
         else:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
         return True
@@ -539,7 +525,7 @@ class EditExperimentDialog(EditObjectWindow):
 
     def createForm(self):
         """Create the form labels, fields, buttons"""
-        self.setWindowTitle("Edit experiment")
+        self.setWindowTitle(ewstr.expEdit)
 
         i = 0
         for k in pBDB.tableCols["experiments"]:
@@ -556,12 +542,12 @@ class EditExperimentDialog(EditObjectWindow):
                 self.currGrid.addWidget(self.textValues[k], i * 2, 0, 1, 2)
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(ewstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i * 2 + 1, 0)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(ewstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i * 2 + 1, 1)

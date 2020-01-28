@@ -14,6 +14,7 @@ else:
 
 try:
     from physbiblio.errors import PBErrorManagerClass, pBLogger
+    from physbiblio.strings.common import CommonStrings as cstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -57,17 +58,17 @@ class ErrorStream(StringIO):
         if text.strip() == "":
             return
         text = text.replace("\n", "<br>")
-        self.lastMBox = QMessageBox(QMessageBox.Information, "Information", "")
+        self.lastMBox = QMessageBox(QMessageBox.Information, cstr.information, "")
         self.lastMBox.setText(text)
         if self.priority == 0:
             self.lastMBox.setIcon(QMessageBox.Information)
-            self.lastMBox.setWindowTitle("Information")
+            self.lastMBox.setWindowTitle(cstr.information)
         elif self.priority > 1:
             self.lastMBox.setIcon(QMessageBox.Critical)
-            self.lastMBox.setWindowTitle("Error")
+            self.lastMBox.setWindowTitle(cstr.error)
         else:
             self.lastMBox.setIcon(QMessageBox.Warning)
-            self.lastMBox.setWindowTitle("Warning")
+            self.lastMBox.setWindowTitle(cstr.warning)
         self.priority = 1
         self.lastMBox.exec_()
 
