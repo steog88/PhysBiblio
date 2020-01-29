@@ -69,18 +69,19 @@ try:
     from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.expWindows import ExpsListWindow
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.strings.main import DatabaseStrings as dstr
     from physbiblio.strings.gui import BibWindowsStrings as bwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
 
 convertType = {
-    "review": "Review",
-    "proceeding": "Proceeding",
-    "book": "Book",
-    "phd_thesis": "PhD thesis",
-    "lecture": "Lecture",
-    "exp_paper": "Experimental paper",
+    "review": dstr.Bibs.review,
+    "proceeding": dstr.Bibs.proceeding,
+    "book": dstr.Bibs.book,
+    "phd_thesis": dstr.Bibs.phdth,
+    "lecture": dstr.Bibs.lecture,
+    "exp_paper": dstr.Bibs.experimental,
 }
 
 
@@ -90,7 +91,7 @@ def copyToClipboard(text):
     Parameter:
         text: the string to be copied to clipboard
     """
-    pBLogger.info("Copying to clipboard: '%s'" % text)
+    pBLogger.info(bwstr.copyToClipb % text)
     clipboard = QApplication.clipboard()
     clipboard.setText(text)
 
@@ -107,61 +108,64 @@ def writeBibtexInfo(entry):
         a string
     """
     infoText = ""
+    nl = "<br/>\n"
     for t in sorted(convertType.keys()):
         try:
             if entry[t] == 1:
                 infoText += "(%s) " % convertType[t]
         except KeyError:
             pBLogger.debug("KeyError: '%s' not in %s" % (t, sorted(entry.keys())))
-    infoText += "<u>%s</u> (use with '<u>\cite{%s}</u>')<br/>\n" % (
-        entry["bibkey"],
-        entry["bibkey"],
+    infoText += (
+        "<u>%s</u> " % entry["bibkey"] + bwstr.Info.useWith % entry["bibkey"] + nl
     )
     latexToText = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
     try:
-        infoText += "<b>%s</b><br/>\n" % (
-            latexToText.latex_to_text(entry["bibtexDict"]["author"])
+        infoText += (
+            bwstr.Info.author
+            % (latexToText.latex_to_text(entry["bibtexDict"]["author"]))
+            + nl
         )
     except KeyError:
         pBLogger.debug(
-            "KeyError: 'author' not in %s" % (sorted(entry["bibtexDict"].keys()))
+            bwstr.Info.keyErr % ("author", sorted(entry["bibtexDict"].keys()))
         )
     try:
-        infoText += "%s<br/>\n" % (
-            latexToText.latex_to_text(entry["bibtexDict"]["title"])
+        infoText += (
+            "%s" % (latexToText.latex_to_text(entry["bibtexDict"]["title"])) + nl
         )
     except KeyError:
         pBLogger.debug(
-            "KeyError: 'title' not in %s" % (sorted(entry["bibtexDict"].keys()))
+            bwstr.Info.keyErr % ("title", sorted(entry["bibtexDict"].keys()))
         )
     try:
-        infoText += "<i>%s %s (%s) %s</i><br/>\n" % (
-            entry["bibtexDict"]["journal"],
-            entry["bibtexDict"]["volume"],
-            entry["bibtexDict"]["year"],
-            entry["bibtexDict"]["pages"],
+        infoText += (
+            "<i>%s %s (%s) %s</i>"
+            % (
+                entry["bibtexDict"]["journal"],
+                entry["bibtexDict"]["volume"],
+                entry["bibtexDict"]["year"],
+                entry["bibtexDict"]["pages"],
+            )
+            + nl
         )
     except KeyError:
-        pBLogger.debug(
-            "KeyError: 'journal', 'volume', 'year' or 'pages' not in %s"
-            % (sorted(entry["bibtexDict"].keys()))
-        )
-    infoText += "<br/>"
+        pBLogger.debug(bwstr.Info.pubErr % (sorted(entry["bibtexDict"].keys())))
+    infoText += nl
     for k in ["isbn", "doi", "arxiv", "ads", "inspire"]:
         try:
             infoText += (
-                "%s: <u>%s</u><br/>" % (pBDB.descriptions["entries"][k], entry[k])
+                ("%s: <u>%s</u>" % (pBDB.descriptions["entries"][k], entry[k]) + nl)
                 if (entry[k] is not None and entry[k] != "")
                 else ""
             )
         except KeyError:
-            pBLogger.debug("KeyError: '%s' not in %s" % (k, sorted(entry.keys())))
+            pBLogger.debug(bwstr.Info.keyErr % (k, sorted(entry.keys())))
     cats = pBDB.cats.getByEntry(entry["bibkey"])
-    infoText += "\n<br/>Categories: <i>%s</i>" % (
+    infoText += nl + bwstr.Info.cats % (
         ", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None"
     )
     exps = pBDB.exps.getByEntry(entry["bibkey"])
-    infoText += "\n<br/>Experiments: <i>%s</i>" % (
+    infoText += nl + bwstr.Info.exps % (
         ", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None"
     )
     try:
@@ -169,9 +173,9 @@ def writeBibtexInfo(entry):
             isinstance(entry["comments"], six.string_types)
             and entry["comments"].strip() != ""
         ):
-            infoText += "\n<br/><br/>Comments:<br/>%s" % (entry["comments"])
+            infoText += nl + bwstr.Info.comm % (entry["comments"])
     except KeyError:
-        pBLogger.debug("KeyError: 'comments' not in %s" % (sorted(entry.keys())))
+        pBLogger.debug(bwstr.Info.keyErr % ("comments", sorted(entry.keys())))
     return infoText
 
 
@@ -227,9 +231,7 @@ def editBibtex(parentObject, editKey=None):
                 tmpBibDict = {}
             except ParseException:
                 pBLogger.warning(
-                    "Problem in parsing the following "
-                    + "bibtex code:\n%s" % data["bibtex"],
-                    exc_info=True,
+                    bwstr.parseBibErr % data["bibtex"], exc_info=True,
                 )
                 tmpBibDict = {}
             data["bibdict"] = "%s" % tmpBibDict
@@ -250,44 +252,37 @@ def editBibtex(parentObject, editKey=None):
             if data["bibkey"].strip() != "":
                 if editKey is not None:
                     if data["bibkey"].strip() != editKey:
-                        if data["bibkey"].strip() != "not valid bibtex!":
-                            pBLogger.info(
-                                "New bibtex key (%s) for element '%s'..."
-                                % (data["bibkey"], editKey)
-                            )
+                        if data["bibkey"].strip() != bwstr.ED.notValidTex:
+                            pBLogger.info(bwstr.newKey % (data["bibkey"], editKey))
                             if editKey not in data["old_keys"]:
                                 data["old_keys"] += " " + editKey
                                 data["old_keys"] = data["old_keys"].strip()
                             if pBDB.bibs.updateBibkey(editKey, data["bibkey"].strip()):
                                 pBPDF.renameFolder(editKey, data["bibkey"].strip())
                             else:
-                                pBGUILogger.warning(
-                                    "Cannot update bibtex key: "
-                                    + "already present. "
-                                    + "Restoring previous one."
-                                )
+                                pBGUILogger.warning(bwstr.cantUpdateKey)
                                 data["bibtex"] = data["bibtex"].replace(
                                     data["bibkey"], editKey
                                 )
                                 data["bibkey"] = editKey
                         else:
                             data["bibkey"] = editKey
-                    pBLogger.info("Updating bibtex '%s'..." % data["bibkey"])
+                    pBLogger.info(bwstr.updateKey % data["bibkey"])
                     if not pBDB.bibs.update(data, data["bibkey"]):
                         failed = True
                 else:
                     if not pBDB.bibs.insert(data):
                         failed = True
                 if failed:
-                    message = "Cannot insert/modify the entry!"
+                    message = bwstr.cantInsMod
                     pBGUILogger.error(message)
                 else:
-                    message = "Bibtex entry saved"
+                    message = bwstr.bibSaved
                     try:
-                        parentObject.mainWindowTitle("PhysBiblio*")
+                        parentObject.mainWindowTitle(bwstr.winTitleModified)
                     except AttributeError:
                         pBLogger.debug(
-                            "parentObject has no attribute 'mainWindowTitle'",
+                            bwstr.noAttribute % ("parentObject", "mainWindowTitle"),
                             exc_info=True,
                         )
                 pBDB.bibs.fetchFromLast()
@@ -295,22 +290,22 @@ def editBibtex(parentObject, editKey=None):
                     parentObject.reloadMainContent(pBDB.bibs.lastFetched)
                 except AttributeError:
                     pBLogger.debug(
-                        "parentObject has no attribute 'reloadMainContent'",
+                        bwstr.noAttribute % ("parentObject", "reloadMainContent"),
                         exc_info=True,
                     )
             else:
-                message = "ERROR: empty bibkey!"
+                message = bwstr.emptyKey
                 infoMessage(message)
         else:
-            message = "ERROR: empty bibtex!"
+            message = bwstr.emptyBib
             infoMessage(message)
     else:
-        message = "No modifications to bibtex entry"
+        message = bwstr.noModif
     try:
         parentObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "parentObject has no attribute 'statusBarMessage'", exc_info=True
+            bwstr.noAttribute % ("parentObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -323,26 +318,23 @@ def deleteBibtex(parentObject, bibkey):
             and `setWindowTitle` methods
         bibkey: the bibtex key of the entry to be deleted
     """
-    if askYesNo(
-        "Do you really want to delete this bibtex entry "
-        + "(bibkey = '%s')?" % (bibkey)
-    ):
+    if askYesNo(bwstr.deleteAsk % (bibkey)):
         pBDB.bibs.delete(bibkey)
-        parentObject.setWindowTitle("PhysBiblio*")
-        message = "Bibtex entry deleted"
+        parentObject.setWindowTitle(bwstr.winTitleModified)
+        message = bwstr.deleted
         try:
             parentObject.currentTabWidget().recreateTable()
         except AttributeError:
             pBLogger.debug(
-                "parentObject has no attribute 'recreateTable'", exc_info=True
+                bwstr.noAttribute % ("parentObject", "recreateTable"), exc_info=True
             )
     else:
-        message = "Nothing changed"
+        message = bwstr.nothingChanged
     try:
         parentObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            "parentObject has no attribute 'statusBarMessage'", exc_info=True
+            bwstr.noAttribute % ("parentObject", "statusBarMessage"), exc_info=True
         )
 
 
@@ -355,7 +347,7 @@ class AbstractFormulas:
         mainWin,
         text,
         fontsize=pbConfig.params["bibListFontSize"],
-        abstractTitle="<b>Abstract:</b><br/>",
+        abstractTitle=bwstr.abstractTitle,
         customEditor=None,
         statusMessages=True,
     ):
@@ -401,8 +393,8 @@ class AbstractFormulas:
         to perform the conversion without freezing the main process
         """
         if self.hasLatex():
-            self.mainWin.statusBarMessage("Parsing LaTeX...")
-            self.editor.setHtml("%sProcessing LaTeX formulas..." % self.abstractTitle)
+            self.mainWin.statusBarMessage(bwstr.parseLatex)
+            self.editor.setHtml(bwstr.processLatex % self.abstractTitle)
             self.thr = Thread_processLatex(self.prepareText, self.mainWin)
             self.thr.passData.connect(self.submitText)
             self.thr.start()
@@ -435,7 +427,7 @@ class AbstractFormulas:
         try:
             text_bbox = t.get_window_extent(renderer)
         except ValueError:
-            pBLogger.exception("Error when converting latex to image")
+            pBLogger.exception(bwstr.errorLatexImg)
             return None
 
         tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
@@ -472,7 +464,7 @@ class AbstractFormulas:
             )
         self.editor.setHtml(text)
         if self.statusMessages:
-            self.mainWin.statusBarMessage("Latex processing done!")
+            self.mainWin.statusBarMessage(bwstr.latexDone)
 
 
 class BibtexInfo(QFrame):
@@ -602,7 +594,7 @@ class BibTableModel(PBTableModel):
                 ),
             )
         else:
-            return False, "no PDF"
+            return False, bwstr.noPDF
 
     def addMarksCell(self, marks):
         """Create a cell for the marks
@@ -658,18 +650,18 @@ class BibTableModel(PBTableModel):
         try:
             rowData = self.dataList[row]
         except IndexError:
-            pBGUILogger.exception("BibTableModel.data(): invalid row")
+            pBGUILogger.exception(bwstr.btmdInvalid % "row")
             return None
         try:
             colName = self.header[column]
         except IndexError:
-            pBGUILogger.exception("BibTableModel.data(): invalid column")
+            pBGUILogger.exception(bwstr.btmdInvalid % "column")
             return None
         if colName == "marks":
             try:
                 hasImg, value = self.addMarksCell(rowData["marks"])
             except KeyError:
-                pBLogger.debug("missing key: 'marks' in %s" % rowData.keys())
+                pBLogger.debug(bwstr.missMarks % rowData.keys())
                 hasImg, value = self.addMarksCell("")
         elif colName == "Type":
             value = self.addTypeCell(rowData)
@@ -753,9 +745,9 @@ class CommonBibActions:
         """
         if selection or (not selection and (arxiv != "" and arxiv is not None)):
             menuA = []
-            menuA.append(QAction("Load abstract", self.menu, triggered=self.onAbs))
-            menuA.append(QAction("Get more fields", self.menu, triggered=self.onArx))
-            self.menu.possibleActions.append(["arXiv", menuA])
+            menuA.append(QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onAbs))
+            menuA.append(QAction(bwstr.Acts.arxMore, self.menu, triggered=self.onArx))
+            self.menu.possibleActions.append([bwstr.Acts.arxTit, menuA])
 
     def _createMenuCopy(self, selection, initialRecord):
         """Create part of the right click menu,
@@ -767,9 +759,9 @@ class CommonBibActions:
             initialRecord: the bibtex record to be used
         """
         menuC = [
-            QAction("key(s)", self.menu, triggered=self.onCopyKeys),
-            QAction("\cite{key(s)}", self.menu, triggered=self.onCopyCites),
-            QAction("bibtex(s)", self.menu, triggered=self.onCopyBibtexs),
+            QAction(bwstr.Acts.cpKey, self.menu, triggered=self.onCopyKeys),
+            QAction(bwstr.Acts.cpCite, self.menu, triggered=self.onCopyCites),
+            QAction(bwstr.Acts.cpBib, self.menu, triggered=self.onCopyBibtexs),
         ]
         subm = []
         latexToText = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
@@ -797,9 +789,11 @@ class CommonBibActions:
                         )
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'journal', 'volume', "
-                            + "'year' or 'pages' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor
+                            % (
+                                "journal', 'volume', 'year' or 'pages",
+                                initialRecord["bibkey"],
+                            )
                         )
                         content = ""
                 elif field == "bibitem":
@@ -809,15 +803,15 @@ class CommonBibActions:
                         content += initialRecord["bibtexDict"]["authors"] + "\n"
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'authors' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor
+                            % ("authors", initialRecord["bibkey"])
                         )
                         try:
                             content += initialRecord["bibtexDict"]["author"] + "\n"
                         except KeyError:
                             pBLogger.debug(
-                                "KeyError: 'author' not found for '%s'"
-                                % (initialRecord["bibkey"])
+                                bwstr.Acts.notFoundFor
+                                % ("author", initialRecord["bibkey"])
                             )
                     try:
                         content += (
@@ -825,8 +819,7 @@ class CommonBibActions:
                         )
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'title' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor % ("title", initialRecord["bibkey"])
                         )
                     try:
                         content += "%s %s (%s) %s\n" % (
@@ -837,9 +830,11 @@ class CommonBibActions:
                         )
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'journal', 'volume', "
-                            + "'year' or 'pages' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor
+                            % (
+                                "journal', 'volume', " + "'year' or 'pages",
+                                initialRecord["bibkey"],
+                            )
                         )
                     try:
                         if (
@@ -849,8 +844,7 @@ class CommonBibActions:
                             content += "doi: %s\n" % initialRecord["doi"]
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'doi' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor % ("doi", initialRecord["bibkey"])
                         )
                     try:
                         if (
@@ -860,8 +854,7 @@ class CommonBibActions:
                             content += "[arxiv:%s]\n" % initialRecord["arxiv"]
                     except KeyError:
                         pBLogger.debug(
-                            "KeyError: 'doi' not found for '%s'"
-                            % (initialRecord["bibkey"])
+                            bwstr.Acts.notFoundFor % ("arxiv", initialRecord["bibkey"])
                         )
                     content = content[:-1] + "."
                 else:
@@ -872,7 +865,7 @@ class CommonBibActions:
                             content = initialRecord["bibtexDict"][field.lower()]
                         except KeyError:
                             pBLogger.debug(
-                                "Field '%s' not found for '%s'"
+                                bwstr.Acts.notFoundFor
                                 % (field, initialRecord["bibkey"])
                             )
                             content = ""
@@ -891,7 +884,7 @@ class CommonBibActions:
             menuC.append(None)
             for s in subm:
                 menuC.append(s)
-        self.menu.possibleActions.append(["Copy to clipboard", menuC])
+        self.menu.possibleActions.append([bwstr.Acts.cpTit, menuC])
 
     def _createMenuInspire(self, selection, inspireID):
         """Create part of the right click menu,
@@ -904,23 +897,19 @@ class CommonBibActions:
         """
         menuI = []
         menuI.append(
-            QAction(
-                "Complete info (ID and auxiliary info)",
-                self.menu,
-                triggered=self.onComplete,
-            )
+            QAction(bwstr.Acts.insCompl, self.menu, triggered=self.onComplete,)
         )
         if selection or (not selection and (inspireID != "" and inspireID is not None)):
             menuI.append(
                 QAction(
-                    "Update bibtex",
+                    bwstr.Acts.insUpd,
                     self.menu,
                     triggered=lambda r=True: self.onUpdate(force=r),
                 )
             )
             menuI.append(
                 QAction(
-                    "Reload bibtex",
+                    bwstr.Acts.insRel,
                     self.menu,
                     triggered=lambda f=(not selection), r=True: self.onUpdate(
                         force=f, reloadAll=r
@@ -928,9 +917,9 @@ class CommonBibActions:
                 )
             )
             menuI.append(
-                QAction("Citation statistics", self.menu, triggered=self.onCitations)
+                QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations)
             )
-        self.menu.possibleActions.append(["INSPIRE-HEP", menuI])
+        self.menu.possibleActions.append([bwstr.Acts.insTit, menuI])
 
     def _createMenuLinks(self, bibkey, arxiv, doi, inspireID):
         """Create part of the right click menu,
@@ -946,7 +935,7 @@ class CommonBibActions:
         if arxiv is not None and arxiv != "":
             menuL.append(
                 QAction(
-                    "Open into arXiv",
+                    bwstr.Acts.lnArx,
                     self.menu,
                     triggered=lambda l=bibkey, t="arxiv": pBGuiView.openLink(l, t),
                 )
@@ -954,7 +943,7 @@ class CommonBibActions:
         if doi is not None and doi != "":
             menuL.append(
                 QAction(
-                    "Open DOI link",
+                    bwstr.Acts.lnDoi,
                     self.menu,
                     triggered=lambda l=bibkey, t="doi": pBGuiView.openLink(l, t),
                 )
@@ -962,13 +951,13 @@ class CommonBibActions:
         if inspireID is not None and inspireID != "":
             menuL.append(
                 QAction(
-                    "Open into INSPIRE-HEP",
+                    bwstr.Acts.lnIns,
                     self.menu,
                     triggered=lambda l=bibkey, t="inspire": pBGuiView.openLink(l, t),
                 )
             )
         if len(menuL) > 0:
-            self.menu.possibleActions.append(["Links", menuL])
+            self.menu.possibleActions.append([bwstr.Acts.lnTit, menuL])
 
     def _createMenuMarkType(self, initialRecord):
         """Create part of the right click menu,
@@ -982,7 +971,7 @@ class CommonBibActions:
             if m in initialRecord["marks"]:
                 menuM.append(
                     QAction(
-                        "Unmark as '%s'" % pBMarks.marks[m]["desc"],
+                        bwstr.Acts.maRem % pBMarks.marks[m]["desc"],
                         self.menu,
                         triggered=lambda m=m: self.onUpdateMark(m),
                     )
@@ -990,7 +979,7 @@ class CommonBibActions:
             else:
                 menuM.append(
                     QAction(
-                        "Mark as '%s'" % pBMarks.marks[m]["desc"],
+                        bwstr.Acts.maAdd % pBMarks.marks[m]["desc"],
                         self.menu,
                         triggered=lambda m=m: self.onUpdateMark(m),
                     )
@@ -1000,7 +989,7 @@ class CommonBibActions:
             if initialRecord[k]:
                 menuT.append(
                     QAction(
-                        "Unset '%s'" % v,
+                        bwstr.Acts.tyRem % v,
                         self.menu,
                         triggered=lambda t=k: self.onUpdateType(t),
                     )
@@ -1008,13 +997,13 @@ class CommonBibActions:
             else:
                 menuT.append(
                     QAction(
-                        "Set '%s'" % v,
+                        bwstr.Acts.tyAdd % v,
                         self.menu,
                         triggered=lambda t=k: self.onUpdateType(t),
                     )
                 )
-        self.menu.possibleActions.append(["Marks", menuM])
-        self.menu.possibleActions.append(["Type", menuT])
+        self.menu.possibleActions.append([bwstr.Acts.maTit, menuM])
+        self.menu.possibleActions.append([bwstr.Acts.tyTit, menuT])
         self.menu.possibleActions.append(None)
 
     def _createMenuPDF(self, selection, initialRecord):
@@ -1039,7 +1028,7 @@ class CommonBibActions:
             if arxivFile in files:
                 menuP.append(
                     QAction(
-                        "Open arXiv PDF",
+                        bwstr.Acts.pdfO % "arXiv",
                         self.menu,
                         triggered=lambda k=bibkey, t="file", f=arxivFile: pBGuiView.openLink(
                             k, t, fileArg=f
@@ -1049,7 +1038,7 @@ class CommonBibActions:
             if doiFile in files:
                 menuP.append(
                     QAction(
-                        "Open DOI PDF",
+                        bwstr.Acts.pdfO % "DOI",
                         self.menu,
                         triggered=lambda k=bibkey, t="file", f=doiFile: pBGuiView.openLink(
                             k, t, fileArg=f
@@ -1061,7 +1050,7 @@ class CommonBibActions:
                 if f not in [arxivFile, doiFile]:
                     menuP.append(
                         QAction(
-                            "Open %s" % fn,
+                            bwstr.Acts.pdfOpen % fn,
                             self.menu,
                             triggered=lambda k=bibkey, t="file", f=f: pBGuiView.openLink(
                                 k, t, fileArg=f
@@ -1070,9 +1059,7 @@ class CommonBibActions:
                     )
             if len(menuP) > 0:
                 menuP.append(None)
-            menuP.append(
-                QAction("Add generic file", self.menu, triggered=self.onAddPDF)
-            )
+            menuP.append(QAction(bwstr.Acts.pdfGen, self.menu, triggered=self.onAddPDF))
             if len(files) > 0:
                 menuP.append(None)
             if arxivFile in files:
@@ -1080,7 +1067,7 @@ class CommonBibActions:
                 tmpM = []
                 tmpM.append(
                     QAction(
-                        "Delete arXiv PDF",
+                        bwstr.Acts.pdfD % "arXiv",
                         self.menu,
                         triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
                             k, a, t
@@ -1089,22 +1076,22 @@ class CommonBibActions:
                 )
                 tmpM.append(
                     QAction(
-                        "Copy arXiv PDF",
+                        bwstr.Acts.pdfC % "arXiv",
                         self.menu,
                         triggered=lambda k=bibkey, a="arxiv": self.onCopyPDFFile(k, a),
                     )
                 )
-                menuP.append(["Manage arXiv PDF", tmpM])
+                menuP.append([bwstr.Acts.pdfM % "arXiv", tmpM])
             elif arxiv is not None and arxiv != "":
                 menuP.append(
-                    QAction("Download arXiv PDF", self.menu, triggered=self.onDown)
+                    QAction(bwstr.Acts.pdfArxW, self.menu, triggered=self.onDown)
                 )
             if doiFile in files:
                 files.remove(doiFile)
                 tmpM = []
                 tmpM.append(
                     QAction(
-                        "Delete DOI PDF",
+                        bwstr.Acts.pdfD % "DOI",
                         self.menu,
                         triggered=lambda k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
                             k, a, t
@@ -1113,16 +1100,16 @@ class CommonBibActions:
                 )
                 tmpM.append(
                     QAction(
-                        "Copy DOI PDF",
+                        bwstr.Acts.pdfC % "DOI",
                         self.menu,
                         triggered=lambda k=bibkey, a="doi": self.onCopyPDFFile(k, a),
                     )
                 )
-                menuP.append(["Manage DOI PDF", tmpM])
+                menuP.append([bwstr.Acts.pdfM % "DOI", tmpM])
             elif doi is not None and doi != "":
                 menuP.append(
                     QAction(
-                        "Assign DOI PDF",
+                        bwstr.Acts.pdfDOIA,
                         self.menu,
                         triggered=lambda g="doi": self.onAddPDF(g),
                     )
@@ -1133,7 +1120,7 @@ class CommonBibActions:
                 tmpM = []
                 tmpM.append(
                     QAction(
-                        "Delete %s" % fn,
+                        bwstr.Acts.pdfDel % fn,
                         self.menu,
                         triggered=lambda k=bibkey, a=fn, t=f: self.onDeletePDFFile(
                             k, a, a, t
@@ -1142,29 +1129,29 @@ class CommonBibActions:
                 )
                 tmpM.append(
                     QAction(
-                        "Copy %s" % fn,
+                        bwstr.Acts.pdfCp % fn,
                         self.menu,
                         triggered=lambda k=bibkey, a=fn, t=f: self.onCopyPDFFile(
                             k, a, t
                         ),
                     )
                 )
-                menuP.append(["Manage %s" % fn, tmpM])
+                menuP.append([bwstr.Acts.pdfMg % fn, tmpM])
             if os.path.exists(pdfDir):
                 menuP.append(None)
                 menuP.append(
                     QAction(
-                        "Open directory",
+                        bwstr.Acts.pdfOpenDir,
                         self.menu,
                         triggered=lambda k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
                             k, t, fileArg=f
                         ),
                     )
                 )
-            self.menu.possibleActions.append(["Files", menuP])
+            self.menu.possibleActions.append([bwstr.Acts.pdfTit, menuP])
         else:
             self.menu.possibleActions.append(
-                QAction("Download PDF from arXiv", self.menu, triggered=self.onDown)
+                QAction(bwstr.Acts.pdfArxW, self.menu, triggered=self.onDown)
             )
 
     def createContextMenu(self, selection=False):
@@ -1194,12 +1181,12 @@ class CommonBibActions:
             doi = initialRecord["doi"]
             inspireID = initialRecord["inspire"]
 
-            titAct = QAction("--Entry: %s--" % bibkey, menu)
+            titAct = QAction(bwstr.Acts.eDesc % bibkey, menu)
             titAct.setDisabled(True)
             menu.possibleActions.append(titAct)
             menu.possibleActions.append(None)
             menu.possibleActions.append(
-                QAction("Modify", menu, triggered=self.onModify)
+                QAction(bwstr.Acts.modify, menu, triggered=self.onModify)
             )
         else:
             initialRecord = None
@@ -1207,11 +1194,15 @@ class CommonBibActions:
             inspireID = None
             if len(self.keys) == 2:
                 menu.possibleActions.append(
-                    QAction("Merge", menu, triggered=self.onMerge)
+                    QAction(bwstr.Acts.merge, menu, triggered=self.onMerge)
                 )
 
-        menu.possibleActions.append(QAction("Clean", menu, triggered=self.onClean))
-        menu.possibleActions.append(QAction("Delete", menu, triggered=self.onDelete))
+        menu.possibleActions.append(
+            QAction(bwstr.Acts.clean, menu, triggered=self.onClean)
+        )
+        menu.possibleActions.append(
+            QAction(bwstr.Acts.delete, menu, triggered=self.onDelete)
+        )
         menu.possibleActions.append(None)
 
         if not selection:
@@ -1225,10 +1216,10 @@ class CommonBibActions:
         menu.possibleActions.append(None)
 
         menu.possibleActions.append(
-            QAction("Select categories", menu, triggered=self.onCat)
+            QAction(bwstr.Acts.selCat, menu, triggered=self.onCat)
         )
         menu.possibleActions.append(
-            QAction("Select experiments", menu, triggered=self.onExp)
+            QAction(bwstr.Acts.selExp, menu, triggered=self.onExp)
         )
         menu.possibleActions.append(None)
 
@@ -1237,10 +1228,10 @@ class CommonBibActions:
         menu.possibleActions.append(None)
 
         menu.possibleActions.append(
-            QAction("Export in a .bib file", menu, triggered=self.onExport)
+            QAction(bwstr.Acts.expBib, menu, triggered=self.onExport)
         )
         menu.possibleActions.append(
-            QAction("Copy all the corresponding PDF", menu, triggered=self.onCopyAllPDF)
+            QAction(bwstr.Acts.cpAllPdf, menu, triggered=self.onCopyAllPDF)
         )
 
         menu.fillMenu()
@@ -1256,9 +1247,7 @@ class CommonBibActions:
                 (see `pdf.LocalPDF.copyNewFile:fileType`)
         """
         bibkey = self.keys[0]
-        newPdf = askFileName(
-            self.parent(), "Where is the file located?", filter="Files (*)"
-        )
+        newPdf = askFileName(self.parent(), bwstr.Acts.pdfAddW, filter="Files (*)")
         if newPdf != "" and os.path.isfile(newPdf):
             if ftype == "generic":
                 newName = newPdf.split("/")[-1]
@@ -1266,9 +1255,9 @@ class CommonBibActions:
             else:
                 outcome = pBPDF.copyNewFile(bibkey, newPdf, ftype)
             if outcome:
-                infoMessage("PDF successfully copied!")
+                infoMessage(bwstr.Acts.pdfAddS)
             else:
-                pBGUILogger.error("Could not copy the new file!")
+                pBGUILogger.error(bwstr.Acts.pdfAddF)
 
     def onAbs(self, message=True):
         """Action performed when the download of
@@ -1277,9 +1266,7 @@ class CommonBibActions:
         Parameter:
             message (default True): if False, suppress some infoMessages
         """
-        self.parent().statusBarMessage(
-            "Starting the abstract download process, please wait..."
-        )
+        self.parent().statusBarMessage(bwstr.Acts.absS)
         for e in self.bibs:
             arxiv = e["arxiv"]
             bibkey = e["bibkey"]
@@ -1290,9 +1277,9 @@ class CommonBibActions:
                 abstract = full["abstract"]
                 pBDB.bibs.updateField(bibkey, "abstract", abstract)
                 if message:
-                    infoMessage(abstract, title="Abstract of arxiv:%s" % arxiv)
+                    infoMessage(abstract, title=bwstr.Acts.absD % arxiv)
             else:
-                infoMessage("No arxiv number for entry '%s'!" % bibkey)
+                infoMessage(bwstr.Acts.absF % bibkey)
         self.parent().done()
 
     def onArx(self):
@@ -1333,9 +1320,7 @@ class CommonBibActions:
                 for c in cats:
                     if c not in previousAll:
                         pBDB.catBib.insert(c, bibkey)
-                self.parent().statusBarMessage(
-                    "Categories for '%s' successfully inserted" % bibkey
-                )
+                self.parent().statusBarMessage(bwstr.Acts.catsInsE % bibkey)
             else:
                 prevAll = list(previousAll)
                 for c in self.parent().previousUnchanged:
@@ -1345,7 +1330,7 @@ class CommonBibActions:
                     if c not in self.parent().selectedCats:
                         pBDB.catBib.delete(c, self.keys)
                 pBDB.catBib.insert(self.parent().selectedCats, self.keys)
-                self.parent().statusBarMessage("Categories successfully inserted")
+                self.parent().statusBarMessage(bwstr.Acts.catsIns)
 
     def onCitations(self):
         """Call `inspireStats.InspireStatsLoader.plotStats`
@@ -1402,9 +1387,7 @@ class CommonBibActions:
             if custom is not None
             else pBPDF.getFilePath(bibkey, fileType)
         )
-        outFolder = askDirName(
-            self.parent(), title="Where do you want to save the PDF %s?" % pdfName
-        )
+        outFolder = askDirName(self.parent(), title=bwstr.Acts.pdfSaveS % pdfName)
         if outFolder.strip() != "":
             pBPDF.copyToDir(outFolder, bibkey, fileType=fileType, customName=custom)
 
@@ -1412,9 +1395,7 @@ class CommonBibActions:
         """Ask the destination and copy there all the PDF files
         for the given entries
         """
-        outFolder = askDirName(
-            self.parent(), title="Where do you want to save the PDF files?"
-        )
+        outFolder = askDirName(self.parent(), title=bwstr.Acts.pdfSaveM)
         if outFolder.strip() != "":
             for entry in self.bibs:
                 key = entry["bibkey"]
@@ -1441,10 +1422,8 @@ class CommonBibActions:
             fdesc: a short description of the file type
             custom (default None): the full path of the custom PDF
         """
-        if askYesNo(
-            "Do you really want to delete the %s file for entry %s?" % (fdesc, bibkey)
-        ):
-            self.parent().statusBarMessage("deleting %s file..." % fdesc)
+        if askYesNo(bwstr.Acts.pdfDelAsk % (fdesc, bibkey)):
+            self.parent().statusBarMessage(bwstr.Acts.pdfDelP % fdesc)
             if custom is not None:
                 pBPDF.removeFile(bibkey, "", fileName=custom)
             else:
@@ -1456,9 +1435,7 @@ class CommonBibActions:
         self.downArxiv_thr = []
         for entry in self.bibs:
             if entry["arxiv"] is not None and entry["arxiv"] != "":
-                self.parent().statusBarMessage(
-                    "downloading PDF for arxiv:%s..." % entry["arxiv"]
-                )
+                self.parent().statusBarMessage(bwstr.Acts.arxDowP % entry["arxiv"])
                 self.downArxiv_thr.append(
                     Thread_downloadArxiv(entry["bibkey"], self.parent())
                 )
@@ -1473,10 +1450,7 @@ class CommonBibActions:
         Parameter:
             e: the arXiv identifier of the entry
         """
-        self.parent().sendMessage(
-            "Download of PDF for arXiv:%s completed! " % e
-            + "Please check that it worked..."
-        )
+        self.parent().sendMessage(bwstr.Acts.arxDowD % e)
         self.parent().done()
         self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
@@ -1500,19 +1474,14 @@ class CommonBibActions:
                 for e in exps:
                     if e not in previous:
                         pBDB.bibExp.insert(bibkey, e)
-                self.parent().statusBarMessage(
-                    "Experiments for '%s' successfully inserted" % bibkey
-                )
+                self.parent().statusBarMessage(bwstr.Acts.expInsE % bibkey)
         else:
-            infoMessage(
-                "Warning: you can just add experiments "
-                + "to the selected entries, not delete!"
-            )
+            infoMessage(bwstr.Acts.expW)
             selectExps = ExpsListWindow(parent=self.parent(), askExps=True, previous=[])
             selectExps.exec_()
             if selectExps.result == "Ok":
                 pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
-                self.parent().statusBarMessage("Experiments successfully inserted")
+                self.parent().statusBarMessage(bwstr.Acts.expIns)
 
     def onExport(self):
         """Action to be performed when exporting bibtexs.
@@ -1568,21 +1537,21 @@ class CommonBibActions:
                     for key in [self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]]:
                         pBDB.bibs.delete(key)
                 except:
-                    pBGUILogger.exception("Cannot delete old items!")
+                    pBGUILogger.exception(bwstr.Acts.cantDelOld)
                     pBDB.undo()
                 else:
                     if not pBDB.bibs.insert(data):
-                        pBGUILogger.error("Cannot insert new item!")
+                        pBGUILogger.error(bwstr.Acts.cantInsNew)
                         pBDB.undo()
                     else:
-                        self.parent().setWindowTitle("PhysBiblio*")
+                        self.parent().setWindowTitle(bwstr.winTitleModified)
                         correct = True
                         try:
                             self.parent().reloadMainContent(
                                 pBDB.bibs.fetchFromLast().lastFetched
                             )
                         except:
-                            pBLogger.warning("Impossible to reload content.")
+                            pBLogger.warning(bwstr.Acts.reloadFail)
                 if correct:
                     for oldkey in [self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]]:
                         for e in pBDB.cats.getByEntry(oldkey):
@@ -1593,7 +1562,7 @@ class CommonBibActions:
                             pBDB.bibExp.delete(oldkey, e["idExp"])
                         pBPDF.mergePDFFolders(oldkey, data["bibkey"])
             else:
-                pBGUILogger.error("Empty bibtex and/or bibkey!")
+                pBGUILogger.error(bwstr.Acts.emptyKeyBib)
         else:
             self.parent().statusBarMessage(bwstr.nothingToDo)
 
@@ -1626,11 +1595,9 @@ class CommonBibActions:
             mark: one of the allowed marks
         """
         if mark not in pBMarks.marks.keys():
-            pBLogger.warning("Invalid mark: '%s'" % mark)
+            pBLogger.warning(bwstr.Acts.maInv % mark)
             return
-        pBLogger.debug(
-            "updateMark: '%s', entries: %s" % (mark, [e["bibkey"] for e in self.bibs])
-        )
+        pBLogger.debug(bwstr.Acts.maUpd % (mark, [e["bibkey"] for e in self.bibs]))
         for e in self.bibs:
             marks = e["marks"].replace("'", "").split(",")
             marks = [m for m in marks if m.strip() != ""]
@@ -1651,7 +1618,7 @@ class CommonBibActions:
                 "phd_thesis", "lecture", "exp_paper"
         """
         if type_ not in convertType.keys():
-            pBLogger.warning("Invalid type: '%s'" % type_)
+            pBLogger.warning(bwstr.Acts.tyInv % type_)
             return
         for e in self.bibs:
             pBDB.bibs.updateField(e["bibkey"], type_, 0 if e[type_] else 1, verbose=0)
@@ -1673,7 +1640,6 @@ class BibtexListWindow(QFrame, ObjListWindow):
             previous (default []): list with the initial selection
                 of entries (used if askBibs is True)
         """
-        # table dimensions)
         self.mainWin = parent
         self.bibs = bibs
         self.askBibs = askBibs
@@ -1682,7 +1648,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         self.currentAbstractKey = None
         self.columns = pbConfig.params["bibtexListColumns"]
         self.colcnt = len(self.columns)
-        self.additionalCols = ["Type", "PDF"]
+        self.additionalCols = [bwstr.LW.typec, bwstr.LW.pdfc]
         self.colContents = []
         for j in range(self.colcnt):
             self.colContents.append(self.columns[j])
@@ -1723,21 +1689,21 @@ class BibtexListWindow(QFrame, ObjListWindow):
         try:
             newidx = model.sibling(row, self.columns.index("bibkey"), index)
         except AttributeError:
-            pBLogger.debug("Error in reading table content")
+            pBLogger.debug(bwstr.LW.errReadTab)
             return
         if not newidx.isValid():
             return
         try:
             bibkey = str(newidx.data())
         except AttributeError:
-            pBLogger.debug("Error in reading table content")
+            pBLogger.debug(bwstr.LW.errReadTab)
             return
         if bibkey is None or bibkey == "" or bibkey == "None":
             return
         try:
             entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
         except IndexError:
-            pBGUILogger.debug("The entry cannot be found!")
+            pBGUILogger.debug(bwstr.LW.errEntry)
             return
         return bibkey
 
@@ -1830,37 +1796,37 @@ class BibtexListWindow(QFrame, ObjListWindow):
         """Create a number of `QAction`s related to bibtex selection"""
         self.selAct = QAction(
             QIcon(":/images/edit-node.png"),
-            "&Select entries",
+            bwstr.LW.selEnT,
             self,
-            statusTip="Select entries from the list",
+            statusTip=bwstr.LW.selEnD,
             triggered=self.enableSelection,
         )
         self.okAct = QAction(
             QIcon(":/images/dialog-ok-apply.png"),
-            "Selection &completed",
+            bwstr.LW.selComT,
             self,
-            statusTip="Selection of elements completed",
+            statusTip=bwstr.LW.selComD,
             triggered=self.onOk,
         )
         self.clearAct = QAction(
             QIcon(":/images/edit-clear.png"),
-            "&Clear selection",
+            bwstr.LW.selCleT,
             self,
-            statusTip="Discard the current selection and hide checkboxes",
+            statusTip=bwstr.LW.selCleD,
             triggered=self.clearSelection,
         )
         self.selAllAct = QAction(
             QIcon(":/images/edit-select-all.png"),
-            "&Select all",
+            bwstr.LW.selAllT,
             self,
-            statusTip="Select all the elements",
+            statusTip=bwstr.LW.selAllD,
             triggered=self.selectAll,
         )
         self.unselAllAct = QAction(
             QIcon(":/images/edit-unselect-all.png"),
-            "&Unselect all",
+            bwstr.LW.selNonT,
             self,
-            statusTip="Unselect all the elements",
+            statusTip=bwstr.LW.selNonD,
             triggered=self.unselectAll,
         )
 
@@ -1926,25 +1892,25 @@ class BibtexListWindow(QFrame, ObjListWindow):
             )
         rowcnt = len(self.bibs)
 
-        commentStr = "Last query to bibtex database: \t%s\t\t" % (pBDB.bibs.lastQuery)
+        commentStr = bwstr.LW.lastQuery % (pBDB.bibs.lastQuery)
         if len(pBDB.bibs.lastVals) > 0:
-            commentStr += " - arguments:\t%s" % (pBDB.bibs.lastVals,)
+            commentStr += bwstr.LW.lastQueryA % (pBDB.bibs.lastVals,)
         self.lastLabel = PBLabel(commentStr)
         self.currLayout.addWidget(self.lastLabel)
 
-        self.selectToolBar = QToolBar("Bibs toolbar")
+        self.selectToolBar = QToolBar(bwstr.LW.toolBar)
         self.selectToolBar.addAction(self.selAct)
         self.selectToolBar.addAction(self.clearAct)
         self.selectToolBar.addSeparator()
         self.selectToolBar.addAction(self.selAllAct)
         self.selectToolBar.addAction(self.unselAllAct)
         self.selectToolBar.addAction(self.okAct)
-        self.mergeLabel = PBLabel("(Select exactly two entries to enable merging them)")
+        self.mergeLabel = PBLabel(bwstr.LW.selTwo)
         self.selectToolBar.addWidget(self.mergeLabel)
         self.selectToolBar.addSeparator()
 
         self.filterInput = QLineEdit("", self)
-        self.filterInput.setPlaceholderText("Filter bibliography")
+        self.filterInput.setPlaceholderText(bwstr.LW.filterBib)
         self.filterInput.textChanged.connect(self.changeFilterSort)
         self.selectToolBar.addWidget(self.filterInput)
         self.filterInput.setFocus()
@@ -2001,14 +1967,14 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 self.proxyModel.sibling(row, self.columns.index("bibkey"), index).data()
             )
         except AttributeError:
-            pBLogger.debug("Error in reading table content")
+            pBLogger.debug(bwstr.LW.errReadTab)
             return
         if bibkey is None or bibkey is "":
             return
         try:
             entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
         except IndexError:
-            pBGUILogger.debug("The entry cannot be found!")
+            pBGUILogger.debug(bwstr.LW.errEntry)
             return
         return row, col, bibkey, entry
 
@@ -2035,7 +2001,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 selection = len(bibkeys) > 1
                 ac._createMenuCopy(selection, ac.bibs[0] if not selection else None)
                 ac.menu.possibleActions = [
-                    QAction("--Copy to clipboard--", ac.menu),
+                    QAction(bwstr.LW.copyToClipT, ac.menu),
                     None,
                 ] + ac.menu.possibleActions[0][1]
                 ac.menu.possibleActions[0].setDisabled(True)
@@ -2058,7 +2024,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         try:
             row, col, bibkey, entry = self.getEventEntry(index)
         except TypeError:
-            pBLogger.warning("The index is not valid!")
+            pBLogger.warning(bwstr.LW.errIdx)
             return
 
         commonActions = CommonBibActions([entry], self.mainWin)
@@ -2083,7 +2049,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         try:
             row, col, bibkey, entry = self.getEventEntry(index)
         except TypeError:
-            pBLogger.warning("The index is not valid!")
+            pBLogger.warning(bwstr.LW.errIdx)
             return
         self.updateInfo(entry)
 
@@ -2097,7 +2063,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         try:
             row, col, bibkey, entry = self.getEventEntry(index)
         except TypeError:
-            pBLogger.warning("The index is not valid!")
+            pBLogger.warning(bwstr.LW.errIdx)
             return
         self.updateInfo(entry)
         for column in ["ads", "arxiv", "doi", "inspire"]:
@@ -2110,7 +2076,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         if self.colContents[col] == "pdf":
             pdfFiles = pBPDF.getExisting(bibkey, fullPath=True)
             if len(pdfFiles) == 1:
-                self.mainWin.statusBarMessage("opening PDF...")
+                self.mainWin.statusBarMessage(bwstr.LW.openPDF)
                 pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
             elif len(pdfFiles) > 1:
                 ask = AskPDFAction(bibkey, self.mainWin)
@@ -2205,19 +2171,17 @@ class EditBibtexDialog(EditObjectWindow):
         been manually modified in the 'bibkey' QTextEdit.
         """
         if self.textValues["bibtex"].toPlainText() == "":
-            pBGUILogger.error("Invalid form contents: empty bibtex!")
+            pBGUILogger.error(bwstr.ED.bibEmpty)
             return False
-        elif self.textValues["bibkey"].text() == "not valid bibtex!":
-            pBGUILogger.error("Invalid form contents: cannot read bibtex properly!")
+        elif self.textValues["bibkey"].text() == bwstr.ED.notValidTex:
+            pBGUILogger.error(bwstr.ED.bibNotValid)
             return False
         elif (
             not self.textValues["bibkey"].isReadOnly()
             and self.textValues["bibkey"].text() != ""
             and self.textValues["bibtex"].toPlainText() != ""
         ):
-            pBGUILogger.error(
-                "Invalid form contents: bibtex key will be taken from bibtex!"
-            )
+            pBGUILogger.error(bwstr.ED.bibKeyErr)
             return False
         self.result = True
         self.close()
@@ -2237,7 +2201,7 @@ class EditBibtexDialog(EditObjectWindow):
             ParseException,
             bibtexparser.bibdatabase.UndefinedString,
         ):
-            bibkey = "not valid bibtex!"
+            bibkey = bwstr.ED.notValidTex
         self.textValues["bibkey"].setText(bibkey)
 
     def createField(self, k, i):
@@ -2309,14 +2273,14 @@ class EditBibtexDialog(EditObjectWindow):
         """Create the form content:
         input fields, labels, checkboxes and buttons
         """
-        self.setWindowTitle("Edit bibtex entry")
+        self.setWindowTitle(bwstr.ED.title)
 
         i = 0
         for k in pBDB.tableCols["entries"]:
             i = self.createField(k, i)
 
         i += 3 + i % 2
-        self.typeBox = QGroupBox("Entry type")
+        self.typeBox = QGroupBox(bwstr.ED.type_)
         self.typeBox.setFlat(True)
         vbox = QHBoxLayout()
         self.typeBox.setLayout(vbox)
@@ -2343,12 +2307,12 @@ class EditBibtexDialog(EditObjectWindow):
 
         # OK button
         i += 14
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(bwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i + i % 2 + 1, 0, 1, 2)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(bwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i + i % 2 + 1, 2, 1, 2)
@@ -2371,26 +2335,26 @@ class AskPDFAction(PBMenu):
         super(AskPDFAction, self).__init__(parent)
         self.key = key
         self.mainWin = parent
-        self.message = "What PDF of this entry (%s) do you want to open?" % (key)
+        self.message = bwstr.whatPDF % (key)
         self.possibleActions = []
         files = pBPDF.getExisting(key, fullPath=True)
         doiFile = pBPDF.getFilePath(key, "doi")
         arxivFile = pBPDF.getFilePath(key, "arxiv")
         if doiFile != "" and doiFile in files:
             self.possibleActions.append(
-                QAction("Open DOI PDF", self, triggered=self.onOpenDoi)
+                QAction(bwstr.Acts.pdfO % "DOI", self, triggered=self.onOpenDoi)
             )
             files.remove(doiFile)
         if arxivFile != "" and arxivFile in files:
             self.possibleActions.append(
-                QAction("Open arxiv PDF", self, triggered=self.onOpenArxiv)
+                QAction(bwstr.Acts.pdfO % "arxiv", self, triggered=self.onOpenArxiv)
             )
             files.remove(arxivFile)
         for f in files:
             fname = f.split(os.sep)[-1]
             self.possibleActions.append(
                 QAction(
-                    "Open %s" % fname,
+                    bwstr.Acts.pdfOpen % fname,
                     self,
                     triggered=lambda fn=fname: self.onOpenOther(fn),
                 )
@@ -2399,7 +2363,7 @@ class AskPDFAction(PBMenu):
 
     def onOpenArxiv(self):
         """Set the result for opening the arXiv PDF"""
-        self.mainWin.statusBarMessage("Opening arXiv PDF...")
+        self.mainWin.statusBarMessage(bwstr.pdfOg % "arXiv")
         pBGuiView.openLink(
             self.key, "file", fileArg=pBPDF.getFilePath(self.key, "arxiv")
         )
@@ -2407,13 +2371,13 @@ class AskPDFAction(PBMenu):
 
     def onOpenDoi(self):
         """Set the result for opening the DOI PDF"""
-        self.mainWin.statusBarMessage("Opening DOI PDF...")
+        self.mainWin.statusBarMessage(bwstr.pdfOg % "DOI")
         pBGuiView.openLink(self.key, "file", fileArg=pBPDF.getFilePath(self.key, "doi"))
         self.close()
 
     def onOpenOther(self, filename):
         """Set the result for opening the DOI PDF"""
-        self.mainWin.statusBarMessage("Opening %s..." % filename)
+        self.mainWin.statusBarMessage(bwstr.pdfOpen % filename)
         pBGuiView.openLink(
             self.key, "file", fileArg=os.path.join(pBPDF.getFileDir(self.key), filename)
         )
@@ -2471,7 +2435,7 @@ class SearchBibsWindow(EditObjectWindow):
         self.currentHistoric = 0
         if self.edit is not None:
             if not (isinstance(self.edit, int) or self.edit.isdigit()):
-                pBGUILogger.error("Wrong 'edit', it is not an ID: '%s'" % self.edit)
+                pBGUILogger.error(bwstr.wrongEdit % self.edit)
                 return
             else:
                 self.historic = [
@@ -2494,7 +2458,7 @@ class SearchBibsWindow(EditObjectWindow):
                         {
                             "logical": None,
                             "field": None,
-                            "type": "Text",
+                            "type": bwstr.SR.text,
                             "operator": None,
                             "content": "",
                         }
@@ -2528,9 +2492,7 @@ class SearchBibsWindow(EditObjectWindow):
             searchValues = ast.literal_eval(record["searchDict"])
         except (ValueError, SyntaxError):
             pBLogger.warning(
-                "Something went wrong when processing "
-                + "the saved search fields:\n%s" % record["searchDict"],
-                exc_info=True,
+                bwstr.SR.errorProcessSavedF % record["searchDict"], exc_info=True,
             )
             searchValues = []
         if record["isReplace"] == 1:
@@ -2538,9 +2500,7 @@ class SearchBibsWindow(EditObjectWindow):
                 replaceFields = ast.literal_eval(record["replaceFields"])
             except (ValueError, SyntaxError):
                 pBLogger.warning(
-                    "Something went wrong when processing "
-                    + "the saved search/replace:\n%s" % record["replaceFields"],
-                    exc_info=True,
+                    bwstr.SR.errorProcessSaved % record["replaceFields"], exc_info=True,
                 )
                 replaceFields = {}
         else:
@@ -2711,34 +2671,32 @@ class SearchBibsWindow(EditObjectWindow):
         default = {
             "logical": None,
             "field": None,
-            "type": "Text",
+            "type": bwstr.SR.text,
             "operator": None,
             "content": "",
         }
         try:
             line = self.textValues[ix]
         except IndexError:
-            pBLogger.debug(
-                "Missing index %d (there are %d elements)" % (ix, len(self.textValues))
-            )
+            pBLogger.debug(bwstr.SR.missingIx % (ix, len(self.textValues)))
             return default
 
         try:
             previous = {"type": "%s" % line["type"].currentText()}
         except (KeyError, AttributeError):
-            pBLogger.debug("Missing or wrong 'type' in line %d" % ix)
+            pBLogger.debug(bwstr.SR.missingType % ix)
             return default
 
         if ix > 0:
             try:
                 previous["logical"] = "%s" % (line["logical"].currentText())
             except (KeyError, AttributeError):
-                pBLogger.debug("Missing or wrong 'logical' in line %d" % ix)
+                pBLogger.debug(bwstr.SR.missingLog % ix)
                 previous["logical"] = None
         else:
             previous["logical"] = None
 
-        if previous["type"] == "Text":
+        if previous["type"] == bwstr.SR.text:
             try:
                 previous["field"] = "%s" % line["field"].currentText()
             except AttributeError:
@@ -2757,7 +2715,7 @@ class SearchBibsWindow(EditObjectWindow):
                 previous["content"] = "%s" % line["content"].text()
             except AttributeError:
                 previous["content"] = ""
-        elif previous["type"] == "Categories" or previous["type"] == "Experiments":
+        elif previous["type"] == bwstr.SR.cats or previous["type"] == bwstr.SR.exps:
             previous["field"] = ""
             try:
                 previous["operator"] = "%s" % line["operator"].currentText()
@@ -2773,7 +2731,7 @@ class SearchBibsWindow(EditObjectWindow):
             else:
                 if not isinstance(previous["content"], list):
                     previous["content"] = []
-        elif previous["type"] == "Marks":
+        elif previous["type"] == bwstr.SR.marks:
             previous["field"] = None
             previous["operator"] = None
             previous["content"] = []
@@ -2783,7 +2741,7 @@ class SearchBibsWindow(EditObjectWindow):
                         previous["content"].append(m)
             except AttributeError:
                 pass
-        elif previous["type"] == "Type":
+        elif previous["type"] == bwstr.SR.type_:
             previous["field"] = None
             previous["operator"] = None
             previous["content"] = []
@@ -2805,7 +2763,7 @@ class SearchBibsWindow(EditObjectWindow):
                     {
                         "logical": None,
                         "field": None,
-                        "type": "Text",
+                        "type": bwstr.SR.text,
                         "operator": None,
                         "content": "",
                     }
@@ -2847,11 +2805,11 @@ class SearchBibsWindow(EditObjectWindow):
             "operator",
             "type",
         ]:
-            pBLogger.debug("Invalid previous! set to empty.\n%s" % previous)
+            pBLogger.debug(bwstr.SR.invalidPrev % previous)
             previous = {
                 "logical": None,
                 "field": None,
-                "type": "Text",
+                "type": bwstr.SR.text,
                 "operator": None,
                 "content": "",
             }
@@ -2869,7 +2827,13 @@ class SearchBibsWindow(EditObjectWindow):
 
         self.textValues[ix]["type"] = PBComboBox(
             self,
-            ["Text", "Categories", "Experiments", "Marks", "Type"],
+            [
+                bwstr.SR.text,
+                bwstr.SR.cats,
+                bwstr.SR.exps,
+                bwstr.SR.marks,
+                bwstr.SR.type_,
+            ],
             current=previous["type"],
         )
         self.textValues[ix]["type"].currentTextChanged.connect(
@@ -2877,7 +2841,7 @@ class SearchBibsWindow(EditObjectWindow):
         )
         self.currGrid.addWidget(self.textValues[ix]["type"], ix, 1)
 
-        if previous["type"] == "Text":
+        if previous["type"] == bwstr.SR.text:
             self.textValues[ix]["field"] = PBComboBox(
                 self, self.fields["text"], current=previous["field"]
             )
@@ -2892,13 +2856,13 @@ class SearchBibsWindow(EditObjectWindow):
             self.currGrid.addWidget(self.textValues[ix]["content"], ix, 4, 1, 4)
             self.textValues[ix]["content"].installEventFilter(self)
 
-        elif previous["type"] == "Categories" or previous["type"] == "Experiments":
+        elif previous["type"] == bwstr.SR.cats or previous["type"] == bwstr.SR.exps:
             self.textValues[ix]["field"] = None
 
             self.textValues[ix]["operator"] = PBComboBox(
                 self,
                 self.operators["catexp"]
-                if previous["type"] == "Categories"
+                if previous["type"] == bwstr.SR.cats
                 else self.operators["catexp"][0:2],
                 current=previous["operator"],
             )
@@ -2910,16 +2874,16 @@ class SearchBibsWindow(EditObjectWindow):
                 "%s" % previous["content"], self
             )
             self.currGrid.addWidget(self.textValues[ix]["content"], ix, 4, 1, 4)
-            if previous["type"] == "Categories":
+            if previous["type"] == bwstr.SR.cats:
                 self.textValues[ix]["content"].clicked.connect(
                     lambda s=False, l=ix: self.onAskCats(l)
                 )
-            elif previous["type"] == "Experiments":
+            elif previous["type"] == bwstr.SR.exps:
                 self.textValues[ix]["content"].clicked.connect(
                     lambda s=False, l=ix: self.onAskExps(l)
                 )
 
-        elif previous["type"] == "Marks":
+        elif previous["type"] == bwstr.SR.marks:
             self.textValues[ix]["operator"] = None
             groupBox, markValues = pBMarks.getGroupbox(
                 previous["content"], description="", radio=True, addAny=True
@@ -2928,7 +2892,7 @@ class SearchBibsWindow(EditObjectWindow):
             self.textValues[ix]["content"] = markValues
             self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
 
-        elif previous["type"] == "Type":
+        elif previous["type"] == bwstr.SR.type_:
             self.textValues[ix]["operator"] = None
             groupBox = QGroupBox()
             typeValues = {}
@@ -2971,12 +2935,12 @@ class SearchBibsWindow(EditObjectWindow):
         if override:
             lim = defLim
             offs = defOffs
-        self.currGrid.addWidget(PBLabelRight("Max number of results:"), ix - 1, 0, 1, 2)
+        self.currGrid.addWidget(PBLabelRight(bwstr.SR.maxRes), ix - 1, 0, 1, 2)
         self.limitValue = QLineEdit(lim)
         self.limitValue.setMaxLength(6)
         self.limitValue.setFixedWidth(75)
         self.currGrid.addWidget(self.limitValue, ix - 1, 2)
-        self.currGrid.addWidget(PBLabelRight("Start from:"), ix - 1, 3, 1, 2)
+        self.currGrid.addWidget(PBLabelRight(bwstr.SR.startFrom), ix - 1, 3, 1, 2)
         self.limitOffs = QLineEdit(offs)
         self.limitOffs.setMaxLength(6)
         self.limitOffs.setFixedWidth(75)
@@ -3006,7 +2970,7 @@ class SearchBibsWindow(EditObjectWindow):
                 fieNew1 = previous["fieNew1"]
                 new1 = previous["new1"]
             except (TypeError, KeyError):
-                pBLogger.debug("Invalid previous, some key is missing!\n%s" % previous)
+                pBLogger.debug(bwstr.SR.invalidPrevKey % previous)
                 regex = False
                 fieOld = "author"
                 fieNew = "author"
@@ -3034,12 +2998,12 @@ class SearchBibsWindow(EditObjectWindow):
                 old = ""
                 new = ""
                 new1 = ""
-        self.currGrid.addWidget(PBLabel("Replace:"), ix - 1, 0)
-        self.currGrid.addWidget(PBLabelRight("regex:"), ix - 1, 2)
+        self.currGrid.addWidget(PBLabel(bwstr.SR.replace), ix - 1, 0)
+        self.currGrid.addWidget(PBLabelRight(bwstr.SR.regex), ix - 1, 2)
         self.replRegex = QCheckBox("", self)
         self.replRegex.setChecked(regex)
         self.currGrid.addWidget(self.replRegex, ix - 1, 3)
-        self.currGrid.addWidget(PBLabelRight("From field:"), ix, 0)
+        self.currGrid.addWidget(PBLabelRight(bwstr.SR.fromField), ix, 0)
         self.replOldField = PBComboBox(
             self, self.replaceComboFields["old"], current=fieOld
         )
@@ -3047,7 +3011,7 @@ class SearchBibsWindow(EditObjectWindow):
         self.replOld = QLineEdit(old)
         self.currGrid.addWidget(self.replOld, ix, 3, 1, 3)
         ix += 1
-        self.currGrid.addWidget(PBLabelRight("Into field:"), ix, 0)
+        self.currGrid.addWidget(PBLabelRight(bwstr.SR.intoField), ix, 0)
         self.replNewField = PBComboBox(
             self, self.replaceComboFields["new"], current=fieNew
         )
@@ -3055,7 +3019,7 @@ class SearchBibsWindow(EditObjectWindow):
         self.replNew = QLineEdit(new)
         self.currGrid.addWidget(self.replNew, ix, 3, 1, 3)
         ix += 1
-        self.doubleEdit = QCheckBox("and also:")
+        self.doubleEdit = QCheckBox(bwstr.SR.andAlso)
         self.doubleEdit.setChecked(double)
         self.currGrid.addWidget(self.doubleEdit, ix, 0)
         self.replNewField1 = PBComboBox(
@@ -3079,7 +3043,7 @@ class SearchBibsWindow(EditObjectWindow):
                 of the search/replace to use to build the form
             spaceRowHeight (default 25): used as height for some rows
         """
-        self.setWindowTitle("Search bibtex entries")
+        self.setWindowTitle(bwstr.searchBibs)
 
         if histIndex > len(self.historic):
             histIndex = -1
@@ -3114,10 +3078,8 @@ class SearchBibsWindow(EditObjectWindow):
             pass
 
         i = self.numberOfRows + 1
-        self.currGrid.addWidget(
-            PBLabelRight("Click here if you want more fields:"), i - 1, 0, 1, 2
-        )
-        self.addFieldButton = QPushButton("Add another line", self)
+        self.currGrid.addWidget(PBLabelRight(bwstr.addLineDesc), i - 1, 0, 1, 2)
+        self.addFieldButton = QPushButton(bwstr.addLine, self)
         self.addFieldButton.clicked.connect(self.addRow)
         self.currGrid.addWidget(self.addFieldButton, i - 1, 2, 1, 2)
 
@@ -3146,20 +3108,20 @@ class SearchBibsWindow(EditObjectWindow):
         i += 1
 
         # OK button
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(bwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i, 2)
         self.acceptButton.setFixedWidth(80)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(bwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i, 3)
         self.cancelButton.setFixedWidth(80)
 
         # save button
-        self.saveButton = QPushButton("Run and save", self)
+        self.saveButton = QPushButton(bwstr.runASave, self)
         self.saveButton.clicked.connect(self.onSave)
         self.currGrid.addWidget(self.saveButton, i, 5)
         self.saveButton.setFixedWidth(120)
@@ -3328,7 +3290,7 @@ class MergeBibtexs(EditBibtexDialog):
             old0 = self.dataOld["0"][k]
             old1 = self.dataOld["1"][k]
         except KeyError:
-            pBLogger.warning("Key missing: '%s'" % k)
+            pBLogger.warning(bwstr.keyMiss % k)
             return r
         if old0 == old1:
             self.textValues[k] = QLineEdit(str(old0))
@@ -3373,7 +3335,7 @@ class MergeBibtexs(EditBibtexDialog):
         self.markValues = markValues
         self.currGrid.addWidget(groupBox, r, 0, 1, 5)
         r += 1
-        groupBox = QGroupBox("Types")
+        groupBox = QGroupBox(bwstr.types)
         groupBox.setFlat(True)
         hbox = QHBoxLayout()
         for k in pBDB.tableCols["entries"]:
@@ -3433,7 +3395,7 @@ class MergeBibtexs(EditBibtexDialog):
         add window title and OK/Cancel buttons,
         set the window geometry and center it.
         """
-        self.setWindowTitle("Merge bibtex entries")
+        self.setWindowTitle(bwstr.mergeBibs)
 
         i = 0
         for k in self.generic:
@@ -3446,12 +3408,12 @@ class MergeBibtexs(EditBibtexDialog):
 
         # OK button
         i += 1
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(bwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         self.currGrid.addWidget(self.acceptButton, i, 0, 1, 2)
 
         # cancel button
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(bwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         self.currGrid.addWidget(self.cancelButton, i, 3, 1, 2)
@@ -3473,7 +3435,7 @@ class FieldsFromArxiv(PBDialog):
         super(FieldsFromArxiv, self).__init__(parent)
         self.result = False
         self.output = []
-        self.setWindowTitle("Import fields from arXiv")
+        self.setWindowTitle(bwstr.fieldsFromArx)
         self.checkBoxes = {}
         self.arxivDict = ["authors", "title", "doi", "primaryclass", "archiveprefix"]
         vbox = QVBoxLayout()
@@ -3481,10 +3443,10 @@ class FieldsFromArxiv(PBDialog):
             self.checkBoxes[k] = QCheckBox(k, self)
             self.checkBoxes[k].setChecked(True)
             vbox.addWidget(self.checkBoxes[k])
-        self.acceptButton = QPushButton("OK", self)
+        self.acceptButton = QPushButton(bwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)
         vbox.addWidget(self.acceptButton)
-        self.cancelButton = QPushButton("Cancel", self)
+        self.cancelButton = QPushButton(bwstr.cancel, self)
         self.cancelButton.clicked.connect(self.onCancel)
         self.cancelButton.setAutoDefault(True)
         vbox.addWidget(self.cancelButton)

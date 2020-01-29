@@ -218,7 +218,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         errorUIIDDOI = "Something went wrong in updateInspireID with doi search"
         errorUIIDGeneric = "Something went wrong in updateInspireID"
         errorUpdateBib = "Impossible to update bibkey"
-        experimental = "Experimental"
+        experimental = "Experimental paper"
         fcbBadEntries = "%d bad entries found:\n %s"
         fcbInvalidStart = "Invalid startFrom in findCorruptedBibtexs"
         fcbNotReadable = "%s is NOT readable!\n"

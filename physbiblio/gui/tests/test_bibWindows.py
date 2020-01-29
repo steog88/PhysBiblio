@@ -46,6 +46,7 @@ class TestFunctions(GUIwMainWTestCase):
 
     def test_writeBibtexInfo(self):
         """test writeBibtexInfo"""
+        self.maxDiff = None
         entry = {
             "bibkey": "mykey",
             "review": 0,
@@ -80,11 +81,11 @@ class TestFunctions(GUIwMainWTestCase):
                 writeBibtexInfo(entry),
                 "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
                 + "<b>sg</b><br/>\nsome title<br/>\n<i>AB 12 (2018) 1</i>"
-                + "<br/>\n<br/>DOI of the record: <u>a/b/12</u><br/>"
-                + "arXiv ID of the record: <u>1234.5678</u><br/>"
-                + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
-                + "Categories: <i>None</i>\n<br/>Experiments: <i>None</i>"
-                + "\n<br/><br/>Comments:<br/>some thing",
+                + "<br/>\n<br/>\nDOI of the record: <u>a/b/12</u><br/>"
+                + "\narXiv ID of the record: <u>1234.5678</u><br/>"
+                + "\nINSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
+                + "Categories: <i>None</i><br/>\nExperiments: <i>None</i>"
+                + "<br/>\n<br/>Comments:<br/>some thing",
             )
             self.assertEqual(_d.call_count, 0)
 
@@ -121,10 +122,10 @@ class TestFunctions(GUIwMainWTestCase):
                 writeBibtexInfo(entry),
                 "(Book) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
                 + "<b>sg</b><br/>\nsome title<br/>\n"
-                + "<br/>ISBN code of the record: <u>123456789</u><br/>"
-                + "DOI of the record: <u>a/b/12</u><br/>"
-                + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
-                + "Categories: <i>Main</i>\n<br/>Experiments: <i>None</i>",
+                + "<br/>\nISBN code of the record: <u>123456789</u><br/>\n"
+                + "DOI of the record: <u>a/b/12</u><br/>\n"
+                + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
+                + "Categories: <i>Main</i><br/>\nExperiments: <i>None</i>",
             )
             _d.assert_has_calls(
                 [
@@ -177,10 +178,10 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Review) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
-                + "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
-                + "DOI of the record: <u>a/b/12</u><br/>"
-                + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>"
-                + "Categories: <i>Main</i>\n<br/>Experiments: <i>None</i>",
+                + "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>\n"
+                + "DOI of the record: <u>a/b/12</u><br/>\n"
+                + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
+                + "Categories: <i>Main</i><br/>\nExperiments: <i>None</i>",
             )
             _d.assert_has_calls(
                 [
@@ -250,10 +251,9 @@ class TestFunctions(GUIwMainWTestCase):
                 writeBibtexInfo(entry),
                 "(Experimental paper) (PhD thesis) (Review) "
                 + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
-                + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>"
-                + "\n<br/>"
-                + "Categories: <i>Main, second</i>\n"
-                + "<br/>Experiments: <i>myexp</i>",
+                + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>\n"
+                + "<br/>\nCategories: <i>Main, second</i>"
+                + "<br/>\nExperiments: <i>myexp</i>",
             )
             _d.assert_has_calls(
                 [
@@ -318,10 +318,9 @@ class TestFunctions(GUIwMainWTestCase):
                 "(Lecture) (Proceeding) "
                 + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
                 + "<b>parsed</b><br/>\nparsed<br/>\n"
-                + "<i>AB 12 (2018) 1</i><br/>\n<br/>"
-                + "\n<br/>"
-                + "Categories: <i>Main, second</i>\n"
-                + "<br/>Experiments: <i>exp1, exp2</i>",
+                + "<i>AB 12 (2018) 1</i><br/>\n<br/>\n<br/>\n"
+                + "Categories: <i>Main, second</i>"
+                + "<br/>\nExperiments: <i>exp1, exp2</i>",
             )
             self.assertEqual(_d.call_count, 0)
             _i.assert_called_once_with(keep_inline_math=True, keep_comments=False)
@@ -2422,9 +2421,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             c._createMenuPDF(True, c.bibs[0])
             self.assertEqual(len(c.menu.possibleActions), 1)
             self.assertIsInstance(c.menu.possibleActions[0], QAction)
-            self.assertEqual(
-                c.menu.possibleActions[0].text(), "Download PDF from arXiv"
-            )
+            self.assertEqual(c.menu.possibleActions[0].text(), "Download arXiv PDF")
             self.assertEqual(_a.call_count, 0)
             c.menu.possibleActions[0].trigger()
             _a.assert_called_once_with(c)
@@ -6103,7 +6100,7 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertEqual(
             sbw.possibleTypes,
             {
-                "exp_paper": {"desc": "Experimental"},
+                "exp_paper": {"desc": "Experimental paper"},
                 "lecture": {"desc": "Lecture"},
                 "phd_thesis": {"desc": "PhD thesis"},
                 "review": {"desc": "Review"},
