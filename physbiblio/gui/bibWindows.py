@@ -1595,7 +1595,7 @@ class CommonBibActions:
             else:
                 pBGUILogger.error("Empty bibtex and/or bibkey!")
         else:
-            self.parent().statusBarMessage("Nothing to do")
+            self.parent().statusBarMessage(bwstr.nothingToDo)
 
     def onModify(self):
         """Action to be performed when modifying bibtexs.

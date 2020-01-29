@@ -971,7 +971,7 @@ class Test_Thread_importDailyArxiv(GUITestCase):
             _sl.assert_called_once_with(0.1)
             _in.assert_has_calls(
                 [
-                    call("Entries successfully imported:\n['12.345']"),
+                    call("Entries successfully imported: ['12.345']"),
                     call("Errors for entries:\n[]"),
                 ]
             )
@@ -1096,7 +1096,7 @@ class Test_Thread_importDailyArxiv(GUITestCase):
                     call("Element '12.348' successfully inserted.\n"),
                     call("Element '12.349' successfully inserted.\n"),
                     call(
-                        "Entries successfully imported:\n"
+                        "Entries successfully imported: "
                         + "['12.345', '12.348', '12.350']"
                     ),
                     call("Errors for entries:\n['12.346', '12.348']"),
@@ -1104,8 +1104,8 @@ class Test_Thread_importDailyArxiv(GUITestCase):
             )
             _wa.assert_has_calls(
                 [
-                    call("Failed in inserting entry 12.346\n"),
-                    call("Failed in completing info for entry 12.348\n"),
+                    call("Failed in inserting entry '12.346'\n"),
+                    call("Failed in completing info for entry '12.348'\n"),
                 ]
             )
             _pi.assert_has_calls(

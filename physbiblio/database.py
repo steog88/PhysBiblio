@@ -3408,7 +3408,7 @@ class Entries(PhysBiblioDBSub):
                 else:
                     return True
             except:
-                pBLogger.warning(dstr.Bibs.failedComplete % entry)
+                pBLogger.warning(dstr.failedComplete % entry)
                 return False
         elif entry is not None and isinstance(entry, list):
             failed = []
@@ -3619,7 +3619,7 @@ class Entries(PhysBiblioDBSub):
                             pBLogger.info(dstr.Bibs.ifbInserted)
                             self.lastInserted.append(key)
                         except Exception:
-                            pBLogger.exception(dstr.Bibs.failedComplete % key)
+                            pBLogger.exception(dstr.failedComplete % key)
                             errors.append(key)
         pBLogger.info(
             dstr.Bibs.ifbCompleteSummary

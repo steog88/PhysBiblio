@@ -780,7 +780,7 @@ class Thread_importDailyArxiv(PBThread):
                     if key != newKey:
                         inserted[-1] = newKey
                 except:
-                    pBLogger.warning(thestr.elementInfoFailed % (key))
+                    pBLogger.warning(thestr.failedComplete % (key))
                     failed.append(key)
         pBLogger.info(thestr.elementImported % (inserted))
         pBLogger.info(thestr.errorsEntries % (failed))

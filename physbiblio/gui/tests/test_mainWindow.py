@@ -2445,6 +2445,7 @@ class TestMainWindow(GUITestCase):
                 + " (current name: 'old'):",
                 "New name",
                 parent=self.mainW,
+                previous="old",
             )
             self.assertEqual(_usf.call_count, 0)
             self.mainW.renameSearchBiblio(999, "old")

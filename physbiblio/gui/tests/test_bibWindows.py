@@ -3862,7 +3862,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         ) as _w:
             c.onMerge()
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
-            _m.assert_called_once_with(self.mainW, "Nothing to do")
+            _m.assert_called_once_with(self.mainW, "Nothing to do...")
         mb.result = True
         pBDB.bibs.lastFetched = ["last"]
         # empty bibtex or bibkey
