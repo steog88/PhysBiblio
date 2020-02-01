@@ -6,8 +6,8 @@ This file is part of the physbiblio package.
 __author__ = "Stefano Gariazzo"
 __email__ = "stefano.gariazzo@gmail.com"
 
-__version__ = "1.4.2"
-__version_date__ = "15/10/2019"
+__version__ = "1.5.0"
+__version_date__ = "01/02/2020"
 
 __all__ = [
     "bibtexWriter",
@@ -29,5 +29,9 @@ __all__ = [
 ]
 
 __recent_changes__ = """<br>
-* more bug fixing.<br>
+* tabs in the main window, in order to keep multiple searches available at each time<br>
+* search in a category or its subcategories<br>
+* option to reorder bibtexs without updating, in "tex" shell command and in GUI<br>
+* fix progressBar in authorStats when a single name is requested<br>
+* internal improvements<br>
 """
