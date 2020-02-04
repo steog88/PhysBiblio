@@ -810,6 +810,19 @@ class MainWindow(QMainWindow):
             self.tabWidget.tabBar().setTabButton(i, QTabBar.RightSide, None)
         self.tabWidget.blockSignals(False)
 
+    def closeAllTabs(self):
+        """Close all the available tabs,
+        except the main and the "new tab" one:
+        delete the corresponding BibtexListWindow item
+        and recreate the tabs
+        """
+        for index in range(self.tabWidget.count() - 2, 0, -1):
+            try:
+                del self.bibtexListWindows[index]
+            except IndexError:
+                pass
+        self.fillTabs()
+
     def closeTab(self, index):
         """Close a tab, if it is not the main nor the "new tab" one:
         delete the corresponding BibtexListWindow item

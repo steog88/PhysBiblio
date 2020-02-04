@@ -158,6 +158,7 @@ class SelectProfiles(PBDialog):
             pbConfig.reInit(prof, newProfile)
             pBDB.reOpenDB(pbConfig.currentDatabase)
             self.parent().reloadConfig()
+        self.parent().closeAllTabs()
         self.parent().reloadMainContent()
         self.close()
 

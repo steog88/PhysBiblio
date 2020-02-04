@@ -565,6 +565,8 @@ class TestSelectProfiles(GUIwMainWTestCase):
         ) as _rc, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rm, patch(
+            "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
+        ) as _cat, patch(
             "physbiblio.config.ConfigVars.reInit", autospec=True
         ) as _ri, patch(
             "physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True
@@ -575,6 +577,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
             self.assertEqual(_rc.call_count, 0)
             _rm.assert_called_once_with(p)
             _c.assert_called_once_with()
+            _cat.assert_called_once_with(p)
         sp = SelectProfiles(p)
         sp.combo.setCurrentIndex(1)
         pbConfig.currentDatabase = "test2.db"
@@ -585,6 +588,8 @@ class TestSelectProfiles(GUIwMainWTestCase):
         ) as _rc, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rm, patch(
+            "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
+        ) as _cat, patch(
             "physbiblio.config.ConfigVars.reInit", autospec=True
         ) as _ri, patch(
             "physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True
@@ -597,6 +602,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
             _rc.assert_called_once_with(p)
             _rm.assert_called_once_with(p)
             _c.assert_called_once_with()
+            _cat.assert_called_once_with(p)
 
     def test_initUI(self):
         """Test initUI"""

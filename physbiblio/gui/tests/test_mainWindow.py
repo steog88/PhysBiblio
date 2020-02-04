@@ -22,6 +22,7 @@ try:
     from physbiblio.setuptests import *
     from physbiblio.gui.setuptests import *
     from physbiblio.gui.mainWindow import *
+    from physbiblio.strings.gui import MainWindowStrings as mwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -978,6 +979,25 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(
             self.mainW.tabWidget.tabIcon(3).pixmap(icon.size()).toImage(), icon
         )
+
+    def test_closeAllTabs(self):
+        """test closeAllTabs"""
+        self.mainW.bibtexListWindows = []
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.closeAllTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 4)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 3)
+        self.mainW.closeAllTabs()
+        self.assertEqual(self.mainW.tabWidget.count(), 2)
+        self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.assertEqual([a[1] for a in self.mainW.bibtexListWindows], [mwstr.mainTab])
 
     def test_closeTab(self):
         """test closeTab"""
