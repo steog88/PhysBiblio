@@ -96,12 +96,10 @@ class TestMainWindow(GUITestCase):
             _f.assert_called_once_with(12)
         self.assertIsInstance(mw1, QMainWindow)
         self.assertEqual(mw1.lastPaperStats, None)
+        cmwh = QDesktopWidget().availableGeometry().height()
+        cmww = QDesktopWidget().availableGeometry().width()
         self.assertGeometry(
-            mw,
-            0,
-            0,
-            QDesktopWidget().availableGeometry().width(),
-            QDesktopWidget().availableGeometry().height(),
+            mw, 0, 0, cmww if cmww > 600 else 600, cmwh if cmwh > 400 else 400,
         )
         self.assertTrue(hasattr(mw, "onIsLockedClass"))
         self.assertIsInstance(mw.onIsLockedClass, ObjectWithSignal)

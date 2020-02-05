@@ -51,7 +51,7 @@ setup(
         "pymarc",
         "pyoai",
         "pyparsing(>=2.4.0)",
-        "pyside2(>=5.12.2)",
+        "pyside2(>=5.14.0)",
         "requests",
         "six",
         'mock;python_version<"3"',
@@ -71,6 +71,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ),
     provides=["physbiblio"],
     data_files=[

@@ -1258,7 +1258,7 @@ class TestPBDDTableWidget(GUITestCase):
         p = QWidget()
         mddtw = PBDDTableWidget(p, "head")
         self.assertTrue(mddtw.dropMimeData(12, 0, None, None))
-        self.assertEqual(mddtw.last_drop_row, 12)
+        self.assertEqual(mddtw.lastDropRow, 12)
 
     def test_dropEvent(self):
         """test dropEvent"""
@@ -1292,7 +1292,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"source1")
             )
         ev = QDropEvent(
-            QPointF(1, 1),
+            mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),
@@ -1322,7 +1322,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"test1")
             )
         ev = QDropEvent(
-            QPointF(1, 1),
+            mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),

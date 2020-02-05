@@ -896,7 +896,7 @@ class PBDDTableWidget(QTableWidget):
         self.setAcceptDrops(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setDragDropOverwriteMode(False)
-        self.last_drop_row = None
+        self.lastDropRow = None
 
     # Override this method to get the correct row index for insertion
     def dropMimeData(self, row, col, mimeData, action):
@@ -907,7 +907,7 @@ class PBDDTableWidget(QTableWidget):
             col, mimeData, action: not used params
                 (see the signature of `QTableWidget.dropMimeData`)
         """
-        self.last_drop_row = row
+        self.lastDropRow = row
         return True
 
     def dropEvent(self, event):
@@ -924,7 +924,7 @@ class PBDDTableWidget(QTableWidget):
         # with appropriate parameters (we're interested in the row index).
         super(PBDDTableWidget, self).dropEvent(event)
         # Now we know where to insert selected row(s)
-        dropRow = self.last_drop_row
+        dropRow = self.lastDropRow
 
         selectedRows = sender.getselectedRowsFast()
 

@@ -61,9 +61,13 @@ class TestExportMethods(unittest.TestCase):
         self.assertFalse(os.path.exists(emptyFileName))
         self.assertTrue(pBExport.restoreBackupCopy(emptyFileName))
         self.assertTrue(os.path.exists(emptyFileName))
-        os.chmod(emptyFileName, S_IREAD)
-        self.assertFalse(pBExport.restoreBackupCopy(emptyFileName))
-        os.remove(emptyFileName)
+        with patch("os.path.isfile", side_effect=[False, True, True]) as _isf, patch(
+            "shutil.copy2", side_effect=[True, IOError]
+        ) as _cp2, patch("logging.Logger.exception") as _ex:
+            self.assertFalse(pBExport.restoreBackupCopy(emptyFileName))
+            self.assertTrue(pBExport.restoreBackupCopy(emptyFileName))
+            self.assertFalse(pBExport.restoreBackupCopy(emptyFileName))
+            _ex.assert_called_once()
         self.assertTrue(pBExport.rmBackupCopy(emptyFileName))
         self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 

@@ -1,4 +1,6 @@
     * all open tabs are closed when changing profile
+    * now requiring PySide2>=5.14 for python3.8 compatibility
+    * fixes to tests
 
 1.5.0 (2020-02-01)
     * tabs in the main window, in order to keep multiple searches available at each time
