@@ -2,4 +2,4 @@
 *.geany
 notes.py
 *tmp*
-.tox/
+.tox*/
