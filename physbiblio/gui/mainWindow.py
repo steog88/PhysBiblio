@@ -1222,8 +1222,12 @@ class MainWindow(QMainWindow):
     def categories(self):
         """Open a window to show the list categories"""
         self.statusBarMessage(mwstr.trigCat)
-        catListWin = CatsTreeWindow(self)
-        catListWin.show()
+        try:
+            self.catListWin.close()
+        except AttributeError:
+            pass
+        self.catListWin = CatsTreeWindow(self)
+        self.catListWin.show()
 
     def newCategory(self):
         """Wrapper for catWindows.editCategory"""
@@ -1232,8 +1236,12 @@ class MainWindow(QMainWindow):
     def experiments(self):
         """Open a window to show the list experiments"""
         self.statusBarMessage(mwstr.trigExp)
-        expListWin = ExpsListWindow(self)
-        expListWin.show()
+        try:
+            self.expListWin.close()
+        except AttributeError:
+            pass
+        self.expListWin = ExpsListWindow(self)
+        self.expListWin.show()
 
     def newExperiment(self):
         """Wrapper for expWindows.editExperiment"""

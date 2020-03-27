@@ -9,7 +9,7 @@ import os
 from PySide2.QtCore import Qt
 from PySide2.QtTest import QTest
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QWidget
+from PySide2.QtWidgets import QDialog, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -579,6 +579,10 @@ class TestSelectProfiles(GUIwMainWTestCase):
             _c.assert_called_once_with()
             _cat.assert_called_once_with(p)
         sp = SelectProfiles(p)
+        p.catListWin = QDialog()
+        p.expListWin = QDialog()
+        p.catListWin.close = MagicMock()
+        p.expListWin.close = MagicMock()
         sp.combo.setCurrentIndex(1)
         pbConfig.currentDatabase = "test2.db"
         with patch(
@@ -603,6 +607,8 @@ class TestSelectProfiles(GUIwMainWTestCase):
             _rm.assert_called_once_with(p)
             _c.assert_called_once_with()
             _cat.assert_called_once_with(p)
+        p.catListWin.close.assert_called_once_with()
+        p.expListWin.close.assert_called_once_with()
 
     def test_initUI(self):
         """Test initUI"""

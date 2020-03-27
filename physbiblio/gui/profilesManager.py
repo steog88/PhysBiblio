@@ -159,6 +159,14 @@ class SelectProfiles(PBDialog):
             pBDB.reOpenDB(pbConfig.currentDatabase)
             self.parent().reloadConfig()
         self.parent().closeAllTabs()
+        try:
+            self.parent().catListWin.close()
+        except AttributeError:
+            pass
+        try:
+            self.parent().expListWin.close()
+        except AttributeError:
+            pass
         self.parent().reloadMainContent()
         self.close()
 

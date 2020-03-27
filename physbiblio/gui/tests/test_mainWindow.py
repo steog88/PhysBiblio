@@ -2008,6 +2008,18 @@ class TestMainWindow(GUITestCase):
             _sm.assert_called_once_with(self.mainW, "categories triggered")
             _i.assert_called_once_with(self.mainW)
             ca.show.assert_called_once_with()
+        self.assertEqual(self.mainW.catListWin, ca)
+        ca.close = MagicMock()
+        ca1 = CatsTreeWindow(self.mainW)
+        ca1.show = MagicMock()
+        with patch(self.clsName + ".statusBarMessage", autospec=True) as _sm, patch(
+            self.modName + ".CatsTreeWindow",
+            return_value=ca1,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _i:
+            self.mainW.categories()
+        ca.close.assert_called_once_with()
+        self.assertEqual(self.mainW.catListWin, ca1)
 
     def test_newCategory(self):
         """test newCategory"""
@@ -2028,6 +2040,18 @@ class TestMainWindow(GUITestCase):
             _sm.assert_called_once_with(self.mainW, "experiments triggered")
             _i.assert_called_once_with(self.mainW)
             ex.show.assert_called_once_with()
+        self.assertEqual(self.mainW.expListWin, ex)
+        ex.close = MagicMock()
+        ex1 = ExpsListWindow(self.mainW)
+        ex1.show = MagicMock()
+        with patch(self.clsName + ".statusBarMessage", autospec=True) as _sm, patch(
+            self.modName + ".ExpsListWindow",
+            return_value=ex1,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _i:
+            self.mainW.experiments()
+        ex.close.assert_called_once_with()
+        self.assertEqual(self.mainW.expListWin, ex1)
 
     def test_newExperiment(self):
         """test newExperiment"""
