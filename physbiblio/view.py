@@ -53,7 +53,7 @@ class ViewEntry:
         if isinstance(key, list):
             links = []
             for k in key:
-                if arg is not "file":
+                if arg != "file":
                     links.append(self.getLink(k, arg, fileArg))
                 else:
                     links.append(fileArg)
@@ -62,19 +62,19 @@ class ViewEntry:
         arxiv = pBDB.bibs.getField(key, "arxiv")
         doi = pBDB.bibs.getField(key, "doi")
         inspire = pBDB.bibs.getField(key, "inspire")
-        if arg is "ads" and ads:
+        if arg == "ads" and ads:
             link = pBDB.bibs.getAdsUrl(key)
-        elif arg is "arxiv" and arxiv:
+        elif arg == "arxiv" and arxiv:
             link = pBDB.bibs.getArxivUrl(key, "abs")
-        elif arg is "doi" and doi:
+        elif arg == "doi" and doi:
             link = pBDB.bibs.getDoiUrl(key)
-        elif arg is "inspire" and inspire:
+        elif arg == "inspire" and inspire:
             link = self.inspireRecord + inspire
-        elif arg is "inspire" and arxiv:
+        elif arg == "inspire" and arxiv:
             link = self.inspireSearch + arxiv
-        elif arg is "inspire":
+        elif arg == "inspire":
             link = self.inspireSearch + key
-        elif arg is "file":
+        elif arg == "file":
             pBPDF.openFile(key, fileArg)
             return fileArg
         else:
@@ -94,10 +94,10 @@ class ViewEntry:
             for k in key:
                 self.openLink(k, arg, fileArg)
         else:
-            if arg is "file":
+            if arg == "file":
                 self.getLink(key, arg=arg, fileArg=fileArg)
                 return
-            elif arg is "link":
+            elif arg == "link":
                 link = key
             else:
                 link = self.getLink(key, arg=arg, fileArg=fileArg)

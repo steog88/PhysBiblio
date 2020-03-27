@@ -29,7 +29,7 @@ def parse_accents_str(string):
     Output:
         the processed string
     """
-    if string is not None and string is not "":
+    if string is not None and string != "":
         string = utf8tolatex(string, non_ascii_only=True)
     return string
 
@@ -45,7 +45,7 @@ def parse_accents_record(record):
         the dictionary after having processed all the fields
     """
     for val in record:
-        if val is not "ID" and len(record[val].strip()) > 0:
+        if val != "ID" and len(record[val].strip()) > 0:
             tmp = utf8tolatex(record[val], non_ascii_only=True)
             if tmp != record[val]:
                 pBLogger.info(pastr.converting % record["ID"])

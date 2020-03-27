@@ -368,7 +368,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
             pass
         bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
         for k in self.bibtexFields:
-            if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] is not "":
+            if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] != "":
                 bibtexDict[k] = tmpDict[k]
         try:
             if (

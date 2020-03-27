@@ -1046,7 +1046,7 @@ class MainWindow(QMainWindow):
 
         addMessage = getDelKwargs("addMessage")
         stopFlag = getDelKwargs("stopFlag")
-        app = PrintText(title=title, noStopButton=True if stopFlag is False else False)
+        app = PrintText(title=title, noStopButton=stopFlag == False)
 
         outMessage = getDelKwargs("outMessage")
         minProgress = getDelKwargs("minProgress")
@@ -1252,7 +1252,7 @@ class MainWindow(QMainWindow):
         """
         newSearchWin = SearchBibsWindow(self, replace=replace)
         newSearchWin.exec_()
-        if newSearchWin.result is True:
+        if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
             offs = newSearchWin.offset
@@ -1407,7 +1407,7 @@ class MainWindow(QMainWindow):
             return
         newSearchWin = SearchBibsWindow(replace=record[0]["isReplace"], edit=idS)
         newSearchWin.exec_()
-        if newSearchWin.result is True:
+        if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
             offs = newSearchWin.offset
@@ -1445,7 +1445,7 @@ class MainWindow(QMainWindow):
         then use the result to run the replace function
         """
         result = self.searchBiblio(replace=True)
-        if result is False:
+        if not result:
             return
         self.runReplace(result)
 
@@ -1582,7 +1582,7 @@ class MainWindow(QMainWindow):
             return False
         else:
             authorName = str(authorName)
-        if authorName is "":
+        if authorName == "":
             pBGUILogger.warning(mwstr.authorStEmptyName)
             return False
         if "[" in authorName:

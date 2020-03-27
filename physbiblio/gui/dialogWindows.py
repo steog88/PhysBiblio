@@ -488,7 +488,7 @@ class PrintText(PBDialog):
             grid.addWidget(self.progressBar)
 
         # cancel button...should learn how to connect it with a thread kill
-        if self.noStopButton is not True:
+        if not self.noStopButton:
             self.cancelButton = QPushButton(dwstr.stop, self)
             self.cancelButton.clicked.connect(self.stopExec)
             self.cancelButton.setAutoDefault(True)

@@ -270,7 +270,9 @@ class PhysBiblioDB(PhysBiblioDBCore):
                 pbConfig.globalDb.updateSearchField(sr["idS"], "searchDict", newContent)
 
             if sr["replaceFields"] == "[]":
-                pbConfig.globalDb.updateSearchField(sr["idS"], "replaceFields", "{}")
+                pbConfig.globalDb.updateSearchField(
+                    sr["idS"], "replaceFields", "{}", isReplace=False
+                )
             if sr["isReplace"]:
                 newContent = sr["replaceFields"]
                 try:
@@ -384,8 +386,8 @@ class Categories(PhysBiblioDBSub):
         pBLogger.info(dstr.Cats.updateField % (field, idCat))
         if (
             field in self.tableCols["categories"]
-            and field is not "idCat"
-            and value is not ""
+            and field != "idCat"
+            and value != ""
             and value is not None
         ):
             query = "update categories set " + field + "=:field where idCat=:idCat\n"
@@ -1191,8 +1193,8 @@ class Experiments(PhysBiblioDBSub):
         pBLogger.info(dstr.Exps.updateField % (field, idExp))
         if (
             field in self.tableCols["experiments"]
-            and field is not "idExp"
-            and value is not ""
+            and field != "idExp"
+            and value != ""
             and value is not None
         ):
             query = "update experiments set " + field + "=:field where idExp=:idExp\n"
@@ -2258,11 +2260,7 @@ class Entries(PhysBiblioDBSub):
             a string
         """
         url = self.getField(key, "ads")
-        return (
-            pbConfig.adsUrl + url
-            if url != "" and url is not False and url is not None
-            else False
-        )
+        return pbConfig.adsUrl + url if url != "" and url else False
 
     def getArxivUrl(self, key, urlType="abs"):
         """Get the arxiv.org url for the entry,
@@ -2278,7 +2276,7 @@ class Entries(PhysBiblioDBSub):
         url = self.getField(key, "arxiv")
         return (
             pbConfig.arxivUrl + "/" + urlType + "/" + url
-            if (url != "" and url is not False and url is not None and url is not "")
+            if (url != "" and url)
             else False
         )
 
@@ -2293,11 +2291,7 @@ class Entries(PhysBiblioDBSub):
             a string
         """
         url = self.getField(key, "doi")
-        return (
-            pbConfig.doiUrl + url
-            if url != "" and url is not False and url is not None
-            else False
-        )
+        return pbConfig.doiUrl + url if url != "" and url else False
 
     def insert(self, data):
         """Insert an entry
@@ -2611,7 +2605,7 @@ class Entries(PhysBiblioDBSub):
         )
         if key is None:
             key = string
-        if newid is not "":
+        if newid != "":
             if self.connExec(
                 "update entries set inspire=:inspire where bibkey=:bibkey\n",
                 {"inspire": newid, "bibkey": key},
@@ -2626,7 +2620,7 @@ class Entries(PhysBiblioDBSub):
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
                     "doi+%s" % doi, number=0
                 )
-                if newid is not "":
+                if newid != "":
                     if self.connExec(
                         "update entries set inspire=:inspire "
                         + "where bibkey=:bibkey\n",
@@ -2640,7 +2634,7 @@ class Entries(PhysBiblioDBSub):
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
                     "eprint+%s" % arxiv, number=0
                 )
-                if newid is not "":
+                if newid != "":
                     if self.connExec(
                         "update entries set inspire=:inspire "
                         + "where bibkey=:bibkey\n",
@@ -2809,7 +2803,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             True if successful, or False if there were errors
         """
-        if inspireID is False or inspireID is "" or inspireID is None:
+        if inspireID == "" or not inspireID:
             pBLogger.error(dstr.Bibs.iidEmptyID)
             return False
         if not inspireID.isdigit():  # assume it's a key instead of the inspireID
@@ -2836,7 +2830,7 @@ class Entries(PhysBiblioDBSub):
             )
         if verbose > 1:
             pBLogger.info(result)
-        if result is False:
+        if not result:
             pBLogger.error(dstr.Bibs.iidEmptyRecord % inspireID)
             return False
         try:
@@ -3177,7 +3171,7 @@ class Entries(PhysBiblioDBSub):
                         % (ix + 1, tot, 100.0 * (ix + 1) / tot, arxiv)
                     )
                     result = self.getFieldsFromArxiv(k, fields)
-                    if result is True:
+                    if result:
                         success.append(k)
                     else:
                         fail.append(k)
@@ -3190,7 +3184,7 @@ class Entries(PhysBiblioDBSub):
             fields = [fields]
         bibtex = self.getField(bibkey, "bibtex")
         arxiv = str(self.getField(bibkey, "arxiv"))
-        if arxiv is "False" or arxiv is "None" or arxiv.strip() == "":
+        if arxiv == "False" or arxiv == "None" or arxiv.strip() == "":
             return False
         try:
             arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
@@ -3351,7 +3345,7 @@ class Entries(PhysBiblioDBSub):
             kwargs = {}
             if requireAll:
                 kwargs["number"] = number
-            if imposeKey is not None and imposeKey.strip() is not "":
+            if imposeKey is not None and imposeKey.strip() != "":
                 kwargs["bibkey"] = imposeKey
             data = self.prepareInsert(e, **kwargs)
             key = data["bibkey"]
@@ -3377,7 +3371,7 @@ class Entries(PhysBiblioDBSub):
             if existing:
                 return printExisting(key, existing)
             pBLogger.info(dstr.Bibs.laiNewKey % key)
-            if pbConfig.params["fetchAbstract"] and data["arxiv"] is not "":
+            if pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
                 arxivBibtex, arxivDict = physBiblioWeb.webSearch[
                     "arxiv"
                 ].retrieveUrlAll(data["arxiv"], searchType="id", fullDict=True)
@@ -3598,7 +3592,7 @@ class Entries(PhysBiblioDBSub):
                     if (
                         completeInfo
                         and pbConfig.params["fetchAbstract"]
-                        and data["arxiv"] is not ""
+                        and data["arxiv"] != ""
                     ):
                         arxivBibtex, arxivDict = physBiblioWeb.webSearch[
                             "arxiv"

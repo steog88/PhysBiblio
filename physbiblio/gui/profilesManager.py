@@ -361,7 +361,7 @@ class EditProfileWindow(EditObjectWindow):
             if defaultProfile == k:
                 self.elements[i]["r"].setChecked(True)
         for i, k in enumerate(profileOrder):
-            if "r" in profilesData[k].keys() and profilesData[k]["r"] is True:
+            if "r" in profilesData[k].keys() and profilesData[k]["r"]:
                 self.elements[i]["r"].setChecked(True)
 
     def createForm(

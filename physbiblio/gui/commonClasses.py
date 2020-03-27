@@ -1033,9 +1033,9 @@ class GUIViewEntry(ViewEntry):
             for k in key:
                 self.openLink(k, arg, fileArg)
         else:
-            if arg is "file":
+            if arg == "file":
                 url = QUrl.fromLocalFile(fileArg)
-            elif arg is "link":
+            elif arg == "link":
                 url = QUrl(key)
             else:
                 link = self.getLink(key, arg=arg, fileArg=fileArg)
@@ -1101,7 +1101,7 @@ class PBImportedTableModel(PBTableModel):
             pBLogger.debug(ccstr.missElement, exc_info=True)
             return None
 
-        if role == Qt.CheckStateRole and column == 0 and self.existList[row] is False:
+        if role == Qt.CheckStateRole and column == 0 and not self.existList[row]:
             if self.selectedElements[self.dataList[row][self.idName]] == False:
                 return Qt.Unchecked
             else:
@@ -1109,7 +1109,7 @@ class PBImportedTableModel(PBTableModel):
         if (
             role in [Qt.EditRole, Qt.DisplayRole]
             and column == 0
-            and self.existList[row] is True
+            and self.existList[row]
         ):
             return value + ccstr.alreadyExisting
         if role == Qt.EditRole:
@@ -1145,7 +1145,7 @@ class PBImportedTableModel(PBTableModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
-        if index.column() == 0 and self.existList[index.row()] is False:
+        if index.column() == 0 and not self.existList[index.row()]:
             return (
                 Qt.ItemIsUserCheckable
                 | Qt.ItemIsEditable

@@ -8,7 +8,7 @@ import logging
 import logging.handlers
 
 try:
-    from physbiblio.config import pbConfig
+    from physbiblio.config import pbConfig, addFileHandler, getLogLevel
     from physbiblio.strings.main import ErrorsStrings as estr
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -29,14 +29,7 @@ class PBErrorManagerClass:
                 (default="physbibliolog")
         """
         self.tempsh = []
-        if pbConfig.params["loggingLevel"] == 0:
-            self.loglevel = logging.ERROR
-        elif pbConfig.params["loggingLevel"] == 1:
-            self.loglevel = logging.WARNING
-        elif pbConfig.params["loggingLevel"] == 2:
-            self.loglevel = logging.INFO
-        else:
-            self.loglevel = logging.DEBUG
+        self.loglevel = getLogLevel(pbConfig.params["loggingLevel"])
         # the main logger, will save to stdout and log file
         self.loggerString = loggerString
         self.logger = logging.getLogger(loggerString)
@@ -44,19 +37,11 @@ class PBErrorManagerClass:
         self.logger.setLevel(min(logging.INFO, self.loglevel))
 
         try:
-            fh = logging.handlers.RotatingFileHandler(
-                pbConfig.overWritelogFileName, maxBytes=5.0 * 2 ** 20, backupCount=5
-            )
+            # this part is used only for tests
+            logFileName = pbConfig.overWritelogFileName
         except AttributeError:
-            fh = logging.handlers.RotatingFileHandler(
-                pbConfig.params["logFileName"], maxBytes=5.0 * 2 ** 20, backupCount=5
-            )
-        fh.setLevel(self.loglevel)
-        formatter = logging.Formatter(
-            "%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s"
-        )
-        fh.setFormatter(formatter)
-        self.logger.addHandler(fh)
+            logFileName = pbConfig.params["logFileName"]
+        addFileHandler(self.logger, logFileName)
 
         self.defaultStream = logging.StreamHandler()
         self.defaultStream.setLevel(min(logging.INFO, self.loglevel))

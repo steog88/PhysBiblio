@@ -141,7 +141,8 @@ class ConfigStrings:
     errorReadParam = "Failed in reading parameter '%s'."
     errorSearchField = (
         "Empty value or field not in the following list: "
-        + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+        + "[searchDict, replaceFields, name, limitNum, offsetNum].\n"
+        + "Field: %s, value: %s"
     )
     errorUpdateProfile = "Cannot update profile"
     invalidType = "Invalid parameter type: %s"

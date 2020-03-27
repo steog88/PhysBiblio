@@ -1,5 +1,8 @@
     * all open tabs are closed when changing profile
     * now requiring PySide2>=5.14 for python3.8 compatibility
+    * fixing problem with log file (the custom file name was not used)
+    * fixing problem when saving invalid replaceFields in a non-replace record
+    * language fixes to correct SyntaxWarnings
     * fixes to tests
 
 1.5.0 (2020-02-01)

@@ -3,6 +3,7 @@
 
 This file is part of the physbiblio package.
 """
+import logging
 import sys
 import traceback
 
@@ -53,6 +54,32 @@ class TestErrors(unittest.TestCase):
         with open(logFileName) as logFile:
             log_new = logFile.read()
         return log_new
+
+    def test_init(self):
+        """test PBErrorManagerClass.__init__"""
+        owf = pbConfig.overWritelogFileName
+        del pbConfig.overWritelogFileName
+        with patch("physbiblio.errors.getLogLevel", return_value=88) as _gll, patch(
+            "physbiblio.errors.addFileHandler"
+        ) as _afh:
+            a = PBErrorManagerClass("test")
+            self.assertEqual(a.loggerString, "test")
+            self.assertIsInstance(a.logger, logging.Logger)
+            self.assertEqual(a.tempsh, [])
+            self.assertEqual(a.loglevel, 88)
+            _gll.assert_called_once_with(pbConfig.params["loggingLevel"])
+            _afh.assert_called_once_with(a.logger, pbConfig.params["logFileName"])
+        pbConfig.overWritelogFileName = owf
+        with patch("physbiblio.errors.getLogLevel", return_value=88) as _gll, patch(
+            "physbiblio.errors.addFileHandler"
+        ) as _afh:
+            a = PBErrorManagerClass("test")
+            self.assertEqual(a.loggerString, "test")
+            self.assertIsInstance(a.logger, logging.Logger)
+            self.assertEqual(a.tempsh, [])
+            self.assertEqual(a.loglevel, 88)
+            _gll.assert_called_once_with(pbConfig.params["loggingLevel"])
+            _afh.assert_called_once_with(a.logger, pbConfig.overWritelogFileName)
 
     def test_critical(self):
         """Test pBLogger.critical with and without exception"""

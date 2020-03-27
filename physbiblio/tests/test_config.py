@@ -5,6 +5,7 @@ This file is part of the physbiblio package.
 """
 from collections import OrderedDict
 import logging
+import logging.handlers
 import os
 import six
 import sys
@@ -30,6 +31,8 @@ try:
         configuration_params,
         ConfigVars,
         GlobalDB,
+        addFileHandler,
+        getLogLevel,
         globalLogName,
         ignoreParameterOrder,
         loggingLevels,
@@ -423,6 +426,7 @@ class TestConfigMethods(unittest.TestCase):
             _e.assert_called_once_with(
                 "Empty value or field not in the following list: "
                 + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+                + ".\nField: abc, value: ab"
             )
             _e.reset_mock()
             self.assertFalse(
@@ -431,6 +435,7 @@ class TestConfigMethods(unittest.TestCase):
             _e.assert_called_once_with(
                 "Empty value or field not in the following list: "
                 + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+                + ".\nField: searchDict, value: "
             )
             _e.reset_mock()
             self.assertFalse(
@@ -439,7 +444,17 @@ class TestConfigMethods(unittest.TestCase):
             _e.assert_called_once_with(
                 "Empty value or field not in the following list: "
                 + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+                + ".\nField: replaceFields, value: None"
             )
+            _e.reset_mock()
+            self.assertTrue(
+                tempPbConfig.globalDb.updateSearchField(
+                    1, "replaceFields", {}, isReplace=False
+                )
+            )
+            self.assertEqual(_e.call_count, 0)
+            search = tempPbConfig.globalDb.getSearchByID(1)[0]
+            self.assertEqual(search["replaceFields"], "{}")
             _e.reset_mock()
             self.assertTrue(
                 tempPbConfig.globalDb.updateSearchField(1, "searchDict", "ab")
@@ -462,7 +477,7 @@ class TestConfigMethods(unittest.TestCase):
         search = tempPbConfig.globalDb.getSearchByID(1)[0]
         self.assertEqual(search["searchDict"], "ab")
         self.assertEqual(search["name"], "BA")
-        self.assertEqual(search["replaceFIelds"], "cd")
+        self.assertEqual(search["replaceFields"], "cd")
         self.assertEqual(search["limitNum"], 91)
         self.assertEqual(search["offsetNum"], 19)
 
@@ -1340,6 +1355,7 @@ class TestGlobalDB(unittest.TestCase):
             _w.assert_called_once_with(
                 "Empty value or field not in the following list: "
                 + "[searchDict, replaceFields, name, limitNum, offsetNum]"
+                + ".\nField: test, value: abc"
             )
             self.assertFalse(self.globalDb.updateSearchField(1, "name", ""))
             self.assertEqual(_w.call_count, 2)
@@ -1655,6 +1671,8 @@ class TestConfigVars(unittest.TestCase):
         ) as _dbc, patch(
             "physbiblio.config.ConfigurationDB", return_value=configDb
         ) as _cdb, patch(
+            "physbiblio.config.addFileHandler", autospec=True
+        ) as _afh, patch(
             "physbiblio.config.ConfigVars.readParam", autospec=True
         ) as _rp:
             cv.readConfig()
@@ -1666,7 +1684,34 @@ class TestConfigVars(unittest.TestCase):
             _dbc.assert_called_once_with(cv.currentDatabase, cv.logger, info=False)
             _cdb.assert_called_once_with(tempDb)
             _rp.assert_has_calls([call(cv, k, configDb) for k in configuration_params])
+            _afh.assert_called_once_with(cv.logger, cv.params["logFileName"])
             tempDb.closeDB.assert_called_once_with(info=False)
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.exception"
+        ) as _e, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sdp, patch(
+            "physbiblio.config.PhysBiblioDBCore", return_value=tempDb
+        ) as _dbc, patch(
+            "physbiblio.config.ConfigurationDB", return_value=configDb
+        ) as _cdb, patch(
+            "physbiblio.config.ConfigVars.readParam", autospec=True
+        ) as _rp:
+            cv.readConfig()
+        lh = len(cv.logger.handlers)
+        with patch("logging.Logger.debug") as _d, patch(
+            "logging.Logger.exception"
+        ) as _e, patch(
+            "physbiblio.config.ConfigVars.setDefaultParams", autospec=True
+        ) as _sdp, patch(
+            "physbiblio.config.PhysBiblioDBCore", return_value=tempDb
+        ) as _dbc, patch(
+            "physbiblio.config.ConfigurationDB", return_value=configDb
+        ) as _cdb, patch(
+            "physbiblio.config.ConfigVars.readParam", autospec=True
+        ) as _rp:
+            cv.readConfig()
+        self.assertEqual(lh, len(cv.logger.handlers))
         tempDb.closeDB.reset_mock()
 
         with patch("logging.Logger.debug") as _d, patch(
@@ -2014,6 +2059,33 @@ class TestConfigVars(unittest.TestCase):
                 else:
                     v = p.default
                 self.assertEqual(cv.params[k], v)
+
+
+class TestFunctions(unittest.TestCase):
+    """Tests for more functions in config module"""
+
+    def test_getLogLevel(self):
+        """test getLogLevel"""
+        for v, e in [
+            [0, logging.ERROR],
+            [1, logging.WARNING],
+            [2, logging.INFO],
+            [3, logging.DEBUG],
+            ["a", logging.DEBUG],
+        ]:
+            self.assertEqual(getLogLevel(v), e)
+
+    def test_addFileHandler(self):
+        """test addFileHandler"""
+        log = logging.Logger("testAFH")
+        h = logging.handlers.RotatingFileHandler(pbConfig.overWritelogFileName)
+        with patch("logging.handlers.RotatingFileHandler", return_value=h) as _rfh:
+            addFileHandler(log, "myfn.log")
+            _rfh.assert_called_once_with(
+                "myfn.log", maxBytes=5.0 * 2 ** 20, backupCount=5
+            )
+        self.assertEqual(h.level, getLogLevel(pbConfig.params["loggingLevel"]))
+        self.assertIn(h, log.handlers)
 
 
 def tearDownModule():

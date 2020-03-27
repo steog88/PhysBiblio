@@ -7,6 +7,7 @@ import traceback
 import ast
 from collections import OrderedDict
 import logging
+import logging.handlers
 import os
 import six
 from appdirs import AppDirs
@@ -630,7 +631,7 @@ class GlobalDB(PhysBiblioDBCore):
         self.commit()
         return True
 
-    def updateSearchField(self, idS, field, value):
+    def updateSearchField(self, idS, field, value, isReplace=True):
         """Update a single field of an entry
 
         Parameters:
@@ -642,7 +643,7 @@ class GlobalDB(PhysBiblioDBCore):
             the output of self.connExec or
                 False (empty value or not valid field)
         """
-        if (
+        if (field == "replaceFields" and not isReplace) or (
             field in ["searchDict", "replaceFields", "name", "limitNum", "offsetNum"]
             and value is not None
             and ("%s" % value).strip() not in ["", "[]", "{}"]
@@ -650,7 +651,7 @@ class GlobalDB(PhysBiblioDBCore):
             query = "update searches set " + field + "=:field where idS=:idS\n"
             return self.connExec(query, {"field": "%s" % value, "idS": idS})
         else:
-            self.logger.warning(cstr.errorSearchField)
+            self.logger.warning(cstr.errorSearchField % (field, value))
             return False
 
 
@@ -739,6 +740,46 @@ class ConfigurationDB(PhysBiblioDBSub):
         """
         self.cursExec("select * from settings where name=?\n", (name,))
         return self.curs.fetchall()
+
+
+def getLogLevel(value):
+    """Convert the numerical code saved in the configuration
+    to a logging level code
+
+    Parameter:
+        value: an int, the logging level in the PhysBiblio scale
+
+    Output:
+        an int (may be among
+            logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG
+        )
+    """
+    if value == 0:
+        return logging.ERROR
+    elif value == 1:
+        return logging.WARNING
+    elif value == 2:
+        return logging.INFO
+    else:
+        return logging.DEBUG
+
+
+def addFileHandler(logger, logFileName):
+    """Create and add a RotatingFileHandler to an existing Logger
+
+    Parameters:
+        logger: an existing instance of logging.Logger
+        logFileName: the name of the log file
+    """
+    fh = logging.handlers.RotatingFileHandler(
+        logFileName, maxBytes=5.0 * 2 ** 20, backupCount=5
+    )
+    fh.setLevel(getLogLevel(pbConfig.params["loggingLevel"]))
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s"
+    )
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 
 class ConfigVars:
@@ -846,6 +887,13 @@ class ConfigVars:
         except Exception:
             self.logger.exception(cstr.errorReadConf % (self.currentDatabase))
         tempDb.closeDB(info=False)
+        rfhs = []
+        for lh in self.logger.handlers:
+            if isinstance(lh, logging.handlers.RotatingFileHandler):
+                rfhs.append(lh)
+        for lh in rfhs:
+            self.logger.removeHandler(lh)
+        addFileHandler(self.logger, self.params["logFileName"])
         self.logger.debug(cstr.confLoaded)
 
     def readParam(self, key, configDb):

@@ -215,7 +215,7 @@ class LocalPDF:
             return True
         self.createFolder(key)
         url = pBDB.bibs.getArxivUrl(key, "pdf")
-        if url is False:
+        if not url:
             pBLogger.warning(pstr.errorArxivUrl % key)
             return False
         pBLogger.info(pstr.downloading % url)

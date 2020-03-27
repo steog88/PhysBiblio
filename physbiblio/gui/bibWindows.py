@@ -206,7 +206,7 @@ def editBibtex(parentObject, editKey=None):
     newBibWin = EditBibtexDialog(parentObject, bib=edit)
     newBibWin.exec_()
     data = {}
-    if newBibWin.result is True:
+    if newBibWin.result:
         for k, v in newBibWin.textValues.items():
             try:
                 s = "%s" % v.text()
@@ -1496,7 +1496,7 @@ class CommonBibActions:
         """
         mergewin = MergeBibtexs(self.bibs[0], self.bibs[1], self.parent())
         mergewin.exec_()
-        if mergewin.result is True:
+        if mergewin.result:
             data = {}
             for k, v in mergewin.textValues.items():
                 try:
@@ -1969,7 +1969,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         except AttributeError:
             pBLogger.debug(bwstr.LW.errReadTab)
             return
-        if bibkey is None or bibkey is "":
+        if bibkey is None or bibkey == "":
             return
         try:
             entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]

@@ -403,7 +403,7 @@ class Thread_loadAndInsert(PBThread):
         loadAndInsert = pBDB.bibs.loadAndInsert(
             self.content, pbMax=self.pbMax, pbVal=self.pbVal
         )
-        if loadAndInsert is False:
+        if not loadAndInsert:
             self.parent().loadedAndInserted = []
         else:
             self.parent().loadedAndInserted = pBDB.bibs.lastInserted

@@ -620,7 +620,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
                             }
                         ],
                     ),
-                    call(pbConfig.globalDb, 5, "replaceFields", "{}"),
+                    call(pbConfig.globalDb, 5, "replaceFields", "{}", isReplace=False),
                 ]
             )
             self.assertEqual(_c.call_count, 6)
