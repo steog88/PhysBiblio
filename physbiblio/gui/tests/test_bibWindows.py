@@ -9,7 +9,7 @@ import os
 from PySide2.QtCore import Qt, QItemSelectionModel, QModelIndex
 from PySide2.QtTest import QTest
 from PySide2.QtGui import QMouseEvent, QPixmap
-from PySide2.QtWidgets import QMenu, QWidget
+from PySide2.QtWidgets import QMenu, QToolButton, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -6848,6 +6848,34 @@ class TestSearchBibsWindow(GUITestCase):
             self.assertEqual(sbw.numberOfRows, 2)
             self.assertEqual(sbw.textValues, [{"a": "A"}, {}])
 
+    def test_deleteRow(self):
+        """test deleteRow"""
+        with patch(
+            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+        ) as _cf:
+            sbw = SearchBibsWindow()
+            sbw.numberOfRows = 4
+            sbw.textValues = [{"a": "A"}, {"b": "B"}, {"c": "C"}, {"d": "D"}]
+        with patch(
+            "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
+        ) as _f, patch(
+            "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
+        ) as _rf:
+            sbw.deleteRow(11)
+            self.assertEqual(_f.call_count, 0)
+            self.assertEqual(_rf.call_count, 0)
+            sbw.deleteRow(2)
+            _f.assert_called_once_with(sbw)
+            _rf.assert_called_once_with(sbw)
+            self.assertEqual(sbw.numberOfRows, 3)
+            self.assertEqual(sbw.textValues, [{"a": "A"}, {"b": "B"}, {"d": "D"}])
+            sbw.deleteRow(0)
+            self.assertEqual(sbw.numberOfRows, 2)
+            self.assertEqual(sbw.textValues, [{"b": "B"}, {"d": "D"}])
+            sbw.deleteRow(2)
+            self.assertEqual(sbw.numberOfRows, 2)
+            self.assertEqual(sbw.textValues, [{"b": "B"}, {"d": "D"}])
+
     def test_saveTypeRow(self):
         """test saveTypeRow"""
         with patch(
@@ -7358,6 +7386,7 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertEqual(sbw.textValues[0]["field"], gb)
         self.assertEqual(sbw.textValues[0]["content"], mv)
         self.assertEqual(sbw.currGrid.itemAtPosition(0, 2).widget(), gb)
+        self.assertEqual(sbw.currGrid.itemAtPosition(0, 8), None)
 
         # Marks
         sbw.createLine(
@@ -7390,6 +7419,28 @@ class TestSearchBibsWindow(GUITestCase):
                 sbw.textValues[1]["field"].layout().itemAt(i).widget(),
                 sbw.textValues[1]["content"][m],
             )
+
+        # test close buttons
+        sbw = SearchBibsWindow()
+        sbw.addRow()
+        sbw.addRow()
+        self.assertIsInstance(sbw.currGrid.itemAtPosition(0, 8).widget(), QToolButton)
+        self.assertEqual(sbw.currGrid.itemAtPosition(0, 8).widget().text(), "X")
+        self.assertEqual(
+            sbw.currGrid.itemAtPosition(0, 8).widget().toolTip(), bwstr.SR.deleteRow
+        )
+        self.assertIsInstance(sbw.currGrid.itemAtPosition(1, 8).widget(), QToolButton)
+        self.assertEqual(sbw.currGrid.itemAtPosition(1, 8).widget().text(), "X")
+        self.assertEqual(
+            sbw.currGrid.itemAtPosition(1, 8).widget().toolTip(), bwstr.SR.deleteRow
+        )
+        with patch(
+            "physbiblio.gui.bibWindows.SearchBibsWindow.deleteRow", autospec=True
+        ) as _dr:
+            QTest.mouseClick(sbw.currGrid.itemAtPosition(1, 8).widget(), Qt.LeftButton)
+            _dr.assert_called_once_with(sbw, 1)
+            QTest.mouseClick(sbw.currGrid.itemAtPosition(0, 8).widget(), Qt.LeftButton)
+            _dr.assert_any_call(sbw, 0)
 
     def test_createLimits(self):
         """test createLimits"""

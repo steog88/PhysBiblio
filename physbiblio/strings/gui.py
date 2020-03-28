@@ -163,6 +163,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
 
         andAlso = "and also:"
         cats = "Categories"
+        deleteRow = "Delete the current row"
         errorProcessSaved = (
             "Something went wrong when processing " + "the saved search/replace:\n%s"
         )

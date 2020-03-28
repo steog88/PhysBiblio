@@ -1,3 +1,4 @@
+    * buttons to delete lines in search form (when more than one line exists)
     * improved INSPIRE ID retrieve function
     * all open tabs and category/experiment windows are closed when changing profile
     * now requiring PySide2>=5.14 for python3.8 compatibility

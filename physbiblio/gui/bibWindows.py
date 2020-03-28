@@ -33,6 +33,7 @@ from PySide2.QtWidgets import (
     QRadioButton,
     QTextEdit,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -2645,6 +2646,22 @@ class SearchBibsWindow(EditObjectWindow):
         self.textValues.append({})
         self.resetForm()
 
+    def deleteRow(self, ix):
+        """Function called when a line is deleted.
+        Decrease the line number, remove arguments from the values list
+        and recreate the form
+
+        Parameter:
+            ix: the index of the line to delete
+        """
+        try:
+            del self.textValues[ix]
+        except IndexError:
+            return
+        self.numberOfRows = self.numberOfRows - 1
+        self.readForm()
+        self.resetForm()
+
     def saveTypeRow(self, ix, text):
         """Function called when the type of a row is changed.
         Clear the layout after having saved the row type
@@ -2908,6 +2925,13 @@ class SearchBibsWindow(EditObjectWindow):
             self.textValues[ix]["field"] = groupBox
             self.textValues[ix]["content"] = typeValues
             self.currGrid.addWidget(groupBox, ix, 2, 1, 6)
+
+        if self.numberOfRows > 1:
+            delButton = QToolButton(self)
+            delButton.setText("X")
+            delButton.setToolTip(bwstr.SR.deleteRow)
+            delButton.clicked.connect(lambda idx=ix: self.deleteRow(ix))
+            self.currGrid.addWidget(delButton, ix, 8)
 
     def createLimits(
         self,
