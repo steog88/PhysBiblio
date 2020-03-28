@@ -1,3 +1,4 @@
+    * improved INSPIRE ID retrieve function
     * all open tabs and category/experiment windows are closed when changing profile
     * now requiring PySide2>=5.14 for python3.8 compatibility
     * fixing problem with log file (the custom file name was not used)

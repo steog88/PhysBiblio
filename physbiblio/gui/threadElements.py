@@ -221,7 +221,7 @@ class Thread_updateInspireInfo(PBThread):
         if isinstance(self.bibkey, list):
             for i, k in enumerate(self.bibkey):
                 inspireID = self.inspireID[i]
-                if inspireID is None or inspireID == "":
+                if not inspireID:
                     eid = pBDB.bibs.updateInspireID(k)
                     originalKey = None
                 else:
@@ -229,7 +229,7 @@ class Thread_updateInspireInfo(PBThread):
                     originalKey = k
                 pBDB.bibs.updateInfoFromOAI(eid, verbose=1, originalKey=originalKey)
         else:
-            if self.inspireID is None:
+            if not self.inspireID:
                 eid = pBDB.bibs.updateInspireID(self.bibkey)
                 originalKey = None
             else:

@@ -2618,7 +2618,7 @@ class Entries(PhysBiblioDBSub):
             doi = self.getField(key, "doi")
             if isinstance(doi, six.string_types) and doi.strip() != "":
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    "doi+%s" % doi, number=0
+                    doi, number=0, isDoi=True,
                 )
                 if newid != "":
                     if self.connExec(
@@ -2632,7 +2632,7 @@ class Entries(PhysBiblioDBSub):
             arxiv = self.getField(key, "arxiv")
             if isinstance(arxiv, six.string_types) and arxiv.strip() != "":
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    "eprint+%s" % arxiv, number=0
+                    arxiv, number=0, isArxiv=True,
                 )
                 if newid != "":
                     if self.connExec(

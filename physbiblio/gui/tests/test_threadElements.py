@@ -273,24 +273,27 @@ class Test_Thread_updateInspireInfo(GUITestCase):
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
-        thr = Thread_updateInspireInfo(ws, "Gariazzo:2015rra", None, p)
-        with patch(
-            "physbiblio.database.Entries.updateInfoFromOAI", autospec=True
-        ) as _fun, patch(
-            "physbiblio.database.Entries.updateInspireID",
-            return_value=1385,
-            autospec=True,
-        ) as _uiid, patch(
-            "time.sleep"
-        ) as _sl, patch(
-            "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
-        ) as _st:
-            thr.run()
-            _uiid.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra")
-            _fun.assert_called_once_with(pBDB.bibs, 1385, originalKey=None, verbose=1)
-            self.assertFalse(ws.running)
-            _st.assert_called_once_with(ws)
-            _sl.assert_called_once_with(0.1)
+        for iid in [None, False, ""]:
+            thr = Thread_updateInspireInfo(ws, "Gariazzo:2015rra", iid, p)
+            with patch(
+                "physbiblio.database.Entries.updateInfoFromOAI", autospec=True
+            ) as _fun, patch(
+                "physbiblio.database.Entries.updateInspireID",
+                return_value=1385,
+                autospec=True,
+            ) as _uiid, patch(
+                "time.sleep"
+            ) as _sl, patch(
+                "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
+            ) as _st:
+                thr.run()
+                _uiid.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra")
+                _fun.assert_called_once_with(
+                    pBDB.bibs, 1385, originalKey=None, verbose=1
+                )
+                self.assertFalse(ws.running)
+                _st.assert_called_once_with(ws)
+                _sl.assert_called_once_with(0.1)
 
         ws = WriteStream(q)
         thr = Thread_updateInspireInfo(

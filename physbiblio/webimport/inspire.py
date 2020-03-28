@@ -98,7 +98,7 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.exception(self.genericError)
             return ""
 
-    def retrieveInspireID(self, string, number=None):
+    def retrieveInspireID(self, string, number=None, isDoi=False, isArxiv=False):
         """Read the fetched content for a given entry
         to obtain its INSPIRE-HEP ID
 
@@ -107,8 +107,18 @@ class WebSearch(WebInterf, InspireStrings):
             number (optional): the integer corresponding
                 to the desired entry in the list,
                 if more than one is present
+            isDoi (default False): if the search string is a DOI,
+                add the "doi" prefix in the url
+            isArxiv (default False): if the search string is an arxiv id,
+                add the "eprint" (and "arxiv:" if needed) prefix in the url
         """
         i = 0
+        if isDoi:
+            string = "doi+" + string
+        elif isArxiv:
+            if re.match("[0-9]{4}\.[0-9]{4,5}", string) and "arxiv:" not in string:
+                string = "arxiv:" + string
+            string = "eprint " + string
         self.urlArgs["p"] = string.replace(" ", "+")
         self.urlArgs["of"] = "hb"  # do not ask bibtex, but standard
         url = self.createUrl()
