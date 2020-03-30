@@ -900,7 +900,7 @@ class CommonBibActions:
         menuI.append(
             QAction(bwstr.Acts.insCompl, self.menu, triggered=self.onComplete,)
         )
-        if selection or (not selection and (inspireID != "" and inspireID is not None)):
+        if selection or (not selection and inspireID):
             menuI.append(
                 QAction(
                     bwstr.Acts.insUpd,
@@ -920,7 +920,12 @@ class CommonBibActions:
             menuI.append(
                 QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations)
             )
-        self.menu.possibleActions.append([bwstr.Acts.insTit, menuI])
+            self.menu.possibleActions.append([bwstr.Acts.insTit, menuI])
+        else:
+            menuI[-1].setToolTip(bwstr.Acts.insComplTip)
+            self.menu.possibleActions.append(
+                {"title": bwstr.Acts.insTit, "actions": menuI, "toolTipsVisible": True}
+            )
 
     def _createMenuLinks(self, bibkey, arxiv, doi, inspireID):
         """Create part of the right click menu,

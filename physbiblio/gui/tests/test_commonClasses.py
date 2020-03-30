@@ -1389,6 +1389,12 @@ class TestPBMenu(GUITestCase):
                 "submenu",
                 [QAction("Sub1"), QAction("Sub2"), ["subsub", [QAction("nest")]], None],
             ],
+            {
+                "title": "submenuDict",
+                "actions": [QAction("Sub3"), QAction("Sub4")],
+                "toolTipsVisible": True,
+            },
+            {"title": "submenuDictI", "actions": [QAction("Sub5"), QAction("Sub6")],},
         ]
         mm.possibleActions = acts
         mm.fillMenu()
@@ -1399,6 +1405,7 @@ class TestPBMenu(GUITestCase):
         self.assertEqual(macts[0].menu(), None)
         self.assertEqual(macts[1].menu(), None)
         self.assertEqual(macts[2].menu(), None)
+
         self.assertIsInstance(macts[3].menu(), QMenu)
         subm = macts[3].menu()
         self.assertEqual(subm.title(), acts[4][0])
@@ -1410,6 +1417,22 @@ class TestPBMenu(GUITestCase):
         self.assertEqual(subsub.title(), acts[4][1][2][0])
         self.assertEqual(subsub.actions()[0], acts[4][1][2][1][0])
         self.assertTrue(sacts[3].isSeparator())
+
+        self.assertIsInstance(macts[4].menu(), QMenu)
+        subm = macts[4].menu()
+        self.assertEqual(subm.title(), acts[5]["title"])
+        sacts = subm.actions()
+        self.assertEqual(acts[5]["actions"][0], sacts[0])
+        self.assertEqual(acts[5]["actions"][1], sacts[1])
+        self.assertTrue(subm.toolTipsVisible())
+
+        subm = macts[5].menu()
+        self.assertIsInstance(macts[5].menu(), QMenu)
+        self.assertEqual(subm.title(), acts[6]["title"])
+        sacts = subm.actions()
+        self.assertEqual(acts[6]["actions"][0], sacts[0])
+        self.assertEqual(acts[6]["actions"][1], sacts[1])
+        self.assertFalse(subm.toolTipsVisible())
 
     def test_keyPressEvent(self):
         """test keyPressEvent"""

@@ -70,6 +70,11 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         )
         insCit = "Citation statistics"
         insCompl = "Complete info (ID and auxiliary info)"
+        insComplTip = (
+            "If the record has no associated INSPIRE ID,\n"
+            + "look for the record using its bibkey or the DOI/arXiv information.\n"
+            + "Once a ID is found, use it to add more information"
+        )
         insRel = "Reload bibtex"
         insTit = "INSPIRE-HEP"
         insUpd = "Update bibtex"

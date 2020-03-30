@@ -998,6 +998,16 @@ class PBMenu(QMenu):
                 submenu.possibleActions = act[1]
                 submenu.fillMenu()
                 self.addMenu(submenu)
+            elif isinstance(act, dict):
+                submenu = PBMenu()
+                submenu.setTitle(act["title"])
+                submenu.possibleActions = act["actions"]
+                submenu.fillMenu()
+                try:
+                    submenu.setToolTipsVisible(act["toolTipsVisible"])
+                except KeyError:
+                    pass
+                self.addMenu(submenu)
             elif isinstance(act, QAction):
                 self.addAction(act)
 

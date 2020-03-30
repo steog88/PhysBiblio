@@ -2208,29 +2208,31 @@ class TestCommonBibActions(GUIwMainWTestCase):
 
         c.menu = PBMenu(self.mainW)
         c._createMenuInspire(False, "")
-        self.assertIsInstance(c.menu.possibleActions[0], list)
-        self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
-        self.assertIsInstance(c.menu.possibleActions[0][1], list)
-        self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
-        for a in c.menu.possibleActions[0][1]:
+        self.assertIsInstance(c.menu.possibleActions[0], dict)
+        self.assertEqual(c.menu.possibleActions[0]["title"], "INSPIRE-HEP")
+        self.assertIsInstance(c.menu.possibleActions[0]["actions"], list)
+        self.assertEqual(len(c.menu.possibleActions[0]["actions"]), 1)
+        for a in c.menu.possibleActions[0]["actions"]:
             self.assertIsInstance(a, QAction)
         self.assertEqual(
-            c.menu.possibleActions[0][1][0].text(),
+            c.menu.possibleActions[0]["actions"][0].text(),
             "Complete info (ID and auxiliary info)",
         )
+        self.assertEqual(c.menu.possibleActions[0]["toolTipsVisible"], True)
 
         c.menu = PBMenu(self.mainW)
         c._createMenuInspire(False, None)
-        self.assertIsInstance(c.menu.possibleActions[0], list)
-        self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
-        self.assertIsInstance(c.menu.possibleActions[0][1], list)
-        self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
-        for a in c.menu.possibleActions[0][1]:
+        self.assertIsInstance(c.menu.possibleActions[0], dict)
+        self.assertEqual(c.menu.possibleActions[0]["title"], "INSPIRE-HEP")
+        self.assertIsInstance(c.menu.possibleActions[0]["actions"], list)
+        self.assertEqual(len(c.menu.possibleActions[0]["actions"]), 1)
+        for a in c.menu.possibleActions[0]["actions"]:
             self.assertIsInstance(a, QAction)
         self.assertEqual(
-            c.menu.possibleActions[0][1][0].text(),
+            c.menu.possibleActions[0]["actions"][0].text(),
             "Complete info (ID and auxiliary info)",
         )
+        self.assertEqual(c.menu.possibleActions[0]["toolTipsVisible"], True)
 
         c.menu = PBMenu(self.mainW)
         with patch(
