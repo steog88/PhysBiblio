@@ -85,7 +85,7 @@ class TestViewMethods(unittest.TestCase):
             ],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"), "https://inspirehep.net/record/1385583"
+                pBView.getLink("a", "inspire"), pbConfig.inspireRecord + "1385583"
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -99,7 +99,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"),
-                "https://inspirehep.net/search?p=find+1507.08204",
+                pbConfig.inspireSearchBase + "?p=find+1507.08204",
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -107,7 +107,7 @@ class TestViewMethods(unittest.TestCase):
             side_effect=["abc...123", "", "10.1088/0954-3899/43/3/033001", False],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"), "https://inspirehep.net/search?p=find+a"
+                pBView.getLink("a", "inspire"), pbConfig.inspireSearchBase + "?p=find+a"
             )
         with patch(
             "physbiblio.database.Entries.getField",

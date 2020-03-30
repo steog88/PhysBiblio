@@ -6,8 +6,8 @@ This file is part of the physbiblio package.
 __author__ = "Stefano Gariazzo"
 __email__ = "stefano.gariazzo@gmail.com"
 
-__version__ = "1.5.0"
-__version_date__ = "01/02/2020"
+__version__ = "1.5.1"
+__version_date__ = "30/03/2020"
 
 __all__ = [
     "bibtexWriter",
@@ -29,9 +29,13 @@ __all__ = [
 ]
 
 __recent_changes__ = """<br>
-* tabs in the main window, in order to keep multiple searches available at each time<br>
-* search in a category or its subcategories<br>
-* option to reorder bibtexs without updating, in "tex" shell command and in GUI<br>
-* fix progressBar in authorStats when a single name is requested<br>
-* internal improvements<br>
+* updates for working with INSPIRE after the old API has been temporarily moved to old.inspirehep.net;<br>
+* buttons to delete lines in search form (when more than one line exists);<br>
+* improved INSPIRE ID retrieve function;<br>
+* all open tabs and category/experiment windows are closed when changing profile;<br>
+* now requiring PySide2>=5.14 for python3.8 compatibility;<br>
+* fixing problem with log file (the custom file name was not used);<br>
+* fixing problem when saving invalid replaceFields in a non-replace record;<br>
+* language fixes to address few SyntaxWarnings;<br>
+* fixes to tests.<br>
 """

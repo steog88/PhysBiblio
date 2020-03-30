@@ -790,8 +790,8 @@ class ConfigVars:
     adsUrl = "https://ui.adsabs.harvard.edu/abs/"
     arxivUrl = "https://arxiv.org"
     doiUrl = "https://doi.org/"
-    inspireRecord = "https://inspirehep.net/record/"
-    inspireSearchBase = "https://inspirehep.net/search"
+    inspireRecord = "https://old.inspirehep.net/record/"
+    inspireSearchBase = "https://old.inspirehep.net/search"
 
     def __init__(self, profileFileName="profiles.db"):
         """Initialize the configuration.

@@ -130,7 +130,8 @@ class WebSearch(WebInterf, InspireStrings):
             return ""
         try:
             searchID = re.compile(
-                'titlelink(.*)?(http|https)://inspirehep.net/record/([0-9]*)?">'
+                'titlelink(.*)?(http|https)%s([0-9]*)?">'
+                % (pbConfig.inspireRecord.replace("https", ""))
             )
             inspireID = ""
             for q in searchID.finditer(text):

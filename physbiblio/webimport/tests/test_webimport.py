@@ -429,8 +429,11 @@ class TestWebImportOffline(unittest.TestCase):
 
     def test_arxivDaily(self):
         """test the arxivDaily method in the arxiv module"""
-        self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("missing"))
-        self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("physics.missing"))
+        with patch("logging.Logger.warning") as _w:
+            self.assertFalse(physBiblioWeb.webSearch["arxiv"].arxivDaily("missing"))
+            self.assertFalse(
+                physBiblioWeb.webSearch["arxiv"].arxivDaily("physics.missing")
+            )
         content_example = (
             """<?xml version="1.0" encoding="UTF-8"?>
 
