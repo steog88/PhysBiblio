@@ -132,7 +132,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
 
     name = "inspireoai"
     description = "INSPIRE OAI interface"
-    url = "https://inspirehep.net/oai2d"
+    url = pbConfig.inspireOAI
     correspondences = [
         ["id", "inspire"],
         ["year", "year"],

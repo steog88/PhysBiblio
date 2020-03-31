@@ -1552,6 +1552,7 @@ class TestConfigVars(unittest.TestCase):
         self.assertTrue(hasattr(ConfigVars, "doiUrl"))
         self.assertTrue(hasattr(ConfigVars, "inspireRecord"))
         self.assertTrue(hasattr(ConfigVars, "inspireSearchBase"))
+        self.assertTrue(hasattr(ConfigVars, "inspireOAI"))
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
         with patch("logging.Logger.info") as _i, patch(

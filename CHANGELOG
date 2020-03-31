@@ -1,3 +1,6 @@
+1.5.2 (2020-03-31)
+    * fixing a new change from INSPIRE (OAI url - yesterday it was working!)
+
 1.5.1 (2020-03-30)
     * updates for working with INSPIRE after the old API has been temporarily moved to old.inspirehep.net
     * buttons to delete lines in search form (when more than one line exists)
