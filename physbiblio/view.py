@@ -20,17 +20,14 @@ except ImportError:
 class ViewEntry:
     """Contains methods to print or open a web link to the entry"""
 
-    inspireRecord = pbConfig.inspireRecord
-    inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
-
     def __init__(self):
         """Init the class, storing the name of
         the external web application
         and the base strings to build some links
         """
         self.webApp = pbConfig.params["webApplication"]
-        self.inspireRecord = pbConfig.inspireRecord
-        self.inspireSearch = pbConfig.inspireSearchBase + "?p=find+"
+        self.inspireRecord = pbConfig.inspireRecord.replace("old.", "")
+        self.inspireSearch = pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+"
 
     def getLink(self, key, arg="arxiv", fileArg=None):
         """Uses database information to construct and

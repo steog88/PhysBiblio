@@ -34,8 +34,11 @@ class TestViewMethods(unittest.TestCase):
         tmp = ViewEntry()
         self.assertIsInstance(tmp, ViewEntry)
         self.assertEqual(tmp.webApp, pbConfig.params["webApplication"])
-        self.assertEqual(tmp.inspireRecord, pbConfig.inspireRecord)
-        self.assertEqual(tmp.inspireSearch, pbConfig.inspireSearchBase + "?p=find+")
+        self.assertEqual(tmp.inspireRecord, pbConfig.inspireRecord.replace("old.", ""))
+        self.assertEqual(
+            tmp.inspireSearch,
+            pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+",
+        )
         with patch.dict(pbConfig.params, {"webApplication": "someapp"}, clear=False):
             tmp = ViewEntry()
             self.assertEqual(tmp.webApp, "someapp")
@@ -85,7 +88,8 @@ class TestViewMethods(unittest.TestCase):
             ],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"), pbConfig.inspireRecord + "1385583"
+                pBView.getLink("a", "inspire"),
+                pbConfig.inspireRecord.replace("old.", "") + "1385583",
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -99,7 +103,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"),
-                pbConfig.inspireSearchBase + "?p=find+1507.08204",
+                pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+1507.08204",
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -107,7 +111,8 @@ class TestViewMethods(unittest.TestCase):
             side_effect=["abc...123", "", "10.1088/0954-3899/43/3/033001", False],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"), pbConfig.inspireSearchBase + "?p=find+a"
+                pBView.getLink("a", "inspire"),
+                pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+a",
             )
         with patch(
             "physbiblio.database.Entries.getField",
