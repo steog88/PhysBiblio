@@ -15,7 +15,7 @@ else:
 
 try:
     from physbiblio.setuptests import *
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.webimport.inspireoai import get_journal_ref_xml
     from physbiblio.config import pbConfig
 except ImportError:
@@ -413,6 +413,22 @@ class TestWebImportMethods(unittest.TestCase):
 
 class TestWebImportOffline(unittest.TestCase):
     """Offline test for some functions of the webImport package."""
+
+    def test_createUrl(self):
+        """Test createUrl"""
+        pbw = WebInterf()
+        pbw.url = pbConfig.inspireLiteratureAPI
+        pbw.urlArgs = {"abc": "1", "def": "2"}
+        self.assertEqual(
+            pbw.createUrl(), "https://inspirehep.net/api/literature/?abc=1&def=2"
+        )
+        self.assertEqual(
+            pbw.createUrl({"abc": "2", "def": "1"}),
+            "https://inspirehep.net/api/literature/?abc=2&def=1",
+        )
+        self.assertEqual(
+            pbw.createUrl({}), "https://inspirehep.net/api/literature/",
+        )
 
     def test_arxivYear(self):
         """test the arxivDaily method in the arxiv module"""

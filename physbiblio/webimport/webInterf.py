@@ -55,16 +55,24 @@ class WebInterf(WebInterfStrings):
         self.webSearch = {}
         self.loaded = False
 
-    def createUrl(self):
+    def createUrl(self, args=None):
         """Joins the arguments of the GET query to get the full url.
 
         Uses the self.urlArgs dictionary to generate the list
-        of HTTP GET parameters.
+        of HTTP GET parameters, unless args is passed as an argument.
+
+        Parameter:
+            args (default None): a dictionary
+
+        Output:
+            a string
         """
+        if not isinstance(args, dict):
+            args = self.urlArgs
         return (
-            self.url
-            + "?"
-            + "&".join(["%s=%s" % (a, b) for a, b in self.urlArgs.items()])
+            self.url + "?" + "&".join(["%s=%s" % (a, b) for a, b in args.items()])
+            if len(args) > 0
+            else self.url
         )
 
     def textFromUrl(self, url, headers=None):
