@@ -790,8 +790,6 @@ class ConfigVars:
     adsUrl = "https://ui.adsabs.harvard.edu/abs/"
     arxivUrl = "https://arxiv.org"
     doiUrl = "https://doi.org/"
-    inspireRecord = "https://old.inspirehep.net/record/"
-    inspireSearchBase = "https://old.inspirehep.net/search"
     inspireAPI = "https://inspirehep.net/api/"
     inspireConferencesAPI = "https://inspirehep.net/api/conferences/"
     inspireExperimentsLink = "https://inspirehep.net/experiments/"

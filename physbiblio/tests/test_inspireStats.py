@@ -8,6 +8,7 @@ import traceback
 import os
 import datetime
 import matplotlib
+import pytz
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -37,15 +38,11 @@ class TestInspireStatsMethods(unittest.TestCase):
         """test some properties"""
         self.assertIsInstance(pBStats, InspireStatsLoader)
         tpBStats = InspireStatsLoader()
-        self.assertEqual(tpBStats.urlBase, pbConfig.inspireSearchBase)
+        self.assertEqual(tpBStats.urlBase, pbConfig.inspireLiteratureAPI)
         self.assertEqual(tpBStats.timeout, float(pbConfig.params["timeoutWebSearch"]))
-        self.assertEqual(
-            tpBStats.authorStatsOpts, "&of=recjson&ot=recid,creation_date&so=a&rg=250"
-        )
-        self.assertEqual(
-            tpBStats.paperStatsOpts, "&of=recjson&ot=recid,creation_date&so=a&rg=250"
-        )
-        self.assertEqual(tpBStats.skipPageOpt, "&jrec=")
+        self.assertEqual(tpBStats.authorStatsOpts, "&size=")
+        self.assertEqual(tpBStats.paperStatsOpts, "&size=")
+        self.assertEqual(tpBStats.skipPageOpt, "&page=")
         self.assertEqual(tpBStats.maxPerPage, 250)
         self.assertEqual(tpBStats.authorPlotInfo, None)
         self.assertEqual(tpBStats.paperPlotInfo, None)
@@ -58,7 +55,11 @@ class TestInspireStatsMethods(unittest.TestCase):
             {
                 "aI": {},
                 "citList": [
-                    [datetime.datetime.fromordinal(datetime.date.today().toordinal())],
+                    [
+                        datetime.datetime.fromordinal(
+                            datetime.date.today().toordinal()
+                        ).replace(tzinfo=pytz.UTC)
+                    ],
                     [0],
                 ],
                 "id": "1358853",
@@ -97,20 +98,50 @@ class TestInspireStatsMethods(unittest.TestCase):
             "physbiblio.inspireStats.InspireStatsLoader.paperStats",
             return_value={
                 "aI": {
-                    1653464: {"date": datetime.datetime(2018, 2, 7, 4, 24, 2)},
-                    1662320: {"date": datetime.datetime(2018, 3, 14, 4, 53, 45)},
-                    1664547: {"date": datetime.datetime(2018, 3, 29, 5, 8, 58)},
-                    1663942: {"date": datetime.datetime(2018, 3, 26, 3, 25, 34)},
-                    1658582: {"date": datetime.datetime(2018, 3, 6, 3, 58, 52)},
+                    1653464: {
+                        "date": datetime.datetime(2018, 2, 7, 4, 24, 2).replace(
+                            tzinfo=pytz.UTC
+                        )
+                    },
+                    1662320: {
+                        "date": datetime.datetime(2018, 3, 14, 4, 53, 45).replace(
+                            tzinfo=pytz.UTC
+                        )
+                    },
+                    1664547: {
+                        "date": datetime.datetime(2018, 3, 29, 5, 8, 58).replace(
+                            tzinfo=pytz.UTC
+                        )
+                    },
+                    1663942: {
+                        "date": datetime.datetime(2018, 3, 26, 3, 25, 34).replace(
+                            tzinfo=pytz.UTC
+                        )
+                    },
+                    1658582: {
+                        "date": datetime.datetime(2018, 3, 6, 3, 58, 52).replace(
+                            tzinfo=pytz.UTC
+                        )
+                    },
                 },
                 "id": "1649081",
                 "citList": [
                     [
-                        datetime.datetime(2018, 2, 7, 4, 24, 2),
-                        datetime.datetime(2018, 3, 6, 3, 58, 52),
-                        datetime.datetime(2018, 3, 14, 4, 53, 45),
-                        datetime.datetime(2018, 3, 26, 3, 25, 34),
-                        datetime.datetime(2018, 3, 29, 5, 8, 58),
+                        datetime.datetime(2018, 2, 7, 4, 24, 2).replace(
+                            tzinfo=pytz.UTC
+                        ),
+                        datetime.datetime(2018, 3, 6, 3, 58, 52).replace(
+                            tzinfo=pytz.UTC
+                        ),
+                        datetime.datetime(2018, 3, 14, 4, 53, 45).replace(
+                            tzinfo=pytz.UTC
+                        ),
+                        datetime.datetime(2018, 3, 26, 3, 25, 34).replace(
+                            tzinfo=pytz.UTC
+                        ),
+                        datetime.datetime(2018, 3, 29, 5, 8, 58).replace(
+                            tzinfo=pytz.UTC
+                        ),
                         datetime.date(2018, 4, 16),
                     ],
                     [1, 2, 3, 4, 5, 5],

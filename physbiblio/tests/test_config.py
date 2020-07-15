@@ -1555,8 +1555,6 @@ class TestConfigVars(unittest.TestCase):
         self.assertTrue(hasattr(ConfigVars, "inspireExperimentsLink"))
         self.assertTrue(hasattr(ConfigVars, "inspireLiteratureAPI"))
         self.assertTrue(hasattr(ConfigVars, "inspireLiteratureLink"))
-        self.assertFalse(hasattr(ConfigVars, "inspireRecord"))
-        self.assertFalse(hasattr(ConfigVars, "inspireSearchBase"))
         self.assertTrue(hasattr(ConfigVars, "inspireOAI"))
         if os.path.exists(tempProfName):
             os.remove(tempProfName)

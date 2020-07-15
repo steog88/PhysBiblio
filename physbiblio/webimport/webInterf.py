@@ -11,6 +11,9 @@ import socket
 import pkgutil
 import traceback
 import ssl
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 if sys.version_info[0] < 3:
     from urllib2 import Request, urlopen, URLError, HTTPError
@@ -30,6 +33,34 @@ except ImportError:
 # scan package content to load list of available modules, to be imported later
 pkgpath = os.path.dirname(wi.__file__)
 webInterfaces = [name for _, name, _ in pkgutil.iter_modules([pkgpath])]
+
+
+class PBSession(requests.Session):
+    """Extends the Session class to include auto-retries"""
+
+    def __init__(
+        self,
+        *args,
+        total_retries=5,
+        backoff=1.0,
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=["HEAD", "GET", "OPTIONS"],
+        **kwargs
+    ):
+        """Extend the Session class.
+        Input parameters are as from
+        requests.packages.urllib3.util.retry.Retry or requests.Session.
+        """
+        retry_strategy = Retry(
+            total=total_retries,
+            backoff_factor=backoff,
+            status_forcelist=status_forcelist,
+            method_whitelist=method_whitelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        requests.Session.__init__(self, *args, **kwargs)
+        self.mount("https://", adapter)
+        self.mount("http://", adapter)
 
 
 class WebInterf(WebInterfStrings):

@@ -52,6 +52,7 @@ setup(
         "pyoai",
         "pyparsing(>=2.4.0)",
         "pyside2(>=5.14.0)",
+        "pytz",
         "requests",
         "six",
         'mock;python_version<"3"',
