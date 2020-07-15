@@ -38,6 +38,7 @@ class InspireStrings(GenericStrings):
 
     errorEmptyText = "An error occurred. Empty text obtained"
     foundID = "Found: %s"
+    jsonError = "Cannot load JSON content"
     searchIDInfo = "Search ID of %s -> %s"
 
 

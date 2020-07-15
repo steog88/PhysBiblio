@@ -3,10 +3,11 @@
 
 This file is part of the physbiblio package.
 """
+import codecs
+import json
+import re
 import sys
 import time
-import codecs
-import re
 
 if sys.version_info[0] < 3:
     # needed to set utf-8 as encoding
@@ -203,6 +204,55 @@ class WebSearch(WebInterf, InspireOAIStrings):
         Output:
             a dictionary with the obtained fields
         """
+
+        def getProceedingsTitle(conferenceCode):
+            """Use INSPIRE-HEP API to retrieve the title
+            of the Proceedings associated to a conference
+            identified by `conferenceCode`
+
+            Parameters:
+                conferenceCode: the identifier of the conference
+                    in the INSPIRE-HEP database
+
+            Output:
+                a string, if found, or None
+            """
+            url = pbConfig.inspireConferencesAPI + "?q=%s" % conferenceCode
+            text = parse_accents_str(self.textFromUrl(url))
+            try:
+                info = json.loads(text)
+            except json.decoder.JSONDecodeError:
+                pBLogger.exception(self.jsonError)
+                return None
+            try:
+                confs = [
+                    a
+                    for a in info["hits"]["hits"]
+                    if a["metadata"]["cnum"] == conferenceCode
+                ]
+            except KeyError:
+                return None
+            try:
+                procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
+            except (IndexError, KeyError):
+                return None
+            time.sleep(0.5)
+            url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
+            text = parse_accents_str(self.textFromUrl(url))
+            try:
+                info = json.loads(text)
+            except json.decoder.JSONDecodeError:
+                pBLogger.exception(self.jsonError)
+                return None
+            try:
+                title = "%s: %s" % (
+                    info["metadata"]["titles"][0]["title"],
+                    info["metadata"]["titles"][0]["subtitle"],
+                )
+            except (IndexError, KeyError):
+                return None
+            return title
+
         tmpDict = {}
         record.to_unicode = True
         record.force_utf8 = True
@@ -319,18 +369,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
         except TypeError:
             tmpDict["isbn"] = None
         if conferenceCode is not None and readConferenceTitle:
-            url = (
-                pbConfig.inspireSearchBase
-                + "?p=773__w%%3A%s+or+773__w%%3A%s+and+980__a%%3A"
-                % (conferenceCode, conferenceCode.replace("-", "%2F"))
-                + "Proceedings&of=xe"
-            )
-            text = parse_accents_str(self.textFromUrl(url))
-            title = re.compile("<title>(.*)</title>", re.MULTILINE)
-            try:
-                tmpDict["booktitle"] = [m.group(1) for m in title.finditer(text)][0]
-            except IndexError:
-                tmpDict["booktitle"] = None
+            tmpDict["booktitle"] = getProceedingsTitle(conferenceCode)
         if tmpDict["isbn"] is not None:
             tmpDict["ENTRYTYPE"] = "book"
         else:

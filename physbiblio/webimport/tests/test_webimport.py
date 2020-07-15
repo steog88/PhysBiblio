@@ -15,6 +15,7 @@ else:
 
 try:
     from physbiblio.setuptests import *
+    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.webimport.inspireoai import get_journal_ref_xml
     from physbiblio.config import pbConfig
@@ -33,6 +34,7 @@ class TestWebImportMethods(unittest.TestCase):
 
     def test_methods_success(self):
         """Test webimport with known results"""
+        self.maxDiff = None
         tests = {
             "arxiv": [
                 "1507.08204",
@@ -78,19 +80,16 @@ class TestWebImportMethods(unittest.TestCase):
             "inspire": [
                 "Gariazzo:2015rra",
                 """@article{Gariazzo:2015rra,
-      author         = "Gariazzo, S. and Giunti, C. """
-                + """and Laveder, M. and Li, Y. F.
-                        and Zavanin, E. M.",
-      title          = "{Light sterile neutrinos}",
-      journal        = "J. Phys.",
-      volume         = "G43",
-      year           = "2016",
-      pages          = "033001",
-      doi            = "10.1088/0954-3899/43/3/033001",
-      eprint         = "1507.08204",
-      archivePrefix  = "arXiv",
-      primaryClass   = "hep-ph",
-      SLACcitation   = "%%CITATION = ARXIV:1507.08204;%%"
+    author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+    title = "{Light sterile neutrinos}",
+    eprint = "1507.08204",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    doi = "10.1088/0954-3899/43/3/033001",
+    journal = "J. Phys. G",
+    volume = "43",
+    pages = "033001",
+    year = "2016"
 }""",
             ],
             "inspireoai": [
@@ -429,6 +428,33 @@ class TestWebImportOffline(unittest.TestCase):
         self.assertEqual(
             pbw.createUrl({}), "https://inspirehep.net/api/literature/",
         )
+        self.assertEqual(
+            pbw.createUrl({}, ""), "https://inspirehep.net/api/literature/",
+        )
+        self.assertEqual(
+            pbw.createUrl({"def": "1"}, "abc"), "abc?def=1",
+        )
+
+    def test_inspire_retrieve(self):
+        """Test retrieveUrlFirst and retrieveUrlAll from inspire module"""
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBibtex",
+            autospec=True,
+            side_effect=["abc", "def"],
+        ) as _f:
+            self.assertEqual(
+                physBiblioWeb.webSearch["inspire"].retrieveUrlFirst("abc"), "abc"
+            )
+            _f.assert_called_once_with(
+                physBiblioWeb.webSearch["inspire"], "abc", size=1
+            )
+            _f.reset_mock()
+            self.assertEqual(
+                physBiblioWeb.webSearch["inspire"].retrieveUrlAll("abc"), "def"
+            )
+            _f.assert_called_once_with(
+                physBiblioWeb.webSearch["inspire"], "abc", size=250
+            )
 
     def test_arxivYear(self):
         """test the arxivDaily method in the arxiv module"""

@@ -26,8 +26,8 @@ class ViewEntry:
         and the base strings to build some links
         """
         self.webApp = pbConfig.params["webApplication"]
-        self.inspireRecord = pbConfig.inspireRecord.replace("old.", "")
-        self.inspireSearch = pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+"
+        self.inspireRecord = pbConfig.inspireLiteratureLink
+        self.inspireSearch = pbConfig.inspireLiteratureLink + "?p="
 
     def getLink(self, key, arg="arxiv", fileArg=None):
         """Uses database information to construct and
@@ -68,7 +68,7 @@ class ViewEntry:
         elif arg == "inspire" and inspire:
             link = self.inspireRecord + inspire
         elif arg == "inspire" and arxiv:
-            link = self.inspireSearch + arxiv
+            link = self.inspireSearch + "arxiv:" + arxiv
         elif arg == "inspire":
             link = self.inspireSearch + key
         elif arg == "file":

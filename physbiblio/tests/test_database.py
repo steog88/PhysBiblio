@@ -6274,7 +6274,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.assertEqual(
             self.pBDB.bibs.updateInspireID(
-                "Gariazzo 2015", "Gariazzo:2015rra", number=3
+                "a Gariazzo and d 2015", "Gariazzo:2015rra", number=3
             ),
             "1385583",
         )
@@ -6315,7 +6315,7 @@ class TestDatabaseEntries(DBTestCase):
             u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
         )
         self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
-        self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015"))
+        self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015abcd"))
 
         self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 

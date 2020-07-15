@@ -489,7 +489,7 @@ class ExpsListWindow(ObjListWindow):
                 self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
                 return
             if self.colContents[col] == "inspire":
-                link = pbConfig.inspireRecord + link
+                link = pbConfig.inspireExperimentsLink + link
             pBLogger.debug(ewstr.opening % link)
             try:
                 pBGuiView.openLink(link, "link")

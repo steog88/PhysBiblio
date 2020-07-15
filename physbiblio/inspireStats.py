@@ -186,8 +186,7 @@ class InspireStatsLoader:
             if not self.runningAuthorStats:
                 pBLogger.info(isstr.stopReceived)
                 break
-            if tot > 20:
-                time.sleep(1)
+            time.sleep(0.5)
             if p in self.allInfoA.keys():
                 continue
             self.allInfoA[p] = {}

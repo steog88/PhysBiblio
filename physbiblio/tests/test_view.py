@@ -34,10 +34,9 @@ class TestViewMethods(unittest.TestCase):
         tmp = ViewEntry()
         self.assertIsInstance(tmp, ViewEntry)
         self.assertEqual(tmp.webApp, pbConfig.params["webApplication"])
-        self.assertEqual(tmp.inspireRecord, pbConfig.inspireRecord.replace("old.", ""))
+        self.assertEqual(tmp.inspireRecord, pbConfig.inspireLiteratureLink)
         self.assertEqual(
-            tmp.inspireSearch,
-            pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+",
+            tmp.inspireSearch, pbConfig.inspireLiteratureLink + "?p=",
         )
         with patch.dict(pbConfig.params, {"webApplication": "someapp"}, clear=False):
             tmp = ViewEntry()
@@ -89,7 +88,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"),
-                pbConfig.inspireRecord.replace("old.", "") + "1385583",
+                pbConfig.inspireLiteratureLink + "1385583",
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -103,7 +102,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "inspire"),
-                pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+1507.08204",
+                pbConfig.inspireLiteratureLink + "?p=arxiv:1507.08204",
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -111,8 +110,7 @@ class TestViewMethods(unittest.TestCase):
             side_effect=["abc...123", "", "10.1088/0954-3899/43/3/033001", False],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"),
-                pbConfig.inspireSearchBase.replace("old.", "") + "?p=find+a",
+                pBView.getLink("a", "inspire"), pbConfig.inspireLiteratureLink + "?p=a",
             )
         with patch(
             "physbiblio.database.Entries.getField",

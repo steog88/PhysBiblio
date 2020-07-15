@@ -792,6 +792,11 @@ class ConfigVars:
     doiUrl = "https://doi.org/"
     inspireRecord = "https://old.inspirehep.net/record/"
     inspireSearchBase = "https://old.inspirehep.net/search"
+    inspireAPI = "https://inspirehep.net/api/"
+    inspireConferencesAPI = "https://inspirehep.net/api/conferences/"
+    inspireExperimentsLink = "https://inspirehep.net/experiments/"
+    inspireLiteratureAPI = "https://inspirehep.net/api/literature/"
+    inspireLiteratureLink = "https://inspirehep.net/literature/"
     inspireOAI = "https://old.inspirehep.net/oai2d"
 
     def __init__(self, profileFileName="profiles.db"):

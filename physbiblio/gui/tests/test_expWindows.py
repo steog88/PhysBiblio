@@ -1131,10 +1131,10 @@ class TestExpsListWindow(GUITestCase):
         ) as _ol, patch("logging.Logger.debug") as _l:
             self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)), True)
             _ol.assert_called_once_with(
-                pBGuiView, pbConfig.inspireRecord + "1234", "link"
+                pBGuiView, pbConfig.inspireExperimentsLink + "1234", "link"
             )
             _l.assert_called_once_with(
-                "Opening '%s'..." % (pbConfig.inspireRecord + "1234")
+                "Opening '%s'..." % (pbConfig.inspireExperimentsLink + "1234")
             )
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink",
@@ -1145,13 +1145,14 @@ class TestExpsListWindow(GUITestCase):
         ) as _w:
             self.assertEqual(elw.cellDoubleClick(elw.proxyModel.index(1, 4)), True)
             _ol.assert_called_once_with(
-                pBGuiView, pbConfig.inspireRecord + "1234", "link"
+                pBGuiView, pbConfig.inspireExperimentsLink + "1234", "link"
             )
             _l.assert_called_once_with(
-                "Opening '%s'..." % (pbConfig.inspireRecord + "1234")
+                "Opening '%s'..." % (pbConfig.inspireExperimentsLink + "1234")
             )
             _w.assert_called_once_with(
-                "Opening link '%s' failed!" % (pbConfig.inspireRecord + "1234"),
+                "Opening link '%s' failed!"
+                % (pbConfig.inspireExperimentsLink + "1234"),
                 exc_info=True,
             )
 
