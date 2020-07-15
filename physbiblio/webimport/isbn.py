@@ -47,6 +47,8 @@ class WebSearch(WebInterf, ISBNStrings):
         url = self.createUrl()
         pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url)
+        if "Not found" in text:
+            return ""
         try:
             return parse_accents_str(text[:])
         except Exception:

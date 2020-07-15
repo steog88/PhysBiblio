@@ -47,6 +47,8 @@ class WebSearch(WebInterf, DOIStrings):
         url = self.createUrl(string)
         pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url, self.headers)
+        if "<title>Error: DOI Not Found</title>" in text:
+            return ""
         try:
             return parse_accents_str(text[:])
         except Exception:

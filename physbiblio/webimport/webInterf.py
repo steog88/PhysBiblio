@@ -120,13 +120,11 @@ class WebInterf(WebInterfStrings):
         Output:
             text: the content of the url
         """
+        http = PBSession()
+        if not isinstance(headers, dict):
+            headers = {}
         try:
-            if headers is not None:
-                req = Request(url, headers=headers)
-            else:
-                req = Request(url)
-            response = urlopen(req, timeout=self.urlTimeout)
-            data = response.read()
+            data = http.get(url, headers=headers, timeout=self.urlTimeout).content
         except URLError:
             pBLogger.warning(self.errorRetrieve % self.name)
             return ""

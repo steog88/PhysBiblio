@@ -7,6 +7,9 @@ import sys
 import datetime
 import traceback
 import os
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -16,7 +19,7 @@ else:
 try:
     from physbiblio.setuptests import *
     from physbiblio.parseAccents import parse_accents_str
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
     from physbiblio.webimport.inspireoai import get_journal_ref_xml
     from physbiblio.config import pbConfig
 except ImportError:
@@ -412,6 +415,30 @@ class TestWebImportMethods(unittest.TestCase):
 
 class TestWebImportOffline(unittest.TestCase):
     """Offline test for some functions of the webImport package."""
+
+    def test_PBSession(self):
+        """test the PBSession class"""
+        pbs = PBSession()
+        self.assertIsInstance(pbs, requests.Session)
+        fr = Retry()
+        ha = HTTPAdapter(max_retries=fr)
+        with patch(
+            "physbiblio.webimport.webInterf.Retry", return_value=fr
+        ) as _r, patch(
+            "physbiblio.webimport.webInterf.HTTPAdapter", return_value=ha
+        ) as _ha, patch(
+            "requests.Session.mount"
+        ) as _m:
+            pbs = PBSession()
+            _r.assert_called_once_with(
+                total=5,
+                backoff_factor=1.0,
+                status_forcelist=[429, 500, 502, 503, 504],
+                method_whitelist=["HEAD", "GET", "OPTIONS"],
+            )
+            _ha.assert_called_once_with(max_retries=fr)
+            _m.assert_any_call("https://", ha)
+            _m.assert_any_call("http://", ha)
 
     def test_createUrl(self):
         """Test createUrl"""
