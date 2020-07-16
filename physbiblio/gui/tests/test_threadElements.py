@@ -3,31 +3,32 @@
 
 This file is part of the physbiblio package.
 """
+import os
 import sys
 import traceback
-import os
+
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import call, patch, MagicMock
-    from urllib2 import URLError
+    from mock import MagicMock, call, patch
     from Queue import Queue
+    from urllib2 import URLError
 else:
     import unittest
-    from unittest.mock import call, patch, MagicMock
-    from urllib.request import URLError
     from queue import Queue
+    from unittest.mock import MagicMock, call, patch
+    from urllib.request import URLError
 
 try:
     from physbiblio import __version__
-    from physbiblio.setuptests import *
     from physbiblio.database import pBDB
-    from physbiblio.inspireStats import pBStats
     from physbiblio.gui.setuptests import *
     from physbiblio.gui.threadElements import *
+    from physbiblio.inspireStats import pBStats
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

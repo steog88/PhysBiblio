@@ -2,10 +2,10 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
 import datetime
 import os
+import sys
+import traceback
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -15,8 +15,8 @@ if sys.version_info[0] < 3:
     USE_AUTOSPEC_CLASS = False
 else:
     import unittest
-    from unittest.mock import patch
     from io import StringIO
+    from unittest.mock import patch
 
     USE_AUTOSPEC_CLASS = True
 
@@ -29,8 +29,8 @@ try:
     pbConfig.overWritelogFileName = os.path.join(pbConfig.dataPath, tempLogFileName)
     pbConfig.prepareLogger("physbibliotestlog")
     pbConfig.reloadProfiles()
-    from physbiblio.errors import pBErrorManager, pBLogger
     from physbiblio.database import PhysBiblioDB
+    from physbiblio.errors import pBErrorManager, pBLogger
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

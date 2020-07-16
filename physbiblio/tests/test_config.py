@@ -3,40 +3,41 @@
 
 This file is part of the physbiblio package.
 """
-from collections import OrderedDict
 import logging
 import logging.handlers
 import os
-import six
 import sys
 import traceback
+from collections import OrderedDict
+
+import six
 from appdirs import AppDirs
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import call, MagicMock, patch
+    from mock import MagicMock, call, patch
 else:
     import unittest
-    from unittest.mock import call, MagicMock, patch
+    from unittest.mock import MagicMock, call, patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
-    from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
     from physbiblio.config import (
-        pbConfig,
         ConfigParameter,
         ConfigParametersList,
         ConfigurationDB,
-        configuration_params,
         ConfigVars,
         GlobalDB,
         addFileHandler,
+        configuration_params,
         getLogLevel,
         globalLogName,
         ignoreParameterOrder,
         loggingLevels,
+        pbConfig,
     )
+    from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
+    from physbiblio.setuptests import *
+    from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

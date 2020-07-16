@@ -4,25 +4,26 @@ and paperStats plots.
 This file is part of the physbiblio package.
 """
 import traceback
-import numpy as np
+
 import matplotlib
+import numpy as np
 
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 
 try:
-    from physbiblio.database import pBDB
     from physbiblio.config import pbConfig
-    from physbiblio.inspireStats import pBStats
+    from physbiblio.database import pBDB
     from physbiblio.gui.basicDialogs import askDirName, infoMessage
     from physbiblio.gui.commonClasses import PBDialog, PBLabel
     from physbiblio.gui.errorManager import pBGUILogger
+    from physbiblio.inspireStats import pBStats
     from physbiblio.strings.gui import InspireStatsGUIStrings as igstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

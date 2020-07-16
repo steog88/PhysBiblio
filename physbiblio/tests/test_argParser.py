@@ -19,13 +19,13 @@ from PySide2.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__
-    from physbiblio.setuptests import *
-    from physbiblio.gui.setuptests import *
     from physbiblio.argParser import *
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.export import pBExport
     from physbiblio.gui.mainWindow import MainWindow
+    from physbiblio.gui.setuptests import *
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

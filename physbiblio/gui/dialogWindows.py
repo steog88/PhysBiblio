@@ -3,8 +3,9 @@ that manage the some dialog windows.
 
 This file is part of the physbiblio package.
 """
-import traceback
 import ast
+import traceback
+
 import six
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QTextCursor
@@ -23,11 +24,10 @@ from PySide2.QtWidgets import (
 )
 
 try:
-    from physbiblio.config import pbConfig, configuration_params
-    from physbiblio.errors import pBLogger
+    import physbiblio.gui.resourcesPyside2
+    from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
-    from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.gui.errorManager import pBGUILogger
+    from physbiblio.errors import pBLogger
     from physbiblio.gui.basicDialogs import (
         askDirName,
         askFileNames,
@@ -35,7 +35,9 @@ try:
         askYesNo,
         infoMessage,
     )
+    from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.commonClasses import (
+        ObjListWindow,
         PBComboBox,
         PBDDTableWidget,
         PBDialog,
@@ -44,11 +46,10 @@ try:
         PBLabelRight,
         PBTableView,
         PBTrueFalseCombo,
-        ObjListWindow,
     )
-    from physbiblio.gui.catWindows import CatsTreeWindow
-    import physbiblio.gui.resourcesPyside2
+    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.strings.gui import DialogWindowsStrings as dwstr
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

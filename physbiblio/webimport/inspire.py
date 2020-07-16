@@ -7,11 +7,11 @@ import re
 import traceback
 
 try:
-    from physbiblio.errors import pBLogger
     from physbiblio.config import pbConfig
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.errors import pBLogger
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import InspireStrings
+    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

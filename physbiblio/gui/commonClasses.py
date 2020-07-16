@@ -3,20 +3,21 @@ in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
-import traceback
 import time
+import traceback
 from weakref import WeakValueDictionary
+
 import PySide2
 from PySide2.QtCore import (
-    Qt,
-    Signal,
     QAbstractItemModel,
     QAbstractTableModel,
     QModelIndex,
     QObject,
     QSortFilterProxyModel,
+    Qt,
     QThread,
     QUrl,
+    Signal,
 )
 from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
 from PySide2.QtWidgets import (
@@ -38,12 +39,12 @@ from PySide2.QtWidgets import (
 from shiboken2 import VoidPtr
 
 try:
-    from physbiblio.errors import PBErrorManagerClass, pBLogger
-    from physbiblio.view import ViewEntry
-    from physbiblio.pdf import pBPDF
-    from physbiblio.database import pBDB, catString
     import physbiblio.gui.resourcesPyside2
+    from physbiblio.database import catString, pBDB
+    from physbiblio.errors import PBErrorManagerClass, pBLogger
+    from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import CommonClassesStrings as ccstr
+    from physbiblio.view import ViewEntry
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

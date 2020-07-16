@@ -3,12 +3,12 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
 import os
+import sys
 import time
+import traceback
+
 from PySide2.QtCore import (
-    Qt,
     QByteArray,
     QItemSelectionModel,
     QMimeData,
@@ -16,6 +16,7 @@ from PySide2.QtCore import (
     QPoint,
     QPointF,
     QRect,
+    Qt,
 )
 from PySide2.QtGui import QContextMenuEvent, QDropEvent
 from PySide2.QtTest import QTest
@@ -23,18 +24,18 @@ from PySide2.QtWidgets import QAction, QDesktopWidget, QInputDialog, QLineEdit, 
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call
+    from mock import call, patch
     from Queue import Queue
 else:
     import unittest
-    from unittest.mock import patch, call
     from queue import Queue
+    from unittest.mock import call, patch
 
 try:
-    from physbiblio.setuptests import *
     from physbiblio.database import pBDB
-    from physbiblio.gui.setuptests import *
     from physbiblio.gui.commonClasses import *
+    from physbiblio.gui.setuptests import *
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

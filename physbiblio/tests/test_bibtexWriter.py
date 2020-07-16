@@ -3,7 +3,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys, traceback
+import sys
+import traceback
+
 import bibtexparser
 
 if sys.version_info[0] < 3:
@@ -12,9 +14,9 @@ else:
     import unittest
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.config import pbConfig
     from physbiblio.bibtexWriter import *
+    from physbiblio.config import pbConfig
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

@@ -3,13 +3,14 @@
 This file is part of the physbiblio package.
 """
 import traceback
+
 import ads
 
 try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
-    from physbiblio.webimport.webInterf import WebInterf
     from physbiblio.strings.webimport import ADSNasaStrings
+    from physbiblio.webimport.webInterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

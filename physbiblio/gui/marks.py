@@ -3,6 +3,7 @@
 This file is part of the physbiblio package.
 """
 import traceback
+
 from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 
 try:

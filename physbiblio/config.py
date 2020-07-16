@@ -2,20 +2,21 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
 import ast
-from collections import OrderedDict
 import logging
 import logging.handlers
 import os
+import sys
+import traceback
+from collections import OrderedDict
+
 import six
 from appdirs import AppDirs
 
 try:
     from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
-    from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
     from physbiblio.strings.main import ConfigStrings as cstr
+    from physbiblio.tablesDef import profilesSettingsTable, searchesTable, tableFields
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

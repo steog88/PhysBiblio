@@ -4,28 +4,29 @@ the experiments windows and panels.
 This file is part of the physbiblio package.
 """
 import traceback
+
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import QAction, QLineEdit, QPushButton, QToolTip
 
 try:
+    import physbiblio.gui.resourcesPyside2
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
-    from physbiblio.view import pBView
     from physbiblio.errors import pBLogger
-    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.gui.basicDialogs import askYesNo
+    from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.commonClasses import (
         EditObjectWindow,
+        ObjListWindow,
         PBLabel,
         PBMenu,
         PBTableModel,
-        ObjListWindow,
         pBGuiView,
     )
-    from physbiblio.gui.catWindows import CatsTreeWindow
-    import physbiblio.gui.resourcesPyside2
+    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.strings.gui import ExpWindowsStrings as ewstr
+    from physbiblio.view import pBView
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

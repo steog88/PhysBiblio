@@ -14,9 +14,9 @@ else:
     from unittest.mock import call, patch
 
 try:
-    from physbiblio.setuptests import *
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
+    from physbiblio.setuptests import *
     from physbiblio.view import *
 except ImportError:
     print("Could not find physbiblio and its modules!")

@@ -5,11 +5,11 @@ This file is part of the physbiblio package.
 import traceback
 
 try:
-    from physbiblio.errors import pBLogger
-    from physbiblio.webimport.webInterf import WebInterf
-    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.config import pbConfig
+    from physbiblio.errors import pBLogger
+    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import DOIStrings
+    from physbiblio.webimport.webInterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

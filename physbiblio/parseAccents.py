@@ -6,6 +6,7 @@ This file is part of the physbiblio package.
 """
 import re
 import traceback
+
 from pylatexenc.latexencode import utf8tolatex
 
 try:

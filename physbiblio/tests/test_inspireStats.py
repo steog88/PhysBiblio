@@ -3,26 +3,27 @@
 
 This file is part of the physbiblio package.
 """
+import datetime
+import os
 import sys
 import traceback
-import os
-import datetime
+
 import matplotlib
 import pytz
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call, MagicMock
+    from mock import MagicMock, call, patch
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch, call, MagicMock
     from io import StringIO
+    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.errors import pBErrorManager
-    from physbiblio.setuptests import *
     from physbiblio.inspireStats import *
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

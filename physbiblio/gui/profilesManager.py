@@ -3,10 +3,11 @@ that enter the profiles management.
 
 This file is part of the physbiblio package.
 """
-import traceback
-import os
 import glob
+import os
 import shutil
+import traceback
+
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import (
@@ -22,9 +23,8 @@ from PySide2.QtWidgets import (
 
 try:
     from physbiblio.config import pbConfig
-    from physbiblio.errors import pBLogger
     from physbiblio.database import pBDB
-    from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
+    from physbiblio.errors import pBLogger
     from physbiblio.gui.basicDialogs import askYesNo
     from physbiblio.gui.commonClasses import (
         EditObjectWindow,
@@ -32,10 +32,9 @@ try:
         PBDialog,
         PBLabel,
     )
-    from physbiblio.strings.gui import (
-        CommonStrings as bastr,
-        ProfilesManagerStrings as pmstr,
-    )
+    from physbiblio.gui.errorManager import pBGUIErrorManager, pBGUILogger
+    from physbiblio.strings.gui import CommonStrings as bastr
+    from physbiblio.strings.gui import ProfilesManagerStrings as pmstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

@@ -3,30 +3,31 @@
 
 This file is part of the physbiblio package.
 """
+import ast
+import datetime
 import sys
 import traceback
+
 import six
-import datetime
-import ast
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call, MagicMock
+    from mock import MagicMock, call, patch
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch, call, MagicMock
     from io import StringIO
+    from unittest.mock import MagicMock, call, patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.tablesDef import tableFields
+    from physbiblio.config import pbConfig
+    from physbiblio.database import cats_alphabetical, catString, dbStats
+    from physbiblio.databaseCore import *
     from physbiblio.errors import pBLogger
     from physbiblio.export import pBExport
-    from physbiblio.config import pbConfig
-    from physbiblio.databaseCore import *
-    from physbiblio.database import dbStats, catString, cats_alphabetical
     from physbiblio.pdf import pBPDF
+    from physbiblio.setuptests import *
+    from physbiblio.tablesDef import tableFields
     from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")

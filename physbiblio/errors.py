@@ -2,13 +2,13 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
 import logging
 import logging.handlers
+import sys
+import traceback
 
 try:
-    from physbiblio.config import pbConfig, addFileHandler, getLogLevel
+    from physbiblio.config import addFileHandler, getLogLevel, pbConfig
     from physbiblio.strings.main import ErrorsStrings as estr
 except ImportError:
     print("Could not find physbiblio and its modules!")

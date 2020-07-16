@@ -2,23 +2,25 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import six
 import shutil
+import sys
 import traceback
 
+import six
+
 if sys.version_info[0] < 3:
-    from urllib2 import urlopen, HTTPError, URLError
+    from urllib2 import HTTPError, URLError, urlopen
 else:
     from urllib.request import urlopen, HTTPError, URLError
-import os.path as osp
+
 import os
+import os.path as osp
 import subprocess
 
 try:
     from physbiblio.config import pbConfig
-    from physbiblio.errors import pBLogger
     from physbiblio.database import pBDB
+    from physbiblio.errors import pBLogger
     from physbiblio.strings.main import PDFStrings as pstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

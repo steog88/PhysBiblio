@@ -3,25 +3,26 @@
 
 This file is part of the physbiblio package.
 """
+import os
 import sys
 import traceback
-import os
-from PySide2.QtCore import Qt, QEvent
+
+from PySide2.QtCore import QEvent, Qt
 from PySide2.QtGui import QImage
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QMenu, QToolBar, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call, MagicMock
+    from mock import MagicMock, call, patch
 else:
     import unittest
-    from unittest.mock import patch, call, MagicMock
+    from unittest.mock import MagicMock, call, patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.gui.setuptests import *
     from physbiblio.gui.mainWindow import *
+    from physbiblio.gui.setuptests import *
+    from physbiblio.setuptests import *
     from physbiblio.strings.gui import MainWindowStrings as mwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

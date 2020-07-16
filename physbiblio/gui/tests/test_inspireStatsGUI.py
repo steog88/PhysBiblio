@@ -3,13 +3,14 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
-import os
-import logging
 import datetime
+import logging
+import os
+import sys
 import time
-from PySide2.QtCore import Qt, QPoint
+import traceback
+
+from PySide2.QtCore import QPoint, Qt
 from PySide2.QtGui import QFont
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QLineEdit, QMessageBox, QWidget
@@ -22,18 +23,17 @@ else:
     from unittest.mock import patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.gui.inspireStatsGUI import *
     from physbiblio.gui.basicDialogs import askDirName
     from physbiblio.gui.commonClasses import PBLabel
+    from physbiblio.gui.inspireStatsGUI import *
+    from physbiblio.gui.setuptests import *
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
 except Exception:
     print(traceback.format_exc())
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-
 
 testData = {  # data as of 180713
     "allLi": [

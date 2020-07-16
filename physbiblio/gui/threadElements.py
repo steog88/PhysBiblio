@@ -3,27 +3,29 @@
 This file is part of the physbiblio package.
 """
 import sys
-import traceback
 import time
-from PySide2.QtCore import Signal
+import traceback
+
 from outdated import check_outdated
+from PySide2.QtCore import Signal
 
 if sys.version_info[0] < 3:
     from urllib2 import URLError
 else:
     from urllib.request import URLError
-from requests.exceptions import ConnectionError
+
 import bibtexparser
+from requests.exceptions import ConnectionError
 
 try:
     from physbiblio import __version__
-    from physbiblio.errors import pBLogger
     from physbiblio.bibtexWriter import pbWriter
     from physbiblio.database import pBDB
-    from physbiblio.pdf import pBPDF
-    from physbiblio.inspireStats import pBStats
+    from physbiblio.errors import pBLogger
     from physbiblio.export import pBExport
     from physbiblio.gui.commonClasses import PBThread, WriteStream
+    from physbiblio.inspireStats import pBStats
+    from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import ThreadElementsStrings as thestr
 except ImportError:
     print("Could not find physbiblio and its modules!")

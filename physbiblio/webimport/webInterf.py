@@ -5,25 +5,26 @@ Uses urllib to download url content.
 
 This file is part of the physbiblio package.
 """
-import sys
 import os
-import socket
 import pkgutil
-import traceback
+import socket
 import ssl
+import sys
+import traceback
+
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 if sys.version_info[0] < 3:
-    from urllib2 import Request, urlopen, URLError, HTTPError
+    from urllib2 import HTTPError, Request, URLError, urlopen
 else:
-    from urllib.request import Request, urlopen, URLError, HTTPError
+    from urllib.request import HTTPError, Request, URLError, urlopen
 
 try:
-    from physbiblio.errors import pBLogger
     import physbiblio.webimport as wi
     from physbiblio.config import pbConfig
+    from physbiblio.errors import pBLogger
     from physbiblio.strings.webimport import WebInterfStrings
 except ImportError:
     print("Could not find physbiblio and its modules!")

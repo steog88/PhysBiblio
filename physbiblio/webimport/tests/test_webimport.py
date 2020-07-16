@@ -3,10 +3,11 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import datetime
-import traceback
 import os
+import sys
+import traceback
+
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -17,11 +18,11 @@ else:
     import unittest
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.parseAccents import parse_accents_str
-    from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
-    from physbiblio.webimport.inspireoai import get_journal_ref_xml
     from physbiblio.config import pbConfig
+    from physbiblio.parseAccents import parse_accents_str
+    from physbiblio.setuptests import *
+    from physbiblio.webimport.inspireoai import get_journal_ref_xml
+    from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

@@ -5,25 +5,26 @@ Uses matplotlib to do plots.
 
 This file is part of the physbiblio package.
 """
+import datetime
+import json
 import os
 import os.path as osp
-import json
 import time
 import traceback
-import pytz
+
 import dateutil
-import datetime
 import matplotlib
+import pytz
 
 matplotlib.use("Qt5Agg")
 os.environ["QT_API"] = "pyside2"
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 try:
-    from physbiblio.errors import pBLogger
     from physbiblio.config import pbConfig
+    from physbiblio.errors import pBLogger
     from physbiblio.strings.main import InspireStatsStrings as isstr
     from physbiblio.webimport.webInterf import PBSession
 except ImportError:

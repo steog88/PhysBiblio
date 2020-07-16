@@ -13,13 +13,13 @@ if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import patch
     from io import StringIO
+    from unittest.mock import patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.errors import PBErrorManagerClass
     from physbiblio.config import pbConfig
+    from physbiblio.errors import PBErrorManagerClass
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

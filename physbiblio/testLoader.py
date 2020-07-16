@@ -10,7 +10,7 @@ if sys.version_info[0] < 3:
 else:
     from unittest import TestLoader
 
-from pkg_resources import resource_listdir, resource_exists
+from pkg_resources import resource_exists, resource_listdir
 
 
 class PBScanningLoader(TestLoader):

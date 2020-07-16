@@ -2,26 +2,26 @@
 
 This file is part of the physbiblio package.
 """
-from sqlite3 import OperationalError, ProgrammingError, DatabaseError, InterfaceError
+import ast
+import datetime
 import os
 import re
 import traceback
-import ast
-import datetime
+from sqlite3 import DatabaseError, InterfaceError, OperationalError, ProgrammingError
+
 import bibtexparser
+import dictdiffer
 import six
 from pyparsing import ParseException
-import dictdiffer
 
 try:
-    from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
-    from physbiblio.config import pbConfig, ConfigurationDB
     from physbiblio.bibtexWriter import pbWriter
+    from physbiblio.config import ConfigurationDB, pbConfig
+    from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
     from physbiblio.errors import pBLogger
-    from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.webimport.arxiv import getYear
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.main import DatabaseStrings as dstr
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -2392,6 +2392,8 @@ class Entries(PhysBiblioDBSub):
         Output:
             a dictionary with all the field values for self.insert
         """
+        from physbiblio.webimport.arxiv import getYear
+
         data = {}
         if number is None:
             number = 0

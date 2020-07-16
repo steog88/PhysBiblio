@@ -2,9 +2,11 @@
 
 This file is part of the physbiblio package.
 """
+import ast
+import os
+import sqlite3
 import sys
 import traceback
-import sqlite3
 from sqlite3 import (
     DatabaseError,
     IntegrityError,
@@ -12,8 +14,6 @@ from sqlite3 import (
     OperationalError,
     ProgrammingError,
 )
-import os
-import ast
 
 try:
     import physbiblio.tablesDef

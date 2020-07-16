@@ -2,14 +2,15 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import traceback
-import os
-import six
-import signal
 import ast
 import glob
+import os
+import signal
+import sys
+import traceback
+
 import bibtexparser
+import six
 
 if sys.version_info[0] < 3:
     from Queue import Queue
@@ -33,71 +34,71 @@ from PySide2.QtWidgets import (
 )
 
 try:
-    from physbiblio.errors import pBErrorManager, pBLogger
-    from physbiblio.database import pBDB, dbStats
-    from physbiblio.export import pBExport
-    from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.config import configuration_params, pbConfig
-    from physbiblio.pdf import pBPDF
-    from physbiblio.view import pBView
     from physbiblio.bibtexWriter import pbWriter
-    from physbiblio.inspireStats import pBStats
-    from physbiblio.gui.errorManager import pBGUILogger
+    from physbiblio.config import configuration_params, pbConfig
+    from physbiblio.database import dbStats, pBDB
+    from physbiblio.errors import pBErrorManager, pBLogger
+    from physbiblio.export import pBExport
     from physbiblio.gui.basicDialogs import (
+        LongInfoMessage,
         askFileName,
         askFileNames,
         askGenericText,
         askSaveFileName,
         askYesNo,
         infoMessage,
-        LongInfoMessage,
     )
-    from physbiblio.gui.commonClasses import ObjectWithSignal, PBComboBox, WriteStream
     from physbiblio.gui.bibWindows import (
         AbstractFormulas,
+        BibtexInfo,
+        BibtexListWindow,
         FieldsFromArxiv,
         SearchBibsWindow,
         editBibtex,
-        BibtexListWindow,
-        BibtexInfo,
     )
     from physbiblio.gui.catWindows import CatsTreeWindow, editCategory
+    from physbiblio.gui.commonClasses import ObjectWithSignal, PBComboBox, WriteStream
     from physbiblio.gui.dialogWindows import (
-        ConfigWindow,
-        LogFileContentDialog,
-        PrintText,
         AdvancedImportDialog,
         AdvancedImportSelect,
+        ConfigWindow,
         DailyArxivDialog,
         DailyArxivSelect,
         ExportForTexDialog,
+        LogFileContentDialog,
+        PrintText,
     )
+    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.gui.expWindows import (
-        editExperiment,
-        ExpsListWindow,
         EditExperimentDialog,
+        ExpsListWindow,
+        editExperiment,
     )
     from physbiblio.gui.inspireStatsGUI import AuthorStatsPlots, PaperStatsPlots
     from physbiblio.gui.profilesManager import SelectProfiles, editProfile
     from physbiblio.gui.threadElements import (
         Thread_authorStats,
+        Thread_checkUpdated,
+        Thread_cleanAllBibtexs,
         Thread_cleanSpare,
         Thread_cleanSparePDF,
-        Thread_updateAllBibtexs,
         Thread_exportTexBib,
-        Thread_importFromBib,
-        Thread_updateInspireInfo,
-        Thread_paperStats,
-        Thread_loadAndInsert,
-        Thread_cleanAllBibtexs,
-        Thread_findBadBibtexs,
         Thread_fieldsArxiv,
-        Thread_checkUpdated,
-        Thread_replace,
+        Thread_findBadBibtexs,
         Thread_importDailyArxiv,
+        Thread_importFromBib,
+        Thread_loadAndInsert,
+        Thread_paperStats,
+        Thread_replace,
+        Thread_updateAllBibtexs,
+        Thread_updateInspireInfo,
     )
-    from physbiblio.strings.main import DatabaseStrings as dbstr
+    from physbiblio.inspireStats import pBStats
+    from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import MainWindowStrings as mwstr
+    from physbiblio.strings.main import DatabaseStrings as dbstr
+    from physbiblio.view import pBView
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError as e:
     print("Could not find physbiblio and its modules!", e)
     print(traceback.format_exc())

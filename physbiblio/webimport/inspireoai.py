@@ -31,20 +31,23 @@ if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
     from io import StringIO
-from lxml.etree import tostring
-from pymarc import marcxml, MARCWriter, field
-from oaipmh import metadata
+
 from socket import error as SocketError
 
+from lxml.etree import tostring
+from oaipmh import metadata
+from pymarc import MARCWriter, field, marcxml
+
 try:
-    from physbiblio.errors import pBLogger
-    from physbiblio.config import pbConfig
-    from physbiblio.webimport.webInterf import WebInterf
-    from physbiblio.webimport.arxiv import getYear
-    from physbiblio.parseAccents import parse_accents_str
     from bibtexparser.bibdatabase import BibDatabase
+
     from physbiblio.bibtexWriter import pbWriter
+    from physbiblio.config import pbConfig
+    from physbiblio.errors import pBLogger
+    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import InspireOAIStrings
+    from physbiblio.webimport.arxiv import getYear
+    from physbiblio.webimport.webInterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

@@ -3,24 +3,25 @@
 
 This file is part of the physbiblio package.
 """
+import os
+import shutil
 import sys
 import traceback
-import os
+
 import six
-import shutil
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, call
+    from mock import call, patch
 else:
     import unittest
-    from unittest.mock import patch, call
+    from unittest.mock import call, patch
 
 try:
-    from physbiblio.setuptests import *
     from physbiblio.config import pbConfig
-    from physbiblio.database import pBDB, PhysBiblioDB
-    from physbiblio.pdf import pBPDF, LocalPDF
+    from physbiblio.database import PhysBiblioDB, pBDB
+    from physbiblio.pdf import LocalPDF, pBPDF
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

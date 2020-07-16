@@ -3,21 +3,23 @@ the entries windows and panels.
 
 This file is part of the physbiblio package.
 """
-import traceback
-import os
 import ast
-import six
 import datetime
+import os
+import traceback
+
 import matplotlib
+import six
 
 matplotlib.use("Qt5Agg")
 os.environ["QT_API"] = "pyside2"
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-import bibtexparser
 import re
-from pyparsing import ParseException
+
+import bibtexparser
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from pylatexenc.latex2text import LatexNodes2Text
-from PySide2.QtCore import Qt, QEvent, QUrl
+from pyparsing import ParseException
+from PySide2.QtCore import QEvent, Qt, QUrl
 from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide2.QtWidgets import (
     QAction,
@@ -39,22 +41,20 @@ from PySide2.QtWidgets import (
 )
 
 try:
-    from physbiblio.errors import pBLogger
-    from physbiblio.database import pBDB
+    import physbiblio.gui.resourcesPyside2
     from physbiblio.config import pbConfig
-    from physbiblio.pdf import pBPDF
-    from physbiblio.parseAccents import texToHtml
-    from physbiblio.webimport.webInterf import physBiblioWeb
-    from physbiblio.gui.errorManager import pBGUILogger
-    from physbiblio.gui.marks import pBMarks
+    from physbiblio.database import pBDB
+    from physbiblio.errors import pBLogger
     from physbiblio.gui.basicDialogs import (
         askDirName,
         askFileName,
         askYesNo,
         infoMessage,
     )
+    from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.commonClasses import (
         EditObjectWindow,
+        ObjListWindow,
         PBAndOrCombo,
         PBComboBox,
         PBDialog,
@@ -63,15 +63,17 @@ try:
         PBLabelRight,
         PBMenu,
         PBTableModel,
-        ObjListWindow,
         pBGuiView,
     )
-    from physbiblio.gui.threadElements import Thread_downloadArxiv, Thread_processLatex
-    from physbiblio.gui.catWindows import CatsTreeWindow
+    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.gui.expWindows import ExpsListWindow
-    import physbiblio.gui.resourcesPyside2
-    from physbiblio.strings.main import DatabaseStrings as dstr
+    from physbiblio.gui.marks import pBMarks
+    from physbiblio.gui.threadElements import Thread_downloadArxiv, Thread_processLatex
+    from physbiblio.parseAccents import texToHtml
+    from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import BibWindowsStrings as bwstr
+    from physbiblio.strings.main import DatabaseStrings as dstr
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

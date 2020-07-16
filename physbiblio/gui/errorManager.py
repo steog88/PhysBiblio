@@ -2,9 +2,10 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import logging
+import sys
 import traceback
+
 from PySide2.QtWidgets import QMessageBox
 
 if sys.version_info[0] < 3:

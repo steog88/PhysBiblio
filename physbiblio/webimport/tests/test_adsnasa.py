@@ -3,26 +3,27 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import datetime
-import traceback
-import os
 import json
-from ads.tests.stubdata.solr import example_solr_response
+import os
+import sys
+import traceback
+
 from ads.tests.stubdata.export import example_export_response
+from ads.tests.stubdata.solr import example_solr_response
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
-    from mock import patch, MagicMock
+    from mock import MagicMock, patch
 else:
     import unittest
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
 try:
-    from physbiblio.setuptests import *
-    from physbiblio.webimport.webInterf import physBiblioWeb, WebInterf
-    from physbiblio.webimport.adsnasa import WebSearch
     from physbiblio.config import pbConfig
+    from physbiblio.setuptests import *
+    from physbiblio.webimport.adsnasa import WebSearch
+    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

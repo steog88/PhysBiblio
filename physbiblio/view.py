@@ -6,9 +6,9 @@ import subprocess
 import traceback
 
 try:
-    from physbiblio.errors import pBLogger
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
+    from physbiblio.errors import pBLogger
     from physbiblio.pdf import pBPDF
     from physbiblio.strings.main import ViewStrings as vstr
 except ImportError:

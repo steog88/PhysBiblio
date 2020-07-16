@@ -4,37 +4,38 @@ the categories windows and panels.
 This file is part of the physbiblio package.
 """
 import traceback
+
 from PySide2.QtCore import Qt, QTimer
 from PySide2.QtGui import QCursor
 from PySide2.QtWidgets import (
     QAction,
     QLineEdit,
     QPushButton,
+    QToolTip,
     QTreeView,
     QVBoxLayout,
-    QToolTip,
 )
 
 try:
-    from physbiblio.errors import pBLogger
-    from physbiblio.database import pBDB, cats_alphabetical
+    import physbiblio.gui.resourcesPyside2
     from physbiblio.config import pbConfig
-    from physbiblio.view import pBView
-    from physbiblio.gui.errorManager import pBGUILogger
+    from physbiblio.database import cats_alphabetical, pBDB
+    from physbiblio.errors import pBLogger
     from physbiblio.gui.basicDialogs import askYesNo
     from physbiblio.gui.commonClasses import (
         EditObjectWindow,
         LeafFilterProxyModel,
+        NamedElement,
+        NamedNode,
         PBDialog,
         PBLabel,
         PBMenu,
-        NamedElement,
-        NamedNode,
         TreeModel,
         TreeNode,
     )
-    import physbiblio.gui.resourcesPyside2
+    from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.strings.gui import CatWindowsStrings as cwstr
+    from physbiblio.view import pBView
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

@@ -3,10 +3,11 @@
 
 This file is part of the physbiblio package.
 """
+import os
 import sys
 import traceback
-import os
 from stat import S_IREAD, S_IRGRP, S_IROTH
+
 import bibtexparser
 
 if sys.version_info[0] < 3:
@@ -17,10 +18,10 @@ else:
     from unittest.mock import patch
 
 try:
-    from physbiblio.setuptests import *
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.export import pBExport
+    from physbiblio.setuptests import *
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

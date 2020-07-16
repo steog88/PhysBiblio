@@ -4,19 +4,21 @@ Uses feedparser module to read the page content.
 
 This file is part of the physbiblio package.
 """
-import sys
 import re
+import sys
 import traceback
+
 import feedparser
 
 try:
+    from bibtexparser.bibdatabase import BibDatabase
+
+    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
-    from bibtexparser.bibdatabase import BibDatabase
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
     from physbiblio.parseAccents import parse_accents_str
-    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.strings.webimport import ArxivStrings
+    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

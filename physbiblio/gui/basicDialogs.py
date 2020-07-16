@@ -4,6 +4,7 @@ simple dialog windows of the PhysBiblio application.
 This file is part of the physbiblio package.
 """
 import sys
+
 from PySide2.QtWidgets import (
     QDesktopWidget,
     QDialog,
@@ -11,8 +12,8 @@ from PySide2.QtWidgets import (
     QGridLayout,
     QInputDialog,
     QMessageBox,
-    QTextEdit,
     QPushButton,
+    QTextEdit,
 )
 
 if sys.version_info[0] < 3:
@@ -21,10 +22,8 @@ else:
     from io import StringIO
 
 try:
-    from physbiblio.strings.gui import (
-        CommonStrings as bastr,
-        BasicDialogsStrings as bdstr,
-    )
+    from physbiblio.strings.gui import BasicDialogsStrings as bdstr
+    from physbiblio.strings.gui import CommonStrings as bastr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

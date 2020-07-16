@@ -2,9 +2,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys
-import datetime
 import argparse
+import datetime
+import sys
 
 from PySide2.QtWidgets import QApplication
 
@@ -130,8 +130,8 @@ def call_gui(args=None):
     # these two imports must stay here,
     # so they start after the profile has been loaded properly:
     try:
-        from physbiblio.database import pBDB
         import physbiblio.gui.mainWindow
+        from physbiblio.database import pBDB
     except ImportError:
         print("Could not find physbiblio and its modules!")
         raise

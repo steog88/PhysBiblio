@@ -5,11 +5,11 @@ a bibliography manager written in Python.
 This file is part of the physbiblio package.
 """
 
-import sys
 import faulthandler
+import sys
 
 try:
-    from physbiblio.argParser import setParser, call_gui
+    from physbiblio.argParser import call_gui, setParser
     from physbiblio.config import pbConfig
 except ImportError:
     print("Could not find physbiblio and its modules!")

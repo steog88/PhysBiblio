@@ -3,19 +3,20 @@ of the database entries into .bib files.
 
 This file is part of the physbiblio package.
 """
+import codecs
 import os
 import re
 import shutil
 import traceback
-import codecs
+
 import bibtexparser
 from requests.structures import CaseInsensitiveDict
 
 try:
-    from physbiblio.errors import pBLogger
+    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
-    from physbiblio.bibtexWriter import pbWriter
+    from physbiblio.errors import pBLogger
     from physbiblio.strings.main import ExportStrings as exstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
