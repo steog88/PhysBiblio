@@ -1,5 +1,6 @@
     * changed most of the code to use the new INSPIRE API
     * double click links point to new INSPIRE
+    * bug when importing from arxiv daily listing
     * python2 support dropped! The code may still work, but it is not tested.
     * isort for ordering imports
 

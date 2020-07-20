@@ -747,7 +747,10 @@ class Thread_importDailyArxiv(PBThread):
                 continue
             el = self.found[key]
             if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
-                newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+                try:
+                    newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+                except IndexError:
+                    newKey = pBDB.bibs.getByBibtex(key)[0]["bibkey"]
                 inserted.append(newKey)
             else:
                 db.entries = [
