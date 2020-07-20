@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 __author__ = "Stefano Gariazzo"
 __email__ = "stefano.gariazzo@gmail.com"
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 __version_date__ = "20/07/2020"
 
 __all__ = [
@@ -29,16 +29,13 @@ __all__ = [
 ]
 
 __recent_changes__ = """<br>
-<b>1.5.1</b>:<br>
-* updates for working with INSPIRE after the old API has been temporarily moved to old.inspirehep.net;<br>
-* buttons to delete lines in search form (when more than one line exists);<br>
-* improved INSPIRE ID retrieve function;<br>
-* all open tabs and category/experiment windows are closed when changing profile;<br>
-* now requiring PySide2>=5.14 for python3.8 compatibility;<br>
-* fixing problem with log file (the custom file name was not used);<br>
-* fixing problem when saving invalid replaceFields in a non-replace record;<br>
-* language fixes to address few SyntaxWarnings;<br>
-* fixes to tests.<br>
+<b>1.6.0</b>:<br>
+* changed most of the code to use the new INSPIRE API<br>
+* double click links point to new INSPIRE<br>
+* bug when importing from arxiv daily listing<br>
+* python2 support dropped! The code may still work, but it is not tested.<br>
+* isort for ordering imports<br>
+* pre-commit hooks to check code formatting and stuff<br>
 <br>
-<b>1.5.2</b>: fixing a new change from INSPIRE (OAI url - yesterday it was working!)<br>
+<b>1.6.1</b>: I forgot to update the CHANGELOG!<br>
 """
