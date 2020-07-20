@@ -6,8 +6,8 @@ This file is part of the physbiblio package.
 __author__ = "Stefano Gariazzo"
 __email__ = "stefano.gariazzo@gmail.com"
 
-__version__ = "1.5.2"
-__version_date__ = "31/03/2020"
+__version__ = "1.6.0"
+__version_date__ = "20/07/2020"
 
 __all__ = [
     "bibtexWriter",

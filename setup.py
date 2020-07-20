@@ -58,7 +58,7 @@ setup(
         'mock;python_version<"3"',
         'unittest2;python_version<"3"',
     ],
-    extras_require={"dev": ["black", "isort",]},
+    extras_require={"dev": ["black", "isort", "pre-commit", "twine"]},
     classifiers=(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
