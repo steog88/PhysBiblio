@@ -6,16 +6,12 @@ This file is part of the physbiblio package.
 import ast
 import datetime
 import os
+import re
 import traceback
 
+import bibtexparser
 import matplotlib
 import six
-
-matplotlib.use("Qt5Agg")
-os.environ["QT_API"] = "pyside2"
-import re
-
-import bibtexparser
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from pylatexenc.latex2text import LatexNodes2Text
 from pyparsing import ParseException
@@ -39,6 +35,10 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+matplotlib.use("Qt5Agg")
+os.environ["QT_API"] = "pyside2"
+
 
 try:
     import physbiblio.gui.resourcesPyside2

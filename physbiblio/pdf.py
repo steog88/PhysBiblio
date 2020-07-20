@@ -2,7 +2,10 @@
 
 This file is part of the physbiblio package.
 """
+import os
+import os.path as osp
 import shutil
+import subprocess
 import sys
 import traceback
 
@@ -11,11 +14,8 @@ import six
 if sys.version_info[0] < 3:
     from urllib2 import HTTPError, URLError, urlopen
 else:
-    from urllib.request import urlopen, HTTPError, URLError
+    from urllib.request import HTTPError, URLError, urlopen
 
-import os
-import os.path as osp
-import subprocess
 
 try:
     from physbiblio.config import pbConfig

@@ -4,10 +4,21 @@
 This file is part of the physbiblio package.
 """
 import codecs
+import datetime
 import json
 import re
 import sys
 import time
+import traceback
+from socket import error as SocketError
+
+import bibtexparser
+from lxml.etree import tostring
+from oaipmh import metadata
+from oaipmh.client import Client
+from oaipmh.error import ErrorBase
+from oaipmh.metadata import MetadataRegistry
+from pymarc import MARCWriter, field, marcxml
 
 if sys.version_info[0] < 3:
     # needed to set utf-8 as encoding
@@ -19,24 +30,12 @@ else:
     from http.client import IncompleteRead
     from urllib.request import URLError
 
-import datetime
-import traceback
-
-import bibtexparser
-from oaipmh.client import Client
-from oaipmh.error import ErrorBase
-from oaipmh.metadata import MetadataRegistry
 
 if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
     from io import StringIO
 
-from socket import error as SocketError
-
-from lxml.etree import tostring
-from oaipmh import metadata
-from pymarc import MARCWriter, field, marcxml
 
 try:
     from bibtexparser.bibdatabase import BibDatabase

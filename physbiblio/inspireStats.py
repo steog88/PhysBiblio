@@ -14,13 +14,13 @@ import traceback
 
 import dateutil
 import matplotlib
-import pytz
-
-matplotlib.use("Qt5Agg")
-os.environ["QT_API"] = "pyside2"
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import pytz
 from matplotlib.backends.backend_pdf import PdfPages
+
+plt.switch_backend("Qt5Agg")
+os.environ["QT_API"] = "pyside2"
 
 try:
     from physbiblio.config import pbConfig

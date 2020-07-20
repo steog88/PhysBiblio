@@ -6,16 +6,16 @@ This file is part of the physbiblio package.
 import traceback
 
 import matplotlib
-import numpy as np
-
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
+
+plt.switch_backend("Qt5Agg")
 
 try:
     from physbiblio.config import pbConfig

@@ -6,16 +6,17 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 
+from PySide2.QtWidgets import QApplication
+
 if sys.version_info[0] < 3:
     import unittest2 as unittest
     from mock import MagicMock, patch
     from StringIO import StringIO
 else:
     import unittest
-    from unittest.mock import MagicMock, patch
     from io import StringIO
+    from unittest.mock import MagicMock, patch
 
-from PySide2.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__

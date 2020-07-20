@@ -3,6 +3,7 @@
     * bug when importing from arxiv daily listing
     * python2 support dropped! The code may still work, but it is not tested.
     * isort for ordering imports
+    * pre-commit hooks to check code formatting and stuff
 
 1.5.2 (2020-03-31)
     * fixing a new change from INSPIRE (OAI url - yesterday it was working!)

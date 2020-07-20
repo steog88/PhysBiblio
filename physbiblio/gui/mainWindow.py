@@ -11,12 +11,6 @@ import traceback
 
 import bibtexparser
 import six
-
-if sys.version_info[0] < 3:
-    from Queue import Queue
-else:
-    from queue import Queue
-
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtWidgets import (
@@ -32,6 +26,12 @@ from PySide2.QtWidgets import (
     QTabWidget,
     QWidget,
 )
+
+if sys.version_info[0] < 3:
+    from Queue import Queue
+else:
+    from queue import Queue
+
 
 try:
     from physbiblio.bibtexWriter import pbWriter

@@ -10,6 +10,7 @@ import sys
 import time
 import traceback
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PySide2.QtCore import QPoint, Qt
 from PySide2.QtGui import QFont
 from PySide2.QtTest import QTest
@@ -33,7 +34,6 @@ except ImportError:
     raise
 except Exception:
     print(traceback.format_exc())
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 testData = {  # data as of 180713
     "allLi": [
