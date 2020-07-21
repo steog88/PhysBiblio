@@ -4826,7 +4826,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cl, patch(
             "physbiblio.gui.bibWindows.CommonBibActions", autospec=USE_AUTOSPEC_CLASS
         ) as _ci, patch(
-            "physbiblio.database.Entries.getByKey",
+            "physbiblio.database.Entries.getByBibkey",
             side_effect=[[{"bibkey": "def"}], [{"bibkey": "ghi"}]],
             autospec=True,
         ) as _g:
@@ -4855,7 +4855,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             return_value=cba,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ci, patch(
-            "physbiblio.database.Entries.getByKey", side_effect=[], autospec=True
+            "physbiblio.database.Entries.getByBibkey", side_effect=[], autospec=True
         ) as _g:
             position = QCursor.pos()
             bw.onOk()

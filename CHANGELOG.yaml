@@ -2,6 +2,7 @@
     date: xxx
     changes:
         - fixes to inspireStats tests
+        - fixed bug with selection of bibtexs
         - python2 fix
         - yaml to manage the CHANGELOG and version number, automatically updated through make before upload
 -   version: 1.6.1

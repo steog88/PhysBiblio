@@ -1879,7 +1879,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         )
         commonActions = CommonBibActions(
             [
-                pBDB.bibs.getByKey(k, saveQuery=False)[0]
+                pBDB.bibs.getByBibkey(k, saveQuery=False)[0]
                 for k in self.mainWin.selectedBibs
             ],
             self.mainWin,
