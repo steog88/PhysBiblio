@@ -1949,8 +1949,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.bibs, [{"bibkey": "abc"}, {"bibkey": "def"}])
         self.assertEqual(c.keys, ["abc", "def"])
 
+    def test_createMenuADS(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
+
     def test_createMenuArxiv(self):
-        """test _createMenuMarkType"""
+        """test _createMenuArxiv"""
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "1809.00000"}], self.mainW)
         c.menu = PBMenu(self.mainW)
         c._createMenuArxiv(False, "")
@@ -1959,7 +1963,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.menu.possibleActions, [])
         c.menu = PBMenu(self.mainW)
         with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
+            "physbiblio.gui.bibWindows.CommonBibActions.onArxAbs", autospec=True
         ) as _a, patch(
             "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
         ) as _b:
@@ -1978,7 +1982,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 
         c.menu = PBMenu(self.mainW)
         with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
+            "physbiblio.gui.bibWindows.CommonBibActions.onArxAbs", autospec=True
         ) as _a, patch(
             "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
         ) as _b:
@@ -2165,6 +2169,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.assert_called_once_with(
                 "\\bibitem{abc}\nme\n% some paper\njou 0 (2018) 12\ndoi: 1/2/3\n[arxiv:1234.5678]."
             )
+
+    def test_createMenuDOI(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
 
     def test_createMenuInspire(self):
         """test _createMenuInspire"""
@@ -3143,8 +3151,35 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(_cp.call_count, 0)
             _if.assert_called_once_with("s")
 
-    def test_onAbs(self):
-        """test onAbs"""
+    def test_onADS(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
+
+    def test_onADSAbs(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
+
+    def test_onADSMerge(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
+
+    def test_onADSMore(self):
+        """test _createMenuADS"""
+        raise NotImplementedError
+
+    def test_onArx(self):
+        """test onArx"""
+        c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
+        with patch(
+            "physbiblio.gui.mainWindow.MainWindow.infoFromArxiv", autospec=True
+        ) as _i:
+            c.onArx()
+            _i.assert_called_once_with(
+                self.mainW, [{"bibkey": "abc"}, {"bibkey": "def"}]
+            )
+
+    def test_onArxAbs(self):
+        """test onArxAbs"""
         c = CommonBibActions(
             [{"bibkey": "abc", "arxiv": "1234.85583"}, {"bibkey": "def", "arxiv": ""}],
             self.mainW,
@@ -3162,7 +3197,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         ) as _u, patch(
             "physbiblio.gui.bibWindows.infoMessage", autospec=True
         ) as _i:
-            c.onAbs()
+            c.onArxAbs()
             _i.assert_has_calls(
                 [
                     call("some text", title="Abstract of arxiv:1234.85583"),
@@ -3185,7 +3220,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.reset_mock()
             _a.reset_mock()
             _u.reset_mock()
-            c.onAbs(message=False)
+            c.onArxAbs(message=False)
             _i.assert_called_once_with("No arxiv number for entry 'def'!")
             _s.assert_called_once_with(
                 self.mainW, "Starting the abstract download process, please wait..."
@@ -3199,16 +3234,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             )
             _u.assert_called_once_with(pBDB.bibs, "abc", "abstract", "some text")
 
-    def test_onArx(self):
-        """test onArx"""
-        c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.infoFromArxiv", autospec=True
-        ) as _i:
-            c.onArx()
-            _i.assert_called_once_with(
-                self.mainW, [{"bibkey": "abc"}, {"bibkey": "def"}]
-            )
+    def test_onArxMerge(self):
+        """test onArxMerge"""
+        raise NotImplementedError
 
     def test_onCat(self):
         """test onCat"""
@@ -3651,6 +3679,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _s.assert_called_once_with(self.mainW, "deleting test.pdf file...")
             _rm.assert_called_once_with(pBPDF, "abc", "", fileName="/h/test.pdf")
 
+    def test_onDOIMerge(self):
+        """test onDOIMerge"""
+        raise NotImplementedError
+
     def test_onDown(self):
         """test onDown"""
         c = CommonBibActions(
@@ -3817,6 +3849,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _e.assert_called_once_with(
                 self.mainW, [{"bibkey": "abc"}, {"bibkey": "def"}]
             )
+
+    def test_onInspireMerge(self):
+        """test onInspireMerge"""
+        raise NotImplementedError
 
     def test_onMerge(self):
         """test onMerge"""

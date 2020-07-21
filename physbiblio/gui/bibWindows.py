@@ -737,6 +737,29 @@ class CommonBibActions:
         """Return the parent widget"""
         return self.parentObj
 
+    def _createMenuADS(self, selection, ads):
+        """Create part of the right click menu,
+        concerning the ADS(NASA)-related functions
+
+        Parameters:
+            selection: if the menu is for a multiple entries selection
+                or for a right-click event on a single entry
+            ads: the ads id of the bibtex record
+        """
+        menuA = []
+        menuA.append(
+            QAction(bwstr.Acts.adsCompl, self.menu, triggered=self.onADSComplete,)
+        )
+        if selection or (not selection and (ads != "" and ads is not None)):
+            menuA.append(
+                QAction(bwstr.Acts.adsLoad, self.menu, triggered=self.onADSAbs)
+            )
+            menuA.append(QAction(bwstr.Acts.adsMore, self.menu, triggered=self.onADS))
+            menuA.append(
+                QAction(bwstr.Acts.adsMerge, self.menu, triggered=self.onADSMerge)
+            )
+        self.menu.possibleActions.append([bwstr.Acts.adsTit, menuA])
+
     def _createMenuArxiv(self, selection, arxiv):
         """Create part of the right click menu,
         concerning the arXiv-related functions
@@ -748,8 +771,13 @@ class CommonBibActions:
         """
         if selection or (not selection and (arxiv != "" and arxiv is not None)):
             menuA = []
-            menuA.append(QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onAbs))
+            menuA.append(
+                QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onArxAbs)
+            )
             menuA.append(QAction(bwstr.Acts.arxMore, self.menu, triggered=self.onArx))
+            menuA.append(
+                QAction(bwstr.Acts.arxMerge, self.menu, triggered=self.onArxMerge)
+            )
             self.menu.possibleActions.append([bwstr.Acts.arxTit, menuA])
 
     def _createMenuCopy(self, selection, initialRecord):
@@ -889,6 +917,22 @@ class CommonBibActions:
                 menuC.append(s)
         self.menu.possibleActions.append([bwstr.Acts.cpTit, menuC])
 
+    def _createMenuDOI(self, selection, doi):
+        """Create part of the right click menu,
+        concerning the DOI-related functions
+
+        Parameters:
+            selection: if the menu is for a multiple entries selection
+                or for a right-click event on a single entry
+            doi: the doi of the bibtex record
+        """
+        menuD = []
+        if selection or (not selection and (doi != "" and doi is not None)):
+            menuD.append(
+                QAction(bwstr.Acts.doiMerge, self.menu, triggered=self.onDOIMerge)
+            )
+            self.menu.possibleActions.append([bwstr.Acts.doiTit, menuD])
+
     def _createMenuInspire(self, selection, inspireID):
         """Create part of the right click menu,
         concerning the INSPIRE-HEP-related functions
@@ -918,6 +962,9 @@ class CommonBibActions:
                         force=f, reloadAll=r
                     ),
                 )
+            )
+            menuI.append(
+                QAction(bwstr.Acts.insMerge, self.menu, triggered=self.onInspireMerge)
             )
             menuI.append(
                 QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations)
@@ -1184,6 +1231,7 @@ class CommonBibActions:
             if initialRecord["marks"] is None:
                 initialRecord["marks"] = ""
                 pBDB.bibs.updateField(bibkey, "marks", "")
+            ads = initialRecord["ads"]
             arxiv = initialRecord["arxiv"]
             bibtex = initialRecord["bibtex"]
             doi = initialRecord["doi"]
@@ -1198,7 +1246,9 @@ class CommonBibActions:
             )
         else:
             initialRecord = None
+            ads = None
             arxiv = None
+            doi = None
             inspireID = None
             if len(self.keys) == 2:
                 menu.possibleActions.append(
@@ -1231,8 +1281,10 @@ class CommonBibActions:
         )
         menu.possibleActions.append(None)
 
-        self._createMenuInspire(selection, inspireID)
+        self._createMenuADS(selection, ads)
         self._createMenuArxiv(selection, arxiv)
+        self._createMenuDOI(selection, doi)
+        self._createMenuInspire(selection, inspireID)
         menu.possibleActions.append(None)
 
         menu.possibleActions.append(
@@ -1267,9 +1319,48 @@ class CommonBibActions:
             else:
                 pBGUILogger.error(bwstr.Acts.pdfAddF)
 
-    def onAbs(self, message=True):
+    def onADS(self, message=True):
+        """Action performed when asking for ADS info
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
+
+    def onADSAbs(self, message=True):
         """Action performed when the download of
-        the abstract is required
+        the abstract from ADS is required
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
+
+    def onADSComplete(self, message=True):
+        """Action performed when the looking for fields from ADS-NASA
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
+
+    def onADSMerge(self, message=True):
+        """Action performed when the merging bibtex from ADS-NASA
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
+
+    def onArx(self):
+        """Action to be performed when asking arXiv info.
+        Call `gui.mainWindow.MainWindow.infoFromArxiv`
+        """
+        self.parent().infoFromArxiv(self.bibs)
+
+    def onArxAbs(self, message=True):
+        """Action performed when the download of
+        the abstract from arXiv is required
 
         Parameter:
             message (default True): if False, suppress some infoMessages
@@ -1290,11 +1381,13 @@ class CommonBibActions:
                 infoMessage(bwstr.Acts.absF % bibkey)
         self.parent().done()
 
-    def onArx(self):
-        """Action to be performed when asking arXiv info.
-        Call `gui.mainWindow.MainWindow.infoFromArxiv`
+    def onArxMerge(self, message=True):
+        """Action performed when the merging bibtex from arXiv
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
         """
-        self.parent().infoFromArxiv(self.bibs)
+        raise NotImplementedError
 
     def onCat(self):
         """Open a `CatsTreeWindow` to ask the changes to the categories,
@@ -1417,6 +1510,14 @@ class CommonBibActions:
                         for ex in existing:
                             pBPDF.copyToDir(outFolder, key, "", customName=ex)
 
+    def onDOIMerge(self, message=True):
+        """Action performed when the merging bibtex from DOI
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
+
     def onDelete(self):
         """Call `deleteBibtex` on all the entries"""
         deleteBibtex(self.parent(), self.keys)
@@ -1496,6 +1597,14 @@ class CommonBibActions:
         Call `gui.mainWindow.MainWindow.exportSelection`
         """
         self.parent().exportSelection(self.bibs)
+
+    def onInspireMerge(self, message=True):
+        """Action performed when the merging bibtex from INSPIRE-HEP
+
+        Parameter:
+            message (default True): if False, suppress some infoMessages
+        """
+        raise NotImplementedError
 
     def onMerge(self):
         """Open a `MergeBibtexs` window to configure the merging,
