@@ -3,7 +3,7 @@
     changes:
         - fixes to inspireStats tests
         - python2 fix
-        - yaml to manage the CHANGELOG and version number
+        - yaml to manage the CHANGELOG and version number, automatically updated through make before upload
 -   version: 1.6.1
     date: 2020-07-20
     changes:
