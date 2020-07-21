@@ -41,7 +41,6 @@ class PBSession(requests.Session):
 
     def __init__(
         self,
-        *args,
         total_retries=5,
         backoff=1.0,
         status_forcelist=[429, 500, 502, 503, 504],
@@ -59,7 +58,7 @@ class PBSession(requests.Session):
             method_whitelist=method_whitelist,
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
-        requests.Session.__init__(self, *args, **kwargs)
+        requests.Session.__init__(self, **kwargs)
         self.mount("https://", adapter)
         self.mount("http://", adapter)
 
