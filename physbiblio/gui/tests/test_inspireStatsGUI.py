@@ -11,6 +11,8 @@ import time
 import traceback
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 from PySide2.QtCore import QPoint, Qt
 from PySide2.QtGui import QFont
 from PySide2.QtTest import QTest
@@ -1539,22 +1541,36 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
     def test_pickEvent(self):
         """Test pickEvent"""
         self.mainW.lastAuthorStats = {"h": 999}
-        pt = QPoint(0, 0)
         asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
-        QTest.mouseClick(
-            asp.layout().itemAtPosition(1, 0).widget(), Qt.LeftButton, pos=pt
-        )
+        evt = MagicMock()
+        evt.artist = Line2D((0, 1), (1, 1))
+        evt.artist.figure = testData["figs"][2]
+        evt.artist.get_xdata = MagicMock()
+        evt.artist.get_ydata = MagicMock()
+        evt.ind = 0
+        with patch(
+            "numpy.take", side_effect=[[datetime.datetime(2016, 9, 27)], [75]]
+        ) as _t:
+            asp.pickEvent(evt)
+            _t.assert_any_call(evt.artist.get_xdata(), 0)
+            _t.assert_any_call(evt.artist.get_ydata(), 0)
         self.assertEqual(asp.textBox.text(), "Total citations in date 27/09/2016 is 75")
-        QTest.mouseClick(
-            asp.layout().itemAtPosition(0, 1).widget(), Qt.LeftButton, pos=pt
-        )
-        self.assertEqual(asp.textBox.text(), "Papers per year in year 2015 is: 5")
-        QTest.mouseClick(
-            asp.layout().itemAtPosition(2, 0).widget(), Qt.LeftButton, pos=pt
-        )
+        evt.artist.figure = testData["figs"][4]
+        with patch(
+            "numpy.take", side_effect=[[datetime.datetime(2016, 9, 8)], [10.0]]
+        ) as _t:
+            asp.pickEvent(evt)
+            _t.assert_any_call(evt.artist.get_xdata(), 0)
+            _t.assert_any_call(evt.artist.get_ydata(), 0)
         self.assertEqual(
             asp.textBox.text(), "Mean citations in date 08/09/2016 is 10.00"
         )
+        evt.artist = Rectangle((0, 1), 1, 1)
+        evt.artist.figure = testData["figs"][1]
+        evt.artist.get_x = MagicMock(return_value=2015.5)
+        evt.artist.get_height = MagicMock(return_value=5)
+        asp.pickEvent(evt)
+        self.assertEqual(asp.textBox.text(), "Papers per year in year 2015 is: 5")
 
     def test_updatePlots(self):
         """Test updatePlots"""
@@ -1688,11 +1704,19 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
     def test_pickEvent(self):
         """Test pickEvent"""
         self.mainW.lastPaperStats = {}
-        pt = QPoint(0, 0)
         asp = PaperStatsPlots(testData["figs"][2], parent=self.mainW)
-        QTest.mouseClick(
-            asp.layout().itemAtPosition(0, 0).widget(), Qt.LeftButton, pos=pt
-        )
+        evt = MagicMock()
+        evt.artist = Line2D((0, 1), (1, 1))
+        evt.artist.figure = testData["figs"][2]
+        evt.artist.get_xdata = MagicMock()
+        evt.artist.get_ydata = MagicMock()
+        evt.ind = 0
+        with patch(
+            "numpy.take", side_effect=[[datetime.datetime(2016, 9, 27)], [75]]
+        ) as _t:
+            asp.pickEvent(evt)
+            _t.assert_any_call(evt.artist.get_xdata(), 0)
+            _t.assert_any_call(evt.artist.get_ydata(), 0)
         self.assertEqual(asp.textBox.text(), "Citations in date 27/09/2016 is 75")
 
     def test_updatePlots(self):

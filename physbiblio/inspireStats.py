@@ -422,7 +422,8 @@ class InspireStatsLoader:
                 plt.plot(
                     self.authorPlotInfo["paLi"][0],
                     self.authorPlotInfo["paLi"][1],
-                    picker=pickVal,
+                    picker=True,
+                    pickradius=pickVal,
                 )
                 fig.autofmt_xdate()
                 if save:
@@ -463,7 +464,8 @@ class InspireStatsLoader:
                 plt.plot(
                     self.authorPlotInfo["allLi"][0],
                     self.authorPlotInfo["allLi"][1],
-                    picker=pickVal,
+                    picker=True,
+                    pickradius=pickVal,
                 )
                 fig.autofmt_xdate()
                 if save:
@@ -504,7 +506,8 @@ class InspireStatsLoader:
                 plt.plot(
                     self.authorPlotInfo["meanLi"][0],
                     self.authorPlotInfo["meanLi"][1],
-                    picker=pickVal,
+                    picker=True,
+                    pickradius=pickVal,
                 )
                 fig.autofmt_xdate()
                 if markPapers:
