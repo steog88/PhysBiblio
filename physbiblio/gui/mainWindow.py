@@ -787,7 +787,7 @@ class MainWindow(QMainWindow):
 
     def currentTabWidget(self):
         """Return the current BibtexListWindow in the self.tabWidget
-        
+
         Output:
             a BibtexListWindow item, currently displayed in the QTabWidget
         """
@@ -1801,7 +1801,7 @@ class MainWindow(QMainWindow):
                     if method == "adsnasa":
                         data["ads"] = key
                     if not pBDB.bibs.insert(data):
-                        pBLogger.warning(mwstr.elementFailed % key)
+                        pBGUILogger.warning(mwstr.elementFailed % key)
                         continue
                     try:
                         if method == "inspire":

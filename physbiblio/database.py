@@ -2398,21 +2398,27 @@ class Entries(PhysBiblioDBSub):
         if number is None:
             number = 0
         try:
-            element = (
+            elements = (
                 bibtexparser.bparser.BibTexParser(common_strings=True)
                 .parse(bibtex)
-                .entries[number]
+                .entries
             )
+        except ParseException:
+            pBLogger.info(dstr.Bibs.errorParseBib)
+            data["bibkey"] = ""
+            return data
+        if len(elements) == 0:
+            pBLogger.info(dstr.noElsFound)
+            data["bibkey"] = ""
+            return data
+        element = elements[number]
+        try:
             if element["ID"] is None:
                 element["ID"] = ""
             if bibkey:
                 element["ID"] = bibkey
             data["bibkey"] = element["ID"]
-        except IndexError:
-            pBLogger.info(dstr.noElsFound)
-            data["bibkey"] = ""
-            return data
-        except (KeyError, ParseException):
+        except KeyError:
             pBLogger.info(dstr.Bibs.errorParseBib)
             data["bibkey"] = ""
             return data

@@ -33,7 +33,7 @@ class ConfigParameter:
 
     def __init__(self, name, default, description="", special=None, isGlobal=False):
         """Store the passed properties
-        
+
         Parameters:
             name: the parameter name in the database
             default: the default value if not edited by the user
@@ -64,12 +64,12 @@ class ConfigParameter:
 
 
 class ConfigParametersList(OrderedDict):
-    """Inherit from OrderedDict, but add a quick method to add 
+    """Inherit from OrderedDict, but add a quick method to add
     `ConfigParameter`s to the list"""
 
     def add(self, cp):
         """Add a new value, corresponding to the key that is cp.name
-        
+
         Parameters:
             cp: a ConfigParameter instance
         """
@@ -1022,7 +1022,7 @@ class ConfigVars:
             var: the input variable
 
         Output:
-            the input variable or a string with replaced "PBDATA" 
+            the input variable or a string with replaced "PBDATA"
         """
         if isinstance(var, six.string_types) and "PBDATA" in var:
             var = os.path.join(self.dataPath, var.replace("PBDATA", ""))

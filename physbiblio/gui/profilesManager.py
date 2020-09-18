@@ -257,10 +257,10 @@ class EditProfileWindow(EditObjectWindow):
 
     def onOk(self):
         """In case "Ok" is pressed, decide if the result is valid:
-            * if the name or filename of the new profile are empty, reject;
-            * if the name or filename of the new profile are already in use,
-                reject;
-            * in all the other cases, accept and close the dialog.
+        * if the name or filename of the new profile are empty, reject;
+        * if the name or filename of the new profile are already in use,
+            reject;
+        * in all the other cases, accept and close the dialog.
         """
         if (
             self.elements[-1]["f"].currentText().strip() != ""
