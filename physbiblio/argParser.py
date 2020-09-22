@@ -189,7 +189,11 @@ def setParser():
 
     parser_clean = subparsers.add_parser("clean", help=apstr.cleanHelp)
     parser_clean.add_argument(
-        "-s", "--startFrom", type=int, help=apstr.cleanStartHelp, default=0,
+        "-s",
+        "--startFrom",
+        type=int,
+        help=apstr.cleanStartHelp,
+        default=0,
     )
     parser_clean.set_defaults(func=call_clean)
 
@@ -207,7 +211,10 @@ def setParser():
         default=(datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"),
     )
     parser_dates.add_argument(
-        "end", metavar="enddate", help=apstr.datesEndHelp, default=dateLast,
+        "end",
+        metavar="enddate",
+        help=apstr.datesEndHelp,
+        default=dateLast,
     )
     parser_dates.set_defaults(func=call_dates)
 
@@ -217,28 +224,48 @@ def setParser():
 
     parser_test = subparsers.add_parser("test", help=apstr.testHelp)
     parser_test.add_argument(
-        "-d", "--database", dest="database", action="store_true", help=apstr.testDbHelp,
+        "-d",
+        "--database",
+        dest="database",
+        action="store_true",
+        help=apstr.testDbHelp,
     )
     parser_test.add_argument(
         "-g", "--gui", dest="gui", action="store_true", help=apstr.testGuiHelp
     )
     parser_test.add_argument(
-        "-l", "--long", dest="long", action="store_true", help=apstr.testLongHelp,
+        "-l",
+        "--long",
+        dest="long",
+        action="store_true",
+        help=apstr.testLongHelp,
     )
     parser_test.add_argument(
-        "-o", "--online", dest="online", action="store_true", help=apstr.testOnlineHelp,
+        "-o",
+        "--online",
+        dest="online",
+        action="store_true",
+        help=apstr.testOnlineHelp,
     )
     parser_test.add_argument(
-        "--online_oai", dest="online_oai", action="store_true", help=apstr.testOAIHelp,
+        "--online_oai",
+        dest="online_oai",
+        action="store_true",
+        help=apstr.testOAIHelp,
     )
     parser_test.set_defaults(func=call_tests)
 
     parser_tex = subparsers.add_parser("tex", help=apstr.texHelp)
     parser_tex.add_argument(
-        "bibFile", metavar="bibfilename", help=apstr.texBibHelp,
+        "bibFile",
+        metavar="bibfilename",
+        help=apstr.texBibHelp,
     )
     parser_tex.add_argument(
-        "texFiles", metavar="texfilename", help=apstr.texTexsHelp, nargs="+",
+        "texFiles",
+        metavar="texfilename",
+        help=apstr.texTexsHelp,
+        nargs="+",
     )
     parser_tex.add_argument(
         "-o",
@@ -255,10 +282,17 @@ def setParser():
         help=apstr.texRemoveHelp,
     )
     parser_tex.add_argument(
-        "--reorder", dest="reorder", action="store_true", help=apstr.texReorderHelp,
+        "--reorder",
+        dest="reorder",
+        action="store_true",
+        help=apstr.texReorderHelp,
     )
     parser_tex.add_argument(
-        "-s", "--save", dest="save", action="store_false", help=apstr.texSaveHelp,
+        "-s",
+        "--save",
+        dest="save",
+        action="store_false",
+        help=apstr.texSaveHelp,
     )
     parser_tex.add_argument(
         "-u",
@@ -271,7 +305,11 @@ def setParser():
 
     parser_update = subparsers.add_parser("update", help=apstr.updateHelp)
     parser_update.add_argument(
-        "-s", "--startFrom", type=int, help=apstr.updateStartHelp, default=0,
+        "-s",
+        "--startFrom",
+        type=int,
+        help=apstr.updateStartHelp,
+        default=0,
     )
     parser_update.add_argument(
         "-f", "--force", action="store_true", help=apstr.updateForceHelp

@@ -250,7 +250,8 @@ class ExpsListWindow(ObjListWindow):
                     bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        ewstr.entryNotInDb % self.askForBib, exc_info=True,
+                        ewstr.entryNotInDb % self.askForBib,
+                        exc_info=True,
                     )
                     return
                 try:

@@ -1395,7 +1395,10 @@ class TestPBMenu(GUITestCase):
                 "actions": [QAction("Sub3"), QAction("Sub4")],
                 "toolTipsVisible": True,
             },
-            {"title": "submenuDictI", "actions": [QAction("Sub5"), QAction("Sub6")],},
+            {
+                "title": "submenuDictI",
+                "actions": [QAction("Sub5"), QAction("Sub6")],
+            },
         ]
         mm.possibleActions = acts
         mm.fillMenu()

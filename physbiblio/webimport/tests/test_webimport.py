@@ -454,13 +454,16 @@ class TestWebImportOffline(unittest.TestCase):
             "https://inspirehep.net/api/literature/?abc=2&def=1",
         )
         self.assertEqual(
-            pbw.createUrl({}), "https://inspirehep.net/api/literature/",
+            pbw.createUrl({}),
+            "https://inspirehep.net/api/literature/",
         )
         self.assertEqual(
-            pbw.createUrl({}, ""), "https://inspirehep.net/api/literature/",
+            pbw.createUrl({}, ""),
+            "https://inspirehep.net/api/literature/",
         )
         self.assertEqual(
-            pbw.createUrl({"def": "1"}, "abc"), "abc?def=1",
+            pbw.createUrl({"def": "1"}, "abc"),
+            "abc?def=1",
         )
 
     def test_inspire_retrieve(self):

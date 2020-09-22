@@ -36,7 +36,8 @@ class TestViewMethods(unittest.TestCase):
         self.assertEqual(tmp.webApp, pbConfig.params["webApplication"])
         self.assertEqual(tmp.inspireRecord, pbConfig.inspireLiteratureLink)
         self.assertEqual(
-            tmp.inspireSearch, pbConfig.inspireLiteratureLink + "?p=",
+            tmp.inspireSearch,
+            pbConfig.inspireLiteratureLink + "?p=",
         )
         with patch.dict(pbConfig.params, {"webApplication": "someapp"}, clear=False):
             tmp = ViewEntry()
@@ -110,7 +111,8 @@ class TestViewMethods(unittest.TestCase):
             side_effect=["abc...123", "", "10.1088/0954-3899/43/3/033001", False],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "inspire"), pbConfig.inspireLiteratureLink + "?p=a",
+                pBView.getLink("a", "inspire"),
+                pbConfig.inspireLiteratureLink + "?p=a",
             )
         with patch(
             "physbiblio.database.Entries.getField",

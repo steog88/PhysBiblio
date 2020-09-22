@@ -239,7 +239,10 @@ class MainWindow(QMainWindow):
         by another instance of the program.
         Ask what to do and close the main window.
         """
-        if askYesNo(mwstr.dbLockedAskClose, title=mwstr.attentionE,):
+        if askYesNo(
+            mwstr.dbLockedAskClose,
+            title=mwstr.attentionE,
+        ):
             raise SystemExit
 
     def setIcon(self):
@@ -540,7 +543,10 @@ class MainWindow(QMainWindow):
         )
 
         self.cleanSpareAct = QAction(
-            mwstr.Act.cleET, self, statusTip=mwstr.Act.cleED, triggered=self.cleanSpare,
+            mwstr.Act.cleET,
+            self,
+            statusTip=mwstr.Act.cleED,
+            triggered=self.cleanSpare,
         )
 
         self.cleanSparePDFAct = QAction(
@@ -1139,7 +1145,9 @@ class MainWindow(QMainWindow):
     def export(self):
         """Ask and export the last database query result in a .bib file"""
         filename = askSaveFileName(
-            self, title=mwstr.exportWhereG, filter="Bibtex (*.bib)",
+            self,
+            title=mwstr.exportWhereG,
+            filter="Bibtex (*.bib)",
         )
         if filename != "":
             pBExport.exportLast(filename)
@@ -1154,7 +1162,9 @@ class MainWindow(QMainWindow):
             entries: the list of entries to be exported
         """
         filename = askSaveFileName(
-            self, title=mwstr.exportWhereS, filter="Bibtex (*.bib)",
+            self,
+            title=mwstr.exportWhereS,
+            filter="Bibtex (*.bib)",
         )
         if filename != "":
             pBExport.exportSelected(filename, entries)
@@ -1212,7 +1222,9 @@ class MainWindow(QMainWindow):
     def exportAll(self):
         """Ask and export all the entries in a .bib file"""
         filename = askSaveFileName(
-            self, title=mwstr.exportWhereG, filter="Bibtex (*.bib)",
+            self,
+            title=mwstr.exportWhereG,
+            filter="Bibtex (*.bib)",
         )
         if filename != "":
             pBExport.exportAll(filename)
@@ -1272,7 +1284,9 @@ class MainWindow(QMainWindow):
                     cancel = False
                     while name.strip() == "":
                         res = askGenericText(
-                            mwstr.replaceAskName, mwstr.replaceName, parent=self,
+                            mwstr.replaceAskName,
+                            mwstr.replaceName,
+                            parent=self,
                         )
                         if res[1]:
                             name = res[0]
@@ -1311,7 +1325,9 @@ class MainWindow(QMainWindow):
                 cancel = False
                 while name.strip() == "":
                     res = askGenericText(
-                        mwstr.searchAskName, mwstr.searchName, parent=self,
+                        mwstr.searchAskName,
+                        mwstr.searchName,
+                        parent=self,
                     )
                     if res[1]:
                         name = res[0]
@@ -1510,8 +1526,15 @@ class MainWindow(QMainWindow):
         """Same as updateAllBibtexs, but ask the values of
         `startFrom` and `force` before the execution
         """
-        force = askYesNo(mwstr.forceUpdText, mwstr.forceUpdTitle,)
-        text, out = askGenericText(mwstr.updINumText, mwstr.updINumTitle, self,)
+        force = askYesNo(
+            mwstr.forceUpdText,
+            mwstr.forceUpdTitle,
+        )
+        text, out = askGenericText(
+            mwstr.updINumText,
+            mwstr.updINumTitle,
+            self,
+        )
         if not out:
             return
         try:
@@ -1585,7 +1608,9 @@ class MainWindow(QMainWindow):
         for one or more authors using the INSPIRE-HEP database
         """
         authorName, out = askGenericText(
-            mwstr.authorStNameAsk, mwstr.authorStNameTit, self,
+            mwstr.authorStNameAsk,
+            mwstr.authorStNameTit,
+            self,
         )
         if not out:
             return False
@@ -1657,7 +1682,11 @@ class MainWindow(QMainWindow):
             doReload (default True): if True, reload
                 the main entries list at the end
         """
-        queryStr, out = askGenericText(mwstr.importInspAskStr, mwstr.queryStr, self,)
+        queryStr, out = askGenericText(
+            mwstr.importInspAskStr,
+            mwstr.queryStr,
+            self,
+        )
         if not out:
             return False
         if queryStr == "":
@@ -1827,13 +1856,20 @@ class MainWindow(QMainWindow):
         Ask the index of the entry where to start from,
         before proceeding
         """
-        text, out = askGenericText(mwstr.cleBibStartAsk, mwstr.cleBibStartTit, self,)
+        text, out = askGenericText(
+            mwstr.cleBibStartAsk,
+            mwstr.cleBibStartTit,
+            self,
+        )
         if not out:
             return
         try:
             startFrom = int(text)
         except ValueError:
-            if askYesNo(mwstr.invalidIntAsk, mwstr.invalidEntry,):
+            if askYesNo(
+                mwstr.invalidIntAsk,
+                mwstr.invalidEntry,
+            ):
                 startFrom = 0
             else:
                 return
@@ -1993,7 +2029,10 @@ class MainWindow(QMainWindow):
         while (
             not isinstance(pbConfig.params["ADSToken"], six.string_types)
         ) or pbConfig.params["ADSToken"].strip() == "":
-            newkey, out = askGenericText(mwstr.askADSTokenText, mwstr.askADSTokenTitle,)
+            newkey, out = askGenericText(
+                mwstr.askADSTokenText,
+                mwstr.askADSTokenTitle,
+            )
             if not out:
                 return False
             if newkey.strip() != "":

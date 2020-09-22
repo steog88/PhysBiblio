@@ -48,11 +48,13 @@ class Thread_checkUpdated(PBThread):
             self.result.emit(outdated, newVersion)
         except ValueError:
             pBLogger.warning(
-                thestr.outdatedError, exc_info=True,
+                thestr.outdatedError,
+                exc_info=True,
             )
         except (URLError, ConnectionError):
             pBLogger.warning(
-                thestr.outdatedWarning, exc_info=True,
+                thestr.outdatedWarning,
+                exc_info=True,
             )
 
 

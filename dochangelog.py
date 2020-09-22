@@ -33,7 +33,9 @@ __version_date__ = "{datef:}"
 __recent_changes__ = \"\"\"<br>{mdchanges:}<br>
 \"\"\"
 """.format(
-    version=changelog[0]["version"], datef=currdate, mdchanges=mdchanges,
+    version=changelog[0]["version"],
+    datef=currdate,
+    mdchanges=mdchanges,
 )
 
 with open("physbiblio/version.py", "w") as _f:
@@ -47,7 +49,10 @@ for l in changelog:
         d = l["date"].strftime("%Y-%m-%d")
     except AttributeError:
         d = l["date"]
-    text += "{version:} ({datef:}):\n".format(version=l["version"], datef=d,)
+    text += "{version:} ({datef:}):\n".format(
+        version=l["version"],
+        datef=d,
+    )
     if isinstance(l["changes"], dict):
         for k, v in l["changes"].items():
             text += "    %s:\n" % k

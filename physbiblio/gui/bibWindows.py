@@ -234,7 +234,8 @@ def editBibtex(parentObject, editKey=None):
                 tmpBibDict = {}
             except ParseException:
                 pBLogger.warning(
-                    bwstr.parseBibErr % data["bibtex"], exc_info=True,
+                    bwstr.parseBibErr % data["bibtex"],
+                    exc_info=True,
                 )
                 tmpBibDict = {}
             data["bibdict"] = "%s" % tmpBibDict
@@ -900,7 +901,11 @@ class CommonBibActions:
         """
         menuI = []
         menuI.append(
-            QAction(bwstr.Acts.insCompl, self.menu, triggered=self.onComplete,)
+            QAction(
+                bwstr.Acts.insCompl,
+                self.menu,
+                triggered=self.onComplete,
+            )
         )
         if selection or (not selection and inspireID):
             menuI.append(
@@ -2500,7 +2505,8 @@ class SearchBibsWindow(EditObjectWindow):
             searchValues = ast.literal_eval(record["searchDict"])
         except (ValueError, SyntaxError):
             pBLogger.warning(
-                bwstr.SR.errorProcessSavedF % record["searchDict"], exc_info=True,
+                bwstr.SR.errorProcessSavedF % record["searchDict"],
+                exc_info=True,
             )
             searchValues = []
         if record["isReplace"] == 1:
@@ -2508,7 +2514,8 @@ class SearchBibsWindow(EditObjectWindow):
                 replaceFields = ast.literal_eval(record["replaceFields"])
             except (ValueError, SyntaxError):
                 pBLogger.warning(
-                    bwstr.SR.errorProcessSaved % record["replaceFields"], exc_info=True,
+                    bwstr.SR.errorProcessSaved % record["replaceFields"],
+                    exc_info=True,
                 )
                 replaceFields = {}
         else:

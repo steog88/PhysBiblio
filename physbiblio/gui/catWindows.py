@@ -371,7 +371,8 @@ class CatsTreeWindow(PBDialog):
                     bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        cwstr.entryNotInDb % self.askForBib, exc_info=True,
+                        cwstr.entryNotInDb % self.askForBib,
+                        exc_info=True,
                     )
                     return
                 try:
@@ -404,7 +405,8 @@ class CatsTreeWindow(PBDialog):
                     expitem = pBDB.exps.getByID(self.askForExp)[0]
                 except IndexError:
                     pBGUILogger.warning(
-                        cwstr.expNotInDb % self.askForExp, exc_info=True,
+                        cwstr.expNotInDb % self.askForExp,
+                        exc_info=True,
                     )
                     return
                 try:

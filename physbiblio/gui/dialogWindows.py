@@ -195,7 +195,9 @@ class ConfigWindow(PBDialog):
         """
         ix = pbConfig.paramOrder.index("pdfFolder")
         folder = askDirName(
-            parent=None, dir=self.textValues[ix][1].text(), title=dwstr.dirPDFSave,
+            parent=None,
+            dir=self.textValues[ix][1].text(),
+            title=dwstr.dirPDFSave,
         )
         if folder.strip() != "":
             self.textValues[ix][1].setText(str(folder))
@@ -961,14 +963,20 @@ class ExportForTexDialog(PBDialog):
     def onAskBib(self):
         """Accept the output (set self.result to True and close)"""
         outFName = askSaveFileName(
-            self, title=dwstr.whereExportBibs, filter="Bibtex (*.bib)",
+            self,
+            title=dwstr.whereExportBibs,
+            filter="Bibtex (*.bib)",
         )
         if outFName != "":
             self.bibButton.setText(outFName)
 
     def onAskTex(self, ix):
         """Accept the output (set self.result to True and close)"""
-        texFile = askFileNames(self, title=dwstr.whichTexFiles, filter="Latex (*.tex)",)
+        texFile = askFileNames(
+            self,
+            title=dwstr.whichTexFiles,
+            filter="Latex (*.tex)",
+        )
         if texFile != "" and texFile != []:
             self.texButtons[ix].setText("%s" % texFile)
 

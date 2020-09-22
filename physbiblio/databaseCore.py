@@ -225,7 +225,14 @@ class PhysBiblioDBCore:
             else:
                 self.curs.execute(query)
         except Exception as err:
-            self.logger.exception(dbcstr.errorCursor % (err, query, data,))
+            self.logger.exception(
+                dbcstr.errorCursor
+                % (
+                    err,
+                    query,
+                    data,
+                )
+            )
             return False
         else:
             return True

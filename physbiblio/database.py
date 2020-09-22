@@ -1642,7 +1642,8 @@ class Entries(PhysBiblioDBSub):
                     tmp["bibdict"] = {}
                 except ParseException:
                     pBLogger.warning(
-                        dstr.Bibs.errorParseBibtex % el["bibtex"], exc_info=True,
+                        dstr.Bibs.errorParseBibtex % el["bibtex"],
+                        exc_info=True,
                     )
                     tmp["bibtexDict"] = {}
                     tmp["bibdict"] = {}
@@ -2503,7 +2504,8 @@ class Entries(PhysBiblioDBSub):
             tmpBibDict = {}
         except ParseException:
             pBLogger.warning(
-                dstr.Bibs.errorParseBibtex % data["bibtex"], exc_info=True,
+                dstr.Bibs.errorParseBibtex % data["bibtex"],
+                exc_info=True,
             )
             tmpBibDict = {}
         data["bibdict"] = "%s" % tmpBibDict
@@ -2626,7 +2628,9 @@ class Entries(PhysBiblioDBSub):
             doi = self.getField(key, "doi")
             if isinstance(doi, six.string_types) and doi.strip() != "":
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    doi, number=0, isDoi=True,
+                    doi,
+                    number=0,
+                    isDoi=True,
                 )
                 if newid != "":
                     if self.connExec(
@@ -2640,7 +2644,9 @@ class Entries(PhysBiblioDBSub):
             arxiv = self.getField(key, "arxiv")
             if isinstance(arxiv, six.string_types) and arxiv.strip() != "":
                 newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    arxiv, number=0, isArxiv=True,
+                    arxiv,
+                    number=0,
+                    isArxiv=True,
                 )
                 if newid != "":
                     if self.connExec(
@@ -2678,7 +2684,8 @@ class Entries(PhysBiblioDBSub):
                 tmpBibDict = {}
             except ParseException:
                 pBLogger.warning(
-                    dstr.Bibs.errorParseBibtex % value, exc_info=True,
+                    dstr.Bibs.errorParseBibtex % value,
+                    exc_info=True,
                 )
                 tmpBibDict = {}
             self.updateField(key, "bibdict", "%s" % tmpBibDict, verbose=verbose)

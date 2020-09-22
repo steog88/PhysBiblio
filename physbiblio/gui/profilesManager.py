@@ -119,7 +119,8 @@ def editProfile(parentObject):
         parentObject.statusBarMessage(message)
     except AttributeError:
         pBLogger.debug(
-            bastr.noAttribute % ("parentObject", "statusBarMessage"), exc_info=True,
+            bastr.noAttribute % ("parentObject", "statusBarMessage"),
+            exc_info=True,
         )
 
 
