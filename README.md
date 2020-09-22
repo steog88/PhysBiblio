@@ -15,9 +15,10 @@ It is written in Python, it uses PySide2 for the graphical interface and Sqlite 
 ## 1. Getting started
 
 ### **WARNING:**
-PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Sabayon Linux, using `python` version `2.7+` and `3.5+`.  
+PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Manjaro Linux, using `python` version `3.5+`.  
 Some tests on a virtual machine running MacOS (10.14, `python 3.7`) have been also performed.  
-It should work equally well in other operating systems or with different python versions, but it has not been tested.  
+It should work equally well in other operating systems or with different python versions, but it has not been tested. 
+Notice that, although the software may still be compatible with `python2`, testing has been discontinued.  
 In any case, several bugs are surely still present and the program may freeze or crash unexpectedly.
 Please report any bug that you find [here](https://github.com/steog88/PhysBiblio/issues).
 
@@ -25,28 +26,23 @@ Please report any bug that you find [here](https://github.com/steog88/PhysBiblio
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
-Please note that at the moment `PySide2` is only available for `python` versions 2.7+ and 3.5+.
+Please note that at the moment `PySide2` is only available for `python` versions 2.7+ (not for Windows) and 3.5+.
 Other python versions are therefore not supported.
 
-#### Python2
-If you use `python 2+`, simply use (system-wide install)
-```
-sudo pip install physbiblio
-```
-or (user only install)
+#### Python
+Simply use (user only install)
 ```
 pip install --user physbiblio
 ```
-
-#### Python3
-For `python 3+`, the commands are nearly unchanged.
-If `pip` points to your `python3` distribution, the above commands will do the job.
-Otherwise, use the same commands above but with `pip3` instead of `pip`.
+or (system-wide install - discouraged)
+```
+sudo pip install physbiblio
+```
+If `pip` points to your `python2` distribution, try the above commands with `pip3` instead of `pip`.
 
 #### Conda
 Here you find a list of instructions to install and run `PhysBiblio.exe` using `conda` and related commands.
 Note that the following commands have not (yet) been tested with `PySide2`.
-Remember to use a python version 2.7+ or 3.5+.
 ```
 conda create --name physbiblio
 conda activate physbiblio
@@ -69,11 +65,11 @@ The primary director is under `Location`, you can combine with the information p
 
 To upgrade from a previously installed version, add the option `-U` or `--upgrade` when running `pip`, for example:
 ```
-sudo pip install -U physbiblio
+pip install -U --user physbiblio
 ```
 or
 ```
-pip install -U physbiblio
+sudo pip install -U physbiblio
 ```
 
 ### Test that everything works
@@ -100,10 +96,10 @@ If the tests cannot complete due to a segmentation fault, or present random beha
 
 ### Usage
 To run the program, execute `PhysBiblio.exe` that have been installed.
-By default it will run with `python2.x`.
-You can choose a specific `python` version running it explicitely via command line, for example you may select `python3` with
+By default it will run with the `python` version defined in your environment.
+You can choose a specific `python` version running it explicitely via command line, for example you may select `python3.8` (if installed) with
 ```
-python3 /path/to/PhysBiblio.exe
+python3.8 /path/to/PhysBiblio.exe
 ```
 
 You may want to create a menu shortcut to PhysBiblio.

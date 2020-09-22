@@ -1,4 +1,8 @@
 -   version: 1.6.2
+    date: xxx
+    changes:
+        - readme updated to comment discontinued support for python2
+-   version: 1.6.2
     date: 2020-09-22
     changes:
         - show error message when an import with corrupted bibtex is failed
