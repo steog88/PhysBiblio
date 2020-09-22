@@ -1470,6 +1470,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
                 fontsize=pbConfig.params["bibListFontSize"],
             )
         fc = FigureCanvasAgg(matplotlib.figure.Figure())
+        qii = QImage()
         with patch(
             "matplotlib.backends.backend_agg.FigureCanvasAgg.print_to_buffer",
             return_value=("buf", ["size0", "size1"]),
@@ -1479,7 +1480,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             return_value=fc,
             autospec=USE_AUTOSPEC_CLASS,
         ), patch(
-            "PySide2.QtGui.QImage.__init__", return_value=None, autospec=True
+            "PySide2.QtGui.QImage", return_value=qii, autospec=True
         ) as _qii, self.assertRaises(
             AttributeError
         ):
