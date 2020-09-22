@@ -1,12 +1,13 @@
 -   version: 1.6.1
     date: xxx
     changes:
+        - show error message when an import with corrupted bibtex is failed
         - fixes to inspireStats tests
         - fixed bug with selection of bibtexs
         - python2 fix
         - yaml to manage the CHANGELOG and version number, automatically updated through make before upload
         - black style updates
-        - figing a bug in tests with pyside2 5.15.1
+        - fixing a bug in tests with pyside2 5.15.1
 -   version: 1.6.1
     date: 2020-07-20
     changes:

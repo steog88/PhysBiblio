@@ -1827,6 +1827,9 @@ class MainWindow(QMainWindow):
                     db.entries = [el["bibpars"]]
                     entry = pbWriter.write(db)
                     data = pBDB.bibs.prepareInsert(entry)
+                    if data == {"bibkey": ""}:
+                        pBGUILogger.warning(mwstr.elementFailedBibtex % key)
+                        continue
                     if method == "adsnasa":
                         data["ads"] = key
                     if not pBDB.bibs.insert(data):

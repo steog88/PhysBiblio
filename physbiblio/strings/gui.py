@@ -12,6 +12,7 @@ class CommonGUIStrings:
     clickMissingIndex = "Click on missing index"
     config = "Configuration"
     elementFailed = "Failed in inserting entry '%s'\n"
+    elementFailedBibtex = "Failed in inserting entry '%s'. Corrupted bibtex?\n"
     elementImported = "Entries successfully imported: %s"
     elementInserted = "Element '%s' successfully inserted.\n"
     entriesCorrespondent = "Corresponding entries: {en}\n"

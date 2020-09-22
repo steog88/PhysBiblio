@@ -3825,6 +3825,15 @@ class TestMainWindow(GUITestCase):
                             u"author": u"yo",
                         },
                     },
+                    u"e": {
+                        "exist": False,
+                        "bibpars": {
+                            "ID": u"e",
+                            u"title": u"t",
+                            "ENTRYTYPE": u"article",
+                            u"author": u"yo",
+                        },
+                    },
                 },
                 self.mainW,
             )
@@ -3904,6 +3913,7 @@ class TestMainWindow(GUITestCase):
 
         aid.exec_.reset_mock()
         ais.exec_.reset_mock()
+        ais.selected = {"a": True, "b": True, "c": False, "e": True}
         ais.result = True
         with patch(
             self.modName + ".AdvancedImportDialog",
@@ -3931,7 +3941,8 @@ class TestMainWindow(GUITestCase):
             + 'arxiv="1",\ndoi="2"\n}\n'
             + '@article{c,\nauthor="io",\ntitle="title"\n,'
             + 'eprint="3",\ndoi="4"\n}\n'
-            + '@article{d,\nauthor="yo",\ntitle="t"\n}\n',
+            + '@article{d,\nauthor="yo",\ntitle="t"\n}\n'
+            + '@article{e,\nauthor="yo",\ntitle="t"\n}\n',
             autospec=True,
         ) as _ru, patch(
             self.clsName + ".askCatsForEntries", autospec=True
@@ -3943,7 +3954,7 @@ class TestMainWindow(GUITestCase):
             "logging.Logger.debug"
         ) as _deb, patch(
             "physbiblio.database.Entries.getByBibkey",
-            side_effect=[["a"], [], [], []],
+            side_effect=[["a"], [], [], [], ["e"]],
             autospec=True,
         ) as _gbb, patch(
             "physbiblio.database.Entries.getAll",
@@ -3951,7 +3962,7 @@ class TestMainWindow(GUITestCase):
             autospec=True,
         ) as _ga, patch(
             "physbiblio.database.Entries.prepareInsert",
-            side_effect=["data1", "data2", "data3", "data4"],
+            side_effect=["data1", "data2", {"bibkey": ""}],
             autospec=True,
         ) as _pi, patch(
             "physbiblio.database.Entries.insert",
@@ -4002,6 +4013,9 @@ class TestMainWindow(GUITestCase):
             )
             _bi.assert_has_calls([call(pBDB.bibs, "data1"), call(pBDB.bibs, "data2")])
             _wa.assert_has_calls([call("Failed in inserting entry 'b'\n")])
+            _wa.assert_has_calls(
+                [call("Failed in inserting entry 'e'. Corrupted bibtex?\n")]
+            )
             _sbm.assert_called_once_with(
                 self.mainW, "Entries successfully imported: ['a']"
             )
