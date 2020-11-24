@@ -2,6 +2,7 @@
     date: xxx
     changes:
         - readme updated to comment discontinued support for python2
+        - don't save absolute path of db file, if inside the default dataPath
 -   version: 1.6.2
     date: 2020-09-22
     changes:
