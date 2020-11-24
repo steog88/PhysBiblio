@@ -595,12 +595,9 @@ class TestGlobalDBOperations(unittest.TestCase):
                     "name": u"default",
                     "description": u"newsomething",
                     "databasefile": str(
-                        os.path.join(
-                            pbConfig.dataPath,
-                            configuration_params["mainDatabaseName"].default.replace(
-                                "PBDATA", ""
-                            ),
-                        )
+                        configuration_params["mainDatabaseName"]
+                        .default.replace("PBDATA", "")
+                        .replace(pbConfig.dataPath, "")
                     ),
                     "oldCfg": u"",
                     "isDefault": 1,
@@ -786,8 +783,7 @@ class TestGlobalDB(unittest.TestCase):
             data = {
                 "name": "default",
                 "description": "",
-                "databasefile": os.path.join(
-                    self.globalDb.dataPath,
+                "databasefile": (
                     configuration_params["mainDatabaseName"].default.replace(
                         "PBDATA", ""
                     ),
@@ -1921,7 +1917,15 @@ class TestConfigVars(unittest.TestCase):
             _go.assert_called_once_with(cv.globalDb)
             self.assertEqual(res[0], "def")
             self.assertEqual(
-                res[1], {"a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"}}
+                res[1],
+                {
+                    "a": {
+                        "n": "a",
+                        "d": "desc",
+                        "f": "no",
+                        "db": os.path.join(cv.dataPath, "test.db"),
+                    }
+                },
             )
             self.assertEqual(res[2], "ord")
 
@@ -1933,7 +1937,7 @@ class TestConfigVars(unittest.TestCase):
         cv.defaultProfileName = "b"
         cv.profiles = {
             "a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"},
-            "b": {"n": "b", "d": "ript", "f": "si", "db": "tset.db"},
+            "b": {"n": "b", "d": "ript", "f": "si", "db": os.sep + "tset.db"},
         }
         with patch("logging.Logger.error") as _e, patch(
             "physbiblio.config.ConfigVars.readConfig", autospec=True
@@ -1956,7 +1960,9 @@ class TestConfigVars(unittest.TestCase):
             _i.assert_called_once()
         self.assertEqual(cv.currentProfileName, "a")
         self.assertEqual(cv.currentProfile, cv.profiles["a"])
-        self.assertEqual(cv.currentDatabase, cv.profiles["a"]["db"])
+        self.assertEqual(
+            cv.currentDatabase, os.path.join(cv.dataPath, cv.profiles["a"]["db"])
+        )
 
         with patch("logging.Logger.error") as _e, patch(
             "logging.Logger.info"
@@ -2001,7 +2007,7 @@ class TestConfigVars(unittest.TestCase):
         cv.defaultProfileName = "b"
         cv.profiles = {
             "a": {"n": "a", "d": "desc", "f": "no", "db": "test.db"},
-            "b": {"n": "b", "d": "ript", "f": "si", "db": "tset.db"},
+            "b": {"n": "b", "d": "ript", "f": "si", "db": os.sep + "tset.db"},
         }
         with patch("logging.Logger.critical") as _c, patch(
             "logging.Logger.info"
@@ -2017,7 +2023,9 @@ class TestConfigVars(unittest.TestCase):
             _rc.assert_called_once_with(cv)
         self.assertEqual(cv.currentProfileName, "a")
         self.assertEqual(cv.currentProfile, cv.profiles["a"])
-        self.assertEqual(cv.currentDatabase, cv.profiles["a"]["db"])
+        self.assertEqual(
+            cv.currentDatabase, os.path.join(cv.dataPath, cv.profiles["a"]["db"])
+        )
 
         with patch("logging.Logger.critical") as _c, patch(
             "logging.Logger.info"

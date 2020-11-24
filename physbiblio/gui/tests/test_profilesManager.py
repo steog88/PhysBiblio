@@ -258,7 +258,7 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
                     call(
                         pbConfig.globalDb,
-                        os.path.join(pbConfig.dataPath, "test2.db"),
+                        "test2.db",
                         "name",
                         "testA",
                         identifierField="databasefile",
@@ -311,7 +311,7 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
                     call(
                         pbConfig.globalDb,
-                        os.path.join(pbConfig.dataPath, "test2.db"),
+                        "test2.db",
                         "name",
                         "testA",
                         identifierField="databasefile",
@@ -368,7 +368,7 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
                     call(
                         pbConfig.globalDb,
-                        os.path.join(pbConfig.dataPath, "test2.db"),
+                        "test2.db",
                         "name",
                         "testA",
                         identifierField="databasefile",
@@ -432,7 +432,7 @@ class TestEditProf(GUIwMainWTestCase):
             self.assertEqual(_dp.call_count, 0)
             _cp.assert_called_once_with(
                 pbConfig.globalDb,
-                databasefile=os.path.join(pbConfig.dataPath, "testNew.db"),
+                databasefile="testNew.db",
                 description="",
                 name="testNew",
             )
@@ -485,7 +485,7 @@ class TestEditProf(GUIwMainWTestCase):
             self.assertEqual(_dp.call_count, 0)
             _cp.assert_called_once_with(
                 pbConfig.globalDb,
-                databasefile=os.path.join(pbConfig.dataPath, "testNew.db"),
+                databasefile="testNew.db",
                 description="",
                 name="testNew",
             )
@@ -495,7 +495,7 @@ class TestEditProf(GUIwMainWTestCase):
             _w.assert_called_with("New profile created.")
             _copy.assert_called_once_with(
                 os.path.join(pbConfig.dataPath, "test1.db"),
-                os.path.join(pbConfig.dataPath, "testNew.db"),
+                "testNew.db",
             )
 
 

@@ -75,7 +75,7 @@ def editProfile(parentObject):
                 for k in pbConfig.profiles.keys()
             ]:
                 pbConfig.globalDb.updateProfileField(
-                    os.path.join(pbConfig.dataPath, fileName),
+                    fileName,
                     "name",
                     name,
                     identifierField="databasefile",
@@ -88,9 +88,8 @@ def editProfile(parentObject):
                     deleted.append(name)
             else:
                 if name.strip() != "":
-                    newFileName = os.path.join(
-                        pbConfig.dataPath,
-                        (fileName.split(os.sep)[-1] + ".db").replace(".db.db", ".db"),
+                    newFileName = (fileName.split(os.sep)[-1] + ".db").replace(
+                        ".db.db", ".db"
                     )
                     pbConfig.globalDb.createProfile(
                         name=name,

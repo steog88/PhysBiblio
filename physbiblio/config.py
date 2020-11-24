@@ -295,6 +295,7 @@ class GlobalDB(PhysBiblioDBCore):
 
         if self.countProfiles() == 0:
             self.createProfile()
+        self.checkOnlyFilename()
 
         self.config = ConfigurationDB(self)
 
@@ -334,9 +335,10 @@ class GlobalDB(PhysBiblioDBCore):
             True if successful, sys.exit(1) otherwise
         """
         if databasefile is None:
-            databasefile = os.path.join(
-                self.dataPath,
-                configuration_params["mainDatabaseName"].default.replace("PBDATA", ""),
+            databasefile = (
+                configuration_params["mainDatabaseName"]
+                .default.replace("PBDATA", "")
+                .replace(self.dataPath, "")
             )
         command = (
             "INSERT into profiles "
@@ -544,6 +546,16 @@ class GlobalDB(PhysBiblioDBCore):
         else:
             self.logger.warning(cstr.errorNoProfilesName)
             return False
+
+    def checkOnlyFilename(self):
+        """"""
+        for q in self.getProfiles():
+            if q["databasefile"].startswith(self.dataPath):
+                self.updateProfileField(
+                    q["name"],
+                    "databasefile",
+                    q["databasefile"].replace(self.dataPath, ""),
+                )
 
     def countSearches(self):
         """Obtain the number of searches in the table
@@ -1016,7 +1028,9 @@ class ConfigVars:
                 "n": e["name"],
                 "d": e["description"],
                 "f": e["oldCfg"],
-                "db": e["databasefile"],
+                "db": e["databasefile"]
+                if os.sep in e["databasefile"]
+                else os.path.join(self.dataPath, e["databasefile"]),
             }
         return (
             self.globalDb.getDefaultProfile(),
@@ -1040,7 +1054,11 @@ class ConfigVars:
                 return
         self.currentProfileName = newShort
         self.currentProfile = newProfile
-        self.currentDatabase = newProfile["db"]
+        self.currentDatabase = (
+            newProfile["db"]
+            if os.sep in newProfile["db"]
+            else os.path.join(self.dataPath, newProfile["db"])
+        )
         self.setDefaultParams()
         self.logger.info(
             cstr.restartWProfile % (self.currentProfileName, self.currentDatabase)
@@ -1068,7 +1086,11 @@ class ConfigVars:
             )
             self.currentProfileName = self.defaultProfileName
             self.currentProfile = self.profiles[self.currentProfileName]
-        self.currentDatabase = self.currentProfile["db"]
+        self.currentDatabase = (
+            self.currentProfile["db"]
+            if os.sep in self.currentProfile["db"]
+            else os.path.join(self.dataPath, self.currentProfile["db"])
+        )
         self.logger.info(
             cstr.startWProfile % (self.currentProfileName, self.currentDatabase)
         )
