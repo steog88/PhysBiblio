@@ -3662,7 +3662,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             [{"bibkey": "abc", "arxiv": "1"}, {"bibkey": "def", "arxiv": ""}],
             self.mainW,
         )
-        thr = Thread_downloadArxiv("bibkey", QWidget())
+        thr = Thread_downloadArxiv("bibkey", self.mainW)
+        thr.finished = 1
+        thr.start = MagicMock()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(

@@ -3,6 +3,7 @@
     changes:
         - readme updated to comment discontinued support for python2
         - don't save absolute path of db file, if inside the default dataPath
+        - fix bugs with PySide2 5.15.2
 -   version: 1.6.2
     date: 2020-09-22
     changes:
