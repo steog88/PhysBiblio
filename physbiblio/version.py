@@ -1,11 +1,7 @@
-__version__ = "1.6.2"
-__version_date__ = "22/09/2020"
+__version__ = "1.6.3"
+__version_date__ = "25/11/2020"
 
-__recent_changes__ = """<br>* show error message when an import with corrupted bibtex is failed<br>
-* fixes to inspireStats tests<br>
-* fixed bug with selection of bibtexs<br>
-* python2 fix<br>
-* yaml to manage the CHANGELOG and version number, automatically updated through make before upload<br>
-* black style updates<br>
-* fixing a bug in tests with pyside2 5.15.1<br>
+__recent_changes__ = """<br>* readme updated to comment discontinued support for python2<br>
+* don't save absolute path of db file, if inside the default dataPath<br>
+* fix bugs with PySide2 5.15.2<br>
 """
