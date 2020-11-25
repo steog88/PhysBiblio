@@ -1411,11 +1411,14 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         af = AbstractFormulas(
             self.mainW, "test text with $f_e$ equation", customEditor=bi.text
         )
+        tpl = Thread_processLatex(af.prepareText, self.mainW)
+        tpl.passData = 1
+        tpl.start = MagicMock()
         with patch("PySide2.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm, patch(
-            "physbiblio.gui.threadElements.Thread_processLatex.__init__",
-            return_value=None,
+            "physbiblio.gui.bibWindows.Thread_processLatex",
+            return_value=tpl,
             autospec=True,
         ) as _pl:
             with self.assertRaises(AttributeError):
@@ -1424,7 +1427,8 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             _ih.assert_called_once_with(
                 "%sProcessing LaTeX formulas..." % af.abstractTitle
             )
-            _pl.assert_called_once_with(af.thr, af.prepareText, self.mainW)
+            _pl.assert_called_once_with(af.prepareText, self.mainW)
+        tpl = Thread_processLatex(af.prepareText, self.mainW)
         with patch("PySide2.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm, patch(
@@ -1453,7 +1457,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
         self.assertIsInstance(qi, QImage)
         with patch(
-            "matplotlib.figure.Figure.__init__", return_value=None, autospec=True
+            "matplotlib.figure.Figure", return_value=None, autospec=True
         ) as _fi, self.assertRaises(AttributeError):
             qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
             _fi.assert_called_once_with()
