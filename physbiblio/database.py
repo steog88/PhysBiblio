@@ -3351,7 +3351,7 @@ class Entries(PhysBiblioDBSub):
                 except KeyError:
                     pBLogger.error(dstr.Bibs.laiInvalidMethod % method)
                     return False
-            if e.count("@") > 1:
+            if [a.startswith("@") for a in e.split("\n")].count(True) > 1:
                 if number is not None:
                     requireAll = True
                 else:

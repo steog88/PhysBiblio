@@ -548,7 +548,7 @@ class GlobalDB(PhysBiblioDBCore):
             return False
 
     def checkOnlyFilename(self):
-        """"""
+        """Convert previously stored profile names"""
         for q in self.getProfiles():
             if q["databasefile"].startswith(self.dataPath):
                 self.updateProfileField(
