@@ -238,7 +238,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
                 procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
             except (IndexError, KeyError):
                 return None
-            time.sleep(0.5)
+            time.sleep(1)
             url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
             text = parse_accents_str(self.textFromUrl(url))
             try:

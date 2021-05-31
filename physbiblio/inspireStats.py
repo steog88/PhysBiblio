@@ -190,7 +190,7 @@ class InspireStatsLoader:
             if not self.runningAuthorStats:
                 pBLogger.info(isstr.stopReceived)
                 break
-            time.sleep(0.5)
+            time.sleep(1)
             if p in self.allInfoA.keys():
                 continue
             self.allInfoA[p] = {}
