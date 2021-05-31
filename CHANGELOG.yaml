@@ -1,3 +1,11 @@
+-   version: 1.6.4
+    date: 2021-05-31
+    changes:
+        - fix errors in MacOS
+        - fix problem with multiple '@' in bibtex during import
+        - increase time separation between some INSPIRE queries
+        - small bug fixes and deprecation errors solved
+        - test fixes and updates
 -   version: 1.6.3
     date: 2020-11-25
     changes:

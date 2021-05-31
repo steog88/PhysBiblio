@@ -1,7 +1,9 @@
-__version__ = "1.6.3"
-__version_date__ = "25/11/2020"
+__version__ = "1.6.4"
+__version_date__ = "31/05/2021"
 
-__recent_changes__ = """<br>* readme updated to comment discontinued support for python2<br>
-* don't save absolute path of db file, if inside the default dataPath<br>
-* fix bugs with PySide2 5.15.2<br>
+__recent_changes__ = """<br>* fix errors in MacOS<br>
+* fix problem with multiple '@' in bibtex during import<br>
+* increase time separation between some INSPIRE queries<br>
+* small bug fixes and deprecation errors solved<br>
+* test fixes and updates<br>
 """
