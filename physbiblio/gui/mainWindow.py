@@ -813,7 +813,10 @@ class MainWindow(QMainWindow):
         self.tabWidget.addTab(QWidget(self), QIcon(":/images/file-add.png"), "")
         # hide close buttons for first and last tabs
         for i in [0, self.tabWidget.count() - 1]:
-            self.tabWidget.tabBar().tabButton(i, QTabBar.RightSide).deleteLater()
+            try:
+                self.tabWidget.tabBar().tabButton(i, QTabBar.RightSide).deleteLater()
+            except AttributeError:
+                pBLogger.debug("", exc_info=True)
             self.tabWidget.tabBar().setTabButton(i, QTabBar.RightSide, None)
         self.tabWidget.blockSignals(False)
 
