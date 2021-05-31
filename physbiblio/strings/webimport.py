@@ -42,7 +42,7 @@ class InspireStrings(GenericStrings):
     searchIDInfo = "Search ID of %s -> %s"
 
 
-class InspireOAIStrings(GenericStrings):
+class InspireOAIStrings(InspireStrings):
     """Strings for the inspireoai module"""
 
     cannotSearch = "Inspireoai cannot search strings in the DB"
