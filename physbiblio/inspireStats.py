@@ -386,7 +386,8 @@ class InspireStatsLoader:
                 plt.plot(
                     self.paperPlotInfo["citList"][0],
                     self.paperPlotInfo["citList"][1],
-                    picker=pickVal,
+                    picker=True,
+                    pickradius=pickVal,
                 )
                 fig.autofmt_xdate()
                 if save:
