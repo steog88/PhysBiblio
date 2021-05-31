@@ -15,7 +15,7 @@ It is written in Python, it uses PySide2 for the graphical interface and Sqlite 
 ## 1. Getting started
 
 ### **WARNING:**
-PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Manjaro Linux, using `python` version `3.5+`.  
+PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Manjaro Linux, using `python` version `3.6+`.  
 Some tests on a virtual machine running MacOS (10.14, `python 3.7`) have been also performed.  
 It should work equally well in other operating systems or with different python versions, but it has not been tested. 
 Notice that, although the software may still be compatible with `python2`, testing has been discontinued.  
@@ -26,8 +26,8 @@ Please report any bug that you find [here](https://github.com/steog88/PhysBiblio
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
-Please note that at the moment `PySide2` is only available for `python` versions 2.7+ (not for Windows) and 3.5+.
-Other python versions are therefore not supported.
+Please note that at the moment `PySide2` is only available for `python` versions 2.7+ (not for Windows) and 3.6+.
+Other python versions are therefore not supported, newer ones instead may require `PySide6`.
 
 #### Python
 Simply use (user only install)
@@ -92,8 +92,6 @@ If you are not sure which is your case, and in any case to report any problem yo
 In case you want to run only part of the test suite, you can use the command line options (see `PhysBiblio.exe test -h`).
 As an example, `PhysBiblio.exe test -o` will skip all the online tests.
 
-If the tests cannot complete due to a segmentation fault, or present random behaviors, it may be a problem related with the python version. A known case includes crashes with python 3.5.5 in Sabayon Linux. No problems appear when python 3.6 is used instead.
-
 ### Usage
 To run the program, execute `PhysBiblio.exe` that have been installed.
 By default it will run with the `python` version defined in your environment.
@@ -101,6 +99,9 @@ You can choose a specific `python` version running it explicitely via command li
 ```
 python3.8 /path/to/PhysBiblio.exe
 ```
+
+If you use MacOS, you may have problems with the menus when executing `PhysBiblio.exe`. 
+If that is the case, try unfocusing the main window and then focusing it back, or run the `PhysBiblio.exe` executable with `pythonw` instead of regular python, for example: `pythonw PhysBiblio.exe`.
 
 You may want to create a menu shortcut to PhysBiblio.
 In Ubuntu, you can simply create a new file `/your/home/.local/share/applications/PhysBiblio.desktop` with the editor of your choice, and insert the following lines:
