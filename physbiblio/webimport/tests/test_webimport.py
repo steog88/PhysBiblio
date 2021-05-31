@@ -84,7 +84,7 @@ class TestWebImportMethods(unittest.TestCase):
             "inspire": [
                 "Gariazzo:2015rra",
                 """@article{Gariazzo:2015rra,
-    author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+    author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y. F. and Zavanin, E. M.",
     title = "{Light sterile neutrinos}",
     eprint = "1507.08204",
     archivePrefix = "arXiv",
