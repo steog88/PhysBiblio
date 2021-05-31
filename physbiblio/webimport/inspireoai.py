@@ -220,7 +220,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
                 a string, if found, or None
             """
             url = pbConfig.inspireConferencesAPI + "?q=%s" % conferenceCode
-            text = parse_accents_str(self.textFromUrl(url))
+            text = self.textFromUrl(url)
             try:
                 info = json.loads(text)
             except json.decoder.JSONDecodeError:
@@ -240,7 +240,7 @@ class WebSearch(WebInterf, InspireOAIStrings):
                 return None
             time.sleep(1)
             url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
-            text = parse_accents_str(self.textFromUrl(url))
+            text = self.textFromUrl(url)
             try:
                 info = json.loads(text)
             except json.decoder.JSONDecodeError:
