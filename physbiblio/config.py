@@ -869,7 +869,6 @@ class ConfigVars:
     inspireExperimentsLink = "https://inspirehep.net/experiments/"
     inspireLiteratureAPI = "https://inspirehep.net/api/literature/"
     inspireLiteratureLink = "https://inspirehep.net/literature/"
-    inspireOAI = "https://old.inspirehep.net/oai2d"
 
     def __init__(self, profileFileName="profiles.db"):
         """Initialize the configuration.

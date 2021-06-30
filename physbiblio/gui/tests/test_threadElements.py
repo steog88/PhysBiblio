@@ -1109,7 +1109,9 @@ class Test_Thread_importDailyArxiv(GUITestCase):
             _wa.assert_has_calls(
                 [
                     call("Failed in inserting entry '12.346'\n"),
-                    call("Failed in completing info for entry '12.348'\n"),
+                    call(
+                        "Failed in completing info for entry '12.348'\n", exc_info=True
+                    ),
                 ]
             )
             _pi.assert_has_calls(

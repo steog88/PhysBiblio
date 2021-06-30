@@ -4254,7 +4254,9 @@ class TestMainWindow(GUITestCase):
                 ]
             )
             _bi.assert_has_calls([call(pBDB.bibs, "data1"), call(pBDB.bibs, "data2")])
-            _wa.assert_called_once_with("Failed in completing info for entry 'b'\n")
+            _wa.assert_called_once_with(
+                "Failed in completing info for entry 'b'\n", exc_info=True
+            )
             _sbm.assert_called_once_with(
                 self.mainW, "Entries successfully imported: ['a']"
             )
@@ -4364,7 +4366,9 @@ class TestMainWindow(GUITestCase):
                     call(pBDB.bibs, {"data": "2", "ads": "b"}),
                 ]
             )
-            _wa.assert_called_once_with("Failed in completing info for entry 'b'\n")
+            _wa.assert_called_once_with(
+                "Failed in completing info for entry 'b'\n", exc_info=True
+            )
             _sbm.assert_has_calls(
                 [
                     call(self.mainW, "lims"),

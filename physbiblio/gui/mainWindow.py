@@ -1846,8 +1846,8 @@ class MainWindow(QMainWindow):
                             pBDB.bibs.setBook(key)
                         pBLogger.info(mwstr.elementInserted % key)
                         inserted.append(key)
-                    except:
-                        pBLogger.warning(mwstr.failedComplete % key)
+                    except Exception:
+                        pBLogger.warning(mwstr.failedComplete % key, exc_info=True)
                 self.statusBarMessage(mwstr.elementImported % (inserted))
                 if selImpo.askCats.isChecked():
                     for key in inserted:

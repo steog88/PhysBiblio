@@ -48,8 +48,6 @@ setup(
         'matplotlib(>3.0.0);python_version>"3"',
         "outdated",
         "pylatexenc",
-        "pymarc",
-        "pyoai",
         "pyparsing(>=2.4.0)",
         "pyside2(>=5.14.0)",
         "pytz",

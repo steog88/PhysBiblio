@@ -36,25 +36,22 @@ class DOIStrings(GenericStrings):
 class InspireStrings(GenericStrings):
     """Strings for the inspire module"""
 
-    errorEmptyText = "An error occurred. Empty text obtained"
-    foundID = "Found: %s"
-    jsonError = "Cannot load JSON content"
-    searchIDInfo = "Search ID of %s -> %s"
-
-
-class InspireOAIStrings(InspireStrings):
-    """Strings for the inspireoai module"""
-
-    cannotSearch = "Inspireoai cannot search strings in the DB"
-    emptyRecord = "Empty record!"
+    apiResponseError = (
+        "An error occurred. The API returned the following message: %s - %s"
+    )
     endString = "END --- %s \n\n"
+    errorEmptyText = "An error occurred. Empty text obtained"
     errorInvalidBibtex = "Invalid bibtex!\n%s"
     errorReadRecord = "Error in readRecord!"
-    errorMarcxml = "Impossible to get marcxml for entry %s"
     exceptionFormat = "%s, %s\n%s"
+    foundID = "Found: %s"
+    jsonError = "Cannot load JSON content"
+    numberOfEntriesChanged = "The number of records changed from %s to %s during the execution of the INSPIRE API query"
     processed = "Processed %d elements"
     readData = "Reading data --- "
-    startString = "\nSTARTING OAI harvester --- %s \n\n"
+    searchIDInfo = "Search ID of %s -> %s"
+    searchResultsFrom = "Search info from %s"
+    startString = "\nSTARTING INSPIRE API harvester --- %s \n\n"
     warningJournal = "'journal' from OAI is missing or not a string (recid:%s)"
     warningMissing = "Something from OAI is missing (recid:%s)"
 

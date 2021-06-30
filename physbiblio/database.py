@@ -2755,12 +2755,10 @@ class Entries(PhysBiblioDBSub):
             date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
         if date2 is None or not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", date2):
             date2 = datetime.date.today().strftime("%Y-%m-%d")
-        yren, monen, dayen = date1.split("-")
-        yrst, monst, dayst = date2.split("-")
         pBLogger.info(dstr.Bibs.callOAIDates % (date1, date2))
-        date1 = datetime.datetime(int(yren), int(monen), int(dayen))
-        date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
-        entries = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+        entries = physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates(
+            date1, date2
+        )
         changed = []
         for e in entries:
             try:
@@ -2768,16 +2766,16 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.info(key)
                 old = self.getByBibkey(key, saveQuery=False)
                 if len(old) > 0 and old[0]["noUpdate"] == 0:
-                    outcome, bibtex = physBiblioWeb.webSearch[
-                        "inspireoai"
-                    ].updateBibtex(e, old[0]["bibtex"])
+                    outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
+                        e, old[0]["bibtex"]
+                    )
                     if not outcome:
                         pBLogger.warning(dstr.Bibs.errorOAIEntryG)
                         continue
                     e["bibtex"] = self.rmBibtexComments(
                         self.rmBibtexACapo(bibtex.strip())
                     )
-                    for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
+                    for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
                         if e[o] != old[0][d] and e[o] != None:
                             if o == "bibtex":
                                 pBLogger.info(dstr.Bibs.oaiInfoL % d)
@@ -2807,7 +2805,7 @@ class Entries(PhysBiblioDBSub):
         Parameters:
             inspireID (string): the id of the entry in inspires.
                 If is not a number, assume it is the bibtex key
-            bibtex: see physBiblio.webimport.inspireoai.retrieveOAIData
+            bibtex: see physBiblio.webimport.inspire.retrieveOAIData
             verbose: increase level of verbosity
             reloadAll (boolean, default False):
                 reload the entire content,
@@ -2833,14 +2831,14 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.error(dstr.Bibs.iidWrongVal % inspireID)
                 return False
         if not reloadAll:
-            result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(
+            result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
                 inspireID,
                 bibtex=bibtex,
                 verbose=verbose,
                 readConferenceTitle=readConferenceTitle,
             )
         else:
-            result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIData(
+            result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
                 inspireID, verbose=verbose, readConferenceTitle=readConferenceTitle
             )
         if verbose > 1:
@@ -2860,15 +2858,13 @@ class Entries(PhysBiblioDBSub):
                 old = [
                     {
                         k: ""
-                        for x, k in physBiblioWeb.webSearch[
-                            "inspireoai"
-                        ].correspondences
+                        for x, k in physBiblioWeb.webSearch["inspire"].correspondences
                     }
                 ]
             if verbose > 1:
                 pBLogger.info("%s, %s" % (key, old))
             if len(old) > 0:
-                for [o, d] in physBiblioWeb.webSearch["inspireoai"].correspondences:
+                for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
                     try:
                         if verbose > 0:
                             pBLogger.info("%s = %s (%s)" % (d, result[o], old[0][d]))
@@ -3417,7 +3413,7 @@ class Entries(PhysBiblioDBSub):
                 else:
                     return True
             except:
-                pBLogger.warning(dstr.failedComplete % entry)
+                pBLogger.warning(dstr.failedComplete % entry, exc_info=True)
                 return False
         elif entry is not None and isinstance(entry, list):
             failed = []
@@ -3628,7 +3624,7 @@ class Entries(PhysBiblioDBSub):
                             pBLogger.info(dstr.Bibs.ifbInserted)
                             self.lastInserted.append(key)
                         except Exception:
-                            pBLogger.exception(dstr.failedComplete % key)
+                            pBLogger.exception(dstr.failedComplete % key, exc_info=True)
                             errors.append(key)
         pBLogger.info(
             dstr.Bibs.ifbCompleteSummary
@@ -4072,7 +4068,7 @@ class Entries(PhysBiblioDBSub):
         pbMax=None,
         pbVal=None,
     ):
-        """Select unpublished papers and look for updates using inspireOAI
+        """Select unpublished papers and look for updates using inspire API
 
         Parameters:
             startFrom (default 0): the index in the list of entries

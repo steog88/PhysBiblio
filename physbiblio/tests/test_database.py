@@ -5849,7 +5849,7 @@ class TestDatabaseEntries(DBTestCase):
             side_effect=["1385583", False],
             autospec=True,
         ) as _inspireid, patch(
-            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIData",
+            "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
             side_effect=[
                 {
                     "doi": u"10.1088/0954-3899/43/3/033001",
@@ -5947,7 +5947,7 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.loadAndInsert(None)
             _e.assert_any_call("Invalid arguments!")
         # methods
-        for method in ["inspire", "doi", "arxiv", "isbn", "inspireoai"]:
+        for method in ["inspire", "doi", "arxiv", "isbn"]:
             with patch(
                 "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
                 return_value="",
@@ -6464,7 +6464,7 @@ class TestDatabaseEntries(DBTestCase):
 
             self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
             with patch(
-                "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIData",
+                "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
                 side_effect=[
                     False,
                     mockOut,
@@ -6502,7 +6502,7 @@ class TestDatabaseEntries(DBTestCase):
             ) as mock_function:
                 self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc", verbose=2))
                 mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspireoai"],
+                    physBiblioWeb.webSearch["inspire"],
                     "12345",
                     bibtex=None,
                     readConferenceTitle=False,
@@ -6514,7 +6514,7 @@ class TestDatabaseEntries(DBTestCase):
                     self.pBDB.bibs.updateInfoFromOAI("12345", verbose=2)
                     _i.assert_any_call("Inspire OAI info for 12345 saved.")
                 mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspireoai"],
+                    physBiblioWeb.webSearch["inspire"],
                     "12345",
                     bibtex=None,
                     readConferenceTitle=False,
@@ -6583,7 +6583,7 @@ class TestDatabaseEntries(DBTestCase):
                     )
                     _i.assert_any_call("doi = 10.1088/0954-3899/43/3/033001 (None)")
                 mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspireoai"],
+                    physBiblioWeb.webSearch["inspire"],
                     "12345",
                     bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
                     readConferenceTitle=False,
@@ -6763,7 +6763,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_getDailyInfoFromOAI(self):
         """test the function getDailyInfoFromOAI,
         without relying on the true
-        physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates
+        physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates
         (mocked)
         """
         self.maxDiff = None
@@ -6874,7 +6874,7 @@ class TestDatabaseEntries(DBTestCase):
             ],
         )
         with patch(
-            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIUpdates",
+            "physbiblio.webimport.inspire.WebSearch.retrieveCumulativeUpdates",
             side_effect=[
                 [],
                 [],
@@ -7137,7 +7137,7 @@ class TestDatabaseEntries(DBTestCase):
             ],
         )
         with patch(
-            "physbiblio.webimport.inspireoai.WebSearch.retrieveOAIUpdates",
+            "physbiblio.webimport.inspire.WebSearch.retrieveCumulativeUpdates",
             side_effect=[
                 [
                     {

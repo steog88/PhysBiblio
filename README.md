@@ -132,8 +132,6 @@ PhysBiblio depends on several python packages:
 * matplotlib (to do some plots)
 * outdated (check if new versions are available)
 * pylatexenc (conversion of accented and other utf-8 characters to latex commands)
-* pymarc (to deal with arXiv data)
-* pyoai (for massively harvesting the INSPIRE-HEP database)
 * requests (download json pages)
 * six (compatibility between python2 and python3)
 * unittest2+mock (python2.x) / unittest (python3.x) (for testing the methods and functions)

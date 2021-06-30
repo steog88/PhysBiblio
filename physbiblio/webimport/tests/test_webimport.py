@@ -21,7 +21,6 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.setuptests import *
-    from physbiblio.webimport.inspireoai import get_journal_ref_xml
     from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -150,12 +149,7 @@ class TestWebImportMethods(unittest.TestCase):
         }
         for method, strings in tests.items():
             print(method)
-            if method == "inspireoai":
-                self.assertEqual(
-                    physBiblioWeb.webSearch[method].retrieveOAIData(strings[0]),
-                    strings[1],
-                )
-            elif method == "arxiv":
+            if method == "arxiv":
                 self.assertEqual(
                     physBiblioWeb.webSearch[method]
                     .retrieveUrlFirst(strings[0], searchType="id")
@@ -212,7 +206,7 @@ class TestWebImportMethods(unittest.TestCase):
             "isbn": ["978019850871a", ""],
         }
         self.assertEqual(
-            physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("1110620"),
+            physBiblioWeb.webSearch["inspire"].retrieveOAIData("1110620"),
             {
                 "doi": None,
                 "arxiv": None,
@@ -242,9 +236,7 @@ class TestWebImportMethods(unittest.TestCase):
                 "reportnumber": None,
             },
         )
-        self.assertFalse(
-            physBiblioWeb.webSearch["inspireoai"].retrieveOAIData("9999999")
-        )
+        self.assertFalse(physBiblioWeb.webSearch["inspire"].retrieveOAIData("9999999"))
         for method, strings in tests.items():
             print(method)
             res = physBiblioWeb.webSearch[method].retrieveUrlFirst(strings[0])
@@ -259,13 +251,14 @@ class TestWebImportMethods(unittest.TestCase):
             "",
         )
 
-    def test_inspireoai_other(self):
-        """test auxiliary functions in inspireoai module"""
+    def test_inspire_other(self):
+        """test auxiliary functions in inspire module"""
         self.maxDiff = None
-        marcxmlRecord1 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(
+        raise NotImplementedError
+        marcxmlRecord1 = physBiblioWeb.webSearch["inspire"].oai.getRecord(
             metadataPrefix="marcxml", identifier="oai:inspirehep.net:1385583"
         )[1]
-        marcxmlRecord2 = physBiblioWeb.webSearch["inspireoai"].oai.getRecord(
+        marcxmlRecord2 = physBiblioWeb.webSearch["inspire"].oai.getRecord(
             metadataPrefix="marcxml", identifier="oai:inspirehep.net:1414175"
         )[1]
         self.assertEqual(
@@ -294,8 +287,8 @@ class TestWebImportMethods(unittest.TestCase):
                 ["C15-08-20"],
             ),
         )
-        dict1a = physBiblioWeb.webSearch["inspireoai"].readRecord(marcxmlRecord1)
-        dict1b = physBiblioWeb.webSearch["inspireoai"].readRecord(
+        dict1a = physBiblioWeb.webSearch["inspire"].readRecord(marcxmlRecord1)
+        dict1b = physBiblioWeb.webSearch["inspire"].readRecord(
             marcxmlRecord1, readConferenceTitle=True
         )
         self.assertEqual(dict1a, dict1b)
@@ -335,7 +328,7 @@ class TestWebImportMethods(unittest.TestCase):
                 + '"10.1088/0954-3899/43/3/033001",\n}\n\n',
             },
         )
-        dict2 = physBiblioWeb.webSearch["inspireoai"].readRecord(
+        dict2 = physBiblioWeb.webSearch["inspire"].readRecord(
             marcxmlRecord2, readConferenceTitle=True
         )
         self.assertEqual(
@@ -382,15 +375,15 @@ class TestWebImportMethods(unittest.TestCase):
         bibtex1 = '@article{abc,\nauthor="me",}'
         bibtex2 = "@article{abc,"
         self.assertEqual(
-            physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict2, bibtex1),
+            physBiblioWeb.webSearch["inspire"].updateBibtex(dict2, bibtex1),
             (False, bibtex1),
         )
         self.assertEqual(
-            physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex2),
+            physBiblioWeb.webSearch["inspire"].updateBibtex(dict1a, bibtex2),
             (False, bibtex2),
         )
         self.assertEqual(
-            physBiblioWeb.webSearch["inspireoai"].updateBibtex(dict1a, bibtex1),
+            physBiblioWeb.webSearch["inspire"].updateBibtex(dict1a, bibtex1),
             (
                 True,
                 '@Article{abc,\n        author = "me",\n       '
@@ -401,15 +394,13 @@ class TestWebImportMethods(unittest.TestCase):
         )
 
     @unittest.skipIf(skipTestsSettings.oai, "Online tests with OAI")
-    def test_inspireoai(self):
-        """test retrieve daily data from inspireOAI"""
+    def test_inspirecumulative(self):
+        """test retrieve daily data from inspire"""
         date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
         date2 = datetime.date.today().strftime("%Y-%m-%d")
-        yren, monen, dayen = date1.split("-")
-        yrst, monst, dayst = date2.split("-")
-        date1 = datetime.datetime(int(yren), int(monen), int(dayen))
-        date2 = datetime.datetime(int(yrst), int(monst), int(dayst))
-        result = physBiblioWeb.webSearch["inspireoai"].retrieveOAIUpdates(date1, date2)
+        result = physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates(
+            date1, date2
+        )
         self.assertEqual(type(result), list)
         print(len(result), result[0])
 
