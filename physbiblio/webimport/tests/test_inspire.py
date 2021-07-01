@@ -272,7 +272,7 @@ class TestInspireOnlineMethods(unittest.TestCase):
         ) as _rar:
             self.assertEqual(iws.retrieveSearchResults("ab c"), "output")
             _cu.assert_called_once_with(args)
-            _rar.assert_called_once_with("mycurrenturl")
+            _rar.assert_called_once_with("mycurrenturl", max_iterations=20)
             args["q"] = "abc"
             args["size"] = "1000"
             args["fields"] = ",".join(["a", "b"])
@@ -280,15 +280,17 @@ class TestInspireOnlineMethods(unittest.TestCase):
                 iws.retrieveSearchResults("abc", size=1111, fields=["a", "b"]), "output"
             )
             _cu.assert_any_call(args)
-            _rar.assert_any_call("mycurrenturl")
+            _rar.assert_any_call("mycurrenturl", max_iterations=20)
             args["size"] = "200"
             args["fields"] = ",".join(iws.metadataLiteratureFields + ["a", "b"])
             self.assertEqual(
-                iws.retrieveSearchResults("abc", size=200, addfields=["a", "b"]),
+                iws.retrieveSearchResults(
+                    "abc", size=200, addfields=["a", "b"], max_iterations=2
+                ),
                 "output",
             )
             _cu.assert_any_call(args)
-            _rar.assert_any_call("mycurrenturl")
+            _rar.assert_any_call("mycurrenturl", max_iterations=2)
 
     def test_retrieveInspireID(self):
         """Test retrieveInspireID"""
@@ -346,7 +348,17 @@ class TestInspireOnlineMethods(unittest.TestCase):
 
     def test_retrieveCumulativeUpdates(self):
         """Test retrieveCumulativeUpdates"""
+        iws = physBiblioWeb.webSearch["inspire"]
         raise NotImplementedError
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_retrieveCumulativeUpdates_online(self):
+        """Online test retrieveCumulativeUpdates"""
+        physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates(
+            (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"),
+            (datetime.date.today()).strftime("%Y-%m-%d"),
+            max_iterations=2,
+        )
 
     def test_retrieveOAIData(self):
         """Test retrieveOAIData"""

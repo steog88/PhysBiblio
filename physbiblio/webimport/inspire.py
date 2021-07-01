@@ -160,7 +160,7 @@ class WebSearch(WebInterf, InspireStrings):
         Parameter:
             url: the initial url to fetch.
                 Subsequent ones, if present, will be fetched by the json
-            max_iterations (default 100): maximum number of times
+            max_iterations (default 20): maximum number of times
                 that links.next is employed before stopping
 
         Output:
@@ -203,7 +203,9 @@ class WebSearch(WebInterf, InspireStrings):
                     url = ""
         return hits, tot
 
-    def retrieveSearchResults(self, searchstring, size=500, fields=None, addfields=[]):
+    def retrieveSearchResults(
+        self, searchstring, size=500, fields=None, addfields=[], max_iterations=20
+    ):
         """Extract a list of hits from an Inspire search
         (through the q parameter)
 
@@ -215,6 +217,8 @@ class WebSearch(WebInterf, InspireStrings):
             addfields (default []): list of requested metadata fields
                 apart from the default ones
                 (useful especially when fields=None)
+            max_iterations (default 20): maximum number of times
+                that links.next is employed before stopping
 
         Output:
             from self.retrieveAPIResults
@@ -231,7 +235,9 @@ class WebSearch(WebInterf, InspireStrings):
             del args["page"]
         except KeyError:
             pass
-        return self.retrieveAPIResults(self.createUrl(args))
+        return self.retrieveAPIResults(
+            self.createUrl(args), max_iterations=max_iterations
+        )
 
     def retrieveInspireID(self, string, number=None, isDoi=False, isArxiv=False):
         """Read the fetched content for a given entry
@@ -283,20 +289,22 @@ class WebSearch(WebInterf, InspireStrings):
         pBLogger.info(self.foundID % inspireID)
         return inspireID
 
-    def retrieveCumulativeUpdates(self, date1, date2):
+    def retrieveCumulativeUpdates(self, date1, date2, max_iterations=20):
         """Harvest the INSPRIE API to get all the updates
         and new occurrences between two dates
 
         Parameters:
             date1, date2: dates that define
                 the time interval to be searched
+            max_iterations (default 20): maximum number of times
+                that links.next is employed before stopping
 
         Output:
             a list of dictionaries containing the bibtex information
         """
         pBLogger.info(self.startString % time.strftime("%c"))
         hits, total = self.retrieveSearchResults(
-            "du%3E%3D" + date1 + " and du%3C%3D" + date2
+            "du%3E%3D" + date1 + " and du%3C%3D" + date2, max_iterations=max_iterations
         )
         foundObjects = []
         if len(hits) != total:
@@ -313,7 +321,7 @@ class WebSearch(WebInterf, InspireStrings):
                 foundObjects.append(tmpDict)
             except Exception as e:
                 pBLogger.exception(self.exceptionFormat % (count, id, e))
-        pBLogger.info(self.processed % total)
+        pBLogger.info(self.processed % len(hits))
         pBLogger.info(self.endString % time.strftime("%c"))
         return foundObjects
 
