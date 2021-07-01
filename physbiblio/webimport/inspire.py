@@ -35,7 +35,7 @@ class WebSearch(WebInterf, InspireStrings):
     correspondences = [
         ["id", "inspire"],
         ["year", "year"],
-        ["arxiv", "arxiv"],
+        # ["arxiv", "arxiv"],
         # ["oldkeys", "old_keys"],
         ["firstdate", "firstdate"],
         ["pubdate", "pubdate"],
@@ -52,7 +52,7 @@ class WebSearch(WebInterf, InspireStrings):
         "volume",
         "year",
         "pages",
-        "arxiv",
+        # "arxiv",
         "primaryclass",
         "archiveprefix",
         "eprint",
@@ -231,6 +231,8 @@ class WebSearch(WebInterf, InspireStrings):
         args["fields"] = "control_number"
         try:
             args["page"] = int(number)
+            if args["page"] == 0:
+                del args["page"]
         except (TypeError, ValueError):
             pass
         url = self.createUrl(args)
@@ -390,19 +392,33 @@ class WebSearch(WebInterf, InspireStrings):
             return title
 
         tmpDict = {}
-        arxiv = ""
+        # doi
         tmpDict["doi"] = None
         try:
             for q in record["metadata"]["dois"]:
                 tmpDict["doi"] = q["value"]
         except KeyError:
             pass
-        tmpDict["arxiv"] = None
+        # arxiv
+        tmpDict["eprint"] = None
+        tmpDict["archiveprefix"] = None
         try:
             for q in record["metadata"]["arxiv_eprints"]:
-                tmpDict["arxiv"] = q["value"]
+                tmpDict["eprint"] = q["value"]
+            tmpDict["archiveprefix"] = "arXiv"
         except KeyError:
             pass
+        tmpDict["primaryclass"] = None
+        try:
+            tmpDict["primaryclass"] = record["metadata"]["primary_arxiv_category"][0]
+        except (IndexError, KeyError):
+            try:
+                tmpDict["primaryclass"] = record["metadata"]["arxiv_eprints"][0][
+                    "categories"
+                ][0]
+            except (IndexError, KeyError):
+                pass
+        # key
         tmpDict["bibkey"] = None
         tmpOld = []
         try:
@@ -414,6 +430,7 @@ class WebSearch(WebInterf, InspireStrings):
         if tmpDict["bibkey"] is None and len(tmpOld) > 0:
             tmpDict["bibkey"] = tmpOld[0]
             tmpOld = []
+        # ads
         tmpDict["ads"] = None
         try:
             tmpDict["ads"] = [
@@ -423,8 +440,13 @@ class WebSearch(WebInterf, InspireStrings):
             ][0]
         except (IndexError, KeyError):
             pass
+        # # citations
         # tmpDict["cit_no_self"¯] = record["metadata"]["citation_count_without_self_citations"]
         # tmpDict["cit"¯] = record["metadata"]["citation_count"]
+        # publication info
+        tmpDict["year"] = None
+        if tmpDict["eprint"] is not None and tmpDict["year"] is None:
+            tmpDict["year"] = getYear(tmpDict["eprint"])
         try:
             pi = record["metadata"]["publication_info"][0]
             tmpDict["journal"] = pi["journal_title"]
@@ -441,9 +463,9 @@ class WebSearch(WebInterf, InspireStrings):
         except (IndexError, KeyError):
             tmpDict["journal"] = None
             tmpDict["volume"] = None
-            tmpDict["year"] = None
             tmpDict["pages"] = None
             conferenceCode = None
+        # dates
         try:
             tmpDict["firstdate"] = (
                 record["metadata"]["preprint_date"]
@@ -458,16 +480,21 @@ class WebSearch(WebInterf, InspireStrings):
             tmpDict["pubdate"] = record["metadata"]["imprints"][0]["date"]
         except (IndexError, KeyError):
             tmpDict["pubdate"] = None
+        # authors
         try:
             tmpDict["author"] = record["metadata"]["first_author"]["full_name"]
         except KeyError:
-            tmpDict["author"] = ""
+            try:
+                tmpDict["author"] = record["metadata"]["authors"][0]["full_name"]
+            except (IndexError, KeyError):
+                tmpDict["author"] = ""
         try:
             addAuthors = 0
             if (
                 record["metadata"]["author_count"]
-                > pbConfig.params["maxAuthorSave"] - 1
-            ):
+                if "author_count" in record["metadata"].keys()
+                else len(record["metadata"]["authors"])
+            ) > pbConfig.params["maxAuthorSave"] - 1:
                 tmpDict["author"] += " and others"
             else:
                 for r in record["metadata"]["authors"][1:]:
@@ -478,22 +505,14 @@ class WebSearch(WebInterf, InspireStrings):
                     tmpDict["author"] += " and %s" % r["full_name"]
         except (KeyError, IndexError):
             pass
+        # collaboration
         try:
             tmpDict["collaboration"] = ", ".join(
                 [c["value"] for c in record["metadata"]["collaborations"]]
             )
         except KeyError:
             tmpDict["collaboration"] = None
-        tmpDict["primaryclass"] = None
-        tmpDict["archiveprefix"] = None
-        tmpDict["eprint"] = None
-        try:
-            tmpDict["primaryclass"] = record["metadata"]["primary_arxiv_category"][0]
-            tmpDict["archiveprefix"] = "arXiv"
-            for q in record["metadata"]["arxiv_eprints"]:
-                tmpDict["eprint"] = q["value"]
-        except (IndexError, KeyError):
-            pass
+        # report numbers
         tmpDict["reportnumber"] = None
         try:
             tmpDict["reportnumber"] = ", ".join(
@@ -501,20 +520,19 @@ class WebSearch(WebInterf, InspireStrings):
             )
         except KeyError:
             tmpDict["reportnumber"] = None
-        if tmpDict["arxiv"] != tmpDict["eprint"] and tmpDict["eprint"] is not None:
-            tmpDict["arxiv"] = tmpDict["eprint"]
-        if tmpDict["eprint"] is not None and tmpDict["year"] is None:
-            tmpDict["year"] = getYear(tmpDict["eprint"])
+        # title
         try:
             tmpDict["title"] = record["metadata"]["titles"][0]["title"]
         except TypeError:
             tmpDict["title"] = None
         if conferenceCode is not None and readConferenceTitle:
             tmpDict["booktitle"] = getProceedingsTitle(conferenceCode)
+        # isbn
         try:
             tmpDict["isbn"] = record["metadata"]["isbns"][0]["value"]
         except (IndexError, KeyError):
             tmpDict["isbn"] = None
+        # entry type
         if tmpDict["isbn"] is not None:
             tmpDict["ENTRYTYPE"] = "book"
         else:
@@ -535,16 +553,18 @@ class WebSearch(WebInterf, InspireStrings):
                     pass
             else:
                 tmpDict["ENTRYTYPE"] = "article"
+        # old keys
         tmpDict["oldkeys"] = ",".join(tmpOld)
         for k in tmpDict.keys():
             try:
                 tmpDict[k] = parse_accents_str(tmpDict[k])
             except Exception:
                 pass
+        # link
         tmpDict["link"] = None
         try:
-            if tmpDict["arxiv"] is not None and tmpDict["arxiv"] != "":
-                tmpDict["link"] = pbConfig.arxivUrl + "/abs/" + tmpDict["arxiv"]
+            if tmpDict["eprint"] is not None and tmpDict["eprint"] != "":
+                tmpDict["link"] = pbConfig.arxivUrl + "/abs/" + tmpDict["eprint"]
         except KeyError:
             pass
         try:
@@ -552,18 +572,11 @@ class WebSearch(WebInterf, InspireStrings):
                 tmpDict["link"] = pbConfig.doiUrl + tmpDict["doi"]
         except KeyError:
             pass
+        # build bibtex
         bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
         for k in self.bibtexFields:
             if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] != "":
                 bibtexDict[k] = tmpDict[k]
-        try:
-            if (
-                bibtexDict["arxiv"] == bibtexDict["eprint"]
-                and bibtexDict["eprint"] is not None
-            ):
-                del bibtexDict["arxiv"]
-        except KeyError:
-            pass
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [bibtexDict]
         tmpDict["bibtex"] = pbWriter.write(db)
