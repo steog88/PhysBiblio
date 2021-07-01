@@ -51,20 +51,80 @@ class TestInspireOnlineMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "metadataLiteratureFields"))
         self.assertTrue(hasattr(ws, "metadataConferenceFields"))
         self.assertTrue(hasattr(ws, "urlArgs"))
+        self.assertTrue(hasattr(ws, "defaultSize"))
         self.assertIsInstance(physBiblioWeb.webSearch["inspire"], WebSearch)
 
     # @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_retrieveBibtex(self):
         """Test retrieveBibtex"""
-        raise NotImplementedError
+        iws = physBiblioWeb.webSearch["inspire"]
+        args = iws.urlArgs.copy()
+        args["q"] = "abc"
+        args["size"] = "250"
+        args["format"] = "bibtex"
+        with patch(
+            "physbiblio.webimport.inspire.parse_accents_str",
+            side_effect=KeyError("exc"),
+        ) as _pa, patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl",
+            return_value="mycurrenturl",
+        ) as _cu, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value="some output text",
+        ) as _tu, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveBibtex("abc"), "")
+            _cu.assert_called_once_with(args)
+            _i.assert_called_once_with(iws.searchInfo % ("abc", "mycurrenturl"))
+            _tu.assert_called_once_with("mycurrenturl")
+            _pa.assert_called_once_with("some output text")
+            _e.assert_called_once_with(iws.genericError)
+        args["q"] = "ab%20c"
+        args["size"] = "12"
+        with patch(
+            "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
+        ) as _pa, patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl",
+            return_value="mycurrenturl",
+        ) as _cu, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value="some output text",
+        ) as _tu, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveBibtex("ab c", size=12), "1234")
+            _cu.assert_called_once_with(args)
+            _i.assert_called_once_with(iws.searchInfo % ("ab c", "mycurrenturl"))
+            _tu.assert_called_once_with("mycurrenturl")
+            _pa.assert_called_once_with("some output text")
+            self.assertEqual(_e.call_count, 0)
 
     def test_retrieveUrlFirst(self):
         """Test retrieveUrlFirst"""
-        raise NotImplementedError
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBibtex", return_value="def"
+        ) as _f:
+            self.assertEqual(
+                physBiblioWeb.webSearch["inspire"].retrieveUrlFirst("abc"), "def"
+            )
+            _f.assert_called_once_with("abc", size=1)
 
     def test_retrieveUrlAll(self):
         """Test retrieveUrlAll"""
-        raise NotImplementedError
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBibtex", return_value="def"
+        ) as _f:
+            self.assertEqual(
+                physBiblioWeb.webSearch["inspire"].retrieveUrlAll("abc"), "def"
+            )
+            _f.assert_called_once_with(
+                "abc", size=physBiblioWeb.webSearch["inspire"].defaultSize
+            )
 
     def test_retrieveAPIResults(self):
         """Test retrieveAPIResults"""

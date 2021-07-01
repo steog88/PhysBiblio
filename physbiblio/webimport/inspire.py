@@ -92,6 +92,7 @@ class WebSearch(WebInterf, InspireStrings):
         "proceedings",
         "titles",
     ]
+    defaultSize = 250
 
     def __init__(self):
         """Initializes the class variables
@@ -102,7 +103,7 @@ class WebSearch(WebInterf, InspireStrings):
         WebInterf.__init__(self)
         self.urlArgs = {
             "sort": "mostrecent",
-            "size": "250",
+            "size": "%s" % self.defaultSize,
             "page": "1",
         }
 
@@ -150,7 +151,7 @@ class WebSearch(WebInterf, InspireStrings):
         Output:
             returns the bibtex string obtained from the API
         """
-        return self.retrieveBibtex(string, size=250)
+        return self.retrieveBibtex(string, size=self.defaultSize)
 
     def retrieveAPIResults(self, url):
         """ """
