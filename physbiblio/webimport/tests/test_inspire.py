@@ -349,7 +349,62 @@ class TestInspireOnlineMethods(unittest.TestCase):
     def test_retrieveCumulativeUpdates(self):
         """Test retrieveCumulativeUpdates"""
         iws = physBiblioWeb.webSearch["inspire"]
-        raise NotImplementedError
+        d1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
+        d2 = (datetime.date.today()).strftime("%Y-%m-%d")
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
+            return_value=([], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
+        ) as _r, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            res = iws.retrieveCumulativeUpdates(
+                d1,
+                d2,
+                max_iterations=2,
+            )
+            self.assertEqual(res, [])
+            _s.assert_called_once_with(
+                "du%3E%3D" + d1 + " and du%3C%3D" + d2, max_iterations=2
+            )
+            self.assertEqual(_r.call_count, 0)
+        hits = [
+            {"metadata": {"control_number": 123}},
+            {"metadata": {"control_number": 456}},
+            {"metadata": {"control_number": 789}},
+        ]
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
+            return_value=(hits, 2),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            side_effect=[{"k": "a"}, {"k": "b"}, {"k": "c"}],
+        ) as _r, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            res = iws.retrieveCumulativeUpdates(
+                d1,
+                d2,
+                max_iterations=2,
+            )
+            self.assertEqual(
+                res,
+                [{"k": "a", "id": 123}, {"k": "b", "id": 456}, {"k": "c", "id": 789}],
+            )
+            _s.assert_called_once_with(
+                "du%3E%3D" + d1 + " and du%3C%3D" + d2, max_iterations=2
+            )
+            for h in hits:
+                _r.assert_any_call(h)
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_retrieveCumulativeUpdates_online(self):
