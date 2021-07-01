@@ -153,14 +153,27 @@ class WebSearch(WebInterf, InspireStrings):
         """
         return self.retrieveBibtex(string, size=self.defaultSize)
 
-    def retrieveAPIResults(self, url):
-        """ """
+    def retrieveAPIResults(self, url, max_iterations=20):
+        """Obtain results from the INSPIRE API, merging several calls
+        if more than one page is available
+
+        Parameter:
+            url: the initial url to fetch.
+                Subsequent ones, if present, will be fetched by the json
+            max_iterations (default 100): maximum number of times
+                that links.next is employed before stopping
+
+        Output:
+            a list of hits and the total number of hits
+                as returned by the first GET
+        """
         hits = []
         tot = 0
-        while url != "":
+        iteration = 0
+        while url != "" and url is not None and iteration < max_iterations:
             pBLogger.info(self.searchResultsFrom % (url))
             text = self.textFromUrl(url)
-            if text is None:
+            if text is None or text == "":
                 pBLogger.warning(self.errorEmptyText)
                 return hits, tot
             try:
@@ -168,7 +181,14 @@ class WebSearch(WebInterf, InspireStrings):
             except json.decoder.JSONDecodeError:
                 pBLogger.exception(self.jsonError)
                 return hits, tot
-            if "hits" in results.keys():
+            if "message" in results.keys():
+                pBLogger.exception(
+                    self.apiResponseError % (results["status"], results["message"])
+                )
+                return hits, tot
+            elif "id" in results.keys():
+                return [results], 1
+            elif "hits" in results.keys():
                 try:
                     hits += results["hits"]["hits"]
                     if tot == 0:
@@ -178,15 +198,9 @@ class WebSearch(WebInterf, InspireStrings):
                     return hits, tot
                 try:
                     url = results["links"]["next"]
+                    iteration += 1
                 except KeyError:
                     url = ""
-            elif "id" in results.keys():
-                return [results], 1
-            elif "message" in results.keys():
-                pBLogger.exception(
-                    self.apiResponseError % (results["status"], results["message"])
-                )
-                return hits, tot
         return hits, tot
 
     def retrieveSearchResults(self, searchstring, size=500, fields=None, addfields=[]):
@@ -253,7 +267,7 @@ class WebSearch(WebInterf, InspireStrings):
         url = self.createUrl(args)
         pBLogger.info(self.searchIDInfo % (string, url))
         text = self.textFromUrl(url)
-        if text is None:
+        if text is None or text.strip() == "":
             pBLogger.warning(self.errorEmptyText)
             return ""
         try:
