@@ -128,7 +128,39 @@ class TestInspireOnlineMethods(unittest.TestCase):
 
     def test_retrieveAPIResults(self):
         """Test retrieveAPIResults"""
-        raise NotImplementedError
+        iws = physBiblioWeb.webSearch["inspire"]
+        self.assertIn("page", iws.urlArgs.keys())
+        args = iws.urlArgs.copy()
+        del args["page"]
+        args["q"] = "ab%20c"
+        args["size"] = "500"
+        args["fields"] = ",".join(iws.metadataLiteratureFields)
+        with patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl",
+            return_value="mycurrenturl",
+        ) as _cu, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value="output",
+        ) as _rar:
+            self.assertEqual(iws.retrieveSearchResults("ab c"), "output")
+            _cu.assert_called_once_with(args)
+            _rar.assert_called_once_with("mycurrenturl")
+            args["q"] = "abc"
+            args["size"] = "1000"
+            args["fields"] = ",".join(["a", "b"])
+            self.assertEqual(
+                iws.retrieveSearchResults("abc", size=1111, fields=["a", "b"]), "output"
+            )
+            _cu.assert_any_call(args)
+            _rar.assert_any_call("mycurrenturl")
+            args["size"] = "200"
+            args["fields"] = ",".join(iws.metadataLiteratureFields + ["a", "b"])
+            self.assertEqual(
+                iws.retrieveSearchResults("abc", size=200, addfields=["a", "b"]),
+                "output",
+            )
+            _cu.assert_any_call(args)
+            _rar.assert_any_call("mycurrenturl")
 
     def test_retrieveSearchResults(self):
         """Test retrieveSearchResults"""
@@ -137,6 +169,23 @@ class TestInspireOnlineMethods(unittest.TestCase):
     def test_retrieveInspireID(self):
         """Test retrieveInspireID"""
         raise NotImplementedError
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_retrieveInspireID_online(self):
+        """Online test retrieveInspireID"""
+        iws = physBiblioWeb.webSearch["inspire"]
+        test = [
+            ["Gariazzo:2015rra", u"1385583", {}],
+            ["10.1088/0954-3899/43/3/033001", u"1385583", {"isDoi": True}],
+            ["1507.08204", u"1385583", {"isArxiv": True}],
+            ["arxiv:1507.08204", u"1385583", {"isArxiv": True}],
+        ]
+        for q in test:
+            self.assertEqual(iws.retrieveInspireID(q[0], **q[2]), q[1])
+        self.assertEqual(
+            iws.retrieveInspireID("oWBWESFLHASBOVRUIAEHWBV"),
+            "",
+        )
 
     def test_retrieveCumulativeUpdates(self):
         """Test retrieveCumulativeUpdates"""

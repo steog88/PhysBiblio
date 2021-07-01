@@ -190,18 +190,32 @@ class WebSearch(WebInterf, InspireStrings):
         return hits, tot
 
     def retrieveSearchResults(self, searchstring, size=500, fields=None, addfields=[]):
-        """ """
+        """Extract a list of hits from an Inspire search
+        (through the q parameter)
+
+        Parameters:
+            searchstring: the string used to query the Inspire API
+            size (default 500): how many hits per page (max 1000)
+            fields (default None): if not None, replace the default selection
+                of metadata fields required in the output
+            addfields (default []): list of requested metadata fields
+                apart from the default ones
+                (useful especially when fields=None)
+
+        Output:
+            from self.retrieveAPIResults
+        """
         if fields is None:
             fields = self.metadataLiteratureFields
         if len(addfields) > 0:
             fields += addfields
         args = self.urlArgs.copy()
         args["q"] = searchstring.replace(" ", "%20")
-        args["size"] = "%d" % size
+        args["size"] = "%d" % (size if size <= 1000 else 1000)
         args["fields"] = ",".join(fields)
         try:
             del args["page"]
-        except (TypeError, ValueError):
+        except KeyError:
             pass
         return self.retrieveAPIResults(self.createUrl(args))
 

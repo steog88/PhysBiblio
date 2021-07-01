@@ -55,7 +55,7 @@ class PBSession(requests.Session):
             total=total_retries,
             backoff_factor=backoff,
             status_forcelist=status_forcelist,
-            method_whitelist=method_whitelist,
+            allowed_methods=method_whitelist,
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         requests.Session.__init__(self, **kwargs)
@@ -139,6 +139,7 @@ class WebInterf(WebInterfStrings):
         except Exception:
             pBLogger.warning(self.errorBadCodification % self.name)
             return ""
+        http.close()
         return text
 
     def retrieveUrlFirst(self, search):

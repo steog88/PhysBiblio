@@ -173,28 +173,6 @@ class TestWebImportMethods(unittest.TestCase):
                     physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(),
                     strings[1].strip(),
                 )
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]),
-            u"1385583",
-        )
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                tests["doi"][0], isDoi=True
-            ),
-            u"1385583",
-        )
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                tests["arxiv"][0], isArxiv=True
-            ),
-            u"1385583",
-        )
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                "arxiv:" + tests["arxiv"][0], isArxiv=True
-            ),
-            u"1385583",
-        )
 
     def test_methods_insuccess(self):
         """Test webimport using missing and/or invalid identifiers"""
@@ -246,10 +224,6 @@ class TestWebImportMethods(unittest.TestCase):
                 physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(),
                 strings[1].strip(),
             )
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveInspireID(tests["inspire"][0]),
-            "",
-        )
 
     def test_inspire_other(self):
         """test auxiliary functions in inspire module"""
