@@ -367,17 +367,6 @@ class TestWebImportMethods(unittest.TestCase):
             ),
         )
 
-    @unittest.skipIf(skipTestsSettings.oai, "Online tests with OAI")
-    def test_inspirecumulative(self):
-        """test retrieve daily data from inspire"""
-        date1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
-        date2 = datetime.date.today().strftime("%Y-%m-%d")
-        result = physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates(
-            date1, date2
-        )
-        self.assertEqual(type(result), list)
-        print(len(result), result[0])
-
 
 class TestWebImportOffline(unittest.TestCase):
     """Offline test for some functions of the webImport package."""

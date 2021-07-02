@@ -438,19 +438,18 @@ class TestParser(unittest.TestCase):
         oldSettings = skipTestsSettings.copy()
         parser = setParser()
         tests = [
-            [["test"], False, False, False, False, False],
-            [["test", "-d"], True, False, False, False, False],
-            [["test", "--database"], True, False, False, False, False],
-            [["test", "-g"], False, True, False, False, False],
-            [["test", "--gui"], False, True, False, False, False],
-            [["test", "-l"], False, False, True, False, False],
-            [["test", "--long"], False, False, True, False, False],
-            [["test", "-o"], False, False, False, True, True],
-            [["test", "--online"], False, False, False, True, True],
-            [["test", "--online_oai"], False, False, False, True, False],
-            [["test", "-d", "--online"], True, False, False, True, True],
+            [["test"], False, False, False, False],
+            [["test", "-d"], True, False, False, False],
+            [["test", "--database"], True, False, False, False],
+            [["test", "-g"], False, True, False, False],
+            [["test", "--gui"], False, True, False, False],
+            [["test", "-l"], False, False, True, False],
+            [["test", "--long"], False, False, True, False],
+            [["test", "-o"], False, False, False, True],
+            [["test", "--online"], False, False, False, True],
+            [["test", "-d", "--online"], True, False, False, True],
         ]
-        for options, _db, _gui, _lon, _oai, _onl in tests:
+        for options, _db, _gui, _lon, _onl in tests:
             skipTestsSettings.default()
             with patch(patchString, autospec=True) as _run:
                 args = parser.parse_args(options)
@@ -458,7 +457,6 @@ class TestParser(unittest.TestCase):
                 self.assertEqual(skipTestsSettings.db, _db)
                 self.assertEqual(skipTestsSettings.gui, _gui)
                 self.assertEqual(skipTestsSettings.long, _lon)
-                self.assertEqual(skipTestsSettings.oai, _oai)
                 self.assertEqual(skipTestsSettings.online, _onl)
                 self.assertEqual(_run.call_count, 1)
         with self.assertRaises(SystemExit):

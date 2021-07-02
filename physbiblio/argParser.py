@@ -51,11 +51,8 @@ def call_tests(args):
         skipTestsSettings.gui = True
     if args.long:
         skipTestsSettings.long = True
-    if args.online_oai:
-        skipTestsSettings.oai = True
     if args.online:
         skipTestsSettings.online = True
-        skipTestsSettings.oai = True
 
     from physbiblio.testLoader import PBScanningLoader
 
@@ -246,12 +243,6 @@ def setParser():
         dest="online",
         action="store_true",
         help=apstr.testOnlineHelp,
-    )
-    parser_test.add_argument(
-        "--online_oai",
-        dest="online_oai",
-        action="store_true",
-        help=apstr.testOAIHelp,
     )
     parser_test.set_defaults(func=call_tests)
 

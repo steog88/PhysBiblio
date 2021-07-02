@@ -50,7 +50,6 @@ class SkipTestsSettingsClass:
         new.db = bool(self.db)
         new.gui = bool(self.gui)
         new.long = bool(self.long)
-        new.oai = bool(self.oai)
         new.online = bool(self.online)
         return new
 
@@ -59,17 +58,15 @@ class SkipTestsSettingsClass:
         self.db = False
         self.gui = False
         self.long = False
-        self.oai = False
         self.online = False
 
     def __str__(self):
         """print current settings"""
-        return "DB: %s\nGUI: %s\nlong: %s\nOnline: %s (OAI: %s)" % (
+        return "DB: %s\nGUI: %s\nlong: %s\nOnline: %s" % (
             self.db,
             self.gui,
             self.long,
             self.online,
-            self.oai,
         )
 
 
