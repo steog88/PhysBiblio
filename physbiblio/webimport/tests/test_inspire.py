@@ -4,13 +4,8 @@
 This file is part of the physbiblio package.
 """
 import datetime
-import json
-import os
 import sys
 import traceback
-
-from ads.tests.stubdata.export import example_export_response
-from ads.tests.stubdata.solr import example_solr_response
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -48,6 +43,7 @@ class TestInspireMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "urlRecord"))
         self.assertTrue(hasattr(ws, "correspondences"))
         self.assertTrue(hasattr(ws, "bibtexFields"))
+        self.assertTrue(hasattr(ws, "updateBibtexFields"))
         self.assertTrue(hasattr(ws, "metadataLiteratureFields"))
         self.assertTrue(hasattr(ws, "metadataConferenceFields"))
         self.assertTrue(hasattr(ws, "urlArgs"))
@@ -527,13 +523,186 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(_e.call_count, 0)
             _u.assert_called_once_with(res, "bibtex")
 
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_getProceedingsTitle_online(self):
+        """Online test getProceedingsTitle"""
+        iws = physBiblioWeb.webSearch["inspire"]
+        self.assertEqual(iws.getProceedingsTitle("C00-00-00"), None)
+        self.assertEqual(
+            iws.getProceedingsTitle("C15-08-20"),
+            "Proceedings, 17th Lomonosov "
+            + "Conference on Elementary Particle Physics: Moscow, "
+            + "Russia, August 20-26, 2015",
+        )
+
+    def test_getProceedingsTitle(self):
+        """Test getProceedingsTitle"""
+        iws = physBiblioWeb.webSearch["inspire"]
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch("logging.Logger.exception") as _e, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            side_effect=[
+                None,
+                "",
+                '{"hits":{"hits":["abc"], "total":1}',
+                '{"hits":{"hits":["abc"], "total":1}}',
+                '{"hits":{"hits":[{"metadata": {"cnum":"abc"}}], "total":1}}',
+                (
+                    '{"hits":{"hits":['
+                    + '{"metadata": {"cnum":"abc"}},'
+                    + '{"metadata": {"cnum":"C21-01-00", "proceedings":[]}},'
+                    + ' {"metadata": {"cnum":"abc"}}'
+                    + '], "total":1}}'
+                ),
+                (
+                    '{"hits":{"hits":['
+                    + '{"metadata": {"cnum":"abc"}},'
+                    + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"abc":"abc"}]}},'
+                    + '{"metadata": {"cnum":"abc"}}'
+                    + '], "total":1}}'
+                ),
+            ],
+        ) as _tu:
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            _tu.assert_called_once_with(
+                pbConfig.inspireConferencesAPI
+                + "?q=C21-01-00"
+                + "&fields="
+                + (",".join(iws.metadataConferenceFields))
+            )
+            _e.assert_called_once_with(iws.jsonError)
+            _e.reset_mock()
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            _e.assert_called_once_with(iws.jsonError)
+            _e.reset_mock()
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            _e.assert_called_once_with(iws.jsonError)
+            _e.reset_mock()
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(_e.call_count, 0)
+        res1 = (
+            '{"hits":{"hits":['
+            + '{"metadata": {"cnum":"abc"}}, '
+            + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"control_number":"1234"}]}}, '
+            + '{"metadata": {"cnum":"abc"}}'
+            + '], "total":1}}'
+        )
+        res2 = (
+            '{"hits":{"hits":['
+            + '{"metadata": {"cnum":"abc"}}, '
+            + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"control_number":"2345"}]}},'
+            + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"control_number":"1234"}]}}'
+            + '], "total":1}}'
+        )
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch("logging.Logger.exception") as _e, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            side_effect=[
+                res1,
+                "a",  # literature
+                res2,
+                ('{"metadata": {"titles": "abc"}}'),  # literature
+                res2,
+                ('{"metadata": {"titles": [{"abc":"abc"}]}}'),  # literature
+                res2,
+                ('{"metadata": {"titles": []}}'),  # literature
+                res2,
+                ('{"metadata": {"titles": [{"title":"abc"}]}}'),  # literature
+                res2,
+                (  # literature
+                    '{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}'
+                ),
+            ],
+        ) as _tu:
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            _tu.assert_any_call(
+                pbConfig.inspireConferencesAPI
+                + "?q=C21-01-00"
+                + "&fields="
+                + (",".join(iws.metadataConferenceFields))
+            )
+            _tu.assert_any_call("%s%s" % (pbConfig.inspireLiteratureAPI, "1234"))
+            _e.assert_called_once_with(iws.jsonError)
+            _tu.reset_mock()
+            _e.reset_mock()
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            _tu.assert_any_call("%s%s" % (pbConfig.inspireLiteratureAPI, "2345"))
+            with self.assertRaises(AssertionError):
+                _tu.assert_called_with("%s%s" % (pbConfig.inspireLiteratureAPI, "1234"))
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
+            self.assertEqual(iws.getProceedingsTitle("C21-01-00"), "abc: def")
+            self.assertEqual(_e.call_count, 0)
+
     def test_readRecord(self):
         """Test readRecord"""
         raise NotImplementedError
 
     def test_updateBibtex(self):
         """Test updateBibtex"""
-        raise NotImplementedError
+        iws = physBiblioWeb.webSearch["inspire"]
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch("logging.Logger.exception") as _e:
+            self.assertEqual(iws.updateBibtex({}, ""), (False, ""))
+            _w.assert_called_once_with(iws.errorInvalidBibtex % "")
+            self.assertEqual(
+                iws.updateBibtex({}, "@article{bla,"), (False, "@article{bla,")
+            )
+            _w.assert_any_call(iws.errorInvalidBibtex % "@article{bla,")
+            bib = '@article{bla,\ntitle="test",\narxiv="2101.00000",\n}\n\n'
+            self.assertEqual(iws.updateBibtex({"id": 123}, bib), (False, bib))
+            _w.assert_any_call(iws.warningJournal % (123))
+            res = {
+                "id": 123,
+                "author": "me",
+                "title": "mywork",
+                "year": "2000",
+                "journal": "j",
+            }
+            self.assertEqual(iws.updateBibtex(res, bib), (False, bib))
+            _w.assert_any_call(
+                iws.warningMissingField
+                % (
+                    [k for k in iws.updateBibtexFields if k not in res.keys()],
+                    res["id"],
+                )
+            )
+            res = {
+                "id": 123,
+                "author": "me",
+                "title": "mywork",
+                "year": "2000",
+                "journal": "j",
+                "doi": "1234",
+                "volume": "1",
+                "pages": "2",
+            }
+            _w.reset_mock()
+            self.assertEqual(
+                iws.updateBibtex(res, bib),
+                (
+                    True,
+                    "@Article{bla,\n"
+                    + '        author = "me",\n'
+                    + '         title = "{mywork}",\n'
+                    + '       journal = "j",\n'
+                    + '        volume = "1",\n'
+                    + '          year = "2000",\n'
+                    + '         pages = "2",\n'
+                    + '           doi = "1234",\n'
+                    + '         arxiv = "2101.00000",\n'
+                    + "}\n"
+                    + "\n",
+                ),
+            )
+            self.assertEqual(_w.call_count, 0)
 
 
 if __name__ == "__main__":

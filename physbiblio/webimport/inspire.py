@@ -63,6 +63,15 @@ class WebSearch(WebInterf, InspireStrings):
         "booktitle",
         "collaboration",
     ]
+    updateBibtexFields = [
+        "author",
+        "title",
+        "doi",
+        "volume",
+        "pages",
+        "year",
+        "journal",
+    ]
     metadataLiteratureFields = [
         "arxiv_eprints",
         "author_count",
@@ -368,6 +377,58 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.info(self.doneD)
         return res
 
+    def getProceedingsTitle(self, conferenceCode):
+        """Use INSPIRE-HEP API to retrieve the title
+        of the Proceedings associated to a conference
+        identified by `conferenceCode`
+
+        Parameters:
+            conferenceCode: the identifier of the conference
+                in the INSPIRE-HEP database
+
+        Output:
+            a string, if found, or None
+        """
+        url = (
+            pbConfig.inspireConferencesAPI
+            + "?q=%s" % conferenceCode
+            + "&fields="
+            + (",".join(self.metadataConferenceFields))
+        )
+        text = self.textFromUrl(url)
+        try:
+            info = json.loads(text)
+        except (TypeError, json.decoder.JSONDecodeError):
+            pBLogger.exception(self.jsonError)
+            return None
+        try:
+            confs = [
+                a
+                for a in info["hits"]["hits"]
+                if a["metadata"]["cnum"] == conferenceCode
+            ]
+        except (KeyError, TypeError):
+            return None
+        try:
+            procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
+        except (IndexError, KeyError, TypeError):
+            return None
+        url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
+        text = self.textFromUrl(url)
+        try:
+            info = json.loads(text)
+        except json.decoder.JSONDecodeError:
+            pBLogger.exception(self.jsonError)
+            return None
+        try:
+            title = "%s: %s" % (
+                info["metadata"]["titles"][0]["title"],
+                info["metadata"]["titles"][0]["subtitle"],
+            )
+        except (IndexError, KeyError, TypeError):
+            return None
+        return title
+
     def readRecord(self, record, readConferenceTitle=False):
         """Read the content of a marcxml record
         to return a bibtex string
@@ -380,59 +441,6 @@ class WebSearch(WebInterf, InspireStrings):
         Output:
             a dictionary with the obtained fields
         """
-
-        def getProceedingsTitle(conferenceCode):
-            """Use INSPIRE-HEP API to retrieve the title
-            of the Proceedings associated to a conference
-            identified by `conferenceCode`
-
-            Parameters:
-                conferenceCode: the identifier of the conference
-                    in the INSPIRE-HEP database
-
-            Output:
-                a string, if found, or None
-            """
-            url = (
-                pbConfig.inspireConferencesAPI
-                + "?q=%s" % conferenceCode
-                + "&fields="
-                + (",".join(self.metadataConferenceFields))
-            )
-            text = self.textFromUrl(url)
-            try:
-                info = json.loads(text)
-            except json.decoder.JSONDecodeError:
-                pBLogger.exception(self.jsonError)
-                return None
-            try:
-                confs = [
-                    a
-                    for a in info["hits"]["hits"]
-                    if a["metadata"]["cnum"] == conferenceCode
-                ]
-            except KeyError:
-                return None
-            try:
-                procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
-            except (IndexError, KeyError):
-                return None
-            time.sleep(1)
-            url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
-            text = self.textFromUrl(url)
-            try:
-                info = json.loads(text)
-            except json.decoder.JSONDecodeError:
-                pBLogger.exception(self.jsonError)
-                return None
-            try:
-                title = "%s: %s" % (
-                    info["metadata"]["titles"][0]["title"],
-                    info["metadata"]["titles"][0]["subtitle"],
-                )
-            except (IndexError, KeyError):
-                return None
-            return title
 
         tmpDict = {}
         # doi
@@ -571,7 +579,7 @@ class WebSearch(WebInterf, InspireStrings):
         except TypeError:
             tmpDict["title"] = None
         if conferenceCode is not None and readConferenceTitle:
-            tmpDict["booktitle"] = getProceedingsTitle(conferenceCode)
+            tmpDict["booktitle"] = self.getProceedingsTitle(conferenceCode)
         # isbn
         try:
             tmpDict["isbn"] = record["metadata"]["isbns"][0]["value"]
@@ -629,7 +637,8 @@ class WebSearch(WebInterf, InspireStrings):
 
     def updateBibtex(self, res, bibtex):
         """use OAI data to update the (existing) bibtex information
-        of an entry
+        of an entry. Basically focus only on publication information,
+        assuming arxiv number and so on do not change
 
         Parameters:
             res: the recent search results
@@ -643,15 +652,23 @@ class WebSearch(WebInterf, InspireStrings):
         except:
             pBLogger.warning(self.errorInvalidBibtex % bibtex)
             return False, bibtex
-        if res["journal"] is None:
+        try:
+            assert res["journal"] is not None
+        except (AssertionError, KeyError):
             pBLogger.warning(self.warningJournal % (res["id"]))
             return False, bibtex
         try:
-            for k in ["doi", "volume", "pages", "year", "journal"]:
+            for k in self.updateBibtexFields:
                 if res[k] != "" and res[k] is not None:
                     element[k] = res[k]
         except KeyError:
-            pBLogger.warning(self.warningMissing % (res["id"]))
+            pBLogger.warning(
+                self.warningMissingField
+                % (
+                    [k for k in self.updateBibtexFields if k not in res.keys()],
+                    res["id"],
+                )
+            )
             return False, bibtex
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [element]

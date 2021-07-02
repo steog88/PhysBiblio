@@ -6896,6 +6896,8 @@ class TestDatabaseEntries(DBTestCase):
                         "oldkeys": "",
                         "bibkey": u"Gariazzo:2015rra",
                         "pages": u"033001",
+                        "author": "S. Gariazzo et al",
+                        "title": "Light sterile neutrinos",
                     }
                 ],
             ],
@@ -6983,8 +6985,10 @@ class TestDatabaseEntries(DBTestCase):
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n       "
-                        + 'journal = "J.Phys.",\n        volume = "G43",\n '
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "S. Gariazzo et al",\n'
+                        + '         title = "{Light sterile neutrinos}",\n'
+                        + '       journal = "J.Phys.",\n        volume = "G43",\n '
                         + '         year = "2016",\n         pages = '
                         + '"033001",\n           doi = '
                         + '"10.1088/0954-3899/43/3/033001",\n         arxiv = '
@@ -7002,25 +7006,29 @@ class TestDatabaseEntries(DBTestCase):
                         "abstract": None,
                         "bibtexDict": {
                             "arxiv": "1507.08204",
+                            "author": "S. Gariazzo et al",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "pages": "033001",
+                            "title": "{Light sterile neutrinos}",
                             "year": "2016",
                             "volume": "G43",
                             "journal": "J.Phys.",
                             "ENTRYTYPE": "article",
                             "ID": "Gariazzo:2015rra",
                         },
-                        "title": "",
+                        "title": "{Light sterile neutrinos}",
                         "journal": "J.Phys.",
                         "volume": "G43",
                         "number": "",
                         "pages": "033001",
                         "published": "J.Phys. G43 (2016) 033001",
-                        "author": "",
+                        "author": "S. Gariazzo et al",
                         "bibdict": {
                             u"doi": u"10.1088/0954-3899/43/3/033001",
                             u"journal": u"J.Phys.",
                             u"arxiv": u"1507.08204",
+                            "author": "S. Gariazzo et al",
+                            "title": "{Light sterile neutrinos}",
                             "ENTRYTYPE": u"article",
                             u"volume": u"G43",
                             u"year": u"2016",
@@ -7155,6 +7163,8 @@ class TestDatabaseEntries(DBTestCase):
                         "oldkeys": "",
                         "bibkey": u"Gariazzo:2015rra",
                         "pages": u"033001",
+                        "author": "S. Gariazzo et al",
+                        "title": "Light sterile neutrinos",
                     }
                 ]
             ],
@@ -7229,12 +7239,14 @@ class TestDatabaseEntries(DBTestCase):
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n       "
-                        + 'journal = "J.Phys.",\n        volume = "G43",\n'
-                        + '          year = "2016",\n         '
-                        + 'pages = "033001",\n           '
-                        + 'doi = "10.1088/0954-3899/43/3/033001",\n         '
-                        + 'arxiv = "1507.08204",\n}',
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "S. Gariazzo et al",\n'
+                        + '         title = "{Light sterile neutrinos}",\n'
+                        + '       journal = "J.Phys.",\n        volume = "G43",\n '
+                        + '         year = "2016",\n         pages = '
+                        + '"033001",\n           doi = '
+                        + '"10.1088/0954-3899/43/3/033001",\n         arxiv = '
+                        + '"1507.08204",\n}',
                         "firstdate": "2015-07-29",
                         "pubdate": "2016-01-13",
                         "exp_paper": 0,
@@ -7248,25 +7260,29 @@ class TestDatabaseEntries(DBTestCase):
                         "abstract": None,
                         "bibtexDict": {
                             "arxiv": "1507.08204",
+                            "author": "S. Gariazzo et al",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "pages": "033001",
+                            "title": "{Light sterile neutrinos}",
                             "year": "2016",
                             "volume": "G43",
                             "journal": "J.Phys.",
                             "ENTRYTYPE": "article",
                             "ID": "Gariazzo:2015rra",
                         },
-                        "title": "",
+                        "title": "{Light sterile neutrinos}",
                         "journal": "J.Phys.",
                         "volume": "G43",
                         "number": "",
                         "pages": "033001",
                         "published": "J.Phys. G43 (2016) 033001",
-                        "author": "",
+                        "author": "S. Gariazzo et al",
                         "bibdict": {
                             u"doi": u"10.1088/0954-3899/43/3/033001",
                             u"journal": u"J.Phys.",
                             u"arxiv": u"1507.08204",
+                            "author": "S. Gariazzo et al",
+                            "title": "{Light sterile neutrinos}",
                             "ENTRYTYPE": u"article",
                             u"volume": u"G43",
                             u"year": u"2016",

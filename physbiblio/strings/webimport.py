@@ -55,7 +55,7 @@ class InspireStrings(GenericStrings):
     searchResultsFrom = "Search info from %s"
     startString = "\nSTARTING INSPIRE API harvester --- %s \n\n"
     warningJournal = "'journal' from OAI is missing or not a string (recid:%s)"
-    warningMissing = "Something from OAI is missing (recid:%s)"
+    warningMissingField = "Field '%s' from OAI is missing (recid:%s)"
 
 
 class ISBNStrings(GenericStrings):
