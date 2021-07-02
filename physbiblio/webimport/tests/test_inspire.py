@@ -639,10 +639,109 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), "abc: def")
             self.assertEqual(_e.call_count, 0)
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch("logging.Logger.exception") as _e, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value='{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}',
+        ) as _tu:
+            self.assertEqual(
+                iws.getProceedingsTitle("C21-01-00", useUrl="abcd"), "abc: def"
+            )
+            _tu.assert_called_once_with("abcd")
 
     def test_readRecord(self):
         """Test readRecord"""
         raise NotImplementedError
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_readRecord_online(self):
+        """Online test readRecord"""
+        self.maxDiff = None
+        iws = physBiblioWeb.webSearch["inspire"]
+        record1 = iws.retrieveAPIResults("%s%s" % (iws.url, "1385583"))[0][0]
+        record2 = iws.retrieveAPIResults("%s%s" % (iws.url, "1414175"))[0][0]
+        dict1a = iws.readRecord(record1)
+        dict1b = iws.readRecord(record1, readConferenceTitle=True)
+        self.assertEqual(dict1a, dict1b)
+        del dict1a["cit"]
+        del dict1a["cit_no_self"]
+        self.assertEqual(
+            dict1a,
+            {
+                "doi": "10.1088/0954-3899/43/3/033001",
+                "bibkey": "Gariazzo:2015rra",
+                "ads": "2015JPhG...43c3001G",
+                "journal": "J.Phys.G",
+                "volume": "43",
+                "year": "2016",
+                "pages": "033001",
+                "firstdate": "2015-07-29",
+                "pubdate": "2016-01-13",
+                "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and "
+                + "Li, Y.F. and Zavanin, E.M.",
+                "collaboration": None,
+                "primaryclass": "hep-ph",
+                "archiveprefix": "arXiv",
+                "eprint": "1507.08204",
+                "reportnumber": None,
+                "title": "Light sterile neutrinos",
+                "isbn": None,
+                "ENTRYTYPE": "article",
+                "oldkeys": "",
+                "link": "%s10.1088/0954-3899/43/3/033001" % pbConfig.doiUrl,
+                "bibtex": "@Article{Gariazzo:2015rra,\n        "
+                + 'author = "Gariazzo, S. and Giunti, C. and Laveder, M. '
+                + 'and Li, Y.F. and Zavanin, E.M.",\n         title = "'
+                + '{Light sterile neutrinos}",\n       journal = '
+                + '"J.Phys.G",\n        volume = "43",\n          year = '
+                + '"2016",\n         pages = "033001",\n archiveprefix = '
+                + '"arXiv",\n  primaryclass = "hep-ph",\n        eprint = '
+                + '"1507.08204",\n           doi = '
+                + '"10.1088/0954-3899/43/3/033001",\n}\n\n',
+            },
+        )
+        dict2 = iws.readRecord(record2, readConferenceTitle=True)
+        del dict2["cit"]
+        del dict2["cit_no_self"]
+        self.assertEqual(
+            dict2,
+            {
+                "doi": "10.1142/9789813224568_0076",
+                "bibkey": "Gariazzo:2016ehl",
+                "ads": None,
+                "journal": None,
+                "volume": None,
+                "year": "2017",
+                "pages": "469-475",
+                "firstdate": "2016-01-07",
+                "pubdate": "2017",
+                "author": "Gariazzo, Stefano",
+                "collaboration": None,
+                "primaryclass": "astro-ph.CO",
+                "archiveprefix": "arXiv",
+                "eprint": "1601.01475",
+                "reportnumber": None,
+                "title": "Light Sterile Neutrinos In Cosmology",
+                "isbn": None,
+                "booktitle": "Proceedings, 17th Lomonosov "
+                + "Conference on Elementary Particle Physics: Moscow, "
+                + "Russia, August 20-26, 2015",
+                "ENTRYTYPE": "inproceedings",
+                "oldkeys": "",
+                "link": "%s10.1142/9789813224568_0076" % pbConfig.doiUrl,
+                "bibtex": "@Inproceedings{Gariazzo:2016ehl,\n        "
+                + 'author = "Gariazzo, Stefano",\n         '
+                + 'title = "{Light Sterile Neutrinos In Cosmology}",'
+                + '\n     booktitle = "{Proceedings, 17th Lomonosov '
+                + "Conference on Elementary Particle Physics: Moscow, "
+                + 'Russia, August 20-26, 2015}",\n          year = '
+                + '"2017",\n         pages = "469-475",\n archiveprefix = '
+                + '"arXiv",\n  primaryclass = "astro-ph.CO",\n        '
+                + 'eprint = "1601.01475",\n           doi = '
+                + '"10.1142/9789813224568_0076",\n}\n\n',
+            },
+        )
 
     def test_updateBibtex(self):
         """Test updateBibtex"""

@@ -377,7 +377,7 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.info(self.doneD)
         return res
 
-    def getProceedingsTitle(self, conferenceCode):
+    def getProceedingsTitle(self, conferenceCode, useUrl=None):
         """Use INSPIRE-HEP API to retrieve the title
         of the Proceedings associated to a conference
         identified by `conferenceCode`
@@ -385,35 +385,40 @@ class WebSearch(WebInterf, InspireStrings):
         Parameters:
             conferenceCode: the identifier of the conference
                 in the INSPIRE-HEP database
+            useUrl (default None): if not None, the link to use
+                for retrieving the title of conference proceedings
 
         Output:
             a string, if found, or None
         """
-        url = (
-            pbConfig.inspireConferencesAPI
-            + "?q=%s" % conferenceCode
-            + "&fields="
-            + (",".join(self.metadataConferenceFields))
-        )
-        text = self.textFromUrl(url)
-        try:
-            info = json.loads(text)
-        except (TypeError, json.decoder.JSONDecodeError):
-            pBLogger.exception(self.jsonError)
-            return None
-        try:
-            confs = [
-                a
-                for a in info["hits"]["hits"]
-                if a["metadata"]["cnum"] == conferenceCode
-            ]
-        except (KeyError, TypeError):
-            return None
-        try:
-            procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
-        except (IndexError, KeyError, TypeError):
-            return None
-        url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
+        if useUrl is None:
+            url = (
+                pbConfig.inspireConferencesAPI
+                + "?q=%s" % conferenceCode
+                + "&fields="
+                + (",".join(self.metadataConferenceFields))
+            )
+            text = self.textFromUrl(url)
+            try:
+                info = json.loads(text)
+            except (TypeError, json.decoder.JSONDecodeError):
+                pBLogger.exception(self.jsonError)
+                return None
+            try:
+                confs = [
+                    a
+                    for a in info["hits"]["hits"]
+                    if a["metadata"]["cnum"] == conferenceCode
+                ]
+            except (KeyError, TypeError):
+                return None
+            try:
+                procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
+            except (IndexError, KeyError, TypeError):
+                return None
+            url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
+        else:
+            url = useUrl
         text = self.textFromUrl(url)
         try:
             info = json.loads(text)
@@ -443,6 +448,23 @@ class WebSearch(WebInterf, InspireStrings):
         """
 
         tmpDict = {}
+        # key
+        tmpDict["bibkey"] = None
+        try:
+            tmpDict["bibkey"] = record["metadata"]["texkeys"][0]
+        except (IndexError, KeyError) as e:
+            pBLogger.warning(self.errorReadRecord, exc_info=True)
+        # old keys
+        tmpOld = []
+        try:
+            tmpOld = list(record["metadata"]["texkeys"])
+            tmpOld.pop(0)
+        except (IndexError, KeyError) as e:
+            pBLogger.warning(self.errorReadRecord, exc_info=True)
+        if tmpDict["bibkey"] is None and len(tmpOld) > 0:
+            tmpDict["bibkey"] = tmpOld[0]
+            tmpOld.pop(0)
+        tmpDict["oldkeys"] = ",".join(tmpOld)
         # doi
         tmpDict["doi"] = None
         try:
@@ -469,18 +491,6 @@ class WebSearch(WebInterf, InspireStrings):
                 ][0]
             except (IndexError, KeyError):
                 pass
-        # key
-        tmpDict["bibkey"] = None
-        tmpOld = []
-        try:
-            tmpDict["bibkey"] = record["metadata"]["texkeys"][0]
-            tmpOld = record["metadata"]["texkeys"]
-            tmpOld.pop(0)
-        except (IndexError, KeyError) as e:
-            pBLogger.warning(self.errorReadRecord, exc_info=True)
-        if tmpDict["bibkey"] is None and len(tmpOld) > 0:
-            tmpDict["bibkey"] = tmpOld[0]
-            tmpOld = []
         # ads
         tmpDict["ads"] = None
         try:
@@ -491,33 +501,40 @@ class WebSearch(WebInterf, InspireStrings):
             ][0]
         except (IndexError, KeyError):
             pass
-        # citations
-        tmpDict["cit_no_self"] = record["metadata"][
-            "citation_count_without_self_citations"
-        ]
-        tmpDict["cit"] = record["metadata"]["citation_count"]
         # publication info
         tmpDict["year"] = None
         if tmpDict["eprint"] is not None and tmpDict["year"] is None:
             tmpDict["year"] = getYear(tmpDict["eprint"])
         try:
             pi = record["metadata"]["publication_info"][0]
-            tmpDict["journal"] = pi["journal_title"]
-            tmpDict["volume"] = pi["journal_volume"]
-            tmpDict["year"] = pi["year"]
-            tmpDict["pages"] = (
-                pi["artid"]
-                if "artid" in pi.keys()
-                else pi["page_start"]
-                if "page_start" in pi.keys()
-                else ""
-            )
-            conferenceCode = pi["cnum"] if "cnum" in pi.keys() else None
+            try:
+                tmpDict["journal"] = pi["journal_title"]
+            except KeyError:
+                tmpDict["journal"] = None
+            try:
+                tmpDict["volume"] = pi["journal_volume"]
+            except KeyError:
+                tmpDict["volume"] = None
+            try:
+                tmpDict["year"] = pi["year"]
+            except KeyError:
+                pass
+            try:
+                tmpDict["pages"] = (
+                    pi["artid"]
+                    if "artid" in pi.keys()
+                    else "%s-%s" % (pi["page_start"], pi["page_end"])
+                    if ("page_start" in pi.keys() and "page_end" in pi.keys())
+                    else pi["page_start"]
+                    if "page_start" in pi.keys()
+                    else ""
+                )
+            except KeyError:
+                tmpDict["pages"] = None
         except (IndexError, KeyError):
             tmpDict["journal"] = None
             tmpDict["volume"] = None
             tmpDict["pages"] = None
-            conferenceCode = None
         # dates
         try:
             tmpDict["firstdate"] = (
@@ -578,8 +595,21 @@ class WebSearch(WebInterf, InspireStrings):
             tmpDict["title"] = record["metadata"]["titles"][0]["title"]
         except TypeError:
             tmpDict["title"] = None
+        # conference title
+        try:
+            pi = record["metadata"]["publication_info"][0]
+            conferenceCode = pi["cnum"] if "cnum" in pi.keys() else None
+        except (IndexError, KeyError):
+            conferenceCode = None
+        try:
+            pi = record["metadata"]["publication_info"][0]
+            parentUrl = pi["parent_record"]["$ref"]
+        except (IndexError, KeyError):
+            parentUrl = None
         if conferenceCode is not None and readConferenceTitle:
-            tmpDict["booktitle"] = self.getProceedingsTitle(conferenceCode)
+            tmpDict["booktitle"] = self.getProceedingsTitle(
+                conferenceCode, useUrl=parentUrl
+            )
         # isbn
         try:
             tmpDict["isbn"] = record["metadata"]["isbns"][0]["value"]
@@ -593,7 +623,7 @@ class WebSearch(WebInterf, InspireStrings):
                 collections = record["metadata"]["document_type"]
             except KeyError:
                 collections = []
-            if "conferencepaper" in collections or conferenceCode is not None:
+            if "conference paper" in collections or conferenceCode is not None:
                 tmpDict["ENTRYTYPE"] = "inproceedings"
             elif "thesis" in collections:
                 tmpDict["ENTRYTYPE"] = "phdthesis"
@@ -606,8 +636,12 @@ class WebSearch(WebInterf, InspireStrings):
                     pass
             else:
                 tmpDict["ENTRYTYPE"] = "article"
-        # old keys
-        tmpDict["oldkeys"] = ",".join(tmpOld)
+        # citations
+        tmpDict["cit_no_self"] = record["metadata"][
+            "citation_count_without_self_citations"
+        ]
+        tmpDict["cit"] = record["metadata"]["citation_count"]
+        # clean accents
         for k in tmpDict.keys():
             try:
                 tmpDict[k] = parse_accents_str(tmpDict[k])
