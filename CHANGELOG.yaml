@@ -1,3 +1,9 @@
+-   version: 1.7.0
+    date: 2021-07-05
+    changes:
+        - replaced calls to old INSPIRE OAI with new API
+        - bug fixing
+        - some dependencies updated
 -   version: 1.6.4
     date: 2021-05-31
     changes:

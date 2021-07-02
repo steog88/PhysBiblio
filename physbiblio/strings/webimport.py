@@ -41,8 +41,10 @@ class InspireStrings(GenericStrings):
     )
     endString = "END --- %s \n\n"
     errorEmptyText = "An error occurred. Empty text obtained"
+    errorEmptySearch = "An error occurred. No search results obtained"
     errorInvalidBibtex = "Invalid bibtex!\n%s"
     errorReadRecord = "Error in readRecord!"
+    errorUpdateBibtex = "Cannot update bibtex!"
     exceptionFormat = "%s, %s\n%s"
     foundID = "Found: %s"
     jsonError = "Cannot load JSON content"

@@ -400,7 +400,7 @@ class TestWebImportOffline(unittest.TestCase):
                 total=5,
                 backoff_factor=1.0,
                 status_forcelist=[429, 500, 502, 503, 504],
-                method_whitelist=["HEAD", "GET", "OPTIONS"],
+                allowed_methods=["HEAD", "GET", "OPTIONS"],
             )
             _ha.assert_called_once_with(max_retries=fr)
             _m.assert_any_call("https://", ha)

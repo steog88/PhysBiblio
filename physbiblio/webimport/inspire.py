@@ -328,7 +328,7 @@ class WebSearch(WebInterf, InspireStrings):
     def retrieveOAIData(
         self, inspireID, bibtex=None, verbose=0, readConferenceTitle=False
     ):
-        """Get the marcxml entry for a given record
+        """Get the JSON entry for a given record
 
         Parameters:
             inspireID: the INSPIRE-HEP identifier (a number)
@@ -349,18 +349,24 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             record = hits[0]
         except IndexError:
-            pBLogger.exception(self.jsonError)
+            pBLogger.exception(self.errorEmptySearch)
+            return False
         try:
             res = self.readRecord(record, readConferenceTitle=readConferenceTitle)
-            res["id"] = inspireID
-            if bibtex is not None and res["pages"] is not None:
-                outcome, bibtex = self.updateBibtex(res, bibtex)
-            if verbose > 0:
-                pBLogger.info(self.doneD)
-            return res
         except Exception:
-            pBLogger.exception(self.jsonError)
+            pBLogger.exception(self.errorReadRecord)
             return False
+        if bibtex is not None:
+            try:
+                outcome, bibtex = self.updateBibtex(res, bibtex)
+            except Exception:
+                pBLogger.exception(self.errorUpdateBibtex)
+                return False
+            if outcome:
+                res["bibtex"] = bibtex
+        if verbose > 0:
+            pBLogger.info(self.doneD)
+        return res
 
     def readRecord(self, record, readConferenceTitle=False):
         """Read the content of a marcxml record
@@ -477,9 +483,11 @@ class WebSearch(WebInterf, InspireStrings):
             ][0]
         except (IndexError, KeyError):
             pass
-        # # citations
-        # tmpDict["cit_no_self"¯] = record["metadata"]["citation_count_without_self_citations"]
-        # tmpDict["cit"¯] = record["metadata"]["citation_count"]
+        # citations
+        tmpDict["cit_no_self"] = record["metadata"][
+            "citation_count_without_self_citations"
+        ]
+        tmpDict["cit"] = record["metadata"]["citation_count"]
         # publication info
         tmpDict["year"] = None
         if tmpDict["eprint"] is not None and tmpDict["year"] is None:

@@ -32,7 +32,7 @@ except Exception:
     print(traceback.format_exc())
 
 
-class TestInspireOnlineMethods(unittest.TestCase):
+class TestInspireMethods(unittest.TestCase):
     """Test the functions that import entries from the ADS.
     Should not fail if everything works fine.
     """
@@ -417,7 +417,115 @@ class TestInspireOnlineMethods(unittest.TestCase):
 
     def test_retrieveOAIData(self):
         """Test retrieveOAIData"""
-        raise NotImplementedError
+        iws = physBiblioWeb.webSearch["inspire"]
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value=([], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
+        ) as _r, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex", return_value=True
+        ) as _u, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertFalse(iws.retrieveOAIData("abc"))
+            _s.assert_called_once_with("%sabc" % iws.url)
+            _e.assert_called_once_with(iws.errorEmptySearch)
+            self.assertEqual(_r.call_count, 0)
+            self.assertEqual(_u.call_count, 0)
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value=([{"ABC": "abc"}], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            side_effect=Exception("abc"),
+        ) as _r, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex", return_value=True
+        ) as _u, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertFalse(iws.retrieveOAIData("abc"))
+            _s.assert_called_once_with("%sabc" % iws.url)
+            _r.assert_called_once_with({"ABC": "abc"}, readConferenceTitle=False)
+            _e.assert_called_once_with(iws.errorReadRecord)
+            self.assertEqual(_u.call_count, 0)
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value=([{"ABC": "abc"}], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
+        ) as _r, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex", return_value=True
+        ) as _u, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
+            _s.assert_called_once_with("%sabc" % iws.url)
+            self.assertEqual(_e.call_count, 0)
+            _r.assert_called_once_with({"ABC": "abc"}, readConferenceTitle=False)
+            self.assertFalse(iws.retrieveOAIData("abc", bibtex="bibtex"))
+            _e.assert_called_once_with(iws.errorUpdateBibtex)
+            _u.assert_called_once_with({"k": "a"}, "bibtex")
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value=([{"ABC": "abc"}], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
+        ) as _r, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, "mybibtex"),
+        ) as _u, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
+            _s.assert_called_once_with("%sabc" % iws.url)
+            self.assertEqual(_e.call_count, 0)
+            _r.assert_called_once_with({"ABC": "abc"}, readConferenceTitle=False)
+            self.assertEqual(_u.call_count, 0)
+            res = iws.retrieveOAIData("abc", bibtex="bibtex")
+            self.assertEqual(res, {"k": "a", "bibtex": "mybibtex"})
+            self.assertEqual(_e.call_count, 0)
+            _u.assert_called_once_with(res, "bibtex")
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+            return_value=([{"ABC": "abc"}], 0),
+        ) as _s, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
+        ) as _r, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(False, "mybibtex"),
+        ) as _u, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
+            _s.assert_called_once_with("%sabc" % iws.url)
+            self.assertEqual(_e.call_count, 0)
+            _r.assert_called_once_with({"ABC": "abc"}, readConferenceTitle=False)
+            self.assertEqual(_u.call_count, 0)
+            res = iws.retrieveOAIData("abc", bibtex="bibtex")
+            self.assertEqual(res, {"k": "a"})
+            self.assertEqual(_e.call_count, 0)
+            _u.assert_called_once_with(res, "bibtex")
 
     def test_readRecord(self):
         """Test readRecord"""
