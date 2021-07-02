@@ -7,6 +7,8 @@ import datetime
 import sys
 import traceback
 
+import bibtexparser
+
 if sys.version_info[0] < 3:
     import unittest2 as unittest
     from mock import MagicMock, patch
@@ -15,6 +17,7 @@ else:
     from unittest.mock import MagicMock, patch
 
 try:
+    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
     from physbiblio.setuptests import *
     from physbiblio.strings.webimport import InspireStrings
@@ -214,7 +217,9 @@ class TestInspireMethods(unittest.TestCase):
             "logging.Logger.warning"
         ) as _w, patch("logging.Logger.exception") as _e, patch(
             "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"message":"bla","status":"404", "id": "aA","hits":{"hits":["abc"], "total":4}, "links":{"next":"efgh"}}',
+            return_value='{"message":"bla","status":"404", "id": "aA",'
+            + '"hits":{"hits":["abc"], "total":4},'
+            + ' "links":{"next":"efgh"}}',
         ) as _tu:
             self.assertEqual(iws.retrieveAPIResults("abcd"), ([], 0))
             _i.assert_called_once_with(iws.searchResultsFrom % "abcd")
@@ -652,7 +657,282 @@ class TestInspireMethods(unittest.TestCase):
 
     def test_readRecord(self):
         """Test readRecord"""
-        raise NotImplementedError
+        self.maxDiff = None
+        iws = physBiblioWeb.webSearch["inspire"]
+
+        def getBibtex(res):
+            bibtexDict = {"ENTRYTYPE": res["ENTRYTYPE"], "ID": res["bibkey"]}
+            for k in iws.bibtexFields:
+                if k in res.keys() and res[k] is not None and res[k] != "":
+                    bibtexDict[k] = res[k]
+            db = bibtexparser.bibdatabase.BibDatabase()
+            db.entries = [bibtexDict]
+            return pbWriter.write(db)
+
+        record1 = {
+            "metadata": {
+                "texkeys": [],
+                "dois": [],
+                "arxiv_eprints": [],
+                "primary_arxiv_category": [],
+                "external_system_identifiers": [],
+                "first_author": {},
+                "collaborations": ["abc"],
+                "titles": [],
+                "publication_info": [],
+            }
+        }
+        res1 = {
+            "ENTRYTYPE": "article",
+            "bibkey": None,
+            "oldkeys": "",
+            "doi": None,
+            "eprint": None,
+            "archiveprefix": None,
+            "primaryclass": None,
+            "ads": None,
+            "author": "",
+            "collaboration": None,
+            "title": None,
+            "journal": None,
+            "volume": None,
+            "year": None,
+            "pages": None,
+            "firstdate": None,
+            "pubdate": None,
+            "reportnumber": None,
+            "isbn": None,
+            "cit": None,
+            "cit_no_self": None,
+            "link": None,
+        }
+        res1["bibtex"] = getBibtex(res1)
+        record2 = {
+            "metadata": {
+                "texkeys": ["key1", "key2", "key3"],
+                "dois": [{"value": "doi1"}, {"value": "doi2"}],
+                "arxiv_eprints": [{"value": "arxiv1"}, {"value": "arxiv2"}],
+                "primary_arxiv_category": ["hep-ph", "hep-ex"],
+                "external_system_identifiers": [
+                    {"value": "ads1", "schema": "abc"},
+                    {"value": "ads2", "schema": "ADS"},
+                    {"value": "ads3", "schema": "ADS"},
+                ],
+                "first_author": {"full_name": "author1à"},
+                "collaborations": [
+                    {"value": "coll1"},
+                    {"value": "coll2"},
+                    {"value": "coll3"},
+                ],
+                "titles": [{"title": "title1"}, {"title": "title2"}],
+                "publication_info": [
+                    {
+                        "journal_title": "jt1",
+                        "journal_volume": "jv1",
+                        "year": "2021",
+                        "artid": "123",
+                    }
+                ],
+                "earliest_date": "2021-06-30",
+                "preprint_date": "2021-07-01",
+                "legacy_creation_date": "2021-07-02",
+                "imprints": [{"date": "2021-06-20"}, {"date": "2021-06-10"}],
+                "isbns": [{"value": "isbn1"}, {"value": "isbn2"}],
+                "report_numbers": [
+                    {"value": "rn1"},
+                    {"value": "rn2"},
+                    {"value": "rn3"},
+                ],
+                "citation_count_without_self_citations": 111,
+                "citation_count": 122,
+            }
+        }
+        res2 = {
+            "ENTRYTYPE": "book",
+            "bibkey": "key1",
+            "oldkeys": "key2,key3",
+            "doi": "doi1",
+            "eprint": "arxiv1",
+            "archiveprefix": "arXiv",
+            "primaryclass": "hep-ph",
+            "ads": "ads2",
+            "author": "author1{\`a}",
+            "collaboration": "coll1, coll2, coll3",
+            "title": "title1",
+            "journal": "jt1",
+            "volume": "jv1",
+            "year": "2021",
+            "pages": "123",
+            "firstdate": "2021-07-01",
+            "pubdate": "2021-06-20",
+            "isbn": "isbn1",
+            "reportnumber": "rn1, rn2, rn3",
+            "link": "https://doi.org/doi1",
+            "cit": "122",
+            "cit_no_self": "111",
+        }
+        res2["bibtex"] = getBibtex(res2)
+        record3 = {"metadata": {}}
+        res3 = {
+            "ENTRYTYPE": "article",
+            "bibkey": None,
+            "oldkeys": "",
+            "doi": None,
+            "eprint": None,
+            "archiveprefix": None,
+            "primaryclass": None,
+            "ads": None,
+            "author": "",
+            "collaboration": None,
+            "title": None,
+            "journal": None,
+            "volume": None,
+            "year": None,
+            "pages": None,
+            "firstdate": None,
+            "pubdate": None,
+            "reportnumber": None,
+            "isbn": None,
+            "cit": None,
+            "cit_no_self": None,
+            "link": None,
+        }
+        res3["bibtex"] = getBibtex(res3)
+        record4 = {
+            "metadata": {
+                "dois": ["doi1"],
+                "titles": ["titles1"],
+                "arxiv_eprints": [
+                    {"value": "arxiv1", "categories": []},
+                    {"value": "arxiv2"},
+                ],
+                "primary_arxiv_category": [],
+                "external_system_identifiers": [
+                    {"value": "ads1"},
+                    {"value": "ads2", "schema": "ADS"},
+                ],
+                "authors": [{"full_name": "author1"}, {"full_name": "author2"}],
+                "collaborations": [{"value": "coll1"}],
+                "publication_info": [{"cnum": "123"}],
+                "isbns": ["isbn1"],
+                "earliest_date": "2021-06-30",
+                "legacy_creation_date": "2021-07-02",
+                "imprints": ["2021-06-20"],
+                "report_numbers": ["rn1"],
+            }
+        }
+        res4 = {
+            **res1,
+            **{
+                "ENTRYTYPE": "inproceedings",
+                "eprint": "arxiv1",
+                "archiveprefix": "arXiv",
+                "author": "author1 and author2",
+                "collaboration": "coll1",
+                "firstdate": "2021-07-02",
+                "link": "https://arxiv.org/abs/arxiv1",
+            },
+        }
+        res4["bibtex"] = getBibtex(res4)
+        record5 = {
+            "metadata": {
+                "arxiv_eprints": [
+                    {"value": "arxiv1", "categories": ["hep-ex", "astro-ph"]},
+                    {"value": "arxiv2"},
+                ],
+                "publication_info": [{"cnum": "123", "parent_record": {"$ref": "abc"}}],
+                "earliest_date": "2021-06-30",
+                "authors": [
+                    {"full_name": "author%d" % (i + 1)}
+                    for i in range(pbConfig.params["maxAuthorSave"])
+                ],
+            }
+        }
+        res5 = {
+            **res1,
+            **{
+                "ENTRYTYPE": "inproceedings",
+                "eprint": "arxiv1",
+                "archiveprefix": "arXiv",
+                "primaryclass": "hep-ex",
+                "author": "author1 and others",
+                "firstdate": "2021-06-30",
+                "link": "https://arxiv.org/abs/arxiv1",
+            },
+        }
+        res5["bibtex"] = getBibtex(res5)
+        record6 = {
+            "metadata": {
+                "thesis_info": {"institutions": ["A", "B"], "date": "2013"},
+                "document_type": ["thesis"],
+                "authors": [
+                    {"full_name": "author%d" % (i + 1)}
+                    for i in range(pbConfig.params["maxAuthorSave"] - 1)
+                ],
+            }
+        }
+        res6 = {
+            **res3,
+            **{
+                "ENTRYTYPE": "phdthesis",
+                "year": "2013",
+                "school": "A, B",
+                "author": " and ".join(
+                    [
+                        "author%d" % (i + 1)
+                        for i in range(pbConfig.params["maxAuthorSave"] - 1)
+                    ]
+                ),
+            },
+        }
+        res6["bibtex"] = getBibtex(res6)
+        record7 = {
+            "metadata": {
+                "author_count": pbConfig.params["maxAuthorSave"] + 1,
+                "authors": [
+                    {"full_name": "author%d" % (i + 1)}
+                    for i in range(pbConfig.params["maxAuthorSave"] - 1)
+                ],
+            }
+        }
+        res7 = {
+            **res3,
+            **{
+                "ENTRYTYPE": "article",
+                "author": "author1 and others",
+            },
+        }
+        res7["bibtex"] = getBibtex(res7)
+        with patch("logging.Logger.warning") as _w:
+            for i, (inp, res) in enumerate(
+                [
+                    [record1, res1],
+                    [record2, res2],
+                    [record3, res3],
+                    [record4, res4],
+                    [record5, res5],
+                    [record6, res6],
+                    [record7, res7],
+                ]
+            ):
+                r = iws.readRecord(inp)
+                self.assertEqual(r, res)
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.getProceedingsTitle",
+                return_value="proctitle",
+            ) as _pt:
+                r = iws.readRecord(record2, readConferenceTitle=True)
+                self.assertEqual(r, res2)
+                r = iws.readRecord(record4, readConferenceTitle=True)
+                _pt.assert_called_once_with("123", useUrl=None)
+                res4["booktitle"] = "proctitle"
+                res4["bibtex"] = getBibtex(res4)
+                self.assertEqual(r, res4)
+                r = iws.readRecord(record5, readConferenceTitle=True)
+                _pt.assert_called_with("123", useUrl="abc")
+                res5["booktitle"] = "proctitle"
+                res5["bibtex"] = getBibtex(res5)
+                self.assertEqual(r, res5)
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_readRecord_online(self):

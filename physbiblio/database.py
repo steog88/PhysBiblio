@@ -2778,18 +2778,18 @@ class Entries(PhysBiblioDBSub):
                     for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
                         if e[o] != old[0][d] and e[o] != None:
                             if o == "bibtex":
-                                pBLogger.info(dstr.Bibs.oaiInfoL % d)
-                                pBLogger.info(dstr.Bibs.oaiOld % old[0][d])
-                                pBLogger.info(dstr.Bibs.oaiNew % e[o])
+                                pBLogger.info(dstr.Bibs.apiInfoL % d)
+                                pBLogger.info(dstr.Bibs.apiOld % old[0][d])
+                                pBLogger.info(dstr.Bibs.apiNew % e[o])
                             else:
-                                pBLogger.info(dstr.Bibs.oaiInfoS % (d, old[0][d], e[o]))
+                                pBLogger.info(dstr.Bibs.apiInfoS % (d, old[0][d], e[o]))
                             self.updateField(key, d, e[o], verbose=0)
                             if len(changed) == 0 or changed[-1] != key:
                                 changed.append(key)
             except:
                 pBLogger.exception(dstr.Bibs.errorOAIEntryDet % (e["id"], e))
-        pBLogger.info(dstr.Bibs.oaiChanged % (len(changed), changed))
-        pBLogger.info(dstr.Bibs.oaiDone)
+        pBLogger.info(dstr.Bibs.apiChanged % (len(changed), changed))
+        pBLogger.info(dstr.Bibs.apiDone)
 
     def updateInfoFromOAI(
         self,

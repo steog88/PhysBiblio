@@ -126,8 +126,8 @@ fullRecordGariazzo = {
     "bibtex": '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. '
     + "and Giunti, C. and Laveder, M. and Li, Y.F. and "
     + 'Zavanin, E.M.",\n         title = "{Light sterile neutrinos'
-    + '}",\n       journal = "J.Phys.",\n        volume = '
-    + '"G43",\n          year = "2016",\n         pages = "033001",'
+    + '}",\n       journal = "J.Phys.G",\n        volume = '
+    + '"43",\n          year = "2016",\n         pages = "033001",'
     + '\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",'
     + '\n        eprint = "1507.08204",\n           doi = '
     + '"10.1088/0954-3899/43/3/033001",\n}',
@@ -149,8 +149,8 @@ fullRecordGariazzo = {
         "archiveprefix": "arXiv",
         "pages": "033001",
         "year": "2016",
-        "volume": "G43",
-        "journal": "J.Phys.",
+        "volume": "43",
+        "journal": "J.Phys.G",
         "title": "{Light sterile neutrinos}",
         "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and "
         + "Li, Y.F. and Zavanin, E.M.",
@@ -158,20 +158,20 @@ fullRecordGariazzo = {
         "ID": "Gariazzo:2015rra",
     },
     "title": "{Light sterile neutrinos}",
-    "journal": "J.Phys.",
-    "volume": "G43",
+    "journal": "J.Phys.G",
+    "volume": "43",
     "number": "",
     "pages": "033001",
-    "published": "J.Phys. G43 (2016) 033001",
+    "published": "J.Phys.G 43 (2016) 033001",
     "author": "Gariazzo, S. et al.",
     "bibdict": {
         u"doi": u"10.1088/0954-3899/43/3/033001",
         u"author": u"Gariazzo, S. and Giunti, C. and Laveder, M. and "
         + "Li, Y.F. and Zavanin, E.M.",
-        u"journal": u"J.Phys.",
+        u"journal": u"J.Phys.G",
         u"title": u"{Light sterile neutrinos}",
         "ENTRYTYPE": u"article",
-        u"volume": u"G43",
+        u"volume": u"43",
         u"eprint": u"1507.08204",
         u"primaryclass": u"hep-ph",
         u"year": u"2016",
