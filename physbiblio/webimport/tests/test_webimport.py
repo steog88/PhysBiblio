@@ -147,37 +147,6 @@ class TestWebImportMethods(unittest.TestCase):
             "inspire": ["Gariazzo:2014rra", ""],
             "isbn": ["978019850871a", ""],
         }
-        self.assertEqual(
-            physBiblioWeb.webSearch["inspire"].retrieveOAIData("1110620"),
-            {
-                "doi": None,
-                "arxiv": None,
-                "bibkey": None,
-                "ads": None,
-                "journal": None,
-                "volume": None,
-                "year": None,
-                "pages": None,
-                "firstdate": None,
-                "pubdate": None,
-                "author": " and Tauber, Jan",
-                "collaboration": "Planck",
-                "title": "Anisotropies of the Cosmic Background Radiation Field",
-                "isbn": None,
-                "ENTRYTYPE": "article",
-                "oldkeys": "",
-                "bibtex": '@Article{,\n        author = " and Tauber, Jan",'
-                + '\n collaboration = "Planck",\n         title = "'
-                + '{Anisotropies of the Cosmic Background Radiation Field}",\n}'
-                + "\n\n",
-                "id": "1110620",
-                "archiveprefix": None,
-                "eprint": None,
-                "link": None,
-                "primaryclass": None,
-                "reportnumber": None,
-            },
-        )
         self.assertFalse(physBiblioWeb.webSearch["inspire"].retrieveOAIData("9999999"))
         for method, strings in tests.items():
             print(method)

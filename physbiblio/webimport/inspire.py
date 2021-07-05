@@ -71,6 +71,14 @@ class WebSearch(WebInterf, InspireStrings):
         "pages",
         "year",
         "journal",
+        "eprint",
+        "archiveprefix",
+        "primaryclass",
+        "collaboration",
+        "reportnumber",
+        "booktitle",
+        "publisher",
+        "arxiv",
     ]
     metadataLiteratureFields = [
         "arxiv_eprints",
@@ -448,6 +456,10 @@ class WebSearch(WebInterf, InspireStrings):
         """
 
         tmpDict = {}
+        try:
+            tmpDict["id"] = record["metadata"]["control_number"]
+        except (KeyError, TypeError):
+            tmpDict["id"] = None
         # key
         tmpDict["bibkey"] = None
         try:
@@ -665,10 +677,11 @@ class WebSearch(WebInterf, InspireStrings):
         tmpDict["bibtex"] = pbWriter.write(db)
         return tmpDict
 
-    def updateBibtex(self, res, bibtex):
-        """use OAI data to update the (existing) bibtex information
-        of an entry. Basically focus only on publication information,
-        assuming arxiv number and so on do not change
+    def updateBibtex(self, res, bibtex, force=False):
+        """use OAI data to update the (existing) bibtex information.
+        Unless force is True,
+        update record only if publication info is present
+        (assume data won't change unless the paper is published)
 
         Parameters:
             res: the recent search results
@@ -677,16 +690,30 @@ class WebSearch(WebInterf, InspireStrings):
         Output:
             True/False and a string containing the bibtex of the entry
         """
+
+        def arxivEprint(element):
+            """eprint has priority over arxiv field:
+            if the latter is present, delete it,
+            eventually copying its content into the former
+            """
+            if "arxiv" in element.keys():
+                if "eprint" not in element.keys():
+                    element["eprint"] = element["arxiv"]
+                del element["arxiv"]
+            return element
+
         try:
             element = bibtexparser.loads(bibtex).entries[0]
         except:
             pBLogger.warning(self.errorInvalidBibtex % bibtex)
             return False, bibtex
-        try:
-            assert res["journal"] is not None
-        except (AssertionError, KeyError):
-            pBLogger.warning(self.warningJournal % (res["id"]))
-            return False, bibtex
+        if not force:
+            try:
+                assert res["journal"] is not None
+            except (AssertionError, KeyError):
+                pBLogger.warning(self.warningJournal % (res["id"]))
+                return False, bibtex
+        element = arxivEprint(element)
         try:
             for k in self.updateBibtexFields:
                 if res[k] != "" and res[k] is not None:
@@ -699,7 +726,7 @@ class WebSearch(WebInterf, InspireStrings):
                     res["id"],
                 )
             )
-            return False, bibtex
+        element = arxivEprint(element)
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [element]
         return True, pbWriter.write(db)

@@ -686,6 +686,7 @@ class TestInspireMethods(unittest.TestCase):
             "ENTRYTYPE": "article",
             "bibkey": None,
             "oldkeys": "",
+            "id": None,
             "doi": None,
             "eprint": None,
             "archiveprefix": None,
@@ -709,6 +710,7 @@ class TestInspireMethods(unittest.TestCase):
         res1["bibtex"] = getBibtex(res1)
         record2 = {
             "metadata": {
+                "control_number": "123",
                 "texkeys": ["key1", "key2", "key3"],
                 "dois": [{"value": "doi1"}, {"value": "doi2"}],
                 "arxiv_eprints": [{"value": "arxiv1"}, {"value": "arxiv2"}],
@@ -749,6 +751,7 @@ class TestInspireMethods(unittest.TestCase):
         }
         res2 = {
             "ENTRYTYPE": "book",
+            "id": "123",
             "bibkey": "key1",
             "oldkeys": "key2,key3",
             "doi": "doi1",
@@ -775,6 +778,7 @@ class TestInspireMethods(unittest.TestCase):
         record3 = {"metadata": {}}
         res3 = {
             "ENTRYTYPE": "article",
+            "id": None,
             "bibkey": None,
             "oldkeys": "",
             "doi": None,
@@ -950,6 +954,7 @@ class TestInspireMethods(unittest.TestCase):
             dict1a,
             {
                 "doi": "10.1088/0954-3899/43/3/033001",
+                "id": "1385583",
                 "bibkey": "Gariazzo:2015rra",
                 "ads": "2015JPhG...43c3001G",
                 "journal": "J.Phys.G",
@@ -988,6 +993,7 @@ class TestInspireMethods(unittest.TestCase):
             dict2,
             {
                 "doi": "10.1142/9789813224568_0076",
+                "id": "1414175",
                 "bibkey": "Gariazzo:2016ehl",
                 "ads": None,
                 "journal": None,
@@ -1038,6 +1044,18 @@ class TestInspireMethods(unittest.TestCase):
             bib = '@article{bla,\ntitle="test",\narxiv="2101.00000",\n}\n\n'
             self.assertEqual(iws.updateBibtex({"id": 123}, bib), (False, bib))
             _w.assert_any_call(iws.warningJournal % (123))
+            bib = '@article{bla,\ntitle="test",\narxiv="2101.00000",\n}\n\n'
+            self.assertEqual(
+                iws.updateBibtex({"id": 123, "eprint": "2102.00000"}, bib), (False, bib)
+            )
+            self.assertEqual(
+                iws.updateBibtex({"id": 123, "eprint": "2102.00000"}, bib, force=True),
+                (
+                    True,
+                    '@Article{bla,\n         title = "{test}",\n        eprint = "2101.00000",\n}\n\n',
+                ),
+            )
+            _w.assert_any_call(iws.warningJournal % (123))
             res = {
                 "id": 123,
                 "author": "me",
@@ -1045,7 +1063,8 @@ class TestInspireMethods(unittest.TestCase):
                 "year": "2000",
                 "journal": "j",
             }
-            self.assertEqual(iws.updateBibtex(res, bib), (False, bib))
+            bibu = '@Article{bla,\n        author = "me",\n         title = "{mywork}",\n        eprint = "2101.00000",\n}\n\n'
+            self.assertEqual(iws.updateBibtex(res, bib), (True, bibu))
             _w.assert_any_call(
                 iws.warningMissingField
                 % (
@@ -1075,13 +1094,53 @@ class TestInspireMethods(unittest.TestCase):
                     + '        volume = "1",\n'
                     + '          year = "2000",\n'
                     + '         pages = "2",\n'
+                    + '        eprint = "2101.00000",\n'
                     + '           doi = "1234",\n'
-                    + '         arxiv = "2101.00000",\n'
                     + "}\n"
                     + "\n",
                 ),
             )
-            self.assertEqual(_w.call_count, 0)
+            _w.assert_called_once()
+            res = {
+                "id": 123,
+                "author": "me",
+                "title": "mywork",
+                "year": "2000",
+                "journal": "j",
+                "doi": "1234",
+                "volume": "1",
+                "pages": "2",
+                "arxiv": "1234.56789",
+            }
+            self.assertEqual(
+                iws.updateBibtex(res, bib),
+                (
+                    True,
+                    "@Article{bla,\n"
+                    + '        author = "me",\n'
+                    + '         title = "{mywork}",\n'
+                    + '       journal = "j",\n'
+                    + '        volume = "1",\n'
+                    + '          year = "2000",\n'
+                    + '         pages = "2",\n'
+                    + '        eprint = "2101.00000",\n'
+                    + '           doi = "1234",\n'
+                    + "}\n"
+                    + "\n",
+                ),
+            )
+            bib = '@article{bla,\ntitle="test",\narxiv="2101.00000",\neprint="2103.00000"\n}\n\n'
+            self.assertEqual(
+                iws.updateBibtex(
+                    {"id": 123, "eprint": "2102.00000", "arxiv": "1234.5678"},
+                    bib,
+                    force=True,
+                ),
+                (
+                    True,
+                    '@Article{bla,\n         title = "{test}",\n        eprint = "2103.00000",\n}\n\n',
+                ),
+            )
 
 
 if __name__ == "__main__":

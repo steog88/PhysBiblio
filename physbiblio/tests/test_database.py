@@ -37,7 +37,7 @@ except Exception:
 
 
 fullRecordAde = {
-    "bibkey": "Ade:2013zuv",
+    "bibkey": "Planck:2013pxb",
     "inspire": "1224741",
     "arxiv": "1303.5076",
     "ads": "2014A&A...571A..16P",
@@ -49,7 +49,7 @@ fullRecordAde = {
     "comments": None,
     "old_keys": None,
     "crossref": None,
-    "bibtex": '@Article{Ade:2013zuv,\n        author = "Ade, P.A.R. and'
+    "bibtex": '@Article{Planck:2013pxb,\n        author = "Ade, P.A.R. and'
     + ' others",\n collaboration = "Planck",\n         title = '
     + '"{Planck 2013 results. XVI. Cosmological parameters}",\n '
     + '      journal = "Astron.Astrophys.",\n        '
@@ -84,7 +84,7 @@ fullRecordAde = {
         "collaboration": "Planck",
         "author": "Ade, P.A.R. and others",
         "ENTRYTYPE": "article",
-        "ID": "Ade:2013zuv",
+        "ID": "Planck:2013pxb",
     },
     "title": "{Planck 2013 results. XVI. Cosmological parameters}",
     "journal": "Astron.Astrophys.",
@@ -105,7 +105,7 @@ fullRecordAde = {
         u"eprint": u"1303.5076",
         u"primaryclass": u"astro-ph.CO",
         u"year": u"2014",
-        "ID": u"Ade:2013zuv",
+        "ID": u"Planck:2013pxb",
         u"archiveprefix": u"arXiv",
         u"journal": u"Astron.Astrophys.",
     },
@@ -5932,12 +5932,14 @@ class TestDatabaseEntries(DBTestCase):
     def test_loadAndInsert_online(self):
         """tests for loadAndInsert with online connection"""
         self.assertTrue(
-            self.pBDB.bibs.loadAndInsert(["Gariazzo:2015rra", "Ade:2013zuv"])
+            self.pBDB.bibs.loadAndInsert(["Gariazzo:2015rra", "Planck:2013pxb"])
         )
         all_ = self.pBDB.bibs.getAll()
         self.assertEqual(len(all_), 2)
-        self.assertIn(all_[0], [fullRecordAde, fullRecordGariazzo])
-        self.assertIn(all_[1], [fullRecordAde, fullRecordGariazzo])
+        if all_[0]["bibkey"] != "Gariazzo:2015rra":
+            all_.reverse()
+        self.assertEqual(all_[0], fullRecordGariazzo)
+        self.assertEqual(all_[1], fullRecordAde)
 
     def test_loadAndInsert(self):
         """tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
@@ -6331,12 +6333,12 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire="1224741"
+                u'@article{Planck:2013pxb,\narxiv="1303.5076"\n}', inspire="1224741"
             )
         )
         self.assertEqual(
             self.pBDB.bibs.searchOAIUpdates(),
-            (2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]),
+            (2, [], ["Gariazzo:2015rra", "Planck:2013pxb"]),
         )
         self.assertEqual(self.pBDB.bibs.getAll(), [fullRecordAde, fullRecordGariazzo])
 
@@ -6990,9 +6992,9 @@ class TestDatabaseEntries(DBTestCase):
                         + '         title = "{Light sterile neutrinos}",\n'
                         + '       journal = "J.Phys.",\n        volume = "G43",\n '
                         + '         year = "2016",\n         pages = '
-                        + '"033001",\n           doi = '
-                        + '"10.1088/0954-3899/43/3/033001",\n         arxiv = '
-                        + '"1507.08204",\n}',
+                        + '"033001",\n        eprint = '
+                        + '"1507.08204",\n           doi = '
+                        + '"10.1088/0954-3899/43/3/033001",\n}',
                         "firstdate": "2015-07-29",
                         "pubdate": "2016-01-13",
                         "exp_paper": 0,
@@ -7005,7 +7007,7 @@ class TestDatabaseEntries(DBTestCase):
                         "marks": "",
                         "abstract": None,
                         "bibtexDict": {
-                            "arxiv": "1507.08204",
+                            "eprint": "1507.08204",
                             "author": "S. Gariazzo et al",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "pages": "033001",
@@ -7026,7 +7028,7 @@ class TestDatabaseEntries(DBTestCase):
                         "bibdict": {
                             u"doi": u"10.1088/0954-3899/43/3/033001",
                             u"journal": u"J.Phys.",
-                            u"arxiv": u"1507.08204",
+                            u"eprint": u"1507.08204",
                             "author": "S. Gariazzo et al",
                             "title": "{Light sterile neutrinos}",
                             "ENTRYTYPE": u"article",
@@ -7244,9 +7246,9 @@ class TestDatabaseEntries(DBTestCase):
                         + '         title = "{Light sterile neutrinos}",\n'
                         + '       journal = "J.Phys.",\n        volume = "G43",\n '
                         + '         year = "2016",\n         pages = '
-                        + '"033001",\n           doi = '
-                        + '"10.1088/0954-3899/43/3/033001",\n         arxiv = '
-                        + '"1507.08204",\n}',
+                        + '"033001",\n        eprint = '
+                        + '"1507.08204",\n           doi = '
+                        + '"10.1088/0954-3899/43/3/033001",\n}',
                         "firstdate": "2015-07-29",
                         "pubdate": "2016-01-13",
                         "exp_paper": 0,
@@ -7259,7 +7261,7 @@ class TestDatabaseEntries(DBTestCase):
                         "marks": "",
                         "abstract": None,
                         "bibtexDict": {
-                            "arxiv": "1507.08204",
+                            "eprint": "1507.08204",
                             "author": "S. Gariazzo et al",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "pages": "033001",
@@ -7280,7 +7282,7 @@ class TestDatabaseEntries(DBTestCase):
                         "bibdict": {
                             u"doi": u"10.1088/0954-3899/43/3/033001",
                             u"journal": u"J.Phys.",
-                            u"arxiv": u"1507.08204",
+                            u"eprint": u"1507.08204",
                             "author": "S. Gariazzo et al",
                             "title": "{Light sterile neutrinos}",
                             "ENTRYTYPE": u"article",
