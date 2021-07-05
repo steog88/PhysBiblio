@@ -465,14 +465,14 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             tmpDict["bibkey"] = record["metadata"]["texkeys"][0]
         except (IndexError, KeyError, TypeError):
-            pBLogger.warning(self.errorReadRecord, exc_info=True)
+            pBLogger.warning(self.errorReadRecord % tmpDict["id"])
         # old keys
         tmpOld = []
         try:
             tmpOld = list(record["metadata"]["texkeys"])
             tmpOld.pop(0)
         except (IndexError, KeyError, TypeError):
-            pBLogger.warning(self.errorReadRecord, exc_info=True)
+            pBLogger.warning(self.errorReadRecord % tmpDict["id"])
         tmpDict["oldkeys"] = ",".join(tmpOld)
         # doi
         tmpDict["doi"] = None

@@ -43,7 +43,7 @@ class InspireStrings(GenericStrings):
     errorEmptyText = "An error occurred. Empty text obtained"
     errorEmptySearch = "An error occurred. No search results obtained"
     errorInvalidBibtex = "Invalid bibtex!\n%s"
-    errorReadRecord = "Error in readRecord!"
+    errorReadRecord = "Error in readRecord! id:%s"
     errorUpdateBibtex = "Cannot update bibtex!"
     exceptionFormat = "%s, %s\n%s"
     foundID = "Found: %s"
