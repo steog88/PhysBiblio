@@ -6982,6 +6982,8 @@ class TestDatabaseEntries(DBTestCase):
                         "pages": u"033001",
                         "author": "S. Gariazzo et al",
                         "title": "Light sterile neutrinos",
+                        "cit": 123,
+                        "cit_no_self": 111,
                     }
                 ],
             ],
@@ -7055,6 +7057,8 @@ class TestDatabaseEntries(DBTestCase):
                 },
             )
             res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+            self.assertTrue(res["citations"] == 123)
+            self.assertTrue(res["citations_no_self"] == 111)
             del res["citations"]
             del res["citations_no_self"]
             self.assertEqual(

@@ -2773,6 +2773,15 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.info(key)
                 old = self.getByBibkey(key, saveQuery=False)
                 if len(old) > 0 and old[0]["noUpdate"] == 0:
+                    # update other fields
+                    for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
+                        try:
+                            pBLogger.info("%s = %s (%s)" % (d, e[o], old[0][d]))
+                            if o != "bibtex" and e[o] != old[0][d]:
+                                self.updateField(key, d, e[o], verbose=0)
+                        except KeyError:
+                            pBLogger.exception(dstr.Bibs.iidKeyError % (o, d))
+                    # update bibtex
                     outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
                         e, old[0]["bibtex"]
                     )
