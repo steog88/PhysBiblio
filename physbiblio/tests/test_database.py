@@ -68,6 +68,8 @@ fullRecordAde = {
     "proceeding": 0,
     "book": 0,
     "noUpdate": 0,
+    "citations": 0,
+    "citations_no_self": 0,
     "marks": "",
     "abstract": None,
     "bibtexDict": {
@@ -140,6 +142,8 @@ fullRecordGariazzo = {
     "proceeding": 0,
     "book": 0,
     "noUpdate": 0,
+    "citations": 0,
+    "citations_no_self": 0,
     "marks": "",
     "abstract": None,
     "bibtexDict": {
@@ -235,7 +239,8 @@ class TestCreateTables(unittest.TestCase):
                 + "default 0,\nphd_thesis integer default 0,\nreview "
                 + "integer default 0,\nproceeding integer default 0,"
                 + "\nbook integer default 0,\nnoUpdate integer default 0,"
-                + "\nmarks text ,\nabstract text ,\nbibdict text );\n"
+                + "\nmarks text ,\nabstract text ,\nbibdict text ,\n"
+                + "citations integer default 0,\ncitations_no_self integer default 0);\n"
             )
             _i.assert_any_call(
                 "CREATE TABLE categories (\nidCat integer primary key,"
@@ -1226,7 +1231,13 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
-        dbc.curs = [[0, "title"], [1, "column"], [2, "bibdict"]]
+        dbc.curs = [
+            [0, "title"],
+            [1, "column"],
+            [2, "bibdict"],
+            [3, "citations"],
+            [4, "citations_no_self"],
+        ]
         with patch("logging.Logger.info") as _i, patch(
             "logging.Logger.error"
         ) as _e, patch(
@@ -1237,13 +1248,18 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             "physbiblio.databaseCore.PhysBiblioDBCore.cursExec", autospec=True
         ) as _cue, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.connExec",
-            side_effect=[True, False],
+            side_effect=[True, False, True, True, False, False],
             autospec=True,
         ) as _coe:
             dbc.checkDatabaseUpdates()
             _cue.assert_called_once_with(dbc, "PRAGMA table_info(entries);")
             self.assertEqual(_coe.call_count, 0)
-            dbc.curs = [[0, "title"], [1, "column"]]
+            dbc.curs = [
+                [0, "title"],
+                [1, "column"],
+                [2, "citations"],
+                [3, "citations_no_self"],
+            ]
             dbc.checkDatabaseUpdates()
             _coe.assert_called_once_with(
                 dbc, "ALTER TABLE entries ADD COLUMN bibdict text;"
@@ -1258,6 +1274,29 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             _co.assert_called_once_with(dbc)
             _e.assert_called_once_with("Cannot alter table 'entries'!")
             _un.assert_called_once_with(dbc)
+            _un.reset_mock()
+            _e.reset_mock()
+            dbc.curs = [[0, "title"], [1, "column"], [2, "bibdict"]]
+            _coe.reset_mock()
+            _co.reset_mock()
+            dbc.checkDatabaseUpdates()
+            _coe.assert_any_call(
+                dbc, "ALTER TABLE entries ADD COLUMN citations integer default 0;"
+            )
+            _coe.assert_any_call(
+                dbc,
+                "ALTER TABLE entries ADD COLUMN citations_no_self integer default 0;",
+            )
+            self.assertEqual(_co.call_count, 2)
+            _i.assert_any_call("New column in table 'entries': 'citations' (integer).")
+            _i.assert_any_call(
+                "New column in table 'entries': 'citations_no_self' (integer)."
+            )
+            _e.assert_not_called()
+            self.assertEqual(_un.call_count, 0)
+            dbc.checkDatabaseUpdates()
+            _e.assert_any_call("Cannot alter table 'entries'!")
+            _un.assert_any_call(dbc)
 
     def test_PhysBiblioDBSub(self):
         """test methods in PhysBiblioDBSub"""
@@ -6526,54 +6565,55 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs.insertFromBibtex(
                     u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
                 )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
                 self.assertEqual(
-                    self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-                    [
-                        {
-                            "bibkey": "Gariazzo:2015rra",
-                            "inspire": None,
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": None,
+                        "arxiv": "1507.08204",
+                        "ads": None,
+                        "scholar": None,
+                        "doi": None,
+                        "isbn": None,
+                        "year": 2015,
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n         "
+                        + 'arxiv = "1507.08204",\n}',
+                        "firstdate": dt,
+                        "pubdate": "",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
                             "arxiv": "1507.08204",
-                            "ads": None,
-                            "scholar": None,
-                            "doi": None,
-                            "isbn": None,
-                            "year": 2015,
-                            "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                            "comments": None,
-                            "old_keys": None,
-                            "crossref": None,
-                            "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                            + 'arxiv = "1507.08204",\n}',
-                            "firstdate": dt,
-                            "pubdate": "",
-                            "exp_paper": 0,
-                            "lecture": 0,
-                            "phd_thesis": 0,
-                            "review": 0,
-                            "proceeding": 0,
-                            "book": 0,
-                            "noUpdate": 0,
-                            "marks": "",
-                            "abstract": None,
-                            "bibtexDict": {
-                                "arxiv": "1507.08204",
-                                "ENTRYTYPE": "article",
-                                "ID": "Gariazzo:2015rra",
-                            },
-                            "title": "",
-                            "journal": "",
-                            "volume": "",
-                            "number": "",
-                            "pages": "",
-                            "published": "  (2015) ",
-                            "author": "",
-                            "bibdict": {
-                                u"arxiv": u"1507.08204",
-                                "ENTRYTYPE": u"article",
-                                "ID": u"Gariazzo:2015rra",
-                            },
-                        }
-                    ],
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                        },
+                        "title": "",
+                        "journal": "",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "  (2015) ",
+                        "author": "",
+                        "bibdict": {
+                            u"arxiv": u"1507.08204",
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                        },
+                    },
                 )
                 mock_function.reset_mock()
                 with patch("logging.Logger.info") as _i:
@@ -6591,107 +6631,109 @@ class TestDatabaseEntries(DBTestCase):
                     readConferenceTitle=False,
                     verbose=2,
                 )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
                 self.assertEqual(
-                    self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-                    [
-                        {
-                            "bibkey": "Gariazzo:2015rra",
-                            "inspire": "1385583",
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": 2016,
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n         "
+                        + 'arxiv = "1507.08204",\n}',
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
                             "arxiv": "1507.08204",
-                            "ads": "2015JPhG...43c3001G",
-                            "scholar": None,
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "isbn": None,
-                            "year": 2016,
-                            "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                            "comments": None,
-                            "old_keys": None,
-                            "crossref": None,
-                            "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                            + 'arxiv = "1507.08204",\n}',
-                            "firstdate": "2015-07-29",
-                            "pubdate": "2016-01-13",
-                            "exp_paper": 0,
-                            "lecture": 0,
-                            "phd_thesis": 0,
-                            "review": 0,
-                            "proceeding": 0,
-                            "book": 0,
-                            "noUpdate": 0,
-                            "marks": "",
-                            "abstract": None,
-                            "bibtexDict": {
-                                "arxiv": "1507.08204",
-                                "ENTRYTYPE": "article",
-                                "ID": "Gariazzo:2015rra",
-                            },
-                            "title": "",
-                            "journal": "",
-                            "volume": "",
-                            "number": "",
-                            "pages": "",
-                            "published": "  (2016) ",
-                            "author": "",
-                            "bibdict": {
-                                u"arxiv": u"1507.08204",
-                                "ENTRYTYPE": u"article",
-                                "ID": u"Gariazzo:2015rra",
-                            },
-                        }
-                    ],
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                        },
+                        "title": "",
+                        "journal": "",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "  (2016) ",
+                        "author": "",
+                        "bibdict": {
+                            u"arxiv": u"1507.08204",
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                        },
+                    },
                 )
                 self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
                 self.assertEqual(
-                    self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-                    [
-                        {
-                            "bibkey": "Gariazzo:2015rra",
-                            "inspire": "1385583",
-                            "arxiv": "1507.08204",
-                            "ads": "2015JPhG...43c3001G",
-                            "scholar": None,
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "isbn": None,
-                            "year": 2016,
-                            "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                            "comments": None,
-                            "old_keys": None,
-                            "crossref": None,
-                            "bibtex": "@Article{Gariazzo:2015rra,\n        "
-                            + 'author = "Gariazzo",\n         '
-                            + 'title = "{Light Sterile Neutrinos}",\n}',
-                            "firstdate": "2015-07-29",
-                            "pubdate": "2016-01-13",
-                            "exp_paper": 0,
-                            "lecture": 0,
-                            "phd_thesis": 0,
-                            "review": 0,
-                            "proceeding": 0,
-                            "book": 0,
-                            "noUpdate": 0,
-                            "marks": "",
-                            "abstract": None,
-                            "bibtexDict": {
-                                "ENTRYTYPE": "article",
-                                "ID": "Gariazzo:2015rra",
-                                "author": "Gariazzo",
-                                "title": "{Light Sterile Neutrinos}",
-                            },
-                            "title": "{Light Sterile Neutrinos}",
-                            "journal": "",
-                            "volume": "",
-                            "number": "",
-                            "pages": "",
-                            "published": "  (2016) ",
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": 2016,
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n        "
+                        + 'author = "Gariazzo",\n         '
+                        + 'title = "{Light Sterile Neutrinos}",\n}',
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
                             "author": "Gariazzo",
-                            "bibdict": {
-                                "ID": u"Gariazzo:2015rra",
-                                u"title": u"{Light Sterile Neutrinos}",
-                                "ENTRYTYPE": u"article",
-                                u"author": u"Gariazzo",
-                            },
-                        }
-                    ],
+                            "title": "{Light Sterile Neutrinos}",
+                        },
+                        "title": "{Light Sterile Neutrinos}",
+                        "journal": "",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "  (2016) ",
+                        "author": "Gariazzo",
+                        "bibdict": {
+                            "ID": u"Gariazzo:2015rra",
+                            u"title": u"{Light Sterile Neutrinos}",
+                            "ENTRYTYPE": u"article",
+                            u"author": u"Gariazzo",
+                        },
+                    },
                 )
                 self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
                 with patch("logging.Logger.exception") as _i:
@@ -6777,103 +6819,105 @@ class TestDatabaseEntries(DBTestCase):
         d2 = "2018-01-02"
         d1t = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
         d2t = datetime.date.today().strftime("%Y-%m-%d")
+        res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+        del res["citations"]
+        del res["citations_no_self"]
         self.assertEqual(
-            self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
-            [
-                {
-                    "bibkey": "Ade:2013zuv",
-                    "inspire": None,
+            res,
+            {
+                "bibkey": "Ade:2013zuv",
+                "inspire": None,
+                "arxiv": "1303.5076",
+                "ads": None,
+                "scholar": None,
+                "doi": None,
+                "isbn": None,
+                "year": 2013,
+                "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                "comments": None,
+                "old_keys": None,
+                "crossref": None,
+                "bibtex": "@Article{Ade:2013zuv,\n         "
+                + 'arxiv = "1303.5076",\n}',
+                "firstdate": d2t,
+                "pubdate": "",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 0,
+                "marks": "",
+                "abstract": None,
+                "bibtexDict": {
                     "arxiv": "1303.5076",
-                    "ads": None,
-                    "scholar": None,
-                    "doi": None,
-                    "isbn": None,
-                    "year": 2013,
-                    "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
-                    "comments": None,
-                    "old_keys": None,
-                    "crossref": None,
-                    "bibtex": "@Article{Ade:2013zuv,\n         "
-                    + 'arxiv = "1303.5076",\n}',
-                    "firstdate": d2t,
-                    "pubdate": "",
-                    "exp_paper": 0,
-                    "lecture": 0,
-                    "phd_thesis": 0,
-                    "review": 0,
-                    "proceeding": 0,
-                    "book": 0,
-                    "noUpdate": 0,
-                    "marks": "",
-                    "abstract": None,
-                    "bibtexDict": {
-                        "arxiv": "1303.5076",
-                        "ENTRYTYPE": "article",
-                        "ID": "Ade:2013zuv",
-                    },
-                    "title": "",
-                    "journal": "",
-                    "volume": "",
-                    "number": "",
-                    "pages": "",
-                    "published": "  (2013) ",
-                    "author": "",
-                    "bibdict": {
-                        u"arxiv": u"1303.5076",
-                        "ENTRYTYPE": u"article",
-                        "ID": u"Ade:2013zuv",
-                    },
-                }
-            ],
+                    "ENTRYTYPE": "article",
+                    "ID": "Ade:2013zuv",
+                },
+                "title": "",
+                "journal": "",
+                "volume": "",
+                "number": "",
+                "pages": "",
+                "published": "  (2013) ",
+                "author": "",
+                "bibdict": {
+                    u"arxiv": u"1303.5076",
+                    "ENTRYTYPE": u"article",
+                    "ID": u"Ade:2013zuv",
+                },
+            },
         )
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        del res["citations"]
+        del res["citations_no_self"]
         self.assertEqual(
-            self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-            [
-                {
-                    "bibkey": "Gariazzo:2015rra",
-                    "inspire": None,
+            res,
+            {
+                "bibkey": "Gariazzo:2015rra",
+                "inspire": None,
+                "arxiv": "1507.08204",
+                "ads": None,
+                "scholar": None,
+                "doi": None,
+                "isbn": None,
+                "year": 2015,
+                "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                "comments": None,
+                "old_keys": None,
+                "crossref": None,
+                "bibtex": "@Article{Gariazzo:2015rra,\n         "
+                + 'arxiv = "1507.08204",\n}',
+                "firstdate": d2t,
+                "pubdate": "",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 0,
+                "marks": "",
+                "abstract": None,
+                "bibtexDict": {
                     "arxiv": "1507.08204",
-                    "ads": None,
-                    "scholar": None,
-                    "doi": None,
-                    "isbn": None,
-                    "year": 2015,
-                    "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                    "comments": None,
-                    "old_keys": None,
-                    "crossref": None,
-                    "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                    + 'arxiv = "1507.08204",\n}',
-                    "firstdate": d2t,
-                    "pubdate": "",
-                    "exp_paper": 0,
-                    "lecture": 0,
-                    "phd_thesis": 0,
-                    "review": 0,
-                    "proceeding": 0,
-                    "book": 0,
-                    "noUpdate": 0,
-                    "marks": "",
-                    "abstract": None,
-                    "bibtexDict": {
-                        "arxiv": "1507.08204",
-                        "ENTRYTYPE": "article",
-                        "ID": "Gariazzo:2015rra",
-                    },
-                    "title": "",
-                    "journal": "",
-                    "volume": "",
-                    "number": "",
-                    "pages": "",
-                    "published": "  (2015) ",
-                    "author": "",
-                    "bibdict": {
-                        u"arxiv": u"1507.08204",
-                        "ENTRYTYPE": u"article",
-                        "ID": u"Gariazzo:2015rra",
-                    },
-                }
-            ],
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
+                },
+                "title": "",
+                "journal": "",
+                "volume": "",
+                "number": "",
+                "pages": "",
+                "published": "  (2015) ",
+                "author": "",
+                "bibdict": {
+                    u"arxiv": u"1507.08204",
+                    "ENTRYTYPE": u"article",
+                    "ID": u"Gariazzo:2015rra",
+                },
+            },
         )
         with patch(
             "physbiblio.webimport.inspire.WebSearch.retrieveCumulativeUpdates",
@@ -6922,123 +6966,125 @@ class TestDatabaseEntries(DBTestCase):
                 "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2t)
             )
             self.pBDB.bibs.getDailyInfoFromOAI(date1=d1)
+            res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+            del res["citations"]
+            del res["citations_no_self"]
             self.assertEqual(
-                self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
-                [
-                    {
-                        "bibkey": "Ade:2013zuv",
-                        "inspire": None,
+                res,
+                {
+                    "bibkey": "Ade:2013zuv",
+                    "inspire": None,
+                    "arxiv": "1303.5076",
+                    "ads": None,
+                    "scholar": None,
+                    "doi": None,
+                    "isbn": None,
+                    "year": 2013,
+                    "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                    "comments": None,
+                    "old_keys": None,
+                    "crossref": None,
+                    "bibtex": "@Article{Ade:2013zuv,\n         "
+                    + 'arxiv = "1303.5076",\n}',
+                    "firstdate": d2t,
+                    "pubdate": "",
+                    "exp_paper": 0,
+                    "lecture": 0,
+                    "phd_thesis": 0,
+                    "review": 0,
+                    "proceeding": 0,
+                    "book": 0,
+                    "noUpdate": 0,
+                    "marks": "",
+                    "abstract": None,
+                    "bibtexDict": {
                         "arxiv": "1303.5076",
-                        "ads": None,
-                        "scholar": None,
-                        "doi": None,
-                        "isbn": None,
-                        "year": 2013,
-                        "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Ade:2013zuv,\n         "
-                        + 'arxiv = "1303.5076",\n}',
-                        "firstdate": d2t,
-                        "pubdate": "",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "arxiv": "1303.5076",
-                            "ENTRYTYPE": "article",
-                            "ID": "Ade:2013zuv",
-                        },
-                        "title": "",
-                        "journal": "",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "  (2013) ",
-                        "author": "",
-                        "bibdict": {
-                            u"arxiv": u"1303.5076",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Ade:2013zuv",
-                        },
-                    }
-                ],
+                        "ENTRYTYPE": "article",
+                        "ID": "Ade:2013zuv",
+                    },
+                    "title": "",
+                    "journal": "",
+                    "volume": "",
+                    "number": "",
+                    "pages": "",
+                    "published": "  (2013) ",
+                    "author": "",
+                    "bibdict": {
+                        u"arxiv": u"1303.5076",
+                        "ENTRYTYPE": u"article",
+                        "ID": u"Ade:2013zuv",
+                    },
+                },
             )
+            res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+            del res["citations"]
+            del res["citations_no_self"]
             self.assertEqual(
-                self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-                [
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": "1385583",
-                        "arxiv": "1507.08204",
-                        "ads": "2015JPhG...43c3001G",
-                        "scholar": None,
-                        "doi": "10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n"
-                        + '        author = "S. Gariazzo et al",\n'
-                        + '         title = "{Light sterile neutrinos}",\n'
-                        + '       journal = "J.Phys.",\n        volume = "G43",\n '
-                        + '         year = "2016",\n         pages = '
-                        + '"033001",\n        eprint = '
-                        + '"1507.08204",\n           doi = '
-                        + '"10.1088/0954-3899/43/3/033001",\n}',
-                        "firstdate": "2015-07-29",
-                        "pubdate": "2016-01-13",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "eprint": "1507.08204",
-                            "author": "S. Gariazzo et al",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "pages": "033001",
-                            "title": "{Light sterile neutrinos}",
-                            "year": "2016",
-                            "volume": "G43",
-                            "journal": "J.Phys.",
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                        },
-                        "title": "{Light sterile neutrinos}",
-                        "journal": "J.Phys.",
-                        "volume": "G43",
-                        "number": "",
-                        "pages": "033001",
-                        "published": "J.Phys. G43 (2016) 033001",
+                res,
+                {
+                    "bibkey": "Gariazzo:2015rra",
+                    "inspire": "1385583",
+                    "arxiv": "1507.08204",
+                    "ads": "2015JPhG...43c3001G",
+                    "scholar": None,
+                    "doi": "10.1088/0954-3899/43/3/033001",
+                    "isbn": None,
+                    "year": "2016",
+                    "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                    "comments": None,
+                    "old_keys": None,
+                    "crossref": None,
+                    "bibtex": "@Article{Gariazzo:2015rra,\n"
+                    + '        author = "S. Gariazzo et al",\n'
+                    + '         title = "{Light sterile neutrinos}",\n'
+                    + '       journal = "J.Phys.",\n        volume = "G43",\n '
+                    + '         year = "2016",\n         pages = '
+                    + '"033001",\n        eprint = '
+                    + '"1507.08204",\n           doi = '
+                    + '"10.1088/0954-3899/43/3/033001",\n}',
+                    "firstdate": "2015-07-29",
+                    "pubdate": "2016-01-13",
+                    "exp_paper": 0,
+                    "lecture": 0,
+                    "phd_thesis": 0,
+                    "review": 0,
+                    "proceeding": 0,
+                    "book": 0,
+                    "noUpdate": 0,
+                    "marks": "",
+                    "abstract": None,
+                    "bibtexDict": {
+                        "eprint": "1507.08204",
                         "author": "S. Gariazzo et al",
-                        "bibdict": {
-                            u"doi": u"10.1088/0954-3899/43/3/033001",
-                            u"journal": u"J.Phys.",
-                            u"eprint": u"1507.08204",
-                            "author": "S. Gariazzo et al",
-                            "title": "{Light sterile neutrinos}",
-                            "ENTRYTYPE": u"article",
-                            u"volume": u"G43",
-                            u"year": u"2016",
-                            "ID": u"Gariazzo:2015rra",
-                            u"pages": u"033001",
-                        },
-                    }
-                ],
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "pages": "033001",
+                        "title": "{Light sterile neutrinos}",
+                        "year": "2016",
+                        "volume": "G43",
+                        "journal": "J.Phys.",
+                        "ENTRYTYPE": "article",
+                        "ID": "Gariazzo:2015rra",
+                    },
+                    "title": "{Light sterile neutrinos}",
+                    "journal": "J.Phys.",
+                    "volume": "G43",
+                    "number": "",
+                    "pages": "033001",
+                    "published": "J.Phys. G43 (2016) 033001",
+                    "author": "S. Gariazzo et al",
+                    "bibdict": {
+                        u"doi": u"10.1088/0954-3899/43/3/033001",
+                        u"journal": u"J.Phys.",
+                        u"eprint": u"1507.08204",
+                        "author": "S. Gariazzo et al",
+                        "title": "{Light sterile neutrinos}",
+                        "ENTRYTYPE": u"article",
+                        u"volume": u"G43",
+                        u"year": u"2016",
+                        "ID": u"Gariazzo:2015rra",
+                        u"pages": u"033001",
+                    },
+                },
             )
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insertFromBibtex(
@@ -7048,9 +7094,141 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.setNoUpdate("Ade:2013zuv")
         d1 = "2018-01-01"
         d2 = "2018-01-02"
+        res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+        del res["citations"]
+        del res["citations_no_self"]
         self.assertEqual(
-            self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
-            [
+            res,
+            {
+                "bibkey": "Ade:2013zuv",
+                "inspire": None,
+                "arxiv": "1303.5076",
+                "ads": None,
+                "scholar": None,
+                "doi": None,
+                "isbn": None,
+                "year": 2013,
+                "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                "comments": None,
+                "old_keys": None,
+                "crossref": None,
+                "bibtex": "@Article{Ade:2013zuv,\n         "
+                + 'arxiv = "1303.5076",\n}',
+                "firstdate": d2t,
+                "pubdate": "",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 1,
+                "marks": "",
+                "abstract": None,
+                "bibtexDict": {
+                    "arxiv": "1303.5076",
+                    "ENTRYTYPE": "article",
+                    "ID": "Ade:2013zuv",
+                },
+                "title": "",
+                "journal": "",
+                "volume": "",
+                "number": "",
+                "pages": "",
+                "published": "  (2013) ",
+                "author": "",
+                "bibdict": {
+                    u"arxiv": u"1303.5076",
+                    "ENTRYTYPE": u"article",
+                    "ID": u"Ade:2013zuv",
+                },
+            },
+        )
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(
+            res,
+            {
+                "bibkey": "Gariazzo:2015rra",
+                "inspire": None,
+                "arxiv": "1507.08204",
+                "ads": None,
+                "scholar": None,
+                "doi": None,
+                "isbn": None,
+                "year": 2015,
+                "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                "comments": None,
+                "old_keys": None,
+                "crossref": None,
+                "bibtex": "@Article{Gariazzo:2015rra,\n         "
+                + 'arxiv = "1507.08204",\n}',
+                "firstdate": d2t,
+                "pubdate": "",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 0,
+                "marks": "",
+                "abstract": None,
+                "bibtexDict": {
+                    "arxiv": "1507.08204",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
+                },
+                "title": "",
+                "journal": "",
+                "volume": "",
+                "number": "",
+                "pages": "",
+                "published": "  (2015) ",
+                "author": "",
+                "bibdict": {
+                    u"arxiv": u"1507.08204",
+                    "ENTRYTYPE": u"article",
+                    "ID": u"Gariazzo:2015rra",
+                },
+            },
+        )
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveCumulativeUpdates",
+            side_effect=[
+                [
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        "journal": u"J.Phys.",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        "volume": u"G43",
+                        "bibtex": None,
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        "pages": u"033001",
+                        "author": "S. Gariazzo et al",
+                        "title": "Light sterile neutrinos",
+                    }
+                ]
+            ],
+            autospec=True,
+        ) as _mock, patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.getDailyInfoFromOAI(d1, d2)
+            _i.assert_any_call(
+                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2)
+            )
+            res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+            del res["citations"]
+            del res["citations_no_self"]
+            self.assertEqual(
+                res,
                 {
                     "bibkey": "Ade:2013zuv",
                     "inspire": None,
@@ -7094,29 +7272,36 @@ class TestDatabaseEntries(DBTestCase):
                         "ENTRYTYPE": u"article",
                         "ID": u"Ade:2013zuv",
                     },
-                }
-            ],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-            [
+                },
+            )
+            res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+            del res["citations"]
+            del res["citations_no_self"]
+            self.assertEqual(
+                res,
                 {
                     "bibkey": "Gariazzo:2015rra",
-                    "inspire": None,
+                    "inspire": "1385583",
                     "arxiv": "1507.08204",
-                    "ads": None,
+                    "ads": "2015JPhG...43c3001G",
                     "scholar": None,
-                    "doi": None,
+                    "doi": "10.1088/0954-3899/43/3/033001",
                     "isbn": None,
-                    "year": 2015,
+                    "year": "2016",
                     "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
                     "comments": None,
                     "old_keys": None,
                     "crossref": None,
-                    "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                    + 'arxiv = "1507.08204",\n}',
-                    "firstdate": d2t,
-                    "pubdate": "",
+                    "bibtex": "@Article{Gariazzo:2015rra,\n"
+                    + '        author = "S. Gariazzo et al",\n'
+                    + '         title = "{Light sterile neutrinos}",\n'
+                    + '       journal = "J.Phys.",\n        volume = "G43",\n '
+                    + '         year = "2016",\n         pages = '
+                    + '"033001",\n        eprint = '
+                    + '"1507.08204",\n           doi = '
+                    + '"10.1088/0954-3899/43/3/033001",\n}',
+                    "firstdate": "2015-07-29",
+                    "pubdate": "2016-01-13",
                     "exp_paper": 0,
                     "lecture": 0,
                     "phd_thesis": 0,
@@ -7127,172 +7312,37 @@ class TestDatabaseEntries(DBTestCase):
                     "marks": "",
                     "abstract": None,
                     "bibtexDict": {
-                        "arxiv": "1507.08204",
+                        "eprint": "1507.08204",
+                        "author": "S. Gariazzo et al",
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "pages": "033001",
+                        "title": "{Light sterile neutrinos}",
+                        "year": "2016",
+                        "volume": "G43",
+                        "journal": "J.Phys.",
                         "ENTRYTYPE": "article",
                         "ID": "Gariazzo:2015rra",
                     },
-                    "title": "",
-                    "journal": "",
-                    "volume": "",
+                    "title": "{Light sterile neutrinos}",
+                    "journal": "J.Phys.",
+                    "volume": "G43",
                     "number": "",
-                    "pages": "",
-                    "published": "  (2015) ",
-                    "author": "",
+                    "pages": "033001",
+                    "published": "J.Phys. G43 (2016) 033001",
+                    "author": "S. Gariazzo et al",
                     "bibdict": {
-                        u"arxiv": u"1507.08204",
-                        "ENTRYTYPE": u"article",
-                        "ID": u"Gariazzo:2015rra",
-                    },
-                }
-            ],
-        )
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveCumulativeUpdates",
-            side_effect=[
-                [
-                    {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.",
-                        "arxiv": u"1507.08204",
-                        "id": "1385583",
-                        "volume": u"G43",
-                        "bibtex": None,
-                        "year": u"2016",
-                        "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        "pages": u"033001",
+                        u"doi": u"10.1088/0954-3899/43/3/033001",
+                        u"journal": u"J.Phys.",
+                        u"eprint": u"1507.08204",
                         "author": "S. Gariazzo et al",
-                        "title": "Light sterile neutrinos",
-                    }
-                ]
-            ],
-            autospec=True,
-        ) as _mock, patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.getDailyInfoFromOAI(d1, d2)
-            _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2)
-            )
-            self.assertEqual(
-                self.pBDB.bibs.getByBibkey("Ade:2013zuv"),
-                [
-                    {
-                        "bibkey": "Ade:2013zuv",
-                        "inspire": None,
-                        "arxiv": "1303.5076",
-                        "ads": None,
-                        "scholar": None,
-                        "doi": None,
-                        "isbn": None,
-                        "year": 2013,
-                        "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Ade:2013zuv,\n         "
-                        + 'arxiv = "1303.5076",\n}',
-                        "firstdate": d2t,
-                        "pubdate": "",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 1,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "arxiv": "1303.5076",
-                            "ENTRYTYPE": "article",
-                            "ID": "Ade:2013zuv",
-                        },
-                        "title": "",
-                        "journal": "",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "  (2013) ",
-                        "author": "",
-                        "bibdict": {
-                            u"arxiv": u"1303.5076",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Ade:2013zuv",
-                        },
-                    }
-                ],
-            )
-            self.assertEqual(
-                self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"),
-                [
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": "1385583",
-                        "arxiv": "1507.08204",
-                        "ads": "2015JPhG...43c3001G",
-                        "scholar": None,
-                        "doi": "10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n"
-                        + '        author = "S. Gariazzo et al",\n'
-                        + '         title = "{Light sterile neutrinos}",\n'
-                        + '       journal = "J.Phys.",\n        volume = "G43",\n '
-                        + '         year = "2016",\n         pages = '
-                        + '"033001",\n        eprint = '
-                        + '"1507.08204",\n           doi = '
-                        + '"10.1088/0954-3899/43/3/033001",\n}',
-                        "firstdate": "2015-07-29",
-                        "pubdate": "2016-01-13",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "eprint": "1507.08204",
-                            "author": "S. Gariazzo et al",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "pages": "033001",
-                            "title": "{Light sterile neutrinos}",
-                            "year": "2016",
-                            "volume": "G43",
-                            "journal": "J.Phys.",
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                        },
                         "title": "{Light sterile neutrinos}",
-                        "journal": "J.Phys.",
-                        "volume": "G43",
-                        "number": "",
-                        "pages": "033001",
-                        "published": "J.Phys. G43 (2016) 033001",
-                        "author": "S. Gariazzo et al",
-                        "bibdict": {
-                            u"doi": u"10.1088/0954-3899/43/3/033001",
-                            u"journal": u"J.Phys.",
-                            u"eprint": u"1507.08204",
-                            "author": "S. Gariazzo et al",
-                            "title": "{Light sterile neutrinos}",
-                            "ENTRYTYPE": u"article",
-                            u"volume": u"G43",
-                            u"year": u"2016",
-                            "ID": u"Gariazzo:2015rra",
-                            u"pages": u"033001",
-                        },
-                    }
-                ],
+                        "ENTRYTYPE": u"article",
+                        u"volume": u"G43",
+                        u"year": u"2016",
+                        "ID": u"Gariazzo:2015rra",
+                        u"pages": u"033001",
+                    },
+                },
             )
 
     def test_findCorrupted(self):

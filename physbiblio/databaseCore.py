@@ -331,7 +331,26 @@ class PhysBiblioDBCore:
         entriesCols = [name[1] for name in self.curs]
         if "bibdict" not in entriesCols:
             if self.connExec("ALTER TABLE entries ADD COLUMN bibdict text;"):
-                self.logger.info(dbcstr.newColEntries)
+                self.logger.info(dbcstr.newColEntries % ("bibdict", "text"))
+                self.commit()
+            else:
+                self.logger.error(dbcstr.errorAlterEntries)
+                self.undo()
+        if "citations" not in entriesCols:
+            if self.connExec(
+                "ALTER TABLE entries ADD COLUMN citations integer default 0;"
+            ):
+                self.logger.info(dbcstr.newColEntries % ("citations", "integer"))
+                self.commit()
+            else:
+                self.logger.error(dbcstr.errorAlterEntries)
+                self.undo()
+            if self.connExec(
+                "ALTER TABLE entries ADD COLUMN citations_no_self integer default 0;"
+            ):
+                self.logger.info(
+                    dbcstr.newColEntries % ("citations_no_self", "integer")
+                )
                 self.commit()
             else:
                 self.logger.error(dbcstr.errorAlterEntries)

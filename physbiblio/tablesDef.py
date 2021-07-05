@@ -60,6 +60,8 @@ tableFields["entries"] = [
     ["marks", "text", ""],
     ["abstract", "text", ""],
     ["bibdict", "text", ""],
+    ["citations", "integer", "default 0"],
+    ["citations_no_self", "integer", "default 0"],
 ]
 tableFields["categories"] = [
     ["idCat", "integer", "primary key"],

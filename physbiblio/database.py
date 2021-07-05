@@ -2371,6 +2371,8 @@ class Entries(PhysBiblioDBSub):
         noUpdate=None,
         abstract=None,
         number=None,
+        citations=None,
+        citations_no_self=None,
     ):
         """Convert a bibtex into a dictionary,
         eventually using also additional info
@@ -2509,6 +2511,11 @@ class Entries(PhysBiblioDBSub):
             )
             tmpBibDict = {}
         data["bibdict"] = "%s" % tmpBibDict
+        # citations
+        data["citations"] = citations if citations is not None else 0
+        data["citations_no_self"] = (
+            citations_no_self if citations_no_self is not None else 0
+        )
         # if some fields are empty, use bibtex info
         if arxiv == "":
             if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":

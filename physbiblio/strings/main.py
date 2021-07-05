@@ -166,7 +166,7 @@ class DatabaseCoreStrings:
     errorInsUpd = "Cannot insert/update: ID exists!\n%s\nquery: %s"
     errorLiteralEval = "Error in literal_eval with string '%s'"
     invalidIsLocked = "Invalid `self.onIsLocked`!"
-    newColEntries = "New column in table 'entries': 'bibdict' (text)."
+    newColEntries = "New column in table 'entries': '%s' (%s)."
     noDatabaseCreate = "-------New database or missing tables.\nCreating them!\n\n"
     openDb = "Opening database: %s"
     opErDbOpen = (
@@ -547,6 +547,8 @@ class TablesDefStrings:
         "marks": "Mark the record",
         "abstract": "Abstract of the record",
         "bibdict": "Dictionary with fields of the bibtex entry from bibtexparser",
+        "citations": "Most recent number of citations from INSPIRE",
+        "citations_no_self": "Most recent number of citations from INSPIRE, excluding self cites",
     }
     entriesExpsDescs = {
         "idEnEx": "Unique identifier",

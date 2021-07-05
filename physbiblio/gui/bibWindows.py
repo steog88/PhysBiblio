@@ -2170,10 +2170,11 @@ class EditBibtexDialog(EditObjectWindow):
         else:
             self.data = bib
         for k in pBDB.tableCols["entries"]:
-            try:
-                self.data[k]
-            except KeyError:
-                self.data[k] = ""
+            if k != "citations" and k != "citations_no_self":
+                try:
+                    self.data[k]
+                except KeyError:
+                    self.data[k] = ""
         self.checkValues = {}
         self.markValues = {}
         self.createForm()
@@ -2290,7 +2291,8 @@ class EditBibtexDialog(EditObjectWindow):
 
         i = 0
         for k in pBDB.tableCols["entries"]:
-            i = self.createField(k, i)
+            if k != "citations" and k != "citations_no_self":
+                i = self.createField(k, i)
 
         i += 3 + i % 2
         self.typeBox = QGroupBox(bwstr.ED.type_)
@@ -3210,7 +3212,8 @@ class MergeBibtexs(EditBibtexDialog):
         self.dataOld = {"0": bib1, "1": bib2}
         self.data = {}
         for k in pBDB.tableCols["entries"]:
-            self.data[k] = ""
+            if k != "citations" and k != "citations_no_self":
+                self.data[k] = ""
         self.checkValues = {}
         self.markValues = {}
         self.textValues = {}

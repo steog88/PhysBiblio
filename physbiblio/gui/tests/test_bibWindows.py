@@ -5582,8 +5582,9 @@ class TestEditBibtexDialog(GUITestCase):
         )
         tmp = {}
         for k in pBDB.tableCols["entries"]:
-            self.assertEqual(eb.data[k], "")
-            tmp[k] = "a"
+            if k != "citations" and k != "citations_no_self":
+                self.assertEqual(eb.data[k], "")
+                tmp[k] = "a"
 
         with patch(
             "physbiblio.gui.bibWindows.EditBibtexDialog.createForm", autospec=True
@@ -7848,7 +7849,8 @@ class TestMergeBibtexs(GUITestCase):
         self.assertEqual(mb.dataOld, {"0": a, "1": b})
         self.assertIsInstance(mb.data, dict)
         for k in pBDB.tableCols["entries"]:
-            self.assertEqual(mb.data[k], "")
+            if k != "citations" and k != "citations_no_self":
+                self.assertEqual(mb.data[k], "")
         self.assertEqual(mb.checkValues, {})
         self.assertEqual(mb.markValues, {})
         self.assertEqual(mb.radioButtons, {"0": {}, "1": {}})
