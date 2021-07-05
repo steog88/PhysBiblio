@@ -163,8 +163,17 @@ def writeBibtexInfo(entry):
             )
         except KeyError:
             pBLogger.debug(bwstr.Info.keyErr % (k, sorted(entry.keys())))
+    infoText += nl
+    try:
+        if entry["citations"] > 0:
+            infoText += bwstr.Info.citIns % entry["citations"]
+            if entry["citations_no_self"] > 0:
+                infoText += bwstr.Info.citNoSelf % entry["citations_no_self"]
+            infoText += nl
+    except KeyError:
+        pass
     cats = pBDB.cats.getByEntry(entry["bibkey"])
-    infoText += nl + bwstr.Info.cats % (
+    infoText += bwstr.Info.cats % (
         ", ".join([c["name"] for c in cats]) if len(cats) > 0 else "None"
     )
     exps = pBDB.exps.getByEntry(entry["bibkey"])

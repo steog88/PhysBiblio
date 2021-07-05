@@ -68,8 +68,6 @@ fullRecordAde = {
     "proceeding": 0,
     "book": 0,
     "noUpdate": 0,
-    "citations": 0,
-    "citations_no_self": 0,
     "marks": "",
     "abstract": None,
     "bibtexDict": {
@@ -142,8 +140,6 @@ fullRecordGariazzo = {
     "proceeding": 0,
     "book": 0,
     "noUpdate": 0,
-    "citations": 0,
-    "citations_no_self": 0,
     "marks": "",
     "abstract": None,
     "bibtexDict": {
@@ -5977,8 +5973,18 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(len(all_), 2)
         if all_[0]["bibkey"] != "Gariazzo:2015rra":
             all_.reverse()
-        self.assertEqual(all_[0], fullRecordGariazzo)
-        self.assertEqual(all_[1], fullRecordAde)
+        res = all_[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordGariazzo)
+        res = all_[1]
+        self.assertTrue(res["citations"] > 7300)
+        self.assertTrue(res["citations_no_self"] > 6900)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordAde)
 
     def test_loadAndInsert(self):
         """tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
@@ -6379,7 +6385,19 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.searchOAIUpdates(),
             (2, [], ["Gariazzo:2015rra", "Planck:2013pxb"]),
         )
-        self.assertEqual(self.pBDB.bibs.getAll(), [fullRecordAde, fullRecordGariazzo])
+        ga = self.pBDB.bibs.getAll()
+        res = ga[0]
+        self.assertTrue(res["citations"] > 7300)
+        self.assertTrue(res["citations_no_self"] > 6900)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordAde)
+        res = ga[1]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordGariazzo)
 
     def test_searchOAIUpdates(self):
         """tests for searchOAIUpdates, with mock functions"""
@@ -6456,14 +6474,19 @@ class TestDatabaseEntries(DBTestCase):
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_updateInfoFromOAI_online(self):
         """test updateInfoFromOAI, with online connection"""
-        expected = [fullRecordGariazzo]
+        expected = fullRecordGariazzo
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
                 u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
             )
         )
         self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("Gariazzo:2015rra"))
-        self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
@@ -6471,7 +6494,12 @@ class TestDatabaseEntries(DBTestCase):
             )
         )
         self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("1385583"))
-        self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
 
     def test_updateInfoFromOAI(self):
         """test updateInfoFromOAI, but with mocked methods"""
@@ -6747,12 +6775,17 @@ class TestDatabaseEntries(DBTestCase):
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_updateFromOAI_online(self):
         """test updateFromOAI with online connection"""
-        expected = [fullRecordGariazzo]
+        expected = fullRecordGariazzo
         self.pBDB.bibs.insertFromBibtex(
             u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
         self.assertTrue(self.pBDB.bibs.updateFromOAI("Gariazzo:2015rra"))
-        self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
@@ -6760,7 +6793,12 @@ class TestDatabaseEntries(DBTestCase):
             )
         )
         self.assertTrue(self.pBDB.bibs.updateFromOAI("1385583"))
-        self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), expected)
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
 
     def test_updateFromOAI(self):
         """test updateFromOAI without relying

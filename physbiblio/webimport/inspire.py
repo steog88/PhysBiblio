@@ -44,6 +44,8 @@ class WebSearch(WebInterf, InspireStrings):
         ["isbn", "isbn"],
         ["bibtex", "bibtex"],
         ["link", "link"],
+        ["cit", "citations"],
+        ["cit_no_self", "citations_no_self"],
     ]
     bibtexFields = [
         "author",

@@ -70,6 +70,8 @@ class TestFunctions(GUIwMainWTestCase):
             "doi": "a/b/12",
             "inspire": "1234",
             "comments": "some thing",
+            "citations": 12,
+            "citations_no_self": 0,
         }
         with patch(
             "physbiblio.database.Categories.getByEntry", return_value=[], autospec=True
@@ -85,6 +87,7 @@ class TestFunctions(GUIwMainWTestCase):
                 + "<br/>\n<br/>\nDOI of the record: <u>a/b/12</u><br/>"
                 + "\narXiv ID of the record: <u>1234.5678</u><br/>"
                 + "\nINSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
+                + "Last citation count obtained from INSPIRE: 12<br/>\n"
                 + "Categories: <i>None</i><br/>\nExperiments: <i>None</i>"
                 + "<br/>\n<br/>Comments:<br/>some thing",
             )
@@ -109,6 +112,8 @@ class TestFunctions(GUIwMainWTestCase):
             "arxiv": "",
             "doi": "a/b/12",
             "inspire": "1234",
+            "citations": 0,
+            "citations_no_self": 12,
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -136,13 +141,15 @@ class TestFunctions(GUIwMainWTestCase):
                     ),
                     call(
                         "KeyError: 'ads' not in "
-                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
+                        + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'isbn', 'lecture', "
                         + "'phd_thesis', 'proceeding', 'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
-                        + " 'bibtexDict', 'book', 'doi', 'exp_paper', 'inspire',"
+                        + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
+                        + "'doi', 'exp_paper', 'inspire',"
                         + " 'isbn', 'lecture', 'phd_thesis', 'proceeding', "
                         + "'review']"
                     ),
@@ -166,6 +173,8 @@ class TestFunctions(GUIwMainWTestCase):
             "arxiv": "",
             "doi": "a/b/12",
             "inspire": "1234",
+            "citations": 12,
+            "citations_no_self": 10,
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -182,13 +191,15 @@ class TestFunctions(GUIwMainWTestCase):
                 + "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>\n"
                 + "DOI of the record: <u>a/b/12</u><br/>\n"
                 + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
+                + "Last citation count obtained from INSPIRE: 12 (10 excluding self citations)<br/>\n"
                 + "Categories: <i>Main</i><br/>\nExperiments: <i>None</i>",
             )
             _d.assert_has_calls(
                 [
                     call(
                         "KeyError: 'proceeding' not in "
-                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
+                        + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
                         + "'review']"
                     ),
@@ -198,19 +209,22 @@ class TestFunctions(GUIwMainWTestCase):
                     ),
                     call(
                         "KeyError: 'isbn' not in "
-                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
+                        + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'ads' not in "
-                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', 'doi', "
+                        + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
+                        + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
-                        + " 'bibtexDict', 'book', 'doi', 'exp_paper', "
+                        + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
+                        + "'doi', 'exp_paper', "
                         + "'inspire', 'lecture', 'phd_thesis', 'review']"
                     ),
                 ]
@@ -236,6 +250,8 @@ class TestFunctions(GUIwMainWTestCase):
             "doi": "",
             "inspire": "",
             "comments": "",
+            "citations": 0,
+            "citations_no_self": 0,
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -261,7 +277,8 @@ class TestFunctions(GUIwMainWTestCase):
                     call(
                         "KeyError: 'proceeding' not in "
                         + "['ads', 'arxiv', 'bibkey', 'bibtexDict', 'book', "
-                        + "'comments', 'doi', 'exp_paper', 'inspire', 'isbn', "
+                        + "'citations', 'citations_no_self', 'comments', "
+                        + "'doi', 'exp_paper', 'inspire', 'isbn', "
                         + "'lecture', 'phd_thesis', 'review']"
                     ),
                     call(
@@ -293,6 +310,8 @@ class TestFunctions(GUIwMainWTestCase):
             "doi": None,
             "inspire": None,
             "comments": None,
+            "citations": 0,
+            "citations_no_self": 0,
         }
         ltt = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
         with patch(

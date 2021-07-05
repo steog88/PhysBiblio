@@ -132,6 +132,8 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
 
         author = "<b>%s</b>"
         cats = "Categories: <i>%s</i>"
+        citIns = "Last citation count obtained from INSPIRE: %s"
+        citNoSelf = " (%s excluding self citations)"
         comm = "<br/>Comments:<br/>%s"
         exps = "Experiments: <i>%s</i>"
         keyErr = "KeyError: '%s' not in %s"
