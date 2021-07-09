@@ -27,16 +27,21 @@ except ImportError:
 
 def getYear(string):
     """Use the arxiv id to compute the year"""
-    identif = re.compile("([0-9]{2})([0-9]{2}.[0-9]{4,5}|[0-9]{5})")
+    identif = re.compile("(([a-zA-Z\-]+/)([0-9]{7}))|([0-9]{4}\.[0-9]{4,5})")
     try:
         for t in identif.finditer(string):
             if len(t.group()) > 0:
-                a = t.group(1)
+                try:
+                    a = t.group(3)[:2]  # match first type, e.g. hep-ex/0101001
+                except (IndexError, TypeError):
+                    a = t.group(4)[
+                        :2
+                    ]  # match second type, e.g. 1301.0123 or 1501.01234
                 if int(a) > 90:
                     return "19" + a
                 else:
                     return "20" + a
-    except Exception:
+    except (IndexError, TypeError):
         pBLogger.warning(ArxivStrings.errorYearConversion % string)
         return None
 
@@ -237,16 +242,16 @@ class WebSearch(WebInterf, ArxivStrings):
         Parameters:
             string: the search string
             searchType: the search method in arxiv API (default 'all').
-            The possible values are:
-                ti->    Title
-                au    ->    Author
-                abs    ->    Abstract
-                co    ->    Comment
-                jr    ->    Journal Reference
-                cat    ->    Subject Category
-                rn    ->    Report Number
-                id    ->    Id (use id_list instead)
-                all    ->    All of the above
+                The possible values are:
+                    ti  -> Title
+                    au  -> Author
+                    abs -> Abstract
+                    co  -> Comment
+                    jr  -> Journal Reference
+                    cat -> Subject Category
+                    rn  -> Report Number
+                    id  -> Id (use id_list instead)
+                    all -> All of the above
             additionalArgs: a dictionary of additional arguments
                 that can be passed to self.urlArgs (default None)
             fullDict (logical): return the bibtex dictionary in addition

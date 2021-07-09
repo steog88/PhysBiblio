@@ -31,7 +31,7 @@ except Exception:
 
 
 class TestInspireMethods(unittest.TestCase):
-    """Test the functions that import entries from the ADS.
+    """Test the functions that import entries from INSPIRE.
     Should not fail if everything works fine.
     """
 
