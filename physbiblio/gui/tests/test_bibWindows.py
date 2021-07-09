@@ -2201,12 +2201,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
         ) as _b, patch(
             "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
-        ) as _c:
+        ) as _c, patch(
+            "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount", autospec=True
+        ) as _d:
             c._createMenuInspire(True, "")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 4)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
             for a in c.menu.possibleActions[0][1]:
                 self.assertIsInstance(a, QAction)
             self.assertEqual(
@@ -2217,6 +2219,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][2].text(), "Reload bibtex")
             self.assertEqual(
                 c.menu.possibleActions[0][1][3].text(), "Citation statistics"
+            )
+            self.assertEqual(
+                c.menu.possibleActions[0][1][4].text(), "Update citation count"
             )
             self.assertEqual(_a.call_count, 0)
             c.menu.possibleActions[0][1][0].trigger()
@@ -2230,6 +2235,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(_c.call_count, 0)
             c.menu.possibleActions[0][1][3].trigger()
             _c.assert_called_once_with(c)
+            self.assertEqual(_d.call_count, 0)
+            c.menu.possibleActions[0][1][4].trigger()
+            _d.assert_called_once_with(c)
 
         c.menu = PBMenu(self.mainW)
         c._createMenuInspire(False, "")
@@ -2266,12 +2274,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
         ) as _b, patch(
             "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
-        ) as _c:
+        ) as _c, patch(
+            "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount", autospec=True
+        ) as _d:
             c._createMenuInspire(False, "123")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 4)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
             for a in c.menu.possibleActions[0][1]:
                 self.assertIsInstance(a, QAction)
             self.assertEqual(
@@ -2282,6 +2292,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][2].text(), "Reload bibtex")
             self.assertEqual(
                 c.menu.possibleActions[0][1][3].text(), "Citation statistics"
+            )
+            self.assertEqual(
+                c.menu.possibleActions[0][1][4].text(), "Update citation count"
             )
             self.assertEqual(_a.call_count, 0)
             c.menu.possibleActions[0][1][0].trigger()
@@ -2295,6 +2308,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(_c.call_count, 0)
             c.menu.possibleActions[0][1][3].trigger()
             _c.assert_called_once_with(c)
+            self.assertEqual(_d.call_count, 0)
+            c.menu.possibleActions[0][1][4].trigger()
+            _d.assert_called_once_with(c)
 
     def test_createMenuLinks(self):
         """test _createMenuLinks"""
@@ -3427,6 +3443,22 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _m.assert_called_once_with(
                 self.mainW, "Categories for 'abc' successfully inserted"
             )
+
+    def test_onCitationCount(self):
+        """test onCitationCount"""
+        c = CommonBibActions(
+            [
+                {"bibkey": "abc", "inspire": "1385583"},
+                {"bibkey": "def", "inspire": "1358853"},
+            ],
+            self.mainW,
+        )
+        with patch(
+            "physbiblio.gui.mainWindow.MainWindow.getInspireCitationCount",
+            autospec=True,
+        ) as _i:
+            c.onCitationCount()
+            _i.assert_called_once_with(self.mainW, ["1385583", "1358853"])
 
     def test_onCitations(self):
         """test onCitations"""

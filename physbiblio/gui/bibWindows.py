@@ -936,6 +936,9 @@ class CommonBibActions:
             menuI.append(
                 QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations)
             )
+            menuI.append(
+                QAction(bwstr.Acts.insCitCo, self.menu, triggered=self.onCitationCount)
+            )
             self.menu.possibleActions.append([bwstr.Acts.insTit, menuI])
         else:
             menuI[-1].setToolTip(bwstr.Acts.insComplTip)
@@ -1353,6 +1356,12 @@ class CommonBibActions:
                         pBDB.catBib.delete(c, self.keys)
                 pBDB.catBib.insert(self.parent().selectedCats, self.keys)
                 self.parent().statusBarMessage(bwstr.Acts.catsIns)
+
+    def onCitationCount(self):
+        """Call `inspireStats.InspireStatsLoader.plotStats`
+        to obtain the citation info of one or more papers
+        """
+        self.parent().getInspireCitationCount([e["inspire"] for e in self.bibs])
 
     def onCitations(self):
         """Call `inspireStats.InspireStatsLoader.plotStats`

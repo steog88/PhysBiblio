@@ -102,6 +102,57 @@ class Test_Thread_checkUpdated(GUITestCase):
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class Test_Thread_citationCount(GUITestCase):
+    """Test the functions in threadElements.Thread_citationCount"""
+
+    def test_init(self):
+        """test __init__"""
+        p = QWidget()
+        q = Queue()
+        ws = WriteStream(q)
+        thr = Thread_citationCount(ws, 123, p, pbMax="m", pbVal="v")
+        self.assertIsInstance(thr, PBThread)
+        self.assertEqual(thr.parent(), p)
+        self.assertEqual(thr.inspireID, 123)
+        self.assertEqual(thr.receiver, ws)
+        self.assertEqual(thr.pbMax, "m")
+        self.assertEqual(thr.pbVal, "v")
+
+    def test_run(self):
+        """test run"""
+        p = QWidget()
+        q = Queue()
+        ws = WriteStream(q)
+        thr = Thread_citationCount(ws, 123, p, pbMax="m", pbVal="v")
+        self.assertTrue(ws.running)
+        with patch(
+            "physbiblio.database.Entries.citationCount", autospec=True
+        ) as _cc, patch("time.sleep") as _sl, patch(
+            "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
+        ) as _st:
+            thr.run()
+            _cc.assert_called_once_with(
+                pBDB.bibs,
+                123,
+                pbMax="m",
+                pbVal="v",
+            )
+            self.assertFalse(ws.running)
+            _st.assert_called_once_with(ws)
+            _sl.assert_called_once_with(0.1)
+
+    def test_setStopFlag(self):
+        """test setStopFlag"""
+        q = Queue()
+        ws = WriteStream(q)
+        thr = Thread_citationCount(ws, 0)
+        pBDB.bibs.runningCitationCount = True
+        self.assertTrue(pBDB.bibs.runningCitationCount)
+        thr.setStopFlag()
+        self.assertFalse(pBDB.bibs.runningCitationCount)
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_Thread_updateAllBibtexs(GUITestCase):
     """Test the functions in threadElements.Thread_updateAllBibtexs"""
 
@@ -162,7 +213,7 @@ class Test_Thread_updateAllBibtexs(GUITestCase):
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
 class Test_Thread_replace(GUITestCase):
-    """Test the functions in threadElements.Thread_updateAllBibtexs"""
+    """Test the functions in threadElements.Thread_replace"""
 
     def test_init(self):
         """test __init__"""

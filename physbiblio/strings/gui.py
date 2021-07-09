@@ -70,6 +70,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
             "Warning: you can just add experiments to the selected entries, not delete!"
         )
         insCit = "Citation statistics"
+        insCitCo = "Update citation count"
         insCompl = "Complete info (ID and auxiliary info)"
         insComplTip = (
             "If the record has no associated INSPIRE ID,\n"
@@ -527,6 +528,7 @@ class MainWindowStrings(CommonStrings, ErrorsStrings, CommonGUIStrings):
         "These are the bibtex keys corresponding to invalid records:\n%s"
         + "\n\nNo action will be performed."
     )
+    citCount = "Citation Count"
     cleBib = "Clean Bibtexs"
     cleBibStart = "Starting cleaning of bibtexs..."
     cleBibStartAsk = (

@@ -3362,6 +3362,22 @@ class TestMainWindow(GUITestCase):
                 pbVal=pt.pbVal.emit,
             )
 
+    def test_getInspireCitationCount(self):
+        """test getInspireCitationCount"""
+        with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
+            self.clsName + ".done", autospec=True
+        ) as _im:
+            self.mainW.getInspireCitationCount("1234")
+            _rit.assert_called_once_with(
+                self.mainW,
+                Thread_citationCount,
+                mwstr.citCount,
+                "1234",
+                minProgress=0.0,
+                stopFlag=True,
+            )
+            _im.assert_called_once_with(self.mainW)
+
     def test_getInspireStats(self):
         """test getInspireStats"""
         self.mainW.lastPaperStats = None

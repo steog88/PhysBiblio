@@ -293,6 +293,59 @@ class TestInspireMethods(unittest.TestCase):
             _cu.assert_any_call(args)
             _rar.assert_any_call("mycurrenturl", max_iterations=2)
 
+    def test_retrieveBatchQuery(self):
+        """test retrieveBatchQuery"""
+        iws = physBiblioWeb.webSearch["inspire"]
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
+            return_value="output",
+        ) as _rsr:
+            self.assertEqual(iws.retrieveBatchQuery(["123", "456", "789"]), "output")
+            _rsr.assert_called_once_with("123 or 456 or 789")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["123", "456", "789"], searchFormat="recid:%s"),
+                "output",
+            )
+            _rsr.assert_called_once_with("recid:123 or recid:456 or recid:789")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["123", "", "789"], searchFormat="recid:%s"),
+                "output",
+            )
+            _rsr.assert_called_once_with("recid:123 or recid:789")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["123", "asd", None], searchFormat="filter:%s"),
+                "output",
+            )
+            _rsr.assert_called_once_with("filter:123 or filter:asd")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(
+                    ["De:2011abc", "Da:456", "Xe:789"], searchFormat="texkeys:%s"
+                ),
+                "output",
+            )
+            _rsr.assert_called_once_with(
+                "texkeys:De:2011abc or texkeys:Da:456 or texkeys:Xe:789"
+            )
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["De:2011abc", "Da:456", "Xe:789"]), "output"
+            )
+            _rsr.assert_called_once_with("texkeys:De:2011abc or Da:456 or Xe:789")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["De:2011abc", 456, "Xe:789"]), "output"
+            )
+            _rsr.assert_called_once_with("De:2011abc or 456 or Xe:789")
+            _rsr.reset_mock()
+            self.assertEqual(
+                iws.retrieveBatchQuery(["De:2011abc", "456", None]), "output"
+            )
+            _rsr.assert_called_once_with("texkeys:De:2011abc or 456")
+
     def test_retrieveInspireID(self):
         """Test retrieveInspireID"""
         iws = physBiblioWeb.webSearch["inspire"]

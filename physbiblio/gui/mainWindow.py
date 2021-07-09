@@ -79,6 +79,7 @@ try:
     from physbiblio.gui.threadElements import (
         Thread_authorStats,
         Thread_checkUpdated,
+        Thread_citationCount,
         Thread_cleanAllBibtexs,
         Thread_cleanSpare,
         Thread_cleanSparePDF,
@@ -1650,6 +1651,22 @@ class MainWindow(QMainWindow):
         aSP.show()
         self.done()
         return True
+
+    def getInspireCitationCount(self, inspireId):
+        """Use a thread to obtain the citation statistics
+        of a paper using the INSPIRE-HEP database
+
+        Parameter:
+            inspireId: the ID of the paper in the INSPIRE database
+        """
+        self._runInThread(
+            Thread_citationCount,
+            mwstr.citCount,
+            inspireId,
+            minProgress=0.0,
+            stopFlag=True,
+        )
+        self.done()
 
     def getInspireStats(self, inspireId):
         """Use a thread to obtain the citation statistics

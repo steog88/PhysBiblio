@@ -258,6 +258,32 @@ class WebSearch(WebInterf, InspireStrings):
             self.createUrl(args), max_iterations=max_iterations
         )
 
+    def retrieveBatchQuery(self, entries, searchFormat="%s", **kwargs):
+        """Read a list of entries and create a general search string
+        for a "manual" batch query to the INSPIRE database
+        through the new API.
+
+        Parameters:
+            entries: a list search strings for the entries of interest
+            searchFormat (default "%s"): formatter for the search string
+                of each entry. Example: use "recid:%s" to match IDs
+            kwargs: passed to self.retrieveSearchResults
+
+        Output:
+            the output of self.retrieveSearchResults
+        """
+        entries = [e for e in entries if e != "" and e is not None]
+        try:
+            if searchFormat == "%s":
+                entries = [
+                    "texkeys:%s" % e if e.lower().startswith("de:") else e
+                    for e in entries
+                ]
+        except (AttributeError, TypeError):
+            pass
+        searchString = " or ".join([searchFormat % e for e in entries])
+        return self.retrieveSearchResults(searchString, **kwargs)
+
     def retrieveInspireID(self, string, number=None, isDoi=False, isArxiv=False):
         """Read the fetched content for a given entry
         to obtain its INSPIRE-HEP ID

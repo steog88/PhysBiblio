@@ -58,6 +58,39 @@ class Thread_checkUpdated(PBThread):
             )
 
 
+class Thread_citationCount(PBThread):
+    """Thread the execution of `pBDB.bibs.loadAndInsert`"""
+
+    def __init__(self, receiver, inspireID, parent=None, pbMax=None, pbVal=None):
+        """Instantiate object.
+
+        Parameters:
+            receiver: the receiver for the text output (a `WriteStream` object)
+            content: the string to be searched in INSPIRE
+            parent: the parent widget. Cannot be None
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
+        """
+        super(Thread_citationCount, self).__init__(parent)
+        self.receiver = receiver
+        self.inspireID = inspireID
+        self.pbMax = pbMax
+        self.pbVal = pbVal
+
+    def run(self):
+        """Start the receiver, run `pBDB.bibs.loadAndInsert` and finish"""
+        self.receiver.start()
+        pBDB.bibs.citationCount(self.inspireID, pbMax=self.pbMax, pbVal=self.pbVal)
+        time.sleep(0.1)
+        self.receiver.running = False
+
+    def setStopFlag(self):
+        """Set the stop flag for the threaded process"""
+        pBDB.bibs.runningCitationCount = False
+
+
 class Thread_updateAllBibtexs(PBThread):
     """Thread that uses `pBDB.bibs.searchOAIUpdates`"""
 
