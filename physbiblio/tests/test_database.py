@@ -5422,6 +5422,82 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
 
+    def test_fetchByInspireID(self, *args):
+        """Test the fetchByInspireID and getByInspireID functions"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "inspire", "12345")
+        self.pBDB.bibs.updateField("def", "inspire", "23456")
+        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID("123456").lastFetched
+            ],
+            [],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("123456")], []
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("345").lastFetched],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("345")],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("12345").lastFetched],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("12345")],
+            ["abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where inspire  like  ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%12345%",))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID(["123", "567"]).lastFetched
+            ],
+            ["abc", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID(["123", "567"])],
+            ["abc", "ghi"],
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where inspire  like   ?  "
+            + "or inspire  like   ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%123%", "%567%"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID(
+                    "1234", saveQuery=False
+                ).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getByInspireID("1234", saveQuery=False)
+            ],
+            ["abc"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
+
     def test_getField(self, *args):
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
@@ -5533,6 +5609,14 @@ class TestDatabaseEntries(DBTestCase):
 
         entries = self.pBDB.bibs.getByExp(2)
         self.assertEqual([e["bibkey"] for e in entries], [])
+
+    def test_citationCount(self, *args):
+        """test citationCount"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "inspire", "12345")
+        self.pBDB.bibs.updateField("def", "inspire", "23456")
+        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
+        raise NotImplementedError
 
     def test_cleanBibtexs(self, *args):
         """test cleanBibtexs"""

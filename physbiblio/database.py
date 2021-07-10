@@ -2210,6 +2210,43 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByBibtex(string, saveQuery=saveQuery).lastFetched
 
+    def fetchByInspireID(self, iid, saveQuery=True):
+        """Use self.fetchAll with a match on the inspireID
+        and returns the dictionary of fetched entries
+
+        Parameters:
+            iid: the string to match in the inspireID (or a list)
+            saveQuery (boolean, default True):
+                whether to save the query or not
+
+        Output:
+            self
+        """
+        if isinstance(iid, list):
+            return self.fetchAll(
+                params={"inspire": ["%%%s%%" % q for q in iid]},
+                connection="or",
+                operator=" like ",
+                saveQuery=saveQuery,
+            )
+        else:
+            return self.fetchAll(
+                params={"inspire": "%%%s%%" % iid},
+                operator=" like ",
+                saveQuery=saveQuery,
+            )
+
+    def getByInspireID(self, string, saveQuery=True):
+        """Use self.fetchByInspireID and returns
+        the dictionary of fetched entries
+
+        Parameters: see self.fetchByInspireID
+
+        Output:
+            a dictionary
+        """
+        return self.fetchByInspireID(string, saveQuery=saveQuery).lastFetched
+
     def getField(self, key, field):
         """Extract the content of one field
         from a entry in the database, searched by bibtex key
@@ -3923,6 +3960,85 @@ class Entries(PhysBiblioDBSub):
             a dictionary
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
+
+    def citationCount(self, inspireID, pbMax=None, pbVal=None):
+        """
+
+        Parameters:
+            inspireID: the list of entries to be considered (INSPIRE IDs)
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
+
+        Output:
+            num, err, changed:
+                the number of considered entries,
+                the number of errors,
+                the list of keys of changed entries
+        """
+        if isinstance(inspireID, list):
+            tot = len(inspireID)
+        else:
+            inspireID = [inspireID]
+            tot = 1
+        num = 0
+        err = 0
+        changed = []
+        self.runningCitationCount = True
+        pBLogger.info(dstr.Bibs.ccProcessTot % tot)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
+        batch_size = 50
+        for i in range(0, tot, batch_size):
+            entries, num = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+                inspireID[i : i + batch_size],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
+            )
+            for ix, e in enumerate(entries):
+                try:
+                    pbVal(i + ix + 1)
+                except TypeError:
+                    pass
+                if self.runningCitationCount:
+                    num += 1
+                    new = physBiblioWeb.webSearch["inspire"].readRecord(
+                        e, noWarning=True
+                    )
+                    try:
+                        eid = new["id"]
+                    except (KeyError, TypeError):
+                        pBLogger.warning(dstr.Bibs.ccCannotReadId % new)
+                        continue
+                    pBLogger.info(
+                        dstr.Bibs.ccProcessProgr
+                        % (i + ix + 1, tot, 100.0 * (i + ix + 1) / tot, eid)
+                    )
+                    dbe = self.getByInspireID(eid)
+                    if dbe == []:
+                        pBLogger.warning(dstr.Bibs.ccNoCorrespondence % eid)
+                        continue
+                    dbe = dbe[0]
+                    try:
+                        for [o, d] in physBiblioWeb.webSearch[
+                            "inspire"
+                        ].correspondences:
+                            if "citation" in d:
+                                self.updateField(dbe["bibkey"], d, new[o])
+                    except (IndexError, ValueError, ParseException):
+                        pBLogger.warning(
+                            dstr.Bibs.ccCannotUpdateFields % (dbe["bibkey"], new)
+                        )
+                        err += 1
+                    else:
+                        changed.append(dbe["bibkey"])
+        pBLogger.info(dstr.Bibs.cbResEntr % num)
+        pBLogger.info(dstr.Bibs.cbResErr % err)
+        pBLogger.info(dstr.Bibs.cbResChan % len(changed))
+        return num, err, changed
 
     def cleanBibtexs(self, startFrom=0, entries=None, pbMax=None, pbVal=None):
         """Clean (remove comments, unwanted fields, newlines, accents)
