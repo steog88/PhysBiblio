@@ -3991,7 +3991,7 @@ class Entries(PhysBiblioDBSub):
             pbMax(tot)
         except TypeError:
             pass
-        batch_size = 50
+        batch_size = pbConfig.params["batchSizeInspire"]
         for i in range(0, tot, batch_size):
             entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 inspireID[i : i + batch_size],

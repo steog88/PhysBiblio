@@ -25,10 +25,14 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestWebImportMethods(unittest.TestCase):
     """Test the functions that writes bibtexs."""
 
-    def test_properties(self):
+    def test_properties(self, *args):
         """Test properties of the pbWriter object"""
         self.assertIsInstance(pbWriter, PBBibTexWriter)
         self.assertIsInstance(pbWriter, BibTexWriter)
@@ -73,7 +77,7 @@ class TestWebImportMethods(unittest.TestCase):
         self.assertEqual(pbWriter.order_entries_by, None)
         self.assertEqual(pbWriter.comma_first, False)
 
-    def test_bibtexWrite(self):
+    def test_bibtexWrite(self, *args):
         """Test _entry_to_bibtex"""
         basicEntry = {
             "ID": "test",

@@ -265,6 +265,14 @@ configuration_params.add(
         isGlobal=True,
     )
 )
+configuration_params.add(
+    ConfigParameter(
+        "batchSizeInspire",
+        50,
+        description=cstr.Desc.limitBibtexs,
+        special="int",
+    )
+)
 
 ignoreParameterOrder = ["mainDatabaseName", "openSinceLastUpdate"]
 loggingLevels = ["0 - errors", "1 - warnings", "2 - info", "3 - all"]

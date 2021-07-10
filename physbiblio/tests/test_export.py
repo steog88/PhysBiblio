@@ -30,6 +30,10 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestExportMethods(unittest.TestCase):
     """Tests for methods in physbiblio.export"""
 
@@ -45,7 +49,7 @@ class TestExportMethods(unittest.TestCase):
         if os.path.exists(self.testTexName):
             os.remove(self.testTexName)
 
-    def test_backup(self):
+    def test_backup(self, *args):
         """Test backup file creation and related"""
         emptyFileName = self.testBibName
         if os.path.exists(emptyFileName):
@@ -72,7 +76,7 @@ class TestExportMethods(unittest.TestCase):
         self.assertTrue(pBExport.rmBackupCopy(emptyFileName))
         self.assertFalse(os.path.exists(emptyFileName + pBExport.backupExtension))
 
-    def test_offlineExports(self):
+    def test_offlineExports(self, *args):
         """Test of offline export functions exportSelected,
         updateExportedBib
         """
@@ -119,7 +123,7 @@ class TestExportMethods(unittest.TestCase):
             )
         pBExport.rmBackupCopy(testBibName)
 
-    def test_exportAll(self):
+    def test_exportAll(self, *args):
         """Test of exportAll"""
         testBibName = self.testBibName
         sampleList = [
@@ -139,7 +143,7 @@ class TestExportMethods(unittest.TestCase):
         with open(testBibName) as f:
             self.assertEqual(f.read(), sampleTxt)
 
-    def test_exportForTexFile(self):
+    def test_exportForTexFile(self, *args):
         """test exportForTexFile function with a fake tex and database"""
         testBibName = self.testBibName
         testTexName = self.testTexName

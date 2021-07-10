@@ -26,10 +26,14 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestViewMethods(unittest.TestCase):
     """Tests for methods in physbiblio.view"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """test instance properties"""
         tmp = ViewEntry()
         self.assertIsInstance(tmp, ViewEntry)
@@ -43,7 +47,7 @@ class TestViewMethods(unittest.TestCase):
             tmp = ViewEntry()
             self.assertEqual(tmp.webApp, "someapp")
 
-    def test_getLink(self):
+    def test_getLink(self, *args):
         """Test getLink function with different inputs"""
         with patch(
             "physbiblio.database.Entries.getField",
@@ -127,7 +131,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertFalse(pBView.getLink("a", "arxiv"))
 
-    def test_openLink(self):
+    def test_openLink(self, *args):
         """Test openLink"""
         origwebapp = pBView.webApp
         with patch(

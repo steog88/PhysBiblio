@@ -32,10 +32,14 @@ except Exception:
 
 
 @unittest.skipIf(skipTestsSettings.online, "Online tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestInspireStatsMethods(unittest.TestCase):
     """Tests for methods in physbiblio.inspireStats"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """test some properties"""
         self.assertIsInstance(pBStats, InspireStatsLoader)
         tpBStats = InspireStatsLoader()
@@ -48,7 +52,7 @@ class TestInspireStatsMethods(unittest.TestCase):
         self.assertEqual(tpBStats.authorPlotInfo, None)
         self.assertEqual(tpBStats.paperPlotInfo, None)
 
-    def test_paperStats(self):
+    def test_paperStats(self, *args):
         """Test paperStats function downloading real and fake data"""
         # not a valid record (it was cancelled):
         self.assertEqual(
@@ -93,7 +97,7 @@ class TestInspireStatsMethods(unittest.TestCase):
         pbm.assert_called_once_with(2)
         pbv.assert_has_calls([call(1), call(2)])
 
-    def test_authorStats(self):
+    def test_authorStats(self, *args):
         """Test paperStats function downloading real and fake data"""
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.paperStats",

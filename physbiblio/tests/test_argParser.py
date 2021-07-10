@@ -34,6 +34,10 @@ except Exception:
     print(traceback.format_exc())
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestParser(unittest.TestCase):
     """Tests for main parser and stuff"""
 
@@ -55,7 +59,7 @@ class TestParser(unittest.TestCase):
         for text in expected_output:
             self.assertIn(text, string)
 
-    def test_global(self):
+    def test_global(self, *args):
         """Test that the options are recognised correctly"""
         parser = setParser()
         for opt in ["-v", "--version"]:
@@ -94,7 +98,7 @@ class TestParser(unittest.TestCase):
                 args.func(args)
                 mock.assert_called_once_with()
 
-    def test_subcommands_ok(self):
+    def test_subcommands_ok(self, *args):
         """Test that the options are recognised correctly"""
         parser = setParser()
         tests = [["gui", call_gui], ["test", call_tests]]
@@ -398,7 +402,7 @@ class TestParser(unittest.TestCase):
                     args.func(args)
                     mock.assert_called_once_with(*expected[0], **expected[1])
 
-    def test_subcommands_fail(self):
+    def test_subcommands_fail(self, *args):
         """Test that the options are recognised correctly."""
         parser = setParser()
         tests = [
@@ -427,7 +431,7 @@ class TestParser(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     args = parser.parse_args([sub] + options)
 
-    def test_subcommand_tests(self):
+    def test_subcommand_tests(self, *args):
         """Test that the options are recognised correctly"""
         from physbiblio.setuptests import skipTestsSettings
 
@@ -463,7 +467,7 @@ class TestParser(unittest.TestCase):
             args = parser.parse_args(["test", "-a"])
         skipTestsSettings = oldSettings
 
-    def test_call_gui(self):
+    def test_call_gui(self, *args):
         """test the call_gui function"""
         mw = MainWindow()
         mw.show = MagicMock()

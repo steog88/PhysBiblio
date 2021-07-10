@@ -33,10 +33,14 @@ pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s" % today_ymd)
 
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestPdfMethods(unittest.TestCase):
     """Test the methods and functions in the pdf module"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """Test the __init__ method"""
         with patch(
             "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
@@ -51,7 +55,7 @@ class TestPdfMethods(unittest.TestCase):
             self.assertEqual(pdf.badFNameCharacters, "\\/:*?\"<>|'")
             _cf.assert_called_once_with(pdf)
 
-    def test_checkFolderExists(self):
+    def test_checkFolderExists(self, *args):
         """Test the checkFolderExists method"""
         with patch(
             "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
@@ -72,7 +76,7 @@ class TestPdfMethods(unittest.TestCase):
             _if.assert_called_once_with("PDF folder is missing: /a/b/c. Creating it.")
             _mk.assert_called_once_with("/a/b/c")
 
-    def test_fnames(self):
+    def test_fnames(self, *args):
         """Test names of folders and directories"""
         self.assertEqual(
             pBPDF.badFName(r'a\b/c:d*e?f"g<h>i|' + "j'"), "a_b_c_d_e_f_g_h_i_j_"
@@ -93,7 +97,7 @@ class TestPdfMethods(unittest.TestCase):
                 os.path.join(testPaperFolder, "12345678.pdf"),
             )
 
-    def test_manageFiles(self):
+    def test_manageFiles(self, *args):
         """Test creation, copy and deletion of files and folders"""
         emptyPdfName = os.path.join(pBPDF.pdfDir, "tests_%s.pdf" % today_ymd)
         pBPDF.createFolder("abc.def")
@@ -123,7 +127,7 @@ class TestPdfMethods(unittest.TestCase):
             shutil.rmtree(pBPDF.getFileDir("cba.fed"))
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_download(self):
+    def test_download(self, *args):
         """Test downloadArxiv"""
         with patch(
             "physbiblio.database.Entries.getField",
@@ -169,7 +173,7 @@ class TestPdfMethods(unittest.TestCase):
             self.assertFalse(pBPDF.downloadArxiv("abc.def"))
         shutil.rmtree(pBPDF.getFileDir("abc.def"))
 
-    def test_removeSpare(self):
+    def test_removeSpare(self, *args):
         """Test finding spare folders"""
         with patch(
             "physbiblio.database.Entries.fetchCursor",
@@ -185,7 +189,7 @@ class TestPdfMethods(unittest.TestCase):
             self.assertFalse(os.path.exists(pBPDF.getFileDir("ghi")))
         shutil.rmtree(pBPDF.pdfDir)
 
-    def test_numberOfFiles(self):
+    def test_numberOfFiles(self, *args):
         """test numberOfFiles"""
         self.assertEqual(pBPDF.numberOfFiles("/surely/non/existent/folder"), 0)
         if sys.version_info[0] < 3:
@@ -224,7 +228,7 @@ class TestPdfMethods(unittest.TestCase):
                     [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
                 )
 
-    def test_dirSize(self):
+    def test_dirSize(self, *args):
         """test dirSize"""
         if six.PY2:
             error_class = OSError
@@ -324,7 +328,7 @@ class TestPdfMethods(unittest.TestCase):
                     [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
                 )
 
-    def test_getSizeWUnits(self):
+    def test_getSizeWUnits(self, *args):
         """test getSizeWUnits"""
         with patch("logging.Logger.warning") as _w:
             self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2), "4.00MB")

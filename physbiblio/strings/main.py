@@ -70,6 +70,10 @@ class ConfigStrings:
 
         ADSToken = "Token for connecting to the ADS service by NASA"
         autoResize = "Automatically resize columns and rows in the main bibtex table"
+        batchSizeInspire = (
+            "Batch size for cumulative searches through the INSPIRE API "
+            + "(it must be <= 1000)"
+        )
         bibListCols = "The columns to be shown in the entries list"
         confirmExit = "Confirm before exiting"
         defaultCat = "Default categories for imported bibtexs"

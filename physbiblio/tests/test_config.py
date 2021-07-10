@@ -50,10 +50,15 @@ tempCfgName1 = os.path.join(pbConfig.dataPath, "tests_cfg1_%s.db" % today_ymd)
 tempProfName = os.path.join(pbConfig.dataPath, "tests_prof_%s.db" % today_ymd)
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigParameter(unittest.TestCase):
     """Tests for ConfigParameter from physbiblio.config"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """Test __init__"""
         p = ConfigParameter(
             "name", "abc", description="desc", special="int", isGlobal=True
@@ -70,7 +75,7 @@ class TestConfigParameter(unittest.TestCase):
         self.assertEqual(p.special, None)
         self.assertEqual(p.isGlobal, False)
 
-    def test_getitem(self):
+    def test_getitem(self, *args):
         """test __getitem__"""
         p = ConfigParameter(
             "name", "abc", description="desc", special="int", isGlobal=True
@@ -87,15 +92,20 @@ class TestConfigParameter(unittest.TestCase):
             )
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigParametersList(unittest.TestCase):
     """Tests for ConfigParametersList from physbiblio.config"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """Test __init__"""
         p = ConfigParametersList()
         self.assertIsInstance(p, OrderedDict)
 
-    def test_add(self):
+    def test_add(self, *args):
         """Test add"""
         pl = ConfigParametersList()
         p1 = ConfigParameter("name", "abc")
@@ -107,10 +117,15 @@ class TestConfigParametersList(unittest.TestCase):
         self.assertEqual(list(pl.keys()), ["name", "other"])
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigGlobals(unittest.TestCase):
     """Tests for global variables in physbiblio.config"""
 
-    def test_config(self):
+    def test_config(self, *args):
         """test global variables"""
         import physbiblio.config as pbc
 
@@ -121,10 +136,15 @@ class TestConfigGlobals(unittest.TestCase):
         self.assertIsInstance(pbc.pbConfig, ConfigVars)
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigMethods(unittest.TestCase):
     """Tests for methods in physbiblio.config"""
 
-    def test_config(self):
+    def test_config(self, *args):
         """Test config methods for config management"""
         if os.path.exists(tempCfgName):
             os.remove(tempCfgName)
@@ -200,7 +220,7 @@ class TestConfigMethods(unittest.TestCase):
         os.remove(tempCfgName)
         os.remove(tempOldCfgName)
 
-    def test_profiles(self):
+    def test_profiles(self, *args):
         """Test config methods for profiles management"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -358,7 +378,7 @@ class TestConfigMethods(unittest.TestCase):
         if os.path.exists(tempProfName2):
             os.remove(tempProfName2)
 
-    def test_searches(self):
+    def test_searches(self, *args):
         """Test config methods for profiles management"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -514,10 +534,15 @@ class TestConfigMethods(unittest.TestCase):
             self.assertEqual(tempPbConfig.globalDb.countSearches(), 0)
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestGlobalDBOperations(unittest.TestCase):
     """Test GlobalDB"""
 
-    def test_operations(self):
+    def test_operations(self, *args):
         """Test database for profiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -669,6 +694,11 @@ class TestGlobalDBOperations(unittest.TestCase):
         self.assertEqual(self.globalDb.getDefaultProfile(), "default")
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestGlobalDB(unittest.TestCase):
     """Test GlobalDB"""
 
@@ -690,7 +720,7 @@ class TestGlobalDB(unittest.TestCase):
         """restore curs"""
         self.globalDb.curs = self.origcurs
 
-    def test_init(self):
+    def test_init(self, *args):
         """test __init__"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -739,7 +769,7 @@ class TestGlobalDB(unittest.TestCase):
         self.assertIsInstance(globalDb.config, ConfigurationDB)
         self.assertEqual(globalDb.dataPath, pbConfig.dataPath)
 
-    def test_createTables(self):
+    def test_createTables(self, *args):
         """test createTables"""
         with patch("physbiblio.config.GlobalDB.createTable", autospec=True) as _ct:
             self.globalDb.createTables(["profiles", "searches"])
@@ -753,14 +783,14 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb, "profiles", profilesSettingsTable, critical=True
             )
 
-    def test_countProfiles(self):
+    def test_countProfiles(self, *args):
         """test countProfiles"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
             self.assertEqual(self.globalDb.countProfiles(), 12)
             _ct.assert_called_once_with(self.globalDb, "SELECT Count(*) FROM profiles")
 
-    def test_createProfile(self):
+    def test_createProfile(self, *args):
         """test createProfile"""
         cmd = (
             "INSERT into profiles "
@@ -812,7 +842,7 @@ class TestGlobalDB(unittest.TestCase):
             _ex.assert_called_once_with("Cannot insert profile")
             _se.assert_called_once_with(1)
 
-    def test_updateProfileField(self):
+    def test_updateProfileField(self, *args):
         """test updateProfileField"""
         with patch("logging.Logger.error") as _e:
             self.assertFalse(
@@ -865,7 +895,7 @@ class TestGlobalDB(unittest.TestCase):
             self.assertTrue(self.globalDb.updateProfileField(1, "databasefile", "new"))
             _co.assert_called_once_with(self.globalDb, verbose=False)
 
-    def test_deleteProfile(self):
+    def test_deleteProfile(self, *args):
         """test deleteProfile"""
         with patch("logging.Logger.error") as _e:
             self.assertFalse(self.globalDb.deleteProfile(""))
@@ -899,7 +929,7 @@ class TestGlobalDB(unittest.TestCase):
             self.assertTrue(self.globalDb.deleteProfile("a"))
             self.assertEqual(_gd.call_count, 4)
 
-    def test_getProfiles(self):
+    def test_getProfiles(self, *args):
         """test getProfiles"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
@@ -908,7 +938,7 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb, "SELECT * FROM profiles order by ord ASC, name ASC\n"
             )
 
-    def test_getProfile(self):
+    def test_getProfile(self, *args):
         """test getProfile"""
         with patch("logging.Logger.warning") as _w:
             self.assertEqual(self.globalDb.getProfile(), {})
@@ -936,7 +966,7 @@ class TestGlobalDB(unittest.TestCase):
                 {"name": "", "file": "a"},
             )
 
-    def test_getProfileOrder(self):
+    def test_getProfileOrder(self, *args):
         """test getProfileOrder"""
         self.globalDb.curs.fetchall = MagicMock(
             return_value=[{"name": "a"}, {"name": "b"}]
@@ -961,7 +991,7 @@ class TestGlobalDB(unittest.TestCase):
             _cp.assert_called_once_with(self.globalDb)
             _se.assert_called_once_with(self.globalDb, "default")
 
-    def test_setProfileOrder(self):
+    def test_setProfileOrder(self, *args):
         """test setProfileOrder"""
         with patch("logging.Logger.warning") as _w:
             self.assertFalse(self.globalDb.setProfileOrder())
@@ -1053,7 +1083,7 @@ class TestGlobalDB(unittest.TestCase):
             self.assertEqual(_e.call_count, 0)
             self.assertEqual(_u.call_count, 0)
 
-    def test_getDefaultProfile(self):
+    def test_getDefaultProfile(self, *args):
         """test getDefaultProfile"""
         self.globalDb.curs.fetchall = MagicMock(
             return_value=[{"name": "b"}, {"name": "a"}]
@@ -1091,7 +1121,7 @@ class TestGlobalDB(unittest.TestCase):
             _se.assert_any_call(self.globalDb, "c")
             _i.assert_called_once_with("Default profile changed to %s" % "c")
 
-    def test_setDefaultProfile(self):
+    def test_setDefaultProfile(self, *args):
         """test setDefaultProfile"""
         with patch("logging.Logger.warning") as _w:
             self.assertFalse(self.globalDb.setDefaultProfile())
@@ -1145,14 +1175,14 @@ class TestGlobalDB(unittest.TestCase):
             self.assertEqual(_e.call_count, 2)
             self.assertEqual(_u.call_count, 2)
 
-    def test_countSearches(self):
+    def test_countSearches(self, *args):
         """test countSearches"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
             self.assertEqual(self.globalDb.countSearches(), 12)
             _ct.assert_called_once_with(self.globalDb, "SELECT Count(*) FROM searches")
 
-    def test_insertSearch(self):
+    def test_insertSearch(self, *args):
         """test insertSearch"""
         with patch(
             "physbiblio.config.GlobalDB.connExec",
@@ -1208,7 +1238,7 @@ class TestGlobalDB(unittest.TestCase):
                 },
             )
 
-    def test_deleteSearch(self):
+    def test_deleteSearch(self, *args):
         """test deleteSearch"""
         with patch(
             "physbiblio.config.GlobalDB.cursExec", autospec=True, return_value="abcd"
@@ -1219,7 +1249,7 @@ class TestGlobalDB(unittest.TestCase):
             )
             _co.assert_called_once_with(self.globalDb)
 
-    def test_getAllSearches(self):
+    def test_getAllSearches(self, *args):
         """test getAllSearches"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
@@ -1228,7 +1258,7 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb, "select * from searches order by count asc\n"
             )
 
-    def test_getSearchByID(self):
+    def test_getSearchByID(self, *args):
         """test getSearchByID"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
@@ -1237,7 +1267,7 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb, "select * from searches where idS=?\n", (123,)
             )
 
-    def test_getSearchByName(self):
+    def test_getSearchByName(self, *args):
         """test getSearchByName"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
@@ -1246,7 +1276,7 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb, "select * from searches where name=?\n", ("abc",)
             )
 
-    def test_getSearchList(self):
+    def test_getSearchList(self, *args):
         """test getSearchList"""
         self.globalDb.curs.fetchall = MagicMock(return_value=[[12]])
         with patch("physbiblio.config.GlobalDB.cursExec", autospec=True) as _ct:
@@ -1276,7 +1306,7 @@ class TestGlobalDB(unittest.TestCase):
                 (0, 0),
             )
 
-    def test_updateSearchOrder(self):
+    def test_updateSearchOrder(self, *args):
         """test updateSearchOrder"""
         self.globalDb.curs.fetchall = MagicMock(
             return_value=[
@@ -1345,7 +1375,7 @@ class TestGlobalDB(unittest.TestCase):
             )
             _d.assert_called_once_with(self.globalDb, 14)
 
-    def test_updateSearchField(self):
+    def test_updateSearchField(self, *args):
         """test updateSearchField"""
         with patch("logging.Logger.warning") as _w:
             self.assertFalse(self.globalDb.updateSearchField(1, "test", "abc"))
@@ -1376,10 +1406,15 @@ class TestGlobalDB(unittest.TestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigurationDBOperations(DBTestCase):
     """Test ConfigurationDB"""
 
-    def test_operations(self):
+    def test_operations(self, *args):
         """Test count, insert and update, delete and get methods"""
         self.assertIsInstance(self.pBDB.config, ConfigurationDB)
         self.assertIsInstance(self.pBDB.config, PhysBiblioDBSub)
@@ -1413,6 +1448,11 @@ class TestConfigurationDBOperations(DBTestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigurationDB(DBTestCase):
     """Test ConfigurationDB"""
 
@@ -1425,7 +1465,7 @@ class TestConfigurationDB(DBTestCase):
         """restore curs"""
         self.pBDB.config.curs = self.origcurs
 
-    def test_count(self):
+    def test_count(self, *args):
         """test count"""
         self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
         with patch(
@@ -1436,7 +1476,7 @@ class TestConfigurationDB(DBTestCase):
                 self.pBDB.config, "SELECT Count(*) FROM settings"
             )
 
-    def test_insert(self):
+    def test_insert(self, *args):
         """test insert"""
         self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
         with patch(
@@ -1471,7 +1511,7 @@ class TestConfigurationDB(DBTestCase):
                 {"name": "abc", "value": "def"},
             )
 
-    def test_update(self):
+    def test_update(self, *args):
         """test update"""
         self.pBDB.config.curs.fetchall = MagicMock(return_value=[])
         with patch(
@@ -1506,7 +1546,7 @@ class TestConfigurationDB(DBTestCase):
                 {"name": "abc", "value": "def"},
             )
 
-    def test_delete(self):
+    def test_delete(self, *args):
         """test delete"""
         with patch(
             "physbiblio.databaseCore.PhysBiblioDBSub.cursExec",
@@ -1518,7 +1558,7 @@ class TestConfigurationDB(DBTestCase):
                 self.pBDB.config, "delete from settings where name=?\n", ("abc",)
             )
 
-    def test_getAll(self):
+    def test_getAll(self, *args):
         """test getAll"""
         self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
         with patch(
@@ -1527,7 +1567,7 @@ class TestConfigurationDB(DBTestCase):
             self.assertEqual(self.pBDB.config.getAll(), [[12]])
             _cu.assert_called_once_with(self.pBDB.config, "select * from settings\n")
 
-    def test_getByName(self):
+    def test_getByName(self, *args):
         """test getByName"""
         self.pBDB.config.curs.fetchall = MagicMock(return_value=[[12]])
         with patch(
@@ -1539,10 +1579,15 @@ class TestConfigurationDB(DBTestCase):
             )
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestConfigVars(unittest.TestCase):
     """Tests for ConfigVars"""
 
-    def test_init(self):
+    def test_init(self, *args):
         """test __init__"""
         self.assertTrue(hasattr(ConfigVars, "adsUrl"))
         self.assertTrue(hasattr(ConfigVars, "arxivUrl"))
@@ -1621,7 +1666,7 @@ class TestConfigVars(unittest.TestCase):
         self.assertIsInstance(cv.params, dict)
         self.assertEqual(len(cv.params), len(configuration_params) - 1)
 
-    def test_loadProfiles(self):
+    def test_loadProfiles(self, *args):
         """test loadProfiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1643,7 +1688,7 @@ class TestConfigVars(unittest.TestCase):
                 _w.assert_called_once()
                 _cp.assert_called_once_with(cv.globalDb)
 
-    def test_prepareLogger(self):
+    def test_prepareLogger(self, *args):
         """test prepareLogger"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1654,7 +1699,7 @@ class TestConfigVars(unittest.TestCase):
             _gl.assert_called_once_with("abcd")
         self.assertEqual(cv.loggerString, "abcd")
 
-    def test_readConfig(self):
+    def test_readConfig(self, *args):
         """test readConfig"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1742,7 +1787,7 @@ class TestConfigVars(unittest.TestCase):
                 cv, list(configuration_params.keys())[0], configDb
             )
 
-    def test_readParam(self):
+    def test_readParam(self, *args):
         """test readConfig"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1885,7 +1930,7 @@ class TestConfigVars(unittest.TestCase):
             self.assertEqual(_w.call_count, 0)
         self.assertEqual(cv.params[key], os.path.join(cv.dataPath, "local"))
 
-    def test_readProfiles(self):
+    def test_readProfiles(self, *args):
         """test readProfiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1928,7 +1973,7 @@ class TestConfigVars(unittest.TestCase):
             )
             self.assertEqual(res[2], "ord")
 
-    def test_reInit(self):
+    def test_reInit(self, *args):
         """test reInit"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -1979,7 +2024,7 @@ class TestConfigVars(unittest.TestCase):
         self.assertEqual(cv.currentProfile, cv.profiles["b"])
         self.assertEqual(cv.currentDatabase, cv.profiles["b"]["db"])
 
-    def test_reloadProfiles(self):
+    def test_reloadProfiles(self, *args):
         """test reloadProfiles"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -2042,7 +2087,7 @@ class TestConfigVars(unittest.TestCase):
         self.assertEqual(cv.currentProfile, cv.profiles["b"])
         self.assertEqual(cv.currentDatabase, cv.profiles["b"]["db"])
 
-    def test_replacePBDATA(self):
+    def test_replacePBDATA(self, *args):
         """test replacePBDATA"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -2053,7 +2098,7 @@ class TestConfigVars(unittest.TestCase):
             cv.replacePBDATA("PBDATAabcd"), os.path.join(cv.dataPath, "abcd")
         )
 
-    def test_setDefaultParams(self):
+    def test_setDefaultParams(self, *args):
         """test setDefaultParams"""
         if os.path.exists(tempProfName):
             os.remove(tempProfName)
@@ -2073,10 +2118,15 @@ class TestConfigVars(unittest.TestCase):
                 self.assertEqual(cv.params[k], v)
 
 
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.error")
+@patch("logging.Logger.exception")
 class TestFunctions(unittest.TestCase):
     """Tests for more functions in config module"""
 
-    def test_getLogLevel(self):
+    def test_getLogLevel(self, *args):
         """test getLogLevel"""
         for v, e in [
             [0, logging.ERROR],
@@ -2087,7 +2137,7 @@ class TestFunctions(unittest.TestCase):
         ]:
             self.assertEqual(getLogLevel(v), e)
 
-    def test_addFileHandler(self):
+    def test_addFileHandler(self, *args):
         """test addFileHandler"""
         log = logging.Logger("testAFH")
         h = logging.handlers.RotatingFileHandler(pbConfig.overWritelogFileName)
