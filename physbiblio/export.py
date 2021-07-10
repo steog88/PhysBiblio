@@ -301,7 +301,7 @@ class PBExport:
             with open(outFileName, "r") as f:
                 existingBibText = f.readlines()
         except IOError:
-            pBLogger.error(exstr.cannotRead % outFileName)
+            pBLogger.exception(exstr.cannotRead % outFileName)
             try:
                 open(outFileName, "w").close()
             except IOError:

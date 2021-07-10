@@ -183,10 +183,14 @@ fullRecordGariazzo = {
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestCreateTables(unittest.TestCase):
     """Test creation of tables"""
 
-    def test_createTables(self):
+    def test_createTables(self, *args):
         """Test that all the tables are created at first time,
         if DB is empty
         """
@@ -297,10 +301,14 @@ class TestCreateTables(unittest.TestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
     """Test main database class PhysBiblioDB and PhysBiblioDBSub structures"""
 
-    def test_convertSearchFormat(self):
+    def test_convertSearchFormat(self, *args):
         """test convertSearchFormat"""
         old = [
             {
@@ -390,7 +398,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         ) as _gas, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.commit", autospec=True
         ) as _c, patch(
-            "logging.Logger.error"
+            "logging.Logger.exception"
         ) as _e:
             self.pBDB.convertSearchFormat()
             _gas.assert_called_once_with(pbConfig.globalDb)
@@ -627,7 +635,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             )
             self.assertEqual(_c.call_count, 6)
 
-    def test_operations(self):
+    def test_operations(self, *args):
         """Test main database functions (open/close, basic commands)"""
         self.assertFalse(self.pBDB.checkUncommitted())
         self.assertTrue(self.pBDB.cursExec("SELECT * from categories"))
@@ -716,7 +724,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertEqual(len(self.pBDB.cats.getAll()), 2)
         self.pBDB.commit()
 
-    def test_literal_eval(self):
+    def test_literal_eval(self, *args):
         """Test literal_eval in PhysBiblioDBSub"""
         self.assertEqual(self.pBDB.cats.literal_eval("[1,2]"), [1, 2])
         self.assertEqual(self.pBDB.cats.literal_eval("['test','a']"), ["test", "a"])
@@ -734,7 +742,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.pBDB.cats.mainDB.sendDBIsLocked()
             _s.assert_called_once_with(self.pBDB.cats.mainDB)
 
-    def test_init(self):
+    def test_init(self, *args):
         """test init"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -818,7 +826,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertTrue(hasattr(dbc, "reOpenDB"))
         self.assertTrue(hasattr(dbc, "loadSubClasses"))
 
-    def test_openDB(self):
+    def test_openDB(self, *args):
         """test openDB"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -848,7 +856,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.assertEqual(dbc.conn.row_factory, sqlite3.Row)
             self.assertEqual(dbc.curs, _c().cursor())
 
-    def test_closeDB(self):
+    def test_closeDB(self, *args):
         """test closeDB"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -865,7 +873,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             _d.assert_called_once_with("Closing database...")
             dbc.conn.close.assert_called_once_with()
 
-    def test_sendDBIsLocked(self):
+    def test_sendDBIsLocked(self, *args):
         """test the sendDBIsLocked function"""
         self.assertTrue(hasattr(self.pBDB, "onIsLocked"))
         self.pBDB.onIsLocked = None
@@ -880,7 +888,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertTrue(self.pBDB.sendDBIsLocked())
         tmp.emit.assert_called_once_with()
 
-    def test_checkUncommitted(self):
+    def test_checkUncommitted(self, *args):
         """test checkUncommitted"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -894,7 +902,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             dbc.dbChanged = "abc"
             self.assertEqual(dbc.checkUncommitted(), "abc")
 
-    def test_commit(self):
+    def test_commit(self, *args):
         """test commit"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -921,7 +929,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.assertEqual(dbc.dbChanged, "abc")
             _e.assert_called_once_with("Impossible to commit!")
 
-    def test_undo(self):
+    def test_undo(self, *args):
         """test undo"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -948,7 +956,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.assertEqual(dbc.dbChanged, "abc")
             _e.assert_called_once_with("Impossible to rollback!")
 
-    def test_connExec(self):
+    def test_connExec(self, *args):
         """test connExec"""
         self.pBDB.dbChanged = False
         trueconn = self.pBDB.conn
@@ -1030,7 +1038,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
         self.pBDB.conn = trueconn
 
-    def test_cursExec(self):
+    def test_cursExec(self, *args):
         """test cursExec"""
         trueconn = self.pBDB.curs
         self.pBDB.curs = MagicMock()
@@ -1053,7 +1061,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
         self.pBDB.curs = trueconn
 
-    def test_cursor(self):
+    def test_cursor(self, *args):
         """test cursor"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -1062,7 +1070,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         dbc.curs = "curs"
         self.assertEqual(dbc.cursor(), "curs")
 
-    def test_checkExistingTables(self):
+    def test_checkExistingTables(self, *args):
         """test checkExistingTables"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -1094,7 +1102,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         ) as _ce:
             self.assertFalse(dbc.checkExistingTables())
 
-    def test_createTable(self):
+    def test_createTable(self, *args):
         """test createTable"""
         if os.path.exists(tempFDBName):
             os.remove(tempFDBName)
@@ -1151,7 +1159,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             _e.assert_called_once_with(1)
             self.assertEqual(_co.call_count, 1)
 
-    def test_createTables(self):
+    def test_createTables(self, *args):
         """Test createTables"""
         if os.path.exists(tempFDBName):
             os.remove(tempFDBName)
@@ -1221,7 +1229,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             dbc.createTables()  # repeat, now connExec gives False
             _e.assert_any_call("Insert main categories failed")
 
-    def test_checkDatabaseUpdates_DBC(self):
+    def test_checkDatabaseUpdates_DBC(self, *args):
         """test checkDatabaseUpdates in PhysBiblioDBCore"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -1294,7 +1302,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             _e.assert_any_call("Cannot alter table 'entries'!")
             _un.assert_any_call(dbc)
 
-    def test_PhysBiblioDBSub(self):
+    def test_PhysBiblioDBSub(self, *args):
         """test methods in PhysBiblioDBSub"""
         with patch("os.path.exists", return_value=True) as _e, patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
@@ -1367,7 +1375,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             self.assertEqual(dbs.cursor(), "curs")
             _f.assert_called_once_with(dbs.mainDB)
 
-    def test_checkDatabaseUpdates_DB(self):
+    def test_checkDatabaseUpdates_DB(self, *args):
         """test checkDatabaseUpdates in PhysBiblioDB"""
         with patch(
             "physbiblio.databaseCore.PhysBiblioDBCore.checkDatabaseUpdates",
@@ -1382,7 +1390,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             _cf.assert_called_once_with(self.pBDB)
             _ci.assert_called_once_with(self.pBDB)
 
-    def test_checkCaseInsensitiveBibkey(self):
+    def test_checkCaseInsensitiveBibkey(self, *args):
         """test checkCaseInsensitiveBibkey"""
         self.pBDB.curs = MagicMock()
         self.pBDB.curs.fetchall.return_value = [""]
@@ -1483,10 +1491,14 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseLinks(DBTestCase):
     """Test subclasses connecting categories, experiments, entries"""
 
-    def test_CatsEntries(self):
+    def test_CatsEntries(self, *args):
         """Test CatsEntries functions"""
         self.pBDB.utils.cleanSpareEntries()
         self.assertTrue(self.pBDB.catBib.insert(1, "test"))
@@ -1526,7 +1538,7 @@ class TestDatabaseLinks(DBTestCase):
         self.assertEqual(self.pBDB.catBib.countByCat(1), 2)
         self.assertTrue(self.pBDB.catBib.insert("test", "test"))
 
-    def test_catExps(self):
+    def test_catExps(self, *args):
         """Test CatsExps functions"""
         self.pBDB.utils.cleanSpareEntries()
         self.assertTrue(self.pBDB.catExp.insert(1, 10))
@@ -1563,7 +1575,7 @@ class TestDatabaseLinks(DBTestCase):
         self.assertEqual(self.pBDB.catExp.countByExp(1), 0)
         self.assertTrue(self.pBDB.catExp.insert("test", "test"))
 
-    def test_EntryExps(self):
+    def test_EntryExps(self, *args):
         """Test EntryExps functions"""
         self.pBDB.utils.cleanSpareEntries()
         self.assertTrue(self.pBDB.bibExp.insert("test", 1))
@@ -1605,6 +1617,10 @@ class TestDatabaseLinks(DBTestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseExperiments(DBTestCase):
     """Tests for the methods in the experiments subclass"""
 
@@ -1612,7 +1628,7 @@ class TestDatabaseExperiments(DBTestCase):
         """Check the number of experiments"""
         self.assertEqual(self.pBDB.exps.count(), number)
 
-    def test_insertUpdateDelete(self):
+    def test_insertUpdateDelete(self, *args):
         """Test insert, update, updateField, delete for an experiment"""
         self.checkNumberExperiments(0)
         self.assertFalse(self.pBDB.exps.insert({"name": "exp1"}))
@@ -1666,7 +1682,7 @@ class TestDatabaseExperiments(DBTestCase):
         self.assertEqual(self.pBDB.stats["catExp"], 0)
         self.assertEqual(self.pBDB.stats["bibExp"], 0)
 
-    def test_get(self):
+    def test_get(self, *args):
         """Test get methods"""
         self.assertTrue(
             self.pBDB.exps.insert(
@@ -1727,7 +1743,7 @@ class TestDatabaseExperiments(DBTestCase):
             {"idExp": 1, "name": "exp1", "comments": "", "homepage": "", "inspire": ""},
         )
 
-    def test_filterAll(self):
+    def test_filterAll(self, *args):
         """test the filterAll function, that looks into all the fields
         for a matching string
         """
@@ -1787,7 +1803,7 @@ class TestDatabaseExperiments(DBTestCase):
         )
         self.assertEqual(len(self.pBDB.exps.filterAll("nonmatch")), 0)
 
-    def test_print(self):
+    def test_print(self, *args):
         """Test to_str, printAll and printInCats"""
         self.assertTrue(
             self.pBDB.exps.insert(
@@ -1824,7 +1840,7 @@ class TestDatabaseExperiments(DBTestCase):
             + "Tags\n               -> exp2 (2)\n",
         )
 
-    def test_getByOthers(self):
+    def test_getByOthers(self, *args):
         """Test getByCat and getByEntry creating some fake records"""
         data = self.pBDB.bibs.prepareInsert(
             u'\n\n%comment\n@article{abc,\nauthor = "me",' + '\ntitle = "title",}',
@@ -1918,6 +1934,10 @@ class TestDatabaseExperiments(DBTestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseCategories(DBTestCase):
     """Tests for the methods in the categories subclass"""
 
@@ -1925,7 +1945,7 @@ class TestDatabaseCategories(DBTestCase):
         """Check the number of experiments"""
         self.assertEqual(self.pBDB.cats.count(), number)
 
-    def test_insertUpdateDelete(self):
+    def test_insertUpdateDelete(self, *args):
         """Test insert, update, updateField, delete for an experiment"""
         self.checkNumberCategories(2)
         self.assertFalse(self.pBDB.cats.insert({"name": "cat1"}))
@@ -2049,7 +2069,7 @@ class TestDatabaseCategories(DBTestCase):
             _i.assert_called_once_with("You should not delete the category with id: 1.")
         self.checkNumberCategories(2)
 
-    def test_get(self):
+    def test_get(self, *args):
         """Test get methods"""
         self.assertTrue(
             self.pBDB.cats.insert(
@@ -2193,7 +2213,7 @@ class TestDatabaseCategories(DBTestCase):
         self.assertEqual(self.pBDB.cats.getAllCatsInTree(2), [2])
         self.assertEqual(self.pBDB.cats.getAllCatsInTree(5), [])
 
-    def test_getByOthers(self):
+    def test_getByOthers(self, *args):
         """Test getByExp and getByEntry creating some fake records"""
         data = self.pBDB.bibs.prepareInsert(
             u'\n\n%comment\n@article{abc,\nauthor = "me",\n' + 'title = "title",}',
@@ -2291,7 +2311,7 @@ class TestDatabaseCategories(DBTestCase):
             ],
         )
 
-    def test_catString(self):
+    def test_catString(self, *args):
         """Test catString with existing and non existing records"""
         self.assertEqual(catString(1, self.pBDB), "   1: Tags")
         self.assertEqual(
@@ -2304,7 +2324,7 @@ class TestDatabaseCategories(DBTestCase):
             catString(2, self.pBDB)
             _i.assert_any_call("Category '2' not in database")
 
-    def test_cats_alphabetical(self):
+    def test_cats_alphabetical(self, *args):
         """Test alphabetical ordering of idCats with cats_alphabetical"""
         self.assertTrue(
             self.pBDB.cats.insert(
@@ -2348,7 +2368,7 @@ class TestDatabaseCategories(DBTestCase):
             cats_alphabetical([5], self.pBDB)
             _i.assert_any_call("Category '5' not in database")
 
-    def test_hierarchy(self):
+    def test_hierarchy(self, *args):
         """Testing the construction and print of the category hierarchies"""
         self.assertTrue(
             self.pBDB.cats.insert(
@@ -2416,6 +2436,10 @@ class TestDatabaseCategories(DBTestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseEntries(DBTestCase):
     """Tests for the methods in the entries subclass"""
 
@@ -2434,7 +2458,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
 
-    def test_delete(self):
+    def test_delete(self, *args):
         """Test delete a bibtex entry from the DB"""
         self.insert_three()
         self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
@@ -2463,7 +2487,7 @@ class TestDatabaseEntries(DBTestCase):
             {"bibs": 0, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0},
         )
 
-    def test_prepareInsert(self):
+    def test_prepareInsert(self, *args):
         """test prepareInsert"""
         # multiple entries in bibtex:
         self.assertEqual(
@@ -2623,7 +2647,7 @@ class TestDatabaseEntries(DBTestCase):
             _i.assert_any_call("No elements found?")
         self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"), {"bibkey": ""})
 
-    def test_insert(self):
+    def test_insert(self, *args):
         """Test insertion and of bibtex items"""
         self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
         data = self.pBDB.bibs.prepareInsert(
@@ -2645,7 +2669,7 @@ class TestDatabaseEntries(DBTestCase):
             )
         )
 
-    def test_update(self):
+    def test_update(self, *args):
         """Test general update, field update, bibkey update"""
         self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
         data = self.pBDB.bibs.prepareInsert(
@@ -2758,7 +2782,7 @@ class TestDatabaseEntries(DBTestCase):
         with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
             self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
 
-    def test_prepareUpdate(self):
+    def test_prepareUpdate(self, *args):
         """test prepareUpdate and related functions"""
         bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
         bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",' + '\narxiv="1234",\n}'
@@ -2801,7 +2825,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(data["arxiv"], "1234")
         self.assertEqual(data["bibtex"], resultB)
 
-    def test_replace(self):
+    def test_replace(self, *args):
         """test replace functions"""
         # replaceInBibtex
         bibtexIn = (
@@ -3011,7 +3035,7 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"])
             _i.assert_any_call("Something wrong in replace")
 
-    def test_completeFetched(self):
+    def test_completeFetched(self, *args):
         self.maxDiff = None
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
@@ -3077,7 +3101,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(completed[0]["bibdict"], completed[0]["bibtexDict"])
         self.assertEqual(completed[1]["bibdict"], completed[1]["bibtexDict"])
 
-    def test_fetchFromLast(self):
+    def test_fetchFromLast(self, *args):
         """Test the function fetchFromLast for the DB entries"""
         self.insert_three()
         self.pBDB.bibs.lastQuery = "SELECT * FROM entries"
@@ -3099,7 +3123,7 @@ class TestDatabaseEntries(DBTestCase):
             [e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched], ["def"]
         )
 
-    def test_fetchFromDict(self):
+    def test_fetchFromDict(self, *args):
         """test the pretty complicated function fetchFromDict"""
         self.insert_three()
         self.pBDB.bibExp.insert(["abc", "def"], 0)
@@ -4957,7 +4981,7 @@ class TestDatabaseEntries(DBTestCase):
             ["abc", "def"],
         )
 
-    def test_fetchAll(self):
+    def test_fetchAll(self, *args):
         """Test the fetchAll and getAll functions"""
         # generic
         self.insert_three()
@@ -5244,7 +5268,7 @@ class TestDatabaseEntries(DBTestCase):
             self.assertEqual(f.read(), sampleTxt)
         os.remove(testBibName)
 
-    def test_fetchByBibkey(self):
+    def test_fetchByBibkey(self, *args):
         """Test the fetchByBibkey and getByBibkey functions"""
         self.insert_three()
         self.assertEqual(
@@ -5296,7 +5320,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
 
-    def test_fetchByKey(self):
+    def test_fetchByKey(self, *args):
         """Test the fetchByKey and getByKey functions"""
         self.insert_three()
         self.assertEqual(
@@ -5344,7 +5368,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
 
-    def test_fetchByBibtex(self):
+    def test_fetchByBibtex(self, *args):
         """Test the fetchByBibtex and getByBibtex functions"""
         self.insert_three()
         self.assertEqual(
@@ -5398,7 +5422,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
 
-    def test_getField(self):
+    def test_getField(self, *args):
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
             arxiv="abc",
@@ -5422,7 +5446,7 @@ class TestDatabaseEntries(DBTestCase):
                 "Error in getField('abc', 'def'): the field is missing?"
             )
 
-    def test_toDataDict(self):
+    def test_toDataDict(self, *args):
         self.insert_three()
         a = self.pBDB.bibs.toDataDict("abc")
         self.assertEqual(a["bibkey"], "abc")
@@ -5431,7 +5455,7 @@ class TestDatabaseEntries(DBTestCase):
             u'@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
         )
 
-    def test_getUrl(self):
+    def test_getUrl(self, *args):
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
             ads="abc...123",
@@ -5457,7 +5481,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
         self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
 
-    def test_fetchByCat(self):
+    def test_fetchByCat(self, *args):
         """test bibs.fetchByCat e bibs.getByCat"""
         self.insert_three()
         self.pBDB.catBib.insert(1, ["abc", "def"])
@@ -5481,7 +5505,7 @@ class TestDatabaseEntries(DBTestCase):
         entries = self.pBDB.bibs.getByCat(2)
         self.assertEqual([e["bibkey"] for e in entries], [])
 
-    def test_fetchByExp(self):
+    def test_fetchByExp(self, *args):
         """test bibs.fetchByExp e bibs.getByExp"""
         self.insert_three()
         self.pBDB.bibExp.insert(["abc", "def"], 0)
@@ -5510,7 +5534,7 @@ class TestDatabaseEntries(DBTestCase):
         entries = self.pBDB.bibs.getByExp(2)
         self.assertEqual([e["bibkey"] for e in entries], [])
 
-    def test_cleanBibtexs(self):
+    def test_cleanBibtexs(self, *args):
         """test cleanBibtexs"""
         self.insert_three()
         bibtexIn = (
@@ -5580,17 +5604,17 @@ class TestDatabaseEntries(DBTestCase):
             )
         self.pBDB.bibs.cleanBibtexs()
 
-    def test_printAll(self):
+    def test_printAll(self, *args):
         self.insert_three()
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllBibkeys(),
-            "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n3 elements found\n",
+            "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllBibkeys(
                 entriesIn=self.pBDB.bibs.getByBibkey("abc")
             ),
-            "   0 - abc\n\n1 elements found\n",
+            "   0 - abc\n\n",
         )
 
         self.assert_stdout(
@@ -5599,14 +5623,14 @@ class TestDatabaseEntries(DBTestCase):
             + 'title = "{abc}",\n}\n\n   1 - @Article{def,\n        '
             + 'author = "me",\n         title = "{def}",\n}\n\n   '
             + '2 - @Article{ghi,\n        author = "me",\n         '
-            + 'title = "{ghi}",\n}\n\n3 elements found\n',
+            + 'title = "{ghi}",\n}\n\n',
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllBibtexs(
                 entriesIn=self.pBDB.bibs.getByBibkey("abc")
             ),
             '   0 - @Article{abc,\n        author = "me",\n         '
-            + 'title = "{abc}",\n}\n\n1 elements found\n',
+            + 'title = "{abc}",\n}\n\n',
         )
 
         today = datetime.date.today().strftime("%Y-%m-%d")
@@ -5628,7 +5652,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]        ghi           "
             + "                 ghi                  -       "
-            + "            \n3 elements found\n",
+            + "            \n",
         )
         self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
         self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
@@ -5642,7 +5666,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]"
             + "  (rev) abc                            1234    "
-            + "             somedoi             \n3 elements found\n",
+            + "             somedoi             \n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllInfo(
@@ -5652,7 +5676,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]  (rev) abc           "
             + "                 1234                 somedoi    "
-            + "         \n1 elements found\n",
+            + "         \n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllInfo(
@@ -5662,7 +5686,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]  (rev) abc                           "
             + " 1234                 somedoi             \n   "
-            + "author: me\n1 elements found\n",
+            + "author: me\n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllInfo(
@@ -5672,7 +5696,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]  (rev) abc                            "
             + "1234                 somedoi             \n   author: me"
-            + "\n1 elements found\n",
+            + "\n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllInfo(
@@ -5682,7 +5706,7 @@ class TestDatabaseEntries(DBTestCase):
             + today
             + " ]  (rev) abc                         "
             + "   1234                 somedoi             \n   "
-            + "title: {abc}\n1 elements found\n",
+            + "title: {abc}\n",
         )
         self.assert_stdout(
             lambda: self.pBDB.bibs.printAllInfo(
@@ -5692,11 +5716,10 @@ class TestDatabaseEntries(DBTestCase):
             "[   0 - "
             + today
             + " ]  (rev) abc                          "
-            + "  1234                 somedoi             \n"
-            + "1 elements found\n",
+            + "  1234                 somedoi             \n",
         )
 
-    def test_setStuff(self):
+    def test_setStuff(self, *args):
         """test ["setBook", "setLecture", "setPhdThesis",
         "setProceeding", "setReview", "setNoUpdate"]
         """
@@ -5730,7 +5753,7 @@ class TestDatabaseEntries(DBTestCase):
             self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
             self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
 
-    def test_rmBibtexStuff(self):
+    def test_rmBibtexStuff(self, *args):
         """Test rmBibtexComments and rmBibtexACapo"""
         self.assertEqual(
             self.pBDB.bibs.rmBibtexComments(
@@ -5787,7 +5810,7 @@ class TestDatabaseEntries(DBTestCase):
             self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u"%abc"), "")
             _w.assert_called_once_with("Cannot parse properly:\n%abc")
 
-    def test_parseAllBibtexs(self):
+    def test_parseAllBibtexs(self, *args):
         """test parseAllBibtexs"""
         text = [
             u"@article{abc,\n",
@@ -5825,7 +5848,7 @@ class TestDatabaseEntries(DBTestCase):
             res = self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=False)
             self.assertEqual([a["ID"] for a in res], ["def"])
 
-    def test_importFromBib(self):
+    def test_importFromBib(self, *args):
         with open("tmpbib.bib", "w") as f:
             f.write(
                 u'@article{abc,\nauthor = "me",\ntitle = '
@@ -5964,7 +5987,7 @@ class TestDatabaseEntries(DBTestCase):
             os.remove("tmpbib.bib")
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_loadAndInsert_online(self):
+    def test_loadAndInsert_online(self, *args):
         """tests for loadAndInsert with online connection"""
         self.assertTrue(
             self.pBDB.bibs.loadAndInsert(["Gariazzo:2015rra", "Planck:2013pxb"])
@@ -5986,7 +6009,7 @@ class TestDatabaseEntries(DBTestCase):
         del res["citations_no_self"]
         self.assertEqual(res, fullRecordAde)
 
-    def test_loadAndInsert(self):
+    def test_loadAndInsert(self, *args):
         """tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
         # loadAndInsert
         self.assertFalse(self.pBDB.bibs.loadAndInsert(None))
@@ -6003,7 +6026,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method=method))
                 _mock.assert_called_once_with(physBiblioWeb.webSearch[method], "abcdef")
         self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent"))
-        with patch("logging.Logger.error") as _e:
+        with patch("logging.Logger.exception") as _e:
             self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent")
             _e.assert_any_call("Method not valid: nonexistent")
         self.assertTrue(
@@ -6280,7 +6303,7 @@ class TestDatabaseEntries(DBTestCase):
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     @patch.dict(pbConfig.params, {"maxAuthorSave": 5}, clear=False)
-    def test_getFieldsFromArxiv(self):
+    def test_getFieldsFromArxiv(self, *args):
         """tests for getFieldsFromArxiv (online)"""
         self.pBDB.bibs.insertFromBibtex(
             u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
@@ -6314,7 +6337,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateInspireID(self):
+    def test_updateInspireID(self, *args):
         """tests for updateInspireID (online)"""
         self.pBDB.bibs.insertFromBibtex(
             u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
@@ -6368,7 +6391,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_searchOAIUpdates_online(self):
+    def test_searchOAIUpdates_online(self, *args):
         """tests for searchOAIUpdates, with real connection"""
         self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
         self.pBDB.bibs.insert(
@@ -6399,7 +6422,7 @@ class TestDatabaseEntries(DBTestCase):
         del res["citations_no_self"]
         self.assertEqual(res, fullRecordGariazzo)
 
-    def test_searchOAIUpdates(self):
+    def test_searchOAIUpdates(self, *args):
         """tests for searchOAIUpdates, with mock functions"""
         self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
         self.pBDB.bibs.insert(
@@ -6472,7 +6495,7 @@ class TestDatabaseEntries(DBTestCase):
             pbv.assert_has_calls([call(1), call(2)])
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateInfoFromOAI_online(self):
+    def test_updateInfoFromOAI_online(self, *args):
         """test updateInfoFromOAI, with online connection"""
         expected = fullRecordGariazzo
         self.pBDB.bibs.insert(
@@ -6501,7 +6524,7 @@ class TestDatabaseEntries(DBTestCase):
         del res["citations_no_self"]
         self.assertEqual(res, expected)
 
-    def test_updateInfoFromOAI(self):
+    def test_updateInfoFromOAI(self, *args):
         """test updateInfoFromOAI, but with mocked methods"""
         dt = datetime.date.today().strftime("%Y-%m-%d")
         mockOut = {
@@ -6773,7 +6796,7 @@ class TestDatabaseEntries(DBTestCase):
                     self.assertIn("Key error", _i.call_args[0][0])
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateFromOAI_online(self):
+    def test_updateFromOAI_online(self, *args):
         """test updateFromOAI with online connection"""
         expected = fullRecordGariazzo
         self.pBDB.bibs.insertFromBibtex(
@@ -6800,7 +6823,7 @@ class TestDatabaseEntries(DBTestCase):
         del res["citations_no_self"]
         self.assertEqual(res, expected)
 
-    def test_updateFromOAI(self):
+    def test_updateFromOAI(self, *args):
         """test updateFromOAI without relying
         on the true pBDB.bibs.updateInfoFromOAI (mocked)
         """
@@ -6842,7 +6865,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
                 mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
 
-    def test_getDailyInfoFromOAI(self):
+    def test_getDailyInfoFromOAI(self, *args):
         """test the function getDailyInfoFromOAI,
         without relying on the true
         physBiblioWeb.webSearch["inspire"].retrieveCumulativeUpdates
@@ -7387,7 +7410,7 @@ class TestDatabaseEntries(DBTestCase):
                 },
             )
 
-    def test_findCorrupted(self):
+    def test_findCorrupted(self, *args):
         """test the function that finds corrupted bibtexs"""
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
@@ -7425,10 +7448,14 @@ class TestDatabaseEntries(DBTestCase):
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")
+@patch("logging.Logger.debug")
+@patch("logging.Logger.info")
+@patch("logging.Logger.warning")
+@patch("logging.Logger.exception")
 class TestDatabaseUtilities(DBTestCase):
     """Tests for the methods in the utilities subclass"""
 
-    def test_spare(self):
+    def test_spare(self, *args):
         """create spare connections just to delete them
         with cleanSpareEntries
         """
@@ -7459,7 +7486,7 @@ class TestDatabaseUtilities(DBTestCase):
             {"bibs": 0, "cats": 2, "exps": 1, "catBib": 0, "catExp": 1, "bibExp": 0},
         )
 
-    def test_bibtexs(self):
+    def test_bibtexs(self, *args):
         """Create and clean a bibtex entry"""
         data = self.pBDB.bibs.prepareInsert(
             u'\n\n%comment\n@article{abc,\nauthor = "me",\n'

@@ -545,7 +545,7 @@ class TestExportMethods(unittest.TestCase):
         self.assertEqual(newTextBib, "%file written by PhysBiblio\n")
 
         os.remove(testBibName)
-        with patch("logging.Logger.error") as _er, patch(
+        with patch("logging.Logger.exception") as _er, patch(
             "physbiblio.database.Entries.loadAndInsert", return_value=[], autospec=True
         ) as _lai:
             output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
@@ -560,9 +560,7 @@ class TestExportMethods(unittest.TestCase):
                     testTexName, "/surely/not/existing/path.bib", autosave=False
                 )
             )
-            _ex.assert_called_once_with(
-                "Cannot create file /surely/not/existing/path.bib!"
-            )
+            _ex.assert_any_call("Cannot create file /surely/not/existing/path.bib!")
 
         texString = (
             "\cite{someA&A...123,prova., empty2+}\citep{empty2+}"

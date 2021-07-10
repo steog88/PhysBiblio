@@ -184,7 +184,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
             try:
                 searchFields = ast.literal_eval(sr["searchDict"])
             except (ValueError, SyntaxError):
-                pBLogger.error(
+                pBLogger.exception(
                     "Something went wrong when processing "
                     + "the search fields: '%s'" % sr["searchDict"]
                 )
@@ -278,7 +278,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                 try:
                     replaceFields = ast.literal_eval(sr["replaceFields"])
                 except (ValueError, SyntaxError):
-                    pBLogger.error(
+                    pBLogger.exception(
                         "Something went wrong when processing "
                         + "the saved replace: '%s'" % sr["replaceFields"]
                     )
@@ -294,7 +294,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                             newContent["old"] = replaceFields[2]
                             newContent["new"] = replaceFields[3][0]
                         except IndexError:
-                            pBLogger.error(
+                            pBLogger.exception(
                                 "Not enough elements for conversion: "
                                 + sr["replaceFields"]
                             )
@@ -2234,7 +2234,7 @@ class Entries(PhysBiblioDBSub):
             try:
                 return ast.literal_eval(value)
             except SyntaxError:
-                pBLogger.error(dstr.Bibs.errorReadBibdict % value)
+                pBLogger.exception(dstr.Bibs.errorReadBibdict % value)
                 return value
         else:
             return value
@@ -3361,7 +3361,7 @@ class Entries(PhysBiblioDBSub):
                 try:
                     e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
                 except KeyError:
-                    pBLogger.error(dstr.Bibs.laiInvalidMethod % method)
+                    pBLogger.exception(dstr.Bibs.laiInvalidMethod % method)
                     return False
             if [a.startswith("@") for a in e.split("\n")].count(True) > 1:
                 if number is not None:

@@ -468,7 +468,7 @@ class LocalPDF:
             try:
                 total_size = os.path.getsize(folder)
             except error_class:
-                pBLogger.error(pstr.folderMissing % folder)
+                pBLogger.exception(pstr.folderMissing % folder)
                 os.makedirs(folder)
                 return os.path.getsize(folder)
         else:

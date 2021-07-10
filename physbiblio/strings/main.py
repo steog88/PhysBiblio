@@ -208,6 +208,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         cbResChan = "%d bibtex entries changed"
         cbResEntr = "%d entries processed"
         cbResErr = "%d errors occurred"
+        ccProcessTot = "CitationCount will process %d total entries"
         delete = "Delete entry, using key = '%s'"
         elementChanged = "-- element changed!"
         elementsFound = "%d elements found"

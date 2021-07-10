@@ -230,9 +230,9 @@ class TestPdfMethods(unittest.TestCase):
             error_class = OSError
         else:
             error_class = FileNotFoundError
-        with patch("logging.Logger.error") as _e, patch("os.makedirs") as _md, patch(
-            "os.path.getsize", side_effect=[error_class, 123]
-        ) as _gs:
+        with patch("logging.Logger.exception") as _e, patch(
+            "os.makedirs"
+        ) as _md, patch("os.path.getsize", side_effect=[error_class, 123]) as _gs:
             self.assertEqual(pBPDF.dirSize("/surely/non/existent/folder"), 123)
             _e.assert_called_once_with(
                 "PDF folder is missing: /surely/non/existent/folder. Creating it."

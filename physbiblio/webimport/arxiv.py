@@ -387,7 +387,7 @@ class WebSearch(WebInterf, ArxivStrings):
         try:
             data = feedparser.parse(text)
         except Exception:
-            pBLogger.error(self.cannotParseRSS % text, exc_info=True)
+            pBLogger.exception(self.cannotParseRSS % text)
             return False
         entries = []
         for element in data.entries:

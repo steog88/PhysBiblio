@@ -87,7 +87,11 @@ class DBTestCase(unittest.TestCase):
     """define the class that will be used for database tests"""
 
     @classmethod
-    def setUpClass(self):
+    @patch("logging.Logger.debug")
+    @patch("logging.Logger.info")
+    @patch("logging.Logger.warning")
+    @patch("logging.Logger.exception")
+    def setUpClass(self, *args):
         """Create a temporary database"""
         self.maxDiff = None
         self.pBDB = PhysBiblioDB(tempDBName, pBLogger)
