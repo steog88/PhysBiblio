@@ -5616,7 +5616,75 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("abc", "inspire", "12345")
         self.pBDB.bibs.updateField("def", "inspire", "23456")
         self.pBDB.bibs.updateField("ghi", "inspire", "34567")
-        raise NotImplementedError
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=([], 0),
+        ) as _rb:
+            self.assertEqual(self.pBDB.bibs.citationCount("12345"), (0, 0, []))
+            _rb.assert_called_once_with(
+                ["12345"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
+            )
+        pm = MagicMock()
+        pv = MagicMock()
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=(["a"], 2),
+        ) as _rb, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            return_value={"id": "12345", "cit": 123, "cit_no_self": 120},
+        ) as _rr:
+            self.assertEqual(
+                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
+                (1, 0, ["abc"]),
+            )
+            _rb.assert_called_once_with(
+                ["12345", "23456"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
+            )
+            _rr.assert_called_once_with("a", noWarning=True)
+            pm.assert_called_once_with(2)
+            pv.assert_called_once_with(1)
+            a = self.pBDB.bibs.getByBibkey("abc")[0]
+            self.assertEqual(a["citations"], 123)
+            self.assertEqual(a["citations_no_self"], 120)
+            a = self.pBDB.bibs.getByBibkey("def")[0]
+            self.assertEqual(a["citations"], 0)
+            self.assertEqual(a["citations_no_self"], 0)
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=(["a", "b", "c"], 2),
+        ) as _rb, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            side_effect=(
+                {"id": "34567", "cit": 1, "cit_no_self": 1},
+                {"id": "01234", "cit": 13, "cit_no_self": 1},
+                {"id": "23456"},
+            ),
+        ) as _rr:
+            self.assertEqual(
+                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
+                (3, 1, ["ghi"]),
+            )
+            _rb.assert_called_once_with(
+                ["12345", "23456"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
+            )
+            _rr.assert_any_call("a", noWarning=True)
+            _rr.assert_any_call("b", noWarning=True)
+            _rr.assert_any_call("c", noWarning=True)
+            a = self.pBDB.bibs.getByBibkey("abc")[0]
+            self.assertEqual(a["citations"], 123)
+            self.assertEqual(a["citations_no_self"], 120)
+            a = self.pBDB.bibs.getByBibkey("def")[0]
+            self.assertEqual(a["citations"], 0)
+            self.assertEqual(a["citations_no_self"], 0)
+            a = self.pBDB.bibs.getByBibkey("ghi")[0]
+            self.assertEqual(a["citations"], 1)
+            self.assertEqual(a["citations_no_self"], 1)
 
     def test_cleanBibtexs(self, *args):
         """test cleanBibtexs"""

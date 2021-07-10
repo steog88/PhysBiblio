@@ -106,6 +106,11 @@ class WebSearch(WebInterf, InspireStrings):
         "thesis_info",
         "titles",
     ]
+    metadataCitationFields = [
+        "citation_count",
+        "citation_count_without_self_citations",
+        "control_number",
+    ]
     metadataConferenceFields = [
         "cnum",
         "proceedings",
@@ -470,7 +475,7 @@ class WebSearch(WebInterf, InspireStrings):
             return None
         return title
 
-    def readRecord(self, record, readConferenceTitle=False):
+    def readRecord(self, record, readConferenceTitle=False, noWarning=False):
         """Read the content of a marcxml record
         to return a bibtex string
 
@@ -478,6 +483,7 @@ class WebSearch(WebInterf, InspireStrings):
             record: the marcxml record to read
             readConferenceTitle (default False): if True, look for
                 the proceedings info to get the title of the conference
+            noWarning (default False): if True, suppress some warnings
 
         Output:
             a dictionary with the obtained fields
@@ -493,14 +499,16 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             tmpDict["bibkey"] = record["metadata"]["texkeys"][0]
         except (IndexError, KeyError, TypeError):
-            pBLogger.warning(self.errorReadRecord % tmpDict["id"])
+            if not noWarning:
+                pBLogger.warning(self.errorReadRecord % tmpDict["id"])
         # old keys
         tmpOld = []
         try:
             tmpOld = list(record["metadata"]["texkeys"])
             tmpOld.pop(0)
         except (IndexError, KeyError, TypeError):
-            pBLogger.warning(self.errorReadRecord % tmpDict["id"])
+            if not noWarning:
+                pBLogger.warning(self.errorReadRecord % tmpDict["id"])
         tmpDict["oldkeys"] = ",".join(tmpOld)
         # doi
         tmpDict["doi"] = None

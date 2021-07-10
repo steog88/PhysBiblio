@@ -3993,7 +3993,7 @@ class Entries(PhysBiblioDBSub):
             pass
         batch_size = 50
         for i in range(0, tot, batch_size):
-            entries, num = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 inspireID[i : i + batch_size],
                 searchFormat="recid:%s",
                 fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
@@ -4028,7 +4028,7 @@ class Entries(PhysBiblioDBSub):
                         ].correspondences:
                             if "citation" in d:
                                 self.updateField(dbe["bibkey"], d, new[o])
-                    except (IndexError, ValueError, ParseException):
+                    except (KeyError, TypeError):
                         pBLogger.warning(
                             dstr.Bibs.ccCannotUpdateFields % (dbe["bibkey"], new)
                         )

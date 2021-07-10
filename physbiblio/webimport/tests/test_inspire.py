@@ -49,6 +49,7 @@ class TestInspireMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "updateBibtexFields"))
         self.assertTrue(hasattr(ws, "metadataLiteratureFields"))
         self.assertTrue(hasattr(ws, "metadataConferenceFields"))
+        self.assertTrue(hasattr(ws, "metadataCitationFields"))
         self.assertTrue(hasattr(ws, "urlArgs"))
         self.assertTrue(hasattr(ws, "defaultSize"))
         self.assertIsInstance(physBiblioWeb.webSearch["inspire"], WebSearch)
@@ -980,7 +981,7 @@ class TestInspireMethods(unittest.TestCase):
             ) as _pt:
                 r = iws.readRecord(record2, readConferenceTitle=True)
                 self.assertEqual(r, res2)
-                r = iws.readRecord(record4, readConferenceTitle=True)
+                r = iws.readRecord(record4, readConferenceTitle=True, noWarning=True)
                 _pt.assert_called_once_with("123", useUrl=None)
                 res4["booktitle"] = "proctitle"
                 res4["bibtex"] = getBibtex(res4)
