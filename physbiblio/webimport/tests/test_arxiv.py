@@ -159,6 +159,107 @@ sampleFeed4 = """<?xml version="1.0" encoding="UTF-8"?>
   </entry>
 </feed>"""
 
+sampleDailyFeed1 = """<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns="http://purl.org/rss/1.0/"
+ xmlns:content="http://purl.org/rss/1.0/modules/content/"
+ xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:syn="http://purl.org/rss/1.0/modules/syndication/"
+ xmlns:admin="http://webns.net/mvcb/"
+>
+
+<channel rdf:about="http://arxiv.org/">
+<title>hep-ex updates on arXiv.org</title>
+<link>http://arxiv.org/</link>
+<description rdf:parseType="Literal">High Energy Physics - Experiment (hep-ex) updates on the arXiv.org e-print archive</description>
+<dc:language>en-us</dc:language>
+<dc:date>2021-07-08T20:30:00-05:00</dc:date>
+<dc:publisher>www-admin@arxiv.org</dc:publisher>
+<dc:subject>High Energy Physics - Experiment</dc:subject>
+<syn:updateBase>1901-01-01T00:00+00:00</syn:updateBase>
+<syn:updateFrequency>1</syn:updateFrequency>
+<syn:updatePeriod>daily</syn:updatePeriod>
+<image rdf:resource="http://arxiv.org/icons/sfx.gif" />
+</channel>
+<image rdf:about="http://arxiv.org/icons/sfx.gif">
+<title>arXiv.org</title>
+<url>http://arxiv.org/icons/sfx.gif</url>
+<link>http://arxiv.org/</link>
+</image>
+<item rdf:about="http://arxiv.org/abs/2107.03419">
+<title>Observation of excited $\Omega_c^0$ baryons in $\Omega_b^- \to \Xi_c^+ K^-\pi^-$ decays. (arXiv:2107.03419v1 [hep-ex])</title>
+<link>http://arxiv.org/abs/2107.03419</link>
+<description rdf:parseType="Literal">desc1
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+collaboration_LHCb/0/1/0/all/0/1&quot;&gt;LHCb collaboration&lt;/a&gt;: &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+Aaij_R/0/1/0/all/0/1&quot;&gt;R. Aaij&lt;/a&gt;, et al. (909 additional authors not shown)</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/2106.00550">
+<title>Potential applications of modular representation theory to quantum mechanics. (arXiv:2106.00550v2 [math.GR] CROSS LISTED)</title>
+<link>http://arxiv.org/abs/2106.00550</link>
+<description rdf:parseType="Literal">desc2
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/math/1/au:+Wilson_R/0/1/0/all/0/1&quot;&gt;Robert A. Wilson&lt;/a&gt;</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/2007.03939">
+<title>Fireball tomography from bottomonia elliptic flow in relativistic heavy-ion collisions. (arXiv:2007.03939v2 [hep-ph] UPDATED)</title>
+<link>http://arxiv.org/abs/2007.03939</link>
+<description rdf:parseType="Literal">desc3
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/hep-ph/1/au:+Bhaduri_P/0/1/0/all/0/1&quot;&gt;Partha Pratim Bhaduri&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/hep-ph/1/au:+Alqahtani_M/0/1/0/all/0/1&quot;&gt;Mubarak Alqahtani&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/hep-ph/1/au:+Borghini_N/0/1/0/all/0/1&quot;&gt;Nicolas Borghini&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/hep-ph/1/au:+Jaiswal_A/0/1/0/all/0/1&quot;&gt;Amaresh Jaiswal&lt;/a&gt;, &lt;a href=&quot;http://arxiv.org/find/hep-ph/1/au:+Strickland_M/0/1/0/all/0/1&quot;&gt;Michael Strickland&lt;/a&gt;</dc:creator>
+</item>
+</rdf:RDF>"""
+sampleDailyFeed2 = """<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns="http://purl.org/rss/1.0/"
+ xmlns:content="http://purl.org/rss/1.0/modules/content/"
+ xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:syn="http://purl.org/rss/1.0/modules/syndication/"
+ xmlns:admin="http://webns.net/mvcb/"
+>
+
+<channel rdf:about="http://arxiv.org/">
+<title>hep-ex updates on arXiv.org</title>
+<link>http://arxiv.org/</link>
+<description rdf:parseType="Literal">High Energy Physics - Experiment (hep-ex) updates on the arXiv.org e-print archive</description>
+<dc:language>en-us</dc:language>
+<dc:date>2021-07-08T20:30:00-05:00</dc:date>
+<dc:publisher>www-admin@arxiv.org</dc:publisher>
+<dc:subject>High Energy Physics - Experiment</dc:subject>
+<syn:updateBase>1901-01-01T00:00+00:00</syn:updateBase>
+<syn:updateFrequency>1</syn:updateFrequency>
+<syn:updatePeriod>daily</syn:updatePeriod>
+<image rdf:resource="http://arxiv.org/icons/sfx.gif" />
+</channel>
+<image rdf:about="http://arxiv.org/icons/sfx.gif">
+<title>arXiv.org</title>
+<url>http://arxiv.org/icons/sfx.gif</url>
+<link>http://arxiv.org/</link>
+</image>
+<item rdf:about="http://arxiv.org/abs/2107.03419">
+<link>http://arxiv.org/abs/2107.03419</link>
+<description rdf:parseType="Literal">desc1
+</description>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+collaboration_LHCb/0/1/0/all/0/1&quot;&gt;LHCb collaboration&lt;/a&gt;: &lt;a href=&quot;http://arxiv.org/find/hep-ex/1/au:+Aaij_R/0/1/0/all/0/1&quot;&gt;R. Aaij&lt;/a&gt;, et al. (909 additional authors not shown)</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/2106.00550">
+<title>Potential applications of modular representation theory to quantum mechanics. (arXiv:2106.00550v2 [math.GR] CROSS LISTED)</title>
+<link>http://arxiv.org/abs/2106.00550</link>
+<dc:creator> &lt;a href=&quot;http://arxiv.org/find/math/1/au:+Wilson_R/0/1/0/all/0/1&quot;&gt;Robert A. Wilson&lt;/a&gt;</dc:creator>
+</item>
+<item rdf:about="http://arxiv.org/abs/2007.03939">
+<title>Fireball tomography from bottomonia elliptic flow in relativistic heavy-ion collisions. (arXiv:2007.03939v2 [hep-ph] UPDATED)</title>
+<link>http://arxiv.org/abs/2007.03939</link>
+<description rdf:parseType="Literal">desc3
+</description>
+</item>
+</rdf:RDF>"""
+
 
 class TestArxivMethods(unittest.TestCase):
     """Test the functions that import entries from arxiv.
@@ -379,20 +480,94 @@ class TestArxivMethods(unittest.TestCase):
     def test_arxivRetriever_online(self):
         """Online test arxivRetriever"""
         aws = physBiblioWeb.webSearch["arxiv"]
-        with patch("logging.Logger.debug") as _d:
+        with patch("logging.Logger.info") as _i:
             res = aws.arxivRetriever("Zavanin", searchType="au")
         self.assertIsInstance(res, six.string_types)
 
     def test_arxivDaily(self):
         """test arxivDaily"""
+        self.maxDiff = None
         aws = physBiblioWeb.webSearch["arxiv"]
-        raise NotImplementedError
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.exception"
+        ) as _e, patch("logging.Logger.warning") as _w, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+        ) as _tu:
+            self.assertEqual(aws.arxivDaily("abc"), False)
+            _tu.assert_not_called()
+            self.assertEqual(aws.arxivDaily("abc"), False)
+            _tu.assert_not_called()
+            self.assertEqual(aws.arxivDaily("astro-ph.ab"), False)
+            _tu.assert_not_called()
+            _tu.return_value = None
+            self.assertEqual(aws.arxivDaily("hep-ph"), False)
+            _tu.assert_called_once_with("https://export.arxiv.org/rss/hep-ph")
+            _tu.return_value = sampleFeed1
+            self.assertEqual(aws.arxivDaily("astro-ph.CO"), [])
+            _tu.assert_called_with("https://export.arxiv.org/rss/astro-ph.CO")
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.exception"
+        ) as _e, patch("logging.Logger.warning") as _w, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value=sampleDailyFeed1,
+        ) as _tu:
+            self.assertEqual(
+                aws.arxivDaily("hep-ex"),
+                [
+                    {
+                        "abstract": "desc1",
+                        "author": "LHCb collaboration and R. Aaij",
+                        "authors": ["LHCb collaboration", "R. Aaij"],
+                        "cross": False,
+                        "eprint": "2107.03419",
+                        "primaryclass": "hep-ex",
+                        "replacement": False,
+                        "title": "Observation of excited $\\Omega_c^0$ baryons in $\\Omega_b^- \to "
+                        "\\Xi_c^+ K^-\\pi^-$ decays.",
+                        "version": "2107.03419v1",
+                    },
+                    {
+                        "abstract": "desc2",
+                        "author": "Robert A. Wilson",
+                        "authors": ["Robert A. Wilson"],
+                        "cross": True,
+                        "eprint": "2106.00550",
+                        "primaryclass": "math.GR",
+                        "replacement": False,
+                        "title": "Potential applications of modular representation theory to quantum "
+                        "mechanics.",
+                        "version": "2106.00550v2",
+                    },
+                    {
+                        "abstract": "desc3",
+                        "author": "Partha Pratim Bhaduri and Mubarak Alqahtani and Nicolas Borghini "
+                        "and others",
+                        "authors": [
+                            "Partha Pratim Bhaduri",
+                            "Mubarak Alqahtani",
+                            "Nicolas Borghini",
+                            "Amaresh Jaiswal",
+                            "Michael Strickland",
+                        ],
+                        "cross": True,
+                        "eprint": "2007.03939",
+                        "primaryclass": "hep-ph",
+                        "replacement": True,
+                        "title": "Fireball tomography from bottomonia elliptic flow in relativistic "
+                        "heavy-ion collisions.",
+                        "version": "2007.03939v2",
+                    },
+                ],
+            )
+            _tu.return_value = sampleDailyFeed2
+            self.assertEqual(aws.arxivDaily("hep-ex"), [])
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_arxivDaily_online(self):
         """Online test arxivDaily"""
         aws = physBiblioWeb.webSearch["arxiv"]
-        res = aws.arxivDaily("astro-ph.CO")
+        with patch("logging.Logger.info") as _i:
+            res = aws.arxivDaily("astro-ph.CO")
         self.assertIsInstance(res, list)
 
 

@@ -2,6 +2,7 @@
     date: 2021-07
     changes:
         - database can now store citation counts from inspire
+        - improvements to arxiv module
         - small improvements to some error messages
 -   version: 1.7.0
     date: 2021-07-05

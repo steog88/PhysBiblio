@@ -25,6 +25,7 @@ class ArxivStrings(GenericStrings):
     cannotParseRSS = "Cannot parse arxiv RSS feed:\n%s"
     cannotReadDict = "Something went wrong when reading the dictionary"
     cannotReadEntryId = "Cannot read the arXiv ID of this entry: %s"
+    cannotReadItem = "Something went wrong when reading the feed item"
     emptyUrl = "Url is empty!"
     errorYearConversion = "Error in converting year from '%s'"
     mainCatNotFound = "Main category not found: %s"

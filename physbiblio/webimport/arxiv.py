@@ -383,11 +383,16 @@ class WebSearch(WebInterf, ArxivStrings):
         )
         if sys.version_info[0] < 3:
             text = text.decode("utf-8")
+        text = parse_accents_str(text)
         try:
-            data = feedparser.parse(parse_accents_str(text))
-            entries = []
-            for element in data.entries:
-                tmp = {}
+            data = feedparser.parse(text)
+        except Exception:
+            pBLogger.error(self.cannotParseRSS % text, exc_info=True)
+            return False
+        entries = []
+        for element in data.entries:
+            tmp = {}
+            try:
                 tmp["eprint"] = element["id"].split("/")[-1]
                 tmp["abstract"] = (
                     element["summary"]
@@ -429,8 +434,9 @@ class WebSearch(WebInterf, ArxivStrings):
                     if m != ""
                 ][0]
                 tmp["title"] = element["title"].replace(parenthesis, "")
+            except (IndexError, KeyError, TypeError):
+                pBLogger.warning(self.cannotReadItem)
+                continue
+            else:
                 entries.append(tmp)
-            return entries
-        except Exception:
-            pBLogger.error(self.cannotParseRSS % text, exc_info=True)
-            return False
+        return entries
