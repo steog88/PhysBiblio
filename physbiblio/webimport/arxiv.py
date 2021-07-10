@@ -261,61 +261,94 @@ class WebSearch(WebInterf, ArxivStrings):
             the bibtex text
             (optional, depending on fullDict): the bibtex Dictionary
         """
+
+        def returnFailed():
+            """Define output of the function when an error occurred"""
+            if fullDict:
+                return "", {}
+            else:
+                return ""
+
+        urlArgs = self.urlArgs.copy()
         if additionalArgs:
-            for k, v in additionalArgs.items():
-                self.urlArgs[k] = v
-        self.urlArgs["search_query"] = searchType + ":" + string
-        url = self.createUrl()
+            try:
+                for k, v in additionalArgs.items():
+                    urlArgs[k] = v
+            except (AttributeError, TypeError):
+                pass
+        urlArgs["search_query"] = searchType + ":" + string
+        url = self.createUrl(urlArgs)
         pBLogger.info(self.searchInfo % (searchType, string, url))
         text = parse_accents_str(self.textFromUrl(url))
         try:
             data = feedparser.parse(text)
-            db = BibDatabase()
-            db.entries = []
-            dictionaries = []
-            for entry in data["entries"]:
-                dictionary = {}
+        except Exception:  # intercept all possible errors
+            pBLogger.exception(self.cannotParseRSS % text, exc_info=True)
+            return returnFailed()
+        if "entries" not in data.keys():
+            pBLogger.exception(self.cannotFindEntriesInFeed % data)
+            return returnFailed()
+        db = BibDatabase()
+        db.entries = []
+        dictionaries = []
+        for entry in data["entries"]:
+            dictionary = {"ENTRYTYPE": "article", "archiveprefix": "arXiv"}
+            try:
                 idArx = (
                     entry["id"]
                     .replace("http://arxiv.org/abs/", "")
                     .replace("https://arxiv.org/abs/", "")
                 )
+            except (AttributeError, KeyError, TypeError):
+                pBLogger.exception(self.cannotReadEntryId % entry)
+                continue
+            else:
                 pos = idArx.find("v")
                 if pos >= 0:
                     idArx = idArx[0:pos]
-                dictionary["ENTRYTYPE"] = "article"
                 dictionary["ID"] = idArx
-                dictionary["archiveprefix"] = "arXiv"
-                dictionary["title"] = entry["title"]
                 dictionary["arxiv"] = idArx
+            for m, k in [["title", "title"], ["doi", "arxiv_doi"]]:
                 try:
-                    dictionary["doi"] = entry["arxiv_doi"]
+                    dictionary[m] = entry[k]
                 except KeyError as e:
                     pBLogger.debug("KeyError: %s" % e)
+            try:
                 dictionary["abstract"] = entry["summary"].replace("\n", " ")
+            except KeyError as e:
+                pBLogger.debug("KeyError: %s" % e)
+            try:
                 dictionary["authors"] = " and ".join(
                     [au["name"] for au in entry["authors"]]
                 )
+            except KeyError as e:
+                pBLogger.debug("KeyError: %s" % e)
+            try:
                 dictionary["primaryclass"] = entry["arxiv_primary_category"]["term"]
+            except KeyError as e:
+                pBLogger.debug("KeyError: %s" % e)
+            try:
                 year = self.getYear(dictionary["arxiv"])
+            except KeyError as e:
+                pBLogger.debug("KeyError: %s" % e)
+            else:
                 if year is not None:
                     dictionary["year"] = year
-                db.entries.append(dictionary)
-                dictionaries.append(dictionary)
-            if fullDict:
+            db.entries.append(dictionary)
+            dictionaries.append(dictionary)
+        if fullDict:
+            try:
                 dictionary = dictionaries[0]
                 for d in dictionaries:
                     if string in d["arxiv"]:
                         dictionary = d
+            except (IndexError, TypeError):
+                pBLogger.exception(self.cannotReadDict)
+                return returnFailed()
+            else:
                 return pbWriter.write(db), dictionary
-            else:
-                return pbWriter.write(db)
-        except Exception:  # intercept all other possible errors
-            pBLogger.exception(self.genericError)
-            if fullDict:
-                return "", {}
-            else:
-                return ""
+        else:
+            return pbWriter.write(db)
 
     def arxivDaily(self, category):
         """Read daily RSS feed for a given category

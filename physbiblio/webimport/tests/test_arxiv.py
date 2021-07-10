@@ -30,6 +30,135 @@ except ImportError:
 except Exception:
     print(traceback.format_exc())
 
+sampleFeed1 = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="http://arxiv.org/api/query?search_query%3Dau%3Agariazzo%26id_list%3D%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+  <title type="html">ArXiv Query: search_query=au:gariazzo&amp;id_list=&amp;start=0&amp;max_results=10</title>
+  <id>http://arxiv.org/api/VQoV0zBpKZN/v+xgzuDvxEU0zJg</id>
+  <updated>2021-07-10T00:00:00-04:00</updated>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">53</opensearch:totalResults>
+  <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+  <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:it"""
+sampleFeed2 = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="http://arxiv.org/api/query?search_query%3Dau%3Agariazzo%26id_list%3D%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+  <title type="html">ArXiv Query: search_query=au:gariazzo&amp;id_list=&amp;start=0&amp;max_results=10</title>
+  <id>http://arxiv.org/api/VQoV0zBpKZN/v+xgzuDvxEU0zJg</id>
+  <updated>2021-07-10T00:00:00-04:00</updated>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">53</opensearch:totalResults>
+  <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+  <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:itemsPerPage>
+  <entry>
+    <id>http://arxiv.org/abs/1510.05980v1</id>
+  </entry>
+  <entry>
+    <updated>2016-02-18T18:24:53Z</updated>
+    <published>2016-02-18T18:24:53Z</published>
+    <title>Dark Radiation and Inflationary Freedom</title>
+    <summary>  test1
+</summary>
+    <author>
+      <name>Stefano Gariazzo</name>
+    </author>
+    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.1088/1742-6596/718/3/032006</arxiv:doi>
+    <link title="doi" href="http://dx.doi.org/10.1088/1742-6596/718/3/032006" rel="related"/>
+    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">Poster presented at NuPhys2015 (London, 16-18 December 2015). 5
+  pages, 3 figures</arxiv:comment>
+    <link href="http://arxiv.org/abs/1602.05902v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1602.05902v1" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+</feed>"""
+sampleFeed3 = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="http://arxiv.org/api/query?search_query%3Dau%3Agariazzo%26id_list%3D%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+  <title type="html">ArXiv Query: search_query=au:gariazzo&amp;id_list=&amp;start=0&amp;max_results=10</title>
+  <id>http://arxiv.org/api/VQoV0zBpKZN/v+xgzuDvxEU0zJg</id>
+  <updated>2021-07-10T00:00:00-04:00</updated>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">53</opensearch:totalResults>
+  <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+  <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:itemsPerPage>
+  <entry>
+    <id>http://arxiv.org/abs/1510.05980v1</id>
+    <updated>2015-10-20T17:42:31Z</updated>
+    <published>2015-10-20T17:42:31Z</published>
+    <title>Dark Radiation and Inflationary Freedom</title>
+    <summary>  test1
+</summary>
+    <author>
+      <name>Stefano Gariazzo</name>
+    </author>
+    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.1088/1742-6596/718/3/032006</arxiv:doi>
+    <link title="doi" href="http://dx.doi.org/10.1088/1742-6596/718/3/032006" rel="related"/>
+    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">8 pages, 4 figures; to appear in the Proceedings of the TAUP 2015
+  conference</arxiv:comment>
+    <link href="http://arxiv.org/abs/1510.05980v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1510.05980v1" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="hep-ph" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1602.05902v1</id>
+    <updated>2016-02-18T18:24:53Z</updated>
+    <published>2016-02-18T18:24:53Z</published>
+    <title>Dark Radiation and Inflationary Freedom</title>
+    <summary>  test2
+</summary>
+    <author>
+      <name>Stefano Gariazzo</name>
+    </author>
+    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.1088/1742-6596/718/3/032006</arxiv:doi>
+    <link title="doi" href="http://dx.doi.org/10.1088/1742-6596/718/3/032006" rel="related"/>
+    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">Poster presented at NuPhys2015 (London, 16-18 December 2015). 5
+  pages, 3 figures</arxiv:comment>
+    <link href="http://arxiv.org/abs/1602.05902v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1602.05902v1" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+</feed>"""
+sampleFeed4 = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="http://arxiv.org/api/query?search_query%3Dau%3Agariazzo%26id_list%3D%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+  <title type="html">ArXiv Query: search_query=au:gariazzo&amp;id_list=&amp;start=0&amp;max_results=10</title>
+  <id>http://arxiv.org/api/VQoV0zBpKZN/v+xgzuDvxEU0zJg</id>
+  <updated>2021-07-10T00:00:00-04:00</updated>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">53</opensearch:totalResults>
+  <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+  <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:itemsPerPage>
+  <entry>
+    <id>http://arxiv.org/abs/1510.05980v1</id>
+    <updated>2015-10-20T17:42:31Z</updated>
+    <published>2015-10-20T17:42:31Z</published>
+    <title>Dark Radiation and Inflationary Freedom</title>
+    <summary>  test1
+</summary>
+    <author>
+      <name>Stefano Gariazzo</name>
+    </author>
+    <author>
+      <name>Nicolao Fornengo</name>
+    </author>
+    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.1088/1742-6596/718/3/032006</arxiv:doi>
+    <link title="doi" href="http://dx.doi.org/10.1088/1742-6596/718/3/032006" rel="related"/>
+    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">8 pages, 4 figures; to appear in the Proceedings of the TAUP 2015
+  conference</arxiv:comment>
+    <link href="http://arxiv.org/abs/1510.05980v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1510.05980v1" rel="related" type="application/pdf"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1602.05902v1</id>
+    <updated>2016-02-18T18:24:53Z</updated>
+    <published>2016-02-18T18:24:53Z</published>
+    <link href="http://arxiv.org/abs/1602.05902v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1602.05902v1" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="astro-ph.CO" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+</feed>"""
+
 
 class TestArxivMethods(unittest.TestCase):
     """Test the functions that import entries from arxiv.
@@ -114,8 +243,137 @@ class TestArxivMethods(unittest.TestCase):
 
     def test_arxivRetriever(self):
         """test arxivRetriever"""
+        self.maxDiff = None
         aws = physBiblioWeb.webSearch["arxiv"]
-        raise NotImplementedError
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.exception"
+        ) as _e, patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl", return_value="myurl"
+        ) as _cu, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+        ) as _tu:
+            self.assertEqual(aws.arxivRetriever("abc"), "")
+            _cu.assert_called_once_with({"start": "0", "search_query": "all:abc"})
+            self.assertEqual(aws.arxivRetriever("abc", fullDict=True), ("", {}))
+            _cu.reset_mock()
+            self.assertEqual(
+                aws.arxivRetriever(
+                    "abc", fullDict=True, searchType="au", additionalArgs={"a": "AAA"}
+                ),
+                ("", {}),
+            )
+            _cu.assert_called_once_with(
+                {"start": "0", "a": "AAA", "search_query": "au:abc"}
+            )
+            _cu.reset_mock()
+            self.assertEqual(
+                aws.arxivRetriever(
+                    "abc", fullDict=True, searchType="au", additionalArgs="123"
+                ),
+                ("", {}),
+            )
+            _cu.assert_called_once_with({"start": "0", "search_query": "au:abc"})
+            _tu.assert_called_with("myurl")
+            _tu.return_value = None
+            self.assertEqual(aws.arxivRetriever("abc"), "")
+        with patch("logging.Logger.info") as _i, patch(
+            "logging.Logger.debug"
+        ) as _d, patch("logging.Logger.exception") as _e, patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl", return_value="myurl"
+        ) as _cu, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value=sampleFeed1,
+        ) as _tu:
+            self.assertEqual(aws.arxivRetriever("abc"), "")
+            _tu.return_value = sampleFeed2
+            self.assertEqual(
+                aws.arxivRetriever("abc"),
+                '@Article{1510.05980,\n          year = "2015",\n'
+                + ' archiveprefix = "arXiv",\n         arxiv = "1510.05980",\n}\n\n',
+            )
+            _tu.return_value = sampleFeed3
+            self.assertEqual(
+                aws.arxivRetriever("abc"),
+                """@Article{1510.05980,
+         title = "{Dark Radiation and Inflationary Freedom}",
+          year = "2015",
+ archiveprefix = "arXiv",
+  primaryclass = "astro-ph.CO",
+           doi = "10.1088/1742-6596/718/3/032006",
+      abstract = "{test1}",
+         arxiv = "1510.05980",
+       authors = "Stefano Gariazzo",
+}
+
+@Article{1602.05902,
+         title = "{Dark Radiation and Inflationary Freedom}",
+          year = "2016",
+ archiveprefix = "arXiv",
+  primaryclass = "astro-ph.CO",
+           doi = "10.1088/1742-6596/718/3/032006",
+      abstract = "{test2}",
+         arxiv = "1602.05902",
+       authors = "Stefano Gariazzo",
+}
+
+""",
+            )
+            _tu.return_value = sampleFeed4
+            self.assertEqual(
+                aws.arxivRetriever("abc"),
+                """@Article{1510.05980,
+         title = "{Dark Radiation and Inflationary Freedom}",
+          year = "2015",
+ archiveprefix = "arXiv",
+           doi = "10.1088/1742-6596/718/3/032006",
+      abstract = "{test1}",
+         arxiv = "1510.05980",
+       authors = "Stefano Gariazzo and Nicolao Fornengo",
+}
+
+@Article{1602.05902,
+          year = "2016",
+ archiveprefix = "arXiv",
+  primaryclass = "astro-ph.CO",
+         arxiv = "1602.05902",
+}
+
+""",
+            )
+            self.assertEqual(
+                aws.arxivRetriever("abc", fullDict=True),
+                (
+                    """@Article{1510.05980,
+         title = "{Dark Radiation and Inflationary Freedom}",
+          year = "2015",
+ archiveprefix = "arXiv",
+           doi = "10.1088/1742-6596/718/3/032006",
+      abstract = "{test1}",
+         arxiv = "1510.05980",
+       authors = "Stefano Gariazzo and Nicolao Fornengo",
+}
+
+@Article{1602.05902,
+          year = "2016",
+ archiveprefix = "arXiv",
+  primaryclass = "astro-ph.CO",
+         arxiv = "1602.05902",
+}
+
+""",
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "1510.05980",
+                        "abstract": "test1",
+                        "archiveprefix": "arXiv",
+                        "arxiv": "1510.05980",
+                        "authors": "Stefano Gariazzo and Nicolao Fornengo",
+                        "doi": "10.1088/1742-6596/718/3/032006",
+                        "title": "Dark Radiation and Inflationary Freedom",
+                        "year": "2015",
+                    },
+                ),
+            )
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_arxivRetriever_online(self):
