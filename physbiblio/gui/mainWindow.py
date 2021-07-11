@@ -437,6 +437,13 @@ class MainWindow(QMainWindow):
             triggered=self.updateAllBibtexsAsk,
         )
 
+        self.updateCitationCountAct = QAction(
+            mwstr.Act.ccT,
+            self,
+            statusTip=mwstr.Act.ccD,
+            triggered=self.getInspireCitationCount,
+        )
+
         self.cleanAllBibtexsAct = QAction(
             mwstr.Act.cleBT,
             self,
@@ -589,6 +596,7 @@ class MainWindow(QMainWindow):
         self.bibMenu.addAction(self.infoFromArxivAct)
         self.bibMenu.addAction(self.updateAllBibtexsAct)
         self.bibMenu.addAction(self.updateAllBibtexsAskAct)
+        self.bibMenu.addAction(self.updateCitationCountAct)
         self.bibMenu.addSeparator()
         self.bibMenu.addAction(self.searchBibAct)
         self.bibMenu.addAction(self.searchReplaceAct)
@@ -1652,17 +1660,22 @@ class MainWindow(QMainWindow):
         self.done()
         return True
 
-    def getInspireCitationCount(self, inspireId):
+    def getInspireCitationCount(self, inspireID=[]):
         """Use a thread to obtain the citation statistics
         of a paper using the INSPIRE-HEP database
 
         Parameter:
-            inspireId: the ID of the paper in the INSPIRE database
+            inspireID: the ID of the paper in the INSPIRE database
         """
+        if not isinstance(inspireID, list):
+            inspireID = [inspireID]
+        if inspireID == []:
+            inspireID = [e["inspire"] for e in pBDB.bibs.getAll()]
+        inspireID = [i for i in inspireID if i != "" and i is not None]
         self._runInThread(
             Thread_citationCount,
             mwstr.citCount,
-            inspireId,
+            inspireID,
             minProgress=0.0,
             stopFlag=True,
         )

@@ -4035,6 +4035,7 @@ class Entries(PhysBiblioDBSub):
                         err += 1
                     else:
                         changed.append(dbe["bibkey"])
+                    pBLogger.info("")
         pBLogger.info(dstr.Bibs.cbResEntr % num)
         pBLogger.info(dstr.Bibs.cbResErr % err)
         pBLogger.info(dstr.Bibs.cbResChan % len(changed))

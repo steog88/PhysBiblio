@@ -400,6 +400,11 @@ class MainWindowStrings(CommonStrings, ErrorsStrings, CommonGUIStrings):
         catT = "&Categories"
         catND = "New Category"
         catNT = "Ne&w Category"
+        ccD = (
+            "Update the citation count of all bibtexs, "
+            + "using information from INSPIRE"
+        )
+        ccT = "Update citation count"
         chaD = "Show recent changes"
         chaT = "&Changelog"
         cleBD = "Clean all the bibtexs"

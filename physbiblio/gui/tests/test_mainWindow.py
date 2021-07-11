@@ -466,6 +466,14 @@ class TestMainWindow(GUITestCase):
         )
 
         assertAction(
+            self.mainW.updateCitationCountAct,
+            "Update citation count",
+            "Update the citation count of all bibtexs, "
+            + "using information from INSPIRE",
+            "getInspireCitationCount",
+        )
+
+        assertAction(
             self.mainW.findBadBibtexsAct,
             "&Find corrupted bibtexs",
             "Find all the bibtexs which contain syntax errors "
@@ -622,6 +630,7 @@ class TestMainWindow(GUITestCase):
                 self.mainW.infoFromArxivAct,
                 self.mainW.updateAllBibtexsAct,
                 self.mainW.updateAllBibtexsAskAct,
+                self.mainW.updateCitationCountAct,
                 None,
                 self.mainW.searchBibAct,
                 self.mainW.searchReplaceAct,
@@ -3372,10 +3381,32 @@ class TestMainWindow(GUITestCase):
                 self.mainW,
                 Thread_citationCount,
                 mwstr.citCount,
-                "1234",
+                ["1234"],
                 minProgress=0.0,
                 stopFlag=True,
             )
+            _im.assert_called_once_with(self.mainW)
+        with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
+            self.clsName + ".done", autospec=True
+        ) as _im, patch(
+            "physbiblio.database.Entries.getAll",
+            return_value=[
+                {"inspire": "123"},
+                {"inspire": "234"},
+                {"inspire": ""},
+                {"inspire": None},
+            ],
+        ) as _ga:
+            self.mainW.getInspireCitationCount()
+            _rit.assert_called_once_with(
+                self.mainW,
+                Thread_citationCount,
+                mwstr.citCount,
+                ["123", "234"],
+                minProgress=0.0,
+                stopFlag=True,
+            )
+            _ga.assert_called_once()
             _im.assert_called_once_with(self.mainW)
 
     def test_getInspireStats(self):

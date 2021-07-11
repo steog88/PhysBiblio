@@ -220,7 +220,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         )
         ccNoCorrespondence = "No correspondence in database for INSPIRE ID %s"
         ccProcessTot = "CitationCount will process %d total entries"
-        ccProcessProgr = "%5d / %d (%5.2f%%) - citation count: '%s'\n"
+        ccProcessProgr = "%5d / %d (%5.2f%%) - citation count: '%s'"
         delete = "Delete entry, using key = '%s'"
         elementChanged = "-- element changed!"
         elementsFound = "%d elements found"
