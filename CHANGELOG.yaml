@@ -1,5 +1,5 @@
 -   version: 1.7.1
-    date: 2021-07
+    date: 2021-07-11
     changes:
         - database can now store citation counts from inspire
         - improvements to arxiv module
