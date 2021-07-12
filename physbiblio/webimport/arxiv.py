@@ -25,8 +25,187 @@ except ImportError:
     raise
 
 
+arxivCategories = {
+    "astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
+    "cond-mat": [
+        "dis-nn",
+        "mes-hall",
+        "mtrl-sci",
+        "other",
+        "quant-gas",
+        "soft",
+        "stat-mech",
+        "str-el",
+        "supr-con",
+    ],
+    "cs": [
+        "AI",
+        "AR",
+        "CC",
+        "CE",
+        "CG",
+        "CL",
+        "CR",
+        "CV",
+        "CY",
+        "DB",
+        "DC",
+        "DL",
+        "DM",
+        "DS",
+        "ET",
+        "FL",
+        "GL",
+        "GR",
+        "GT",
+        "HC",
+        "IR",
+        "IT",
+        "LG",
+        "LO",
+        "MA",
+        "MM",
+        "MS",
+        "NA",
+        "NE",
+        "NI",
+        "OH",
+        "OS",
+        "PF",
+        "PL",
+        "RO",
+        "SC",
+        "SD",
+        "SE",
+        "SI",
+        "SY",
+    ],
+    "econ": ["EM", "GN", "TH"],
+    "eess": ["AS", "IV", "SP"],
+    "gr-qc": [],
+    "hep-ex": [],
+    "hep-lat": [],
+    "hep-ph": [],
+    "hep-th": [],
+    "math": [
+        "AC",
+        "AG",
+        "AP",
+        "AT",
+        "CA",
+        "CO",
+        "CT",
+        "CV",
+        "DG",
+        "DS",
+        "FA",
+        "GM",
+        "GN",
+        "GR",
+        "GT",
+        "HO",
+        "IT",
+        "KT",
+        "LO",
+        "MG",
+        "MP",
+        "NA",
+        "NT",
+        "OA",
+        "OC",
+        "PR",
+        "QA",
+        "RA",
+        "RT",
+        "SG",
+        "SP",
+        "ST",
+    ],
+    "math-ph": [],
+    "nlin": ["AO", "CD", "CG", "PS", "SI"],
+    "nucl-ex": [],
+    "nucl-th": [],
+    "physics": [
+        "acc-ph",
+        "ao-ph",
+        "app-ph",
+        "atm-clus",
+        "atom-ph",
+        "bio-ph",
+        "chem-ph",
+        "class-ph",
+        "comp-ph",
+        "data-an",
+        "ed-ph",
+        "flu-dyn",
+        "gen-ph",
+        "geo-ph",
+        "hist-ph",
+        "ins-det",
+        "med-ph",
+        "optics",
+        "plasm-ph",
+        "pop-ph",
+        "soc-ph",
+        "space-ph",
+    ],
+    "q-bio": ["BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
+    "q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
+    "quant-ph": [],
+    "stat": ["AP", "CO", "ME", "ML", "OT", "TH"],
+}
+
+
+def isValidArxiv(string):
+    """Determine if the string is a valid arXiv identifier
+    (this does not mean that it exists)
+
+    Parameter:
+        string: the string to test
+
+    Output:
+        boolean
+    """
+    if "arxiv:" in string:
+        string = string.replace("arxiv:", "")
+    if re.match(
+        "^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$",
+        string,
+    ):
+        return True
+    elif re.match(
+        "^[a-zA-Z]+(\-[a-zA-Z]+)?(\.[a-zA-Z]+(\-[a-zA-Z]+)?)?/[0-9]{7}(v[0-9]+)?$",
+        string,
+    ):
+        if "." in string:
+            matchcat = re.compile(
+                "([a-zA-Z]+(\-[a-zA-Z]+)?)\.([a-zA-Z]+(\-[a-zA-Z]+)?)/"
+            )
+            for t in matchcat.finditer(string):
+                cat = t.group(1)
+                sub = t.group(3)
+            if cat in arxivCategories.keys() and sub in arxivCategories[cat]:
+                return True
+        else:
+            matchcat = re.compile("([a-zA-Z]+(\-[a-zA-Z]+)?)/")
+            for t in matchcat.finditer(string):
+                cat = t.group(1)
+            if cat in arxivCategories.keys():
+                return True
+        return False
+    else:
+        return False
+
+
 def getYear(string):
-    """Use the arxiv id to compute the year"""
+    """Use the arxiv id to compute the year
+
+    Parameter:
+        string: the arxiv identifier
+
+    Output:
+        a string containing the year of the submission to arXiv
+    """
     identif = re.compile("(([a-zA-Z\-]+/)([0-9]{7}))|([0-9]{4}\.[0-9]{4,5})")
     try:
         for t in identif.finditer(string):
@@ -55,135 +234,7 @@ class WebSearch(WebInterf, ArxivStrings):
     description = "arXiv fetcher"
     url = "https://export.arxiv.org/api/query"
     urlRss = "https://export.arxiv.org/rss/"
-    categories = {
-        "astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
-        "cond-mat": [
-            "dis-nn",
-            "mes-hall",
-            "mtrl-sci",
-            "other",
-            "quant-gas",
-            "soft",
-            "stat-mech",
-            "str-el",
-            "supr-con",
-        ],
-        "cs": [
-            "AI",
-            "AR",
-            "CC",
-            "CE",
-            "CG",
-            "CL",
-            "CR",
-            "CV",
-            "CY",
-            "DB",
-            "DC",
-            "DL",
-            "DM",
-            "DS",
-            "ET",
-            "FL",
-            "GL",
-            "GR",
-            "GT",
-            "HC",
-            "IR",
-            "IT",
-            "LG",
-            "LO",
-            "MA",
-            "MM",
-            "MS",
-            "NA",
-            "NE",
-            "NI",
-            "OH",
-            "OS",
-            "PF",
-            "PL",
-            "RO",
-            "SC",
-            "SD",
-            "SE",
-            "SI",
-            "SY",
-        ],
-        "econ": ["EM", "GN", "TH"],
-        "eess": ["AS", "IV", "SP"],
-        "gr-qc": [],
-        "hep-ex": [],
-        "hep-lat": [],
-        "hep-ph": [],
-        "hep-th": [],
-        "math": [
-            "AC",
-            "AG",
-            "AP",
-            "AT",
-            "CA",
-            "CO",
-            "CT",
-            "CV",
-            "DG",
-            "DS",
-            "FA",
-            "GM",
-            "GN",
-            "GR",
-            "GT",
-            "HO",
-            "IT",
-            "KT",
-            "LO",
-            "MG",
-            "MP",
-            "NA",
-            "NT",
-            "OA",
-            "OC",
-            "PR",
-            "QA",
-            "RA",
-            "RT",
-            "SG",
-            "SP",
-            "ST",
-        ],
-        "math-ph": [],
-        "nlin": ["AO", "CD", "CG", "PS", "SI"],
-        "nucl-ex": [],
-        "nucl-th": [],
-        "physics": [
-            "acc-ph",
-            "ao-ph",
-            "app-ph",
-            "atm-clus",
-            "atom-ph",
-            "bio-ph",
-            "chem-ph",
-            "class-ph",
-            "comp-ph",
-            "data-an",
-            "ed-ph",
-            "flu-dyn",
-            "gen-ph",
-            "geo-ph",
-            "hist-ph",
-            "ins-det",
-            "med-ph",
-            "optics",
-            "plasm-ph",
-            "pop-ph",
-            "soc-ph",
-            "space-ph",
-        ],
-        "q-bio": ["BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
-        "q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
-        "quant-ph": [],
-        "stat": ["AP", "CO", "ME", "ML", "OT", "TH"],
-    }
+    categories = arxivCategories
 
     def __init__(self):
         """Initializes the class variables using

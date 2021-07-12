@@ -3,6 +3,7 @@
     changes:
         - citations command to update citation counts without the GUI
         - improvements to argParser tests
+        - function to match valid arxiv number
 -   version: 1.7.1
     date: 2021-07-11
     changes:

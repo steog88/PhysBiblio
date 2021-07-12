@@ -22,7 +22,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.setuptests import *
     from physbiblio.strings.webimport import ArxivStrings
-    from physbiblio.webimport.arxiv import WebSearch
+    from physbiblio.webimport.arxiv import WebSearch, isValidArxiv
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -265,6 +265,50 @@ class TestArxivMethods(unittest.TestCase):
     """Test the functions that import entries from arxiv.
     Should not fail if everything works fine.
     """
+
+    def test_isValidArxiv(self):
+        """test isValidArxiv"""
+        self.assertTrue(isValidArxiv("arxiv:0703.0000v15"))
+        self.assertTrue(isValidArxiv("0703.0000v1"))
+        self.assertTrue(isValidArxiv("0703.0000"))
+        self.assertTrue(isValidArxiv("arxiv:1712.01000v15"))
+        self.assertTrue(isValidArxiv("1712.02000v1"))
+        self.assertTrue(isValidArxiv("1712.02000"))
+        self.assertTrue(isValidArxiv("hep-ph/9912567v10"))
+        self.assertTrue(isValidArxiv("hep-ph/9912567v1"))
+        self.assertTrue(isValidArxiv("arxiv:hep-ph/9912567"))
+        self.assertTrue(isValidArxiv("arxiv:math/9902567v10"))
+        self.assertTrue(isValidArxiv("math/9902567v1"))
+        self.assertTrue(isValidArxiv("math/9902567"))
+        self.assertTrue(isValidArxiv("arxiv:math.CO/0112567v10"))
+        self.assertTrue(isValidArxiv("math.CO/0112567v4"))
+        self.assertTrue(isValidArxiv("math.CO/0112567"))
+        self.assertTrue(isValidArxiv("cs/0112567v10"))
+        self.assertTrue(isValidArxiv("cs/0112567v4"))
+        self.assertTrue(isValidArxiv("cs/0112567"))
+        self.assertTrue(isValidArxiv("astro-ph.CO/0001567v10"))
+        self.assertTrue(isValidArxiv("arxiv:astro-ph.CO/0001567v9"))
+        self.assertTrue(isValidArxiv("arxiv:astro-ph.CO/0001567"))
+        self.assertTrue(isValidArxiv("physics.acc-ph/0001567v9"))
+        self.assertTrue(isValidArxiv("physics.acc-ph/0001567"))
+        self.assertTrue(isValidArxiv("physics.acc-ph/0001567v10"))
+        self.assertTrue(isValidArxiv("cond-mat.dis-nn/0001567"))
+        self.assertTrue(isValidArxiv("cond-mat.dis-nn/0001567v9"))
+        self.assertTrue(isValidArxiv("cond-mat.dis-nn/0001567"))
+        self.assertFalse(isValidArxiv("1712.000"))
+        self.assertFalse(isValidArxiv("1712.000v1"))
+        self.assertFalse(isValidArxiv("1712.000123"))
+        self.assertFalse(isValidArxiv("172.0000"))
+        self.assertFalse(isValidArxiv("172.0000v1"))
+        self.assertFalse(isValidArxiv("172.00123"))
+        self.assertFalse(isValidArxiv("astroph/1234567"))
+        self.assertFalse(isValidArxiv("a/1234567"))
+        self.assertFalse(isValidArxiv("mat/1234567"))
+        self.assertFalse(isValidArxiv("math/123456"))
+        self.assertFalse(isValidArxiv("hep-ex/123456"))
+        self.assertFalse(isValidArxiv("cond-mat.dis-nn/123456"))
+        self.assertFalse(isValidArxiv("mat.CO/1234567"))
+        self.assertFalse(isValidArxiv("math.ZZ/1234567"))
 
     def test_init(self):
         """Test init and basic class properties"""
