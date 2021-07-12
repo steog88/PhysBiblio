@@ -4,6 +4,9 @@ from .common import CommonStrings
 class ArgParserStrings:
     """Strings for the physbiblio.argParser module"""
 
+    citHelp = (
+        "update citation counts for all entries using info from the INSPIRE database"
+    )
     cleanHelp = "clean the entries in the database"
     cleanStartHelp = "the index from which the cleaning should start"
     cliHelp = "open the internal command line interface"

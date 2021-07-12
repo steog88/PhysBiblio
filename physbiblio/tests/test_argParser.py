@@ -34,6 +34,10 @@ except Exception:
     print(traceback.format_exc())
 
 
+class NameSpace:
+    pass
+
+
 @patch("logging.Logger.debug")
 @patch("logging.Logger.info")
 @patch("logging.Logger.warning")
@@ -82,7 +86,7 @@ class TestParser(unittest.TestCase):
                 lambda: parser.parse_args([opt]),
                 [
                     "usage: PhysBiblio.exe [-h] [-p ",
-                    "{clean,cli,daily,dates,export,test,tex,update,weekly,gui}",
+                    "{citations,clean,cli,daily,dates,export,test,tex,update,weekly,gui}",
                 ],
             )
         for opt in ["-p", "--profile"]:
@@ -101,7 +105,11 @@ class TestParser(unittest.TestCase):
     def test_subcommands_ok(self, *args):
         """Test that the options are recognised correctly"""
         parser = setParser()
-        tests = [["gui", call_gui], ["test", call_tests]]
+        tests = [
+            ["citations", call_citationCount],
+            ["gui", call_gui],
+            ["test", call_tests],
+        ]
         for sub, func in tests:
             args = parser.parse_args([sub])
             self.assertIs(args.func, func)
@@ -466,6 +474,114 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(SystemExit):
             args = parser.parse_args(["test", "-a"])
         skipTestsSettings = oldSettings
+
+    def test_call_citationCount(self, *args):
+        """test call_citationCount"""
+        with patch(
+            "physbiblio.database.Entries.getAll",
+            return_value=[{"inspire": "a"}, {"inspire": "b"}],
+        ) as _ga, patch("physbiblio.database.Entries.citationCount") as _cc, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
+        ) as _c:
+            call_citationCount("args")
+            _ga.assert_called_once_with()
+            _cc.assert_called_once_with(["a", "b"])
+            _c.assert_called_once_with()
+
+    def test_call_clean(self, *args):
+        """test call_clean"""
+        args = NameSpace()
+        args.startFrom = 12
+        with patch("physbiblio.database.Entries.cleanBibtexs") as _f, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
+        ) as _c:
+            call_clean(args)
+            _f.assert_called_once_with(startFrom=12)
+            _c.assert_called_once_with()
+
+    def test_call_cli(self, *args):
+        """test call_cli"""
+        with patch("physbiblio.cli.cli") as _f:
+            call_cli(args)
+            _f.assert_called_once_with()
+
+    def test_call_export(self, *args):
+        """test call_export"""
+        args = NameSpace()
+        args.filename = "abc"
+        with patch("physbiblio.export.PBExport.exportAll") as _f:
+            call_export(args)
+            _f.assert_called_once_with("abc")
+
+    def test_call_tex(self, *args):
+        """test call_tex"""
+        args = NameSpace()
+        args.texFiles = ["a", "b", "c"]
+        args.bibFile = "bib"
+        args.overwrite = "o"
+        args.save = "s"
+        args.updateExisting = "u"
+        args.removeUnused = "r"
+        args.reorder = "d"
+        with patch("physbiblio.export.PBExport.exportForTexFile") as _f:
+            call_tex(args)
+            _f.assert_called_once_with(
+                ["a", "b", "c"],
+                "bib",
+                overwrite="o",
+                autosave="s",
+                updateExisting="u",
+                removeUnused="r",
+                reorder="d",
+            )
+
+    def test_call_update(self, *args):
+        """test call_update"""
+        args = NameSpace()
+        args.startFrom = 12
+        args.force = "f"
+        with patch("physbiblio.database.Entries.searchOAIUpdates") as _f, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
+        ) as _c:
+            call_update(args)
+            _f.assert_called_once_with(startFrom=12, force="f")
+            _c.assert_called_once_with()
+
+    def test_cumulativeInspireDates(self, *args):
+        """test cumulativeInspireDates"""
+        with patch("physbiblio.database.Entries.getDailyInfoFromOAI") as _f, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
+        ) as _c:
+            cumulativeInspireDates("a", "b")
+            _f.assert_called_once_with("a", "b")
+            _c.assert_called_once_with()
+
+    def test_call_dates(self, *args):
+        """test call_dates"""
+        args = NameSpace()
+        args.start = "s"
+        args.end = "e"
+        with patch("physbiblio.argParser.cumulativeInspireDates") as _f:
+            call_dates(args)
+            _f.assert_called_once_with("s", "e")
+
+    def test_call_daily(self, *args):
+        """test call_daily"""
+        with patch("physbiblio.argParser.cumulativeInspireDates") as _f:
+            call_daily("args")
+            _f.assert_called_once_with(
+                (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"),
+                datetime.date.today().strftime("%Y-%m-%d"),
+            )
+
+    def test_call_weekly(self, *args):
+        """test call_weekly"""
+        with patch("physbiblio.argParser.cumulativeInspireDates") as _f:
+            call_weekly("args")
+            _f.assert_called_once_with(
+                (datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d"),
+                datetime.date.today().strftime("%Y-%m-%d"),
+            )
 
     def test_call_gui(self, *args):
         """test the call_gui function"""

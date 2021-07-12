@@ -3962,7 +3962,7 @@ class Entries(PhysBiblioDBSub):
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
     def citationCount(self, inspireID, pbMax=None, pbVal=None):
-        """
+        """Update the citation counts using information from INSPIRE
 
         Parameters:
             inspireID: the list of entries to be considered (INSPIRE IDs)

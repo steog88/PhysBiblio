@@ -19,6 +19,15 @@ except ImportError:
     raise
 
 
+def call_citationCount(args):
+    """Wrapper for citationCount + commit of the changes"""
+    from physbiblio.database import pBDB
+
+    inspireID = [e["inspire"] for e in pBDB.bibs.getAll()]
+    pBDB.bibs.citationCount(inspireID)
+    pBDB.commit()
+
+
 def call_clean(args):
     """Function used when the "clean" subcommand is called"""
     from physbiblio.database import pBDB
@@ -90,7 +99,7 @@ def call_update(args):
     pBDB.commit()
 
 
-def call_oaiDates(date1, date2):
+def cumulativeInspireDates(date1, date2):
     """Wrapper for getDailyInfoFromOAI + commit of the changes"""
     from physbiblio.database import pBDB
 
@@ -102,22 +111,22 @@ dateLast = datetime.date.today().strftime("%Y-%m-%d")
 
 
 def call_dates(args):
-    """Use call_oaiDates to fetch updates between two dates
+    """Use cumulativeInspireDates to fetch updates between two dates
     specified in the command line
     """
-    call_oaiDates(args.start, args.end)
+    cumulativeInspireDates(args.start, args.end)
 
 
 def call_daily(args):
-    """Use call_oaiDates to fetch daily updates"""
-    call_oaiDates(
+    """Use cumulativeInspireDates to fetch daily updates"""
+    cumulativeInspireDates(
         (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d"), dateLast
     )
 
 
 def call_weekly(args):
-    """Use call_oaiDates to fetch weekly updates"""
-    call_oaiDates(
+    """Use cumulativeInspireDates to fetch weekly updates"""
+    cumulativeInspireDates(
         (datetime.date.today() - datetime.timedelta(7)).strftime("%Y-%m-%d"), dateLast
     )
 
@@ -183,6 +192,9 @@ def setParser():
         version="PhysBiblio %s (%s)" % (__version__, __version_date__),
     )
     subparsers = parser.add_subparsers(help=apstr.subHelp, dest="cmd")
+
+    parser_cit = subparsers.add_parser("citations", help=apstr.cleanHelp)
+    parser_cit.set_defaults(func=call_citationCount)
 
     parser_clean = subparsers.add_parser("clean", help=apstr.cleanHelp)
     parser_clean.add_argument(

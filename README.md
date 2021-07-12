@@ -249,6 +249,7 @@ The list of available commands includes:
 
 * `gui`: run the graphical interface (default if no options are used).
 * `test`: execute the test suite.
+* `citations`: update citation counts from INSPIRE.
 * `clean`: process all the bibtex entries in the database to remove bad characters and reformat them.
 * `cli`: internal command line interface to work with internal commands. Mainly intended for developing.
 * `daily`: see [here](#inspire-oai).
