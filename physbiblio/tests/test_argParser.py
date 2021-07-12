@@ -34,10 +34,6 @@ except Exception:
     print(traceback.format_exc())
 
 
-class NameSpace:
-    pass
-
-
 @patch("logging.Logger.debug")
 @patch("logging.Logger.info")
 @patch("logging.Logger.warning")

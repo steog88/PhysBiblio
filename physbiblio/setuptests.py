@@ -83,6 +83,10 @@ if os.path.exists(tempFDBName):
     os.remove(tempFDBName)
 
 
+class NameSpace:
+    pass
+
+
 class DBTestCase(unittest.TestCase):
     """define the class that will be used for database tests"""
 

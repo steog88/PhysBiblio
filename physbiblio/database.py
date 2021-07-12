@@ -2089,7 +2089,7 @@ class Entries(PhysBiblioDBSub):
         Parameters: see self.fetchAll
 
         Output:
-            a dictionary
+            a list of dictionaries
         """
         return self.fetchAll(
             params=params,
@@ -2129,7 +2129,7 @@ class Entries(PhysBiblioDBSub):
         Parameters: see self.fetchByBibkey
 
         Output:
-            a dictionary
+            a list of dictionaries
         """
         return self.fetchByBibkey(bibkey, saveQuery=saveQuery).lastFetched
 
@@ -2169,7 +2169,7 @@ class Entries(PhysBiblioDBSub):
         Parameters: see self.fetchByKey
 
         Output:
-            a dictionary
+            a list of dictionaries
         """
         return self.fetchByKey(key, saveQuery=saveQuery).lastFetched
 
@@ -2206,7 +2206,7 @@ class Entries(PhysBiblioDBSub):
         Parameters: see self.fetchByBibtex
 
         Output:
-            a dictionary
+            a list of dictionaries
         """
         return self.fetchByBibtex(string, saveQuery=saveQuery).lastFetched
 
@@ -2243,9 +2243,59 @@ class Entries(PhysBiblioDBSub):
         Parameters: see self.fetchByInspireID
 
         Output:
-            a dictionary
+            a list of dictionaries
         """
         return self.fetchByInspireID(string, saveQuery=saveQuery).lastFetched
+
+    def fetchByIdFromInspireRecord(self, e):
+        """Use self.fetchByBibkey, self.fetchByInspireID
+        or self.fetchByBibtex to obtain the information present
+        in the database for the record fetched from the INSPIRE API.
+
+        Parameters:
+            e: the dictionary obtained processing data
+                from the INSPIRE API database
+
+        Output:
+            self
+        """
+        try:
+            key = e["bibkey"]
+        except KeyError:
+            pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("bibkey", e))
+        else:
+            return self.fetchByBibkey(key, saveQuery=False)
+        try:
+            iid = e["id"]
+        except KeyError:
+            pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("id", e))
+        else:
+            return self.fetchByInspireID(iid, saveQuery=False)
+        try:
+            arxiv = e["eprint"]
+        except KeyError:
+            pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("eprint", e))
+        else:
+            return self.fetchByBibtex(arxiv, saveQuery=False)
+        try:
+            doi = e["doi"]
+        except KeyError:
+            pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("doi", e))
+        else:
+            return self.fetchByBibtex(doi, saveQuery=False)
+        self.lastFetched = []
+        return self
+
+    def getByIdFromInspireRecord(self, e):
+        """Use self.fetchByIdFromInspireRecord and returns
+        the dictionary of fetched entries
+
+        Parameters: see self.fetchByIdFromInspireRecord
+
+        Output:
+            a list of dictionaries
+        """
+        return self.fetchByIdFromInspireRecord(e).lastFetched
 
     def getField(self, key, field):
         """Extract the content of one field
@@ -2787,6 +2837,57 @@ class Entries(PhysBiblioDBSub):
             pBLogger.warning(dstr.Bibs.errorUpdateBib, exc_info=True)
             return False
 
+    def updateRecordFromINSPIRE(self, e):
+        """Use information from the INSPIRE API to update the relevant
+        fields in the database
+
+        Parameter:
+            e: the dictionary from webimport.inspire.readRecord
+                of the record of interest
+
+        Output:
+            a boolean (True if the entry was changed, False otherwise)
+        """
+        old = self.getByIdFromInspireRecord(e)
+        if len(old) == 0:
+            pBLogger.debug("no match found for record %s" % e)
+            return False
+        old = old[0]
+        if old["noUpdate"] != 0:
+            return False
+        hasChanged = False
+        key = old["bibkey"]
+        # update other fields
+        for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
+            if o == "bibtex":
+                continue
+            try:
+                if e[o] != old[d] and e[o] != None:
+                    pBLogger.info(dstr.Bibs.apiInfoS % (d, old[d], e[o]))
+                    self.updateField(key, d, e[o], verbose=0)
+                    hasChanged = True
+            except KeyError:
+                pBLogger.warning(dstr.Bibs.iidKeyError % (o, d))
+        # update bibtex
+        outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
+            e, old["bibtex"]
+        )
+        if outcome:
+            e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(bibtex.strip()))
+            if (
+                e["bibtex"] != old["bibtex"]
+                and e["bibtex"] != ""
+                and e["bibtex"] is not None
+            ):
+                pBLogger.info(dstr.Bibs.apiInfoL % "bibtex")
+                pBLogger.info(dstr.Bibs.apiOld % old["bibtex"])
+                pBLogger.info(dstr.Bibs.apiNew % e["bibtex"])
+                self.updateField(key, "bibtex", e["bibtex"], verbose=0)
+                hasChanged = True
+        else:
+            pBLogger.warning(dstr.Bibs.errorOAIEntryG)
+        return hasChanged
+
     def getDailyInfoFromOAI(self, date1=None, date2=None):
         """Use inspire OAI webinterface to get updated information
         on the entries between two dates
@@ -2805,42 +2906,8 @@ class Entries(PhysBiblioDBSub):
         )
         changed = []
         for e in entries:
-            try:
-                key = e["bibkey"]
-                pBLogger.info(key)
-                old = self.getByBibkey(key, saveQuery=False)
-                if len(old) > 0 and old[0]["noUpdate"] == 0:
-                    # update other fields
-                    for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
-                        try:
-                            pBLogger.info("%s = %s (%s)" % (d, e[o], old[0][d]))
-                            if o != "bibtex" and e[o] != old[0][d]:
-                                self.updateField(key, d, e[o], verbose=0)
-                        except KeyError:
-                            pBLogger.exception(dstr.Bibs.iidKeyError % (o, d))
-                    # update bibtex
-                    outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
-                        e, old[0]["bibtex"]
-                    )
-                    if not outcome:
-                        pBLogger.warning(dstr.Bibs.errorOAIEntryG)
-                        continue
-                    e["bibtex"] = self.rmBibtexComments(
-                        self.rmBibtexACapo(bibtex.strip())
-                    )
-                    for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
-                        if e[o] != old[0][d] and e[o] != None:
-                            if o == "bibtex":
-                                pBLogger.info(dstr.Bibs.apiInfoL % d)
-                                pBLogger.info(dstr.Bibs.apiOld % old[0][d])
-                                pBLogger.info(dstr.Bibs.apiNew % e[o])
-                            else:
-                                pBLogger.info(dstr.Bibs.apiInfoS % (d, old[0][d], e[o]))
-                            self.updateField(key, d, e[o], verbose=0)
-                            if len(changed) == 0 or changed[-1] != key:
-                                changed.append(key)
-            except:
-                pBLogger.exception(dstr.Bibs.errorOAIEntryDet % (e["id"], e))
+            if self.updateRecordFromINSPIRE(e):
+                changed.append(e["bibkey"])
         pBLogger.info(dstr.Bibs.apiChanged % (len(changed), changed))
         pBLogger.info(dstr.Bibs.apiDone)
 
@@ -3961,6 +4028,22 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
+    def getEntriesIfNone(self, startFrom=0):
+        """Get all the entries in the database, eventually starting
+        from a given entry number
+
+        Parameter:
+            startFrom (default 0): the starting index for the list
+
+        Output:
+            (the current cursor, the total number or entries)
+        """
+        tot = self.count() - startFrom
+        self.fetchAll(
+            saveQuery=False, limitTo=tot, limitOffset=startFrom, doFetch=False
+        )
+        return self.fetchCursor(), tot
+
     def citationCount(self, inspireID, pbMax=None, pbVal=None):
         """Update the citation counts using information from INSPIRE
 
@@ -4062,11 +4145,7 @@ class Entries(PhysBiblioDBSub):
         """
         if entries is None:
             try:
-                tot = self.count() - startFrom
-                self.fetchAll(
-                    saveQuery=False, limitTo=tot, limitOffset=startFrom, doFetch=False
-                )
-                iterator = self.fetchCursor()
+                iterator, tot = self.getEntriesIfNone(startFrom=startFrom)
             except TypeError:
                 pBLogger.exception(dstr.Bibs.cbInvalidStart)
                 return 0, 0, []
@@ -4150,11 +4229,7 @@ class Entries(PhysBiblioDBSub):
         """
         if entries is None:
             try:
-                tot = self.count() - startFrom
-                self.fetchAll(
-                    saveQuery=False, limitTo=tot, limitOffset=startFrom, doFetch=False
-                )
-                iterator = self.fetchCursor()
+                iterator, tot = self.getEntriesIfNone(startFrom=startFrom)
             except TypeError:
                 pBLogger.exception(dstr.Bibs.fcbInvalidStart)
                 return 0, 0, []
@@ -4225,11 +4300,7 @@ class Entries(PhysBiblioDBSub):
         """
         if entries is None:
             try:
-                tot = self.count() - startFrom
-                self.fetchAll(
-                    saveQuery=False, limitTo=tot, limitOffset=startFrom, doFetch=False
-                )
-                iterator = self.fetchCursor()
+                iterator, tot = self.getEntriesIfNone(startFrom=startFrom)
             except TypeError:
                 pBLogger.exception(dstr.Bibs.souInvalidStart)
                 return 0, [], []

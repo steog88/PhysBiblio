@@ -232,6 +232,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         errorGFNoElement = "Error in getField('%s', '%s'): no element found?"
         errorGFNoField = "Error in getField('%s', '%s'): the field is missing?"
         errorOAIEntryDet = "something wrong with entry %s\n%s"
+        errorOAIEntryMisKey = "Key %s missing for entry:\n%s"
         errorOAIEntryG = "Something went wrong with this entry..."
         errorParseBibtex = "Problem in parsing the following bibtex code:\n%s"
         errorParseBib = "Impossible to parse bibtex!"

@@ -5498,7 +5498,62 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
 
+    def test_fetchByIdFromInspireRecord(self, *args):
+        """test fetchByIdFromInspireRecord"""
+        self.pBDB.bibs.lastFetched = "a"
+        with patch(
+            "physbiblio.database.Entries.fetchByBibkey", return_value="bibk"
+        ) as _fbb, patch(
+            "physbiblio.database.Entries.fetchByInspireID", return_value="iid"
+        ) as _fbi, patch(
+            "physbiblio.database.Entries.fetchByBibtex", side_effect=["arxiv", "doi"]
+        ) as _fbx:
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"bibkey": "abc"}), "bibk"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_not_called()
+            _fbx.assert_not_called()
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"id": "123"}), "iid"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbx.assert_not_called()
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"eprint": "456"}), "arxiv"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbx.assert_called_once_with("456", saveQuery=False)
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"doi": "a/1/2/3"}), "doi"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            self.assertEqual(_fbx.call_count, 2)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"title": "mytitle"}),
+                self.pBDB.bibs,
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            self.assertEqual(_fbx.call_count, 2)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            self.assertEqual(self.pBDB.bibs.lastFetched, [])
+        res = NameSpace()
+        res.lastFetched = "abc"
+        with patch(
+            "physbiblio.database.Entries.fetchByIdFromInspireRecord", return_value=res
+        ) as _f:
+            self.assertEqual(
+                self.pBDB.bibs.getByIdFromInspireRecord({"bibkey": "abc"}), "abc"
+            )
+            _f.assert_called_once_with({"bibkey": "abc"})
+
     def test_getField(self, *args):
+        """test getField"""
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
             arxiv="abc",
@@ -5523,6 +5578,7 @@ class TestDatabaseEntries(DBTestCase):
             )
 
     def test_toDataDict(self, *args):
+        """test toDataDict"""
         self.insert_three()
         a = self.pBDB.bibs.toDataDict("abc")
         self.assertEqual(a["bibkey"], "abc")
@@ -5532,6 +5588,7 @@ class TestDatabaseEntries(DBTestCase):
         )
 
     def test_getUrl(self, *args):
+        """test getUrl"""
         data = self.pBDB.bibs.prepareInsert(
             u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
             ads="abc...123",
@@ -5609,6 +5666,18 @@ class TestDatabaseEntries(DBTestCase):
 
         entries = self.pBDB.bibs.getByExp(2)
         self.assertEqual([e["bibkey"] for e in entries], [])
+
+    def test_getEntriesIfNone(self, *args):
+        """test getEntriesIfNone"""
+        self.insert_three()
+        self.assertEqual(
+            self.pBDB.bibs.getEntriesIfNone(), (self.pBDB.bibs.fetchCurs, 3)
+        )
+        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 3)
+        self.assertEqual(
+            self.pBDB.bibs.getEntriesIfNone(startFrom=2), (self.pBDB.bibs.fetchCurs, 1)
+        )
+        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 1)
 
     def test_citationCount(self, *args):
         """test citationCount"""
@@ -7016,6 +7085,80 @@ class TestDatabaseEntries(DBTestCase):
                 mock_function.reset_mock()
                 self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
                 mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
+
+    def test_updateRecordFromINSPIRE(self, *args):
+        """test updateRecordFromINSPIRE"""
+        self.insert_three()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord", return_value=[]
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
+            _gir.assert_called_once_with("abc")
+            _uf.assert_not_called()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[{"noUpdate": 1}],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
+            _gir.assert_called_once_with("abc")
+            _uf.assert_not_called()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[{"noUpdate": 0, "bibkey": "abc", "bibtex": "bib"}],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(False, "bibtex"),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "abc"}), False
+            )
+            _gir.assert_called_once_with({"id": "abc"})
+            _uf.assert_not_called()
+            _ub.assert_called_once_with({"id": "abc"}, "bib")
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(False, "bibtex"),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "1234"}), True
+            )
+            _gir.assert_called_once_with({"id": "1234"})
+            _uf.assert_called_once_with("abc", "inspire", "1234", verbose=0)
+            _ub.assert_called_once_with({"id": "1234"}, "bib")
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}), True)
+            _gir.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                }
+            )
+            _uf.assert_called_once_with(
+                "abc",
+                "bibtex",
+                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                verbose=0,
+            )
+            _ub.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                },
+                "bib",
+            )
 
     def test_getDailyInfoFromOAI(self, *args):
         """test the function getDailyInfoFromOAI,
