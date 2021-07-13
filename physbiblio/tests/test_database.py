@@ -2439,6 +2439,7 @@ class TestDatabaseCategories(DBTestCase):
 @patch("logging.Logger.debug")
 @patch("logging.Logger.info")
 @patch("logging.Logger.warning")
+@patch("logging.Logger.error")
 @patch("logging.Logger.exception")
 class TestDatabaseEntries(DBTestCase):
     """Tests for the methods in the entries subclass"""
@@ -6782,17 +6783,51 @@ class TestDatabaseEntries(DBTestCase):
                     False,
                     mockOut,
                     mockOut,
-                    mockOut,
                     {
                         "doi": u"10.1088/0954-3899/43/3/033001",
                         "isbn": None,
                         "ads": u"2015JPhG...43c3001G",
                         "pubdate": u"2016-01-13",
                         "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.",
+                        # "journal": u"J.Phys.G",
                         "arxiv": u"1507.08204",
                         "id": "1385583",
-                        "volume": u"G43",
+                        # "volume": u"43",
+                        "bibtex": None,
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        # "pages": u"033001",
+                    },
+                    {
+                        # "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        "journal": u"J.Phys.G",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        # "volume": u"43",
+                        "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
+                        + '\ntitle="{Light Sterile Neutrinos}"\n}',
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        # "pages": u"033001",
+                        "author": "Gariazzo",
+                        "title": "{Light Sterile Neutrinos}",
+                    },
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        "journal": u"J.Phys.G",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        "volume": u"43",
                         "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
                         + '\ntitle="{Light Sterile Neutrinos}"\n}',
                         "year": u"2016",
@@ -6805,10 +6840,12 @@ class TestDatabaseEntries(DBTestCase):
                     {
                         "doi": u"10.1088/0954-3899/43/3/033001",
                         "bibkey": "Gariazzo:2015rra",
+                        "id": "Gariazzo:2015rra",
                     },
                     {
                         "doi": u"10.1088/0954-3899/43/3/033001",
                         "bibkey": "Gariazzo:2015rra",
+                        "id": "Gariazzo:2015rra",
                     },
                 ],
                 autospec=True,
@@ -6888,14 +6925,11 @@ class TestDatabaseEntries(DBTestCase):
                     },
                 )
                 mock_function.reset_mock()
-                with patch("logging.Logger.info") as _i:
-                    self.pBDB.bibs.updateInfoFromOAI(
-                        "12345",
-                        bibtex=u"@article{Gariazzo:2015rra,\n"
-                        + 'arxiv="1507.08204"\n}',
-                        verbose=2,
-                    )
-                    _i.assert_any_call("doi = 10.1088/0954-3899/43/3/033001 (None)")
+                self.pBDB.bibs.updateInfoFromOAI(
+                    "12345",
+                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
+                    verbose=2,
+                )
                 mock_function.assert_called_once_with(
                     physBiblioWeb.webSearch["inspire"],
                     "12345",
@@ -6916,13 +6950,15 @@ class TestDatabaseEntries(DBTestCase):
                         "scholar": None,
                         "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "year": 2016,
+                        "year": "2016",
                         "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                        + 'arxiv = "1507.08204",\n}',
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n}',
                         "firstdate": "2015-07-29",
                         "pubdate": "2016-01-13",
                         "exp_paper": 0,
@@ -6935,9 +6971,11 @@ class TestDatabaseEntries(DBTestCase):
                         "marks": "",
                         "abstract": None,
                         "bibtexDict": {
-                            "arxiv": "1507.08204",
+                            "eprint": "1507.08204",
+                            "doi": "10.1088/0954-3899/43/3/033001",
                             "ENTRYTYPE": "article",
                             "ID": "Gariazzo:2015rra",
+                            "year": "2016",
                         },
                         "title": "",
                         "journal": "",
@@ -6947,9 +6985,11 @@ class TestDatabaseEntries(DBTestCase):
                         "published": "  (2016) ",
                         "author": "",
                         "bibdict": {
-                            u"arxiv": u"1507.08204",
+                            u"eprint": u"1507.08204",
+                            "doi": "10.1088/0954-3899/43/3/033001",
                             "ENTRYTYPE": u"article",
                             "ID": u"Gariazzo:2015rra",
+                            "year": "2016",
                         },
                     },
                 )
@@ -6967,14 +7007,88 @@ class TestDatabaseEntries(DBTestCase):
                         "scholar": None,
                         "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "year": 2016,
+                        "year": "2016",
                         "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n        "
-                        + 'author = "Gariazzo",\n         '
-                        + 'title = "{Light Sterile Neutrinos}",\n}',
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "Gariazzo",\n'
+                        + '         title = "{Light Sterile Neutrinos}",\n'
+                        + '       journal = "J.Phys.G",\n'
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
+                        + "}",
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                            "author": "Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
+                        },
+                        "title": "{Light Sterile Neutrinos}",
+                        "journal": "J.Phys.G",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "J.Phys.G  (2016) ",
+                        "author": "Gariazzo",
+                        "bibdict": {
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                            "author": "Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
+                        },
+                    },
+                )
+                self.assertTrue(
+                    self.pBDB.bibs.updateInfoFromOAI("12345", reloadAll=True)
+                )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
+                self.assertEqual(
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": "2016",
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "Gariazzo",\n'
+                        + '         title = "{Light Sterile Neutrinos}",\n'
+                        + '       journal = "J.Phys.G",\n'
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
+                        + "}",
                         "firstdate": "2015-07-29",
                         "pubdate": "2016-01-13",
                         "exp_paper": 0,
@@ -6991,30 +7105,35 @@ class TestDatabaseEntries(DBTestCase):
                             "ID": "Gariazzo:2015rra",
                             "author": "Gariazzo",
                             "title": "{Light Sterile Neutrinos}",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "year": "2016",
                         },
                         "title": "{Light Sterile Neutrinos}",
-                        "journal": "",
+                        "journal": "J.Phys.G",
                         "volume": "",
                         "number": "",
                         "pages": "",
-                        "published": "  (2016) ",
+                        "published": "J.Phys.G  (2016) ",
                         "author": "Gariazzo",
                         "bibdict": {
                             "ID": u"Gariazzo:2015rra",
-                            u"title": u"{Light Sterile Neutrinos}",
                             "ENTRYTYPE": u"article",
                             u"author": u"Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
                         },
                     },
                 )
                 self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
                 with patch("logging.Logger.exception") as _i:
                     self.pBDB.bibs.updateInfoFromOAI("12345")
-                    self.assertIn("Something missing in entry", _i.call_args[0][0])
+                    self.assertIn("Key error: (bibkey", _i.call_args[0][0])
                 self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
-                with patch("logging.Logger.exception") as _i:
-                    self.pBDB.bibs.updateInfoFromOAI("12345")
-                    self.assertIn("Key error", _i.call_args[0][0])
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_updateFromOAI_online(self, *args):
@@ -7114,7 +7233,7 @@ class TestDatabaseEntries(DBTestCase):
             )
             _gir.assert_called_once_with({"id": "abc"})
             _uf.assert_not_called()
-            _ub.assert_called_once_with({"id": "abc"}, "bib")
+            _ub.assert_called_once_with({"id": "abc"}, "bib", force=False)
         with patch(
             "physbiblio.database.Entries.getByIdFromInspireRecord",
             return_value=[
@@ -7129,7 +7248,7 @@ class TestDatabaseEntries(DBTestCase):
             )
             _gir.assert_called_once_with({"id": "1234"})
             _uf.assert_called_once_with("abc", "inspire", "1234", verbose=0)
-            _ub.assert_called_once_with({"id": "1234"}, "bib")
+            _ub.assert_called_once_with({"id": "1234"}, "bib", force=False)
         with patch(
             "physbiblio.database.Entries.getByIdFromInspireRecord",
             return_value=[
@@ -7158,6 +7277,65 @@ class TestDatabaseEntries(DBTestCase):
                     "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
                 },
                 "bib",
+                force=False,
+            )
+        # test useOld
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE(
+                    {"id": None},
+                    useOld=[
+                        {
+                            "noUpdate": 1,
+                            "bibkey": "abc",
+                            "bibtex": "mybib",
+                            "inspire": "4455",
+                        }
+                    ],
+                ),
+                False,
+            )
+            _gir.assert_not_called()
+        # test force
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 1, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}, force=True), True
+            )
+            _gir.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                }
+            )
+            _uf.assert_called_once_with(
+                "abc",
+                "bibtex",
+                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                verbose=0,
+            )
+            _ub.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                },
+                "bib",
+                force=True,
             )
 
     def test_getDailyInfoFromOAI(self, *args):

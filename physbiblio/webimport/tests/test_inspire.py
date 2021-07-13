@@ -1106,7 +1106,7 @@ class TestInspireMethods(unittest.TestCase):
                 iws.updateBibtex({"id": 123, "eprint": "2102.00000"}, bib, force=True),
                 (
                     True,
-                    '@Article{bla,\n         title = "{test}",\n        eprint = "2101.00000",\n}\n\n',
+                    '@Article{bla,\n         title = "{test}",\n        eprint = "2102.00000",\n}\n\n',
                 ),
             )
             _w.assert_any_call(iws.warningJournal % (123))
@@ -1117,7 +1117,11 @@ class TestInspireMethods(unittest.TestCase):
                 "year": "2000",
                 "journal": "j",
             }
-            bibu = '@Article{bla,\n        author = "me",\n         title = "{mywork}",\n        eprint = "2101.00000",\n}\n\n'
+            bibu = (
+                '@Article{bla,\n        author = "me",\n         title = "{mywork}",\n'
+                + '       journal = "j",\n          year = "2000",\n'
+                + '        eprint = "2101.00000",\n}\n\n'
+            )
             self.assertEqual(iws.updateBibtex(res, bib), (True, bibu))
             _w.assert_any_call(
                 iws.warningMissingField
@@ -1192,7 +1196,7 @@ class TestInspireMethods(unittest.TestCase):
                 ),
                 (
                     True,
-                    '@Article{bla,\n         title = "{test}",\n        eprint = "2103.00000",\n}\n\n',
+                    '@Article{bla,\n         title = "{test}",\n        eprint = "2102.00000",\n}\n\n',
                 ),
             )
 

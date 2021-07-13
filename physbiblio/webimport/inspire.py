@@ -750,11 +750,7 @@ class WebSearch(WebInterf, InspireStrings):
                 pBLogger.warning(self.warningJournal % (res["id"]))
                 return False, bibtex
         element = arxivEprint(element)
-        try:
-            for k in self.updateBibtexFields:
-                if res[k] != "" and res[k] is not None:
-                    element[k] = res[k]
-        except KeyError:
+        if not all([k in res for k in self.updateBibtexFields]):
             pBLogger.warning(
                 self.warningMissingField
                 % (
@@ -762,6 +758,9 @@ class WebSearch(WebInterf, InspireStrings):
                     res["id"],
                 )
             )
+        for k in self.updateBibtexFields:
+            if k in res and res[k] != "" and res[k] is not None:
+                element[k] = res[k]
         element = arxivEprint(element)
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [element]

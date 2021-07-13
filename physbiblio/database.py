@@ -2837,23 +2837,30 @@ class Entries(PhysBiblioDBSub):
             pBLogger.warning(dstr.Bibs.errorUpdateBib, exc_info=True)
             return False
 
-    def updateRecordFromINSPIRE(self, e):
+    def updateRecordFromINSPIRE(self, e, force=False, useOld=None, verbose=0):
         """Use information from the INSPIRE API to update the relevant
         fields in the database
 
         Parameter:
             e: the dictionary from webimport.inspire.readRecord
                 of the record of interest
+            force (default False): if True, override "noUpdate" field
+                for the considered record
+            useOld (default None): if not None,
+                the old record to be considered
+            verbose: increase level of verbosity
 
         Output:
             a boolean (True if the entry was changed, False otherwise)
         """
-        old = self.getByIdFromInspireRecord(e)
+        old = self.getByIdFromInspireRecord(e) if useOld is None else useOld
         if len(old) == 0:
             pBLogger.debug("no match found for record %s" % e)
             return False
         old = old[0]
-        if old["noUpdate"] != 0:
+        if verbose > 1:
+            pBLogger.info("%s, %s" % (key, old))
+        if not force and old["noUpdate"] != 0:
             return False
         hasChanged = False
         key = old["bibkey"]
@@ -2870,7 +2877,7 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.warning(dstr.Bibs.iidKeyError % (o, d))
         # update bibtex
         outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
-            e, old["bibtex"]
+            e, old["bibtex"], force=force
         )
         if outcome:
             e["bibtex"] = self.rmBibtexComments(self.rmBibtexACapo(bibtex.strip()))
@@ -2940,27 +2947,21 @@ class Entries(PhysBiblioDBSub):
             pBLogger.error(dstr.Bibs.iidEmptyID)
             return False
         if not inspireID.isdigit():  # assume it's a key instead of the inspireID
-            originalKey = inspireID
             inspireID = self.getField(inspireID, "inspire")
             try:
-                inspireID.isdigit()
+                assert inspireID.isdigit()
             except AttributeError:
-                pBLogger.error(dstr.Bibs.iidWrongType % inspireID)
+                pBLogger.exception(dstr.Bibs.iidWrongType % inspireID)
                 return False
-            if not inspireID.isdigit():
-                pBLogger.error(dstr.Bibs.iidWrongVal % inspireID)
+            except AssertionError:
+                pBLogger.exception(dstr.Bibs.iidWrongVal % inspireID)
                 return False
-        if not reloadAll:
-            result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
-                inspireID,
-                bibtex=bibtex,
-                verbose=verbose,
-                readConferenceTitle=readConferenceTitle,
-            )
-        else:
-            result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
-                inspireID, verbose=verbose, readConferenceTitle=readConferenceTitle
-            )
+        result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
+            inspireID,
+            bibtex=bibtex if not reloadAll else None,
+            verbose=verbose,
+            readConferenceTitle=readConferenceTitle,
+        )
         if verbose > 1:
             pBLogger.info(result)
         if not result:
@@ -2968,45 +2969,30 @@ class Entries(PhysBiblioDBSub):
             return False
         try:
             key = result["bibkey"] if originalKey is None else originalKey
-            if key != result["bibkey"]:
-                self.updateBibkey(key, result["bibkey"])
-                key = result["bibkey"]
-                self.newKey = result["bibkey"]
-            if not reloadAll:
-                old = self.getByBibkey(key, saveQuery=False)
-            else:
-                old = [
-                    {
+        except (KeyError, TypeError):
+            pBLogger.exception(dstr.Bibs.iidKeyError % ("bibkey", result))
+            return False
+        if key != result["bibkey"]:
+            self.updateBibkey(key, result["bibkey"])
+            key = result["bibkey"]
+            self.newKey = key  # saved for searchOAIUpdates
+        self.updateRecordFromINSPIRE(
+            result,
+            useOld=self.getByBibkey(key, saveQuery=False)
+            if not reloadAll
+            else [
+                {
+                    **{
                         k: ""
                         for x, k in physBiblioWeb.webSearch["inspire"].correspondences
-                    }
-                ]
-            if verbose > 1:
-                pBLogger.info("%s, %s" % (key, old))
-            if len(old) > 0:
-                for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
-                    try:
-                        if verbose > 0:
-                            pBLogger.info("%s = %s (%s)" % (d, result[o], old[0][d]))
-                        if result[o] != old[0][d]:
-                            if o == "bibtex" and result[o] is not None:
-                                self.updateField(
-                                    key,
-                                    d,
-                                    self.rmBibtexComments(
-                                        self.rmBibtexACapo(result[o].strip())
-                                    ),
-                                    verbose=0,
-                                )
-                            else:
-                                self.updateField(key, d, result[o], verbose=0)
-                    except KeyError:
-                        pBLogger.exception(dstr.Bibs.iidKeyError % (o, d))
-            if verbose > 0:
-                pBLogger.info(dstr.Bibs.iidSaved % inspireID)
-        except KeyError:
-            pBLogger.exception(dstr.Bibs.iidStMissing % inspireID)
-            return False
+                    },
+                    **{"bibkey": key},
+                }
+            ],
+            force=True,
+        )
+        if verbose > 0:
+            pBLogger.info(dstr.Bibs.iidSaved % inspireID)
         return True
 
     def updateFromOAI(self, entry, verbose=0):
