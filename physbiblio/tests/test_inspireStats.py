@@ -93,6 +93,11 @@ class TestInspireStatsMethods(unittest.TestCase):
 
     def test_authorStats(self, *args):
         """Test paperStats function downloading real and fake data"""
+        res = pBStats.authorStats("E.M.Zavanin.1")
+        self.assertTrue(res["h"] >= 4)
+        self.assertTrue(res["paLi"][1][-1] == 8)
+        self.assertTrue(res["allLi"][1][-1] >= 320)
+        self.assertTrue(res["meanLi"][1][-1] >= 40)
         with patch(
             "physbiblio.inspireStats.InspireStatsLoader.paperStats",
             return_value={

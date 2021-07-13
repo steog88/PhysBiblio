@@ -135,13 +135,32 @@ class InspireStatsLoader:
             pass
         batch_size = pbConfig.params["batchSizeInspire"]
         for i in range(0, tot, batch_size):
-            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            entries, nume = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 recid_authorPapers[i : i + batch_size],
                 searchFormat="recid:%s",
-                fields=["control_number"],
+                fields=["control_number", "references.record"],
             )
+            references, numr = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+                recid_authorPapers[i : i + batch_size],
+                searchFormat="refersto:recid:%s",
+                fields=["control_number", "references.record"],
+            )
+            # fill here list of citations for each entry, use references->reference:record
+            current = []
+            for e in entries:
+                eid = e["id"]
+                refs = []
+                for r in references:
+                    if eid in [
+                        a["record"]["$ref"].replace(
+                            physBiblioWeb.webSearch["inspire"].url, ""
+                        )
+                        for a in r["metadata"]["references"]
+                    ]:
+                        refs.append(r)
+                current.append([e, refs])
 
-            for ix, e in enumerate(entries):
+            for ix, (e, r) in enumerate(current):
                 try:
                     pbVal(i + ix + 1)
                 except TypeError:
@@ -153,14 +172,14 @@ class InspireStatsLoader:
                 if p in self.allInfoA.keys():
                     continue
                 self.allInfoA[p] = {}
-                self.allInfoA[p]["date"] = dateutil.parser.parse(data[i]["created"])
+                self.allInfoA[p]["date"] = dateutil.parser.parse(e["created"])
                 self.authorPapersList[0].append(self.allInfoA[p]["date"])
                 pBLogger.info(
                     isstr.authorStatsLooking
                     % (i + ix + 1, tot, 100.0 * (i + ix + 1) / tot, p)
                 )
                 paperInfo = self.paperStats(
-                    p, verbose=0, paperDate=self.allInfoA[p]["date"], useData=e
+                    p, verbose=0, paperDate=self.allInfoA[p]["date"], useData=r
                 )
                 self.allInfoA[p]["infoDict"] = paperInfo["aI"]
                 self.allInfoA[p]["citingPapersList"] = paperInfo["citList"]
