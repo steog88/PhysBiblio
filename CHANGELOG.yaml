@@ -3,6 +3,8 @@
     changes:
         - citations command to update citation counts without the GUI
         - improvements to argParser tests
+        - improvements to database module
+        - improvements to inspireStats module
         - function to match valid arxiv number
 -   version: 1.7.1
     date: 2021-07-11
