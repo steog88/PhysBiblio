@@ -2710,48 +2710,28 @@ class Entries(PhysBiblioDBSub):
         if key is None:
             key = string
         if newid != "":
-            if self.connExec(
-                "update entries set inspire=:inspire where bibkey=:bibkey\n",
-                {"inspire": newid, "bibkey": key},
-            ):
+            if self.updateField(key, "inspire", newid):
                 return newid
             else:
                 pBLogger.warning(dstr.Bibs.errorUIIDGeneric)
                 return False
         else:
-            doi = self.getField(key, "doi")
-            if isinstance(doi, six.string_types) and doi.strip() != "":
-                newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    doi,
-                    number=0,
-                    isDoi=True,
-                )
-                if newid != "":
-                    if self.connExec(
-                        "update entries set inspire=:inspire "
-                        + "where bibkey=:bibkey\n",
-                        {"inspire": newid, "bibkey": key},
-                    ):
-                        return newid
-                    else:
-                        pBLogger.warning(dstr.Bibs.errorUIIDDOI)
-            arxiv = self.getField(key, "arxiv")
-            if isinstance(arxiv, six.string_types) and arxiv.strip() != "":
-                newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
-                    arxiv,
-                    number=0,
-                    isArxiv=True,
-                )
-                if newid != "":
-                    if self.connExec(
-                        "update entries set inspire=:inspire "
-                        + "where bibkey=:bibkey\n",
-                        {"inspire": newid, "bibkey": key},
-                    ):
-                        return newid
-                    else:
-                        pBLogger.warning(dstr.Bibs.errorUIIDArxiv)
-            return False
+            for fi, tag, em in [
+                ["doi", "isDoi", dstr.Bibs.errorUIIDDOI],
+                ["arxiv", "isArxiv", dstr.Bibs.errorUIIDArxiv],
+            ]:
+                value = self.getField(key, fi)
+                if isinstance(value, six.string_types) and value.strip() != "":
+                    newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
+                        value,
+                        **{"number": 0, tag: True},
+                    )
+                    if newid != "":
+                        if self.updateField(key, "inspire", newid):
+                            return newid
+                        else:
+                            pBLogger.warning(em)
+        return False
 
     def updateField(self, key, field, value, verbose=1):
         """Update a single field of an entry
