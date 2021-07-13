@@ -9,7 +9,6 @@ import datetime
 import json
 import os
 import os.path as osp
-import time
 import traceback
 
 import dateutil
@@ -26,7 +25,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
     from physbiblio.strings.main import InspireStatsStrings as isstr
-    from physbiblio.webimport.webInterf import PBSession
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -38,12 +37,6 @@ class InspireStatsLoader:
     to collect information from INSPIRE-HEP
     """
 
-    urlBase = pbConfig.inspireLiteratureAPI
-    timeout = float(pbConfig.params["timeoutWebSearch"])
-    authorStatsOpts = "&size="
-    paperStatsOpts = "&size="
-    skipPageOpt = "&page="
-    maxPerPage = 250
     authorPlotInfo = {}
     paperPlotInfo = {}
 
@@ -51,8 +44,6 @@ class InspireStatsLoader:
         """The class constructor,
         defines some constants and search options
         """
-        self.urlBase = pbConfig.inspireLiteratureAPI
-        self.timeout = float(pbConfig.params["timeoutWebSearch"])
         self.authorPlotInfo = None
         self.paperPlotInfo = None
         self.allInfoA = {}
@@ -62,8 +53,6 @@ class InspireStatsLoader:
         self.runningPaperStats = True
         self.allInfoP = {}
         self.citingPapersList = [[], []]
-
-        self.http = PBSession()
 
     def changeBackend(self, wantBackend):
         """Changes the matplotlib backend currently in use.
@@ -76,39 +65,6 @@ class InspireStatsLoader:
             from matplotlib import pyplot as plt
 
             pBLogger.info(isstr.changeBackend % matplotlib.get_backend())
-
-    def JsonFromUrl(self, url):
-        """Function that downloads the url content
-        and returns a Json object
-
-        Parameters:
-            url: string containing the url to be opened
-
-        Output:
-            the json object generated from the url content
-        """
-
-        def getSeries(url):
-            response = self.http.get(url, timeout=self.timeout)
-            text = response.content.decode("utf-8")
-            try:
-                return json.loads(text)["hits"]["hits"]
-            except ValueError:
-                pBLogger.warning(isstr.emptyResponse)
-                return []
-            except Exception:
-                pBLogger.exception(isstr.errorReadPage)
-                return []
-
-        page = 1
-        complete = []
-        while True:
-            temp = getSeries(url + self.skipPageOpt + "%d" % page)
-            if len(temp) < self.maxPerPage:
-                return complete + temp
-            else:
-                complete += temp
-                page += 1
 
     def authorStats(self, authorName, plot=False, reset=True, pbMax=None, pbVal=None):
         """Function that gets the data and
@@ -166,47 +122,52 @@ class InspireStatsLoader:
             self.authorPlotInfo["name"] = authorName
             return self.authorPlotInfo
         pBLogger.info(isstr.authorStats % authorName)
-        url = (
-            pbConfig.inspireLiteratureAPI
-            + "?q=author:"
-            + authorName
-            + self.authorStatsOpts
-            + str(self.maxPerPage)
+        data, tot = physBiblioWeb.webSearch["inspire"].retrieveSearchResults(
+            "author:%s" % authorName, fields=["control_number"]
         )
-        data = self.JsonFromUrl(url)
         recid_authorPapers = sorted(["%s" % a["id"] for a in data])
         tot = len(recid_authorPapers)
         pBLogger.info(isstr.authorStatsProcess % tot)
         self.runningAuthorStats = True
         try:
-            pbMax(len(recid_authorPapers))
+            pbMax(tot)
         except TypeError:
             pass
-        for i, p in enumerate(recid_authorPapers):
-            try:
-                pbVal(i + 1)
-            except TypeError:
-                pass
-            if not self.runningAuthorStats:
-                pBLogger.info(isstr.stopReceived)
-                break
-            time.sleep(1)
-            if p in self.allInfoA.keys():
-                continue
-            self.allInfoA[p] = {}
-            self.allInfoA[p]["date"] = dateutil.parser.parse(data[i]["created"])
-            self.authorPapersList[0].append(self.allInfoA[p]["date"])
-            pBLogger.info(
-                isstr.authorStatsLooking % (i + 1, tot, 100.0 * (i + 1) / tot, p)
+        batch_size = pbConfig.params["batchSizeInspire"]
+        for i in range(0, tot, batch_size):
+            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+                recid_authorPapers[i : i + batch_size],
+                searchFormat="recid:%s",
+                fields=["control_number"],
             )
-            paperInfo = self.paperStats(
-                p, verbose=0, paperDate=self.allInfoA[p]["date"]
-            )
-            self.allInfoA[p]["infoDict"] = paperInfo["aI"]
-            self.allInfoA[p]["citingPapersList"] = paperInfo["citList"]
-            for c, v in self.allInfoA[p]["infoDict"].items():
-                self.allCitations.append(v["date"])
-            pBLogger.info("")
+
+            for ix, e in enumerate(entries):
+                try:
+                    pbVal(i + ix + 1)
+                except TypeError:
+                    pass
+                if not self.runningAuthorStats:
+                    pBLogger.info(isstr.stopReceived)
+                    break
+                p = e["id"]
+                if p in self.allInfoA.keys():
+                    continue
+                self.allInfoA[p] = {}
+                self.allInfoA[p]["date"] = dateutil.parser.parse(data[i]["created"])
+                self.authorPapersList[0].append(self.allInfoA[p]["date"])
+                pBLogger.info(
+                    isstr.authorStatsLooking
+                    % (i + ix + 1, tot, 100.0 * (i + ix + 1) / tot, p)
+                )
+                paperInfo = self.paperStats(
+                    p, verbose=0, paperDate=self.allInfoA[p]["date"], useData=e
+                )
+                self.allInfoA[p]["infoDict"] = paperInfo["aI"]
+                self.allInfoA[p]["citingPapersList"] = paperInfo["citList"]
+                for c, v in self.allInfoA[p]["infoDict"].items():
+                    self.allCitations.append(v["date"])
+                pBLogger.info("")
+
         self.authorPapersList[1] = []
         for i, p in enumerate(sorted(self.authorPapersList[0])):
             self.authorPapersList[0][i] = p
@@ -255,6 +216,7 @@ class InspireStatsLoader:
         reset=True,
         pbMax=None,
         pbVal=None,
+        useData=None,
     ):
         """Function that gets the data and
         constructs the statistics for a given paper.
@@ -273,6 +235,8 @@ class InspireStatsLoader:
                 of a progress bar in the GUI, if possible
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
+            useData (default None): if not None, the data to use
+                instead of reading them from INSPIRE
 
         Output:
             a dictionary containing all the desired information.
@@ -306,40 +270,13 @@ class InspireStatsLoader:
             return self.paperPlotInfo
         if verbose > 0:
             pBLogger.info(isstr.paperStats % paperID)
-        url = (
-            pbConfig.inspireLiteratureAPI
-            + "?q=refersto:recid:"
-            + paperID
-            + self.paperStatsOpts
-            + str(self.maxPerPage)
-        )
-        data = self.JsonFromUrl(url)
-        recid_citingPapers = [a["id"] for a in data]
-        if paperDate is not None:
-            self.citingPapersList[0].append(paperDate)
-        for i, p in enumerate(recid_citingPapers):
-            self.allInfoP[p] = {}
-            self.allInfoP[p]["date"] = dateutil.parser.parse(data[i]["created"])
-            self.citingPapersList[0].append(
-                self.allInfoP[p]["date"].replace(tzinfo=pytz.UTC)
+        if useData is not None:
+            data = useData
+        else:
+            data, tot = physBiblioWeb.webSearch["inspire"].retrieveSearchResults(
+                "refersto:recid:%s" % paperID, fields=["control_number"]
             )
-        for i, p in enumerate(sorted(self.citingPapersList[0])):
-            self.citingPapersList[0][i] = p
-            self.citingPapersList[1].append(i + 1)
-        self.citingPapersList[0].append(
-            datetime.datetime.fromordinal(datetime.date.today().toordinal()).replace(
-                tzinfo=pytz.UTC
-            )
-        )
-        try:
-            self.citingPapersList[1].append(self.citingPapersList[1][-1])
-        except IndexError:
-            self.citingPapersList[1].append(0)
-        self.paperPlotInfo = {
-            "id": paperID,
-            "aI": self.allInfoP,
-            "citList": self.citingPapersList,
-        }
+        self.readPaperStats(paperID, data, paperDate=paperDate)
         if plot:
             self.paperPlotInfo["fig"] = self.plotStats(paper=True)
         if verbose > 0:
@@ -559,6 +496,60 @@ class InspireStatsLoader:
         else:
             pBLogger.info(isstr.noPlot)
             return False
+
+    def readPaperStats(
+        self,
+        paperID,
+        data,
+        paperDate=None,
+    ):
+        """Function that reads the data on a paper and
+        constructs the corresponding statistics.
+
+        Parameters:
+            paperID (string): the INSPIRE-HEP id of the paper (a number)
+            data (string): the INSPIRE-HEP id of the paper (a number)
+            paperDate (datetime, optional): the date of at which
+                the paper was published
+
+        Output:
+            a dictionary containing all the desired information.
+            The structure is the following:
+            {
+                "id": the paper ID,
+                "aI": the list of creation date for all the papers,
+                    in INSPIRE-HEP order,
+                "citList": the ordered list of citing papers,
+                "fig" (only if `plot` is True): contains the figure.
+                    See self.plotStats
+            }
+        """
+        recid_citingPapers = [a["id"] for a in data]
+        if paperDate is not None:
+            self.citingPapersList[0].append(paperDate)
+        for i, p in enumerate(recid_citingPapers):
+            self.allInfoP[p] = {}
+            self.allInfoP[p]["date"] = dateutil.parser.parse(data[i]["created"])
+            self.citingPapersList[0].append(
+                self.allInfoP[p]["date"].replace(tzinfo=pytz.UTC)
+            )
+        for i, p in enumerate(sorted(self.citingPapersList[0])):
+            self.citingPapersList[0][i] = p
+            self.citingPapersList[1].append(i + 1)
+        self.citingPapersList[0].append(
+            datetime.datetime.fromordinal(datetime.date.today().toordinal()).replace(
+                tzinfo=pytz.UTC
+            )
+        )
+        try:
+            self.citingPapersList[1].append(self.citingPapersList[1][-1])
+        except IndexError:
+            self.citingPapersList[1].append(0)
+        self.paperPlotInfo = {
+            "id": paperID,
+            "aI": self.allInfoP,
+            "citList": self.citingPapersList,
+        }
 
 
 pBStats = InspireStatsLoader()

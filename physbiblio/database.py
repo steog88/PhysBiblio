@@ -3267,8 +3267,7 @@ class Entries(PhysBiblioDBSub):
                         dstr.Bibs.gffaProcessProgr
                         % (ix + 1, tot, 100.0 * (ix + 1) / tot, arxiv)
                     )
-                    result = self.getFieldsFromArxiv(k, fields)
-                    if result:
+                    if self.getFieldsFromArxiv(k, fields):
                         success.append(k)
                     else:
                         fail.append(k)
@@ -3283,41 +3282,39 @@ class Entries(PhysBiblioDBSub):
         arxiv = str(self.getField(bibkey, "arxiv"))
         if arxiv == "False" or arxiv == "None" or arxiv.strip() == "":
             return False
+        arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+            arxiv, searchType="id", fullDict=True
+        )
         try:
-            arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
-                arxiv, searchType="id", fullDict=True
-            )
             tmp = (
                 bibtexparser.bparser.BibTexParser(common_strings=True)
                 .parse(bibtex)
                 .entries[0]
             )
-            for k in fields:
-                try:
-                    tmp[k] = arxivDict[k]
-                except KeyError:
-                    pass
-            if "authors" in fields:
-                try:
-                    authors = tmp["authors"].split(" and ")
-                    if len(authors) > pbConfig.params["maxAuthorSave"]:
-                        start = 1 if "collaboration" in authors[0] else 0
-                        tmp["author"] = " and ".join(
-                            authors[start : start + pbConfig.params["maxAuthorSave"]]
-                            + ["others"]
-                        )
-                except KeyError:
-                    pass
-            db = bibtexparser.bibdatabase.BibDatabase()
-            db.entries = [tmp]
-            bibtex = self.rmBibtexComments(
-                self.rmBibtexACapo(pbWriter.write(db).strip())
-            )
-            self.updateField(bibkey, "bibtex", bibtex)
-            return True
-        except Exception:
+        except IndexError:
             pBLogger.exception(dstr.Bibs.gffaFailed)
             return False
+        for k in fields:
+            try:
+                tmp[k] = arxivDict[k]
+            except KeyError:
+                pass
+        if "authors" in fields:
+            try:
+                authors = tmp["authors"].split(" and ")
+                if len(authors) > pbConfig.params["maxAuthorSave"]:
+                    start = 1 if "collaboration" in authors[0] else 0
+                    tmp["author"] = " and ".join(
+                        authors[start : start + pbConfig.params["maxAuthorSave"]]
+                        + ["others"]
+                    )
+            except KeyError:
+                pass
+        db = bibtexparser.bibdatabase.BibDatabase()
+        db.entries = [tmp]
+        bibtex = self.rmBibtexComments(self.rmBibtexACapo(pbWriter.write(db).strip()))
+        self.updateField(bibkey, "bibtex", bibtex)
+        return True
 
     def loadAndInsert(
         self,

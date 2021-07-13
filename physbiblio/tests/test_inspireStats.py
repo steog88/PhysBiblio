@@ -43,12 +43,6 @@ class TestInspireStatsMethods(unittest.TestCase):
         """test some properties"""
         self.assertIsInstance(pBStats, InspireStatsLoader)
         tpBStats = InspireStatsLoader()
-        self.assertEqual(tpBStats.urlBase, pbConfig.inspireLiteratureAPI)
-        self.assertEqual(tpBStats.timeout, float(pbConfig.params["timeoutWebSearch"]))
-        self.assertEqual(tpBStats.authorStatsOpts, "&size=")
-        self.assertEqual(tpBStats.paperStatsOpts, "&size=")
-        self.assertEqual(tpBStats.skipPageOpt, "&page=")
-        self.assertEqual(tpBStats.maxPerPage, 250)
         self.assertEqual(tpBStats.authorPlotInfo, None)
         self.assertEqual(tpBStats.paperPlotInfo, None)
 
@@ -166,12 +160,7 @@ class TestInspireStatsMethods(unittest.TestCase):
                 "1519902",
             ]:
                 self.assertIn(i, testGood["aI"].keys())
-            _mock.assert_has_calls(
-                [
-                    call(pBStats, i, paperDate=testGood["aI"][i]["date"], verbose=0)
-                    for i in sorted(testGood["aI"].keys())
-                ]
-            )
+                self.assertIn(i, [a[0][1] for a in _mock.call_args_list])
             self.assertTrue(
                 testGood.keys(), ["meanLi", "allLi", "aI", "paLi", "h", "name"]
             )
