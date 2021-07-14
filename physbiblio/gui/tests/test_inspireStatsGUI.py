@@ -1504,7 +1504,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
                 )
                 self.assertTrue(asp.saveButton.isEnabled())
                 self.assertNotIn("figs", self.mainW.lastAuthorStats.keys())
-                self.assertEqual(_ps.call_count, 0)
+                _ps.assert_not_called()
             with patch(
                 "physbiblio.gui.inspireStatsGUI.askDirName",
                 return_value="/tmp",
@@ -1535,7 +1535,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         ) as _im:
             asp.saveAction()
             _w.assert_called_once_with("", exc_info=True)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             self.assertTrue(asp.saveButton.isEnabled())
 
     def test_pickEvent(self):
@@ -1669,7 +1669,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
                 )
                 self.assertTrue(asp.saveButton.isEnabled())
                 self.assertNotIn("fig", self.mainW.lastPaperStats.keys())
-                self.assertEqual(_ps.call_count, 0)
+                _ps.assert_not_called()
             with patch(
                 "physbiblio.gui.inspireStatsGUI.askDirName",
                 return_value="/tmp",
@@ -1698,7 +1698,7 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
         ) as _im:
             asp.saveAction()
             _w.assert_called_once_with("", exc_info=True)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             self.assertTrue(asp.saveButton.isEnabled())
 
     def test_pickEvent(self):

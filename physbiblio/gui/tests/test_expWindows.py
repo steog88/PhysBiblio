@@ -885,9 +885,9 @@ class TestExpsListWindow(GUITestCase):
         ) as _f:
             self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
             _f.assert_called_once_with(elw.menu)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
+            _dc.assert_not_called()
 
             self.assertIsInstance(elw.menu, PBMenu)
             self.assertIsInstance(elw.menu.possibleActions, list)
@@ -910,9 +910,9 @@ class TestExpsListWindow(GUITestCase):
 
             mm.exec_ = lambda x, i=0: mm.possibleActions[i]
             self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
+            _dc.assert_not_called()
 
             mm.exec_ = lambda x, i=2: mm.possibleActions[i]
             with patch(
@@ -923,8 +923,8 @@ class TestExpsListWindow(GUITestCase):
                 self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
                 _ffd.assert_called_once_with(pBDB.bibs, "0")
             _rmc.assert_called_once_with(p, ["a"])
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _ec.assert_not_called()
+            _dc.assert_not_called()
             _rmc.reset_mock()
 
             mm.exec_ = lambda x, i=4: mm.possibleActions[i]
@@ -934,9 +934,9 @@ class TestExpsListWindow(GUITestCase):
                 autospec=True,
             ) as _ffd:
                 self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-            self.assertEqual(_rmc.call_count, 0)
+            _rmc.assert_not_called()
             _ec.assert_called_once_with(elw, p, "0")
-            self.assertEqual(_dc.call_count, 0)
+            _dc.assert_not_called()
             _ec.reset_mock()
 
             mm.exec_ = lambda x, i=5: mm.possibleActions[i]
@@ -946,8 +946,8 @@ class TestExpsListWindow(GUITestCase):
                 autospec=True,
             ) as _ffd:
                 self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
             _dc.assert_called_once_with(elw, p, "0", "test0")
             _dc.reset_mock()
 
@@ -989,7 +989,7 @@ class TestExpsListWindow(GUITestCase):
                 autospec=True,
             ) as _gbe:
                 self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
-                self.assertEqual(_ffd.call_count, 0)
+                _ffd.assert_not_called()
                 _gbe.assert_called_once_with(pBDB.cats, "0")
                 _i.assert_called_once_with(
                     parent=p,
@@ -1003,9 +1003,9 @@ class TestExpsListWindow(GUITestCase):
                 _sbm.assert_called_once_with(
                     p, "Categories for 'test0' successfully inserted"
                 )
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
+            _dc.assert_not_called()
 
     def test_handleItemEntered(self):
         """test handleItemEntered"""
@@ -1027,8 +1027,8 @@ class TestExpsListWindow(GUITestCase):
             self.assertEqual(elw.handleItemEntered(ix), None)
             _l.assert_called_once_with("Failed in finding experiment")
             _gbi.assert_called_once_with(pBDB.exps, "0")
-            self.assertEqual(_st.call_count, 0)
-            self.assertEqual(_sh.call_count, 0)
+            _st.assert_not_called()
+            _sh.assert_not_called()
         with patch("logging.Logger.exception") as _l, patch(
             "PySide2.QtCore.QTimer.start", autospec=True
         ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
@@ -1047,7 +1047,7 @@ class TestExpsListWindow(GUITestCase):
             self.assertTrue(elw.timer.isSingleShot())
             _gbi.assert_called_once_with(pBDB.exps, "0")
             _st.assert_called_once_with(500)
-            self.assertEqual(_sh.call_count, 0)
+            _sh.assert_not_called()
             elw.timer.timeout.emit()
             _sh.assert_called_once_with(
                 position,

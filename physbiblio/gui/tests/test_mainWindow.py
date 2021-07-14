@@ -1061,9 +1061,9 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".fillTabs", autospec=True
         ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
             self.mainW.newTabAtEnd(0)
-            self.assertEqual(_ab.call_count, 0)
-            self.assertEqual(_ft.call_count, 0)
-            self.assertEqual(_ci.call_count, 0)
+            _ab.assert_not_called()
+            _ft.assert_not_called()
+            _ci.assert_not_called()
             self.mainW.newTabAtEnd(1)
             _ab.assert_called_once_with(
                 self.mainW, "New tab", askBibs=False, bibs=None, previous=[]
@@ -1079,9 +1079,9 @@ class TestMainWindow(GUITestCase):
         ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
             for i in range(3):
                 self.mainW.newTabAtEnd(i)
-                self.assertEqual(_ab.call_count, 0)
-                self.assertEqual(_ft.call_count, 0)
-                self.assertEqual(_ci.call_count, 0)
+                _ab.assert_not_called()
+                _ft.assert_not_called()
+                _ci.assert_not_called()
             self.mainW.newTabAtEnd(3, askBibs="a", bibs="b", previous="c")
             _ab.assert_called_once_with(
                 self.mainW, "New tab", askBibs="a", bibs="b", previous="c"
@@ -1106,7 +1106,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.renameTab(0)
             self.mainW.renameTab(3)
             self.mainW.renameTab(12)
-            self.assertEqual(_at.call_count, 0)
+            _at.assert_not_called()
             self.assertEqual(
                 [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
             )
@@ -1218,12 +1218,12 @@ class TestMainWindow(GUITestCase):
         ) as _com:
             self.mainW.config()
             _sbm.assert_called_once_with(self.mainW, "No changes requested")
-            self.assertEqual(_in.call_count, 0)
-            self.assertEqual(_cup.call_count, 0)
-            self.assertEqual(_rdc.call_count, 0)
-            self.assertEqual(_rlc.call_count, 0)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_com.call_count, 0)
+            _in.assert_not_called()
+            _cup.assert_not_called()
+            _rdc.assert_not_called()
+            _rlc.assert_not_called()
+            _rmc.assert_not_called()
+            _com.assert_not_called()
         old = {}
         new = {}
         for k, v in cw.textValues:
@@ -1508,7 +1508,7 @@ class TestMainWindow(GUITestCase):
         ) as _done:
             self.mainW._runInThread(func, "title")
             _pt.assert_called_once_with(noStopButton=False, title="title")
-            self.assertEqual(_pbm.call_count, 0)
+            _pbm.assert_not_called()
             ws.newText.connect.assert_called_once_with(app.appendText)
             func.assert_called_once_with(
                 ws, parent=self.mainW, pbMax=app.pbMax.emit, pbVal=app.pbVal.emit
@@ -1523,7 +1523,7 @@ class TestMainWindow(GUITestCase):
             app.exec_.assert_called_once_with()
             _info.assert_called_once_with("Closing...")
             _rth.assert_called_once_with(pBErrorManager)
-            self.assertEqual(_sbm.call_count, 0)
+            _sbm.assert_not_called()
             _done.assert_called_once_with(self.mainW)
         app.reject = MagicMock()
         thr.wait = MagicMock()
@@ -1584,7 +1584,7 @@ class TestMainWindow(GUITestCase):
             _info.assert_has_calls([call("add"), call("Closing...")])
             _rth.assert_called_once_with(pBErrorManager)
             _sbm.assert_called_once_with(self.mainW, "out")
-            self.assertEqual(_done.call_count, 0)
+            _done.assert_not_called()
 
     def test_cleanSpare(self):
         """test cleanSpare"""
@@ -1626,7 +1626,7 @@ class TestMainWindow(GUITestCase):
             self.modName + ".askYesNo", return_value=False, autospec=True
         ) as _a:
             self.mainW.cleanSparePDF()
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
             _a.assert_called_once()
 
         pt = MagicMock()
@@ -1691,8 +1691,8 @@ class TestMainWindow(GUITestCase):
             self.mainW.save()
             _ayn.assert_called_once_with("Do you really want to save?")
             _sbm.assert_called_once_with(self.mainW, "Nothing saved")
-            self.assertEqual(_mwt.call_count, 0)
-            self.assertEqual(_c.call_count, 0)
+            _mwt.assert_not_called()
+            _c.assert_not_called()
 
     def test_importFromBib(self):
         """test importFromBib"""
@@ -1732,7 +1732,7 @@ class TestMainWindow(GUITestCase):
             _rit.reset_mock()
             _sbm.reset_mock()
             self.mainW.importFromBib()
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Empty filename given!")
 
         pt = MagicMock()
@@ -1793,7 +1793,7 @@ class TestMainWindow(GUITestCase):
             _ex.reset_mock()
             _sbm.reset_mock()
             self.mainW.export()
-            self.assertEqual(_ex.call_count, 0)
+            _ex.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Empty filename given!")
 
     def test_exportSelection(self):
@@ -1818,7 +1818,7 @@ class TestMainWindow(GUITestCase):
             _ex.reset_mock()
             _sbm.reset_mock()
             self.mainW.exportSelection([{"bibkey": "k"}])
-            self.assertEqual(_ex.call_count, 0)
+            _ex.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Empty filename given!")
 
     def test_exportFile(self):
@@ -1836,7 +1836,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.exportFile()
             _sbm.assert_called_once_with(self.mainW, "Nothing to do...")
             _eft.assert_called_once_with(self.mainW)
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
         eft.result = True
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -1848,7 +1848,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.exportFile()
             _sbm.assert_called_once_with(self.mainW, "Empty output filename!")
             _eft.assert_called_once_with(self.mainW)
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
         eft.bibName = "/nonexistent/file.bib"
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -1860,7 +1860,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.exportFile()
             _sbm.assert_called_once_with(self.mainW, "Empty input filename(s)!")
             _eft.assert_called_once_with(self.mainW)
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
         eft.texNames = []
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -1872,7 +1872,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.exportFile()
             _sbm.assert_called_once_with(self.mainW, "Empty input filename(s)!")
             _eft.assert_called_once_with(self.mainW)
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
         eft.texNames = "/nonexistent/file.tex"
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -1882,7 +1882,7 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
             self.mainW.exportFile()
-            self.assertEqual(_sbm.call_count, 0)
+            _sbm.assert_not_called()
             _eft.assert_called_once_with(self.mainW)
             _rit.assert_called_once_with(
                 self.mainW,
@@ -1909,7 +1909,7 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".statusBarMessage", autospec=True
         ) as _sbm:
             self.mainW.exportFile()
-            self.assertEqual(_sbm.call_count, 0)
+            _sbm.assert_not_called()
             _eft.assert_called_once_with(self.mainW)
             _rit.assert_called_once_with(
                 self.mainW,
@@ -1983,7 +1983,7 @@ class TestMainWindow(GUITestCase):
             _ex.reset_mock()
             _sbm.reset_mock()
             self.mainW.exportUpdate()
-            self.assertEqual(_ex.call_count, 0)
+            _ex.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Empty output filename!")
 
     def test_exportAll(self):
@@ -2006,7 +2006,7 @@ class TestMainWindow(GUITestCase):
             _ex.reset_mock()
             _sbm.reset_mock()
             self.mainW.exportAll()
-            self.assertEqual(_ex.call_count, 0)
+            _ex.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Empty output filename!")
 
     def test_categories(self):
@@ -2175,8 +2175,8 @@ class TestMainWindow(GUITestCase):
                 444,
                 123,
             )
-            self.assertEqual(_is.call_count, 0)
-            self.assertEqual(_cm.call_count, 0)
+            _is.assert_not_called()
+            _cm.assert_not_called()
             _agt.assert_called_once_with(
                 "Insert a name / short description to be able to "
                 + "recognise this search in the future:",
@@ -2219,7 +2219,7 @@ class TestMainWindow(GUITestCase):
                 444,
                 123,
             )
-            self.assertEqual(_us.call_count, 0)
+            _us.assert_not_called()
 
         # replace=True
         sbw = SearchBibsWindow(self.mainW, replace=True)
@@ -2267,9 +2267,9 @@ class TestMainWindow(GUITestCase):
                     "regex": False,
                 },
             )
-            self.assertEqual(_rsb.call_count, 0)
-            self.assertEqual(_agt.call_count, 0)
-            self.assertEqual(_cm.call_count, 0)
+            _rsb.assert_not_called()
+            _agt.assert_not_called()
+            _cm.assert_not_called()
             _us.assert_called_once_with(pbConfig.globalDb, replacement=True)
             _is.assert_called_once_with(
                 pbConfig.globalDb,
@@ -2337,10 +2337,10 @@ class TestMainWindow(GUITestCase):
                 "Replace name",
                 parent=self.mainW,
             )
-            self.assertEqual(_rsb.call_count, 0)
-            self.assertEqual(_cm.call_count, 0)
-            self.assertEqual(_us.call_count, 0)
-            self.assertEqual(_is.call_count, 0)
+            _rsb.assert_not_called()
+            _cm.assert_not_called()
+            _us.assert_not_called()
+            _is.assert_not_called()
             _fd.assert_called_once_with(
                 pBDB.bibs,
                 [
@@ -2369,7 +2369,7 @@ class TestMainWindow(GUITestCase):
                     "regex": False,
                 },
             )
-            self.assertEqual(_us.call_count, 0)
+            _us.assert_not_called()
             _is.assert_called_once_with(
                 pbConfig.globalDb,
                 count=0,
@@ -2503,7 +2503,7 @@ class TestMainWindow(GUITestCase):
                 parent=self.mainW,
                 previous="old",
             )
-            self.assertEqual(_usf.call_count, 0)
+            _usf.assert_not_called()
             self.mainW.renameSearchBiblio(999, "old")
             self.assertEqual(_agt.call_count, 3)
             _usf.assert_called_once_with(pbConfig.globalDb, 999, "name", "def")
@@ -2604,7 +2604,7 @@ class TestMainWindow(GUITestCase):
             self.mainW.editSearchBiblio(999, "test")
             _gsi.assert_called_once_with(pbConfig.globalDb, 999)
             _e.assert_called_once_with("Cannot find the requested search! id:999")
-            self.assertEqual(_sbw.call_count, 0)
+            _sbw.assert_not_called()
         with patch(
             self.modName + ".SearchBibsWindow",
             side_effect=sbws,
@@ -2627,13 +2627,13 @@ class TestMainWindow(GUITestCase):
             self.mainW.editSearchBiblio(999, "test")
             _sbw.assert_called_once_with(edit=999, replace=0)
             sbws[0].exec_.assert_called_once_with()
-            self.assertEqual(_usf.call_count, 0)
-            self.assertEqual(_rsb.call_count, 0)
-            self.assertEqual(_rre.call_count, 0)
-            self.assertEqual(_ffd.call_count, 0)
+            _usf.assert_not_called()
+            _rsb.assert_not_called()
+            _rre.assert_not_called()
+            _ffd.assert_not_called()
             self.mainW.editSearchBiblio(999, "test")
             sbws[1].exec_.assert_called_once_with()
-            self.assertEqual(_usf.call_count, 0)
+            _usf.assert_not_called()
             _rsb.assert_called_once_with(
                 self.mainW,
                 [
@@ -2648,15 +2648,15 @@ class TestMainWindow(GUITestCase):
                 1111,
                 12,
             )
-            self.assertEqual(_rre.call_count, 0)
-            self.assertEqual(_ffd.call_count, 0)
+            _rre.assert_not_called()
+            _ffd.assert_not_called()
             _sbw.reset_mock()
             _rsb.reset_mock()
             self.mainW.editSearchBiblio(999, "test")
             _sbw.assert_called_once_with(edit=999, replace=1)
             sbws[2].exec_.assert_called_once_with()
-            self.assertEqual(_usf.call_count, 0)
-            self.assertEqual(_rsb.call_count, 0)
+            _usf.assert_not_called()
+            _rsb.assert_not_called()
             _rre.assert_called_once_with(
                 self.mainW,
                 {
@@ -2685,7 +2685,7 @@ class TestMainWindow(GUITestCase):
             )
             _rre.reset_mock()
             _ffd.reset_mock()
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             self.mainW.editSearchBiblio(999, "test")
             sbws[3].exec_.assert_called_once_with()
             _usf.assert_has_calls(
@@ -2723,8 +2723,8 @@ class TestMainWindow(GUITestCase):
                 111,
                 12,
             )
-            self.assertEqual(_rre.call_count, 0)
-            self.assertEqual(_ffd.call_count, 0)
+            _rre.assert_not_called()
+            _ffd.assert_not_called()
             _usf.reset_mock()
             _rsb.reset_mock()
             self.mainW.editSearchBiblio(999, "test")
@@ -2769,7 +2769,7 @@ class TestMainWindow(GUITestCase):
                     ),
                 ]
             )
-            self.assertEqual(_rsb.call_count, 0)
+            _rsb.assert_not_called()
             _rre.assert_called_once_with(
                 self.mainW,
                 {
@@ -2828,7 +2828,7 @@ class TestMainWindow(GUITestCase):
         ) as _sb, patch(self.clsName + ".runReplace", autospec=True) as _rr:
             self.mainW.searchAndReplace()
             _sb.assert_called_once_with(self.mainW, replace=True)
-            self.assertEqual(_rr.call_count, 0)
+            _rr.assert_not_called()
             self.mainW.searchAndReplace()
             _rr.assert_called_once_with(self.mainW, "a")
 
@@ -2867,8 +2867,8 @@ class TestMainWindow(GUITestCase):
                     "new1": "",
                 }
             )
-            self.assertEqual(_soc.call_count, 0)
-            self.assertEqual(_rit.call_count, 0)
+            _soc.assert_not_called()
+            _rit.assert_not_called()
             _im.assert_called_once_with("The string to substitute is empty!")
             _im.reset_mock()
 
@@ -2884,8 +2884,8 @@ class TestMainWindow(GUITestCase):
                     "new1": "",
                 }
             )
-            self.assertEqual(_soc.call_count, 0)
-            self.assertEqual(_rit.call_count, 0)
+            _soc.assert_not_called()
+            _rit.assert_not_called()
             _ay.assert_called_once_with(
                 "Empty new string. Are you sure you want to continue?"
             )
@@ -2909,7 +2909,7 @@ class TestMainWindow(GUITestCase):
                 "Empty new string. Are you sure you want to continue?"
             )
             _rmc.assert_called_once_with(self.mainW, ["z"])
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ay.assert_called_once_with(
                 "Empty new string. Are you sure you want to continue?"
             )
@@ -3005,7 +3005,7 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".updateAllBibtexs", autospec=True
         ) as _uab:
             self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
-            self.assertEqual(_uab.call_count, 0)
+            _uab.assert_not_called()
 
         with patch(
             self.modName + ".askYesNo", return_value=False, autospec=True
@@ -3015,7 +3015,7 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".updateAllBibtexs", autospec=True
         ) as _uab:
             self.assertEqual(self.mainW.updateAllBibtexsAsk(), None)
-            self.assertEqual(_uab.call_count, 0)
+            _uab.assert_not_called()
 
         with patch(
             self.modName + ".askYesNo", return_value=True, autospec=True
@@ -3429,7 +3429,7 @@ class TestMainWindow(GUITestCase):
             _im.assert_called_once_with(
                 "No results obtained. Maybe there was an error."
             )
-            self.assertEqual(_ps.call_count, 0)
+            _ps.assert_not_called()
         self.mainW.lastPaperStats = {"id": "1234"}
         psp = MagicMock()
         psp.show = MagicMock()
@@ -3447,7 +3447,7 @@ class TestMainWindow(GUITestCase):
             autospec=True,
         ) as _ps:
             self.assertEqual(self.mainW.getInspireStats("1234"), None)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _rit.assert_called_once_with(
                 self.mainW,
                 Thread_paperStats,
@@ -3534,7 +3534,7 @@ class TestMainWindow(GUITestCase):
             _ex.assert_called_once_with(
                 "Cannot recognize the list sintax. Missing quotes in the string?"
             )
-            self.assertEqual(_rit.call_count, 0)
+            _rit.assert_not_called()
 
         self.mainW.loadedAndInserted = []
         with patch(
@@ -3631,7 +3631,7 @@ class TestMainWindow(GUITestCase):
             self.modName + ".infoMessage", autospec=True
         ) as _im:
             self.assertTrue(mainW.inspireLoadAndInsert())
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _rmc.assert_called_once_with(mainW)
 
         with patch(
@@ -3644,7 +3644,7 @@ class TestMainWindow(GUITestCase):
             self.clsName + ".reloadMainContent", autospec=True
         ) as _rmc:
             self.assertTrue(mainW.inspireLoadAndInsert(doReload=False))
-            self.assertEqual(_rmc.call_count, 0)
+            _rmc.assert_not_called()
 
     def test_askCatsForEntries(self):
         """test askCatsForEntries"""
@@ -3743,9 +3743,9 @@ class TestMainWindow(GUITestCase):
         ) as _d:
             self.mainW.inspireLoadAndInsertWithCats()
             _ili.assert_called_once_with(self.mainW, doReload=False)
-            self.assertEqual(_d.call_count, 0)
-            self.assertEqual(_ace.call_count, 0)
-            self.assertEqual(_rmc.call_count, 0)
+            _d.assert_not_called()
+            _ace.assert_not_called()
+            _rmc.assert_not_called()
         with patch(
             self.clsName + ".inspireLoadAndInsert", return_value=True, autospec=True
         ) as _ili, patch(
@@ -3757,9 +3757,9 @@ class TestMainWindow(GUITestCase):
         ) as _d:
             self.mainW.inspireLoadAndInsertWithCats()
             _ili.assert_called_once_with(self.mainW, doReload=False)
-            self.assertEqual(_d.call_count, 0)
-            self.assertEqual(_ace.call_count, 0)
-            self.assertEqual(_rmc.call_count, 0)
+            _d.assert_not_called()
+            _ace.assert_not_called()
+            _rmc.assert_not_called()
 
         self.mainW.loadedAndInserted = ["a", "b"]
         with patch(
@@ -3935,7 +3935,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["doi"], "test")
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
@@ -4021,7 +4021,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["doi"], "test")
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
@@ -4164,7 +4164,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["isbn"], "test")
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
@@ -4175,7 +4175,7 @@ class TestMainWindow(GUITestCase):
                     call(pBDB.bibs, u"b", saveQuery=False),
                 ]
             )
-            self.assertEqual(_ga.call_count, 0)
+            _ga.assert_not_called()
             _pi.assert_has_calls(
                 [
                     call(
@@ -4192,7 +4192,7 @@ class TestMainWindow(GUITestCase):
                 ]
             )
             _bi.assert_has_calls([call(pBDB.bibs, "data1"), call(pBDB.bibs, "data2")])
-            self.assertEqual(_wa.call_count, 0)
+            _wa.assert_not_called()
             _sbm.assert_called_once_with(
                 self.mainW, "Entries successfully imported: ['a', 'b']"
             )
@@ -4203,10 +4203,10 @@ class TestMainWindow(GUITestCase):
                 ]
             )
             _sb.assert_has_calls([call(pBDB.bibs, "a"), call(pBDB.bibs, "b")])
-            self.assertEqual(_cd.call_count, 0)
-            self.assertEqual(_ace.call_count, 0)
-            self.assertEqual(_ui.call_count, 0)
-            self.assertEqual(_ii.call_count, 0)
+            _cd.assert_not_called()
+            _ace.assert_not_called()
+            _ui.assert_not_called()
+            _ii.assert_not_called()
 
         aid.comboMethod.setCurrentText("INSPIRE-HEP")
         aid.exec_.reset_mock()
@@ -4273,7 +4273,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["inspire"], "test")
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
@@ -4284,7 +4284,7 @@ class TestMainWindow(GUITestCase):
                     call(pBDB.bibs, u"b", saveQuery=False),
                 ]
             )
-            self.assertEqual(_ga.call_count, 0)
+            _ga.assert_not_called()
             _pi.assert_has_calls(
                 [
                     call(
@@ -4308,9 +4308,9 @@ class TestMainWindow(GUITestCase):
                 self.mainW, "Entries successfully imported: ['a']"
             )
             _in.assert_has_calls([call("Element 'a' successfully inserted.\n")])
-            self.assertEqual(_sb.call_count, 0)
-            self.assertEqual(_cd.call_count, 0)
-            self.assertEqual(_ace.call_count, 0)
+            _sb.assert_not_called()
+            _cd.assert_not_called()
+            _ace.assert_not_called()
             _ui.assert_has_calls([call(pBDB.bibs, "a"), call(pBDB.bibs, "b")])
             _ii.assert_called_once_with(pBDB.bibs, "123")
 
@@ -4380,7 +4380,7 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"], "test")
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
@@ -4391,7 +4391,7 @@ class TestMainWindow(GUITestCase):
                     call(pBDB.bibs, u"b", saveQuery=False),
                 ]
             )
-            self.assertEqual(_ga.call_count, 0)
+            _ga.assert_not_called()
             _pi.assert_has_calls(
                 [
                     call(
@@ -4423,11 +4423,11 @@ class TestMainWindow(GUITestCase):
                 ]
             )
             _in.assert_has_calls([call("Element 'a' successfully inserted.\n")])
-            self.assertEqual(_sb.call_count, 0)
-            self.assertEqual(_cd.call_count, 0)
-            self.assertEqual(_ace.call_count, 0)
-            self.assertEqual(_ui.call_count, 0)
-            self.assertEqual(_ii.call_count, 0)
+            _sb.assert_not_called()
+            _cd.assert_not_called()
+            _ace.assert_not_called()
+            _ui.assert_not_called()
+            _ii.assert_not_called()
             _cat.assert_called_once_with(self.mainW)
             _gli.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"])
 
@@ -4452,9 +4452,9 @@ class TestMainWindow(GUITestCase):
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
             aid.exec_.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
-            self.assertEqual(_ru.call_count, 0)
-            self.assertEqual(_sc.call_count, 0)
+            _im.assert_not_called()
+            _ru.assert_not_called()
+            _sc.assert_not_called()
             _cat.assert_called_once_with(self.mainW)
 
     def test_cleanAllBibtexsAsk(self):
@@ -4470,7 +4470,7 @@ class TestMainWindow(GUITestCase):
                 "Where do you want to start cleanBibtexs from?",
                 self.mainW,
             )
-            self.assertEqual(_cab.call_count, 0)
+            _cab.assert_not_called()
 
         with patch(
             self.modName + ".askYesNo", return_value=False, autospec=True
@@ -4492,7 +4492,7 @@ class TestMainWindow(GUITestCase):
                 + "I will start from 0.\nDo you want to continue?",
                 "Invalid entry",
             )
-            self.assertEqual(_cab.call_count, 0)
+            _cab.assert_not_called()
 
         with patch(
             self.modName + ".askYesNo", return_value=True, autospec=True
@@ -4531,7 +4531,7 @@ class TestMainWindow(GUITestCase):
                 "Where do you want to start cleanBibtexs from?",
                 self.mainW,
             )
-            self.assertEqual(_ay.call_count, 0)
+            _ay.assert_not_called()
             _cab.assert_called_once_with(self.mainW, 12)
 
     def test_cleanAllBibtexs(self):
@@ -4641,7 +4641,7 @@ class TestMainWindow(GUITestCase):
                 "These are the bibtex keys corresponding to invalid"
                 + " records:\na, b\n\nNo action will be performed."
             )
-            self.assertEqual(_eb.call_count, 0)
+            _eb.assert_not_called()
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
             self.modName + ".askYesNo", return_value=True, autospec=True
         ) as _ay, patch(self.modName + ".editBibtex", autospec=True) as _eb:
@@ -4701,8 +4701,8 @@ class TestMainWindow(GUITestCase):
             ffa.exec_.assert_called_once_with()
             _fa.assert_called_once_with(pBDB.bibs, doFetch=False)
             _fc.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_sbm.call_count, 0)
-            self.assertEqual(_rit.call_count, 0)
+            _sbm.assert_not_called()
+            _rit.assert_not_called()
 
         ffa.result = True
         with patch(
@@ -4754,8 +4754,8 @@ class TestMainWindow(GUITestCase):
         ) as _rit:
             self.mainW.infoFromArxiv(useEntries=[{"bibkey": "a"}, {"bibkey": "b"}])
             _ffa.assert_called_once_with()
-            self.assertEqual(_fa.call_count, 0)
-            self.assertEqual(_fc.call_count, 0)
+            _fa.assert_not_called()
+            _fc.assert_not_called()
             _sbm.assert_called_once_with(
                 self.mainW, "Starting importing info from arxiv..."
             )
@@ -4856,7 +4856,7 @@ class TestMainWindow(GUITestCase):
             _dad.assert_called_once_with()
             dad.exec_.assert_called_once_with()
             _w.assert_called_once_with("Non-existent category! nonex")
-            self.assertEqual(_ad.call_count, 0)
+            _ad.assert_not_called()
 
         dad.comboCat.setCurrentText("astro-ph")
         with patch(
@@ -4935,7 +4935,7 @@ class TestMainWindow(GUITestCase):
         ) as _ad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ad.assert_called_once_with(physBiblioWeb.webSearch["arxiv"], "astro-ph.CO")
             _das.assert_called_once_with(
                 {
@@ -4987,7 +4987,7 @@ class TestMainWindow(GUITestCase):
         ) as _rit:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ad.assert_called_once_with(physBiblioWeb.webSearch["arxiv"], "astro-ph.CO")
             _das.assert_called_once_with(
                 {
@@ -5027,7 +5027,7 @@ class TestMainWindow(GUITestCase):
                 },
                 stopFlag=True,
             )
-            self.assertEqual(_ace.call_count, 0)
+            _ace.assert_not_called()
 
         das.exec_ = MagicMock()
         das.askCats.setCheckState(Qt.Checked)
@@ -5062,7 +5062,7 @@ class TestMainWindow(GUITestCase):
         ) as _rit:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ad.assert_called_once_with(physBiblioWeb.webSearch["arxiv"], "astro-ph.CO")
             _das.assert_called_once_with(
                 {
@@ -5328,7 +5328,7 @@ class TestMainWindow(GUITestCase):
         ) as _rit:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _ad.assert_called_once_with(physBiblioWeb.webSearch["arxiv"], "astro-ph.CO")
             _das.assert_called_once_with(
                 {
@@ -5498,7 +5498,7 @@ class TestMainWindow(GUITestCase):
         ) as _r:
             self.assertFalse(self.mainW.checkAdsToken())
             self.assertEqual(_agt.call_count, 2)
-            self.assertEqual(_i.call_count, 0)
+            _i.assert_not_called()
             self.assertTrue(self.mainW.checkAdsToken())
             self.assertEqual(_agt.call_count, 3)
             _i.assert_called_once_with(pBDB.config, "ADSToken", "abc")
@@ -5508,7 +5508,7 @@ class TestMainWindow(GUITestCase):
             self.modName + ".askGenericText", autospec=True
         ) as _agt:
             self.assertTrue(self.mainW.checkAdsToken())
-            self.assertEqual(_agt.call_count, 0)
+            _agt.assert_not_called()
 
 
 if __name__ == "__main__":

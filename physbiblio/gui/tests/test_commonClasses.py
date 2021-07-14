@@ -414,9 +414,9 @@ class TestEditObjectWindow(GUITestCase):
             "physbiblio.gui.commonClasses.EditObjectWindow.onCancel", autospec=True
         ) as _oc:
             QTest.keyPress(w, "a")
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(w, Qt.Key_Enter)
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(w, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
 
@@ -671,7 +671,7 @@ class TestPBTableModel(GUITestCase):
         ) as _gi, patch("logging.Logger.exception") as _ex:
             mtm.prepareSelected()
             _ex.assert_called_once_with("dataList is not defined!")
-            self.assertEqual(_gi.call_count, 0)
+            _gi.assert_not_called()
         self.assertEqual(mtm.selectedElements, {})
 
     def test_un_selectAll(self):
@@ -1054,8 +1054,8 @@ class TestLeafFilterProxyModel(GUITestCase):
         ) as _chi:
             self.assertTrue(lf.filterAcceptsRow(0, None))
             _its.assert_called_once_with(lf, 0, None)
-            self.assertEqual(_par.call_count, 0)
-            self.assertEqual(_chi.call_count, 0)
+            _par.assert_not_called()
+            _chi.assert_not_called()
         with patch(
             "physbiblio.gui.commonClasses.LeafFilterProxyModel."
             + "filterAcceptsRowItself",
@@ -1074,7 +1074,7 @@ class TestLeafFilterProxyModel(GUITestCase):
             self.assertTrue(lf.filterAcceptsRow(0, None))
             _its.assert_called_once_with(lf, 0, None)
             _par.assert_called_once_with(lf, None)
-            self.assertEqual(_chi.call_count, 0)
+            _chi.assert_not_called()
         with patch(
             "physbiblio.gui.commonClasses.LeafFilterProxyModel."
             + "filterAcceptsRowItself",
@@ -1443,9 +1443,9 @@ class TestPBMenu(GUITestCase):
         mm = PBMenu()
         with patch("physbiblio.gui.commonClasses.QMenu.close", autospec=True) as _oc:
             QTest.keyPress(mm, "a")
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(mm, Qt.Key_Enter)
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(mm, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
 

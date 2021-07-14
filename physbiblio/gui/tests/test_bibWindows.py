@@ -91,7 +91,7 @@ class TestFunctions(GUIwMainWTestCase):
                 + "Categories: <i>None</i><br/>\nExperiments: <i>None</i>"
                 + "<br/>\n<br/>Comments:<br/>some thing",
             )
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
 
         entry = {
             "bibkey": "mykey",
@@ -342,7 +342,7 @@ class TestFunctions(GUIwMainWTestCase):
                 + "Categories: <i>Main, second</i>"
                 + "<br/>\nExperiments: <i>exp1, exp2</i>",
             )
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
             _i.assert_called_once_with(keep_inline_math=True, keep_comments=False)
             _ltt.assert_has_calls([call(ltt, "sg"), call(ltt, "some title")])
 
@@ -422,7 +422,7 @@ class TestFunctions(GUIwMainWTestCase):
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
             )
-            self.assertEqual(_gbk.call_count, 0)
+            _gbk.assert_not_called()
         with patch("logging.Logger.debug") as _ld, patch(
             "physbiblio.database.Entries.getByBibkey", autospec=True
         ) as _gbk, patch(
@@ -434,8 +434,8 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _i:
             editBibtex(self.mainW, editKey=None)
             _sbm.assert_called_once_with(self.mainW, "No modifications to bibtex entry")
-            self.assertEqual(_ld.call_count, 0)
-            self.assertEqual(_gbk.call_count, 0)
+            _ld.assert_not_called()
+            _gbk.assert_not_called()
 
         ebd = EditBibtexDialog(self.mainW, bib=None)
         ebd.exec_ = MagicMock()
@@ -469,14 +469,14 @@ class TestFunctions(GUIwMainWTestCase):
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
             )
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
+            _lw.assert_not_called()
+            _li.assert_not_called()
             _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_ffl.call_count, 0)
+            _pi.assert_not_called()
+            _ub.assert_not_called()
+            _u.assert_not_called()
+            _ins.assert_not_called()
+            _ffl.assert_not_called()
             _i.assert_called_once_with(p, bib=testentry)
 
         # test creation of entry, empty bibtex
@@ -516,16 +516,16 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey=None)
-            self.assertEqual(_ld.call_count, 0)
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
-            self.assertEqual(_gbk.call_count, 0)
-            self.assertEqual(_pi.call_count, 0)
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
-            self.assertEqual(_ffl.call_count, 0)
+            _ld.assert_not_called()
+            _lw.assert_not_called()
+            _li.assert_not_called()
+            _gbk.assert_not_called()
+            _pi.assert_not_called()
+            _ub.assert_not_called()
+            _u.assert_not_called()
+            _ins.assert_not_called()
+            _rf.assert_not_called()
+            _ffl.assert_not_called()
             _im.assert_called_once_with("ERROR: empty bibtex!")
             _sbm.assert_called_once_with(self.mainW, "ERROR: empty bibtex!")
 
@@ -566,15 +566,15 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey=None)
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
-            self.assertEqual(_gbk.call_count, 0)
+            _lw.assert_not_called()
+            _li.assert_not_called()
+            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
-            self.assertEqual(_ffl.call_count, 0)
+            _ub.assert_not_called()
+            _u.assert_not_called()
+            _ins.assert_not_called()
+            _rf.assert_not_called()
+            _ffl.assert_not_called()
             _im.assert_called_once_with("ERROR: empty bibkey!")
             _sbm.assert_called_once_with(self.mainW, "ERROR: empty bibkey!")
 
@@ -634,19 +634,19 @@ class TestFunctions(GUIwMainWTestCase):
                     ),
                 ]
             )
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
-            self.assertEqual(_gbk.call_count, 0)
+            _lw.assert_not_called()
+            _li.assert_not_called()
+            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
+            _ub.assert_not_called()
+            _u.assert_not_called()
             _ins.assert_called_once_with(pBDB.bibs, testentry)
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
-            self.assertEqual(_sbm.call_count, 0)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_swt.call_count, 0)
+            _im.assert_not_called()
+            _sbm.assert_not_called()
+            _rmc.assert_not_called()
+            _swt.assert_not_called()
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
         ) as _li, patch(
@@ -683,16 +683,16 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey=None)
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
-            self.assertEqual(_gbk.call_count, 0)
+            _lw.assert_not_called()
+            _li.assert_not_called()
+            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
+            _ub.assert_not_called()
+            _u.assert_not_called()
             _ins.assert_called_once_with(pBDB.bibs, testentry)
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -732,20 +732,20 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey=None)
-            self.assertEqual(_lw.call_count, 0)
-            self.assertEqual(_li.call_count, 0)
+            _lw.assert_not_called()
+            _li.assert_not_called()
             _le.assert_called_once_with("Cannot insert/modify the entry!")
-            self.assertEqual(_gbk.call_count, 0)
+            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
-            self.assertEqual(_ub.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
+            _ub.assert_not_called()
+            _u.assert_not_called()
             _ins.assert_called_once_with(pBDB.bibs, testentry)
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Cannot insert/modify the entry!")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
-            self.assertEqual(_swt.call_count, 0)
+            _swt.assert_not_called()
 
         # test edit with various field contents
         # * no change bibkey: fix code?
@@ -789,11 +789,11 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
-            self.assertEqual(_lw.call_count, 0)
+            _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
-            self.assertEqual(_ub.call_count, 0)
+            _pi.assert_not_called()
+            _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
@@ -826,10 +826,10 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _ins.assert_not_called()
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -869,12 +869,12 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
-            self.assertEqual(_lw.call_count, 0)
+            _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _le.assert_called_once_with("Cannot insert/modify the entry!")
             _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
-            self.assertEqual(_ub.call_count, 0)
+            _pi.assert_not_called()
+            _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
@@ -907,13 +907,13 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _ins.assert_not_called()
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Cannot insert/modify the entry!")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
-            self.assertEqual(_swt.call_count, 0)
+            _swt.assert_not_called()
 
         # * invalid key
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
@@ -956,11 +956,11 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="testkey")
-            self.assertEqual(_lw.call_count, 0)
+            _lw.assert_not_called()
             _li.assert_has_calls([call("Updating bibtex 'testkey'...")])
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
-            self.assertEqual(_ub.call_count, 0)
+            _pi.assert_not_called()
+            _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
@@ -993,10 +993,10 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _ins.assert_not_called()
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -1042,7 +1042,7 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="testkey")
-            self.assertEqual(_lw.call_count, 0)
+            _lw.assert_not_called()
             _li.assert_has_calls(
                 [
                     call(
@@ -1053,7 +1053,7 @@ class TestFunctions(GUIwMainWTestCase):
                 ]
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
+            _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
@@ -1087,10 +1087,10 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"old testkey",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
+            _ins.assert_not_called()
             _rf.assert_called_once_with(pBPDF, "testkey", u"Gariazzo:2015rra")
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -1151,7 +1151,7 @@ class TestFunctions(GUIwMainWTestCase):
                 ]
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
+            _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
@@ -1184,10 +1184,10 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"testkey",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _ins.assert_not_called()
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -1249,7 +1249,7 @@ class TestFunctions(GUIwMainWTestCase):
                 ]
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
-            self.assertEqual(_pi.call_count, 0)
+            _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
@@ -1282,10 +1282,10 @@ class TestFunctions(GUIwMainWTestCase):
                 "old_keys": u"testkey",
             }.items():
                 self.assertEqual(d[k], v)
-            self.assertEqual(_ins.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _ins.assert_not_called()
+            _rf.assert_not_called()
             _ffl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_im.call_count, 0)
+            _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
@@ -1336,8 +1336,8 @@ class TestFunctions(GUIwMainWTestCase):
                 + "(bibkey = 'mykey')?"
             )
             _c.assert_called_once_with(pBDB.bibs, "mykey")
-            self.assertEqual(_t.call_count, 0)
-            self.assertEqual(_s.call_count, 0)
+            _t.assert_not_called()
+            _s.assert_not_called()
             _d.assert_has_calls(
                 [
                     call(
@@ -1425,7 +1425,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         ) as _sbm:
             af.doText()
             _ih.assert_called_once_with(af.text)
-            self.assertEqual(_sbm.call_count, 0)
+            _sbm.assert_not_called()
 
         af = AbstractFormulas(
             self.mainW, "test text with $f_e$ equation", customEditor=bi.text
@@ -1463,7 +1463,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             _s.assert_called_once_with(af.thr)
             self.assertIsInstance(af.thr, Thread_processLatex)
             images, text = af.prepareText()
-            self.assertEqual(_st.call_count, 0)
+            _st.assert_not_called()
             af.thr.passData.emit(images, text)
             _st.assert_called_once_with(af, images, text)
 
@@ -2079,16 +2079,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][4].text(), "abstract")
             self.assertEqual(c.menu.possibleActions[0][1][5].text(), "link")
             self.assertEqual(c.menu.possibleActions[0][1][6].text(), "bibitem")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _b.assert_called_once_with(c)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             c.menu.possibleActions[0][1][2].trigger()
             _c.assert_called_once_with(c)
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
             c.menu.possibleActions[0][1][4].trigger()
             _d.assert_called_once_with("abc")
             _d.reset_mock()
@@ -2151,16 +2151,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][10].text(), "published")
             self.assertEqual(c.menu.possibleActions[0][1][11].text(), "title")
             self.assertEqual(c.menu.possibleActions[0][1][12].text(), "bibitem")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _b.assert_called_once_with(c)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             c.menu.possibleActions[0][1][2].trigger()
             _c.assert_called_once_with(c)
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
             c.menu.possibleActions[0][1][4].trigger()
             _d.assert_called_once_with("abc")
             _d.reset_mock()
@@ -2223,19 +2223,19 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][4].text(), "Update citation count"
             )
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _b.assert_called_once_with(c, force=True)
             _b.reset_mock()
             c.menu.possibleActions[0][1][2].trigger()
             _b.assert_called_once_with(c, force=False, reloadAll=True)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             c.menu.possibleActions[0][1][3].trigger()
             _c.assert_called_once_with(c)
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
             c.menu.possibleActions[0][1][4].trigger()
             _d.assert_called_once_with(c)
 
@@ -2296,19 +2296,19 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][4].text(), "Update citation count"
             )
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _b.assert_called_once_with(c, force=True)
             _b.reset_mock()
             c.menu.possibleActions[0][1][2].trigger()
             _b.assert_called_once_with(c, force=True, reloadAll=True)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             c.menu.possibleActions[0][1][3].trigger()
             _c.assert_called_once_with(c)
-            self.assertEqual(_d.call_count, 0)
+            _d.assert_not_called()
             c.menu.possibleActions[0][1][4].trigger()
             _d.assert_called_once_with(c)
 
@@ -2330,7 +2330,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             for a in c.menu.possibleActions[0][1]:
                 self.assertIsInstance(a, QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "Open into arXiv")
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "arxiv")
         c.menu = PBMenu(self.mainW)
@@ -2345,7 +2345,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             for a in c.menu.possibleActions[0][1]:
                 self.assertIsInstance(a, QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "Open DOI link")
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "doi")
         c.menu = PBMenu(self.mainW)
@@ -2362,7 +2362,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][0].text(), "Open into INSPIRE-HEP"
             )
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "inspire")
         c.menu = PBMenu(self.mainW)
@@ -2381,7 +2381,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][2].text(), "Open into INSPIRE-HEP"
             )
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "arxiv")
             _l.reset_mock()
@@ -2465,7 +2465,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(len(c.menu.possibleActions), 1)
             self.assertIsInstance(c.menu.possibleActions[0], QAction)
             self.assertEqual(c.menu.possibleActions[0].text(), "Download arXiv PDF")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0].trigger()
             _a.assert_called_once_with(c)
 
@@ -2493,7 +2493,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(len(c.menu.possibleActions[0][1]), 1)
             self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "Add generic file")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
 
@@ -2524,7 +2524,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][1].text(), "Download arXiv PDF"
             )
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _b.assert_called_once_with(c)
 
@@ -2573,13 +2573,13 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][4][1][1].text(), "Copy arXiv PDF"
             )
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "file", fileArg="arxiv.pdf")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][4][1][0].trigger()
             _a.assert_called_once_with(c, "abc", "arxiv", "arxiv PDF")
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][4][1][1].trigger()
             _b.assert_called_once_with(c, "abc", "arxiv")
 
@@ -2610,7 +2610,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertIsInstance(c.menu.possibleActions[0][1][0], QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "Add generic file")
             self.assertEqual(c.menu.possibleActions[0][1][1].text(), "Assign DOI PDF")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][1].trigger()
             _a.assert_called_once_with(c, "doi")
 
@@ -2659,13 +2659,13 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(
                 c.menu.possibleActions[0][1][4][1][1].text(), "Copy DOI PDF"
             )
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "file", fileArg="doi.pdf")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][4][1][0].trigger()
             _a.assert_called_once_with(c, "abc", "doi", "DOI PDF")
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][4][1][1].trigger()
             _b.assert_called_once_with(c, "abc", "doi")
 
@@ -2776,13 +2776,13 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 c.menu.possibleActions[0][1][6][1][0].text(), "Delete b.pdf"
             )
             self.assertEqual(c.menu.possibleActions[0][1][6][1][1].text(), "Copy b.pdf")
-            self.assertEqual(_l.call_count, 0)
+            _l.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _l.assert_called_once_with(pBGuiView, "abc", "file", fileArg="a.pdf")
-            self.assertEqual(_a.call_count, 0)
+            _a.assert_not_called()
             c.menu.possibleActions[0][1][5][1][0].trigger()
             _a.assert_called_once_with(c, "abc", "a.pdf", "a.pdf", "a.pdf")
-            self.assertEqual(_b.call_count, 0)
+            _b.assert_not_called()
             c.menu.possibleActions[0][1][5][1][1].trigger()
             _b.assert_called_once_with(c, "abc", "a.pdf", "a.pdf")
             _l.reset_mock()
@@ -2961,17 +2961,17 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(m.possibleActions[1], None)
             self.assertIsInstance(m.possibleActions[2], QAction)
             self.assertEqual(m.possibleActions[2].text(), "Modify")
-            self.assertEqual(_mod.call_count, 0)
+            _mod.assert_not_called()
             m.possibleActions[2].trigger()
             _mod.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[3], QAction)
             self.assertEqual(m.possibleActions[3].text(), "Clean")
-            self.assertEqual(_cle.call_count, 0)
+            _cle.assert_not_called()
             m.possibleActions[3].trigger()
             _cle.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[4], QAction)
             self.assertEqual(m.possibleActions[4].text(), "Delete")
-            self.assertEqual(_del.call_count, 0)
+            _del.assert_not_called()
             m.possibleActions[4].trigger()
             _del.assert_called_once_with(c)
             self.assertEqual(m.possibleActions[5], None)
@@ -2982,12 +2982,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(m.possibleActions[6], None)
             self.assertIsInstance(m.possibleActions[7], QAction)
             self.assertEqual(m.possibleActions[7].text(), "Select categories")
-            self.assertEqual(_cat.call_count, 0)
+            _cat.assert_not_called()
             m.possibleActions[7].trigger()
             _cat.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[8], QAction)
             self.assertEqual(m.possibleActions[8].text(), "Select experiments")
-            self.assertEqual(_exp.call_count, 0)
+            _exp.assert_not_called()
             m.possibleActions[8].trigger()
             _exp.assert_called_once_with(c)
             self.assertEqual(m.possibleActions[9], None)
@@ -2996,14 +2996,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(m.possibleActions[10], None)
             self.assertIsInstance(m.possibleActions[11], QAction)
             self.assertEqual(m.possibleActions[11].text(), "Export in a .bib file")
-            self.assertEqual(_ext.call_count, 0)
+            _ext.assert_not_called()
             m.possibleActions[11].trigger()
             _ext.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[12], QAction)
             self.assertEqual(
                 m.possibleActions[12].text(), "Copy all the corresponding PDF"
             )
-            self.assertEqual(_cap.call_count, 0)
+            _cap.assert_not_called()
             m.possibleActions[12].trigger()
             _cap.assert_called_once_with(c)
             _f.assert_called_once_with(c.menu)
@@ -3045,33 +3045,33 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(m.parent(), p)
             self.assertIsInstance(m.possibleActions[0], QAction)
             self.assertEqual(m.possibleActions[0].text(), "Merge")
-            self.assertEqual(_mer.call_count, 0)
+            _mer.assert_not_called()
             m.possibleActions[0].trigger()
             _mer.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[1], QAction)
             self.assertEqual(m.possibleActions[1].text(), "Clean")
-            self.assertEqual(_cle.call_count, 0)
+            _cle.assert_not_called()
             m.possibleActions[1].trigger()
             _cle.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[2], QAction)
             self.assertEqual(m.possibleActions[2].text(), "Delete")
-            self.assertEqual(_del.call_count, 0)
+            _del.assert_not_called()
             m.possibleActions[2].trigger()
             _del.assert_called_once_with(c)
             self.assertEqual(m.possibleActions[3], None)
-            self.assertEqual(_c5.call_count, 0)
+            _c5.assert_not_called()
             _c2.assert_called_once_with(c, True, None)
             _c6.assert_called_once_with(c, True, None)
-            self.assertEqual(_c4.call_count, 0)
+            _c4.assert_not_called()
             self.assertEqual(m.possibleActions[4], None)
             self.assertIsInstance(m.possibleActions[5], QAction)
             self.assertEqual(m.possibleActions[5].text(), "Select categories")
-            self.assertEqual(_cat.call_count, 0)
+            _cat.assert_not_called()
             m.possibleActions[5].trigger()
             _cat.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[6], QAction)
             self.assertEqual(m.possibleActions[6].text(), "Select experiments")
-            self.assertEqual(_exp.call_count, 0)
+            _exp.assert_not_called()
             m.possibleActions[6].trigger()
             _exp.assert_called_once_with(c)
             self.assertEqual(m.possibleActions[7], None)
@@ -3080,14 +3080,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(m.possibleActions[8], None)
             self.assertIsInstance(m.possibleActions[9], QAction)
             self.assertEqual(m.possibleActions[9].text(), "Export in a .bib file")
-            self.assertEqual(_ext.call_count, 0)
+            _ext.assert_not_called()
             m.possibleActions[9].trigger()
             _ext.assert_called_once_with(c)
             self.assertIsInstance(m.possibleActions[10], QAction)
             self.assertEqual(
                 m.possibleActions[10].text(), "Copy all the corresponding PDF"
             )
-            self.assertEqual(_cap.call_count, 0)
+            _cap.assert_not_called()
             m.possibleActions[10].trigger()
             _cap.assert_called_once_with(c)
             _f.assert_called_once_with(c.menu)
@@ -3169,8 +3169,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "os.path.isfile", return_value=True
         ) as _if:
             c.onAddPDF()
-            self.assertEqual(_cp.call_count, 0)
-            self.assertEqual(_if.call_count, 0)
+            _cp.assert_not_called()
+            _if.assert_not_called()
 
         with patch(
             "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
@@ -3180,7 +3180,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "os.path.isfile", return_value=False
         ) as _if:
             c.onAddPDF()
-            self.assertEqual(_cp.call_count, 0)
+            _cp.assert_not_called()
             _if.assert_called_once_with("s")
 
     def test_onAbs(self):
@@ -3288,9 +3288,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 multipleRecords=True,
             )
             _gc.assert_called_once_with(pBDB.cats, ["abc", "def"])
-            self.assertEqual(_cei.call_count, 0)
-            self.assertEqual(_ced.call_count, 0)
-            self.assertEqual(_m.call_count, 0)
+            _cei.assert_not_called()
+            _ced.assert_not_called()
+            _m.assert_not_called()
 
         sc = CatsTreeWindow(
             parent=self.mainW,
@@ -3327,7 +3327,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             )
             _gc.assert_called_once_with(pBDB.cats, ["abc", "def"])
             _cei.assert_called_once_with(pBDB.catBib, [999, 1000], ["abc", "def"])
-            self.assertEqual(_ced.call_count, 0)
+            _ced.assert_not_called()
             _m.assert_called_once_with(self.mainW, "Categories successfully inserted")
 
         sc = CatsTreeWindow(
@@ -3401,9 +3401,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 previous=[],
             )
             _gc.assert_called_once_with(pBDB.cats, ["abc"])
-            self.assertEqual(_cei.call_count, 0)
-            self.assertEqual(_ced.call_count, 0)
-            self.assertEqual(_m.call_count, 0)
+            _cei.assert_not_called()
+            _ced.assert_not_called()
+            _m.assert_not_called()
 
         sc = CatsTreeWindow(
             parent=self.mainW, askCats=True, expButton=False, previous=[]
@@ -3564,7 +3564,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 self.mainW, title="Where do you want to save the PDF /h/e/f.pdf?"
             )
             _fp.assert_called_once_with(pBPDF, "abc", "arxiv")
-            self.assertEqual(_cp.call_count, 0)
+            _cp.assert_not_called()
             _a.reset_mock()
             _fp.reset_mock()
             c.onCopyPDFFile("abc", "arxiv")
@@ -3582,7 +3582,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _a.assert_called_once_with(
                 self.mainW, title="Where do you want to save the PDF /h/e/new.pdf?"
             )
-            self.assertEqual(_fp.call_count, 0)
+            _fp.assert_not_called()
             _cp.assert_called_once_with(
                 pBPDF,
                 "/non/exist",
@@ -3602,7 +3602,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _a.assert_called_once_with(
                 self.mainW, title="Where do you want to save the PDF files?"
             )
-            self.assertEqual(_ch.call_count, 0)
+            _ch.assert_not_called()
         with patch(
             "physbiblio.gui.bibWindows.askDirName",
             return_value="/non/exist",
@@ -3621,7 +3621,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             c.onCopyAllPDF()
             _ch.assert_called_once_with(pBPDF, "abc", "doi")
             _cp.assert_called_once_with(pBPDF, "/non/exist", "abc", fileType="doi")
-            self.assertEqual(_ge.call_count, 0)
+            _ge.assert_not_called()
             _ch.reset_mock()
             _cp.reset_mock()
             c.onCopyAllPDF()
@@ -3629,7 +3629,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 [call(pBPDF, "abc", "doi"), call(pBPDF, "abc", "arxiv")]
             )
             _cp.assert_called_once_with(pBPDF, "/non/exist", "abc", fileType="arxiv")
-            self.assertEqual(_ge.call_count, 0)
+            _ge.assert_not_called()
             _ch.reset_mock()
             _cp.reset_mock()
             c.onCopyAllPDF()
@@ -3694,8 +3694,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 "Do you really want to delete the %s file for entry %s?"
                 % ("arxiv PDF", "abc")
             )
-            self.assertEqual(_s.call_count, 0)
-            self.assertEqual(_rm.call_count, 0)
+            _s.assert_not_called()
+            _rm.assert_not_called()
             c.onDeletePDFFile("abc", "arxiv", "arxiv PDF")
             _s.assert_called_once_with(self.mainW, "deleting arxiv PDF file...")
             _rm.assert_called_once_with(pBPDF, "abc", "arxiv")
@@ -3797,8 +3797,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 + "to the selected entries, not delete!"
             )
             _ewi.assert_called_once_with(parent=self.mainW, askExps=True, previous=[])
-            self.assertEqual(_eei.call_count, 0)
-            self.assertEqual(_m.call_count, 0)
+            _eei.assert_not_called()
+            _m.assert_not_called()
             se.result = "Ok"
             c.onExp()
             _eei.assert_called_once_with(pBDB.bibExp, ["abc", "def"], [999, 1000])
@@ -3826,12 +3826,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _ewi.assert_called_once_with(
                 parent=self.mainW, askExps=True, askForBib="abc", previous=[]
             )
-            self.assertEqual(_eei.call_count, 0)
-            self.assertEqual(_eed.call_count, 0)
-            self.assertEqual(_m.call_count, 0)
+            _eei.assert_not_called()
+            _eed.assert_not_called()
+            _m.assert_not_called()
             se.result = "Ok"
             c.onExp()
-            self.assertEqual(_eed.call_count, 0)
+            _eed.assert_not_called()
             _eei.assert_has_calls(
                 [call(pBDB.bibExp, "abc", 999), call(pBDB.bibExp, "abc", 1000)]
             )
@@ -3961,11 +3961,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "logging.Logger.error"
         ) as _e:
             c.onMerge()
-            self.assertEqual(_m.call_count, 0)
-            self.assertEqual(_rl.call_count, 0)
+            _m.assert_not_called()
+            _rl.assert_not_called()
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
-            self.assertEqual(_c.call_count, 0)
-            self.assertEqual(_u.call_count, 0)
+            _c.assert_not_called()
+            _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
                 bibkey=u"new",
@@ -3982,10 +3982,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 review=0,
                 year=u"2018",
             )
-            self.assertEqual(_de.call_count, 0)
-            self.assertEqual(_in.call_count, 0)
-            self.assertEqual(_fl.call_count, 0)
-            self.assertEqual(_w.call_count, 0)
+            _de.assert_not_called()
+            _in.assert_not_called()
+            _fl.assert_not_called()
+            _w.assert_not_called()
             _e.assert_called_once_with("Empty bibtex and/or bibkey!")
 
             _e.reset_mock()
@@ -4043,8 +4043,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "logging.Logger.exception"
         ) as _ex:
             c.onMerge()
-            self.assertEqual(_m.call_count, 0)
-            self.assertEqual(_rl.call_count, 0)
+            _m.assert_not_called()
+            _rl.assert_not_called()
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
             _c.assert_called_once_with(pBDB)
             _u.assert_called_once_with(pBDB)
@@ -4065,10 +4065,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 year=u"2018",
             )
             _de.assert_called_once_with(pBDB.bibs, "abc")
-            self.assertEqual(_in.call_count, 0)
-            self.assertEqual(_fl.call_count, 0)
-            self.assertEqual(_w.call_count, 0)
-            self.assertEqual(_er.call_count, 0)
+            _in.assert_not_called()
+            _fl.assert_not_called()
+            _w.assert_not_called()
+            _er.assert_not_called()
             _ex.assert_called_once_with("Cannot delete old items!")
         # cannot insert
         with patch(
@@ -4107,8 +4107,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "logging.Logger.exception"
         ) as _ex:
             c.onMerge()
-            self.assertEqual(_m.call_count, 0)
-            self.assertEqual(_rl.call_count, 0)
+            _m.assert_not_called()
+            _rl.assert_not_called()
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
             _c.assert_called_once_with(pBDB)
             _u.assert_called_once_with(pBDB)
@@ -4132,10 +4132,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _in.assert_called_once_with(
                 pBDB.bibs, {"bibkey": "merged", "bibtex": "new bibtex"}
             )
-            self.assertEqual(_fl.call_count, 0)
-            self.assertEqual(_w.call_count, 0)
+            _fl.assert_not_called()
+            _w.assert_not_called()
             _er.assert_called_once_with("Cannot insert new item!")
-            self.assertEqual(_ex.call_count, 0)
+            _ex.assert_not_called()
         # cannot reload
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -4175,11 +4175,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "logging.Logger.exception"
         ) as _ex:
             c.onMerge()
-            self.assertEqual(_m.call_count, 0)
+            _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
             _c.assert_called_once_with(pBDB)
-            self.assertEqual(_u.call_count, 0)
+            _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
                 bibkey=u"new",
@@ -4202,8 +4202,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
             )
             _fl.assert_called_once_with(pBDB.bibs)
             _w.assert_called_once_with("Impossible to reload content.")
-            self.assertEqual(_er.call_count, 0)
-            self.assertEqual(_ex.call_count, 0)
+            _er.assert_not_called()
+            _ex.assert_not_called()
         # working
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -4259,11 +4259,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "logging.Logger.exception"
         ) as _ex:
             c.onMerge()
-            self.assertEqual(_m.call_count, 0)
+            _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
             _c.assert_called_once_with(pBDB)
-            self.assertEqual(_u.call_count, 0)
+            _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
                 bibkey=u"new",
@@ -4285,9 +4285,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 pBDB.bibs, {"bibkey": "merged", "bibtex": "new bibtex"}
             )
             _fl.assert_called_once_with(pBDB.bibs)
-            self.assertEqual(_w.call_count, 0)
-            self.assertEqual(_er.call_count, 0)
-            self.assertEqual(_ex.call_count, 0)
+            _w.assert_not_called()
+            _er.assert_not_called()
+            _ex.assert_not_called()
             _cebk.assert_has_calls([call(pBDB.cats, "abc"), call(pBDB.cats, "def")])
             _cede.assert_has_calls(
                 [
@@ -4589,11 +4589,11 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(
                 bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(0, 0)), None
             )
-            self.assertEqual(_gbb.call_count, 0)
+            _gbb.assert_not_called()
             self.assertEqual(
                 bw.getRowBibkey(bw.tableModel, bw.tableModel.index(12, 0)), None
             )
-            self.assertEqual(_gbb.call_count, 0)
+            _gbb.assert_not_called()
 
     @patch.dict(pbConfig.params, {"bibtexListColumns": ["bibkey"]}, clear=False)
     def test_onSelectionChanged(self):
@@ -4919,7 +4919,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             bw.onOk()
             _cl.assert_called_once_with(bw)
             _cm.assert_called_once_with(cba, selection=True)
-            self.assertEqual(_g.call_count, 0)
+            _g.assert_not_called()
             tmp.exec_.assert_called_once_with(position)
             self.assertEqual(self.mainW.selectedBibs, [])
 
@@ -5093,7 +5093,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             bw.updateInfo({"bibkey": "abc", "bibtex": "text"})
             _wb.assert_called_once_with({"bibkey": "abc", "bibtex": "text"})
             _st.assert_has_calls([call("text"), call("info")])
-            self.assertEqual(_wa.call_count, 0)
+            _wa.assert_not_called()
             self.assertEqual(bw.currentAbstractKey, "abc")
             bw.updateInfo({"bibkey": "def", "bibtex": "text"})
             _wa.assert_called_once_with(self.mainW, {"bibkey": "def", "bibtex": "text"})
@@ -5124,9 +5124,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _d.assert_called_once_with("The entry cannot be found!")
             _gbb.reset_mock()
             self.assertEqual(bw.getEventEntry(bw.proxyModel.index(0, 0)), None)
-            self.assertEqual(_gbb.call_count, 0)
+            _gbb.assert_not_called()
             self.assertEqual(bw.getEventEntry(bw.proxyModel.index(12, 0)), None)
-            self.assertEqual(_gbb.call_count, 0)
+            _gbb.assert_not_called()
 
     @patch.dict(pbConfig.params, {"bibtexListColumns": ["bibkey"]}, clear=False)
     def test_keyPressEvent(self):
@@ -5156,12 +5156,12 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
         ) as _cs:
             QTest.keyPress(bw, "C", Qt.ShiftModifier)
-            self.assertEqual(_cmc.call_count, 0)
+            _cmc.assert_not_called()
             QTest.keyPress(bw, "C", Qt.ControlModifier)
-            self.assertEqual(_cmc.call_count, 0)
+            _cmc.assert_not_called()
             bw.tableview.selectRow(2)
             QTest.keyPress(bw, "C", Qt.ShiftModifier)
-            self.assertEqual(_cmc.call_count, 0)
+            _cmc.assert_not_called()
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
             _cmc.assert_called_once_with(cba, False, {"bibkey": "ghi"})
@@ -5255,7 +5255,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             ) as _ci:
                 self.assertEqual(bw.triggeredContextMenuEvent(9999, 101, ev), None)
                 _ci.assert_called_once_with([{"bibkey": "abc"}], self.mainW)
-            self.assertEqual(_w.call_count, 0)
+            _w.assert_not_called()
             _ix.assert_called_once_with(9999, 101)
             _ge.assert_called_once_with(bw, "index")
             cba = CommonBibActions([{"bibkey": "abc"}], self.mainW)
@@ -5373,7 +5373,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
         currentry["doi"] = None
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
@@ -5385,7 +5385,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
 
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
@@ -5411,7 +5411,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
         currentry["arxiv"] = None
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
@@ -5423,7 +5423,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
 
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
@@ -5449,7 +5449,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
         currentry["inspire"] = None
         with patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
@@ -5461,7 +5461,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
         ) as _ui:
             bw.cellDoubleClick(ix)
-            self.assertEqual(_ol.call_count, 0)
+            _ol.assert_not_called()
 
         with patch(
             "physbiblio.pdf.LocalPDF.getExisting",
@@ -5509,8 +5509,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             position = QCursor.pos()
             bw.cellDoubleClick(ix)
             _gf.assert_called_once_with(pBPDF, "abc", fullPath=True)
-            self.assertEqual(_ol.call_count, 0)
-            self.assertEqual(_m.call_count, 0)
+            _ol.assert_not_called()
+            _m.assert_not_called()
             _apa.assert_called_once_with("abc", bw.mainWin)
             tmp.exec_.assert_called_once_with(position)
 
@@ -5552,8 +5552,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             pbConfig.params, {"resizeTable": False}, clear=False
         ):
             bw.finalizeTable()
-            self.assertEqual(_rc.call_count, 0)
-            self.assertEqual(_rr.call_count, 0)
+            _rc.assert_not_called()
+            _rr.assert_not_called()
             for f in ["author", "title", "comments"]:
                 if f in bw.colContents:
                     _rsc.assert_any_call(bw.colContents.index(f))
@@ -5573,7 +5573,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.database.Entries.getAll", autospec=True
         ) as _ga:
             bw.recreateTable(bibs="bibs")
-            self.assertEqual(_ga.call_count, 0)
+            _ga.assert_not_called()
             _cl.assert_called_once_with(bw)
             _ct.assert_called_once_with(bw)
             _rc.assert_called_once_with()
@@ -5652,14 +5652,14 @@ class TestEditBibtexDialog(GUITestCase):
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             _e.assert_called_once_with("Invalid form contents: empty bibtex!")
         eb.textValues["bibtex"].setPlainText('@article{abc, title="}')
         with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             _e.assert_called_once_with(
                 "Invalid form contents: cannot read bibtex properly!"
             )
@@ -5669,7 +5669,7 @@ class TestEditBibtexDialog(GUITestCase):
         ) as _e:
             eb.onOk()
             _c.assert_called_once_with()
-            self.assertEqual(_e.call_count, 0)
+            _e.assert_not_called()
             self.assertEqual(eb.result, True)
 
         eb = EditBibtexDialog()
@@ -5680,7 +5680,7 @@ class TestEditBibtexDialog(GUITestCase):
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
-            self.assertEqual(_c.call_count, 0)
+            _c.assert_not_called()
             _e.assert_called_once_with(
                 "Invalid form contents: bibtex key will be taken from bibtex!"
             )
@@ -6313,8 +6313,8 @@ class TestSearchBibsWindow(GUITestCase):
             with patch("logging.Logger.error") as _e:
                 sbw = SearchBibsWindow(edit="ab1")
                 _e.assert_called_once_with("Wrong 'edit', it is not an ID: 'ab1'")
-            self.assertEqual(_cf.call_count, 0)
-            self.assertEqual(_gsbi.call_count, 0)
+            _cf.assert_not_called()
+            _gsbi.assert_not_called()
             self.assertFalse(hasattr(sbw, "historic"))
 
     def test_processHistoric(self):
@@ -6612,9 +6612,9 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.onCancel", autospec=True
         ) as _oc:
             QTest.keyPress(sbw.acceptButton, "a")
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(sbw.acceptButton, Qt.Key_Enter)
-            self.assertEqual(_oc.call_count, 0)
+            _oc.assert_not_called()
             QTest.keyPress(sbw.acceptButton, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
         with patch(
@@ -6639,11 +6639,11 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
         ) as _rf:
             QTest.keyPress(sbw.acceptButton, "a")
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
             QTest.keyPress(sbw.acceptButton, Qt.Key_Up)
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
             QTest.keyPress(sbw.acceptButton, Qt.Key_Down)
-            self.assertEqual(_rf.call_count, 0)
+            _rf.assert_not_called()
         sbw = SearchBibsWindow()
         sbw.historic = ["a", "b", "c", "d"]
         sbw.currentHistoric = 0
@@ -6835,14 +6835,14 @@ class TestSearchBibsWindow(GUITestCase):
         ) as _ef:
             self.assertEqual(sbw.eventFilter(w, e), "abc")
             _ef.assert_called_once_with(sbw, w, e)
-            self.assertEqual(e.key.call_count, 0)
+            e.key.assert_not_called()
         e.type.return_value = QEvent.KeyPress
         with patch(
             "PySide2.QtWidgets.QWidget.eventFilter", return_value="abc", autospec=True
         ) as _ef:
             self.assertEqual(sbw.eventFilter(w, e), "abc")
             _ef.assert_called_once_with(sbw, w, e)
-            self.assertEqual(e.key.call_count, 0)
+            e.key.assert_not_called()
         for x in [
             sbw.textValues[0]["content"],
             sbw.replOld,
@@ -6860,7 +6860,7 @@ class TestSearchBibsWindow(GUITestCase):
                 self.assertEqual(sbw.eventFilter(w, e), "abc")
                 _ef.assert_called_once_with(sbw, w, e)
                 e.key.assert_called_once_with()
-                self.assertEqual(sbw.acceptButton.setFocus.call_count, 0)
+                sbw.acceptButton.setFocus.assert_not_called()
             e.key.reset_mock()
         for x in [Qt.Key_Return, Qt.Key_Enter]:
             e.key.return_value = x
@@ -6870,7 +6870,7 @@ class TestSearchBibsWindow(GUITestCase):
                 autospec=True,
             ) as _ef:
                 self.assertTrue(sbw.eventFilter(w, e))
-                self.assertEqual(_ef.call_count, 0)
+                _ef.assert_not_called()
                 e.key.assert_called_once_with()
                 sbw.acceptButton.setFocus.assert_called_once_with()
             e.key.reset_mock()
@@ -6924,8 +6924,8 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
         ) as _rf:
             sbw.deleteRow(11)
-            self.assertEqual(_f.call_count, 0)
-            self.assertEqual(_rf.call_count, 0)
+            _f.assert_not_called()
+            _rf.assert_not_called()
             sbw.deleteRow(2)
             _f.assert_called_once_with(sbw)
             _rf.assert_called_once_with(sbw)
@@ -7739,7 +7739,7 @@ class TestSearchBibsWindow(GUITestCase):
                 ]
             )
             _crlim.assert_called_once_with(sbw, 5)
-            self.assertEqual(_crre.call_count, 0)
+            _crre.assert_not_called()
         sbw.cleanLayout()
         sbw.createForm()
         self.assertEqual(sbw.windowTitle(), "Search bibtex entries")
@@ -7841,7 +7841,7 @@ class TestSearchBibsWindow(GUITestCase):
                 ]
             )
             _crre.assert_called_once_with(sbw, 5)
-            self.assertEqual(_crlim.call_count, 0)
+            _crlim.assert_not_called()
         with patch(clsName + "createLine", autospec=True) as _crlin, patch(
             clsName + "createLimits", autospec=True
         ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
@@ -7849,7 +7849,7 @@ class TestSearchBibsWindow(GUITestCase):
             self.assertEqual(sbw.numberOfRows, 1)
             _crlin.assert_has_calls([call(sbw, 0, "sw")])
             _crre.assert_called_once_with(sbw, 4, previous="av")
-            self.assertEqual(_crlim.call_count, 0)
+            _crlim.assert_not_called()
         with patch(clsName + "createLine", autospec=True) as _crlin, patch(
             clsName + "createLimits", autospec=True
         ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
@@ -7857,7 +7857,7 @@ class TestSearchBibsWindow(GUITestCase):
             self.assertEqual(sbw.numberOfRows, 2)
             _crlin.assert_has_calls([call(sbw, 0, "lor"), call(sbw, 1, "th")])
             _crre.assert_called_once_with(sbw, 5, previous="hp")
-            self.assertEqual(_crlim.call_count, 0)
+            _crlim.assert_not_called()
 
         sbw.replace = False
         with patch(clsName + "createLine", autospec=True) as _crlin, patch(
@@ -7869,7 +7869,7 @@ class TestSearchBibsWindow(GUITestCase):
             _crlim.assert_called_once_with(
                 sbw, 4, defLim=321, defOffs=22, override=True
             )
-            self.assertEqual(_crre.call_count, 0)
+            _crre.assert_not_called()
         with patch(clsName + "createLine", autospec=True) as _crlin, patch(
             clsName + "createLimits", autospec=True
         ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
@@ -7877,7 +7877,7 @@ class TestSearchBibsWindow(GUITestCase):
             self.assertEqual(sbw.numberOfRows, 2)
             _crlin.assert_has_calls([call(sbw, 0, "lor"), call(sbw, 1, "th")])
             _crlim.assert_called_once_with(sbw, 5, defLim=654, defOffs=8, override=True)
-            self.assertEqual(_crre.call_count, 0)
+            _crre.assert_not_called()
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

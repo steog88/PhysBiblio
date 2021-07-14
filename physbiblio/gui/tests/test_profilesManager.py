@@ -86,7 +86,7 @@ class TestEditProf(GUIwMainWTestCase):
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m:
             editProfile(p)
-            self.assertEqual(_m.call_count, 0)
+            _m.assert_not_called()
 
         # test switch lines and some description
         ep = EditProfileWindow()
@@ -117,7 +117,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test2", "description", u"test2"),
@@ -125,8 +125,8 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"descrip"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
-            self.assertEqual(_cp.call_count, 0)
+            _dp.assert_not_called()
+            _cp.assert_not_called()
             _spo.assert_called_once_with(
                 pbConfig.globalDb, [u"test2", u"test1", u"test3"]
             )
@@ -168,8 +168,8 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"test3"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
-            self.assertEqual(_cp.call_count, 0)
+            _dp.assert_not_called()
+            _cp.assert_not_called()
             _spo.assert_called_once_with(
                 pbConfig.globalDb, [u"test1", u"test2", u"test3"]
             )
@@ -205,7 +205,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -214,7 +214,7 @@ class TestEditProf(GUIwMainWTestCase):
                 ]
             )
             _dp.assert_called_once_with(pbConfig.globalDb, "test2")
-            self.assertEqual(_cp.call_count, 0)
+            _cp.assert_not_called()
             _spo.assert_called_once_with(pbConfig.globalDb, [u"test1", u"test3"])
             _ayn.assert_called_once_with(
                 "Do you really want to cancel the "
@@ -252,7 +252,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -267,8 +267,8 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"test3"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
-            self.assertEqual(_cp.call_count, 0)
+            _dp.assert_not_called()
+            _cp.assert_not_called()
             _spo.assert_called_once_with(
                 pbConfig.globalDb, [u"test1", u"testA", u"test3"]
             )
@@ -305,7 +305,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -321,7 +321,7 @@ class TestEditProf(GUIwMainWTestCase):
                 ]
             )
             _dp.assert_called_once_with(pbConfig.globalDb, "testA")
-            self.assertEqual(_cp.call_count, 0)
+            _cp.assert_not_called()
             _spo.assert_called_once_with(pbConfig.globalDb, [u"test1", u"test3"])
             _ayn.assert_called_once_with(
                 "Do you really want to cancel the "
@@ -362,7 +362,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -377,8 +377,8 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"test3"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
-            self.assertEqual(_cp.call_count, 0)
+            _dp.assert_not_called()
+            _cp.assert_not_called()
             _spo.assert_called_once_with(
                 pbConfig.globalDb, [u"test1", u"testA", u"test3"]
             )
@@ -421,7 +421,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -429,7 +429,7 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"test3"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
+            _dp.assert_not_called()
             _cp.assert_called_once_with(
                 pbConfig.globalDb,
                 databasefile="testNew.db",
@@ -474,7 +474,7 @@ class TestEditProf(GUIwMainWTestCase):
         ) as _copy:
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
-            self.assertEqual(_sdp.call_count, 0)
+            _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
                     call(pbConfig.globalDb, u"test1", "description", u"test1"),
@@ -482,7 +482,7 @@ class TestEditProf(GUIwMainWTestCase):
                     call(pbConfig.globalDb, u"test3", "description", u"test3"),
                 ]
             )
-            self.assertEqual(_dp.call_count, 0)
+            _dp.assert_not_called()
             _cp.assert_called_once_with(
                 pbConfig.globalDb,
                 databasefile="testNew.db",
@@ -573,9 +573,9 @@ class TestSelectProfiles(GUIwMainWTestCase):
             "physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True
         ) as _ro:
             sp.onLoad()
-            self.assertEqual(_ri.call_count, 0)
-            self.assertEqual(_ro.call_count, 0)
-            self.assertEqual(_rc.call_count, 0)
+            _ri.assert_not_called()
+            _ro.assert_not_called()
+            _rc.assert_not_called()
             _rm.assert_called_once_with(p)
             _c.assert_called_once_with()
             _cat.assert_called_once_with(p)
@@ -1168,8 +1168,8 @@ class TestEditProfile(GUITestCase):
         ) as _i:
             self.assertFalse(ep.switchLines(2))
             _i.assert_called_once_with("Impossible to switch lines: index out of range")
-            self.assertEqual(_cl.call_count, 0)
-            self.assertEqual(_cf.call_count, 0)
+            _cl.assert_not_called()
+            _cf.assert_not_called()
 
 
 if __name__ == "__main__":

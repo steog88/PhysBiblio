@@ -79,7 +79,7 @@ class TestGUIErrorManager(GUITestCase):
             "physbiblio.gui.errorManager.QMessageBox", return_value=mb, autospec=True
         ) as _mb:
             self.assertEqual(es.write(" "), None)
-            self.assertEqual(_mb.call_count, 0)
+            _mb.assert_not_called()
 
     def test_PBErrorManagerClassGui(self):
         """Test functions in ErrorStream"""

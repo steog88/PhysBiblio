@@ -1260,7 +1260,7 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.handleItemEntered(ix), None)
             _l.assert_called_once_with("Failed in finding category")
             _gbi.assert_called_once_with(pBDB.cats, "0")
-            self.assertEqual(_st.call_count, 0)
+            _st.assert_not_called()
             _sh.assert_not_called()
         with patch("logging.Logger.exception") as _l, patch(
             "PySide2.QtCore.QTimer.start", autospec=True
@@ -1366,9 +1366,9 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _f:
             ctw.contextMenuEvent(ev)
             _f.assert_called_once_with(ctw.menu)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
+            _dc.assert_not_called()
 
             self.assertIsInstance(ctw.menu, PBMenu)
             self.assertIsInstance(ctw.menu.possibleActions, list)
@@ -1391,9 +1391,9 @@ class TestCatsTreeWindow(GUITestCase):
 
             mm.exec_ = lambda x, i=0: mm.possibleActions[i]
             ctw.contextMenuEvent(ev)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
+            _dc.assert_not_called()
 
             mm.exec_ = lambda x, i=2: mm.possibleActions[i]
             with patch(
@@ -1404,8 +1404,8 @@ class TestCatsTreeWindow(GUITestCase):
                 ctw.contextMenuEvent(ev)
                 _ffd.assert_called_once_with(pBDB.bibs, "0")
             _rmc.assert_called_once_with(p, ["a"])
-            self.assertEqual(_ec.call_count, 0)
-            self.assertEqual(_dc.call_count, 0)
+            _ec.assert_not_called()
+            _dc.assert_not_called()
             _rmc.reset_mock()
 
             mm.exec_ = lambda x, i=4: mm.possibleActions[i]
@@ -1415,9 +1415,9 @@ class TestCatsTreeWindow(GUITestCase):
                 autospec=True,
             ) as _ffd:
                 ctw.contextMenuEvent(ev)
-            self.assertEqual(_rmc.call_count, 0)
+            _rmc.assert_not_called()
             _ec.assert_called_once_with(ctw, p, "0")
-            self.assertEqual(_dc.call_count, 0)
+            _dc.assert_not_called()
             _ec.reset_mock()
 
             mm.exec_ = lambda x, i=5: mm.possibleActions[i]
@@ -1427,8 +1427,8 @@ class TestCatsTreeWindow(GUITestCase):
                 autospec=True,
             ) as _ffd:
                 ctw.contextMenuEvent(ev)
-            self.assertEqual(_rmc.call_count, 0)
-            self.assertEqual(_ec.call_count, 0)
+            _rmc.assert_not_called()
+            _ec.assert_not_called()
             _dc.assert_called_once_with(ctw, p, "0", "mainS")
             _dc.reset_mock()
 
@@ -1439,9 +1439,9 @@ class TestCatsTreeWindow(GUITestCase):
                 autospec=True,
             ) as _ffd:
                 ctw.contextMenuEvent(ev)
-            self.assertEqual(_rmc.call_count, 0)
+            _rmc.assert_not_called()
             _ec.assert_called_once_with(ctw, p, useParentCat="0")
-            self.assertEqual(_dc.call_count, 0)
+            _dc.assert_not_called()
 
         with patch(
             "PySide2.QtWidgets.QTreeView.selectedIndexes",
@@ -1453,7 +1453,7 @@ class TestCatsTreeWindow(GUITestCase):
             ctw.contextMenuEvent(ev)
             _si.assert_called_once_with()
             _d.assert_called_once_with("Click on missing index")
-            self.assertEqual(_iv.call_count, 0)
+            _iv.assert_not_called()
 
     def test_cellDoubleClick(self):
         """test cellDoubleClick"""
@@ -1467,7 +1467,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _rmc:
             self.assertEqual(ctw.cellDoubleClick(ix), None)
             _iv.assert_called_once_with()
-            self.assertEqual(_rmc.call_count, 0)
+            _rmc.assert_not_called()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc, patch(
@@ -1539,7 +1539,7 @@ class TestEditCategoryDialog(GUITestCase):
             "physbiblio.database.Categories.getParent", return_value=1, autospec=True
         ) as _p:
             ecd = EditCategoryDialog(parent=p, category=cat, useParentCat=14)
-            self.assertEqual(_p.call_count, 0)
+            _p.assert_not_called()
         for k in pBDB.tableCols["categories"]:
             if k != "parentCat":
                 self.assertEqual(ecd.data[k], cat[k])
