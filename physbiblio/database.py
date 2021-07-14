@@ -3316,6 +3316,146 @@ class Entries(PhysBiblioDBSub):
         self.updateField(bibkey, "bibtex", bibtex)
         return True
 
+    def checkExistingEntry(self, entry, **kwargs):
+        """Use the entry, arxiv or doi of the input entry
+        to verify it is present in the local database
+
+        Parameters:
+            entry: the bibkey
+            kwargs["arxiv"], kwargs["doi"]: the arxiv/doi of the entry
+                to be searched in the database
+
+        Output:
+            False if an error occurred,
+            a (possibly empty) list of entries otherwise
+        """
+        existing = self.getByBibkey(entry, saveQuery=False)
+        for f in ["arxiv", "doi"]:
+            val = (
+                kwargs[f]
+                if (f in kwargs and kwargs[f] is not None and kwargs[f] != "")
+                else entry
+            )
+            try:
+                existing += self.fetchAll(params={f: val}, saveQuery=False).lastFetched
+            except Exception:
+                pBLogger.debug("Error", exc_info=True)
+                return False
+        return existing
+
+    def loadAndInsertNoList(
+        self,
+        entry,
+        method="inspire",
+        imposeKey=None,
+        number=None,
+        returnBibtex=False,
+    ):
+        """Read a single keyword and look for inspire contents,
+        then load in the database all the info
+
+        Parameters:
+            entry: the bibtex key or a list
+            method: "inspire" (default) or any other supported method
+                from the webimport subpackage or "bibtex"
+            imposeKey (default None): if a string, the bibtex key
+                to use with the imported entry
+            number (default None): if not None, the index
+                of the wanted entry in the list of results
+            returnBibtex (boolean, default False): whether to return
+                the bibtex of the entry
+        """
+
+        def printExisting(entry, existing):
+            """Print a message if the entry already exists,
+            returns True or the bibtex field depending
+            on the value of returnBibtex
+
+            Parameters:
+                entry: the entry key
+                existing: the list of dictionaries returned
+                    by self.getByBibkey
+
+            Output:
+                the bibtex field if returnBibtex is True, True otherwise
+            """
+            pBLogger.info(dstr.Bibs.alreadyExisting % entry)
+            return existing[0]["bibtex"] if returnBibtex else True
+
+        requireAll = False
+        existing = self.checkExistingEntry(entry)
+        if existing:
+            return printExisting(entry, existing)
+        if method == "bibtex":
+            try:
+                db = bibtexparser.bibdatabase.BibDatabase()
+                db.entries = (
+                    bibtexparser.bparser.BibTexParser(common_strings=True)
+                    .parse(entry)
+                    .entries
+                )
+                e = self.rmBibtexComments(
+                    self.rmBibtexACapo(pbWriter.write(db).strip())
+                )
+            except ParseException:
+                pBLogger.exception(dstr.Bibs.laiReadError % entry)
+                return False
+        else:
+            try:
+                e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
+            except KeyError:
+                pBLogger.exception(dstr.Bibs.laiInvalidMethod % method)
+                return False
+        if [a.startswith("@") for a in e.split("\n")].count(True) > 1:
+            if number is not None:
+                requireAll = True
+            else:
+                pBLogger.warning(dstr.Bibs.laiMismatch % e)
+                return False
+        kwargs = {}
+        if requireAll:
+            kwargs["number"] = number
+        if imposeKey is not None and imposeKey.strip() != "":
+            kwargs["bibkey"] = imposeKey
+        data = self.prepareInsert(e, **kwargs)
+        key = data["bibkey"]
+        if key.strip() == "":
+            pBLogger.error(dstr.Bibs.laiEmptyKey % entry)
+            return False
+        existing = self.checkExistingEntry(key, arxiv=data["arxiv"], doi=data["doi"])
+        if existing:
+            return printExisting(key, existing)
+        pBLogger.info(dstr.Bibs.laiNewKey % key)
+        if pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
+            arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+                data["arxiv"], searchType="id", fullDict=True
+            )
+            data["abstract"] = arxivDict["abstract"]
+        try:
+            self.insert(data)
+        except Exception:
+            pBLogger.exception(dstr.Bibs.laiFailed % entry)
+            return False
+        try:
+            self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
+            if method == "inspire":
+                eid = self.updateInspireID(
+                    entry, key, number=None if not requireAll else number
+                )
+                self.updateInfoFromOAI(eid)
+            elif method == "isbn":
+                self.setBook(key)
+            if "inproceeding" in data["bibtex"].lower():
+                self.setProceeding(key)
+            if "phdthesis" in data["bibtex"].lower():
+                self.setPhdThesis(key)
+            pBLogger.info(dstr.Bibs.laiInserted)
+            self.lastInserted.append(key)
+            return e if returnBibtex else True
+        except Exception:
+            pBLogger.warning(dstr.failedComplete % entry, exc_info=True)
+            return False
+
     def loadAndInsert(
         self,
         entry,
@@ -3354,26 +3494,6 @@ class Entries(PhysBiblioDBSub):
             the bibtex field if entry is a single element
                 and returnBibtex is True
         """
-        requireAll = False
-
-        def printExisting(entry, existing):
-            """Print a message if the entry already exists,
-            returns True or the bibtex field depending
-            on the value of returnBibtex
-
-            Parameters:
-                entry: the entry key
-                existing: the list of dictionaries returned
-                    by self.getByBibkey
-
-            Output:
-                the bibtex field if returnBibtex is True, True otherwise
-            """
-            pBLogger.info(dstr.Bibs.alreadyExisting % entry)
-            if returnBibtex:
-                return existing[0]["bibtex"]
-            else:
-                return True
 
         def returnListIfSub(a, out):
             """If the original list contains sublists,
@@ -3391,113 +3511,20 @@ class Entries(PhysBiblioDBSub):
             if isinstance(a, list):
                 for el in a:
                     out = returnListIfSub(el, out)
-                return out
             else:
                 out += [a]
-                return out
+            return out
 
         if not childProcess:
             self.lastInserted = []
         if entry is not None and not isinstance(entry, list):
-            existing = self.getByBibkey(entry, saveQuery=False)
-            exist = len(existing) > 0
-            for f in ["arxiv", "doi"]:
-                try:
-                    temp = self.fetchAll(params={f: entry}, saveQuery=False).lastFetched
-                    exist = exist or (len(temp) > 0)
-                    existing += temp
-                except KeyError:
-                    pBLogger.debug("Error", exc_info=True)
-            if existing:
-                return printExisting(entry, existing)
-            if method == "bibtex":
-                try:
-                    db = bibtexparser.bibdatabase.BibDatabase()
-                    db.entries = (
-                        bibtexparser.bparser.BibTexParser(common_strings=True)
-                        .parse(entry)
-                        .entries
-                    )
-                    e = self.rmBibtexComments(
-                        self.rmBibtexACapo(pbWriter.write(db).strip())
-                    )
-                except ParseException:
-                    pBLogger.exception(dstr.Bibs.laiReadError % entry)
-                    return False
-            else:
-                try:
-                    e = physBiblioWeb.webSearch[method].retrieveUrlAll(entry)
-                except KeyError:
-                    pBLogger.exception(dstr.Bibs.laiInvalidMethod % method)
-                    return False
-            if [a.startswith("@") for a in e.split("\n")].count(True) > 1:
-                if number is not None:
-                    requireAll = True
-                else:
-                    pBLogger.warning(dstr.Bibs.laiMismatch % e)
-                    return False
-            kwargs = {}
-            if requireAll:
-                kwargs["number"] = number
-            if imposeKey is not None and imposeKey.strip() != "":
-                kwargs["bibkey"] = imposeKey
-            data = self.prepareInsert(e, **kwargs)
-            key = data["bibkey"]
-            if key.strip() == "":
-                pBLogger.error(dstr.Bibs.laiEmptyKey % entry)
-                return False
-            existing = self.getByBibkey(key, saveQuery=False)
-            exist = len(existing) > 0
-            for f in ["arxiv", "doi"]:
-                try:
-                    if (
-                        data[f] is not None
-                        and isinstance(data[f], six.string_types)
-                        and data[f].strip() != ""
-                    ):
-                        temp = self.fetchAll(
-                            params={f: data[f]}, saveQuery=False
-                        ).lastFetched
-                        exist = exist or (len(temp) > 0)
-                        existing += temp
-                except (AttributeError, KeyError):
-                    pBLogger.debug("Error", exc_info=True)
-            if existing:
-                return printExisting(key, existing)
-            pBLogger.info(dstr.Bibs.laiNewKey % key)
-            if pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
-                arxivBibtex, arxivDict = physBiblioWeb.webSearch[
-                    "arxiv"
-                ].retrieveUrlAll(data["arxiv"], searchType="id", fullDict=True)
-                data["abstract"] = arxivDict["abstract"]
-            try:
-                self.insert(data)
-            except:
-                pBLogger.exception(dstr.Bibs.laiFailed % entry)
-                return False
-            try:
-                self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
-                if method == "inspire":
-                    if not requireAll:
-                        eid = self.updateInspireID(entry, key)
-                    else:
-                        eid = self.updateInspireID(entry, key, number=number)
-                    self.updateInfoFromOAI(eid)
-                elif method == "isbn":
-                    self.setBook(key)
-                if "inproceeding" in data["bibtex"].lower():
-                    self.setProceeding(key)
-                if "phdthesis" in data["bibtex"].lower():
-                    self.setPhdThesis(key)
-                pBLogger.info(dstr.Bibs.laiInserted)
-                self.lastInserted.append(key)
-                if returnBibtex:
-                    return e
-                else:
-                    return True
-            except:
-                pBLogger.warning(dstr.failedComplete % entry, exc_info=True)
-                return False
+            return self.loadAndInsertNoList(
+                entry,
+                method=method,
+                imposeKey=imposeKey,
+                number=number,
+                returnBibtex=returnBibtex,
+            )
         elif entry is not None and isinstance(entry, list):
             failed = []
             entry = returnListIfSub(entry, [])
@@ -3520,7 +3547,13 @@ class Entries(PhysBiblioDBSub):
                         dstr.Bibs.laiProcessProgr
                         % (ie + 1, tot, 100.0 * (ie + 1) / tot, e)
                     )
-                    if not self.loadAndInsert(e, childProcess=True):
+                    if not self.loadAndInsertNoList(
+                        e,
+                        method=method,
+                        imposeKey=imposeKey,
+                        number=number,
+                        returnBibtex=returnBibtex,
+                    ):
                         failed.append(e)
             if len(self.lastInserted) > 0:
                 pBLogger.info(dstr.Bibs.laiImported % ", ".join(self.lastInserted))

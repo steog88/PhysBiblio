@@ -6208,6 +6208,61 @@ class TestDatabaseEntries(DBTestCase):
 
             os.remove("tmpbib.bib")
 
+    def test_checkExistingEntry(self, *args):
+        """test checkExistingEntry"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "arxiv", "1234.5678")
+        self.pBDB.bibs.updateField("def", "arxiv", "5678.1234")
+        self.pBDB.bibs.updateField("ghi", "arxiv", "")
+        self.pBDB.bibs.updateField("abc", "doi", "1/2/3")
+        self.pBDB.bibs.updateField("def", "doi", "")
+        self.pBDB.bibs.updateField("ghi", "doi", "2/3/4")
+        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd"), [])
+        self.assertEqual(
+            self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.4321"), []
+        )
+        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1/2/3/4"), [])
+        self.assertEqual(
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("abc")], ["abc"]
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.5678")
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1234.5678")],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("ghi", arxiv="5678.1234")
+            ],
+            ["ghi", "def"],
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("defg", doi="1/2/3")
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1/2/3")], ["abc"]
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry(
+                    "def", doi="2/3/4", arxiv="1234.5678"
+                )
+            ],
+            ["def", "abc", "ghi"],
+        )
+
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_loadAndInsert_online(self, *args):
         """tests for loadAndInsert with online connection"""
@@ -6472,7 +6527,9 @@ class TestDatabaseEntries(DBTestCase):
                 autospec=True,
             ) as _mock:
                 self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
-                _mock_uiid.assert_called_once_with(self.pBDB.bibs, "key0", "key0")
+                _mock_uiid.assert_called_once_with(
+                    self.pBDB.bibs, "key0", "key0", number=None
+                )
                 _mock_uio.assert_called_once_with(self.pBDB.bibs, "1")
             self.pBDB.undo(verbose=0)
             _mock_uiid.reset_mock()
