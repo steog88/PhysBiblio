@@ -674,23 +674,23 @@ class WebSearch(WebInterf, InspireStrings):
                     pass
             else:
                 tmpDict["ENTRYTYPE"] = "article"
-        # citations
-        try:
-            tmpDict["cit_no_self"] = record["metadata"][
-                "citation_count_without_self_citations"
-            ]
-        except KeyError:
-            tmpDict["cit_no_self"] = None
-        try:
-            tmpDict["cit"] = record["metadata"]["citation_count"]
-        except KeyError:
-            tmpDict["cit"] = None
         # clean accents
         for k in tmpDict.keys():
             try:
                 tmpDict[k] = parse_accents_str(tmpDict[k])
             except Exception:
                 pass
+        # citations
+        try:
+            tmpDict["cit_no_self"] = int(
+                record["metadata"]["citation_count_without_self_citations"]
+            )
+        except (KeyError, ValueError):
+            tmpDict["cit_no_self"] = None
+        try:
+            tmpDict["cit"] = int(record["metadata"]["citation_count"])
+        except (KeyError, ValueError):
+            tmpDict["cit"] = None
         # link
         tmpDict["link"] = None
         try:

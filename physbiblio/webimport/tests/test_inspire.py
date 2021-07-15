@@ -825,8 +825,8 @@ class TestInspireMethods(unittest.TestCase):
             "isbn": "isbn1",
             "reportnumber": "rn1, rn2, rn3",
             "link": "https://doi.org/doi1",
-            "cit": "122",
-            "cit_no_self": "111",
+            "cit": 122,
+            "cit_no_self": 111,
         }
         res2["bibtex"] = getBibtex(res2)
         record3 = {"metadata": {}}
