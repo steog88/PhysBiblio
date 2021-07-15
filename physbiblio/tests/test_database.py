@@ -2595,9 +2595,7 @@ class TestDatabaseEntries(DBTestCase):
         """test cleanBibtex"""
         db = bibtexparser.bibdatabase.BibDatabase()
         b = '@article{abc,\nauthor="me",\ntitle="title",\n}\n'
-        db.entries = [
-            bibtexparser.bparser.BibTexParser(common_strings=True).parse(b).entries[0]
-        ]
+        db.entries = [self.pBDB.bibs.readEntry(b)]
         n = self.pBDB.bibs.bibtexFromDB(db)
         with patch(
             "physbiblio.database.Entries.updateField", side_effect=[False, True]
@@ -6827,6 +6825,36 @@ class TestDatabaseEntries(DBTestCase):
             + " ]  (rev) abc                          "
             + "  1234                 somedoi             \n",
         )
+
+    def test_readEntries(self, *args):
+        """test readEntries"""
+        res = MagicMock()
+        res.entries = []
+        with patch("bibtexparser.bparser.BibTexParser.parse", return_value=res) as _f:
+            self.assertEqual(self.pBDB.bibs.readEntries("abc"), [])
+            _f.assert_called_once_with("abc")
+            res.entries = [{"a": "b"}]
+            self.assertEqual(self.pBDB.bibs.readEntries("abc"), [{"a": "b"}])
+        with patch(
+            "bibtexparser.bparser.BibTexParser.parse", side_effect=ValueError
+        ) as _f:
+            with self.assertRaises(ValueError):
+                self.pBDB.bibs.readEntries("abc")
+
+    def test_readEntry(self, *args):
+        """test readEntry"""
+        with patch(
+            "physbiblio.database.Entries.readEntries",
+            side_effect=[123, {"abc"}, [], [{"a": "b"}]],
+        ) as _f:
+            with self.assertRaises(TypeError):
+                self.pBDB.bibs.readEntry("abc")
+                _f.assert_called_once_with("abc")
+            with self.assertRaises(TypeError):
+                self.pBDB.bibs.readEntry("abc")
+            with self.assertRaises(IndexError):
+                self.pBDB.bibs.readEntry("abc")
+            self.assertEqual(self.pBDB.bibs.readEntry("abc"), {"a": "b"})
 
     def test_replace(self, *args):
         """test replace functions"""

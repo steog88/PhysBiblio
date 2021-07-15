@@ -1808,11 +1808,7 @@ class MainWindow(QMainWindow):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
             if cont.strip() != "":
-                elements = (
-                    bibtexparser.bparser.BibTexParser(common_strings=True)
-                    .parse(cont)
-                    .entries
-                )
+                elements = pBDB.bibs.readEntries(cont)
             else:
                 elements = []
             found = {}

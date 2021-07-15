@@ -1608,11 +1608,7 @@ class Entries(PhysBiblioDBSub):
                     tmp["bibtexDict"] = tmp["bibdict"]
             else:
                 try:
-                    tmp["bibtexDict"] = (
-                        bibtexparser.bparser.BibTexParser(common_strings=True)
-                        .parse(el["bibtex"])
-                        .entries[0]
-                    )
+                    tmp["bibtexDict"] = self.readEntry(el["bibtex"])
                 except IndexError:
                     tmp["bibtexDict"] = {}
                     tmp["bibdict"] = {}
@@ -1788,11 +1784,7 @@ class Entries(PhysBiblioDBSub):
         """
         if db is None:
             db = bibtexparser.bibdatabase.BibDatabase()
-        db.entries = [
-            bibtexparser.bparser.BibTexParser(common_strings=True)
-            .parse(bibtex)
-            .entries[0]
-        ]
+        db.entries = [self.readEntry(bibtex)]
         newbibtex = self.bibtexFromDB(db)
         return bibtex != newbibtex and self.updateField(bibkey, "bibtex", newbibtex)
 
@@ -2521,7 +2513,6 @@ class Entries(PhysBiblioDBSub):
             pbMax(tot)
         except TypeError:
             pass
-        db = bibtexparser.bibdatabase.BibDatabase()
         for ix, e in enumerate(iterator):
             try:
                 pbVal(ix + 1)
@@ -2533,11 +2524,7 @@ class Entries(PhysBiblioDBSub):
                     % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
                 )
                 try:
-                    element = (
-                        bibtexparser.bparser.BibTexParser(common_strings=True)
-                        .parse(e["bibtex"])
-                        .entries[0]
-                    )
+                    element = self.readEntry(e["bibtex"])
                     pBLogger.info(dstr.Bibs.fcbReadable % element["ID"])
                 except Exception:
                     bibtexs.append(e["bibkey"])
@@ -2823,11 +2810,7 @@ class Entries(PhysBiblioDBSub):
             arxiv, searchType="id", fullDict=True
         )
         try:
-            tmp = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(bibtex)
-                .entries[0]
-            )
+            tmp = self.readEntry(bibtex)
         except IndexError:
             pBLogger.exception(dstr.Bibs.gffaFailed)
             return False
@@ -3128,11 +3111,7 @@ class Entries(PhysBiblioDBSub):
         if method == "bibtex":
             try:
                 db = bibtexparser.bibdatabase.BibDatabase()
-                db.entries = (
-                    bibtexparser.bparser.BibTexParser(common_strings=True)
-                    .parse(entry)
-                    .entries
-                )
+                db.entries = self.readEntries(entry)
                 e = self.bibtexFromDB(db)
             except ParseException:
                 pBLogger.exception(dstr.Bibs.laiReadError % entry)
@@ -3274,9 +3253,8 @@ class Entries(PhysBiblioDBSub):
             if verbose:
                 pBLogger.warning(dstr.Bibs.psbEmpty)
             return []
-        bp = bibtexparser.bparser.BibTexParser(common_strings=True)
         try:
-            entries = bp.parse(text).entries
+            entries = self.readEntries(text)
         except ParseException:
             errors.append(text)
             pBLogger.exception(dstr.Bibs.psbError % text)
@@ -3340,11 +3318,7 @@ class Entries(PhysBiblioDBSub):
         if number is None:
             number = 0
         try:
-            elements = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(bibtex)
-                .entries
-            )
+            elements = self.readEntries(bibtex)
         except ParseException:
             pBLogger.info(dstr.Bibs.errorParseBib)
             data["bibkey"] = ""
@@ -3434,11 +3408,7 @@ class Entries(PhysBiblioDBSub):
         )
         # bibtex dict
         try:
-            tmpBibDict = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(data["bibtex"])
-                .entries[0]
-            )
+            tmpBibDict = self.readEntry(data["bibtex"])
         except IndexError:
             tmpBibDict = {}
         except ParseException:
@@ -3477,16 +3447,8 @@ class Entries(PhysBiblioDBSub):
             the joined bibtex
         """
         try:
-            elementOld = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(bibtexOld)
-                .entries[0]
-            )
-            elementNew = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(bibtexNew)
-                .entries[0]
-            )
+            elementOld = self.readEntry(bibtexOld)
+            elementNew = self.readEntry(bibtexNew)
         except ParseException:
             pBLogger.warning(dstr.Bibs.parsingExcPU % (bibtexOld, bibtexNew))
             return ""
@@ -3643,6 +3605,32 @@ class Entries(PhysBiblioDBSub):
                 except:
                     pass
         pBLogger.info(dstr.Bibs.elementsFound % total)
+
+    def readEntries(self, bibtex):
+        """Build a BibTexParser and extract the parsed entries
+        from the given bibtex string
+
+        Parameter:
+            bibtex: a bibtex string
+
+        Output:
+            a list of dictionaries
+        """
+        return (
+            bibtexparser.bparser.BibTexParser(common_strings=True).parse(bibtex).entries
+        )
+
+    def readEntry(self, bibtex):
+        """Build a BibTexParser and extract the first of the entries
+        parsed from the given bibtex string
+
+        Parameter:
+            bibtex: a bibtex string
+
+        Output:
+            a dictionary
+        """
+        return self.readEntries(bibtex)[0]
 
     def replace(
         self,
@@ -3832,11 +3820,7 @@ class Entries(PhysBiblioDBSub):
         db = bibtexparser.bibdatabase.BibDatabase()
         tmp = {}
         try:
-            element = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(bibtex)
-                .entries[0]
-            )
+            element = self.readEntry(bibtex)
         except (IndexError, ParseException):
             pBLogger.warning(dstr.Bibs.cannotParse % bibtex)
             return ""
@@ -4148,11 +4132,7 @@ class Entries(PhysBiblioDBSub):
             pBLogger.info(dstr.Bibs.updateField % (field, key))
         if field == "bibtex" and value != "" and value is not None:
             try:
-                tmpBibDict = (
-                    bibtexparser.bparser.BibTexParser(common_strings=True)
-                    .parse(value)
-                    .entries[0]
-                )
+                tmpBibDict = self.readEntry(value)
             except IndexError:
                 tmpBibDict = {}
             except ParseException:

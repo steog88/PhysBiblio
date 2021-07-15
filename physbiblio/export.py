@@ -218,11 +218,7 @@ class PBExport:
                 m: the ID (bibtex key) of the entry,
                     if it is not the default one
             """
-            entry = (
-                bibtexparser.bparser.BibTexParser(common_strings=True)
-                .parse(a)
-                .entries[0]
-            )
+            entry = pBDB.bibs.readEntry(a)
             for u in self.unwantedFields:
                 try:
                     del entry[u]
@@ -548,15 +544,13 @@ class PBExport:
             pBLogger.exception(exstr.cannotWrite)
             return False
         try:
-            biblist = bibtexparser.bparser.BibTexParser(common_strings=True).parse(
-                bibfile
-            )
+            entries = pBDB.bibs.readEntries(bibfile)
         except IndexError:
             pBLogger.exception(exstr.errorLoading)
             return False
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = []
-        for b in biblist.entries:
+        for b in entries:
             key = b["ID"]
             element = pBDB.bibs.getByBibkey(key, saveQuery=False)
             if len(element) > 0:
