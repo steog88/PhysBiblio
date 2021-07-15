@@ -8,6 +8,7 @@ import datetime
 import sys
 import traceback
 
+import bibtexparser
 import six
 
 if sys.version_info[0] < 3:
@@ -2459,582 +2460,261 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
 
-    def test_delete(self, *args):
-        """Test delete a bibtex entry from the DB"""
+    def test_checkExistingEntry(self, *args):
+        """test checkExistingEntry"""
         self.insert_three()
-        self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
-        self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
-        dbStats(self.pBDB)
+        self.pBDB.bibs.updateField("abc", "arxiv", "1234.5678")
+        self.pBDB.bibs.updateField("def", "arxiv", "5678.1234")
+        self.pBDB.bibs.updateField("ghi", "arxiv", "")
+        self.pBDB.bibs.updateField("abc", "doi", "1/2/3")
+        self.pBDB.bibs.updateField("def", "doi", "")
+        self.pBDB.bibs.updateField("ghi", "doi", "2/3/4")
+        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd"), [])
         self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+            self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.4321"), []
         )
-        self.pBDB.bibs.delete("aaa")
-        dbStats(self.pBDB)
+        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1/2/3/4"), [])
         self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("abc")], ["abc"]
         )
-        self.pBDB.bibs.delete("abc")
-        dbStats(self.pBDB)
         self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 2, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0},
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.5678")
+            ],
+            ["abc"],
         )
-        self.pBDB.bibs.delete(["def", "ghi"])
-        dbStats(self.pBDB)
         self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 0, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0},
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1234.5678")],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("ghi", arxiv="5678.1234")
+            ],
+            ["ghi", "def"],
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry("defg", doi="1/2/3")
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1/2/3")], ["abc"]
+        )
+        self.assertEqual(
+            [
+                a["bibkey"]
+                for a in self.pBDB.bibs.checkExistingEntry(
+                    "def", doi="2/3/4", arxiv="1234.5678"
+                )
+            ],
+            ["def", "abc", "ghi"],
         )
 
-    def test_prepareInsert(self, *args):
-        """test prepareInsert"""
-        # multiple entries in bibtex:
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n'
-                + 'title = "mytit",}\n@article{def,\nauthor = "you",'
-                + '\ntitle = "other",}'
-            )["bibkey"],
-            "abc",
-        )
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n'
-                + 'title = "mytit",}\n@article{def,\nauthor = "you",\n'
-                + 'title = "other",}',
-                number=1,
-            )["bibkey"],
-            "def",
-        )
-
-        # different fields
-        bibtex = (
-            u'@article{abc,\nauthor = "me",\n'
-            + 'title = "mytit",\narxiv="1801.00000",\n}'
-        )
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, bibkey="def")["bibkey"], "def"
-        )
-        self.assertIn(
-            "rticle{def,", self.pBDB.bibs.prepareInsert(bibtex, bibkey="def")["bibtex"]
-        )
-
-        data = self.pBDB.bibs.prepareInsert(bibtex)
-        self.assertEqual(data["bibkey"], "abc")
-        self.assertEqual(data["arxiv"], "1801.00000")
-        self.assertEqual(
-            ast.literal_eval(data["bibdict"]),
-            {
-                "ENTRYTYPE": "article",
-                "ID": "abc",
-                "arxiv": "1801.00000",
-                "author": "me",
-                "title": "{mytit}",
-            },
-        )
-
-        # test simple fields
-        bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
-        for k in ["inspire", "ads", "scholar", "comments", "old_keys", "abstract"]:
-            self.assertEqual(data[k], None)
-            tmp = {}
-            tmp[k] = "try"
-            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
-        for k in ["pubdate", "marks"]:
-            self.assertEqual(data[k], "")
-            tmp = {}
-            tmp[k] = "try"
-            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
-        for k in [
-            "exp_paper",
-            "lecture",
-            "phd_thesis",
-            "review",
-            "proceeding",
-            "book",
-            "noUpdate",
-        ]:
-            self.assertEqual(data[k], 0)
-            tmp = {}
-            tmp[k] = 1
-            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], 1)
-
-        # test arxiv
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, arxiv="1801.00000")["arxiv"],
-            "1801.00000",
-        )
-        bibtexA = (
-            u'@article{abc,\nauthor = "me",\n'
-            + 'title = "mytit",\neprint="1801.00000",\n}'
-        )
-        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)["arxiv"], "1801.00000")
-        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["arxiv"], "")
-
-        # more tests
-        self.assertEqual(data["doi"], None)
-        self.assertEqual(data["crossref"], None)
-        self.assertEqual(data["abstract"], None)
-        for k in ["doi", "isbn", "crossref", "abstract"]:
-            bibtexA = (
-                u'@article{abc,\nauthor = "me",\n'
-                + 'title = "mytit",\n%s="something",\n}' % k
+    def test_citationCount(self, *args):
+        """test citationCount"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "inspire", "12345")
+        self.pBDB.bibs.updateField("def", "inspire", "23456")
+        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=([], 0),
+        ) as _rb:
+            self.assertEqual(self.pBDB.bibs.citationCount("12345"), (0, 0, []))
+            _rb.assert_called_once_with(
+                ["12345"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
             )
-            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)[k], "something")
-            tmp = {}
-            tmp[k] = "something"
+        pm = MagicMock()
+        pv = MagicMock()
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=(["a"], 2),
+        ) as _rb, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            return_value={"id": "12345", "cit": 123, "cit_no_self": 120},
+        ) as _rr:
             self.assertEqual(
-                self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "something"
+                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
+                (1, 0, ["abc"]),
             )
-
-        # test year
-        self.assertEqual(data["year"], "2018")
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, year="1999")["year"], "1999"
-        )
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, arxiv="hep-ph/9901000")["year"], "1999"
-        )
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nyear="2005",\n}'
-            )["year"],
-            "2005",
-        )
-        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["year"], None)
-
-        # test link
-        self.assertEqual(data["link"], pbConfig.arxivUrl + "/abs/1801.00000")
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, link="http://some.thing")["link"],
-            "http://some.thing",
-        )
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, doi="somedoi")["link"],
-            pbConfig.doiUrl + "somedoi",
-        )
-        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["link"], "")
-
-        # test firstdate
-        self.assertEqual(data["firstdate"], datetime.date.today().strftime("%Y-%m-%d"))
-        self.assertEqual(
-            self.pBDB.bibs.prepareInsert(bibtex, firstdate="2018-01-01")["firstdate"],
-            "2018-01-01",
-        )
-
-        # test abstract
-        bibtex = (
-            u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nabstract="try",\n}'
-        )
-        data = self.pBDB.bibs.prepareInsert(bibtex)
-        self.assertEqual(data["abstract"], "try")
-        self.assertEqual(
-            ast.literal_eval(data["bibdict"]),
-            {
-                "ENTRYTYPE": "article",
-                "ID": "abc",
-                "abstract": "{try}",
-                "author": "me",
-                "title": "{mytit}",
-            },
-        )
-
-        # empty bibtex
-        self.assertEqual(self.pBDB.bibs.prepareInsert(""), {"bibkey": ""})
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.prepareInsert("")
-            _i.assert_any_call("No elements found?")
-        self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"), {"bibkey": ""})
-
-    def test_insert(self, *args):
-        """Test insertion and of bibtex items"""
-        self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
-        data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
-        )
-        self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
-        self.pBDB.undo(verbose=False)
-        del data["arxiv"]
-        self.assertFalse(self.pBDB.bibs.insert(data))
-        with patch("logging.Logger.exception") as _i:
-            self.pBDB.bibs.insert(data)
-            self.assertIn(
-                "You did not supply a value for binding 3.", _i.call_args[0][0]
+            _rb.assert_called_once_with(
+                ["12345", "23456"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
             )
-        self.assertTrue(
-            self.pBDB.bibs.insertFromBibtex(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+            _rr.assert_called_once_with("a", noWarning=True)
+            pm.assert_called_once_with(2)
+            pv.assert_called_once_with(1)
+            a = self.pBDB.bibs.getByBibkey("abc")[0]
+            self.assertEqual(a["citations"], 123)
+            self.assertEqual(a["citations_no_self"], 120)
+            a = self.pBDB.bibs.getByBibkey("def")[0]
+            self.assertEqual(a["citations"], 0)
+            self.assertEqual(a["citations_no_self"], 0)
+        with patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            return_value=(["a", "b", "c"], 2),
+        ) as _rb, patch(
+            "physbiblio.webimport.inspire.WebSearch.readRecord",
+            side_effect=(
+                {"id": "34567", "cit": 1, "cit_no_self": 1},
+                {"id": "01234", "cit": 13, "cit_no_self": 1},
+                {"id": "23456"},
+            ),
+        ) as _rr:
+            self.assertEqual(
+                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
+                (3, 1, ["ghi"]),
             )
-        )
-
-    def test_update(self, *args):
-        """Test general update, field update, bibkey update"""
-        self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
-        data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
-        )
-        self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
-        datanew = self.pBDB.bibs.prepareInsert(
-            u'@article{cde,\nauthor = "me",\ntitle = "abc",}', arxiv="cde"
-        )
-        self.assertTrue(self.pBDB.bibs.update(datanew, "abc"))
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
-        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "cde")
-        del data["arxiv"]
-        self.assertTrue(self.pBDB.bibs.update(data, "abc"))
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
-        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), None)
-        e1 = self.pBDB.bibs.getByBibkey("abc")
-        self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde"}, "abc"))
-        with patch("logging.Logger.exception") as _e:
-            self.pBDB.bibs.update({"bibkey": "cde"}, "abc")
-            self.assertIn(
-                "NOT NULL constraint failed: entries.bibtex", _e.call_args[0][0]
+            _rb.assert_called_once_with(
+                ["12345", "23456"],
+                searchFormat="recid:%s",
+                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
             )
-        self.assertFalse(
-            self.pBDB.bibs.update(
-                {
-                    "bibkey": "cde",
-                    "bibtex": u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
-                },
-                "abc",
-            )
-        )
-        self.assertEqual(self.pBDB.bibs.getByBibkey("abc"), e1)
+            _rr.assert_any_call("a", noWarning=True)
+            _rr.assert_any_call("b", noWarning=True)
+            _rr.assert_any_call("c", noWarning=True)
+            a = self.pBDB.bibs.getByBibkey("abc")[0]
+            self.assertEqual(a["citations"], 123)
+            self.assertEqual(a["citations_no_self"], 120)
+            a = self.pBDB.bibs.getByBibkey("def")[0]
+            self.assertEqual(a["citations"], 0)
+            self.assertEqual(a["citations_no_self"], 0)
+            a = self.pBDB.bibs.getByBibkey("ghi")[0]
+            self.assertEqual(a["citations"], 1)
+            self.assertEqual(a["citations_no_self"], 1)
 
-        self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
-        self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
-        dbStats(self.pBDB)
-        self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
-        )
-        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
-            self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
-            _mock_ren.assert_called_once_with(pBPDF, "abc", "def")
-        self.assertEqual(
-            self.pBDB.bibs.getByBibkey("def")[0]["bibtex"],
-            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
-        )
-        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["old_keys"], "abc")
-        dbStats(self.pBDB)
-        self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
-        )
+    def test_cleanBibtex(self, *args):
+        """test cleanBibtex"""
+        db = bibtexparser.bibdatabase.BibDatabase()
+        b = '@article{abc,\nauthor="me",\ntitle="title",\n}\n'
+        db.entries = [
+            bibtexparser.bparser.BibTexParser(common_strings=True).parse(b).entries[0]
+        ]
+        n = self.pBDB.bibs.bibtexFromDB(db)
+        with patch(
+            "physbiblio.database.Entries.updateField", side_effect=[False, True]
+        ) as _u, patch(
+            "physbiblio.database.Entries.bibtexFromDB", side_effect=[b, n, n]
+        ) as _b:
+            self.assertFalse(self.pBDB.bibs.cleanBibtex("abc", b, db=db))
+            _b.assert_called_once_with(db)
+            _u.assert_not_called()
+            self.assertFalse(self.pBDB.bibs.cleanBibtex("abc", b, db=db))
+            _u.assert_called_once_with("abc", "bibtex", n)
+            _u.reset_mock()
+            _b.reset_mock()
+            self.assertTrue(self.pBDB.bibs.cleanBibtex("abc", b))
+            _u.assert_called_once_with("abc", "bibtex", n)
+            with self.assertRaises(AssertionError):
+                _b.assert_called_once_with(db)
 
-        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
-        self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose=0))
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.updateField("def", "inspire", "1234")
-            _i.assert_any_call("Updating 'inspire' for entry 'def'")
-        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], "1234")
-        self.assertFalse(
-            self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=0)
-        )
-        self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose=0))
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.updateField("def", "inspires", "1234")
-            _i.assert_any_call("Updating 'inspires' for entry 'def'")
-        with patch("logging.Logger.warning") as _i:
-            self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=2)
-            _i.assert_any_call(
-                "Non-existing field " + "or unappropriated value: (def, inspires, 1234)"
-            )
-
-        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
-            self.assertTrue(self.pBDB.bibs.updateBibkey("def", "abc"))
-            _mock_ren.assert_called_once_with(pBPDF, "def", "abc")
-        self.assertEqual(
-            self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"],
-            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
-        )
-        self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"], "abc,def")
-
-        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
-            self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
-        self.assertTrue(self.pBDB.bibs.updateField("def", "bibdict", "{}", verbose=0))
-        self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
-        self.assertTrue(
-            self.pBDB.bibs.updateField(
-                "def",
-                "bibtex",
-                '@Article{abc,\nauthor = "me",\ntitle = "{abc}",\n}',
-                verbose=0,
-            )
-        )
-        self.assertEqual(
-            self.pBDB.bibs.getField("def", "bibdict"),
-            {"ENTRYTYPE": "article", "ID": "abc", "author": "me", "title": "{abc}"},
-        )
-        self.assertTrue(
-            self.pBDB.bibs.updateField(
-                "def", "bibtex", '@Article{abc,\nauthor = "me",\ntitle = ', verbose=0
-            )
-        )
-        self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
-
-        self.pBDB.bibs.delete("def")
+    def test_cleanBibtexs(self, *args):
+        """test cleanBibtexs"""
         self.insert_three()
-        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
-            self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
-
-    def test_prepareUpdate(self, *args):
-        """test prepareUpdate and related functions"""
-        bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
-        bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",' + '\narxiv="1234",\n}'
-        bibtexE = "@article{,}"
-        resultA = (
-            u'@Article{abc,\n        author = "me",\n'
-            + '         title = "{ABC}",\n         arxiv = "1234",\n}'
-        )
-        resultB = (
-            u'@Article{abc1,\n        author = "me",\n'
-            + '         title = "{abc}",\n         arxiv = "1234",\n}'
-        )
-
-        self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE), "")
-        self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA), "")
-        self.assertEqual(self.pBDB.bibs.prepareUpdate("", bibtexA), "")
-
-        bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
-        self.assertEqual(bibtex, resultA + "\n\n")
-        bibtex = self.pBDB.bibs.prepareUpdate(bibtexB, bibtexA)
-        self.assertEqual(bibtex, resultB + "\n\n")
-
-        self.pBDB.bibs.insertFromBibtex(bibtexA)
-        self.pBDB.bibs.insertFromBibtex(bibtexB)
-        data = self.pBDB.bibs.prepareUpdateByKey("abc", "abc1")
-        self.assertEqual(data["bibkey"], "abc")
-        self.assertEqual(data["arxiv"], "1234")
-        self.assertEqual(data["bibtex"], resultA)
-        data = self.pBDB.bibs.prepareUpdateByKey("abc1", "abc")
-        self.assertEqual(data["bibkey"], "abc1")
-        self.assertEqual(data["arxiv"], "1234")
-        self.assertEqual(data["bibtex"], resultB)
-
-        data = self.pBDB.bibs.prepareUpdateByBibtex("abc", bibtexB)
-        self.assertEqual(data["bibkey"], "abc")
-        self.assertEqual(data["arxiv"], "1234")
-        self.assertEqual(data["bibtex"], resultA)
-        data = self.pBDB.bibs.prepareUpdateByBibtex("abc1", bibtexA)
-        self.assertEqual(data["bibkey"], "abc1")
-        self.assertEqual(data["arxiv"], "1234")
-        self.assertEqual(data["bibtex"], resultB)
-
-    def test_replace(self, *args):
-        """test replace functions"""
-        # replaceInBibtex
         bibtexIn = (
-            u'@article{abc,\nauthor = "me",\n'
-            + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
+            u'%comment\n@article{abc,\n\nauthor = "me",\n'
+            + 'title = "ab\nc",\njournal="jcap",\nvolume="1803",\n'
             + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
         )
-        bibtexOut = (
-            u'@article{abc,\nauthor = "me",\n'
-            + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
-            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
-        )
-        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
-        bibtexOut = self.pBDB.bibs.getField("abc", "bibtex")
-        self.assertEqual(self.pBDB.bibs.replaceInBibtex("abcd", "abcde"), [])
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-        self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", "JCAP"), ["abc"])
-        self.assertEqual(
-            self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("jcap", "JCAP")
-        )
-        self.assertEqual(self.pBDB.bibs.replaceInBibtex("JCAP", "jcap"), ["abc"])
-
-        self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"]), False)
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-        with patch("logging.Logger.exception") as _e:
-            self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"])
-            self.assertIn(
-                "Error binding parameter :new - " + "probably unsupported type.",
-                _e.call_args[0][0],
-            )
-        self.assertEqual(self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP"), False)
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-        with patch("logging.Logger.exception") as _e:
-            self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP")
-            self.assertIn(
-                "Error binding parameter :old - " + "probably unsupported type.",
-                _e.call_args[0][0],
-            )
-
-        # replace
         bibtexOut = (
             u'@Article{abc,\n        author = "me",\n         '
-            + 'title = "{abc}",\n       journal = "jcap",\n        '
+            + 'title = "{ab c}",\n       journal = "jcap",\n        '
             + 'volume = "1803",\n          year = "2018",\n         '
             + 'pages = "1",\n         arxiv = "1234.56789",\n}'
         )
-        self.assertEqual(
-            self.pBDB.bibs.replace("bibtex", ["bibtex"], "abcd", ["abcde"]),
-            (["abc"], [], []),
-        )
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-
+        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.cleanBibtexs(startFrom=1)
+            _i.assert_any_call("CleanBibtexs will process 2 total entries")
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
         pbm = MagicMock()
         pbv = MagicMock()
-        self.assertEqual(
-            self.pBDB.bibs.replace(
-                "volume",
-                ["volume"],
-                "([0-9]{2})([0-9]{2})",
-                [r"\2"],
-                regex=True,
-                pbMax=pbm,
-                pbVal=pbv,
-            ),
-            (["abc"], ["abc"], []),
-        )
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.cleanBibtexs(
+                entries=self.pBDB.bibs.getByBibkey("def"), pbMax=pbm, pbVal=pbv
+            )
+            _i.assert_any_call("CleanBibtexs will process 1 total entries")
         pbm.assert_called_once_with(1)
-        pbv.assert_called_once_with(1)
-        self.assertEqual(
-            self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("1803", "03")
-        )
+        pbv.assert_has_calls([call(1)])
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
+        with patch("logging.Logger.exception") as _e:
+            self.pBDB.bibs.cleanBibtexs(startFrom="a"),
+            _e.assert_any_call("Invalid startFrom in cleanBibtexs")
+        self.assertEqual(self.pBDB.bibs.cleanBibtexs(startFrom=5), (0, 0, []))
 
-        self.assertEqual(
-            self.pBDB.bibs.replace("volume", ["volume"], "03", [r"1803"]),
-            (["abc"], ["abc"], []),
-        )
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-
-        self.assertEqual(
-            self.pBDB.bibs.replace(
-                "volume", ["volume", "journal"], "1803", ["03", "1803"]
-            ),
-            (["abc"], ["abc"], []),
-        )
-        self.assertEqual(
-            self.pBDB.bibs.getField("abc", "bibtex"),
-            bibtexOut.replace("1803", "03").replace("jcap", "1803"),
-        )
-
-        bibtexIn = (
-            u'@article{def,\nauthor = "me",\n'
-            + 'title = "def",\njournal="Phys. Rev.",\nvolume="D95",\n'
-            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
-        )
-        bibtexOut = (
-            u'@Article{def,\n        author = "me",\n         '
-            + 'title = "{def}",\n       journal = "Phys. Rev. D",\n        '
-            + 'volume = "95",\n          year = "2018",\n         '
-            + 'pages = "1",\n         arxiv = "1234.56789",\n}'
-        )
-        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
         with patch("logging.Logger.info") as _i:
-            self.assertEqual(
-                self.pBDB.bibs.replace(
-                    "published",
-                    ["journal", "volume"],
-                    "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-                    [r"\1", r"\2"],
-                    regex=True,
-                ),
-                (["abc", "def"], ["def"], []),
-            )
-            _i.assert_has_calls(
-                [
-                    call("Replace will process 2 entries"),
-                    call(u"processing     1 / 2 (50.00%): entry abc"),
-                    call(u"processing     2 / 2 (100.00%): entry def"),
-                ]
-            )
-        self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
-
-        self.assertEqual(
-            self.pBDB.bibs.replace(
-                "published",
-                ["journal", "volume"],
-                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-                [r"\1", r"\2"],
-                regex=True,
-            ),
-            (["abc", "def"], [], []),
-        )
-        self.assertEqual(
-            self.pBDB.bibs.replace(
-                "published",
-                ["journal", "volume"],
-                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-                [r"\1", r"\2"],
-                entries=self.pBDB.bibs.getByBibkey("abc"),
-                regex=True,
-            ),
-            (["abc"], [], []),
-        )
-        self.assertEqual(
-            self.pBDB.bibs.replace(
-                "published",
-                ["journal", "volume"],
-                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
-                [r"\1", r"\2"],
-                entries=self.pBDB.bibs.getByBibkey("abc"),
-                regex=False,
-            ),
-            (["abc"], ["abc"], []),
-        )
-
-        self.assertEqual(
-            self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"), ([], [], [])
-        )
-        with patch("logging.Logger.warning") as _w:
-            self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde")
-            _w.assert_any_call("Invalid 'fiNews' or 'news' (they must be lists)")
-        self.assertEqual(
-            self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"]),
-            ([], [], ["abc", "def"]),
-        )
-        with patch("logging.Logger.exception") as _w:
-            self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"])
-            _w.assert_any_call("Something wrong in replace")
-
-        bibtexIn = (
-            u'@article{ghi,\nauthor = "me",\n'
-            + 'title = "ghi",\neprint="1234.56789",\n}'
-        )
-        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
+            self.pBDB.bibs.cleanBibtexs()
+            _i.assert_any_call("CleanBibtexs will process 3 total entries")
+        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
+        self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
+        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
         pbm = MagicMock()
         pbv = MagicMock()
         with patch("logging.Logger.info") as _i:
-            self.assertEqual(
-                self.pBDB.bibs.replace(
-                    "eprint",
-                    ["volume"],
-                    "1234.00000",
-                    ["56789"],
-                    lenEntries=5,
-                    entries=self.pBDB.bibs.fetchAll(saveQuery=False).lastFetched,
-                    pbMax=pbm,
-                    pbVal=pbv,
-                ),
-                (["ghi"], ["ghi"], ["abc", "def"]),
-            )
+            self.pBDB.bibs.cleanBibtexs(pbMax=pbm, pbVal=pbv)
             _i.assert_has_calls(
                 [
-                    call("Replace will process 5 entries"),
-                    call(u"processing     1 / 5 (20.00%): entry abc"),
-                    call(u"processing     2 / 5 (40.00%): entry def"),
-                    call(u"processing     3 / 5 (60.00%): entry ghi"),
+                    call("3 entries processed"),
+                    call("0 errors occurred"),
+                    call("1 bibtex entries changed"),
                 ]
             )
-        pbm.assert_called_once_with(5)
-        pbv.assert_has_calls([call(i + 1) for i in range(3)])
-        with patch("logging.Logger.exception") as _i:
-            self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ["56789"])
-        self.assertEqual(
-            self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"]),
-            (["ghi"], [], ["abc", "def"]),
-        )
-        with patch("logging.Logger.exception") as _i:
-            self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"])
-            _i.assert_any_call("Something wrong in replace")
+        pbm.assert_called_once_with(3)
+        pbv.assert_has_calls([call(1), call(2), call(3)])
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+        self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.cleanBibtexs()
+            _i.assert_any_call("Error while cleaning entry 'def'", exc_info=True)
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.cleanBibtexs()
+            _i.assert_has_calls(
+                [
+                    call("3 entries processed"),
+                    call("1 errors occurred"),
+                    call("0 bibtex entries changed"),
+                ]
+            )
+        self.pBDB.bibs.cleanBibtexs()
+
+    def test_cleanFields(self, *args):
+        """test cleanFields"""
+        with patch("physbiblio.database.Entries.updateField") as _u:
+            self.pBDB.bibs.cleanFields(
+                {"bibkey": "abc", "marks": None, "old_keys": None, "bibtex": None}
+            )
+            self.assertEqual(_u.call_count, 2)
+            _u.assert_any_call("abc", "marks", "")
+            _u.assert_any_call("abc", "old_keys", "")
+            _u.reset_mock()
+            self.pBDB.bibs.cleanFields(
+                {"bibkey": "abc", "marks": "ab", "old_keys": "cd", "bibtex": None}
+            )
+            _u.assert_not_called()
+            _u.reset_mock()
+            self.pBDB.bibs.cleanFields(
+                {"bibkey": "abc", "marks": "a'b", "old_keys": "cd", "bibtex": None}
+            )
+            _u.assert_called_once_with("abc", "marks", "ab")
+            _u.reset_mock()
+            self.pBDB.bibs.cleanFields(
+                {
+                    "bibkey": "abc",
+                    "marks": "a'b,ab,cd,c'd",
+                    "old_keys": "cd",
+                    "bibtex": None,
+                }
+            )
+            _u.assert_called_once_with("abc", "marks", "ab,cd")
 
     def test_completeFetched(self, *args):
         self.maxDiff = None
@@ -3102,27 +2782,658 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(completed[0]["bibdict"], completed[0]["bibtexDict"])
         self.assertEqual(completed[1]["bibdict"], completed[1]["bibtexDict"])
 
-    def test_fetchFromLast(self, *args):
-        """Test the function fetchFromLast for the DB entries"""
+    def test_delete(self, *args):
+        """Test delete a bibtex entry from the DB"""
         self.insert_three()
-        self.pBDB.bibs.lastQuery = "SELECT * FROM entries"
-        self.pBDB.bibs.lastVals = ()
-        self.pBDB.bibs.lastFetched = "no"
-        self.pBDB.bibs.fetchFromLast(doFetch=False)
-        self.assertEqual(self.pBDB.bibs.lastFetched, "no")
+        self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
+        self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+        )
+        self.pBDB.bibs.delete("aaa")
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+        )
+        self.pBDB.bibs.delete("abc")
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 2, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0},
+        )
+        self.pBDB.bibs.delete(["def", "ghi"])
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 0, "cats": 2, "exps": 0, "catBib": 0, "catExp": 0, "bibExp": 0},
+        )
+
+    def test_fetchAll(self, *args):
+        """Test the fetchAll and getAll functions"""
+        # generic
+        self.insert_three()
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def", "ghi"]
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchAll().lastFetched],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC"
+        )
+        # saveQuery
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.getAll(saveQuery=False)
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.pBDB.bibs.fetchAll(saveQuery=False)
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        # limitTo
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=1)], ["abc"]
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitTo=1).lastFetched],
+            ["abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  order by firstdate ASC LIMIT 1",
+        )
+        # limitTo + limitOffset
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=5, limitOffset=1)],
+            ["def", "ghi"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(limitTo=5, limitOffset=1).lastFetched
+            ],
+            ["def", "ghi"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  order by firstdate ASC LIMIT 5 OFFSET 1",
+        )
+        # limitOffset alone (no effect)
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitOffset=1)],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitOffset=1).lastFetched],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC"
+        )
+        # orderType
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(orderType="DESC")],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(orderType="DESC").lastFetched
+            ],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate DESC"
+        )
+        # orderBy
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getAll(orderBy="bibkey", orderType="DESC")
+            ],
+            ["ghi", "def", "abc"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(
+                    orderBy="bibkey", orderType="DESC"
+                ).lastFetched
+            ],
+            ["ghi", "def", "abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery, "select * from entries  order by bibkey DESC"
+        )
+
+        # some parameter combinations
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(params={"bibkey": "abc"})],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(params={"bibkey": "abc"}).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where bibkey = ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("abc",))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getAll(params={"bibkey": "abc", "arxiv": "def"})
+            ],
+            [],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(
+                    params={"bibkey": "abc", "arxiv": "def"}
+                ).lastFetched
+            ],
+            [],
+        )
+        self.assertIn(
+            self.pBDB.bibs.lastQuery,
+            [
+                "select * from entries  where bibkey = ?  "
+                + "and arxiv = ?  order by firstdate ASC",
+                "select * from entries  where arxiv = ?  and "
+                + "bibkey = ?  order by firstdate ASC",
+            ],
+        )
+        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getAll(
+                    params={"bibkey": "abc", "arxiv": "def"}, connection="or"
+                )
+            ],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(
+                    params={"bibkey": "abc", "arxiv": "def"}, connection="or"
+                ).lastFetched
+            ],
+            ["abc", "def"],
+        )
+        self.assertIn(
+            self.pBDB.bibs.lastQuery,
+            [
+                "select * from entries  where bibkey = ?  or "
+                + "arxiv = ?  order by firstdate ASC",
+                "select * from entries  where arxiv = ?  or "
+                + "bibkey = ?  order by firstdate ASC",
+            ],
+        )
+        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getAll(
+                    params={"bibkey": "ab", "arxiv": "ef"},
+                    connection="or",
+                    operator="like",
+                )
+            ],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(
+                    params={"bibkey": "ab", "arxiv": "ef"},
+                    connection="or",
+                    operator="like",
+                ).lastFetched
+            ],
+            ["abc", "def"],
+        )
+        self.assertIn(
+            self.pBDB.bibs.lastQuery,
+            [
+                "select * from entries  where bibkey like ?  "
+                + "or arxiv like ?  order by firstdate ASC",
+                "select * from entries  where arxiv like ?  "
+                + "or bibkey like ?  order by firstdate ASC",
+            ],
+        )
+        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("%ab%", "%ef%")))
+
+        # test some bad connection or operator
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getAll(
+                    params={"bibkey": "abc", "arxiv": "def"}, connection="o r"
+                )
+            ],
+            [],
+        )
+        self.assertIn(
+            self.pBDB.bibs.lastQuery,
+            [
+                "select * from entries  where bibkey = ?  and "
+                + "arxiv = ?  order by firstdate ASC",
+                "select * from entries  where arxiv = ?  and "
+                + "bibkey = ?  order by firstdate ASC",
+            ],
+        )
+        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchAll(
+                    params={"bibkey": "ab", "arxiv": "ef"},
+                    connection="or",
+                    operator="lik",
+                ).lastFetched
+            ],
+            [],
+        )
+        self.assertIn(
+            self.pBDB.bibs.lastQuery,
+            [
+                "select * from entries  where bibkey = ?  or "
+                + "arxiv = ?  order by firstdate ASC",
+                "select * from entries  where arxiv = ?  or "
+                + "bibkey = ?  order by firstdate ASC",
+            ],
+        )
+        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("ab", "ef")))
+
+        # generate some errors
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo="a")], [])
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo="bibkey")], []
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=1, limitOffset="a")], []
+        )
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderBy="a")], [])
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(orderType="abc")],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getAll(params={"abc": "bibkey"})], []
+        )
+
+        # test different cursors
+        self.pBDB.bibs.lastFetched = "test"
+        self.pBDB.bibs.fetchAll(doFetch=False)
+        self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
         self.assertEqual(
             [e["bibkey"] for e in self.pBDB.bibs.fetchCurs], ["abc", "def", "ghi"]
         )
+        self.assertEqual(self.pBDB.bibs.lastFetched, "test")
+
+        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        sampleTxt = (
+            '@Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n}\n@Article{def,\n        '
+            + 'author = "me",\n         title = "{def}",\n}\n'
+            + '@Article{ghi,\n        author = "me",\n         '
+            + 'title = "{ghi}",\n}\n'
+        )
+        self.pBDB.bibs.fetchAll(doFetch=False)
+        with patch(
+            "physbiblio.database.Entries.fetchCursor",
+            return_value=self.pBDB.bibs.fetchCursor(),
+            autospec=True,
+        ) as _curs:
+            pBExport.exportAll(testBibName)
+        with open(testBibName) as f:
+            self.assertEqual(f.read(), sampleTxt)
+        os.remove(testBibName)
+
+    def test_fetchByBibkey(self, *args):
+        """Test the fetchByBibkey and getByBibkey functions"""
+        self.insert_three()
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched],
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abcdef").lastFetched],
+            [],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abcdef")], []
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abc").lastFetched],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc")], ["abc"]
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByBibkey(["abc", "def"]).lastFetched
+            ],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey(["abc", "def"])],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where bibkey =  ?  or bibkey =  ?  "
+            + "order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByBibkey(
+                    "abc", saveQuery=False
+                ).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc", saveQuery=False)],
+            ["abc"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
+
+    def test_fetchByBibtex(self, *args):
+        """Test the fetchByBibtex and getByBibtex functions"""
+        self.insert_three()
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("abcdef").lastFetched],
+            [],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abcdef")], []
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("me").lastFetched],
             ["abc", "def", "ghi"],
         )
-        self.pBDB.bibs.fetchByBibkey("def")
-        self.pBDB.bibs.lastVals = ("def",)
-        self.pBDB.bibs.lastQuery = "select * from entries  where bibkey=?"
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched], ["def"]
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("me")],
+            ["abc", "def", "ghi"],
         )
+        self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByBibtex(["abc", "def"]).lastFetched
+            ],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex(["abc", "def"])],
+            ["abc", "def"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where bibtex  like   ?  or "
+            + "bibtex  like   ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByBibtex(
+                    "abc", saveQuery=False
+                ).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abc", saveQuery=False)],
+            ["abc"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
+
+    def test_fetchByCat(self, *args):
+        """test bibs.fetchByCat e bibs.getByCat"""
+        self.insert_three()
+        self.pBDB.catBib.insert(1, ["abc", "def"])
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 2, "catExp": 0, "bibExp": 0},
+        )
+        entries = self.pBDB.bibs.fetchByCat(1).lastFetched
+        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+        entries = self.pBDB.bibs.getByCat(1)
+        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+
+        entries = self.pBDB.bibs.fetchByCat(
+            1, orderBy="bibkey", orderType="DESC"
+        ).lastFetched
+        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+        entries = self.pBDB.bibs.getByCat(1, orderBy="bibkey", orderType="DESC")
+        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+
+        entries = self.pBDB.bibs.getByCat(2)
+        self.assertEqual([e["bibkey"] for e in entries], [])
+
+    def test_fetchByExp(self, *args):
+        """test bibs.fetchByExp e bibs.getByExp"""
+        self.insert_three()
+        self.pBDB.bibExp.insert(["abc", "def"], 0)
+        self.assertTrue(
+            self.pBDB.exps.insert(
+                {"name": "exp1", "comments": "", "homepage": "", "inspire": ""}
+            )
+        )
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 3, "cats": 2, "exps": 1, "catBib": 0, "catExp": 0, "bibExp": 2},
+        )
+        entries = self.pBDB.bibs.fetchByExp(0).lastFetched
+        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+        entries = self.pBDB.bibs.getByExp(0)
+        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
+
+        entries = self.pBDB.bibs.fetchByExp(
+            0, orderBy="bibkey", orderType="DESC"
+        ).lastFetched
+        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+        entries = self.pBDB.bibs.getByExp(0, orderBy="bibkey", orderType="DESC")
+        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
+
+        entries = self.pBDB.bibs.getByExp(2)
+        self.assertEqual([e["bibkey"] for e in entries], [])
+
+    def test_fetchByIdFromInspireRecord(self, *args):
+        """test fetchByIdFromInspireRecord"""
+        self.pBDB.bibs.lastFetched = "a"
+        with patch(
+            "physbiblio.database.Entries.fetchByBibkey", return_value="bibk"
+        ) as _fbb, patch(
+            "physbiblio.database.Entries.fetchByInspireID", return_value="iid"
+        ) as _fbi, patch(
+            "physbiblio.database.Entries.fetchByBibtex", side_effect=["arxiv", "doi"]
+        ) as _fbx:
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"bibkey": "abc"}), "bibk"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_not_called()
+            _fbx.assert_not_called()
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"id": "123"}), "iid"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbx.assert_not_called()
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"eprint": "456"}), "arxiv"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbx.assert_called_once_with("456", saveQuery=False)
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"doi": "a/1/2/3"}), "doi"
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            self.assertEqual(_fbx.call_count, 2)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            self.assertEqual(
+                self.pBDB.bibs.fetchByIdFromInspireRecord({"title": "mytitle"}),
+                self.pBDB.bibs,
+            )
+            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbi.assert_called_once_with("123", saveQuery=False)
+            self.assertEqual(_fbx.call_count, 2)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            self.assertEqual(self.pBDB.bibs.lastFetched, [])
+        res = NameSpace()
+        res.lastFetched = "abc"
+        with patch(
+            "physbiblio.database.Entries.fetchByIdFromInspireRecord", return_value=res
+        ) as _f:
+            self.assertEqual(
+                self.pBDB.bibs.getByIdFromInspireRecord({"bibkey": "abc"}), "abc"
+            )
+            _f.assert_called_once_with({"bibkey": "abc"})
+
+    def test_fetchByInspireID(self, *args):
+        """Test the fetchByInspireID and getByInspireID functions"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "inspire", "12345")
+        self.pBDB.bibs.updateField("def", "inspire", "23456")
+        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID("123456").lastFetched
+            ],
+            [],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("123456")], []
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("345").lastFetched],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("345")],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("12345").lastFetched],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("12345")],
+            ["abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where inspire  like  ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%12345%",))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID(["123", "567"]).lastFetched
+            ],
+            ["abc", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID(["123", "567"])],
+            ["abc", "ghi"],
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where inspire  like   ?  "
+            + "or inspire  like   ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%123%", "%567%"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByInspireID(
+                    "1234", saveQuery=False
+                ).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getByInspireID("1234", saveQuery=False)
+            ],
+            ["abc"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
+
+    def test_fetchByKey(self, *args):
+        """Test the fetchByKey and getByKey functions"""
+        self.insert_three()
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abcdef").lastFetched], []
+        )
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abcdef")], [])
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abc").lastFetched], ["abc"]
+        )
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abc")], ["abc"])
+        self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByKey(["abc", "def"]).lastFetched
+            ],
+            ["abc", "def", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByKey(["abc", "def"])],
+            ["abc", "def", "ghi"],
+        )
+        self.assertRegex(self.pBDB.bibs.lastQuery, "select \* from entries  where .*")
+        self.assertRegex(
+            self.pBDB.bibs.lastQuery, ".*bibkey  like   \?  or  bibkey  like   \?.*"
+        )
+        self.assertRegex(
+            self.pBDB.bibs.lastQuery, ".*old_keys  like   \?  or  old_keys  like   \?.*"
+        )
+        self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%", "%abc%", "%def%"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByKey("abc", saveQuery=False).lastFetched
+            ],
+            ["abc", "ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByKey("abc", saveQuery=False)],
+            ["abc", "ghi"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
 
     def test_fetchFromDict(self, *args):
         """test the pretty complicated function fetchFromDict"""
@@ -4982,2418 +5293,63 @@ class TestDatabaseEntries(DBTestCase):
             ["abc", "def"],
         )
 
-    def test_fetchAll(self, *args):
-        """Test the fetchAll and getAll functions"""
-        # generic
+    def test_fetchFromLast(self, *args):
+        """Test the function fetchFromLast for the DB entries"""
         self.insert_three()
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def", "ghi"]
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchAll().lastFetched],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC"
-        )
-        # saveQuery
-        self.pBDB.bibs.lastQuery = ""
-        self.pBDB.bibs.getAll(saveQuery=False)
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        self.pBDB.bibs.fetchAll(saveQuery=False)
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        # limitTo
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=1)], ["abc"]
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitTo=1).lastFetched],
-            ["abc"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  order by firstdate ASC LIMIT 1",
-        )
-        # limitTo + limitOffset
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=5, limitOffset=1)],
-            ["def", "ghi"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(limitTo=5, limitOffset=1).lastFetched
-            ],
-            ["def", "ghi"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  order by firstdate ASC LIMIT 5 OFFSET 1",
-        )
-        # limitOffset alone (no effect)
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitOffset=1)],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchAll(limitOffset=1).lastFetched],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate ASC"
-        )
-        # orderType
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(orderType="DESC")],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(orderType="DESC").lastFetched
-            ],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery, "select * from entries  order by firstdate DESC"
-        )
-        # orderBy
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getAll(orderBy="bibkey", orderType="DESC")
-            ],
-            ["ghi", "def", "abc"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(
-                    orderBy="bibkey", orderType="DESC"
-                ).lastFetched
-            ],
-            ["ghi", "def", "abc"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery, "select * from entries  order by bibkey DESC"
-        )
-
-        # some parameter combinations
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(params={"bibkey": "abc"})],
-            ["abc"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(params={"bibkey": "abc"}).lastFetched
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  where bibkey = ?  order by firstdate ASC",
-        )
-        self.assertEqual(self.pBDB.bibs.lastVals, ("abc",))
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getAll(params={"bibkey": "abc", "arxiv": "def"})
-            ],
-            [],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(
-                    params={"bibkey": "abc", "arxiv": "def"}
-                ).lastFetched
-            ],
-            [],
-        )
-        self.assertIn(
-            self.pBDB.bibs.lastQuery,
-            [
-                "select * from entries  where bibkey = ?  "
-                + "and arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  and "
-                + "bibkey = ?  order by firstdate ASC",
-            ],
-        )
-        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getAll(
-                    params={"bibkey": "abc", "arxiv": "def"}, connection="or"
-                )
-            ],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(
-                    params={"bibkey": "abc", "arxiv": "def"}, connection="or"
-                ).lastFetched
-            ],
-            ["abc", "def"],
-        )
-        self.assertIn(
-            self.pBDB.bibs.lastQuery,
-            [
-                "select * from entries  where bibkey = ?  or "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  or "
-                + "bibkey = ?  order by firstdate ASC",
-            ],
-        )
-        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getAll(
-                    params={"bibkey": "ab", "arxiv": "ef"},
-                    connection="or",
-                    operator="like",
-                )
-            ],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(
-                    params={"bibkey": "ab", "arxiv": "ef"},
-                    connection="or",
-                    operator="like",
-                ).lastFetched
-            ],
-            ["abc", "def"],
-        )
-        self.assertIn(
-            self.pBDB.bibs.lastQuery,
-            [
-                "select * from entries  where bibkey like ?  "
-                + "or arxiv like ?  order by firstdate ASC",
-                "select * from entries  where arxiv like ?  "
-                + "or bibkey like ?  order by firstdate ASC",
-            ],
-        )
-        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("%ab%", "%ef%")))
-
-        # test some bad connection or operator
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getAll(
-                    params={"bibkey": "abc", "arxiv": "def"}, connection="o r"
-                )
-            ],
-            [],
-        )
-        self.assertIn(
-            self.pBDB.bibs.lastQuery,
-            [
-                "select * from entries  where bibkey = ?  and "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  and "
-                + "bibkey = ?  order by firstdate ASC",
-            ],
-        )
-        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchAll(
-                    params={"bibkey": "ab", "arxiv": "ef"},
-                    connection="or",
-                    operator="lik",
-                ).lastFetched
-            ],
-            [],
-        )
-        self.assertIn(
-            self.pBDB.bibs.lastQuery,
-            [
-                "select * from entries  where bibkey = ?  or "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  or "
-                + "bibkey = ?  order by firstdate ASC",
-            ],
-        )
-        self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("ab", "ef")))
-
-        # generate some errors
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo="a")], [])
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo="bibkey")], []
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(limitTo=1, limitOffset="a")], []
-        )
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll(orderBy="a")], [])
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(orderType="abc")],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getAll(params={"abc": "bibkey"})], []
-        )
-
-        # test different cursors
-        self.pBDB.bibs.lastFetched = "test"
-        self.pBDB.bibs.fetchAll(doFetch=False)
-        self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
+        self.pBDB.bibs.lastQuery = "SELECT * FROM entries"
+        self.pBDB.bibs.lastVals = ()
+        self.pBDB.bibs.lastFetched = "no"
+        self.pBDB.bibs.fetchFromLast(doFetch=False)
+        self.assertEqual(self.pBDB.bibs.lastFetched, "no")
         self.assertEqual(
             [e["bibkey"] for e in self.pBDB.bibs.fetchCurs], ["abc", "def", "ghi"]
         )
-        self.assertEqual(self.pBDB.bibs.lastFetched, "test")
-
-        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
-        sampleTxt = (
-            '@Article{abc,\n        author = "me",\n         '
-            + 'title = "{abc}",\n}\n@Article{def,\n        '
-            + 'author = "me",\n         title = "{def}",\n}\n'
-            + '@Article{ghi,\n        author = "me",\n         '
-            + 'title = "{ghi}",\n}\n'
-        )
-        self.pBDB.bibs.fetchAll(doFetch=False)
-        with patch(
-            "physbiblio.database.Entries.fetchCursor",
-            return_value=self.pBDB.bibs.fetchCursor(),
-            autospec=True,
-        ) as _curs:
-            pBExport.exportAll(testBibName)
-        with open(testBibName) as f:
-            self.assertEqual(f.read(), sampleTxt)
-        os.remove(testBibName)
-
-    def test_fetchByBibkey(self, *args):
-        """Test the fetchByBibkey and getByBibkey functions"""
-        self.insert_three()
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abcdef").lastFetched],
-            [],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abcdef")], []
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibkey("abc").lastFetched],
-            ["abc"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc")], ["abc"]
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByBibkey(["abc", "def"]).lastFetched
-            ],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey(["abc", "def"])],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  where bibkey =  ?  or bibkey =  ?  "
-            + "order by firstdate ASC",
-        )
-        self.assertEqual(self.pBDB.bibs.lastVals, ("abc", "def"))
-        self.pBDB.bibs.lastQuery = ""
-        self.pBDB.bibs.lastVals = ()
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByBibkey(
-                    "abc", saveQuery=False
-                ).lastFetched
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibkey("abc", saveQuery=False)],
-            ["abc"],
-        )
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        self.assertEqual(self.pBDB.bibs.lastVals, ())
-
-    def test_fetchByKey(self, *args):
-        """Test the fetchByKey and getByKey functions"""
-        self.insert_three()
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abcdef").lastFetched], []
-        )
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abcdef")], [])
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByKey("abc").lastFetched], ["abc"]
-        )
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getByKey("abc")], ["abc"])
-        self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByKey(["abc", "def"]).lastFetched
-            ],
+            [e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched],
             ["abc", "def", "ghi"],
         )
+        self.pBDB.bibs.fetchByBibkey("def")
+        self.pBDB.bibs.lastVals = ("def",)
+        self.pBDB.bibs.lastQuery = "select * from entries  where bibkey=?"
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByKey(["abc", "def"])],
-            ["abc", "def", "ghi"],
-        )
-        self.assertRegex(self.pBDB.bibs.lastQuery, "select \* from entries  where .*")
-        self.assertRegex(
-            self.pBDB.bibs.lastQuery, ".*bibkey  like   \?  or  bibkey  like   \?.*"
-        )
-        self.assertRegex(
-            self.pBDB.bibs.lastQuery, ".*old_keys  like   \?  or  old_keys  like   \?.*"
-        )
-        self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
-        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%", "%abc%", "%def%"))
-        self.pBDB.bibs.lastQuery = ""
-        self.pBDB.bibs.lastVals = ()
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByKey("abc", saveQuery=False).lastFetched
-            ],
-            ["abc", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByKey("abc", saveQuery=False)],
-            ["abc", "ghi"],
-        )
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        self.assertEqual(self.pBDB.bibs.lastVals, ())
-
-    def test_fetchByBibtex(self, *args):
-        """Test the fetchByBibtex and getByBibtex functions"""
-        self.insert_three()
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("abcdef").lastFetched],
-            [],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abcdef")], []
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByBibtex("me").lastFetched],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("me")],
-            ["abc", "def", "ghi"],
-        )
-        self.pBDB.bibs.updateField("ghi", "old_keys", "abc")
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByBibtex(["abc", "def"]).lastFetched
-            ],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex(["abc", "def"])],
-            ["abc", "def"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  where bibtex  like   ?  or "
-            + "bibtex  like   ?  order by firstdate ASC",
-        )
-        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%"))
-        self.pBDB.bibs.lastQuery = ""
-        self.pBDB.bibs.lastVals = ()
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByBibtex(
-                    "abc", saveQuery=False
-                ).lastFetched
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByBibtex("abc", saveQuery=False)],
-            ["abc"],
-        )
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        self.assertEqual(self.pBDB.bibs.lastVals, ())
-
-    def test_fetchByInspireID(self, *args):
-        """Test the fetchByInspireID and getByInspireID functions"""
-        self.insert_three()
-        self.pBDB.bibs.updateField("abc", "inspire", "12345")
-        self.pBDB.bibs.updateField("def", "inspire", "23456")
-        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID("123456").lastFetched
-            ],
-            [],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("123456")], []
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("345").lastFetched],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("345")],
-            ["abc", "def", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("12345").lastFetched],
-            ["abc"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("12345")],
-            ["abc"],
-        )
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  where inspire  like  ?  order by firstdate ASC",
-        )
-        self.assertEqual(self.pBDB.bibs.lastVals, ("%12345%",))
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID(["123", "567"]).lastFetched
-            ],
-            ["abc", "ghi"],
-        )
-        self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.getByInspireID(["123", "567"])],
-            ["abc", "ghi"],
+            [e["bibkey"] for e in self.pBDB.bibs.fetchFromLast().lastFetched], ["def"]
         )
 
-        self.assertEqual(
-            self.pBDB.bibs.lastQuery,
-            "select * from entries  where inspire  like   ?  "
-            + "or inspire  like   ?  order by firstdate ASC",
-        )
-        self.assertEqual(self.pBDB.bibs.lastVals, ("%123%", "%567%"))
-        self.pBDB.bibs.lastQuery = ""
-        self.pBDB.bibs.lastVals = ()
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID(
-                    "1234", saveQuery=False
-                ).lastFetched
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            [
-                e["bibkey"]
-                for e in self.pBDB.bibs.getByInspireID("1234", saveQuery=False)
-            ],
-            ["abc"],
-        )
-        self.assertEqual(self.pBDB.bibs.lastQuery, "")
-        self.assertEqual(self.pBDB.bibs.lastVals, ())
-
-    def test_fetchByIdFromInspireRecord(self, *args):
-        """test fetchByIdFromInspireRecord"""
-        self.pBDB.bibs.lastFetched = "a"
-        with patch(
-            "physbiblio.database.Entries.fetchByBibkey", return_value="bibk"
-        ) as _fbb, patch(
-            "physbiblio.database.Entries.fetchByInspireID", return_value="iid"
-        ) as _fbi, patch(
-            "physbiblio.database.Entries.fetchByBibtex", side_effect=["arxiv", "doi"]
-        ) as _fbx:
-            self.assertEqual(
-                self.pBDB.bibs.fetchByIdFromInspireRecord({"bibkey": "abc"}), "bibk"
-            )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_not_called()
-            _fbx.assert_not_called()
-            self.assertEqual(
-                self.pBDB.bibs.fetchByIdFromInspireRecord({"id": "123"}), "iid"
-            )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
-            _fbx.assert_not_called()
-            self.assertEqual(
-                self.pBDB.bibs.fetchByIdFromInspireRecord({"eprint": "456"}), "arxiv"
-            )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
-            _fbx.assert_called_once_with("456", saveQuery=False)
-            self.assertEqual(
-                self.pBDB.bibs.fetchByIdFromInspireRecord({"doi": "a/1/2/3"}), "doi"
-            )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
-            self.assertEqual(_fbx.call_count, 2)
-            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
-            self.assertEqual(
-                self.pBDB.bibs.fetchByIdFromInspireRecord({"title": "mytitle"}),
-                self.pBDB.bibs,
-            )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
-            self.assertEqual(_fbx.call_count, 2)
-            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
-            self.assertEqual(self.pBDB.bibs.lastFetched, [])
-        res = NameSpace()
-        res.lastFetched = "abc"
-        with patch(
-            "physbiblio.database.Entries.fetchByIdFromInspireRecord", return_value=res
-        ) as _f:
-            self.assertEqual(
-                self.pBDB.bibs.getByIdFromInspireRecord({"bibkey": "abc"}), "abc"
-            )
-            _f.assert_called_once_with({"bibkey": "abc"})
-
-    def test_getField(self, *args):
-        """test getField"""
+    def test_findCorrupted(self, *args):
+        """test the function that finds corrupted bibtexs"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
-            arxiv="abc",
-            doi="1",
-            isbn=9,
+            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertEqual(self.pBDB.bibs.getField("abc", "doi"), "1")
-        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "abc")
-        self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
-        self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
-        with patch("logging.Logger.warning") as _i:
-            self.pBDB.bibs.getField("def", "isbn")
-            _i.assert_called_once_with(
-                "Error in getField('def', 'isbn'): no element found?"
-            )
-        self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
-        with patch("logging.Logger.warning") as _i:
-            self.pBDB.bibs.getField("abc", "def")
-            _i.assert_called_once_with(
-                "Error in getField('abc', 'def'): the field is missing?"
-            )
-
-    def test_toDataDict(self, *args):
-        """test toDataDict"""
-        self.insert_three()
-        a = self.pBDB.bibs.toDataDict("abc")
-        self.assertEqual(a["bibkey"], "abc")
-        self.assertEqual(
-            a["bibtex"],
-            u'@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
-        )
-
-    def test_getUrl(self, *args):
-        """test getUrl"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
-            ads="abc...123",
-            arxiv="1234.5678",
-            doi="1/2/3",
+            u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertEqual(
-            self.pBDB.bibs.getAdsUrl("abc"), "%sabc...123" % pbConfig.adsUrl
-        )
-        self.assertFalse(self.pBDB.bibs.getAdsUrl("def"))
-        self.assertEqual(
-            self.pBDB.bibs.getArxivUrl("abc"), "%s/abs/1234.5678" % pbConfig.arxivUrl
-        )
-        self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
-        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "%s1/2/3" % pbConfig.doiUrl)
-        self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
         self.assertTrue(
-            self.pBDB.bibs.insertFromBibtex(
-                u'@article{def,\nauthor = "me",\ntitle = "def",}'
+            self.pBDB.bibs.updateField(
+                "def", "bibtex", u'@article{def,\nauthor = "m"e",\ntitle = "def",}'
             )
         )
-        self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
-        self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
-
-    def test_fetchByCat(self, *args):
-        """test bibs.fetchByCat e bibs.getByCat"""
-        self.insert_three()
-        self.pBDB.catBib.insert(1, ["abc", "def"])
-        dbStats(self.pBDB)
-        self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 3, "cats": 2, "exps": 0, "catBib": 2, "catExp": 0, "bibExp": 0},
-        )
-        entries = self.pBDB.bibs.fetchByCat(1).lastFetched
-        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
-        entries = self.pBDB.bibs.getByCat(1)
-        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
-
-        entries = self.pBDB.bibs.fetchByCat(
-            1, orderBy="bibkey", orderType="DESC"
-        ).lastFetched
-        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
-        entries = self.pBDB.bibs.getByCat(1, orderBy="bibkey", orderType="DESC")
-        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
-
-        entries = self.pBDB.bibs.getByCat(2)
-        self.assertEqual([e["bibkey"] for e in entries], [])
-
-    def test_fetchByExp(self, *args):
-        """test bibs.fetchByExp e bibs.getByExp"""
-        self.insert_three()
-        self.pBDB.bibExp.insert(["abc", "def"], 0)
+        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
         self.assertTrue(
-            self.pBDB.exps.insert(
-                {"name": "exp1", "comments": "", "homepage": "", "inspire": ""}
+            self.pBDB.bibs.updateField(
+                "def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'
             )
         )
-        dbStats(self.pBDB)
-        self.assertEqual(
-            self.pBDB.stats,
-            {"bibs": 3, "cats": 2, "exps": 1, "catBib": 0, "catExp": 0, "bibExp": 2},
-        )
-        entries = self.pBDB.bibs.fetchByExp(0).lastFetched
-        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
-        entries = self.pBDB.bibs.getByExp(0)
-        self.assertEqual([e["bibkey"] for e in entries], ["abc", "def"])
-
-        entries = self.pBDB.bibs.fetchByExp(
-            0, orderBy="bibkey", orderType="DESC"
-        ).lastFetched
-        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
-        entries = self.pBDB.bibs.getByExp(0, orderBy="bibkey", orderType="DESC")
-        self.assertEqual([e["bibkey"] for e in entries], ["def", "abc"])
-
-        entries = self.pBDB.bibs.getByExp(2)
-        self.assertEqual([e["bibkey"] for e in entries], [])
-
-    def test_getEntriesIfNone(self, *args):
-        """test getEntriesIfNone"""
-        self.insert_three()
-        self.assertEqual(
-            self.pBDB.bibs.getEntriesIfNone(), (self.pBDB.bibs.fetchCurs, 3)
-        )
-        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 3)
-        self.assertEqual(
-            self.pBDB.bibs.getEntriesIfNone(startFrom=2), (self.pBDB.bibs.fetchCurs, 1)
-        )
-        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 1)
-
-    def test_citationCount(self, *args):
-        """test citationCount"""
-        self.insert_three()
-        self.pBDB.bibs.updateField("abc", "inspire", "12345")
-        self.pBDB.bibs.updateField("def", "inspire", "23456")
-        self.pBDB.bibs.updateField("ghi", "inspire", "34567")
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
-            return_value=([], 0),
-        ) as _rb:
-            self.assertEqual(self.pBDB.bibs.citationCount("12345"), (0, 0, []))
-            _rb.assert_called_once_with(
-                ["12345"],
-                searchFormat="recid:%s",
-                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
-            )
-        pm = MagicMock()
-        pv = MagicMock()
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
-            return_value=(["a"], 2),
-        ) as _rb, patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord",
-            return_value={"id": "12345", "cit": 123, "cit_no_self": 120},
-        ) as _rr:
-            self.assertEqual(
-                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
-                (1, 0, ["abc"]),
-            )
-            _rb.assert_called_once_with(
-                ["12345", "23456"],
-                searchFormat="recid:%s",
-                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
-            )
-            _rr.assert_called_once_with("a", noWarning=True)
-            pm.assert_called_once_with(2)
-            pv.assert_called_once_with(1)
-            a = self.pBDB.bibs.getByBibkey("abc")[0]
-            self.assertEqual(a["citations"], 123)
-            self.assertEqual(a["citations_no_self"], 120)
-            a = self.pBDB.bibs.getByBibkey("def")[0]
-            self.assertEqual(a["citations"], 0)
-            self.assertEqual(a["citations_no_self"], 0)
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
-            return_value=(["a", "b", "c"], 2),
-        ) as _rb, patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord",
-            side_effect=(
-                {"id": "34567", "cit": 1, "cit_no_self": 1},
-                {"id": "01234", "cit": 13, "cit_no_self": 1},
-                {"id": "23456"},
-            ),
-        ) as _rr:
-            self.assertEqual(
-                self.pBDB.bibs.citationCount(["12345", "23456"], pbMax=pm, pbVal=pv),
-                (3, 1, ["ghi"]),
-            )
-            _rb.assert_called_once_with(
-                ["12345", "23456"],
-                searchFormat="recid:%s",
-                fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
-            )
-            _rr.assert_any_call("a", noWarning=True)
-            _rr.assert_any_call("b", noWarning=True)
-            _rr.assert_any_call("c", noWarning=True)
-            a = self.pBDB.bibs.getByBibkey("abc")[0]
-            self.assertEqual(a["citations"], 123)
-            self.assertEqual(a["citations_no_self"], 120)
-            a = self.pBDB.bibs.getByBibkey("def")[0]
-            self.assertEqual(a["citations"], 0)
-            self.assertEqual(a["citations_no_self"], 0)
-            a = self.pBDB.bibs.getByBibkey("ghi")[0]
-            self.assertEqual(a["citations"], 1)
-            self.assertEqual(a["citations_no_self"], 1)
-
-    def test_cleanBibtexs(self, *args):
-        """test cleanBibtexs"""
-        self.insert_three()
-        bibtexIn = (
-            u'%comment\n@article{abc,\n\nauthor = "me",\n'
-            + 'title = "ab\nc",\njournal="jcap",\nvolume="1803",\n'
-            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
-        )
-        bibtexOut = (
-            u'@Article{abc,\n        author = "me",\n         '
-            + 'title = "{ab c}",\n       journal = "jcap",\n        '
-            + 'volume = "1803",\n          year = "2018",\n         '
-            + 'pages = "1",\n         arxiv = "1234.56789",\n}'
-        )
-        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs(startFrom=1)
-            _i.assert_any_call("CleanBibtexs will process 2 total entries")
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
         pbm = MagicMock()
         pbv = MagicMock()
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs(
-                entries=self.pBDB.bibs.getByBibkey("def"), pbMax=pbm, pbVal=pbv
-            )
-            _i.assert_any_call("CleanBibtexs will process 1 total entries")
-        pbm.assert_called_once_with(1)
-        pbv.assert_has_calls([call(1)])
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexIn)
-        with patch("logging.Logger.exception") as _e:
-            self.pBDB.bibs.cleanBibtexs(startFrom="a"),
-            _e.assert_any_call("Invalid startFrom in cleanBibtexs")
-        self.assertEqual(self.pBDB.bibs.cleanBibtexs(startFrom=5), (0, 0, []))
-
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs()
-            _i.assert_any_call("CleanBibtexs will process 3 total entries")
-        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
-        self.assertEqual(self.pBDB.bibs.cleanBibtexs(), (3, 0, ["abc"]))
-        self.pBDB.bibs.updateField("abc", "bibtex", bibtexIn)
-        pbm = MagicMock()
-        pbv = MagicMock()
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs(pbMax=pbm, pbVal=pbv)
-            _i.assert_has_calls(
-                [
-                    call("3 entries processed"),
-                    call("0 errors occurred"),
-                    call("1 bibtex entries changed"),
-                ]
-            )
-        pbm.assert_called_once_with(3)
-        pbv.assert_has_calls([call(1), call(2), call(3)])
-        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
-
-        self.pBDB.bibs.updateField("def", "bibtex", '@book{def,\ntitle="some",')
-        with patch("logging.Logger.warning") as _i:
-            self.pBDB.bibs.cleanBibtexs()
-            _i.assert_any_call("Error while cleaning entry 'def'", exc_info=True)
-        with patch("logging.Logger.info") as _i:
-            self.pBDB.bibs.cleanBibtexs()
-            _i.assert_has_calls(
-                [
-                    call("3 entries processed"),
-                    call("1 errors occurred"),
-                    call("0 bibtex entries changed"),
-                ]
-            )
-        self.pBDB.bibs.cleanBibtexs()
-
-    def test_printAll(self, *args):
-        self.insert_three()
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibkeys(),
-            "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibkeys(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc")
-            ),
-            "   0 - abc\n\n",
-        )
-
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibtexs(),
-            '   0 - @Article{abc,\n        author = "me",\n         '
-            + 'title = "{abc}",\n}\n\n   1 - @Article{def,\n        '
-            + 'author = "me",\n         title = "{def}",\n}\n\n   '
-            + '2 - @Article{ghi,\n        author = "me",\n         '
-            + 'title = "{ghi}",\n}\n\n',
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibtexs(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc")
-            ),
-            '   0 - @Article{abc,\n        author = "me",\n         '
-            + 'title = "{abc}",\n}\n\n',
-        )
-
-        today = datetime.date.today().strftime("%Y-%m-%d")
-        self.pBDB.bibs.setReview("abc")
-        self.pBDB.bibs.updateField("abc", "arxiv", "1234")
-        self.pBDB.bibs.updateField("abc", "doi", "somedoi")
-        self.pBDB.bibs.printAllInfo()
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc             "
-            + "               1234                 somedoi             "
-            + "\n[   1 - "
-            + today
-            + " ]        def                        "
-            + "    def                  -                   "
-            + "\n[   2 - "
-            + today
-            + " ]        ghi           "
-            + "                 ghi                  -       "
-            + "            \n",
-        )
-        self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
-        self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(),
-            "[   0 - 2018-01-01 ]        ghi                 "
-            + "           ghi                  -             "
-            + "      \n[   1 - 2018-03-01 ]        "
-            + "def                            def            "
-            + "      -                   \n[   2 - "
-            + today
-            + " ]"
-            + "  (rev) abc                            1234    "
-            + "             somedoi             \n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc")
-            ),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc           "
-            + "                 1234                 somedoi    "
-            + "         \n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields="author"
-            ),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc                           "
-            + " 1234                 somedoi             \n   "
-            + "author: me\n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields=["author"]
-            ),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc                            "
-            + "1234                 somedoi             \n   author: me"
-            + "\n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields="title"
-            ),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc                         "
-            + "   1234                 somedoi             \n   "
-            + "title: {abc}\n",
-        )
-        self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(
-                entriesIn=self.pBDB.bibs.getByBibkey("abc"),
-                addFields=["eprint", "journals"],
-            ),
-            "[   0 - "
-            + today
-            + " ]  (rev) abc                          "
-            + "  1234                 somedoi             \n",
-        )
-
-    def test_setStuff(self, *args):
-        """test ["setBook", "setLecture", "setPhdThesis",
-        "setProceeding", "setReview", "setNoUpdate"]
-        """
-        self.insert_three()
-        for procedure, field in zip(
-            [
-                "setBook",
-                "setLecture",
-                "setPhdThesis",
-                "setProceeding",
-                "setReview",
-                "setNoUpdate",
-            ],
-            ["book", "lecture", "phd_thesis", "proceeding", "review", "noUpdate"],
-        ):
-            self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
-            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc"))
-            self.assertEqual(self.pBDB.bibs.getField("abc", field), 1)
-            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc", 0))
-            self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
-            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc1"))
-
-            self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
-            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
-            self.assertEqual(getattr(self.pBDB.bibs, procedure)(["def", "ghi"]), None)
-            self.assertEqual(self.pBDB.bibs.getField("def", field), 1)
-            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 1)
-            self.assertEqual(
-                getattr(self.pBDB.bibs, procedure)(["def", "ghi"], 0), None
-            )
-            self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
-            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
-
-    def test_rmBibtexStuff(self, *args):
-        """Test rmBibtexComments and rmBibtexACapo"""
         self.assertEqual(
-            self.pBDB.bibs.rmBibtexComments(
-                u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
-            ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
-        )
-        self.assertEqual(
-            self.pBDB.bibs.rmBibtexComments(
-                u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
-            ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
-        )
-        self.assertEqual(
-            self.pBDB.bibs.rmBibtexComments(
-                u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'
-            ),
-            u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}',
-        )
-        self.assertEqual(
-            self.pBDB.bibs.rmBibtexComments(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",'
-                + '\n  %journal="JCAP",\n}'
-            ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}',
-        )
-
-        self.assertEqual(
-            self.pBDB.bibs.rmBibtexACapo(
-                u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'
-            ),
-            u'@Article{ghi,\n        author = "me",\n         '
-            + 'title = "{gh i}",\n}\n\n',
-        )
-        self.assertEqual(
-            self.pBDB.bibs.rmBibtexACapo(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'
-            ),
-            u'@Article{ghi,\n        author = "me",\n         '
-            + 'title = "{ghi}",\n}\n\n',
-        )
-        with patch("logging.Logger.warning") as _w:
-            self.assertEqual(
-                self.pBDB.bibs.rmBibtexACapo(
-                    u'@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
-                ),
-                "",
-            )
-            _w.assert_called_once_with(
-                "Cannot parse properly:\n"
-                + '@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
-            )
-        with patch("logging.Logger.warning") as _w:
-            self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u"%abc"), "")
-            _w.assert_called_once_with("Cannot parse properly:\n%abc")
-
-    def test_parseAllBibtexs(self, *args):
-        """test parseAllBibtexs"""
-        text = [
-            u"@article{abc,\n",
-            'author = "me",\n',
-            'title = "",}',
-            '%"abc",',
-            "}\n",
-            "\n",
-            "@article{def,\n",
-            'author = "me",\n',
-            'title = "def@ghi",}',
-        ]
-        errors = []
-        with patch("logging.Logger.debug") as _i:
-            self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=True)
-            self.assertTrue(_i.call_count >= 4)
-            self.assertEqual(len(errors), 0)
-            _i.reset_mock()
-            res = self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=False)
-            self.assertTrue(_i.call_count >= 2)
-            self.assertEqual([a["ID"] for a in res], ["abc", "def"])
-        text = [
-            u"@article{abc,\n",
-            'author = "me",\n',
-            '%title = "",}',
-            '%"abc",',
-            "\n",
-            "@article{def,\n",
-            'author = "me",\n',
-            'title = "def@ghi",}',
-        ]
-        with patch("logging.Logger.exception") as _e, patch(
-            "logging.Logger.debug"
-        ) as _i:
-            res = self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=False)
-            self.assertEqual([a["ID"] for a in res], ["def"])
-
-    def test_importFromBib(self, *args):
-        with open("tmpbib.bib", "w") as f:
-            f.write(
-                u'@article{abc,\nauthor = "me",\ntitle = '
-                + '"abc",}@article{def,\nauthor = "me",\ntitle = "def@ghi",}'
-            )
-        pbm = MagicMock()
-        pbv = MagicMock()
-        self.pBDB.bibs.importFromBib(
-            "tmpbib.bib", completeInfo=False, pbMax=pbm, pbVal=pbv
+            self.pBDB.bibs.findCorruptedBibtexs(pbMax=pbm, pbVal=pbv), ["def"]
         )
         pbm.assert_called_once_with(2)
         pbv.assert_has_calls([call(1), call(2)])
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
-
-        self.pBDB.undo(verbose=0)
-        with open("tmpbib.bib", "w") as f:
-            f.write(
-                u'@article{abc,\nauthor = "me",\n'
-                + 'title = "abc",\n}\n@article{def,\n}\n'
-            )
-        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
-
-        self.pBDB.undo(verbose=0)
-        with open("tmpbib.bib", "w") as f:
-            f.write(
-                u'@article{abc,\nauthor = "me",\n'
-                + 'title = "abc",\n}\n@article{def,\n}\n'
-            )
-        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
-
-        self.pBDB.undo(verbose=0)
-        with open("tmpbib.bib", "w") as f:
-            f.write(
-                u'@article{abc,\nauthor = "me",\n'
-                + "month = jan,\n}\n@article{def,\n}\n"
-            )
-        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
-
-        self.pBDB.undo(verbose=0)
-        # test with completeInfo
-        with open("tmpbib.bib", "w") as f:
-            f.write(
-                u'@article{Gariazzo:2015rra,\nauthor = "me",\n'
-                + 'arxiv = "1507.08204",\n}\n@article{'
-                + 'Gariazzo:2014rra,\nauthor="me",\n}\n'
-            )
-        with patch(
-            "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
-            side_effect=[("bibtex_not_used", {"abstract": "some fake abstract"})],
-            autospec=True,
-        ) as _retrieve, patch(
-            "physbiblio.database.Entries.updateInspireID",
-            side_effect=["1385583", False],
-            autospec=True,
-        ) as _inspireid, patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
-            side_effect=[
-                {
-                    "doi": u"10.1088/0954-3899/43/3/033001",
-                    "isbn": None,
-                    "ads": u"2015JPhG...43c3001G",
-                    "pubdate": u"2016-01-13",
-                    "firstdate": u"2015-07-29",
-                    "journal": u"J.Phys.",
-                    "arxiv": u"1507.08204",
-                    "id": "1385583",
-                    "volume": u"G43",
-                    "bibtex": None,
-                    "year": u"2016",
-                    "oldkeys": "",
-                    "bibkey": u"Gariazzo:2015rra",
-                    "pages": u"033001",
-                },
-                [],
-            ],
-            autospec=True,
-        ) as _oai, patch.dict(
-            pbConfig.params,
-            {"fetchAbstract": True, "defaultCategories": 1},
-            clear=False,
-        ):
-            self.pBDB.bibs.importFromBib("tmpbib.bib")
-            self.assertEqual(
-                [e["bibkey"] for e in self.pBDB.bibs.getAll()],
-                ["Gariazzo:2015rra", "Gariazzo:2014rra"],
-            )
-            self.assertEqual(
-                [e["inspire"] for e in self.pBDB.bibs.getAll()], ["1385583", None]
-            )
-            self.assertEqual(
-                [
-                    len(e["abstract"]) > 10 if e["abstract"] is not None else 0
-                    for e in self.pBDB.bibs.getAll()
-                ],
-                [True, False],
-            )
-            self.assertEqual(
-                [e["firstdate"] for e in self.pBDB.bibs.getAll()],
-                ["2015-07-29", datetime.date.today().strftime("%Y-%m-%d")],
-            )
-            self.assertEqual(
-                [e["bibkey"] for e in self.pBDB.bibs.getByCat(1)],
-                ["Gariazzo:2015rra", "Gariazzo:2014rra"],
-            )
-
-        self.pBDB.undo(verbose=0)
-        with patch.dict(
-            pbConfig.params,
-            {"fetchAbstract": False, "defaultCategories": {"ab"}},
-            clear=False,
-        ):
-            self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-            with patch("logging.Logger.info") as _i:
-                self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-                self.assertTrue(
-                    any(
-                        [
-                            "2 entries processed, of which 2 existing" in c
-                            for c in _i.call_args[0]
-                        ]
-                    )
-                )
-
-            self.pBDB.undo(verbose=0)
-            with patch("logging.Logger.exception") as _e:
-                self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
-                self.assertIn(
-                    "Error binding parameter :idCat - probably unsupported type.",
-                    _e.call_args[0][0],
-                )
-            self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
-
-            os.remove("tmpbib.bib")
-
-    def test_checkExistingEntry(self, *args):
-        """test checkExistingEntry"""
-        self.insert_three()
-        self.pBDB.bibs.updateField("abc", "arxiv", "1234.5678")
-        self.pBDB.bibs.updateField("def", "arxiv", "5678.1234")
-        self.pBDB.bibs.updateField("ghi", "arxiv", "")
-        self.pBDB.bibs.updateField("abc", "doi", "1/2/3")
-        self.pBDB.bibs.updateField("def", "doi", "")
-        self.pBDB.bibs.updateField("ghi", "doi", "2/3/4")
-        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd"), [])
-        self.assertEqual(
-            self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.4321"), []
-        )
-        self.assertEqual(self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1/2/3/4"), [])
-        self.assertEqual(
-            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("abc")], ["abc"]
-        )
-        self.assertEqual(
-            [
-                a["bibkey"]
-                for a in self.pBDB.bibs.checkExistingEntry("abcd", arxiv="1234.5678")
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1234.5678")],
-            ["abc"],
-        )
-        self.assertEqual(
-            [
-                a["bibkey"]
-                for a in self.pBDB.bibs.checkExistingEntry("ghi", arxiv="5678.1234")
-            ],
-            ["ghi", "def"],
-        )
-        self.assertEqual(
-            [
-                a["bibkey"]
-                for a in self.pBDB.bibs.checkExistingEntry("defg", doi="1/2/3")
-            ],
-            ["abc"],
-        )
-        self.assertEqual(
-            [a["bibkey"] for a in self.pBDB.bibs.checkExistingEntry("1/2/3")], ["abc"]
-        )
-        self.assertEqual(
-            [
-                a["bibkey"]
-                for a in self.pBDB.bibs.checkExistingEntry(
-                    "def", doi="2/3/4", arxiv="1234.5678"
-                )
-            ],
-            ["def", "abc", "ghi"],
-        )
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_loadAndInsert_online(self, *args):
-        """tests for loadAndInsert with online connection"""
+        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom=1), ["def"])
         self.assertTrue(
-            self.pBDB.bibs.loadAndInsert(["Gariazzo:2015rra", "Planck:2013pxb"])
-        )
-        all_ = self.pBDB.bibs.getAll()
-        self.assertEqual(len(all_), 2)
-        if all_[0]["bibkey"] != "Gariazzo:2015rra":
-            all_.reverse()
-        res = all_[0]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, fullRecordGariazzo)
-        res = all_[1]
-        self.assertTrue(res["citations"] > 7300)
-        self.assertTrue(res["citations_no_self"] > 6900)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, fullRecordAde)
-
-    def test_loadAndInsert(self, *args):
-        """tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
-        # loadAndInsert
-        self.assertFalse(self.pBDB.bibs.loadAndInsert(None))
-        with patch("logging.Logger.error") as _e:
-            self.pBDB.bibs.loadAndInsert(None)
-            _e.assert_any_call("Invalid arguments!")
-        # methods
-        for method in ["inspire", "doi", "arxiv", "isbn"]:
-            with patch(
-                "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
-                return_value="",
-                autospec=True,
-            ) as _mock:
-                self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method=method))
-                _mock.assert_called_once_with(physBiblioWeb.webSearch[method], "abcdef")
-        self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent"))
-        with patch("logging.Logger.exception") as _e:
-            self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent")
-            _e.assert_any_call("Method not valid: nonexistent")
-        self.assertTrue(
-            self.pBDB.bibs.loadAndInsert(
-                '@article{abc,\nauthor="me",\ntitle="abc",\n}', method="bibtex"
+            self.pBDB.bibs.updateField(
+                "def", "bibtex", u'@article{def,author = "me",title = "def"}'
             )
         )
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
-        # childProcess
-        self.assertEqual(self.pBDB.bibs.lastInserted, ["abc"])
-        # imposeKey
-        self.assertTrue(
-            self.pBDB.bibs.loadAndInsert(
-                '@article{abc,\nauthor="me",\ntitle="abc",\n}',
-                imposeKey="def",
-                method="bibtex",
-                childProcess=True,
-            )
-        )
-        self.assertEqual(self.pBDB.bibs.lastInserted, ["abc", "def"])
-        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
-        allBibtexs = [e["bibtex"] for e in self.pBDB.bibs.getAll()]
-        self.assertEqual(allBibtexs[0].replace("{abc,", "{def,"), allBibtexs[1])
-        # existing
-        self.assertEqual(self.pBDB.bibs.count(), 2)
-        self.assertTrue(
-            self.pBDB.bibs.loadAndInsert(
-                '@article{abc,\nauthor="me",\ntitle="abc",\n}', method="bibtex"
-            )
-        )
-        self.assertEqual(self.pBDB.bibs.count(), 2)
-        self.assertEqual(
-            self.pBDB.bibs.loadAndInsert(
-                '@article{abc,\nauthor="me",\ntitle="abc",\n}',
-                method="bibtex",
-                returnBibtex=True,
-            ),
-            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
-        )
-        # returnBibtex
-        self.assertEqual(
-            self.pBDB.bibs.loadAndInsert(
-                '@article{ghi,\nauthor="me",\ntitle="ghi",\n}',
-                method="bibtex",
-                returnBibtex=True,
-            ),
-            '@Article{ghi,\n        author = "me",\n         ' + 'title = "{ghi}",\n}',
-        )
-        self.assertEqual(self.pBDB.bibs.lastInserted, ["ghi"])
-        # unreadable bibtex (bibtex method)
-        self.assertFalse(self.pBDB.bibs.loadAndInsert("@article{jkl,", method="bibtex"))
-
-        self.pBDB.undo(verbose=0)
-        with patch(
-            "physbiblio.database.Entries.updateInspireID",
-            return_value="1",
-            autospec=True,
-        ) as _mock_uiid, patch(
-            "physbiblio.database.Entries.updateInfoFromOAI",
-            return_value=True,
-            autospec=True,
-        ) as _mock_uio, patch.dict(
-            pbConfig.params,
-            {"fetchAbstract": False, "defaultCategories": [1]},
-            clear=False,
-        ):
-            # test add categories
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u"\n@article{key0,\n"
-                + 'author = "Gariazzo",\ntitle = "{title}",}\n',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
-                self.assertEqual(
-                    [e["idCat"] for e in self.pBDB.cats.getByEntry("key0")],
-                    pbConfig.params["defaultCategories"],
-                )
-            self.pBDB.undo(verbose=0)
-            # test with list entry (also nested lists)
-            pbm = MagicMock()
-            pbv = MagicMock()
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                side_effect=[
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n',
-                ],
-                autospec=True,
-            ) as _mock:
-                with patch("logging.Logger.info") as _i:
-                    self.pBDB.bibs.loadAndInsert(["key0", "key1"])
-                    _i.assert_any_call("Already existing: key0\n")
-                _mock.assert_has_calls(
-                    [
-                        call(physBiblioWeb.webSearch["inspire"], "key0"),
-                        call(physBiblioWeb.webSearch["inspire"], "key1"),
-                    ]
-                )
-                self.assertEqual(self.pBDB.bibs.count(), 1)
-                with patch("logging.Logger.info") as _i:
-                    self.pBDB.bibs.loadAndInsert(["key0", "key1"], pbMax=pbm, pbVal=pbv)
-                    _i.assert_any_call("Already existing: key0\n")
-            pbm.assert_called_once_with(2)
-            pbv.assert_has_calls([call(1), call(2)])
-            self.pBDB.undo(verbose=0)
-            # test with number>0
-            pbm = MagicMock()
-            pbv = MagicMock()
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                side_effect=[
-                    u'@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n@article{key1,\nauthor = '
-                    + '"Gariazzo",\ntitle = "{title}",}\n',
-                    u'@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n@article{key1,\n'
-                    + 'author = "Gariazzo",\ntitle = "{title}",}\n',
-                ],
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(
-                    self.pBDB.bibs.loadAndInsert("key0", number=1, pbMax=pbm, pbVal=pbv)
-                )
-                self.assertEqual(
-                    [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1"]
-                )
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number=0))
-                self.assertEqual(
-                    [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1", "key0"]
-                )
-            self.assertEqual(pbm.call_count, 0)
-            self.assertEqual(pbv.call_count, 0)
-            self.pBDB.undo(verbose=0)
-            # test setBook when using isbn
-            with patch(
-                "physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
-                return_value=u"@article{key0,\n"
-                + 'author = "Gariazzo",\ntitle = "{title}",}',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method="isbn"))
-                self.assertEqual([e["book"] for e in self.pBDB.bibs.getAll()], [1])
-            self.pBDB.undo(verbose=0)
-            # test abstract download
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                side_effect=[
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",}\n',
-                    u'\n@article{key1,\nauthor = "Gariazzo",\n'
-                    + 'title = "{title}",\narxiv="1234.5678",}\n',
-                ],
-                autospec=True,
-            ) as _mock, patch(
-                "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
-                return_value=(
-                    u"\n@article{key0,\n"
-                    + 'author = "Gariazzo",\ntitle = "{title}",}\n',
-                    {"abstract": "some fake abstract"},
-                ),
-                autospec=True,
-            ) as _mock, patch.dict(
-                pbConfig.params,
-                {"fetchAbstract": True, "defaultCategories": [1]},
-                clear=False,
-            ):
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
-                self.assertEqual(
-                    self.pBDB.bibs.getByBibkey("key0")[0]["abstract"], None
-                )
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key1"))
-                self.assertEqual(
-                    self.pBDB.bibs.getByBibkey("key1")[0]["abstract"],
-                    "some fake abstract",
-                )
-            self.pBDB.undo(verbose=0)
-            # unreadable bibtex, empty bibkey (any other method)
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                side_effect=[
-                    u"\n@article{key0,\nauthor = ",
-                    u"\n@article{key0,\nauthor = ",
-                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
-                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
-                ],
-                autospec=True,
-            ) as _mock, patch.dict(
-                pbConfig.params,
-                {"fetchAbstract": False, "defaultCategories": [1]},
-                clear=False,
-            ):
-                self.assertFalse(self.pBDB.bibs.loadAndInsert("key0"))
-                with patch("logging.Logger.error") as _e:
-                    self.pBDB.bibs.loadAndInsert("key0")
-                    _e.assert_any_call(
-                        "Impossible to insert an entry with empty bibkey!\nkey0\n"
-                    )
-                self.pBDB.undo(verbose=0)
-                self.assertFalse(self.pBDB.bibs.loadAndInsert("key0"))
-                with patch("logging.Logger.error") as _e:
-                    self.pBDB.bibs.loadAndInsert("key0")
-                    _e.assert_any_call(
-                        "Impossible to insert an entry with empty bibkey!\nkey0\n"
-                    )
-            self.pBDB.undo(verbose=0)
-            _mock_uiid.reset_mock()
-            _mock_uio.reset_mock()
-            # test updateInspireID, updateInfoFromOAI are called
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u"\n@article{key0,\n"
-                + 'author = "Gariazzo",\ntitle = "{title}",'
-                + '\narxiv="1234.5678",}',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
-                _mock_uiid.assert_called_once_with(
-                    self.pBDB.bibs, "key0", "key0", number=None
-                )
-                _mock_uio.assert_called_once_with(self.pBDB.bibs, "1")
-            self.pBDB.undo(verbose=0)
-            _mock_uiid.reset_mock()
-            _mock_uio.reset_mock()
-            # test updateInspireID, updateInfoFromOAI are called
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u'@article{key0,\nauthor = "Gariazzo",'
-                + '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{'
-                + 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",'
-                + '\narxiv="1234.5678",}\n',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number=0))
-                _mock_uiid.assert_called_once_with(
-                    self.pBDB.bibs, "key0", "key0", number=0
-                )
-                _mock_uio.assert_called_once_with(self.pBDB.bibs, "1")
-            self.pBDB.undo(verbose=0)
-            _mock_uiid.reset_mock()
-            _mock_uio.reset_mock()
-            # test updateInspireID, updateInfoFromOAI are called
-            with patch(
-                "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
-                return_value=u"@article{key0,\n"
-                + 'author = "Gariazzo",\ntitle = "{title}",'
-                + '\narxiv="1234.5678",}',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method="arxiv"))
-                self.assertEqual(_mock_uiid.call_count, 0)
-                self.assertEqual(_mock_uio.call_count, 0)
-
-        # loadAndInsertWithCats
-        self.pBDB.bibs.lastInserted = ["abc"]
-        with patch("six.moves.input", return_value="[1,2]") as _input, patch(
-            "physbiblio.database.Entries.loadAndInsert", autospec=True
-        ) as _mock:
-            self.pBDB.bibs.loadAndInsertWithCats(["acb"], "doi", True, 1, True, "yes")
-            _input.assert_called_once_with("categories for 'abc': ")
-            _mock.assert_called_once_with(
-                self.pBDB.bibs,
-                ["acb"],
-                childProcess="yes",
-                imposeKey=True,
-                method="doi",
-                number=1,
-                returnBibtex=True,
-            )
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    @patch.dict(pbConfig.params, {"maxAuthorSave": 5}, clear=False)
-    def test_getFieldsFromArxiv(self, *args):
-        """tests for getFieldsFromArxiv (online)"""
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
-        )
-        self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
-        self.assertNotIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
-        self.assertFalse(self.pBDB.bibs.getFieldsFromArxiv("abcd", "authors"))
-        self.assertTrue(self.pBDB.bibs.getFieldsFromArxiv("Ade:2013zuv", "authors"))
-        self.assertIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
-        self.assertEqual(
-            self.pBDB.bibs.getFieldsFromArxiv(
-                ["Gariazzo:2015rra", "Ade:2013zuv"], "primaryclass"
-            ),
-            (["Gariazzo:2015rra", "Ade:2013zuv"], []),
-        )
-        pbm = MagicMock()
-        pbv = MagicMock()
-        self.assertEqual(
-            self.pBDB.bibs.getFieldsFromArxiv(
-                ["Gariazzo:2015rra", "Ade:2013zuv"],
-                "primaryclass",
-                pbMax=pbm,
-                pbVal=pbv,
-            ),
-            (["Gariazzo:2015rra", "Ade:2013zuv"], []),
-        )
-        pbm.assert_called_once_with(2)
-        pbv.assert_has_calls([call(1), call(2)])
-
-        self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
-        self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateInspireID(self, *args):
-        """tests for updateInspireID (online)"""
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
-        )
-        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
-        self.assertEqual(
-            self.pBDB.bibs.updateInspireID(
-                "a Gariazzo and d 2015", "Gariazzo:2015rra", number=3
-            ),
-            "1385583",
-        )
-        self.pBDB.bibs.delete("Gariazzo:2015rra")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\narxiv="1507.08204"\n}'
-        )
-        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
-        self.pBDB.bibs.delete("Gariazzo:2015")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
-            + '\narxiv="150708204"\n}'
-        )
-        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
-        self.pBDB.bibs.delete("Gariazzo:2015")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.10880954-3899433033001"'
-            + '\narxiv="1507.08204"\n}'
-        )
-        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
-        self.pBDB.bibs.delete("Gariazzo:2015")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
-        )
-        self.assertFalse(
-            self.pBDB.bibs.updateInspireID("Gariazzo:2015r", "Gariazzo:2015rra")
-        )
-        self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
-        self.pBDB.bibs.delete("Gariazzo:2015")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
-            + '\narxiv="150708204"\n}'
-        )
-        self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
-        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
-        self.pBDB.bibs.delete("Gariazzo:2015")
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
-        )
-        self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
-        self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015abcd"))
-
-        self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_searchOAIUpdates_online(self, *args):
-        """tests for searchOAIUpdates, with real connection"""
-        self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
-            )
-        )
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Planck:2013pxb,\narxiv="1303.5076"\n}', inspire="1224741"
-            )
-        )
-        self.assertEqual(
-            self.pBDB.bibs.searchOAIUpdates(),
-            (2, [], ["Gariazzo:2015rra", "Planck:2013pxb"]),
-        )
-        ga = self.pBDB.bibs.getAll()
-        res = ga[0]
-        self.assertTrue(res["citations"] > 7300)
-        self.assertTrue(res["citations_no_self"] > 6900)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, fullRecordAde)
-        res = ga[1]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, fullRecordGariazzo)
-
-    def test_searchOAIUpdates(self, *args):
-        """tests for searchOAIUpdates, with mock functions"""
-        self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
-            )
-        )
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire="1224741"
-            )
-        )
-        entry1 = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-        entry2 = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
-        entry1a = dict(entry1)
-        entry2a = dict(entry2)
-        entry1a["doi"] = "1/2/3/4"
-        entry2a["doi"] = "1/2/3/4"
-        entry1a["bibtexDict"]["journal"] = "jcap"
-        entry2a["bibtexDict"]["journal"] = "jcap"
-        with patch(
-            "physbiblio.database.Entries.updateInfoFromOAI",
-            side_effect=[True, True, True, True, True, True, False, True],
-            autospec=True,
-        ) as _mock_uioai, patch(
-            "physbiblio.database.Entries.fetchCursor",
-            side_effect=[
-                [entry1, entry2],  # 1
-                [entry1a, entry2a],  # 2
-                [entry1a, entry2a],  # 3
-                [entry2],  # 4
-                [entry1, entry2],  # 6
-            ],
-            autospec=True,
-        ) as _mock_ga, patch(
-            "physbiblio.database.Entries.getByKey",
-            side_effect=[
-                [entry1a],
-                [entry2a],  # 1
-                [entry1a],
-                [entry2a],  # 3
-                [entry1a],
-                [entry2a],  # 4,5
-                [entry2a],  # 6
-            ],
-            autospec=True,
-        ) as _mock_gbk:
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(),
-                (2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]),
-            )  # 1
-            self.assertEqual(self.pBDB.bibs.searchOAIUpdates(), (0, [], []))  # 2
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(force=True), (2, [], [])
-            )  # 3
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(startFrom=1), (1, [], ["Ade:2013zuv"])
-            )  # 4
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(entries=[entry1]),
-                (1, [], ["Gariazzo:2015rra"]),
-            )  # 5
-            pbm = MagicMock()
-            pbv = MagicMock()
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(pbMax=pbm, pbVal=pbv),
-                (2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]),
-            )  # 6
-            pbm.assert_called_once_with(2)
-            pbv.assert_has_calls([call(1), call(2)])
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateInfoFromOAI_online(self, *args):
-        """test updateInfoFromOAI, with online connection"""
-        expected = fullRecordGariazzo
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
-            )
-        )
-        self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("Gariazzo:2015rra"))
-        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, expected)
-        self.pBDB.undo(verbose=0)
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
-            )
-        )
-        self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("1385583"))
-        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, expected)
-
-    def test_updateInfoFromOAI(self, *args):
-        """test updateInfoFromOAI, but with mocked methods"""
-        dt = datetime.date.today().strftime("%Y-%m-%d")
-        mockOut = {
-            "doi": u"10.1088/0954-3899/43/3/033001",
-            "isbn": None,
-            "ads": u"2015JPhG...43c3001G",
-            "pubdate": u"2016-01-13",
-            "firstdate": u"2015-07-29",
-            "journal": u"J.Phys.",
-            "arxiv": u"1507.08204",
-            "id": "1385583",
-            "volume": u"G43",
-            "bibtex": None,
-            "year": u"2016",
-            "oldkeys": "",
-            "bibkey": u"Gariazzo:2015rra",
-            "pages": u"033001",
-        }
-        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
-        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
-        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
-        with patch(
-            "physbiblio.database.Entries.getField",
-            side_effect=["abcd", False, "12345"],
-            autospec=True,
-        ) as mock:
-            self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
-            self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
-
-            self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
-            with patch(
-                "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
-                side_effect=[
-                    False,
-                    mockOut,
-                    mockOut,
-                    {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        # "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
-                        "id": "1385583",
-                        # "volume": u"43",
-                        "bibtex": None,
-                        "year": u"2016",
-                        "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        # "pages": u"033001",
-                    },
-                    {
-                        # "doi": u"10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
-                        "id": "1385583",
-                        # "volume": u"43",
-                        "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
-                        + '\ntitle="{Light Sterile Neutrinos}"\n}',
-                        "year": u"2016",
-                        "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        # "pages": u"033001",
-                        "author": "Gariazzo",
-                        "title": "{Light Sterile Neutrinos}",
-                    },
-                    {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
-                        "id": "1385583",
-                        "volume": u"43",
-                        "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
-                        + '\ntitle="{Light Sterile Neutrinos}"\n}',
-                        "year": u"2016",
-                        "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        "pages": u"033001",
-                    },
-                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
-                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
-                    {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
-                        "bibkey": "Gariazzo:2015rra",
-                        "id": "Gariazzo:2015rra",
-                    },
-                    {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
-                        "bibkey": "Gariazzo:2015rra",
-                        "id": "Gariazzo:2015rra",
-                    },
-                ],
-                autospec=True,
-            ) as mock_function:
-                self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc", verbose=2))
-                mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspire"],
-                    "12345",
-                    bibtex=None,
-                    readConferenceTitle=False,
-                    verbose=2,
-                )
-                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345", verbose=2))
-                mock_function.reset_mock()
-                with patch("logging.Logger.info") as _i:
-                    self.pBDB.bibs.updateInfoFromOAI("12345", verbose=2)
-                    _i.assert_any_call("Inspire OAI info for 12345 saved.")
-                mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspire"],
-                    "12345",
-                    bibtex=None,
-                    readConferenceTitle=False,
-                    verbose=2,
-                )
-                self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
-                self.pBDB.bibs.insertFromBibtex(
-                    u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
-                )
-                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-                del res["citations"]
-                del res["citations_no_self"]
-                self.assertEqual(
-                    res,
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": None,
-                        "arxiv": "1507.08204",
-                        "ads": None,
-                        "scholar": None,
-                        "doi": None,
-                        "isbn": None,
-                        "year": 2015,
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n         "
-                        + 'arxiv = "1507.08204",\n}',
-                        "firstdate": dt,
-                        "pubdate": "",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "arxiv": "1507.08204",
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                        },
-                        "title": "",
-                        "journal": "",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "  (2015) ",
-                        "author": "",
-                        "bibdict": {
-                            u"arxiv": u"1507.08204",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
-                        },
-                    },
-                )
-                mock_function.reset_mock()
-                self.pBDB.bibs.updateInfoFromOAI(
-                    "12345",
-                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
-                    verbose=2,
-                )
-                mock_function.assert_called_once_with(
-                    physBiblioWeb.webSearch["inspire"],
-                    "12345",
-                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
-                    readConferenceTitle=False,
-                    verbose=2,
-                )
-                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-                del res["citations"]
-                del res["citations_no_self"]
-                self.assertEqual(
-                    res,
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": "1385583",
-                        "arxiv": "1507.08204",
-                        "ads": "2015JPhG...43c3001G",
-                        "scholar": None,
-                        "doi": "10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n"
-                        + '          year = "2016",\n'
-                        + '        eprint = "1507.08204",\n'
-                        + '           doi = "10.1088/0954-3899/43/3/033001",\n}',
-                        "firstdate": "2015-07-29",
-                        "pubdate": "2016-01-13",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "eprint": "1507.08204",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                            "year": "2016",
-                        },
-                        "title": "",
-                        "journal": "",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "  (2016) ",
-                        "author": "",
-                        "bibdict": {
-                            u"eprint": u"1507.08204",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
-                            "year": "2016",
-                        },
-                    },
-                )
-                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
-                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-                del res["citations"]
-                del res["citations_no_self"]
-                self.assertEqual(
-                    res,
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": "1385583",
-                        "arxiv": "1507.08204",
-                        "ads": "2015JPhG...43c3001G",
-                        "scholar": None,
-                        "doi": "10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n"
-                        + '        author = "Gariazzo",\n'
-                        + '         title = "{Light Sterile Neutrinos}",\n'
-                        + '       journal = "J.Phys.G",\n'
-                        + '          year = "2016",\n'
-                        + '        eprint = "1507.08204",\n'
-                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
-                        + "}",
-                        "firstdate": "2015-07-29",
-                        "pubdate": "2016-01-13",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                            "author": "Gariazzo",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "eprint": "1507.08204",
-                            "journal": "J.Phys.G",
-                            "title": "{Light Sterile Neutrinos}",
-                            "year": "2016",
-                        },
-                        "title": "{Light Sterile Neutrinos}",
-                        "journal": "J.Phys.G",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "J.Phys.G  (2016) ",
-                        "author": "Gariazzo",
-                        "bibdict": {
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
-                            "author": "Gariazzo",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "eprint": "1507.08204",
-                            "journal": "J.Phys.G",
-                            "title": "{Light Sterile Neutrinos}",
-                            "year": "2016",
-                        },
-                    },
-                )
-                self.assertTrue(
-                    self.pBDB.bibs.updateInfoFromOAI("12345", reloadAll=True)
-                )
-                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-                del res["citations"]
-                del res["citations_no_self"]
-                self.assertEqual(
-                    res,
-                    {
-                        "bibkey": "Gariazzo:2015rra",
-                        "inspire": "1385583",
-                        "arxiv": "1507.08204",
-                        "ads": "2015JPhG...43c3001G",
-                        "scholar": None,
-                        "doi": "10.1088/0954-3899/43/3/033001",
-                        "isbn": None,
-                        "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
-                        "comments": None,
-                        "old_keys": None,
-                        "crossref": None,
-                        "bibtex": "@Article{Gariazzo:2015rra,\n"
-                        + '        author = "Gariazzo",\n'
-                        + '         title = "{Light Sterile Neutrinos}",\n'
-                        + '       journal = "J.Phys.G",\n'
-                        + '          year = "2016",\n'
-                        + '        eprint = "1507.08204",\n'
-                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
-                        + "}",
-                        "firstdate": "2015-07-29",
-                        "pubdate": "2016-01-13",
-                        "exp_paper": 0,
-                        "lecture": 0,
-                        "phd_thesis": 0,
-                        "review": 0,
-                        "proceeding": 0,
-                        "book": 0,
-                        "noUpdate": 0,
-                        "marks": "",
-                        "abstract": None,
-                        "bibtexDict": {
-                            "ENTRYTYPE": "article",
-                            "ID": "Gariazzo:2015rra",
-                            "author": "Gariazzo",
-                            "title": "{Light Sterile Neutrinos}",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "eprint": "1507.08204",
-                            "journal": "J.Phys.G",
-                            "year": "2016",
-                        },
-                        "title": "{Light Sterile Neutrinos}",
-                        "journal": "J.Phys.G",
-                        "volume": "",
-                        "number": "",
-                        "pages": "",
-                        "published": "J.Phys.G  (2016) ",
-                        "author": "Gariazzo",
-                        "bibdict": {
-                            "ID": u"Gariazzo:2015rra",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"Gariazzo",
-                            "doi": "10.1088/0954-3899/43/3/033001",
-                            "eprint": "1507.08204",
-                            "journal": "J.Phys.G",
-                            "title": "{Light Sterile Neutrinos}",
-                            "year": "2016",
-                        },
-                    },
-                )
-                self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
-                with patch("logging.Logger.exception") as _i:
-                    self.pBDB.bibs.updateInfoFromOAI("12345")
-                    self.assertIn("Key error: (bibkey", _i.call_args[0][0])
-                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
-
-    @unittest.skipIf(skipTestsSettings.online, "Online tests")
-    def test_updateFromOAI_online(self, *args):
-        """test updateFromOAI with online connection"""
-        expected = fullRecordGariazzo
-        self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
-        )
-        self.assertTrue(self.pBDB.bibs.updateFromOAI("Gariazzo:2015rra"))
-        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, expected)
-        self.pBDB.undo(verbose=0)
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
-            )
-        )
-        self.assertTrue(self.pBDB.bibs.updateFromOAI("1385583"))
-        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
-        self.assertTrue(res["citations"] > 240)
-        self.assertTrue(res["citations_no_self"] > 190)
-        del res["citations"]
-        del res["citations_no_self"]
-        self.assertEqual(res, expected)
-
-    def test_updateFromOAI(self, *args):
-        """test updateFromOAI without relying
-        on the true pBDB.bibs.updateInfoFromOAI (mocked)
-        """
-        self.pBDB.bibs.insert(
-            self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
-            )
-        )
-        with patch(
-            "physbiblio.database.Entries.updateInfoFromOAI",
-            autospec=True,
-            side_effect=["a", "b", "c", "d", "e", "f"],
-        ) as mock_function:
-            with patch(
-                "physbiblio.database.Entries.updateInspireID",
-                side_effect=["54321", False],
-                autospec=True,
-            ) as _updateid:
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
-                mock_function.assert_called_once_with(
-                    self.pBDB.bibs, "12345", verbose=0
-                )
-                mock_function.reset_mock()
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("1234"), "b")
-                mock_function.assert_called_once_with(self.pBDB.bibs, "1234", verbose=0)
-                mock_function.reset_mock()
-                self.assertEqual(
-                    self.pBDB.bibs.updateFromOAI(["abc", "1234"]), ["c", "d"]
-                )
-                self.assertEqual(mock_function.call_count, 2)
-                mock_function.assert_called_with(self.pBDB.bibs, "1234", verbose=0)
-                mock_function.reset_mock()
-                self.pBDB.bibs.insertFromBibtex(u'@article{def,\narxiv="1234.56789"\n}')
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("def", verbose=1), "e")
-                mock_function.assert_called_once_with(
-                    self.pBDB.bibs, "54321", verbose=1
-                )
-                mock_function.reset_mock()
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
-                mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
-
-    def test_updateRecordFromINSPIRE(self, *args):
-        """test updateRecordFromINSPIRE"""
-        self.insert_three()
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord", return_value=[]
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
-            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
-            _gir.assert_called_once_with("abc")
-            _uf.assert_not_called()
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[{"noUpdate": 1}],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
-            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
-            _gir.assert_called_once_with("abc")
-            _uf.assert_not_called()
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[{"noUpdate": 0, "bibkey": "abc", "bibtex": "bib"}],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(False, "bibtex"),
-        ) as _ub:
-            self.assertEqual(
-                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "abc"}), False
-            )
-            _gir.assert_called_once_with({"id": "abc"})
-            _uf.assert_not_called()
-            _ub.assert_called_once_with({"id": "abc"}, "bib", force=False)
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[
-                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
-            ],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(False, "bibtex"),
-        ) as _ub:
-            self.assertEqual(
-                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "1234"}), True
-            )
-            _gir.assert_called_once_with({"id": "1234"})
-            _uf.assert_called_once_with("abc", "inspire", "1234", verbose=0)
-            _ub.assert_called_once_with({"id": "1234"}, "bib", force=False)
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[
-                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
-            ],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
-        ) as _ub:
-            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}), True)
-            _gir.assert_called_once_with(
-                {
-                    "id": None,
-                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                }
-            )
-            _uf.assert_called_once_with(
-                "abc",
-                "bibtex",
-                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                verbose=0,
-            )
-            _ub.assert_called_once_with(
-                {
-                    "id": None,
-                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                },
-                "bib",
-                force=False,
-            )
-        # test useOld
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[
-                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
-            ],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
-        ) as _ub:
-            self.assertEqual(
-                self.pBDB.bibs.updateRecordFromINSPIRE(
-                    {"id": None},
-                    useOld=[
-                        {
-                            "noUpdate": 1,
-                            "bibkey": "abc",
-                            "bibtex": "mybib",
-                            "inspire": "4455",
-                        }
-                    ],
-                ),
-                False,
-            )
-            _gir.assert_not_called()
-        # test force
-        with patch(
-            "physbiblio.database.Entries.getByIdFromInspireRecord",
-            return_value=[
-                {"noUpdate": 1, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
-            ],
-        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
-        ) as _ub:
-            self.assertEqual(
-                self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}, force=True), True
-            )
-            _gir.assert_called_once_with(
-                {
-                    "id": None,
-                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                }
-            )
-            _uf.assert_called_once_with(
-                "abc",
-                "bibtex",
-                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                verbose=0,
-            )
-            _ub.assert_called_once_with(
-                {
-                    "id": None,
-                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
-                },
-                "bib",
-                force=True,
-            )
+        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
 
     def test_getDailyInfoFromOAI(self, *args):
         """test the function getDailyInfoFromOAI,
@@ -7940,41 +5896,2141 @@ class TestDatabaseEntries(DBTestCase):
                 },
             )
 
-    def test_findCorrupted(self, *args):
-        """test the function that finds corrupted bibtexs"""
+    def test_getEntriesIfNone(self, *args):
+        """test getEntriesIfNone"""
+        self.insert_three()
+        self.assertEqual(
+            self.pBDB.bibs.getEntriesIfNone(), (self.pBDB.bibs.fetchCurs, 3)
+        )
+        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 3)
+        self.assertEqual(
+            self.pBDB.bibs.getEntriesIfNone(startFrom=2), (self.pBDB.bibs.fetchCurs, 1)
+        )
+        self.assertEqual(len([e for e in self.pBDB.bibs.fetchCurs]), 1)
+
+    def test_getField(self, *args):
+        """test getField"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+            arxiv="abc",
+            doi="1",
+            isbn=9,
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
-        data = self.pBDB.bibs.prepareInsert(
-            u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
-        )
-        self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertTrue(
-            self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,\nauthor = "m"e",\ntitle = "def",}'
+        self.assertEqual(self.pBDB.bibs.getField("abc", "doi"), "1")
+        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "abc")
+        self.assertEqual(self.pBDB.bibs.getField("abc", "isbn"), "9")
+        self.assertFalse(self.pBDB.bibs.getField("def", "isbn"))
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.getField("def", "isbn")
+            _i.assert_called_once_with(
+                "Error in getField('def', 'isbn'): no element found?"
             )
-        )
-        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
-        self.assertTrue(
-            self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'
+        self.assertFalse(self.pBDB.bibs.getField("abc", "def"))
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.getField("abc", "def")
+            _i.assert_called_once_with(
+                "Error in getField('abc', 'def'): the field is missing?"
             )
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    @patch.dict(pbConfig.params, {"maxAuthorSave": 5}, clear=False)
+    def test_getFieldsFromArxiv(self, *args):
+        """tests for getFieldsFromArxiv (online)"""
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+        )
+        self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
+        self.assertNotIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+        self.assertFalse(self.pBDB.bibs.getFieldsFromArxiv("abcd", "authors"))
+        self.assertTrue(self.pBDB.bibs.getFieldsFromArxiv("Ade:2013zuv", "authors"))
+        self.assertIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+        self.assertEqual(
+            self.pBDB.bibs.getFieldsFromArxiv(
+                ["Gariazzo:2015rra", "Ade:2013zuv"], "primaryclass"
+            ),
+            (["Gariazzo:2015rra", "Ade:2013zuv"], []),
         )
         pbm = MagicMock()
         pbv = MagicMock()
         self.assertEqual(
-            self.pBDB.bibs.findCorruptedBibtexs(pbMax=pbm, pbVal=pbv), ["def"]
+            self.pBDB.bibs.getFieldsFromArxiv(
+                ["Gariazzo:2015rra", "Ade:2013zuv"],
+                "primaryclass",
+                pbMax=pbm,
+                pbVal=pbv,
+            ),
+            (["Gariazzo:2015rra", "Ade:2013zuv"], []),
         )
         pbm.assert_called_once_with(2)
         pbv.assert_has_calls([call(1), call(2)])
-        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom=1), ["def"])
+
+        self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
+        self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
+
+    def test_getUrl(self, *args):
+        """test getUrl"""
+        data = self.pBDB.bibs.prepareInsert(
+            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+            ads="abc...123",
+            arxiv="1234.5678",
+            doi="1/2/3",
+        )
+        self.assertTrue(self.pBDB.bibs.insert(data))
+        self.assertEqual(
+            self.pBDB.bibs.getAdsUrl("abc"), "%sabc...123" % pbConfig.adsUrl
+        )
+        self.assertFalse(self.pBDB.bibs.getAdsUrl("def"))
+        self.assertEqual(
+            self.pBDB.bibs.getArxivUrl("abc"), "%s/abs/1234.5678" % pbConfig.arxivUrl
+        )
+        self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
+        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "%s1/2/3" % pbConfig.doiUrl)
+        self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
         self.assertTrue(
-            self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,author = "me",title = "def"}'
+            self.pBDB.bibs.insertFromBibtex(
+                u'@article{def,\nauthor = "me",\ntitle = "def",}'
             )
         )
-        self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
+        self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
+        self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
+
+    def test_importFromBib(self, *args):
+        with open("tmpbib.bib", "w") as f:
+            f.write(
+                u'@article{abc,\nauthor = "me",\ntitle = '
+                + '"abc",}@article{def,\nauthor = "me",\ntitle = "def@ghi",}'
+            )
+        pbm = MagicMock()
+        pbv = MagicMock()
+        self.pBDB.bibs.importFromBib(
+            "tmpbib.bib", completeInfo=False, pbMax=pbm, pbVal=pbv
+        )
+        pbm.assert_called_once_with(2)
+        pbv.assert_has_calls([call(1), call(2)])
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
+
+        self.pBDB.undo(verbose=0)
+        with open("tmpbib.bib", "w") as f:
+            f.write(
+                u'@article{abc,\nauthor = "me",\n'
+                + 'title = "abc",\n}\n@article{def,\n}\n'
+            )
+        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
+
+        self.pBDB.undo(verbose=0)
+        with open("tmpbib.bib", "w") as f:
+            f.write(
+                u'@article{abc,\nauthor = "me",\n'
+                + 'title = "abc",\n}\n@article{def,\n}\n'
+            )
+        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
+
+        self.pBDB.undo(verbose=0)
+        with open("tmpbib.bib", "w") as f:
+            f.write(
+                u'@article{abc,\nauthor = "me",\n'
+                + "month = jan,\n}\n@article{def,\n}\n"
+            )
+        self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
+
+        self.pBDB.undo(verbose=0)
+        # test with completeInfo
+        with open("tmpbib.bib", "w") as f:
+            f.write(
+                u'@article{Gariazzo:2015rra,\nauthor = "me",\n'
+                + 'arxiv = "1507.08204",\n}\n@article{'
+                + 'Gariazzo:2014rra,\nauthor="me",\n}\n'
+            )
+        with patch(
+            "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
+            side_effect=[("bibtex_not_used", {"abstract": "some fake abstract"})],
+            autospec=True,
+        ) as _retrieve, patch(
+            "physbiblio.database.Entries.updateInspireID",
+            side_effect=["1385583", False],
+            autospec=True,
+        ) as _inspireid, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
+            side_effect=[
+                {
+                    "doi": u"10.1088/0954-3899/43/3/033001",
+                    "isbn": None,
+                    "ads": u"2015JPhG...43c3001G",
+                    "pubdate": u"2016-01-13",
+                    "firstdate": u"2015-07-29",
+                    "journal": u"J.Phys.",
+                    "arxiv": u"1507.08204",
+                    "id": "1385583",
+                    "volume": u"G43",
+                    "bibtex": None,
+                    "year": u"2016",
+                    "oldkeys": "",
+                    "bibkey": u"Gariazzo:2015rra",
+                    "pages": u"033001",
+                },
+                [],
+            ],
+            autospec=True,
+        ) as _oai, patch.dict(
+            pbConfig.params,
+            {"fetchAbstract": True, "defaultCategories": 1},
+            clear=False,
+        ):
+            self.pBDB.bibs.importFromBib("tmpbib.bib")
+            self.assertEqual(
+                [e["bibkey"] for e in self.pBDB.bibs.getAll()],
+                ["Gariazzo:2015rra", "Gariazzo:2014rra"],
+            )
+            self.assertEqual(
+                [e["inspire"] for e in self.pBDB.bibs.getAll()], ["1385583", None]
+            )
+            self.assertEqual(
+                [
+                    len(e["abstract"]) > 10 if e["abstract"] is not None else 0
+                    for e in self.pBDB.bibs.getAll()
+                ],
+                [True, False],
+            )
+            self.assertEqual(
+                [e["firstdate"] for e in self.pBDB.bibs.getAll()],
+                ["2015-07-29", datetime.date.today().strftime("%Y-%m-%d")],
+            )
+            self.assertEqual(
+                [e["bibkey"] for e in self.pBDB.bibs.getByCat(1)],
+                ["Gariazzo:2015rra", "Gariazzo:2014rra"],
+            )
+
+        self.pBDB.undo(verbose=0)
+        with patch.dict(
+            pbConfig.params,
+            {"fetchAbstract": False, "defaultCategories": {"ab"}},
+            clear=False,
+        ):
+            self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+            with patch("logging.Logger.info") as _i:
+                self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+                self.assertTrue(
+                    any(
+                        [
+                            "2 entries processed, of which 2 existing" in c
+                            for c in _i.call_args[0]
+                        ]
+                    )
+                )
+
+            self.pBDB.undo(verbose=0)
+            with patch("logging.Logger.exception") as _e:
+                self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
+                self.assertIn(
+                    "Error binding parameter :idCat - probably unsupported type.",
+                    _e.call_args[0][0],
+                )
+            self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
+
+            os.remove("tmpbib.bib")
+
+    def test_insert(self, *args):
+        """Test insertion and of bibtex items"""
+        self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
+        data = self.pBDB.bibs.prepareInsert(
+            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+        )
+        self.assertTrue(self.pBDB.bibs.insert(data))
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+        self.pBDB.undo(verbose=False)
+        del data["arxiv"]
+        self.assertFalse(self.pBDB.bibs.insert(data))
+        with patch("logging.Logger.exception") as _i:
+            self.pBDB.bibs.insert(data)
+            self.assertIn(
+                "You did not supply a value for binding 3.", _i.call_args[0][0]
+            )
+        self.assertTrue(
+            self.pBDB.bibs.insertFromBibtex(
+                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+            )
+        )
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_loadAndInsert_online(self, *args):
+        """tests for loadAndInsert with online connection"""
+        self.assertTrue(
+            self.pBDB.bibs.loadAndInsert(["Gariazzo:2015rra", "Planck:2013pxb"])
+        )
+        all_ = self.pBDB.bibs.getAll()
+        self.assertEqual(len(all_), 2)
+        if all_[0]["bibkey"] != "Gariazzo:2015rra":
+            all_.reverse()
+        res = all_[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordGariazzo)
+        res = all_[1]
+        self.assertTrue(res["citations"] > 7300)
+        self.assertTrue(res["citations_no_self"] > 6900)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordAde)
+
+    def test_loadAndInsert(self, *args):
+        """tests for loadAndInsert and loadAndInsertWithCats (mocked)"""
+        # loadAndInsert
+        self.assertFalse(self.pBDB.bibs.loadAndInsert(None))
+        with patch("logging.Logger.error") as _e:
+            self.pBDB.bibs.loadAndInsert(None)
+            _e.assert_any_call("Invalid arguments!")
+        # methods
+        for method in ["inspire", "doi", "arxiv", "isbn"]:
+            with patch(
+                "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
+                return_value="",
+                autospec=True,
+            ) as _mock:
+                self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method=method))
+                _mock.assert_called_once_with(physBiblioWeb.webSearch[method], "abcdef")
+        self.assertFalse(self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent"))
+        with patch("logging.Logger.exception") as _e:
+            self.pBDB.bibs.loadAndInsert("abcdef", method="nonexistent")
+            _e.assert_any_call("Method not valid: nonexistent")
+        self.assertTrue(
+            self.pBDB.bibs.loadAndInsert(
+                '@article{abc,\nauthor="me",\ntitle="abc",\n}', method="bibtex"
+            )
+        )
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc"])
+        # childProcess
+        self.assertEqual(self.pBDB.bibs.lastInserted, ["abc"])
+        # imposeKey
+        self.assertTrue(
+            self.pBDB.bibs.loadAndInsert(
+                '@article{abc,\nauthor="me",\ntitle="abc",\n}',
+                imposeKey="def",
+                method="bibtex",
+                childProcess=True,
+            )
+        )
+        self.assertEqual(self.pBDB.bibs.lastInserted, ["abc", "def"])
+        self.assertEqual([e["bibkey"] for e in self.pBDB.bibs.getAll()], ["abc", "def"])
+        allBibtexs = [e["bibtex"] for e in self.pBDB.bibs.getAll()]
+        self.assertEqual(allBibtexs[0].replace("{abc,", "{def,"), allBibtexs[1])
+        # existing
+        self.assertEqual(self.pBDB.bibs.count(), 2)
+        self.assertTrue(
+            self.pBDB.bibs.loadAndInsert(
+                '@article{abc,\nauthor="me",\ntitle="abc",\n}', method="bibtex"
+            )
+        )
+        self.assertEqual(self.pBDB.bibs.count(), 2)
+        self.assertEqual(
+            self.pBDB.bibs.loadAndInsert(
+                '@article{abc,\nauthor="me",\ntitle="abc",\n}',
+                method="bibtex",
+                returnBibtex=True,
+            ),
+            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
+        )
+        # returnBibtex
+        self.assertEqual(
+            self.pBDB.bibs.loadAndInsert(
+                '@article{ghi,\nauthor="me",\ntitle="ghi",\n}',
+                method="bibtex",
+                returnBibtex=True,
+            ),
+            '@Article{ghi,\n        author = "me",\n         ' + 'title = "{ghi}",\n}',
+        )
+        self.assertEqual(self.pBDB.bibs.lastInserted, ["ghi"])
+        # unreadable bibtex (bibtex method)
+        self.assertFalse(self.pBDB.bibs.loadAndInsert("@article{jkl,", method="bibtex"))
+
+        self.pBDB.undo(verbose=0)
+        with patch(
+            "physbiblio.database.Entries.updateInspireID",
+            return_value="1",
+            autospec=True,
+        ) as _mock_uiid, patch(
+            "physbiblio.database.Entries.updateInfoFromOAI",
+            return_value=True,
+            autospec=True,
+        ) as _mock_uio, patch.dict(
+            pbConfig.params,
+            {"fetchAbstract": False, "defaultCategories": [1]},
+            clear=False,
+        ):
+            # test add categories
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                return_value=u"\n@article{key0,\n"
+                + 'author = "Gariazzo",\ntitle = "{title}",}\n',
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+                self.assertEqual(
+                    [e["idCat"] for e in self.pBDB.cats.getByEntry("key0")],
+                    pbConfig.params["defaultCategories"],
+                )
+            self.pBDB.undo(verbose=0)
+            # test with list entry (also nested lists)
+            pbm = MagicMock()
+            pbv = MagicMock()
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                side_effect=[
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                ],
+                autospec=True,
+            ) as _mock:
+                with patch("logging.Logger.info") as _i:
+                    self.pBDB.bibs.loadAndInsert(["key0", "key1"])
+                    _i.assert_any_call("Already existing: key0\n")
+                _mock.assert_has_calls(
+                    [
+                        call(physBiblioWeb.webSearch["inspire"], "key0"),
+                        call(physBiblioWeb.webSearch["inspire"], "key1"),
+                    ]
+                )
+                self.assertEqual(self.pBDB.bibs.count(), 1)
+                with patch("logging.Logger.info") as _i:
+                    self.pBDB.bibs.loadAndInsert(["key0", "key1"], pbMax=pbm, pbVal=pbv)
+                    _i.assert_any_call("Already existing: key0\n")
+            pbm.assert_called_once_with(2)
+            pbv.assert_has_calls([call(1), call(2)])
+            self.pBDB.undo(verbose=0)
+            # test with number>0
+            pbm = MagicMock()
+            pbv = MagicMock()
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                side_effect=[
+                    u'@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n@article{key1,\nauthor = '
+                    + '"Gariazzo",\ntitle = "{title}",}\n',
+                    u'@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n@article{key1,\n'
+                    + 'author = "Gariazzo",\ntitle = "{title}",}\n',
+                ],
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(
+                    self.pBDB.bibs.loadAndInsert("key0", number=1, pbMax=pbm, pbVal=pbv)
+                )
+                self.assertEqual(
+                    [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1"]
+                )
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number=0))
+                self.assertEqual(
+                    [e["bibkey"] for e in self.pBDB.bibs.getAll()], ["key1", "key0"]
+                )
+            self.assertEqual(pbm.call_count, 0)
+            self.assertEqual(pbv.call_count, 0)
+            self.pBDB.undo(verbose=0)
+            # test setBook when using isbn
+            with patch(
+                "physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
+                return_value=u"@article{key0,\n"
+                + 'author = "Gariazzo",\ntitle = "{title}",}',
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method="isbn"))
+                self.assertEqual([e["book"] for e in self.pBDB.bibs.getAll()], [1])
+            self.pBDB.undo(verbose=0)
+            # test abstract download
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                side_effect=[
+                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",}\n',
+                    u'\n@article{key1,\nauthor = "Gariazzo",\n'
+                    + 'title = "{title}",\narxiv="1234.5678",}\n',
+                ],
+                autospec=True,
+            ) as _mock, patch(
+                "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
+                return_value=(
+                    u"\n@article{key0,\n"
+                    + 'author = "Gariazzo",\ntitle = "{title}",}\n',
+                    {"abstract": "some fake abstract"},
+                ),
+                autospec=True,
+            ) as _mock, patch.dict(
+                pbConfig.params,
+                {"fetchAbstract": True, "defaultCategories": [1]},
+                clear=False,
+            ):
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+                self.assertEqual(
+                    self.pBDB.bibs.getByBibkey("key0")[0]["abstract"], None
+                )
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key1"))
+                self.assertEqual(
+                    self.pBDB.bibs.getByBibkey("key1")[0]["abstract"],
+                    "some fake abstract",
+                )
+            self.pBDB.undo(verbose=0)
+            # unreadable bibtex, empty bibkey (any other method)
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                side_effect=[
+                    u"\n@article{key0,\nauthor = ",
+                    u"\n@article{key0,\nauthor = ",
+                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
+                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
+                ],
+                autospec=True,
+            ) as _mock, patch.dict(
+                pbConfig.params,
+                {"fetchAbstract": False, "defaultCategories": [1]},
+                clear=False,
+            ):
+                self.assertFalse(self.pBDB.bibs.loadAndInsert("key0"))
+                with patch("logging.Logger.error") as _e:
+                    self.pBDB.bibs.loadAndInsert("key0")
+                    _e.assert_any_call(
+                        "Impossible to insert an entry with empty bibkey!\nkey0\n"
+                    )
+                self.pBDB.undo(verbose=0)
+                self.assertFalse(self.pBDB.bibs.loadAndInsert("key0"))
+                with patch("logging.Logger.error") as _e:
+                    self.pBDB.bibs.loadAndInsert("key0")
+                    _e.assert_any_call(
+                        "Impossible to insert an entry with empty bibkey!\nkey0\n"
+                    )
+            self.pBDB.undo(verbose=0)
+            _mock_uiid.reset_mock()
+            _mock_uio.reset_mock()
+            # test updateInspireID, updateInfoFromOAI are called
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                return_value=u"\n@article{key0,\n"
+                + 'author = "Gariazzo",\ntitle = "{title}",'
+                + '\narxiv="1234.5678",}',
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0"))
+                _mock_uiid.assert_called_once_with(
+                    self.pBDB.bibs, "key0", "key0", number=None
+                )
+                _mock_uio.assert_called_once_with(self.pBDB.bibs, "1")
+            self.pBDB.undo(verbose=0)
+            _mock_uiid.reset_mock()
+            _mock_uio.reset_mock()
+            # test updateInspireID, updateInfoFromOAI are called
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+                return_value=u'@article{key0,\nauthor = "Gariazzo",'
+                + '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{'
+                + 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",'
+                + '\narxiv="1234.5678",}\n',
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", number=0))
+                _mock_uiid.assert_called_once_with(
+                    self.pBDB.bibs, "key0", "key0", number=0
+                )
+                _mock_uio.assert_called_once_with(self.pBDB.bibs, "1")
+            self.pBDB.undo(verbose=0)
+            _mock_uiid.reset_mock()
+            _mock_uio.reset_mock()
+            # test updateInspireID, updateInfoFromOAI are called
+            with patch(
+                "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
+                return_value=u"@article{key0,\n"
+                + 'author = "Gariazzo",\ntitle = "{title}",'
+                + '\narxiv="1234.5678",}',
+                autospec=True,
+            ) as _mock:
+                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method="arxiv"))
+                self.assertEqual(_mock_uiid.call_count, 0)
+                self.assertEqual(_mock_uio.call_count, 0)
+
+        # loadAndInsertWithCats
+        self.pBDB.bibs.lastInserted = ["abc"]
+        with patch("six.moves.input", return_value="[1,2]") as _input, patch(
+            "physbiblio.database.Entries.loadAndInsert", autospec=True
+        ) as _mock:
+            self.pBDB.bibs.loadAndInsertWithCats(["acb"], "doi", True, 1, True, "yes")
+            _input.assert_called_once_with("categories for 'abc': ")
+            _mock.assert_called_once_with(
+                self.pBDB.bibs,
+                ["acb"],
+                childProcess="yes",
+                imposeKey=True,
+                method="doi",
+                number=1,
+                returnBibtex=True,
+            )
+
+    def test_parseAllBibtexs(self, *args):
+        """test parseAllBibtexs"""
+        text = [
+            u"@article{abc,\n",
+            'author = "me",\n',
+            'title = "",}',
+            '%"abc",',
+            "}\n",
+            "\n",
+            "@article{def,\n",
+            'author = "me",\n',
+            'title = "def@ghi",}',
+        ]
+        errors = []
+        with patch("logging.Logger.debug") as _i:
+            self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=True)
+            self.assertTrue(_i.call_count >= 4)
+            self.assertEqual(len(errors), 0)
+            _i.reset_mock()
+            res = self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=False)
+            self.assertTrue(_i.call_count >= 2)
+            self.assertEqual([a["ID"] for a in res], ["abc", "def"])
+        text = [
+            u"@article{abc,\n",
+            'author = "me",\n',
+            '%title = "",}',
+            '%"abc",',
+            "\n",
+            "@article{def,\n",
+            'author = "me",\n',
+            'title = "def@ghi",}',
+        ]
+        with patch("logging.Logger.exception") as _e, patch(
+            "logging.Logger.debug"
+        ) as _i:
+            res = self.pBDB.bibs.parseAllBibtexs(text, errors=errors, verbose=False)
+            self.assertEqual([a["ID"] for a in res], ["def"])
+
+    def test_prepareInsert(self, *args):
+        """test prepareInsert"""
+        # multiple entries in bibtex:
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{abc,\nauthor = "me",\n'
+                + 'title = "mytit",}\n@article{def,\nauthor = "you",'
+                + '\ntitle = "other",}'
+            )["bibkey"],
+            "abc",
+        )
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{abc,\nauthor = "me",\n'
+                + 'title = "mytit",}\n@article{def,\nauthor = "you",\n'
+                + 'title = "other",}',
+                number=1,
+            )["bibkey"],
+            "def",
+        )
+
+        # different fields
+        bibtex = (
+            u'@article{abc,\nauthor = "me",\n'
+            + 'title = "mytit",\narxiv="1801.00000",\n}'
+        )
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, bibkey="def")["bibkey"], "def"
+        )
+        self.assertIn(
+            "rticle{def,", self.pBDB.bibs.prepareInsert(bibtex, bibkey="def")["bibtex"]
+        )
+
+        data = self.pBDB.bibs.prepareInsert(bibtex)
+        self.assertEqual(data["bibkey"], "abc")
+        self.assertEqual(data["arxiv"], "1801.00000")
+        self.assertEqual(
+            ast.literal_eval(data["bibdict"]),
+            {
+                "ENTRYTYPE": "article",
+                "ID": "abc",
+                "arxiv": "1801.00000",
+                "author": "me",
+                "title": "{mytit}",
+            },
+        )
+
+        # test simple fields
+        bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
+        for k in ["inspire", "ads", "scholar", "comments", "old_keys", "abstract"]:
+            self.assertEqual(data[k], None)
+            tmp = {}
+            tmp[k] = "try"
+            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
+        for k in ["pubdate", "marks"]:
+            self.assertEqual(data[k], "")
+            tmp = {}
+            tmp[k] = "try"
+            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
+        for k in [
+            "exp_paper",
+            "lecture",
+            "phd_thesis",
+            "review",
+            "proceeding",
+            "book",
+            "noUpdate",
+        ]:
+            self.assertEqual(data[k], 0)
+            tmp = {}
+            tmp[k] = 1
+            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], 1)
+
+        # test arxiv
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, arxiv="1801.00000")["arxiv"],
+            "1801.00000",
+        )
+        bibtexA = (
+            u'@article{abc,\nauthor = "me",\n'
+            + 'title = "mytit",\neprint="1801.00000",\n}'
+        )
+        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)["arxiv"], "1801.00000")
+        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["arxiv"], "")
+
+        # more tests
+        self.assertEqual(data["doi"], None)
+        self.assertEqual(data["crossref"], None)
+        self.assertEqual(data["abstract"], None)
+        for k in ["doi", "isbn", "crossref", "abstract"]:
+            bibtexA = (
+                u'@article{abc,\nauthor = "me",\n'
+                + 'title = "mytit",\n%s="something",\n}' % k
+            )
+            self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)[k], "something")
+            tmp = {}
+            tmp[k] = "something"
+            self.assertEqual(
+                self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "something"
+            )
+
+        # test year
+        self.assertEqual(data["year"], "2018")
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, year="1999")["year"], "1999"
+        )
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, arxiv="hep-ph/9901000")["year"], "1999"
+        )
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nyear="2005",\n}'
+            )["year"],
+            "2005",
+        )
+        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["year"], None)
+
+        # test link
+        self.assertEqual(data["link"], pbConfig.arxivUrl + "/abs/1801.00000")
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, link="http://some.thing")["link"],
+            "http://some.thing",
+        )
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, doi="somedoi")["link"],
+            pbConfig.doiUrl + "somedoi",
+        )
+        self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex)["link"], "")
+
+        # test firstdate
+        self.assertEqual(data["firstdate"], datetime.date.today().strftime("%Y-%m-%d"))
+        self.assertEqual(
+            self.pBDB.bibs.prepareInsert(bibtex, firstdate="2018-01-01")["firstdate"],
+            "2018-01-01",
+        )
+
+        # test abstract
+        bibtex = (
+            u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nabstract="try",\n}'
+        )
+        data = self.pBDB.bibs.prepareInsert(bibtex)
+        self.assertEqual(data["abstract"], "try")
+        self.assertEqual(
+            ast.literal_eval(data["bibdict"]),
+            {
+                "ENTRYTYPE": "article",
+                "ID": "abc",
+                "abstract": "{try}",
+                "author": "me",
+                "title": "{mytit}",
+            },
+        )
+
+        # empty bibtex
+        self.assertEqual(self.pBDB.bibs.prepareInsert(""), {"bibkey": ""})
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.prepareInsert("")
+            _i.assert_any_call("No elements found?")
+        self.assertEqual(self.pBDB.bibs.prepareInsert("@article{abc,"), {"bibkey": ""})
+
+    def test_prepareUpdate(self, *args):
+        """test prepareUpdate and related functions"""
+        bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
+        bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",' + '\narxiv="1234",\n}'
+        bibtexE = "@article{,}"
+        resultA = (
+            u'@Article{abc,\n        author = "me",\n'
+            + '         title = "{ABC}",\n         arxiv = "1234",\n}'
+        )
+        resultB = (
+            u'@Article{abc1,\n        author = "me",\n'
+            + '         title = "{abc}",\n         arxiv = "1234",\n}'
+        )
+
+        self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexA, bibtexE), "")
+        self.assertEqual(self.pBDB.bibs.prepareUpdate(bibtexE, bibtexA), "")
+        self.assertEqual(self.pBDB.bibs.prepareUpdate("", bibtexA), "")
+
+        bibtex = self.pBDB.bibs.prepareUpdate(bibtexA, bibtexB)
+        self.assertEqual(bibtex, resultA + "\n\n")
+        bibtex = self.pBDB.bibs.prepareUpdate(bibtexB, bibtexA)
+        self.assertEqual(bibtex, resultB + "\n\n")
+
+        self.pBDB.bibs.insertFromBibtex(bibtexA)
+        self.pBDB.bibs.insertFromBibtex(bibtexB)
+        data = self.pBDB.bibs.prepareUpdateByKey("abc", "abc1")
+        self.assertEqual(data["bibkey"], "abc")
+        self.assertEqual(data["arxiv"], "1234")
+        self.assertEqual(data["bibtex"], resultA)
+        data = self.pBDB.bibs.prepareUpdateByKey("abc1", "abc")
+        self.assertEqual(data["bibkey"], "abc1")
+        self.assertEqual(data["arxiv"], "1234")
+        self.assertEqual(data["bibtex"], resultB)
+
+        data = self.pBDB.bibs.prepareUpdateByBibtex("abc", bibtexB)
+        self.assertEqual(data["bibkey"], "abc")
+        self.assertEqual(data["arxiv"], "1234")
+        self.assertEqual(data["bibtex"], resultA)
+        data = self.pBDB.bibs.prepareUpdateByBibtex("abc1", bibtexA)
+        self.assertEqual(data["bibkey"], "abc1")
+        self.assertEqual(data["arxiv"], "1234")
+        self.assertEqual(data["bibtex"], resultB)
+
+    def test_printAll(self, *args):
+        self.insert_three()
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllBibkeys(),
+            "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllBibkeys(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc")
+            ),
+            "   0 - abc\n\n",
+        )
+
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllBibtexs(),
+            '   0 - @Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n}\n\n   1 - @Article{def,\n        '
+            + 'author = "me",\n         title = "{def}",\n}\n\n   '
+            + '2 - @Article{ghi,\n        author = "me",\n         '
+            + 'title = "{ghi}",\n}\n\n',
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllBibtexs(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc")
+            ),
+            '   0 - @Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n}\n\n',
+        )
+
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        self.pBDB.bibs.setReview("abc")
+        self.pBDB.bibs.updateField("abc", "arxiv", "1234")
+        self.pBDB.bibs.updateField("abc", "doi", "somedoi")
+        self.pBDB.bibs.printAllInfo()
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc             "
+            + "               1234                 somedoi             "
+            + "\n[   1 - "
+            + today
+            + " ]        def                        "
+            + "    def                  -                   "
+            + "\n[   2 - "
+            + today
+            + " ]        ghi           "
+            + "                 ghi                  -       "
+            + "            \n",
+        )
+        self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
+        self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(),
+            "[   0 - 2018-01-01 ]        ghi                 "
+            + "           ghi                  -             "
+            + "      \n[   1 - 2018-03-01 ]        "
+            + "def                            def            "
+            + "      -                   \n[   2 - "
+            + today
+            + " ]"
+            + "  (rev) abc                            1234    "
+            + "             somedoi             \n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc")
+            ),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc           "
+            + "                 1234                 somedoi    "
+            + "         \n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields="author"
+            ),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc                           "
+            + " 1234                 somedoi             \n   "
+            + "author: me\n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields=["author"]
+            ),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc                            "
+            + "1234                 somedoi             \n   author: me"
+            + "\n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc"), addFields="title"
+            ),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc                         "
+            + "   1234                 somedoi             \n   "
+            + "title: {abc}\n",
+        )
+        self.assert_stdout(
+            lambda: self.pBDB.bibs.printAllInfo(
+                entriesIn=self.pBDB.bibs.getByBibkey("abc"),
+                addFields=["eprint", "journals"],
+            ),
+            "[   0 - "
+            + today
+            + " ]  (rev) abc                          "
+            + "  1234                 somedoi             \n",
+        )
+
+    def test_replace(self, *args):
+        """test replace functions"""
+        # replaceInBibtex
+        bibtexIn = (
+            u'@article{abc,\nauthor = "me",\n'
+            + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
+            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
+        )
+        bibtexOut = (
+            u'@article{abc,\nauthor = "me",\n'
+            + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
+            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
+        )
+        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
+        bibtexOut = self.pBDB.bibs.getField("abc", "bibtex")
+        self.assertEqual(self.pBDB.bibs.replaceInBibtex("abcd", "abcde"), [])
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+        self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", "JCAP"), ["abc"])
+        self.assertEqual(
+            self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("jcap", "JCAP")
+        )
+        self.assertEqual(self.pBDB.bibs.replaceInBibtex("JCAP", "jcap"), ["abc"])
+
+        self.assertEqual(self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"]), False)
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+        with patch("logging.Logger.exception") as _e:
+            self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"])
+            self.assertIn(
+                "Error binding parameter :new - " + "probably unsupported type.",
+                _e.call_args[0][0],
+            )
+        self.assertEqual(self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP"), False)
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+        with patch("logging.Logger.exception") as _e:
+            self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP")
+            self.assertIn(
+                "Error binding parameter :old - " + "probably unsupported type.",
+                _e.call_args[0][0],
+            )
+
+        # replace
+        bibtexOut = (
+            u'@Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n       journal = "jcap",\n        '
+            + 'volume = "1803",\n          year = "2018",\n         '
+            + 'pages = "1",\n         arxiv = "1234.56789",\n}'
+        )
+        self.assertEqual(
+            self.pBDB.bibs.replace("bibtex", ["bibtex"], "abcd", ["abcde"]),
+            (["abc"], [], []),
+        )
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+        pbm = MagicMock()
+        pbv = MagicMock()
+        self.assertEqual(
+            self.pBDB.bibs.replace(
+                "volume",
+                ["volume"],
+                "([0-9]{2})([0-9]{2})",
+                [r"\2"],
+                regex=True,
+                pbMax=pbm,
+                pbVal=pbv,
+            ),
+            (["abc"], ["abc"], []),
+        )
+        pbm.assert_called_once_with(1)
+        pbv.assert_called_once_with(1)
+        self.assertEqual(
+            self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut.replace("1803", "03")
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.replace("volume", ["volume"], "03", [r"1803"]),
+            (["abc"], ["abc"], []),
+        )
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibtex"), bibtexOut)
+
+        self.assertEqual(
+            self.pBDB.bibs.replace(
+                "volume", ["volume", "journal"], "1803", ["03", "1803"]
+            ),
+            (["abc"], ["abc"], []),
+        )
+        self.assertEqual(
+            self.pBDB.bibs.getField("abc", "bibtex"),
+            bibtexOut.replace("1803", "03").replace("jcap", "1803"),
+        )
+
+        bibtexIn = (
+            u'@article{def,\nauthor = "me",\n'
+            + 'title = "def",\njournal="Phys. Rev.",\nvolume="D95",\n'
+            + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
+        )
+        bibtexOut = (
+            u'@Article{def,\n        author = "me",\n         '
+            + 'title = "{def}",\n       journal = "Phys. Rev. D",\n        '
+            + 'volume = "95",\n          year = "2018",\n         '
+            + 'pages = "1",\n         arxiv = "1234.56789",\n}'
+        )
+        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
+        with patch("logging.Logger.info") as _i:
+            self.assertEqual(
+                self.pBDB.bibs.replace(
+                    "published",
+                    ["journal", "volume"],
+                    "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                    [r"\1", r"\2"],
+                    regex=True,
+                ),
+                (["abc", "def"], ["def"], []),
+            )
+            _i.assert_has_calls(
+                [
+                    call("Replace will process 2 entries"),
+                    call(u"processing     1 / 2 (50.00%): entry abc"),
+                    call(u"processing     2 / 2 (100.00%): entry def"),
+                ]
+            )
+        self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
+
+        self.assertEqual(
+            self.pBDB.bibs.replace(
+                "published",
+                ["journal", "volume"],
+                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                [r"\1", r"\2"],
+                regex=True,
+            ),
+            (["abc", "def"], [], []),
+        )
+        self.assertEqual(
+            self.pBDB.bibs.replace(
+                "published",
+                ["journal", "volume"],
+                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                [r"\1", r"\2"],
+                entries=self.pBDB.bibs.getByBibkey("abc"),
+                regex=True,
+            ),
+            (["abc"], [], []),
+        )
+        self.assertEqual(
+            self.pBDB.bibs.replace(
+                "published",
+                ["journal", "volume"],
+                "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                [r"\1", r"\2"],
+                entries=self.pBDB.bibs.getByBibkey("abc"),
+                regex=False,
+            ),
+            (["abc"], ["abc"], []),
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde"), ([], [], [])
+        )
+        with patch("logging.Logger.warning") as _w:
+            self.pBDB.bibs.replace("bibtex", "bibtex", "abcd", "abcde")
+            _w.assert_any_call("Invalid 'fiNews' or 'news' (they must be lists)")
+        self.assertEqual(
+            self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"]),
+            ([], [], ["abc", "def"]),
+        )
+        with patch("logging.Logger.exception") as _w:
+            self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"])
+            _w.assert_any_call("Something wrong in replace")
+
+        bibtexIn = (
+            u'@article{ghi,\nauthor = "me",\n'
+            + 'title = "ghi",\neprint="1234.56789",\n}'
+        )
+        self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
+        pbm = MagicMock()
+        pbv = MagicMock()
+        with patch("logging.Logger.info") as _i:
+            self.assertEqual(
+                self.pBDB.bibs.replace(
+                    "eprint",
+                    ["volume"],
+                    "1234.00000",
+                    ["56789"],
+                    lenEntries=5,
+                    entries=self.pBDB.bibs.fetchAll(saveQuery=False).lastFetched,
+                    pbMax=pbm,
+                    pbVal=pbv,
+                ),
+                (["ghi"], ["ghi"], ["abc", "def"]),
+            )
+            _i.assert_has_calls(
+                [
+                    call("Replace will process 5 entries"),
+                    call(u"processing     1 / 5 (20.00%): entry abc"),
+                    call(u"processing     2 / 5 (40.00%): entry def"),
+                    call(u"processing     3 / 5 (60.00%): entry ghi"),
+                ]
+            )
+        pbm.assert_called_once_with(5)
+        pbv.assert_has_calls([call(i + 1) for i in range(3)])
+        with patch("logging.Logger.exception") as _i:
+            self.pBDB.bibs.replace("eprint", ["volume"], "1234.00000", ["56789"])
+        self.assertEqual(
+            self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"]),
+            (["ghi"], [], ["abc", "def"]),
+        )
+        with patch("logging.Logger.exception") as _i:
+            self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"])
+            _i.assert_any_call("Something wrong in replace")
+
+    def test_rmBibtexStuff(self, *args):
+        """Test rmBibtexComments and rmBibtexACapo"""
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexComments(
+                u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+            ),
+            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
+        )
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexComments(
+                u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+            ),
+            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
+        )
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexComments(
+                u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'
+            ),
+            u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}',
+        )
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexComments(
+                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",'
+                + '\n  %journal="JCAP",\n}'
+            ),
+            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}',
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexACapo(
+                u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'
+            ),
+            u'@Article{ghi,\n        author = "me",\n         '
+            + 'title = "{gh i}",\n}\n\n',
+        )
+        self.assertEqual(
+            self.pBDB.bibs.rmBibtexACapo(
+                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'
+            ),
+            u'@Article{ghi,\n        author = "me",\n         '
+            + 'title = "{ghi}",\n}\n\n',
+        )
+        with patch("logging.Logger.warning") as _w:
+            self.assertEqual(
+                self.pBDB.bibs.rmBibtexACapo(
+                    u'@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
+                ),
+                "",
+            )
+            _w.assert_called_once_with(
+                "Cannot parse properly:\n"
+                + '@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
+            )
+        with patch("logging.Logger.warning") as _w:
+            self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u"%abc"), "")
+            _w.assert_called_once_with("Cannot parse properly:\n%abc")
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_searchOAIUpdates_online(self, *args):
+        """tests for searchOAIUpdates, with real connection"""
+        self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+            )
+        )
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Planck:2013pxb,\narxiv="1303.5076"\n}', inspire="1224741"
+            )
+        )
+        self.assertEqual(
+            self.pBDB.bibs.searchOAIUpdates(),
+            (2, [], ["Gariazzo:2015rra", "Planck:2013pxb"]),
+        )
+        ga = self.pBDB.bibs.getAll()
+        res = ga[0]
+        self.assertTrue(res["citations"] > 7300)
+        self.assertTrue(res["citations_no_self"] > 6900)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordAde)
+        res = ga[1]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, fullRecordGariazzo)
+
+    def test_searchOAIUpdates(self, *args):
+        """tests for searchOAIUpdates, with mock functions"""
+        self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+            )
+        )
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire="1224741"
+            )
+        )
+        entry1 = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        entry2 = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
+        entry1a = dict(entry1)
+        entry2a = dict(entry2)
+        entry1a["doi"] = "1/2/3/4"
+        entry2a["doi"] = "1/2/3/4"
+        entry1a["bibtexDict"]["journal"] = "jcap"
+        entry2a["bibtexDict"]["journal"] = "jcap"
+        with patch(
+            "physbiblio.database.Entries.updateInfoFromOAI",
+            side_effect=[True, True, True, True, True, True, False, True],
+            autospec=True,
+        ) as _mock_uioai, patch(
+            "physbiblio.database.Entries.fetchCursor",
+            side_effect=[
+                [entry1, entry2],  # 1
+                [entry1a, entry2a],  # 2
+                [entry1a, entry2a],  # 3
+                [entry2],  # 4
+                [entry1, entry2],  # 6
+            ],
+            autospec=True,
+        ) as _mock_ga, patch(
+            "physbiblio.database.Entries.getByKey",
+            side_effect=[
+                [entry1a],
+                [entry2a],  # 1
+                [entry1a],
+                [entry2a],  # 3
+                [entry1a],
+                [entry2a],  # 4,5
+                [entry2a],  # 6
+            ],
+            autospec=True,
+        ) as _mock_gbk:
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(),
+                (2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]),
+            )  # 1
+            self.assertEqual(self.pBDB.bibs.searchOAIUpdates(), (0, [], []))  # 2
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(force=True), (2, [], [])
+            )  # 3
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(startFrom=1), (1, [], ["Ade:2013zuv"])
+            )  # 4
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(entries=[entry1]),
+                (1, [], ["Gariazzo:2015rra"]),
+            )  # 5
+            pbm = MagicMock()
+            pbv = MagicMock()
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(pbMax=pbm, pbVal=pbv),
+                (2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]),
+            )  # 6
+            pbm.assert_called_once_with(2)
+            pbv.assert_has_calls([call(1), call(2)])
+
+    def test_setStuff(self, *args):
+        """test ["setBook", "setLecture", "setPhdThesis",
+        "setProceeding", "setReview", "setNoUpdate"]
+        """
+        self.insert_three()
+        for procedure, field in zip(
+            [
+                "setBook",
+                "setLecture",
+                "setPhdThesis",
+                "setProceeding",
+                "setReview",
+                "setNoUpdate",
+            ],
+            ["book", "lecture", "phd_thesis", "proceeding", "review", "noUpdate"],
+        ):
+            self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
+            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc"))
+            self.assertEqual(self.pBDB.bibs.getField("abc", field), 1)
+            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc", 0))
+            self.assertEqual(self.pBDB.bibs.getField("abc", field), 0)
+            self.assertTrue(getattr(self.pBDB.bibs, procedure)("abc1"))
+
+            self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
+            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
+            self.assertEqual(getattr(self.pBDB.bibs, procedure)(["def", "ghi"]), None)
+            self.assertEqual(self.pBDB.bibs.getField("def", field), 1)
+            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 1)
+            self.assertEqual(
+                getattr(self.pBDB.bibs, procedure)(["def", "ghi"], 0), None
+            )
+            self.assertEqual(self.pBDB.bibs.getField("def", field), 0)
+            self.assertEqual(self.pBDB.bibs.getField("ghi", field), 0)
+
+    def test_update(self, *args):
+        """Test general update, field update, bibkey update"""
+        self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
+        data = self.pBDB.bibs.prepareInsert(
+            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+        )
+        self.assertTrue(self.pBDB.bibs.insert(data))
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+        datanew = self.pBDB.bibs.prepareInsert(
+            u'@article{cde,\nauthor = "me",\ntitle = "abc",}', arxiv="cde"
+        )
+        self.assertTrue(self.pBDB.bibs.update(datanew, "abc"))
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), "cde")
+        del data["arxiv"]
+        self.assertTrue(self.pBDB.bibs.update(data, "abc"))
+        self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
+        self.assertEqual(self.pBDB.bibs.getField("abc", "arxiv"), None)
+        e1 = self.pBDB.bibs.getByBibkey("abc")
+        self.assertFalse(self.pBDB.bibs.update({"bibkey": "cde"}, "abc"))
+        with patch("logging.Logger.exception") as _e:
+            self.pBDB.bibs.update({"bibkey": "cde"}, "abc")
+            self.assertIn(
+                "NOT NULL constraint failed: entries.bibtex", _e.call_args[0][0]
+            )
+        self.assertFalse(
+            self.pBDB.bibs.update(
+                {
+                    "bibkey": "cde",
+                    "bibtex": u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+                },
+                "abc",
+            )
+        )
+        self.assertEqual(self.pBDB.bibs.getByBibkey("abc"), e1)
+
+        self.assertTrue(self.pBDB.bibExp.insert("abc", 1))
+        self.assertTrue(self.pBDB.catBib.insert(1, "abc"))
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+        )
+        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
+            self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+            _mock_ren.assert_called_once_with(pBPDF, "abc", "def")
+        self.assertEqual(
+            self.pBDB.bibs.getByBibkey("def")[0]["bibtex"],
+            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
+        )
+        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["old_keys"], "abc")
+        dbStats(self.pBDB)
+        self.assertEqual(
+            self.pBDB.stats,
+            {"bibs": 1, "cats": 2, "exps": 0, "catBib": 1, "catExp": 0, "bibExp": 1},
+        )
+
+        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], None)
+        self.assertTrue(self.pBDB.bibs.updateField("def", "inspire", "1234", verbose=0))
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.updateField("def", "inspire", "1234")
+            _i.assert_any_call("Updating 'inspire' for entry 'def'")
+        self.assertEqual(self.pBDB.bibs.getByBibkey("def")[0]["inspire"], "1234")
+        self.assertFalse(
+            self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=0)
+        )
+        self.assertFalse(self.pBDB.bibs.updateField("def", "inspire", None, verbose=0))
+        with patch("logging.Logger.info") as _i:
+            self.pBDB.bibs.updateField("def", "inspires", "1234")
+            _i.assert_any_call("Updating 'inspires' for entry 'def'")
+        with patch("logging.Logger.warning") as _i:
+            self.pBDB.bibs.updateField("def", "inspires", "1234", verbose=2)
+            _i.assert_any_call(
+                "Non-existing field " + "or unappropriated value: (def, inspires, 1234)"
+            )
+
+        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
+            self.assertTrue(self.pBDB.bibs.updateBibkey("def", "abc"))
+            _mock_ren.assert_called_once_with(pBPDF, "def", "abc")
+        self.assertEqual(
+            self.pBDB.bibs.getByBibkey("abc")[0]["bibtex"],
+            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
+        )
+        self.assertEqual(self.pBDB.bibs.getByBibkey("abc")[0]["old_keys"], "abc,def")
+
+        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
+            self.assertTrue(self.pBDB.bibs.updateBibkey("abc", "def"))
+        self.assertTrue(self.pBDB.bibs.updateField("def", "bibdict", "{}", verbose=0))
+        self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
+        self.assertTrue(
+            self.pBDB.bibs.updateField(
+                "def",
+                "bibtex",
+                '@Article{abc,\nauthor = "me",\ntitle = "{abc}",\n}',
+                verbose=0,
+            )
+        )
+        self.assertEqual(
+            self.pBDB.bibs.getField("def", "bibdict"),
+            {"ENTRYTYPE": "article", "ID": "abc", "author": "me", "title": "{abc}"},
+        )
+        self.assertTrue(
+            self.pBDB.bibs.updateField(
+                "def", "bibtex", '@Article{abc,\nauthor = "me",\ntitle = ', verbose=0
+            )
+        )
+        self.assertEqual(self.pBDB.bibs.getField("def", "bibdict"), {})
+
+        self.pBDB.bibs.delete("def")
+        self.insert_three()
+        with patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _mock_ren:
+            self.assertFalse(self.pBDB.bibs.updateBibkey("def", "abc"))
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_updateFromOAI_online(self, *args):
+        """test updateFromOAI with online connection"""
+        expected = fullRecordGariazzo
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+        )
+        self.assertTrue(self.pBDB.bibs.updateFromOAI("Gariazzo:2015rra"))
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
+        self.pBDB.undo(verbose=0)
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+            )
+        )
+        self.assertTrue(self.pBDB.bibs.updateFromOAI("1385583"))
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
+
+    def test_updateFromOAI(self, *args):
+        """test updateFromOAI without relying
+        on the true pBDB.bibs.updateInfoFromOAI (mocked)
+        """
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
+            )
+        )
+        with patch(
+            "physbiblio.database.Entries.updateInfoFromOAI",
+            autospec=True,
+            side_effect=["a", "b", "c", "d", "e", "f"],
+        ) as mock_function:
+            with patch(
+                "physbiblio.database.Entries.updateInspireID",
+                side_effect=["54321", False],
+                autospec=True,
+            ) as _updateid:
+                self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
+                mock_function.assert_called_once_with(
+                    self.pBDB.bibs, "12345", verbose=0
+                )
+                mock_function.reset_mock()
+                self.assertEqual(self.pBDB.bibs.updateFromOAI("1234"), "b")
+                mock_function.assert_called_once_with(self.pBDB.bibs, "1234", verbose=0)
+                mock_function.reset_mock()
+                self.assertEqual(
+                    self.pBDB.bibs.updateFromOAI(["abc", "1234"]), ["c", "d"]
+                )
+                self.assertEqual(mock_function.call_count, 2)
+                mock_function.assert_called_with(self.pBDB.bibs, "1234", verbose=0)
+                mock_function.reset_mock()
+                self.pBDB.bibs.insertFromBibtex(u'@article{def,\narxiv="1234.56789"\n}')
+                self.assertEqual(self.pBDB.bibs.updateFromOAI("def", verbose=1), "e")
+                mock_function.assert_called_once_with(
+                    self.pBDB.bibs, "54321", verbose=1
+                )
+                mock_function.reset_mock()
+                self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
+                mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_updateInfoFromOAI_online(self, *args):
+        """test updateInfoFromOAI, with online connection"""
+        expected = fullRecordGariazzo
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+            )
+        )
+        self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("Gariazzo:2015rra"))
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
+        self.pBDB.undo(verbose=0)
+        self.pBDB.bibs.insert(
+            self.pBDB.bibs.prepareInsert(
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+            )
+        )
+        self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("1385583"))
+        res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+        self.assertTrue(res["citations"] > 240)
+        self.assertTrue(res["citations_no_self"] > 190)
+        del res["citations"]
+        del res["citations_no_self"]
+        self.assertEqual(res, expected)
+
+    def test_updateInfoFromOAI(self, *args):
+        """test updateInfoFromOAI, but with mocked methods"""
+        dt = datetime.date.today().strftime("%Y-%m-%d")
+        mockOut = {
+            "doi": u"10.1088/0954-3899/43/3/033001",
+            "isbn": None,
+            "ads": u"2015JPhG...43c3001G",
+            "pubdate": u"2016-01-13",
+            "firstdate": u"2015-07-29",
+            "journal": u"J.Phys.",
+            "arxiv": u"1507.08204",
+            "id": "1385583",
+            "volume": u"G43",
+            "bibtex": None,
+            "year": u"2016",
+            "oldkeys": "",
+            "bibkey": u"Gariazzo:2015rra",
+            "pages": u"033001",
+        }
+        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
+        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
+        self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(None))
+        with patch(
+            "physbiblio.database.Entries.getField",
+            side_effect=["abcd", False, "12345"],
+            autospec=True,
+        ) as mock:
+            self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
+            self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc"))
+
+            self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
+            with patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
+                side_effect=[
+                    False,
+                    mockOut,
+                    mockOut,
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        # "journal": u"J.Phys.G",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        # "volume": u"43",
+                        "bibtex": None,
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        # "pages": u"033001",
+                    },
+                    {
+                        # "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        "journal": u"J.Phys.G",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        # "volume": u"43",
+                        "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
+                        + '\ntitle="{Light Sterile Neutrinos}"\n}',
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        # "pages": u"033001",
+                        "author": "Gariazzo",
+                        "title": "{Light Sterile Neutrinos}",
+                    },
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "ads": u"2015JPhG...43c3001G",
+                        "pubdate": u"2016-01-13",
+                        "firstdate": u"2015-07-29",
+                        "journal": u"J.Phys.G",
+                        "arxiv": u"1507.08204",
+                        "id": "1385583",
+                        "volume": u"43",
+                        "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
+                        + '\ntitle="{Light Sterile Neutrinos}"\n}',
+                        "year": u"2016",
+                        "oldkeys": "",
+                        "bibkey": u"Gariazzo:2015rra",
+                        "pages": u"033001",
+                    },
+                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
+                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "bibkey": "Gariazzo:2015rra",
+                        "id": "Gariazzo:2015rra",
+                    },
+                    {
+                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "bibkey": "Gariazzo:2015rra",
+                        "id": "Gariazzo:2015rra",
+                    },
+                ],
+                autospec=True,
+            ) as mock_function:
+                self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("abc", verbose=2))
+                mock_function.assert_called_once_with(
+                    physBiblioWeb.webSearch["inspire"],
+                    "12345",
+                    bibtex=None,
+                    readConferenceTitle=False,
+                    verbose=2,
+                )
+                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345", verbose=2))
+                mock_function.reset_mock()
+                with patch("logging.Logger.info") as _i:
+                    self.pBDB.bibs.updateInfoFromOAI("12345", verbose=2)
+                    _i.assert_any_call("Inspire OAI info for 12345 saved.")
+                mock_function.assert_called_once_with(
+                    physBiblioWeb.webSearch["inspire"],
+                    "12345",
+                    bibtex=None,
+                    readConferenceTitle=False,
+                    verbose=2,
+                )
+                self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
+                self.pBDB.bibs.insertFromBibtex(
+                    u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+                )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
+                self.assertEqual(
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": None,
+                        "arxiv": "1507.08204",
+                        "ads": None,
+                        "scholar": None,
+                        "doi": None,
+                        "isbn": None,
+                        "year": 2015,
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n         "
+                        + 'arxiv = "1507.08204",\n}',
+                        "firstdate": dt,
+                        "pubdate": "",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "arxiv": "1507.08204",
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                        },
+                        "title": "",
+                        "journal": "",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "  (2015) ",
+                        "author": "",
+                        "bibdict": {
+                            u"arxiv": u"1507.08204",
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                        },
+                    },
+                )
+                mock_function.reset_mock()
+                self.pBDB.bibs.updateInfoFromOAI(
+                    "12345",
+                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
+                    verbose=2,
+                )
+                mock_function.assert_called_once_with(
+                    physBiblioWeb.webSearch["inspire"],
+                    "12345",
+                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
+                    readConferenceTitle=False,
+                    verbose=2,
+                )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
+                self.assertEqual(
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": "2016",
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n}',
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "eprint": "1507.08204",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                            "year": "2016",
+                        },
+                        "title": "",
+                        "journal": "",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "  (2016) ",
+                        "author": "",
+                        "bibdict": {
+                            u"eprint": u"1507.08204",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                            "year": "2016",
+                        },
+                    },
+                )
+                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
+                self.assertEqual(
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": "2016",
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "Gariazzo",\n'
+                        + '         title = "{Light Sterile Neutrinos}",\n'
+                        + '       journal = "J.Phys.G",\n'
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
+                        + "}",
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                            "author": "Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
+                        },
+                        "title": "{Light Sterile Neutrinos}",
+                        "journal": "J.Phys.G",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "J.Phys.G  (2016) ",
+                        "author": "Gariazzo",
+                        "bibdict": {
+                            "ENTRYTYPE": u"article",
+                            "ID": u"Gariazzo:2015rra",
+                            "author": "Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
+                        },
+                    },
+                )
+                self.assertTrue(
+                    self.pBDB.bibs.updateInfoFromOAI("12345", reloadAll=True)
+                )
+                res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
+                del res["citations"]
+                del res["citations_no_self"]
+                self.assertEqual(
+                    res,
+                    {
+                        "bibkey": "Gariazzo:2015rra",
+                        "inspire": "1385583",
+                        "arxiv": "1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "scholar": None,
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "isbn": None,
+                        "year": "2016",
+                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "comments": None,
+                        "old_keys": None,
+                        "crossref": None,
+                        "bibtex": "@Article{Gariazzo:2015rra,\n"
+                        + '        author = "Gariazzo",\n'
+                        + '         title = "{Light Sterile Neutrinos}",\n'
+                        + '       journal = "J.Phys.G",\n'
+                        + '          year = "2016",\n'
+                        + '        eprint = "1507.08204",\n'
+                        + '           doi = "10.1088/0954-3899/43/3/033001",\n'
+                        + "}",
+                        "firstdate": "2015-07-29",
+                        "pubdate": "2016-01-13",
+                        "exp_paper": 0,
+                        "lecture": 0,
+                        "phd_thesis": 0,
+                        "review": 0,
+                        "proceeding": 0,
+                        "book": 0,
+                        "noUpdate": 0,
+                        "marks": "",
+                        "abstract": None,
+                        "bibtexDict": {
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
+                            "author": "Gariazzo",
+                            "title": "{Light Sterile Neutrinos}",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "year": "2016",
+                        },
+                        "title": "{Light Sterile Neutrinos}",
+                        "journal": "J.Phys.G",
+                        "volume": "",
+                        "number": "",
+                        "pages": "",
+                        "published": "J.Phys.G  (2016) ",
+                        "author": "Gariazzo",
+                        "bibdict": {
+                            "ID": u"Gariazzo:2015rra",
+                            "ENTRYTYPE": u"article",
+                            u"author": u"Gariazzo",
+                            "doi": "10.1088/0954-3899/43/3/033001",
+                            "eprint": "1507.08204",
+                            "journal": "J.Phys.G",
+                            "title": "{Light Sterile Neutrinos}",
+                            "year": "2016",
+                        },
+                    },
+                )
+                self.assertFalse(self.pBDB.bibs.updateInfoFromOAI("12345"))
+                with patch("logging.Logger.exception") as _i:
+                    self.pBDB.bibs.updateInfoFromOAI("12345")
+                    self.assertIn("Key error: (bibkey", _i.call_args[0][0])
+                self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("12345"))
+
+    @unittest.skipIf(skipTestsSettings.online, "Online tests")
+    def test_updateInspireID(self, *args):
+        """tests for updateInspireID (online)"""
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+        )
+        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+        self.assertEqual(
+            self.pBDB.bibs.updateInspireID(
+                "a Gariazzo and d 2015", "Gariazzo:2015rra", number=3
+            ),
+            "1385583",
+        )
+        self.pBDB.bibs.delete("Gariazzo:2015rra")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\narxiv="1507.08204"\n}'
+        )
+        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+        self.pBDB.bibs.delete("Gariazzo:2015")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+            + '\narxiv="150708204"\n}'
+        )
+        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+        self.pBDB.bibs.delete("Gariazzo:2015")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\ndoi="10.10880954-3899433033001"'
+            + '\narxiv="1507.08204"\n}'
+        )
+        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+        self.pBDB.bibs.delete("Gariazzo:2015")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
+        )
+        self.assertFalse(
+            self.pBDB.bibs.updateInspireID("Gariazzo:2015r", "Gariazzo:2015rra")
+        )
+        self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
+        self.pBDB.bibs.delete("Gariazzo:2015")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+            + '\narxiv="150708204"\n}'
+        )
+        self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
+        self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
+        self.pBDB.bibs.delete("Gariazzo:2015")
+        self.pBDB.bibs.insertFromBibtex(
+            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
+        )
+        self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
+        self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015abcd"))
+
+        self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
+
+    def test_toDataDict(self, *args):
+        """test toDataDict"""
+        self.insert_three()
+        a = self.pBDB.bibs.toDataDict("abc")
+        self.assertEqual(a["bibkey"], "abc")
+        self.assertEqual(
+            a["bibtex"],
+            u'@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
+        )
+
+    def test_updateRecordFromINSPIRE(self, *args):
+        """test updateRecordFromINSPIRE"""
+        self.insert_three()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord", return_value=[]
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
+            _gir.assert_called_once_with("abc")
+            _uf.assert_not_called()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[{"noUpdate": 1}],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE("abc"), False)
+            _gir.assert_called_once_with("abc")
+            _uf.assert_not_called()
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[{"noUpdate": 0, "bibkey": "abc", "bibtex": "bib"}],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(False, "bibtex"),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "abc"}), False
+            )
+            _gir.assert_called_once_with({"id": "abc"})
+            _uf.assert_not_called()
+            _ub.assert_called_once_with({"id": "abc"}, "bib", force=False)
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(False, "bibtex"),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": "1234"}), True
+            )
+            _gir.assert_called_once_with({"id": "1234"})
+            _uf.assert_called_once_with("abc", "inspire", "1234", verbose=0)
+            _ub.assert_called_once_with({"id": "1234"}, "bib", force=False)
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}), True)
+            _gir.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                }
+            )
+            _uf.assert_called_once_with(
+                "abc",
+                "bibtex",
+                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                verbose=0,
+            )
+            _ub.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                },
+                "bib",
+                force=False,
+            )
+        # test useOld
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 0, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE(
+                    {"id": None},
+                    useOld=[
+                        {
+                            "noUpdate": 1,
+                            "bibkey": "abc",
+                            "bibtex": "mybib",
+                            "inspire": "4455",
+                        }
+                    ],
+                ),
+                False,
+            )
+            _gir.assert_not_called()
+        # test force
+        with patch(
+            "physbiblio.database.Entries.getByIdFromInspireRecord",
+            return_value=[
+                {"noUpdate": 1, "bibkey": "abc", "bibtex": "bib", "inspire": "1235"}
+            ],
+        ) as _gir, patch("physbiblio.database.Entries.updateField") as _uf, patch(
+            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+            return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
+        ) as _ub:
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}, force=True), True
+            )
+            _gir.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                }
+            )
+            _uf.assert_called_once_with(
+                "abc",
+                "bibtex",
+                '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                verbose=0,
+            )
+            _ub.assert_called_once_with(
+                {
+                    "id": None,
+                    "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
+                },
+                "bib",
+                force=True,
+            )
 
 
 @unittest.skipIf(skipTestsSettings.db, "Database tests")

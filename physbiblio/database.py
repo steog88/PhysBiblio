@@ -1775,6 +1775,27 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info(dstr.Bibs.cbResChan % len(changed))
         return num, err, changed
 
+    def cleanBibtex(self, bibkey, bibtex, db=None):
+        """Parse and rewrite a single bibtex. If it changes, store
+        the new one in the database
+
+        Parameters:
+            bibkey, bibtex: the key and bibtex of the considered record
+            db (default None): a bibtexparser.bibdatabase.BibDatabase instance
+
+        Output:
+            a boolean indicating if the record has been changed
+        """
+        if db is None:
+            db = bibtexparser.bibdatabase.BibDatabase()
+        db.entries = [
+            bibtexparser.bparser.BibTexParser(common_strings=True)
+            .parse(bibtex)
+            .entries[0]
+        ]
+        newbibtex = self.bibtexFromDB(db)
+        return bibtex != newbibtex and self.updateField(bibkey, "bibtex", newbibtex)
+
     def cleanBibtexs(self, startFrom=0, entries=None, pbMax=None, pbVal=None):
         """Clean (remove comments, unwanted fields, newlines, accents)
         and reformat the bibtexs
@@ -1794,18 +1815,16 @@ class Entries(PhysBiblioDBSub):
                 the number of errors,
                 the list of keys of changed entries
         """
+        num, err, changed = (0, 0, [])
         if entries is None:
             try:
                 iterator, tot = self.getEntriesIfNone(startFrom=startFrom)
             except TypeError:
                 pBLogger.exception(dstr.Bibs.cbInvalidStart)
-                return 0, 0, []
+                return num, err, changed
         else:
             iterator = entries
             tot = len(entries)
-        num = 0
-        err = 0
-        changed = []
         self.runningCleanBibtexs = True
         pBLogger.info(dstr.Bibs.cbProcessTot % tot)
         try:
@@ -1824,31 +1843,9 @@ class Entries(PhysBiblioDBSub):
                     dstr.Bibs.cbProcessProgr
                     % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
                 )
-                for field in [
-                    "marks",
-                    "old_keys",
-                ]:  # convert None to "" for given fields
-                    if e[field] is None:
-                        self.updateField(e["bibkey"], field, "")
-                if e["marks"] is not None and "'" in e["marks"]:
-                    marks = e["marks"].replace("'", "").split(",")
-                    newmarks = []
-                    for m in marks:
-                        if m not in newmarks:
-                            newmarks.append(m)
-                    self.updateField(e["bibkey"], "marks", ",".join(newmarks))
+                self.cleanFields(e)
                 try:
-                    element = (
-                        bibtexparser.bparser.BibTexParser(common_strings=True)
-                        .parse(e["bibtex"])
-                        .entries[0]
-                    )
-                    db.entries = []
-                    db.entries.append(element)
-                    newbibtex = self.bibtexFromDB(db)
-                    if e["bibtex"] != newbibtex and self.updateField(
-                        e["bibkey"], "bibtex", newbibtex
-                    ):
+                    if self.cleanBibtex(e["bibkey"], e["bibtex"], db):
                         pBLogger.info(dstr.Bibs.elementChanged)
                         changed.append(e["bibkey"])
                 except (IndexError, ValueError, ParseException):
@@ -1858,6 +1855,28 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info(dstr.Bibs.cbResErr % err)
         pBLogger.info(dstr.Bibs.cbResChan % len(changed))
         return num, err, changed
+
+    def cleanFields(self, e):
+        """Clean some fields of a bibtex entry in the database,
+        by replacing "None" with "" when needed
+        or by formatting the marks field in an appropriate way
+
+        Parameter:
+            e: the entry to be considered
+        """
+        for field in [
+            "marks",
+            "old_keys",
+        ]:  # convert None to "" for given fields
+            if e[field] is None:
+                self.updateField(e["bibkey"], field, "")
+        if e["marks"] is not None and "'" in e["marks"]:
+            marks = e["marks"].replace("'", "").split(",")
+            newmarks = []
+            for m in marks:
+                if m not in newmarks:
+                    newmarks.append(m)
+            self.updateField(e["bibkey"], "marks", ",".join(newmarks))
 
     def count(self):
         """obtain the number of entries in the table"""
