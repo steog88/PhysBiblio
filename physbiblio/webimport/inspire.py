@@ -375,6 +375,35 @@ class WebSearch(WebInterf, InspireStrings):
         pBLogger.info(self.endString % time.strftime("%c"))
         return foundObjects
 
+    def processRecord(self, record, bibtex=None, readConferenceTitle=False):
+        """Process the JSON entry for a given record
+
+        Parameters:
+            record: the INSPIRE-HEP JSON record
+            bibtex (default None): whether the bibtex should be
+                included in the output dictionary
+            readConferenceTitle (boolean, default False):
+                try to read the conference title if dealing
+                with a proceeding
+
+        Output:
+            the dictionary containing the bibtex information
+        """
+        try:
+            res = self.readRecord(record, readConferenceTitle=readConferenceTitle)
+        except Exception:
+            pBLogger.exception(self.errorReadRecord)
+            return False
+        if bibtex is not None:
+            try:
+                outcome, bibtex = self.updateBibtex(res, bibtex)
+            except Exception:
+                pBLogger.exception(self.errorUpdateBibtex)
+                return False
+            if outcome:
+                res["bibtex"] = bibtex
+        return res
+
     def retrieveOAIData(
         self, inspireID, bibtex=None, verbose=0, readConferenceTitle=False
     ):
@@ -402,18 +431,12 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.exception(self.errorEmptySearch)
             return False
         try:
-            res = self.readRecord(record, readConferenceTitle=readConferenceTitle)
+            res = self.processRecord(
+                record, bibtex=bibtex, readConferenceTitle=readConferenceTitle
+            )
         except Exception:
             pBLogger.exception(self.errorReadRecord)
             return False
-        if bibtex is not None:
-            try:
-                outcome, bibtex = self.updateBibtex(res, bibtex)
-            except Exception:
-                pBLogger.exception(self.errorUpdateBibtex)
-                return False
-            if outcome:
-                res["bibtex"] = bibtex
         if verbose > 0:
             pBLogger.info(self.doneD)
         return res

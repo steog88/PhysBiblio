@@ -133,15 +133,15 @@ class InspireStatsLoader:
             pbMax(tot)
         except TypeError:
             pass
-        batch_size = pbConfig.params["batchSizeInspire"]
-        for i in range(0, tot, batch_size):
+        batchSize = pbConfig.params["batchSizeInspire"]
+        for i in range(0, tot, batchSize):
             entries, nume = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
-                recid_authorPapers[i : i + batch_size],
+                recid_authorPapers[i : i + batchSize],
                 searchFormat="recid:%s",
                 fields=["control_number", "references.record"],
             )
             references, numr = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
-                recid_authorPapers[i : i + batch_size],
+                recid_authorPapers[i : i + batchSize],
                 searchFormat="refersto:recid:%s",
                 fields=["control_number", "references.record"],
             )
