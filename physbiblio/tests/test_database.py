@@ -2515,6 +2515,58 @@ class TestDatabaseEntries(DBTestCase):
             ["def", "abc", "ghi"],
         )
 
+    def test_checkNeedsUpdate(self, *args):
+        """test checkNeedsUpdate"""
+        self.pBDB.bibs.runningOAIUpdates = False
+        e = {
+            "proceeding": 0,
+            "book": 0,
+            "lecture": 0,
+            "phd_thesis": 0,
+            "noUpdate": 0,
+            "inspire": "123",
+            "doi": "1/2/3",
+        }
+        with patch(
+            "physbiblio.database.Entries.completeFetched", return_value=[e]
+        ) as _c:
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            _c.assert_called_once_with([e])
+        e["bibtexDict"] = {"journal": "a"}
+        self.pBDB.bibs.runningOAIUpdates = True
+        with patch(
+            "physbiblio.database.Entries.completeFetched", return_value=[e]
+        ) as _c:
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            self.assertTrue(self.pBDB.bibs.checkNeedsUpdate(e, force=True))
+            e["bibtexDict"] = {"a": "b"}
+            self.assertTrue(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["bibtexDict"] = {"journal": "a"}
+            e["doi"] = None
+            self.assertTrue(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["doi"] = "1/2/3"
+            e["inspire"] = ""
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["inspire"] = None
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["inspire"] = "123"
+            e["noUpdate"] = 1
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["noUpdate"] = 0
+            e["phd_thesis"] = 1
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["phd_thesis"] = 0
+            e["lecture"] = 1
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["lecture"] = 0
+            e["book"] = 1
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["book"] = 0
+            e["proceeding"] = 1
+            self.assertFalse(self.pBDB.bibs.checkNeedsUpdate(e))
+            e["proceeding"] = 0
+            _c.assert_not_called()
+
     def test_citationCount(self, *args):
         """test citationCount"""
         self.insert_three()
@@ -5966,6 +6018,56 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn("astro-ph", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
         self.assertIn("hep-ph", self.pBDB.bibs.getField("Gariazzo:2015rra", "bibtex"))
 
+    def test_getInspireIDList(self, *args):
+        """test getInspireIDList"""
+        pbv = MagicMock()
+        with patch(
+            "physbiblio.database.Entries.checkNeedsUpdate",
+            side_effect=[True, True, False, True],
+        ) as _cnu:
+            self.assertEqual(
+                self.pBDB.bibs.getInspireIDList(
+                    [
+                        {"bibkey": "a", "inspire": "1"},
+                        {"bibkey": "b", "inspire": "2"},
+                        {"bibkey": "c", "inspire": "3"},
+                        {"bibkey": "d", "inspire": "4"},
+                    ],
+                    4,
+                ),
+                (["1", "2", "4"], 3),
+            )
+            _cnu.assert_any_call({"bibkey": "a", "inspire": "1"}, force=False)
+            _cnu.assert_any_call({"bibkey": "b", "inspire": "2"}, force=False)
+            _cnu.assert_any_call({"bibkey": "c", "inspire": "3"}, force=False)
+            _cnu.assert_any_call({"bibkey": "d", "inspire": "4"}, force=False)
+        with patch(
+            "physbiblio.database.Entries.checkNeedsUpdate",
+            side_effect=[False, True, False, True],
+        ) as _cnu:
+            self.assertEqual(
+                self.pBDB.bibs.getInspireIDList(
+                    [
+                        {"bibkey": "a", "inspire": "1"},
+                        {"bibkey": "b", "inspire": "2"},
+                        {"bibkey": "c", "inspire": "3"},
+                        {"bibkey": "d", "inspire": "4"},
+                    ],
+                    4,
+                    force=True,
+                    pbVal=pbv,
+                ),
+                (["2", "4"], 2),
+            )
+            pbv.assert_any_call(1)
+            pbv.assert_any_call(2)
+            pbv.assert_any_call(3)
+            pbv.assert_any_call(4)
+            _cnu.assert_any_call({"bibkey": "a", "inspire": "1"}, force=True)
+            _cnu.assert_any_call({"bibkey": "b", "inspire": "2"}, force=True)
+            _cnu.assert_any_call({"bibkey": "c", "inspire": "3"}, force=True)
+            _cnu.assert_any_call({"bibkey": "d", "inspire": "4"}, force=True)
+
     def test_getUrl(self, *args):
         """test getUrl"""
         data = self.pBDB.bibs.prepareInsert(
@@ -7157,17 +7259,40 @@ class TestDatabaseEntries(DBTestCase):
 
     def test_searchOAIUpdates(self, *args):
         """tests for searchOAIUpdates, with mock functions"""
+        i1 = "1385583"
+        i2 = "1224741"
         self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire=i1
             )
         )
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire="1224741"
+                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire=i2
             )
         )
+        pbm = MagicMock()
+        pbv = MagicMock()
+        with patch(
+            "physbiblio.database.Entries.getInspireIDList",
+            return_value=([], 0),
+        ) as _gil:
+            self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
+            _gil.assert_called_once_with(
+                *self.pBDB.bibs.getEntriesIfNone(startFrom=1), force=False, pbVal=None
+            )
+        with patch(
+            "physbiblio.database.Entries.getInspireIDList",
+            return_value=([], 0),
+        ) as _gil:
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(entries=["a", "b"], pbMax=pbm),
+                (0, [], []),
+            )
+            _gil.assert_called_once_with(["a", "b"], 2, force=False, pbVal=None)
+            pbm.assert_any_call(2)
+            pbm.assert_any_call(0)
         entry1 = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
         entry2 = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
         entry1a = dict(entry1)
@@ -7177,21 +7302,40 @@ class TestDatabaseEntries(DBTestCase):
         entry1a["bibtexDict"]["journal"] = "jcap"
         entry2a["bibtexDict"]["journal"] = "jcap"
         with patch(
-            "physbiblio.database.Entries.updateInfoFromOAI",
-            side_effect=[True, True, True, True, True, True, False, True],
-            autospec=True,
-        ) as _mock_uioai, patch(
-            "physbiblio.database.Entries.fetchCursor",
+            "physbiblio.database.Entries.getInspireIDList",
             side_effect=[
-                [entry1, entry2],  # 1
-                [entry1a, entry2a],  # 2
-                [entry1a, entry2a],  # 3
-                [entry2],  # 4
-                [entry1, entry2],  # 6
+                ([], 0),  # 0
+                ([i1, i2], 2),  # 1
+                ([i1, i2], 2),  # 2
+                ([i1, i2], 2),  # 3
+                ([i2], 1),  # 4
+                ([i1, i2], 2),  # 5
             ],
-            autospec=True,
-        ) as _mock_ga, patch(
-            "physbiblio.database.Entries.getByKey",
+        ) as _gl, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveBatchQuery",
+            side_effect=[
+                ([{"id": "e"}, {"id": "d"}], 2),  # 1
+                ([{"id": "e"}], 1),  # 2
+                ([], 0),  # 3
+                ([{"id": "e"}, {"id": "d"}], 2),  # 4
+                ([{"id": "e"}, {"id": "d"}], 2),  # 5
+            ],
+        ) as _rb, patch(
+            "physbiblio.webimport.inspire.WebSearch.processRecord",
+            side_effect=[
+                ["pr1"],
+                ["pr2"],
+                ["pr3"],
+                ["pr4"],
+                ["pr5"],
+                ["pr6"],
+                ["pr7"],
+            ],
+        ) as _pr, patch(
+            "physbiblio.database.Entries.updateRecord",
+            side_effect=[True, True, True, True, True, True, False, True],
+        ) as _ur, patch(
+            "physbiblio.database.Entries.getByInspireID",
             side_effect=[
                 [entry1a],
                 [entry2a],  # 1
@@ -7199,33 +7343,54 @@ class TestDatabaseEntries(DBTestCase):
                 [entry2a],  # 3
                 [entry1a],
                 [entry2a],  # 4,5
-                [entry2a],  # 6
+                [entry1a],  # 6
             ],
-            autospec=True,
-        ) as _mock_gbk:
+        ) as _gi:
             self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(),
+                self.pBDB.bibs.searchOAIUpdates(entries=["a"], pbVal=pbv),
+                (0, [], []),
+            )  # 0
+            _gl.assert_called_once_with(["a"], 1, force=False, pbVal=pbv)
+            _rb.assert_not_called()
+            _pr.assert_not_called()
+            _ur.assert_not_called()
+            _gi.assert_not_called()
+            _gl.reset_mock()
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(
+                    entries=["a"], force=True, reloadAll=True, pbVal=pbv
+                ),
                 (2, [], ["Gariazzo:2015rra", "Ade:2013zuv"]),
             )  # 1
-            self.assertEqual(self.pBDB.bibs.searchOAIUpdates(), (0, [], []))  # 2
+            _gl.assert_called_once_with(["a"], 1, force=True, pbVal=pbv)
+            _rb.assert_called_once_with(
+                [i1, i2],
+                searchFormat="recid:%s",
+            )
+            _pr.assert_any_call({"id": "e"}, bibtex=entry1a["bibtex"])
+            _pr.assert_any_call({"id": "d"}, bibtex=entry2a["bibtex"])
+            _ur.assert_any_call(entry1a, ["pr1"], True, True)
+            _ur.assert_any_call(entry2a, ["pr2"], True, True)
+            _gi.assert_any_call("e")
+            _gi.assert_any_call("d")
+            pbv.assert_any_call(1)
+            pbv.assert_any_call(2)
             self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(force=True), (2, [], [])
+                self.pBDB.bibs.searchOAIUpdates(entries=["a"]),
+                (1, [], ["Gariazzo:2015rra"]),
+            )  # 2
+            self.assertEqual(
+                self.pBDB.bibs.searchOAIUpdates(entries=["a"]), (0, [], [])
             )  # 3
+            _ur.assert_any_call(entry1a, ["pr3"], False, False)
             self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(startFrom=1), (1, [], ["Ade:2013zuv"])
+                self.pBDB.bibs.searchOAIUpdates(entries=["a"], startFrom=1),
+                (2, [], ["Ade:2013zuv", "Gariazzo:2015rra"]),
             )  # 4
             self.assertEqual(
                 self.pBDB.bibs.searchOAIUpdates(entries=[entry1]),
-                (1, [], ["Gariazzo:2015rra"]),
-            )  # 5
-            pbm = MagicMock()
-            pbv = MagicMock()
-            self.assertEqual(
-                self.pBDB.bibs.searchOAIUpdates(pbMax=pbm, pbVal=pbv),
                 (2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]),
-            )  # 6
-            pbm.assert_called_once_with(2)
-            pbv.assert_has_calls([call(1), call(2)])
+            )  # 5
 
     def test_setStuff(self, *args):
         """test ["setBook", "setLecture", "setPhdThesis",
@@ -7926,6 +8091,86 @@ class TestDatabaseEntries(DBTestCase):
             a["bibtex"],
             u'@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
         )
+
+    def test_updateRecord(self, *args):
+        """test updateRecord"""
+        e = {"bibkey": "abc", "bibtex": "bib", "inspire": "123", "proceeding": 0}
+        n = {"bibkey": "abcd", "bibtex": "bibtex", "inspire": "123", "proceeding": 0}
+        with patch(
+            "physbiblio.database.Entries.updateInfoFromOAI",
+            side_effect=[False, True, True, True],
+        ) as _ui, patch(
+            "physbiblio.database.Entries.getByKey", return_value=[e]
+        ) as _gk:
+            self.assertFalse(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
+            _ui.assert_called_once_with(
+                "123",
+                bibtex="bib",
+                verbose=0,
+                readConferenceTitle=False,
+                reloadAll=False,
+                originalKey="abc",
+                useRecord={"b": "a"},
+            )
+            _gk.assert_not_called()
+            self.assertFalse(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
+            _gk.assert_called_once_with("abc", saveQuery=False)
+            _gk.return_value = [n]
+            _ui.reset_mock()
+            self.assertTrue(
+                self.pBDB.bibs.updateRecord(
+                    e.copy(), {"b": "a"}, force=True, reloadAll=True
+                )
+            )
+            _ui.assert_called_once_with(
+                "123",
+                bibtex="bib",
+                verbose=0,
+                readConferenceTitle=False,
+                reloadAll=True,
+                originalKey="abc",
+                useRecord={"b": "a"},
+            )
+            e["proceeding"] = 1
+            _ui.reset_mock()
+            self.assertTrue(
+                self.pBDB.bibs.updateRecord(
+                    e.copy(), {"b": "a"}, force=True, reloadAll=True
+                )
+            )
+            _ui.assert_called_once_with(
+                "123",
+                bibtex="bib",
+                verbose=0,
+                readConferenceTitle=True,
+                reloadAll=True,
+                originalKey="abc",
+                useRecord={"b": "a"},
+            )
+        self.pBDB.bibs.newKey = "def"
+        with patch(
+            "physbiblio.database.Entries.updateInfoFromOAI", return_value=True
+        ) as _ui, patch(
+            "physbiblio.database.Entries.getByKey", side_effect=[[], [n], [], []]
+        ) as _gk:
+            self.assertTrue(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
+            _ui.assert_called_with(
+                "123",
+                bibtex="bib",
+                verbose=0,
+                readConferenceTitle=False,
+                reloadAll=False,
+                originalKey="abc",
+                useRecord={"b": "a"},
+            )
+            _gk.assert_any_call("abc", saveQuery=False)
+            _gk.assert_any_call("def", saveQuery=False)
+            self.assertFalse(hasattr(self.pBDB.bibs, "newKey"))
+            _gk.reset_mock()
+            self.pBDB.bibs.newKey = "def"
+            self.assertFalse(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
+            _gk.assert_any_call("abc", saveQuery=False)
+            _gk.assert_any_call("def", saveQuery=False)
 
     def test_updateRecordFromINSPIRE(self, *args):
         """test updateRecordFromINSPIRE"""

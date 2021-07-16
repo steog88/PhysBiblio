@@ -1691,6 +1691,33 @@ class Entries(PhysBiblioDBSub):
                 return False
         return existing
 
+    def checkNeedsUpdate(self, e, force=False):
+        """Verify if a record needs updates or not
+
+        Parameters:
+            e: the record to be considered
+            force (boolean, default False): force the update also
+                of entries which already have journal information
+
+        Output:
+            Boolean (the record needs updates or not)
+        """
+        if not "bibtexDict" in e.keys():
+            e = self.completeFetched([e])[0]
+        if (
+            self.runningOAIUpdates
+            and (e["proceeding"] == 0 or force)
+            and e["book"] == 0
+            and e["lecture"] == 0
+            and e["phd_thesis"] == 0
+            and e["noUpdate"] == 0
+            and e["inspire"] is not None
+            and e["inspire"] != ""
+            and (force or (e["doi"] is None or "journal" not in e["bibtexDict"].keys()))
+        ):
+            return True
+        return False
+
     def citationCount(self, inspireID, pbMax=None, pbVal=None):
         """Update the citation counts using information from INSPIRE
 
@@ -1721,10 +1748,10 @@ class Entries(PhysBiblioDBSub):
             pbMax(tot)
         except TypeError:
             pass
-        batch_size = pbConfig.params["batchSizeInspire"]
-        for i in range(0, tot, batch_size):
+        batchSize = pbConfig.params["batchSizeInspire"]
+        for i in range(0, tot, batchSize):
             entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
-                inspireID[i : i + batch_size],
+                inspireID[i : i + batchSize],
                 searchFormat="recid:%s",
                 fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
             )
@@ -2836,6 +2863,35 @@ class Entries(PhysBiblioDBSub):
         self.updateField(bibkey, "bibtex", bibtex)
         return True
 
+    def getInspireIDList(self, iterator, tot, force=False, pbVal=None):
+        """Generate a list of inspire IDs to be updated
+        from the given iterator of entries
+
+        Parameters:
+            iterator: the iterator of records to be considered
+            tot: the number of records to be considered
+            force (boolean, default False): force the update also
+                of entries which already have journal information
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
+
+        Output:
+            (a list of inspire IDs, the list length)
+        """
+        inspireID = []
+        for ix, e in enumerate(iterator):
+            try:
+                pbVal(ix + 1)
+            except TypeError:
+                pass
+            pBLogger.info(
+                dstr.Bibs.souProcessProgr
+                % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
+            )
+            if self.checkNeedsUpdate(e, force=force):
+                inspireID.append(e["inspire"])
+        return inspireID, len(inspireID)
+
     def importFromBib(self, filename, completeInfo=True, pbMax=None, pbVal=None):
         """Read a .bib file and add the contained entries in the database
 
@@ -3889,68 +3945,48 @@ class Entries(PhysBiblioDBSub):
         else:
             iterator = entries
             tot = len(entries)
-        num = 0
-        err = []
-        changed = []
-        self.runningOAIUpdates = True
         pBLogger.info(dstr.Bibs.souProcessTot % tot)
         try:
             pbMax(tot)
         except TypeError:
             pass
-        for ix, e in enumerate(iterator):
-            try:
-                pbVal(ix + 1)
-            except TypeError:
-                pass
-            if not "bibtexDict" in e.keys():
-                e = self.completeFetched([e])[0]
-            if (
-                self.runningOAIUpdates
-                and (e["proceeding"] == 0 or force)
-                and e["book"] == 0
-                and e["lecture"] == 0
-                and e["phd_thesis"] == 0
-                and e["noUpdate"] == 0
-                and e["inspire"] is not None
-                and e["inspire"] != ""
-                and (
-                    force
-                    or (e["doi"] is None or "journal" not in e["bibtexDict"].keys())
+        self.runningOAIUpdates = True
+        pBLogger.info(dstr.Bibs.souFirst)
+        inspireID, tot = self.getInspireIDList(iterator, tot, force=force, pbVal=pbVal)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
+        batchSize = pbConfig.params["batchSizeInspire"]
+        num = 0
+        err = []
+        changed = []
+        pBLogger.info(dstr.Bibs.souSecond)
+        for i in range(0, tot, batchSize):
+            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+                inspireID[i : i + batchSize],
+                searchFormat="recid:%s",
+            )
+            for ix, r in enumerate(entries):
+                try:
+                    pbVal(i + ix + 1)
+                except TypeError:
+                    pass
+                e = self.getByInspireID(r["id"])[0]
+                r = physBiblioWeb.webSearch["inspire"].processRecord(
+                    r, bibtex=e["bibtex"]
                 )
-            ):
-                num += 1
-                pBLogger.info(
-                    dstr.Bibs.souProcessProgr
-                    % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
-                )
-                if not self.updateInfoFromOAI(
-                    e["inspire"],
-                    bibtex=e["bibtex"],
-                    verbose=0,
-                    readConferenceTitle=(e["proceeding"] == 1 and force),
-                    reloadAll=reloadAll,
-                    originalKey=e["bibkey"],
-                ):
-                    err.append(e["bibkey"])
-                else:
-                    try:
-                        new = self.getByKey(e["bibkey"], saveQuery=False)[0]
-                    except IndexError:
-                        try:
-                            e["bibkey"] = self.newKey
-                            del self.newKey
-                            new = self.getByKey(e["bibkey"], saveQuery=False)[0]
-                        except (AttributeError, IndexError):
-                            pBLogger.exception(dstr.Bibs.souError % e["bibkey"])
-                            err.append(e["bibkey"])
-                            continue
-                    if e != new:
-                        pBLogger.info(dstr.Bibs.elementChanged)
-                        for diff in list(dictdiffer.diff(e, new)):
-                            pBLogger.info(diff)
+                if self.runningOAIUpdates:
+                    num += 1
+                    pBLogger.info(
+                        dstr.Bibs.souProcessProgr
+                        % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
+                    )
+                    if self.updateRecord(e, r, force, reloadAll):
                         changed.append(e["bibkey"])
-                pBLogger.info("")
+                    else:
+                        err.append(e["bibkey"])
+                    pBLogger.info("")
         pBLogger.info(dstr.Bibs.souResProc % num)
         pBLogger.info(dstr.Bibs.souResErr % len(err))
         if len(err) > 0:
@@ -4193,6 +4229,7 @@ class Entries(PhysBiblioDBSub):
         readConferenceTitle=False,
         reloadAll=False,
         originalKey=None,
+        useRecord=None,
     ):
         """Use inspire OAI to retrieve the info for a single entry
 
@@ -4206,6 +4243,8 @@ class Entries(PhysBiblioDBSub):
                 without trying to simply update the existing one
             originalKey (optional): the previous key of the entry
                 (useful when reloadAll is True)
+            useRecord (default None): if not None, it must be the record
+                retrieved and preprocessed from the INSPIRE API
 
         Output:
             True if successful, or False if there were errors
@@ -4213,22 +4252,25 @@ class Entries(PhysBiblioDBSub):
         if inspireID == "" or not inspireID:
             pBLogger.error(dstr.Bibs.iidEmptyID)
             return False
-        if not inspireID.isdigit():  # assume it's a key instead of the inspireID
-            inspireID = self.getField(inspireID, "inspire")
-            try:
-                assert inspireID.isdigit()
-            except AttributeError:
-                pBLogger.exception(dstr.Bibs.iidWrongType % inspireID)
-                return False
-            except AssertionError:
-                pBLogger.exception(dstr.Bibs.iidWrongVal % inspireID)
-                return False
-        result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
-            inspireID,
-            bibtex=bibtex if not reloadAll else None,
-            verbose=verbose,
-            readConferenceTitle=readConferenceTitle,
-        )
+        if useRecord is None:
+            if not inspireID.isdigit():  # assume it's a key instead of the inspireID
+                inspireID = self.getField(inspireID, "inspire")
+                try:
+                    assert inspireID.isdigit()
+                except AttributeError:
+                    pBLogger.exception(dstr.Bibs.iidWrongType % inspireID)
+                    return False
+                except AssertionError:
+                    pBLogger.exception(dstr.Bibs.iidWrongVal % inspireID)
+                    return False
+            result = physBiblioWeb.webSearch["inspire"].retrieveOAIData(
+                inspireID,
+                bibtex=bibtex if not reloadAll else None,
+                verbose=verbose,
+                readConferenceTitle=readConferenceTitle,
+            )
+        else:
+            result = useRecord
         if verbose > 1:
             pBLogger.info(result)
         if not result:
@@ -4304,6 +4346,47 @@ class Entries(PhysBiblioDBSub):
                             return newid
                         else:
                             pBLogger.warning(em)
+        return False
+
+    def updateRecord(self, e, r, force=False, reloadAll=False):
+        """Use information from the INSPIRE API to update a record
+        in the database
+
+        Parameters:
+            e: the record to be updated, from the database
+            r: the (preprocessed) information record from the INSPIRE API
+            force (boolean, default False): force the update also
+                of entries which already have journal information
+            reloadAll (boolean, default False): reload the entire content,
+                without trying to simply update the existing one
+
+        Output:
+            Boolean (the record has been changed or not)
+        """
+        if self.updateInfoFromOAI(
+            e["inspire"],
+            bibtex=e["bibtex"],
+            verbose=0,
+            readConferenceTitle=(e["proceeding"] == 1 and force),
+            reloadAll=reloadAll,
+            originalKey=e["bibkey"],
+            useRecord=r,
+        ):
+            try:
+                new = self.getByKey(e["bibkey"], saveQuery=False)[0]
+            except (IndexError, KeyError):
+                try:
+                    e["bibkey"] = self.newKey
+                    del self.newKey
+                    new = self.getByKey(e["bibkey"], saveQuery=False)[0]
+                except (AttributeError, IndexError, KeyError):
+                    pBLogger.exception(dstr.Bibs.souError % e["bibkey"])
+                    return False
+            if e != new:
+                pBLogger.info(dstr.Bibs.elementChanged)
+                for diff in list(dictdiffer.diff(e, new)):
+                    pBLogger.info(diff)
+                return True
         return False
 
     def updateRecordFromINSPIRE(self, e, force=False, useOld=None, verbose=0):
