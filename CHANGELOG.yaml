@@ -6,6 +6,7 @@
         - improvements to database module
         - improvements to inspireStats module
         - function to match valid arxiv number
+        - attempt to fix sync problem in WriteStream thanks to simple buffering system
 -   version: 1.7.1
     date: 2021-07-11
     changes:

@@ -493,25 +493,87 @@ class TestWriteStream(GUITestCase):
         self.assertEqual(ws.parent(), ew)
         ws.finished.connect(lambda: fakeExec_writeStream_fin(ws))
         if sys.version_info[0] < 3:
-            with patch("Queue.Queue.put", autospec=True) as _put:
-                ws.write("abc")
-                _put.assert_called_once_with(queue, "abc")
-            with patch("Queue.Queue.get", return_value="abc", autospec=True) as _get:
-                ws.newText.connect(lambda x: fakeExec_writeStream_mys(ws, x))
-                ws.run()
-                self.assertEqual(_get.call_count, 1)
-                self.assertEqual(ws.text, "abc")
-                self.assertTrue(ws.fin)
+            package = "Queue"
         else:
-            with patch("queue.Queue.put", autospec=True) as _put:
-                ws.write("abc")
-                _put.assert_called_once_with(queue, "abc")
-            with patch("queue.Queue.get", return_value="abc", autospec=True) as _get:
-                ws.newText.connect(lambda x: fakeExec_writeStream_mys(ws, x))
-                ws.run()
-                self.assertEqual(_get.call_count, 1)
-                self.assertEqual(ws.text, "abc")
-                self.assertTrue(ws.fin)
+            package = "queue"
+        with patch(package + ".Queue.put", autospec=True) as _put:
+            ws.write("abc")
+            _put.assert_called_once_with(queue, "abc")
+        with patch(package + ".Queue.get", return_value="abc", autospec=True) as _get:
+            ws.newText.connect(lambda x: fakeExec_writeStream_mys(ws, x))
+            ws.run()
+            self.assertEqual(_get.call_count, 334)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "abc" * _get.call_count)
+            self.assertTrue(ws.fin)
+
+            _get.reset_mock()
+            _get.return_value = "abcde" * 100
+            ws.running = True
+            ws.run()
+            self.assertEqual(_get.call_count, 3)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "abcde" * 100 * _get.call_count)
+            self.assertTrue(ws.fin)
+
+            _get.reset_mock()
+            _get.return_value = "abcde" * 201
+            ws.running = True
+            ws.run()
+            self.assertEqual(_get.call_count, 1)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "abcde" * 201)
+
+            _get.reset_mock()
+
+            def getWait(x, timeout=0.2):
+                time.sleep(timeout / 5.0)
+                return "abcde"
+
+            _get.side_effect = getWait
+            ws.running = True
+            ws.run()
+            self.assertEqual(_get.call_count, 3)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "abcde" * 3)
+
+            _get.reset_mock()
+            self.a = 0
+
+            def getWaitLong(ws, timeout=0.2):
+                self.a += 1
+                time.sleep(timeout)
+                if self.a > 2:
+                    return "abcde"
+                else:
+                    return ""
+
+            _get.side_effect = getWaitLong
+            ws.running = True
+            ws.run()
+            self.assertEqual(_get.call_count, 3)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "abcde")
+
+            _get.reset_mock()
+            self.a = 0
+
+            def getWaitEmpty(q, timeout=0.2):
+                self.a += 1
+                time.sleep(timeout / 21.0)
+                if self.a > 4:
+                    ws.running = False
+                    return ""
+                else:
+                    return "a"
+
+            _get.side_effect = getWaitEmpty
+            ws.running = True
+            ws.run()
+            self.assertEqual(_get.call_count, 5)
+            _get.assert_any_call(ws.queue, timeout=0.2)
+            self.assertEqual(ws.text, "aaaa")
+        ws.running = False
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")

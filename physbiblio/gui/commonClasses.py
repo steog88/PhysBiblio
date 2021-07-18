@@ -3,9 +3,15 @@ in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
+import sys
 import time
 import traceback
 from weakref import WeakValueDictionary
+
+if sys.version_info[0] < 3:
+    from Queue import Empty
+else:
+    from queue import Empty
 
 import PySide2
 from PySide2.QtCore import (
@@ -430,8 +436,18 @@ class WriteStream(PBThread):
 
     def run(self):
         """Run the thread"""
+        last = time.time()
+        text = ""
         while self.running:
-            text = self.queue.get()
+            try:
+                text += self.queue.get(timeout=0.2)
+            except Empty:
+                pass
+            if text != "" and (len(text) > 1000 or time.time() - last > 0.1):
+                self.newText.emit(text)
+                last = time.time()
+                text = ""
+        if text != "":
             self.newText.emit(text)
         self.finished.emit()
 
