@@ -3143,7 +3143,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
                 u'@article{abc,\nauthor = "me and you and him and them",'
-                + '\ntitle = "abc",\n}'
+                + '\ntitle = "abc",\nyear="2021",\n}'
             )
         )
         fetched = self.pBDB.bibs.getByBibkey("abc")
@@ -3152,7 +3152,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(completed["title"], "{abc}")
         self.assertEqual(completed["journal"], "")
         self.assertEqual(completed["volume"], "")
-        self.assertEqual(completed["year"], "")
+        self.assertEqual(completed["year"], "2021")
         self.assertEqual(completed["pages"], "")
         self.assertEqual(completed["published"], "")
         self.assertEqual(completed["bibdict"], completed["bibtexDict"])
@@ -3171,6 +3171,7 @@ class TestDatabaseEntries(DBTestCase):
                 "ID": "abc",
                 "author": "me and you and him and them",
                 "title": "{abc}",
+                "year": "2021",
             },
         )
         self.assertEqual(
@@ -5810,7 +5811,7 @@ class TestDatabaseEntries(DBTestCase):
                 "volume": "",
                 "number": "",
                 "pages": "",
-                "published": "  (2013) ",
+                "published": "",
                 "author": "",
                 "bibdict": {
                     u"arxiv": u"1303.5076",
@@ -5860,7 +5861,7 @@ class TestDatabaseEntries(DBTestCase):
                 "volume": "",
                 "number": "",
                 "pages": "",
-                "published": "  (2015) ",
+                "published": "",
                 "author": "",
                 "bibdict": {
                     u"arxiv": u"1507.08204",
@@ -5959,7 +5960,7 @@ class TestDatabaseEntries(DBTestCase):
                     "volume": "",
                     "number": "",
                     "pages": "",
-                    "published": "  (2013) ",
+                    "published": "",
                     "author": "",
                     "bibdict": {
                         u"arxiv": u"1303.5076",
@@ -6089,7 +6090,7 @@ class TestDatabaseEntries(DBTestCase):
                 "volume": "",
                 "number": "",
                 "pages": "",
-                "published": "  (2013) ",
+                "published": "",
                 "author": "",
                 "bibdict": {
                     u"arxiv": u"1303.5076",
@@ -6139,7 +6140,7 @@ class TestDatabaseEntries(DBTestCase):
                 "volume": "",
                 "number": "",
                 "pages": "",
-                "published": "  (2015) ",
+                "published": "",
                 "author": "",
                 "bibdict": {
                     u"arxiv": u"1507.08204",
@@ -6219,7 +6220,7 @@ class TestDatabaseEntries(DBTestCase):
                     "volume": "",
                     "number": "",
                     "pages": "",
-                    "published": "  (2013) ",
+                    "published": "",
                     "author": "",
                     "bibdict": {
                         u"arxiv": u"1303.5076",
@@ -8161,7 +8162,7 @@ class TestDatabaseEntries(DBTestCase):
                         "volume": "",
                         "number": "",
                         "pages": "",
-                        "published": "  (2015) ",
+                        "published": "",
                         "author": "",
                         "bibdict": {
                             u"arxiv": u"1507.08204",
@@ -8228,7 +8229,7 @@ class TestDatabaseEntries(DBTestCase):
                         "volume": "",
                         "number": "",
                         "pages": "",
-                        "published": "  (2016) ",
+                        "published": "",
                         "author": "",
                         "bibdict": {
                             u"eprint": u"1507.08204",
