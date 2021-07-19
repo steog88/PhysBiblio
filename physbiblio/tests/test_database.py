@@ -21,11 +21,13 @@ else:
     from unittest.mock import MagicMock, call, patch
 
 try:
+    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
     from physbiblio.database import cats_alphabetical, catString, dbStats
     from physbiblio.databaseCore import *
     from physbiblio.errors import pBLogger
     from physbiblio.export import pBExport
+    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.pdf import pBPDF
     from physbiblio.setuptests import *
     from physbiblio.tablesDef import tableFields
@@ -2460,6 +2462,357 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
 
+    def test_catExpStrings(self, *args):
+        """test _catExpStrings"""
+        jC, wC, vC = self.pBDB.bibs._catExpStrings(
+            [1, 2], "all the following", "entryCats", "idCat"
+        )
+        self.assertEqual(
+            jC,
+            " left join entryCats entryCats0 on entries.bibkey=entryCats0.bibkey"
+            + "  left join entryCats entryCats1 on entries.bibkey=entryCats1.bibkey",
+        )
+        self.assertEqual(wC, "(entryCats0.idCat = ? and entryCats1.idCat = ?)")
+        self.assertEqual(vC, ("1", "2"))
+        jC, wC, vC = self.pBDB.bibs._catExpStrings(
+            [1, 2], "at least one among", "entryCats", "idCat"
+        )
+        self.assertEqual(jC, " left join entryCats on entries.bibkey=entryCats.bibkey")
+        self.assertEqual(wC, "( entryCats.idCat = ? or entryCats.idCat = ? )")
+        self.assertEqual(vC, ("1", "2"))
+        jC, wC, vC = self.pBDB.bibs._catExpStrings(
+            [1, 2], "random", "entryCats", "idCat"
+        )
+        self.assertEqual(jC, "")
+        self.assertEqual(wC, "")
+        self.assertEqual(vC, tuple())
+        jC, wC, vC = self.pBDB.bibs._catExpStrings(1, "random", "entryExps", "idExp")
+        self.assertEqual(jC, " left join entryExps on entries.bibkey=entryExps.bibkey")
+        self.assertEqual(wC, "entryExps.idExp = ? ")
+        self.assertEqual(vC, ("1",))
+
+    def test_getQueryStr(self, *args):
+        """test _getQueryStr"""
+        self.assertEqual(self.pBDB.bibs._getQueryStr("abc", "noa"), "abc")
+        self.assertEqual(self.pBDB.bibs._getQueryStr("abc", "loglikem"), "%abc%")
+
+    def test_processQueryFields(self, *args):
+        """test _processQueryFields"""
+        # failing
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {"logical": "abc", "type": "Text", "content": "", "operator": "bb"},
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Categories",
+                    "content": "",
+                    "operator": "bb",
+                },
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Experiments",
+                    "content": "",
+                    "operator": "bb",
+                },
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {"logical": "abc", "type": "Marks", "content": "", "operator": "bb"},
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Marks",
+                    "content": ["a", "b"],
+                    "operator": "bb",
+                },
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {"logical": "abc", "type": "Type", "content": "", "operator": "bb"},
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Type",
+                    "content": ["a", "b"],
+                    "operator": "bb",
+                },
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (True, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "random",
+                    "content": ["a", "b"],
+                    "operator": "bb",
+                },
+                True,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (False, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {"logical": "abc", "type": "Text", "content": "", "operator": "bb"},
+                False,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (False, "abc", "where", "join", tuple()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Text",
+                    "content": "",
+                    "operator": "=",
+                    "field": "bb",
+                },
+                False,
+                "abc",
+                "where",
+                "join",
+                tuple(),
+            ),
+            (False, "abc", "where", "join", tuple()),
+        )
+        # working
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Text",
+                    "content": "abc",
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where and bibtex = ? ", "join ", ("abc",)),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Text",
+                    "content": "abc",
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+                prependTab="entrie1s.",
+            ),
+            (False, "abc", "where and entrie1s.bibtex = ? ", "join ", ("abc",)),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Categories",
+                    "content": "1",
+                    "operator": "at least one among",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+                prependTab="entrie1s.",
+            ),
+            (
+                False,
+                "abc",
+                "where and entryCats.idCat = ?  ",
+                "join  left join entryCats on entries.bibkey=entryCats.bibkey",
+                ("1",),
+            ),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Experiments",
+                    "content": ["1", "2"],
+                    "operator": "all the following",
+                    "field": "bibtex",
+                },
+                True,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+                prependTab="entrie1s.",
+            ),
+            (
+                False,
+                "abc",
+                "where  (entryExps0.idExp = ? and entryExps1.idExp = ?) ",
+                "join  left join entryExps entryExps0 on entries.bibkey=entryExps0.bibkey  left join entryExps entryExps1 on entries.bibkey=entryExps1.bibkey",
+                ("1", "2"),
+            ),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Marks",
+                    "content": ["abc"],
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where and marks = ? ", "join ", ("abc",)),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Marks",
+                    "content": ["any"],
+                    "operator": "===",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where and marks != ? ", "join ", ("",)),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Marks",
+                    "content": ["abc"],
+                    "operator": "like",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where and marks like ? ", "join ", ("%abc%",)),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Type",
+                    "content": ["abc"],
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where and abc = ? ", "join ", ("1",)),
+        )
+
+    def test_bibtexFromDB(self, *args):
+        """test bibtexFromDB"""
+        self.assertEqual(self.pBDB.bibs.bibtexFromDB("abc"), "")
+        basicEntry = {
+            "ID": "test",
+            "ENTRYTYPE": "article",
+            "author": "me à",
+            "title": "My\n title",
+        }
+        db = bibtexparser.bibdatabase.BibDatabase()
+        db.entries = [basicEntry]
+        self.assertEqual(
+            self.pBDB.bibs.bibtexFromDB(db),
+            self.pBDB.bibs.rmBibtexComments(
+                self.pBDB.bibs.rmBibtexACapo(
+                    parse_accents_str(pbWriter.write(db).strip())
+                )
+            ),
+        )
+
     def test_checkExistingEntry(self, *args):
         """test checkExistingEntry"""
         self.insert_three()
@@ -2971,7 +3324,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.lastQuery,
-            "select * from entries  where bibkey = ?  order by firstdate ASC",
+            "select * from entries  where bibkey =  ?  order by firstdate ASC",
         )
         self.assertEqual(self.pBDB.bibs.lastVals, ("abc",))
         self.assertEqual(
@@ -2993,10 +3346,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn(
             self.pBDB.bibs.lastQuery,
             [
-                "select * from entries  where bibkey = ?  "
-                + "and arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  and "
-                + "bibkey = ?  order by firstdate ASC",
+                "select * from entries  where bibkey =  ?  "
+                + "and arxiv =  ?  order by firstdate ASC",
+                "select * from entries  where arxiv =  ?  and "
+                + "bibkey =  ?  order by firstdate ASC",
             ],
         )
         self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
@@ -3021,10 +3374,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn(
             self.pBDB.bibs.lastQuery,
             [
-                "select * from entries  where bibkey = ?  or "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  or "
-                + "bibkey = ?  order by firstdate ASC",
+                "select * from entries  where bibkey =  ?  or "
+                + "arxiv =  ?  order by firstdate ASC",
+                "select * from entries  where arxiv =  ?  or "
+                + "bibkey =  ?  order by firstdate ASC",
             ],
         )
         self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
@@ -3053,10 +3406,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn(
             self.pBDB.bibs.lastQuery,
             [
-                "select * from entries  where bibkey like ?  "
-                + "or arxiv like ?  order by firstdate ASC",
-                "select * from entries  where arxiv like ?  "
-                + "or bibkey like ?  order by firstdate ASC",
+                "select * from entries  where bibkey like  ?  "
+                + "or arxiv like  ?  order by firstdate ASC",
+                "select * from entries  where arxiv like  ?  "
+                + "or bibkey like  ?  order by firstdate ASC",
             ],
         )
         self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("%ab%", "%ef%")))
@@ -3074,10 +3427,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn(
             self.pBDB.bibs.lastQuery,
             [
-                "select * from entries  where bibkey = ?  and "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  and "
-                + "bibkey = ?  order by firstdate ASC",
+                "select * from entries  where bibkey =  ?  and "
+                + "arxiv =  ?  order by firstdate ASC",
+                "select * from entries  where arxiv =  ?  and "
+                + "bibkey =  ?  order by firstdate ASC",
             ],
         )
         self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("abc", "def")))
@@ -3095,10 +3448,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertIn(
             self.pBDB.bibs.lastQuery,
             [
-                "select * from entries  where bibkey = ?  or "
-                + "arxiv = ?  order by firstdate ASC",
-                "select * from entries  where arxiv = ?  or "
-                + "bibkey = ?  order by firstdate ASC",
+                "select * from entries  where bibkey =  ?  or "
+                + "arxiv =  ?  order by firstdate ASC",
+                "select * from entries  where arxiv =  ?  or "
+                + "bibkey =  ?  order by firstdate ASC",
             ],
         )
         self.assertEqual(sorted(self.pBDB.bibs.lastVals), sorted(("ab", "ef")))
@@ -3395,7 +3748,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.lastQuery,
-            "select * from entries  where inspire  like  ?  order by firstdate ASC",
+            "select * from entries  where inspire  like   ?  order by firstdate ASC",
         )
         self.assertEqual(self.pBDB.bibs.lastVals, ("%12345%",))
         self.assertEqual(

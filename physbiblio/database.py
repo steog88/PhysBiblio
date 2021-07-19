@@ -1578,77 +1578,204 @@ class Entries(PhysBiblioDBSub):
         except AttributeError:
             self.fetchCurs = None
 
-    def completeFetched(self, fetched_in):
-        """Use the database content to add additional fields
-        ("bibtexDict", "published", "author", "title",
-        "journal", "volume", "number", "pages") to the query results.
+    def _catExpStrings(self, idxs, operator, tabName, fieldName):
+        """Returns the string and the data needed
+        to perform a search using categories and/or experiments
 
         Parameters:
-            fetched_in: the list of `sqlite3.Row` objects
-                returned by the last query
+            idxs: the list of indices
+            operator: the operator to use
+            tabName: the name of the table to consider
+            fieldName: the name of the primary key in the considered table
 
         Output:
-            a dictionary with the original and the new fields
+            joinStr, whereStr, valsTmp:
+                the string containing the `join` structure,
+                the one containing the `where` conditions
+                and a tuple with the values of the fields
         """
-        fetched_out = []
-        fetched_keys = set([])
-        for el in fetched_in:
-            tmp = {}
-            for k in el.keys():
-                tmp[k] = el[k]
-            if el["bibdict"] is not None:
-                if (
-                    isinstance(el["bibdict"], six.string_types)
-                    and el["bibdict"].strip() != ""
-                    and el["bibdict"].strip() != "{}"
-                ):
-                    tmp["bibtexDict"] = ast.literal_eval(el["bibdict"].strip())
-                    tmp["bibdict"] = dict(tmp["bibtexDict"])
-                elif isinstance(el["bibdict"], dict):
-                    tmp["bibtexDict"] = tmp["bibdict"]
-            else:
-                try:
-                    tmp["bibtexDict"] = self.readEntry(el["bibtex"])
-                except IndexError:
-                    tmp["bibtexDict"] = {}
-                    tmp["bibdict"] = {}
-                except ParseException:
-                    pBLogger.warning(
-                        dstr.Bibs.errorParseBibtex % el["bibtex"],
-                        exc_info=True,
-                    )
-                    tmp["bibtexDict"] = {}
-                    tmp["bibdict"] = {}
-                self.updateField(el["bibkey"], "bibdict", "%s" % tmp["bibtexDict"])
-            try:
-                tmp["year"] = tmp["bibtexDict"]["year"]
-            except KeyError:
-                if tmp["year"] is None:
-                    tmp["year"] = ""
-            for fi in ["title", "journal", "volume", "number", "pages"]:
-                try:
-                    tmp[fi] = tmp["bibtexDict"][fi]
-                except KeyError:
-                    tmp[fi] = ""
-            try:
-                tmp["published"] = " ".join(
-                    [tmp["journal"], tmp["volume"], "(%s)" % tmp["year"], tmp["pages"]]
+        joinStr = ""
+        whereStr = ""
+        valsTmp = tuple()
+        idxs = [str(i) for i in idxs] if isinstance(idxs, list) else [str(idxs)]
+        if operator == dstr.Bibs.Search.opCSub and fieldName == "idCat":
+            idxs = self.mainDB.cats.getAllCatsInTree(idxs)
+            operator = dstr.Bibs.Search.opCEOne
+        if len(idxs) > 1:
+            if operator == dstr.Bibs.Search.opCEOne:
+                joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
+                    tabName,
+                    tabName,
                 )
-                if tmp["published"] == "  () ":
-                    tmp["published"] = ""
-            except KeyError:
-                tmp["published"] = ""
-            try:
-                author = tmp["bibtexDict"]["author"]
-                if author.count(" and ") > pbConfig.params["maxAuthorNames"] - 1:
-                    author = author[: author.index(" and ")] + " et al."
-                tmp["author"] = author
-            except KeyError:
-                tmp["author"] = ""
-            if tmp["bibkey"] not in fetched_keys:
-                fetched_keys.add(tmp["bibkey"])
-                fetched_out.append(tmp)
-        return fetched_out
+                whereStr += "(%s)" % "or".join(
+                    [" %s.%s = ? " % (tabName, fieldName) for q in idxs]
+                )
+                valsTmp = tuple(idxs)
+            elif operator == dstr.Bibs.Search.opCEAll:
+                joinStr += " ".join(
+                    [
+                        " left join %s %s%d on entries.bibkey=%s%d.bibkey"
+                        % (tabName, tabName, iC, tabName, iC)
+                        for iC, q in enumerate(idxs)
+                    ]
+                )
+                whereStr += (
+                    "("
+                    + " and ".join(
+                        [
+                            "%s%d.%s = ?" % (tabName, iC, fieldName)
+                            for iC, q in enumerate(idxs)
+                        ]
+                    )
+                    + ")"
+                )
+                valsTmp = tuple(idxs)
+            # elif operator == "none of the following":
+            # joinStr += " ".join(
+            # [" left join %s %s%d on entries.bibkey=%s%d.bibkey"%(
+            # tabName, tabName, iC, tabName, iC) for iC, q in \
+            # enumerate(idxs)])
+            # whereStr += "(" + " and ".join(
+            # ["%s%d.%s != ?"%(tabName, iC, fieldName) for iC, q in \
+            # enumerate(idxs)]) + ")"
+            # valsTmp = tuple(idxs)
+            else:
+                pBLogger.warning(dstr.Bibs.Search.invalidOperator % operator)
+        elif len(idxs) == 1:
+            joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
+                tabName,
+                tabName,
+            )
+            whereStr += "%s.%s = ? " % (tabName, fieldName)
+            valsTmp = tuple(idxs)
+        else:
+            pBLogger.warning(dstr.Bibs.Search.invalidIds % idxs)
+        return joinStr, whereStr, valsTmp
+
+    def _getQueryStr(self, txt, operator):
+        """Return a match string, with trailing % if needed
+
+        Parameters:
+            txt: the text to match
+            operator: the operator to use
+
+        Output:
+            a string
+        """
+        return "%%%s%%" % txt if "like" in operator else txt
+
+    def _processQueryFields(
+        self,
+        di,
+        first,
+        query,
+        whereQ,
+        joinQ,
+        vals,
+        prependTab="",
+        defaultConnection="and",
+    ):
+        """Process a queryField record to prepare the search query
+
+        Parameters:
+            di: a dictionary with the record to consider
+            first: is this the first field of the query?
+            query: previous query, to be expanded
+            whereQ: previous string for the "where" instructions
+            joinQ: previous string for the "join" instructions
+            vals: list of variables to be matched
+            prependTab (default ""): string to be preprended
+                to the table name, if necessary
+            defaultConnection (default "and"): in case of invalid input,
+                use this as a default logical connection
+
+        Output:
+            a tuple containing the output first, query, whereQ, joinQ, vals
+        """
+        if di["logical"] is None or di["logical"].lower() not in ["and", "or"]:
+            di["logical"] = defaultConnection
+        if (
+            (di["type"] in ["Categories", "Experiments"] and di["content"] == "")
+            or (
+                di["type"] == "Text"
+                and (
+                    di["content"] == ""
+                    and di["operator"]
+                    not in [
+                        dstr.Bibs.Search.opTDifferent,
+                        "!=",
+                        dstr.Bibs.Search.opTExact,
+                        "=",
+                    ]
+                )
+            )
+            or (
+                di["type"] in ["Marks", "Type"]
+                and (not isinstance(di["content"], list) or len(di["content"]) != 1)
+            )
+        ):
+            pBLogger.warning(
+                dstr.Bibs.Search.invalidContent % (di["content"], di["type"])
+            )
+            return first, query, whereQ, joinQ, vals
+        if first:
+            first = False
+            di["logical"] = ""
+        if di["type"] == "Text":
+            if di["operator"] in self.searchOperators["text"]:
+                di["operator"] = self.searchOperators["text"][di["operator"]]
+            elif di["operator"] not in [
+                v for v in self.searchOperators["text"].values()
+            ]:
+                pBLogger.warning(dstr.Bibs.Search.invalidOperator % di["operator"])
+                return first, query, whereQ, joinQ, vals
+            if di["field"] in self.tableCols["entries"]:
+                whereQ += "%s %s%s %s ? " % (
+                    di["logical"],
+                    prependTab,
+                    di["field"],
+                    di["operator"],
+                )
+                vals += (self._getQueryStr(di["content"], di["operator"]),)
+            else:
+                pBLogger.warning(dstr.Bibs.Search.invalidField % di["field"])
+                return first, query, whereQ, joinQ, vals
+        elif di["type"] == "Categories":
+            jC, wC, vC = self._catExpStrings(
+                di["content"], di["operator"], "entryCats", "idCat"
+            )
+            joinQ += jC if "join entryCats" not in joinQ else ""
+            whereQ += "%s %s " % (di["logical"], wC)
+            vals += vC
+        elif di["type"] == "Experiments":
+            jE, wE, vE = self._catExpStrings(
+                di["content"], di["operator"], "entryExps", "idExp"
+            )
+            joinQ += jE if "join entryExps" not in joinQ else ""
+            whereQ += "%s %s " % (di["logical"], wE)
+            vals += vE
+        elif di["type"] == "Marks":
+            if "any" in di["content"]:
+                di["operator"] = "!="
+                di["content"] = [""]
+            if di["operator"] is None or di["operator"] not in ["=", "!=", "like"]:
+                di["operator"] = "like"
+            whereQ += "%s %s%s %s ? " % (
+                di["logical"],
+                prependTab,
+                "marks",
+                di["operator"],
+            )
+            vals += (self._getQueryStr(di["content"][0], di["operator"]),)
+        elif di["type"] == "Type":
+            whereQ += "%s %s%s %s ? " % (
+                di["logical"],
+                prependTab,
+                di["content"][0],
+                "=",
+            )
+            vals += ("1",)
+        return first, query, whereQ, joinQ, vals
 
     def bibtexFromDB(self, db):
         """Generate a new bibtex from
@@ -1897,6 +2024,78 @@ class Entries(PhysBiblioDBSub):
                     newmarks.append(m)
             self.updateField(e["bibkey"], "marks", ",".join(newmarks))
 
+    def completeFetched(self, fetched_in):
+        """Use the database content to add additional fields
+        ("bibtexDict", "published", "author", "title",
+        "journal", "volume", "number", "pages") to the query results.
+
+        Parameters:
+            fetched_in: the list of `sqlite3.Row` objects
+                returned by the last query
+
+        Output:
+            a dictionary with the original and the new fields
+        """
+        fetched_out = []
+        fetched_keys = set([])
+        for el in fetched_in:
+            tmp = {}
+            for k in el.keys():
+                tmp[k] = el[k]
+            if el["bibdict"] is not None:
+                if (
+                    isinstance(el["bibdict"], six.string_types)
+                    and el["bibdict"].strip() != ""
+                    and el["bibdict"].strip() != "{}"
+                ):
+                    tmp["bibtexDict"] = ast.literal_eval(el["bibdict"].strip())
+                    tmp["bibdict"] = dict(tmp["bibtexDict"])
+                elif isinstance(el["bibdict"], dict):
+                    tmp["bibtexDict"] = tmp["bibdict"]
+            else:
+                try:
+                    tmp["bibtexDict"] = self.readEntry(el["bibtex"])
+                except IndexError:
+                    tmp["bibtexDict"] = {}
+                    tmp["bibdict"] = {}
+                except ParseException:
+                    pBLogger.warning(
+                        dstr.Bibs.errorParseBibtex % el["bibtex"],
+                        exc_info=True,
+                    )
+                    tmp["bibtexDict"] = {}
+                    tmp["bibdict"] = {}
+                self.updateField(el["bibkey"], "bibdict", "%s" % tmp["bibtexDict"])
+            try:
+                tmp["year"] = tmp["bibtexDict"]["year"]
+            except KeyError:
+                if tmp["year"] is None:
+                    tmp["year"] = ""
+            for fi in ["title", "journal", "volume", "number", "pages"]:
+                try:
+                    tmp[fi] = tmp["bibtexDict"][fi]
+                except KeyError:
+                    tmp[fi] = ""
+            try:
+                tmp["published"] = " ".join(
+                    [tmp["journal"], tmp["volume"], "(%s)" % tmp["year"], tmp["pages"]]
+                )
+                if tmp["published"] == "  () ":
+                    tmp["published"] = ""
+            except KeyError:
+                tmp["published"] = ""
+            try:
+                author = tmp["bibtexDict"]["author"]
+                if author.count(" and ") > pbConfig.params["maxAuthorNames"] - 1:
+                    author = author[: author.index(" and ")] + " et al."
+                tmp["author"] = author
+            except KeyError:
+                tmp["author"] = ""
+            if tmp["bibkey"] not in fetched_keys:
+                fetched_keys.add(tmp["bibkey"])
+                fetched_out.append(tmp)
+        return fetched_out
+
     def count(self):
         """obtain the number of entries in the table"""
         self.cursExec("SELECT Count(*) FROM entries")
@@ -1956,47 +2155,39 @@ class Entries(PhysBiblioDBSub):
         """
         query = "select * from entries "
         vals = ()
-        if connection.strip() != "and" and connection.strip() != "or":
+        if connection.strip() not in ["and", "or"]:
             pBLogger.warning(dstr.Bibs.invalidLogicalOp % connection)
             connection = "and"
-        if operator.strip() != "=" and operator.strip() != "like":
+        if operator.strip() not in ["=", "like"]:
             pBLogger.warning(dstr.Bibs.invalidComparisonOp % operator)
             operator = "="
-        if orderType.strip() != "ASC" and orderType.strip() != "DESC":
+        if orderType.strip() not in ["ASC", "DESC"]:
             pBLogger.warning(dstr.Bibs.invalidOrdering % orderType)
             orderType = "ASC"
         if params and len(params) > 0:
             query += " where "
             first = True
-            for k, v in params.items():
-                if isinstance(v, list):
-                    for v1 in v:
-                        if first:
-                            first = False
-                        else:
-                            query += " %s " % connection
-                        query += k + " %s " % operator + " ? "
-                        if operator.strip() == "like" and "%" not in v1:
-                            v1 = "%%%s%%" % v1
-                        vals += (v1,)
-                else:
+            for k, val in params.items():
+                if not isinstance(val, list):
+                    val = [val]
+                for v in val:
                     if first:
                         first = False
                     else:
                         query += " %s " % connection
-                    query += k + " %s " % operator + "? "
+                    query += k + " %s  ? " % operator
                     if operator.strip() == "like" and "%" not in v:
                         v = "%%%s%%" % v
                     vals += (v,)
-        query += " order by " + orderBy + " " + orderType if orderBy else ""
+        query += " order by %s %s" % (orderBy, orderType if orderBy else "")
         if limitTo is not None:
             query += " LIMIT %s" % (str(limitTo))
             if limitOffset is not None:
                 query += " OFFSET %s" % (str(limitOffset))
-        if saveQuery and doFetch:
-            self.lastQuery = query
-            self.lastVals = vals
         if doFetch:
+            if saveQuery:
+                self.lastQuery = query
+                self.lastVals = vals
             cursor = self.curs
         else:
             cursor = self.fetchCurs
@@ -2262,96 +2453,6 @@ class Entries(PhysBiblioDBSub):
         Output:
             self
         """
-
-        def getQueryStr(txt, operator):
-            """Return a match string, with trailing % if needed
-
-            Parameters:
-                txt: the text to match
-                operator: the operator to use
-
-            Output:
-                a string
-            """
-            return "%%%s%%" % txt if "like" in operator else txt
-
-        def catExpStrings(idxs, operator, tabName, fieldName):
-            """Returns the string and the data needed
-            to perform a search using categories and/or experiments
-
-            Parameters:
-                idxs: the list of indices
-                operator: the operator to use
-                tabName: the name of the table to consider
-                fieldName: the name of the primary key in the considered table
-
-            Output:
-                joinStr, whereStr, valsTmp:
-                    the string containing the `join` structure,
-                    the one containing the `where` conditions
-                    and a tuple with the values of the fields
-            """
-            joinStr = ""
-            whereStr = ""
-            valsTmp = tuple()
-            if isinstance(idxs, list):
-                idxs = [str(i) for i in idxs]
-            else:
-                idxs = [str(idxs)]
-            if operator == dstr.Bibs.Search.opCSub and fieldName == "idCat":
-                idxs = self.mainDB.cats.getAllCatsInTree(idxs)
-                operator = dstr.Bibs.Search.opCEOne
-            if len(idxs) > 1:
-                if operator == dstr.Bibs.Search.opCEOne:
-                    joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
-                        tabName,
-                        tabName,
-                    )
-                    whereStr += "(%s)" % "or".join(
-                        [" %s.%s = ? " % (tabName, fieldName) for q in idxs]
-                    )
-                    valsTmp = tuple(idxs)
-                elif operator == dstr.Bibs.Search.opCEAll:
-                    joinStr += " ".join(
-                        [
-                            " left join %s %s%d on entries.bibkey=%s%d.bibkey"
-                            % (tabName, tabName, iC, tabName, iC)
-                            for iC, q in enumerate(idxs)
-                        ]
-                    )
-                    whereStr += (
-                        "("
-                        + " and ".join(
-                            [
-                                "%s%d.%s = ?" % (tabName, iC, fieldName)
-                                for iC, q in enumerate(idxs)
-                            ]
-                        )
-                        + ")"
-                    )
-                    valsTmp = tuple(idxs)
-                # elif operator == "none of the following":
-                # joinStr += " ".join(
-                # [" left join %s %s%d on entries.bibkey=%s%d.bibkey"%(
-                # tabName, tabName, iC, tabName, iC) for iC, q in \
-                # enumerate(idxs)])
-                # whereStr += "(" + " and ".join(
-                # ["%s%d.%s != ?"%(tabName, iC, fieldName) for iC, q in \
-                # enumerate(idxs)]) + ")"
-                # valsTmp = tuple(idxs)
-                else:
-                    pBLogger.warning(dstr.Bibs.Search.invalidOperator % operator)
-            elif len(idxs) == 1:
-                joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
-                    tabName,
-                    tabName,
-                )
-                whereStr += "%s.%s = ? " % (tabName, fieldName)
-                valsTmp = tuple(idxs)
-            else:
-                pBLogger.warning(dstr.Bibs.Search.invalidIds % idxs)
-            return joinStr, whereStr, valsTmp
-
         first = True
         vals = ()
         query = "select * from entries "
@@ -2362,92 +2463,18 @@ class Entries(PhysBiblioDBSub):
             if any([e["type"] in ["Categories", "Experiments"] for e in queryFields])
             else ""
         )
-        jC, wC, vC, jE, wE, vE = ["", "", tuple(), "", "", tuple()]
 
         for di in queryFields:
-            if di["logical"] is None or di["logical"].lower() not in ["and", "or"]:
-                di["logical"] = defaultConnection
-            if (
-                (di["type"] in ["Categories", "Experiments"] and di["content"] == "")
-                or (
-                    di["type"] == "Text"
-                    and (
-                        di["content"] == ""
-                        and di["operator"]
-                        not in [
-                            dstr.Bibs.Search.opTDifferent,
-                            "!=",
-                            dstr.Bibs.Search.opTExact,
-                            "=",
-                        ]
-                    )
-                )
-                or (
-                    di["type"] in ["Marks", "Type"]
-                    and (not isinstance(di["content"], list) or len(di["content"]) != 1)
-                )
-            ):
-                pBLogger.warning(
-                    dstr.Bibs.Search.invalidContent % (di["content"], di["type"])
-                )
-                continue
-            if first:
-                first = False
-                di["logical"] = ""
-            if di["type"] == "Text":
-                if di["operator"] in self.searchOperators["text"]:
-                    di["operator"] = self.searchOperators["text"][di["operator"]]
-                elif di["operator"] not in [
-                    v for v in self.searchOperators["text"].values()
-                ]:
-                    pBLogger.warning(dstr.Bibs.Search.invalidOperator % di["operator"])
-                    continue
-                if di["field"] in self.tableCols["entries"]:
-                    whereQ += "%s %s%s %s ? " % (
-                        di["logical"],
-                        prependTab,
-                        di["field"],
-                        di["operator"],
-                    )
-                    vals += (getQueryStr(di["content"], di["operator"]),)
-                else:
-                    pBLogger.warning(dstr.Bibs.Search.invalidField % di["field"])
-                    continue
-            elif di["type"] == "Categories":
-                jC, wC, vC = catExpStrings(
-                    di["content"], di["operator"], "entryCats", "idCat"
-                )
-                joinQ += jC if "join entryCats" not in joinQ else ""
-                whereQ += "%s %s " % (di["logical"], wC)
-                vals += vC
-            elif di["type"] == "Experiments":
-                jE, wE, vE = catExpStrings(
-                    di["content"], di["operator"], "entryExps", "idExp"
-                )
-                joinQ += jE if "join entryExps" not in joinQ else ""
-                whereQ += "%s %s " % (di["logical"], wE)
-                vals += vE
-            elif di["type"] == "Marks":
-                if "any" in di["content"]:
-                    di["operator"] = "!="
-                    di["content"] = [""]
-                if di["operator"] is None or di["operator"] not in ["=", "!=", "like"]:
-                    di["operator"] = "like"
-                whereQ += "%s %s%s %s ? " % (
-                    di["logical"],
-                    prependTab,
-                    "marks",
-                    di["operator"],
-                )
-                vals += (getQueryStr(di["content"][0], di["operator"]),)
-            elif di["type"] == "Type":
-                whereQ += "%s %s%s %s ? " % (
-                    di["logical"],
-                    prependTab,
-                    di["content"][0],
-                    "=",
-                )
-                vals += ("1",)
+            first, query, whereQ, joinQ, vals = self._processQueryFields(
+                di,
+                first,
+                query,
+                whereQ,
+                joinQ,
+                vals,
+                prependTab,
+                defaultConnection=defaultConnection,
+            )
 
         query += joinQ if joinQ != "" else ""
         query += (" where %s" % whereQ) if whereQ != "" else ""
@@ -2459,10 +2486,10 @@ class Entries(PhysBiblioDBSub):
             if limitTo is None:
                 query += " LIMIT 100000"
             query += " OFFSET %s" % (str(limitOffset))
-        if saveQuery and doFetch:
-            self.lastQuery = query
-            self.lastVals = vals
         if doFetch:
+            if saveQuery:
+                self.lastQuery = query
+                self.lastVals = vals
             cursor = self.curs
         else:
             cursor = self.fetchCurs
@@ -2491,10 +2518,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             self
         """
-        if doFetch:
-            cursor = self.curs
-        else:
-            cursor = self.fetchCurs
+        cursor = self.curs if doFetch else self.fetchCurs
         try:
             if len(self.lastVals) > 0:
                 cursor.execute(self.lastQuery, self.lastVals)
