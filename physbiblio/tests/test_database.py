@@ -8332,7 +8332,9 @@ class TestDatabaseEntries(DBTestCase):
                         + '        author = "Gariazzo",\n'
                         + '         title = "{Light Sterile Neutrinos}",\n'
                         + '       journal = "J.Phys.G",\n'
+                        + '        volume = "43",\n'
                         + '          year = "2016",\n'
+                        + '         pages = "033001",\n'
                         + '        eprint = "1507.08204",\n'
                         + '           doi = "10.1088/0954-3899/43/3/033001",\n'
                         + "}",
@@ -8354,15 +8356,17 @@ class TestDatabaseEntries(DBTestCase):
                             "title": "{Light Sterile Neutrinos}",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "eprint": "1507.08204",
+                            "pages": "033001",
                             "journal": "J.Phys.G",
+                            "volume": "43",
                             "year": "2016",
                         },
                         "title": "{Light Sterile Neutrinos}",
                         "journal": "J.Phys.G",
-                        "volume": "",
+                        "volume": "43",
                         "number": "",
-                        "pages": "",
-                        "published": "J.Phys.G  (2016) ",
+                        "pages": "033001",
+                        "published": "J.Phys.G 43 (2016) 033001",
                         "author": "Gariazzo",
                         "bibdict": {
                             "ID": u"Gariazzo:2015rra",
@@ -8370,7 +8374,9 @@ class TestDatabaseEntries(DBTestCase):
                             u"author": u"Gariazzo",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "eprint": "1507.08204",
+                            "pages": "033001",
                             "journal": "J.Phys.G",
+                            "volume": "43",
                             "title": "{Light Sterile Neutrinos}",
                             "year": "2016",
                         },

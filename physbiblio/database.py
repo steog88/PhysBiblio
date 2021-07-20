@@ -4452,6 +4452,29 @@ class Entries(PhysBiblioDBSub):
             except KeyError:
                 pBLogger.warning(dstr.Bibs.iidKeyError % (o, d))
         # update bibtex
+        if old["bibtex"] == "":
+            db = bibtexparser.bibdatabase.BibDatabase()
+            db.entries = [
+                {
+                    **{"ENTRYTYPE": "article", "ID": key},
+                    **{
+                        k: v
+                        for k, v in e.items()
+                        if k
+                        in [
+                            "doi",
+                            "arxiv",
+                            "eprint",
+                            "year",
+                            "collaboration",
+                            "title",
+                            "author",
+                            "authors",
+                        ]
+                    },
+                }
+            ]
+            old["bibtex"] = self.bibtexFromDB(db)
         outcome, bibtex = physBiblioWeb.webSearch["inspire"].updateBibtex(
             e, old["bibtex"], force=force
         )

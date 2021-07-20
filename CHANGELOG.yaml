@@ -9,6 +9,7 @@
         - small change in how database.Entries.completeFetched manages an almost empty 'published' field
         - fixing bug with 'Modify' bibtex entry and citation counts
         - fixing bug with renaming pdf folders when target folder already exists
+        - fixing bug with "Reload bibtex" updates from INSPIRE
         - attempt to fix sync problem in WriteStream thanks to simple buffering system
 -   version: 1.7.1
     date: 2021-07-11

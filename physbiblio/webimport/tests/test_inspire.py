@@ -1277,6 +1277,37 @@ class TestInspireMethods(unittest.TestCase):
                     '@Article{bla,\n         title = "{test}",\n        eprint = "2102.00000",\n}\n\n',
                 ),
             )
+            res = {
+                "id": 123,
+                "author": "me",
+                "title": "mywork",
+                "year": "2000",
+                "journal": "j",
+                "bibtex": '@article{bla,\ntitle="test",\npages="1234",\neprint="2103.00000"\n}\n\n',
+            }
+            bib = '@article{bla,\ntitle="test",\neprint="2103.00000"\n}\n\n'
+            bibu = (
+                '@Article{bla,\n        author = "me",\n         title = "{mywork}",\n'
+                + '       journal = "j",\n          year = "2000",\n'
+                + '         pages = "1234",\n'
+                + '        eprint = "2103.00000",\n}\n\n'
+            )
+            self.assertEqual(iws.updateBibtex(res, bib), (True, bibu))
+            res = {
+                "id": 123,
+                "author": "me",
+                "title": "mywork",
+                "year": "2000",
+                "journal": "j",
+                "bibtex": "@article{bla,\n",
+            }
+            bib = '@article{bla,\ntitle="test",\neprint="2103.00000"\n}\n\n'
+            bibu = (
+                '@Article{bla,\n        author = "me",\n         title = "{mywork}",\n'
+                + '       journal = "j",\n          year = "2000",\n'
+                + '        eprint = "2103.00000",\n}\n\n'
+            )
+            self.assertEqual(iws.updateBibtex(res, bib), (True, bibu))
 
 
 if __name__ == "__main__":

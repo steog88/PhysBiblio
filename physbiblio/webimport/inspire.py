@@ -763,7 +763,7 @@ class WebSearch(WebInterf, InspireStrings):
 
         try:
             element = bibtexparser.loads(bibtex).entries[0]
-        except:
+        except Exception:
             pBLogger.warning(self.errorInvalidBibtex % bibtex)
             return False, bibtex
         if not force:
@@ -772,6 +772,14 @@ class WebSearch(WebInterf, InspireStrings):
             except (AssertionError, KeyError):
                 pBLogger.warning(self.warningJournal % (res["id"]))
                 return False, bibtex
+        try:
+            newelement = bibtexparser.loads(res["bibtex"]).entries[0]
+        except KeyError:
+            newelement = {}
+        except Exception:
+            pBLogger.warning(self.errorInvalidBibtex % res["bibtex"])
+            newelement = {}
+        element = {**element, **newelement}
         element = arxivEprint(element)
         if not all([k in res for k in self.updateBibtexFields]):
             pBLogger.warning(
