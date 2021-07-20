@@ -105,6 +105,21 @@ class TestPdfMethods(unittest.TestCase):
         pBPDF.renameFolder("abc.def", "abc.fed")
         self.assertFalse(os.path.exists(pBPDF.getFileDir("abc.def")))
         self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
+        pBPDF.createFolder("abc.def")
+        open(
+            os.path.join(pBPDF.pdfDir, "abc.def", "tests_%s.pdf" % today_ymd), "a"
+        ).close()
+        pBPDF.renameFolder("abc.def", "abc.fed")
+        self.assertFalse(os.path.exists(pBPDF.getFileDir("abc.def")))
+        self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
+        self.assertFalse(
+            os.path.exists(pBPDF.getFileDir("abd.fed" + os.sep + "abc.def"))
+        )
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(pBPDF.pdfDir, "abc.fed", "tests_%s.pdf" % today_ymd)
+            )
+        )
         open(emptyPdfName, "a").close()
         with patch(
             "physbiblio.database.Entries.getField",

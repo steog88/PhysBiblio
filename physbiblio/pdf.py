@@ -133,9 +133,9 @@ class LocalPDF:
         if osp.exists(olddir):
             newdir = self.getFileDir(newkey)
             pBLogger.info(pstr.rename % (olddir, newdir))
-            return shutil.move(olddir, newdir)
-        else:
-            return False
+            if shutil.copytree(olddir, newdir, dirs_exist_ok=True):
+                return shutil.rmtree(olddir)
+        return False
 
     def copyNewFile(self, key, origFileName, fileType=None, customName=None):
         """Copy a file in any place of the filesystem
