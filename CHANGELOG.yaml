@@ -7,6 +7,7 @@
         - improvements to inspireStats module
         - function to match valid arxiv number
         - small change in how database.Entries.completeFetched manages an almost empty 'published' field
+        - fixing bug with 'Modify' bibtex entry and citation counts
         - attempt to fix sync problem in WriteStream thanks to simple buffering system
 -   version: 1.7.1
     date: 2021-07-11

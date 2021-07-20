@@ -211,14 +211,20 @@ def editBibtex(parentObject, editKey=None):
         editKey: the key of the entry to be edited,
             or `None` to create a new one
     """
-    if editKey is not None:
-        edit = pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
-    else:
-        edit = None
-    newBibWin = EditBibtexDialog(parentObject, bib=edit)
+    newBibWin = EditBibtexDialog(
+        parentObject,
+        bib=pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
+        if editKey is not None
+        else None,
+    )
     newBibWin.exec_()
     data = {}
     if newBibWin.result:
+        for k in ["citations", "citations_no_self"]:
+            try:
+                data[k] = getattr(newBibWin, k)
+            except AttributeError:
+                data[k] = 0
         for k, v in newBibWin.textValues.items():
             try:
                 s = "%s" % v.text()
@@ -2193,6 +2199,12 @@ class EditBibtexDialog(EditObjectWindow):
                     self.data[k]
                 except KeyError:
                     self.data[k] = ""
+            else:
+                try:
+                    setattr(self, k, self.data[k])
+                except KeyError:
+                    setattr(self, k, 0)
+
         self.checkValues = {}
         self.markValues = {}
         self.createForm()

@@ -381,6 +381,8 @@ class TestFunctions(GUIwMainWTestCase):
             + 'arxiv = "1507.08204",\n}',
             "firstdate": "2018-09-01",
             "pubdate": "",
+            "citations": 1234,
+            "citations_no_self": 1111,
             "exp_paper": 0,
             "lecture": 0,
             "phd_thesis": 0,
@@ -751,6 +753,8 @@ class TestFunctions(GUIwMainWTestCase):
         # * no change bibkey: fix code?
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
         ebd.exec_ = MagicMock()
+        ebd.citations = 123
+        ebd.citations_no_self = 111
         ebd.onOk()
         ebd.textValues["comments"].setPlainText("some text")
         with patch("logging.Logger.warning") as _lw, patch(
@@ -789,6 +793,7 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
+            _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
@@ -816,6 +821,8 @@ class TestFunctions(GUIwMainWTestCase):
                 "noUpdate": 0,
                 "link": u"https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
+                "citations": 123,
+                "citations_no_self": 111,
                 "doi": u"",
                 "scholar": u"",
                 "arxiv": u"1507.08204",
@@ -869,6 +876,7 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
+            _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _le.assert_called_once_with("Cannot insert/modify the entry!")
@@ -897,6 +905,8 @@ class TestFunctions(GUIwMainWTestCase):
                 "noUpdate": 0,
                 "link": u"https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
+                "citations": 123,
+                "citations_no_self": 111,
                 "doi": u"",
                 "scholar": u"",
                 "arxiv": u"1507.08204",
@@ -956,6 +966,7 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(self.mainW, editKey="testkey")
+            _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_has_calls([call("Updating bibtex 'testkey'...")])
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
@@ -981,6 +992,8 @@ class TestFunctions(GUIwMainWTestCase):
                 "lecture": 0,
                 "crossref": u"",
                 "noUpdate": 0,
+                "citations": 1234,
+                "citations_no_self": 1111,
                 "link": u"https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
                 "doi": u"",
@@ -1002,6 +1015,8 @@ class TestFunctions(GUIwMainWTestCase):
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
 
         # * with update bibkey, updateBibkey successful
+        del testentry["citations"]
+        del testentry["citations_no_self"]
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
         ebd.exec_ = MagicMock()
         ebd.onOk()
@@ -1077,6 +1092,8 @@ class TestFunctions(GUIwMainWTestCase):
                 "noUpdate": 0,
                 "link": u"https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
+                "citations": 0,
+                "citations_no_self": 0,
                 "doi": u"",
                 "scholar": u"",
                 "arxiv": u"1507.08204",
@@ -5636,13 +5653,19 @@ class TestEditBibtexDialog(GUITestCase):
             if k != "citations" and k != "citations_no_self":
                 self.assertEqual(eb.data[k], "")
                 tmp[k] = "a"
+        self.assertEqual(eb.citations, 0)
+        self.assertEqual(eb.citations_no_self, 0)
 
+        tmp["citations"] = 123
+        tmp["citations_no_self"] = 111
         with patch(
             "physbiblio.gui.bibWindows.EditBibtexDialog.createForm", autospec=True
         ) as _cf:
             eb = EditBibtexDialog(parent=p, bib=tmp)
         self.assertEqual(eb.parent(), p)
         self.assertEqual(eb.data, tmp)
+        self.assertEqual(eb.citations, 123)
+        self.assertEqual(eb.citations_no_self, 111)
 
     def test_onOk(self):
         """test onOk"""
