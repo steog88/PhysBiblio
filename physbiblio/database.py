@@ -1535,6 +1535,7 @@ class Entries(PhysBiblioDBSub):
         "phd_thesis": {"desc": dstr.Bibs.phdth},
         "proceeding": {"desc": dstr.Bibs.proceeding},
         "review": {"desc": dstr.Bibs.review},
+        "none": {"desc": dstr.Bibs.noneType},
     }
     validReplaceFields = {
         "old": [
@@ -1721,6 +1722,7 @@ class Entries(PhysBiblioDBSub):
         if first:
             first = False
             di["logical"] = ""
+
         if di["type"] == "Text":
             if di["operator"] in self.searchOperators["text"]:
                 di["operator"] = self.searchOperators["text"][di["operator"]]
@@ -1740,6 +1742,7 @@ class Entries(PhysBiblioDBSub):
             else:
                 pBLogger.warning(dstr.Bibs.Search.invalidField % di["field"])
                 return first, query, whereQ, joinQ, vals
+
         elif di["type"] == "Categories":
             jC, wC, vC = self._catExpStrings(
                 di["content"], di["operator"], "entryCats", "idCat"
@@ -1747,6 +1750,7 @@ class Entries(PhysBiblioDBSub):
             joinQ += jC if "join entryCats" not in joinQ else ""
             whereQ += "%s %s " % (di["logical"], wC)
             vals += vC
+
         elif di["type"] == "Experiments":
             jE, wE, vE = self._catExpStrings(
                 di["content"], di["operator"], "entryExps", "idExp"
@@ -1754,6 +1758,7 @@ class Entries(PhysBiblioDBSub):
             joinQ += jE if "join entryExps" not in joinQ else ""
             whereQ += "%s %s " % (di["logical"], wE)
             vals += vE
+
         elif di["type"] == "Marks":
             if "any" in di["content"]:
                 di["operator"] = "!="
@@ -1767,14 +1772,29 @@ class Entries(PhysBiblioDBSub):
                 di["operator"],
             )
             vals += (self._getQueryStr(di["content"][0], di["operator"]),)
+
         elif di["type"] == "Type":
-            whereQ += "%s %s%s %s ? " % (
-                di["logical"],
-                prependTab,
-                di["content"][0],
-                "=",
-            )
-            vals += ("1",)
+            if "none" in di["content"]:
+                firstType = True
+                for f in self.searchPossibleTypes.keys():
+                    if f != "none":
+                        whereQ += "%s %s%s %s ? " % (
+                            di["logical"] if firstType else "and",
+                            prependTab,
+                            f,
+                            "=",
+                        )
+                        vals += ("0",)
+                        firstType = False
+            else:
+                whereQ += "%s %s%s %s ? " % (
+                    di["logical"],
+                    prependTab,
+                    di["content"][0],
+                    "=",
+                )
+                vals += ("1",)
+
         return first, query, whereQ, joinQ, vals
 
     def bibtexFromDB(self, db):

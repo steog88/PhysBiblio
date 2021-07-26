@@ -2778,6 +2778,7 @@ class SearchBibsWindow(EditObjectWindow):
                 previous["content"] = "%s" % line["content"].text()
             except AttributeError:
                 previous["content"] = ""
+
         elif previous["type"] == bwstr.SR.cats or previous["type"] == bwstr.SR.exps:
             previous["field"] = ""
             try:
@@ -2794,6 +2795,7 @@ class SearchBibsWindow(EditObjectWindow):
             else:
                 if not isinstance(previous["content"], list):
                     previous["content"] = []
+
         elif previous["type"] == bwstr.SR.marks:
             previous["field"] = None
             previous["operator"] = None
@@ -2804,6 +2806,7 @@ class SearchBibsWindow(EditObjectWindow):
                         previous["content"].append(m)
             except AttributeError:
                 pass
+
         elif previous["type"] == bwstr.SR.type_:
             previous["field"] = None
             previous["operator"] = None
@@ -2814,6 +2817,7 @@ class SearchBibsWindow(EditObjectWindow):
                         previous["content"].append(m)
             except AttributeError:
                 pass
+
         return previous
 
     def readForm(self):

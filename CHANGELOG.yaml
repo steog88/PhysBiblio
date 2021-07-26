@@ -3,6 +3,7 @@
     changes:
         'New features / improvements':
             - New 'citations' command to update citation counts without the GUI
+            - search records by "No type"
             - small change in how database.Entries.completeFetched manages an almost empty 'published' field
             - improvements to argParser tests
             - improvements to database module

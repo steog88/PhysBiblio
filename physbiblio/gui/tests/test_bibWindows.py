@@ -6191,6 +6191,7 @@ class TestSearchBibsWindow(GUITestCase):
                 "review": {"desc": "Review"},
                 "proceeding": {"desc": "Proceeding"},
                 "book": {"desc": "Book"},
+                "none": {"desc": "No type"},
             },
         )
         self.assertEqual(

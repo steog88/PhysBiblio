@@ -2792,6 +2792,53 @@ class TestDatabaseEntries(DBTestCase):
             ),
             (False, "abc", "where and abc = ? ", "join ", ("1",)),
         )
+        firstType = True
+        ew = ""
+        ev = tuple()
+        for f in self.pBDB.bibs.searchPossibleTypes.keys():
+            if f != "none":
+                ew += "%s %s%s %s ? " % (
+                    "" if firstType else "and",
+                    "",
+                    f,
+                    "=",
+                )
+                ev += ("0",)
+                firstType = False
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Type",
+                    "content": ["none"],
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                True,
+                "abc",
+                "where",
+                "join ",
+                tuple(),
+            ),
+            (False, "abc", "where" + ew, "join ", ev),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Type",
+                    "content": ["none"],
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where something = ? ",
+                "join ",
+                tuple("a"),
+            ),
+            (False, "abc", "where something = ? and" + ew, "join ", tuple("a") + ev),
+        )
 
     def test_bibtexFromDB(self, *args):
         """test bibtexFromDB"""
