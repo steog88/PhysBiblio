@@ -34,6 +34,7 @@ try:
         ignoreParameterOrder,
         loggingLevels,
         pbConfig,
+        replacePBDATA,
     )
     from physbiblio.databaseCore import PhysBiblioDBCore, PhysBiblioDBSub
     from physbiblio.setuptests import *
@@ -1729,7 +1730,9 @@ class TestConfigVars(unittest.TestCase):
             _dbc.assert_called_once_with(cv.currentDatabase, cv.logger, info=False)
             _cdb.assert_called_once_with(tempDb)
             _rp.assert_has_calls([call(cv, k, configDb) for k in configuration_params])
-            _afh.assert_called_once_with(cv.logger, cv.params["logFileName"])
+            _afh.assert_called_once_with(
+                cv.logger, cv.params["logFileName"], defaultPath=cv.dataPath
+            )
             tempDb.closeDB.assert_called_once_with(info=False)
         with patch("logging.Logger.debug") as _d, patch(
             "logging.Logger.exception"
@@ -2098,6 +2101,12 @@ class TestConfigVars(unittest.TestCase):
             cv.replacePBDATA("PBDATAabcd"), os.path.join(cv.dataPath, "abcd")
         )
 
+        self.assertEqual(replacePBDATA("ab", 123), 123)
+        self.assertEqual(replacePBDATA("AB", "abcd"), "abcd")
+        self.assertEqual(
+            replacePBDATA("ABC", "PBDATAabcd"), os.path.join("ABC", "abcd")
+        )
+
     def test_setDefaultParams(self, *args):
         """test setDefaultParams"""
         if os.path.exists(tempProfName):
@@ -2148,6 +2157,19 @@ class TestFunctions(unittest.TestCase):
             )
         self.assertEqual(h.level, getLogLevel(pbConfig.params["loggingLevel"]))
         self.assertIn(h, log.handlers)
+        log = logging.Logger("testAFH1")
+        with patch(
+            "physbiblio.config.replacePBDATA",
+            return_value=pbConfig.overWritelogFileName,
+        ) as _rfh:
+            addFileHandler(
+                log,
+                "/can/not/create/this/log/file/myfn.log",
+                defaultPath=pbConfig.dataPath,
+            )
+            _rfh.assert_called_once_with(
+                pbConfig.dataPath, configuration_params["logFileName"].default
+            )
 
 
 def tearDownModule():

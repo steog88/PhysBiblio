@@ -24,6 +24,10 @@ except ImportError:
 
 
 globalLogName = "physbibliolog"
+if six.PY2:
+    FNFError = OSError
+else:
+    FNFError = FileNotFoundError
 
 
 class ConfigParameter:
@@ -846,16 +850,41 @@ def getLogLevel(value):
         return logging.DEBUG
 
 
-def addFileHandler(logger, logFileName):
+def replacePBDATA(path, var):
+    """Replace the PBDATA placeholder in the given variable,
+    if it is a string, or just return the variable otherwise
+
+    Parameters:
+        var: the input variable
+
+    Output:
+        the input variable or a string with replaced "PBDATA"
+    """
+    if isinstance(var, six.string_types) and "PBDATA" in var:
+        var = os.path.join(path, var.replace("PBDATA", ""))
+    return var
+
+
+def addFileHandler(logger, logFileName, defaultPath=""):
     """Create and add a RotatingFileHandler to an existing Logger
 
     Parameters:
         logger: an existing instance of logging.Logger
         logFileName: the name of the log file
+        defaultPath (default ""): used in case the logFileName is missing
+            to point to the default log file name in the default folder
     """
-    fh = logging.handlers.RotatingFileHandler(
-        logFileName, maxBytes=5.0 * 2 ** 20, backupCount=5
-    )
+    try:
+        fh = logging.handlers.RotatingFileHandler(
+            logFileName, maxBytes=5.0 * 2 ** 20, backupCount=5
+        )
+    except FNFError:
+        logger.exception("")
+        fh = logging.handlers.RotatingFileHandler(
+            replacePBDATA(defaultPath, configuration_params["logFileName"].default),
+            maxBytes=5.0 * 2 ** 20,
+            backupCount=5,
+        )
     fh.setLevel(getLogLevel(pbConfig.params["loggingLevel"]))
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)10s : [%(module)s.%(funcName)s] %(message)s"
@@ -978,7 +1007,9 @@ class ConfigVars:
                 rfhs.append(lh)
         for lh in rfhs:
             self.logger.removeHandler(lh)
-        addFileHandler(self.logger, self.params["logFileName"])
+        addFileHandler(
+            self.logger, self.params["logFileName"], defaultPath=self.dataPath
+        )
         self.logger.debug(cstr.confLoaded)
 
     def readParam(self, key, configDb):
@@ -1114,9 +1145,7 @@ class ConfigVars:
         Output:
             the input variable or a string with replaced "PBDATA"
         """
-        if isinstance(var, six.string_types) and "PBDATA" in var:
-            var = os.path.join(self.dataPath, var.replace("PBDATA", ""))
-        return var
+        return replacePBDATA(self.dataPath, var)
 
     def setDefaultParams(self):
         """Reset the list of params,
