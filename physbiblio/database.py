@@ -1766,12 +1766,12 @@ class Entries(PhysBiblioDBSub):
         """
         tmpBibDict = data["bibdict"]
         if data.get("arxiv", "") == "":
-            if "arxiv" in tmpBibDict and tmpBibDict["arxiv"] != "":
+            if tmpBibDict.get("arxiv", "") != "":
                 data["arxiv"] = tmpBibDict["arxiv"]
-            elif "eprint" in tmpBibDict and tmpBibDict["eprint"] != "":
+            elif tmpBibDict.get("eprint", "") != "":
                 data["arxiv"] = tmpBibDict["eprint"]
         for f in ["year", "doi", "isbn"]:
-            if f in tmpBibDict and tmpBibDict[f] != "":
+            if tmpBibDict.get(f, "") != "":
                 data[f] = tmpBibDict[f]
         return data
 
@@ -1825,7 +1825,20 @@ class Entries(PhysBiblioDBSub):
         element,
         **kwargs,
     ):
-        """ """
+        """Read the firstdate field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            element: dictionary extracted from the bibtex
+            kwargs: all the other fields that can be passed, including
+                abstract, crossref, doi, isbn, ads, comments, inspire,
+                old_keys, scholar, book, exp_paper, lecture, noUpdate,
+                phd_thesis, proceeding, review, marks, pubdate
+
+        Output:
+            the modified 'data' dict
+        """
         for k in ["abstract", "crossref", "doi", "isbn"]:
             data[k] = (
                 kwargs[k]
@@ -1850,8 +1863,18 @@ class Entries(PhysBiblioDBSub):
             data[k] = kwargs[k] if k in kwargs and kwargs[k] else ""
         return data
 
-    def _prepareInsertYear(self, data, element, year):
-        """ """
+    def _prepareInsertYear(self, data, element, year=None):
+        """Read the firstdate field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            element: dictionary extracted from the bibtex
+            year (default None): the year to be used
+
+        Output:
+            the modified 'data' dict
+        """
         from physbiblio.webimport.arxiv import getYear
 
         data["year"] = None
@@ -3174,7 +3197,7 @@ class Entries(PhysBiblioDBSub):
                 pass
             if not self.importFromBibFlag or e == []:
                 continue
-            errors, existing = self.importOneFromBibtex(
+            errors, existing = self.importOneFromBibtexDict(
                 ie,
                 e,
                 db,
@@ -3188,10 +3211,28 @@ class Entries(PhysBiblioDBSub):
             % (tot, len(existing), len(self.lastInserted), len(errors))
         )
 
-    def importOneFromBibtex(
-        self, ie, e, db, completeInfo=True, tot=0, errors=[], existing=[]
+    def importOneFromBibtexDict(
+        self, ie, e, db, completeInfo=True, tot=1, errors=[], existing=[]
     ):
-        """ """
+        """Read one bibtex entry and process it: import data into
+        the database, read information from INSPIRE/arXiv,
+        associate categories
+
+        Parameters:
+            ie: entry index in the series
+            e: entry dictionary
+            db: a bibtexparser.bibdatabase.BibDatabase instance
+            completeInfo (boolean, default True): use the bibtex key
+                and other fields to look for more information online
+            tot (default 1): total number of entries to be processed
+            errors (default []): list of bibkeys for entries that
+                could not be imported
+            existing (default []): list of bibkeys for entries that
+                already exist in the database
+
+        Output:
+            the updated (errors, existing)
+        """
 
         def printExisting(entry):
             """Print a message when the entry is

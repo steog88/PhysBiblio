@@ -6961,9 +6961,225 @@ class TestDatabaseEntries(DBTestCase):
 
             os.remove("tmpbib.bib")
 
-    def test_importOneFromBibtex(self, *args):
-        """test importOneFromBibtex"""
-        raise NotImplementedError
+    def test_importOneFromBibtexDict(self, *args):
+        """test importOneFromBibtexDict"""
+        db = bibtexparser.bibdatabase.BibDatabase()
+        self.pBDB.bibs.lastInserted = []
+        with self.assertRaises(KeyError):
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(0, {}, db),
+                ([], []),
+            )
+        with patch(
+            "physbiblio.database.Entries.getByBibkey", return_value=[{"a": "b"}]
+        ) as _g:
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "abcd",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                ),
+                ([], ["abcd"]),
+            )
+            _g.assert_called_once_with("abcd", saveQuery=False)
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "abcd",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    tot=100,
+                    errors=["AAA"],
+                    existing=["efgh"],
+                ),
+                (["AAA"], ["efgh", "abcd"]),
+            )
+        with patch("physbiblio.database.Entries.getByBibkey", return_value=[]) as _g:
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "  ",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    errors=["aaa"],
+                    existing=[],
+                ),
+                (["aaa", ""], []),
+            )
+            _g.assert_called_once_with("", saveQuery=False)
+        with patch(
+            "physbiblio.database.Entries.getByBibkey", return_value=[]
+        ) as _g, patch(
+            "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
+            return_value=("bibtex", {"abstract": "my abstract"}),
+        ) as _ru, patch(
+            "physbiblio.database.Entries.insert", return_value=False
+        ) as _i:
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "abcd",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    errors=[],
+                    existing=["aaa"],
+                ),
+                (["abcd"], ["aaa"]),
+            )
+            _ru.assert_not_called()
+            _i.assert_called_once()
+            self.assertEqual(_i.call_args[0][0]["abstract"], None)
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "abcd",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    completeInfo=True,
+                    errors=[],
+                    existing=["aaa"],
+                ),
+                (["abcd"], ["aaa"]),
+            )
+            _ru.assert_not_called()
+            self.assertEqual(_i.call_args[0][0]["abstract"], None)
+            with patch.dict(pbConfig.params, {"fetchAbstract": True}, clear=False):
+                self.assertEqual(
+                    self.pBDB.bibs.importOneFromBibtexDict(
+                        1,
+                        {
+                            "ENTRYTYPE": "article",
+                            "ID": "abcd",
+                            "author": "me",
+                            "title": "mytitle",
+                            "eprint": "12345",
+                        },
+                        db,
+                        completeInfo=False,
+                        errors=[],
+                        existing=["aaa"],
+                    ),
+                    (["abcd"], ["aaa"]),
+                )
+                _ru.assert_not_called()
+                self.assertEqual(
+                    self.pBDB.bibs.importOneFromBibtexDict(
+                        1,
+                        {
+                            "ENTRYTYPE": "article",
+                            "ID": "abcd",
+                            "author": "me",
+                            "title": "mytitle",
+                            "eprint": "12345",
+                        },
+                        db,
+                        completeInfo=True,
+                        errors=[],
+                        existing=["aaa"],
+                    ),
+                    (["abcd"], ["aaa"]),
+                )
+            _ru.assert_called_once_with("12345", searchType="id", fullDict=True)
+            self.assertEqual(_i.call_args[0][0]["abstract"], "my abstract")
+        self.assertEqual(self.pBDB.bibs.lastInserted, [])
+        with patch(
+            "physbiblio.database.Entries.getByBibkey", return_value=[]
+        ) as _g, patch(
+            "physbiblio.database.Entries.insert", return_value=True
+        ) as _i, patch(
+            "physbiblio.database.Entries.updateInspireID", return_value="123"
+        ) as _ui, patch(
+            "physbiblio.database.Entries.updateInfoFromOAI"
+        ) as _uo, patch(
+            "physbiblio.database.CatsEntries.insert"
+        ) as _c:
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "abcd",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    completeInfo=False,
+                    errors=[],
+                    existing=["aaa"],
+                ),
+                ([], ["aaa"]),
+            )
+            self.assertEqual(self.pBDB.bibs.lastInserted, ["abcd"])
+            _ui.assert_not_called()
+            _uo.assert_not_called()
+            _c.assert_called_once_with([], "abcd")
+            _i.assert_called_once()
+            self.assertEqual(_i.call_args[0][0]["abstract"], None)
+            self.assertEqual(
+                self.pBDB.bibs.importOneFromBibtexDict(
+                    1,
+                    {
+                        "ENTRYTYPE": "article",
+                        "ID": "cdef",
+                        "author": "me",
+                        "title": "mytitle",
+                    },
+                    db,
+                    completeInfo=False,
+                    errors=[],
+                    existing=["aaa"],
+                ),
+                ([], ["aaa"]),
+            )
+            _ui.assert_not_called()
+            _uo.assert_not_called()
+            self.assertEqual(_i.call_args[0][0]["abstract"], None)
+            with patch.dict(
+                pbConfig.params,
+                {"fetchAbstract": False, "defaultCategories": [1, 2, 3]},
+                clear=False,
+            ):
+                self.assertEqual(
+                    self.pBDB.bibs.importOneFromBibtexDict(
+                        1,
+                        {
+                            "ENTRYTYPE": "article",
+                            "ID": "efgh",
+                            "author": "me",
+                            "title": "mytitle",
+                            "eprint": "12345",
+                        },
+                        db,
+                        errors=["bbb"],
+                        existing=["aaa"],
+                    ),
+                    (["bbb"], ["aaa"]),
+                )
+            _c.assert_called_with([1, 2, 3], "efgh")
+            _ui.assert_called_once_with("efgh")
+            _uo.assert_called_once_with("123")
+        self.assertEqual(self.pBDB.bibs.lastInserted, ["abcd", "cdef", "efgh"])
 
     def test_insert(self, *args):
         """Test insertion and of bibtex items"""
