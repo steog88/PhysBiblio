@@ -8071,9 +8071,6 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"]),
             ([], [], ["abc", "def"]),
         )
-        with patch("logging.Logger.exception") as _w:
-            self.pBDB.bibs.replace("abcd", ["abcd"], "1234.00000", ["56789"])
-            _w.assert_any_call("Something wrong in replace")
 
         bibtexIn = (
             u'@article{ghi,\nauthor = "me",\n'
@@ -8112,13 +8109,292 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"]),
             (["ghi"], [], ["abc", "def"]),
         )
-        with patch("logging.Logger.exception") as _i:
-            self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"])
-            _i.assert_any_call("Something wrong in replace")
 
     def test_replaceSingleEntry(self, *args):
         """test replaceSingleEntry"""
-        raise NotImplementedError
+        bd = {"ENTRYTYPE": "article", "ID": "key1"}
+        with patch("physbiblio.database.Entries.updateField") as _u:
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {"bibkey": "key1", "bibtexDict": {}},
+                    "bibtex",
+                    ["bibtex"],
+                    "abcd",
+                    ["abcde"],
+                ),
+                ([], [], ["key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {"bibkey": "key1", "bibtexDict": {}},
+                    "bibtex",
+                    ["bibtex"],
+                    "abcd",
+                    ["abcde"],
+                    changed=["a"],
+                    failed=["b"],
+                    success=["c"],
+                ),
+                (["c"], ["a"], ["b", "key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {"bibkey": "key1", "bibtex": "bibtex abcd", "bibtexDict": {}},
+                    "title",
+                    ["bibtex"],
+                    "abcd",
+                    ["abcde"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                ),
+                ([], [], ["key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {"bibkey": "key1", "bibtex": "bibtex abcd", "bibtexDict": {}},
+                    "bibtex",
+                    ["title"],
+                    "abcd",
+                    ["abcde"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                ),
+                ([], [], ["key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "bibtex": "bibtex abcd",
+                        "bibtexDict": {"title": "abcd"},
+                    },
+                    "title",
+                    ["title1"],
+                    "abcd",
+                    ["abcde"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                ),
+                ([], [], ["key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "bibtex": "bibtex abcd",
+                        "bibtexDict": {"title": "abcd"},
+                    },
+                    "title",
+                    ["title", "title1"],
+                    "abcd",
+                    ["abd", "abcde"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                ),
+                ([], [], ["key1"]),
+            )
+            _u.assert_not_called()
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "bibtex": "bibtex abcd",
+                        "bibtexDict": {"title": "abc", **bd},
+                    },
+                    "title",
+                    ["title"],
+                    "abcd",
+                    ["abcde"],
+                    changed=["a"],
+                    failed=[],
+                    success=["s"],
+                ),
+                (["s", "key1"], ["a"], []),
+            )
+            _u.assert_called_once_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n         title = "{abc}",\n}',
+                verbose=0,
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "bibtex": "bibtex abcd",
+                        "bibtexDict": {"title": "abcd", **bd},
+                    },
+                    "title",
+                    ["title"],
+                    "abcd",
+                    ["abcde"],
+                    changed=["a"],
+                    failed=["f"],
+                    success=["s"],
+                ),
+                (["s", "key1"], ["a", "key1"], ["f"]),
+            )
+            _u.assert_called_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n         title = "{abcde}",\n}',
+                verbose=0,
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "bibtexDict": {"title": "abcd", **bd},
+                    },
+                    "title",
+                    ["arxiv", "title"],
+                    "abcd",
+                    ["abcde", "dcba"],
+                    changed=["a"],
+                    failed=["f"],
+                    success=["s"],
+                ),
+                (["s", "key1"], ["a", "key1"], ["f"]),
+            )
+            _u.assert_any_call("key1", "arxiv", "abcde", verbose=0)
+            _u.assert_called_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n         title = "{dcba}",\n}',
+                verbose=0,
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "bibtexDict": {"volume": "1803", **bd},
+                    },
+                    "volume",
+                    ["volume"],
+                    "([0-9]{2})([0-9]{2})",
+                    [r"\2"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                    regex=True,
+                ),
+                (["key1"], ["key1"], []),
+            )
+            _u.assert_called_with(
+                "key1", "bibtex", '@Article{key1,\n        volume = "03",\n}', verbose=0
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "bibtexDict": {"volume": "1803", "journal": "prd", **bd},
+                    },
+                    "volume",
+                    ["volume", "journal"],
+                    "([0-9]{2})([0-9]{2})",
+                    [r"\2", r"\1"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                    regex=True,
+                ),
+                (["key1"], ["key1"], []),
+            )
+            _u.assert_called_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n       journal = "18",\n        volume = "03",\n}',
+                verbose=0,
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "bibtexDict": {"volume": "X01", "journal": "Phys.Rev.", **bd},
+                    },
+                    "published",
+                    ["journal", "volume"],
+                    "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                    [r"\1", r"\2"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                    regex=True,
+                ),
+                ([], [], ["key1"]),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "published": "Phys.Rev. X01 blabla",
+                        "bibtexDict": {"volume": "X01", "journal": "Phys.Rev.", **bd},
+                    },
+                    "published",
+                    ["journal", "volume"],
+                    "(Phys. Rev. [A-Z]{1})([0-9]{2}).*",
+                    [r"\1", r"\2"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                    regex=True,
+                ),
+                (["key1"], [], []),
+            )
+            _u.assert_called_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n       journal = "Phys.Rev.",\n        volume = "X01",\n}',
+                verbose=0,
+            )
+            self.assertEqual(
+                self.pBDB.bibs.replaceSingleEntry(
+                    0,
+                    {
+                        "bibkey": "key1",
+                        "arxiv": "myabcdef",
+                        "published": "Phys.Rev. X01 blabla",
+                        "bibtexDict": {"volume": "X01", "journal": "Phys.Rev.", **bd},
+                    },
+                    "published",
+                    ["journal", "volume"],
+                    "(Phys.Rev. [A-Z]{1})([0-9]{2}).*",
+                    [r"\1", r"\2"],
+                    changed=[],
+                    failed=[],
+                    success=[],
+                    regex=True,
+                ),
+                (["key1"], ["key1"], []),
+            )
+            _u.assert_called_with(
+                "key1",
+                "bibtex",
+                '@Article{key1,\n       journal = "Phys.Rev. X",\n        volume = "01",\n}',
+                verbose=0,
+            )
 
     def test_rmBibtexStuff(self, *args):
         """Test rmBibtexComments and rmBibtexACapo"""

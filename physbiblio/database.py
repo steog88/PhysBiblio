@@ -4000,13 +4000,39 @@ class Entries(PhysBiblioDBSub):
         fiNews,
         old,
         news,
-        tot=0,
+        tot=1,
+        regex=False,
         changed=[],
         failed=[],
         success=[],
-        regex=False,
     ):
-        """ """
+        """Replace a string with a new one, in the given field
+        of the given bibtex entry (one at each time)
+
+        Parameters:
+            ix: the entry index in the considered iterator
+            entry: the entry dictionary
+            fiOld: the field where the string to match is taken from
+            fiNews: the list of new fields where to insert
+                the replaced string
+            old: the old string to replace
+            news: the list of new strings
+            tot (default 1): the total number of entries to be processed
+            regex (boolean, default False):
+                whether to use regular expression
+                for matching and replacing
+            changed (default []): the input list of bibkeys
+                of changed entries
+            failed (default []): the input list of bibkeys
+                of failed replace
+            success (default []): the input list of bibkeys
+                of successful replace
+
+        Output:
+            success, changed, failed:
+                the updated lists of entries that were
+                successfully processed, changed or produced errors
+        """
 
         def singleReplace(line, new, previous=None):
             """Replace the old with the new string in the given line
@@ -4031,55 +4057,49 @@ class Entries(PhysBiblioDBSub):
                 line = line.replace(old, new)
             return line
 
-        if not "bibtexDict" in entry.keys():
+        if not "bibtexDict" in entry:
             entry = self.completeFetched([entry])[0]
+        entry["bibkey"]  # check that the "bibkey" key exists
         pBLogger.info(
             dstr.Bibs.replaceProcessProgr
             % (ix + 1, tot, 100.0 * (ix + 1) / tot, entry["bibkey"])
         )
-        try:
-            if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
-                raise KeyError(dstr.Bibs.replaceMissingField % (fiOld, entry["bibkey"]))
-            if fiOld in entry["bibtexDict"].keys():
-                before = entry["bibtexDict"][fiOld]
-            elif fiOld in entry.keys():
-                before = entry[fiOld]
-            bef = []
-            aft = []
-            for fiNew, new in zip(fiNews, news):
-                if (
-                    not fiNew in entry["bibtexDict"].keys()
-                    and not fiNew in entry.keys()
-                ):
-                    raise KeyError(
-                        dstr.Bibs.replaceMissingField % (fiNew, entry["bibkey"])
-                    )
-                if fiNew in entry["bibtexDict"].keys():
-                    bef.append(entry["bibtexDict"][fiNew])
-                    after = singleReplace(
-                        before, new, previous=entry["bibtexDict"][fiNew]
-                    )
-                    aft.append(after)
-                    entry["bibtexDict"][fiNew] = after
-                    db = bibtexparser.bibdatabase.BibDatabase()
-                    db.entries = []
-                    db.entries.append(entry["bibtexDict"])
-                    entry["bibtex"] = self.bibtexFromDB(db)
-                    self.updateField(
-                        entry["bibkey"], "bibtex", entry["bibtex"], verbose=0
-                    )
-                if fiNew in entry.keys():
-                    bef.append(entry[fiNew])
-                    after = singleReplace(before, new, previous=entry[fiNew])
-                    aft.append(after)
-                    self.updateField(entry["bibkey"], fiNew, after, verbose=0)
-        except KeyError:
-            pBLogger.exception(dstr.Bibs.replaceError)
+        validFields = True
+        if not fiOld in entry["bibtexDict"] and not fiOld in entry:
+            pBLogger.error(dstr.Bibs.replaceMissingField % (fiOld, entry["bibkey"]))
+            validFields = False
+        for fiNew, new in zip(fiNews, news):
+            if not fiNew in entry["bibtexDict"] and not fiNew in entry:
+                pBLogger.error(dstr.Bibs.replaceMissingField % (fiNew, entry["bibkey"]))
+                validFields = False
+        if not validFields:
             failed.append(entry["bibkey"])
-        else:
-            success.append(entry["bibkey"])
-            if any(b != a for a, b in zip(aft, bef)):
-                changed.append(entry["bibkey"])
+            return success, changed, failed
+        if fiOld in entry["bibtexDict"]:
+            before = entry["bibtexDict"][fiOld]
+        elif fiOld in entry:
+            before = entry[fiOld]
+        bef = []
+        aft = []
+        for fiNew, new in zip(fiNews, news):
+            if fiNew in entry["bibtexDict"]:
+                bef.append(entry["bibtexDict"][fiNew])
+                after = singleReplace(before, new, previous=entry["bibtexDict"][fiNew])
+                aft.append(after)
+                entry["bibtexDict"][fiNew] = after
+                db = bibtexparser.bibdatabase.BibDatabase()
+                db.entries = []
+                db.entries.append(entry["bibtexDict"])
+                entry["bibtex"] = self.bibtexFromDB(db)
+                self.updateField(entry["bibkey"], "bibtex", entry["bibtex"], verbose=0)
+            if fiNew in entry:
+                bef.append(entry[fiNew])
+                after = singleReplace(before, new, previous=entry[fiNew])
+                aft.append(after)
+                self.updateField(entry["bibkey"], fiNew, after, verbose=0)
+        success.append(entry["bibkey"])
+        if any(b != a for a, b in zip(aft, bef)):
+            changed.append(entry["bibkey"])
         return success, changed, failed
 
     def rmBibtexACapo(self, bibtex):
