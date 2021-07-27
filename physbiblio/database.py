@@ -1665,6 +1665,208 @@ class Entries(PhysBiblioDBSub):
         """
         return "%%%s%%" % txt if "like" in operator else txt
 
+    def _prepareInsertArxiv(self, data, element, arxiv=None):
+        """Read the arxiv field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            element: dictionary extracted from the bibtex
+            arxiv (default None): the arxiv number to be imposed
+
+        Output:
+            the modified 'data' dict
+        """
+        data["arxiv"] = (
+            arxiv
+            if arxiv
+            else element["arxiv"]
+            if "arxiv" in element
+            else element["eprint"]
+            if "eprint" in element
+            else ""
+        )
+        return data
+
+    def _prepareInsertBasic(self, data, element, bibkey=None):
+        """Read the bibtex key when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            element: dictionary extracted from the bibtex
+            bibkey (default None): the new bibtex key to be imposed
+
+        Output:
+            the modified (data, element) dictionaries
+        """
+        if "ID" not in element or element["ID"] is None:
+            element["ID"] = ""
+        if bibkey:
+            element["ID"] = bibkey
+        data["bibkey"] = element["ID"]
+        return data, element
+
+    def _prepareInsertCit(self, data, citations=None, citations_no_self=None):
+        """Read the citation fields when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            citations, citations_no_self (default None):
+                the citation counts to be imposed
+
+        Output:
+            the modified 'data' dict
+        """
+        try:
+            data["citations"] = int(citations) if citations is not None else 0
+        except ValueError:
+            data["citations"] = 0
+        try:
+            data["citations_no_self"] = (
+                int(citations_no_self) if citations_no_self is not None else 0
+            )
+        except ValueError:
+            data["citations_no_self"] = 0
+        return data
+
+    def _prepareInsertDict(self, data):
+        """Read the bibtex dictionary field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+
+        Output:
+            the modified 'data' dict
+        """
+        try:
+            tmpBibDict = self.readEntry(data["bibtex"])
+        except (IndexError, KeyError):
+            tmpBibDict = {}
+        except ParseException:
+            pBLogger.warning(
+                dstr.Bibs.errorParseBibtex % data["bibtex"],
+                exc_info=True,
+            )
+            tmpBibDict = {}
+        data["bibdict"] = tmpBibDict
+        return data
+
+    def _prepareInsertFill(self, data):
+        """Read the bibtex dictionary field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+
+        Output:
+            the modified 'data' dict
+        """
+        tmpBibDict = data["bibdict"]
+        if data.get("arxiv", "") == "":
+            if "arxiv" in tmpBibDict and tmpBibDict["arxiv"] != "":
+                data["arxiv"] = tmpBibDict["arxiv"]
+            elif "eprint" in tmpBibDict and tmpBibDict["eprint"] != "":
+                data["arxiv"] = tmpBibDict["eprint"]
+        for f in ["year", "doi", "isbn"]:
+            if f in tmpBibDict and tmpBibDict[f] != "":
+                data[f] = tmpBibDict[f]
+        return data
+
+    def _prepareInsertFirstdate(self, data, firstdate=None):
+        """Read the firstdate field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            firstdate (default None): the date to be used.
+                If None, the present date will be used
+
+        Output:
+            the modified 'data' dict
+        """
+        data["firstdate"] = (
+            firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
+        )
+        return data
+
+    def _prepareInsertLink(self, data, link=None):
+        """Read the firstdate field when preparing
+        to insert an entry to the database
+
+        Parameters:
+            data: dictionary to be modified
+            link (default None): the link to be used
+
+        Output:
+            the modified 'data' dict
+        """
+        if link:
+            data["link"] = link
+        else:
+            data["link"] = ""
+            try:
+                if data["arxiv"] is not None and data["arxiv"] != "":
+                    data["link"] = pbConfig.arxivUrl + "/abs/" + data["arxiv"]
+            except KeyError:
+                pass
+            try:
+                if data["doi"] is not None and data["doi"] != "":
+                    data["link"] = pbConfig.doiUrl + data["doi"]
+            except KeyError:
+                pass
+        return data
+
+    def _prepareInsertStandard(
+        self,
+        data,
+        element,
+        **kwargs,
+    ):
+        """ """
+        for k in ["abstract", "crossref", "doi", "isbn"]:
+            data[k] = (
+                kwargs[k]
+                if k in kwargs and kwargs[k]
+                else element[k]
+                if k in element
+                else None
+            )
+        for k in ["ads", "comments", "inspire", "old_keys", "scholar"]:
+            data[k] = kwargs[k] if k in kwargs and kwargs[k] else None
+        for k in [
+            "book",
+            "exp_paper",
+            "lecture",
+            "noUpdate",
+            "phd_thesis",
+            "proceeding",
+            "review",
+        ]:
+            data[k] = 1 if k in kwargs and kwargs[k] else 0
+        for k in ["marks", "pubdate"]:
+            data[k] = kwargs[k] if k in kwargs and kwargs[k] else ""
+        return data
+
+    def _prepareInsertYear(self, data, element, year):
+        """ """
+        from physbiblio.webimport.arxiv import getYear
+
+        data["year"] = None
+        if year:
+            data["year"] = year
+        else:
+            try:
+                data["year"] = element["year"]
+            except KeyError:
+                try:
+                    data["year"] = getYear(data["arxiv"])
+                except KeyError:
+                    data["year"] = None
+        return data
+
     def _processQueryFields(
         self,
         di,
@@ -2949,17 +3151,8 @@ class Entries(PhysBiblioDBSub):
                 of a progress bar in the GUI, if possible
         """
 
-        def printExisting(entry):
-            """Print a message when the entry is
-            already present in the database
-
-            Parameters:
-                entry: the entry key
-            """
-            pBLogger.info(dstr.Bibs.ifbExist % entry)
-
         self.lastInserted = []
-        exist = []
+        existing = []
         errors = []
 
         pBLogger.info(dstr.Bibs.ifbFromFile % filename)
@@ -2979,53 +3172,73 @@ class Entries(PhysBiblioDBSub):
                 pbVal(ie + 1)
             except TypeError:
                 pass
-            if self.importFromBibFlag and e != []:
-                db.entries = [e]
-                bibtex = self.bibtexFromDB(db)
-                data = self.prepareInsert(bibtex)
-                key = data["bibkey"]
-                pBLogger.info(
-                    dstr.Bibs.ifbProcessProgr
-                    % (ie + 1, tot, 100.0 * (ie + 1.0) / tot, key)
-                )
-                existing = self.getByBibkey(key, saveQuery=False)
-                if existing:
-                    printExisting(key)
-                    exist.append(key)
-                elif key.strip() == "":
-                    pBLogger.warning(dstr.Bibs.ifbEmptyKey)
-                    errors.append(key)
-                else:
-                    if (
-                        completeInfo
-                        and pbConfig.params["fetchAbstract"]
-                        and data["arxiv"] != ""
-                    ):
-                        arxivBibtex, arxivDict = physBiblioWeb.webSearch[
-                            "arxiv"
-                        ].retrieveUrlAll(data["arxiv"], searchType="id", fullDict=True)
-                        data["abstract"] = arxivDict["abstract"]
-                    pBLogger.info(dstr.Bibs.ifbNewKey % key)
-                    if not self.insert(data):
-                        pBLogger.warning(dstr.Bibs.ifbFailed % key)
-                        errors.append(key)
-                    else:
-                        self.mainDB.catBib.insert(
-                            pbConfig.params["defaultCategories"], key
-                        )
-                        try:
-                            if completeInfo:
-                                eid = self.updateInspireID(key)
-                                self.updateInfoFromOAI(eid)
-                            pBLogger.info(dstr.Bibs.ifbInserted)
-                            self.lastInserted.append(key)
-                        except Exception:
-                            pBLogger.exception(dstr.failedComplete % key, exc_info=True)
-                            errors.append(key)
+            if not self.importFromBibFlag or e == []:
+                continue
+            errors, existing = self.importOneFromBibtex(
+                ie,
+                e,
+                db,
+                completeInfo=completeInfo,
+                tot=tot,
+                errors=errors,
+                existing=existing,
+            )
         pBLogger.info(
             dstr.Bibs.ifbCompleteSummary
-            % (len(elements), len(exist), len(self.lastInserted), len(errors))
+            % (tot, len(existing), len(self.lastInserted), len(errors))
         )
+
+    def importOneFromBibtex(
+        self, ie, e, db, completeInfo=True, tot=0, errors=[], existing=[]
+    ):
+        """ """
+
+        def printExisting(entry):
+            """Print a message when the entry is
+            already present in the database
+
+            Parameters:
+                entry: the entry key
+            """
+            pBLogger.info(dstr.Bibs.ifbExist % entry)
+
+        db.entries = [e]
+        bibtex = self.bibtexFromDB(db)
+        data = self.prepareInsert(bibtex)
+        key = data["bibkey"]
+        pBLogger.info(
+            dstr.Bibs.ifbProcessProgr % (ie + 1, tot, 100.0 * (ie + 1.0) / tot, key)
+        )
+        exists = self.getByBibkey(key, saveQuery=False)
+        if exists:
+            printExisting(key)
+            existing.append(key)
+            return errors, existing
+        if key.strip() == "":
+            pBLogger.warning(dstr.Bibs.ifbEmptyKey)
+            errors.append(key)
+            return errors, existing
+        if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
+            arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+                data["arxiv"], searchType="id", fullDict=True
+            )
+            data["abstract"] = arxivDict["abstract"]
+        pBLogger.info(dstr.Bibs.ifbNewKey % key)
+        if not self.insert(data):
+            pBLogger.warning(dstr.Bibs.ifbFailed % key)
+            errors.append(key)
+            return errors, existing
+        self.mainDB.catBib.insert(pbConfig.params["defaultCategories"], key)
+        try:
+            if completeInfo:
+                eid = self.updateInspireID(key)
+                self.updateInfoFromOAI(eid)
+            pBLogger.info(dstr.Bibs.ifbInserted)
+            self.lastInserted.append(key)
+        except Exception:
+            pBLogger.exception(dstr.failedComplete % key, exc_info=True)
+            errors.append(key)
+        return errors, existing
 
     def insert(self, data):
         """Insert an entry
@@ -3361,36 +3574,7 @@ class Entries(PhysBiblioDBSub):
             entries = []
         return entries
 
-    def prepareInsert(
-        self,
-        bibtex,
-        bibkey=None,
-        inspire=None,
-        arxiv=None,
-        ads=None,
-        scholar=None,
-        doi=None,
-        isbn=None,
-        year=None,
-        link=None,
-        comments=None,
-        old_keys=None,
-        crossref=None,
-        exp_paper=None,
-        lecture=None,
-        phd_thesis=None,
-        review=None,
-        proceeding=None,
-        book=None,
-        marks=None,
-        firstdate=None,
-        pubdate=None,
-        noUpdate=None,
-        abstract=None,
-        number=None,
-        citations=None,
-        citations_no_self=None,
-    ):
+    def prepareInsert(self, bibtex, number=None, **kwargs):
         """Convert a bibtex into a dictionary,
         eventually using also additional info
 
@@ -3412,8 +3596,6 @@ class Entries(PhysBiblioDBSub):
         Output:
             a dictionary with all the field values for self.insert
         """
-        from physbiblio.webimport.arxiv import getYear
-
         data = {}
         if number is None:
             number = 0
@@ -3429,109 +3611,35 @@ class Entries(PhysBiblioDBSub):
             return data
         element = elements[number]
         try:
-            if element["ID"] is None:
-                element["ID"] = ""
-            if bibkey:
-                element["ID"] = bibkey
-            data["bibkey"] = element["ID"]
+            data, element = self._prepareInsertBasic(
+                data, element, kwargs.get("bibkey")
+            )
         except KeyError:
             pBLogger.info(dstr.Bibs.errorParseBib)
             data["bibkey"] = ""
             return data
         db = bibtexparser.bibdatabase.BibDatabase()
-        db.entries = []
-        db.entries.append(element)
+        db.entries = [element]
         data["bibtex"] = self.bibtexFromDB(db)
         # most of the fields have standard behaviour:
-        for k in ["abstract", "crossref", "doi", "isbn"]:
-            data[k] = (
-                locals()[k]
-                if locals()[k]
-                else element[k]
-                if k in element.keys()
-                else None
-            )
-        for k in ["ads", "comments", "inspire", "old_keys", "scholar"]:
-            data[k] = locals()[k] if locals()[k] else None
-        for k in [
-            "book",
-            "exp_paper",
-            "lecture",
-            "noUpdate",
-            "phd_thesis",
-            "proceeding",
-            "review",
-        ]:
-            data[k] = 1 if locals()[k] else 0
-        for k in ["marks", "pubdate"]:
-            data[k] = locals()[k] if locals()[k] else ""
+        data = self._prepareInsertStandard(data, element, **kwargs)
         # arxiv
-        data["arxiv"] = (
-            arxiv
-            if arxiv
-            else element["arxiv"]
-            if "arxiv" in element.keys()
-            else element["eprint"]
-            if "eprint" in element.keys()
-            else ""
-        )
+        data = self._prepareInsertArxiv(data, element, kwargs.get("arxiv"))
         # year
-        data["year"] = None
-        if year:
-            data["year"] = year
-        else:
-            try:
-                data["year"] = element["year"]
-            except KeyError:
-                try:
-                    data["year"] = getYear(data["arxiv"])
-                except KeyError:
-                    data["year"] = None
+        data = self._prepareInsertYear(data, element, kwargs.get("year"))
         # link
-        if link:
-            data["link"] = link
-        else:
-            data["link"] = ""
-            try:
-                if data["arxiv"] is not None and data["arxiv"] != "":
-                    data["link"] = pbConfig.arxivUrl + "/abs/" + data["arxiv"]
-            except KeyError:
-                pass
-            try:
-                if data["doi"] is not None and data["doi"] != "":
-                    data["link"] = pbConfig.doiUrl + data["doi"]
-            except KeyError:
-                pass
+        data = self._prepareInsertLink(data, kwargs.get("link"))
         # firstdate
-        data["firstdate"] = (
-            firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
-        )
+        data = self._prepareInsertFirstdate(data, kwargs.get("firstdate"))
         # bibtex dict
-        try:
-            tmpBibDict = self.readEntry(data["bibtex"])
-        except IndexError:
-            tmpBibDict = {}
-        except ParseException:
-            pBLogger.warning(
-                dstr.Bibs.errorParseBibtex % data["bibtex"],
-                exc_info=True,
-            )
-            tmpBibDict = {}
-        data["bibdict"] = "%s" % tmpBibDict
+        data = self._prepareInsertDict(data)
         # citations
-        data["citations"] = citations if citations is not None else 0
-        data["citations_no_self"] = (
-            citations_no_self if citations_no_self is not None else 0
+        data = self._prepareInsertCit(
+            data, kwargs.get("citations"), kwargs.get("citations_no_self")
         )
         # if some fields are empty, use bibtex info
-        if arxiv == "":
-            if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
-                arxiv = tmpBibDict["arxiv"]
-            elif "eprint" in tmpBibDict.keys() and tmpBibDict["eprint"] != "":
-                arxiv = tmpBibDict["eprint"]
-        for f in ["year", "doi", "isbn"]:
-            if f in tmpBibDict.keys() and tmpBibDict[f] != "":
-                data[f] = tmpBibDict[f]
+        data = self._prepareInsertFill(data)
+        data["bibdict"] = "%s" % data["bibdict"]
         return data
 
     def prepareUpdate(self, bibtexOld, bibtexNew):
@@ -3771,29 +3879,6 @@ class Entries(PhysBiblioDBSub):
                 successfully processed, changed or produced errors
         """
 
-        def singleReplace(line, new, previous=None):
-            """Replace the old with the new string in the given line
-
-            Parameters:
-                line: the string where to match and replace
-                new: the new string
-                previous (default None): the previous content of the field
-                    (useful when using regex and complex replaces)
-
-            Output:
-                the processed line or previous
-                    (if regex and no matches are found)
-            """
-            if regex:
-                reg = re.compile(old)
-                if reg.match(line):
-                    line = reg.sub(new, line)
-                else:
-                    line = previous
-            else:
-                line = line.replace(old, new)
-            return line
-
         if not isinstance(fiNews, list) or not isinstance(news, list):
             pBLogger.warning(dstr.Bibs.replaceInvalidNew)
             return [], [], []
@@ -3822,60 +3907,19 @@ class Entries(PhysBiblioDBSub):
                 pass
             if not self.runningReplace:
                 continue
-            if not "bibtexDict" in entry.keys():
-                entry = self.completeFetched([entry])[0]
-            pBLogger.info(
-                dstr.Bibs.replaceProcessProgr
-                % (ix + 1, tot, 100.0 * (ix + 1) / tot, entry["bibkey"])
+            success, changed, failed = self.replaceSingleEntry(
+                ix,
+                entry,
+                fiOld,
+                fiNews,
+                old,
+                news,
+                regex=regex,
+                tot=tot,
+                changed=changed,
+                failed=failed,
+                success=success,
             )
-            try:
-                if (
-                    not fiOld in entry["bibtexDict"].keys()
-                    and not fiOld in entry.keys()
-                ):
-                    raise KeyError(
-                        dstr.Bibs.replaceMissingField % (fiOld, entry["bibkey"])
-                    )
-                if fiOld in entry["bibtexDict"].keys():
-                    before = entry["bibtexDict"][fiOld]
-                elif fiOld in entry.keys():
-                    before = entry[fiOld]
-                bef = []
-                aft = []
-                for fiNew, new in zip(fiNews, news):
-                    if (
-                        not fiNew in entry["bibtexDict"].keys()
-                        and not fiNew in entry.keys()
-                    ):
-                        raise KeyError(
-                            dstr.Bibs.replaceMissingField % (fiNew, entry["bibkey"])
-                        )
-                    if fiNew in entry["bibtexDict"].keys():
-                        bef.append(entry["bibtexDict"][fiNew])
-                        after = singleReplace(
-                            before, new, previous=entry["bibtexDict"][fiNew]
-                        )
-                        aft.append(after)
-                        entry["bibtexDict"][fiNew] = after
-                        db = bibtexparser.bibdatabase.BibDatabase()
-                        db.entries = []
-                        db.entries.append(entry["bibtexDict"])
-                        entry["bibtex"] = self.bibtexFromDB(db)
-                        self.updateField(
-                            entry["bibkey"], "bibtex", entry["bibtex"], verbose=0
-                        )
-                    if fiNew in entry.keys():
-                        bef.append(entry[fiNew])
-                        after = singleReplace(before, new, previous=entry[fiNew])
-                        aft.append(after)
-                        self.updateField(entry["bibkey"], fiNew, after, verbose=0)
-            except KeyError:
-                pBLogger.exception(dstr.Bibs.replaceError)
-                failed.append(entry["bibkey"])
-            else:
-                success.append(entry["bibkey"])
-                if any(b != a for a, b in zip(aft, bef)):
-                    changed.append(entry["bibkey"])
         pBLogger.info(dstr.doneE)
         return success, changed, failed
 
@@ -3906,6 +3950,96 @@ class Entries(PhysBiblioDBSub):
             return keys
         else:
             return False
+
+    def replaceSingleEntry(
+        self,
+        ix,
+        entry,
+        fiOld,
+        fiNews,
+        old,
+        news,
+        tot=0,
+        changed=[],
+        failed=[],
+        success=[],
+        regex=False,
+    ):
+        """ """
+
+        def singleReplace(line, new, previous=None):
+            """Replace the old with the new string in the given line
+
+            Parameters:
+                line: the string where to match and replace
+                new: the new string
+                previous (default None): the previous content of the field
+                    (useful when using regex and complex replaces)
+
+            Output:
+                the processed line or previous
+                    (if regex and no matches are found)
+            """
+            if regex:
+                reg = re.compile(old)
+                if reg.match(line):
+                    line = reg.sub(new, line)
+                else:
+                    line = previous
+            else:
+                line = line.replace(old, new)
+            return line
+
+        if not "bibtexDict" in entry.keys():
+            entry = self.completeFetched([entry])[0]
+        pBLogger.info(
+            dstr.Bibs.replaceProcessProgr
+            % (ix + 1, tot, 100.0 * (ix + 1) / tot, entry["bibkey"])
+        )
+        try:
+            if not fiOld in entry["bibtexDict"].keys() and not fiOld in entry.keys():
+                raise KeyError(dstr.Bibs.replaceMissingField % (fiOld, entry["bibkey"]))
+            if fiOld in entry["bibtexDict"].keys():
+                before = entry["bibtexDict"][fiOld]
+            elif fiOld in entry.keys():
+                before = entry[fiOld]
+            bef = []
+            aft = []
+            for fiNew, new in zip(fiNews, news):
+                if (
+                    not fiNew in entry["bibtexDict"].keys()
+                    and not fiNew in entry.keys()
+                ):
+                    raise KeyError(
+                        dstr.Bibs.replaceMissingField % (fiNew, entry["bibkey"])
+                    )
+                if fiNew in entry["bibtexDict"].keys():
+                    bef.append(entry["bibtexDict"][fiNew])
+                    after = singleReplace(
+                        before, new, previous=entry["bibtexDict"][fiNew]
+                    )
+                    aft.append(after)
+                    entry["bibtexDict"][fiNew] = after
+                    db = bibtexparser.bibdatabase.BibDatabase()
+                    db.entries = []
+                    db.entries.append(entry["bibtexDict"])
+                    entry["bibtex"] = self.bibtexFromDB(db)
+                    self.updateField(
+                        entry["bibkey"], "bibtex", entry["bibtex"], verbose=0
+                    )
+                if fiNew in entry.keys():
+                    bef.append(entry[fiNew])
+                    after = singleReplace(before, new, previous=entry[fiNew])
+                    aft.append(after)
+                    self.updateField(entry["bibkey"], fiNew, after, verbose=0)
+        except KeyError:
+            pBLogger.exception(dstr.Bibs.replaceError)
+            failed.append(entry["bibkey"])
+        else:
+            success.append(entry["bibkey"])
+            if any(b != a for a, b in zip(aft, bef)):
+                changed.append(entry["bibkey"])
+        return success, changed, failed
 
     def rmBibtexACapo(self, bibtex):
         """Remove line breaks in the fields of a bibtex
@@ -4157,7 +4291,8 @@ class Entries(PhysBiblioDBSub):
         )
 
     def updateBibkey(self, oldKey, newKey):
-        """Update the bibtex key of an entry
+        """Update the bibtex key of an entry, also rename the pdf folder
+        and update all connections to categories and experiments
 
         Parameters:
             oldKey: the old bibtex key
@@ -4167,33 +4302,33 @@ class Entries(PhysBiblioDBSub):
             the output of self.connExec or False if some errors occurred
         """
         pBLogger.info(dstr.Bibs.updateBibkey % (oldKey, newKey))
+        query = "update entries set bibkey=:new where bibkey=:old\n"
+        if not self.connExec(query, {"new": newKey, "old": oldKey}):
+            pBLogger.warning(dstr.Bibs.errorUpdateBib)
+            return False
         try:
-            query = "update entries set bibkey=:new where bibkey=:old\n"
-            if self.connExec(query, {"new": newKey, "old": oldKey}):
-                entry = self.getByBibkey(newKey, saveQuery=False)[0]
-                try:
-                    oldkeys = entry["old_keys"].split(",")
-                    if oldkeys == [""]:
-                        oldkeys = []
-                except AttributeError:
-                    oldkeys = []
-                self.updateField(newKey, "old_keys", ",".join(oldkeys + [oldKey]))
-                try:
-                    from physbiblio.pdf import pBPDF
-
-                    pBPDF.renameFolder(oldKey, newKey)
-                except Exception:
-                    pBLogger.exception(dstr.errorRename)
-                query = "update entryCats set bibkey=:new where bibkey=:old\n"
-                if self.connExec(query, {"new": newKey, "old": oldKey}):
-                    query = "update entryExps set bibkey=:new where bibkey=:old\n"
-                    return self.connExec(query, {"new": newKey, "old": oldKey})
-                else:
-                    return False
-            else:
-                return False
-        except:
+            entry = self.getByBibkey(newKey, saveQuery=False)[0]
+        except (IndexError, TypeError):
             pBLogger.warning(dstr.Bibs.errorUpdateBib, exc_info=True)
+            return False
+        try:
+            oldkeys = entry["old_keys"].split(",")
+            if oldkeys == [""]:
+                oldkeys = []
+        except (AttributeError, KeyError, TypeError):
+            oldkeys = []
+        self.updateField(newKey, "old_keys", ",".join(oldkeys + [oldKey]))
+        try:
+            from physbiblio.pdf import pBPDF
+
+            pBPDF.renameFolder(oldKey, newKey)
+        except Exception:
+            pBLogger.exception(dstr.errorRename)
+        query = "update entryCats set bibkey=:new where bibkey=:old\n"
+        if self.connExec(query, {"new": newKey, "old": oldKey}):
+            query = "update entryExps set bibkey=:new where bibkey=:old\n"
+            return self.connExec(query, {"new": newKey, "old": oldKey})
+        else:
             return False
 
     def updateField(self, key, field, value, verbose=1):

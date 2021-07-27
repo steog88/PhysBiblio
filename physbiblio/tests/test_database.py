@@ -2496,6 +2496,333 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs._getQueryStr("abc", "noa"), "abc")
         self.assertEqual(self.pBDB.bibs._getQueryStr("abc", "loglikem"), "%abc%")
 
+    def test_prepareInsertArxiv(self, *args):
+        """test _prepareInsertArxiv"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertArxiv({}, {}, None), {"arxiv": ""}
+        )
+        self.assertEqual(self.pBDB.bibs._prepareInsertArxiv({}, {}, ""), {"arxiv": ""})
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertArxiv(
+                {"arxiv": "123"}, {"arxiv": "111", "eprint": "222"}, "abc"
+            ),
+            {"arxiv": "abc"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertArxiv(
+                {"arxiv": "123"}, {"arxiv": "111", "eprint": "222"}, None
+            ),
+            {"arxiv": "111"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertArxiv(
+                {"arxiv": "123"}, {"eprint": "222"}, arxiv=None
+            ),
+            {"arxiv": "222"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertArxiv(
+                {"arxiv": "123"},
+                {"eprint": "222"},
+            ),
+            {"arxiv": "222"},
+        )
+
+    def test_prepareInsertBasic(self, *args):
+        """test _prepareInsertBasic"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {}, None),
+            ({"bibkey": ""}, {"ID": ""}),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {"ID": None}, None),
+            ({"bibkey": ""}, {"ID": ""}),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {"ID": "abc"}, bibkey=None),
+            ({"bibkey": "abc"}, {"ID": "abc"}),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {"ID": "abc"}),
+            ({"bibkey": "abc"}, {"ID": "abc"}),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {"ID": "abc"}, ""),
+            ({"bibkey": "abc"}, {"ID": "abc"}),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertBasic({}, {"ID": "abc"}, "def"),
+            ({"bibkey": "def"}, {"ID": "def"}),
+        )
+
+    def test_prepareInsertCit(self, *args):
+        """test _prepareInsertCit"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, None, None),
+            {"citations": 0, "citations_no_self": 0},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, "", None),
+            {"citations": 0, "citations_no_self": 0},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, None, ""),
+            {"citations": 0, "citations_no_self": 0},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, "1", None),
+            {"citations": 1, "citations_no_self": 0},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, None, "12"),
+            {"citations": 0, "citations_no_self": 12},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, "a", 11.3),
+            {"citations": 0, "citations_no_self": 11},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertCit({}, 12, "11a"),
+            {"citations": 12, "citations_no_self": 0},
+        )
+
+    def test_prepareInsertDict(self, *args):
+        """test _prepareInsertDict"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertDict({}),
+            {"bibdict": {}},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertDict({"bibtex": ""}),
+            {"bibdict": {}, "bibtex": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertDict({"bibtex": "@article{,"}),
+            {"bibdict": {}, "bibtex": "@article{,"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertDict(
+                {"bibtex": '@article{abc,\nauthor="me",\ntitle="title",\n}\n'}
+            ),
+            {
+                "bibdict": {
+                    "ENTRYTYPE": "article",
+                    "ID": "abc",
+                    "author": "me",
+                    "title": "title",
+                },
+                "bibtex": '@article{abc,\nauthor="me",\ntitle="title",\n}\n',
+            },
+        )
+
+    def test_prepareInsertFill(self, *args):
+        """test _prepareInsertFill"""
+        with self.assertRaises(KeyError):
+            self.pBDB.bibs._prepareInsertFill({})
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill({"bibdict": {}}),
+            {"bibdict": {}},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill({"bibdict": {}, "arxiv": ""}),
+            {"bibdict": {}, "arxiv": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill(
+                {"bibdict": {"arxiv": "123"}, "arxiv": ""}
+            ),
+            {"bibdict": {"arxiv": "123"}, "arxiv": "123"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill(
+                {"bibdict": {"eprint": "123"}, "arxiv": ""}
+            ),
+            {"bibdict": {"eprint": "123"}, "arxiv": "123"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill(
+                {"bibdict": {"arxiv": "456", "eprint": "123"}, "arxiv": ""}
+            ),
+            {"bibdict": {"arxiv": "456", "eprint": "123"}, "arxiv": "456"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFill(
+                {"bibdict": {"arxiv": "456", "eprint": "123"}, "arxiv": "789"}
+            ),
+            {"bibdict": {"arxiv": "456", "eprint": "123"}, "arxiv": "789"},
+        )
+        for k in ["year", "doi", "isbn"]:
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertFill({"bibdict": {k: ""}}),
+                {"bibdict": {k: ""}},
+            )
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertFill({"bibdict": {k: "abc"}}),
+                {"bibdict": {k: "abc"}, k: "abc"},
+            )
+
+    def test_prepareInsertFirstdate(self, *args):
+        """test _prepareInsertFirstdate"""
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFirstdate({}),
+            {"firstdate": today},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFirstdate({}, firstdate=""),
+            {"firstdate": today},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertFirstdate({}, firstdate="2021-07-26"),
+            {"firstdate": "2021-07-26"},
+        )
+
+    def test_prepareInsertLink(self, *args):
+        """test _prepareInsertLink"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({}, None),
+            {"link": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({}, link=""),
+            {"link": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({}, "abc"),
+            {"link": "abc"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"arxiv": ""}, None),
+            {"arxiv": "", "link": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"arxiv": "1234"}, None),
+            {"arxiv": "1234", "link": pbConfig.arxivUrl + "/abs/1234"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"doi": ""}, None),
+            {"doi": "", "link": ""},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"doi": "1234"}, None),
+            {"doi": "1234", "link": pbConfig.doiUrl + "1234"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"arxiv": "5678", "doi": ""}, None),
+            {"arxiv": "5678", "doi": "", "link": pbConfig.arxivUrl + "/abs/5678"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertLink({"arxiv": "5678", "doi": "1234"}, None),
+            {"arxiv": "5678", "doi": "1234", "link": pbConfig.doiUrl + "1234"},
+        )
+
+    def test_prepareInsertStandard(self, *args):
+        """test _prepareInsertStandard"""
+        empty = {
+            k: None
+            for k in [
+                "abstract",
+                "crossref",
+                "doi",
+                "isbn",
+                "ads",
+                "comments",
+                "inspire",
+                "old_keys",
+                "scholar",
+                "marks",
+                "pubdate",
+            ]
+        }
+        for k in [
+            "book",
+            "exp_paper",
+            "lecture",
+            "noUpdate",
+            "phd_thesis",
+            "proceeding",
+            "review",
+        ]:
+            empty[k] = 0
+        for k in ["marks", "pubdate"]:
+            empty[k] = ""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertStandard({}, {}),
+            empty,
+        )
+        for k in [
+            "marks",
+            "pubdate",
+        ]:
+            e = empty.copy()
+            e[k] = "abc"
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {}, **{k: "abc"}),
+                e,
+            )
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {}, **{k: ""}),
+                empty,
+            )
+        for k in [
+            "book",
+            "exp_paper",
+            "lecture",
+            "noUpdate",
+            "phd_thesis",
+            "proceeding",
+            "review",
+        ]:
+            e = empty.copy()
+            e[k] = 1
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {k: "def"}, **{k: "abc"}),
+                e,
+            )
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {k: "def"}),
+                empty,
+            )
+        for k in ["abstract", "crossref", "doi", "isbn"]:
+            e = empty.copy()
+            e[k] = "abc"
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {k: "def"}, **{k: "abc"}),
+                e,
+            )
+            e[k] = "def"
+            self.assertEqual(
+                self.pBDB.bibs._prepareInsertStandard({}, {k: "def"}),
+                e,
+            )
+
+    def test_prepareInsertYear(self, *args):
+        """test _prepareInsertYear"""
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertYear({}, {}, None),
+            {"year": None},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertYear({}, {"year": "2021"}, year=None),
+            {"year": "2021"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertYear(
+                {"arxiv": "1901.01234"}, {"year": "2021"}, year=None
+            ),
+            {"arxiv": "1901.01234", "year": "2021"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertYear({"arxiv": "1901.01234"}, {}, year=None),
+            {"arxiv": "1901.01234", "year": "2019"},
+        )
+        self.assertEqual(
+            self.pBDB.bibs._prepareInsertYear(
+                {"arxiv": "1901.01234"}, {"year": "2021"}, year="2005"
+            ),
+            {"arxiv": "1901.01234", "year": "2005"},
+        )
+
     def test_processQueryFields(self, *args):
         """test _processQueryFields"""
         # failing
@@ -6634,6 +6961,10 @@ class TestDatabaseEntries(DBTestCase):
 
             os.remove("tmpbib.bib")
 
+    def test_importOneFromBibtex(self, *args):
+        """test importOneFromBibtex"""
+        raise NotImplementedError
+
     def test_insert(self, *args):
         """Test insertion and of bibtex items"""
         self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
@@ -7568,6 +7899,10 @@ class TestDatabaseEntries(DBTestCase):
         with patch("logging.Logger.exception") as _i:
             self.pBDB.bibs.replace("arxiv", ["eprint"], "1234.00000", ["56789"])
             _i.assert_any_call("Something wrong in replace")
+
+    def test_replaceSingleEntry(self, *args):
+        """test replaceSingleEntry"""
+        raise NotImplementedError
 
     def test_rmBibtexStuff(self, *args):
         """Test rmBibtexComments and rmBibtexACapo"""
