@@ -3223,6 +3223,10 @@ class SearchBibsWindow(EditObjectWindow):
         self.currGrid.setRowMinimumHeight(i, spaceRowHeight)
         i += 1
 
+        self.newTabCheck = QCheckBox(bwstr.newTab, self)
+        self.currGrid.addWidget(self.newTabCheck, i, 0, 1, 6)
+        i += 1
+
         # OK button
         self.acceptButton = QPushButton(bwstr.ok, self)
         self.acceptButton.clicked.connect(self.onOk)

@@ -2429,10 +2429,10 @@ class Entries(PhysBiblioDBSub):
             query += " LIMIT %s" % (str(limitTo))
             if limitOffset is not None:
                 query += " OFFSET %s" % (str(limitOffset))
+        if saveQuery:
+            self.lastQuery = query
+            self.lastVals = vals
         if doFetch:
-            if saveQuery:
-                self.lastQuery = query
-                self.lastVals = vals
             cursor = self.curs
         else:
             cursor = self.fetchCurs
@@ -2731,10 +2731,10 @@ class Entries(PhysBiblioDBSub):
             if limitTo is None:
                 query += " LIMIT 100000"
             query += " OFFSET %s" % (str(limitOffset))
+        if saveQuery:
+            self.lastQuery = query
+            self.lastVals = vals
         if doFetch:
-            if saveQuery:
-                self.lastQuery = query
-                self.lastVals = vals
             cursor = self.curs
         else:
             cursor = self.fetchCurs

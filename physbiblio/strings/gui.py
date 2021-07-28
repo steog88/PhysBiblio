@@ -219,6 +219,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
     mergeBibs = "Merge bibtex entries"
     missMarks = "missing key: 'marks' in %s"
     newKey = "New bibtex key (%s) for element '%s'..."
+    newTab = "Open results in new tab"
     noModif = "No modifications to bibtex entry"
     noPDF = "no PDF"
     parseBibErr = "Problem in parsing the following bibtex code:\n%s"

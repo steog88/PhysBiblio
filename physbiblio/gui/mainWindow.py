@@ -707,8 +707,10 @@ class MainWindow(QMainWindow):
                             fs["searchDict"]
                         ), r=ast.literal_eval(fs["replaceFields"]), o=fs[
                             "offsetNum"
+                        ], n=fs[
+                            "name"
                         ]: self.runSearchReplaceBiblio(
-                            sD, r, o
+                            sD, r, o, newTab=n
                         ),
                     )
                 )
@@ -944,6 +946,10 @@ class MainWindow(QMainWindow):
     def reloadMainContent(self, bibs=None, newTab=False):
         """Delete the previous table widget and create a new one,
         using the default query
+
+        Parameters:
+            bibs (default None): the list of bibtexs to show in the table
+            newTab (default None): if not None, the label of the new tab
         """
         if newTab:
             self.newTabAtEnd(self.tabWidget.count() - 1)
@@ -1367,6 +1373,8 @@ class MainWindow(QMainWindow):
                         offset=offs,
                         replaceFields=replaceFields,
                     )
+                if newSearchWin.newTabCheck.isChecked():
+                    self.newTabAtEnd(self.tabWidget.count() - 1, label=mwstr.newTab)
                 noLim = pBDB.bibs.fetchFromDict(
                     searchFields, limitOffset=offs, doFetch=False
                 )
@@ -1406,7 +1414,12 @@ class MainWindow(QMainWindow):
                     limit=lim,
                     offset=offs,
                 )
-            self.runSearchBiblio(searchFields, lim, offs)
+            self.runSearchBiblio(
+                searchFields,
+                lim,
+                offs,
+                newTab=mwstr.newTab if newSearchWin.newTabCheck.isChecked() else None,
+            )
         elif replace:
             return False
 
@@ -1419,6 +1432,7 @@ class MainWindow(QMainWindow):
                 to be used in `database.Entries.fetchFromDict`
             lim: the maximum number of entries to fetch
             offs: the offset for the search
+            newTab (default None): if not None, the label of the new tab
         """
         if newTab is not None:
             self.newTabAtEnd(self.tabWidget.count() - 1, label=newTab)
@@ -1432,7 +1446,7 @@ class MainWindow(QMainWindow):
         self.reloadMainContent(lastFetched)
         QApplication.restoreOverrideCursor()
 
-    def runSearchReplaceBiblio(self, searchFields, replaceFields, offs):
+    def runSearchReplaceBiblio(self, searchFields, replaceFields, offs, newTab=None):
         """Run a search&replace with some parameters
 
         Parameters:
@@ -1442,9 +1456,10 @@ class MainWindow(QMainWindow):
             replaceFields: a tuple/list of 5 elements,
                 as in the output of `self.searchBiblio`
             offs: the offset for the search
+            newTab (default None): if not None, the label of the new tab
         """
         pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
-        self.runReplace(replaceFields)
+        self.runReplace(replaceFields, newTab=newTab)
 
     def renameSearchBiblio(self, idS, oldname):
         """Rename a saved search
@@ -1498,14 +1513,26 @@ class MainWindow(QMainWindow):
                     )
                     pbConfig.globalDb.commit()
                 pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
-                self.runReplace(replaceFields)
+                self.runReplace(
+                    replaceFields,
+                    newTab=mwstr.newTab
+                    if newSearchWin.newTabCheck.isChecked()
+                    else None,
+                )
             else:
                 if newSearchWin.save:
                     pbConfig.globalDb.updateSearchField(idS, "searchDict", searchFields)
                     pbConfig.globalDb.updateSearchField(idS, "limitNum", lim)
                     pbConfig.globalDb.updateSearchField(idS, "offsetNum", offs)
                     pbConfig.globalDb.commit()
-                self.runSearchBiblio(searchFields, lim, offs)
+                self.runSearchBiblio(
+                    searchFields,
+                    lim,
+                    offs,
+                    newTab=mwstr.newTab
+                    if newSearchWin.newTabCheck.isChecked()
+                    else None,
+                )
 
     def delSearchBiblio(self, idS, name):
         """Delete a saved search from the database
@@ -1527,13 +1554,14 @@ class MainWindow(QMainWindow):
             return
         self.runReplace(result)
 
-    def runReplace(self, replace):
+    def runReplace(self, replace, newTab=None):
         """Run the `database.Entries.replace` function,
         then print some output in a dialog
 
         Parameter:
             replace: a tuple/list of 5 elements,
                 as in the output of `self.searchBiblio`
+            newTab (default None): if not None, the label of the new tab
         """
         regex = replace["regex"]
         fiOld = replace["fieOld"]
@@ -1572,7 +1600,7 @@ class MainWindow(QMainWindow):
             )
         )
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
+        self.reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched, newTab=newTab)
         QApplication.restoreOverrideCursor()
 
     def updateAllBibtexsAsk(self):

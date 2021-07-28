@@ -921,7 +921,7 @@ class TestMainWindow(GUITestCase):
                     self.assertEqual(macts[i].text(), a[0])
                     with patch(a[1], autospec=True) as _f:
                         macts[i].trigger()
-                        _f.assert_called_once_with(self.mainW, *a[2])
+                        _f.assert_called_once_with(self.mainW, *a[2], newTab=a[0])
         # test order of menus with and without s&r
         self.assertEqual(
             [a.menu() for a in self.mainW.menuBar().actions()],
@@ -2189,6 +2189,7 @@ class TestMainWindow(GUITestCase):
                 ],
                 100,
                 0,
+                newTab=None,
             )
             _is.assert_called_once_with(
                 pbConfig.globalDb,
@@ -2244,6 +2245,7 @@ class TestMainWindow(GUITestCase):
                 ],
                 444,
                 123,
+                newTab=None,
             )
             _is.assert_not_called()
             _cm.assert_not_called()
@@ -2254,6 +2256,7 @@ class TestMainWindow(GUITestCase):
                 parent=self.mainW,
             )
             _rsb.reset_mock()
+            sbw.newTabCheck.setChecked(True)
             self.assertEqual(self.mainW.searchBiblio(), None)
             self.assertEqual(_agt.call_count, 3)
             _is.assert_called_once_with(
@@ -2288,6 +2291,7 @@ class TestMainWindow(GUITestCase):
                 ],
                 444,
                 123,
+                newTab="New tab",
             )
             _us.assert_not_called()
 
@@ -2318,6 +2322,8 @@ class TestMainWindow(GUITestCase):
         ) as _is, patch(
             self.clsName + ".createMenusAndToolBar", autospec=True
         ) as _cm, patch(
+            self.clsName + ".newTabAtEnd"
+        ) as _nt, patch(
             "physbiblio.database.Entries.fetchFromDict", autospec=True
         ) as _fd, patch(
             self.modName + ".askGenericText",
@@ -2341,6 +2347,8 @@ class TestMainWindow(GUITestCase):
             _agt.assert_not_called()
             _cm.assert_not_called()
             _us.assert_called_once_with(pbConfig.globalDb, replacement=True)
+            _nt.assert_not_called()
+            sbw.newTabCheck.setChecked(True)
             _is.assert_called_once_with(
                 pbConfig.globalDb,
                 count=0,
@@ -2425,6 +2433,7 @@ class TestMainWindow(GUITestCase):
                 doFetch=False,
                 limitOffset=0,
             )
+            _nt.assert_called_once_with(3, label="New tab")
             _fd.reset_mock()
             self.assertEqual(
                 self.mainW.searchBiblio(replace=True),
@@ -2568,7 +2577,10 @@ class TestMainWindow(GUITestCase):
         ) as _ffd, patch(self.clsName + ".runReplace", autospec=True) as _rr:
             self.mainW.runSearchReplaceBiblio({"s": "a"}, ["b"], 12)
             _ffd.assert_called_once_with(pBDB.bibs, {"s": "a"}, limitOffset=12)
-            _rr.assert_called_once_with(self.mainW, ["b"])
+            _rr.assert_called_once_with(self.mainW, ["b"], newTab=None)
+            _rr.reset_mock()
+            self.mainW.runSearchReplaceBiblio({"s": "a"}, ["b"], 12, newTab="aBc")
+            _rr.assert_called_once_with(self.mainW, ["b"], newTab="aBc")
 
     def test_renameSearchBiblio(self):
         """test renameSearchBiblio"""
@@ -2679,8 +2691,10 @@ class TestMainWindow(GUITestCase):
             s.exec_ = MagicMock()
         sbws[3].textValues[0]["type"].setCurrentText("Marks")
         sbws[3].limitValue.setText("111")
+        sbws[3].newTabCheck.setChecked(True)
         sbws[4].addRow()
         sbws[4].replNewField1.setCurrentText("doi")
+        sbws[4].newTabCheck.setChecked(True)
         for i in range(1, 3):
             sbws[i].onOk()
         for i in range(3, 5):
@@ -2736,6 +2750,7 @@ class TestMainWindow(GUITestCase):
                 ],
                 1111,
                 12,
+                newTab=None,
             )
             _rre.assert_not_called()
             _ffd.assert_not_called()
@@ -2758,6 +2773,7 @@ class TestMainWindow(GUITestCase):
                     "fieNew1": "arxiv",
                     "new1": "",
                 },
+                newTab=None,
             )
             _ffd.assert_called_once_with(
                 pBDB.bibs,
@@ -2811,6 +2827,7 @@ class TestMainWindow(GUITestCase):
                 ],
                 111,
                 12,
+                newTab="New tab",
             )
             _rre.assert_not_called()
             _ffd.assert_not_called()
@@ -2871,6 +2888,7 @@ class TestMainWindow(GUITestCase):
                     "fieNew1": "doi",
                     "new1": "",
                 },
+                newTab="New tab",
             )
             _ffd.assert_called_once_with(
                 pBDB.bibs,
@@ -2971,7 +2989,7 @@ class TestMainWindow(GUITestCase):
                     "double": True,
                     "fieNew1": "",
                     "new1": "",
-                }
+                },
             )
             _soc.assert_not_called()
             _rit.assert_not_called()
@@ -2997,7 +3015,7 @@ class TestMainWindow(GUITestCase):
             _ay.assert_called_once_with(
                 "Empty new string. Are you sure you want to continue?"
             )
-            _rmc.assert_called_once_with(self.mainW, ["z"])
+            _rmc.assert_called_once_with(self.mainW, ["z"], newTab=None)
             _im.assert_not_called()
             _ay.assert_called_once_with(
                 "Empty new string. Are you sure you want to continue?"
@@ -3070,7 +3088,8 @@ class TestMainWindow(GUITestCase):
                     "double": False,
                     "fieNew1": "",
                     "new1": "",
-                }
+                },
+                newTab="aBc",
             )
             _thr.assert_called_once_with(
                 ws,
@@ -3083,6 +3102,7 @@ class TestMainWindow(GUITestCase):
                 pbVal=pt.pbVal.emit,
                 regex="r",
             )
+            _rmc.assert_called_once_with(self.mainW, ["z"], newTab="aBc")
 
     def test_updateAllBibtexsAsk(self):
         """test updateAllBibtexsAsk"""

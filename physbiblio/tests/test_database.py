@@ -3850,12 +3850,17 @@ class TestDatabaseEntries(DBTestCase):
 
         # test different cursors
         self.pBDB.bibs.lastFetched = "test"
+        self.pBDB.bibs.lastQuery = "test query"
         self.pBDB.bibs.fetchAll(doFetch=False)
         self.assertEqual([e["bibkey"] for e in self.pBDB.curs], [])
         self.assertEqual(
             [e["bibkey"] for e in self.pBDB.bibs.fetchCurs], ["abc", "def", "ghi"]
         )
         self.assertEqual(self.pBDB.bibs.lastFetched, "test")
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  order by firstdate ASC",
+        )
 
         testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
         sampleTxt = (
@@ -4223,6 +4228,13 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.exps.insert(
                 {"name": "exp1", "comments": "", "homepage": "", "inspire": ""}
             )
+        )
+
+        self.pBDB.bibs.lastQuery = "test query"
+        self.pBDB.bibs.fetchFromDict(doFetch=False)
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  order by firstdate ASC",
         )
 
         self.assertEqual(

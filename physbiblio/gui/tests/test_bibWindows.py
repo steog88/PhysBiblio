@@ -7924,22 +7924,26 @@ class TestSearchBibsWindow(GUITestCase):
         with patch(clsName + "addRow", autospec=True) as _ar:
             QTest.mouseClick(sbw.addFieldButton, Qt.LeftButton)
             _ar.assert_called_once_with(sbw)
+        # newTab
+        self.assertEqual(sbw.currGrid.itemAtPosition(6, 0).widget(), sbw.newTabCheck)
+        self.assertIsInstance(sbw.newTabCheck, QCheckBox)
+        self.assertEqual(sbw.newTabCheck.text(), "Open results in new tab")
         # acceptbutton
-        self.assertEqual(sbw.currGrid.itemAtPosition(6, 2).widget(), sbw.acceptButton)
+        self.assertEqual(sbw.currGrid.itemAtPosition(7, 2).widget(), sbw.acceptButton)
         self.assertIsInstance(sbw.acceptButton, QPushButton)
         self.assertEqual(sbw.acceptButton.text(), "OK")
         with patch(clsName + "onOk", autospec=True) as _o:
             QTest.mouseClick(sbw.acceptButton, Qt.LeftButton)
             _o.assert_called_once_with(sbw)
         # cancelbutton
-        self.assertEqual(sbw.currGrid.itemAtPosition(6, 3).widget(), sbw.cancelButton)
+        self.assertEqual(sbw.currGrid.itemAtPosition(7, 3).widget(), sbw.cancelButton)
         self.assertIsInstance(sbw.cancelButton, QPushButton)
         self.assertEqual(sbw.cancelButton.text(), "Cancel")
         with patch(clsName + "onCancel", autospec=True) as _o:
             QTest.mouseClick(sbw.cancelButton, Qt.LeftButton)
             _o.assert_called_once_with(sbw)
         # savebutton
-        self.assertEqual(sbw.currGrid.itemAtPosition(6, 5).widget(), sbw.saveButton)
+        self.assertEqual(sbw.currGrid.itemAtPosition(7, 5).widget(), sbw.saveButton)
         self.assertIsInstance(sbw.saveButton, QPushButton)
         self.assertEqual(sbw.saveButton.text(), "Run and save")
         with patch(clsName + "onSave", autospec=True) as _o:
