@@ -1104,6 +1104,11 @@ class TestMainWindow(GUITestCase):
             )
             _ft.assert_called_once_with(self.mainW)
             _ci.assert_called_once_with(3)
+            _ab.reset_mock()
+            self.mainW.newTabAtEnd(3, label="lab", askBibs="a", bibs="b", previous="c")
+            _ab.assert_called_once_with(
+                self.mainW, "lab", askBibs="a", bibs="b", previous="c"
+            )
 
     def test_renameTab(self):
         """test renameTab"""

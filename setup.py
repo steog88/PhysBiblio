@@ -47,7 +47,7 @@ setup(
         'matplotlib(>2.2.0, <3);python_version<"3"',
         'matplotlib(>3.0.0);python_version>"3"',
         "outdated",
-        "pylatexenc",
+        "pylatexenc(>=2.0)",
         "pyparsing(>=2.4.0)",
         "pyside2(>=5.14.0)",
         "pytz",

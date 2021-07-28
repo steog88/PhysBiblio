@@ -870,17 +870,21 @@ class MainWindow(QMainWindow):
                 pass
         self.fillTabs()
 
-    def newTabAtEnd(self, index, bibs=None, askBibs=False, previous=[]):
+    def newTabAtEnd(self, index, label=None, bibs=None, askBibs=False, previous=[]):
         """Function that checks if the "open new tab" tab is triggered.
         If yes, create a new bibtexListWindow and recreate the tabWidget
 
         Parameters:
             index: the index of the clicked tab
+            label (default None): if not None, the label of the new tab
             bibs, askBibs, previous: directly passed to BibtexListWindow
         """
         if self.tabWidget.count() > 1 and index == self.tabWidget.count() - 1:
             self.addBibtexListWindow(
-                mwstr.newTab, bibs=bibs, askBibs=askBibs, previous=previous
+                mwstr.newTab if label is None else label,
+                bibs=bibs,
+                askBibs=askBibs,
+                previous=previous,
             )
             self.fillTabs()
             self.tabWidget.setCurrentIndex(index)
