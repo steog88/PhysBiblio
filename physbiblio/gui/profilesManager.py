@@ -14,7 +14,6 @@ from PySide2.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QComboBox,
-    QDesktopWidget,
     QGridLayout,
     QLineEdit,
     QPushButton,

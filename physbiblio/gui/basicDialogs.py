@@ -5,8 +5,8 @@ This file is part of the physbiblio package.
 """
 import sys
 
+from PySide2.QtGui import QGuiApplication
 from PySide2.QtWidgets import (
-    QDesktopWidget,
     QDialog,
     QFileDialog,
     QGridLayout,
@@ -84,7 +84,7 @@ class LongInfoMessage(QDialog):
         self.setLayout(self.gridlayout)
         self.setGeometry(100, 100, 600, 400)
         qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
         self.exec_()

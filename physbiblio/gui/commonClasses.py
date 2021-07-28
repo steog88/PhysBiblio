@@ -25,12 +25,11 @@ from PySide2.QtCore import (
     QUrl,
     Signal,
 )
-from PySide2.QtGui import QDesktopServices, QPainter, QPixmap
+from PySide2.QtGui import QDesktopServices, QGuiApplication, QPainter, QPixmap
 from PySide2.QtWidgets import (
     QAbstractItemView,
     QAction,
     QComboBox,
-    QDesktopWidget,
     QDialog,
     QGridLayout,
     QLabel,
@@ -67,11 +66,11 @@ class PBDialog(QDialog):
     """Extend QDialog with centerWindow"""
 
     def centerWindow(self):
-        """Use the `QDesktopWidget` to get the relevant information
+        """Use the `QGuiApplication` to get the relevant information
         and center the dialog in the screen.
         """
         qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
@@ -300,8 +299,8 @@ class ObjListWindow(PBDialog):
         """
         self.tableview.resizeColumnsToContents()
 
-        maxh = QDesktopWidget().availableGeometry().height()
-        maxw = QDesktopWidget().availableGeometry().width()
+        maxh = QGuiApplication.primaryScreen().availableGeometry().height()
+        maxw = QGuiApplication.primaryScreen().availableGeometry().width()
         self.setMaximumHeight(maxh)
         self.setMaximumWidth(maxw)
 

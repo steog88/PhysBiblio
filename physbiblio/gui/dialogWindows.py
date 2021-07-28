@@ -12,7 +12,6 @@ from PySide2.QtGui import QTextCursor
 from PySide2.QtWidgets import (
     QCheckBox,
     QComboBox,
-    QDesktopWidget,
     QGridLayout,
     QLineEdit,
     QPlainTextEdit,

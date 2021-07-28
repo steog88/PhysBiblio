@@ -8,7 +8,7 @@ import sys
 import traceback
 
 from PySide2.QtCore import QEvent, Qt
-from PySide2.QtGui import QImage
+from PySide2.QtGui import QGuiApplication, QImage
 from PySide2.QtTest import QTest
 from PySide2.QtWidgets import QMenu, QToolBar, QWidget
 
@@ -97,8 +97,8 @@ class TestMainWindow(GUITestCase):
             _f.assert_called_once_with(12)
         self.assertIsInstance(mw1, QMainWindow)
         self.assertEqual(mw1.lastPaperStats, None)
-        cmwh = QDesktopWidget().availableGeometry().height()
-        cmww = QDesktopWidget().availableGeometry().width()
+        cmwh = QGuiApplication.primaryScreen().availableGeometry().height()
+        cmww = QGuiApplication.primaryScreen().availableGeometry().width()
         self.assertGeometry(
             mw,
             0,
@@ -235,6 +235,22 @@ class TestMainWindow(GUITestCase):
             self.mainW.setIcon()
             _qi.assert_called_once_with(":/images/icon.png")
             _swi.assert_called_once_with(qi)
+
+    def test_keyPressEvent(self):
+        """test keyPressEvent"""
+        mw = MainWindow(testing=True)
+        mw.tabWidget.count = MagicMock(return_value=121)
+        mw.tabWidget.currentIndex = MagicMock(return_value=11)
+        with patch(self.clsName + ".closeTab", autospec=True) as _f:
+            QTest.keyClick(mw, "W", Qt.ShiftModifier)
+            _f.assert_not_called()
+            QTest.keyClick(mw, "W", Qt.ControlModifier)
+            _f.assert_called_once_with(mw, 11)
+        with patch(self.clsName + ".newTabAtEnd", autospec=True) as _f:
+            QTest.keyClick(mw, "N", Qt.ShiftModifier)
+            _f.assert_not_called()
+            QTest.keyClick(mw, "N", Qt.ControlModifier | Qt.ShiftModifier)
+            _f.assert_called_once_with(mw, 120)
 
     def test_createActions(self):
         """test createActions"""
@@ -923,8 +939,8 @@ class TestMainWindow(GUITestCase):
             spl,
             0,
             0,
-            QDesktopWidget().availableGeometry().width(),
-            QDesktopWidget().availableGeometry().height(),
+            QGuiApplication.primaryScreen().availableGeometry().width(),
+            QGuiApplication.primaryScreen().availableGeometry().height(),
         )
         with patch(self.clsName + ".fillTabs", autospec=True) as _f:
             self.mainW.createMainLayout()

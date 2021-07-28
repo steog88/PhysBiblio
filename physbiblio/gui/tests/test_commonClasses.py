@@ -20,7 +20,7 @@ from PySide2.QtCore import (
 )
 from PySide2.QtGui import QContextMenuEvent, QDropEvent
 from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QAction, QDesktopWidget, QInputDialog, QLineEdit, QWidget
+from PySide2.QtWidgets import QAction, QInputDialog, QLineEdit, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -336,9 +336,10 @@ class TestObjListWindow(GUITestCase):
             _rc.assert_has_calls([call(), call()])
             self.assertEqual(_rr.call_count, 1)
         self.assertIsInstance(olw.tableview, PBTableView)
-        maxw = QDesktopWidget().availableGeometry().width()
+        maxw = QGuiApplication.primaryScreen().availableGeometry().width()
         self.assertEqual(
-            olw.maximumHeight(), QDesktopWidget().availableGeometry().height()
+            olw.maximumHeight(),
+            QGuiApplication.primaryScreen().availableGeometry().height(),
         )
         self.assertEqual(olw.maximumWidth(), maxw)
         hwidth = olw.tableview.horizontalHeader().length()

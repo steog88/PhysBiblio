@@ -121,7 +121,7 @@ def writeBibtexInfo(entry):
     infoText += (
         "<u>%s</u> " % entry["bibkey"] + bwstr.Info.useWith % entry["bibkey"] + nl
     )
-    latexToText = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
+    latexToText = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
     try:
         infoText += (
             bwstr.Info.author
@@ -546,7 +546,7 @@ class BibTableModel(PBTableModel):
             mainWin: None (default) or a MainWindow instance
         """
         self.mainWin = mainWin
-        self.latexToText = LatexNodes2Text(keep_inline_math=False, keep_comments=False)
+        self.latexToText = LatexNodes2Text(math_mode="text", keep_comments=False)
         self.typeClass = "Bibs"
         self.dataList = bib_list
         PBTableModel.__init__(
@@ -783,7 +783,7 @@ class CommonBibActions:
             QAction(bwstr.Acts.cpBib, self.menu, triggered=self.onCopyBibtexs),
         ]
         subm = []
-        latexToText = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
+        latexToText = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
         if not selection:
             for field in [
                 "abstract",
@@ -2086,6 +2086,8 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 position = QCursor.pos()
                 ac.menu.exec_(position)
                 self.clearSelection()
+        else:
+            self.mainWin.keyPressEvent(e)
 
     def triggeredContextMenuEvent(self, row, col, event):
         """Process event when mouse right-clicks an item.

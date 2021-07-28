@@ -313,7 +313,7 @@ class TestFunctions(GUIwMainWTestCase):
             "citations": 0,
             "citations_no_self": 0,
         }
-        ltt = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
+        ltt = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
         with patch(
             "physbiblio.database.Categories.getByEntry",
             return_value=[{"name": "Main"}, {"name": "second"}],
@@ -343,7 +343,7 @@ class TestFunctions(GUIwMainWTestCase):
                 + "<br/>\nExperiments: <i>exp1, exp2</i>",
             )
             _d.assert_not_called()
-            _i.assert_called_once_with(keep_inline_math=True, keep_comments=False)
+            _i.assert_called_once_with(math_mode="verbatim", keep_comments=False)
             _ltt.assert_has_calls([call(ltt, "sg"), call(ltt, "some title")])
 
     def test_writeAbstract(self):
@@ -1626,7 +1626,7 @@ class TestBibTableModel(GUITestCase):
         self.assertEqual(tm.previous, [])
         self.assertEqual(tm.ask, False)
 
-        ltt = LatexNodes2Text(keep_inline_math=True, keep_comments=False)
+        ltt = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
         with patch(
             "physbiblio.gui.bibWindows.BibTableModel.prepareSelected", autospec=True
         ) as _ps, patch(
@@ -1644,7 +1644,7 @@ class TestBibTableModel(GUITestCase):
                 previous=[1, 2, 3],
                 mainWin="m",
             )
-            _il.assert_called_once_with(keep_inline_math=False, keep_comments=False)
+            _il.assert_called_once_with(math_mode="text", keep_comments=False)
             _ps.assert_called_once_with(tm)
         self.assertIsInstance(tm, PBTableModel)
         self.assertEqual(tm.mainWin, "m")
@@ -5286,7 +5286,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         bw = BibtexListWindow(
-            bibs=[{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}]
+            bibs=[{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}],
+            parent=self.mainW,
         )
         m = PBMenu()
         m.exec_ = MagicMock()
@@ -5321,6 +5322,11 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _cmc.assert_called_once_with(cba, False, {"bibkey": "ghi"})
             cba.menu.exec_.assert_called_once_with(QCursor.pos())
             _cs.assert_called_once_with(bw)
+        with patch(
+            "physbiblio.gui.mainWindow.MainWindow.keyPressEvent", autospec=True
+        ) as _p:
+            QTest.keyClick(bw, "W", Qt.ShiftModifier)
+            _p.assert_called()
         m = PBMenu()
         m.exec_ = MagicMock()
         cba = CommonBibActions([{"bibkey": "ghi", "bibtex": "@a{ghi}"}])

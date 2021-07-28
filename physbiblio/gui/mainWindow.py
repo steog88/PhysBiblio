@@ -12,11 +12,10 @@ import traceback
 import bibtexparser
 import six
 from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtGui import QGuiApplication, QIcon, QPixmap
 from PySide2.QtWidgets import (
     QAction,
     QApplication,
-    QDesktopWidget,
     QFrame,
     QMainWindow,
     QMessageBox,
@@ -126,8 +125,8 @@ class MainWindow(QMainWindow):
         """
         QMainWindow.__init__(self)
         self.errormessage.connect(self.excepthook)
-        availableWidth = QDesktopWidget().availableGeometry().width()
-        availableHeight = QDesktopWidget().availableGeometry().height()
+        availableWidth = QGuiApplication.primaryScreen().availableGeometry().width()
+        availableHeight = QGuiApplication.primaryScreen().availableGeometry().height()
         self.setWindowTitle(mwstr.winTitle)
         # x,y of topleft corner, width, height
         self.setGeometry(0, 0, availableWidth, availableHeight)
@@ -250,6 +249,20 @@ class MainWindow(QMainWindow):
         """Set the icon of the main window"""
         appIcon = QIcon(":/images/icon.png")
         self.setWindowIcon(appIcon)
+
+    def keyPressEvent(self, e):
+        """Manage the key press events.
+
+        Parameters:
+            e: the `PySide2.QtGui.QKeyEvent`
+        """
+        modifiers = QApplication.keyboardModifiers()
+        if e.key() == Qt.Key_W and modifiers == Qt.ControlModifier:
+            self.closeTab(self.tabWidget.currentIndex())
+        elif e.key() == Qt.Key_N and modifiers == (
+            Qt.ControlModifier | Qt.ShiftModifier
+        ):
+            self.newTabAtEnd(self.tabWidget.count() - 1)
 
     def createActions(self):
         """Create the QActions used in menu and in the toolbar."""
@@ -777,8 +790,8 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 1)
 
-        availableWidth = QDesktopWidget().availableGeometry().width()
-        availableHeight = QDesktopWidget().availableGeometry().height()
+        availableWidth = QGuiApplication.primaryScreen().availableGeometry().width()
+        availableHeight = QGuiApplication.primaryScreen().availableGeometry().height()
         splitter.setGeometry(0, 0, availableWidth, availableHeight)
 
         self.setCentralWidget(splitter)
