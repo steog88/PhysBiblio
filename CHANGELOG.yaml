@@ -5,6 +5,8 @@
             - New 'citations' command to update citation counts without the GUI
             - search records by "No type"
             - add/remove marks or set/unset types for selections of entries
+            - frequent searches open automatically in a new tab
+            - navigate tabs with Ctrl+Tab and Ctrl+Shift+Tab (may have some problems)
             - small change in how database.Entries.completeFetched manages an almost empty 'published' field
             - improvements to argParser tests
             - improvements to database module

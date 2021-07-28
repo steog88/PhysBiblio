@@ -263,6 +263,19 @@ class MainWindow(QMainWindow):
             Qt.ControlModifier | Qt.ShiftModifier
         ):
             self.newTabAtEnd(self.tabWidget.count() - 1)
+        elif e.key() == Qt.Key_Tab and modifiers == (Qt.ControlModifier):
+            index = self.tabWidget.currentIndex()
+            self.tabWidget.setCurrentIndex(
+                index + 1 if index < self.tabWidget.count() - 2 else 0
+            )
+        elif (e.key() == Qt.Key_Backtab and modifiers == Qt.ControlModifier) or (
+            e.key() == Qt.Key_Backtab
+            and modifiers == (Qt.ControlModifier | Qt.ShiftModifier)
+        ):
+            index = self.tabWidget.currentIndex()
+            self.tabWidget.setCurrentIndex(
+                index - 1 if index > 0 else self.tabWidget.count() - 2
+            )
 
     def createActions(self):
         """Create the QActions used in menu and in the toolbar."""
@@ -644,7 +657,9 @@ class MainWindow(QMainWindow):
                         self,
                         triggered=lambda sD=ast.literal_eval(fs["searchDict"]), l=fs[
                             "limitNum"
-                        ], o=fs["offsetNum"]: self.runSearchBiblio(sD, l, o),
+                        ], o=fs["offsetNum"], n=fs["name"]: self.runSearchBiblio(
+                            sD, l, o, newTab=n
+                        ),
                     )
                 )
             self.searchMenu.addSeparator()
@@ -863,12 +878,17 @@ class MainWindow(QMainWindow):
         Parameter:
             index: the index of the tab to be deleted
         """
+        closed = False
         if index != 0 and index != self.tabWidget.count() - 1:
             try:
                 del self.bibtexListWindows[index]
             except IndexError:
                 pass
+            else:
+                closed = True
         self.fillTabs()
+        if closed:
+            self.tabWidget.setCurrentIndex(index - 1)
 
     def newTabAtEnd(self, index, label=None, bibs=None, askBibs=False, previous=[]):
         """Function that checks if the "open new tab" tab is triggered.
@@ -1388,7 +1408,7 @@ class MainWindow(QMainWindow):
         elif replace:
             return False
 
-    def runSearchBiblio(self, searchFields, lim, offs):
+    def runSearchBiblio(self, searchFields, lim, offs, newTab=None):
         """Run a search with some parameters
 
         Parameters:
@@ -1398,6 +1418,8 @@ class MainWindow(QMainWindow):
             lim: the maximum number of entries to fetch
             offs: the offset for the search
         """
+        if newTab is not None:
+            self.newTabAtEnd(self.tabWidget.count() - 1, label=newTab)
         QApplication.setOverrideCursor(Qt.WaitCursor)
         noLim = pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs).lastFetched
         lastFetched = pBDB.bibs.fetchFromDict(

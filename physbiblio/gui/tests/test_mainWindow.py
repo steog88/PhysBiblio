@@ -241,16 +241,46 @@ class TestMainWindow(GUITestCase):
         mw = MainWindow(testing=True)
         mw.tabWidget.count = MagicMock(return_value=121)
         mw.tabWidget.currentIndex = MagicMock(return_value=11)
+
         with patch(self.clsName + ".closeTab", autospec=True) as _f:
             QTest.keyClick(mw, "W", Qt.ShiftModifier)
             _f.assert_not_called()
             QTest.keyClick(mw, "W", Qt.ControlModifier)
             _f.assert_called_once_with(mw, 11)
+
         with patch(self.clsName + ".newTabAtEnd", autospec=True) as _f:
             QTest.keyClick(mw, "N", Qt.ShiftModifier)
             _f.assert_not_called()
             QTest.keyClick(mw, "N", Qt.ControlModifier | Qt.ShiftModifier)
             _f.assert_called_once_with(mw, 120)
+
+        mw.tabWidget.setCurrentIndex = MagicMock()
+        _f = mw.tabWidget.setCurrentIndex
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.NoModifier)
+        _f.assert_not_called()
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier)
+        _f.assert_called_once_with(12)
+        mw.tabWidget.currentIndex.return_value = 120
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier)
+        _f.assert_called_with(0)
+
+        _f.reset_mock()
+        QTest.keyClick(mw, Qt.Key_Backtab, Qt.NoModifier)
+        _f.assert_not_called()
+        QTest.keyClick(mw, Qt.Key_Backtab, Qt.ControlModifier)
+        _f.assert_called_with(119)
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier | Qt.ShiftModifier)
+        _f.assert_called_with(119)
+        mw.tabWidget.currentIndex.return_value = 10
+        QTest.keyClick(mw, Qt.Key_Backtab, Qt.ControlModifier)
+        _f.assert_called_with(9)
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier | Qt.ShiftModifier)
+        _f.assert_called_with(9)
+        mw.tabWidget.currentIndex.return_value = 0
+        QTest.keyClick(mw, Qt.Key_Backtab, Qt.ControlModifier)
+        _f.assert_called_with(119)
+        QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier | Qt.ShiftModifier)
+        _f.assert_called_with(119)
 
     def test_createActions(self):
         """test createActions"""
@@ -835,7 +865,7 @@ class TestMainWindow(GUITestCase):
                     self.assertEqual(macts[i].text(), a[0])
                     with patch(a[1], autospec=True) as _f:
                         macts[i].trigger()
-                        _f.assert_called_once_with(self.mainW, *a[2])
+                        _f.assert_called_once_with(self.mainW, *a[2], newTab=a[0])
             self.assertIsInstance(self.mainW.replaceMenu, QMenu)
             self.assertEqual(self.mainW.replaceMenu.title(), "Frequent &replaces")
             macts = self.mainW.replaceMenu.actions()
@@ -1046,25 +1076,31 @@ class TestMainWindow(GUITestCase):
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
         self.mainW.fillTabs()
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.assertEqual(len(self.mainW.bibtexListWindows), 3)
         self.mainW.closeTab(0)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.assertEqual(len(self.mainW.bibtexListWindows), 3)
         self.mainW.closeTab(3)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.assertEqual(len(self.mainW.bibtexListWindows), 3)
         self.mainW.closeTab(15)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.assertEqual(
             [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
         )
-        self.mainW.closeTab(1)
+        self.mainW.closeTab(2)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 1)
         self.assertEqual(self.mainW.tabWidget.count(), 3)
         self.assertEqual(
-            [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "b"]
+            [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a"]
         )
         self.mainW.closeTab(1)
+        self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual([a[1] for a in self.mainW.bibtexListWindows], ["Main tab"])
 
@@ -2488,6 +2524,25 @@ class TestMainWindow(GUITestCase):
                 "Warning: more entries match the current search, "
                 + "showing only the first 1 of 2.\nChange "
                 + "'Max number of results' in the search form to see more."
+            )
+        with patch(
+            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+        ) as _soc, patch(
+            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+        ) as _roc, patch(
+            "physbiblio.database.Entries.fetchFromDict",
+            side_effect=[self, pBDB],
+            autospec=True,
+        ) as _ffd, patch(
+            self.clsName + ".reloadMainContent", autospec=True
+        ) as _rmc, patch(
+            self.modName + ".infoMessage", autospec=True
+        ) as _im, patch(
+            self.clsName + ".newTabAtEnd", autospec=True
+        ) as _nt:
+            self.mainW.runSearchBiblio({"s": "a"}, 12, 34, newTab="abc")
+            _nt.assert_called_once_with(
+                self.mainW, self.mainW.tabWidget.count() - 1, label="abc"
             )
 
     def test_runSearchReplaceBiblio(self):
