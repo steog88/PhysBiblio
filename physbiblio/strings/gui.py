@@ -85,8 +85,10 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         lnIns = "Open into INSPIRE-HEP"
         lnTit = "Links"
         maAdd = "Mark as '%s'"
+        maAddL = "Mark all as '%s'"
         maInv = "Invalid mark: '%s'"
         maRem = "Unmark as '%s'"
+        maRemL = "Unmark all as '%s'"
         maTit = "Marks"
         maUpd = "updateMark: '%s', entries: %s"
         notFoundFor = "KeyError: '%s' not found for '%s'"
@@ -114,8 +116,10 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         selCat = "Select categories"
         selExp = "Select experiments"
         tyAdd = "Set '%s'"
+        tyAddL = "Set '%s' for all"
         tyInv = "Invalid type: '%s'"
         tyRem = "Unset '%s'"
+        tyRemL = "Unset '%s' for all"
         tyTit = "Type"
 
     class ED:

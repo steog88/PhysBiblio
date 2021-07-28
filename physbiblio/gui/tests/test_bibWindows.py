@@ -1991,7 +1991,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.keys, ["abc", "def"])
 
     def test_createMenuArxiv(self):
-        """test _createMenuMarkType"""
+        """test _createMenuArxiv"""
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "1809.00000"}], self.mainW)
         c.menu = PBMenu(self.mainW)
         c._createMenuArxiv(False, "")
@@ -2468,6 +2468,80 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.menu.possibleActions[1][1][3].text(), "Unset 'PhD thesis'")
         self.assertEqual(c.menu.possibleActions[1][1][4].text(), "Set 'Proceeding'")
         self.assertEqual(c.menu.possibleActions[1][1][5].text(), "Set 'Review'")
+
+    def test_createMenuMarkTypeList(self):
+        """test _createMenuMarkTypeList"""
+        p = QWidget()
+        c = CommonBibActions(
+            [
+                {
+                    "bibkey": "abc",
+                    "marks": "imp,new",
+                    "review": 0,
+                    "proceeding": 0,
+                    "book": 1,
+                    "phd_thesis": 1,
+                    "lecture": 0,
+                    "exp_paper": 0,
+                },
+                {
+                    "bibkey": "abc",
+                    "marks": "imp,bad",
+                    "review": 1,
+                    "proceeding": 0,
+                    "book": 0,
+                    "phd_thesis": 0,
+                    "lecture": 1,
+                    "exp_paper": 0,
+                },
+            ],
+            p,
+        )
+        c.menu = PBMenu(self.mainW)
+        c._createMenuMarkTypeList()
+        self.assertIsInstance(c.menu.possibleActions[0], list)
+        self.assertEqual(c.menu.possibleActions[0][0], "Marks")
+        self.assertIsInstance(c.menu.possibleActions[0][1], list)
+        for a in c.menu.possibleActions[0][1]:
+            self.assertIsInstance(a, QAction)
+        self.assertIsInstance(c.menu.possibleActions[1], list)
+        self.assertEqual(c.menu.possibleActions[1][0], "Type")
+        self.assertIsInstance(c.menu.possibleActions[1][1], list)
+        for a in c.menu.possibleActions[1][1]:
+            self.assertIsInstance(a, QAction)
+        self.assertEqual(c.menu.possibleActions[2], None)
+        for i, m in enumerate(sorted(pBMarks.marks.keys())):
+            with patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onUpdateMark", autospec=True
+            ) as _a:
+                c.menu.possibleActions[0][1][i * 2].trigger()
+                _a.assert_called_once_with(c, m, force=1)
+                _a.reset_mock()
+                c.menu.possibleActions[0][1][i * 2 + 1].trigger()
+                _a.assert_called_once_with(c, m, force=0)
+            self.assertEqual(
+                c.menu.possibleActions[0][1][i * 2].text(),
+                "Mark all as '%s'" % pBMarks.marks[m]["desc"],
+            )
+            self.assertEqual(
+                c.menu.possibleActions[0][1][i * 2 + 1].text(),
+                "Unmark all as '%s'" % pBMarks.marks[m]["desc"],
+            )
+        for i, (k, v) in enumerate(sorted(convertType.items())):
+            with patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onUpdateType", autospec=True
+            ) as _a:
+                c.menu.possibleActions[1][1][i * 2].trigger()
+                _a.assert_called_once_with(c, k, force=1)
+                _a.reset_mock()
+                c.menu.possibleActions[1][1][i * 2 + 1].trigger()
+                _a.assert_called_once_with(c, k, force=0)
+            self.assertEqual(
+                c.menu.possibleActions[1][1][i * 2 + 0].text(), "Set '%s' for all" % v
+            )
+            self.assertEqual(
+                c.menu.possibleActions[1][1][i * 2 + 1].text(), "Unset '%s' for all" % v
+            )
 
     def test_createMenuPDF(self):
         """test _createMenuPDF"""
@@ -3036,7 +3110,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         ) as _c3, patch(
             "physbiblio.gui.bibWindows.CommonBibActions._createMenuLinks", autospec=True
         ) as _c4, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkType",
+            "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkTypeList",
             autospec=True,
         ) as _c5, patch(
             "physbiblio.gui.bibWindows.CommonBibActions._createMenuPDF", autospec=True
@@ -3076,7 +3150,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             m.possibleActions[2].trigger()
             _del.assert_called_once_with(c)
             self.assertEqual(m.possibleActions[3], None)
-            _c5.assert_not_called()
+            _c5.assert_called_once_with(c)
             _c2.assert_called_once_with(c, True, None)
             _c6.assert_called_once_with(c, True, None)
             _c4.assert_not_called()
@@ -4424,6 +4498,37 @@ class TestCommonBibActions(GUIwMainWTestCase):
                     call(pBDB.bibs, "def", "marks", "new", verbose=0),
                 ]
             )
+            _uf.reset_mock()
+            c.onUpdateMark("new", force=0)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "marks", "imp", verbose=0),
+                    call(pBDB.bibs, "def", "marks", "imp", verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateMark("new", force=1)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "marks", "imp,new", verbose=0),
+                    call(pBDB.bibs, "def", "marks", "imp,new", verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateMark("imp", force=1)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "marks", "imp", verbose=0),
+                    call(pBDB.bibs, "def", "marks", "imp,new", verbose=0),
+                ]
+            )
+            c.onUpdateMark("imp", force=0)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "marks", "", verbose=0),
+                    call(pBDB.bibs, "def", "marks", "new", verbose=0),
+                ]
+            )
         with patch("logging.Logger.warning") as _w:
             c.onUpdateMark("mark")
             _w.assert_called_once_with("Invalid mark: 'mark'")
@@ -4496,6 +4601,38 @@ class TestCommonBibActions(GUIwMainWTestCase):
             )
             _uf.reset_mock()
             c.onUpdateType("phd_thesis")
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "phd_thesis", 1, verbose=0),
+                    call(pBDB.bibs, "def", "phd_thesis", 1, verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateType("book", force=1)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "book", 1, verbose=0),
+                    call(pBDB.bibs, "def", "book", 1, verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateType("book", force=0)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "book", 0, verbose=0),
+                    call(pBDB.bibs, "def", "book", 0, verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateType("proceeding", force=0)
+            _uf.assert_has_calls(
+                [
+                    call(pBDB.bibs, "abc", "proceeding", 0, verbose=0),
+                    call(pBDB.bibs, "def", "proceeding", 0, verbose=0),
+                ]
+            )
+            _uf.reset_mock()
+            c.onUpdateType("phd_thesis", force=1)
             _uf.assert_has_calls(
                 [
                     call(pBDB.bibs, "abc", "phd_thesis", 1, verbose=0),

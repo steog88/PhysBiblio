@@ -999,40 +999,67 @@ class CommonBibActions:
         """
         menuM = []
         for m in sorted(pBMarks.marks.keys()):
-            if m in initialRecord["marks"]:
-                menuM.append(
-                    QAction(
-                        bwstr.Acts.maRem % pBMarks.marks[m]["desc"],
-                        self.menu,
-                        triggered=lambda m=m: self.onUpdateMark(m),
+            menuM.append(
+                QAction(
+                    (
+                        bwstr.Acts.maRem
+                        if m in initialRecord["marks"]
+                        else bwstr.Acts.maAdd
                     )
+                    % pBMarks.marks[m]["desc"],
+                    self.menu,
+                    triggered=lambda m=m: self.onUpdateMark(m),
                 )
-            else:
-                menuM.append(
-                    QAction(
-                        bwstr.Acts.maAdd % pBMarks.marks[m]["desc"],
-                        self.menu,
-                        triggered=lambda m=m: self.onUpdateMark(m),
-                    )
-                )
+            )
         menuT = []
         for k, v in sorted(convertType.items()):
-            if initialRecord[k]:
-                menuT.append(
-                    QAction(
-                        bwstr.Acts.tyRem % v,
-                        self.menu,
-                        triggered=lambda t=k: self.onUpdateType(t),
-                    )
+            menuT.append(
+                QAction(
+                    (bwstr.Acts.tyRem if initialRecord[k] else bwstr.Acts.tyAdd) % v,
+                    self.menu,
+                    triggered=lambda t=k: self.onUpdateType(t),
                 )
-            else:
-                menuT.append(
-                    QAction(
-                        bwstr.Acts.tyAdd % v,
-                        self.menu,
-                        triggered=lambda t=k: self.onUpdateType(t),
-                    )
+            )
+        self.menu.possibleActions.append([bwstr.Acts.maTit, menuM])
+        self.menu.possibleActions.append([bwstr.Acts.tyTit, menuT])
+        self.menu.possibleActions.append(None)
+
+    def _createMenuMarkTypeList(self):
+        """Create part of the right click menu,
+        concerning marks and types in case a list of items is selected
+        """
+        menuM = []
+        for m in sorted(pBMarks.marks.keys()):
+            menuM.append(
+                QAction(
+                    bwstr.Acts.maAddL % pBMarks.marks[m]["desc"],
+                    self.menu,
+                    triggered=lambda m=m: self.onUpdateMark(m, force=1),
                 )
+            )
+            menuM.append(
+                QAction(
+                    bwstr.Acts.maRemL % pBMarks.marks[m]["desc"],
+                    self.menu,
+                    triggered=lambda m=m: self.onUpdateMark(m, force=0),
+                )
+            )
+        menuT = []
+        for k, v in sorted(convertType.items()):
+            menuT.append(
+                QAction(
+                    bwstr.Acts.tyAddL % v,
+                    self.menu,
+                    triggered=lambda t=k: self.onUpdateType(t, force=1),
+                )
+            )
+            menuT.append(
+                QAction(
+                    bwstr.Acts.tyRemL % v,
+                    self.menu,
+                    triggered=lambda t=k: self.onUpdateType(t, force=0),
+                )
+            )
         self.menu.possibleActions.append([bwstr.Acts.maTit, menuM])
         self.menu.possibleActions.append([bwstr.Acts.tyTit, menuT])
         self.menu.possibleActions.append(None)
@@ -1238,6 +1265,8 @@ class CommonBibActions:
 
         if not selection:
             self._createMenuMarkType(initialRecord)
+        else:
+            self._createMenuMarkTypeList()
 
         menuC = self._createMenuCopy(selection, initialRecord)
 
@@ -1624,12 +1653,14 @@ class CommonBibActions:
             startFrom=0, useEntries=self.bibs, force=force, reloadAll=reloadAll
         )
 
-    def onUpdateMark(self, mark):
+    def onUpdateMark(self, mark, force=None):
         """Update (set or unset) 'mark' for the given entries and
         reload the main table content
 
         Parameter:
             mark: one of the allowed marks
+            force (default None): if 0 (remove) or 1 (add), update
+                the field by using this value instead of toggling it
         """
         if mark not in pBMarks.marks.keys():
             pBLogger.warning(bwstr.Acts.maInv % mark)
@@ -1638,7 +1669,13 @@ class CommonBibActions:
         for e in self.bibs:
             marks = e["marks"].replace("'", "").split(",")
             marks = [m for m in marks if m.strip() != ""]
-            if mark in marks:
+            if force == 0:
+                if mark in marks:
+                    marks.remove(mark)
+            elif force == 1:
+                if mark not in marks:
+                    marks.append(mark)
+            elif mark in marks:
                 marks.remove(mark)
             else:
                 marks.append(mark)
@@ -1646,19 +1683,22 @@ class CommonBibActions:
             pBDB.bibs.updateField(e["bibkey"], "marks", ",".join(marks), verbose=0)
         self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
-    def onUpdateType(self, type_):
+    def onUpdateType(self, type_, force=None):
         """Toggle the field 'type_' for the given entries and
         reload the main table content
 
         Parameter:
             type_: one among "review", "proceeding", "book",
                 "phd_thesis", "lecture", "exp_paper"
+            force (default None): if 0 or 1, update the field by using
+                the passed value instead of toggling it
         """
         if type_ not in convertType.keys():
             pBLogger.warning(bwstr.Acts.tyInv % type_)
             return
         for e in self.bibs:
-            pBDB.bibs.updateField(e["bibkey"], type_, 0 if e[type_] else 1, verbose=0)
+            value = force if force in [0, 1] else (0 if e[type_] else 1)
+            pBDB.bibs.updateField(e["bibkey"], type_, value, verbose=0)
         self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 
