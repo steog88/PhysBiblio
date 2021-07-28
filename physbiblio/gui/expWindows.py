@@ -377,6 +377,7 @@ class ExpsListWindow(ObjListWindow):
         titAction = QAction(ewstr.expDescr % expName)
         titAction.setDisabled(True)
         bibAction = QAction(ewstr.openEntryList)
+        bntAction = QAction(ewstr.openEntryListNewTab)
         modAction = QAction(ewstr.modify)
         delAction = QAction(ewstr.delete)
         catAction = menu.addAction(ewstr.cats)
@@ -384,6 +385,7 @@ class ExpsListWindow(ObjListWindow):
             titAction,
             None,
             bibAction,
+            bntAction,
             None,
             modAction,
             delAction,
@@ -396,6 +398,8 @@ class ExpsListWindow(ObjListWindow):
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
+        elif action == bntAction:
+            self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp), newTab=True)
         elif action == modAction:
             editExperiment(self, self.parent(), idExp)
         elif action == delAction:

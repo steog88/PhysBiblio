@@ -941,10 +941,12 @@ class MainWindow(QMainWindow):
         self.currentTabWidget().recreateTable(pBDB.bibs.fetchFromLast().lastFetched)
         self.done()
 
-    def reloadMainContent(self, bibs=None):
+    def reloadMainContent(self, bibs=None, newTab=False):
         """Delete the previous table widget and create a new one,
         using the default query
         """
+        if newTab:
+            self.newTabAtEnd(self.tabWidget.count() - 1)
         self.statusBarMessage(mwstr.reloadMain)
         self.currentTabWidget().recreateTable(bibs)
         self.done()

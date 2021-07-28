@@ -1372,17 +1372,18 @@ class TestCatsTreeWindow(GUITestCase):
 
             self.assertIsInstance(ctw.menu, PBMenu)
             self.assertIsInstance(ctw.menu.possibleActions, list)
-            self.assertEqual(len(ctw.menu.possibleActions), 8)
+            self.assertEqual(len(ctw.menu.possibleActions), 9)
             self.assertEqual(ctw.menu.possibleActions[1], None)
-            self.assertEqual(ctw.menu.possibleActions[3], None)
-            self.assertEqual(ctw.menu.possibleActions[6], None)
+            self.assertEqual(ctw.menu.possibleActions[4], None)
+            self.assertEqual(ctw.menu.possibleActions[7], None)
 
             for ix, tit, en in [
                 [0, "--Category: mainS--", False],
                 [2, "Open list of corresponding entries", True],
-                [4, "Modify", True],
-                [5, "Delete", True],
-                [7, "Add subcategory", True],
+                [3, "Open in new tab", True],
+                [5, "Modify", True],
+                [6, "Delete", True],
+                [8, "Add subcategory", True],
             ]:
                 act = ctw.menu.possibleActions[ix]
                 self.assertIsInstance(act, QAction)
@@ -1408,7 +1409,20 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=4: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=3: mm.possibleActions[i]
+            with patch(
+                "physbiblio.database.Entries.getByCat",
+                return_value=["a"],
+                autospec=True,
+            ) as _ffd:
+                ctw.contextMenuEvent(ev)
+                _ffd.assert_called_once_with(pBDB.bibs, "0")
+            _rmc.assert_called_once_with(p, ["a"], newTab=True)
+            _ec.assert_not_called()
+            _dc.assert_not_called()
+            _rmc.reset_mock()
+
+            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1420,7 +1434,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
             _ec.reset_mock()
 
-            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=6: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1432,7 +1446,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_called_once_with(ctw, p, "0", "mainS")
             _dc.reset_mock()
 
-            mm.exec_ = lambda x, i=7: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=8: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],

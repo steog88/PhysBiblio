@@ -24,6 +24,7 @@ class CommonGUIStrings:
     nothingChanged = "Nothing changed"
     nothingToDo = "Nothing to do..."
     openEntryList = "Open list of corresponding entries"
+    openEntryListNewTab = "Open in new tab"
     openLinkFailed = "Opening link '%s' failed!"
     winTitle = "PhysBiblio"
     winTitleModified = "PhysBiblio*"

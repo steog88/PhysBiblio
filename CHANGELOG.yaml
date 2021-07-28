@@ -6,6 +6,7 @@
             - search records by "No type"
             - add/remove marks or set/unset types for selections of entries
             - frequent searches open automatically in a new tab
+            - possibility to open lists from categories/experiments in new tab
             - navigate tabs with Ctrl+Tab and Ctrl+Shift+Tab (may have some problems)
             - small change in how database.Entries.completeFetched manages an almost empty 'published' field
             - improvements to argParser tests

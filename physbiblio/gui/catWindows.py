@@ -654,6 +654,7 @@ class CatsTreeWindow(PBDialog):
         titAction = QAction(cwstr.catDescr % catName)
         titAction.setDisabled(True)
         bibAction = QAction(cwstr.openEntryList)
+        bntAction = QAction(cwstr.openEntryListNewTab)
         modAction = QAction(cwstr.modify)
         delAction = QAction(cwstr.delete)
         subAction = QAction(cwstr.addSub)
@@ -661,6 +662,7 @@ class CatsTreeWindow(PBDialog):
             titAction,
             None,
             bibAction,
+            bntAction,
             None,
             modAction,
             delAction,
@@ -673,6 +675,8 @@ class CatsTreeWindow(PBDialog):
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
+        elif action == bntAction:
+            self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat), newTab=True)
         elif action == modAction:
             editCategory(self, self.parent(), idCat)
         elif action == delAction:

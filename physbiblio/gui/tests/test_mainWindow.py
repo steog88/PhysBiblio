@@ -1217,7 +1217,13 @@ class TestMainWindow(GUITestCase):
         """test reloadMainContent"""
         with patch(self.clsName + ".done", autospec=True) as _d, patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.recreateTable", autospec=True
-        ) as _rt, patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm:
+        ) as _rt, patch(
+            self.clsName + ".statusBarMessage", autospec=True
+        ) as _sbm, patch(
+            self.clsName + ".newTabAtEnd", autospec=True
+        ) as _nt, patch(
+            "PySide2.QtWidgets.QTabWidget.count", return_value=12
+        ) as _c:
             self.mainW.reloadMainContent(bibs="fake")
             _d.assert_called_once_with(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "Reloading main table...")
@@ -1225,6 +1231,13 @@ class TestMainWindow(GUITestCase):
             _rt.reset_mock()
             self.mainW.reloadMainContent()
             _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], None)
+            _nt.assert_not_called()
+            _c.assert_not_called()
+            _rt.reset_mock()
+            self.mainW.reloadMainContent(bibs="fake", newTab=True)
+            _c.assert_called_once_with()
+            _nt.assert_called_once_with(self.mainW, 11)
+            _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], "fake")
 
     def test_manageProfiles(self):
         """test manageProfiles"""

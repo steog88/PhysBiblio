@@ -891,17 +891,18 @@ class TestExpsListWindow(GUITestCase):
 
             self.assertIsInstance(elw.menu, PBMenu)
             self.assertIsInstance(elw.menu.possibleActions, list)
-            self.assertEqual(len(elw.menu.possibleActions), 8)
+            self.assertEqual(len(elw.menu.possibleActions), 9)
             self.assertEqual(elw.menu.possibleActions[1], None)
-            self.assertEqual(elw.menu.possibleActions[3], None)
-            self.assertEqual(elw.menu.possibleActions[6], None)
+            self.assertEqual(elw.menu.possibleActions[4], None)
+            self.assertEqual(elw.menu.possibleActions[7], None)
 
             for ix, tit, en in [
                 [0, "--Experiment: test0--", False],
                 [2, "Open list of corresponding entries", True],
-                [4, "Modify", True],
-                [5, "Delete", True],
-                [7, "Categories", True],
+                [3, "Open in new tab", True],
+                [5, "Modify", True],
+                [6, "Delete", True],
+                [8, "Categories", True],
             ]:
                 act = elw.menu.possibleActions[ix]
                 self.assertIsInstance(act, QAction)
@@ -927,7 +928,20 @@ class TestExpsListWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=4: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=3: mm.possibleActions[i]
+            with patch(
+                "physbiblio.database.Entries.getByExp",
+                return_value=["a"],
+                autospec=True,
+            ) as _ffd:
+                self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
+                _ffd.assert_called_once_with(pBDB.bibs, "0")
+            _rmc.assert_called_once_with(p, ["a"], newTab=True)
+            _ec.assert_not_called()
+            _dc.assert_not_called()
+            _rmc.reset_mock()
+
+            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -939,7 +953,7 @@ class TestExpsListWindow(GUITestCase):
             _dc.assert_not_called()
             _ec.reset_mock()
 
-            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=6: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -968,7 +982,7 @@ class TestExpsListWindow(GUITestCase):
             sc.exec_ = MagicMock()
             sc.result = "Ok"
             p.selectedCats = [9, 13]
-            mm.exec_ = lambda x, i=7: mm.possibleActions[i]
+            mm.exec_ = lambda x, i=8: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
