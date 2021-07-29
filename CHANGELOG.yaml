@@ -1,4 +1,4 @@
--   version: 1.8.0
+-   version: 1.8.1
     date: 2021-07-29
     changes:
         'New features / improvements':
@@ -21,6 +21,7 @@
             - fixing bug with renaming pdf folders when target folder already exists
             - fixing bug with "Reload bibtex" updates from INSPIRE
             - attempt to fix sync problem in WriteStream thanks to simple buffering system
+            - (1.8.1) fixed list of new features at startup in case of subcategories in CHANGELOG
 -   version: 1.7.1
     date: 2021-07-11
     changes:
