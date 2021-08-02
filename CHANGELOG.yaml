@@ -1,3 +1,7 @@
+-   version: 1.8.2
+    date: 2021-08
+    changes:
+        - copy name of directory for associated files from bibtex table
 -   version: 1.8.1
     date: 2021-07-29
     changes:

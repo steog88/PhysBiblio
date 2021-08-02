@@ -60,6 +60,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         cpAllPdf = "Copy all the corresponding PDF"
         cpBib = "bibtex(s)"
         cpCite = "\cite{key(s)}"
+        cpDir = "Name of the directory for associated files"
         cpKey = "key(s)"
         cpTit = "Copy to clipboard"
         eDesc = "--Entry: %s--"

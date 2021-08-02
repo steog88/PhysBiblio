@@ -903,6 +903,10 @@ class CommonBibActions:
             menuC.append(None)
             for s in subm:
                 menuC.append(s)
+        menuC.append(None)
+        menuC.append(
+            QAction(bwstr.Acts.cpDir, self.menu, triggered=self.onCopyDir),
+        )
         self.menu.possibleActions.append([bwstr.Acts.cpTit, menuC])
 
     def _createMenuInspire(self, selection, inspireID):
@@ -1435,6 +1439,12 @@ class CommonBibActions:
     def onCopyCites(self):
         """Copy '\cite{all the keys}' to the keyboard"""
         copyToClipboard("\cite{%s}" % ",".join([e["bibkey"] for e in self.bibs]))
+
+    def onCopyDir(self):
+        """Copy the name of the directory
+        where the associated files are stored
+        """
+        copyToClipboard(" ".join([pBPDF.getFileDir(e["bibkey"]) for e in self.bibs]))
 
     def onCopyKeys(self):
         """Copy all the keys to the keyboard"""

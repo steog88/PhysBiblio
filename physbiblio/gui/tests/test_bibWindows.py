@@ -24,6 +24,7 @@ try:
     from physbiblio.gui.mainWindow import MainWindow
     from physbiblio.gui.setuptests import *
     from physbiblio.setuptests import *
+    from physbiblio.strings.gui import BibWindowsStrings as bwstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -2045,12 +2046,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertIsInstance(c.menu.possibleActions[0], list)
         self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
         self.assertIsInstance(c.menu.possibleActions[0][1], list)
-        self.assertEqual(len(c.menu.possibleActions[0][1]), 3)
-        for a in c.menu.possibleActions[0][1]:
+        self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+        for a in c.menu.possibleActions[0][1][:3]:
             self.assertIsInstance(a, QAction)
         self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
         self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
         self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
+        self.assertEqual(c.menu.possibleActions[0][1][3], None)
+        self.assertEqual(c.menu.possibleActions[0][1][4].text(), bwstr.Acts.cpDir)
 
         c = CommonBibActions([{"bibkey": "abc", "abstract": "", "link": ""}], p)
         c.menu = PBMenu(self.mainW)
@@ -2058,9 +2061,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertIsInstance(c.menu.possibleActions[0], list)
         self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
         self.assertIsInstance(c.menu.possibleActions[0][1], list)
-        self.assertEqual(len(c.menu.possibleActions[0][1]), 5)
+        self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
         for i, a in enumerate(c.menu.possibleActions[0][1]):
-            if i == 3:
+            if i in [3, 5]:
                 self.assertEqual(a, None)
             else:
                 self.assertIsInstance(a, QAction)
@@ -2068,6 +2071,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
         self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
         self.assertEqual(c.menu.possibleActions[0][1][4].text(), "bibitem")
+        self.assertEqual(c.menu.possibleActions[0][1][6].text(), bwstr.Acts.cpDir)
 
         c = CommonBibActions([{"bibkey": "abc", "abstract": "abc", "link": "def"}], p)
         c.menu = PBMenu(self.mainW)
@@ -2079,14 +2083,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs", autospec=True
         ) as _c, patch(
             "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
-        ) as _d:
+        ) as _d, patch(
+            "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
+        ) as _e:
             c._createMenuCopy(False, c.bibs[0])
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 9)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
-                if i == 3:
+                if i in [3, 7]:
                     self.assertEqual(a, None)
                 else:
                     self.assertIsInstance(a, QAction)
@@ -2096,6 +2102,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][4].text(), "abstract")
             self.assertEqual(c.menu.possibleActions[0][1][5].text(), "link")
             self.assertEqual(c.menu.possibleActions[0][1][6].text(), "bibitem")
+            self.assertEqual(c.menu.possibleActions[0][1][8].text(), bwstr.Acts.cpDir)
             _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
@@ -2114,6 +2121,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.reset_mock()
             c.menu.possibleActions[0][1][6].trigger()
             _d.assert_called_once_with("\\bibitem{abc}.")
+            _e.reset_mock()
+            c.menu.possibleActions[0][1][8].trigger()
+            _e.assert_called_once_with(c)
 
         c = CommonBibActions(
             [
@@ -2145,14 +2155,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs", autospec=True
         ) as _c, patch(
             "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
-        ) as _d:
+        ) as _d, patch(
+            "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
+        ) as _e:
             c._createMenuCopy(False, c.bibs[0])
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
-            self.assertEqual(len(c.menu.possibleActions[0][1]), 13)
+            self.assertEqual(len(c.menu.possibleActions[0][1]), 15)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
-                if i == 3:
+                if i in [3, 13]:
                     self.assertEqual(a, None)
                 else:
                     self.assertIsInstance(a, QAction)
@@ -2168,6 +2180,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertEqual(c.menu.possibleActions[0][1][10].text(), "published")
             self.assertEqual(c.menu.possibleActions[0][1][11].text(), "title")
             self.assertEqual(c.menu.possibleActions[0][1][12].text(), "bibitem")
+            self.assertEqual(c.menu.possibleActions[0][1][14].text(), bwstr.Acts.cpDir)
             _a.assert_not_called()
             c.menu.possibleActions[0][1][0].trigger()
             _a.assert_called_once_with(c)
@@ -2206,6 +2219,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _d.assert_called_once_with(
                 "\\bibitem{abc}\nme\n% some paper\njou 0 (2018) 12\ndoi: 1/2/3\n[arxiv:1234.5678]."
             )
+            _e.reset_mock()
+            c.menu.possibleActions[0][1][14].trigger()
+            _e.assert_called_once_with(c)
 
     def test_createMenuInspire(self):
         """test _createMenuInspire"""
@@ -3621,6 +3637,24 @@ class TestCommonBibActions(GUIwMainWTestCase):
         with patch("physbiblio.gui.bibWindows.copyToClipboard", autospec=True) as _cp:
             c.onCopyCites()
             _cp.assert_called_once_with("\cite{abc,def}")
+
+    def test_onCopyDir(self):
+        """test onCopyBibtexs"""
+        c = CommonBibActions(
+            [
+                {"bibkey": "abc", "bibtex": "bibtex 1"},
+                {"bibkey": "def", "bibtex": "bibtex 2"},
+            ],
+            self.mainW,
+        )
+        with patch(
+            "physbiblio.pdf.LocalPDF.getFileDir", side_effect=["dir1", "dir2"]
+        ) as _f, patch(
+            "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
+        ) as _cp:
+            c.onCopyDir()
+            _f.assert_has_calls([call("abc"), call("def")])
+            _cp.assert_called_once_with("dir1 dir2")
 
     def test_onCopyKeys(self):
         """test onCopyKeys"""
