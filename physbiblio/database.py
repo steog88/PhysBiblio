@@ -4656,6 +4656,7 @@ class Entries(PhysBiblioDBSub):
             return False
         hasChanged = False
         key = old["bibkey"]
+        pBLogger.info(dstr.Bibs.apiInfoP % key)
         # update other fields
         for [o, d] in physBiblioWeb.webSearch["inspire"].correspondences:
             if o == "bibtex":

@@ -453,7 +453,11 @@ class TestInspireMethods(unittest.TestCase):
             )
             self.assertEqual(
                 res,
-                [{"k": "a", "id": 123}, {"k": "b", "id": 456}, {"k": "c", "id": 789}],
+                [
+                    {"k": "a", "id": "123"},
+                    {"k": "b", "id": "456"},
+                    {"k": "c", "id": "789"},
+                ],
             )
             _s.assert_called_once_with(
                 "du%3E%3D" + d1 + " and du%3C%3D" + d2, max_iterations=2

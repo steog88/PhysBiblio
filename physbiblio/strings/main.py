@@ -203,6 +203,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         apiDone = "Inspire OAI harvesting done!"
         apiInfoS = "-- %s, '%s' -> '%s'"
         apiInfoL = "-- %s"
+        apiInfoP = "Processing: %s"
         apiNew = "new:\n%s"
         apiOld = "old:\n%s"
         book = "Book"

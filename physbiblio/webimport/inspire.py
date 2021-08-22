@@ -367,7 +367,7 @@ class WebSearch(WebInterf, InspireStrings):
                 continue
             try:
                 tmpDict = self.readRecord(rec)
-                tmpDict["id"] = id
+                tmpDict["id"] = "%s" % id
                 foundObjects.append(tmpDict)
             except Exception as e:
                 pBLogger.exception(self.exceptionFormat % (count, id, e))
