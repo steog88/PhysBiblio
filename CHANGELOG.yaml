@@ -2,6 +2,8 @@
     date: 2021-08
     changes:
         - copy name of directory for associated files from bibtex table
+        - fix bug with different type (int/str) of inspire id fields that made it to be updated every day
+        - useful new tab name when opening entries corresponding to cats/exps in new tab
 -   version: 1.8.1
     date: 2021-07-29
     changes:

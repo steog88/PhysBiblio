@@ -1234,9 +1234,9 @@ class TestMainWindow(GUITestCase):
             _nt.assert_not_called()
             _c.assert_not_called()
             _rt.reset_mock()
-            self.mainW.reloadMainContent(bibs="fake", newTab=True)
+            self.mainW.reloadMainContent(bibs="fake", newTab="abc")
             _c.assert_called_once_with()
-            _nt.assert_called_once_with(self.mainW, 11)
+            _nt.assert_called_once_with(self.mainW, 11, label="abc")
             _rt.assert_called_once_with(self.mainW.bibtexListWindows[0][0], "fake")
 
     def test_manageProfiles(self):

@@ -1417,7 +1417,7 @@ class TestCatsTreeWindow(GUITestCase):
             ) as _ffd:
                 ctw.contextMenuEvent(ev)
                 _ffd.assert_called_once_with(pBDB.bibs, "0")
-            _rmc.assert_called_once_with(p, ["a"], newTab=True)
+            _rmc.assert_called_once_with(p, ["a"], newTab="mainS")
             _ec.assert_not_called()
             _dc.assert_not_called()
             _rmc.reset_mock()

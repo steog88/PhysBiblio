@@ -676,7 +676,7 @@ class CatsTreeWindow(PBDialog):
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
         elif action == bntAction:
-            self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat), newTab=True)
+            self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat), newTab=catName)
         elif action == modAction:
             editCategory(self, self.parent(), idCat)
         elif action == delAction:

@@ -399,7 +399,7 @@ class ExpsListWindow(ObjListWindow):
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
         elif action == bntAction:
-            self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp), newTab=True)
+            self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp), newTab=expName)
         elif action == modAction:
             editExperiment(self, self.parent(), idExp)
         elif action == delAction:
