@@ -1,5 +1,5 @@
 -   version: 1.8.2
-    date: 2021-08
+    date: 2021-09-10
     changes:
         - copy name of directory for associated files from bibtex table
         - fix bug with different type (int/str) of inspire id fields that made it to be updated every day
