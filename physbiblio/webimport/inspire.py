@@ -131,6 +131,21 @@ class WebSearch(WebInterf, InspireStrings):
             "page": "1",
         }
 
+    def _fixAccents(self, text):
+        """Enclose particular accent strings such as '\"a' in curly braces
+        to avoid parsing errors in bibtexparser
+
+        Parameter:
+            text: the input bibtex
+
+        Output:
+            the fixed bibtex
+        """
+        match = re.compile('((\\\\")[a-zA-Z]{1})', re.MULTILINE)
+        for t in match.finditer(text):
+            text = text.replace(t.group(), "{%s}" % t.group())
+        return text
+
     def retrieveBibtex(self, string, size=250):
         """Retrieves a list of bibtexs
 
@@ -147,6 +162,7 @@ class WebSearch(WebInterf, InspireStrings):
         url = self.createUrl(args)
         pBLogger.info(self.searchInfo % (string, url))
         text = self.textFromUrl(url)
+        text = self._fixAccents(text)
         try:
             return parse_accents_str(text)
         except Exception:

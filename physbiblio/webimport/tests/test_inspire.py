@@ -54,6 +54,13 @@ class TestInspireMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "defaultSize"))
         self.assertIsInstance(physBiblioWeb.webSearch["inspire"], WebSearch)
 
+    def test_fixAccents(self):
+        """Test _fixAccents"""
+        iws = physBiblioWeb.webSearch["inspire"]
+        self.assertEqual(iws._fixAccents("abc"), "abc")
+        self.assertEqual(iws._fixAccents(r"ab\"c"), r"ab{\"c}")
+        self.assertEqual(iws._fixAccents(r"\"Abc\"0def\"G"), r"{\"A}bc\"0def{\"G}")
+
     def test_retrieveBibtex(self):
         """Test retrieveBibtex"""
         iws = physBiblioWeb.webSearch["inspire"]
@@ -101,6 +108,25 @@ class TestInspireMethods(unittest.TestCase):
             _i.assert_called_once_with(iws.searchInfo % ("ab c", "mycurrenturl"))
             _tu.assert_called_once_with("mycurrenturl")
             _pa.assert_called_once_with("some output text")
+            self.assertEqual(_e.call_count, 0)
+        with patch(
+            "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
+        ) as _pa, patch(
+            "physbiblio.webimport.webInterf.WebInterf.createUrl",
+            return_value="mycurrenturl",
+        ) as _cu, patch(
+            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+            return_value=r"some o\"utput text",
+        ) as _tu, patch(
+            "logging.Logger.info"
+        ) as _i, patch(
+            "logging.Logger.exception"
+        ) as _e:
+            self.assertEqual(iws.retrieveBibtex("ab c", size=12), "1234")
+            _cu.assert_called_once_with(args)
+            _i.assert_called_once_with(iws.searchInfo % ("ab c", "mycurrenturl"))
+            _tu.assert_called_once_with("mycurrenturl")
+            _pa.assert_called_once_with(r"some o{\"u}tput text")
             self.assertEqual(_e.call_count, 0)
 
     def test_retrieveUrlFirst(self):
