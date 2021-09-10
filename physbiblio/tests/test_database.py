@@ -8575,6 +8575,9 @@ class TestDatabaseEntries(DBTestCase):
             "physbiblio.database.Entries.updateRecord",
             side_effect=[True, True, True, True, True, True, False, True],
         ) as _ur, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveUrlFirst",
+            return_value="somebibtex",
+        ) as _ruf, patch(
             "physbiblio.database.Entries.getByInspireID",
             side_effect=[
                 [entry1a],
@@ -8596,6 +8599,7 @@ class TestDatabaseEntries(DBTestCase):
             _ur.assert_not_called()
             _gi.assert_not_called()
             _gl.reset_mock()
+            _ruf.assert_not_called()
             self.assertEqual(
                 self.pBDB.bibs.searchOAIUpdates(
                     entries=["a"], force=True, reloadAll=True, pbVal=pbv
@@ -8609,12 +8613,19 @@ class TestDatabaseEntries(DBTestCase):
             )
             _pr.assert_any_call({"id": "e"}, bibtex=entry1a["bibtex"])
             _pr.assert_any_call({"id": "d"}, bibtex=entry2a["bibtex"])
-            _ur.assert_any_call(entry1a, ["pr1"], True, True)
+            e1a = dict(entry1a)
+            e1a["bibtex"] = "somebibtex"
+            del e1a["bibtexDict"]["journal"]
+            e2a = dict(entry2a)
+            e2a["bibtex"] = "somebibtex"
+            del e2a["bibtexDict"]["journal"]
+            _ur.assert_any_call(e1a, ["pr1"], True, True)
             _ur.assert_any_call(entry2a, ["pr2"], True, True)
             _gi.assert_any_call("e")
             _gi.assert_any_call("d")
             pbv.assert_any_call(1)
             pbv.assert_any_call(2)
+            _ruf.reset_mock()
             self.assertEqual(
                 self.pBDB.bibs.searchOAIUpdates(entries=["a"]),
                 (1, [], ["Gariazzo:2015rra"]),
@@ -8631,6 +8642,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs.searchOAIUpdates(entries=[entry1]),
                 (2, ["Gariazzo:2015rra"], ["Ade:2013zuv"]),
             )  # 5
+            _ruf.assert_not_called()
 
     def test_setStuff(self, *args):
         """test ["setBook", "setLecture", "setPhdThesis",
@@ -9471,10 +9483,16 @@ class TestDatabaseEntries(DBTestCase):
             "physbiblio.webimport.inspire.WebSearch.updateBibtex",
             return_value=(True, '@article{abc,\nauthor = "me",\ntitle = "abc",}'),
         ) as _ub:
-            self.assertEqual(self.pBDB.bibs.updateRecordFromINSPIRE({"id": None}), True)
+            self.assertEqual(
+                self.pBDB.bibs.updateRecordFromINSPIRE(
+                    {"id": None, "collaboration": None}
+                ),
+                True,
+            )
             _gir.assert_called_once_with(
                 {
                     "id": None,
+                    "collaboration": None,
                     "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
                 }
             )
@@ -9487,6 +9505,7 @@ class TestDatabaseEntries(DBTestCase):
             _ub.assert_called_once_with(
                 {
                     "id": None,
+                    "collaboration": None,
                     "bibtex": '@Article{abc,\n        author = "me",\n         title = "{abc}",\n}',
                 },
                 "bib",

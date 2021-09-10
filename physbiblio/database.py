@@ -4212,6 +4212,11 @@ class Entries(PhysBiblioDBSub):
                 except TypeError:
                     pass
                 e = self.getByInspireID(r["id"])[0]
+                if reloadAll:
+                    e["bibtex"] = physBiblioWeb.webSearch["inspire"].retrieveUrlFirst(
+                        "recid:%s" % r["id"]
+                    )
+                    e = self.completeFetched([e])[0]
                 r = physBiblioWeb.webSearch["inspire"].processRecord(
                     r, bibtex=e["bibtex"]
                 )
@@ -4688,6 +4693,7 @@ class Entries(PhysBiblioDBSub):
                             "author",
                             "authors",
                         ]
+                        and v is not None
                     },
                 }
             ]

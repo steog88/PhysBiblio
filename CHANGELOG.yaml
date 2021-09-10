@@ -5,6 +5,7 @@
         - fix bug with different type (int/str) of inspire id fields that made it to be updated every day
         - useful new tab name when opening entries corresponding to cats/exps in new tab
         - fix importing from inspire when bibtex contains latex accents such as '\"a'
+        - fixing bugs with 'Update bibtex' and 'Reload bibtex' from INSPIRE
 -   version: 1.8.1
     date: 2021-07-29
     changes:
