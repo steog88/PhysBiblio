@@ -1,7 +1,8 @@
 -   version: 1.8.3
-    date: 2021-09-10
+    date: 2021-09-14
     changes:
         - fix index in messages when running searchOAIUpdates
+        - fix bugs when importing for tex and the entry exists but with a different key
 -   version: 1.8.2
     date: 2021-09-10
     changes:

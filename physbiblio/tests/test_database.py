@@ -7295,6 +7295,38 @@ class TestDatabaseEntries(DBTestCase):
             ),
             '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
         )
+        with patch(
+            "physbiblio.database.Entries.checkExistingEntry",
+            side_effect=[[], [{"bibkey": "abc", "old_keys": None}]],
+        ) as _ce, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+            return_value='@Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n}',
+        ) as _ru:
+            self.assertTrue(
+                self.pBDB.bibs.loadAndInsert(
+                    "xyz",
+                )
+            )
+            _ce.assert_any_call("xyz")
+            _ce.assert_called_with("abc", arxiv="", doi=None)
+            self.assertEqual(self.pBDB.bibs.getByKey("abc")[0]["old_keys"], "xyz")
+        with patch(
+            "physbiblio.database.Entries.checkExistingEntry",
+            side_effect=[[], [{"bibkey": "abc", "old_keys": "xyz"}]],
+        ) as _ce, patch(
+            "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
+            return_value='@Article{abc,\n        author = "me",\n         '
+            + 'title = "{abc}",\n}',
+        ) as _ru:
+            self.assertTrue(
+                self.pBDB.bibs.loadAndInsert(
+                    "pqr",
+                )
+            )
+            _ce.assert_any_call("pqr")
+            _ce.assert_called_with("abc", arxiv="", doi=None)
+            self.assertEqual(self.pBDB.bibs.getByKey("abc")[0]["old_keys"], "xyz,pqr")
         # returnBibtex
         self.assertEqual(
             self.pBDB.bibs.loadAndInsert(

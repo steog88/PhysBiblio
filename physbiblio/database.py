@@ -3494,6 +3494,26 @@ class Entries(PhysBiblioDBSub):
             return False
         existing = self.checkExistingEntry(key, arxiv=data["arxiv"], doi=data["doi"])
         if existing:
+            if (
+                len(existing) > 0
+                and entry != existing[0]["bibkey"]
+                and (
+                    existing[0]["old_keys"] is None
+                    or entry not in existing[0]["old_keys"]
+                )
+            ):
+                try:
+                    oldkeys = existing[0]["old_keys"].split(",")
+                    if oldkeys == [""]:
+                        oldkeys = []
+                except (AttributeError, KeyError, TypeError):
+                    oldkeys = []
+                print(oldkeys)
+                if entry not in oldkeys:
+                    oldkeys.append(entry)
+                    self.updateField(
+                        existing[0]["bibkey"], "old_keys", ",".join(oldkeys)
+                    )
             return printExisting(key, existing)
         pBLogger.info(dstr.Bibs.laiNewKey % key)
         if pbConfig.params["fetchAbstract"] and data["arxiv"] != "":

@@ -468,7 +468,7 @@ class PBExport:
                 # if not present, try INSPIRE import
                 pBLogger.info(exstr.keyMissing % m)
                 newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex=True)
-                newCheck = pBDB.bibs.getByBibtex(m, saveQuery=False)
+                newCheck = pBDB.bibs.getByKey(m, saveQuery=False)
 
                 # if the import worked, insert the entry
                 if len(newCheck) > 0:

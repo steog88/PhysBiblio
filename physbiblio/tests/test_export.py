@@ -183,6 +183,13 @@ class TestExportMethods(unittest.TestCase):
                 [],
                 [
                     {
+                        "bibkey": "empty2+",
+                        "bibtexDict": {},
+                        "bibtex": '@Article{empty2+,\nauthor="me2",\ntitle="yes"\n}',
+                    }
+                ],
+                [
+                    {
                         "bibkey": "Gariazzo:2015rra",
                         "bibtexDict": {},
                         "bibtex": "@article{Gariazzo:2015rra,\nauthor= "
@@ -190,14 +197,12 @@ class TestExportMethods(unittest.TestCase):
                         + '"{Light sterile neutrinos}",\n}',
                     }
                 ],
-                [
-                    {
-                        "bibkey": "empty2+",
-                        "bibtexDict": {},
-                        "bibtex": '@Article{empty2+,\nauthor="me2",\ntitle="yes"\n}',
-                    }
-                ],
                 [],
+            ],
+            autospec=True,
+        ) as _getbbibt, patch(
+            "physbiblio.database.Entries.getByKey",
+            side_effect=[
                 [
                     {
                         "bibkey": "Gariazzo:2015rra",
@@ -211,7 +216,7 @@ class TestExportMethods(unittest.TestCase):
                 [],
             ],
             autospec=True,
-        ) as _getbbibt, patch(
+        ) as _getbbik, patch(
             "physbiblio.database.Entries.loadAndInsert",
             side_effect=[
                 "@article{Gariazzo:2015rra,\nauthor= "
@@ -231,9 +236,7 @@ class TestExportMethods(unittest.TestCase):
             output[0],
             ["empty", "prova.", "empty2+", "Gariazzo:2015rra", "Gariazzo:2017rra"],
         )  # requiredBibkeys
-        self.assertEqual(
-            output[1], ["prova.", "Gariazzo:2015rra", "Gariazzo:2017rra"]
-        )  # missing
+        self.assertEqual(output[1], ["prova.", "Gariazzo:2017rra"])  # missing
         self.assertEqual(output[2], ["Gariazzo:2015rra"])  # retrieved
         self.assertEqual(output[3], ["Gariazzo:2017rra"])  # notFound
         self.assertEqual(output[4], [])  # unexpected
@@ -279,6 +282,20 @@ class TestExportMethods(unittest.TestCase):
             ],
             autospec=True,
         ) as _getbbibt, patch(
+            "physbiblio.database.Entries.getByKey",
+            side_effect=[
+                [],
+                [
+                    {
+                        "bibkey": "newcite",
+                        "bibtexDict": {},
+                        "bibtex": '@article{newcite,\nauthor= "myself",\ntitle='
+                        + '"{some paper}",\n}',
+                    }
+                ],
+            ],
+            autospec=True,
+        ) as _getbbik, patch(
             "physbiblio.database.Entries.loadAndInsert",
             side_effect=[
                 "",
