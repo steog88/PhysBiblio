@@ -4224,7 +4224,7 @@ class Entries(PhysBiblioDBSub):
                     num += 1
                     pBLogger.info(
                         dstr.Bibs.souProcessProgr
-                        % (ix + 1, tot, 100.0 * (ix + 1) / tot, e["bibkey"])
+                        % (i + ix + 1, tot, 100.0 * (i + ix + 1) / tot, e["bibkey"])
                     )
                     if self.updateRecord(e, r, force, reloadAll):
                         changed.append(e["bibkey"])

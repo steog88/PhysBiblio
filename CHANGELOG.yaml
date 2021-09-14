@@ -1,3 +1,7 @@
+-   version: 1.8.3
+    date: 2021-09-10
+    changes:
+        - fix index in messages when running searchOAIUpdates
 -   version: 1.8.2
     date: 2021-09-10
     changes:
