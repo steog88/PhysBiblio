@@ -551,7 +551,8 @@ class MainWindowStrings(CommonStrings, ErrorsStrings, CommonGUIStrings):
     cleanSpareT = "Clean spare entries"
     cleanPDFAsk = (
         "Do you really want to delete the unassociated PDF folders?\n"
-        + "There may be some (unlikely) accidental deletion of files."
+        + "There may be some accidental deletion of files, "
+        + "especially if you have multiple profiles."
     )
     cleanPDFT = "Clean spare PDF folders"
     configDiscard = "Changes discarded"
