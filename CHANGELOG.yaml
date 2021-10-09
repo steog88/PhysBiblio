@@ -3,6 +3,7 @@
     changes:
         - improved warning for 'clean spare PDF' function
         - add old/alternative bibtex keys in the lower-right info panel
+        - allow to search bibtexs by "old_keys"
 -   version: 1.8.3
     date: 2021-09-14
     changes:

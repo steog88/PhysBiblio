@@ -1512,6 +1512,7 @@ class Entries(PhysBiblioDBSub):
             "pubdate",
             "comments",
             "abstract",
+            "old_keys",
         ]
     }
     searchOperators = {
