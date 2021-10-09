@@ -73,6 +73,7 @@ class TestFunctions(GUIwMainWTestCase):
             "comments": "some thing",
             "citations": 12,
             "citations_no_self": 0,
+            "old_keys": "",
         }
         with patch(
             "physbiblio.database.Categories.getByEntry", return_value=[], autospec=True
@@ -115,6 +116,7 @@ class TestFunctions(GUIwMainWTestCase):
             "inspire": "1234",
             "citations": 0,
             "citations_no_self": 12,
+            "old_keys": None,
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -145,13 +147,14 @@ class TestFunctions(GUIwMainWTestCase):
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'isbn', 'lecture', "
+                        + "'old_keys', "
                         + "'phd_thesis', 'proceeding', 'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
                         + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
                         + "'doi', 'exp_paper', 'inspire',"
-                        + " 'isbn', 'lecture', 'phd_thesis', 'proceeding', "
+                        + " 'isbn', 'lecture', 'old_keys', 'phd_thesis', 'proceeding', "
                         + "'review']"
                     ),
                 ]
@@ -176,6 +179,7 @@ class TestFunctions(GUIwMainWTestCase):
             "inspire": "1234",
             "citations": 12,
             "citations_no_self": 10,
+            "old_keys": "None",
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -201,7 +205,7 @@ class TestFunctions(GUIwMainWTestCase):
                         "KeyError: 'proceeding' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
@@ -212,21 +216,21 @@ class TestFunctions(GUIwMainWTestCase):
                         "KeyError: 'isbn' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'ads' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
                         + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
                         + "'doi', 'exp_paper', "
-                        + "'inspire', 'lecture', 'phd_thesis', 'review']"
+                        + "'inspire', 'lecture', 'old_keys', 'phd_thesis', 'review']"
                     ),
                 ]
             )
@@ -253,6 +257,7 @@ class TestFunctions(GUIwMainWTestCase):
             "comments": "",
             "citations": 0,
             "citations_no_self": 0,
+            "old_keys": "old_bib_key",
         }
         with patch(
             "physbiblio.database.Categories.getByEntry",
@@ -269,7 +274,8 @@ class TestFunctions(GUIwMainWTestCase):
                 writeBibtexInfo(entry),
                 "(Experimental paper) (PhD thesis) (Review) "
                 + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
-                + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>\n"
+                + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n"
+                + "Alternative bibtex keys: <u>old_bib_key</u><br/>\n<br/>\n"
                 + "<br/>\nCategories: <i>Main, second</i>"
                 + "<br/>\nExperiments: <i>myexp</i>",
             )
@@ -280,7 +286,7 @@ class TestFunctions(GUIwMainWTestCase):
                         + "['ads', 'arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'comments', "
                         + "'doi', 'exp_paper', 'inspire', 'isbn', "
-                        + "'lecture', 'phd_thesis', 'review']"
+                        + "'lecture', 'old_keys', 'phd_thesis', 'review']"
                     ),
                     call(
                         "KeyError: 'author' not in "
@@ -313,6 +319,7 @@ class TestFunctions(GUIwMainWTestCase):
             "comments": None,
             "citations": 0,
             "citations_no_self": 0,
+            "old_keys": "",
         }
         ltt = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
         with patch(

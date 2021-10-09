@@ -153,6 +153,12 @@ def writeBibtexInfo(entry):
         )
     except KeyError:
         pBLogger.debug(bwstr.Info.pubErr % (sorted(entry["bibtexDict"].keys())))
+    if (
+        entry["old_keys"] != ""
+        and entry["old_keys"] != None
+        and entry["old_keys"] != "None"
+    ):
+        infoText += "Alternative bibtex keys: <u>%s</u>" % entry["old_keys"] + nl
     infoText += nl
     for k in ["isbn", "doi", "arxiv", "ads", "inspire"]:
         try:
