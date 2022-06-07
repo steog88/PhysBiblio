@@ -97,20 +97,20 @@ fullRecordAde = {
     "published": "Astron.Astrophys. 571 (2014) A16",
     "author": "Ade, P.A.R. and others",
     "bibdict": {
-        u"doi": u"10.1051/0004-6361/201321591",
-        u"author": u"Ade, P.A.R. and others",
-        "ENTRYTYPE": u"article",
-        u"collaboration": u"Planck",
-        u"title": u"{Planck 2013 results. XVI. Cosmological parameters}",
-        u"pages": u"A16",
-        u"volume": u"571",
-        u"reportnumber": u"CERN-PH-TH-2013-129",
-        u"eprint": u"1303.5076",
-        u"primaryclass": u"astro-ph.CO",
-        u"year": u"2014",
-        "ID": u"Planck:2013pxb",
-        u"archiveprefix": u"arXiv",
-        u"journal": u"Astron.Astrophys.",
+        "doi": "10.1051/0004-6361/201321591",
+        "author": "Ade, P.A.R. and others",
+        "ENTRYTYPE": "article",
+        "collaboration": "Planck",
+        "title": "{Planck 2013 results. XVI. Cosmological parameters}",
+        "pages": "A16",
+        "volume": "571",
+        "reportnumber": "CERN-PH-TH-2013-129",
+        "eprint": "1303.5076",
+        "primaryclass": "astro-ph.CO",
+        "year": "2014",
+        "ID": "Planck:2013pxb",
+        "archiveprefix": "arXiv",
+        "journal": "Astron.Astrophys.",
     },
 }
 fullRecordGariazzo = {
@@ -168,19 +168,19 @@ fullRecordGariazzo = {
     "published": "J.Phys.G 43 (2016) 033001",
     "author": "Gariazzo, S. et al.",
     "bibdict": {
-        u"doi": u"10.1088/0954-3899/43/3/033001",
-        u"author": u"Gariazzo, S. and Giunti, C. and Laveder, M. and "
+        "doi": "10.1088/0954-3899/43/3/033001",
+        "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and "
         + "Li, Y.F. and Zavanin, E.M.",
-        u"journal": u"J.Phys.G",
-        u"title": u"{Light sterile neutrinos}",
-        "ENTRYTYPE": u"article",
-        u"volume": u"43",
-        u"eprint": u"1507.08204",
-        u"primaryclass": u"hep-ph",
-        u"year": u"2016",
-        "ID": u"Gariazzo:2015rra",
-        u"archiveprefix": u"arXiv",
-        u"pages": u"033001",
+        "journal": "J.Phys.G",
+        "title": "{Light sterile neutrinos}",
+        "ENTRYTYPE": "article",
+        "volume": "43",
+        "eprint": "1507.08204",
+        "primaryclass": "hep-ph",
+        "year": "2016",
+        "ID": "Gariazzo:2015rra",
+        "archiveprefix": "arXiv",
+        "pages": "033001",
     },
 }
 
@@ -1820,7 +1820,7 @@ class TestDatabaseExperiments(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.exps.to_str(self.pBDB.exps.getByID(1)[0]),
-            u"  1: exp1                 "
+            "  1: exp1                 "
             + "[http://some.url.org/                    ] [12]",
         )
         self.assertTrue(
@@ -1846,11 +1846,11 @@ class TestDatabaseExperiments(DBTestCase):
     def test_getByOthers(self, *args):
         """Test getByCat and getByEntry creating some fake records"""
         data = self.pBDB.bibs.prepareInsert(
-            u'\n\n%comment\n@article{abc,\nauthor = "me",' + '\ntitle = "title",}',
+            '\n\n%comment\n@article{abc,\nauthor = "me",' + '\ntitle = "title",}',
             bibkey="abc",
         )
         data = self.pBDB.bibs.prepareInsert(
-            u'\n\n%comment\n@article{defghi,\nauthor = "me",\n' + 'title = "title",}',
+            '\n\n%comment\n@article{defghi,\nauthor = "me",\n' + 'title = "title",}',
             bibkey="defghi",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
@@ -1866,12 +1866,12 @@ class TestDatabaseExperiments(DBTestCase):
             [dict(e) for e in self.pBDB.exps.getByEntry("abc")],
             [
                 {
-                    "inspire": u"",
-                    "comments": u"",
-                    "name": u"exp1",
-                    "bibkey": u"abc",
+                    "inspire": "",
+                    "comments": "",
+                    "name": "exp1",
+                    "bibkey": "abc",
                     "idEnEx": 1,
-                    "homepage": u"",
+                    "homepage": "",
                     "idExp": 1,
                 }
             ],
@@ -1880,12 +1880,12 @@ class TestDatabaseExperiments(DBTestCase):
             [dict(e) for e in self.pBDB.exps.getByEntries(["abc", "defghi"])],
             [
                 {
-                    "inspire": u"",
-                    "comments": u"",
-                    "name": u"exp1",
-                    "bibkey": u"abc",
+                    "inspire": "",
+                    "comments": "",
+                    "name": "exp1",
+                    "bibkey": "abc",
                     "idEnEx": 1,
-                    "homepage": u"",
+                    "homepage": "",
                     "idExp": 1,
                 }
             ],
@@ -1896,11 +1896,11 @@ class TestDatabaseExperiments(DBTestCase):
             [
                 {
                     "idCat": 0,
-                    "inspire": u"",
-                    "comments": u"",
-                    "name": u"exp1",
+                    "inspire": "",
+                    "comments": "",
+                    "name": "exp1",
                     "idExC": 1,
-                    "homepage": u"",
+                    "homepage": "",
                     "idExp": 1,
                 }
             ],
@@ -1915,21 +1915,21 @@ class TestDatabaseExperiments(DBTestCase):
             [dict(e) for e in self.pBDB.exps.getByEntries(["abc", "defghi"])],
             [
                 {
-                    "inspire": u"",
-                    "comments": u"",
-                    "name": u"exp1",
-                    "bibkey": u"abc",
+                    "inspire": "",
+                    "comments": "",
+                    "name": "exp1",
+                    "bibkey": "abc",
                     "idEnEx": 1,
-                    "homepage": u"",
+                    "homepage": "",
                     "idExp": 1,
                 },
                 {
-                    "inspire": u"",
-                    "comments": u"",
-                    "name": u"exp2",
-                    "bibkey": u"defghi",
+                    "inspire": "",
+                    "comments": "",
+                    "name": "exp2",
+                    "bibkey": "defghi",
                     "idEnEx": 2,
-                    "homepage": u"",
+                    "homepage": "",
                     "idExp": 2,
                 },
             ],
@@ -2219,7 +2219,7 @@ class TestDatabaseCategories(DBTestCase):
     def test_getByOthers(self, *args):
         """Test getByExp and getByEntry creating some fake records"""
         data = self.pBDB.bibs.prepareInsert(
-            u'\n\n%comment\n@article{abc,\nauthor = "me",\n' + 'title = "title",}',
+            '\n\n%comment\n@article{abc,\nauthor = "me",\n' + 'title = "title",}',
             bibkey="abc",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
@@ -2237,13 +2237,13 @@ class TestDatabaseCategories(DBTestCase):
                 {
                     "idCat": 1,
                     "parentCat": 0,
-                    "description": u"Use this category to store tags "
+                    "description": "Use this category to store tags "
                     + "(such as: ongoing projects, temporary cats,...)",
-                    "comments": u"",
+                    "comments": "",
                     "idEnC": 1,
                     "ord": 0,
-                    "bibkey": u"abc",
-                    "name": u"Tags",
+                    "bibkey": "abc",
+                    "name": "Tags",
                 }
             ],
         )
@@ -2255,12 +2255,12 @@ class TestDatabaseCategories(DBTestCase):
                     "idCat": 1,
                     "idExp": 1,
                     "parentCat": 0,
-                    "description": u"Use this category to store tags "
+                    "description": "Use this category to store tags "
                     + "(such as: ongoing projects, temporary cats,...)",
-                    "comments": u"",
+                    "comments": "",
                     "idExC": 1,
                     "ord": 0,
-                    "name": u"Tags",
+                    "name": "Tags",
                 }
             ],
         )
@@ -2271,18 +2271,18 @@ class TestDatabaseCategories(DBTestCase):
                 {
                     "idCat": 1,
                     "parentCat": 0,
-                    "description": u"Use this category to store tags "
+                    "description": "Use this category to store tags "
                     + "(such as: ongoing projects, temporary cats,...)",
-                    "comments": u"",
+                    "comments": "",
                     "idEnC": 1,
                     "ord": 0,
-                    "bibkey": u"abc",
-                    "name": u"Tags",
+                    "bibkey": "abc",
+                    "name": "Tags",
                 }
             ],
         )
         data = self.pBDB.bibs.prepareInsert(
-            u'\n\n%comment\n@article{defghi,\nauthor = "me",\n' + 'title = "title",}',
+            '\n\n%comment\n@article{defghi,\nauthor = "me",\n' + 'title = "title",}',
             bibkey="defghi",
         )
         self.assertTrue(self.pBDB.catBib.insert(0, "defghi"))
@@ -2292,13 +2292,13 @@ class TestDatabaseCategories(DBTestCase):
                 {
                     "idCat": 1,
                     "parentCat": 0,
-                    "description": u"Use this category to store tags "
+                    "description": "Use this category to store tags "
                     + "(such as: ongoing projects, temporary cats,...)",
-                    "comments": u"",
+                    "comments": "",
                     "idEnC": 1,
                     "ord": 0,
-                    "bibkey": u"abc",
-                    "name": u"Tags",
+                    "bibkey": "abc",
+                    "name": "Tags",
                 },
                 {
                     "idCat": 0,
@@ -2309,7 +2309,7 @@ class TestDatabaseCategories(DBTestCase):
                     "parentCat": 0,
                     "ord": 0,
                     "idEnC": 2,
-                    "bibkey": u"defghi",
+                    "bibkey": "defghi",
                 },
             ],
         )
@@ -2450,15 +2450,15 @@ class TestDatabaseEntries(DBTestCase):
     def insert_three(self):
         """Insert three elements in the DB for testing"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
+            '@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}', arxiv="ghi"
+            '@article{ghi,\nauthor = "me",\ntitle = "ghi",}', arxiv="ghi"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
 
@@ -3397,12 +3397,12 @@ class TestDatabaseEntries(DBTestCase):
         """test cleanBibtexs"""
         self.insert_three()
         bibtexIn = (
-            u'%comment\n@article{abc,\n\nauthor = "me",\n'
+            '%comment\n@article{abc,\n\nauthor = "me",\n'
             + 'title = "ab\nc",\njournal="jcap",\nvolume="1803",\n'
             + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
         )
         bibtexOut = (
-            u'@Article{abc,\n        author = "me",\n         '
+            '@Article{abc,\n        author = "me",\n         '
             + 'title = "{ab c}",\n       journal = "jcap",\n        '
             + 'volume = "1803",\n          year = "2018",\n         '
             + 'pages = "1",\n         arxiv = "1234.56789",\n}'
@@ -3497,7 +3497,7 @@ class TestDatabaseEntries(DBTestCase):
         self.maxDiff = None
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "abc",\njournal="jcap",\nvolume="3",\n'
                 + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
             )
@@ -3516,7 +3516,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
-                u'@article{abc,\nauthor = "me and you and him and them",'
+                '@article{abc,\nauthor = "me and you and him and them",'
                 + '\ntitle = "abc",\nyear="2021",\n}'
             )
         )
@@ -3532,9 +3532,9 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(completed["bibdict"], completed["bibtexDict"])
 
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{def,\nauthor = "me",\ntitle = "def",}'
+            '@article{def,\nauthor = "me",\ntitle = "def",}'
         )
-        data["bibtex"] = u'@article{abc,\nauthor = "me",\ntitle = "de"f",}'
+        data["bibtex"] = '@article{abc,\nauthor = "me",\ntitle = "de"f",}'
         self.assertTrue(self.pBDB.bibs.insert(data))
         fetched = self.pBDB.bibs.getAll()
         completed = self.pBDB.bibs.completeFetched(fetched)
@@ -3551,10 +3551,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             completed[1]["bibtexDict"],
             {
-                "ENTRYTYPE": u"article",
-                u"author": u"me",
-                "ID": u"def",
-                u"title": u"{def}",
+                "ENTRYTYPE": "article",
+                "author": "me",
+                "ID": "def",
+                "title": "{def}",
             },
         )
         self.assertEqual(completed[0]["bibdict"], completed[0]["bibtexDict"])
@@ -4673,15 +4673,15 @@ class TestDatabaseEntries(DBTestCase):
             self.assertIn("Query failed:", _e.call_args[0][0])
 
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{jkl,\nauthor = "me",\ntitle = "jkl",}'
+            '@article{jkl,\nauthor = "me",\ntitle = "jkl",}'
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{mno,\nauthor = "me",\ntitle = "mno",}', arxiv="mno1"
+            '@article{mno,\nauthor = "me",\ntitle = "mno",}', arxiv="mno1"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{pqr,\nauthor = "me",\ntitle = "pqr",}', arxiv="pq.r"
+            '@article{pqr,\nauthor = "me",\ntitle = "pqr",}', arxiv="pq.r"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertTrue(
@@ -6108,22 +6108,22 @@ class TestDatabaseEntries(DBTestCase):
     def test_findCorrupted(self, *args):
         """test the function that finds corrupted bibtexs"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
+            '@article{def,\nauthor = "me",\ntitle = "def",}', arxiv="def"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertTrue(
             self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,\nauthor = "m"e",\ntitle = "def",}'
+                "def", "bibtex", '@article{def,\nauthor = "m"e",\ntitle = "def",}'
             )
         )
         self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), ["def"])
         self.assertTrue(
             self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,\nauthor = "me",title = "def"'
+                "def", "bibtex", '@article{def,\nauthor = "me",title = "def"'
             )
         )
         pbm = MagicMock()
@@ -6136,7 +6136,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(startFrom=1), ["def"])
         self.assertTrue(
             self.pBDB.bibs.updateField(
-                "def", "bibtex", u'@article{def,author = "me",title = "def"}'
+                "def", "bibtex", '@article{def,author = "me",title = "def"}'
             )
         )
         self.assertEqual(self.pBDB.bibs.findCorruptedBibtexs(), [])
@@ -6149,9 +6149,9 @@ class TestDatabaseEntries(DBTestCase):
         """
         self.maxDiff = None
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
-        self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
+        self.pBDB.bibs.insertFromBibtex('@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
         d1 = "2018-01-01"
         d2 = "2018-01-02"
         d1t = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
@@ -6200,9 +6200,9 @@ class TestDatabaseEntries(DBTestCase):
                 "published": "",
                 "author": "",
                 "bibdict": {
-                    u"arxiv": u"1303.5076",
-                    "ENTRYTYPE": u"article",
-                    "ID": u"Ade:2013zuv",
+                    "arxiv": "1303.5076",
+                    "ENTRYTYPE": "article",
+                    "ID": "Ade:2013zuv",
                 },
             },
         )
@@ -6250,9 +6250,9 @@ class TestDatabaseEntries(DBTestCase):
                 "published": "",
                 "author": "",
                 "bibdict": {
-                    u"arxiv": u"1507.08204",
-                    "ENTRYTYPE": u"article",
-                    "ID": u"Gariazzo:2015rra",
+                    "arxiv": "1507.08204",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
                 },
             },
         )
@@ -6265,20 +6265,20 @@ class TestDatabaseEntries(DBTestCase):
                 [],
                 [
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.",
-                        "arxiv": u"1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "pubdate": "2016-01-13",
+                        "firstdate": "2015-07-29",
+                        "journal": "J.Phys.",
+                        "arxiv": "1507.08204",
                         "id": "1385583",
-                        "volume": u"G43",
+                        "volume": "G43",
                         "bibtex": None,
-                        "year": u"2016",
+                        "year": "2016",
                         "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        "pages": u"033001",
+                        "bibkey": "Gariazzo:2015rra",
+                        "pages": "033001",
                         "author": "S. Gariazzo et al",
                         "title": "Light sterile neutrinos",
                         "cit": 123,
@@ -6349,9 +6349,9 @@ class TestDatabaseEntries(DBTestCase):
                     "published": "",
                     "author": "",
                     "bibdict": {
-                        u"arxiv": u"1303.5076",
-                        "ENTRYTYPE": u"article",
-                        "ID": u"Ade:2013zuv",
+                        "arxiv": "1303.5076",
+                        "ENTRYTYPE": "article",
+                        "ID": "Ade:2013zuv",
                     },
                 },
             )
@@ -6414,24 +6414,24 @@ class TestDatabaseEntries(DBTestCase):
                     "published": "J.Phys. G43 (2016) 033001",
                     "author": "S. Gariazzo et al",
                     "bibdict": {
-                        u"doi": u"10.1088/0954-3899/43/3/033001",
-                        u"journal": u"J.Phys.",
-                        u"eprint": u"1507.08204",
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "journal": "J.Phys.",
+                        "eprint": "1507.08204",
                         "author": "S. Gariazzo et al",
                         "title": "{Light sterile neutrinos}",
-                        "ENTRYTYPE": u"article",
-                        u"volume": u"G43",
-                        u"year": u"2016",
-                        "ID": u"Gariazzo:2015rra",
-                        u"pages": u"033001",
+                        "ENTRYTYPE": "article",
+                        "volume": "G43",
+                        "year": "2016",
+                        "ID": "Gariazzo:2015rra",
+                        "pages": "033001",
                     },
                 },
             )
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
-        self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
+        self.pBDB.bibs.insertFromBibtex('@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
         self.pBDB.bibs.setNoUpdate("Ade:2013zuv")
         d1 = "2018-01-01"
         d2 = "2018-01-02"
@@ -6479,9 +6479,9 @@ class TestDatabaseEntries(DBTestCase):
                 "published": "",
                 "author": "",
                 "bibdict": {
-                    u"arxiv": u"1303.5076",
-                    "ENTRYTYPE": u"article",
-                    "ID": u"Ade:2013zuv",
+                    "arxiv": "1303.5076",
+                    "ENTRYTYPE": "article",
+                    "ID": "Ade:2013zuv",
                 },
             },
         )
@@ -6529,9 +6529,9 @@ class TestDatabaseEntries(DBTestCase):
                 "published": "",
                 "author": "",
                 "bibdict": {
-                    u"arxiv": u"1507.08204",
-                    "ENTRYTYPE": u"article",
-                    "ID": u"Gariazzo:2015rra",
+                    "arxiv": "1507.08204",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
                 },
             },
         )
@@ -6540,20 +6540,20 @@ class TestDatabaseEntries(DBTestCase):
             side_effect=[
                 [
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.",
-                        "arxiv": u"1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "pubdate": "2016-01-13",
+                        "firstdate": "2015-07-29",
+                        "journal": "J.Phys.",
+                        "arxiv": "1507.08204",
                         "id": "1385583",
-                        "volume": u"G43",
+                        "volume": "G43",
                         "bibtex": None,
-                        "year": u"2016",
+                        "year": "2016",
                         "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        "pages": u"033001",
+                        "bibkey": "Gariazzo:2015rra",
+                        "pages": "033001",
                         "author": "S. Gariazzo et al",
                         "title": "Light sterile neutrinos",
                     }
@@ -6609,9 +6609,9 @@ class TestDatabaseEntries(DBTestCase):
                     "published": "",
                     "author": "",
                     "bibdict": {
-                        u"arxiv": u"1303.5076",
-                        "ENTRYTYPE": u"article",
-                        "ID": u"Ade:2013zuv",
+                        "arxiv": "1303.5076",
+                        "ENTRYTYPE": "article",
+                        "ID": "Ade:2013zuv",
                     },
                 },
             )
@@ -6672,16 +6672,16 @@ class TestDatabaseEntries(DBTestCase):
                     "published": "J.Phys. G43 (2016) 033001",
                     "author": "S. Gariazzo et al",
                     "bibdict": {
-                        u"doi": u"10.1088/0954-3899/43/3/033001",
-                        u"journal": u"J.Phys.",
-                        u"eprint": u"1507.08204",
+                        "doi": "10.1088/0954-3899/43/3/033001",
+                        "journal": "J.Phys.",
+                        "eprint": "1507.08204",
                         "author": "S. Gariazzo et al",
                         "title": "{Light sterile neutrinos}",
-                        "ENTRYTYPE": u"article",
-                        u"volume": u"G43",
-                        u"year": u"2016",
-                        "ID": u"Gariazzo:2015rra",
-                        u"pages": u"033001",
+                        "ENTRYTYPE": "article",
+                        "volume": "G43",
+                        "year": "2016",
+                        "ID": "Gariazzo:2015rra",
+                        "pages": "033001",
                     },
                 },
             )
@@ -6701,7 +6701,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_getField(self, *args):
         """test getField"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}',
             arxiv="abc",
             doi="1",
             isbn=9,
@@ -6728,9 +6728,9 @@ class TestDatabaseEntries(DBTestCase):
     def test_getFieldsFromArxiv(self, *args):
         """tests for getFieldsFromArxiv (online)"""
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
-        self.pBDB.bibs.insertFromBibtex(u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
+        self.pBDB.bibs.insertFromBibtex('@article{Ade:2013zuv,\narxiv="1303.5076"\n}')
         self.assertNotIn("Aghanim", self.pBDB.bibs.getField("Ade:2013zuv", "bibtex"))
         self.assertFalse(self.pBDB.bibs.getFieldsFromArxiv("abcd", "authors"))
         self.assertTrue(self.pBDB.bibs.getFieldsFromArxiv("Ade:2013zuv", "authors"))
@@ -6811,7 +6811,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_getUrl(self, *args):
         """test getUrl"""
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}',
             ads="abc...123",
             arxiv="1234.5678",
             doi="1/2/3",
@@ -6829,7 +6829,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
-                u'@article{def,\nauthor = "me",\ntitle = "def",}'
+                '@article{def,\nauthor = "me",\ntitle = "def",}'
             )
         )
         self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
@@ -6838,7 +6838,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_importFromBib(self, *args):
         with open("tmpbib.bib", "w") as f:
             f.write(
-                u'@article{abc,\nauthor = "me",\ntitle = '
+                '@article{abc,\nauthor = "me",\ntitle = '
                 + '"abc",}@article{def,\nauthor = "me",\ntitle = "def@ghi",}'
             )
         pbm = MagicMock()
@@ -6853,7 +6853,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         with open("tmpbib.bib", "w") as f:
             f.write(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "abc",\n}\n@article{def,\n}\n'
             )
         self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
@@ -6862,7 +6862,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         with open("tmpbib.bib", "w") as f:
             f.write(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "abc",\n}\n@article{def,\n}\n'
             )
         self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
@@ -6871,7 +6871,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         with open("tmpbib.bib", "w") as f:
             f.write(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + "month = jan,\n}\n@article{def,\n}\n"
             )
         self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
@@ -6881,7 +6881,7 @@ class TestDatabaseEntries(DBTestCase):
         # test with completeInfo
         with open("tmpbib.bib", "w") as f:
             f.write(
-                u'@article{Gariazzo:2015rra,\nauthor = "me",\n'
+                '@article{Gariazzo:2015rra,\nauthor = "me",\n'
                 + 'arxiv = "1507.08204",\n}\n@article{'
                 + 'Gariazzo:2014rra,\nauthor="me",\n}\n'
             )
@@ -6897,20 +6897,20 @@ class TestDatabaseEntries(DBTestCase):
             "physbiblio.webimport.inspire.WebSearch.retrieveOAIData",
             side_effect=[
                 {
-                    "doi": u"10.1088/0954-3899/43/3/033001",
+                    "doi": "10.1088/0954-3899/43/3/033001",
                     "isbn": None,
-                    "ads": u"2015JPhG...43c3001G",
-                    "pubdate": u"2016-01-13",
-                    "firstdate": u"2015-07-29",
-                    "journal": u"J.Phys.",
-                    "arxiv": u"1507.08204",
+                    "ads": "2015JPhG...43c3001G",
+                    "pubdate": "2016-01-13",
+                    "firstdate": "2015-07-29",
+                    "journal": "J.Phys.",
+                    "arxiv": "1507.08204",
                     "id": "1385583",
-                    "volume": u"G43",
+                    "volume": "G43",
                     "bibtex": None,
-                    "year": u"2016",
+                    "year": "2016",
                     "oldkeys": "",
-                    "bibkey": u"Gariazzo:2015rra",
-                    "pages": u"033001",
+                    "bibkey": "Gariazzo:2015rra",
+                    "pages": "033001",
                 },
                 [],
             ],
@@ -7197,7 +7197,7 @@ class TestDatabaseEntries(DBTestCase):
         """Test insertion and of bibtex items"""
         self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
@@ -7206,12 +7206,10 @@ class TestDatabaseEntries(DBTestCase):
         self.assertFalse(self.pBDB.bibs.insert(data))
         with patch("logging.Logger.exception") as _i:
             self.pBDB.bibs.insert(data)
-            self.assertIn(
-                "You did not supply a value for binding 3.", _i.call_args[0][0]
-            )
+            self.assertIn("You did not supply a value for binding", _i.call_args[0][0])
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+                '@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
             )
         )
 
@@ -7357,7 +7355,7 @@ class TestDatabaseEntries(DBTestCase):
             # test add categories
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u"\n@article{key0,\n"
+                return_value="\n@article{key0,\n"
                 + 'author = "Gariazzo",\ntitle = "{title}",}\n',
                 autospec=True,
             ) as _mock:
@@ -7373,13 +7371,13 @@ class TestDatabaseEntries(DBTestCase):
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    '\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    '\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    '\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    '\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
                 ],
                 autospec=True,
@@ -7406,10 +7404,10 @@ class TestDatabaseEntries(DBTestCase):
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
-                    u'@article{key0,\nauthor = "Gariazzo",\n'
+                    '@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n@article{key1,\nauthor = '
                     + '"Gariazzo",\ntitle = "{title}",}\n',
-                    u'@article{key0,\nauthor = "Gariazzo",\n'
+                    '@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n@article{key1,\n'
                     + 'author = "Gariazzo",\ntitle = "{title}",}\n',
                 ],
@@ -7431,7 +7429,7 @@ class TestDatabaseEntries(DBTestCase):
             # test setBook when using isbn
             with patch(
                 "physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
-                return_value=u"@article{key0,\n"
+                return_value="@article{key0,\n"
                 + 'author = "Gariazzo",\ntitle = "{title}",}',
                 autospec=True,
             ) as _mock:
@@ -7442,16 +7440,16 @@ class TestDatabaseEntries(DBTestCase):
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
-                    u'\n@article{key0,\nauthor = "Gariazzo",\n'
+                    '\n@article{key0,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",}\n',
-                    u'\n@article{key1,\nauthor = "Gariazzo",\n'
+                    '\n@article{key1,\nauthor = "Gariazzo",\n'
                     + 'title = "{title}",\narxiv="1234.5678",}\n',
                 ],
                 autospec=True,
             ) as _mock, patch(
                 "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
                 return_value=(
-                    u"\n@article{key0,\n"
+                    "\n@article{key0,\n"
                     + 'author = "Gariazzo",\ntitle = "{title}",}\n',
                     {"abstract": "some fake abstract"},
                 ),
@@ -7475,10 +7473,10 @@ class TestDatabaseEntries(DBTestCase):
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
                 side_effect=[
-                    u"\n@article{key0,\nauthor = ",
-                    u"\n@article{key0,\nauthor = ",
-                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
-                    u'\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
+                    "\n@article{key0,\nauthor = ",
+                    "\n@article{key0,\nauthor = ",
+                    '\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
+                    '\n@article{ ,\nauthor = "Gariazzo",\n' + 'title = "{title}",}\n',
                 ],
                 autospec=True,
             ) as _mock, patch.dict(
@@ -7505,7 +7503,7 @@ class TestDatabaseEntries(DBTestCase):
             # test updateInspireID, updateInfoFromOAI are called
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u"\n@article{key0,\n"
+                return_value="\n@article{key0,\n"
                 + 'author = "Gariazzo",\ntitle = "{title}",'
                 + '\narxiv="1234.5678",}',
                 autospec=True,
@@ -7521,7 +7519,7 @@ class TestDatabaseEntries(DBTestCase):
             # test updateInspireID, updateInfoFromOAI are called
             with patch(
                 "physbiblio.webimport.inspire.WebSearch.retrieveUrlAll",
-                return_value=u'@article{key0,\nauthor = "Gariazzo",'
+                return_value='@article{key0,\nauthor = "Gariazzo",'
                 + '\ntitle = "{title}",\narxiv="1234.5678",}\n@article{'
                 + 'key1,\nauthor = "Gariazzo",\ntitle = "{title}",'
                 + '\narxiv="1234.5678",}\n',
@@ -7538,7 +7536,7 @@ class TestDatabaseEntries(DBTestCase):
             # test updateInspireID, updateInfoFromOAI are called
             with patch(
                 "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
-                return_value=u"@article{key0,\n"
+                return_value="@article{key0,\n"
                 + 'author = "Gariazzo",\ntitle = "{title}",'
                 + '\narxiv="1234.5678",}',
                 autospec=True,
@@ -7567,7 +7565,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_parseAllBibtexs(self, *args):
         """test parseAllBibtexs"""
         text = [
-            u"@article{abc,\n",
+            "@article{abc,\n",
             'author = "me",\n',
             'title = "",}',
             '%"abc",',
@@ -7587,7 +7585,7 @@ class TestDatabaseEntries(DBTestCase):
             self.assertTrue(_i.call_count >= 2)
             self.assertEqual([a["ID"] for a in res], ["abc", "def"])
         text = [
-            u"@article{abc,\n",
+            "@article{abc,\n",
             'author = "me",\n',
             '%title = "",}',
             '%"abc",',
@@ -7607,7 +7605,7 @@ class TestDatabaseEntries(DBTestCase):
         # multiple entries in bibtex:
         self.assertEqual(
             self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "mytit",}\n@article{def,\nauthor = "you",'
                 + '\ntitle = "other",}'
             )["bibkey"],
@@ -7615,7 +7613,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "mytit",}\n@article{def,\nauthor = "you",\n'
                 + 'title = "other",}',
                 number=1,
@@ -7625,7 +7623,7 @@ class TestDatabaseEntries(DBTestCase):
 
         # different fields
         bibtex = (
-            u'@article{abc,\nauthor = "me",\n'
+            '@article{abc,\nauthor = "me",\n'
             + 'title = "mytit",\narxiv="1801.00000",\n}'
         )
         self.assertEqual(
@@ -7650,7 +7648,7 @@ class TestDatabaseEntries(DBTestCase):
         )
 
         # test simple fields
-        bibtex = u'@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
+        bibtex = '@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
         for k in ["inspire", "ads", "scholar", "comments", "old_keys", "abstract"]:
             self.assertEqual(data[k], None)
             tmp = {}
@@ -7681,7 +7679,7 @@ class TestDatabaseEntries(DBTestCase):
             "1801.00000",
         )
         bibtexA = (
-            u'@article{abc,\nauthor = "me",\n'
+            '@article{abc,\nauthor = "me",\n'
             + 'title = "mytit",\neprint="1801.00000",\n}'
         )
         self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)["arxiv"], "1801.00000")
@@ -7693,7 +7691,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(data["abstract"], None)
         for k in ["doi", "isbn", "crossref", "abstract"]:
             bibtexA = (
-                u'@article{abc,\nauthor = "me",\n'
+                '@article{abc,\nauthor = "me",\n'
                 + 'title = "mytit",\n%s="something",\n}' % k
             )
             self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)[k], "something")
@@ -7713,7 +7711,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(
             self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nyear="2005",\n}'
+                '@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nyear="2005",\n}'
             )["year"],
             "2005",
         )
@@ -7740,7 +7738,7 @@ class TestDatabaseEntries(DBTestCase):
 
         # test abstract
         bibtex = (
-            u'@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nabstract="try",\n}'
+            '@article{abc,\nauthor = "me",\n' + 'title = "mytit",\nabstract="try",\n}'
         )
         data = self.pBDB.bibs.prepareInsert(bibtex)
         self.assertEqual(data["abstract"], "try")
@@ -7764,15 +7762,15 @@ class TestDatabaseEntries(DBTestCase):
 
     def test_prepareUpdate(self, *args):
         """test prepareUpdate and related functions"""
-        bibtexA = u'@article{abc,\nauthor="me",\ntitle="abc",\n}'
-        bibtexB = u'@article{abc1,\nauthor="me",\ntitle="ABC",' + '\narxiv="1234",\n}'
+        bibtexA = '@article{abc,\nauthor="me",\ntitle="abc",\n}'
+        bibtexB = '@article{abc1,\nauthor="me",\ntitle="ABC",' + '\narxiv="1234",\n}'
         bibtexE = "@article{,}"
         resultA = (
-            u'@Article{abc,\n        author = "me",\n'
+            '@Article{abc,\n        author = "me",\n'
             + '         title = "{ABC}",\n         arxiv = "1234",\n}'
         )
         resultB = (
-            u'@Article{abc1,\n        author = "me",\n'
+            '@Article{abc1,\n        author = "me",\n'
             + '         title = "{abc}",\n         arxiv = "1234",\n}'
         )
 
@@ -7954,12 +7952,12 @@ class TestDatabaseEntries(DBTestCase):
         """test replace functions"""
         # replaceInBibtex
         bibtexIn = (
-            u'@article{abc,\nauthor = "me",\n'
+            '@article{abc,\nauthor = "me",\n'
             + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
             + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
         )
         bibtexOut = (
-            u'@article{abc,\nauthor = "me",\n'
+            '@article{abc,\nauthor = "me",\n'
             + 'title = "abc",\njournal="jcap",\nvolume="1803",\n'
             + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
         )
@@ -7992,7 +7990,7 @@ class TestDatabaseEntries(DBTestCase):
 
         # replace
         bibtexOut = (
-            u'@Article{abc,\n        author = "me",\n         '
+            '@Article{abc,\n        author = "me",\n         '
             + 'title = "{abc}",\n       journal = "jcap",\n        '
             + 'volume = "1803",\n          year = "2018",\n         '
             + 'pages = "1",\n         arxiv = "1234.56789",\n}'
@@ -8041,12 +8039,12 @@ class TestDatabaseEntries(DBTestCase):
         )
 
         bibtexIn = (
-            u'@article{def,\nauthor = "me",\n'
+            '@article{def,\nauthor = "me",\n'
             + 'title = "def",\njournal="Phys. Rev.",\nvolume="D95",\n'
             + 'year="2018",\npages="1",\narxiv="1234.56789",\n}'
         )
         bibtexOut = (
-            u'@Article{def,\n        author = "me",\n         '
+            '@Article{def,\n        author = "me",\n         '
             + 'title = "{def}",\n       journal = "Phys. Rev. D",\n        '
             + 'volume = "95",\n          year = "2018",\n         '
             + 'pages = "1",\n         arxiv = "1234.56789",\n}'
@@ -8066,8 +8064,8 @@ class TestDatabaseEntries(DBTestCase):
             _i.assert_has_calls(
                 [
                     call("Replace will process 2 entries"),
-                    call(u"processing     1 / 2 (50.00%): entry abc"),
-                    call(u"processing     2 / 2 (100.00%): entry def"),
+                    call("processing     1 / 2 (50.00%): entry abc"),
+                    call("processing     2 / 2 (100.00%): entry def"),
                 ]
             )
         self.assertEqual(self.pBDB.bibs.getField("def", "bibtex"), bibtexOut)
@@ -8117,7 +8115,7 @@ class TestDatabaseEntries(DBTestCase):
         )
 
         bibtexIn = (
-            u'@article{ghi,\nauthor = "me",\n'
+            '@article{ghi,\nauthor = "me",\n'
             + 'title = "ghi",\neprint="1234.56789",\n}'
         )
         self.assertTrue(self.pBDB.bibs.insertFromBibtex(bibtexIn))
@@ -8140,9 +8138,9 @@ class TestDatabaseEntries(DBTestCase):
             _i.assert_has_calls(
                 [
                     call("Replace will process 5 entries"),
-                    call(u"processing     1 / 5 (20.00%): entry abc"),
-                    call(u"processing     2 / 5 (40.00%): entry def"),
-                    call(u"processing     3 / 5 (60.00%): entry ghi"),
+                    call("processing     1 / 5 (20.00%): entry abc"),
+                    call("processing     2 / 5 (40.00%): entry def"),
+                    call("processing     3 / 5 (60.00%): entry ghi"),
                 ]
             )
         pbm.assert_called_once_with(5)
@@ -8444,48 +8442,48 @@ class TestDatabaseEntries(DBTestCase):
         """Test rmBibtexComments and rmBibtexACapo"""
         self.assertEqual(
             self.pBDB.bibs.rmBibtexComments(
-                u'%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+                '%comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
             ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
+            '@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
         )
         self.assertEqual(
             self.pBDB.bibs.rmBibtexComments(
-                u' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
+                ' %comment\n@article{ghi,\nauthor = "me",\ntitle = "ghi",}'
             ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
+            '@article{ghi,\nauthor = "me",\ntitle = "ghi",}',
         )
         self.assertEqual(
             self.pBDB.bibs.rmBibtexComments(
-                u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'
+                '@article{ghi,\nauthor = "%me",\ntitle = "ghi",}'
             ),
-            u'@article{ghi,\nauthor = "%me",\ntitle = "ghi",}',
+            '@article{ghi,\nauthor = "%me",\ntitle = "ghi",}',
         )
         self.assertEqual(
             self.pBDB.bibs.rmBibtexComments(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",'
+                '@article{ghi,\nauthor = "me",\ntitle = "ghi",'
                 + '\n  %journal="JCAP",\n}'
             ),
-            u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}',
+            '@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}',
         )
 
         self.assertEqual(
             self.pBDB.bibs.rmBibtexACapo(
-                u'@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'
+                '@article{ghi,\nauthor = "me",\ntitle = "gh\ni",\n}'
             ),
-            u'@Article{ghi,\n        author = "me",\n         '
+            '@Article{ghi,\n        author = "me",\n         '
             + 'title = "{gh i}",\n}\n\n',
         )
         self.assertEqual(
             self.pBDB.bibs.rmBibtexACapo(
-                u'@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'
+                '@article{ghi,\nauthor = "me",\ntitle = "ghi",\n}'
             ),
-            u'@Article{ghi,\n        author = "me",\n         '
+            '@Article{ghi,\n        author = "me",\n         '
             + 'title = "{ghi}",\n}\n\n',
         )
         with patch("logging.Logger.warning") as _w:
             self.assertEqual(
                 self.pBDB.bibs.rmBibtexACapo(
-                    u'@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
+                    '@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
                 ),
                 "",
             )
@@ -8494,7 +8492,7 @@ class TestDatabaseEntries(DBTestCase):
                 + '@article{ghi,\nauthor = ""ame",\ntitle = "ghi",\n}'
             )
         with patch("logging.Logger.warning") as _w:
-            self.assertEqual(self.pBDB.bibs.rmBibtexACapo(u"%abc"), "")
+            self.assertEqual(self.pBDB.bibs.rmBibtexACapo("%abc"), "")
             _w.assert_called_once_with("Cannot parse properly:\n%abc")
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
@@ -8503,12 +8501,12 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+                '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
             )
         )
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Planck:2013pxb,\narxiv="1303.5076"\n}', inspire="1224741"
+                '@article{Planck:2013pxb,\narxiv="1303.5076"\n}', inspire="1224741"
             )
         )
         self.assertEqual(
@@ -8536,12 +8534,12 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(self.pBDB.bibs.searchOAIUpdates(startFrom=1), (0, [], []))
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire=i1
+                '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire=i1
             )
         )
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire=i2
+                '@article{Ade:2013zuv,\narxiv="1303.5076"\n}', inspire=i2
             )
         )
         pbm = MagicMock()
@@ -8714,12 +8712,12 @@ class TestDatabaseEntries(DBTestCase):
         """Test general update, field update, bibkey update"""
         self.assertFalse(self.pBDB.bibs.getField("abc", "bibkey"))
         data = self.pBDB.bibs.prepareInsert(
-            u'@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
+            '@article{abc,\nauthor = "me",\ntitle = "abc",}', arxiv="abc"
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
         datanew = self.pBDB.bibs.prepareInsert(
-            u'@article{cde,\nauthor = "me",\ntitle = "abc",}', arxiv="cde"
+            '@article{cde,\nauthor = "me",\ntitle = "abc",}', arxiv="cde"
         )
         self.assertTrue(self.pBDB.bibs.update(datanew, "abc"))
         self.assertEqual(self.pBDB.bibs.getField("abc", "bibkey"), "abc")
@@ -8739,7 +8737,7 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.update(
                 {
                     "bibkey": "cde",
-                    "bibtex": u'@article{abc,\nauthor = "me",\ntitle = "abc",}',
+                    "bibtex": '@article{abc,\nauthor = "me",\ntitle = "abc",}',
                 },
                 "abc",
             )
@@ -8828,7 +8826,7 @@ class TestDatabaseEntries(DBTestCase):
         """test updateFromOAI with online connection"""
         expected = fullRecordGariazzo
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
         self.assertTrue(self.pBDB.bibs.updateFromOAI("Gariazzo:2015rra"))
         res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
@@ -8840,7 +8838,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+                '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
             )
         )
         self.assertTrue(self.pBDB.bibs.updateFromOAI("1385583"))
@@ -8857,7 +8855,7 @@ class TestDatabaseEntries(DBTestCase):
         """
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
+                '@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
             )
         )
         with patch(
@@ -8884,7 +8882,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.assertEqual(mock_function.call_count, 2)
                 mock_function.assert_called_with(self.pBDB.bibs, "1234", verbose=0)
                 mock_function.reset_mock()
-                self.pBDB.bibs.insertFromBibtex(u'@article{def,\narxiv="1234.56789"\n}')
+                self.pBDB.bibs.insertFromBibtex('@article{def,\narxiv="1234.56789"\n}')
                 self.assertEqual(self.pBDB.bibs.updateFromOAI("def", verbose=1), "e")
                 mock_function.assert_called_once_with(
                     self.pBDB.bibs, "54321", verbose=1
@@ -8899,7 +8897,7 @@ class TestDatabaseEntries(DBTestCase):
         expected = fullRecordGariazzo
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+                '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
             )
         )
         self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("Gariazzo:2015rra"))
@@ -8912,7 +8910,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.undo(verbose=0)
         self.pBDB.bibs.insert(
             self.pBDB.bibs.prepareInsert(
-                u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
+                '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}', inspire="1385583"
             )
         )
         self.assertTrue(self.pBDB.bibs.updateInfoFromOAI("1385583"))
@@ -8927,20 +8925,20 @@ class TestDatabaseEntries(DBTestCase):
         """test updateInfoFromOAI, but with mocked methods"""
         dt = datetime.date.today().strftime("%Y-%m-%d")
         mockOut = {
-            "doi": u"10.1088/0954-3899/43/3/033001",
+            "doi": "10.1088/0954-3899/43/3/033001",
             "isbn": None,
-            "ads": u"2015JPhG...43c3001G",
-            "pubdate": u"2016-01-13",
-            "firstdate": u"2015-07-29",
-            "journal": u"J.Phys.",
-            "arxiv": u"1507.08204",
+            "ads": "2015JPhG...43c3001G",
+            "pubdate": "2016-01-13",
+            "firstdate": "2015-07-29",
+            "journal": "J.Phys.",
+            "arxiv": "1507.08204",
             "id": "1385583",
-            "volume": u"G43",
+            "volume": "G43",
             "bibtex": None,
-            "year": u"2016",
+            "year": "2016",
             "oldkeys": "",
-            "bibkey": u"Gariazzo:2015rra",
-            "pages": u"033001",
+            "bibkey": "Gariazzo:2015rra",
+            "pages": "033001",
         }
         self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(False))
         self.assertFalse(self.pBDB.bibs.updateInfoFromOAI(""))
@@ -8961,66 +8959,66 @@ class TestDatabaseEntries(DBTestCase):
                     mockOut,
                     mockOut,
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
+                        "ads": "2015JPhG...43c3001G",
+                        "pubdate": "2016-01-13",
+                        "firstdate": "2015-07-29",
                         # "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
+                        "arxiv": "1507.08204",
                         "id": "1385583",
                         # "volume": u"43",
                         "bibtex": None,
-                        "year": u"2016",
+                        "year": "2016",
                         "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
+                        "bibkey": "Gariazzo:2015rra",
                         # "pages": u"033001",
                     },
                     {
                         # "doi": u"10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "pubdate": "2016-01-13",
+                        "firstdate": "2015-07-29",
+                        "journal": "J.Phys.G",
+                        "arxiv": "1507.08204",
                         "id": "1385583",
                         # "volume": u"43",
                         "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
                         + '\ntitle="{Light Sterile Neutrinos}"\n}',
-                        "year": u"2016",
+                        "year": "2016",
                         "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
+                        "bibkey": "Gariazzo:2015rra",
                         # "pages": u"033001",
                         "author": "Gariazzo",
                         "title": "{Light Sterile Neutrinos}",
                     },
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
-                        "ads": u"2015JPhG...43c3001G",
-                        "pubdate": u"2016-01-13",
-                        "firstdate": u"2015-07-29",
-                        "journal": u"J.Phys.G",
-                        "arxiv": u"1507.08204",
+                        "ads": "2015JPhG...43c3001G",
+                        "pubdate": "2016-01-13",
+                        "firstdate": "2015-07-29",
+                        "journal": "J.Phys.G",
+                        "arxiv": "1507.08204",
                         "id": "1385583",
-                        "volume": u"43",
+                        "volume": "43",
                         "bibtex": '@Article{Gariazzo:2015rra,\nauthor="Gariazzo",'
                         + '\ntitle="{Light Sterile Neutrinos}"\n}',
-                        "year": u"2016",
+                        "year": "2016",
                         "oldkeys": "",
-                        "bibkey": u"Gariazzo:2015rra",
-                        "pages": u"033001",
+                        "bibkey": "Gariazzo:2015rra",
+                        "pages": "033001",
                     },
-                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
-                    {"doi": u"10.1088/0954-3899/43/3/033001", "isbn": None},
+                    {"doi": "10.1088/0954-3899/43/3/033001", "isbn": None},
+                    {"doi": "10.1088/0954-3899/43/3/033001", "isbn": None},
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "bibkey": "Gariazzo:2015rra",
                         "id": "Gariazzo:2015rra",
                     },
                     {
-                        "doi": u"10.1088/0954-3899/43/3/033001",
+                        "doi": "10.1088/0954-3899/43/3/033001",
                         "bibkey": "Gariazzo:2015rra",
                         "id": "Gariazzo:2015rra",
                     },
@@ -9049,7 +9047,7 @@ class TestDatabaseEntries(DBTestCase):
                 )
                 self.assertEqual(self.pBDB.bibs.getByBibkey("Gariazzo:2015rra"), [])
                 self.pBDB.bibs.insertFromBibtex(
-                    u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+                    '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
                 )
                 res = self.pBDB.bibs.getByBibkey("Gariazzo:2015rra")[0]
                 del res["citations"]
@@ -9095,22 +9093,22 @@ class TestDatabaseEntries(DBTestCase):
                         "published": "",
                         "author": "",
                         "bibdict": {
-                            u"arxiv": u"1507.08204",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
+                            "arxiv": "1507.08204",
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
                         },
                     },
                 )
                 mock_function.reset_mock()
                 self.pBDB.bibs.updateInfoFromOAI(
                     "12345",
-                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
+                    bibtex="@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
                     verbose=2,
                 )
                 mock_function.assert_called_once_with(
                     physBiblioWeb.webSearch["inspire"],
                     "12345",
-                    bibtex=u"@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
+                    bibtex="@article{Gariazzo:2015rra,\n" + 'arxiv="1507.08204"\n}',
                     readConferenceTitle=False,
                     verbose=2,
                 )
@@ -9162,10 +9160,10 @@ class TestDatabaseEntries(DBTestCase):
                         "published": "",
                         "author": "",
                         "bibdict": {
-                            u"eprint": u"1507.08204",
+                            "eprint": "1507.08204",
                             "doi": "10.1088/0954-3899/43/3/033001",
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
                             "year": "2016",
                         },
                     },
@@ -9226,8 +9224,8 @@ class TestDatabaseEntries(DBTestCase):
                         "published": "J.Phys.G  (2016) ",
                         "author": "Gariazzo",
                         "bibdict": {
-                            "ENTRYTYPE": u"article",
-                            "ID": u"Gariazzo:2015rra",
+                            "ENTRYTYPE": "article",
+                            "ID": "Gariazzo:2015rra",
                             "author": "Gariazzo",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "eprint": "1507.08204",
@@ -9299,9 +9297,9 @@ class TestDatabaseEntries(DBTestCase):
                         "published": "J.Phys.G 43 (2016) 033001",
                         "author": "Gariazzo",
                         "bibdict": {
-                            "ID": u"Gariazzo:2015rra",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"Gariazzo",
+                            "ID": "Gariazzo:2015rra",
+                            "ENTRYTYPE": "article",
+                            "author": "Gariazzo",
                             "doi": "10.1088/0954-3899/43/3/033001",
                             "eprint": "1507.08204",
                             "pages": "033001",
@@ -9322,7 +9320,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_updateInspireID(self, *args):
         """tests for updateInspireID (online)"""
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015rra,\narxiv="1507.08204"\n}'
         )
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.assertEqual(
@@ -9333,24 +9331,24 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.pBDB.bibs.delete("Gariazzo:2015rra")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\narxiv="1507.08204"\n}'
+            '@article{Gariazzo:2015,\narxiv="1507.08204"\n}'
         )
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.pBDB.bibs.delete("Gariazzo:2015")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+            '@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
             + '\narxiv="150708204"\n}'
         )
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.pBDB.bibs.delete("Gariazzo:2015")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.10880954-3899433033001"'
+            '@article{Gariazzo:2015,\ndoi="10.10880954-3899433033001"'
             + '\narxiv="1507.08204"\n}'
         )
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.pBDB.bibs.delete("Gariazzo:2015")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
+            '@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
         )
         self.assertFalse(
             self.pBDB.bibs.updateInspireID("Gariazzo:2015r", "Gariazzo:2015rra")
@@ -9358,14 +9356,14 @@ class TestDatabaseEntries(DBTestCase):
         self.assertFalse(self.pBDB.bibs.updateInspireID("abcdefghi"))
         self.pBDB.bibs.delete("Gariazzo:2015")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
+            '@article{Gariazzo:2015,\ndoi="10.1088/0954-3899/43/3/033001"'
             + '\narxiv="150708204"\n}'
         )
         self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
         self.assertEqual(self.pBDB.bibs.updateInspireID("Gariazzo:2015rra"), "1385583")
         self.pBDB.bibs.delete("Gariazzo:2015")
         self.pBDB.bibs.insertFromBibtex(
-            u'@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
+            '@article{Gariazzo:2015,\ntitle="Light Sterile Neutrino"\n}'
         )
         self.pBDB.bibs.updateField("Gariazzo:2015", "inspireID", None)
         self.assertFalse(self.pBDB.bibs.updateInspireID("Gariazzo:2015abcd"))
@@ -9379,7 +9377,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(a["bibkey"], "abc")
         self.assertEqual(
             a["bibtex"],
-            u'@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
+            '@Article{abc,\n        author = "me",\n         ' + 'title = "{abc}",\n}',
         )
 
     def test_updateRecord(self, *args):
@@ -9645,16 +9643,16 @@ class TestDatabaseUtilities(DBTestCase):
     def test_bibtexs(self, *args):
         """Create and clean a bibtex entry"""
         data = self.pBDB.bibs.prepareInsert(
-            u'\n\n%comment\n@article{abc,\nauthor = "me",\n'
-            + u'title = "\u00E8\n\u00F1",}',
+            '\n\n%comment\n@article{abc,\nauthor = "me",\n'
+            + 'title = "\u00E8\n\u00F1",}',
             bibkey="abc",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
         self.assertEqual(self.pBDB.utils.cleanAllBibtexs(), None)
         self.assertEqual(
             self.pBDB.bibs.getField("abc", "bibtex"),
-            u'@Article{abc,\n        author = "me",\n         '
-            + u'title = "{{\`e} {\~n}}",\n}\n\n',
+            '@Article{abc,\n        author = "me",\n         '
+            + 'title = "{{\`e} {\~n}}",\n}\n\n',
         )
         self.pBDB.bibs.delete("abc")
 

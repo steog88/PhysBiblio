@@ -126,10 +126,10 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.exps,
                 {
-                    "name": u"myexp",
-                    "inspire": u"1234",
+                    "name": "myexp",
+                    "inspire": "1234",
                     "homepage": "www.some.thing.com",
-                    "comments": u"comm",
+                    "comments": "comm",
                 },
             )
             _s.assert_called_once_with(m, "Experiment saved")
@@ -162,10 +162,10 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.exps,
                 {
-                    "name": u"myexp",
-                    "inspire": u"1234",
+                    "name": "myexp",
+                    "inspire": "1234",
                     "homepage": "www.some.thing.com",
-                    "comments": u"comm",
+                    "comments": "comm",
                 },
             )
             _s.assert_called_once_with(m, "Experiment saved")
@@ -211,11 +211,11 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.exps,
                 {
-                    "idExp": u"9999",
-                    "name": u"myexp1",
-                    "homepage": u"www.page.com",
-                    "comments": u"comm",
-                    "inspire": u"4321",
+                    "idExp": "9999",
+                    "name": "myexp1",
+                    "homepage": "www.page.com",
+                    "comments": "comm",
+                    "inspire": "4321",
                 },
                 "9999",
             )
@@ -728,13 +728,25 @@ class TestExpsListWindow(GUITestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         elw = ExpsListWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc:
+        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
+            "physbiblio.gui.expWindows.ExpsListWindow.onOk", autospec=True
+        ) as _ok:
             QTest.keyPress(elw, "a")
             _oc.assert_not_called()
             QTest.keyPress(elw, Qt.Key_Enter)
             _oc.assert_not_called()
             QTest.keyPress(elw, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
+            QTest.keyPress(elw, "a")
+            _ok.assert_not_called()
+            QTest.keyPress(elw, Qt.Key_Enter)
+            _ok.assert_not_called()
+            QTest.keyPress(elw, Qt.Key_Escape)
+            _ok.assert_not_called()
+            QTest.keyPress(elw, Qt.Key_Return, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 1)
+            QTest.keyPress(elw, Qt.Key_Enter, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 2)
 
     def test_createTable(self):
         """test createTable"""

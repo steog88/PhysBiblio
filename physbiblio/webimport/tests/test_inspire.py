@@ -415,10 +415,10 @@ class TestInspireMethods(unittest.TestCase):
         """Online test retrieveInspireID"""
         iws = physBiblioWeb.webSearch["inspire"]
         test = [
-            ["Gariazzo:2015rra", u"1385583", {}],
-            ["10.1088/0954-3899/43/3/033001", u"1385583", {"isDoi": True}],
-            ["1507.08204", u"1385583", {"isArxiv": True}],
-            ["arxiv:1507.08204", u"1385583", {"isArxiv": True}],
+            ["Gariazzo:2015rra", "1385583", {}],
+            ["10.1088/0954-3899/43/3/033001", "1385583", {"isDoi": True}],
+            ["1507.08204", "1385583", {"isArxiv": True}],
+            ["arxiv:1507.08204", "1385583", {"isArxiv": True}],
         ]
         for q in test:
             self.assertEqual(iws.retrieveInspireID(q[0], **q[2]), q[1])

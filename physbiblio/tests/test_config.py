@@ -232,10 +232,10 @@ class TestConfigMethods(unittest.TestCase):
         self.assertEqual(
             tempPbConfig.profiles,
             {
-                u"default": {
-                    "d": u"",
-                    "f": u"",
-                    "n": u"default",
+                "default": {
+                    "d": "",
+                    "f": "",
+                    "n": "default",
                     "db": str(
                         os.path.join(
                             pbConfig.dataPath,
@@ -277,10 +277,10 @@ class TestConfigMethods(unittest.TestCase):
         self.assertEqual(
             profiles,
             {
-                u"default": {
-                    "d": u"",
-                    "f": u"",
-                    "n": u"default",
+                "default": {
+                    "d": "",
+                    "f": "",
+                    "n": "default",
                     "db": str(
                         os.path.join(
                             pbConfig.dataPath,
@@ -290,7 +290,7 @@ class TestConfigMethods(unittest.TestCase):
                         )
                     ),
                 },
-                u"temp": {"d": u"none", "f": u"", "n": u"temp", "db": tempProfName1},
+                "temp": {"d": "none", "f": "", "n": "temp", "db": tempProfName1},
             },
         )
         self.assertEqual(ordered, ["default", "temp"])
@@ -357,7 +357,7 @@ class TestConfigMethods(unittest.TestCase):
         configDb.insert("timeoutWebSearch", "20.")
         configDb.commit()
         defaultParams["loggingLevel"] = 4
-        defaultParams["pdfFolder"] = u"/nonexistent/"
+        defaultParams["pdfFolder"] = "/nonexistent/"
         defaultParams["askBeforeExit"] = True
         defaultParams["timeoutWebSearch"] = 20.0
         with patch("logging.Logger.warning") as _w:
@@ -618,22 +618,22 @@ class TestGlobalDBOperations(unittest.TestCase):
             output,
             [
                 {
-                    "name": u"default",
-                    "description": u"newsomething",
+                    "name": "default",
+                    "description": "newsomething",
                     "databasefile": str(
                         configuration_params["mainDatabaseName"]
                         .default.replace("PBDATA", "")
                         .replace(pbConfig.dataPath, "")
                     ),
-                    "oldCfg": u"",
+                    "oldCfg": "",
                     "isDefault": 1,
                     "ord": 100,
                 },
                 {
-                    "name": u"temp",
-                    "description": u"desc",
-                    "databasefile": u"somefile.db",
-                    "oldCfg": u"old",
+                    "name": "temp",
+                    "description": "desc",
+                    "databasefile": "somefile.db",
+                    "oldCfg": "old",
                     "isDefault": 0,
                     "ord": 100,
                 },
@@ -2153,7 +2153,7 @@ class TestFunctions(unittest.TestCase):
         with patch("logging.handlers.RotatingFileHandler", return_value=h) as _rfh:
             addFileHandler(log, "myfn.log")
             _rfh.assert_called_once_with(
-                "myfn.log", maxBytes=5.0 * 2 ** 20, backupCount=5
+                "myfn.log", maxBytes=5.0 * 2**20, backupCount=5
             )
         self.assertEqual(h.level, getLogLevel(pbConfig.params["loggingLevel"]))
         self.assertIn(h, log.handlers)

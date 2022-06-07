@@ -41,7 +41,7 @@ class TestWebImportMethods(unittest.TestCase):
         tests = {
             "arxiv": [
                 "1507.08204",
-                u"@Article{1507.08204,\n         title = "
+                "@Article{1507.08204,\n         title = "
                 + '"{Light sterile neutrinos}",\n          year = "2015",'
                 + '\n archiveprefix = "arXiv",\n  primaryclass = '
                 + '"hep-ph",\n           doi = '
@@ -368,10 +368,10 @@ as force and matter fields.
             self.assertEqual(
                 result[0],
                 {
-                    "primaryclass": u"hep-ex",
-                    "author": u"Christopher Dilks",
-                    "title": u"Measurement of Transverse Single Spin Asymmetries.",
-                    "abstract": u"In 2015 the first collisions between "
+                    "primaryclass": "hep-ex",
+                    "author": "Christopher Dilks",
+                    "title": "Measurement of Transverse Single Spin Asymmetries.",
+                    "abstract": "In 2015 the first collisions between "
                     + "polarized protons and nuclei occurred at the "
                     + "Relativistic Heavy Ion Collider (RHIC), at a "
                     + "center-of-mass energy of $\\sqrt{s_{NN}}=200$ GeV. "
@@ -391,47 +391,47 @@ as force and matter fields.
                     + "in $p+p$ collisions. This talk will compare "
                     + "these dependences to those in $p+A$ production. ",
                     "cross": False,
-                    "version": u"1805.08875v1",
-                    "eprint": u"1805.08875",
-                    "authors": [u"Christopher Dilks"],
+                    "version": "1805.08875v1",
+                    "eprint": "1805.08875",
+                    "authors": ["Christopher Dilks"],
                     "replacement": False,
                 },
             )
             self.assertEqual(
                 result[1],
                 {
-                    "primaryclass": u"hep-ex",
-                    "author": u"Boris Tuchming",
-                    "title": u"Recent Top quark results from the Tevatron.",
-                    "abstract": u"We present recent measurements ",
+                    "primaryclass": "hep-ex",
+                    "author": "Boris Tuchming",
+                    "title": "Recent Top quark results from the Tevatron.",
+                    "abstract": "We present recent measurements ",
                     "cross": True,
-                    "version": u"1805.09166v1",
-                    "eprint": u"1805.09166",
-                    "authors": [u"Boris Tuchming"],
+                    "version": "1805.09166v1",
+                    "eprint": "1805.09166",
+                    "authors": ["Boris Tuchming"],
                     "replacement": False,
                 },
             )
             self.assertEqual(
                 result[2],
                 {
-                    "primaryclass": u"nucl-th",
-                    "author": u"Shu-Sheng Xu and Zhu-Fang Cui and "
+                    "primaryclass": "nucl-th",
+                    "author": "Shu-Sheng Xu and Zhu-Fang Cui and "
                     + "Lei Chang and others",
-                    "title": u"New Perspective on Hybrid Mesons.",
-                    "abstract": u"It is thought that strong interactions "
+                    "title": "New Perspective on Hybrid Mesons.",
+                    "abstract": "It is thought that strong interactions "
                     + "within the Standard Model can generate bound-states "
                     + "in which non-Abelian gauge-bosons play a dual role, "
                     + "serving both as force and matter fields. ",
                     "cross": True,
-                    "version": u"1805.06430v2",
-                    "eprint": u"1805.06430",
+                    "version": "1805.06430v2",
+                    "eprint": "1805.06430",
                     "authors": [
-                        u"Shu-Sheng Xu",
-                        u"Zhu-Fang Cui",
-                        u"Lei Chang",
-                        u"Joannis Papavassiliou",
-                        u"Craig D. Roberts",
-                        u"Hong-Shi Zong",
+                        "Shu-Sheng Xu",
+                        "Zhu-Fang Cui",
+                        "Lei Chang",
+                        "Joannis Papavassiliou",
+                        "Craig D. Roberts",
+                        "Hong-Shi Zong",
                     ],
                     "replacement": True,
                 },

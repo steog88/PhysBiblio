@@ -876,13 +876,13 @@ def addFileHandler(logger, logFileName, defaultPath=""):
     """
     try:
         fh = logging.handlers.RotatingFileHandler(
-            logFileName, maxBytes=5.0 * 2 ** 20, backupCount=5
+            logFileName, maxBytes=5.0 * 2**20, backupCount=5
         )
     except FNFError:
         logger.exception("")
         fh = logging.handlers.RotatingFileHandler(
             replacePBDATA(defaultPath, configuration_params["logFileName"].default),
-            maxBytes=5.0 * 2 ** 20,
+            maxBytes=5.0 * 2**20,
             backupCount=5,
         )
     fh.setLevel(getLogLevel(pbConfig.params["loggingLevel"]))

@@ -52,7 +52,7 @@ class ArgParserStrings:
 class BibtexWriterStrings:
     """Strings for the physbiblio.bibtexWriter module"""
 
-    errorNotString = u"The field %s in entry %s must be a string"
+    errorNotString = "The field %s in entry %s must be a string"
 
 
 class CLIStrings:

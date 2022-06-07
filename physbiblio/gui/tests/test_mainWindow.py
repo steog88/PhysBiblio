@@ -1343,7 +1343,7 @@ class TestMainWindow(GUITestCase):
                 _in.assert_has_calls(
                     [
                         call(
-                            u"New value for param "
+                            "New value for param "
                             "%s = %s (old: '%s')" % (k, new[k], old[k])
                         )
                     ]
@@ -1508,7 +1508,7 @@ class TestMainWindow(GUITestCase):
         ) as _qpm, patch(
             self.modName + ".dbStats", autospec=True
         ) as _dbs, patch(
-            "physbiblio.pdf.LocalPDF.dirSize", autospec=True, return_value=4096 ** 2
+            "physbiblio.pdf.LocalPDF.dirSize", autospec=True, return_value=4096**2
         ) as _ds, patch(
             "physbiblio.pdf.LocalPDF.numberOfFiles", autospec=True, return_value=2
         ) as _ig:
@@ -3940,54 +3940,54 @@ class TestMainWindow(GUITestCase):
         with patch("logging.Logger.warning") as _w:
             ais = AdvancedImportSelect(
                 {
-                    u"a": {
+                    "a": {
                         "exist": True,
                         "bibpars": {
-                            "ID": u"a",
-                            u"title": u"T",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"gs",
+                            "ID": "a",
+                            "title": "T",
+                            "ENTRYTYPE": "article",
+                            "author": "gs",
                         },
                     },
-                    u"b": {
+                    "b": {
                         "exist": True,
                         "bibpars": {
-                            u"doi": u"2",
-                            u"author": u"sg",
-                            u"title": u"tit",
-                            u"arxiv": u"1",
-                            "ID": u"b",
-                            "ENTRYTYPE": u"article",
+                            "doi": "2",
+                            "author": "sg",
+                            "title": "tit",
+                            "arxiv": "1",
+                            "ID": "b",
+                            "ENTRYTYPE": "article",
                         },
                     },
-                    u"c": {
+                    "c": {
                         "exist": False,
                         "bibpars": {
-                            u"doi": u"4",
-                            u"title": u"title",
-                            u"author": u"io",
-                            "ENTRYTYPE": u"article",
-                            "arxiv": u"3",
-                            u"eprint": u"3",
-                            "ID": u"c",
+                            "doi": "4",
+                            "title": "title",
+                            "author": "io",
+                            "ENTRYTYPE": "article",
+                            "arxiv": "3",
+                            "eprint": "3",
+                            "ID": "c",
                         },
                     },
-                    u"d": {
+                    "d": {
                         "exist": False,
                         "bibpars": {
-                            "ID": u"d",
-                            u"title": u"t",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"yo",
+                            "ID": "d",
+                            "title": "t",
+                            "ENTRYTYPE": "article",
+                            "author": "yo",
                         },
                     },
-                    u"e": {
+                    "e": {
                         "exist": False,
                         "bibpars": {
-                            "ID": u"e",
-                            u"title": u"t",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"yo",
+                            "ID": "e",
+                            "title": "t",
+                            "ENTRYTYPE": "article",
+                            "author": "yo",
                         },
                     },
                 },
@@ -4051,20 +4051,20 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, u"a", saveQuery=False),
-                    call(pBDB.bibs, u"b", saveQuery=False),
-                    call(pBDB.bibs, u"c", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False),
+                    call(pBDB.bibs, "b", saveQuery=False),
+                    call(pBDB.bibs, "c", saveQuery=False),
                 ]
             )
             _ga.assert_has_calls(
                 [
-                    call(pBDB.bibs, params={"arxiv": u"1"}, saveQuery=False),
-                    call(pBDB.bibs, params={"arxiv": u"3"}, saveQuery=False),
-                    call(pBDB.bibs, params={"doi": u"4"}, saveQuery=False),
+                    call(pBDB.bibs, params={"arxiv": "1"}, saveQuery=False),
+                    call(pBDB.bibs, params={"arxiv": "3"}, saveQuery=False),
+                    call(pBDB.bibs, params={"doi": "4"}, saveQuery=False),
                 ]
             )
             _deb.assert_has_calls(
-                [call(u"KeyError 'arxiv', entry: d"), call(u"KeyError 'doi', entry: d")]
+                [call("KeyError 'arxiv', entry: d"), call("KeyError 'doi', entry: d")]
             )
 
         aid.exec_.reset_mock()
@@ -4137,31 +4137,31 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, u"a", saveQuery=False),
-                    call(pBDB.bibs, u"b", saveQuery=False),
-                    call(pBDB.bibs, u"c", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False),
+                    call(pBDB.bibs, "b", saveQuery=False),
+                    call(pBDB.bibs, "c", saveQuery=False),
                 ]
             )
             _ga.assert_has_calls(
                 [
-                    call(pBDB.bibs, params={"arxiv": u"1"}, saveQuery=False),
-                    call(pBDB.bibs, params={"arxiv": u"3"}, saveQuery=False),
-                    call(pBDB.bibs, params={"doi": u"4"}, saveQuery=False),
+                    call(pBDB.bibs, params={"arxiv": "1"}, saveQuery=False),
+                    call(pBDB.bibs, params={"arxiv": "3"}, saveQuery=False),
+                    call(pBDB.bibs, params={"doi": "4"}, saveQuery=False),
                 ]
             )
             _deb.assert_has_calls(
-                [call(u"KeyError 'arxiv', entry: d"), call(u"KeyError 'doi', entry: d")]
+                [call("KeyError 'arxiv', entry: d"), call("KeyError 'doi', entry: d")]
             )
             _pi.assert_has_calls(
                 [
                     call(
                         pBDB.bibs,
-                        u'@Article{a,\n        author = "gs",'
+                        '@Article{a,\n        author = "gs",'
                         + '\n         title = "{T}",\n}\n\n',
                     ),
                     call(
                         pBDB.bibs,
-                        u'@Article{b,\n        author = "sg",'
+                        '@Article{b,\n        author = "sg",'
                         + '\n         title = "{tit}",\n           '
                         + 'doi = "2",\n         arxiv = "1",\n}\n\n',
                     ),
@@ -4186,24 +4186,24 @@ class TestMainWindow(GUITestCase):
         with patch("logging.Logger.warning") as _w:
             ais = AdvancedImportSelect(
                 {
-                    u"a": {
+                    "a": {
                         "exist": True,
                         "bibpars": {
-                            "ID": u"a",
-                            u"title": u"T",
-                            "ENTRYTYPE": u"article",
-                            u"author": u"gs",
+                            "ID": "a",
+                            "title": "T",
+                            "ENTRYTYPE": "article",
+                            "author": "gs",
                         },
                     },
-                    u"b": {
+                    "b": {
                         "exist": True,
                         "bibpars": {
-                            u"doi": u"2",
-                            u"author": u"sg",
-                            u"title": u"tit",
-                            u"arxiv": u"1",
-                            "ID": u"b",
-                            "ENTRYTYPE": u"article",
+                            "doi": "2",
+                            "author": "sg",
+                            "title": "tit",
+                            "arxiv": "1",
+                            "ID": "b",
+                            "ENTRYTYPE": "article",
                         },
                     },
                 },
@@ -4280,8 +4280,8 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, u"a", saveQuery=False),
-                    call(pBDB.bibs, u"b", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False),
+                    call(pBDB.bibs, "b", saveQuery=False),
                 ]
             )
             _ga.assert_not_called()
@@ -4289,12 +4289,12 @@ class TestMainWindow(GUITestCase):
                 [
                     call(
                         pBDB.bibs,
-                        u'@Article{a,\n        author = "gs",'
+                        '@Article{a,\n        author = "gs",'
                         + '\n         title = "{T}",\n}\n\n',
                     ),
                     call(
                         pBDB.bibs,
-                        u'@Article{b,\n        author = "sg",'
+                        '@Article{b,\n        author = "sg",'
                         + '\n         title = "{tit}",\n           '
                         + 'doi = "2",\n         arxiv = "1",\n}\n\n',
                     ),
@@ -4389,8 +4389,8 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, u"a", saveQuery=False),
-                    call(pBDB.bibs, u"b", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False),
+                    call(pBDB.bibs, "b", saveQuery=False),
                 ]
             )
             _ga.assert_not_called()
@@ -4398,12 +4398,12 @@ class TestMainWindow(GUITestCase):
                 [
                     call(
                         pBDB.bibs,
-                        u'@Article{a,\n        author = "gs",'
+                        '@Article{a,\n        author = "gs",'
                         + '\n         title = "{T}",\n}\n\n',
                     ),
                     call(
                         pBDB.bibs,
-                        u'@Article{b,\n        author = "sg",'
+                        '@Article{b,\n        author = "sg",'
                         + '\n         title = "{tit}",\n           '
                         + 'doi = "2",\n         arxiv = "1",\n}\n\n',
                     ),
@@ -4496,8 +4496,8 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, u"a", saveQuery=False),
-                    call(pBDB.bibs, u"b", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False),
+                    call(pBDB.bibs, "b", saveQuery=False),
                 ]
             )
             _ga.assert_not_called()
@@ -4505,12 +4505,12 @@ class TestMainWindow(GUITestCase):
                 [
                     call(
                         pBDB.bibs,
-                        u'@Article{a,\n        author = "gs",'
+                        '@Article{a,\n        author = "gs",'
                         + '\n         title = "{T}",\n}\n\n',
                     ),
                     call(
                         pBDB.bibs,
-                        u'@Article{b,\n        author = "sg",'
+                        '@Article{b,\n        author = "sg",'
                         + '\n         title = "{tit}",\n           '
                         + 'doi = "2",\n         arxiv = "1",\n}\n\n',
                     ),

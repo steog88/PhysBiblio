@@ -346,22 +346,22 @@ class TestPdfMethods(unittest.TestCase):
     def test_getSizeWUnits(self, *args):
         """test getSizeWUnits"""
         with patch("logging.Logger.warning") as _w:
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2), "4.00MB")
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2, units="mb"), "4.00MB")
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2, units="kb"), "4096.00KB")
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2, units="PB"), "0.00PB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2), "4.00MB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2, units="mb"), "4.00MB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2, units="kb"), "4096.00KB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2, units="PB"), "0.00PB")
             self.assertEqual(
-                pBPDF.getSizeWUnits(2048 ** 2, units="gb", fmt="%.3f"), "0.004GB"
+                pBPDF.getSizeWUnits(2048**2, units="gb", fmt="%.3f"), "0.004GB"
             )
             _w.assert_not_called()
         with patch("logging.Logger.warning") as _w:
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2, units="m"), "4.00MB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2, units="m"), "4.00MB")
             _w.assert_called_once_with("Invalid units. Changing to 'MB'.")
         with patch("logging.Logger.warning") as _w:
             self.assertEqual(pBPDF.getSizeWUnits("a"), "nan")
             _w.assert_called_once_with("Invalid size. It must be a number!")
         with patch("logging.Logger.warning") as _w:
-            self.assertEqual(pBPDF.getSizeWUnits(2048 ** 2, fmt="%"), "4.00MB")
+            self.assertEqual(pBPDF.getSizeWUnits(2048**2, fmt="%"), "4.00MB")
             _w.assert_called_once_with("Invalid format. Using '%.2f'")
 
 

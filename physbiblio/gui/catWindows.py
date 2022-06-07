@@ -494,6 +494,11 @@ class CatsTreeWindow(PBDialog):
         """
         if e.key() == Qt.Key_Escape:
             self.close()
+        elif (
+            e.key() in [Qt.Key_Return, Qt.Key_Enter]
+            and e.modifiers() == Qt.ControlModifier
+        ):
+            self.onOk()
 
     def createForm(self):
         """Create the dialog content, connect the model to the view

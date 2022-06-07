@@ -810,35 +810,35 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"Gariazzo:2015rra")
+            self.assertEqual(k, "Gariazzo:2015rra")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"Gariazzo:2015rra",
+                "bibkey": "Gariazzo:2015rra",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"some text",
+                "comments": "some text",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
                 "citations": 123,
                 "citations_no_self": 111,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{Gariazzo:2015rra,\n         arxiv "
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{Gariazzo:2015rra,\n         arxiv "
                 + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"",
+                "firstdate": "2018-09-01",
+                "old_keys": "",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
@@ -894,35 +894,35 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"Gariazzo:2015rra")
+            self.assertEqual(k, "Gariazzo:2015rra")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"Gariazzo:2015rra",
+                "bibkey": "Gariazzo:2015rra",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"some text",
+                "comments": "some text",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
                 "citations": 123,
                 "citations_no_self": 111,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{Gariazzo:2015rra,\n         arxiv "
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{Gariazzo:2015rra,\n         arxiv "
                 + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"",
+                "firstdate": "2018-09-01",
+                "old_keys": "",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
@@ -983,35 +983,35 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"testkey")
+            self.assertEqual(k, "testkey")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"testkey",
+                "bibkey": "testkey",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"",
+                "comments": "",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
                 "citations": 1234,
                 "citations_no_self": 1111,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{Gariazzo:2015rra,\n         arxiv "
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{Gariazzo:2015rra,\n         arxiv "
                 + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"",
+                "firstdate": "2018-09-01",
+                "old_keys": "",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
@@ -1077,43 +1077,43 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
-            _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
+            _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"Gariazzo:2015rra")
+            self.assertEqual(k, "Gariazzo:2015rra")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"Gariazzo:2015rra",
+                "bibkey": "Gariazzo:2015rra",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"",
+                "comments": "",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
                 "citations": 0,
                 "citations_no_self": 0,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{Gariazzo:2015rra,\n         arxiv "
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{Gariazzo:2015rra,\n         arxiv "
                 + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"old testkey",
+                "firstdate": "2018-09-01",
+                "old_keys": "old testkey",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
-            _rf.assert_called_once_with(pBPDF, "testkey", u"Gariazzo:2015rra")
+            _rf.assert_called_once_with(pBPDF, "testkey", "Gariazzo:2015rra")
             _ffl.assert_called_once_with(pBDB.bibs)
             _im.assert_not_called()
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
@@ -1177,36 +1177,36 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
-            _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
+            _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"testkey")
+            self.assertEqual(k, "testkey")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"testkey",
+                "bibkey": "testkey",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"",
+                "comments": "",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{testkey,\n         arxiv " + '= "1507.08204",\n}',
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{testkey,\n         arxiv " + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"testkey",
+                "firstdate": "2018-09-01",
+                "old_keys": "testkey",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
@@ -1275,36 +1275,36 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
-            _ub.assert_called_once_with(pBDB.bibs, "testkey", u"Gariazzo:2015rra")
+            _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
             b, d, k = _u.call_args[0]
             self.assertEqual(b, pBDB.bibs)
-            self.assertEqual(k, u"testkey")
+            self.assertEqual(k, "testkey")
             for k, v in {
-                "isbn": u"",
-                "inspire": u"",
-                "pubdate": u"",
-                "year": u"2015",
+                "isbn": "",
+                "inspire": "",
+                "pubdate": "",
+                "year": "2015",
                 "phd_thesis": 0,
-                "bibkey": u"testkey",
+                "bibkey": "testkey",
                 "proceeding": 0,
-                "ads": u"",
+                "ads": "",
                 "review": 0,
-                "comments": u"",
+                "comments": "",
                 "book": 0,
                 "marks": "",
                 "lecture": 0,
-                "crossref": u"",
+                "crossref": "",
                 "noUpdate": 0,
-                "link": u"https://arxiv.org/abs/1507.08204",
+                "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
-                "doi": u"",
-                "scholar": u"",
-                "arxiv": u"1507.08204",
-                "bibtex": u"@Article{testkey,\n         arxiv " + '= "1507.08204",\n}',
+                "doi": "",
+                "scholar": "",
+                "arxiv": "1507.08204",
+                "bibtex": "@Article{testkey,\n         arxiv " + '= "1507.08204",\n}',
                 "abstract": "",
-                "firstdate": u"2018-09-01",
-                "old_keys": u"testkey",
+                "firstdate": "2018-09-01",
+                "old_keys": "testkey",
             }.items():
                 self.assertEqual(d[k], v)
             _ins.assert_not_called()
@@ -1801,7 +1801,7 @@ class TestBibTableModel(GUITestCase):
             return_value="called",
             autospec=True,
         ) as _ai:
-            self.assertEqual(tm.addMarksCell(u"new"), (True, "called"))
+            self.assertEqual(tm.addMarksCell("new"), (True, "called"))
             _ai.assert_called_once_with(
                 tm, ":/images/unread-new.png", m.tableview.rowHeight(0) * 0.9
             )
@@ -1853,9 +1853,9 @@ class TestBibTableModel(GUITestCase):
         ix = tm.index(1, 0)
         self.assertEqual(tm.data(ix, Qt.CheckStateRole), Qt.Checked)
         self.assertEqual(tm.data(tm.index(0, 2), Qt.DisplayRole), "my title A")
-        self.assertEqual(tm.data(tm.index(0, 3), Qt.DisplayRole), u"St\xe9")
+        self.assertEqual(tm.data(tm.index(0, 3), Qt.DisplayRole), "St\xe9")
         self.assertEqual(tm.data(tm.index(0, 4), Qt.DisplayRole), "1809.00000")
-        self.assertEqual(tm.data(tm.index(1, 2), Qt.DisplayRole), u"my title \u03bc")
+        self.assertEqual(tm.data(tm.index(1, 2), Qt.DisplayRole), "my title \u03bc")
         self.assertEqual(tm.data(tm.index(1, 3), Qt.DisplayRole), "Gar")
         self.assertEqual(tm.data(tm.index(1, 3), Qt.CheckStateRole), None)
         self.assertEqual(tm.data(tm.index(1, 4), Qt.DisplayRole), "")
@@ -4100,10 +4100,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
-                bibkey=u"new",
-                bibtex=u'@article{new, title="new"}',
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
                 book=0,
-                doi=u"1/2/3",
+                doi="1/2/3",
                 exp_paper=0,
                 lecture=0,
                 marks="",
@@ -4112,7 +4112,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 phd_thesis=0,
                 proceeding=0,
                 review=0,
-                year=u"2018",
+                year="2018",
             )
             _de.assert_not_called()
             _in.assert_not_called()
@@ -4182,10 +4182,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _u.assert_called_once_with(pBDB)
             _pi.assert_called_once_with(
                 pBDB.bibs,
-                bibkey=u"new",
-                bibtex=u'@article{new, title="new"}',
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
                 book=0,
-                doi=u"1/2/3",
+                doi="1/2/3",
                 exp_paper=0,
                 lecture=0,
                 marks="",
@@ -4194,7 +4194,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 phd_thesis=0,
                 proceeding=0,
                 review=0,
-                year=u"2018",
+                year="2018",
             )
             _de.assert_called_once_with(pBDB.bibs, "abc")
             _in.assert_not_called()
@@ -4246,10 +4246,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _u.assert_called_once_with(pBDB)
             _pi.assert_called_once_with(
                 pBDB.bibs,
-                bibkey=u"new",
-                bibtex=u'@article{new, title="new"}',
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
                 book=0,
-                doi=u"1/2/3",
+                doi="1/2/3",
                 exp_paper=0,
                 lecture=0,
                 marks="",
@@ -4258,7 +4258,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 phd_thesis=0,
                 proceeding=0,
                 review=0,
-                year=u"2018",
+                year="2018",
             )
             _de.assert_has_calls([call(pBDB.bibs, "abc"), call(pBDB.bibs, "def")])
             _in.assert_called_once_with(
@@ -4314,10 +4314,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
-                bibkey=u"new",
-                bibtex=u'@article{new, title="new"}',
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
                 book=0,
-                doi=u"1/2/3",
+                doi="1/2/3",
                 exp_paper=0,
                 lecture=0,
                 marks="",
@@ -4326,7 +4326,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 phd_thesis=0,
                 proceeding=0,
                 review=0,
-                year=u"2018",
+                year="2018",
             )
             _de.assert_has_calls([call(pBDB.bibs, "abc"), call(pBDB.bibs, "def")])
             _in.assert_called_once_with(
@@ -4398,10 +4398,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _u.assert_not_called()
             _pi.assert_called_once_with(
                 pBDB.bibs,
-                bibkey=u"new",
-                bibtex=u'@article{new, title="new"}',
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
                 book=0,
-                doi=u"1/2/3",
+                doi="1/2/3",
                 exp_paper=0,
                 lecture=0,
                 marks="",
@@ -4410,7 +4410,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 phd_thesis=0,
                 proceeding=0,
                 review=0,
-                year=u"2018",
+                year="2018",
             )
             _de.assert_has_calls([call(pBDB.bibs, "abc"), call(pBDB.bibs, "def")])
             _in.assert_called_once_with(
@@ -7530,7 +7530,7 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.saveTypeRow", autospec=True
         ) as _str:
             sbw.textValues[2]["type"].setCurrentText("Marks")
-            _str.assert_called_once_with(sbw, 2, u"Marks")
+            _str.assert_called_once_with(sbw, 2, "Marks")
 
         # Type
         self.assertIsInstance(sbw.textValues[2]["field"], PBComboBox)
@@ -8001,10 +8001,10 @@ class TestSearchBibsWindow(GUITestCase):
                         sbw,
                         0,
                         {
-                            "operator": u"all the following",
+                            "operator": "all the following",
                             "field": "",
                             "content": [],
-                            "type": u"Categories",
+                            "type": "Categories",
                             "logical": None,
                         },
                     ),
@@ -8012,11 +8012,11 @@ class TestSearchBibsWindow(GUITestCase):
                         sbw,
                         1,
                         {
-                            "operator": u"contains",
-                            "field": u"bibtex",
-                            "content": u"",
-                            "type": u"Text",
-                            "logical": u"AND",
+                            "operator": "contains",
+                            "field": "bibtex",
+                            "content": "",
+                            "type": "Text",
+                            "logical": "AND",
                         },
                     ),
                 ]
@@ -8033,10 +8033,10 @@ class TestSearchBibsWindow(GUITestCase):
                         sbw,
                         0,
                         {
-                            "operator": u"all the following",
+                            "operator": "all the following",
                             "field": "",
                             "content": [],
-                            "type": u"Categories",
+                            "type": "Categories",
                             "logical": None,
                         },
                     ),
@@ -8044,11 +8044,11 @@ class TestSearchBibsWindow(GUITestCase):
                         sbw,
                         1,
                         {
-                            "operator": u"contains",
-                            "field": u"bibtex",
-                            "content": u"",
-                            "type": u"Text",
-                            "logical": u"AND",
+                            "operator": "contains",
+                            "field": "bibtex",
+                            "content": "",
+                            "type": "Text",
+                            "logical": "AND",
                         },
                     ),
                 ]

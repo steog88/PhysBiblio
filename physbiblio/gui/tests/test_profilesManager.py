@@ -45,9 +45,9 @@ class TestEditProf(GUIwMainWTestCase):
         self.oldCurrentProfile = pbConfig.currentProfile
         pbConfig.profileOrder = ["test1", "test2", "test3"]
         pbConfig.profiles = {
-            "test1": {"db": u"test1.db", "d": u"test1", "n": u"test1"},
-            "test2": {"db": u"test2.db", "d": u"test2", "n": u"test2"},
-            "test3": {"db": u"test3.db", "d": u"test3", "n": u"test3"},
+            "test1": {"db": "test1.db", "d": "test1", "n": "test1"},
+            "test2": {"db": "test2.db", "d": "test2", "n": "test2"},
+            "test3": {"db": "test3.db", "d": "test3", "n": "test3"},
         }
         pbConfig.currentProfileName = "test1"
         pbConfig.currentProfile = pbConfig.profiles["test1"]
@@ -120,16 +120,14 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test2", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
-                    call(pbConfig.globalDb, u"test3", "description", u"descrip"),
+                    call(pbConfig.globalDb, "test2", "description", "test2"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
+                    call(pbConfig.globalDb, "test3", "description", "descrip"),
                 ]
             )
             _dp.assert_not_called()
             _cp.assert_not_called()
-            _spo.assert_called_once_with(
-                pbConfig.globalDb, [u"test2", u"test1", u"test3"]
-            )
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test2", "test1", "test3"])
             _copy.assert_not_called()
 
         # test set new default
@@ -163,16 +161,14 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_called_once_with(pbConfig.globalDb, "test2")
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
-                    call(pbConfig.globalDb, u"test2", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
+                    call(pbConfig.globalDb, "test2", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_not_called()
             _cp.assert_not_called()
-            _spo.assert_called_once_with(
-                pbConfig.globalDb, [u"test1", u"test2", u"test3"]
-            )
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test1", "test2", "test3"])
             _copy.assert_not_called()
 
         # test delete
@@ -208,14 +204,14 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
-                    call(pbConfig.globalDb, u"test2", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
+                    call(pbConfig.globalDb, "test2", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_called_once_with(pbConfig.globalDb, "test2")
             _cp.assert_not_called()
-            _spo.assert_called_once_with(pbConfig.globalDb, [u"test1", u"test3"])
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test1", "test3"])
             _ayn.assert_called_once_with(
                 "Do you really want to cancel the "
                 + "profile 'test2'?\n"
@@ -255,7 +251,7 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
                     call(
                         pbConfig.globalDb,
                         "test2.db",
@@ -263,15 +259,13 @@ class TestEditProf(GUIwMainWTestCase):
                         "testA",
                         identifierField="databasefile",
                     ),
-                    call(pbConfig.globalDb, u"testA", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "testA", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_not_called()
             _cp.assert_not_called()
-            _spo.assert_called_once_with(
-                pbConfig.globalDb, [u"test1", u"testA", u"test3"]
-            )
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test1", "testA", "test3"])
             _copy.assert_not_called()
 
         # test rename existing and delete
@@ -308,7 +302,7 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
                     call(
                         pbConfig.globalDb,
                         "test2.db",
@@ -316,13 +310,13 @@ class TestEditProf(GUIwMainWTestCase):
                         "testA",
                         identifierField="databasefile",
                     ),
-                    call(pbConfig.globalDb, u"testA", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "testA", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_called_once_with(pbConfig.globalDb, "testA")
             _cp.assert_not_called()
-            _spo.assert_called_once_with(pbConfig.globalDb, [u"test1", u"test3"])
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test1", "test3"])
             _ayn.assert_called_once_with(
                 "Do you really want to cancel the "
                 + "profile 'testA'?\n"
@@ -365,7 +359,7 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
                     call(
                         pbConfig.globalDb,
                         "test2.db",
@@ -373,15 +367,13 @@ class TestEditProf(GUIwMainWTestCase):
                         "testA",
                         identifierField="databasefile",
                     ),
-                    call(pbConfig.globalDb, u"testA", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "testA", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_not_called()
             _cp.assert_not_called()
-            _spo.assert_called_once_with(
-                pbConfig.globalDb, [u"test1", u"testA", u"test3"]
-            )
+            _spo.assert_called_once_with(pbConfig.globalDb, ["test1", "testA", "test3"])
             _ayn.assert_called_once_with(
                 "Do you really want to cancel the "
                 + "profile 'testA'?\n"
@@ -424,9 +416,9 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
-                    call(pbConfig.globalDb, u"test2", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
+                    call(pbConfig.globalDb, "test2", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_not_called()
@@ -477,9 +469,9 @@ class TestEditProf(GUIwMainWTestCase):
             _sdp.assert_not_called()
             _upf.assert_has_calls(
                 [
-                    call(pbConfig.globalDb, u"test1", "description", u"test1"),
-                    call(pbConfig.globalDb, u"test2", "description", u"test2"),
-                    call(pbConfig.globalDb, u"test3", "description", u"test3"),
+                    call(pbConfig.globalDb, "test1", "description", "test1"),
+                    call(pbConfig.globalDb, "test2", "description", "test2"),
+                    call(pbConfig.globalDb, "test3", "description", "test3"),
                 ]
             )
             _dp.assert_not_called()
@@ -513,8 +505,8 @@ class TestSelectProfiles(GUIwMainWTestCase):
         self.oldCurrentProfile = pbConfig.currentProfile
         pbConfig.profileOrder = ["test1", "test2"]
         pbConfig.profiles = {
-            "test1": {"db": u"test1.db", "d": u"test1", "n": u"test1"},
-            "test2": {"db": u"test2.db", "d": u"test2", "n": u"test2"},
+            "test1": {"db": "test1.db", "d": "test1", "n": "test1"},
+            "test2": {"db": "test2.db", "d": "test2", "n": "test2"},
         }
         pbConfig.currentProfileName = "test1"
         pbConfig.currentProfile = pbConfig.profiles["test1"]
@@ -704,9 +696,9 @@ class TestEditProfile(GUITestCase):
         self.olddefaultProfileName = pbConfig.defaultProfileName
         pbConfig.profileOrder = ["test1", "test2", "test3"]
         pbConfig.profiles = {
-            "test1": {"db": u"test1.db", "d": u"test1", "n": u"test1"},
-            "test2": {"db": u"test2.db", "d": u"test2", "n": u"test2"},
-            "test3": {"db": u"test3.db", "d": u"test3", "n": u"test3"},
+            "test1": {"db": "test1.db", "d": "test1", "n": "test1"},
+            "test2": {"db": "test2.db", "d": "test2", "n": "test2"},
+            "test3": {"db": "test3.db", "d": "test3", "n": "test3"},
         }
         pbConfig.currentProfileName = "test1"
         pbConfig.defaultProfileName = "test1"
@@ -830,9 +822,9 @@ class TestEditProfile(GUITestCase):
 
         # test custom arguments A
         pdata = {
-            "test1": {"db": u"test1.db", "d": u"new test1", "n": u"test1", "x": True},
-            "test2": {"db": u"test2.db", "d": u"test2", "n": u"test2", "x": False},
-            "test3A": {"db": u"test3a.db", "d": u"test3", "n": u"test3A", "x": False},
+            "test1": {"db": "test1.db", "d": "new test1", "n": "test1", "x": True},
+            "test2": {"db": "test2.db", "d": "test2", "n": "test2", "x": False},
+            "test3A": {"db": "test3a.db", "d": "test3", "n": "test3A", "x": False},
         }
         porder = ["test2", "test1", "test3A"]
         pdefault = "test3A"
@@ -882,18 +874,18 @@ class TestEditProfile(GUITestCase):
 
         # test custom arguments B
         pdata = {
-            "test1": {"db": u"test1.db", "n": u"test1", "x": True, "r": True},
+            "test1": {"db": "test1.db", "n": "test1", "x": True, "r": True},
             "test2": {
-                "db": u"test2.db",
-                "d": u"",
-                "n": u"test2",
+                "db": "test2.db",
+                "d": "",
+                "n": "test2",
                 "x": False,
                 "r": False,
             },
             "test3A": {
-                "db": u"test3a.db",
-                "d": u"test3",
-                "n": u"test3A",
+                "db": "test3a.db",
+                "d": "test3",
+                "n": "test3A",
                 "x": True,
                 "r": False,
             },
@@ -1043,13 +1035,13 @@ class TestEditProfile(GUITestCase):
 
         # test custom arguments
         pdata = {
-            "test1": {"db": u"test1.db", "d": u"new test1", "n": u"test1", "x": True},
-            "test2": {"db": u"test2.db", "d": u"test2", "n": u"test2", "x": False},
-            "test3A": {"db": u"test3.db", "d": u"test3", "n": u"test3A", "x": False},
+            "test1": {"db": "test1.db", "d": "new test1", "n": "test1", "x": True},
+            "test2": {"db": "test2.db", "d": "test2", "n": "test2", "x": False},
+            "test3A": {"db": "test3.db", "d": "test3", "n": "test3A", "x": False},
         }
         porder = ["test2", "test1", "test3A"]
         pdefault = "test3A"
-        pnew = {"db": u"new.db", "n": u"testNew", "r": True, "c": "test1.db"}
+        pnew = {"db": "new.db", "n": "testNew", "r": True, "c": "test1.db"}
         ep.cleanLayout()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow.addButtons", autospec=True
@@ -1111,22 +1103,22 @@ class TestEditProfile(GUITestCase):
             _cf.assert_called_once_with(
                 ep,
                 {
-                    u"test1": {"x": False, "r": True, "db": u"test1.db", "d": u"test1"},
-                    u"test2": {
+                    "test1": {"x": False, "r": True, "db": "test1.db", "d": "test1"},
+                    "test2": {
                         "x": False,
                         "r": False,
-                        "db": u"test2.db",
-                        "d": u"test2",
+                        "db": "test2.db",
+                        "d": "test2",
                     },
-                    u"test3": {
+                    "test3": {
                         "x": False,
                         "r": False,
-                        "db": u"test3.db",
-                        "d": u"test3",
+                        "db": "test3.db",
+                        "d": "test3",
                     },
                 },
-                [u"test2", u"test1", u"test3"],
-                {"r": False, "db": u"", "d": u"", "n": u""},
+                ["test2", "test1", "test3"],
+                {"r": False, "db": "", "d": "", "n": ""},
             )
         ep.elements[-1]["n"].setText("testA")
         ep.elements[-1]["f"].setCurrentText("testA.db")
@@ -1141,22 +1133,22 @@ class TestEditProfile(GUITestCase):
             _cf.assert_called_once_with(
                 ep,
                 {
-                    u"test1": {"x": False, "r": True, "db": u"test1.db", "d": u"test1"},
-                    u"test2": {
+                    "test1": {"x": False, "r": True, "db": "test1.db", "d": "test1"},
+                    "test2": {
                         "x": False,
                         "r": False,
-                        "db": u"test2.db",
-                        "d": u"test2",
+                        "db": "test2.db",
+                        "d": "test2",
                     },
-                    u"test3": {
+                    "test3": {
                         "x": False,
                         "r": False,
-                        "db": u"test3.db",
-                        "d": u"test3",
+                        "db": "test3.db",
+                        "d": "test3",
                     },
                 },
-                [u"test1", u"test3", u"test2"],
-                {"r": False, "db": u"testA.db", "d": u"", "n": u"testA"},
+                ["test1", "test3", "test2"],
+                {"r": False, "db": "testA.db", "d": "", "n": "testA"},
             )
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True

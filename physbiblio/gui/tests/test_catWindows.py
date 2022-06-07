@@ -126,11 +126,11 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.cats,
                 {
-                    "ord": u"0",
-                    "description": u"desc",
+                    "ord": "0",
+                    "description": "desc",
                     "parentCat": "18",
-                    "comments": u"comm",
-                    "name": u"mycat",
+                    "comments": "comm",
+                    "name": "mycat",
                 },
             )
             _s.assert_called_once_with(m, "Category saved")
@@ -163,11 +163,11 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.cats,
                 {
-                    "ord": u"0",
-                    "description": u"desc",
+                    "ord": "0",
+                    "description": "desc",
                     "parentCat": "18",
-                    "comments": u"comm",
-                    "name": u"mycat",
+                    "comments": "comm",
+                    "name": "mycat",
                 },
             )
             _s.assert_called_once_with(m, "Category saved")
@@ -219,12 +219,12 @@ class TestFunctions(GUIwMainWTestCase):
             _n.assert_called_once_with(
                 pBDB.cats,
                 {
-                    "idCat": u"15",
-                    "ord": u"0",
-                    "description": u"desc",
+                    "idCat": "15",
+                    "ord": "0",
+                    "description": "desc",
                     "parentCat": "0",
-                    "comments": u"comm",
-                    "name": u"mycat",
+                    "comments": "comm",
+                    "name": "mycat",
                 },
                 "15",
             )
@@ -953,13 +953,25 @@ class TestCatsTreeWindow(GUITestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         ctw = CatsTreeWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc:
+        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
+            "physbiblio.gui.catWindows.CatsTreeWindow.onOk", autospec=True
+        ) as _ok:
             QTest.keyPress(ctw, "a")
             _oc.assert_not_called()
             QTest.keyPress(ctw, Qt.Key_Enter)
             _oc.assert_not_called()
             QTest.keyPress(ctw, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
+            QTest.keyPress(ctw, "a")
+            _ok.assert_not_called()
+            QTest.keyPress(ctw, Qt.Key_Enter)
+            _ok.assert_not_called()
+            QTest.keyPress(ctw, Qt.Key_Escape)
+            _ok.assert_not_called()
+            QTest.keyPress(ctw, Qt.Key_Return, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 1)
+            QTest.keyPress(ctw, Qt.Key_Enter, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 2)
 
     def test_createForm(self):
         """test createForm"""
