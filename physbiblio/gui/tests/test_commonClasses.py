@@ -8,7 +8,7 @@ import sys
 import time
 import traceback
 
-from PySide2.QtCore import (
+from PySide6.QtCore import (
     QByteArray,
     QItemSelectionModel,
     QMimeData,
@@ -18,9 +18,9 @@ from PySide2.QtCore import (
     QRect,
     Qt,
 )
-from PySide2.QtGui import QContextMenuEvent, QDropEvent
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QAction, QInputDialog, QLineEdit, QWidget
+from PySide6.QtGui import QAction, QContextMenuEvent, QDropEvent
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QInputDialog, QLineEdit, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -1356,7 +1356,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"source1")
             )
         ev = QDropEvent(
-            mddtw.pos(),
+            mddtw.position(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),
@@ -1386,7 +1386,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"test1")
             )
         ev = QDropEvent(
-            mddtw.pos(),
+            mddtw.position(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),

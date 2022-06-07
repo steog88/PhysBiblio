@@ -7,10 +7,10 @@ import os
 import sys
 import traceback
 
-from PySide2.QtCore import QEvent, QModelIndex, Qt
-from PySide2.QtGui import QMouseEvent
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QWidget
+from PySide6.QtCore import QEvent, QModelIndex, Qt
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -860,7 +860,7 @@ class TestExpsListWindow(GUITestCase):
     def test_triggeredContextMenuEvent(self):
         """test triggeredContextMenuEvent"""
         p = MainWindow(testing=True)
-        position = QCursor.pos()
+        position = QCursor.position()
         ev = QMouseEvent(
             QEvent.MouseButtonPress,
             position,
@@ -1066,7 +1066,7 @@ class TestExpsListWindow(GUITestCase):
         ) as _cb, patch(
             "physbiblio.database.CatsExps.countByExp", return_value=12, autospec=True
         ) as _ce:
-            position = QCursor.pos()
+            position = QCursor.position()
             self.assertEqual(elw.handleItemEntered(ix), None)
             _l.assert_not_called()
             self.assertIsInstance(elw.timer, QTimer)
@@ -1094,7 +1094,9 @@ class TestExpsListWindow(GUITestCase):
             "physbiblio.database.CatsExps.countByExp", return_value=12, autospec=True
         ) as _ce:
             self.assertEqual(elw.handleItemEntered(ix), None)
-            _sh.assert_called_once_with(QCursor.pos(), "", elw.tableview.viewport())
+            _sh.assert_called_once_with(
+                QCursor.position(), "", elw.tableview.viewport()
+            )
 
     def test_cellClick(self):
         """test cellClick"""

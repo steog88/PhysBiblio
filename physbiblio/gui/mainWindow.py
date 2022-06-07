@@ -11,10 +11,9 @@ import traceback
 
 import bibtexparser
 import six
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QGuiApplication, QIcon, QPixmap
-from PySide2.QtWidgets import (
-    QAction,
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAction, QGuiApplication, QIcon, QPixmap
+from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QMainWindow,

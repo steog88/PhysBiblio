@@ -5,9 +5,9 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtCore import Qt, QTimer
-from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QAction, QLineEdit, QPushButton, QToolTip
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QCursor
+from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip
 
 try:
     import physbiblio.gui.resourcesPyside2
@@ -399,7 +399,7 @@ class ExpsListWindow(ObjListWindow):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPos())
+        action = menu.exec_(event.globalPosition())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
@@ -444,7 +444,7 @@ class ExpsListWindow(ObjListWindow):
         idExp = str(self.proxyModel.sibling(row, 0, index).data())
         try:
             self.timer.stop()
-            QToolTip.showText(QCursor.pos(), "", self.tableview.viewport())
+            QToolTip.showText(QCursor.position(), "", self.tableview.viewport())
         except AttributeError:
             pass
         try:
@@ -456,7 +456,7 @@ class ExpsListWindow(ObjListWindow):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(
             lambda: QToolTip.showText(
-                QCursor.pos(),
+                QCursor.position(),
                 ewstr.expId.format(idE=idExp, exp=expData["name"])
                 + ewstr.entriesCorrespondent.format(en=pBDB.bibExp.countByExp(idExp))
                 + ewstr.catsAssociated.format(ca=pBDB.catExp.countByExp(idExp)),

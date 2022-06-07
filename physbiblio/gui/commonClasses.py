@@ -14,7 +14,7 @@ else:
     from queue import Empty
 
 import PySide2
-from PySide2.QtCore import (
+from PySide6.QtCore import (
     QAbstractItemModel,
     QAbstractTableModel,
     QModelIndex,
@@ -25,10 +25,9 @@ from PySide2.QtCore import (
     QUrl,
     Signal,
 )
-from PySide2.QtGui import QDesktopServices, QGuiApplication, QPainter, QPixmap
-from PySide2.QtWidgets import (
+from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QPainter, QPixmap
+from PySide6.QtWidgets import (
     QAbstractItemView,
-    QAction,
     QComboBox,
     QDialog,
     QGridLayout,

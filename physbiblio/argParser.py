@@ -6,7 +6,7 @@ import argparse
 import datetime
 import sys
 
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__

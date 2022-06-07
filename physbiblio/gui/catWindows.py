@@ -5,16 +5,9 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtCore import Qt, QTimer
-from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import (
-    QAction,
-    QLineEdit,
-    QPushButton,
-    QToolTip,
-    QTreeView,
-    QVBoxLayout,
-)
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QCursor
+from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip, QTreeView, QVBoxLayout
 
 try:
     import physbiblio.gui.resourcesPyside2
@@ -602,7 +595,7 @@ class CatsTreeWindow(PBDialog):
         idCat = idCat.strip()
         try:
             self.timer.stop()
-            QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
+            QToolTip.showText(QCursor.position(), "", self.tree.viewport())
         except AttributeError:
             pass
         try:
@@ -614,7 +607,7 @@ class CatsTreeWindow(PBDialog):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(
             lambda: QToolTip.showText(
-                QCursor.pos(),
+                QCursor.position(),
                 cwstr.catId.format(idC=idCat, cat=catData["name"])
                 + cwstr.entriesCorrespondent.format(en=pBDB.catBib.countByCat(idCat))
                 + cwstr.expsAssociated.format(ex=pBDB.catExp.countByCat(idCat)),
@@ -676,7 +669,7 @@ class CatsTreeWindow(PBDialog):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPos())
+        action = menu.exec_(event.globalPosition())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))

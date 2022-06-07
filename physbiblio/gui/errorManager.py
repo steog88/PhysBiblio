@@ -6,7 +6,7 @@ import logging
 import sys
 import traceback
 
-from PySide2.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox
 
 if sys.version_info[0] < 3:
     from StringIO import StringIO

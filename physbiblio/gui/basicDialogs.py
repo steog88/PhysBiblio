@@ -5,8 +5,8 @@ This file is part of the physbiblio package.
 """
 import sys
 
-from PySide2.QtGui import QGuiApplication
-from PySide2.QtWidgets import (
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
     QGridLayout,

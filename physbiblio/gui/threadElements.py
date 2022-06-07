@@ -8,7 +8,7 @@ import traceback
 
 import bibtexparser
 from outdated import check_outdated
-from PySide2.QtCore import Signal
+from PySide6.QtCore import Signal
 from requests.exceptions import ConnectionError
 
 if sys.version_info[0] < 3:

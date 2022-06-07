@@ -7,10 +7,10 @@ import os
 import sys
 import traceback
 
-from PySide2.QtCore import QEvent, QModelIndex, QPoint, Qt
-from PySide2.QtGui import QMouseEvent
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QWidget
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, Qt
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
@@ -1285,7 +1285,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _cb, patch(
             "physbiblio.database.CatsExps.countByCat", return_value=12, autospec=True
         ) as _ce:
-            position = QCursor.pos()
+            position = QCursor.position()
             self.assertEqual(ctw.handleItemEntered(ix), None)
             _l.assert_not_called()
             self.assertIsInstance(ctw.timer, QTimer)
@@ -1313,12 +1313,12 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.database.CatsExps.countByCat", return_value=12, autospec=True
         ) as _ce:
             self.assertEqual(ctw.handleItemEntered(ix), None)
-            _sh.assert_called_once_with(QCursor.pos(), "", ctw.tree.viewport())
+            _sh.assert_called_once_with(QCursor.position(), "", ctw.tree.viewport())
 
     def test_contextMenuEvent(self):
         """test contextMenuEvent"""
         p = MainWindow(testing=True)
-        position = QCursor.pos()
+        position = QCursor.position()
         ev = QMouseEvent(
             QEvent.MouseButtonPress,
             position,

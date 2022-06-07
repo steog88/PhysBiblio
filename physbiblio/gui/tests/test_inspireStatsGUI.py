@@ -13,10 +13,10 @@ import traceback
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from PySide2.QtCore import QPoint, Qt
-from PySide2.QtGui import QFont
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QLineEdit, QMessageBox, QWidget
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QFont
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QLineEdit, QMessageBox, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest

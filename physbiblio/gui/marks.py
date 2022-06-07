@@ -4,7 +4,7 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
+from PySide6.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 
 try:
     import physbiblio.gui.resourcesPyside2

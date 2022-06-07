@@ -19,10 +19,9 @@ os.environ["QT_API"] = "pyside2"
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from pylatexenc.latex2text import LatexNodes2Text
 from pyparsing import ParseException
-from PySide2.QtCore import QEvent, Qt, QUrl
-from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
-from PySide2.QtWidgets import (
-    QAction,
+from PySide6.QtCore import QEvent, Qt, QUrl
+from PySide6.QtGui import QAction, QCursor, QFont, QIcon, QImage, QTextDocument
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
@@ -587,7 +586,7 @@ class BibTableModel(PBTableModel):
         string = ""
         for t in sorted(convertType.keys()):
             try:
-                if data[t] == 1:
+                if t in data and data[t] == 1:
                     if someType:
                         string += ", "
                     string += convertType[t]
@@ -695,10 +694,19 @@ class BibTableModel(PBTableModel):
         else:
             try:
                 value = rowData[colName]
+                # print(value, colName)
+                # print("a")
                 if colName in ["title", "author"]:
-                    value = self.latexToText.latex_to_text(value)
+                    # print("b", value)
+                    # print(self.latexToText.latex_to_text(value))
+                    # print("e")
+                    v = self.latexToText.latex_to_text(value)
+                    # print("v", v)
+                    value = v
+                # print("c")
             except KeyError:
                 value = ""
+        # print("d")
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
             if self.selectedElements[rowData["bibkey"]] == True:
@@ -1954,7 +1962,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         Show the right click menu, then clean the selection
         independently on which action has been chosen
         """
-        position = QCursor.pos()
+        position = QCursor.position()
         self.mainWin.selectedBibs = sorted(
             [
                 key
@@ -2099,7 +2107,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 ] + ac.menu.possibleActions[0][1]
                 ac.menu.possibleActions[0].setDisabled(True)
                 ac.menu.fillMenu()
-                position = QCursor.pos()
+                position = QCursor.position()
                 ac.menu.exec_(position)
                 self.clearSelection()
         else:
@@ -2124,7 +2132,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 
         commonActions = CommonBibActions([entry], self.mainWin)
         menu = commonActions.createContextMenu()
-        menu.exec_(event.globalPos())
+        menu.exec_(event.globalPosition())
 
     def handleItemEntered(self, index):
         """Currently does nothing
@@ -2175,7 +2183,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
             elif len(pdfFiles) > 1:
                 ask = AskPDFAction(bibkey, self.mainWin)
-                ask.exec_(QCursor.pos())
+                ask.exec_(QCursor.position())
 
     def finalizeTable(self):
         """Set the font size, resize the table to fit the contents,

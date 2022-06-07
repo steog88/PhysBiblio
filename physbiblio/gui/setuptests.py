@@ -5,7 +5,7 @@ This file is part of the physbiblio package.
 import sys
 import traceback
 
-from PySide2.QtWidgets import QApplication, QFileDialog
+from PySide6.QtWidgets import QApplication, QFileDialog
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest

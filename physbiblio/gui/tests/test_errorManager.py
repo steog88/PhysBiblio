@@ -8,9 +8,9 @@ import os
 import sys
 import traceback
 
-from PySide2.QtCore import Qt
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QMessageBox
+from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QMessageBox
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest

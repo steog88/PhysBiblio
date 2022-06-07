@@ -7,10 +7,10 @@ import os
 import sys
 import traceback
 
-from PySide2.QtCore import QEvent, Qt
-from PySide2.QtGui import QGuiApplication, QImage
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QMenu, QToolBar, QWidget
+from PySide6.QtCore import QEvent, Qt
+from PySide6.QtGui import QGuiApplication, QImage
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QMenu, QToolBar, QWidget
 
 if sys.version_info[0] < 3:
     import unittest2 as unittest
