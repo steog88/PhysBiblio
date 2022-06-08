@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 
-plt.switch_backend("Qt5Agg")
+plt.switch_backend("QtAgg")
 
 try:
     from physbiblio.config import pbConfig

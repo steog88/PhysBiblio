@@ -48,7 +48,7 @@ def editExperiment(parentObject, mainWinObject, editIdExp=None):
     else:
         edit = None
     newExpWin = EditExperimentDialog(parentObject, experiment=edit)
-    newExpWin.exec_()
+    newExpWin.exec()
     if newExpWin.result:
         data = {}
         for k, v in newExpWin.textValues.items():
@@ -399,7 +399,7 @@ class ExpsListWindow(ObjListWindow):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPosition())
+        action = menu.exec(event.globalPosition())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
@@ -418,7 +418,7 @@ class ExpsListWindow(ObjListWindow):
                 expButton=False,
                 previous=previous,
             )
-            selectCats.exec_()
+            selectCats.exec()
             if selectCats.result == "Ok":
                 cats = self.parent().selectedCats
                 for p in previous:

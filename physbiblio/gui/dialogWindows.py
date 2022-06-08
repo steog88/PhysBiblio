@@ -230,7 +230,7 @@ class ConfigWindow(PBDialog):
         window = ConfigEditColumns(
             self, ast.literal_eval(self.textValues[ix][1].text().strip())
         )
-        window.exec_()
+        window.exec()
         if window.result:
             columns = window.selected
             self.textValues[ix][1].setText(str(columns))
@@ -247,7 +247,7 @@ class ConfigWindow(PBDialog):
             expButton=False,
             previous=ast.literal_eval(self.textValues[ix][1].text().strip()),
         )
-        selectCats.exec_()
+        selectCats.exec()
         if selectCats.result == "Ok":
             self.textValues[ix][1].setText(str(self.selectedCats))
 
@@ -454,7 +454,7 @@ class PrintText(PBDialog):
         when closing is enabled
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape and self._wantToClose:
             self.close()
@@ -658,7 +658,7 @@ class AdvancedImportSelect(ObjListWindow):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.result = False
@@ -776,7 +776,7 @@ class DailyArxivDialog(PBDialog):
         self.comboCat = PBComboBox(
             self, [""] + sorted(physBiblioWeb.webSearch["arxiv"].categories.keys())
         )
-        self.comboCat.currentIndexChanged[str].connect(self.updateCat)
+        self.comboCat.currentTextChanged.connect(self.updateCat)
         self.grid.addWidget(self.comboCat, 0, 1)
 
         self.grid.addWidget(PBLabel(dwstr.arxSub), 1, 0)

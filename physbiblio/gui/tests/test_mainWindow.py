@@ -39,7 +39,7 @@ class TestMainWindow(GUITestCase):
     def setUpClass(self):
         """define common parameters for test use"""
         super(TestMainWindow, self).setUpClass()
-        self.qmwName = "PySide2.QtWidgets.QMainWindow"
+        self.qmwName = "PySide6.QtWidgets.QMainWindow"
         self.modName = "physbiblio.gui.mainWindow"
         self.clsName = self.modName + ".MainWindow"
         self.mainW = MainWindow()
@@ -126,9 +126,9 @@ class TestMainWindow(GUITestCase):
         ) as _c, patch(
             self.modName + ".askYesNo", side_effect=[True, False], autospec=True
         ) as _a, patch(
-            "PySide2.QtCore.QEvent.accept", autospec=True
+            "PySide6.QtCore.QEvent.accept", autospec=True
         ) as _ea, patch(
-            "PySide2.QtCore.QEvent.ignore", autospec=True
+            "PySide6.QtCore.QEvent.ignore", autospec=True
         ) as _ei:
             self.mainW.closeEvent(e)
             _c.assert_called_once_with(pBDB)
@@ -146,9 +146,9 @@ class TestMainWindow(GUITestCase):
         ) as _c, patch(
             self.modName + ".askYesNo", side_effect=[True, False], autospec=True
         ) as _a, patch(
-            "PySide2.QtCore.QEvent.accept", autospec=True
+            "PySide6.QtCore.QEvent.accept", autospec=True
         ) as _ea, patch(
-            "PySide2.QtCore.QEvent.ignore", autospec=True
+            "PySide6.QtCore.QEvent.ignore", autospec=True
         ) as _ei:
             with patch.dict(pbConfig.params, {"askBeforeExit": False}, clear=False):
                 self.mainW.closeEvent(e)
@@ -229,9 +229,9 @@ class TestMainWindow(GUITestCase):
     def test_setIcon(self):
         """test setIcon"""
         qi = QIcon(":/images/icon.png")
-        with patch(
-            self.modName + ".QIcon", return_value=qi, autospec=True
-        ) as _qi, patch(self.qmwName + ".setWindowIcon", autospec=True) as _swi:
+        with patch(self.modName + ".QIcon", return_value=qi) as _qi, patch(
+            self.qmwName + ".setWindowIcon", autospec=True
+        ) as _swi:
             self.mainW.setIcon()
             _qi.assert_called_once_with(":/images/icon.png")
             _swi.assert_called_once_with(qi)
@@ -314,7 +314,7 @@ class TestMainWindow(GUITestCase):
                 act.trigger()
                 p.assert_called_once_with()
 
-        with patch("PySide2.QtWidgets.QMainWindow.close", autospec=True) as _f:
+        with patch("PySide6.QtWidgets.QMainWindow.close", autospec=True) as _f:
             mw = MainWindow(testing=True)
             mw.createActions()
             assertAction(
@@ -1022,7 +1022,7 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
-        with patch("PySide2.QtWidgets.QTabWidget.blockSignals") as _bl:
+        with patch("PySide6.QtWidgets.QTabWidget.blockSignals") as _bl:
             self.mainW.fillTabs()
             _bl.assert_has_calls([call(True), call(False)])
         self.assertEqual(self.mainW.tabWidget.count(), 4)
@@ -1111,7 +1111,7 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
             self.clsName + ".fillTabs", autospec=True
-        ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
+        ) as _ft, patch("PySide6.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
             self.mainW.newTabAtEnd(0)
             _ab.assert_not_called()
             _ft.assert_not_called()
@@ -1128,7 +1128,7 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
             self.clsName + ".fillTabs", autospec=True
-        ) as _ft, patch("PySide2.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
+        ) as _ft, patch("PySide6.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
             for i in range(3):
                 self.mainW.newTabAtEnd(i)
                 _ab.assert_not_called()
@@ -1222,7 +1222,7 @@ class TestMainWindow(GUITestCase):
         ) as _sbm, patch(
             self.clsName + ".newTabAtEnd", autospec=True
         ) as _nt, patch(
-            "PySide2.QtWidgets.QTabWidget.count", return_value=12
+            "PySide6.QtWidgets.QTabWidget.count", return_value=12
         ) as _c:
             self.mainW.reloadMainContent(bibs="fake")
             _d.assert_called_once_with(self.mainW)
@@ -1242,7 +1242,7 @@ class TestMainWindow(GUITestCase):
     def test_manageProfiles(self):
         """test manageProfiles"""
         sp = SelectProfiles(self.mainW)
-        sp.exec_ = MagicMock()
+        sp.exec = MagicMock()
         with patch(
             self.modName + ".SelectProfiles",
             return_value=sp,
@@ -1250,7 +1250,7 @@ class TestMainWindow(GUITestCase):
         ) as _i:
             self.mainW.manageProfiles()
             _i.assert_called_once_with(self.mainW)
-            sp.exec_.assert_called_once_with()
+            sp.exec.assert_called_once_with()
 
     def test_editProfile(self):
         """test editProfile"""
@@ -1261,14 +1261,14 @@ class TestMainWindow(GUITestCase):
     def test_config(self):
         """test config"""
         cw = ConfigWindow(self.mainW)
-        cw.exec_ = MagicMock()
+        cw.exec = MagicMock()
         cw.result = False
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
             self.modName + ".ConfigWindow", return_value=cw, autospec=USE_AUTOSPEC_CLASS
         ) as _cw:
             self.mainW.config()
             _cw.assert_called_once_with(self.mainW)
-            cw.exec_.assert_called_once()
+            cw.exec.assert_called_once()
             _sbm.assert_called_once_with(self.mainW, "Changes discarded")
         cw.result = True
         with patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm, patch(
@@ -1361,7 +1361,7 @@ class TestMainWindow(GUITestCase):
         """test logfile"""
         with patch("logging.Logger.exception") as _e:
             ld = LogFileContentDialog(self.mainW)
-        ld.exec_ = MagicMock()
+        ld.exec = MagicMock()
         with patch(
             self.modName + ".LogFileContentDialog",
             return_value=ld,
@@ -1369,7 +1369,7 @@ class TestMainWindow(GUITestCase):
         ) as _i:
             self.mainW.logfile()
             _i.assert_called_once_with(self.mainW)
-            ld.exec_.assert_called_once_with()
+            ld.exec.assert_called_once_with()
 
     def test_reloadConfig(self):
         """test reloadConfig"""
@@ -1440,10 +1440,8 @@ class TestMainWindow(GUITestCase):
     def test_recentChanges(self):
         """test recentChanges"""
         mb = MagicMock()
-        with patch(
-            self.modName + ".QMessageBox", return_value=mb, autospec=True
-        ) as _mb, patch(
-            self.modName + ".QPixmap", return_value="qpm", autospec=True
+        with patch(self.modName + ".QMessageBox", return_value=mb) as _mb, patch(
+            self.modName + ".QPixmap", return_value="qpm"
         ) as _qpm:
             self.mainW.recentChanges()
             _mb.assert_called_once_with(
@@ -1457,15 +1455,13 @@ class TestMainWindow(GUITestCase):
             _qpm.assert_called_once_with(":/images/icon.png")
         mb.setTextFormat.assert_called_once_with(Qt.RichText)
         mb.setIconPixmap.assert_called_once_with("qpm")
-        mb.exec_.assert_called_once_with()
+        mb.exec.assert_called_once_with()
 
     def test_showAbout(self):
         """test showAbout"""
         mb = MagicMock()
-        with patch(
-            self.modName + ".QMessageBox", return_value=mb, autospec=True
-        ) as _mb, patch(
-            self.modName + ".QPixmap", return_value="qpm", autospec=True
+        with patch(self.modName + ".QMessageBox", return_value=mb) as _mb, patch(
+            self.modName + ".QPixmap", return_value="qpm"
         ) as _qpm:
             self.mainW.showAbout()
             _mb.assert_called_once_with(
@@ -1495,19 +1491,15 @@ class TestMainWindow(GUITestCase):
             _qpm.assert_called_once_with(":/images/icon.png")
         mb.setTextFormat.assert_called_once_with(Qt.RichText)
         mb.setIconPixmap.assert_called_once_with("qpm")
-        mb.exec_.assert_called_once_with()
+        mb.exec.assert_called_once_with()
 
     def test_showDBStats(self):
         """test showDBStats"""
         dbStats(pBDB)
         mb = MagicMock()
-        with patch(
-            self.modName + ".QMessageBox", return_value=mb, autospec=True
-        ) as _mb, patch(
-            self.modName + ".QPixmap", return_value="qpm", autospec=True
-        ) as _qpm, patch(
-            self.modName + ".dbStats", autospec=True
-        ) as _dbs, patch(
+        with patch(self.modName + ".QMessageBox", return_value=mb) as _mb, patch(
+            self.modName + ".QPixmap", return_value="qpm"
+        ) as _qpm, patch(self.modName + ".dbStats", autospec=True) as _dbs, patch(
             "physbiblio.pdf.LocalPDF.dirSize", autospec=True, return_value=4096**2
         ) as _ds, patch(
             "physbiblio.pdf.LocalPDF.numberOfFiles", autospec=True, return_value=2
@@ -1540,7 +1532,7 @@ class TestMainWindow(GUITestCase):
     def test_runInThread(self):
         """test _runInThread"""
         app = PrintText()
-        app.exec_ = MagicMock()
+        app.exec = MagicMock()
         self.assertTrue(hasattr(app, "stopped"))
         app.stopped = MagicMock()
         app.stopped.connect = MagicMock()
@@ -1590,7 +1582,7 @@ class TestMainWindow(GUITestCase):
             app.stopped.connect.assert_not_called()
             _th.assert_called_once_with(pBErrorManager, ws, format="%(message)s")
             thr.start.assert_called_once_with()
-            app.exec_.assert_called_once_with()
+            app.exec.assert_called_once_with()
             _info.assert_called_once_with("Closing...")
             _rth.assert_called_once_with(pBErrorManager)
             _sbm.assert_not_called()
@@ -1608,7 +1600,7 @@ class TestMainWindow(GUITestCase):
         thr.finished.connect.reset_mock()
         app.stopped.connect.reset_mock()
         thr.start.reset_mock()
-        app.exec_.reset_mock()
+        app.exec.reset_mock()
         with patch(
             self.modName + ".PrintText", return_value=app, autospec=USE_AUTOSPEC_CLASS
         ) as _pt, patch(
@@ -1650,7 +1642,7 @@ class TestMainWindow(GUITestCase):
             app.stopped.connect.assert_called_once_with(thr.setStopFlag)
             _th.assert_called_once_with(pBErrorManager, ws, format="%(message)s")
             thr.start.assert_called_once_with()
-            app.exec_.assert_called_once_with()
+            app.exec.assert_called_once_with()
             _info.assert_has_calls([call("add"), call("Closing...")])
             _rth.assert_called_once_with(pBErrorManager)
             _sbm.assert_called_once_with(self.mainW, "out")
@@ -1894,7 +1886,7 @@ class TestMainWindow(GUITestCase):
     def test_exportFile(self):
         """test exportFile"""
         eft = ExportForTexDialog(self.mainW)
-        eft.exec_ = MagicMock()
+        eft.exec = MagicMock()
         eft.result = False
         with patch(
             self.modName + ".ExportForTexDialog",
@@ -2152,7 +2144,7 @@ class TestMainWindow(GUITestCase):
     def test_searchBiblio(self):
         """test searchBiblio"""
         sbw = SearchBibsWindow(self.mainW)
-        sbw.exec_ = MagicMock()
+        sbw.exec = MagicMock()
         self.assertFalse(sbw.result)
         with patch(
             self.modName + ".SearchBibsWindow",
@@ -2161,7 +2153,7 @@ class TestMainWindow(GUITestCase):
         ) as _sbw:
             self.assertEqual(self.mainW.searchBiblio(), None)
             _sbw.assert_called_once_with(self.mainW, replace=False)
-            sbw.exec_.assert_called_once_with()
+            sbw.exec.assert_called_once_with()
         sbw.onOk()
         self.assertFalse(sbw.save)
         with patch(
@@ -2297,7 +2289,7 @@ class TestMainWindow(GUITestCase):
 
         # replace=True
         sbw = SearchBibsWindow(self.mainW, replace=True)
-        sbw.exec_ = MagicMock()
+        sbw.exec = MagicMock()
         self.assertFalse(sbw.result)
         with patch(
             self.modName + ".SearchBibsWindow",
@@ -2306,7 +2298,7 @@ class TestMainWindow(GUITestCase):
         ) as _sbw:
             self.assertFalse(self.mainW.searchBiblio(replace=True))
             _sbw.assert_called_once_with(self.mainW, replace=True)
-            sbw.exec_.assert_called_once_with()
+            sbw.exec.assert_called_once_with()
         sbw.onOk()
         self.assertFalse(sbw.save)
         with patch(
@@ -2496,9 +2488,9 @@ class TestMainWindow(GUITestCase):
         """test runSearchBiblio"""
         pBDB.lastFetched = []
         with patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromDict",
             return_value=pBDB,
@@ -2520,9 +2512,9 @@ class TestMainWindow(GUITestCase):
         pBDB.lastFetched = ["a"]
         self.lastFetched = ["a", "b"]
         with patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromDict",
             side_effect=[self, pBDB],
@@ -2548,9 +2540,9 @@ class TestMainWindow(GUITestCase):
                 + "'Max number of results' in the search form to see more."
             )
         with patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromDict",
             side_effect=[self, pBDB],
@@ -2688,7 +2680,7 @@ class TestMainWindow(GUITestCase):
                 SearchBibsWindow(replace=r["isReplace"], edit=r["idS"]) for r in records
             ]
         for s in sbws:
-            s.exec_ = MagicMock()
+            s.exec = MagicMock()
         sbws[3].textValues[0]["type"].setCurrentText("Marks")
         sbws[3].limitValue.setText("111")
         sbws[3].newTabCheck.setChecked(True)
@@ -2729,13 +2721,13 @@ class TestMainWindow(GUITestCase):
         ) as _rre:
             self.mainW.editSearchBiblio(999, "test")
             _sbw.assert_called_once_with(edit=999, replace=0)
-            sbws[0].exec_.assert_called_once_with()
+            sbws[0].exec.assert_called_once_with()
             _usf.assert_not_called()
             _rsb.assert_not_called()
             _rre.assert_not_called()
             _ffd.assert_not_called()
             self.mainW.editSearchBiblio(999, "test")
-            sbws[1].exec_.assert_called_once_with()
+            sbws[1].exec.assert_called_once_with()
             _usf.assert_not_called()
             _rsb.assert_called_once_with(
                 self.mainW,
@@ -2758,7 +2750,7 @@ class TestMainWindow(GUITestCase):
             _rsb.reset_mock()
             self.mainW.editSearchBiblio(999, "test")
             _sbw.assert_called_once_with(edit=999, replace=1)
-            sbws[2].exec_.assert_called_once_with()
+            sbws[2].exec.assert_called_once_with()
             _usf.assert_not_called()
             _rsb.assert_not_called()
             _rre.assert_called_once_with(
@@ -2792,7 +2784,7 @@ class TestMainWindow(GUITestCase):
             _ffd.reset_mock()
             _c.assert_not_called()
             self.mainW.editSearchBiblio(999, "test")
-            sbws[3].exec_.assert_called_once_with()
+            sbws[3].exec.assert_called_once_with()
             _usf.assert_has_calls(
                 [
                     call(
@@ -2834,7 +2826,7 @@ class TestMainWindow(GUITestCase):
             _usf.reset_mock()
             _rsb.reset_mock()
             self.mainW.editSearchBiblio(999, "test")
-            sbws[4].exec_.assert_called_once_with()
+            sbws[4].exec.assert_called_once_with()
             _usf.assert_has_calls(
                 [
                     call(
@@ -2944,9 +2936,9 @@ class TestMainWindow(GUITestCase):
         pBDB.lastFetched = ["z"]
         self.mainW.replaceResults = (["d"], ["e", "f"], ["g", "h", "i"])
         with patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromLast",
             return_value=pBDB,
@@ -3062,9 +3054,9 @@ class TestMainWindow(GUITestCase):
         ) as _thr, patch(self.modName + ".PrintText", return_value=pt) as _pt, patch(
             self.modName + ".WriteStream", return_value=ws
         ) as _ws, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _soc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _roc, patch(
             "physbiblio.database.Entries.fetchFromLast",
             return_value=pBDB,
@@ -3758,19 +3750,19 @@ class TestMainWindow(GUITestCase):
     def test_askCatsForEntries(self):
         """test askCatsForEntries"""
         sc1 = CatsTreeWindow(parent=self.mainW)
-        sc1.exec_ = MagicMock()
+        sc1.exec = MagicMock()
         sc1.result = "Ok"
         sc2 = CatsTreeWindow(parent=self.mainW)
-        sc2.exec_ = MagicMock()
+        sc2.exec = MagicMock()
         sc2.result = False
         sc3 = CatsTreeWindow(parent=self.mainW)
-        sc3.exec_ = MagicMock()
+        sc3.exec = MagicMock()
         sc3.result = "Exps"
         se1 = ExpsListWindow(parent=self.mainW)
-        se1.exec_ = MagicMock()
+        se1.exec = MagicMock()
         se1.result = "Ok"
         se2 = ExpsListWindow(parent=self.mainW)
-        se2.exec_ = MagicMock()
+        se2.exec = MagicMock()
         se2.result = False
         self.mainW.selectedCats = [0, 1, 2]
         self.mainW.selectedExps = [0, 1]
@@ -3810,9 +3802,9 @@ class TestMainWindow(GUITestCase):
                     call(askCats=True, askForBib="d", parent=self.mainW, previous=[0]),
                 ]
             )
-            sc1.exec_.assert_called_once_with()
-            sc2.exec_.assert_called_once_with()
-            self.assertEqual(sc3.exec_.call_count, 2)
+            sc1.exec.assert_called_once_with()
+            sc2.exec.assert_called_once_with()
+            self.assertEqual(sc3.exec.call_count, 2)
             _cbi.assert_has_calls(
                 [
                     call(pBDB.catBib, [0, 1, 2], "a"),
@@ -3826,8 +3818,8 @@ class TestMainWindow(GUITestCase):
                     call(askExps=True, askForBib="d", parent=self.mainW),
                 ]
             )
-            se1.exec_.assert_called_once_with()
-            se2.exec_.assert_called_once_with()
+            se1.exec.assert_called_once_with()
+            se2.exec.assert_called_once_with()
             _bei.assert_called_once_with(pBDB.bibExp, "c", [0, 1])
             _sbm.assert_has_calls(
                 [
@@ -3894,7 +3886,7 @@ class TestMainWindow(GUITestCase):
     def test_advancedImport(self):
         """test advancedImport"""
         aid = AdvancedImportDialog()
-        aid.exec_ = MagicMock()
+        aid.exec = MagicMock()
         aid.result = False
         aid.comboMethod.setCurrentText("INSPIRE-HEP")
         aid.searchStr.setText("")
@@ -3905,9 +3897,9 @@ class TestMainWindow(GUITestCase):
         ) as _aid:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
 
-        aid.exec_ = MagicMock()
+        aid.exec = MagicMock()
         aid.result = True
         with patch(
             self.modName + ".AdvancedImportDialog",
@@ -3916,10 +3908,10 @@ class TestMainWindow(GUITestCase):
         ) as _aid:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
 
         aid.searchStr.setText("test")
-        aid.exec_ = MagicMock()
+        aid.exec = MagicMock()
         aid.result = True
         with patch(
             self.modName + ".AdvancedImportDialog",
@@ -3932,7 +3924,7 @@ class TestMainWindow(GUITestCase):
         ) as _ru:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_called_once_with("No results obtained.")
             _ru.assert_called_once_with(physBiblioWeb.webSearch["inspire"], "test")
 
@@ -3993,11 +3985,11 @@ class TestMainWindow(GUITestCase):
                 },
                 self.mainW,
             )
-        ais.exec_ = MagicMock()
+        ais.exec = MagicMock()
         ais.askCats.setCheckState(Qt.Checked)
         ais.selected = {"a": True, "b": True, "c": False}
         ais.result = False
-        aid.exec_.reset_mock()
+        aid.exec.reset_mock()
         with patch(
             self.modName + ".AdvancedImportDialog",
             return_value=aid,
@@ -4007,9 +3999,9 @@ class TestMainWindow(GUITestCase):
             return_value=ais,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
@@ -4043,7 +4035,7 @@ class TestMainWindow(GUITestCase):
         ) as _cd:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["doi"], "test")
             self.assertEqual(_sc.call_count, 1)
@@ -4067,8 +4059,8 @@ class TestMainWindow(GUITestCase):
                 [call("KeyError 'arxiv', entry: d"), call("KeyError 'doi', entry: d")]
             )
 
-        aid.exec_.reset_mock()
-        ais.exec_.reset_mock()
+        aid.exec.reset_mock()
+        ais.exec.reset_mock()
         ais.selected = {"a": True, "b": True, "c": False, "e": True}
         ais.result = True
         with patch(
@@ -4080,9 +4072,9 @@ class TestMainWindow(GUITestCase):
             return_value=ais,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
@@ -4129,7 +4121,7 @@ class TestMainWindow(GUITestCase):
         ) as _cd:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["doi"], "test")
             self.assertEqual(_sc.call_count, 1)
@@ -4182,7 +4174,7 @@ class TestMainWindow(GUITestCase):
             )
 
         aid.comboMethod.setCurrentText("ISBN")
-        aid.exec_.reset_mock()
+        aid.exec.reset_mock()
         with patch("logging.Logger.warning") as _w:
             ais = AdvancedImportSelect(
                 {
@@ -4209,7 +4201,7 @@ class TestMainWindow(GUITestCase):
                 },
                 self.mainW,
             )
-        ais.exec_ = MagicMock()
+        ais.exec = MagicMock()
         ais.askCats.setCheckState(Qt.Unchecked)
         ais.selected = {"a": True, "b": True}
         ais.result = True
@@ -4222,9 +4214,9 @@ class TestMainWindow(GUITestCase):
             return_value=ais,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
@@ -4272,7 +4264,7 @@ class TestMainWindow(GUITestCase):
         ) as _cd:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["isbn"], "test")
             self.assertEqual(_sc.call_count, 1)
@@ -4318,8 +4310,8 @@ class TestMainWindow(GUITestCase):
             _ii.assert_not_called()
 
         aid.comboMethod.setCurrentText("INSPIRE-HEP")
-        aid.exec_.reset_mock()
-        ais.exec_.reset_mock()
+        aid.exec.reset_mock()
+        ais.exec.reset_mock()
         with patch(
             self.modName + ".AdvancedImportDialog",
             return_value=aid,
@@ -4329,9 +4321,9 @@ class TestMainWindow(GUITestCase):
             return_value=ais,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.modName + ".infoMessage", autospec=True
         ) as _im, patch(
@@ -4381,7 +4373,7 @@ class TestMainWindow(GUITestCase):
         ) as _cd:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["inspire"], "test")
             self.assertEqual(_sc.call_count, 1)
@@ -4425,8 +4417,8 @@ class TestMainWindow(GUITestCase):
 
         # ads
         aid.comboMethod.setCurrentText("ADS-NASA")
-        aid.exec_.reset_mock()
-        ais.exec_.reset_mock()
+        aid.exec.reset_mock()
+        ais.exec.reset_mock()
         with patch(
             self.clsName + ".checkAdsToken", autospec=True, return_value=True
         ) as _cat, patch(
@@ -4442,9 +4434,9 @@ class TestMainWindow(GUITestCase):
             return_value=ais,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _ais, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".reloadMainContent", autospec=True
         ) as _rmc, patch(
@@ -4488,7 +4480,7 @@ class TestMainWindow(GUITestCase):
         ) as _cd:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"], "test")
             self.assertEqual(_sc.call_count, 1)
@@ -4541,8 +4533,8 @@ class TestMainWindow(GUITestCase):
             _gli.assert_called_once_with(physBiblioWeb.webSearch["adsnasa"])
 
         aid.comboMethod.setCurrentText("ADS-NASA")
-        aid.exec_.reset_mock()
-        ais.exec_.reset_mock()
+        aid.exec.reset_mock()
+        ais.exec.reset_mock()
         with patch(
             self.clsName + ".checkAdsToken", autospec=True, return_value=False
         ) as _cat, patch(
@@ -4550,7 +4542,7 @@ class TestMainWindow(GUITestCase):
             return_value=aid,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _aid, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
             "physbiblio.webimport.adsnasa.WebSearch.retrieveUrlAll",
             return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
@@ -4560,7 +4552,7 @@ class TestMainWindow(GUITestCase):
         ) as _ru:
             self.assertFalse(self.mainW.advancedImport())
             _aid.assert_called_once_with()
-            aid.exec_.assert_called_once_with()
+            aid.exec.assert_called_once_with()
             _im.assert_not_called()
             _ru.assert_not_called()
             _sc.assert_not_called()
@@ -4788,7 +4780,7 @@ class TestMainWindow(GUITestCase):
         """test infoFromArxiv"""
         ffa = FieldsFromArxiv()
         ffa.output = ["title"]
-        ffa.exec_ = MagicMock()
+        ffa.exec = MagicMock()
         ffa.result = False
         with patch(
             self.modName + ".FieldsFromArxiv",
@@ -4807,7 +4799,7 @@ class TestMainWindow(GUITestCase):
         ) as _rit:
             self.mainW.infoFromArxiv()
             _ffa.assert_called_once_with()
-            ffa.exec_.assert_called_once_with()
+            ffa.exec.assert_called_once_with()
             _fa.assert_called_once_with(pBDB.bibs, doFetch=False)
             _fc.assert_called_once_with(pBDB.bibs)
             _sbm.assert_not_called()
@@ -4921,7 +4913,7 @@ class TestMainWindow(GUITestCase):
     def test_browseDailyArxiv(self):
         """test browseDailyArxiv"""
         dad = DailyArxivDialog()
-        dad.exec_ = MagicMock()
+        dad.exec = MagicMock()
         dad.result = False
         dad.comboCat.setCurrentText("")
         with patch(
@@ -4931,9 +4923,9 @@ class TestMainWindow(GUITestCase):
         ) as _dad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            dad.exec_.assert_called_once_with()
+            dad.exec.assert_called_once_with()
 
-        dad.exec_ = MagicMock()
+        dad.exec = MagicMock()
         dad.result = True
         dad.comboCat.setCurrentText("")
         with patch(
@@ -4943,14 +4935,14 @@ class TestMainWindow(GUITestCase):
         ) as _dad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            dad.exec_.assert_called_once_with()
+            dad.exec.assert_called_once_with()
 
         with patch(
             "physbiblio.gui.dialogWindows.DailyArxivDialog.updateCat", autospec=True
         ) as _uc:
             dad.comboCat.addItem("nonex")
             dad.comboCat.setCurrentText("nonex")
-        dad.exec_ = MagicMock()
+        dad.exec = MagicMock()
         dad.result = True
         with patch(
             self.modName + ".DailyArxivDialog",
@@ -4963,7 +4955,7 @@ class TestMainWindow(GUITestCase):
         ) as _ad:
             self.assertFalse(self.mainW.browseDailyArxiv())
             _dad.assert_called_once_with()
-            dad.exec_.assert_called_once_with()
+            dad.exec.assert_called_once_with()
             _w.assert_called_once_with("Non-existent category! nonex")
             _ad.assert_not_called()
 
@@ -5017,7 +5009,7 @@ class TestMainWindow(GUITestCase):
         )
         self.mainW.importArXivResults = (["12.345"], [])
         das.abstractFormulas = AbstractFormulas
-        das.exec_ = MagicMock()
+        das.exec = MagicMock()
         das.askCats.setCheckState(Qt.Unchecked)
         das.selected = {"12.345": True}
         das.result = False
@@ -5030,9 +5022,9 @@ class TestMainWindow(GUITestCase):
             return_value=das,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".reloadMainContent", autospec=True
         ) as _rmc, patch(
@@ -5060,12 +5052,12 @@ class TestMainWindow(GUITestCase):
                 },
                 self.mainW,
             )
-            das.exec_.assert_called_once_with()
+            das.exec.assert_called_once_with()
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
             _rmc.assert_called_once_with(self.mainW)
 
-        das.exec_ = MagicMock()
+        das.exec = MagicMock()
         das.result = True
         with patch(
             self.modName + ".DailyArxivDialog",
@@ -5076,9 +5068,9 @@ class TestMainWindow(GUITestCase):
             return_value=das,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".askCatsForEntries", autospec=True
         ) as _ace, patch(
@@ -5112,7 +5104,7 @@ class TestMainWindow(GUITestCase):
                 },
                 self.mainW,
             )
-            das.exec_.assert_called_once_with()
+            das.exec.assert_called_once_with()
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
             _rmc.assert_called_once_with(self.mainW)
@@ -5138,7 +5130,7 @@ class TestMainWindow(GUITestCase):
             )
             _ace.assert_not_called()
 
-        das.exec_ = MagicMock()
+        das.exec = MagicMock()
         das.askCats.setCheckState(Qt.Checked)
         with patch(
             self.modName + ".DailyArxivDialog",
@@ -5149,9 +5141,9 @@ class TestMainWindow(GUITestCase):
             return_value=das,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".askCatsForEntries", autospec=True
         ) as _ace, patch(
@@ -5187,7 +5179,7 @@ class TestMainWindow(GUITestCase):
                 },
                 self.mainW,
             )
-            das.exec_.assert_called_once_with()
+            das.exec.assert_called_once_with()
             self.assertEqual(_sc.call_count, 1)
             self.assertEqual(_rc.call_count, 1)
             _rmc.assert_called_once_with(self.mainW)
@@ -5291,7 +5283,7 @@ class TestMainWindow(GUITestCase):
             ["12.346", "12.348"],
         )
         das.abstractFormulas = AbstractFormulas
-        das.exec_ = MagicMock()
+        das.exec = MagicMock()
         das.askCats.setCheckState(Qt.Unchecked)
         das.selected = {
             "12.345": True,
@@ -5417,9 +5409,9 @@ class TestMainWindow(GUITestCase):
             return_value=das,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".askCatsForEntries", autospec=True
         ) as _ace, patch(
@@ -5546,9 +5538,9 @@ class TestMainWindow(GUITestCase):
             return_value=das,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _das, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             self.clsName + ".askCatsForEntries", autospec=True
         ) as _ace, patch(

@@ -9,7 +9,7 @@ by S. Gariazzo (stefano.gariazzo@gmail.com)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
-It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
+It is written in Python, it uses PySide6 for the graphical interface and Sqlite for the database management.
 
 
 ## 1. Getting started
@@ -26,7 +26,7 @@ Please report any bug that you find [here](https://github.com/steog88/PhysBiblio
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
-Please note that at the moment `PySide2` is only available for `python` versions 2.7+ (not for Windows) and 3.6+.
+Please note that at the moment `PySide6` is only available for `python` versions 3.6+.
 Other python versions are therefore not supported, newer ones instead may require `PySide6`.
 
 #### Python
@@ -42,7 +42,7 @@ If `pip` points to your `python2` distribution, try the above commands with `pip
 
 #### Conda
 Here you find a list of instructions to install and run `PhysBiblio.exe` using `conda` and related commands.
-Note that the following commands have not (yet) been tested with `PySide2`.
+Note that the following commands have not (yet) been tested with `PySide6`.
 ```
 conda create --name physbiblio
 conda activate physbiblio

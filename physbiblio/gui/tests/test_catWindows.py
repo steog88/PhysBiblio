@@ -41,7 +41,7 @@ class TestFunctions(GUIwMainWTestCase):
         p = QWidget()
         m = self.mainW
         ncw = EditCategoryDialog(p)
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onCancel()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -86,7 +86,7 @@ class TestFunctions(GUIwMainWTestCase):
         ncw.textValues["ord"].setText("0")
         ncw.textValues["comments"].setText("comm")
         ncw.textValues["description"].setText("desc")
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onOk()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -193,7 +193,7 @@ class TestFunctions(GUIwMainWTestCase):
         ncw.textValues["name"].setText("mycat")
         ncw.textValues["comments"].setText("comm")
         ncw.textValues["description"].setText("desc")
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onOk()
         ctw = CatsTreeWindow(p)
         with patch(
@@ -265,7 +265,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Categories.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -289,7 +289,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Categories.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -419,15 +419,15 @@ class TestCatsModel(GUITestCase):
         """test flags"""
         cm = CatsModel([], [])
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=False, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
         ) as _iv:
             self.assertEqual(cm.flags(QModelIndex()), Qt.NoItemFlags)
             _iv.assert_called_once_with()
 
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=True, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=True, autospec=True
         ) as _iv, patch(
-            "PySide2.QtCore.QModelIndex.column", return_value=1, autospec=True
+            "PySide6.QtCore.QModelIndex.column", return_value=1, autospec=True
         ) as _c:
             self.assertEqual(
                 cm.flags(QModelIndex()), Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -436,9 +436,9 @@ class TestCatsModel(GUITestCase):
             _c.assert_called_once_with()
 
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=True, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=True, autospec=True
         ) as _iv, patch(
-            "PySide2.QtCore.QModelIndex.column", return_value=0, autospec=True
+            "PySide6.QtCore.QModelIndex.column", return_value=0, autospec=True
         ) as _c:
             self.assertEqual(
                 cm.flags(QModelIndex()), Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -450,9 +450,9 @@ class TestCatsModel(GUITestCase):
         p.askCats = False
         cm = CatsModel([], [], p)
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=True, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=True, autospec=True
         ) as _iv, patch(
-            "PySide2.QtCore.QModelIndex.column", return_value=0, autospec=True
+            "PySide6.QtCore.QModelIndex.column", return_value=0, autospec=True
         ) as _c:
             self.assertEqual(
                 cm.flags(QModelIndex()), Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -464,9 +464,9 @@ class TestCatsModel(GUITestCase):
         p.askCats = True
         cm = CatsModel([], [], p)
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=True, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=True, autospec=True
         ) as _iv, patch(
-            "PySide2.QtCore.QModelIndex.column", return_value=0, autospec=True
+            "PySide6.QtCore.QModelIndex.column", return_value=0, autospec=True
         ) as _c:
             self.assertEqual(
                 cm.flags(QModelIndex()),
@@ -855,7 +855,7 @@ class TestCatsTreeWindow(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         ctw = CatsTreeWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ctw.onCancel()
         self.assertFalse(ctw.result)
 
@@ -881,7 +881,7 @@ class TestCatsTreeWindow(GUITestCase):
         ctw.root_model.selectedCats[0] = True
         ctw.root_model.selectedCats[3] = True
         ctw.root_model.previousSaved[0] = True
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ctw.onOk()
             _c.assert_called_once_with()
         self.assertEqual(hasattr(p, "selectedCats"), True)
@@ -911,7 +911,7 @@ class TestCatsTreeWindow(GUITestCase):
         ctw.root_model.selectedCats[2] = False
         ctw.root_model.previousSaved[1] = False
         ctw.root_model.previousSaved[2] = False
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ctw.onOk(exps=True)
             _c.assert_called_once_with()
         self.assertEqual(hasattr(p, "selectedCats"), True)
@@ -923,11 +923,11 @@ class TestCatsTreeWindow(GUITestCase):
         """test changeFilter"""
         p = QWidget()
         ctw = CatsTreeWindow(p)
-        with patch("PySide2.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
+        with patch("PySide6.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
             ctw.changeFilter("abc")
             _e.assert_called_once_with()
         self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "abc")
-        with patch("PySide2.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
+        with patch("PySide6.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
             ctw.changeFilter(123)
             _e.assert_called_once_with()
         self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "123")
@@ -953,7 +953,7 @@ class TestCatsTreeWindow(GUITestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         ctw = CatsTreeWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.onOk", autospec=True
         ) as _ok:
             QTest.keyPress(ctw, "a")
@@ -995,7 +995,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _pt, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.populateAskCat", autospec=True
         ) as _pac, patch(
-            "PySide2.QtWidgets.QTreeView.expandAll", autospec=True
+            "PySide6.QtWidgets.QTreeView.expandAll", autospec=True
         ) as _ea:
             ctw.createForm()
             _pac.assert_called_once_with(ctw)
@@ -1073,7 +1073,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _pt, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.populateAskCat", autospec=True
         ) as _pac, patch(
-            "PySide2.QtWidgets.QTreeView.expandAll", autospec=True
+            "PySide6.QtWidgets.QTreeView.expandAll", autospec=True
         ) as _ea:
             ctw.createForm()
             _pac.assert_called_once_with(ctw)
@@ -1134,7 +1134,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _pt, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.populateAskCat", autospec=True
         ) as _pac, patch(
-            "PySide2.QtWidgets.QTreeView.expandAll", autospec=True
+            "PySide6.QtWidgets.QTreeView.expandAll", autospec=True
         ) as _ea:
             ctw.createForm()
             _pac.assert_called_once_with(ctw)
@@ -1176,7 +1176,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _pt, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.populateAskCat", autospec=True
         ) as _pac, patch(
-            "PySide2.QtWidgets.QTreeView.expandAll", autospec=True
+            "PySide6.QtWidgets.QTreeView.expandAll", autospec=True
         ) as _ea:
             ctw.createForm()
             _pac.assert_called_once_with(ctw)
@@ -1265,8 +1265,8 @@ class TestCatsTreeWindow(GUITestCase):
             ctw = CatsTreeWindow(p)
         ix = ctw.proxyModel.index(0, 0)
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
-        ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
+            "PySide6.QtCore.QTimer.start", autospec=True
+        ) as _st, patch("PySide6.QtWidgets.QToolTip.showText") as _sh, patch(
             "physbiblio.database.Categories.getByID", return_value=[], autospec=True
         ) as _gbi:
             self.assertEqual(ctw.handleItemEntered(ix), None)
@@ -1275,8 +1275,8 @@ class TestCatsTreeWindow(GUITestCase):
             _st.assert_not_called()
             _sh.assert_not_called()
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
-        ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
+            "PySide6.QtCore.QTimer.start", autospec=True
+        ) as _st, patch("PySide6.QtWidgets.QToolTip.showText") as _sh, patch(
             "physbiblio.database.Categories.getByID",
             return_value=[{"idCat": 0, "name": "main"}],
             autospec=True,
@@ -1302,8 +1302,8 @@ class TestCatsTreeWindow(GUITestCase):
                 3000,
             )
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
-        ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
+            "PySide6.QtCore.QTimer.start", autospec=True
+        ) as _st, patch("PySide6.QtWidgets.QToolTip.showText") as _sh, patch(
             "physbiblio.database.Categories.getByID",
             return_value=[{"idCat": 0, "name": "main"}],
             autospec=True,
@@ -1341,9 +1341,9 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _pt:
             ctw = CatsTreeWindow(p)
         mm = PBMenu()
-        mm.exec_ = MagicMock()
+        mm.exec = MagicMock()
         with patch(
-            "PySide2.QtWidgets.QTreeView.selectedIndexes",
+            "PySide6.QtWidgets.QTreeView.selectedIndexes",
             return_value=[QModelIndex()],
             autospec=True,
         ) as _si, patch(
@@ -1360,7 +1360,7 @@ class TestCatsTreeWindow(GUITestCase):
             ctw.contextMenuEvent(ev)
         self.assertEqual(ctw.menu, None)
         with patch(
-            "PySide2.QtWidgets.QTreeView.selectedIndexes",
+            "PySide6.QtWidgets.QTreeView.selectedIndexes",
             return_value=[ctw.tree.indexAt(QPoint(0, 0))],
             autospec=True,
         ) as _si, patch(
@@ -1402,13 +1402,13 @@ class TestCatsTreeWindow(GUITestCase):
                 self.assertEqual(act.text(), tit)
                 self.assertEqual(act.isEnabled(), en)
 
-            mm.exec_ = lambda x, i=0: mm.possibleActions[i]
+            mm.exec = lambda x, i=0: mm.possibleActions[i]
             ctw.contextMenuEvent(ev)
             _rmc.assert_not_called()
             _ec.assert_not_called()
             _dc.assert_not_called()
 
-            mm.exec_ = lambda x, i=2: mm.possibleActions[i]
+            mm.exec = lambda x, i=2: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1421,7 +1421,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=3: mm.possibleActions[i]
+            mm.exec = lambda x, i=3: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1434,7 +1434,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
+            mm.exec = lambda x, i=5: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1446,7 +1446,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
             _ec.reset_mock()
 
-            mm.exec_ = lambda x, i=6: mm.possibleActions[i]
+            mm.exec = lambda x, i=6: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1458,7 +1458,7 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_called_once_with(ctw, p, "0", "mainS")
             _dc.reset_mock()
 
-            mm.exec_ = lambda x, i=8: mm.possibleActions[i]
+            mm.exec = lambda x, i=8: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByCat",
                 return_value=["a"],
@@ -1470,11 +1470,11 @@ class TestCatsTreeWindow(GUITestCase):
             _dc.assert_not_called()
 
         with patch(
-            "PySide2.QtWidgets.QTreeView.selectedIndexes",
+            "PySide6.QtWidgets.QTreeView.selectedIndexes",
             return_value=[],
             autospec=True,
         ) as _si, patch("logging.Logger.debug") as _d, patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=False, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
         ) as _iv:
             ctw.contextMenuEvent(ev)
             _si.assert_called_once_with()
@@ -1487,7 +1487,7 @@ class TestCatsTreeWindow(GUITestCase):
         ctw = CatsTreeWindow(p)
         ix = ctw.proxyModel.index(0, 0)
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=False, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
         ) as _iv, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc:
@@ -1581,7 +1581,7 @@ class TestEditCategoryDialog(GUITestCase):
         sc = CatsTreeWindow(
             parent=ecd, askCats=True, expButton=False, single=True, previous=[0]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.onCancel()
         txt = ecd.textValues["parentCat"].text()
         with patch(
@@ -1602,7 +1602,7 @@ class TestEditCategoryDialog(GUITestCase):
         sc = CatsTreeWindow(
             parent=ecd, askCats=True, expButton=False, single=True, previous=[1]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.onOk()
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow",
@@ -1622,7 +1622,7 @@ class TestEditCategoryDialog(GUITestCase):
         sc = CatsTreeWindow(
             parent=ecd, askCats=True, expButton=False, single=True, previous=[0, 1]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.onOk()
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow",
@@ -1642,7 +1642,7 @@ class TestEditCategoryDialog(GUITestCase):
         sc = CatsTreeWindow(
             parent=ecd, askCats=True, expButton=False, single=True, previous=[]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.onOk()
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow",
@@ -1664,7 +1664,7 @@ class TestEditCategoryDialog(GUITestCase):
                 parent=ecd, askCats=True, expButton=False, single=True, previous=[9999]
             )
             _l.assert_called_once_with("Invalid idCat in previous selection: 9999")
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.onOk()
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow",

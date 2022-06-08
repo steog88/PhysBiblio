@@ -25,7 +25,7 @@ except Exception:
     print(traceback.format_exc())
 
 globalQApp = QApplication()
-globalQApp.exec_ = MagicMock(return_value=0)
+globalQApp.exec = MagicMock(return_value=0)
 
 
 def fakeExec(x, string, out):

@@ -13,7 +13,7 @@ if sys.version_info[0] < 3:
 else:
     from queue import Empty
 
-import PySide2
+import PySide6
 from PySide6.QtCore import (
     QAbstractItemModel,
     QAbstractTableModel,
@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
-from shiboken2 import VoidPtr
+from shiboken6 import VoidPtr
 
 try:
     import physbiblio.gui.resourcesPyside2
@@ -355,7 +355,7 @@ class EditObjectWindow(PBDialog):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
@@ -457,7 +457,7 @@ class PBTableView(QTableView):
         """Connect the context menu event to the parent function
 
         Parameter:
-            event: the `PySide2.QtGui.QContextMenuEvent`
+            event: the `PySide6.QtGui.QContextMenuEvent`
         """
         self.parent().triggeredContextMenuEvent(
             self.rowAt(event.y()), self.columnAt(event.x()), event
@@ -683,7 +683,7 @@ class TreeNode(QObject):
             row: the content of the data row
         """
         super(TreeNode, self).__init__()
-        ps2verinfo = PySide2.__version_info__
+        ps2verinfo = PySide6.__version_info__
         if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
             self._instances[PtrKey(VoidPtr(self))] = self
         self.parentObj = parent
@@ -1030,7 +1030,7 @@ class PBMenu(QMenu):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.close()

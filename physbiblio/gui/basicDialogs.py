@@ -44,7 +44,7 @@ def askYesNo(message, title=bdstr.question):
     yesButton = mbox.addButton(QMessageBox.Yes)
     noButton = mbox.addButton(QMessageBox.No)
     mbox.setDefaultButton(noButton)
-    mbox.exec_()
+    mbox.exec()
     if mbox.clickedButton() == yesButton:
         return True
     else:
@@ -59,7 +59,7 @@ def infoMessage(message, title=bdstr.information):
         title: the window title
     """
     mbox = QMessageBox(QMessageBox.Information, title, message)
-    mbox.exec_()
+    mbox.exec()
 
 
 class LongInfoMessage(QDialog):
@@ -87,7 +87,7 @@ class LongInfoMessage(QDialog):
         cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-        self.exec_()
+        self.exec()
 
 
 def askGenericText(message, title, parent=None, previous=""):
@@ -109,7 +109,7 @@ def askGenericText(message, title, parent=None, previous=""):
     dialog.setWindowTitle(title)
     dialog.setLabelText(message)
     dialog.setTextValue(previous)
-    out = dialog.exec_()
+    out = dialog.exec()
     return dialog.textValue(), out
 
 
@@ -128,7 +128,7 @@ def askFileName(parent=None, title=bdstr.fn2Use, filter="", dir=""):
     """
     dialog = QFileDialog(parent, title, dir, filter)
     dialog.setFileMode(QFileDialog.ExistingFile)
-    if dialog.exec_():
+    if dialog.exec():
         fileNames = dialog.selectedFiles()
         try:
             return fileNames[0]
@@ -154,7 +154,7 @@ def askFileNames(parent=None, title=bdstr.fn2Use, filter="", dir=""):
     dialog = QFileDialog(parent, title, dir, filter)
     dialog.setFileMode(QFileDialog.ExistingFiles)
     dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
-    if dialog.exec_():
+    if dialog.exec():
         fileNames = dialog.selectedFiles()
         return fileNames
     else:
@@ -178,7 +178,7 @@ def askSaveFileName(parent=None, title=bdstr.fn2Use, filter="", dir=""):
     dialog = QFileDialog(parent, title, dir, filter)
     dialog.setFileMode(QFileDialog.AnyFile)
     dialog.setOption(QFileDialog.DontConfirmOverwrite, True)
-    if dialog.exec_():
+    if dialog.exec():
         fileNames = dialog.selectedFiles()
         try:
             return fileNames[0]
@@ -203,7 +203,7 @@ def askDirName(parent=None, title=bdstr.dir2Use, dir=""):
     dialog = QFileDialog(parent, title, dir)
     dialog.setFileMode(QFileDialog.Directory)
     dialog.setOption(QFileDialog.ShowDirsOnly, True)
-    if dialog.exec_():
+    if dialog.exec():
         fileNames = dialog.selectedFiles()
         try:
             return fileNames[0]

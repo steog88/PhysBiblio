@@ -253,7 +253,7 @@ class MainWindow(QMainWindow):
         """Manage the key press events.
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         modifiers = QApplication.keyboardModifiers()
         if e.key() == Qt.Key_W and modifiers == Qt.ControlModifier:
@@ -959,7 +959,7 @@ class MainWindow(QMainWindow):
     def manageProfiles(self):
         """Ask and change profile"""
         profilesWin = SelectProfiles(self)
-        profilesWin.exec_()
+        profilesWin.exec()
 
     def editProfile(self):
         """Wrapper for profilesManager.editProfile"""
@@ -970,7 +970,7 @@ class MainWindow(QMainWindow):
         then read its output and save the results
         """
         cfgWin = ConfigWindow(self)
-        cfgWin.exec_()
+        cfgWin.exec()
         if cfgWin.result:
             changed = False
             for q in cfgWin.textValues:
@@ -1004,7 +1004,7 @@ class MainWindow(QMainWindow):
     def logfile(self):
         """Open a dialog to see the content of the log file"""
         logfileWin = LogFileContentDialog(self)
-        logfileWin.exec_()
+        logfileWin.exec()
 
     def reloadConfig(self):
         """Reload the configuration from the database.
@@ -1034,7 +1034,7 @@ class MainWindow(QMainWindow):
         )
         mbox.setTextFormat(Qt.RichText)
         mbox.setIconPixmap(QPixmap(":/images/icon.png"))
-        mbox.exec_()
+        mbox.exec()
 
     def showAbout(self):
         """Function to show the About dialog"""
@@ -1052,7 +1052,7 @@ class MainWindow(QMainWindow):
         )
         mbox.setTextFormat(Qt.RichText)
         mbox.setIconPixmap(QPixmap(":/images/icon.png"))
-        mbox.exec_()
+        mbox.exec()
 
     def showDBStats(self):
         """Function to show a dialog with the statistics
@@ -1133,7 +1133,7 @@ class MainWindow(QMainWindow):
         if addMessage:
             pBLogger.info(addMessage)
         thr.start()
-        app.exec_()
+        app.exec()
         pBLogger.info(mwstr.closing)
         pBErrorManager.rmTempHandler()
         if outMessage:
@@ -1233,7 +1233,7 @@ class MainWindow(QMainWindow):
         which are needed to compile one or more tex files
         """
         eft = ExportForTexDialog(self)
-        eft.exec_()
+        eft.exec()
         if eft.result:
             outFName = eft.bibName
             if outFName != "":
@@ -1328,7 +1328,7 @@ class MainWindow(QMainWindow):
                 in order to show (or not) the replace field inputs
         """
         newSearchWin = SearchBibsWindow(self, replace=replace)
-        newSearchWin.exec_()
+        newSearchWin.exec()
         if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
@@ -1498,7 +1498,7 @@ class MainWindow(QMainWindow):
             pBLogger.error(mwstr.searchCantFind % idS)
             return
         newSearchWin = SearchBibsWindow(replace=record[0]["isReplace"], edit=idS)
-        newSearchWin.exec_()
+        newSearchWin.exec()
         if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
@@ -1832,13 +1832,13 @@ class MainWindow(QMainWindow):
                 askForBib=entry,
                 previous=[a[0] for a in pBDB.cats.getByEntry(entry)],
             )
-            selectCats.exec_()
+            selectCats.exec()
             if selectCats.result in ["Ok", "Exps"]:
                 pBDB.catBib.insert(self.selectedCats, entry)
                 self.statusBarMessage(mwstr.catInserted % entry)
             if selectCats.result == "Exps":
                 selectExps = ExpsListWindow(parent=self, askExps=True, askForBib=entry)
-                selectExps.exec_()
+                selectExps.exec()
                 if selectExps.result == "Ok":
                     pBDB.bibExp.insert(entry, self.selectedExps)
                     self.statusBarMessage(mwstr.expInserted % entry)
@@ -1863,7 +1863,7 @@ class MainWindow(QMainWindow):
         then import a selection among the obtained results
         """
         adIm = AdvancedImportDialog()
-        adIm.exec_()
+        adIm.exec()
         method = adIm.comboMethod.currentText().lower().replace("-", "")
         if method == "inspirehep":
             method = "inspire"
@@ -1911,7 +1911,7 @@ class MainWindow(QMainWindow):
                 self.statusBarMessage(physBiblioWeb.webSearch[method].getLimitInfo())
 
             selImpo = AdvancedImportSelect(found, self)
-            selImpo.exec_()
+            selImpo.exec()
             if selImpo.result == True:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
@@ -2040,7 +2040,7 @@ class MainWindow(QMainWindow):
             pBDB.bibs.fetchAll(doFetch=False)
             iterator = pBDB.bibs.fetchCursor()
         askFieldsWin = FieldsFromArxiv()
-        askFieldsWin.exec_()
+        askFieldsWin.exec()
         if askFieldsWin.result:
             self.statusBarMessage(mwstr.arxInStart)
             self._runInThread(
@@ -2058,7 +2058,7 @@ class MainWindow(QMainWindow):
         and import the selection of entries
         """
         bDA = DailyArxivDialog()
-        bDA.exec_()
+        bDA.exec()
         cat = bDA.comboCat.currentText().lower()
         if bDA.result and cat != "":
             sub = bDA.comboSub.currentText()
@@ -2090,7 +2090,7 @@ class MainWindow(QMainWindow):
             QApplication.restoreOverrideCursor()
             selImpo = DailyArxivSelect(found, self)
             selImpo.abstractFormulas = AbstractFormulas
-            selImpo.exec_()
+            selImpo.exec()
             if selImpo.result == True:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
@@ -2149,7 +2149,7 @@ if __name__ == "__main__":
         myApp.setAttribute(Qt.AA_X11InitThreads)
         myWindow = MainWindow()
         myWindow.show()
-        sys.exit(myApp.exec_())
+        sys.exit(myApp.exec())
     except NameError:
         print("NameError:", sys.exc_info()[1])
     except SystemExit:

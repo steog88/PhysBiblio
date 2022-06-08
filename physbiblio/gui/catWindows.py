@@ -54,7 +54,7 @@ def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None)
     newCatWin = EditCategoryDialog(
         parentObject, category=edit, useParentCat=useParentCat
     )
-    newCatWin.exec_()
+    newCatWin.exec()
     if newCatWin.result:
         data = {}
         for k, v in newCatWin.textValues.items():
@@ -669,7 +669,7 @@ class CatsTreeWindow(PBDialog):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPosition())
+        action = menu.exec(event.globalPosition())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
@@ -758,7 +758,7 @@ class EditCategoryDialog(EditObjectWindow):
             single=True,
             previous=self.selectedCats,
         )
-        selectCats.exec_()
+        selectCats.exec()
         if selectCats.result == "Ok":
             try:
                 val = self.selectedCats[0]

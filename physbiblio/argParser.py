@@ -151,7 +151,7 @@ def call_gui(args=None):
             mainWin.recentChanges()
             pbConfig.globalDb.config.update("openSinceLastUpdate", __version__)
             pbConfig.globalDb.commit()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
     except NameError:
         pBLogger.critical("NameError:", exc_info=True)
     except SystemExit:

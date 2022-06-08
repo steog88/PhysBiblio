@@ -49,7 +49,7 @@ def editProfile(parentObject):
     """
     oldOrder = pbConfig.profileOrder
     newProfWin = EditProfileWindow(parentObject)
-    newProfWin.exec_()
+    newProfWin.exec()
     data = {}
     if newProfWin.result:
         newProfiles = {}

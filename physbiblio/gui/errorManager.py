@@ -71,7 +71,7 @@ class ErrorStream(StringIO):
             self.lastMBox.setIcon(QMessageBox.Warning)
             self.lastMBox.setWindowTitle(cstr.warning)
         self.priority = 1
-        self.lastMBox.exec_()
+        self.lastMBox.exec()
 
 
 class PBErrorManagerClassGui(PBErrorManagerClass):
