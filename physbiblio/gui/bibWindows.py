@@ -586,7 +586,7 @@ class BibTableModel(PBTableModel):
         string = ""
         for t in sorted(convertType.keys()):
             try:
-                if t in data and data[t] == 1:
+                if data[t] == 1:
                     if someType:
                         string += ", "
                     string += convertType[t]
@@ -694,25 +694,17 @@ class BibTableModel(PBTableModel):
         else:
             try:
                 value = rowData[colName]
-                # print(value, colName)
-                # print("a")
                 if colName in ["title", "author"]:
-                    # print("b", value)
-                    # print(self.latexToText.latex_to_text(value))
-                    # print("e")
                     v = self.latexToText.latex_to_text(value)
-                    # print("v", v)
                     value = v
-                # print("c")
             except KeyError:
                 value = ""
-        # print("d")
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
             if self.selectedElements[rowData["bibkey"]] == True:
-                return Qt.Checked
+                return int(Qt.Checked)
             else:
-                return Qt.Unchecked
+                return int(Qt.Unchecked)
         elif role == Qt.EditRole:
             return value
         elif role == Qt.DecorationRole and hasImg:
@@ -2132,7 +2124,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 
         commonActions = CommonBibActions([entry], self.mainWin)
         menu = commonActions.createContextMenu()
-        menu.exec(event.globalPosition())
+        menu.exec(event.globalPos())
 
     def handleItemEntered(self, index):
         """Currently does nothing

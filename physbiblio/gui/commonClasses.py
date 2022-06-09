@@ -1124,9 +1124,9 @@ class PBImportedTableModel(PBTableModel):
 
         if role == Qt.CheckStateRole and column == 0 and not self.existList[row]:
             if self.selectedElements[self.dataList[row][self.idName]] == False:
-                return Qt.Unchecked
+                return int(Qt.Unchecked)
             else:
-                return Qt.Checked
+                return int(Qt.Checked)
         if (
             role in [Qt.EditRole, Qt.DisplayRole]
             and column == 0

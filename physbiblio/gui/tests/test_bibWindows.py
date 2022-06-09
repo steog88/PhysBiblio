@@ -4939,21 +4939,14 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         """test createActions"""
         bw = BibtexListWindow(bibs=[])
         images = [
-            QImage(":/images/edit-node.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/dialog-ok-apply.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-clear.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-select-all.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-unselect-all.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
+            QImage(imgp).convertToFormat(QImage.Format_ARGB32_Premultiplied)
+            for imgp in [
+                ":/images/edit-node.png",
+                ":/images/dialog-ok-apply.png",
+                ":/images/edit-clear.png",
+                ":/images/edit-select-all.png",
+                ":/images/edit-unselect-all.png",
+            ]
         ]
         self.assertIsInstance(bw.selAct, QAction)
         self.assertEqual(bw.selAct.text(), "&Select entries")
