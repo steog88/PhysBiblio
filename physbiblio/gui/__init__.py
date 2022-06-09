@@ -16,7 +16,7 @@ __all__ = [
     "mainWindow",
     "marks",
     "profilesManager",
-    "resourcesPyside2",
+    "resourcesPyside6",
     "setuptests",
     "threadElements",
 ]

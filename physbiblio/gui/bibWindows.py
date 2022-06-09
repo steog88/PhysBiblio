@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
 )
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -1962,7 +1962,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         Show the right click menu, then clean the selection
         independently on which action has been chosen
         """
-        position = QCursor.position()
+        position = QCursor.pos()
         self.mainWin.selectedBibs = sorted(
             [
                 key
@@ -2107,7 +2107,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 ] + ac.menu.possibleActions[0][1]
                 ac.menu.possibleActions[0].setDisabled(True)
                 ac.menu.fillMenu()
-                position = QCursor.position()
+                position = QCursor.pos()
                 ac.menu.exec(position)
                 self.clearSelection()
         else:
@@ -2183,7 +2183,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
             elif len(pdfFiles) > 1:
                 ask = AskPDFAction(bibkey, self.mainWin)
-                ask.exec(QCursor.position())
+                ask.exec(QCursor.pos())
 
     def finalizeTable(self):
         """Set the font size, resize the table to fit the contents,

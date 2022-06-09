@@ -6,12 +6,8 @@ This file is part of the physbiblio package.
 import sys
 import time
 import traceback
+from queue import Empty
 from weakref import WeakValueDictionary
-
-if sys.version_info[0] < 3:
-    from Queue import Empty
-else:
-    from queue import Empty
 
 import PySide6
 from PySide6.QtCore import (
@@ -43,7 +39,7 @@ from PySide6.QtWidgets import (
 from shiboken6 import VoidPtr
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.database import catString, pBDB
     from physbiblio.errors import PBErrorManagerClass, pBLogger
     from physbiblio.pdf import pBPDF
@@ -231,7 +227,7 @@ class ObjListWindow(PBDialog):
         Parameter:
             string: the filter string to be matched
         """
-        self.proxyModel.setFilterRegExp(str(string))
+        self.proxyModel.setFilterRegularExpression(str(string))
 
     def addFilterInput(self, placeholderText, gridPos=(1, 0)):
         """Add a `QLineEdit` to change the filter of the list.

@@ -22,6 +22,7 @@ try:
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
     from physbiblio.gui.bibWindows import AbstractFormulas
+    from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.dialogWindows import *
     from physbiblio.gui.setuptests import *
     from physbiblio.setuptests import *

@@ -277,9 +277,9 @@ class TestObjListWindow(GUITestCase):
         olw.tableModel = EmptyTableModel()
         olw.setProxyStuff(1, Qt.AscendingOrder)
         olw.changeFilter("abc")
-        self.assertEqual(olw.proxyModel.filterRegExp().pattern(), "abc")
+        self.assertEqual(olw.proxyModel.filterRegularExpression().pattern(), "abc")
         olw.changeFilter(123)
-        self.assertEqual(olw.proxyModel.filterRegExp().pattern(), "123")
+        self.assertEqual(olw.proxyModel.filterRegularExpression().pattern(), "123")
 
     def test_addFilterInput(self):
         """test addFilterInput"""
@@ -787,13 +787,12 @@ class TestPBTableModel(GUITestCase):
         self.assertEqual(qp.height(), 31)
         basepixm = QPixmap(96, 48)
         qpixm = QPixmap(":/images/edit.png")
-        painter = QPainter(basepixm)
+        painter = QPainter()
         with patch(
             "physbiblio.gui.commonClasses.QPixmap",
             side_effect=[basepixm, qpixm, qpixm],
-            autospec=True,
         ) as _qpm, patch("PySide6.QtGui.QPixmap.fill", autospec=True) as _fi, patch(
-            "physbiblio.gui.commonClasses.QPainter", return_value=painter, autospec=True
+            "physbiblio.gui.commonClasses.QPainter", return_value=painter
         ) as _qpai, patch(
             "PySide6.QtGui.QPainter.drawPixmap", autospec=True
         ) as _drp:
@@ -1356,7 +1355,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"source1")
             )
         ev = QDropEvent(
-            mddtw.position(),
+            mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),
@@ -1386,7 +1385,7 @@ class TestPBDDTableWidget(GUITestCase):
                 "application/x-qabstractitemmodeldatalist", QByteArray(b"test1")
             )
         ev = QDropEvent(
-            mddtw.position(),
+            mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),
             mimedata,
             Qt.MouseButtons(Qt.LeftButton),

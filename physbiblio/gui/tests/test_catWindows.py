@@ -22,6 +22,7 @@ else:
 try:
     from physbiblio.database import pBDB
     from physbiblio.gui.catWindows import *
+    from physbiblio.gui.commonClasses import NamedElement
     from physbiblio.gui.mainWindow import MainWindow
     from physbiblio.gui.setuptests import *
     from physbiblio.setuptests import *
@@ -639,9 +640,10 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.populateAskCat(), True)
             _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "entry:<br><b>key</b>:<br>bib<br>",
             )
@@ -669,9 +671,10 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.populateAskCat(), True)
             _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "entry:<br><b>key</b>:<br>bib<br>"
                 + "<b>author(s)</b>:<br>sg<br>"
@@ -702,9 +705,10 @@ class TestCatsTreeWindow(GUITestCase):
             _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
             _l.assert_called_once_with(pBView, "bib", "inspire")
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "entry:<br><b>key</b>:<br><a href='inspirelink'>bib</a><br>"
                 + "<b>author(s)</b>:<br>sg<br>"
@@ -733,9 +737,10 @@ class TestCatsTreeWindow(GUITestCase):
             _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
             _l.assert_called_once_with(pBView, "bib", "arxiv")
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "entry:<br><b>key</b>:<br><a href='arxivlink'>bib</a><br>"
                 + "<b>author(s)</b>:<br>sg<br>"
@@ -764,9 +769,10 @@ class TestCatsTreeWindow(GUITestCase):
             _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
             _l.assert_called_once_with(pBView, "bib", "doi")
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "entry:<br><b>key</b>:<br><a href='doilink'>bib</a><br>"
                 + "<b>author(s)</b>:<br>sg<br>"
@@ -800,9 +806,10 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.populateAskCat(), True)
             _gbi.assert_called_once_with(pBDB.exps, "exp")
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "experiment:<br><b>id</b>:<br>exp<br>",
             )
@@ -819,9 +826,10 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.populateAskCat(), True)
             _gbi.assert_called_once_with(pBDB.exps, "exp")
             self.assertEqual(ctw.currLayout.count(), 1)
-            self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+            wid = ctw.layout().itemAt(0).widget()
+            self.assertIsInstance(wid, PBLabel)
             self.assertEqual(
-                ctw.layout().itemAt(0).widget().text(),
+                wid.text(),
                 "Mark categories for the following "
                 + "experiment:<br><b>id</b>:<br>exp<br>"
                 + "<b>name</b>:<br>name<br>"
@@ -835,9 +843,10 @@ class TestCatsTreeWindow(GUITestCase):
             ctw = CatsTreeWindow(parent=p, askCats=True, single=True)
         self.assertEqual(ctw.populateAskCat(), True)
         self.assertEqual(ctw.currLayout.count(), 1)
-        self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
+        wid = ctw.layout().itemAt(0).widget()
+        self.assertIsInstance(wid, PBLabel)
         self.assertEqual(
-            ctw.layout().itemAt(0).widget().text(),
+            wid.text(),
             "Select the desired category (only the first one will be considered):",
         )
 
@@ -847,14 +856,14 @@ class TestCatsTreeWindow(GUITestCase):
             ctw = CatsTreeWindow(parent=p, askCats=True, single=False)
         self.assertEqual(ctw.populateAskCat(), True)
         self.assertEqual(ctw.currLayout.count(), 1)
-        self.assertIsInstance(ctw.layout().itemAt(0).widget(), PBLabel)
-        self.assertEqual(
-            ctw.layout().itemAt(0).widget().text(), "Select the desired categories:"
-        )
+        wid = ctw.layout().itemAt(0).widget()
+        self.assertIsInstance(wid, PBLabel)
+        self.assertEqual(wid.text(), "Select the desired categories:")
 
     def test_onCancel(self):
         """test onCancel"""
-        ctw = CatsTreeWindow()
+        p = QWidget()
+        ctw = CatsTreeWindow(p)
         with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ctw.onCancel()
         self.assertFalse(ctw.result)
@@ -926,11 +935,11 @@ class TestCatsTreeWindow(GUITestCase):
         with patch("PySide6.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
             ctw.changeFilter("abc")
             _e.assert_called_once_with()
-        self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "abc")
+        self.assertEqual(ctw.proxyModel.filterRegularExpression().pattern(), "abc")
         with patch("PySide6.QtWidgets.QTreeView.expandAll", autospec=True) as _e:
             ctw.changeFilter(123)
             _e.assert_called_once_with()
-        self.assertEqual(ctw.proxyModel.filterRegExp().pattern(), "123")
+        self.assertEqual(ctw.proxyModel.filterRegularExpression().pattern(), "123")
 
     def test_onAskExps(self):
         """test onAskExps"""
@@ -952,7 +961,8 @@ class TestCatsTreeWindow(GUITestCase):
 
     def test_keyPressEvent(self):
         """test keyPressEvent"""
-        ctw = CatsTreeWindow()
+        p = QWidget()
+        ctw = CatsTreeWindow(p)
         with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.onOk", autospec=True
         ) as _ok:
@@ -1285,7 +1295,7 @@ class TestCatsTreeWindow(GUITestCase):
         ) as _cb, patch(
             "physbiblio.database.CatsExps.countByCat", return_value=12, autospec=True
         ) as _ce:
-            position = QCursor.position()
+            position = QCursor.pos()
             self.assertEqual(ctw.handleItemEntered(ix), None)
             _l.assert_not_called()
             self.assertIsInstance(ctw.timer, QTimer)
@@ -1313,12 +1323,12 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.database.CatsExps.countByCat", return_value=12, autospec=True
         ) as _ce:
             self.assertEqual(ctw.handleItemEntered(ix), None)
-            _sh.assert_called_once_with(QCursor.position(), "", ctw.tree.viewport())
+            _sh.assert_called_once_with(QCursor.pos(), "", ctw.tree.viewport())
 
     def test_contextMenuEvent(self):
         """test contextMenuEvent"""
         p = MainWindow(testing=True)
-        position = QCursor.position()
+        position = QCursor.pos()
         ev = QMouseEvent(
             QEvent.MouseButtonPress,
             position,
@@ -1486,22 +1496,22 @@ class TestCatsTreeWindow(GUITestCase):
         p = MainWindow(testing=True)
         ctw = CatsTreeWindow(p)
         ix = ctw.proxyModel.index(0, 0)
+        ix.isValid = MagicMock(return_value=False)
         with patch(
-            "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
-        ) as _iv, patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc:
             self.assertEqual(ctw.cellDoubleClick(ix), None)
-            _iv.assert_called_once_with()
+            ix.isValid.assert_called_once_with()
             _rmc.assert_not_called()
+        ix = ctw.proxyModel.index(0, 0)
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
         ) as _rmc, patch(
             "physbiblio.database.Entries.getByCat", return_value=["a"], autospec=True
         ) as _ffd:
             self.assertEqual(ctw.cellDoubleClick(ix), None)
-            _rmc.assert_called_once_with(ctw.parent(), ["a"])
             _ffd.assert_called_once_with(pBDB.bibs, "0")
+            _rmc.assert_called_once_with(ctw.parent(), ["a"])
 
     def test_recreateTable(self):
         """test recreateTable"""

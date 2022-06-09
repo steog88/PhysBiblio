@@ -10,7 +10,7 @@ from PySide6.QtGui import QAction, QCursor
 from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip, QTreeView, QVBoxLayout
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import pbConfig
     from physbiblio.database import cats_alphabetical, pBDB
     from physbiblio.errors import pBLogger
@@ -464,7 +464,7 @@ class CatsTreeWindow(PBDialog):
         Parameter:
             string: the new filter string
         """
-        self.proxyModel.setFilterRegExp(str(string))
+        self.proxyModel.setFilterRegularExpression(str(string))
         self.tree.expandAll()
 
     def onAskExps(self):
@@ -595,7 +595,7 @@ class CatsTreeWindow(PBDialog):
         idCat = idCat.strip()
         try:
             self.timer.stop()
-            QToolTip.showText(QCursor.position(), "", self.tree.viewport())
+            QToolTip.showText(QCursor.pos(), "", self.tree.viewport())
         except AttributeError:
             pass
         try:
@@ -607,7 +607,7 @@ class CatsTreeWindow(PBDialog):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(
             lambda: QToolTip.showText(
-                QCursor.position(),
+                QCursor.pos(),
                 cwstr.catId.format(idC=idCat, cat=catData["name"])
                 + cwstr.entriesCorrespondent.format(en=pBDB.catBib.countByCat(idCat))
                 + cwstr.expsAssociated.format(ex=pBDB.catExp.countByCat(idCat)),

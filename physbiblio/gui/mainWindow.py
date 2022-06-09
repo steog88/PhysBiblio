@@ -102,7 +102,7 @@ except ImportError as e:
     print("Could not find physbiblio and its modules!", e)
     print(traceback.format_exc())
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
 except ImportError as e:
     print("Missing Resources_pyside2: run script update_resources.sh", e)
 

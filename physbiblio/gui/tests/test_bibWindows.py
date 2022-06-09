@@ -1528,7 +1528,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             return_value=fc,
             autospec=USE_AUTOSPEC_CLASS,
         ), patch(
-            "PySide6.QtGui.QImage", return_value=qii, autospec=True
+            "PySide6.QtGui.QImage", return_value=qii
         ) as _qii, self.assertRaises(
             AttributeError
         ):
@@ -5110,7 +5110,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _ci, patch(
             "physbiblio.database.Entries.getByBibkey", side_effect=[], autospec=True
         ) as _g:
-            position = QCursor.position()
+            position = QCursor.pos()
             bw.onOk()
             _cl.assert_called_once_with(bw)
             _cm.assert_called_once_with(cba, selection=True)
@@ -5361,7 +5361,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
             _cmc.assert_called_once_with(cba, False, {"bibkey": "ghi"})
-            cba.menu.exec.assert_called_once_with(QCursor.position())
+            cba.menu.exec.assert_called_once_with(QCursor.pos())
             _cs.assert_called_once_with(bw)
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.keyPressEvent", autospec=True
@@ -5391,7 +5391,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cs:
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
-            cba.menu.exec.assert_called_once_with(QCursor.position())
+            cba.menu.exec.assert_called_once_with(QCursor.pos())
             _cs.assert_called_once_with(bw)
         pa = m.possibleActions
         self.assertIsInstance(pa, list)
@@ -5416,7 +5416,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw = BibtexListWindow(
             parent=self.mainW, bibs=[{"bibtex": "text", "bibkey": "abc", "marks": ""}]
         )
-        position = QCursor.position()
+        position = QCursor.pos()
         ev = QMouseEvent(
             QEvent.MouseButtonPress,
             position,
@@ -5482,7 +5482,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 autospec=USE_AUTOSPEC_CLASS,
             ) as _cba:
                 bw.triggeredContextMenuEvent(9999, 101, ev)
-                tmp.exec.assert_called_once_with(position)
+                tmp.exec.assert_called_once_with(ev.globalPosition())
                 _cm.assert_called_once_with(cba)
 
     def test_handleItemEntered(self):
@@ -5707,7 +5707,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             return_value=tmp,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _apa:
-            position = QCursor.position()
+            position = QCursor.pos()
             bw.cellDoubleClick(ix)
             _gf.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _ol.assert_not_called()

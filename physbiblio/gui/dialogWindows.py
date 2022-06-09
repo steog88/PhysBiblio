@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 )
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger

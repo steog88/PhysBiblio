@@ -860,7 +860,7 @@ class TestExpsListWindow(GUITestCase):
     def test_triggeredContextMenuEvent(self):
         """test triggeredContextMenuEvent"""
         p = MainWindow(testing=True)
-        position = QCursor.position()
+        position = QCursor.pos()
         ev = QMouseEvent(
             QEvent.MouseButtonPress,
             position,
@@ -1066,7 +1066,7 @@ class TestExpsListWindow(GUITestCase):
         ) as _cb, patch(
             "physbiblio.database.CatsExps.countByExp", return_value=12, autospec=True
         ) as _ce:
-            position = QCursor.position()
+            position = QCursor.pos()
             self.assertEqual(elw.handleItemEntered(ix), None)
             _l.assert_not_called()
             self.assertIsInstance(elw.timer, QTimer)
@@ -1094,9 +1094,7 @@ class TestExpsListWindow(GUITestCase):
             "physbiblio.database.CatsExps.countByExp", return_value=12, autospec=True
         ) as _ce:
             self.assertEqual(elw.handleItemEntered(ix), None)
-            _sh.assert_called_once_with(
-                QCursor.position(), "", elw.tableview.viewport()
-            )
+            _sh.assert_called_once_with(QCursor.pos(), "", elw.tableview.viewport())
 
     def test_cellClick(self):
         """test cellClick"""
