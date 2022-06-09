@@ -47,7 +47,7 @@ setup(
         "outdated",
         "pylatexenc(>=2.0)",
         "pyparsing(>=2.4.0)",
-        "pyside6(>=6.0.0)",
+        "pyside6(>=6.2.3)",
         "pytz",
         "requests(>=2.25)",
         "six",

@@ -1442,7 +1442,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertIsInstance(w40, PBLabel)
             self.assertEqual(w40.text(), "Click on the lines to have more information:")
             self.assertIsInstance(asp.hIndex, PBLabel)
-            self.assertEqual(asp.hIndex.font().family(), "Times")
+            self.assertIn(asp.hIndex.font().family(), ["T", "Times"])
             self.assertEqual(asp.hIndex.font().pointSize(), 15)
             self.assertEqual(asp.hIndex.font().weight(), QFont.Bold)
             self.assertEqual(asp.hIndex.text(), "Author h index: ND")
