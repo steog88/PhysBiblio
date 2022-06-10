@@ -695,8 +695,7 @@ class BibTableModel(PBTableModel):
             try:
                 value = rowData[colName]
                 if colName in ["title", "author"]:
-                    v = self.latexToText.latex_to_text(value)
-                    value = v
+                    value = self.latexToText.latex_to_text(value)
             except KeyError:
                 value = ""
 

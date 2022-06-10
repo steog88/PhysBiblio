@@ -4938,6 +4938,12 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_createActions(self):
         """test createActions"""
         bw = BibtexListWindow(bibs=[])
+        bw.enableSelection = MagicMock()
+        bw.onOk = MagicMock()
+        bw.clearSelection = MagicMock()
+        bw.selectAll = MagicMock()
+        bw.unselectAll = MagicMock()
+        bw.createActions()
         images = [
             QImage(imgp).convertToFormat(QImage.Format_ARGB32_Premultiplied)
             for imgp in [
@@ -4953,22 +4959,16 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(bw.selAct.parent(), bw)
         self.assertEqual(images[0], bw.selAct.icon().pixmap(images[0].size()).toImage())
         self.assertEqual(bw.selAct.statusTip(), "Select entries from the list")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.enableSelection", autospec=True
-        ) as _f:
-            bw.selAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.selAct.trigger()
+        bw.enableSelection.assert_called_once_with()
 
         self.assertIsInstance(bw.okAct, QAction)
         self.assertEqual(bw.okAct.text(), "Selection &completed")
         self.assertEqual(bw.okAct.parent(), bw)
         self.assertEqual(images[1], bw.okAct.icon().pixmap(images[1].size()).toImage())
         self.assertEqual(bw.okAct.statusTip(), "Selection of elements completed")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.onOk", autospec=True
-        ) as _f:
-            bw.okAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.okAct.trigger()
+        bw.onOk.assert_called_once_with()
 
         self.assertIsInstance(bw.clearAct, QAction)
         self.assertEqual(bw.clearAct.text(), "&Clear selection")
@@ -4979,11 +4979,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(
             bw.clearAct.statusTip(), "Discard the current selection and hide checkboxes"
         )
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _f:
-            bw.clearAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.clearAct.trigger()
+        bw.clearSelection.assert_called_once_with()
 
         self.assertIsInstance(bw.selAllAct, QAction)
         self.assertEqual(bw.selAllAct.text(), "&Select all")
@@ -4992,11 +4989,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             images[3], bw.selAllAct.icon().pixmap(images[3].size()).toImage()
         )
         self.assertEqual(bw.selAllAct.statusTip(), "Select all the elements")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.selectAll", autospec=True
-        ) as _f:
-            bw.selAllAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.selAllAct.trigger()
+        bw.selectAll.assert_called_once_with()
 
         self.assertIsInstance(bw.unselAllAct, QAction)
         self.assertEqual(bw.unselAllAct.text(), "&Unselect all")
@@ -5005,11 +4999,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             images[4], bw.unselAllAct.icon().pixmap(images[4].size()).toImage()
         )
         self.assertEqual(bw.unselAllAct.statusTip(), "Unselect all the elements")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.unselectAll", autospec=True
-        ) as _f:
-            bw.unselAllAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.unselAllAct.trigger()
+        bw.unselectAll.assert_called_once_with()
 
     def test_restoreSort(self):
         """test restoreSort"""
