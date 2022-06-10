@@ -4,19 +4,13 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.config import configuration_params, pbConfig
@@ -599,9 +593,8 @@ class TestLogFileContentDialog(GUITestCase):
             _c.assert_called_once_with()
         if os.path.exists(pbConfig.params["logFileName"]):
             os.remove(pbConfig.params["logFileName"])
-        openModule = "__builtin__.open" if sys.version_info[0] < 3 else "builtins.open"
         with patch(ayn_str, return_value=True, autospec=True) as _ayn, patch(
-            openModule, side_effect=IOError("fake"), autospec=True
+            "builtins.open", side_effect=IOError("fake"), autospec=True
         ) as _op, patch("logging.Logger.exception") as _ex, patch(
             "PySide6.QtWidgets.QDialog.close", autospec=True
         ) as _c:

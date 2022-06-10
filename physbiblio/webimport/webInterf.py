@@ -9,17 +9,12 @@ import os
 import pkgutil
 import socket
 import ssl
-import sys
 import traceback
+from urllib.request import HTTPError, Request, URLError, urlopen
 
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-
-if sys.version_info[0] < 3:
-    from urllib2 import HTTPError, Request, URLError, urlopen
-else:
-    from urllib.request import HTTPError, Request, URLError, urlopen
 
 try:
     import physbiblio.webimport as wi

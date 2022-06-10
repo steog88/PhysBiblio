@@ -5,17 +5,9 @@ This file is part of the physbiblio package.
 """
 import os
 import shutil
-import sys
 import traceback
-
-import six
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import call, patch
-else:
-    import unittest
-    from unittest.mock import call, patch
+import unittest
+from unittest.mock import call, patch
 
 try:
     from physbiblio.config import pbConfig
@@ -207,48 +199,22 @@ class TestPdfMethods(unittest.TestCase):
     def test_numberOfFiles(self, *args):
         """test numberOfFiles"""
         self.assertEqual(pBPDF.numberOfFiles("/surely/non/existent/folder"), 0)
-        if sys.version_info[0] < 3:
-            with patch(
-                "os.listdir", side_effect=[["a", "b"], ["c", "d", "e"]], autospec=True
-            ) as _ld, patch(
-                "os.path.isfile",
-                side_effect=[True, False, True, True, False],
-                autospec=True,
-            ) as _if, patch(
-                "os.path.isdir", side_effect=[True, False], autospec=True
-            ) as _id:
-                self.assertEqual(pBPDF.numberOfFiles("f"), 3)
-                _ld.assert_has_calls([call("f"), call("f/b")])
-                _if.assert_has_calls(
-                    [
-                        call("f/a"),
-                        call("f/b"),
-                        call("f/b/c"),
-                        call("f/b/d"),
-                        call("f/b/e"),
-                    ]
-                )
-                _id.assert_has_calls([call("f/b"), call("f/b/e")])
-        else:
-            with patch(
-                "os.walk",
-                return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
-                autospec=True,
-            ) as _wa, patch(
-                "os.path.isfile", side_effect=[True, True, True, False], autospec=True
-            ) as _if:
-                self.assertEqual(pBPDF.numberOfFiles("f"), 3)
-                _wa.assert_called_once_with("f")
-                _if.assert_has_calls(
-                    [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
-                )
+        with patch(
+            "os.walk",
+            return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
+            autospec=True,
+        ) as _wa, patch(
+            "os.path.isfile", side_effect=[True, True, True, False], autospec=True
+        ) as _if:
+            self.assertEqual(pBPDF.numberOfFiles("f"), 3)
+            _wa.assert_called_once_with("f")
+            _if.assert_has_calls(
+                [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
+            )
 
     def test_dirSize(self, *args):
         """test dirSize"""
-        if six.PY2:
-            error_class = OSError
-        else:
-            error_class = FileNotFoundError
+        error_class = FileNotFoundError
         with patch("logging.Logger.exception") as _e, patch(
             "os.makedirs"
         ) as _md, patch("os.path.getsize", side_effect=[error_class, 123]) as _gs:
@@ -258,90 +224,38 @@ class TestPdfMethods(unittest.TestCase):
             )
             _md.assert_called_once_with("/surely/non/existent/folder")
             _gs.assert_any_call("/surely/non/existent/folder")
-        if sys.version_info[0] < 3:
-            with patch(
-                "os.path.getsize", side_effect=[1, 100, 1, 100, 100], autospec=True
-            ) as _gs, patch(
-                "os.listdir", side_effect=[["a", "b"], ["c", "d", "e"]], autospec=True
-            ) as _ld, patch(
-                "os.path.isfile",
-                side_effect=[True, False, True, True, False],
-                autospec=True,
-            ) as _if, patch(
-                "os.path.isdir", side_effect=[True, False], autospec=True
-            ) as _id:
-                self.assertEqual(pBPDF.dirSize("f"), 302)
-                _gs.assert_has_calls(
-                    [call("f"), call("f/a"), call("f/b"), call("f/b/c"), call("f/b/d")]
-                )
-                _ld.assert_has_calls([call("f"), call("f/b")])
-                _if.assert_has_calls(
-                    [
-                        call("f/a"),
-                        call("f/b"),
-                        call("f/b/c"),
-                        call("f/b/d"),
-                        call("f/b/e"),
-                    ]
-                )
-                _id.assert_has_calls([call("f/b"), call("f/b/e")])
-            with patch(
-                "os.path.getsize", return_value=100, autospec=True
-            ) as _gs, patch(
-                "os.listdir", side_effect=[["a", "b"], ["c", "d", "e"]], autospec=True
-            ) as _ld, patch(
-                "os.path.isfile",
-                side_effect=[True, False, True, True, False],
-                autospec=True,
-            ) as _if, patch(
-                "os.path.isdir", side_effect=[True, False], autospec=True
-            ) as _id:
-                self.assertEqual(pBPDF.dirSize("f", dirs=False), 300)
-                _gs.assert_has_calls([call("f/a"), call("f/b/c"), call("f/b/d")])
-                _ld.assert_has_calls([call("f"), call("f/b")])
-                _if.assert_has_calls(
-                    [
-                        call("f/a"),
-                        call("f/b"),
-                        call("f/b/c"),
-                        call("f/b/d"),
-                        call("f/b/e"),
-                    ]
-                )
-                _id.assert_has_calls([call("f/b"), call("f/b/e")])
-        else:
-            with patch(
-                "os.path.getsize", side_effect=[1, 1, 100, 100, 100], autospec=True
-            ) as _gs, patch(
-                "os.walk",
-                return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
-                autospec=True,
-            ) as _wa, patch(
-                "os.path.isfile", side_effect=[True, True, True, False], autospec=True
-            ) as _if:
-                self.assertEqual(pBPDF.dirSize("f"), 302)
-                _gs.assert_has_calls(
-                    [call("f"), call("f/b"), call("f/a"), call("f/b/c"), call("f/b/d")]
-                )
-                _wa.assert_called_once_with("f")
-                _if.assert_has_calls(
-                    [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
-                )
-            with patch(
-                "os.path.getsize", side_effect=[100, 100, 100], autospec=True
-            ) as _gs, patch(
-                "os.walk",
-                return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
-                autospec=True,
-            ) as _wa, patch(
-                "os.path.isfile", side_effect=[True, True, True, False], autospec=True
-            ) as _if:
-                self.assertEqual(pBPDF.dirSize("f", dirs=False), 300)
-                _gs.assert_has_calls([call("f/a"), call("f/b/c"), call("f/b/d")])
-                _wa.assert_called_once_with("f")
-                _if.assert_has_calls(
-                    [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
-                )
+        with patch(
+            "os.path.getsize", side_effect=[1, 1, 100, 100, 100], autospec=True
+        ) as _gs, patch(
+            "os.walk",
+            return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
+            autospec=True,
+        ) as _wa, patch(
+            "os.path.isfile", side_effect=[True, True, True, False], autospec=True
+        ) as _if:
+            self.assertEqual(pBPDF.dirSize("f"), 302)
+            _gs.assert_has_calls(
+                [call("f"), call("f/b"), call("f/a"), call("f/b/c"), call("f/b/d")]
+            )
+            _wa.assert_called_once_with("f")
+            _if.assert_has_calls(
+                [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
+            )
+        with patch(
+            "os.path.getsize", side_effect=[100, 100, 100], autospec=True
+        ) as _gs, patch(
+            "os.walk",
+            return_value=[["f", ["b"], ["a", "b/c", "b/d", "b/e"]]],
+            autospec=True,
+        ) as _wa, patch(
+            "os.path.isfile", side_effect=[True, True, True, False], autospec=True
+        ) as _if:
+            self.assertEqual(pBPDF.dirSize("f", dirs=False), 300)
+            _gs.assert_has_calls([call("f/a"), call("f/b/c"), call("f/b/d")])
+            _wa.assert_called_once_with("f")
+            _if.assert_has_calls(
+                [call("f/a"), call("f/b/c"), call("f/b/d"), call("f/b/e")]
+            )
 
     def test_getSizeWUnits(self, *args):
         """test getSizeWUnits"""

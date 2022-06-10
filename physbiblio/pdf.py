@@ -6,16 +6,8 @@ import os
 import os.path as osp
 import shutil
 import subprocess
-import sys
 import traceback
-
-import six
-
-if sys.version_info[0] < 3:
-    from urllib2 import HTTPError, URLError, urlopen
-else:
-    from urllib.request import HTTPError, URLError, urlopen
-
+from urllib.request import HTTPError, URLError, urlopen
 
 try:
     from physbiblio.config import pbConfig
@@ -59,7 +51,7 @@ class LocalPDF:
             the cleaned filename
         """
         newFilename = ""
-        if not isinstance(filename, six.string_types):
+        if not isinstance(filename, str):
             pBLogger.warning(pstr.wrongType % filename)
             return ""
         for i in filename:
@@ -427,27 +419,12 @@ class LocalPDF:
             the number of files
         """
         total_number = 0
-        if six.PY2:
-            error_class = OSError
-        else:
-            error_class = FileNotFoundError
-        if sys.version_info[0] < 3:
-            try:
-                dirlist = os.listdir(folder)
-            except error_class:
-                dirlist = []
-            for item in dirlist:
-                itempath = os.path.join(folder, item)
-                if os.path.isfile(itempath):
+        error_class = FileNotFoundError
+        for dirpath, dirnames, filenames in os.walk(folder):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if os.path.isfile(fp):
                     total_number += 1
-                elif os.path.isdir(itempath):
-                    total_number += self.numberOfFiles(itempath)
-        else:
-            for dirpath, dirnames, filenames in os.walk(folder):
-                for f in filenames:
-                    fp = os.path.join(dirpath, f)
-                    if os.path.isfile(fp):
-                        total_number += 1
         return total_number
 
     def dirSize(self, folder, dirs=True):
@@ -461,10 +438,7 @@ class LocalPDF:
             the size in bytes
         """
         if dirs:
-            if six.PY2:
-                error_class = OSError
-            else:
-                error_class = FileNotFoundError
+            error_class = FileNotFoundError
             try:
                 total_size = os.path.getsize(folder)
             except error_class:
@@ -473,22 +447,14 @@ class LocalPDF:
                 return os.path.getsize(folder)
         else:
             total_size = 0
-        if sys.version_info[0] < 3:
-            for item in os.listdir(folder):
-                itempath = os.path.join(folder, item)
-                if os.path.isfile(itempath):
-                    total_size += os.path.getsize(itempath)
-                elif os.path.isdir(itempath):
-                    total_size += self.dirSize(itempath, dirs=dirs)
-        else:
-            for dirpath, dirnames, filenames in os.walk(folder):
-                if dirs:
-                    for d in dirnames:
-                        total_size += os.path.getsize(os.path.join(dirpath, d))
-                for f in filenames:
-                    fp = os.path.join(dirpath, f)
-                    if os.path.isfile(fp):
-                        total_size += os.path.getsize(fp)
+        for dirpath, dirnames, filenames in os.walk(folder):
+            if dirs:
+                for d in dirnames:
+                    total_size += os.path.getsize(os.path.join(dirpath, d))
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if os.path.isfile(fp):
+                    total_size += os.path.getsize(fp)
         return total_size
 
     def getSizeWUnits(self, size, units="MB", fmt="%.2f"):

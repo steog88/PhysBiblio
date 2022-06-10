@@ -4,7 +4,6 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
 
 from PySide6.QtCore import Qt

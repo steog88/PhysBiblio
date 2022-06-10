@@ -10,7 +10,6 @@ import sys
 import traceback
 from collections import OrderedDict
 
-import six
 from appdirs import AppDirs
 
 try:
@@ -24,10 +23,7 @@ except ImportError:
 
 
 globalLogName = "physbibliolog"
-if six.PY2:
-    FNFError = OSError
-else:
-    FNFError = FileNotFoundError
+FNFError = FileNotFoundError
 
 
 class ConfigParameter:
@@ -860,7 +856,7 @@ def replacePBDATA(path, var):
     Output:
         the input variable or a string with replaced "PBDATA"
     """
-    if isinstance(var, six.string_types) and "PBDATA" in var:
+    if isinstance(var, str) and "PBDATA" in var:
         var = os.path.join(path, var.replace("PBDATA", ""))
     return var
 
@@ -933,13 +929,13 @@ class ConfigVars:
         )
         self.configPath = (
             configPath
-            if isinstance(configPath, six.string_types) and configPath.strip() != ""
+            if isinstance(configPath, str) and configPath.strip() != ""
             else self.defaultDirs.user_config_dir + os.sep
         )
         dataPath = os.getenv("PHYSBIBLIO_DATA", self.defaultDirs.user_data_dir + os.sep)
         self.dataPath = (
             dataPath
-            if isinstance(dataPath, six.string_types) and dataPath.strip() != ""
+            if isinstance(dataPath, str) and dataPath.strip() != ""
             else self.defaultDirs.user_data_dir + os.sep
         )
         self.logger.info(cstr.defaultCfgPath % self.configPath)

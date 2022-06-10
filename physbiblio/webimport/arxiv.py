@@ -5,7 +5,6 @@ Uses feedparser module to read the page content.
 This file is part of the physbiblio package.
 """
 import re
-import sys
 import traceback
 
 import feedparser
@@ -432,8 +431,6 @@ class WebSearch(WebInterf, ArxivStrings):
         additionalInfo = re.compile(
             " \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)"
         )
-        if sys.version_info[0] < 3:
-            text = text.decode("utf-8")
         text = parse_accents_str(text)
         try:
             data = feedparser.parse(text)

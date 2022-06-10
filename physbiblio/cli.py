@@ -5,7 +5,6 @@ This file is part of the physbiblio package.
 """
 import code
 import readline  # optional, will allow Up/Down/History in the console
-import sys
 import traceback
 
 try:

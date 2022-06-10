@@ -6,7 +6,6 @@ This file is part of the physbiblio package.
 import ast
 import traceback
 
-import six
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
@@ -264,7 +263,7 @@ class ConfigWindow(PBDialog):
             i += 1
             val = (
                 pbConfig.params[k]
-                if isinstance(pbConfig.params[k], six.string_types)
+                if isinstance(pbConfig.params[k], str)
                 else str(pbConfig.params[k])
             )
             grid.addWidget(

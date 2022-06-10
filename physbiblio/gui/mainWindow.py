@@ -8,9 +8,9 @@ import os
 import signal
 import sys
 import traceback
+from queue import Queue
 
 import bibtexparser
-import six
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QAction, QGuiApplication, QIcon, QPixmap
 from PySide6.QtWidgets import (
@@ -24,12 +24,6 @@ from PySide6.QtWidgets import (
     QTabWidget,
     QWidget,
 )
-
-if sys.version_info[0] < 3:
-    from Queue import Queue
-else:
-    from queue import Queue
-
 
 try:
     from physbiblio.bibtexWriter import pbWriter
@@ -1881,7 +1875,7 @@ class MainWindow(QMainWindow):
                 elements = []
             found = {}
             for el in elements:
-                if not isinstance(el["ID"], six.string_types) or el["ID"].strip() == "":
+                if not isinstance(el["ID"], str) or el["ID"].strip() == "":
                     db.entries = [el]
                     entry = pbWriter.write(db)
                     pBLogger.warning(dbstr.Bibs.laiEmptyKey % entry)
@@ -2126,9 +2120,9 @@ class MainWindow(QMainWindow):
 
     def checkAdsToken(self):
         """Check that the ADS token is stored in the configuration"""
-        while (
-            not isinstance(pbConfig.params["ADSToken"], six.string_types)
-        ) or pbConfig.params["ADSToken"].strip() == "":
+        while (not isinstance(pbConfig.params["ADSToken"], str)) or pbConfig.params[
+            "ADSToken"
+        ].strip() == "":
             newkey, out = askGenericText(
                 mwstr.askADSTokenText,
                 mwstr.askADSTokenTitle,

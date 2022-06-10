@@ -63,12 +63,10 @@ def call_tests(args):
     if args.online:
         skipTestsSettings.online = True
 
+    import unittest
+
     from physbiblio.testLoader import PBScanningLoader
 
-    if sys.version_info[0] < 3:
-        import unittest2 as unittest
-    else:
-        import unittest
     suite = PBScanningLoader().discover("physbiblio")
     testRunner = unittest.runner.TextTestRunner()
     result = testRunner.run(suite)

@@ -4,9 +4,11 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import time
 import traceback
+import unittest
+from queue import Queue
+from unittest.mock import call, patch
 
 from PySide6.QtCore import (
     QByteArray,
@@ -21,15 +23,6 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QAction, QContextMenuEvent, QDropEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QInputDialog, QLineEdit, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import call, patch
-    from Queue import Queue
-else:
-    import unittest
-    from queue import Queue
-    from unittest.mock import call, patch
 
 try:
     from physbiblio.database import pBDB
@@ -493,10 +486,7 @@ class TestWriteStream(GUITestCase):
         ws = WriteStream(queue, parent=ew)
         self.assertEqual(ws.parent(), ew)
         ws.finished.connect(lambda: fakeExec_writeStream_fin(ws))
-        if sys.version_info[0] < 3:
-            package = "Queue"
-        else:
-            package = "queue"
+        package = "queue"
         with patch(package + ".Queue.put", autospec=True) as _put:
             ws.write("abc")
             _put.assert_called_once_with(queue, "abc")
@@ -1346,14 +1336,9 @@ class TestPBDDTableWidget(GUITestCase):
         mddtw.setItem(1, 0, item)
 
         mimedata = QMimeData()
-        if sys.version_info[0] < 3:
-            mimedata.setData(
-                "application/x-qabstractitemmodeldatalist", QByteArray("source1")
-            )
-        else:
-            mimedata.setData(
-                "application/x-qabstractitemmodeldatalist", QByteArray(b"source1")
-            )
+        mimedata.setData(
+            "application/x-qabstractitemmodeldatalist", QByteArray(b"source1")
+        )
         ev = QDropEvent(
             mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),
@@ -1376,14 +1361,9 @@ class TestPBDDTableWidget(GUITestCase):
         mddtw.selectionModel().select(
             mddtw.model().index(1, 0), QItemSelectionModel.Select
         )
-        if sys.version_info[0] < 3:
-            mimedata.setData(
-                "application/x-qabstractitemmodeldatalist", QByteArray("test1")
-            )
-        else:
-            mimedata.setData(
-                "application/x-qabstractitemmodeldatalist", QByteArray(b"test1")
-            )
+        mimedata.setData(
+            "application/x-qabstractitemmodeldatalist", QByteArray(b"test1")
+        )
         ev = QDropEvent(
             mddtw.pos(),
             Qt.DropActions(Qt.MoveAction),

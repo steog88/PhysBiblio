@@ -6,18 +6,13 @@ This file is part of the physbiblio package.
 import os
 import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QGuiApplication, QImage
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QMenu, QToolBar, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.gui.mainWindow import *
@@ -943,7 +938,7 @@ class TestMainWindow(GUITestCase):
         self.mainW.createMainLayout()
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.assertIsInstance(self.mainW.bibtexListWindows[0][0], BibtexListWindow)
-        self.assertIsInstance(self.mainW.bibtexListWindows[0][1], six.string_types)
+        self.assertIsInstance(self.mainW.bibtexListWindows[0][1], str)
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertIsInstance(self.mainW.bottomLeft, BibtexInfo)

@@ -2,19 +2,12 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import traceback
+import unittest
+from io import StringIO
+from unittest.mock import MagicMock, patch
 
 from PySide6.QtWidgets import QApplication, QFileDialog
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, patch
-    from StringIO import StringIO
-else:
-    import unittest
-    from io import StringIO
-    from unittest.mock import MagicMock, patch
 
 try:
     from physbiblio.gui.mainWindow import MainWindow

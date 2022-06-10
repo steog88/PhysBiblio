@@ -5,20 +5,13 @@ This file is part of the physbiblio package.
 """
 import datetime
 import os
-import sys
 import traceback
+import unittest
+from io import StringIO
+from unittest.mock import MagicMock, call, patch
 
 import matplotlib
 import pytz
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-    from StringIO import StringIO
-else:
-    import unittest
-    from io import StringIO
-    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.errors import pBErrorManager

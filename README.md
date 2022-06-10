@@ -133,8 +133,7 @@ PhysBiblio depends on several python packages:
 * outdated (check if new versions are available)
 * pylatexenc (conversion of accented and other utf-8 characters to latex commands)
 * requests (download json pages)
-* six (compatibility between python2 and python3)
-* unittest2+mock (python2.x) / unittest (python3.x) (for testing the methods and functions)
+* unittest (for testing the methods and functions)
 
 
 ## 2. Features

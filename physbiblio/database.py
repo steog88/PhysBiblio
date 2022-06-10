@@ -11,7 +11,6 @@ from sqlite3 import DatabaseError, InterfaceError, OperationalError, Programming
 
 import bibtexparser
 import dictdiffer
-import six
 from pyparsing import ParseException
 
 try:
@@ -703,7 +702,7 @@ class CatsEntries(PhysBiblioDBSub):
         if not isinstance(keys, list):
             keys = [keys]
         for k in keys:
-            string = six.moves.input(dstr.BibsCats.askInputCat % k)
+            string = input(dstr.BibsCats.askInputCat % k)
             try:
                 cats = self.literal_eval(string)
                 self.insert(cats, k)
@@ -720,7 +719,7 @@ class CatsEntries(PhysBiblioDBSub):
         if not isinstance(cats, list):
             cats = [cats]
         for c in cats:
-            string = six.moves.input(dstr.BibsCats.askInputBib % c)
+            string = input(dstr.BibsCats.askInputBib % c)
             try:
                 keys = self.literal_eval(string)
                 self.insert(c, keys)
@@ -852,7 +851,7 @@ class CatsExps(PhysBiblioDBSub):
         if not isinstance(exps, list):
             exps = [exps]
         for e in exps:
-            string = six.moves.input(dstr.CatsExps.askInputCat % e)
+            string = input(dstr.CatsExps.askInputCat % e)
             try:
                 cats = self.literal_eval(string)
                 self.insert(cats, e)
@@ -869,7 +868,7 @@ class CatsExps(PhysBiblioDBSub):
         if not isinstance(cats, list):
             cats = [cats]
         for c in cats:
-            string = six.moves.input(dstr.CatsExps.askInputExp % c)
+            string = input(dstr.CatsExps.askInputExp % c)
             try:
                 exps = self.literal_eval(string)
                 self.insert(c, exps)
@@ -1001,7 +1000,7 @@ class EntryExps(PhysBiblioDBSub):
         if not isinstance(keys, list):
             keys = [keys]
         for k in keys:
-            string = six.moves.input(dstr.BibsExps.askInputExp % k)
+            string = input(dstr.BibsExps.askInputExp % k)
             try:
                 exps = self.literal_eval(string)
                 self.insert(k, exps)
@@ -1018,7 +1017,7 @@ class EntryExps(PhysBiblioDBSub):
         if not isinstance(exps, list):
             exps = [exps]
         for e in exps:
-            string = six.moves.input(dstr.BibsExps.askInputBib % e)
+            string = input(dstr.BibsExps.askInputBib % e)
             try:
                 keys = self.literal_eval(string)
                 self.insert(keys, e)
@@ -2290,7 +2289,7 @@ class Entries(PhysBiblioDBSub):
                 tmp[k] = el[k]
             if el["bibdict"] is not None:
                 if (
-                    isinstance(el["bibdict"], six.string_types)
+                    isinstance(el["bibdict"], str)
                     and el["bibdict"].strip() != ""
                     and el["bibdict"].strip() != "{}"
                 ):
@@ -3039,7 +3038,7 @@ class Entries(PhysBiblioDBSub):
         except KeyError:
             pBLogger.warning(dstr.Bibs.errorGFNoField % (key, field))
             return False
-        if field == "bibdict" and isinstance(value, six.string_types):
+        if field == "bibdict" and isinstance(value, str):
             try:
                 return ast.literal_eval(value)
             except SyntaxError:
@@ -4602,7 +4601,7 @@ class Entries(PhysBiblioDBSub):
                 ["arxiv", "isArxiv", dstr.Bibs.errorUIIDArxiv],
             ]:
                 value = self.getField(key, fi)
-                if isinstance(value, six.string_types) and value.strip() != "":
+                if isinstance(value, str) and value.strip() != "":
                     newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
                         value,
                         **{"number": 0, tag: True},

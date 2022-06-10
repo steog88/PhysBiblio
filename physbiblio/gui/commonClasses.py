@@ -3,7 +3,6 @@ in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
-import sys
 import time
 import traceback
 from queue import Empty

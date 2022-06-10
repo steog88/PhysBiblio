@@ -6,15 +6,9 @@ This file is part of the physbiblio package.
 import logging
 import sys
 import traceback
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import patch
-    from StringIO import StringIO
-else:
-    import unittest
-    from io import StringIO
-    from unittest.mock import patch
+import unittest
+from io import StringIO
+from unittest.mock import patch
 
 try:
     from physbiblio.config import pbConfig

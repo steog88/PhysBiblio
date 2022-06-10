@@ -50,7 +50,6 @@ setup(
         "pyside6(>=6.2.3,!=6.3.0)",
         "pytz",
         "requests(>=2.25)",
-        "six",
         "urllib3(>=1.26)",
     ],
     extras_require={"dev": ["black", "isort", "pre-commit", "pyyaml", "twine"]},

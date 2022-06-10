@@ -11,7 +11,6 @@ import traceback
 
 import bibtexparser
 import matplotlib
-import six
 
 matplotlib.use("QtAgg")
 os.environ["QT_API"] = "pyside6"
@@ -186,10 +185,7 @@ def writeBibtexInfo(entry):
         ", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None"
     )
     try:
-        if (
-            isinstance(entry["comments"], six.string_types)
-            and entry["comments"].strip() != ""
-        ):
+        if isinstance(entry["comments"], str) and entry["comments"].strip() != "":
             infoText += nl + bwstr.Info.comm % (entry["comments"])
     except KeyError:
         pBLogger.debug(bwstr.Info.keyErr % ("comments", sorted(entry.keys())))
@@ -632,7 +628,7 @@ class BibTableModel(PBTableModel):
                 or
                 False and ""
         """
-        if marks is not None and isinstance(marks, six.string_types):
+        if marks is not None and isinstance(marks, str):
             marks = [k for k in sorted(pBMarks.marks.keys()) if k in marks]
             if len(marks) > 1:
                 return (
@@ -1821,11 +1817,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
             self.changeEnableActions(status=True)
             self.tableModel.layoutAboutToBeChanged.emit()
             for bibkey in bibkeys:
-                if (
-                    bibkey is not None
-                    and isinstance(bibkey, six.string_types)
-                    and bibkey != ""
-                ):
+                if bibkey is not None and isinstance(bibkey, str) and bibkey != "":
                     self.tableModel.selectedElements[bibkey] = True
             self.tableModel.layoutChanged.emit()
         if self.tableModel.ask:

@@ -4,8 +4,6 @@
 This file is part of the physbiblio package.
 """
 
-import sys
-
 import yaml
 
 # read yaml

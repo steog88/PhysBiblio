@@ -3,7 +3,8 @@ simple dialog windows of the PhysBiblio application.
 
 This file is part of the physbiblio package.
 """
-import sys
+
+from io import StringIO
 
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (
@@ -15,11 +16,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QTextEdit,
 )
-
-if sys.version_info[0] < 3:
-    from StringIO import StringIO
-else:
-    from io import StringIO
 
 try:
     from physbiblio.strings.gui import BasicDialogsStrings as bdstr

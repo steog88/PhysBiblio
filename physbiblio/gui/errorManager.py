@@ -3,15 +3,10 @@
 This file is part of the physbiblio package.
 """
 import logging
-import sys
 import traceback
+from io import StringIO
 
 from PySide6.QtWidgets import QMessageBox
-
-if sys.version_info[0] < 3:
-    from StringIO import StringIO
-else:
-    from io import StringIO
 
 try:
     from physbiblio.errors import PBErrorManagerClass, pBLogger

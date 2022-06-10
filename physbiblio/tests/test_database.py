@@ -5,20 +5,12 @@ This file is part of the physbiblio package.
 """
 import ast
 import datetime
-import sys
 import traceback
+import unittest
+from io import StringIO
+from unittest.mock import MagicMock, call, patch
 
 import bibtexparser
-import six
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-    from StringIO import StringIO
-else:
-    import unittest
-    from io import StringIO
-    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.bibtexWriter import pbWriter
@@ -897,13 +889,9 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             "physbiblio.databaseCore.PhysBiblioDBCore.loadSubClasses", autospec=True
         ) as _lsc:
             dbc = PhysBiblioDBCore(tempDBName, pBLogger, noOpen=True)
-        if sys.version_info[0] == 3 and sys.version_info[1] > 2:
-            dbc.conn = MagicMock()
-            dbc.conn.in_transaction = "abc"
-            self.assertEqual(dbc.checkUncommitted(), "abc")
-        else:
-            dbc.dbChanged = "abc"
-            self.assertEqual(dbc.checkUncommitted(), "abc")
+        dbc.conn = MagicMock()
+        dbc.conn.in_transaction = "abc"
+        self.assertEqual(dbc.checkUncommitted(), "abc")
 
     def test_commit(self, *args):
         """test commit"""
@@ -1523,13 +1511,13 @@ class TestDatabaseLinks(DBTestCase):
             [(1, "test1", 1), (2, "test2", 1), (3, "test1", 2), (4, "test2", 2)],
         )
         self.pBDB.utils.cleanSpareEntries()
-        with patch("six.moves.input", return_value="[1,2]") as _input:
+        with patch("builtins.input", return_value="[1,2]") as _input:
             self.pBDB.catBib.askCats("test1")
             _input.assert_called_once_with("categories for 'test1': ")
-        with patch("six.moves.input", return_value="1,2") as _input:
+        with patch("builtins.input", return_value="1,2") as _input:
             self.pBDB.catBib.askCats("test1")
             _input.assert_called_once_with("categories for 'test1': ")
-        with patch("six.moves.input", return_value="test2") as _input:
+        with patch("builtins.input", return_value="test2") as _input:
             self.pBDB.catBib.askKeys([1, 2])
             _input.assert_has_calls(
                 [call("entries for '1': "), call("entries for '2': ")]
@@ -1561,10 +1549,10 @@ class TestDatabaseLinks(DBTestCase):
             [(1, 10, 1), (2, 11, 1), (3, 10, 2), (4, 11, 2)],
         )
         self.pBDB.utils.cleanSpareEntries()
-        with patch("six.moves.input", return_value="[1,2]") as _input:
+        with patch("builtins.input", return_value="[1,2]") as _input:
             self.pBDB.catExp.askCats(10)
             _input.assert_called_once_with("categories for '10': ")
-        with patch("six.moves.input", return_value="11") as _input:
+        with patch("builtins.input", return_value="11") as _input:
             self.pBDB.catExp.askExps([1, 2])
             _input.assert_has_calls(
                 [call("experiments for '1': "), call("experiments for '2': ")]
@@ -1600,13 +1588,13 @@ class TestDatabaseLinks(DBTestCase):
             [(1, "test1", 1), (2, "test1", 2), (3, "test2", 1), (4, "test2", 2)],
         )
         self.pBDB.utils.cleanSpareEntries()
-        with patch("six.moves.input", return_value="[1,2]") as _input:
+        with patch("builtins.input", return_value="[1,2]") as _input:
             self.pBDB.bibExp.askExps("test1")
             _input.assert_called_once_with("experiments for 'test1': ")
-        with patch("six.moves.input", return_value="1,2") as _input:
+        with patch("builtins.input", return_value="1,2") as _input:
             self.pBDB.bibExp.askExps("test1")
             _input.assert_called_once_with("experiments for 'test1': ")
-        with patch("six.moves.input", return_value="test2") as _input:
+        with patch("builtins.input", return_value="test2") as _input:
             self.pBDB.bibExp.askKeys([1, 2])
             _input.assert_has_calls(
                 [call("entries for '1': "), call("entries for '2': ")]
@@ -7547,7 +7535,7 @@ class TestDatabaseEntries(DBTestCase):
 
         # loadAndInsertWithCats
         self.pBDB.bibs.lastInserted = ["abc"]
-        with patch("six.moves.input", return_value="[1,2]") as _input, patch(
+        with patch("builtins.input", return_value="[1,2]") as _input, patch(
             "physbiblio.database.Entries.loadAndInsert", autospec=True
         ) as _mock:
             self.pBDB.bibs.loadAndInsertWithCats(["acb"], "doi", True, 1, True, "yes")
