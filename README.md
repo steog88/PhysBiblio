@@ -18,7 +18,6 @@ It is written in Python, it uses PySide6 for the graphical interface and Sqlite 
 PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Manjaro Linux, using `python` version `3.6+`.  
 Some tests on a virtual machine running MacOS (10.14, `python 3.7`) have been also performed.  
 It should work equally well in other operating systems or with different python versions, but it has not been tested. 
-Notice that, although the software may still be compatible with `python2`, testing has been discontinued.  
 In any case, several bugs are surely still present and the program may freeze or crash unexpectedly.
 Please report any bug that you find [here](https://github.com/steog88/PhysBiblio/issues).
 
@@ -27,7 +26,7 @@ To install PhysBiblio into your computer, the easiest way is to use `pip` and th
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
 Please note that at the moment `PySide6` is only available for `python` versions 3.6+.
-Other python versions are therefore not supported, newer ones instead may require `PySide6`.
+Other python versions are therefore not supported.
 
 #### Python
 Simply use (user only install)
