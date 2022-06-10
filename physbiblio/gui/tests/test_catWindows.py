@@ -1510,8 +1510,8 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.database.Entries.getByCat", return_value=["a"], autospec=True
         ) as _ffd:
             self.assertEqual(ctw.cellDoubleClick(ix), None)
-            _ffd.assert_called_once_with(pBDB.bibs, "0")
             _rmc.assert_called_once_with(ctw.parent(), ["a"])
+            _ffd.assert_called_once_with(pBDB.bibs, "0")
 
     def test_recreateTable(self):
         """test recreateTable"""
