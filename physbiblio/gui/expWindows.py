@@ -322,6 +322,8 @@ class ExpsListWindow(ObjListWindow):
             and e.modifiers() == Qt.ControlModifier
         ):
             self.onOk()
+        elif e.key() == Qt.Key_F and e.modifiers() == Qt.ControlModifier:
+            self.filterInput.setFocus()
 
     def createTable(self):
         """Create the dialog content, connect the model to the view

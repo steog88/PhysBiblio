@@ -953,6 +953,7 @@ class TestCatsTreeWindow(GUITestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         ctw = CatsTreeWindow()
+        ctw.filterInput.setFocus = MagicMock()
         with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.onOk", autospec=True
         ) as _ok:
@@ -972,6 +973,10 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(_ok.call_count, 1)
             QTest.keyPress(ctw, Qt.Key_Enter, Qt.ControlModifier)
             self.assertEqual(_ok.call_count, 2)
+            QTest.keyPress(ctw, Qt.Key_F)
+            ctw.filterInput.setFocus.assert_not_called()
+            QTest.keyPress(ctw, Qt.Key_F, Qt.ControlModifier)
+            ctw.filterInput.setFocus.assert_called_once_with()
 
     def test_createForm(self):
         """test createForm"""

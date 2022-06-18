@@ -728,6 +728,7 @@ class TestExpsListWindow(GUITestCase):
     def test_keyPressEvent(self):
         """test keyPressEvent"""
         elw = ExpsListWindow()
+        elw.filterInput.setFocus = MagicMock()
         with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
             "physbiblio.gui.expWindows.ExpsListWindow.onOk", autospec=True
         ) as _ok:
@@ -747,6 +748,10 @@ class TestExpsListWindow(GUITestCase):
             self.assertEqual(_ok.call_count, 1)
             QTest.keyPress(elw, Qt.Key_Enter, Qt.ControlModifier)
             self.assertEqual(_ok.call_count, 2)
+            QTest.keyPress(elw, Qt.Key_F)
+            elw.filterInput.setFocus.assert_not_called()
+            QTest.keyPress(elw, Qt.Key_F, Qt.ControlModifier)
+            elw.filterInput.setFocus.assert_called_once_with()
 
     def test_createTable(self):
         """test createTable"""

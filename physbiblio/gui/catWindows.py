@@ -499,6 +499,8 @@ class CatsTreeWindow(PBDialog):
             and e.modifiers() == Qt.ControlModifier
         ):
             self.onOk()
+        elif e.key() == Qt.Key_F and e.modifiers() == Qt.ControlModifier:
+            self.filterInput.setFocus()
 
     def createForm(self):
         """Create the dialog content, connect the model to the view
