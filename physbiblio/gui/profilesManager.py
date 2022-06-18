@@ -8,9 +8,9 @@ import os
 import shutil
 import traceback
 
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QComboBox,
@@ -49,7 +49,7 @@ def editProfile(parentObject):
     """
     oldOrder = pbConfig.profileOrder
     newProfWin = EditProfileWindow(parentObject)
-    newProfWin.exec_()
+    newProfWin.exec()
     data = {}
     if newProfWin.result:
         newProfiles = {}

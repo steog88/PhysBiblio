@@ -5,17 +5,12 @@ This file is part of the physbiblio package.
 """
 import datetime
 import os
-import sys
 import traceback
+import unittest
 
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-else:
-    import unittest
 
 try:
     from physbiblio.config import pbConfig

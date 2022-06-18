@@ -9,7 +9,7 @@ by S. Gariazzo (stefano.gariazzo@gmail.com)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 PhysBiblio is a program that helps to manage bibliography, with a particular focus on High Energy Physics tools.  
-It is written in Python, it uses PySide2 for the graphical interface and Sqlite for the database management.
+It is written in Python, it uses PySide6 for the graphical interface and Sqlite for the database management.
 
 
 ## 1. Getting started
@@ -18,7 +18,6 @@ It is written in Python, it uses PySide2 for the graphical interface and Sqlite 
 PhysBiblio has been intensively tested only on Ubuntu (14.04LTS to 18.04 versions) and Manjaro Linux, using `python` version `3.6+`.  
 Some tests on a virtual machine running MacOS (10.14, `python 3.7`) have been also performed.  
 It should work equally well in other operating systems or with different python versions, but it has not been tested. 
-Notice that, although the software may still be compatible with `python2`, testing has been discontinued.  
 In any case, several bugs are surely still present and the program may freeze or crash unexpectedly.
 Please report any bug that you find [here](https://github.com/steog88/PhysBiblio/issues).
 
@@ -26,8 +25,8 @@ Please report any bug that you find [here](https://github.com/steog88/PhysBiblio
 To install PhysBiblio into your computer, the easiest way is to use `pip` and the official python repositories.
 If you do not have `pip` installed in your system, see [this page](https://pip.pypa.io/en/stable/installing/).
 
-Please note that at the moment `PySide2` is only available for `python` versions 2.7+ (not for Windows) and 3.6+.
-Other python versions are therefore not supported, newer ones instead may require `PySide6`.
+Please note that at the moment `PySide6` is only available for `python` versions 3.6+.
+Other python versions are therefore not supported.
 
 #### Python
 Simply use (user only install)
@@ -42,7 +41,7 @@ If `pip` points to your `python2` distribution, try the above commands with `pip
 
 #### Conda
 Here you find a list of instructions to install and run `PhysBiblio.exe` using `conda` and related commands.
-Note that the following commands have not (yet) been tested with `PySide2`.
+Note that the following commands have not (yet) been tested with `PySide6`.
 ```
 conda create --name physbiblio
 conda activate physbiblio
@@ -122,7 +121,7 @@ In particular, if you do not correctly set the web browser and the PDF reader, s
 PhysBiblio depends on several python packages:
 
 * sqlite3 (for the database)
-* pyside2 (for the graphical interface)
+* pyside6 (for the graphical interface)
 * ads (package to interact with the ADS API)
 * appdirs (default paths)
 * argparse (arguments from command line)
@@ -133,8 +132,7 @@ PhysBiblio depends on several python packages:
 * outdated (check if new versions are available)
 * pylatexenc (conversion of accented and other utf-8 characters to latex commands)
 * requests (download json pages)
-* six (compatibility between python2 and python3)
-* unittest2+mock (python2.x) / unittest (python3.x) (for testing the methods and functions)
+* unittest (for testing the methods and functions)
 
 
 ## 2. Features

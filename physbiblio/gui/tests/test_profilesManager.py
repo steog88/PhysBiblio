@@ -4,20 +4,14 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QIcon
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QDialog, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QDialog, QWidget
 
 try:
     from physbiblio.gui.mainWindow import MainWindow
@@ -67,7 +61,7 @@ class TestEditProf(GUIwMainWTestCase):
         p = QWidget()
         mw = self.mainW
         ep = EditProfileWindow()
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onCancel()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -92,7 +86,7 @@ class TestEditProf(GUIwMainWTestCase):
         ep = EditProfileWindow()
         ep.switchLines(0)
         ep.elements[2]["d"].setText("descrip")
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -133,7 +127,7 @@ class TestEditProf(GUIwMainWTestCase):
         # test set new default
         ep = EditProfileWindow()
         ep.elements[1]["r"].setChecked(True)
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -174,7 +168,7 @@ class TestEditProf(GUIwMainWTestCase):
         # test delete
         ep = EditProfileWindow()
         ep.elements[1]["x"].setChecked(True)
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -223,7 +217,7 @@ class TestEditProf(GUIwMainWTestCase):
         # test rename existing
         ep = EditProfileWindow()
         ep.elements[1]["n"].setText("testA")
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -272,7 +266,7 @@ class TestEditProf(GUIwMainWTestCase):
         ep = EditProfileWindow()
         ep.elements[1]["n"].setText("testA")
         ep.elements[1]["x"].setChecked(True)
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -329,7 +323,7 @@ class TestEditProf(GUIwMainWTestCase):
         ep = EditProfileWindow()
         ep.elements[1]["n"].setText("testA")
         ep.elements[1]["x"].setChecked(True)
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -386,7 +380,7 @@ class TestEditProf(GUIwMainWTestCase):
         ep = EditProfileWindow()
         ep.elements[-1]["n"].setText("testNew")
         ep.elements[-1]["f"].setCurrentText("testNew.db")
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",
@@ -439,7 +433,7 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[-1]["n"].setText("testNew")
         ep.elements[-1]["f"].setCurrentText("testNew.db")
         ep.elements[-1]["c"].setCurrentText("test1.db")
-        ep.exec_ = MagicMock()
+        ep.exec = MagicMock()
         ep.onOk()
         with patch(
             "physbiblio.gui.profilesManager.EditProfileWindow",

@@ -8,13 +8,12 @@ import os
 import signal
 import sys
 import traceback
+from queue import Queue
 
 import bibtexparser
-import six
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QGuiApplication, QIcon, QPixmap
-from PySide2.QtWidgets import (
-    QAction,
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAction, QGuiApplication, QIcon, QPixmap
+from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QMainWindow,
@@ -25,12 +24,6 @@ from PySide2.QtWidgets import (
     QTabWidget,
     QWidget,
 )
-
-if sys.version_info[0] < 3:
-    from Queue import Queue
-else:
-    from queue import Queue
-
 
 try:
     from physbiblio.bibtexWriter import pbWriter
@@ -103,9 +96,9 @@ except ImportError as e:
     print("Could not find physbiblio and its modules!", e)
     print(traceback.format_exc())
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
 except ImportError as e:
-    print("Missing Resources_pyside2: run script update_resources.sh", e)
+    print("Missing Resources_pyside6: run script update_resources.sh", e)
 
 
 class MainWindow(QMainWindow):
@@ -254,7 +247,7 @@ class MainWindow(QMainWindow):
         """Manage the key press events.
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         modifiers = QApplication.keyboardModifiers()
         if e.key() == Qt.Key_W and modifiers == Qt.ControlModifier:
@@ -964,7 +957,7 @@ class MainWindow(QMainWindow):
     def manageProfiles(self):
         """Ask and change profile"""
         profilesWin = SelectProfiles(self)
-        profilesWin.exec_()
+        profilesWin.exec()
 
     def editProfile(self):
         """Wrapper for profilesManager.editProfile"""
@@ -975,7 +968,7 @@ class MainWindow(QMainWindow):
         then read its output and save the results
         """
         cfgWin = ConfigWindow(self)
-        cfgWin.exec_()
+        cfgWin.exec()
         if cfgWin.result:
             changed = False
             for q in cfgWin.textValues:
@@ -1009,7 +1002,7 @@ class MainWindow(QMainWindow):
     def logfile(self):
         """Open a dialog to see the content of the log file"""
         logfileWin = LogFileContentDialog(self)
-        logfileWin.exec_()
+        logfileWin.exec()
 
     def reloadConfig(self):
         """Reload the configuration from the database.
@@ -1039,7 +1032,7 @@ class MainWindow(QMainWindow):
         )
         mbox.setTextFormat(Qt.RichText)
         mbox.setIconPixmap(QPixmap(":/images/icon.png"))
-        mbox.exec_()
+        mbox.exec()
 
     def showAbout(self):
         """Function to show the About dialog"""
@@ -1057,7 +1050,7 @@ class MainWindow(QMainWindow):
         )
         mbox.setTextFormat(Qt.RichText)
         mbox.setIconPixmap(QPixmap(":/images/icon.png"))
-        mbox.exec_()
+        mbox.exec()
 
     def showDBStats(self):
         """Function to show a dialog with the statistics
@@ -1138,7 +1131,7 @@ class MainWindow(QMainWindow):
         if addMessage:
             pBLogger.info(addMessage)
         thr.start()
-        app.exec_()
+        app.exec()
         pBLogger.info(mwstr.closing)
         pBErrorManager.rmTempHandler()
         if outMessage:
@@ -1238,7 +1231,7 @@ class MainWindow(QMainWindow):
         which are needed to compile one or more tex files
         """
         eft = ExportForTexDialog(self)
-        eft.exec_()
+        eft.exec()
         if eft.result:
             outFName = eft.bibName
             if outFName != "":
@@ -1333,7 +1326,7 @@ class MainWindow(QMainWindow):
                 in order to show (or not) the replace field inputs
         """
         newSearchWin = SearchBibsWindow(self, replace=replace)
-        newSearchWin.exec_()
+        newSearchWin.exec()
         if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
@@ -1503,7 +1496,7 @@ class MainWindow(QMainWindow):
             pBLogger.error(mwstr.searchCantFind % idS)
             return
         newSearchWin = SearchBibsWindow(replace=record[0]["isReplace"], edit=idS)
-        newSearchWin.exec_()
+        newSearchWin.exec()
         if newSearchWin.result:
             searchFields = newSearchWin.values
             lim = newSearchWin.limit
@@ -1837,13 +1830,13 @@ class MainWindow(QMainWindow):
                 askForBib=entry,
                 previous=[a[0] for a in pBDB.cats.getByEntry(entry)],
             )
-            selectCats.exec_()
+            selectCats.exec()
             if selectCats.result in ["Ok", "Exps"]:
                 pBDB.catBib.insert(self.selectedCats, entry)
                 self.statusBarMessage(mwstr.catInserted % entry)
             if selectCats.result == "Exps":
                 selectExps = ExpsListWindow(parent=self, askExps=True, askForBib=entry)
-                selectExps.exec_()
+                selectExps.exec()
                 if selectExps.result == "Ok":
                     pBDB.bibExp.insert(entry, self.selectedExps)
                     self.statusBarMessage(mwstr.expInserted % entry)
@@ -1868,7 +1861,7 @@ class MainWindow(QMainWindow):
         then import a selection among the obtained results
         """
         adIm = AdvancedImportDialog()
-        adIm.exec_()
+        adIm.exec()
         method = adIm.comboMethod.currentText().lower().replace("-", "")
         if method == "inspirehep":
             method = "inspire"
@@ -1886,7 +1879,7 @@ class MainWindow(QMainWindow):
                 elements = []
             found = {}
             for el in elements:
-                if not isinstance(el["ID"], six.string_types) or el["ID"].strip() == "":
+                if not isinstance(el["ID"], str) or el["ID"].strip() == "":
                     db.entries = [el]
                     entry = pbWriter.write(db)
                     pBLogger.warning(dbstr.Bibs.laiEmptyKey % entry)
@@ -1916,7 +1909,7 @@ class MainWindow(QMainWindow):
                 self.statusBarMessage(physBiblioWeb.webSearch[method].getLimitInfo())
 
             selImpo = AdvancedImportSelect(found, self)
-            selImpo.exec_()
+            selImpo.exec()
             if selImpo.result == True:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
@@ -2045,7 +2038,7 @@ class MainWindow(QMainWindow):
             pBDB.bibs.fetchAll(doFetch=False)
             iterator = pBDB.bibs.fetchCursor()
         askFieldsWin = FieldsFromArxiv()
-        askFieldsWin.exec_()
+        askFieldsWin.exec()
         if askFieldsWin.result:
             self.statusBarMessage(mwstr.arxInStart)
             self._runInThread(
@@ -2063,7 +2056,7 @@ class MainWindow(QMainWindow):
         and import the selection of entries
         """
         bDA = DailyArxivDialog()
-        bDA.exec_()
+        bDA.exec()
         cat = bDA.comboCat.currentText().lower()
         if bDA.result and cat != "":
             sub = bDA.comboSub.currentText()
@@ -2095,7 +2088,7 @@ class MainWindow(QMainWindow):
             QApplication.restoreOverrideCursor()
             selImpo = DailyArxivSelect(found, self)
             selImpo.abstractFormulas = AbstractFormulas
-            selImpo.exec_()
+            selImpo.exec()
             if selImpo.result == True:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
@@ -2131,9 +2124,9 @@ class MainWindow(QMainWindow):
 
     def checkAdsToken(self):
         """Check that the ADS token is stored in the configuration"""
-        while (
-            not isinstance(pbConfig.params["ADSToken"], six.string_types)
-        ) or pbConfig.params["ADSToken"].strip() == "":
+        while (not isinstance(pbConfig.params["ADSToken"], str)) or pbConfig.params[
+            "ADSToken"
+        ].strip() == "":
             newkey, out = askGenericText(
                 mwstr.askADSTokenText,
                 mwstr.askADSTokenTitle,
@@ -2154,7 +2147,7 @@ if __name__ == "__main__":
         myApp.setAttribute(Qt.AA_X11InitThreads)
         myWindow = MainWindow()
         myWindow.show()
-        sys.exit(myApp.exec_())
+        sys.exit(myApp.exec())
     except NameError:
         print("NameError:", sys.exc_info()[1])
     except SystemExit:

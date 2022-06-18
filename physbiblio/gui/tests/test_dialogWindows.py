@@ -4,24 +4,19 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
-from PySide2.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QWidget
 
 try:
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
     from physbiblio.gui.bibWindows import AbstractFormulas
+    from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.dialogWindows import *
     from physbiblio.gui.setuptests import *
     from physbiblio.setuptests import *
@@ -143,7 +138,7 @@ class TestConfigEditColumns(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         cec = ConfigEditColumns()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             cec.onCancel()
             self.assertFalse(cec.result)
             self.assertEqual(_c.call_count, 1)
@@ -163,7 +158,7 @@ class TestConfigEditColumns(GUITestCase):
         """test onOk"""
         p = QWidget()
         cec = ConfigEditColumns(p, ["bibkey", "author", "title"])
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             cec.onOk()
             self.assertTrue(cec.result)
             self.assertEqual(_c.call_count, 1)
@@ -171,7 +166,7 @@ class TestConfigEditColumns(GUITestCase):
         item = QTableWidgetItem("arxiv")
         cec.listSel.insertRow(3)
         cec.listSel.setItem(3, 0, item)
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             cec.onOk()
         self.assertEqual(cec.selected, ["bibkey", "author", "title", "arxiv"])
 
@@ -264,7 +259,7 @@ class TestConfigWindow(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         cw = ConfigWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             cw.onCancel()
             self.assertFalse(cw.result)
             self.assertEqual(_c.call_count, 1)
@@ -272,7 +267,7 @@ class TestConfigWindow(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         cw = ConfigWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             cw.onOk()
             self.assertTrue(cw.result)
             self.assertEqual(_c.call_count, 1)
@@ -349,7 +344,7 @@ class TestConfigWindow(GUITestCase):
             pbConfig.params["bibtexListColumns"],
         )
         cec = ConfigEditColumns(cw, ["bibkey", "author", "title"])
-        cec.exec_ = MagicMock()
+        cec.exec = MagicMock()
         cec.onCancel()
         with patch(
             "physbiblio.gui.dialogWindows.ConfigEditColumns",
@@ -363,7 +358,7 @@ class TestConfigWindow(GUITestCase):
             pbConfig.params["bibtexListColumns"],
         )
         cec = ConfigEditColumns(cw, ["bibkey", "author", "title"])
-        cec.exec_ = MagicMock()
+        cec.exec = MagicMock()
         cec.onOk()
         with patch(
             "physbiblio.gui.dialogWindows.ConfigEditColumns",
@@ -385,7 +380,7 @@ class TestConfigWindow(GUITestCase):
             pbConfig.params["defaultCategories"],
         )
         cwl = CatsTreeWindow(parent=cw, askCats=True, expButton=False, previous=["1"])
-        cwl.exec_ = MagicMock()
+        cwl.exec = MagicMock()
         cwl.onCancel()
         with patch(
             "physbiblio.gui.dialogWindows.CatsTreeWindow",
@@ -404,7 +399,7 @@ class TestConfigWindow(GUITestCase):
             pbConfig.params["defaultCategories"],
         )
         cwl = CatsTreeWindow(parent=cw, askCats=True, expButton=False, previous=["1"])
-        cwl.exec_ = MagicMock()
+        cwl.exec = MagicMock()
         cwl.onOk()
         cw.selectedCats = ["1"]
         with patch(
@@ -589,7 +584,7 @@ class TestLogFileContentDialog(GUITestCase):
             self.assertEqual(text, "test content")
         with patch(ayn_str, return_value=True, autospec=True) as _ayn, patch(
             "physbiblio.gui.dialogWindows.infoMessage", autospec=True
-        ) as _in, patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        ) as _in, patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             lf.clearLog()
             with open(pbConfig.params["logFileName"]) as _f:
                 text = _f.read()
@@ -598,11 +593,10 @@ class TestLogFileContentDialog(GUITestCase):
             _c.assert_called_once_with()
         if os.path.exists(pbConfig.params["logFileName"]):
             os.remove(pbConfig.params["logFileName"])
-        openModule = "__builtin__.open" if sys.version_info[0] < 3 else "builtins.open"
         with patch(ayn_str, return_value=True, autospec=True) as _ayn, patch(
-            openModule, side_effect=IOError("fake"), autospec=True
+            "builtins.open", side_effect=IOError("fake"), autospec=True
         ) as _op, patch("logging.Logger.exception") as _ex, patch(
-            "PySide2.QtWidgets.QDialog.close", autospec=True
+            "PySide6.QtWidgets.QDialog.close", autospec=True
         ) as _c:
             lf.clearLog()
             _ex.assert_called_once_with("Impossible to clear log file!")
@@ -694,7 +688,7 @@ class TestPrintText(GUITestCase):
         """test keyPressEvent"""
         p = QWidget()
         pt = PrintText(p)
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _oc:
             QTest.keyPress(pt, "a")
             _oc.assert_not_called()
             QTest.keyPress(pt, Qt.Key_Enter)
@@ -710,11 +704,11 @@ class TestPrintText(GUITestCase):
         p = QWidget()
         pt = PrintText(p)
         e = QEvent(QEvent.Close)
-        with patch("PySide2.QtCore.QEvent.ignore", autospec=True) as _i:
+        with patch("PySide6.QtCore.QEvent.ignore", autospec=True) as _i:
             pt.closeEvent(e)
             _i.assert_called_once_with()
         pt._wantToClose = True
-        with patch("PySide2.QtWidgets.QDialog.closeEvent", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.closeEvent", autospec=True) as _c:
             pt.closeEvent(e)
             _c.assert_called_once_with(e)
 
@@ -758,7 +752,7 @@ class TestPrintText(GUITestCase):
         self.assertEqual(pt.grid.itemAtPosition(4, 0).widget(), pt.closeButton)
         self.assertEqual(pt.closeButton.text(), "Close")
         self.assertFalse(pt.closeButton.isEnabled())
-        with patch("PySide2.QtWidgets.QDialog.reject", autospec=True) as _s:
+        with patch("PySide6.QtWidgets.QDialog.reject", autospec=True) as _s:
             QTest.mouseClick(pt.closeButton, Qt.LeftButton)
             _s.assert_not_called()
             pt.enableClose()
@@ -854,7 +848,7 @@ class TestAdvImportDialog(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         aid = AdvancedImportDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             aid.onCancel()
             self.assertFalse(aid.result)
             self.assertEqual(_c.call_count, 1)
@@ -862,7 +856,7 @@ class TestAdvImportDialog(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         aid = AdvancedImportDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             aid.onOk()
             self.assertTrue(aid.result)
             self.assertEqual(_c.call_count, 1)
@@ -943,7 +937,7 @@ class TestAdvImportSelect(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         ais = AdvancedImportSelect()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ais.onCancel()
             self.assertFalse(ais.result)
             self.assertEqual(_c.call_count, 1)
@@ -951,7 +945,7 @@ class TestAdvImportSelect(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         ais = AdvancedImportSelect()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ais.onOk()
             self.assertTrue(ais.result)
             self.assertEqual(_c.call_count, 1)
@@ -960,7 +954,7 @@ class TestAdvImportSelect(GUITestCase):
         """test keyPressEvent"""
         ais = AdvancedImportSelect()
         ais.result = True
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _oc:
             QTest.keyPress(ais, "a")
             _oc.assert_not_called()
             self.assertTrue(ais.result)
@@ -1102,7 +1096,7 @@ class TestDailyArxivDialog(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         dad = DailyArxivDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             dad.onCancel()
             self.assertFalse(dad.result)
             self.assertEqual(_c.call_count, 1)
@@ -1110,7 +1104,7 @@ class TestDailyArxivDialog(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         dad = DailyArxivDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             dad.onOk()
             self.assertTrue(dad.result)
             self.assertEqual(_c.call_count, 1)
@@ -1185,17 +1179,17 @@ class TestDailyArxivDialog(GUITestCase):
             _c.assert_called_once_with()
 
         with patch(
-            "PySide2.QtWidgets.QDialog.frameGeometry",
+            "PySide6.QtWidgets.QDialog.frameGeometry",
             autospec=True,
             return_value=QRect(),
         ) as _fg, patch(
-            "PySide2.QtCore.QRect.center", autospec=True, return_value=QPoint()
+            "PySide6.QtCore.QRect.center", autospec=True, return_value=QPoint()
         ) as _ce, patch(
-            "PySide2.QtCore.QRect.moveCenter", autospec=True
+            "PySide6.QtCore.QRect.moveCenter", autospec=True
         ) as _mc, patch(
-            "PySide2.QtCore.QRect.topLeft", autospec=True, return_value=QPoint()
+            "PySide6.QtCore.QRect.topLeft", autospec=True, return_value=QPoint()
         ) as _tl, patch(
-            "PySide2.QtWidgets.QDialog.move", autospec=True
+            "PySide6.QtWidgets.QDialog.move", autospec=True
         ) as _mo:
             dad.initUI()
             self.assertEqual(_fg.call_count, 1)
@@ -1219,7 +1213,7 @@ class TestDailyArxivSelect(GUITestCase):
         """test initUI"""
         p = QWidget()
         with patch(
-            "PySide2.QtWidgets.QTableView.sortByColumn", autospec=True
+            "PySide6.QtWidgets.QTableView.sortByColumn", autospec=True
         ) as _s, patch(
             "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
         ) as _f:
@@ -1299,7 +1293,7 @@ class TestDailyArxivSelect(GUITestCase):
         }
         das = DailyArxivSelect(bibs, p)
         with patch(
-            "PySide2.QtCore.QModelIndex.isValid", return_value=False, autospec=True
+            "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
         ) as _iv:
             self.assertEqual(das.cellClick(QModelIndex()), None)
         self.assertFalse(hasattr(das, "abstractFormulas"))
@@ -1313,7 +1307,7 @@ class TestDailyArxivSelect(GUITestCase):
                 + "in DailyArxivSelect. Eprint: 1808.00000"
             )
         with patch(
-            "PySide2.QtCore.QSortFilterProxyModel.sibling",
+            "PySide6.QtCore.QSortFilterProxyModel.sibling",
             return_value=None,
             autospec=True,
         ) as _s, patch("logging.Logger.debug") as _d:
@@ -1402,7 +1396,7 @@ class TestExportForTexDialog(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         eow = ExportForTexDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             eow.onCancel()
             self.assertFalse(eow.result)
             self.assertEqual(_c.call_count, 1)
@@ -1410,7 +1404,7 @@ class TestExportForTexDialog(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         eow = ExportForTexDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm", autospec=True
         ) as _rf:
             eow.onOk()

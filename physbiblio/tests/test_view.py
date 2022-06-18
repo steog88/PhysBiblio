@@ -3,15 +3,9 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import traceback
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import call, patch
-else:
-    import unittest
-    from unittest.mock import call, patch
+import unittest
+from unittest.mock import call, patch
 
 try:
     from physbiblio.config import pbConfig

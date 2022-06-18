@@ -6,7 +6,7 @@ import argparse
 import datetime
 import sys
 
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__
@@ -63,12 +63,10 @@ def call_tests(args):
     if args.online:
         skipTestsSettings.online = True
 
+    import unittest
+
     from physbiblio.testLoader import PBScanningLoader
 
-    if sys.version_info[0] < 3:
-        import unittest2 as unittest
-    else:
-        import unittest
     suite = PBScanningLoader().discover("physbiblio")
     testRunner = unittest.runner.TextTestRunner()
     result = testRunner.run(suite)
@@ -151,7 +149,7 @@ def call_gui(args=None):
             mainWin.recentChanges()
             pbConfig.globalDb.config.update("openSinceLastUpdate", __version__)
             pbConfig.globalDb.commit()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
     except NameError:
         pBLogger.critical("NameError:", exc_info=True)
     except SystemExit:

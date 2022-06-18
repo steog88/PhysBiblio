@@ -5,12 +5,12 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtCore import Qt, QTimer
-from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import QAction, QLineEdit, QPushButton, QToolTip
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QCursor
+from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -48,7 +48,7 @@ def editExperiment(parentObject, mainWinObject, editIdExp=None):
     else:
         edit = None
     newExpWin = EditExperimentDialog(parentObject, experiment=edit)
-    newExpWin.exec_()
+    newExpWin.exec()
     if newExpWin.result:
         data = {}
         for k, v in newExpWin.textValues.items():
@@ -401,7 +401,7 @@ class ExpsListWindow(ObjListWindow):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPos())
+        action = menu.exec(event.globalPos())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))
@@ -420,7 +420,7 @@ class ExpsListWindow(ObjListWindow):
                 expButton=False,
                 previous=previous,
             )
-            selectCats.exec_()
+            selectCats.exec()
             if selectCats.result == "Ok":
                 cats = self.parent().selectedCats
                 for p in previous:

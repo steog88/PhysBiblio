@@ -6,24 +6,18 @@ This file is part of the physbiblio package.
 import datetime
 import logging
 import os
-import sys
 import time
 import traceback
+import unittest
+from unittest.mock import patch
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from PySide2.QtCore import QPoint, Qt
-from PySide2.QtGui import QFont
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QLineEdit, QMessageBox, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import patch
-else:
-    import unittest
-    from unittest.mock import patch
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QFont
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QLineEdit, QMessageBox, QWidget
 
 try:
     from physbiblio.gui.basicDialogs import askDirName
@@ -1442,7 +1436,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertIsInstance(w40, PBLabel)
             self.assertEqual(w40.text(), "Click on the lines to have more information:")
             self.assertIsInstance(asp.hIndex, PBLabel)
-            self.assertEqual(asp.hIndex.font().family(), "Times")
+            self.assertIn(asp.hIndex.font().family(), ["T", "Times"])
             self.assertEqual(asp.hIndex.font().pointSize(), 15)
             self.assertEqual(asp.hIndex.font().weight(), QFont.Bold)
             self.assertEqual(asp.hIndex.text(), "Author h index: ND")

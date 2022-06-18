@@ -5,19 +5,12 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtCore import Qt, QTimer
-from PySide2.QtGui import QCursor
-from PySide2.QtWidgets import (
-    QAction,
-    QLineEdit,
-    QPushButton,
-    QToolTip,
-    QTreeView,
-    QVBoxLayout,
-)
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QCursor
+from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip, QTreeView, QVBoxLayout
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import pbConfig
     from physbiblio.database import cats_alphabetical, pBDB
     from physbiblio.errors import pBLogger
@@ -61,7 +54,7 @@ def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None)
     newCatWin = EditCategoryDialog(
         parentObject, category=edit, useParentCat=useParentCat
     )
-    newCatWin.exec_()
+    newCatWin.exec()
     if newCatWin.result:
         data = {}
         for k, v in newCatWin.textValues.items():
@@ -471,7 +464,7 @@ class CatsTreeWindow(PBDialog):
         Parameter:
             string: the new filter string
         """
-        self.proxyModel.setFilterRegExp(str(string))
+        self.proxyModel.setFilterRegularExpression(str(string))
         self.tree.expandAll()
 
     def onAskExps(self):
@@ -678,7 +671,7 @@ class CatsTreeWindow(PBDialog):
         ]
         menu.fillMenu()
 
-        action = menu.exec_(event.globalPos())
+        action = menu.exec(event.globalPos())
 
         if action == bibAction:
             self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
@@ -767,7 +760,7 @@ class EditCategoryDialog(EditObjectWindow):
             single=True,
             previous=self.selectedCats,
         )
-        selectCats.exec_()
+        selectCats.exec()
         if selectCats.result == "Ok":
             try:
                 val = self.selectedCats[0]

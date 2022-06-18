@@ -4,18 +4,11 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
-from stat import S_IREAD, S_IRGRP, S_IROTH
+import unittest
+from unittest.mock import patch
 
 import bibtexparser
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import patch
-else:
-    import unittest
-    from unittest.mock import patch
 
 try:
     from physbiblio.config import pbConfig

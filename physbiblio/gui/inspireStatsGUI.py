@@ -11,11 +11,11 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 
-plt.switch_backend("Qt5Agg")
+plt.switch_backend("QtAgg")
 
 try:
     from physbiblio.config import pbConfig

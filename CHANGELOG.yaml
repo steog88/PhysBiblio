@@ -1,6 +1,8 @@
--   version: 1.9.0
-    date: 2022-06
+-   version: 2.0.0
+    date: 2022-06-18
     changes:
+        - switched to PySide6, available only for python 3.6+
+        - python2 abandoned
         - new Ctrl+F shortcut in cat and exp windows
         - new Ctrl+Shift+F shortcut to focus on filter QLineEdit in main tab
 -   version: 1.8.4.1

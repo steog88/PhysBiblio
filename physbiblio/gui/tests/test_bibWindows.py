@@ -4,20 +4,14 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
-from PySide2.QtCore import QItemSelectionModel, QModelIndex, Qt
-from PySide2.QtGui import QMouseEvent, QPixmap
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QMenu, QToolButton, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
+from PySide6.QtCore import QItemSelectionModel, QModelIndex, Qt
+from PySide6.QtGui import QMouseEvent, QPixmap
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QMenu, QToolButton, QWidget
 
 try:
     from physbiblio.gui.bibWindows import *
@@ -417,7 +411,7 @@ class TestFunctions(GUIwMainWTestCase):
         }
         p = PBDialog()
         ebd = EditBibtexDialog(self.mainW, bib=None)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onCancel()
         with patch("logging.Logger.debug") as _ld, patch(
             "physbiblio.database.Entries.getByBibkey", autospec=True
@@ -427,7 +421,7 @@ class TestFunctions(GUIwMainWTestCase):
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
             editBibtex(p, editKey=None)
-            ebd.exec_.assert_called_once_with()
+            ebd.exec.assert_called_once_with()
             _i.assert_called_once_with(p, bib=None)
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
@@ -448,7 +442,7 @@ class TestFunctions(GUIwMainWTestCase):
             _gbk.assert_not_called()
 
         ebd = EditBibtexDialog(self.mainW, bib=None)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onCancel()
         with patch("logging.Logger.debug") as _ld, patch(
             "logging.Logger.warning"
@@ -491,7 +485,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # test creation of entry, empty bibtex
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibtex"].setPlainText("")
         with patch("logging.Logger.debug") as _ld, patch(
@@ -541,7 +535,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # test creation of entry, empty bibkey inserted
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("")
         with patch("logging.Logger.warning") as _lw, patch(
@@ -590,7 +584,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # test creation of entry, new bibtex
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("")
         with patch("logging.Logger.debug") as _ld, patch(
@@ -760,7 +754,7 @@ class TestFunctions(GUIwMainWTestCase):
         # test edit with various field contents
         # * no change bibkey: fix code?
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.citations = 123
         ebd.citations_no_self = 111
         ebd.onOk()
@@ -935,7 +929,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # * invalid key
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("not valid bibtex!")
         with patch("logging.Logger.warning") as _lw, patch(
@@ -1026,7 +1020,7 @@ class TestFunctions(GUIwMainWTestCase):
         del testentry["citations"]
         del testentry["citations_no_self"]
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["old_keys"].setText("old")
         with patch("logging.Logger.warning") as _lw, patch(
@@ -1122,7 +1116,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # * with update bibkey, updateBibkey unsuccessful
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         with patch("logging.Logger.warning") as _lw, patch(
             "logging.Logger.info"
@@ -1219,7 +1213,7 @@ class TestFunctions(GUIwMainWTestCase):
 
         # * with update bibkey, old_keys existing
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
-        ebd.exec_ = MagicMock()
+        ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["old_keys"].setText("testkey")
         with patch("logging.Logger.warning") as _lw, patch(
@@ -1349,7 +1343,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Entries.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -1381,7 +1375,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Entries.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -1445,7 +1439,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         """test doText"""
         bi = BibtexInfo(self.mainW)
         af = AbstractFormulas(self.mainW, "test text", customEditor=bi.text)
-        with patch("PySide2.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
+        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm:
             af.doText()
@@ -1458,7 +1452,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         tpl = Thread_processLatex(af.prepareText, self.mainW)
         tpl.passData = 1
         tpl.start = MagicMock()
-        with patch("PySide2.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
+        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm, patch(
             "physbiblio.gui.bibWindows.Thread_processLatex",
@@ -1473,7 +1467,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             )
             _pl.assert_called_once_with(af.prepareText, self.mainW)
         tpl = Thread_processLatex(af.prepareText, self.mainW)
-        with patch("PySide2.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
+        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm, patch(
             "physbiblio.gui.commonClasses.PBThread.start", autospec=True
@@ -1528,7 +1522,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             return_value=fc,
             autospec=USE_AUTOSPEC_CLASS,
         ), patch(
-            "PySide2.QtGui.QImage", return_value=qii, autospec=True
+            "PySide6.QtGui.QImage", return_value=qii
         ) as _qii, self.assertRaises(
             AttributeError
         ):
@@ -1565,9 +1559,9 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         )
         images, text = af.prepareText()
         with patch(
-            "PySide2.QtGui.QTextDocument.addResource", autospec=True
+            "PySide6.QtGui.QTextDocument.addResource", autospec=True
         ) as _ar, patch(
-            "PySide2.QtWidgets.QTextEdit.setHtml", autospec=True
+            "PySide6.QtWidgets.QTextEdit.setHtml", autospec=True
         ) as _ih, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _sbm:
@@ -3376,7 +3370,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             previous=[],
             multipleRecords=True,
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         self.assertEqual(self.mainW.selectedCats, [])
         with patch(
             "physbiblio.database.Categories.getByEntries",
@@ -3413,7 +3407,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             previous=[],
             multipleRecords=True,
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         self.mainW.selectedCats = [999, 1000]
         sc.result = "Ok"
         with patch(
@@ -3451,7 +3445,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             previous=[],
             multipleRecords=True,
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         self.mainW.selectedCats = [999, 1000]
         self.mainW.previousUnchanged = [1002]
         sc.result = "Ok"
@@ -3489,7 +3483,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         sc = CatsTreeWindow(
             parent=self.mainW, askCats=True, expButton=False, previous=[]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         self.assertEqual(self.mainW.selectedCats, [])
         with patch(
             "physbiblio.database.Categories.getByEntries",
@@ -3522,7 +3516,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         sc = CatsTreeWindow(
             parent=self.mainW, askCats=True, expButton=False, previous=[]
         )
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         self.mainW.selectedCats = [999, 1000]
         self.mainW.previousUnchanged = [1002]
         sc.result = "Ok"
@@ -3867,7 +3861,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         )
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch("PySide2.QtCore.QThread.start", autospec=True) as _s:
+        ) as _m, patch("PySide6.QtCore.QThread.start", autospec=True) as _s:
             c.onDown()
             self.assertEqual(_s.call_count, 2)
         self.assertIsInstance(c.downArxiv_thr[0], Thread_downloadArxiv)
@@ -3910,7 +3904,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onExp"""
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
         se = ExpsListWindow(parent=self.mainW, askExps=True, previous=[])
-        se.exec_ = MagicMock()
+        se.exec = MagicMock()
         self.mainW.selectedExps = [999, 1000]
         with patch(
             "physbiblio.gui.bibWindows.infoMessage", autospec=True
@@ -3938,7 +3932,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
 
         c = CommonBibActions([{"bibkey": "abc"}], self.mainW)
         se = ExpsListWindow(parent=self.mainW, askExps=True, previous=[])
-        se.exec_ = MagicMock()
+        se.exec = MagicMock()
         self.mainW.selectedExps = [999, 1000]
         with patch(
             "physbiblio.database.Experiments.getByEntry", return_value=[], autospec=True
@@ -4038,7 +4032,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         }
         with patch("logging.Logger.warning") as _w:
             mb = MergeBibtexs(e, e, self.mainW)
-        mb.exec_ = MagicMock()
+        mb.exec = MagicMock()
         mb.onCancel()
         # non accepted MergeBibtex form
         with patch(
@@ -4134,7 +4128,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         }
         with patch("logging.Logger.warning") as _w:
             mb = MergeBibtexs(e, e, self.mainW)
-        mb.exec_ = MagicMock()
+        mb.exec = MagicMock()
         mb.result = True
         # cannot delete
         with patch(
@@ -4700,7 +4694,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_init(self):
         """test __init__"""
         with patch(
-            "PySide2.QtWidgets.QFrame.__init__", return_value=None, autospec=True
+            "PySide6.QtWidgets.QFrame.__init__", return_value=None, autospec=True
         ) as _fi, patch(
             "physbiblio.gui.commonClasses.ObjListWindow.__init__",
             return_value=None,
@@ -4923,7 +4917,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
             autospec=True,
         ) as _ea, patch(
-            "PySide2.QtWidgets.QTableView.clearSelection", autospec=True
+            "PySide6.QtWidgets.QTableView.clearSelection", autospec=True
         ) as _cs, patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
         ) as _r:
@@ -4938,44 +4932,37 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_createActions(self):
         """test createActions"""
         bw = BibtexListWindow(bibs=[])
+        bw.enableSelection = MagicMock()
+        bw.onOk = MagicMock()
+        bw.clearSelection = MagicMock()
+        bw.selectAll = MagicMock()
+        bw.unselectAll = MagicMock()
+        bw.createActions()
         images = [
-            QImage(":/images/edit-node.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/dialog-ok-apply.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-clear.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-select-all.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
-            QImage(":/images/edit-unselect-all.png").convertToFormat(
-                QImage.Format_ARGB32_Premultiplied
-            ),
+            QImage(imgp).convertToFormat(QImage.Format_ARGB32_Premultiplied)
+            for imgp in [
+                ":/images/edit-node.png",
+                ":/images/dialog-ok-apply.png",
+                ":/images/edit-clear.png",
+                ":/images/edit-select-all.png",
+                ":/images/edit-unselect-all.png",
+            ]
         ]
         self.assertIsInstance(bw.selAct, QAction)
         self.assertEqual(bw.selAct.text(), "&Select entries")
         self.assertEqual(bw.selAct.parent(), bw)
         self.assertEqual(images[0], bw.selAct.icon().pixmap(images[0].size()).toImage())
         self.assertEqual(bw.selAct.statusTip(), "Select entries from the list")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.enableSelection", autospec=True
-        ) as _f:
-            bw.selAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.selAct.trigger()
+        bw.enableSelection.assert_called_once_with()
 
         self.assertIsInstance(bw.okAct, QAction)
         self.assertEqual(bw.okAct.text(), "Selection &completed")
         self.assertEqual(bw.okAct.parent(), bw)
         self.assertEqual(images[1], bw.okAct.icon().pixmap(images[1].size()).toImage())
         self.assertEqual(bw.okAct.statusTip(), "Selection of elements completed")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.onOk", autospec=True
-        ) as _f:
-            bw.okAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.okAct.trigger()
+        bw.onOk.assert_called_once_with()
 
         self.assertIsInstance(bw.clearAct, QAction)
         self.assertEqual(bw.clearAct.text(), "&Clear selection")
@@ -4986,11 +4973,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(
             bw.clearAct.statusTip(), "Discard the current selection and hide checkboxes"
         )
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _f:
-            bw.clearAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.clearAct.trigger()
+        bw.clearSelection.assert_called_once_with()
 
         self.assertIsInstance(bw.selAllAct, QAction)
         self.assertEqual(bw.selAllAct.text(), "&Select all")
@@ -4999,11 +4983,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             images[3], bw.selAllAct.icon().pixmap(images[3].size()).toImage()
         )
         self.assertEqual(bw.selAllAct.statusTip(), "Select all the elements")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.selectAll", autospec=True
-        ) as _f:
-            bw.selAllAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.selAllAct.trigger()
+        bw.selectAll.assert_called_once_with()
 
         self.assertIsInstance(bw.unselAllAct, QAction)
         self.assertEqual(bw.unselAllAct.text(), "&Unselect all")
@@ -5012,11 +4993,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             images[4], bw.unselAllAct.icon().pixmap(images[4].size()).toImage()
         )
         self.assertEqual(bw.unselAllAct.statusTip(), "Unselect all the elements")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.unselectAll", autospec=True
-        ) as _f:
-            bw.unselAllAct.trigger()
-            _f.assert_called_once_with(bw)
+        bw.unselAllAct.trigger()
+        bw.unselectAll.assert_called_once_with()
 
     def test_restoreSort(self):
         """test restoreSort"""
@@ -5025,9 +5003,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         cc = bw.proxyModel.sortColumn()
         co = bw.proxyModel.sortOrder()
         with patch(
-            "PySide2.QtWidgets.QTableView.sortByColumn", autospec=True
+            "PySide6.QtWidgets.QTableView.sortByColumn", autospec=True
         ) as _st, patch(
-            "PySide2.QtCore.QSortFilterProxyModel.sort", autospec=True
+            "PySide6.QtCore.QSortFilterProxyModel.sort", autospec=True
         ) as _sf:
             bw.restoreSort()
             _sf.assert_has_calls([call(cb, Qt.AscendingOrder), call(cc, co)])
@@ -5073,7 +5051,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertFalse(hasattr(self.mainW, "selectedBibs"))
         bw.tableModel.selectedElements = {"abc": False, "def": True, "ghi": True}
         tmp = MagicMock()
-        tmp.exec_ = MagicMock()
+        tmp.exec = MagicMock()
         with patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
         ) as _cl, patch(
@@ -5115,7 +5093,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _cl.assert_called_once_with(bw)
             _cm.assert_called_once_with(cba, selection=True)
             _g.assert_not_called()
-            tmp.exec_.assert_called_once_with(position)
+            tmp.exec.assert_called_once_with(position)
             self.assertEqual(self.mainW.selectedBibs, [])
 
     @patch.dict(
@@ -5148,7 +5126,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cea, patch(
             "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff", autospec=True
         ) as _sps, patch(
-            "PySide2.QtWidgets.QTableView.hideColumn", autospec=True
+            "PySide6.QtWidgets.QTableView.hideColumn", autospec=True
         ) as _hc, patch(
             "physbiblio.gui.bibWindows.BibTableModel", autospec=USE_AUTOSPEC_CLASS
         ) as _tm, patch(
@@ -5242,7 +5220,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff",
                 autospec=True,
             ) as _sps, patch(
-                "PySide2.QtWidgets.QTableView.hideColumn", autospec=True
+                "PySide6.QtWidgets.QTableView.hideColumn", autospec=True
             ) as _hc, patch(
                 "physbiblio.gui.bibWindows.BibTableModel", autospec=USE_AUTOSPEC_CLASS
             ) as _tm, patch(
@@ -5266,7 +5244,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         """test updateInfo"""
         bw = BibtexListWindow(parent=self.mainW, bibs=[])
         self.assertEqual(bw.currentAbstractKey, None)
-        with patch("PySide2.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
+        with patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
             "physbiblio.gui.bibWindows.writeAbstract", autospec=True
         ) as _wa, patch(
             "physbiblio.gui.bibWindows.writeBibtexInfo",
@@ -5278,7 +5256,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _st.assert_has_calls([call("text"), call("info")])
             _wa.assert_called_once_with(self.mainW, {"bibkey": "abc", "bibtex": "text"})
             self.assertEqual(bw.currentAbstractKey, "abc")
-        with patch("PySide2.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
+        with patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
             "physbiblio.gui.bibWindows.writeAbstract", autospec=True
         ) as _wa, patch(
             "physbiblio.gui.bibWindows.writeBibtexInfo",
@@ -5331,7 +5309,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             parent=self.mainW,
         )
         m = PBMenu()
-        m.exec_ = MagicMock()
+        m.exec = MagicMock()
         cba = CommonBibActions([{"bibkey": "ghi"}])
         m.possibleActions = [["copy", ["a", "b"]]]
         with patch(
@@ -5361,7 +5339,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
             _cmc.assert_called_once_with(cba, False, {"bibkey": "ghi"})
-            cba.menu.exec_.assert_called_once_with(QCursor.pos())
+            cba.menu.exec.assert_called_once_with(QCursor.pos())
             _cs.assert_called_once_with(bw)
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.keyPressEvent", autospec=True
@@ -5369,7 +5347,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             QTest.keyClick(bw, "W", Qt.ShiftModifier)
             _p.assert_called()
         m = PBMenu()
-        m.exec_ = MagicMock()
+        m.exec = MagicMock()
         cba = CommonBibActions([{"bibkey": "ghi", "bibtex": "@a{ghi}"}])
         with patch(
             "physbiblio.database.Entries.getByBibkey",
@@ -5391,7 +5369,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cs:
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
-            cba.menu.exec_.assert_called_once_with(QCursor.pos())
+            cba.menu.exec.assert_called_once_with(QCursor.pos())
             _cs.assert_called_once_with(bw)
         pa = m.possibleActions
         self.assertIsInstance(pa, list)
@@ -5425,7 +5403,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             Qt.NoModifier,
         )
         with patch(
-            "PySide2.QtCore.QSortFilterProxyModel.index",
+            "PySide6.QtCore.QSortFilterProxyModel.index",
             return_value="index",
             autospec=True,
         ) as _ix, patch(
@@ -5440,7 +5418,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _ix.assert_called_once_with(9999, 101)
             _ge.assert_called_once_with(bw, "index")
         with patch(
-            "PySide2.QtCore.QSortFilterProxyModel.index",
+            "PySide6.QtCore.QSortFilterProxyModel.index",
             return_value="index",
             autospec=True,
         ) as _ix, patch(
@@ -5471,7 +5449,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 self.assertEqual(bw.triggeredContextMenuEvent(9999, 101, ev), None)
                 _cm.assert_called_once_with(cba)
             tmp = MagicMock()
-            tmp.exec_ = MagicMock()
+            tmp.exec = MagicMock()
             with patch(
                 "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
                 return_value=tmp,
@@ -5482,7 +5460,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 autospec=USE_AUTOSPEC_CLASS,
             ) as _cba:
                 bw.triggeredContextMenuEvent(9999, 101, ev)
-                tmp.exec_.assert_called_once_with(position)
+                tmp.exec.assert_called_once_with(ev.globalPosition())
                 _cm.assert_called_once_with(cba)
 
     def test_handleItemEntered(self):
@@ -5687,7 +5665,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _m.assert_called_once_with(self.mainW, "opening PDF...")
 
         tmp = MagicMock()
-        tmp.exec_ = MagicMock()
+        tmp.exec = MagicMock()
         with patch(
             "physbiblio.pdf.LocalPDF.getExisting",
             return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"],
@@ -5713,7 +5691,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _ol.assert_not_called()
             _m.assert_not_called()
             _apa.assert_called_once_with("abc", bw.mainWin)
-            tmp.exec_.assert_called_once_with(position)
+            tmp.exec.assert_called_once_with(position)
 
     def test_finalizeTable(self):
         """test finalizeTable"""
@@ -5730,10 +5708,10 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(_f.call_count, 1)
         bw.cleanLayout()
 
-        with patch("PySide2.QtGui.QFont.setPointSize", autospec=True) as _sps, patch(
-            "PySide2.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
+        with patch("PySide6.QtGui.QFont.setPointSize", autospec=True) as _sps, patch(
+            "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
         ) as _rc, patch(
-            "PySide2.QtWidgets.QTableView.resizeRowsToContents", autospec=True
+            "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
         ) as _rr, patch.dict(
             pbConfig.params, {"resizeTable": True}, clear=False
         ):
@@ -5744,11 +5722,11 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tableview)
         bw.cleanLayout()
         with patch(
-            "PySide2.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
+            "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
         ) as _rc, patch(
-            "PySide2.QtWidgets.QTableView.resizeColumnToContents", autospec=True
+            "PySide6.QtWidgets.QTableView.resizeColumnToContents", autospec=True
         ) as _rsc, patch(
-            "PySide2.QtWidgets.QTableView.resizeRowsToContents", autospec=True
+            "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
         ) as _rr, patch.dict(
             pbConfig.params, {"resizeTable": False}, clear=False
         ):
@@ -5767,9 +5745,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cl, patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
         ) as _ct, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             "physbiblio.database.Entries.getAll", autospec=True
         ) as _ga:
@@ -5785,9 +5763,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         ) as _cl, patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
         ) as _ct, patch(
-            "PySide2.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
         ) as _sc, patch(
-            "PySide2.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
         ) as _rc, patch(
             "physbiblio.database.Entries.getAll", return_value="getall", autospec=True
         ) as _ga:
@@ -5855,14 +5833,14 @@ class TestEditBibtexDialog(GUITestCase):
         """test onOk"""
         p = QWidget()
         eb = EditBibtexDialog()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
             _c.assert_not_called()
             _e.assert_called_once_with("Invalid form contents: empty bibtex!")
         eb.textValues["bibtex"].setPlainText('@article{abc, title="}')
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
@@ -5871,7 +5849,7 @@ class TestEditBibtexDialog(GUITestCase):
                 "Invalid form contents: cannot read bibtex properly!"
             )
         eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "logging.Logger.error"
         ) as _e:
             eb.onOk()
@@ -5883,7 +5861,7 @@ class TestEditBibtexDialog(GUITestCase):
         eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
         eb.textValues["bibkey"].setReadOnly(False)
         eb.textValues["bibkey"].setText("abc")
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
             "logging.Logger.error"
         ) as _e:
             self.assertEqual(eb.onOk(), False)
@@ -6223,7 +6201,7 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_onOpenArxiv(self):
         """test onOpenArxiv"""
-        with patch("PySide2.QtWidgets.QMenu.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c, patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
         ) as _ol, patch(
             "physbiblio.pdf.LocalPDF.getFilePath",
@@ -6251,7 +6229,7 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_onOpenDoi(self):
         """test onOpenDoi"""
-        with patch("PySide2.QtWidgets.QMenu.close", autospec=True) as _c, patch(
+        with patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c, patch(
             "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
         ) as _ol, patch(
             "physbiblio.pdf.LocalPDF.getFilePath",
@@ -6292,7 +6270,7 @@ class TestAskPDFAction(GUIwMainWTestCase):
         ) as _ol, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m, patch(
-            "PySide2.QtWidgets.QMenu.close", autospec=True
+            "PySide6.QtWidgets.QMenu.close", autospec=True
         ) as _c, patch(
             "logging.Logger.warning"
         ) as _w:
@@ -6729,7 +6707,7 @@ class TestSearchBibsWindow(GUITestCase):
         sbw.textValues[0]["content"].setText("")
 
         sc = CatsTreeWindow(parent=sbw, askCats=True, expButton=False, previous=[])
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.result = False
         with patch(
             "physbiblio.gui.bibWindows.CatsTreeWindow",
@@ -6744,13 +6722,13 @@ class TestSearchBibsWindow(GUITestCase):
             _sc.assert_called_once_with(
                 parent=sbw, askCats=True, expButton=False, previous=[]
             )
-            sc.exec_.assert_called_once_with()
+            sc.exec.assert_called_once_with()
             self.assertEqual(sbw.textValues[0]["content"].text(), "")
 
         sbw.textValues[0]["content"].setText("[0]")
         sc = CatsTreeWindow(parent=sbw, askCats=True, expButton=False, previous=[0])
         sbw.selectedCats = [0, 1]
-        sc.exec_ = MagicMock()
+        sc.exec = MagicMock()
         sc.result = "Ok"
         with patch(
             "physbiblio.gui.bibWindows.CatsTreeWindow",
@@ -6761,7 +6739,7 @@ class TestSearchBibsWindow(GUITestCase):
             _sc.assert_called_once_with(
                 parent=sbw, askCats=True, expButton=False, previous=[0]
             )
-            sc.exec_.assert_called_once_with()
+            sc.exec.assert_called_once_with()
             self.assertEqual(sbw.textValues[0]["content"].text(), "[0, 1]")
 
     def test_onAskExps(self):
@@ -6783,7 +6761,7 @@ class TestSearchBibsWindow(GUITestCase):
         sbw.textValues[0]["content"].setText("")
 
         se = ExpsListWindow(parent=sbw, askExps=True, previous=[])
-        se.exec_ = MagicMock()
+        se.exec = MagicMock()
         se.result = False
         with patch(
             "physbiblio.gui.bibWindows.ExpsListWindow",
@@ -6796,13 +6774,13 @@ class TestSearchBibsWindow(GUITestCase):
         ) as _cf:
             sbw.onAskExps(0)
             _se.assert_called_once_with(parent=sbw, askExps=True, previous=[])
-            se.exec_.assert_called_once_with()
+            se.exec.assert_called_once_with()
             self.assertEqual(sbw.textValues[0]["content"].text(), "")
 
         sbw.textValues[0]["content"].setText("[0]")
         se = ExpsListWindow(parent=sbw, askExps=True, previous=[])
         sbw.selectedExps = [0, 1]
-        se.exec_ = MagicMock()
+        se.exec = MagicMock()
         se.result = "Ok"
         with patch(
             "physbiblio.gui.bibWindows.ExpsListWindow",
@@ -6811,7 +6789,7 @@ class TestSearchBibsWindow(GUITestCase):
         ) as _se:
             sbw.onAskExps(0)
             _se.assert_called_once_with(parent=sbw, askExps=True, previous=[0])
-            se.exec_.assert_called_once_with()
+            se.exec.assert_called_once_with()
             self.assertEqual(sbw.textValues[0]["content"].text(), "[0, 1]")
 
     def test_keyPressEvent(self):
@@ -7040,14 +7018,14 @@ class TestSearchBibsWindow(GUITestCase):
         e.key.return_value = "b"
         sbw.acceptButton.setFocus = MagicMock()
         with patch(
-            "PySide2.QtWidgets.QWidget.eventFilter", return_value="abc", autospec=True
+            "PySide6.QtWidgets.QWidget.eventFilter", return_value="abc", autospec=True
         ) as _ef:
             self.assertEqual(sbw.eventFilter(w, e), "abc")
             _ef.assert_called_once_with(sbw, w, e)
             e.key.assert_not_called()
         e.type.return_value = QEvent.KeyPress
         with patch(
-            "PySide2.QtWidgets.QWidget.eventFilter", return_value="abc", autospec=True
+            "PySide6.QtWidgets.QWidget.eventFilter", return_value="abc", autospec=True
         ) as _ef:
             self.assertEqual(sbw.eventFilter(w, e), "abc")
             _ef.assert_called_once_with(sbw, w, e)
@@ -7062,7 +7040,7 @@ class TestSearchBibsWindow(GUITestCase):
         ]:
             w = x
             with patch(
-                "PySide2.QtWidgets.QWidget.eventFilter",
+                "PySide6.QtWidgets.QWidget.eventFilter",
                 return_value="abc",
                 autospec=True,
             ) as _ef:
@@ -7074,7 +7052,7 @@ class TestSearchBibsWindow(GUITestCase):
         for x in [Qt.Key_Return, Qt.Key_Enter]:
             e.key.return_value = x
             with patch(
-                "PySide2.QtWidgets.QWidget.eventFilter",
+                "PySide6.QtWidgets.QWidget.eventFilter",
                 return_value="abc",
                 autospec=True,
             ) as _ef:
@@ -7495,7 +7473,7 @@ class TestSearchBibsWindow(GUITestCase):
             sbw.createLine(0, {"content": ""})
             _d.assert_any_call("Invalid previous! set to empty.\n{'content': ''}")
         self.assertEqual(len(sbw.textValues), 1)
-        with patch("PySide2.QtCore.QObject.installEventFilter", autospec=True) as _ief:
+        with patch("PySide6.QtCore.QObject.installEventFilter", autospec=True) as _ief:
             sbw.createLine(
                 2,
                 {
@@ -7719,7 +7697,7 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
         ) as _cf:
             sbw = SearchBibsWindow()
-        with patch("PySide2.QtCore.QObject.installEventFilter", autospec=True) as _ief:
+        with patch("PySide6.QtCore.QObject.installEventFilter", autospec=True) as _ief:
             sbw.createLimits(12)
             self.assertEqual(_ief.call_count, 2)
         self.assertIsInstance(sbw.currGrid.itemAtPosition(11, 0).widget(), PBLabelRight)
@@ -7763,7 +7741,7 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
         ) as _cf:
             sbw = SearchBibsWindow()
-        with patch("PySide2.QtCore.QObject.installEventFilter", autospec=True) as _ief:
+        with patch("PySide6.QtCore.QObject.installEventFilter", autospec=True) as _ief:
             self.assertEqual(sbw.createReplace(10), 13)
             self.assertEqual(_ief.call_count, 2)
         self.assertIsInstance(sbw.currGrid.itemAtPosition(9, 0).widget(), PBLabel)
@@ -8635,7 +8613,7 @@ class TestFieldsFromArxiv(GUITestCase):
         ffa = FieldsFromArxiv(p)
         ffa.checkBoxes["doi"].setChecked(False)
         ffa.checkBoxes["title"].setChecked(False)
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ffa.onOk()
             self.assertEqual(_c.call_count, 1)
         self.assertTrue(ffa.result)
@@ -8647,7 +8625,7 @@ class TestFieldsFromArxiv(GUITestCase):
         """test onCancel"""
         p = QWidget()
         ffa = FieldsFromArxiv(p)
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             ffa.onCancel()
             self.assertEqual(_c.call_count, 1)
         self.assertFalse(ffa.result)

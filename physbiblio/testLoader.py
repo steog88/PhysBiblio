@@ -3,14 +3,9 @@ which is not finding tests in python3.
 
 This file is part of the physbiblio package.
 """
-import sys
+from unittest import TestLoader
 
 from pkg_resources import resource_exists, resource_listdir
-
-if sys.version_info[0] < 3:
-    from unittest2 import TestLoader
-else:
-    from unittest import TestLoader
 
 
 class PBScanningLoader(TestLoader):

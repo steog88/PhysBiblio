@@ -4,18 +4,11 @@
 This file is part of the physbiblio package.
 """
 import datetime
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, patch
 
 import bibtexparser
-import six
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, patch
 
 try:
     from physbiblio.bibtexWriter import pbWriter
@@ -526,7 +519,7 @@ class TestArxivMethods(unittest.TestCase):
         aws = physBiblioWeb.webSearch["arxiv"]
         with patch("logging.Logger.info") as _i:
             res = aws.arxivRetriever("Zavanin", searchType="au")
-        self.assertIsInstance(res, six.string_types)
+        self.assertIsInstance(res, str)
 
     def test_arxivDaily(self):
         """test arxivDaily"""

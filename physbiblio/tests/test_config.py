@@ -6,19 +6,12 @@ This file is part of the physbiblio package.
 import logging
 import logging.handlers
 import os
-import sys
 import traceback
+import unittest
 from collections import OrderedDict
+from unittest.mock import MagicMock, call, patch
 
-import six
 from appdirs import AppDirs
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
 
 try:
     from physbiblio.config import (
@@ -1622,8 +1615,8 @@ class TestConfigVars(unittest.TestCase):
             _lp.assert_called_once_with(cv)
             _dp.assert_called_once_with(cv)
         self.assertIsInstance(cv.defaultDirs, AppDirs)
-        self.assertIsInstance(cv.configPath, six.string_types)
-        self.assertIsInstance(cv.dataPath, six.string_types)
+        self.assertIsInstance(cv.configPath, str)
+        self.assertIsInstance(cv.dataPath, str)
         self.assertEqual(cv.loggerString, globalLogName)
         self.assertIsInstance(cv.logger, logging.Logger)
         self.assertEqual(cv.loggingLevels, loggingLevels)

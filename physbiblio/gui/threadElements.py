@@ -2,20 +2,14 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import time
 import traceback
+from urllib.request import URLError
 
 import bibtexparser
 from outdated import check_outdated
-from PySide2.QtCore import Signal
+from PySide6.QtCore import Signal
 from requests.exceptions import ConnectionError
-
-if sys.version_info[0] < 3:
-    from urllib2 import URLError
-else:
-    from urllib.request import URLError
-
 
 try:
     from physbiblio import __version__

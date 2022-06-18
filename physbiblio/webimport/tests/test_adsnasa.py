@@ -6,18 +6,12 @@ This file is part of the physbiblio package.
 import datetime
 import json
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, patch
 
 from ads.tests.stubdata.export import example_export_response
 from ads.tests.stubdata.solr import example_solr_response
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, patch
 
 try:
     from physbiblio.config import pbConfig

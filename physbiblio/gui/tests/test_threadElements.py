@@ -4,23 +4,15 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from queue import Queue
+from unittest.mock import MagicMock, call, patch
+from urllib.request import URLError
 
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-    from Queue import Queue
-    from urllib2 import URLError
-else:
-    import unittest
-    from queue import Queue
-    from unittest.mock import MagicMock, call, patch
-    from urllib.request import URLError
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QWidget
 
 try:
     from physbiblio import __version__

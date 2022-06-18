@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 import pytz
 from matplotlib.backends.backend_pdf import PdfPages
 
-plt.switch_backend("Qt5Agg")
-os.environ["QT_API"] = "pyside2"
+plt.switch_backend("QtAgg")
+os.environ["QT_API"] = "pyside6"
 
 try:
     from physbiblio.config import pbConfig

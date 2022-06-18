@@ -3,15 +3,10 @@
 
 This file is part of the physbiblio package.
 """
-import sys
 import traceback
+import unittest
 
 import bibtexparser
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-else:
-    import unittest
 
 try:
     from physbiblio.bibtexWriter import *

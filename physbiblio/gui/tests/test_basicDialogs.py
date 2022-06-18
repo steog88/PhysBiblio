@@ -4,19 +4,13 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
-from PySide2.QtCore import Qt
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QInputDialog, QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
+from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QInputDialog, QWidget
 
 try:
     from physbiblio.gui.basicDialogs import *
@@ -38,14 +32,12 @@ class TestDialogWindows(GUITestCase):
         mb = MagicMock()
         mb.addButton.side_effect = ["yes", "no", "yes", "no"]
         mb.clickedButton.side_effect = ["yes", "no"]
-        with patch(
-            "physbiblio.gui.basicDialogs.QMessageBox", return_value=mb, autospec=True
-        ) as _mb:
+        with patch("physbiblio.gui.basicDialogs.QMessageBox", return_value=mb) as _mb:
             self.assertTrue(askYesNo("mymessage"))
             _mb.assert_called_once_with(_mb.Question, "Question", "mymessage")
             mb.addButton.assert_has_calls([call(_mb.Yes), call(_mb.No)])
             mb.setDefaultButton.assert_called_once_with("no")
-            mb.exec_.assert_called_once_with()
+            mb.exec.assert_called_once_with()
             mb.clickedButton.assert_called_once_with()
             _mb.reset_mock()
             self.assertFalse(askYesNo("mymessage", title="mytitle"))
@@ -54,20 +46,18 @@ class TestDialogWindows(GUITestCase):
     def test_infoMessage(self):
         """Test infoMessage"""
         mb = MagicMock()
-        with patch(
-            "physbiblio.gui.basicDialogs.QMessageBox", return_value=mb, autospec=True
-        ) as _mb:
+        with patch("physbiblio.gui.basicDialogs.QMessageBox", return_value=mb) as _mb:
             infoMessage("mymessage")
             _mb.assert_called_once_with(_mb.Information, "Information", "mymessage")
             _mb.reset_mock()
             infoMessage("mymessage", title="mytitle")
             _mb.assert_called_once_with(_mb.Information, "mytitle", "mymessage")
-            mb.exec_.assert_called_once_with()
+            mb.exec.assert_called_once_with()
 
     def test_LongInfoMessage(self):
         """Test LongInfoMessage"""
         with patch(
-            "physbiblio.gui.basicDialogs.LongInfoMessage.exec_", autospec=True
+            "physbiblio.gui.basicDialogs.LongInfoMessage.exec", autospec=True
         ) as _e:
             win = LongInfoMessage("mymessage")
             _e.assert_called_once_with()
@@ -82,12 +72,12 @@ class TestDialogWindows(GUITestCase):
         self.assertIsInstance(win.layout().itemAtPosition(1, 1).widget(), QPushButton)
         self.assertEqual(win.layout().itemAtPosition(1, 1).widget(), win.okbutton)
         self.assertEqual(win.okbutton.text(), "OK")
-        with patch("PySide2.QtWidgets.QDialog.close") as _c:
+        with patch("PySide6.QtWidgets.QDialog.close") as _c:
             QTest.mouseClick(win.okbutton, Qt.LeftButton)
             _c.assert_called_once_with(win)
         mb = MagicMock()
         with patch(
-            "physbiblio.gui.basicDialogs.LongInfoMessage.exec_", autospec=True
+            "physbiblio.gui.basicDialogs.LongInfoMessage.exec", autospec=True
         ) as _e:
             win = LongInfoMessage("mymessage", "mytitle")
         self.assertEqual(win.windowTitle(), "mytitle")
@@ -97,23 +87,23 @@ class TestDialogWindows(GUITestCase):
         p = MagicMock()
         q = QWidget()
         qid = MagicMock()
-        qid.exec_.side_effect = [True, False, True]
+        qid.exec.side_effect = [True, False, True]
         qid.textValue.side_effect = ["abc", "def", "ghi"]
         with patch(
-            "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid, autospec=True
+            "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid
         ) as _qid:
             self.assertEqual(askGenericText("mymessage", "mytitle"), ("abc", True))
             qid.setInputMode.assert_called_once_with(_qid.TextInput)
             qid.setLabelText.assert_called_once_with("mymessage")
             qid.setTextValue.assert_called_once_with("")
             qid.setWindowTitle.assert_called_once_with("mytitle")
-            qid.exec_.assert_called_once_with()
+            qid.exec.assert_called_once_with()
             qid.textValue.assert_called_once_with()
             self.assertEqual(
                 askGenericText("mymessage", "mytitle", parent=p), ("def", False)
             )
         with patch(
-            "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid, autospec=True
+            "physbiblio.gui.basicDialogs.QInputDialog", return_value=qid
         ) as _qid:
             self.assertEqual(
                 askGenericText("mymessage", "mytitle", q, "ABC"), ("ghi", True)
@@ -123,11 +113,9 @@ class TestDialogWindows(GUITestCase):
     def test_askFileName(self):
         """Test askFileName"""
         fd = MagicMock()
-        fd.exec_.side_effect = [False, True, True]
+        fd.exec.side_effect = [False, True, True]
         fd.selectedFiles.side_effect = [["abc", "def"], []]
-        with patch(
-            "physbiblio.gui.basicDialogs.QFileDialog", return_value=fd, autospec=True
-        ) as _fd:
+        with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
                 askFileName(
                     parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
@@ -136,7 +124,7 @@ class TestDialogWindows(GUITestCase):
             )
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
             fd.setFileMode.assert_called_once_with(_fd.ExistingFile)
-            fd.exec_.assert_called_once_with()
+            fd.exec.assert_called_once_with()
             fd.selectedFiles.assert_not_called()
             _fd.reset_mock()
             self.assertEqual(askFileName(), "abc")
@@ -147,11 +135,9 @@ class TestDialogWindows(GUITestCase):
     def test_askFileNames(self):
         """Test askFileNames"""
         fd = MagicMock()
-        fd.exec_.side_effect = [False, True]
+        fd.exec.side_effect = [False, True]
         fd.selectedFiles.return_value = ["abc", "def"]
-        with patch(
-            "physbiblio.gui.basicDialogs.QFileDialog", return_value=fd, autospec=True
-        ) as _fd:
+        with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
                 askFileNames(
                     parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
@@ -161,7 +147,7 @@ class TestDialogWindows(GUITestCase):
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
             fd.setFileMode.assert_called_once_with(_fd.ExistingFiles)
             fd.setOption.assert_called_once_with(_fd.DontConfirmOverwrite, True)
-            fd.exec_.assert_called_once_with()
+            fd.exec.assert_called_once_with()
             fd.selectedFiles.assert_not_called()
             _fd.reset_mock()
             self.assertEqual(askFileNames(), ["abc", "def"])
@@ -171,11 +157,9 @@ class TestDialogWindows(GUITestCase):
     def test_askSaveFileName(self):
         """Test askSaveFileName"""
         fd = MagicMock()
-        fd.exec_.side_effect = [False, True, True]
+        fd.exec.side_effect = [False, True, True]
         fd.selectedFiles.side_effect = [["abc", "def"], []]
-        with patch(
-            "physbiblio.gui.basicDialogs.QFileDialog", return_value=fd, autospec=True
-        ) as _fd:
+        with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
                 askSaveFileName(
                     parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
@@ -185,7 +169,7 @@ class TestDialogWindows(GUITestCase):
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
             fd.setFileMode.assert_called_once_with(_fd.AnyFile)
             fd.setOption.assert_called_once_with(_fd.DontConfirmOverwrite, True)
-            fd.exec_.assert_called_once_with()
+            fd.exec.assert_called_once_with()
             fd.selectedFiles.assert_not_called()
             _fd.reset_mock()
             self.assertEqual(askSaveFileName(), "abc")
@@ -196,16 +180,14 @@ class TestDialogWindows(GUITestCase):
     def test_askDirName(self):
         """Test askDirName"""
         fd = MagicMock()
-        fd.exec_.side_effect = [False, True, True]
+        fd.exec.side_effect = [False, True, True]
         fd.selectedFiles.side_effect = [["abc", "def"], []]
-        with patch(
-            "physbiblio.gui.basicDialogs.QFileDialog", return_value=fd, autospec=True
-        ) as _fd:
+        with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(askDirName(parent=None, title="mytitle", dir="/tmp"), "")
             _fd.assert_called_once_with(None, "mytitle", "/tmp")
             fd.setFileMode.assert_called_once_with(_fd.Directory)
             fd.setOption.assert_called_once_with(_fd.ShowDirsOnly, True)
-            fd.exec_.assert_called_once_with()
+            fd.exec.assert_called_once_with()
             fd.selectedFiles.assert_not_called()
             _fd.reset_mock()
             self.assertEqual(askDirName(), "abc")

@@ -5,18 +5,11 @@ This file is part of the physbiblio package.
 """
 import sys
 import traceback
+import unittest
+from io import StringIO
+from unittest.mock import MagicMock, patch
 
-from PySide2.QtWidgets import QApplication
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, patch
-    from StringIO import StringIO
-else:
-    import unittest
-    from io import StringIO
-    from unittest.mock import MagicMock, patch
-
+from PySide6.QtWidgets import QApplication
 
 try:
     from physbiblio import __version__, __version_date__
@@ -65,16 +58,10 @@ class TestParser(unittest.TestCase):
         for opt in ["-v", "--version"]:
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
-            if sys.version_info[0] < 3:
-                self.assert_in_stderr_sysexit(
-                    lambda: parser.parse_args([opt]),
-                    ["PhysBiblio %s (%s)" % (__version__, __version_date__)],
-                )
-            else:
-                self.assert_in_stdout_sysexit(
-                    lambda: parser.parse_args([opt]),
-                    ["PhysBiblio %s (%s)" % (__version__, __version_date__)],
-                )
+            self.assert_in_stdout_sysexit(
+                lambda: parser.parse_args([opt]),
+                ["PhysBiblio %s (%s)" % (__version__, __version_date__)],
+            )
         for opt in ["-h", "--help"]:
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
@@ -439,10 +426,6 @@ class TestParser(unittest.TestCase):
         """Test that the options are recognised correctly"""
         from physbiblio.setuptests import skipTestsSettings
 
-        if sys.version_info[0] < 3:
-            patchString = "unittest2.runner.TextTestRunner.run"
-        else:
-            patchString = "unittest.runner.TextTestRunner.run"
         oldSettings = skipTestsSettings.copy()
         parser = setParser()
         tests = [
@@ -459,7 +442,7 @@ class TestParser(unittest.TestCase):
         ]
         for options, _db, _gui, _lon, _onl in tests:
             skipTestsSettings.default()
-            with patch(patchString, autospec=True) as _run:
+            with patch("unittest.runner.TextTestRunner.run", autospec=True) as _run:
                 args = parser.parse_args(options)
                 call_tests(args)
                 self.assertEqual(skipTestsSettings.db, _db)

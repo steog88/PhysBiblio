@@ -3,18 +3,13 @@ in the other physbiblio.gui modules.
 
 This file is part of the physbiblio package.
 """
-import sys
 import time
 import traceback
+from queue import Empty
 from weakref import WeakValueDictionary
 
-if sys.version_info[0] < 3:
-    from Queue import Empty
-else:
-    from queue import Empty
-
-import PySide2
-from PySide2.QtCore import (
+import PySide6
+from PySide6.QtCore import (
     QAbstractItemModel,
     QAbstractTableModel,
     QModelIndex,
@@ -25,10 +20,9 @@ from PySide2.QtCore import (
     QUrl,
     Signal,
 )
-from PySide2.QtGui import QDesktopServices, QGuiApplication, QPainter, QPixmap
-from PySide2.QtWidgets import (
+from PySide6.QtGui import QAction, QDesktopServices, QGuiApplication, QPainter, QPixmap
+from PySide6.QtWidgets import (
     QAbstractItemView,
-    QAction,
     QComboBox,
     QDialog,
     QGridLayout,
@@ -41,10 +35,10 @@ from PySide2.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
-from shiboken2 import VoidPtr
+from shiboken6 import VoidPtr
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.database import catString, pBDB
     from physbiblio.errors import PBErrorManagerClass, pBLogger
     from physbiblio.pdf import pBPDF
@@ -232,7 +226,7 @@ class ObjListWindow(PBDialog):
         Parameter:
             string: the filter string to be matched
         """
-        self.proxyModel.setFilterRegExp(str(string))
+        self.proxyModel.setFilterRegularExpression(str(string))
 
     def addFilterInput(self, placeholderText, gridPos=(1, 0)):
         """Add a `QLineEdit` to change the filter of the list.
@@ -356,7 +350,7 @@ class EditObjectWindow(PBDialog):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
@@ -458,7 +452,7 @@ class PBTableView(QTableView):
         """Connect the context menu event to the parent function
 
         Parameter:
-            event: the `PySide2.QtGui.QContextMenuEvent`
+            event: the `PySide6.QtGui.QContextMenuEvent`
         """
         self.parent().triggeredContextMenuEvent(
             self.rowAt(event.y()), self.columnAt(event.x()), event
@@ -684,7 +678,7 @@ class TreeNode(QObject):
             row: the content of the data row
         """
         super(TreeNode, self).__init__()
-        ps2verinfo = PySide2.__version_info__
+        ps2verinfo = PySide6.__version_info__
         if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
             self._instances[PtrKey(VoidPtr(self))] = self
         self.parentObj = parent
@@ -1031,7 +1025,7 @@ class PBMenu(QMenu):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.close()

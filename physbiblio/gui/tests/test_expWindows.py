@@ -4,20 +4,14 @@
 This file is part of the physbiblio package.
 """
 import os
-import sys
 import traceback
+import unittest
+from unittest.mock import MagicMock, call, patch
 
-from PySide2.QtCore import QEvent, QModelIndex, Qt
-from PySide2.QtGui import QMouseEvent
-from PySide2.QtTest import QTest
-from PySide2.QtWidgets import QWidget
-
-if sys.version_info[0] < 3:
-    import unittest2 as unittest
-    from mock import MagicMock, call, patch
-else:
-    import unittest
-    from unittest.mock import MagicMock, call, patch
+from PySide6.QtCore import QEvent, QModelIndex, Qt
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QWidget
 
 try:
     from physbiblio.gui.commonClasses import PBTableView
@@ -41,7 +35,7 @@ class TestFunctions(GUIwMainWTestCase):
         p = QWidget()
         m = self.mainW
         ncw = EditExperimentDialog(p)
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onCancel()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -86,7 +80,7 @@ class TestFunctions(GUIwMainWTestCase):
         ncw.textValues["homepage"].setText("www.some.thing.com")
         ncw.textValues["comments"].setText("comm")
         ncw.textValues["inspire"].setText("1234")
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onOk()
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
@@ -185,7 +179,7 @@ class TestFunctions(GUIwMainWTestCase):
         ncw.textValues["name"].setText("myexp1")
         ncw.textValues["comments"].setText("comm")
         ncw.textValues["homepage"].setText("www.page.com")
-        ncw.exec_ = MagicMock()
+        ncw.exec = MagicMock()
         ncw.onOk()
         ctw = ExpsListWindow(p)
         with patch(
@@ -256,7 +250,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Experiments.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -280,7 +274,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _a, patch(
             "physbiblio.database.Experiments.delete", autospec=True
         ) as _c, patch(
-            "PySide2.QtWidgets.QMainWindow.setWindowTitle", autospec=True
+            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
         ) as _t, patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _s, patch(
@@ -693,7 +687,7 @@ class TestExpsListWindow(GUITestCase):
     def test_onCancel(self):
         """test onCancel"""
         elw = ExpsListWindow()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             elw.onCancel()
         self.assertFalse(elw.result)
 
@@ -710,7 +704,7 @@ class TestExpsListWindow(GUITestCase):
         elw.tableModel.selectedElements[0] = True
         elw.tableModel.selectedElements[2] = False
         elw.tableModel.selectedElements[3] = True
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _c:
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
             elw.onOk()
             _c.assert_called_once_with()
         self.assertEqual(hasattr(p, "selectedExps"), True)
@@ -729,7 +723,7 @@ class TestExpsListWindow(GUITestCase):
         """test keyPressEvent"""
         elw = ExpsListWindow()
         elw.filterInput.setFocus = MagicMock()
-        with patch("PySide2.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
+        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _oc, patch(
             "physbiblio.gui.expWindows.ExpsListWindow.onOk", autospec=True
         ) as _ok:
             QTest.keyPress(elw, "a")
@@ -874,7 +868,7 @@ class TestExpsListWindow(GUITestCase):
             Qt.NoModifier,
         )
         mm = PBMenu()
-        mm.exec_ = MagicMock()
+        mm.exec = MagicMock()
         with patch(
             "physbiblio.database.Experiments.getAll",
             return_value=self.exps,
@@ -926,13 +920,13 @@ class TestExpsListWindow(GUITestCase):
                 self.assertEqual(act.text(), tit)
                 self.assertEqual(act.isEnabled(), en)
 
-            mm.exec_ = lambda x, i=0: mm.possibleActions[i]
+            mm.exec = lambda x, i=0: mm.possibleActions[i]
             self.assertEqual(elw.triggeredContextMenuEvent(0, 0, ev), True)
             _rmc.assert_not_called()
             _ec.assert_not_called()
             _dc.assert_not_called()
 
-            mm.exec_ = lambda x, i=2: mm.possibleActions[i]
+            mm.exec = lambda x, i=2: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -945,7 +939,7 @@ class TestExpsListWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=3: mm.possibleActions[i]
+            mm.exec = lambda x, i=3: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -958,7 +952,7 @@ class TestExpsListWindow(GUITestCase):
             _dc.assert_not_called()
             _rmc.reset_mock()
 
-            mm.exec_ = lambda x, i=5: mm.possibleActions[i]
+            mm.exec = lambda x, i=5: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -970,7 +964,7 @@ class TestExpsListWindow(GUITestCase):
             _dc.assert_not_called()
             _ec.reset_mock()
 
-            mm.exec_ = lambda x, i=6: mm.possibleActions[i]
+            mm.exec = lambda x, i=6: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -996,10 +990,10 @@ class TestExpsListWindow(GUITestCase):
                     expButton=False,
                     previous=[0, 13],
                 )
-            sc.exec_ = MagicMock()
+            sc.exec = MagicMock()
             sc.result = "Ok"
             p.selectedCats = [9, 13]
-            mm.exec_ = lambda x, i=8: mm.possibleActions[i]
+            mm.exec = lambda x, i=8: mm.possibleActions[i]
             with patch(
                 "physbiblio.database.Entries.getByExp",
                 return_value=["a"],
@@ -1049,9 +1043,9 @@ class TestExpsListWindow(GUITestCase):
             elw = ExpsListWindow(p)
         ix = elw.proxyModel.index(0, 0)
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
+            "PySide6.QtCore.QTimer.start", autospec=True
         ) as _st, patch(
-            "PySide2.QtWidgets.QToolTip.showText", autospec=True
+            "PySide6.QtWidgets.QToolTip.showText", autospec=True
         ) as _sh, patch(
             "physbiblio.database.Experiments.getByID", return_value=[], autospec=True
         ) as _gbi:
@@ -1061,8 +1055,8 @@ class TestExpsListWindow(GUITestCase):
             _st.assert_not_called()
             _sh.assert_not_called()
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
-        ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
+            "PySide6.QtCore.QTimer.start", autospec=True
+        ) as _st, patch("PySide6.QtWidgets.QToolTip.showText") as _sh, patch(
             "physbiblio.database.Experiments.getByID",
             return_value=[self.exps[0]],
             autospec=True,
@@ -1088,8 +1082,8 @@ class TestExpsListWindow(GUITestCase):
                 3000,
             )
         with patch("logging.Logger.exception") as _l, patch(
-            "PySide2.QtCore.QTimer.start", autospec=True
-        ) as _st, patch("PySide2.QtWidgets.QToolTip.showText") as _sh, patch(
+            "PySide6.QtCore.QTimer.start", autospec=True
+        ) as _st, patch("PySide6.QtWidgets.QToolTip.showText") as _sh, patch(
             "physbiblio.database.Experiments.getByID",
             return_value=[self.exps[0]],
             autospec=True,

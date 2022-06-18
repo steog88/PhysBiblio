@@ -1,8 +1,8 @@
-__version__ = "1.8.4.1"
-__version_date__ = "07/06/2022"
+__version__ = "2.0.0"
+__version_date__ = "18/06/2022"
 
-__recent_changes__ = """<br>* improved warning for 'clean spare PDF' function<br>
-* add old/alternative bibtex keys in the lower-right info panel<br>
-* allow to search bibtexs by "old_keys"<br>
-* Ctrl+return/enter accepts category or experiments form<br>
+__recent_changes__ = """<br>* switched to PySide6, available only for python 3.6+<br>
+* python2 abandoned<br>
+* new Ctrl+F shortcut in cat and exp windows<br>
+* new Ctrl+Shift+F shortcut to focus on filter QLineEdit in main tab<br>
 """

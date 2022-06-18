@@ -127,10 +127,7 @@ class PhysBiblioDBCore:
         Output:
             True/False
         """
-        if sys.version_info[0] == 3 and sys.version_info[1] > 2:
-            return self.conn.in_transaction
-        else:
-            return self.dbChanged
+        return self.conn.in_transaction
 
     def commit(self, verbose=True):
         """Commit the changes.

@@ -4,10 +4,10 @@ This file is part of the physbiblio package.
 """
 import traceback
 
-from PySide2.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
+from PySide6.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.strings.gui import MarksStrings as mstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

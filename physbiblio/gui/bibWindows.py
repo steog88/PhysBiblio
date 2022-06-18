@@ -11,18 +11,16 @@ import traceback
 
 import bibtexparser
 import matplotlib
-import six
 
-matplotlib.use("Qt5Agg")
-os.environ["QT_API"] = "pyside2"
+matplotlib.use("QtAgg")
+os.environ["QT_API"] = "pyside6"
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from pylatexenc.latex2text import LatexNodes2Text
 from pyparsing import ParseException
-from PySide2.QtCore import QEvent, Qt, QUrl
-from PySide2.QtGui import QCursor, QFont, QIcon, QImage, QTextDocument
-from PySide2.QtWidgets import (
-    QAction,
+from PySide6.QtCore import QEvent, Qt, QUrl
+from PySide6.QtGui import QAction, QCursor, QFont, QIcon, QImage, QTextDocument
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
@@ -41,7 +39,7 @@ from PySide2.QtWidgets import (
 )
 
 try:
-    import physbiblio.gui.resourcesPyside2
+    import physbiblio.gui.resourcesPyside6
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -187,10 +185,7 @@ def writeBibtexInfo(entry):
         ", ".join([e["name"] for e in exps]) if len(exps) > 0 else "None"
     )
     try:
-        if (
-            isinstance(entry["comments"], six.string_types)
-            and entry["comments"].strip() != ""
-        ):
+        if isinstance(entry["comments"], str) and entry["comments"].strip() != "":
             infoText += nl + bwstr.Info.comm % (entry["comments"])
     except KeyError:
         pBLogger.debug(bwstr.Info.keyErr % ("comments", sorted(entry.keys())))
@@ -223,7 +218,7 @@ def editBibtex(parentObject, editKey=None):
         if editKey is not None
         else None,
     )
-    newBibWin.exec_()
+    newBibWin.exec()
     data = {}
     if newBibWin.result:
         for k in ["citations", "citations_no_self"]:
@@ -633,7 +628,7 @@ class BibTableModel(PBTableModel):
                 or
                 False and ""
         """
-        if marks is not None and isinstance(marks, six.string_types):
+        if marks is not None and isinstance(marks, str):
             marks = [k for k in sorted(pBMarks.marks.keys()) if k in marks]
             if len(marks) > 1:
                 return (
@@ -1380,7 +1375,7 @@ class CommonBibActions:
                 previous=previousAll,
                 multipleRecords=True,
             )
-        selectCats.exec_()
+        selectCats.exec()
         if selectCats.result == "Ok":
             if len(self.keys) == 1:
                 cats = self.parent().selectedCats
@@ -1547,7 +1542,7 @@ class CommonBibActions:
             selectExps = ExpsListWindow(
                 parent=self.parent(), askExps=True, askForBib=bibkey, previous=previous
             )
-            selectExps.exec_()
+            selectExps.exec()
             if selectExps.result == "Ok":
                 exps = self.parent().selectedExps
                 for p in previous:
@@ -1560,7 +1555,7 @@ class CommonBibActions:
         else:
             infoMessage(bwstr.Acts.expW)
             selectExps = ExpsListWindow(parent=self.parent(), askExps=True, previous=[])
-            selectExps.exec_()
+            selectExps.exec()
             if selectExps.result == "Ok":
                 pBDB.bibExp.insert(self.keys, self.parent().selectedExps)
                 self.parent().statusBarMessage(bwstr.Acts.expIns)
@@ -1577,7 +1572,7 @@ class CommonBibActions:
         delete the previous ones
         """
         mergewin = MergeBibtexs(self.bibs[0], self.bibs[1], self.parent())
-        mergewin.exec_()
+        mergewin.exec()
         if mergewin.result:
             data = {}
             for k, v in mergewin.textValues.items():
@@ -1822,11 +1817,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
             self.changeEnableActions(status=True)
             self.tableModel.layoutAboutToBeChanged.emit()
             for bibkey in bibkeys:
-                if (
-                    bibkey is not None
-                    and isinstance(bibkey, six.string_types)
-                    and bibkey != ""
-                ):
+                if bibkey is not None and isinstance(bibkey, str) and bibkey != "":
                     self.tableModel.selectedElements[bibkey] = True
             self.tableModel.layoutChanged.emit()
         if self.tableModel.ask:
@@ -1970,7 +1961,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
             self.mainWin,
         )
         ask = commonActions.createContextMenu(selection=True)
-        ask.exec_(position)
+        ask.exec(position)
         self.clearSelection()
 
     def createTable(self):
@@ -2078,7 +2069,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         for the current selection
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if (
             e.key() == Qt.Key_C
@@ -2100,7 +2091,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 ac.menu.possibleActions[0].setDisabled(True)
                 ac.menu.fillMenu()
                 position = QCursor.pos()
-                ac.menu.exec_(position)
+                ac.menu.exec(position)
                 self.clearSelection()
         else:
             self.mainWin.keyPressEvent(e)
@@ -2124,7 +2115,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
 
         commonActions = CommonBibActions([entry], self.mainWin)
         menu = commonActions.createContextMenu()
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
 
     def handleItemEntered(self, index):
         """Currently does nothing
@@ -2175,7 +2166,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
                 pBGuiView.openLink(bibkey, "file", fileArg=pdfFiles[0])
             elif len(pdfFiles) > 1:
                 ask = AskPDFAction(bibkey, self.mainWin)
-                ask.exec_(QCursor.pos())
+                ask.exec(QCursor.pos())
 
     def finalizeTable(self):
         """Set the font size, resize the table to fit the contents,
@@ -2652,7 +2643,7 @@ class SearchBibsWindow(EditObjectWindow):
         selectCats = CatsTreeWindow(
             parent=self, askCats=True, expButton=False, previous=previous["content"]
         )
-        selectCats.exec_()
+        selectCats.exec()
         if selectCats.result == "Ok":
             self.textValues[ix]["content"].setText("%s" % self.selectedCats)
 
@@ -2670,7 +2661,7 @@ class SearchBibsWindow(EditObjectWindow):
         selectExps = ExpsListWindow(
             parent=self, askExps=True, previous=previous["content"]
         )
-        selectExps.exec_()
+        selectExps.exec()
         if selectExps.result == "Ok":
             self.textValues[ix]["content"].setText("%s" % self.selectedExps)
 
@@ -2678,7 +2669,7 @@ class SearchBibsWindow(EditObjectWindow):
         """Intercept press keys and exit if escape is pressed
 
         Parameters:
-            e: the `PySide2.QtGui.QKeyEvent`
+            e: the `PySide6.QtGui.QKeyEvent`
         """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
