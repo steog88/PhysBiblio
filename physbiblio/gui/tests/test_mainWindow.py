@@ -19,6 +19,8 @@ else:
     import unittest
     from unittest.mock import MagicMock, call, patch
 
+from PySide2.QtWidgets import QLineEdit
+
 try:
     from physbiblio.gui.mainWindow import *
     from physbiblio.gui.setuptests import *
@@ -281,6 +283,15 @@ class TestMainWindow(GUITestCase):
         _f.assert_called_with(119)
         QTest.keyClick(mw, Qt.Key_Tab, Qt.ControlModifier | Qt.ShiftModifier)
         _f.assert_called_with(119)
+
+        self.mainW.fillTabs()
+        self.mainW.currentTabWidget().filterInput.setFocus = MagicMock()
+        QTest.keyClick(self.mainW, Qt.Key_F, Qt.NoModifier)
+        QTest.keyClick(self.mainW, Qt.Key_F, Qt.ControlModifier)
+        self.mainW.currentTabWidget().filterInput.setFocus.assert_not_called()
+        QTest.keyClick(self.mainW, Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier)
+        self.mainW.currentTabWidget().filterInput.setFocus.assert_called_once_with()
+        self.mainW.currentTabWidget().filterInput.setFocus = QLineEdit.setFocus
 
     def test_createActions(self):
         """test createActions"""

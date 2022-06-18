@@ -2,6 +2,7 @@
     date: 2022-06
     changes:
         - new Ctrl+F shortcut in cat and exp windows
+        - new Ctrl+Shift+F shortcut to focus on filter QLineEdit in main tab
 -   version: 1.8.4.1
     date: 2022-06-07
     changes:

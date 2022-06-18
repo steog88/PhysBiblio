@@ -276,6 +276,10 @@ class MainWindow(QMainWindow):
             self.tabWidget.setCurrentIndex(
                 index - 1 if index > 0 else self.tabWidget.count() - 2
             )
+        elif e.key() == Qt.Key_F and modifiers == (
+            Qt.ControlModifier | Qt.ShiftModifier
+        ):
+            index = self.currentTabWidget().filterInput.setFocus()
 
     def createActions(self):
         """Create the QActions used in menu and in the toolbar."""
