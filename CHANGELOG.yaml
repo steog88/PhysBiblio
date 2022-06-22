@@ -1,3 +1,7 @@
+-   version: 2.0.1
+    date: 2022-06-22
+    changes:
+        - bug in python3.8 with checkboxes solved
 -   version: 2.0.0
     date: 2022-06-18
     changes:

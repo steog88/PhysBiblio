@@ -697,9 +697,9 @@ class BibTableModel(PBTableModel):
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
             if self.selectedElements[rowData["bibkey"]] == True:
-                return Qt.Checked
+                return int(Qt.Checked)
             else:
-                return Qt.Unchecked
+                return int(Qt.Unchecked)
         elif role == Qt.EditRole:
             return value
         elif role == Qt.DecorationRole and hasImg:
