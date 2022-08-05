@@ -1247,6 +1247,13 @@ class CommonBibActions:
             titAct = QAction(bwstr.Acts.eDesc % bibkey, menu)
             titAct.setDisabled(True)
             menu.possibleActions.append(titAct)
+            for strname, field in [
+                ["citSel", "citations"],
+                ["citSelNS", "citations_no_self"],
+            ]:
+                act = QAction(getattr(bwstr.Acts, strname) % initialRecord[field], menu)
+                act.setDisabled(True)
+                menu.possibleActions.append(act)
             menu.possibleActions.append(None)
             menu.possibleActions.append(
                 QAction(bwstr.Acts.modify, menu, triggered=self.onModify)
@@ -1255,6 +1262,15 @@ class CommonBibActions:
             initialRecord = None
             arxiv = None
             inspireID = None
+            for strname, field in [
+                ["totCitSel", "citations"],
+                ["totCitSelNS", "citations_no_self"],
+            ]:
+                cit = sum([a[field] for a in self.bibs])
+                act = QAction(getattr(bwstr.Acts, strname) % cit, menu)
+                act.setDisabled(True)
+                menu.possibleActions.append(act)
+            menu.possibleActions.append(None)
             if len(self.keys) == 2:
                 menu.possibleActions.append(
                     QAction(bwstr.Acts.merge, menu, triggered=self.onMerge)

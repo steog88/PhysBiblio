@@ -3025,6 +3025,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
                     "phd_thesis": 0,
                     "lecture": 0,
                     "exp_paper": 0,
+                    "citations": 12,
+                    "citations_no_self": 11,
                 }
             ],
             p,
@@ -3063,60 +3065,100 @@ class TestCommonBibActions(GUIwMainWTestCase):
             m = c.createContextMenu()
             self.assertIsInstance(m, PBMenu)
             self.assertEqual(m.parent(), p)
-            self.assertIsInstance(m.possibleActions[0], QAction)
-            self.assertEqual(m.possibleActions[0].text(), "--Entry: abc--")
-            self.assertEqual(m.possibleActions[0].isEnabled(), False)
-            self.assertEqual(m.possibleActions[1], None)
-            self.assertIsInstance(m.possibleActions[2], QAction)
-            self.assertEqual(m.possibleActions[2].text(), "Modify")
+            ii = 0
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "--Entry: abc--")
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), bwstr.Acts.citSel % 12)
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), bwstr.Acts.citSelNS % 11)
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Modify")
             _mod.assert_not_called()
-            m.possibleActions[2].trigger()
+            act.trigger()
             _mod.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[3], QAction)
-            self.assertEqual(m.possibleActions[3].text(), "Clean")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Clean")
             _cle.assert_not_called()
-            m.possibleActions[3].trigger()
+            act.trigger()
             _cle.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[4], QAction)
-            self.assertEqual(m.possibleActions[4].text(), "Delete")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Delete")
             _del.assert_not_called()
-            m.possibleActions[4].trigger()
+            act.trigger()
             _del.assert_called_once_with(c)
-            self.assertEqual(m.possibleActions[5], None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
             _c5.assert_called_once_with(c, c.bibs[0])
             _c2.assert_called_once_with(c, False, c.bibs[0])
             _c6.assert_called_once_with(c, False, c.bibs[0])
             _c4.assert_called_once_with(c, "abc", "1809.00000", "1/2/3/4", "9999999")
-            self.assertEqual(m.possibleActions[6], None)
-            self.assertIsInstance(m.possibleActions[7], QAction)
-            self.assertEqual(m.possibleActions[7].text(), "Select categories")
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Select categories")
             _cat.assert_not_called()
-            m.possibleActions[7].trigger()
+            act.trigger()
             _cat.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[8], QAction)
-            self.assertEqual(m.possibleActions[8].text(), "Select experiments")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Select experiments")
             _exp.assert_not_called()
-            m.possibleActions[8].trigger()
+            act.trigger()
             _exp.assert_called_once_with(c)
-            self.assertEqual(m.possibleActions[9], None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
             _c3.assert_called_once_with(c, False, "9999999")
             _c1.assert_called_once_with(c, False, "1809.00000")
-            self.assertEqual(m.possibleActions[10], None)
-            self.assertIsInstance(m.possibleActions[11], QAction)
-            self.assertEqual(m.possibleActions[11].text(), "Export in a .bib file")
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Export in a .bib file")
             _ext.assert_not_called()
-            m.possibleActions[11].trigger()
+            act.trigger()
             _ext.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[12], QAction)
-            self.assertEqual(
-                m.possibleActions[12].text(), "Copy all the corresponding PDF"
-            )
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Copy all the corresponding PDF")
             _cap.assert_not_called()
-            m.possibleActions[12].trigger()
+            act.trigger()
             _cap.assert_called_once_with(c)
             _f.assert_called_once_with(c.menu)
 
-        c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], p)
+        c = CommonBibActions(
+            [
+                {"bibkey": "abc", "citations": 12, "citations_no_self": 10},
+                {"bibkey": "def", "citations": 20, "citations_no_self": 15},
+            ],
+            p,
+        )
         with patch(
             "physbiblio.gui.bibWindows.CommonBibActions._createMenuArxiv", autospec=True
         ) as _c1, patch(
@@ -3151,60 +3193,113 @@ class TestCommonBibActions(GUIwMainWTestCase):
             m = c.createContextMenu(selection=True)
             self.assertIsInstance(m, PBMenu)
             self.assertEqual(m.parent(), p)
-            self.assertIsInstance(m.possibleActions[0], QAction)
-            self.assertEqual(m.possibleActions[0].text(), "Merge")
+            ii = 0
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), bwstr.Acts.totCitSel % 32)
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), bwstr.Acts.totCitSelNS % 25)
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Merge")
             _mer.assert_not_called()
-            m.possibleActions[0].trigger()
+            act.trigger()
             _mer.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[1], QAction)
-            self.assertEqual(m.possibleActions[1].text(), "Clean")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Clean")
             _cle.assert_not_called()
-            m.possibleActions[1].trigger()
+            act.trigger()
             _cle.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[2], QAction)
-            self.assertEqual(m.possibleActions[2].text(), "Delete")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Delete")
             _del.assert_not_called()
-            m.possibleActions[2].trigger()
+            act.trigger()
             _del.assert_called_once_with(c)
-            self.assertEqual(m.possibleActions[3], None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
             _c5.assert_called_once_with(c)
             _c2.assert_called_once_with(c, True, None)
             _c6.assert_called_once_with(c, True, None)
             _c4.assert_not_called()
-            self.assertEqual(m.possibleActions[4], None)
-            self.assertIsInstance(m.possibleActions[5], QAction)
-            self.assertEqual(m.possibleActions[5].text(), "Select categories")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Select categories")
             _cat.assert_not_called()
-            m.possibleActions[5].trigger()
+            act.trigger()
             _cat.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[6], QAction)
-            self.assertEqual(m.possibleActions[6].text(), "Select experiments")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Select experiments")
             _exp.assert_not_called()
-            m.possibleActions[6].trigger()
+            act.trigger()
             _exp.assert_called_once_with(c)
-            self.assertEqual(m.possibleActions[7], None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
             _c3.assert_called_once_with(c, True, None)
             _c1.assert_called_once_with(c, True, None)
-            self.assertEqual(m.possibleActions[8], None)
-            self.assertIsInstance(m.possibleActions[9], QAction)
-            self.assertEqual(m.possibleActions[9].text(), "Export in a .bib file")
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertEqual(act, None)
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Export in a .bib file")
             _ext.assert_not_called()
-            m.possibleActions[9].trigger()
+            act.trigger()
             _ext.assert_called_once_with(c)
-            self.assertIsInstance(m.possibleActions[10], QAction)
-            self.assertEqual(
-                m.possibleActions[10].text(), "Copy all the corresponding PDF"
-            )
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), "Copy all the corresponding PDF")
             _cap.assert_not_called()
-            m.possibleActions[10].trigger()
+            act.trigger()
             _cap.assert_called_once_with(c)
             _f.assert_called_once_with(c.menu)
 
         c = CommonBibActions(
-            [{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": "ghi"}], p
+            [
+                {"bibkey": "abc", "citations": 12, "citations_no_self": 9},
+                {"bibkey": "def", "citations": 21, "citations_no_self": 6},
+                {"bibkey": "ghi", "citations": 30, "citations_no_self": 0},
+            ],
+            p,
         )
         m = c.createContextMenu(selection=True)
-        self.assertEqual(m.possibleActions[0].text(), "Clean")
+        ii = 0
+        act = m.possibleActions[ii]
+        self.assertIsInstance(act, QAction)
+        self.assertEqual(act.text(), bwstr.Acts.totCitSel % 63)
+        self.assertFalse(act.isEnabled())
+        ii += 1
+        act = m.possibleActions[ii]
+        self.assertIsInstance(act, QAction)
+        self.assertEqual(act.text(), bwstr.Acts.totCitSelNS % 15)
+        self.assertFalse(act.isEnabled())
+        ii += 1
+        act = m.possibleActions[ii]
+        self.assertEqual(act, None)
+        ii += 1
+        act = m.possibleActions[ii]
+        self.assertEqual(act.text(), "Clean")
 
     def test_onAddPDF(self):
         """test onAddPDF"""
