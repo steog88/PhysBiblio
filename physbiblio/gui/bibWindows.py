@@ -1227,7 +1227,11 @@ class CommonBibActions:
         menu = PBMenu(self.parent())
         self.menu = menu
         if len(self.keys) == 0 or len(self.bibs) == 0:
-            return
+            titAct = QAction(bwstr.Acts.emptyMenu, menu)
+            titAct.setDisabled(True)
+            menu.possibleActions.append(titAct)
+            menu.fillMenu()
+            return menu
         if not selection and (len(self.keys) > 1 or len(self.bibs) > 1):
             selection = True
 
@@ -1262,6 +1266,9 @@ class CommonBibActions:
             initialRecord = None
             arxiv = None
             inspireID = None
+            act = QAction(bwstr.Acts.countSel % len(self.keys), menu)
+            act.setDisabled(True)
+            menu.possibleActions.append(act)
             for strname, field in [
                 ["totCitSel", "citations"],
                 ["totCitSelNS", "citations_no_self"],

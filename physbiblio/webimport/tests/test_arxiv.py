@@ -443,6 +443,7 @@ class TestArxivMethods(unittest.TestCase):
        authors = "Stefano Gariazzo",
 }
 
+
 @Article{1602.05902,
          title = "{Dark Radiation and Inflationary Freedom}",
           year = "2016",
@@ -469,6 +470,7 @@ class TestArxivMethods(unittest.TestCase):
        authors = "Stefano Gariazzo and Nicolao Fornengo",
 }
 
+
 @Article{1602.05902,
           year = "2016",
  archiveprefix = "arXiv",
@@ -490,6 +492,7 @@ class TestArxivMethods(unittest.TestCase):
          arxiv = "1510.05980",
        authors = "Stefano Gariazzo and Nicolao Fornengo",
 }
+
 
 @Article{1602.05902,
           year = "2016",

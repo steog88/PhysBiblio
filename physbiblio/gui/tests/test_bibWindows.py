@@ -3006,7 +3006,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
         p = QWidget()
         c = CommonBibActions([], p)
         m = c.createContextMenu()
-        self.assertEqual(m, None)
+        self.assertIsInstance(m, PBMenu)
+        self.assertEqual(m.parent(), p)
+        act = m.possibleActions[0]
+        self.assertIsInstance(act, QAction)
+        self.assertEqual(act.text(), "--Empty selection--")
+        self.assertFalse(act.isEnabled())
 
         c = CommonBibActions(
             [
@@ -3196,6 +3201,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
             ii = 0
             act = m.possibleActions[ii]
             self.assertIsInstance(act, QAction)
+            self.assertEqual(act.text(), bwstr.Acts.countSel % 2)
+            self.assertFalse(act.isEnabled())
+            ii += 1
+            act = m.possibleActions[ii]
+            self.assertIsInstance(act, QAction)
             self.assertEqual(act.text(), bwstr.Acts.totCitSel % 32)
             self.assertFalse(act.isEnabled())
             ii += 1
@@ -3285,6 +3295,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
         )
         m = c.createContextMenu(selection=True)
         ii = 0
+        act = m.possibleActions[ii]
+        self.assertIsInstance(act, QAction)
+        self.assertEqual(act.text(), bwstr.Acts.countSel % 3)
+        self.assertFalse(act.isEnabled())
+        ii += 1
         act = m.possibleActions[ii]
         self.assertIsInstance(act, QAction)
         self.assertEqual(act.text(), bwstr.Acts.totCitSel % 63)
