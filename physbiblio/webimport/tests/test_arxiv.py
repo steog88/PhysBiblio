@@ -431,7 +431,7 @@ class TestArxivMethods(unittest.TestCase):
             )
             _tu.return_value = sampleFeed3
             self.assertEqual(
-                aws.arxivRetriever("abc"),
+                aws.arxivRetriever("abc").replace("\n\n\n", "\n\n"),
                 """@Article{1510.05980,
          title = "{Dark Radiation and Inflationary Freedom}",
           year = "2015",
@@ -443,8 +443,8 @@ class TestArxivMethods(unittest.TestCase):
        authors = "Stefano Gariazzo",
 }
 
-
-@Article{1602.05902,
+"""
+                + """@Article{1602.05902,
          title = "{Dark Radiation and Inflationary Freedom}",
           year = "2016",
  archiveprefix = "arXiv",
@@ -459,7 +459,7 @@ class TestArxivMethods(unittest.TestCase):
             )
             _tu.return_value = sampleFeed4
             self.assertEqual(
-                aws.arxivRetriever("abc"),
+                aws.arxivRetriever("abc").replace("\n\n\n", "\n\n"),
                 """@Article{1510.05980,
          title = "{Dark Radiation and Inflationary Freedom}",
           year = "2015",
@@ -470,8 +470,8 @@ class TestArxivMethods(unittest.TestCase):
        authors = "Stefano Gariazzo and Nicolao Fornengo",
 }
 
-
-@Article{1602.05902,
+"""
+                + """@Article{1602.05902,
           year = "2016",
  archiveprefix = "arXiv",
   primaryclass = "astro-ph.CO",
@@ -480,8 +480,9 @@ class TestArxivMethods(unittest.TestCase):
 
 """,
             )
+            res = aws.arxivRetriever("abc", fullDict=True)
             self.assertEqual(
-                aws.arxivRetriever("abc", fullDict=True),
+                (res[0].replace("\n\n\n", "\n\n"), res[1]),
                 (
                     """@Article{1510.05980,
          title = "{Dark Radiation and Inflationary Freedom}",
@@ -493,8 +494,8 @@ class TestArxivMethods(unittest.TestCase):
        authors = "Stefano Gariazzo and Nicolao Fornengo",
 }
 
-
-@Article{1602.05902,
+"""
+                    + """@Article{1602.05902,
           year = "2016",
  archiveprefix = "arXiv",
   primaryclass = "astro-ph.CO",

@@ -386,6 +386,7 @@ class WebSearch(WebInterf, ArxivStrings):
                     dictionary["year"] = year
             db.entries.append(dictionary)
             dictionaries.append(dictionary)
+        writtendb = pbWriter.write(db)
         if fullDict:
             try:
                 dictionary = dictionaries[0]
@@ -396,9 +397,9 @@ class WebSearch(WebInterf, ArxivStrings):
                 pBLogger.exception(self.cannotReadDict)
                 return returnFailed()
             else:
-                return pbWriter.write(db), dictionary
+                return writtendb, dictionary
         else:
-            return pbWriter.write(db)
+            return writtendb
 
     def arxivDaily(self, category):
         """Read daily RSS feed for a given category

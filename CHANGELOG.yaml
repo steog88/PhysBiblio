@@ -1,3 +1,8 @@
+-   version: 2.0.3
+    date: 2022-10
+    changes:
+        - fixed bug when creating menu with empty selection; show number of selected papers in context menu
+        - bug fixes in py3.10 tests
 -   version: 2.0.2
     date: 2022-08
     changes:
