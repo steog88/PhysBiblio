@@ -98,7 +98,7 @@ class TestWebImportMethods(unittest.TestCase):
   Publisher = {Cambridge University Press},
   Year = {2014},
   Date = {2014-02-28},
-  PageTotal = {392 Seiten},
+  PageTotal = {392},
   EAN = {9781107013957},
   ISBN = {110701395X},
   URL = {https://www.ebook.de/de/product/19797496/julien_lesgourgues_gianpiero_mangano_gennaro_miele_neutrino_cosmology.html}

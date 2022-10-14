@@ -157,6 +157,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         """Strings used in the BibtexListWindow class"""
 
         copyToClipT = "--Copy to clipboard--"
+        currCountLabel = "Currently shown: %d"
         errEntry = "The entry cannot be found!"
         errIdx = "The index is not valid!"
         errReadTab = "Error in reading table content"

@@ -5010,10 +5010,19 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.commonClasses.ObjListWindow.changeFilter", autospec=True
         ) as _f, patch(
             "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
-        ) as _r:
+        ) as _r, patch(
+            "PySide6.QtCore.QSortFilterProxyModel.rowCount",
+            autospec=True,
+            side_effect=[3, 2],
+        ) as _c:
+            self.assertEqual(bw.currCountLabel.text(), "Currently shown: 0")
             bw.changeFilterSort("abc")
             _f.assert_called_once_with(bw, "abc")
             _r.assert_called_once_with(bw)
+            _c.assert_called_once_with()
+            self.assertEqual(bw.currCountLabel.text(), "Currently shown: 3")
+            bw.changeFilterSort("abc")
+            self.assertEqual(bw.currCountLabel.text(), "Currently shown: 2")
 
     def test_clearSelection(self):
         """test clearSelection"""
@@ -5284,6 +5293,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(bw.selectToolBar.widgetForAction(macts[6]), bw.mergeLabel)
         self.assertTrue(macts[7].isSeparator())
         self.assertEqual(bw.selectToolBar.widgetForAction(macts[8]), bw.filterInput)
+        self.assertEqual(bw.selectToolBar.widgetForAction(macts[9]), bw.currCountLabel)
         # check filterinput
         self.assertIsInstance(bw.filterInput, QLineEdit)
         self.assertEqual(bw.filterInput.placeholderText(), "Filter bibliography")
@@ -5304,6 +5314,9 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 orderType="DESC",
                 limitTo=pbConfig.params["defaultLimitBibtexs"],
             )
+        # check currCountLabel
+        self.assertIsInstance(bw.currCountLabel, PBLabel)
+        self.assertEqual(bw.currCountLabel.text(), bwstr.LW.currCountLabel % 1)
         # check if firstdate is missing
         with patch.dict(
             pbConfig.params,

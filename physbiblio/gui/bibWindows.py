@@ -1889,6 +1889,9 @@ class BibtexListWindow(QFrame, ObjListWindow):
         """
         self.changeFilter(string)
         self.restoreSort()
+        self.currCountLabel.setText(
+            bwstr.LW.currCountLabel % self.proxyModel.rowCount()
+        )
 
     def clearSelection(self):
         """Clear the current selection of bibtex entries"""
@@ -2021,6 +2024,9 @@ class BibtexListWindow(QFrame, ObjListWindow):
         self.filterInput.textChanged.connect(self.changeFilterSort)
         self.selectToolBar.addWidget(self.filterInput)
         self.filterInput.setFocus()
+
+        self.currCountLabel = PBLabel(bwstr.LW.currCountLabel % len(self.bibs))
+        self.selectToolBar.addWidget(self.currCountLabel)
 
         self.currLayout.addWidget(self.selectToolBar)
 
