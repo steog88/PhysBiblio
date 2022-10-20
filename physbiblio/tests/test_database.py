@@ -4856,6 +4856,40 @@ class TestDatabaseEntries(DBTestCase):
             ),
             ["def", "ghi", "mno", "pqr"],
         )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchFromDict(
+                    [
+                        {
+                            "type": "Categories",
+                            "logical": "",
+                            "operator": "none of the following",
+                            "content": [0],
+                            "field": None,
+                        }
+                    ]
+                ).lastFetched
+            ],
+            ["def", "ghi", "jkl", "mno", "pqr"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchFromDict(
+                    [
+                        {
+                            "type": "Categories",
+                            "logical": "",
+                            "operator": "none of the following",
+                            "content": [0, 2],
+                            "field": None,
+                        }
+                    ]
+                ).lastFetched
+            ],
+            ["def", "ghi", "jkl", "pqr"],
+        )
 
         # test more combinations of exps
         self.assertEqual(
@@ -4964,6 +4998,42 @@ class TestDatabaseEntries(DBTestCase):
                 ]
             )
             _w.assert_called_once_with("Invalid list of ids: '[]'")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchFromDict(
+                    [
+                        {
+                            "type": "Experiments",
+                            "logical": "",
+                            "operator": "none of the following",
+                            "content": [0],
+                            "field": None,
+                        }
+                    ]
+                ).lastFetched
+            ],
+            ["ghi", "jkl", "mno", "pqr"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchFromDict(
+                    [
+                        {
+                            "type": "Experiments",
+                            "logical": "",
+                            "operator": "none of the following",
+                            "content": [0, 1],
+                            "field": None,
+                        }
+                    ]
+                ).lastFetched
+            ],
+            ["ghi", "mno", "pqr"],
+        )
+
+        # categories and experiments
         self.assertEqual(
             sorted(
                 [

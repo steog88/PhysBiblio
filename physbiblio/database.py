@@ -1525,7 +1525,7 @@ class Entries(PhysBiblioDBSub):
             dstr.Bibs.Search.opCEAll: "",
             dstr.Bibs.Search.opCEOne: "",
             dstr.Bibs.Search.opCSub: "",
-            # dstr.Bibs.Search.opCENone: "",
+            dstr.Bibs.Search.opCENone: "",
         },
     }
     searchPossibleTypes = {
@@ -1602,14 +1602,19 @@ class Entries(PhysBiblioDBSub):
         if operator == dstr.Bibs.Search.opCSub and fieldName == "idCat":
             idxs = self.mainDB.cats.getAllCatsInTree(idxs)
             operator = dstr.Bibs.Search.opCEOne
-        if len(idxs) > 1:
+        if len(idxs) == 1 and operator not in self.searchOperators["catexp"].keys():
+            operator = dstr.Bibs.Search.opCEOne
+        if len(idxs) > 0:
             if operator == dstr.Bibs.Search.opCEOne:
                 joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
                     tabName,
                     tabName,
                 )
-                whereStr += "(%s)" % "or".join(
-                    [" %s.%s = ? " % (tabName, fieldName) for q in idxs]
+                whereStr += (
+                    "%s.%s = ? " % (tabName, fieldName)
+                    if len(idxs) == 1
+                    else "(%s)"
+                    % "or".join([" %s.%s = ? " % (tabName, fieldName) for q in idxs])
                 )
                 valsTmp = tuple(idxs)
             elif operator == dstr.Bibs.Search.opCEAll:
@@ -1631,24 +1636,18 @@ class Entries(PhysBiblioDBSub):
                     + ")"
                 )
                 valsTmp = tuple(idxs)
-            # elif operator == "none of the following":
-            # joinStr += " ".join(
-            # [" left join %s %s%d on entries.bibkey=%s%d.bibkey"%(
-            # tabName, tabName, iC, tabName, iC) for iC, q in \
-            # enumerate(idxs)])
-            # whereStr += "(" + " and ".join(
-            # ["%s%d.%s != ?"%(tabName, iC, fieldName) for iC, q in \
-            # enumerate(idxs)]) + ")"
-            # valsTmp = tuple(idxs)
+            elif operator == dstr.Bibs.Search.opCENone:
+                joinStr += " "
+                innerwhere = "(%s)" % "or".join(
+                    [" Cet.%s = ? " % fieldName for q in idxs]
+                )
+                whereStr += (
+                    " not exists (select 1 from %s Cet" % tabName
+                    + " where %s and entries.bibkey=Cet.bibkey )" % innerwhere
+                )
+                valsTmp = tuple(idxs)
             else:
                 pBLogger.warning(dstr.Bibs.Search.invalidOperator % operator)
-        elif len(idxs) == 1:
-            joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
-                tabName,
-                tabName,
-            )
-            whereStr += "%s.%s = ? " % (tabName, fieldName)
-            valsTmp = tuple(idxs)
         else:
             pBLogger.warning(dstr.Bibs.Search.invalidIds % idxs)
         return joinStr, whereStr, valsTmp
