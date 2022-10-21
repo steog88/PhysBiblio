@@ -24,7 +24,7 @@ setup(
     author_email=physbiblio.__email__,
     url="https://github.com/steog88/PhysBiblio",
     license="GPL-3.0",
-    keywords=("bibliography", "hep-ph", "high-energy-physics", "bibtex"),
+    keywords=["bibliography", "hep-ph", "high-energy-physics", "bibtex"],
     packages=[
         "physbiblio",
         "physbiblio.gui",
@@ -53,7 +53,7 @@ setup(
         "urllib3(>=1.26)",
     ],
     extras_require={"dev": ["black", "isort", "pre-commit", "pyyaml", "twine"]},
-    classifiers=(
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Science/Research",
@@ -67,7 +67,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-    ),
+    ],
     provides=["physbiblio"],
     data_files=[
         ("physbiblio", ["LICENSE", "CHANGELOG", "physbiblio/gui/images/icon.png"])
