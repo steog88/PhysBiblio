@@ -1,5 +1,5 @@
 -   version: 2.0.3
-    date: 2022-10
+    date: 2022-10-21
     changes:
         - search entries by "none of the following" categories or experiments
         - possibility to compute average per year and total number of citations in the last N years from the Author stats panel
