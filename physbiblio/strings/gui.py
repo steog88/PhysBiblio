@@ -386,6 +386,10 @@ class InspireStatsGUIStrings(InspireStatsStrings):
     xInDateIsD = "%s in date %s is %d"
     xInDateIsF = "%s in date %s is %.2f"
     xInYearIs = "%s in year %d is: %d"
+    yearsForAvgC = "years is:"
+    yearsForAvgI = "Invalid number of years (must be integer)"
+    yearsForAvgT = "%.2f (%d citations in %d years)"
+    yearsForAvgY = "Average citation count in the last"
     whereSavePlot = "Where do you want to save the plot of the stats?"
     whereSavePlots = "Where do you want to save the plots of the stats?"
 

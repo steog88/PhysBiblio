@@ -3,6 +3,7 @@ and paperStats plots.
 
 This file is part of the physbiblio package.
 """
+import datetime
 import traceback
 
 import matplotlib
@@ -73,19 +74,55 @@ class AuthorStatsPlots(PBDialog):
         self.hIndex = PBLabel(igstr.hIndexV % hIndex)
         largerFont = QFont("Times", 15, QFont.Bold)
         self.hIndex.setFont(largerFont)
-        self.layout().addWidget(self.hIndex, nlines + 1, 1)
+        self.layout().addWidget(self.hIndex, nlines + 1, 2, 1, 2)
 
         self.textBox = QLineEdit("")
         self.textBox.setReadOnly(True)
-        self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 2)
+        self.layout().addWidget(self.textBox, nlines + 2, 0, 1, 4)
+
+        self.allcits = np.array(pBStats.allCitations)
+        self.layout().addWidget(PBLabel(igstr.yearsForAvgY), nlines + 3, 0)
+        defyrs = "3"
+        self.yearsBox = QLineEdit(defyrs)
+        self.yearsBox.textChanged.connect(self.onUpdateYears)
+        self.layout().addWidget(self.yearsBox, nlines + 3, 1)
+        self.layout().addWidget(PBLabel(igstr.yearsForAvgC), nlines + 3, 2)
+        self.citperyearBox = QLineEdit("")
+        self.citperyearBox.setReadOnly(True)
+        self.layout().addWidget(self.citperyearBox, nlines + 3, 3)
+
         self.saveButton = QPushButton(igstr.save, self)
         self.saveButton.clicked.connect(self.saveAction)
-        self.layout().addWidget(self.saveButton, nlines + 3, 0)
+        self.layout().addWidget(self.saveButton, nlines + 4, 0, 1, 2)
 
         self.clButton = QPushButton(igstr.close, self)
         self.clButton.clicked.connect(self.onClose)
         self.clButton.setAutoDefault(True)
-        self.layout().addWidget(self.clButton, nlines + 3, 1)
+        self.layout().addWidget(self.clButton, nlines + 4, 2, 1, 2)
+
+        self.onUpdateYears(defyrs)
+
+    def onUpdateYears(self, string):
+        """When the number of years is changed,
+        update the text reporting
+        the average citations per year and total citations
+        in the given amount of years
+
+        Parameters:
+            string: the new number of years to consider
+        """
+        try:
+            yrs = int(string)
+        except ValueError:
+            self.citperyearBox.setText(igstr.yearsForAvgI)
+            return
+        if len(self.allcits) == 0:
+            self.citperyearBox.setText(igstr.yearsForAvgT % (0, 0, yrs))
+        else:
+            today = datetime.datetime.now(self.allcits[0].tzinfo)
+            ref = today.replace(year=today.year - yrs)
+            tot = len(np.where(self.allcits >= ref)[0])
+            self.citperyearBox.setText(igstr.yearsForAvgT % (tot / yrs, tot, yrs))
 
     def onClose(self):
         """Close dialog"""
@@ -166,7 +203,7 @@ class AuthorStatsPlots(PBDialog):
         for fig in self.figs:
             if fig is not None:
                 self.canvas.append(FigureCanvas(fig))
-                self.layout().addWidget(self.canvas[-1], int(i / 2), i % 2)
+                self.layout().addWidget(self.canvas[-1], int(i / 2), (i % 2) * 2, 1, 2)
                 self.canvas[-1].mpl_connect("pick_event", self.pickEvent)
                 self.canvas[-1].draw()
                 i += 1

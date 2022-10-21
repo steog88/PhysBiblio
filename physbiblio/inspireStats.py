@@ -373,6 +373,7 @@ class InspireStatsLoader:
                     pBLogger.warning(isstr.noPublications)
                     return False
             figs = []
+            # total number of papers
             if len(self.authorPlotInfo["paLi"][0]) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.paperNumber)
@@ -394,6 +395,7 @@ class InspireStatsLoader:
                 plt.close()
                 figs.append(fig)
 
+            # number of papers in each year
             if len(self.authorPlotInfo["paLi"][0]) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.paperYear)
@@ -415,6 +417,7 @@ class InspireStatsLoader:
                 plt.close()
                 figs.append(fig)
 
+            # total number of citations
             if len(self.authorPlotInfo["allLi"][0]) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.totalCitations)
@@ -436,6 +439,7 @@ class InspireStatsLoader:
                 plt.close()
                 figs.append(fig)
 
+            # number of citations in each year
             if len(self.authorPlotInfo["allLi"][0]) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.citationsYear)
@@ -457,6 +461,7 @@ class InspireStatsLoader:
                 plt.close()
                 figs.append(fig)
 
+            # mean number of citations per paper
             if len(self.authorPlotInfo["meanLi"][0]) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.meanCitations)
@@ -489,6 +494,7 @@ class InspireStatsLoader:
                 plt.close()
                 figs.append(fig)
 
+            # number of citations per paper
             if len(self.authorPlotInfo["aI"].keys()) > 0:
                 fig, ax = plt.subplots()
                 plt.title(isstr.citationsPaper)

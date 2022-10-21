@@ -1427,11 +1427,12 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
         ) as _up:
             asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"])
+            self.assertTrue(np.allclose(asp.allcits, np.array(pBStats.allCitations)))
             self.assertEqual(asp.figs, ["a", "b", "c", "d", "e", "f"])
             _up.assert_called_once_with(asp)
             self.assertIsInstance(asp.layout(), QGridLayout)
-            self.assertEqual(asp.layout().columnCount(), 2)
-            self.assertEqual(asp.layout().rowCount(), 7)
+            self.assertEqual(asp.layout().columnCount(), 4)
+            self.assertEqual(asp.layout().rowCount(), 8)
             w40 = asp.layout().itemAtPosition(4, 0).widget()
             self.assertIsInstance(w40, PBLabel)
             self.assertEqual(w40.text(), "Click on the lines to have more information:")
@@ -1440,13 +1441,32 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertEqual(asp.hIndex.font().pointSize(), 15)
             self.assertEqual(asp.hIndex.font().weight(), QFont.Bold)
             self.assertEqual(asp.hIndex.text(), "Author h index: ND")
-            self.assertEqual(asp.layout().itemAtPosition(4, 1).widget(), asp.hIndex)
+            self.assertEqual(asp.layout().itemAtPosition(4, 2).widget(), asp.hIndex)
             self.assertIsInstance(asp.textBox, QLineEdit)
             self.assertTrue(asp.textBox.isReadOnly())
             self.assertEqual(asp.layout().itemAtPosition(5, 0).widget(), asp.textBox)
+            w60 = asp.layout().itemAtPosition(6, 0).widget()
+            self.assertIsInstance(w60, PBLabel)
+            self.assertEqual(w60.text(), "Average citation count in the last")
+            w61 = asp.layout().itemAtPosition(6, 1).widget()
+            self.assertIsInstance(w61, QLineEdit)
+            self.assertEqual(w61, asp.yearsBox)
+            with patch(
+                "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.onUpdateYears"
+            ) as _f:
+                w61.textChanged.emit("2")
+                _f.assert_called_once_with("2")
+            self.assertEqual(w61.text(), "3")
+            w62 = asp.layout().itemAtPosition(6, 2).widget()
+            self.assertIsInstance(w62, PBLabel)
+            self.assertEqual(w62.text(), "years is:")
+            w63 = asp.layout().itemAtPosition(6, 3).widget()
+            self.assertIsInstance(w63, QLineEdit)
+            self.assertEqual(w63, asp.citperyearBox)
+            self.assertEqual(w63.text(), "0.00 (0 citations in 3 years)")
             self.assertIsInstance(asp.saveButton, QPushButton)
             self.assertEqual(asp.saveButton.text(), "Save")
-            self.assertEqual(asp.layout().itemAtPosition(6, 0).widget(), asp.saveButton)
+            self.assertEqual(asp.layout().itemAtPosition(7, 0).widget(), asp.saveButton)
             with patch(
                 "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.saveAction",
                 autospec=True,
@@ -1456,7 +1476,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             self.assertIsInstance(asp.clButton, QPushButton)
             self.assertEqual(asp.clButton.text(), "Close")
             self.assertTrue(asp.clButton.autoDefault())
-            self.assertEqual(asp.layout().itemAtPosition(6, 1).widget(), asp.clButton)
+            self.assertEqual(asp.layout().itemAtPosition(7, 2).widget(), asp.clButton)
             with patch(
                 "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.onClose", autospec=True
             ) as _cl:
@@ -1473,6 +1493,30 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
                 ["a", "b", "c", "d", "e", "f"], title="abcdef", parent=self.mainW
             )
             self.assertEqual(asp.windowTitle(), "abcdef")
+
+    def test_onUpdateYears(self):
+        """Test onUpdateYears"""
+        self.mainW.lastAuthorStats = {"h": 999}
+        today = datetime.datetime.now()
+        yr = today.year
+        ref = today + datetime.timedelta(days=1)
+        pBStats.allCitations = [ref.replace(year=yr - i) for i in [0, 1, 3, 3, 6, 8]]
+        with patch(
+            "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
+        ) as _up:
+            asp = AuthorStatsPlots(["a", "b", "c", "d", "e", "f"], parent=self.mainW)
+        self.assertEqual(asp.citperyearBox.text(), "1.33 (4 citations in 3 years)")
+        asp.onUpdateYears("a")
+        self.assertEqual(
+            asp.citperyearBox.text(), "Invalid number of years (must be integer)"
+        )
+        asp.onUpdateYears("4")
+        self.assertEqual(asp.citperyearBox.text(), "1.00 (4 citations in 4 years)")
+        asp.onUpdateYears("1")
+        self.assertEqual(asp.citperyearBox.text(), "2.00 (2 citations in 1 years)")
+        asp.allcits = []
+        asp.onUpdateYears("5")
+        self.assertEqual(asp.citperyearBox.text(), "0.00 (0 citations in 5 years)")
 
     def test_saveAction(self):
         """Test saveAction"""
@@ -1581,10 +1625,10 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         for i in [0, 1, 2]:
             for j in [0, 1]:
                 self.assertIsInstance(
-                    asp.layout().itemAtPosition(i, j).widget(), FigureCanvasQTAgg
+                    asp.layout().itemAtPosition(i, j * 2).widget(), FigureCanvasQTAgg
                 )
                 self.assertEqual(
-                    asp.layout().itemAtPosition(i, j).widget().figure,
+                    asp.layout().itemAtPosition(i, j * 2).widget().figure,
                     asp.figs[i * 2 + j],
                 )
         self.assertEqual(len(asp.canvas), 6)
@@ -1595,7 +1639,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         for i in [0, 1, 2]:
             for j in [0, 1]:
                 self.assertEqual(
-                    asp.layout().itemAtPosition(i, j).widget().figure,
+                    asp.layout().itemAtPosition(i, j * 2).widget().figure,
                     asp.figs[1 + i * 2 + j],
                 )
 
