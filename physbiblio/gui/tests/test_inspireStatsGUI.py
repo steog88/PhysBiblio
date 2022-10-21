@@ -11,7 +11,7 @@ import traceback
 import unittest
 from unittest.mock import patch
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from PySide6.QtCore import QPoint, Qt

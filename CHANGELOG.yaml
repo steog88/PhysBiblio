@@ -2,10 +2,11 @@
     date: 2022-10
     changes:
         - search entries by "none of the following" categories or experiments
-        - possibility to compute average per year and total number of citations in a given amount of years from the Author stats panel
+        - possibility to compute average per year and total number of citations in the last N years from the Author stats panel
         - fixed bug when creating menu with empty selection; show number of selected papers in context menu
         - label showing number of currently displayed entries next to filter QLineEdit
         - bug fixes in py3.10 tests
+        - PySide6 6.4.0 incompatible with matplotlib up to 3.6.1
 -   version: 2.0.2
     date: 2022-08
     changes:

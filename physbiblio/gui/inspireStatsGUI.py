@@ -9,7 +9,7 @@ import traceback
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from PySide6.QtCore import Qt
