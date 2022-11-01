@@ -1423,11 +1423,11 @@ class TestConfigurationDBOperations(DBTestCase):
         self.assertEqual(self.pBDB.config.count(), 2)
         self.assertTrue(self.pBDB.config.update("test2", "somevalue"))
         self.assertEqual(self.pBDB.config.count(), 3)
-        for n, v in [
-            ["test", "somevalue1"],
-            ["test1", "somevalueA"],
-            ["test2", "somevalue"],
-        ]:
+        for n, v in (
+            ("test", "somevalue1"),
+            ("test1", "somevalueA"),
+            ("test2", "somevalue"),
+        ):
             self.assertEqual(self.pBDB.config.getByName(n)[0]["value"], v)
         self.assertEqual(
             {e["name"]: e["value"] for e in self.pBDB.config.getAll()},
@@ -2130,13 +2130,13 @@ class TestFunctions(unittest.TestCase):
 
     def test_getLogLevel(self, *args):
         """test getLogLevel"""
-        for v, e in [
-            [0, logging.ERROR],
-            [1, logging.WARNING],
-            [2, logging.INFO],
-            [3, logging.DEBUG],
-            ["a", logging.DEBUG],
-        ]:
+        for v, e in (
+            (0, logging.ERROR),
+            (1, logging.WARNING),
+            (2, logging.INFO),
+            (3, logging.DEBUG),
+            ("a", logging.DEBUG),
+        ):
             self.assertEqual(getLogLevel(v), e)
 
     def test_addFileHandler(self, *args):

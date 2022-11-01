@@ -193,7 +193,6 @@ class ConfigWindow(PBDialog):
         """
         ix = pbConfig.paramOrder.index("pdfFolder")
         folder = askDirName(
-            parent=None,
             dir=self.textValues[ix][1].text(),
             title=dwstr.dirPDFSave,
         )
@@ -215,7 +214,7 @@ class ConfigWindow(PBDialog):
             return
         ix = pbConfig.paramOrder.index(paramkey)
         fname = askSaveFileName(
-            parent=None, title=text, dir=self.textValues[ix][1].text(), filter=filter
+            title=text, dir=self.textValues[ix][1].text(), filter=filter
         )
         if fname.strip() != "":
             self.textValues[ix][1].setText(str(fname))

@@ -410,7 +410,7 @@ class TestFunctions(GUIwMainWTestCase):
             % {"arxiv": "1507.08204", "ENTRYTYPE": "article", "ID": "Gariazzo:2015rra"},
         }
         p = PBDialog()
-        ebd = EditBibtexDialog(self.mainW, bib=None)
+        ebd = EditBibtexDialog(self.mainW)
         ebd.exec = MagicMock()
         ebd.onCancel()
         with patch("logging.Logger.debug") as _ld, patch(
@@ -420,7 +420,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(p, editKey=None)
+            editBibtex(p)
             ebd.exec.assert_called_once_with()
             _i.assert_called_once_with(p, bib=None)
             _ld.assert_called_once_with(
@@ -436,12 +436,12 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(self.mainW, editKey=None)
+            editBibtex(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "No modifications to bibtex entry")
             _ld.assert_not_called()
             _gbk.assert_not_called()
 
-        ebd = EditBibtexDialog(self.mainW, bib=None)
+        ebd = EditBibtexDialog(self.mainW)
         ebd.exec = MagicMock()
         ebd.onCancel()
         with patch("logging.Logger.debug") as _ld, patch(
@@ -519,7 +519,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(self.mainW, editKey=None)
+            editBibtex(self.mainW)
             _ld.assert_not_called()
             _lw.assert_not_called()
             _li.assert_not_called()
@@ -569,7 +569,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(self.mainW, editKey=None)
+            editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
             _gbk.assert_not_called()
@@ -622,7 +622,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(p, editKey=None)
+            editBibtex(p)
             _ld.assert_has_calls(
                 [
                     call(
@@ -686,7 +686,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(self.mainW, editKey=None)
+            editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
             _gbk.assert_not_called()
@@ -735,7 +735,7 @@ class TestFunctions(GUIwMainWTestCase):
             return_value=ebd,
             autospec=USE_AUTOSPEC_CLASS,
         ) as _i:
-            editBibtex(self.mainW, editKey=None)
+            editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
             _le.assert_called_once_with("Cannot insert/modify the entry!")
@@ -2064,7 +2064,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertIsInstance(c.menu.possibleActions[0][1], list)
         self.assertEqual(len(c.menu.possibleActions[0][1]), 7)
         for i, a in enumerate(c.menu.possibleActions[0][1]):
-            if i in [3, 5]:
+            if i in (3, 5):
                 self.assertEqual(a, None)
             else:
                 self.assertIsInstance(a, QAction)
@@ -2093,7 +2093,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
             self.assertEqual(len(c.menu.possibleActions[0][1]), 9)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
-                if i in [3, 7]:
+                if i in (3, 7):
                     self.assertEqual(a, None)
                 else:
                     self.assertIsInstance(a, QAction)
@@ -2165,7 +2165,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.assertIsInstance(c.menu.possibleActions[0][1], list)
             self.assertEqual(len(c.menu.possibleActions[0][1]), 15)
             for i, a in enumerate(c.menu.possibleActions[0][1]):
-                if i in [3, 13]:
+                if i in (3, 13):
                     self.assertEqual(a, None)
                 else:
                     self.assertIsInstance(a, QAction)
@@ -5059,13 +5059,13 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw.createActions()
         images = [
             QImage(imgp).convertToFormat(QImage.Format_ARGB32_Premultiplied)
-            for imgp in [
+            for imgp in (
                 ":/images/edit-node.png",
                 ":/images/dialog-ok-apply.png",
                 ":/images/edit-clear.png",
                 ":/images/edit-select-all.png",
                 ":/images/edit-unselect-all.png",
-            ]
+            )
         ]
         self.assertIsInstance(bw.selAct, QAction)
         self.assertEqual(bw.selAct.text(), "&Select entries")
@@ -5496,7 +5496,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _cs.assert_called_once_with(bw)
         pa = m.possibleActions
         self.assertIsInstance(pa, list)
-        for ix in [0, 2, 3, 4]:
+        for ix in (0, 2, 3, 4):
             self.assertIsInstance(pa[ix], QAction)
         self.assertEqual(pa[1], None)
         self.assertEqual(pa[0].text(), "--Copy to clipboard--")
@@ -5856,7 +5856,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             bw.finalizeTable()
             _rc.assert_not_called()
             _rr.assert_not_called()
-            for f in ["author", "title", "comments"]:
+            for f in ("author", "title", "comments"):
                 if f in bw.colContents:
                     _rsc.assert_any_call(bw.colContents.index(f))
 
@@ -7153,14 +7153,14 @@ class TestSearchBibsWindow(GUITestCase):
             self.assertEqual(sbw.eventFilter(w, e), "abc")
             _ef.assert_called_once_with(sbw, w, e)
             e.key.assert_not_called()
-        for x in [
+        for x in (
             sbw.textValues[0]["content"],
             sbw.replOld,
             sbw.replNew,
             sbw.replNew1,
             sbw.limitValue,
             sbw.limitOffs,
-        ]:
+        ):
             w = x
             with patch(
                 "PySide6.QtWidgets.QWidget.eventFilter",
@@ -7172,7 +7172,7 @@ class TestSearchBibsWindow(GUITestCase):
                 e.key.assert_called_once_with()
                 sbw.acceptButton.setFocus.assert_not_called()
             e.key.reset_mock()
-        for x in [Qt.Key_Return, Qt.Key_Enter]:
+        for x in (Qt.Key_Return, Qt.Key_Enter):
             e.key.return_value = x
             with patch(
                 "PySide6.QtWidgets.QWidget.eventFilter",
@@ -7898,10 +7898,10 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertIsInstance(sbw.replOld, QLineEdit)
         self.assertEqual(sbw.currGrid.itemAtPosition(10, 3).widget(), sbw.replOld)
 
-        for ix, itemF, item in [
+        for ix, itemF, item in (
             (11, sbw.replNewField, sbw.replNew),
             (12, sbw.replNewField1, sbw.replNew1),
-        ]:
+        ):
             self.assertIsInstance(itemF, PBComboBox)
             self.assertEqual(sbw.currGrid.itemAtPosition(ix, 1).widget(), itemF)
             for i, f in enumerate(sbw.replaceComboFields["new"]):

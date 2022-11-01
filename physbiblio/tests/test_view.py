@@ -57,7 +57,7 @@ class TestViewMethods(unittest.TestCase):
             side_effect=["", "1507.08204", "", "", "1507.08204"],
         ) as _mock:
             self.assertEqual(
-                pBView.getLink("a", "arxiv"), "%s/abs/1507.08204" % pbConfig.arxivUrl
+                pBView.getLink("a"), "%s/abs/1507.08204" % pbConfig.arxivUrl
             )
         with patch(
             "physbiblio.database.Entries.getField",
@@ -117,13 +117,13 @@ class TestViewMethods(unittest.TestCase):
             autospec=True,
             side_effect=["", "", "", ""],
         ) as _mock:
-            self.assertFalse(pBView.getLink("a", "arxiv"))
+            self.assertFalse(pBView.getLink("a"))
         with patch(
             "physbiblio.database.Entries.getField",
             autospec=True,
             side_effect=["", "", "", ""],
         ) as _mock:
-            self.assertFalse(pBView.getLink("a", "arxiv"))
+            self.assertFalse(pBView.getLink("a"))
 
     def test_openLink(self, *args):
         """Test openLink"""

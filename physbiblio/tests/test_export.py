@@ -239,7 +239,7 @@ class TestExportMethods(unittest.TestCase):
         self.assertTrue(os.path.exists(testBibName))
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{empty,\n        author = "me",\n         title = '
             + '"{no}",\n}\n\n',
@@ -251,7 +251,7 @@ class TestExportMethods(unittest.TestCase):
             "@Article{Gariazzo:2015rra,\n        author = "
             + '"Gariazzo, S. and others",\n         title = '
             + '"{Light sterile neutrinos}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "a") as f:
@@ -308,7 +308,7 @@ class TestExportMethods(unittest.TestCase):
         self.assertTrue(os.path.exists(testBibName))
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{empty,\n        author = "me",\n         title = '
             + '"{no}",\n}\n\n',
@@ -321,7 +321,7 @@ class TestExportMethods(unittest.TestCase):
             + '"{Light sterile neutrinos}",\n}\n\n',
             '@Article{newcite,\n        author = "myself",'
             + '\n         title = "{some paper}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
@@ -356,11 +356,11 @@ class TestExportMethods(unittest.TestCase):
         self.assertTrue(os.path.exists(testBibName))
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{newcite:NOW18,\n        author = "myself",\n         '
             + 'title = "{some paper}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
@@ -414,7 +414,7 @@ class TestExportMethods(unittest.TestCase):
         self.maxDiff = None
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{newcite:NOW18,\n        author = "S. Gariazzo",'
             + '\n         title = "{newtitle}",\n}\n\n',
@@ -422,7 +422,7 @@ class TestExportMethods(unittest.TestCase):
             + '"{Light sterile neutrinos}",\n}\n\n',
             '@Article{bib2,\n        author = "me",\n         title = '
             + '"{title}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
@@ -470,13 +470,13 @@ class TestExportMethods(unittest.TestCase):
         self.maxDiff = None
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{newcite:NOW18,\n        author = "S. Gariazzo",'
             + '\n         title = "{newtitle}",\n}\n\n',
             '@Article{bib1,\n        author = "SG",\n         '
             + 'title = "{Light sterile neutrinos}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
@@ -512,11 +512,11 @@ class TestExportMethods(unittest.TestCase):
         self.maxDiff = None
         with open(testBibName) as f:
             newTextBib = f.read()
-        for t in [
+        for t in (
             "%file written by PhysBiblio\n",
             '@Article{newcite,\n        author = "S. Gariazzo",'
             + '\n         title = "{title}",\n}\n\n',
-        ]:
+        ):
             self.assertIn(t, newTextBib)
 
         with open(testBibName, "w") as f:

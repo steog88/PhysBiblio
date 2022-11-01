@@ -848,7 +848,7 @@ class MainWindow(QMainWindow):
         # add fake tab that will allow to add new ones
         self.tabWidget.addTab(QWidget(self), QIcon(":/images/file-add.png"), "")
         # hide close buttons for first and last tabs
-        for i in [0, self.tabWidget.count() - 1]:
+        for i in (0, self.tabWidget.count() - 1):
             try:
                 self.tabWidget.tabBar().tabButton(i, QTabBar.RightSide).deleteLater()
             except AttributeError:
@@ -1091,12 +1091,11 @@ class MainWindow(QMainWindow):
             """Extract a parameter from kwargs and delete it
             from the original dictionary
             """
-            if key in kwargs.keys():
+            if key in kwargs:
                 tmp = kwargs.get(key)
-                del kwargs[key]
+                kwargs.pop(key)
                 return tmp
-            else:
-                return None
+            return None
 
         def closePrintText(a, t):
             try:
@@ -1831,7 +1830,7 @@ class MainWindow(QMainWindow):
                 previous=[a[0] for a in pBDB.cats.getByEntry(entry)],
             )
             selectCats.exec()
-            if selectCats.result in ["Ok", "Exps"]:
+            if selectCats.result in ("Ok", "Exps"):
                 pBDB.catBib.insert(self.selectedCats, entry)
                 self.statusBarMessage(mwstr.catInserted % entry)
             if selectCats.result == "Exps":
@@ -1889,7 +1888,7 @@ class MainWindow(QMainWindow):
                     except KeyError:
                         pass
                     exist = len(pBDB.bibs.getByBibkey(el["ID"], saveQuery=False)) > 0
-                    for f in ["arxiv", "doi"]:
+                    for f in ("arxiv", "doi"):
                         try:
                             exist = exist or (
                                 el[f].strip() != ""

@@ -146,16 +146,14 @@ class TestPdfMethods(unittest.TestCase):
                 _fe.write("a")
             self.assertTrue(pBPDF.downloadArxiv("abc.def"))
             self.assertTrue(pBPDF.checkFile("abc.def", "arxiv"))
-            self.assertEqual(
-                pBPDF.getExisting("abc.def", fullPath=False), ["1806.11344.pdf"]
-            )
+            self.assertEqual(pBPDF.getExisting("abc.def"), ["1806.11344.pdf"])
             self.assertEqual(
                 pBPDF.getExisting("abc.def", fullPath=True),
                 [os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344.pdf")],
             )
             open(os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344"), "w").close()
             self.assertEqual(
-                sorted(pBPDF.getExisting("abc.def", fullPath=False)),
+                sorted(pBPDF.getExisting("abc.def")),
                 sorted(["1806.11344", "1806.11344.pdf"]),
             )
             self.assertTrue(
@@ -165,9 +163,7 @@ class TestPdfMethods(unittest.TestCase):
                     os.path.join(pBPDF.getFileDir("abc.def"), "1806.11344"),
                 )
             )
-            self.assertEqual(
-                pBPDF.getExisting("abc.def", fullPath=False), ["1806.11344.pdf"]
-            )
+            self.assertEqual(pBPDF.getExisting("abc.def"), ["1806.11344.pdf"])
             self.assertTrue(pBPDF.removeFile("abc.def", "arxiv"))
             self.assertFalse(pBPDF.checkFile("abc.def", "arxiv"))
         with patch(
@@ -187,11 +183,11 @@ class TestPdfMethods(unittest.TestCase):
             return_value=[{"bibkey": "abc"}, {"bibkey": "def"}],
             autospec=True,
         ) as _mock:
-            for q in ["abc", "def", "ghi"]:
+            for q in ("abc", "def", "ghi"):
                 pBPDF.createFolder(q)
                 self.assertTrue(os.path.exists(pBPDF.getFileDir(q)))
             pBPDF.removeSparePDFFolders()
-            for q in ["abc", "def"]:
+            for q in ("abc", "def"):
                 self.assertTrue(os.path.exists(pBPDF.getFileDir(q)))
             self.assertFalse(os.path.exists(pBPDF.getFileDir("ghi")))
         shutil.rmtree(pBPDF.pdfDir)

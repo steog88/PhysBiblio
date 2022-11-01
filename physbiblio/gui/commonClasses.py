@@ -496,7 +496,7 @@ class PBTableModel(QAbstractTableModel):
         self.layoutAboutToBeChanged.emit()
         if new is None:
             self.ask = not self.ask
-        elif new == True or new == False:
+        elif new in (True, False):
             self.ask = new
         self.layoutChanged.emit()
 
@@ -625,8 +625,7 @@ class PBTableModel(QAbstractTableModel):
                 | Qt.ItemIsEnabled
                 | Qt.ItemIsSelectable
             )
-        else:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def headerData(self, col, orientation, role):
         """Obtain column name if correctly asked
@@ -678,9 +677,6 @@ class TreeNode(QObject):
             row: the content of the data row
         """
         super(TreeNode, self).__init__()
-        ps2verinfo = PySide6.__version_info__
-        if ps2verinfo[0:3] == (5, 12, 0) or ps2verinfo[0:3] == (5, 12, 1):
-            self._instances[PtrKey(VoidPtr(self))] = self
         self.parentObj = parent
         self.row = row
         self.subnodes = self._getChildren()
@@ -757,8 +753,7 @@ class TreeModel(QAbstractItemModel):
         nodeParent = node.parent()
         if nodeParent is None:
             return QModelIndex()
-        else:
-            return self.createIndex(nodeParent.row, 0, nodeParent)
+        return self.createIndex(nodeParent.row, 0, nodeParent)
 
     def rowCount(self, parent=QModelIndex()):
         """Count the rows in a given tree branch
@@ -1127,7 +1122,7 @@ class PBImportedTableModel(PBTableModel):
             else:
                 return int(Qt.Checked)
         if (
-            role in [Qt.EditRole, Qt.DisplayRole]
+            role in (Qt.EditRole, Qt.DisplayRole)
             and column == 0
             and self.existList[row]
         ):
@@ -1172,8 +1167,7 @@ class PBImportedTableModel(PBTableModel):
                 | Qt.ItemIsEnabled
                 | Qt.ItemIsSelectable
             )
-        else:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
 
 class ObjectWithSignal(QObject):

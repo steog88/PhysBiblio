@@ -361,11 +361,7 @@ class PBExport:
                     req, m, ret, nF, un, nK, w, cits = self.exportForTexFile(
                         t,
                         outFileName,
-                        overwrite=False,
                         autosave=autosave,
-                        updateExisting=False,
-                        removeUnused=False,
-                        reorder=False,
                         newOperation=False,
                     )
                     requiredBibkeys += req
@@ -427,7 +423,7 @@ class PBExport:
             try:
                 for e in [l.group(1) for l in citeKeys.finditer(c.group())]:
                     e = e.strip()
-                    if e == "" or e in ["cite", "citep", "citet"]:
+                    if e in ("", "cite", "citep", "citet"):
                         continue
                     self.allCitations.add(e)
                     if e not in requiredBibkeys:

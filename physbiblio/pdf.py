@@ -90,7 +90,7 @@ class LocalPDF:
         Output:
             the (cleaned) absolute path for the PDF file
         """
-        if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+        if fileType not in ("arxiv", "inspire", "isbn", "doi", "ads", "scholar"):
             pBLogger.warning(pstr.errorField)
             return ""
         filename = pBDB.bibs.getField(key, fileType)
@@ -246,7 +246,7 @@ class LocalPDF:
                 filaName: the specific file name
         """
         try:
-            if arg == "arxiv" or arg == "doi":
+            if arg in ("arxiv", "doi"):
                 fileType = arg
             elif float(arg).is_integer():
                 fileNum = int(arg)
@@ -287,7 +287,7 @@ class LocalPDF:
         Output:
             boolean (if the arguments are valid) or None (if fileType is bad)
         """
-        if fileType not in ["arxiv", "inspire", "isbn", "doi", "ads", "scholar"]:
+        if fileType not in ("arxiv", "inspire", "isbn", "doi", "ads", "scholar"):
             pBLogger.warning(pstr.invalidCheckFileArg)
             return
         return os.path.isfile(self.getFilePath(key, fileType))

@@ -317,7 +317,7 @@ class Test_Thread_updateInspireInfo(GUITestCase):
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
-        for iid in [None, False, ""]:
+        for iid in (None, False, ""):
             thr = Thread_updateInspireInfo(ws, "Gariazzo:2015rra", iid, p)
             with patch(
                 "physbiblio.database.Entries.updateInfoFromOAI", autospec=True

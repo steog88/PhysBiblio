@@ -151,14 +151,10 @@ def writeBibtexInfo(entry):
         )
     except KeyError:
         pBLogger.debug(bwstr.Info.pubErr % (sorted(entry["bibtexDict"].keys())))
-    if (
-        entry["old_keys"] != ""
-        and entry["old_keys"] != None
-        and entry["old_keys"] != "None"
-    ):
+    if entry["old_keys"] not in ("", None, "None"):
         infoText += "Alternative bibtex keys: <u>%s</u>" % entry["old_keys"] + nl
     infoText += nl
-    for k in ["isbn", "doi", "arxiv", "ads", "inspire"]:
+    for k in ("isbn", "doi", "arxiv", "ads", "inspire"):
         try:
             infoText += (
                 ("%s: <u>%s</u>" % (pBDB.descriptions["entries"][k], entry[k]) + nl)
@@ -221,7 +217,7 @@ def editBibtex(parentObject, editKey=None):
     newBibWin.exec()
     data = {}
     if newBibWin.result:
-        for k in ["citations", "citations_no_self"]:
+        for k in ("citations", "citations_no_self"):
             try:
                 data[k] = getattr(newBibWin, k)
             except AttributeError:
@@ -261,7 +257,7 @@ def editBibtex(parentObject, editKey=None):
                     data["arxiv"] = tmpBibDict["arxiv"]
                 elif "eprint" in tmpBibDict.keys() and tmpBibDict["eprint"] != "":
                     data["arxiv"] = tmpBibDict["eprint"]
-            for f in ["year", "doi", "isbn"]:
+            for f in ("year", "doi", "isbn"):
                 if f in tmpBibDict.keys() and tmpBibDict[f] != "":
                     data[f] = tmpBibDict[f]
             if data["firstdate"] == "":
@@ -613,8 +609,7 @@ class BibTableModel(PBTableModel):
                     self.parentObj.tableview.rowHeight(0) * 0.9,
                 ),
             )
-        else:
-            return False, bwstr.noPDF
+        return False, bwstr.noPDF
 
     def addMarksCell(self, marks):
         """Create a cell for the marks
@@ -690,7 +685,7 @@ class BibTableModel(PBTableModel):
         else:
             try:
                 value = rowData[colName]
-                if colName in ["title", "author"]:
+                if colName in ("title", "author"):
                     value = self.latexToText.latex_to_text(value)
             except KeyError:
                 value = ""
@@ -765,8 +760,12 @@ class CommonBibActions:
         """
         if selection or (not selection and (arxiv != "" and arxiv is not None)):
             menuA = []
-            menuA.append(QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onAbs))
-            menuA.append(QAction(bwstr.Acts.arxMore, self.menu, triggered=self.onArx))
+            menuA.extend(
+                (
+                    QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onAbs),
+                    QAction(bwstr.Acts.arxMore, self.menu, triggered=self.onArx),
+                )
+            )
             self.menu.possibleActions.append([bwstr.Acts.arxTit, menuA])
 
     def _createMenuCopy(self, selection, initialRecord):
@@ -786,7 +785,7 @@ class CommonBibActions:
         subm = []
         latexToText = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
         if not selection:
-            for field in [
+            for field in (
                 "abstract",
                 "arXiv",
                 "DOI",
@@ -797,7 +796,7 @@ class CommonBibActions:
                 "published",
                 "title",
                 "bibitem",
-            ]:
+            ):
                 convert_to_latex = True
                 if field == "published":
                     try:
@@ -902,11 +901,12 @@ class CommonBibActions:
                     )
         if len(subm) > 0:
             menuC.append(None)
-            for s in subm:
-                menuC.append(s)
-        menuC.append(None)
-        menuC.append(
-            QAction(bwstr.Acts.cpDir, self.menu, triggered=self.onCopyDir),
+            menuC.extend(subm)
+        menuC.extend(
+            (
+                None,
+                QAction(bwstr.Acts.cpDir, self.menu, triggered=self.onCopyDir),
+            )
         )
         self.menu.possibleActions.append([bwstr.Acts.cpTit, menuC])
 
@@ -928,27 +928,25 @@ class CommonBibActions:
             )
         )
         if selection or (not selection and inspireID):
-            menuI.append(
-                QAction(
-                    bwstr.Acts.insUpd,
-                    self.menu,
-                    triggered=lambda r=True: self.onUpdate(force=r),
-                )
-            )
-            menuI.append(
-                QAction(
-                    bwstr.Acts.insRel,
-                    self.menu,
-                    triggered=lambda f=(not selection), r=True: self.onUpdate(
-                        force=f, reloadAll=r
+            menuI.extend(
+                (
+                    QAction(
+                        bwstr.Acts.insUpd,
+                        self.menu,
+                        triggered=lambda r=True: self.onUpdate(force=r),
+                    ),
+                    QAction(
+                        bwstr.Acts.insRel,
+                        self.menu,
+                        triggered=lambda f=(not selection), r=True: self.onUpdate(
+                            force=f, reloadAll=r
+                        ),
+                    ),
+                    QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations),
+                    QAction(
+                        bwstr.Acts.insCitCo, self.menu, triggered=self.onCitationCount
                     ),
                 )
-            )
-            menuI.append(
-                QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations)
-            )
-            menuI.append(
-                QAction(bwstr.Acts.insCitCo, self.menu, triggered=self.onCitationCount)
             )
             self.menu.possibleActions.append([bwstr.Acts.insTit, menuI])
         else:
@@ -1013,7 +1011,7 @@ class CommonBibActions:
                     )
                     % pBMarks.marks[m]["desc"],
                     self.menu,
-                    triggered=lambda m=m: self.onUpdateMark(m),
+                    triggered=lambda x=m: self.onUpdateMark(x),
                 )
             )
         menuT = []
@@ -1025,9 +1023,9 @@ class CommonBibActions:
                     triggered=lambda t=k: self.onUpdateType(t),
                 )
             )
-        self.menu.possibleActions.append([bwstr.Acts.maTit, menuM])
-        self.menu.possibleActions.append([bwstr.Acts.tyTit, menuT])
-        self.menu.possibleActions.append(None)
+        self.menu.possibleActions.extend(
+            ([bwstr.Acts.maTit, menuM], [bwstr.Acts.tyTit, menuT], None)
+        )
 
     def _createMenuMarkTypeList(self):
         """Create part of the right click menu,
@@ -1035,39 +1033,39 @@ class CommonBibActions:
         """
         menuM = []
         for m in sorted(pBMarks.marks.keys()):
-            menuM.append(
-                QAction(
-                    bwstr.Acts.maAddL % pBMarks.marks[m]["desc"],
-                    self.menu,
-                    triggered=lambda m=m: self.onUpdateMark(m, force=1),
-                )
-            )
-            menuM.append(
-                QAction(
-                    bwstr.Acts.maRemL % pBMarks.marks[m]["desc"],
-                    self.menu,
-                    triggered=lambda m=m: self.onUpdateMark(m, force=0),
+            menuM.extend(
+                (
+                    QAction(
+                        bwstr.Acts.maAddL % pBMarks.marks[m]["desc"],
+                        self.menu,
+                        triggered=lambda m=m: self.onUpdateMark(m, force=1),
+                    ),
+                    QAction(
+                        bwstr.Acts.maRemL % pBMarks.marks[m]["desc"],
+                        self.menu,
+                        triggered=lambda m=m: self.onUpdateMark(m, force=0),
+                    ),
                 )
             )
         menuT = []
         for k, v in sorted(convertType.items()):
-            menuT.append(
-                QAction(
-                    bwstr.Acts.tyAddL % v,
-                    self.menu,
-                    triggered=lambda t=k: self.onUpdateType(t, force=1),
+            menuT.extend(
+                (
+                    QAction(
+                        bwstr.Acts.tyAddL % v,
+                        self.menu,
+                        triggered=lambda t=k: self.onUpdateType(t, force=1),
+                    ),
+                    QAction(
+                        bwstr.Acts.tyRemL % v,
+                        self.menu,
+                        triggered=lambda t=k: self.onUpdateType(t, force=0),
+                    ),
                 )
             )
-            menuT.append(
-                QAction(
-                    bwstr.Acts.tyRemL % v,
-                    self.menu,
-                    triggered=lambda t=k: self.onUpdateType(t, force=0),
-                )
-            )
-        self.menu.possibleActions.append([bwstr.Acts.maTit, menuM])
-        self.menu.possibleActions.append([bwstr.Acts.tyTit, menuT])
-        self.menu.possibleActions.append(None)
+        self.menu.possibleActions.extend(
+            ([bwstr.Acts.maTit, menuM], [bwstr.Acts.tyTit, menuT], None)
+        )
 
     def _createMenuPDF(self, selection, initialRecord):
         """Create part of the right click menu,
@@ -1110,7 +1108,7 @@ class CommonBibActions:
                 )
             for fn in sorted(shortfiles):
                 f = shortfiles[fn]
-                if f not in [arxivFile, doiFile]:
+                if f not in (arxivFile, doiFile):
                     menuP.append(
                         QAction(
                             bwstr.Acts.pdfOpen % fn,
@@ -1128,20 +1126,22 @@ class CommonBibActions:
             if arxivFile in files:
                 files.remove(arxivFile)
                 tmpM = []
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfD % "arXiv",
-                        self.menu,
-                        triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
-                            k, a, t
+                tmpM.extend(
+                    (
+                        QAction(
+                            bwstr.Acts.pdfD % "arXiv",
+                            self.menu,
+                            triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
+                                k, a, t
+                            ),
                         ),
-                    )
-                )
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfC % "arXiv",
-                        self.menu,
-                        triggered=lambda k=bibkey, a="arxiv": self.onCopyPDFFile(k, a),
+                        QAction(
+                            bwstr.Acts.pdfC % "arXiv",
+                            self.menu,
+                            triggered=lambda k=bibkey, a="arxiv": self.onCopyPDFFile(
+                                k, a
+                            ),
+                        ),
                     )
                 )
                 menuP.append([bwstr.Acts.pdfM % "arXiv", tmpM])
@@ -1152,20 +1152,22 @@ class CommonBibActions:
             if doiFile in files:
                 files.remove(doiFile)
                 tmpM = []
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfD % "DOI",
-                        self.menu,
-                        triggered=lambda k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
-                            k, a, t
+                tmpM.extend(
+                    (
+                        QAction(
+                            bwstr.Acts.pdfD % "DOI",
+                            self.menu,
+                            triggered=lambda k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
+                                k, a, t
+                            ),
                         ),
-                    )
-                )
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfC % "DOI",
-                        self.menu,
-                        triggered=lambda k=bibkey, a="doi": self.onCopyPDFFile(k, a),
+                        QAction(
+                            bwstr.Acts.pdfC % "DOI",
+                            self.menu,
+                            triggered=lambda k=bibkey, a="doi": self.onCopyPDFFile(
+                                k, a
+                            ),
+                        ),
                     )
                 )
                 menuP.append([bwstr.Acts.pdfM % "DOI", tmpM])
@@ -1181,33 +1183,35 @@ class CommonBibActions:
             for fn in sorted(shortfiles):
                 f = shortfiles[fn]
                 tmpM = []
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfDel % fn,
-                        self.menu,
-                        triggered=lambda k=bibkey, a=fn, t=f: self.onDeletePDFFile(
-                            k, a, a, t
+                tmpM.extend(
+                    (
+                        QAction(
+                            bwstr.Acts.pdfDel % fn,
+                            self.menu,
+                            triggered=lambda k=bibkey, a=fn, t=f: self.onDeletePDFFile(
+                                k, a, a, t
+                            ),
                         ),
-                    )
-                )
-                tmpM.append(
-                    QAction(
-                        bwstr.Acts.pdfCp % fn,
-                        self.menu,
-                        triggered=lambda k=bibkey, a=fn, t=f: self.onCopyPDFFile(
-                            k, a, t
+                        QAction(
+                            bwstr.Acts.pdfCp % fn,
+                            self.menu,
+                            triggered=lambda k=bibkey, a=fn, t=f: self.onCopyPDFFile(
+                                k, a, t
+                            ),
                         ),
                     )
                 )
                 menuP.append([bwstr.Acts.pdfMg % fn, tmpM])
             if os.path.exists(pdfDir):
-                menuP.append(None)
-                menuP.append(
-                    QAction(
-                        bwstr.Acts.pdfOpenDir,
-                        self.menu,
-                        triggered=lambda k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
-                            k, t, fileArg=f
+                menuP.extend(
+                    (
+                        None,
+                        QAction(
+                            bwstr.Acts.pdfOpenDir,
+                            self.menu,
+                            triggered=lambda k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
+                                k, t, fileArg=f
+                            ),
                         ),
                     )
                 )
@@ -1251,10 +1255,10 @@ class CommonBibActions:
             titAct = QAction(bwstr.Acts.eDesc % bibkey, menu)
             titAct.setDisabled(True)
             menu.possibleActions.append(titAct)
-            for strname, field in [
-                ["citSel", "citations"],
-                ["citSelNS", "citations_no_self"],
-            ]:
+            for strname, field in (
+                ("citSel", "citations"),
+                ("citSelNS", "citations_no_self"),
+            ):
                 act = QAction(getattr(bwstr.Acts, strname) % initialRecord[field], menu)
                 act.setDisabled(True)
                 menu.possibleActions.append(act)
@@ -1269,10 +1273,10 @@ class CommonBibActions:
             act = QAction(bwstr.Acts.countSel % len(self.keys), menu)
             act.setDisabled(True)
             menu.possibleActions.append(act)
-            for strname, field in [
-                ["totCitSel", "citations"],
-                ["totCitSelNS", "citations_no_self"],
-            ]:
+            for strname, field in (
+                ("totCitSel", "citations"),
+                ("totCitSelNS", "citations_no_self"),
+            ):
                 cit = sum([a[field] for a in self.bibs])
                 act = QAction(getattr(bwstr.Acts, strname) % cit, menu)
                 act.setDisabled(True)
@@ -1634,7 +1638,7 @@ class CommonBibActions:
                 correct = False
                 pBDB.commit()
                 try:
-                    for key in [self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]]:
+                    for key in (self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]):
                         pBDB.bibs.delete(key)
                 except:
                     pBGUILogger.exception(bwstr.Acts.cantDelOld)
@@ -1653,7 +1657,7 @@ class CommonBibActions:
                         except:
                             pBLogger.warning(bwstr.Acts.reloadFail)
                 if correct:
-                    for oldkey in [self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]]:
+                    for oldkey in (self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]):
                         for e in pBDB.cats.getByEntry(oldkey):
                             pBDB.catBib.insert(e["idCat"], data["bibkey"])
                             pBDB.catBib.delete(e["idCat"], oldkey)
@@ -1727,11 +1731,11 @@ class CommonBibActions:
             force (default None): if 0 or 1, update the field by using
                 the passed value instead of toggling it
         """
-        if type_ not in convertType.keys():
+        if type_ not in convertType:
             pBLogger.warning(bwstr.Acts.tyInv % type_)
             return
         for e in self.bibs:
-            value = force if force in [0, 1] else (0 if e[type_] else 1)
+            value = force if force in (0, 1) else (0 if e[type_] else 1)
             pBDB.bibs.updateField(e["bibkey"], type_, value, verbose=0)
         self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
@@ -1809,7 +1813,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         except AttributeError:
             pBLogger.debug(bwstr.LW.errReadTab)
             return
-        if bibkey is None or bibkey == "" or bibkey == "None":
+        if bibkey is None or bibkey in ("", "None"):
             return
         try:
             entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
@@ -2152,7 +2156,6 @@ class BibtexListWindow(QFrame, ObjListWindow):
         Parameter:
             index: a `QModelIndex` instance
         """
-        return
 
     def cellClick(self, index):
         """Process event when mouse clicks an item.
@@ -2181,7 +2184,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
             pBLogger.warning(bwstr.LW.errIdx)
             return
         self.updateInfo(entry)
-        for column in ["ads", "arxiv", "doi", "inspire"]:
+        for column in ("ads", "arxiv", "doi", "inspire"):
             if (
                 self.colContents[col] == column
                 and entry[column] is not None
@@ -2209,7 +2212,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
             self.tableview.resizeColumnsToContents()
             self.tableview.resizeRowsToContents()
         else:
-            for f in ["author", "title", "comments"]:
+            for f in ("author", "title", "comments"):
                 if f in self.colContents:
                     self.tableview.resizeColumnToContents(self.colContents.index(f))
 
@@ -2338,13 +2341,7 @@ class EditBibtexDialog(EditObjectWindow):
         Output:
             the updated index
         """
-        if (
-            k == "bibdict"
-            or k == "abstract"
-            or k == "bibtex"
-            or k == "comments"
-            or k in self.checkboxes
-        ):
+        if k in ("bibdict", "abstract", "bibtex", "comments") or k in self.checkboxes:
             return i
         i += 1
         if k != "marks":
@@ -2702,7 +2699,7 @@ class SearchBibsWindow(EditObjectWindow):
         """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
-        elif self.edit is None and (e.key() == Qt.Key_Up or e.key() == Qt.Key_Down):
+        elif self.edit is None and (e.key() in (Qt.Key_Up, Qt.Key_Down)):
             self.readForm()
             if self.replace:
                 replace = self.replaceFields.copy()
@@ -2751,7 +2748,7 @@ class SearchBibsWindow(EditObjectWindow):
             ]
         ):
             key = event.key()
-            if key == Qt.Key_Return or key == Qt.Key_Enter:
+            if key in (Qt.Key_Return, Qt.Key_Enter):
                 self.acceptButton.setFocus()
                 return True
         return QWidget.eventFilter(self, widget, event)
@@ -2857,7 +2854,7 @@ class SearchBibsWindow(EditObjectWindow):
             except AttributeError:
                 previous["content"] = ""
 
-        elif previous["type"] == bwstr.SR.cats or previous["type"] == bwstr.SR.exps:
+        elif previous["type"] in (bwstr.SR.cats, bwstr.SR.exps):
             previous["field"] = ""
             try:
                 previous["operator"] = "%s" % line["operator"].currentText()
@@ -3001,7 +2998,7 @@ class SearchBibsWindow(EditObjectWindow):
             self.currGrid.addWidget(self.textValues[ix]["content"], ix, 4, 1, 4)
             self.textValues[ix]["content"].installEventFilter(self)
 
-        elif previous["type"] == bwstr.SR.cats or previous["type"] == bwstr.SR.exps:
+        elif previous["type"] in (bwstr.SR.cats, bwstr.SR.exps):
             self.textValues[ix]["field"] = None
 
             self.textValues[ix]["operator"] = PBComboBox(
@@ -3365,7 +3362,7 @@ class MergeBibtexs(EditBibtexDialog):
         Parameter:
             k: the field name
         """
-        for ix in ["0", "1"]:
+        for ix in ("0", "1"):
             self.radioButtons[ix][k].setChecked(False)
 
     def addFieldOld(self, ix, k, r, c):

@@ -2473,7 +2473,7 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(jC, "")
         self.assertEqual(wC, "")
-        self.assertEqual(vC, tuple())
+        self.assertEqual(vC, ())
         jC, wC, vC = self.pBDB.bibs._catExpStrings(1, "random", "entryExps", "idExp")
         self.assertEqual(jC, " left join entryExps on entries.bibkey=entryExps.bibkey")
         self.assertEqual(wC, "entryExps.idExp = ? ")
@@ -2639,7 +2639,7 @@ class TestDatabaseEntries(DBTestCase):
             ),
             {"bibdict": {"arxiv": "456", "eprint": "123"}, "arxiv": "789"},
         )
-        for k in ["year", "doi", "isbn"]:
+        for k in ("year", "doi", "isbn"):
             self.assertEqual(
                 self.pBDB.bibs._prepareInsertFill({"bibdict": {k: ""}}),
                 {"bibdict": {k: ""}},
@@ -2708,7 +2708,7 @@ class TestDatabaseEntries(DBTestCase):
         """test _prepareInsertStandard"""
         empty = {
             k: None
-            for k in [
+            for k in (
                 "abstract",
                 "crossref",
                 "doi",
@@ -2720,9 +2720,9 @@ class TestDatabaseEntries(DBTestCase):
                 "scholar",
                 "marks",
                 "pubdate",
-            ]
+            )
         }
-        for k in [
+        for k in (
             "book",
             "exp_paper",
             "lecture",
@@ -2730,18 +2730,18 @@ class TestDatabaseEntries(DBTestCase):
             "phd_thesis",
             "proceeding",
             "review",
-        ]:
+        ):
             empty[k] = 0
-        for k in ["marks", "pubdate"]:
+        for k in ("marks", "pubdate"):
             empty[k] = ""
         self.assertEqual(
             self.pBDB.bibs._prepareInsertStandard({}, {}),
             empty,
         )
-        for k in [
+        for k in (
             "marks",
             "pubdate",
-        ]:
+        ):
             e = empty.copy()
             e[k] = "abc"
             self.assertEqual(
@@ -2752,7 +2752,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs._prepareInsertStandard({}, {}, **{k: ""}),
                 empty,
             )
-        for k in [
+        for k in (
             "book",
             "exp_paper",
             "lecture",
@@ -2760,7 +2760,7 @@ class TestDatabaseEntries(DBTestCase):
             "phd_thesis",
             "proceeding",
             "review",
-        ]:
+        ):
             e = empty.copy()
             e[k] = 1
             self.assertEqual(
@@ -2771,7 +2771,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs._prepareInsertStandard({}, {k: "def"}),
                 empty,
             )
-        for k in ["abstract", "crossref", "doi", "isbn"]:
+        for k in ("abstract", "crossref", "doi", "isbn"):
             e = empty.copy()
             e[k] = "abc"
             self.assertEqual(
@@ -2821,9 +2821,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2837,9 +2837,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2853,9 +2853,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2864,9 +2864,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2880,9 +2880,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2891,9 +2891,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2907,9 +2907,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (True, "abc", "where", "join", tuple()),
+            (True, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2923,9 +2923,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (False, "abc", "where", "join", tuple()),
+            (False, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2934,9 +2934,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (False, "abc", "where", "join", tuple()),
+            (False, "abc", "where", "join", ()),
         )
         self.assertEqual(
             self.pBDB.bibs._processQueryFields(
@@ -2951,9 +2951,9 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join",
-                tuple(),
+                (),
             ),
-            (False, "abc", "where", "join", tuple()),
+            (False, "abc", "where", "join", ()),
         )
         # working
         self.assertEqual(
@@ -2969,7 +2969,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where and bibtex = ? ", "join ", ("abc",)),
         )
@@ -2986,7 +2986,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
                 prependTab="entrie1s.",
             ),
             (False, "abc", "where and entrie1s.bibtex = ? ", "join ", ("abc",)),
@@ -3004,7 +3004,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
                 prependTab="entrie1s.",
             ),
             (
@@ -3028,7 +3028,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
                 prependTab="entrie1s.",
             ),
             (
@@ -3052,7 +3052,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where and marks = ? ", "join ", ("abc",)),
         )
@@ -3069,7 +3069,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where and marks != ? ", "join ", ("",)),
         )
@@ -3086,7 +3086,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where and marks like ? ", "join ", ("%abc%",)),
         )
@@ -3103,13 +3103,13 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where ",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where and abc = ? ", "join ", ("1",)),
         )
         firstType = True
         ew = ""
-        ev = tuple()
+        ev = ()
         for f in self.pBDB.bibs.searchPossibleTypes.keys():
             if f != "none":
                 ew += "%s %s%s %s ? " % (
@@ -3133,7 +3133,7 @@ class TestDatabaseEntries(DBTestCase):
                 "abc",
                 "where",
                 "join ",
-                tuple(),
+                (),
             ),
             (False, "abc", "where" + ew, "join ", ev),
         )
@@ -7302,7 +7302,7 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.loadAndInsert(None)
             _e.assert_any_call("Invalid arguments!")
         # methods
-        for method in ["inspire", "doi", "arxiv", "isbn"]:
+        for method in ("inspire", "doi", "arxiv", "isbn"):
             with patch(
                 "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
                 return_value="",
@@ -7707,17 +7707,17 @@ class TestDatabaseEntries(DBTestCase):
 
         # test simple fields
         bibtex = '@article{abc,\nauthor = "me",\ntitle = "mytit",\n}'
-        for k in ["inspire", "ads", "scholar", "comments", "old_keys", "abstract"]:
+        for k in ("inspire", "ads", "scholar", "comments", "old_keys", "abstract"):
             self.assertEqual(data[k], None)
             tmp = {}
             tmp[k] = "try"
             self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
-        for k in ["pubdate", "marks"]:
+        for k in ("pubdate", "marks"):
             self.assertEqual(data[k], "")
             tmp = {}
             tmp[k] = "try"
             self.assertEqual(self.pBDB.bibs.prepareInsert(bibtex, **tmp)[k], "try")
-        for k in [
+        for k in (
             "exp_paper",
             "lecture",
             "phd_thesis",
@@ -7725,7 +7725,7 @@ class TestDatabaseEntries(DBTestCase):
             "proceeding",
             "book",
             "noUpdate",
-        ]:
+        ):
             self.assertEqual(data[k], 0)
             tmp = {}
             tmp[k] = 1
@@ -7747,7 +7747,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(data["doi"], None)
         self.assertEqual(data["crossref"], None)
         self.assertEqual(data["abstract"], None)
-        for k in ["doi", "isbn", "crossref", "abstract"]:
+        for k in ("doi", "isbn", "crossref", "abstract"):
             bibtexA = (
                 '@article{abc,\nauthor = "me",\n'
                 + 'title = "mytit",\n%s="something",\n}' % k
@@ -7864,7 +7864,7 @@ class TestDatabaseEntries(DBTestCase):
     def test_printAll(self, *args):
         self.insert_three()
         self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibkeys(),
+            self.pBDB.bibs.printAllBibkeys,
             "   0 - abc\n\n   1 - def\n\n   2 - ghi\n\n",
         )
         self.assert_stdout(
@@ -7875,7 +7875,7 @@ class TestDatabaseEntries(DBTestCase):
         )
 
         self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllBibtexs(),
+            self.pBDB.bibs.printAllBibtexs,
             '   0 - @Article{abc,\n        author = "me",\n         '
             + 'title = "{abc}",\n}\n\n   1 - @Article{def,\n        '
             + 'author = "me",\n         title = "{def}",\n}\n\n   '
@@ -7896,7 +7896,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("abc", "doi", "somedoi")
         self.pBDB.bibs.printAllInfo()
         self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(),
+            self.pBDB.bibs.printAllInfo,
             "[   0 - "
             + today
             + " ]  (rev) abc             "
@@ -7914,7 +7914,7 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("ghi", "firstdate", "2018-01-01")
         self.pBDB.bibs.updateField("def", "firstdate", "2018-03-01")
         self.assert_stdout(
-            lambda: self.pBDB.bibs.printAllInfo(),
+            self.pBDB.bibs.printAllInfo,
             "[   0 - 2018-01-01 ]        ghi                 "
             + "           ghi                  -             "
             + "      \n[   1 - 2018-03-01 ]        "
@@ -9452,7 +9452,6 @@ class TestDatabaseEntries(DBTestCase):
             _ui.assert_called_once_with(
                 "123",
                 bibtex="bib",
-                verbose=0,
                 readConferenceTitle=False,
                 reloadAll=False,
                 originalKey="abc",
@@ -9471,7 +9470,6 @@ class TestDatabaseEntries(DBTestCase):
             _ui.assert_called_once_with(
                 "123",
                 bibtex="bib",
-                verbose=0,
                 readConferenceTitle=False,
                 reloadAll=True,
                 originalKey="abc",
@@ -9487,7 +9485,6 @@ class TestDatabaseEntries(DBTestCase):
             _ui.assert_called_once_with(
                 "123",
                 bibtex="bib",
-                verbose=0,
                 readConferenceTitle=True,
                 reloadAll=True,
                 originalKey="abc",
@@ -9503,7 +9500,6 @@ class TestDatabaseEntries(DBTestCase):
             _ui.assert_called_with(
                 "123",
                 bibtex="bib",
-                verbose=0,
                 readConferenceTitle=False,
                 reloadAll=False,
                 originalKey="abc",

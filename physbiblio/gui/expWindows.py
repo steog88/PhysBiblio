@@ -318,7 +318,7 @@ class ExpsListWindow(ObjListWindow):
         if e.key() == Qt.Key_Escape:
             self.close()
         elif (
-            e.key() in [Qt.Key_Return, Qt.Key_Enter]
+            e.key() in (Qt.Key_Return, Qt.Key_Enter)
             and e.modifiers() == Qt.ControlModifier
         ):
             self.onOk()
@@ -496,7 +496,7 @@ class ExpsListWindow(ObjListWindow):
         else:
             return
         idExp = str(self.proxyModel.sibling(row, 0, index).data())
-        if self.colContents[col] == "inspire" or self.colContents[col] == "homepage":
+        if self.colContents[col] in ("inspire", "homepage"):
             link = self.proxyModel.sibling(row, col, index).data()
             if link == "" or link is None:
                 self.parent().reloadMainContent(pBDB.bibs.getByExp(idExp))

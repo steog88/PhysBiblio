@@ -729,7 +729,7 @@ class TestEditProfile(GUITestCase):
             _c.assert_called_once_with()
             _i.assert_not_called()
             self.assertTrue(ep.result)
-        for n, f in [["", "testA.db"], ["testA", ""]]:
+        for n, f in (("", "testA.db"), ("testA", "")):
             ep.elements[-1]["n"].setText(n)
             ep.elements[-1]["f"].setCurrentText(f)
             with patch(

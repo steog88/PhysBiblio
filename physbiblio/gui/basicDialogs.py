@@ -43,8 +43,7 @@ def askYesNo(message, title=bdstr.question):
     mbox.exec()
     if mbox.clickedButton() == yesButton:
         return True
-    else:
-        return False
+    return False
 
 
 def infoMessage(message, title=bdstr.information):
@@ -153,8 +152,7 @@ def askFileNames(parent=None, title=bdstr.fn2Use, filter="", dir=""):
     if dialog.exec():
         fileNames = dialog.selectedFiles()
         return fileNames
-    else:
-        return []
+    return []
 
 
 def askSaveFileName(parent=None, title=bdstr.fn2Use, filter="", dir=""):

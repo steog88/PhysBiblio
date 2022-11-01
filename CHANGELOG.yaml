@@ -2,6 +2,7 @@
     date: 2022
     changes:
         - deprecation warnings fixed in setup.cfg and setup.py
+        - code improvements thanks to refurb
 -   version: 2.0.3
     date: 2022-10-21
     changes:

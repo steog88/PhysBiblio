@@ -183,17 +183,16 @@ def isValidArxiv(string):
             for t in matchcat.finditer(string):
                 cat = t.group(1)
                 sub = t.group(3)
-            if cat in arxivCategories.keys() and sub in arxivCategories[cat]:
+            if cat in arxivCategories and sub in arxivCategories[cat]:
                 return True
         else:
             matchcat = re.compile("([a-zA-Z]+(\-[a-zA-Z]+)?)/")
             for t in matchcat.finditer(string):
                 cat = t.group(1)
-            if cat in arxivCategories.keys():
+            if cat in arxivCategories:
                 return True
         return False
-    else:
-        return False
+    return False
 
 
 def getYear(string):
@@ -316,8 +315,7 @@ class WebSearch(WebInterf, ArxivStrings):
             """Define output of the function when an error occurred"""
             if fullDict:
                 return "", {}
-            else:
-                return ""
+            return ""
 
         urlArgs = self.urlArgs.copy()
         if additionalArgs:
@@ -358,7 +356,7 @@ class WebSearch(WebInterf, ArxivStrings):
                     idArx = idArx[0:pos]
                 dictionary["ID"] = idArx
                 dictionary["arxiv"] = idArx
-            for m, k in [["title", "title"], ["doi", "arxiv_doi"]]:
+            for m, k in (("title", "title"), ("doi", "arxiv_doi")):
                 try:
                     dictionary[m] = entry[k]
                 except KeyError as e:

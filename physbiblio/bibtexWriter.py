@@ -91,7 +91,7 @@ class PBBibTexWriter(BibTexWriter):
         ]
 
         # Write field = value lines
-        for field in [i for i in display_order if i not in ["ENTRYTYPE", "ID"]]:
+        for field in [i for i in display_order if i not in ("ENTRYTYPE", "ID")]:
             try:
                 entry[field] = entry[field].replace("{{{", "{").replace("}}}", "}")
                 bibtex += (

@@ -1500,7 +1500,7 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         today = datetime.datetime.now()
         yr = today.year
         ref = today + datetime.timedelta(days=1)
-        pBStats.allCitations = [ref.replace(year=yr - i) for i in [0, 1, 3, 3, 6, 8]]
+        pBStats.allCitations = [ref.replace(year=yr - i) for i in (0, 1, 3, 3, 6, 8)]
         with patch(
             "physbiblio.gui.inspireStatsGUI.AuthorStatsPlots.updatePlots", autospec=True
         ) as _up:
@@ -1622,8 +1622,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         asp = AuthorStatsPlots(testData["figs"], parent=self.mainW)
         self.assertEqual(asp.figs, testData["figs"])
         self.assertIsInstance(asp.canvas, list)
-        for i in [0, 1, 2]:
-            for j in [0, 1]:
+        for i in (0, 1, 2):
+            for j in (0, 1):
                 self.assertIsInstance(
                     asp.layout().itemAtPosition(i, j * 2).widget(), FigureCanvasQTAgg
                 )
@@ -1636,8 +1636,8 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
         asp = AuthorStatsPlots([None] + testData["figs"] + [None], parent=self.mainW)
         self.assertEqual(len(asp.canvas), 6)
         self.assertEqual(len(asp.figs), 8)
-        for i in [0, 1, 2]:
-            for j in [0, 1]:
+        for i in (0, 1, 2):
+            for j in (0, 1):
                 self.assertEqual(
                     asp.layout().itemAtPosition(i, j * 2).widget().figure,
                     asp.figs[1 + i * 2 + j],

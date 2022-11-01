@@ -147,7 +147,7 @@ class TestInspireStatsMethods(unittest.TestCase):
             autospec=True,
         ) as _mock:
             testGood = pBStats.authorStats("E.M.Zavanin.1", plot=True)
-            for i in [
+            for i in (
                 "1229039",
                 "1345462",
                 "1366180",
@@ -156,7 +156,7 @@ class TestInspireStatsMethods(unittest.TestCase):
                 "1404176",
                 "1460832",
                 "1519902",
-            ]:
+            ):
                 self.assertIn(i, testGood["aI"].keys())
                 self.assertIn(i, [a[0][1] for a in _mock.call_args_list])
             self.assertTrue(

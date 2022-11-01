@@ -101,8 +101,7 @@ class WebSearch(WebInterf, ADSNasaStrings):
         a = self.getGenericInfo(string, self.fewFields)
         if len(a) > 0:
             return self.getBibtexs(a[0].bibcode)
-        else:
-            return ""
+        return ""
 
     def retrieveUrlAll(self, string):
         """Retrieves all the results from the given search.

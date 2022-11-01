@@ -33,7 +33,7 @@ class TestMarks(GUITestCase):
         """tests for the marks.__init__ function"""
         m = Marks()
         self.assertEqual(len(m.marks.keys()), 5)
-        for q in ["imp", "fav", "bad", "que", "new"]:
+        for q in ("imp", "fav", "bad", "que", "new"):
             self.assertIn(q, m.marks.keys())
         self.assertEqual(
             m.marks["imp"],
@@ -67,7 +67,7 @@ class TestMarks(GUITestCase):
         self.assertEqual(gb.title(), "Marks")
         self.assertIsInstance(gb.layout(), QHBoxLayout)
         self.assertIsInstance(mv, dict)
-        for q in ["imp", "fav", "bad", "que", "new"]:
+        for q in ("imp", "fav", "bad", "que", "new"):
             self.assertIn(q, mv.keys())
         self.assertNotIn("any", mv.keys())
         for qcb in mv.values():
@@ -77,7 +77,7 @@ class TestMarks(GUITestCase):
         gb, mv = m.getGroupbox(["new", "imp"])
         for q, qcb in mv.items():
             self.assertIsInstance(mv[q], QCheckBox)
-            if q in ["new", "imp"]:
+            if q in ("new", "imp"):
                 self.assertTrue(qcb.isChecked())
             else:
                 self.assertFalse(qcb.isChecked())
@@ -86,7 +86,7 @@ class TestMarks(GUITestCase):
         self.assertEqual(gb.title(), "try")
         for q, qcb in mv.items():
             self.assertIsInstance(mv[q], QRadioButton)
-            if q in ["imp"]:
+            if q in ("imp"):
                 self.assertTrue(qcb.isChecked())
             else:
                 self.assertFalse(qcb.isChecked())

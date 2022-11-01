@@ -55,14 +55,14 @@ class TestParser(unittest.TestCase):
     def test_global(self, *args):
         """Test that the options are recognised correctly"""
         parser = setParser()
-        for opt in ["-v", "--version"]:
+        for opt in ("-v", "--version"):
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
             self.assert_in_stdout_sysexit(
                 lambda: parser.parse_args([opt]),
                 ["PhysBiblio %s (%s)" % (__version__, __version_date__)],
             )
-        for opt in ["-h", "--help"]:
+        for opt in ("-h", "--help"):
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
             self.assert_in_stdout_sysexit(
@@ -72,7 +72,7 @@ class TestParser(unittest.TestCase):
                     "{citations,clean,cli,daily,dates,export,test,tex,update,weekly,gui}",
                 ],
             )
-        for opt in ["-p", "--profile"]:
+        for opt in ("-p", "--profile"):
             profile = list(pbConfig.profiles.keys())[0]
             with patch("physbiblio.cli.cli", autospec=True) as mock, patch(
                 "logging.Logger.info"

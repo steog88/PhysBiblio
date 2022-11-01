@@ -600,7 +600,7 @@ class TestCatsTreeWindow(GUITestCase):
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.createForm", autospec=True
         ) as _c:
-            ctw = CatsTreeWindow(parent=p, askCats=False)
+            ctw = CatsTreeWindow(parent=p)
 
         # test with askCats = False (nothing happens)
         self.assertTrue(ctw.populateAskCat())
@@ -847,7 +847,7 @@ class TestCatsTreeWindow(GUITestCase):
         with patch(
             "physbiblio.gui.catWindows.CatsTreeWindow.createForm", autospec=True
         ) as _c:
-            ctw = CatsTreeWindow(parent=p, askCats=True, single=False)
+            ctw = CatsTreeWindow(parent=p, askCats=True)
         self.assertEqual(ctw.populateAskCat(), True)
         self.assertEqual(ctw.currLayout.count(), 1)
         wid = ctw.layout().itemAt(0).widget()
@@ -1398,14 +1398,14 @@ class TestCatsTreeWindow(GUITestCase):
             self.assertEqual(ctw.menu.possibleActions[4], None)
             self.assertEqual(ctw.menu.possibleActions[7], None)
 
-            for ix, tit, en in [
-                [0, "--Category: mainS--", False],
-                [2, "Open list of corresponding entries", True],
-                [3, "Open in new tab", True],
-                [5, "Modify", True],
-                [6, "Delete", True],
-                [8, "Add subcategory", True],
-            ]:
+            for ix, tit, en in (
+                (0, "--Category: mainS--", False),
+                (2, "Open list of corresponding entries", True),
+                (3, "Open in new tab", True),
+                (5, "Modify", True),
+                (6, "Delete", True),
+                (8, "Add subcategory", True),
+            ):
                 act = ctw.menu.possibleActions[ix]
                 self.assertIsInstance(act, QAction)
                 self.assertEqual(act.text(), tit)

@@ -31,7 +31,6 @@ class Fake_abstractFormulas:
 
     def __init__(self):
         """empty constructor"""
-        return
 
     def __call__(self, p, abstract, customEditor=None, statusMessages=True):
         """Save some attributes and return self.el
@@ -285,7 +284,6 @@ class TestConfigWindow(GUITestCase):
             cw.editPDFFolder()
             self.assertEqual(cw.textValues[ix][1].text(), "/some/new/folder/")
             _adn.assert_called_once_with(
-                parent=None,
                 dir=pbConfig.params["pdfFolder"],
                 title="Directory for saving PDF files:",
             )
@@ -295,7 +293,6 @@ class TestConfigWindow(GUITestCase):
             cw.editPDFFolder()
             self.assertEqual(cw.textValues[ix][1].text(), "/some/new/folder/")
             _adn.assert_called_once_with(
-                parent=None,
                 dir="/some/new/folder/",
                 title="Directory for saving PDF files:",
             )
@@ -313,7 +310,6 @@ class TestConfigWindow(GUITestCase):
             cw.editFile()
             self.assertEqual(cw.textValues[ix][1].text(), "/some/new/folder/file.log")
             _adn.assert_called_once_with(
-                parent=None,
                 title="Name for the log file",
                 dir=pbConfig.params["logFileName"],
                 filter="*.log",
@@ -326,7 +322,6 @@ class TestConfigWindow(GUITestCase):
             cw.editFile(text="Name", filter="*.txt")
             self.assertEqual(cw.textValues[ix][1].text(), "/some/new/folder/file.log")
             _adn.assert_called_once_with(
-                parent=None,
                 title="Name",
                 dir="/some/new/folder/file.log",
                 filter="*.txt",

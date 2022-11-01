@@ -101,7 +101,6 @@ configuration_params.add(
         "logFileName",
         "PBDATAparams.log",
         description=cstr.Desc.logFName,
-        special=None,
     )
 )
 configuration_params.add(
@@ -109,7 +108,6 @@ configuration_params.add(
         "pdfFolder",
         "PBDATApdf",
         description=cstr.Desc.PDFFolder,
-        special=None,
     )
 )
 configuration_params.add(
@@ -117,7 +115,6 @@ configuration_params.add(
         "pdfApplication",
         "",
         description=cstr.Desc.PDFApp,
-        special=None,
     )
 )
 configuration_params.add(
@@ -125,7 +122,6 @@ configuration_params.add(
         "webApplication",
         "",
         description=cstr.Desc.webApp,
-        special=None,
     )
 )
 configuration_params.add(
@@ -245,7 +241,6 @@ configuration_params.add(
         "ADSToken",
         "",
         description=cstr.Desc.ADSToken,
-        special=None,
     )
 )
 configuration_params.add(
@@ -298,7 +293,7 @@ class GlobalDB(PhysBiblioDBCore):
 
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [name[0] for name in self.curs]
-        if not all([a in tables for a in ["profiles", "searches", "settings"]]):
+        if not all([a in tables for a in ("profiles", "searches", "settings")]):
             self.createTables(tables)
 
         if self.countProfiles() == 0:
@@ -392,7 +387,7 @@ class GlobalDB(PhysBiblioDBCore):
             (field == "databasefile" and identifierField != "name")
             or (field == "name" and identifierField != "databasefile")
             or (identifierField == "isDefault" and identifier != 1)
-            or identifierField not in ["name", "databasefile", "isDefault"]
+            or identifierField not in ("name", "databasefile", "isDefault")
             or field not in [e[0] for e in profilesSettingsTable]
         ):
             self.logger.error(cstr.errorInvalidFieldI % (field, identifierField))
@@ -452,7 +447,7 @@ class GlobalDB(PhysBiblioDBCore):
         Output:
             the `sqlite3.Row` object
         """
-        if name.strip() == "" and filename.strip() == "":
+        if name.strip() == filename.strip() == "":
             self.logger.warning(cstr.errorNameFilenameOne)
             return {}
         if name.strip() != "" and filename.strip() != "":
@@ -726,9 +721,9 @@ class GlobalDB(PhysBiblioDBCore):
                 False (empty value or not valid field)
         """
         if (field == "replaceFields" and not isReplace) or (
-            field in ["searchDict", "replaceFields", "name", "limitNum", "offsetNum"]
+            field in ("searchDict", "replaceFields", "name", "limitNum", "offsetNum")
             and value is not None
-            and ("%s" % value).strip() not in ["", "[]", "{}"]
+            and ("%s" % value).strip() not in ("", "[]", "{}")
         ):
             query = "update searches set " + field + "=:field where idS=:idS\n"
             return self.connExec(query, {"field": "%s" % value, "idS": idS})
@@ -763,11 +758,10 @@ class ConfigurationDB(PhysBiblioDBSub):
         if len(self.curs.fetchall()) > 0:
             self.mainDB.logger.info(cstr.confEntryUpdate)
             return self.update(name, value)
-        else:
-            return self.connExec(
-                "INSERT into settings (name, value) values (:name, :value)\n",
-                {"name": name, "value": value},
-            )
+        return self.connExec(
+            "INSERT into settings (name, value) values (:name, :value)\n",
+            {"name": name, "value": value},
+        )
 
     def update(self, name, value):
         """Update an existing setting
@@ -783,11 +777,10 @@ class ConfigurationDB(PhysBiblioDBSub):
         if len(self.curs.fetchall()) == 0:
             self.mainDB.logger.info(cstr.confEntryInsert % name)
             return self.insert(name, value)
-        else:
-            return self.connExec(
-                "update settings set value = :value where name = :name\n",
-                {"name": name, "value": value},
-            )
+        return self.connExec(
+            "update settings set value = :value where name = :name\n",
+            {"name": name, "value": value},
+        )
 
     def delete(self, name):
         """Delete a setting.
@@ -842,8 +835,7 @@ def getLogLevel(value):
         return logging.WARNING
     elif value == 2:
         return logging.INFO
-    else:
-        return logging.DEBUG
+    return logging.DEBUG
 
 
 def replacePBDATA(path, var):

@@ -60,19 +60,19 @@ class PhysBiblioDB(PhysBiblioDBCore):
             pBLogger.info(
                 "Performing conversion of 'entries' table to case-insensitive key"
             )
-            for fixQ in [
+            for fixQ in (
                 "BEGIN TRANSACTION;",
                 "ALTER TABLE entries RENAME TO tmp_entries;",
-            ]:
+            ):
                 if not self.connExec(fixQ):
                     pBLogger.exception("Impossible to rename table 'entries'")
                     self.undo()
                     return
             self.createTable("entries", self.tableFields["entries"])
-            for fixQ in [
+            for fixQ in (
                 "INSERT INTO entries SELECT * FROM tmp_entries;",
                 "DROP TABLE tmp_entries;",
-            ]:
+            ):
                 if not self.connExec(fixQ):
                     pBLogger.exception("Impossible to read create table for 'entries'")
                     self.undo()
@@ -246,7 +246,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
         Output:
             True
         """
-        for q in [
+        for q in (
             "bibs",
             "cats",
             "exps",
@@ -255,7 +255,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
             "catExp",
             "utils",
             "config",
-        ]:
+        ):
             try:
                 delattr(self, q)
             except AttributeError:
@@ -591,13 +591,12 @@ class Categories(PhysBiblioDBSub):
         if self.curs.fetchall():
             pBLogger.info(dstr.Cats.alreadyPresent)
             return False
-        else:
-            return self.connExec(
-                "INSERT into categories (name, description, parentCat, "
-                + "comments, ord) values (:name, :description, :parentCat, "
-                + ":comments, :ord)\n",
-                data,
-            )
+        return self.connExec(
+            "INSERT into categories (name, description, parentCat, "
+            + "comments, ord) values (:name, :description, :parentCat, "
+            + ":comments, :ord)\n",
+            data,
+        )
 
     def printHier(
         self, startFrom=0, sp=5 * " ", withDesc=False, depth=10, replace=False
@@ -680,8 +679,7 @@ class Categories(PhysBiblioDBSub):
         ):
             query = "update categories set " + field + "=:field where idCat=:idCat\n"
             return self.connExec(query, {"field": value, "idCat": idCat})
-        else:
-            return False
+        return False
 
 
 class CatsEntries(PhysBiblioDBSub):
@@ -1355,8 +1353,7 @@ class Experiments(PhysBiblioDBSub):
                     exp["idExp"],
                     exp["comments"],
                 )
-            else:
-                return sp + "-> %s (%d)" % (exp["name"], exp["idExp"])
+            return sp + "-> %s (%d)" % (exp["name"], exp["idExp"])
 
         def alphabetExp(listId):
             """Order experiments within a list in alphabetical order
@@ -1493,8 +1490,7 @@ class Experiments(PhysBiblioDBSub):
         ):
             query = "update experiments set " + field + "=:field where idExp=:idExp\n"
             return self.connExec(query, {"field": value, "idExp": idExp})
-        else:
-            return False
+        return False
 
 
 class Entries(PhysBiblioDBSub):
@@ -1597,7 +1593,7 @@ class Entries(PhysBiblioDBSub):
         """
         joinStr = ""
         whereStr = ""
-        valsTmp = tuple()
+        valsTmp = ()
         idxs = [str(i) for i in idxs] if isinstance(idxs, list) else [str(idxs)]
         if operator == dstr.Bibs.Search.opCSub and fieldName == "idCat":
             idxs = self.mainDB.cats.getAllCatsInTree(idxs)
@@ -1769,7 +1765,7 @@ class Entries(PhysBiblioDBSub):
                 data["arxiv"] = tmpBibDict["arxiv"]
             elif tmpBibDict.get("eprint", "") != "":
                 data["arxiv"] = tmpBibDict["eprint"]
-        for f in ["year", "doi", "isbn"]:
+        for f in ("year", "doi", "isbn"):
             if tmpBibDict.get(f, "") != "":
                 data[f] = tmpBibDict[f]
         return data
@@ -1786,9 +1782,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             the modified 'data' dict
         """
-        data["firstdate"] = (
-            firstdate if firstdate else datetime.date.today().strftime("%Y-%m-%d")
-        )
+        data["firstdate"] = firstdate or datetime.date.today().strftime("%Y-%m-%d")
         return data
 
     def _prepareInsertLink(self, data, link=None):
@@ -1838,7 +1832,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             the modified 'data' dict
         """
-        for k in ["abstract", "crossref", "doi", "isbn"]:
+        for k in ("abstract", "crossref", "doi", "isbn"):
             data[k] = (
                 kwargs[k]
                 if k in kwargs and kwargs[k]
@@ -1846,9 +1840,9 @@ class Entries(PhysBiblioDBSub):
                 if k in element
                 else None
             )
-        for k in ["ads", "comments", "inspire", "old_keys", "scholar"]:
+        for k in ("ads", "comments", "inspire", "old_keys", "scholar"):
             data[k] = kwargs[k] if k in kwargs and kwargs[k] else None
-        for k in [
+        for k in (
             "book",
             "exp_paper",
             "lecture",
@@ -1856,9 +1850,9 @@ class Entries(PhysBiblioDBSub):
             "phd_thesis",
             "proceeding",
             "review",
-        ]:
+        ):
             data[k] = 1 if k in kwargs and kwargs[k] else 0
-        for k in ["marks", "pubdate"]:
+        for k in ("marks", "pubdate"):
             data[k] = kwargs[k] if k in kwargs and kwargs[k] else ""
         return data
 
@@ -1917,25 +1911,25 @@ class Entries(PhysBiblioDBSub):
         Output:
             a tuple containing the output first, query, whereQ, joinQ, vals
         """
-        if di["logical"] is None or di["logical"].lower() not in ["and", "or"]:
+        if di["logical"] is None or di["logical"].lower() not in ("and", "or"):
             di["logical"] = defaultConnection
         if (
-            (di["type"] in ["Categories", "Experiments"] and di["content"] == "")
+            (di["type"] in ("Categories", "Experiments") and di["content"] == "")
             or (
                 di["type"] == "Text"
                 and (
                     di["content"] == ""
                     and di["operator"]
-                    not in [
+                    not in (
                         dstr.Bibs.Search.opTDifferent,
                         "!=",
                         dstr.Bibs.Search.opTExact,
                         "=",
-                    ]
+                    )
                 )
             )
             or (
-                di["type"] in ["Marks", "Type"]
+                di["type"] in ("Marks", "Type")
                 and (not isinstance(di["content"], list) or len(di["content"]) != 1)
             )
         ):
@@ -1987,7 +1981,7 @@ class Entries(PhysBiblioDBSub):
             if "any" in di["content"]:
                 di["operator"] = "!="
                 di["content"] = [""]
-            if di["operator"] is None or di["operator"] not in ["=", "!=", "like"]:
+            if di["operator"] is None or di["operator"] not in ("=", "!=", "like"):
                 di["operator"] = "like"
             whereQ += "%s %s%s %s ? " % (
                 di["logical"],
@@ -2049,7 +2043,7 @@ class Entries(PhysBiblioDBSub):
             a (possibly empty) list of entries otherwise
         """
         existing = self.getByBibkey(entry, saveQuery=False)
-        for f in ["arxiv", "doi"]:
+        for f in ("arxiv", "doi"):
             val = (
                 kwargs[f]
                 if (f in kwargs and kwargs[f] is not None and kwargs[f] != "")
@@ -2078,10 +2072,7 @@ class Entries(PhysBiblioDBSub):
         if (
             self.runningOAIUpdates
             and (e["proceeding"] == 0 or force)
-            and e["book"] == 0
-            and e["lecture"] == 0
-            and e["phd_thesis"] == 0
-            and e["noUpdate"] == 0
+            and e["book"] == e["lecture"] == e["phd_thesis"] == e["noUpdate"] == 0
             and e["inspire"] is not None
             and e["inspire"] != ""
             and (force or (e["doi"] is None or "journal" not in e["bibtexDict"].keys()))
@@ -2254,10 +2245,10 @@ class Entries(PhysBiblioDBSub):
         Parameter:
             e: the entry to be considered
         """
-        for field in [
+        for field in (
             "marks",
             "old_keys",
-        ]:  # convert None to "" for given fields
+        ):  # convert None to "" for given fields
             if e[field] is None:
                 self.updateField(e["bibkey"], field, "")
         if e["marks"] is not None and "'" in e["marks"]:
@@ -2315,7 +2306,7 @@ class Entries(PhysBiblioDBSub):
             except KeyError:
                 if tmp["year"] is None:
                     tmp["year"] = ""
-            for fi in ["title", "journal", "volume", "number", "pages"]:
+            for fi in ("title", "journal", "volume", "number", "pages"):
                 try:
                     tmp[fi] = tmp["bibtexDict"][fi]
                 except KeyError:
@@ -2399,13 +2390,13 @@ class Entries(PhysBiblioDBSub):
         """
         query = "select * from entries "
         vals = ()
-        if connection.strip() not in ["and", "or"]:
+        if connection.strip() not in ("and", "or"):
             pBLogger.warning(dstr.Bibs.invalidLogicalOp % connection)
             connection = "and"
-        if operator.strip() not in ["=", "like"]:
+        if operator.strip() not in ("=", "like"):
             pBLogger.warning(dstr.Bibs.invalidComparisonOp % operator)
             operator = "="
-        if orderType.strip() not in ["ASC", "DESC"]:
+        if orderType.strip() not in ("ASC", "DESC"):
             pBLogger.warning(dstr.Bibs.invalidOrdering % orderType)
             orderType = "ASC"
         if params and len(params) > 0:
@@ -2469,8 +2460,7 @@ class Entries(PhysBiblioDBSub):
             return self.fetchAll(
                 params={"bibkey": bibkey}, connection="or", saveQuery=saveQuery
             )
-        else:
-            return self.fetchAll(params={"bibkey": bibkey}, saveQuery=saveQuery)
+        return self.fetchAll(params={"bibkey": bibkey}, saveQuery=saveQuery)
 
     def fetchByBibtex(self, string, saveQuery=True):
         """Use self.fetchAll with a match on the bibtex content
@@ -2491,12 +2481,11 @@ class Entries(PhysBiblioDBSub):
                 operator=" like ",
                 saveQuery=saveQuery,
             )
-        else:
-            return self.fetchAll(
-                params={"bibtex": "%%%s%%" % string},
-                operator=" like ",
-                saveQuery=saveQuery,
-            )
+        return self.fetchAll(
+            params={"bibtex": "%%%s%%" % string},
+            operator=" like ",
+            saveQuery=saveQuery,
+        )
 
     def fetchByCat(self, idCat, orderBy="firstdate", orderType="ASC"):
         """Fetch all the entries associated to a given category
@@ -2610,12 +2599,11 @@ class Entries(PhysBiblioDBSub):
                 operator=" like ",
                 saveQuery=saveQuery,
             )
-        else:
-            return self.fetchAll(
-                params={"inspire": "%%%s%%" % iid},
-                operator=" like ",
-                saveQuery=saveQuery,
-            )
+        return self.fetchAll(
+            params={"inspire": "%%%s%%" % iid},
+            operator=" like ",
+            saveQuery=saveQuery,
+        )
 
     def fetchByKey(self, key, saveQuery=True):
         """Use self.fetchAll with a match
@@ -2638,13 +2626,12 @@ class Entries(PhysBiblioDBSub):
                 operator=" like ",
                 saveQuery=saveQuery,
             )
-        else:
-            return self.fetchAll(
-                params={"bibkey": "%%%s%%" % key, "old_keys": "%%%s%%" % key},
-                connection="or ",
-                operator=" like ",
-                saveQuery=saveQuery,
-            )
+        return self.fetchAll(
+            params={"bibkey": "%%%s%%" % key, "old_keys": "%%%s%%" % key},
+            connection="or ",
+            operator=" like ",
+            saveQuery=saveQuery,
+        )
 
     def fetchCursor(self):
         """Return the cursor"""
@@ -2704,7 +2691,7 @@ class Entries(PhysBiblioDBSub):
         whereQ = ""
         prependTab = (
             "entries."
-            if any([e["type"] in ["Categories", "Experiments"] for e in queryFields])
+            if any([e["type"] in ("Categories", "Experiments") for e in queryFields])
             else ""
         )
 
@@ -2867,7 +2854,6 @@ class Entries(PhysBiblioDBSub):
             limitTo=limitTo,
             limitOffset=limitOffset,
             saveQuery=saveQuery,
-            doFetch=True,
         ).lastFetched
 
     def getArxivUrl(self, key, urlType="abs"):
@@ -3099,7 +3085,7 @@ class Entries(PhysBiblioDBSub):
             fields = [fields]
         bibtex = self.getField(bibkey, "bibtex")
         arxiv = str(self.getField(bibkey, "arxiv"))
-        if arxiv == "False" or arxiv == "None" or arxiv.strip() == "":
+        if arxiv.strip() in ("False", "None", ""):
             return False
         arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
             arxiv, searchType="id", fullDict=True
@@ -3787,7 +3773,7 @@ class Entries(PhysBiblioDBSub):
                 _print(i, e)
                 total += 1
         else:
-            self.fetchAll(orderBy="firstdate", doFetch=False)
+            self.fetchAll(doFetch=False)
             for i, e in enumerate(self.fetchCursor()):
                 _print(i, e)
                 total += 1
@@ -3811,7 +3797,7 @@ class Entries(PhysBiblioDBSub):
                 _print(i, e)
                 total += 1
         else:
-            self.fetchAll(orderBy="firstdate", doFetch=False)
+            self.fetchAll(doFetch=False)
             for i, e in enumerate(self.fetchCursor()):
                 _print(i, e)
                 total += 1
@@ -4008,8 +3994,7 @@ class Entries(PhysBiblioDBSub):
             {"old": old, "new": new, "match": match},
         ):
             return keys
-        else:
-            return False
+        return False
 
     def replaceSingleEntry(
         self,
@@ -4413,8 +4398,7 @@ class Entries(PhysBiblioDBSub):
         if self.connExec(query, {"new": newKey, "old": oldKey}):
             query = "update entryExps set bibkey=:new where bibkey=:old\n"
             return self.connExec(query, {"new": newKey, "old": oldKey})
-        else:
-            return False
+        return False
 
     def updateField(self, key, field, value, verbose=1):
         """Update a single field of an entry
@@ -4595,10 +4579,10 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.warning(dstr.Bibs.errorUIIDGeneric)
                 return False
         else:
-            for fi, tag, em in [
-                ["doi", "isDoi", dstr.Bibs.errorUIIDDOI],
-                ["arxiv", "isArxiv", dstr.Bibs.errorUIIDArxiv],
-            ]:
+            for fi, tag, em in (
+                ("doi", "isDoi", dstr.Bibs.errorUIIDDOI),
+                ("arxiv", "isArxiv", dstr.Bibs.errorUIIDArxiv),
+            ):
                 value = self.getField(key, fi)
                 if isinstance(value, str) and value.strip() != "":
                     newid = physBiblioWeb.webSearch["inspire"].retrieveInspireID(
@@ -4630,7 +4614,6 @@ class Entries(PhysBiblioDBSub):
         if self.updateInfoFromOAI(
             e["inspire"],
             bibtex=e["bibtex"],
-            verbose=0,
             readConferenceTitle=(e["proceeding"] == 1 and force),
             reloadAll=reloadAll,
             originalKey=e["bibkey"],
@@ -4702,7 +4685,7 @@ class Entries(PhysBiblioDBSub):
                         k: v
                         for k, v in e.items()
                         if k
-                        in [
+                        in (
                             "doi",
                             "arxiv",
                             "eprint",
@@ -4711,7 +4694,7 @@ class Entries(PhysBiblioDBSub):
                             "title",
                             "author",
                             "authors",
-                        ]
+                        )
                         and v is not None
                     },
                 }
@@ -4833,8 +4816,7 @@ def catString(idCat, db, withDesc=False):
         return ""
     if withDesc:
         return "%4d: %s - <i>%s</i>" % (cat["idCat"], cat["name"], cat["description"])
-    else:
-        return "%4d: %s" % (cat["idCat"], cat["name"])
+    return "%4d: %s" % (cat["idCat"], cat["name"])
 
 
 def cats_alphabetical(listId, db):

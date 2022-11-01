@@ -256,7 +256,7 @@ class TestObjListWindow(GUITestCase):
         """Test the non implemented functions (must be subclassed!)"""
         olw = ObjListWindow()
         ix = QModelIndex()
-        self.assertRaises(NotImplementedError, lambda: olw.createTable())
+        self.assertRaises(NotImplementedError, olw.createTable)
         self.assertRaises(NotImplementedError, lambda: olw.cellClick(ix))
         self.assertRaises(NotImplementedError, lambda: olw.cellDoubleClick(ix))
         self.assertRaises(NotImplementedError, lambda: olw.handleItemEntered(ix))
@@ -454,8 +454,8 @@ class TestPBThread(GUITestCase):
             self.assertEqual(_in.call_count, 1)
         mt = PBThread()
         self.assertIsInstance(mt, QThread)
-        self.assertRaises(NotImplementedError, lambda: mt.run())
-        self.assertRaises(NotImplementedError, lambda: mt.setStopFlag())
+        self.assertRaises(NotImplementedError, mt.run)
+        self.assertRaises(NotImplementedError, mt.setStopFlag)
         self.assertIsInstance(mt.finished, Signal)
         with patch("time.sleep", autospec=True) as _sl, patch(
             "PySide6.QtCore.QThread.start", autospec=True
@@ -536,8 +536,7 @@ class TestWriteStream(GUITestCase):
                 time.sleep(timeout)
                 if self.a > 2:
                     return "abcde"
-                else:
-                    return ""
+                return ""
 
             _get.side_effect = getWaitLong
             ws.running = True
@@ -555,8 +554,7 @@ class TestWriteStream(GUITestCase):
                 if self.a > 4:
                     ws.running = False
                     return ""
-                else:
-                    return "a"
+                return "a"
 
             _get.side_effect = getWaitEmpty
             ws.running = True
@@ -880,7 +878,7 @@ class TestTreeNode(GUITestCase):
             self.assertEqual(tn.row, "abc")
             self.assertEqual(tn.subnodes, "def")
             _gc.assert_called_once_with(tn)
-        self.assertRaises(NotImplementedError, lambda: tn._getChildren())
+        self.assertRaises(NotImplementedError, tn._getChildren)
 
 
 @unittest.skipIf(skipTestsSettings.gui, "GUI tests")
@@ -920,14 +918,14 @@ class TestTreeModel(GUITestCase):
 
     def test_getRootNodes(self):
         """test the non implemented _getRootNodes"""
-        self.assertRaises(NotImplementedError, lambda: TreeModel())
+        self.assertRaises(NotImplementedError, TreeModel)
         with patch(
             "physbiblio.gui.commonClasses.TreeModel._getRootNodes",
             return_value="empty",
             autospec=True,
         ) as _gr:
             tm = TreeModel()
-        self.assertRaises(NotImplementedError, lambda: tm._getRootNodes())
+        self.assertRaises(NotImplementedError, tm._getRootNodes)
 
     def test_index(self):
         """Test the function that returns the object index"""

@@ -324,7 +324,7 @@ class EditProfileWindow(EditObjectWindow):
                 pBLogger.warning(pmstr.missingProfile % (k, sorted(list(profilesData))))
                 missing.append(k)
                 continue
-            for f in ["db", "d"]:
+            for f in ("db", "d"):
                 if f not in list(prof):
                     pBLogger.warning(pmstr.missingInfo % (f, sorted(list(prof))))
                     prof[f] = ""
@@ -426,7 +426,7 @@ class EditProfileWindow(EditObjectWindow):
 
         self.addButtons(profilesData, profileOrder)
 
-        for f in ["c", "db", "d", "n", "r"]:
+        for f in ("c", "db", "d", "n", "r"):
             if f not in newLine.keys():
                 pBLogger.warning(pmstr.missingField % (f, sorted(list(newLine))))
                 newLine[f] = ""

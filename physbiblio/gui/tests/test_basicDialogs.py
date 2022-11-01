@@ -117,9 +117,7 @@ class TestDialogWindows(GUITestCase):
         fd.selectedFiles.side_effect = [["abc", "def"], []]
         with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
-                askFileName(
-                    parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
-                ),
+                askFileName(title="mytitle", dir="/tmp", filter="test: *.txt"),
                 "",
             )
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
@@ -139,9 +137,7 @@ class TestDialogWindows(GUITestCase):
         fd.selectedFiles.return_value = ["abc", "def"]
         with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
-                askFileNames(
-                    parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
-                ),
+                askFileNames(title="mytitle", dir="/tmp", filter="test: *.txt"),
                 [],
             )
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
@@ -161,9 +157,7 @@ class TestDialogWindows(GUITestCase):
         fd.selectedFiles.side_effect = [["abc", "def"], []]
         with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
             self.assertEqual(
-                askSaveFileName(
-                    parent=None, title="mytitle", dir="/tmp", filter="test: *.txt"
-                ),
+                askSaveFileName(title="mytitle", dir="/tmp", filter="test: *.txt"),
                 "",
             )
             _fd.assert_called_once_with(None, "mytitle", "/tmp", "test: *.txt")
@@ -183,7 +177,7 @@ class TestDialogWindows(GUITestCase):
         fd.exec.side_effect = [False, True, True]
         fd.selectedFiles.side_effect = [["abc", "def"], []]
         with patch("physbiblio.gui.basicDialogs.QFileDialog", return_value=fd) as _fd:
-            self.assertEqual(askDirName(parent=None, title="mytitle", dir="/tmp"), "")
+            self.assertEqual(askDirName(title="mytitle", dir="/tmp"), "")
             _fd.assert_called_once_with(None, "mytitle", "/tmp")
             fd.setFileMode.assert_called_once_with(_fd.Directory)
             fd.setOption.assert_called_once_with(_fd.ShowDirsOnly, True)

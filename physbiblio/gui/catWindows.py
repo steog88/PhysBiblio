@@ -234,8 +234,7 @@ class CatsModel(TreeModel):
                 | Qt.ItemIsEnabled
                 | Qt.ItemIsSelectable
             )
-        else:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def headerData(self, section, orientation, role):
         """Return the header data given section, orientation and role
@@ -488,7 +487,7 @@ class CatsTreeWindow(PBDialog):
         if e.key() == Qt.Key_Escape:
             self.close()
         elif (
-            e.key() in [Qt.Key_Return, Qt.Key_Enter]
+            e.key() in (Qt.Key_Return, Qt.Key_Enter)
             and e.modifiers() == Qt.ControlModifier
         ):
             self.onOk()
@@ -683,7 +682,6 @@ class CatsTreeWindow(PBDialog):
             deleteCategory(self, self.parent(), idCat, catName)
         elif action == subAction:
             editCategory(self, self.parent(), useParentCat=idCat)
-        return
 
     def cellDoubleClick(self, index):
         """Process event when mouse double clicks an item.
@@ -709,7 +707,6 @@ class CatsTreeWindow(PBDialog):
             return
         idCat = idCat.strip()
         self.parent().reloadMainContent(pBDB.bibs.getByCat(idCat))
-        return
 
     def recreateTable(self):
         """Delete the previous widgets and recreate them with new data"""

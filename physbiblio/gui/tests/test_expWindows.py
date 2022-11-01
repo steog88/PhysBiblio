@@ -907,14 +907,14 @@ class TestExpsListWindow(GUITestCase):
             self.assertEqual(elw.menu.possibleActions[4], None)
             self.assertEqual(elw.menu.possibleActions[7], None)
 
-            for ix, tit, en in [
-                [0, "--Experiment: test0--", False],
-                [2, "Open list of corresponding entries", True],
-                [3, "Open in new tab", True],
-                [5, "Modify", True],
-                [6, "Delete", True],
-                [8, "Categories", True],
-            ]:
+            for ix, tit, en in (
+                (0, "--Experiment: test0--", False),
+                (2, "Open list of corresponding entries", True),
+                (3, "Open in new tab", True),
+                (5, "Modify", True),
+                (6, "Delete", True),
+                (8, "Categories", True),
+            ):
                 act = elw.menu.possibleActions[ix]
                 self.assertIsInstance(act, QAction)
                 self.assertEqual(act.text(), tit)
