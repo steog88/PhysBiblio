@@ -202,11 +202,11 @@ class CatsModel(TreeModel):
             and self.parentObj.askCats
         ):
             if self.previousSaved[idCat] == True and self.selectedCats[idCat] == "p":
-                return int(Qt.PartiallyChecked)
+                return Qt.PartiallyChecked
             elif self.selectedCats[idCat] == False:
-                return int(Qt.Unchecked)
+                return Qt.Unchecked
             else:
-                return int(Qt.Checked)
+                return Qt.Checked
         if role == Qt.EditRole:
             return value
         if role == Qt.DisplayRole:

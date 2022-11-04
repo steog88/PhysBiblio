@@ -3,6 +3,7 @@
     changes:
         - deprecation warnings fixed in setup.cfg and setup.py
         - code improvements thanks to refurb
+        - PySide6 6.4.0 enum system now compatible with matplotlib >3.6.2
 -   version: 2.0.3
     date: 2022-10-21
     changes:

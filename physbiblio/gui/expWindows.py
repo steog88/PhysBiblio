@@ -163,9 +163,9 @@ class ExpTableModel(PBTableModel):
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
             if self.selectedElements[self.dataList[row][self.header[0]]] == False:
-                return int(Qt.Unchecked)
+                return Qt.Unchecked
             else:
-                return int(Qt.Checked)
+                return Qt.Checked
         if role == Qt.EditRole:
             return value
         if role == Qt.DisplayRole:
