@@ -1369,7 +1369,7 @@ class Experiments(PhysBiblioDBSub):
             return [x[1]["idExp"] for x in sorted(decorated)]
 
         expCats = {}
-        for (a, idE, idC) in self.mainDB.catExp.getAll():
+        for a, idE, idC in self.mainDB.catExp.getAll():
             if idC not in expCats.keys():
                 expCats[idC] = []
                 showCat[idC] = True

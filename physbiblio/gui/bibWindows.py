@@ -2601,6 +2601,9 @@ class SearchBibsWindow(EditObjectWindow):
             )
             self.createForm()
 
+    def reloadMainContent(self, *args, **kwargs):
+        pass
+
     def processHistoric(self, record):
         """Process the information stored in the database
         to later use it for restoring a previous search/replace
