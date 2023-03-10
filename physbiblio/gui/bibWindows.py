@@ -1416,7 +1416,7 @@ class CommonBibActions:
             else:
                 prevAll = list(previousAll)
                 for c in self.parent().previousUnchanged:
-                    if c in prevAll:
+                    while c in prevAll:
                         del prevAll[prevAll.index(c)]
                 for c in prevAll:
                     if c not in self.parent().selectedCats:
