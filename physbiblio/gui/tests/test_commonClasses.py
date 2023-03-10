@@ -1681,8 +1681,9 @@ class TestPBImportedTableModel(GUITestCase):
                     mitm.setData(QModelIndex(), Qt.Checked, Qt.CheckStateRole)
                 )
                 self.assertEqual({"a": True, "b": False}, mitm.selectedElements)
-                self.assertTrue(mitm.setData(QModelIndex(), "abc", Qt.CheckStateRole))
-                self.assertEqual({"a": False, "b": False}, mitm.selectedElements)
+                with self.assertRaises(ValueError):
+                    mitm.setData(QModelIndex(), "abc", Qt.CheckStateRole)
+                self.assertEqual({"a": True, "b": False}, mitm.selectedElements)
         with patch(
             "PySide6.QtCore.QModelIndex.isValid", return_value=False, autospec=True
         ) as _iv:

@@ -275,7 +275,7 @@ class CatsModel(TreeModel):
         idCat = element.idCat
         if role == Qt.CheckStateRole and index.column() == 0:
             self.previousSaved[idCat] = False
-            if value == Qt.Checked:
+            if Qt.CheckState(value) == Qt.Checked:
                 self.selectedCats[idCat] = True
             else:
                 self.selectedCats[idCat] = False

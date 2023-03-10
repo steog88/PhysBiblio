@@ -1934,12 +1934,13 @@ class TestBibTableModel(GUITestCase):
             m, biblist, header + addCols, header, addCols, previous=["a"], askBibs=True
         )
         self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), Qt.Checked)
-        self.assertEqual(tm.setData(tm.index(0, 0), "abc", Qt.CheckStateRole), True)
-        self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), Qt.Unchecked)
-        self.assertEqual(
-            tm.setData(tm.index(0, 0), Qt.Checked, Qt.CheckStateRole), True
-        )
+        with self.assertRaises(ValueError):
+            tm.setData(tm.index(0, 0), "abc", Qt.CheckStateRole)
         self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), Qt.Checked)
+        self.assertEqual(
+            tm.setData(tm.index(0, 0), Qt.Unchecked, Qt.CheckStateRole), True
+        )
+        self.assertEqual(tm.data(tm.index(0, 0), Qt.CheckStateRole), Qt.Unchecked)
 
     def test_setData(self):
         """test setData"""
@@ -1963,15 +1964,14 @@ class TestBibTableModel(GUITestCase):
         self.assertEqual(tm.selectedElements, {"a": True, "b": False})
         self.assertEqual(self.newEmit, ix)
         self.newEmit = False
-        self.assertEqual(tm.setData(ix, "abc", Qt.CheckStateRole), True)
-        self.assertEqual(tm.selectedElements, {"a": False, "b": False})
-        self.assertEqual(self.newEmit, ix)
+        with self.assertRaises(ValueError):
+            tm.setData(ix, "abc", Qt.CheckStateRole)
+        self.assertEqual(tm.selectedElements, {"a": True, "b": False})
+        self.assertEqual(self.newEmit, False)
 
         tm = BibTableModel(p, biblist, header)
         ix = tm.index(1, 0)
         self.assertEqual(tm.setData(ix, "abc", Qt.EditRole), True)
-        self.assertEqual(tm.selectedElements, {"a": False, "b": False})
-        self.assertEqual(tm.setData(ix, "abc", Qt.CheckStateRole), True)
         self.assertEqual(tm.selectedElements, {"a": False, "b": False})
 
 

@@ -348,10 +348,11 @@ class TestExpTableModel(GUITestCase):
         self.assertEqual(em.data(em.index(0, 0), Qt.CheckStateRole), Qt.Unchecked)
         em = ExpTableModel(p, exp_list, header, askExps=True, previous=[0])
         self.assertEqual(em.data(em.index(0, 0), Qt.CheckStateRole), Qt.Checked)
-        self.assertEqual(em.setData(ix, "abc", Qt.CheckStateRole), True)
-        self.assertEqual(em.data(em.index(0, 0), Qt.CheckStateRole), Qt.Unchecked)
-        self.assertEqual(em.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
+        with self.assertRaises(ValueError):
+            em.setData(ix, "abc", Qt.CheckStateRole)
         self.assertEqual(em.data(em.index(0, 0), Qt.CheckStateRole), Qt.Checked)
+        self.assertEqual(em.setData(ix, Qt.Unchecked, Qt.CheckStateRole), True)
+        self.assertEqual(em.data(em.index(0, 0), Qt.CheckStateRole), Qt.Unchecked)
 
     def test_setData(self):
         """test setData"""
@@ -374,15 +375,14 @@ class TestExpTableModel(GUITestCase):
         self.assertEqual(cm.selectedElements[0], True)
         self.assertEqual(self.newEmit, ix)
         self.newEmit = False
-        self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
-        self.assertEqual(cm.selectedElements[0], False)
-        self.assertEqual(self.newEmit, ix)
+        with self.assertRaises(ValueError):
+            cm.setData(ix, "abc", Qt.CheckStateRole)
+        self.assertEqual(cm.selectedElements[0], True)
+        self.assertEqual(self.newEmit, False)
 
         cm = ExpTableModel(p, exp_list, header)
         ix = cm.index(0, 0)
         self.assertEqual(cm.setData(ix, "abc", Qt.EditRole), True)
-        self.assertEqual(cm.selectedElements[0], False)
-        self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
         self.assertEqual(cm.selectedElements[0], False)
 
 

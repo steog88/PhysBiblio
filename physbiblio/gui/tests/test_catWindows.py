@@ -405,10 +405,11 @@ class TestCatsModel(GUITestCase):
         cm = CatsModel(self.cats, self.rootElements, p, [0], True)
         ix = cm.index(0, 0)
         self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.PartiallyChecked)
-        self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
-        self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Unchecked)
-        self.assertEqual(cm.setData(ix, Qt.Checked, Qt.CheckStateRole), True)
+        with self.assertRaises(ValueError):
+            cm.setData(ix, "abc", Qt.CheckStateRole)
         self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Checked)
+        self.assertEqual(cm.setData(ix, Qt.Unchecked, Qt.CheckStateRole), True)
+        self.assertEqual(cm.data(ix, Qt.CheckStateRole), Qt.Unchecked)
 
     def test_flags(self):
         """test flags"""
@@ -500,17 +501,18 @@ class TestCatsModel(GUITestCase):
         self.assertEqual(cm.selectedCats[0], True)
         self.assertEqual(self.newEmit, ix)
         self.newEmit = False
-        self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
+        with self.assertRaises(ValueError):
+            cm.setData(ix, "abc", Qt.CheckStateRole)
         self.assertEqual(cm.previousSaved[0], False)
-        self.assertEqual(cm.selectedCats[0], False)
-        self.assertEqual(self.newEmit, ix)
+        self.assertEqual(cm.selectedCats[0], True)
+        self.assertEqual(self.newEmit, False)
 
         cm = CatsModel(self.cats, self.rootElements, None, [0], True)
         ix = cm.index(0, 0)
         self.assertEqual(cm.setData(ix, "abc", Qt.EditRole), True)
         self.assertEqual(cm.previousSaved[0], True)
         self.assertEqual(cm.selectedCats[0], "p")
-        self.assertEqual(cm.setData(ix, "abc", Qt.CheckStateRole), True)
+        self.assertEqual(cm.setData(ix, Qt.Unchecked, Qt.CheckStateRole), True)
         self.assertEqual(cm.previousSaved[0], False)
         self.assertEqual(cm.selectedCats[0], False)
 

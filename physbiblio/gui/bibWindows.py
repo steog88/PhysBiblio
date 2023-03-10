@@ -718,7 +718,7 @@ class BibTableModel(PBTableModel):
         if not index.isValid():
             return False
         if role == Qt.CheckStateRole and index.column() == 0:
-            if value == Qt.Checked:
+            if Qt.CheckState(value) == Qt.Checked:
                 self.selectedElements[self.dataList[index.row()]["bibkey"]] = True
             else:
                 self.selectedElements[self.dataList[index.row()]["bibkey"]] = False

@@ -162,7 +162,7 @@ class ExpTableModel(PBTableModel):
             return None
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
-            if self.selectedElements[self.dataList[row][self.header[0]]] == False:
+            if not self.selectedElements[self.dataList[row][self.header[0]]]:
                 return Qt.Unchecked
             else:
                 return Qt.Checked
@@ -187,7 +187,7 @@ class ExpTableModel(PBTableModel):
         if not index.isValid():
             return False
         if role == Qt.CheckStateRole and index.column() == 0:
-            if value == Qt.Checked:
+            if Qt.CheckState(value) == Qt.Checked:
                 self.selectedElements[self.dataList[index.row()]["idExp"]] = True
             else:
                 self.selectedElements[self.dataList[index.row()]["idExp"]] = False
