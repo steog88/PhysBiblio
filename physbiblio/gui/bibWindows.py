@@ -762,8 +762,16 @@ class CommonBibActions:
             menuA = []
             menuA.extend(
                 (
-                    QAction(bwstr.Acts.arxLoad, self.menu, triggered=self.onAbs),
-                    QAction(bwstr.Acts.arxMore, self.menu, triggered=self.onArx),
+                    QAction(
+                        bwstr.Acts.arxLoad,
+                        self.menu,
+                        triggered=lambda c=False: self.onAbs(),
+                    ),
+                    QAction(
+                        bwstr.Acts.arxMore,
+                        self.menu,
+                        triggered=lambda c=False: self.onArx(),
+                    ),
                 )
             )
             self.menu.possibleActions.append([bwstr.Acts.arxTit, menuA])
@@ -778,9 +786,19 @@ class CommonBibActions:
             initialRecord: the bibtex record to be used
         """
         menuC = [
-            QAction(bwstr.Acts.cpKey, self.menu, triggered=self.onCopyKeys),
-            QAction(bwstr.Acts.cpCite, self.menu, triggered=self.onCopyCites),
-            QAction(bwstr.Acts.cpBib, self.menu, triggered=self.onCopyBibtexs),
+            QAction(
+                bwstr.Acts.cpKey, self.menu, triggered=lambda c=False: self.onCopyKeys()
+            ),
+            QAction(
+                bwstr.Acts.cpCite,
+                self.menu,
+                triggered=lambda c=False: self.onCopyCites(),
+            ),
+            QAction(
+                bwstr.Acts.cpBib,
+                self.menu,
+                triggered=lambda c=False: self.onCopyBibtexs(),
+            ),
         ]
         subm = []
         latexToText = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
@@ -896,7 +914,9 @@ class CommonBibActions:
                     )
                     subm.append(
                         QAction(
-                            field, self.menu, triggered=lambda t=c: copyToClipboard(t)
+                            field,
+                            self.menu,
+                            triggered=lambda c=False, t=c: copyToClipboard(t),
                         )
                     )
         if len(subm) > 0:
@@ -905,7 +925,11 @@ class CommonBibActions:
         menuC.extend(
             (
                 None,
-                QAction(bwstr.Acts.cpDir, self.menu, triggered=self.onCopyDir),
+                QAction(
+                    bwstr.Acts.cpDir,
+                    self.menu,
+                    triggered=lambda c=False: self.onCopyDir(),
+                ),
             )
         )
         self.menu.possibleActions.append([bwstr.Acts.cpTit, menuC])
@@ -924,7 +948,7 @@ class CommonBibActions:
             QAction(
                 bwstr.Acts.insCompl,
                 self.menu,
-                triggered=self.onComplete,
+                triggered=lambda c=False: self.onComplete(),
             )
         )
         if selection or (not selection and inspireID):
@@ -933,18 +957,24 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.insUpd,
                         self.menu,
-                        triggered=lambda r=True: self.onUpdate(force=r),
+                        triggered=lambda c=False, r=True: self.onUpdate(force=r),
                     ),
                     QAction(
                         bwstr.Acts.insRel,
                         self.menu,
-                        triggered=lambda f=(not selection), r=True: self.onUpdate(
-                            force=f, reloadAll=r
-                        ),
+                        triggered=lambda c=False, f=(
+                            not selection
+                        ), r=True: self.onUpdate(force=f, reloadAll=r),
                     ),
-                    QAction(bwstr.Acts.insCit, self.menu, triggered=self.onCitations),
                     QAction(
-                        bwstr.Acts.insCitCo, self.menu, triggered=self.onCitationCount
+                        bwstr.Acts.insCit,
+                        self.menu,
+                        triggered=lambda c=False: self.onCitations(),
+                    ),
+                    QAction(
+                        bwstr.Acts.insCitCo,
+                        self.menu,
+                        triggered=lambda c=False: self.onCitationCount(),
                     ),
                 )
             )
@@ -971,7 +1001,9 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnArx,
                     self.menu,
-                    triggered=lambda l=bibkey, t="arxiv": pBGuiView.openLink(l, t),
+                    triggered=lambda c=False, l=bibkey, t="arxiv": pBGuiView.openLink(
+                        l, t
+                    ),
                 )
             )
         if doi is not None and doi != "":
@@ -979,7 +1011,9 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnDoi,
                     self.menu,
-                    triggered=lambda l=bibkey, t="doi": pBGuiView.openLink(l, t),
+                    triggered=lambda c=False, l=bibkey, t="doi": pBGuiView.openLink(
+                        l, t
+                    ),
                 )
             )
         if inspireID is not None and inspireID != "":
@@ -987,7 +1021,9 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnIns,
                     self.menu,
-                    triggered=lambda l=bibkey, t="inspire": pBGuiView.openLink(l, t),
+                    triggered=lambda c=False, l=bibkey, t="inspire": pBGuiView.openLink(
+                        l, t
+                    ),
                 )
             )
         if len(menuL) > 0:
@@ -1011,7 +1047,7 @@ class CommonBibActions:
                     )
                     % pBMarks.marks[m]["desc"],
                     self.menu,
-                    triggered=lambda x=m: self.onUpdateMark(x),
+                    triggered=lambda c=False, x=m: self.onUpdateMark(x),
                 )
             )
         menuT = []
@@ -1020,7 +1056,7 @@ class CommonBibActions:
                 QAction(
                     (bwstr.Acts.tyRem if initialRecord[k] else bwstr.Acts.tyAdd) % v,
                     self.menu,
-                    triggered=lambda t=k: self.onUpdateType(t),
+                    triggered=lambda c=False, t=k: self.onUpdateType(t),
                 )
             )
         self.menu.possibleActions.extend(
@@ -1038,12 +1074,12 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.maAddL % pBMarks.marks[m]["desc"],
                         self.menu,
-                        triggered=lambda m=m: self.onUpdateMark(m, force=1),
+                        triggered=lambda c=False, m=m: self.onUpdateMark(m, force=1),
                     ),
                     QAction(
                         bwstr.Acts.maRemL % pBMarks.marks[m]["desc"],
                         self.menu,
-                        triggered=lambda m=m: self.onUpdateMark(m, force=0),
+                        triggered=lambda c=False, m=m: self.onUpdateMark(m, force=0),
                     ),
                 )
             )
@@ -1054,12 +1090,12 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.tyAddL % v,
                         self.menu,
-                        triggered=lambda t=k: self.onUpdateType(t, force=1),
+                        triggered=lambda c=False, t=k: self.onUpdateType(t, force=1),
                     ),
                     QAction(
                         bwstr.Acts.tyRemL % v,
                         self.menu,
-                        triggered=lambda t=k: self.onUpdateType(t, force=0),
+                        triggered=lambda c=False, t=k: self.onUpdateType(t, force=0),
                     ),
                 )
             )
@@ -1091,7 +1127,7 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.pdfO % "arXiv",
                         self.menu,
-                        triggered=lambda k=bibkey, t="file", f=arxivFile: pBGuiView.openLink(
+                        triggered=lambda c=False, k=bibkey, t="file", f=arxivFile: pBGuiView.openLink(
                             k, t, fileArg=f
                         ),
                     )
@@ -1101,7 +1137,7 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.pdfO % "DOI",
                         self.menu,
-                        triggered=lambda k=bibkey, t="file", f=doiFile: pBGuiView.openLink(
+                        triggered=lambda c=False, k=bibkey, t="file", f=doiFile: pBGuiView.openLink(
                             k, t, fileArg=f
                         ),
                     )
@@ -1113,14 +1149,20 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfOpen % fn,
                             self.menu,
-                            triggered=lambda k=bibkey, t="file", f=f: pBGuiView.openLink(
+                            triggered=lambda c=False, k=bibkey, t="file", f=f: pBGuiView.openLink(
                                 k, t, fileArg=f
                             ),
                         )
                     )
             if len(menuP) > 0:
                 menuP.append(None)
-            menuP.append(QAction(bwstr.Acts.pdfGen, self.menu, triggered=self.onAddPDF))
+            menuP.append(
+                QAction(
+                    bwstr.Acts.pdfGen,
+                    self.menu,
+                    triggered=lambda c=False: self.onAddPDF(),
+                )
+            )
             if len(files) > 0:
                 menuP.append(None)
             if arxivFile in files:
@@ -1131,14 +1173,14 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfD % "arXiv",
                             self.menu,
-                            triggered=lambda k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
+                            triggered=lambda c=False, k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
                                 k, a, t
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfC % "arXiv",
                             self.menu,
-                            triggered=lambda k=bibkey, a="arxiv": self.onCopyPDFFile(
+                            triggered=lambda c=False, k=bibkey, a="arxiv": self.onCopyPDFFile(
                                 k, a
                             ),
                         ),
@@ -1147,7 +1189,11 @@ class CommonBibActions:
                 menuP.append([bwstr.Acts.pdfM % "arXiv", tmpM])
             elif arxiv is not None and arxiv != "":
                 menuP.append(
-                    QAction(bwstr.Acts.pdfArxW, self.menu, triggered=self.onDown)
+                    QAction(
+                        bwstr.Acts.pdfArxW,
+                        self.menu,
+                        triggered=lambda c=False: self.onDown(),
+                    )
                 )
             if doiFile in files:
                 files.remove(doiFile)
@@ -1157,14 +1203,14 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfD % "DOI",
                             self.menu,
-                            triggered=lambda k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
+                            triggered=lambda c=False, k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
                                 k, a, t
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfC % "DOI",
                             self.menu,
-                            triggered=lambda k=bibkey, a="doi": self.onCopyPDFFile(
+                            triggered=lambda c=False, k=bibkey, a="doi": self.onCopyPDFFile(
                                 k, a
                             ),
                         ),
@@ -1176,7 +1222,7 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.pdfDOIA,
                         self.menu,
-                        triggered=lambda g="doi": self.onAddPDF(g),
+                        triggered=lambda c=False, g="doi": self.onAddPDF(g),
                     )
                 )
             shortfiles = {f.replace(pdfDir + os.sep, ""): f for f in files}
@@ -1188,14 +1234,14 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfDel % fn,
                             self.menu,
-                            triggered=lambda k=bibkey, a=fn, t=f: self.onDeletePDFFile(
+                            triggered=lambda c=False, k=bibkey, a=fn, t=f: self.onDeletePDFFile(
                                 k, a, a, t
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfCp % fn,
                             self.menu,
-                            triggered=lambda k=bibkey, a=fn, t=f: self.onCopyPDFFile(
+                            triggered=lambda c=False, k=bibkey, a=fn, t=f: self.onCopyPDFFile(
                                 k, a, t
                             ),
                         ),
@@ -1209,7 +1255,7 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfOpenDir,
                             self.menu,
-                            triggered=lambda k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
+                            triggered=lambda c=False, k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
                                 k, t, fileArg=f
                             ),
                         ),
@@ -1218,7 +1264,11 @@ class CommonBibActions:
             self.menu.possibleActions.append([bwstr.Acts.pdfTit, menuP])
         else:
             self.menu.possibleActions.append(
-                QAction(bwstr.Acts.pdfArxW, self.menu, triggered=self.onDown)
+                QAction(
+                    bwstr.Acts.pdfArxW,
+                    self.menu,
+                    triggered=lambda c=False: self.onDown(),
+                )
             )
 
     def createContextMenu(self, selection=False):
@@ -1264,7 +1314,9 @@ class CommonBibActions:
                 menu.possibleActions.append(act)
             menu.possibleActions.append(None)
             menu.possibleActions.append(
-                QAction(bwstr.Acts.modify, menu, triggered=self.onModify)
+                QAction(
+                    bwstr.Acts.modify, menu, triggered=lambda c=False: self.onModify()
+                )
             )
         else:
             initialRecord = None
@@ -1284,14 +1336,16 @@ class CommonBibActions:
             menu.possibleActions.append(None)
             if len(self.keys) == 2:
                 menu.possibleActions.append(
-                    QAction(bwstr.Acts.merge, menu, triggered=self.onMerge)
+                    QAction(
+                        bwstr.Acts.merge, menu, triggered=lambda c=False: self.onMerge()
+                    )
                 )
 
         menu.possibleActions.append(
-            QAction(bwstr.Acts.clean, menu, triggered=self.onClean)
+            QAction(bwstr.Acts.clean, menu, triggered=lambda c=False: self.onClean())
         )
         menu.possibleActions.append(
-            QAction(bwstr.Acts.delete, menu, triggered=self.onDelete)
+            QAction(bwstr.Acts.delete, menu, triggered=lambda c=False: self.onDelete())
         )
         menu.possibleActions.append(None)
 
@@ -1308,10 +1362,10 @@ class CommonBibActions:
         menu.possibleActions.append(None)
 
         menu.possibleActions.append(
-            QAction(bwstr.Acts.selCat, menu, triggered=self.onCat)
+            QAction(bwstr.Acts.selCat, menu, triggered=lambda c=False: self.onCat())
         )
         menu.possibleActions.append(
-            QAction(bwstr.Acts.selExp, menu, triggered=self.onExp)
+            QAction(bwstr.Acts.selExp, menu, triggered=lambda c=False: self.onExp())
         )
         menu.possibleActions.append(None)
 
@@ -1320,10 +1374,12 @@ class CommonBibActions:
         menu.possibleActions.append(None)
 
         menu.possibleActions.append(
-            QAction(bwstr.Acts.expBib, menu, triggered=self.onExport)
+            QAction(bwstr.Acts.expBib, menu, triggered=lambda c=False: self.onExport())
         )
         menu.possibleActions.append(
-            QAction(bwstr.Acts.cpAllPdf, menu, triggered=self.onCopyAllPDF)
+            QAction(
+                bwstr.Acts.cpAllPdf, menu, triggered=lambda c=False: self.onCopyAllPDF()
+            )
         )
 
         menu.fillMenu()
@@ -1740,7 +1796,7 @@ class CommonBibActions:
         self.parent().reloadMainContent(pBDB.bibs.fetchFromLast().lastFetched)
 
 
-class BibtexListWindow(QFrame, ObjListWindow):
+class BibtexListWindow(ObjListWindow):
     """Class that constructs the main bibtex table"""
 
     def __init__(self, parent=None, bibs=None, askBibs=False, previous=[]):
@@ -1779,8 +1835,7 @@ class BibtexListWindow(QFrame, ObjListWindow):
         self.filterInput = None
         self.tableModel = None
 
-        QFrame.__init__(self, parent)
-        ObjListWindow.__init__(self, parent)
+        super(BibtexListWindow, self).__init__(parent)
 
         self.createActions()
         self.createTable()
@@ -2476,7 +2531,7 @@ class AskPDFAction(PBMenu):
                 QAction(
                     bwstr.Acts.pdfOpen % fname,
                     self,
-                    triggered=lambda fn=fname: self.onOpenOther(fn),
+                    triggered=lambda c=False, fn=fname: self.onOpenOther(fn),
                 )
             )
         self.fillMenu()

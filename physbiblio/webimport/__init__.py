@@ -11,7 +11,6 @@ __all__ = [
     "arxiv",
     "doi",
     "inspire",
-    "isbn",
     "webInterf",
     "tests",
 ]

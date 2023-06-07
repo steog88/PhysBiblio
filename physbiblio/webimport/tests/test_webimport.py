@@ -90,20 +90,6 @@ class TestWebImportMethods(unittest.TestCase):
     year = "2016"
 }""",
             ],
-            "isbn": [
-                "9781107013957",
-                """@book{9781107013957,
-  Author = {Julien Lesgourgues, Gianpiero Mangano, Gennaro Miele},
-  Title = {Neutrino Cosmology},
-  Publisher = {Cambridge University Press},
-  Year = {2014},
-  Date = {2014-02-28},
-  PageTotal = {392},
-  EAN = {9781107013957},
-  ISBN = {110701395X},
-  URL = {https://www.ebook.de/de/product/19797496/julien_lesgourgues_gianpiero_mangano_gennaro_miele_neutrino_cosmology.html}
-}""",
-            ],
         }
         for method, strings in tests.items():
             print(method)
@@ -140,7 +126,6 @@ class TestWebImportMethods(unittest.TestCase):
             "arxiv": ["1801.15000", ""],
             "doi": ["10.1088/9999-3899/43/a/033001", ""],
             "inspire": ["Gariazzo:2014rra", ""],
-            "isbn": ["978019850871a", ""],
         }
         self.assertFalse(physBiblioWeb.webSearch["inspire"].retrieveOAIData("9999999"))
         for method, strings in tests.items():

@@ -144,7 +144,7 @@ It may be useful if you want to maintain separate activities or collections inde
 
 ### Import
 The default import interface can fetch and download information from [INSPIRE-HEP](http://inspirehep.net/).
-The advanced import can also work with [ADS](https://ui.adsabs.harvard.edu/), [arXiv](www.arxiv.org), [dx.doi.org](dx.doi.org), [ISBN2bibtex](http://www.ebook.de/de/tools/isbn2bibtex).  
+The advanced import can also work with [ADS](https://ui.adsabs.harvard.edu/), [arXiv](www.arxiv.org), [dx.doi.org](dx.doi.org).  
 If an arXiv identifier is present, you can download the paper abstract from arXiv (there is an option to do this by default).
 
 ### Export

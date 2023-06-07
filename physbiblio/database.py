@@ -3518,8 +3518,6 @@ class Entries(PhysBiblioDBSub):
                     entry, key, number=None if not requireAll else number
                 )
                 self.updateInfoFromOAI(eid)
-            elif method == "isbn":
-                self.setBook(key)
             if "inproceeding" in data["bibtex"].lower():
                 self.setProceeding(key)
             if "phdthesis" in data["bibtex"].lower():

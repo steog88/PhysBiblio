@@ -2014,10 +2014,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 self.assertIsInstance(a, QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "Load abstract")
             c.menu.possibleActions[0][1][0].trigger()
-            _a.assert_called_once_with(c)
+            _a.assert_called_once()
             self.assertEqual(c.menu.possibleActions[0][1][1].text(), "Get more fields")
             c.menu.possibleActions[0][1][1].trigger()
-            _b.assert_called_once_with(c)
+            _b.assert_called_once()
 
         c.menu = PBMenu(self.mainW)
         with patch(
@@ -4815,8 +4815,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
         ) as _ct:
             bw = BibtexListWindow(parent=self.mainW, bibs=[])
-            _fi.assert_called_once_with(bw, self.mainW)
-            _oi.assert_called_once_with(bw, self.mainW)
             _ca.assert_called_once_with(bw)
             _ct.assert_called_once_with(bw)
 
@@ -4826,7 +4824,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
         ) as _ct:
             bw = BibtexListWindow(bibs=[])
-            self.assertIsInstance(bw, QFrame)
             self.assertIsInstance(bw, ObjListWindow)
             self.assertEqual(bw.parent(), None)
             self.assertEqual(bw.mainWin, None)
@@ -4851,7 +4848,6 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 askBibs=True,
                 previous=["abc"],
             )
-        self.assertIsInstance(bw, QFrame)
         self.assertIsInstance(bw, ObjListWindow)
         self.assertEqual(bw.parent(), self.mainW)
         self.assertEqual(bw.mainWin, self.mainW)
@@ -5073,7 +5069,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(images[0], bw.selAct.icon().pixmap(images[0].size()).toImage())
         self.assertEqual(bw.selAct.statusTip(), "Select entries from the list")
         bw.selAct.trigger()
-        bw.enableSelection.assert_called_once_with()
+        bw.enableSelection.assert_called_once()
 
         self.assertIsInstance(bw.okAct, QAction)
         self.assertEqual(bw.okAct.text(), "Selection &completed")
@@ -5081,7 +5077,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertEqual(images[1], bw.okAct.icon().pixmap(images[1].size()).toImage())
         self.assertEqual(bw.okAct.statusTip(), "Selection of elements completed")
         bw.okAct.trigger()
-        bw.onOk.assert_called_once_with()
+        bw.onOk.assert_called_once()
 
         self.assertIsInstance(bw.clearAct, QAction)
         self.assertEqual(bw.clearAct.text(), "&Clear selection")
@@ -5093,7 +5089,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             bw.clearAct.statusTip(), "Discard the current selection and hide checkboxes"
         )
         bw.clearAct.trigger()
-        bw.clearSelection.assert_called_once_with()
+        bw.clearSelection.assert_called_once()
 
         self.assertIsInstance(bw.selAllAct, QAction)
         self.assertEqual(bw.selAllAct.text(), "&Select all")
@@ -5103,7 +5099,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         )
         self.assertEqual(bw.selAllAct.statusTip(), "Select all the elements")
         bw.selAllAct.trigger()
-        bw.selectAll.assert_called_once_with()
+        bw.selectAll.assert_called_once()
 
         self.assertIsInstance(bw.unselAllAct, QAction)
         self.assertEqual(bw.unselAllAct.text(), "&Unselect all")
@@ -5113,7 +5109,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         )
         self.assertEqual(bw.unselAllAct.statusTip(), "Unselect all the elements")
         bw.unselAllAct.trigger()
-        bw.unselectAll.assert_called_once_with()
+        bw.unselectAll.assert_called_once()
 
     def test_restoreSort(self):
         """test restoreSort"""

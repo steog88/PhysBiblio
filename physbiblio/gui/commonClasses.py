@@ -195,10 +195,9 @@ class ObjListWindow(PBDialog):
         self.proxyModel = None
         self.tableview = None
         if gridLayout:
-            self.currLayout = QGridLayout()
+            self.currLayout = QGridLayout(self)
         else:
-            self.currLayout = QVBoxLayout()
-        self.setLayout(self.currLayout)
+            self.currLayout = QVBoxLayout(self)
 
     def triggeredContextMenuEvent(self, row, col, event):
         """Not implemented: requires a subclass"""

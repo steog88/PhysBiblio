@@ -652,9 +652,11 @@ class MainWindow(QMainWindow):
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda sD=ast.literal_eval(fs["searchDict"]), l=fs[
-                            "limitNum"
-                        ], o=fs["offsetNum"], n=fs["name"]: self.runSearchBiblio(
+                        triggered=lambda c=False, sD=ast.literal_eval(
+                            fs["searchDict"]
+                        ), l=fs["limitNum"], o=fs["offsetNum"], n=fs[
+                            "name"
+                        ]: self.runSearchBiblio(
                             sD, l, o, newTab=n
                         ),
                     )
@@ -666,7 +668,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.edit % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.editSearchBiblio(idS, n),
                     )
@@ -675,7 +677,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.rename % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.renameSearchBiblio(idS, n),
                     )
@@ -684,7 +686,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.delete % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.delSearchBiblio(idS, n),
                     )
@@ -700,7 +702,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda sD=ast.literal_eval(
+                        triggered=lambda c=False, sD=ast.literal_eval(
                             fs["searchDict"]
                         ), r=ast.literal_eval(fs["replaceFields"]), o=fs[
                             "offsetNum"
@@ -718,7 +720,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.edit % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.editSearchBiblio(idS, n),
                     )
@@ -727,7 +729,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.rename % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.renameSearchBiblio(idS, n),
                     )
@@ -736,7 +738,7 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.delete % fs["name"],
                         self,
-                        triggered=lambda idS=fs["idS"], n=fs[
+                        triggered=lambda c=False, idS=fs["idS"], n=fs[
                             "name"
                         ]: self.delSearchBiblio(idS, n),
                     )
@@ -1933,8 +1935,6 @@ class MainWindow(QMainWindow):
                         if method == "inspire":
                             eid = pBDB.bibs.updateInspireID(key)
                             pBDB.bibs.updateInfoFromOAI(eid)
-                        elif method == "isbn":
-                            pBDB.bibs.setBook(key)
                         pBLogger.info(mwstr.elementInserted % key)
                         inserted.append(key)
                     except Exception:

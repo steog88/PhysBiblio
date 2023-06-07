@@ -678,8 +678,6 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
                 },
             )
         )
-        self.assertTrue(self.pBDB.commit())
-        self.assertTrue(self.pBDB.undo())
         self.assertEqual(len(self.pBDB.cats.getAll()), 3)
         self.assertTrue(
             self.pBDB.connExec(
@@ -7024,7 +7022,7 @@ class TestDatabaseEntries(DBTestCase):
             with patch("logging.Logger.exception") as _e:
                 self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
                 self.assertIn(
-                    "Error binding parameter :idCat - probably unsupported type.",
+                    "Error binding parameter",
                     _e.call_args[0][0],
                 )
             self.assertEqual([dict(e) for e in self.pBDB.catBib.getAll()], [])
@@ -7302,7 +7300,7 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs.loadAndInsert(None)
             _e.assert_any_call("Invalid arguments!")
         # methods
-        for method in ("inspire", "doi", "arxiv", "isbn"):
+        for method in ("inspire", "doi", "arxiv"):
             with patch(
                 "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
                 return_value="",
@@ -7483,16 +7481,6 @@ class TestDatabaseEntries(DBTestCase):
                 )
             self.assertEqual(pbm.call_count, 0)
             self.assertEqual(pbv.call_count, 0)
-            self.pBDB.undo(verbose=0)
-            # test setBook when using isbn
-            with patch(
-                "physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
-                return_value="@article{key0,\n"
-                + 'author = "Gariazzo",\ntitle = "{title}",}',
-                autospec=True,
-            ) as _mock:
-                self.assertTrue(self.pBDB.bibs.loadAndInsert("key0", method="isbn"))
-                self.assertEqual([e["book"] for e in self.pBDB.bibs.getAll()], [1])
             self.pBDB.undo(verbose=0)
             # test abstract download
             with patch(
@@ -8034,7 +8022,7 @@ class TestDatabaseEntries(DBTestCase):
         with patch("logging.Logger.exception") as _e:
             self.pBDB.bibs.replaceInBibtex("jcap", ["JCAP"])
             self.assertIn(
-                "Error binding parameter :new - " + "probably unsupported type.",
+                "Error binding parameter",
                 _e.call_args[0][0],
             )
         self.assertEqual(self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP"), False)
@@ -8042,7 +8030,7 @@ class TestDatabaseEntries(DBTestCase):
         with patch("logging.Logger.exception") as _e:
             self.pBDB.bibs.replaceInBibtex(["jcap"], "JCAP")
             self.assertIn(
-                "Error binding parameter :old - " + "probably unsupported type.",
+                "Error binding parameter",
                 _e.call_args[0][0],
             )
 

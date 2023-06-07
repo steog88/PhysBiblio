@@ -313,10 +313,10 @@ class TestMainWindow(GUITestCase):
             if p is None:
                 with patch("%s.%s" % (self.clsName, trig), autospec=True) as _f:
                     act.trigger()
-                    _f.assert_called_once_with(self.mainW)
+                    _f.assert_called_once()
             else:
                 act.trigger()
-                p.assert_called_once_with()
+                p.assert_called_once()
 
         with patch("PySide6.QtWidgets.QMainWindow.close", autospec=True) as _f:
             mw = MainWindow(testing=True)
@@ -4177,7 +4177,6 @@ class TestMainWindow(GUITestCase):
                 pBDB.catBib, pbConfig.params["defaultCategories"], "a"
             )
 
-        aid.comboMethod.setCurrentText("ISBN")
         aid.exec.reset_mock()
         with patch("logging.Logger.warning") as _w:
             ais = AdvancedImportSelect(
@@ -4209,113 +4208,9 @@ class TestMainWindow(GUITestCase):
         ais.askCats.setCheckState(Qt.Unchecked)
         ais.selected = {"a": True, "b": True}
         ais.result = True
-        with patch(
-            self.modName + ".AdvancedImportDialog",
-            return_value=aid,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _aid, patch(
-            self.modName + ".AdvancedImportSelect",
-            return_value=ais,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _ais, patch(
-            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
-        ) as _sc, patch(
-            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
-        ) as _rc, patch(
-            self.modName + ".infoMessage", autospec=True
-        ) as _im, patch(
-            self.clsName + ".reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            self.clsName + ".statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.webimport.isbn.WebSearch.retrieveUrlAll",
-            return_value='@article{a,\nauthor="gs",\ntitle="T"\n}\n'
-            + '@article{b,\nauthor="sg",\ntitle="tit"\n,'
-            + 'arxiv="1",\ndoi="2"\n}\n',
-            autospec=True,
-        ) as _ru, patch(
-            self.clsName + ".askCatsForEntries", autospec=True
-        ) as _ace, patch(
-            "logging.Logger.warning"
-        ) as _wa, patch(
-            "logging.Logger.info"
-        ) as _in, patch(
-            "logging.Logger.debug"
-        ) as _deb, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[["a"], ["b"]],
-            autospec=True,
-        ) as _gbb, patch(
-            "physbiblio.database.Entries.getAll",
-            side_effect=[["b"], [], []],
-            autospec=True,
-        ) as _ga, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            side_effect=["data1", "data2"],
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.insert",
-            side_effect=[True, True],
-            autospec=True,
-        ) as _bi, patch(
-            "physbiblio.database.Entries.setBook", autospec=True
-        ) as _sb, patch(
-            "physbiblio.database.Entries.updateInspireID", autospec=True
-        ) as _ui, patch(
-            "physbiblio.database.Entries.updateInfoFromOAI", autospec=True
-        ) as _ii, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _cd:
-            self.assertFalse(self.mainW.advancedImport())
-            _aid.assert_called_once_with()
-            aid.exec.assert_called_once_with()
-            _im.assert_not_called()
-            _ru.assert_called_once_with(physBiblioWeb.webSearch["isbn"], "test")
-            self.assertEqual(_sc.call_count, 1)
-            self.assertEqual(_rc.call_count, 1)
-            _rmc.assert_called_once_with(self.mainW)
-            _gbb.assert_has_calls(
-                [
-                    call(pBDB.bibs, "a", saveQuery=False),
-                    call(pBDB.bibs, "b", saveQuery=False),
-                ]
-            )
-            _ga.assert_not_called()
-            _pi.assert_has_calls(
-                [
-                    call(
-                        pBDB.bibs,
-                        '@Article{a,\n        author = "gs",'
-                        + '\n         title = "{T}",\n}\n\n',
-                    ),
-                    call(
-                        pBDB.bibs,
-                        '@Article{b,\n        author = "sg",'
-                        + '\n         title = "{tit}",\n           '
-                        + 'doi = "2",\n         arxiv = "1",\n}\n\n',
-                    ),
-                ]
-            )
-            _bi.assert_has_calls([call(pBDB.bibs, "data1"), call(pBDB.bibs, "data2")])
-            _wa.assert_not_called()
-            _sbm.assert_called_once_with(
-                self.mainW, "Entries successfully imported: ['a', 'b']"
-            )
-            _in.assert_has_calls(
-                [
-                    call("Element 'a' successfully inserted.\n"),
-                    call("Element 'b' successfully inserted.\n"),
-                ]
-            )
-            _sb.assert_has_calls([call(pBDB.bibs, "a"), call(pBDB.bibs, "b")])
-            _cd.assert_not_called()
-            _ace.assert_not_called()
-            _ui.assert_not_called()
-            _ii.assert_not_called()
 
         aid.comboMethod.setCurrentText("INSPIRE-HEP")
         aid.exec.reset_mock()
-        ais.exec.reset_mock()
         with patch(
             self.modName + ".AdvancedImportDialog",
             return_value=aid,

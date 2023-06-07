@@ -62,10 +62,6 @@ class InspireStrings(GenericStrings):
     warningMissingField = "Field '%s' from OAI is missing (recid:%s)"
 
 
-class ISBNStrings(GenericStrings):
-    """Strings for the isbn module"""
-
-
 class WebInterfStrings:
     """Strings for the webInterf module"""
 

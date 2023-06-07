@@ -594,7 +594,7 @@ class AdvancedImportDialog(PBDialog):
         grid.addWidget(PBLabel(dwstr.advImpMethod), 1, 0)
         self.comboMethod = PBComboBox(
             self,
-            ["INSPIRE-HEP", "ADS-NASA", "arXiv", "DOI", "ISBN"],
+            ["INSPIRE-HEP", "ADS-NASA", "arXiv", "DOI"],
             current="INSPIRE-HEP",
         )
         grid.addWidget(self.comboMethod, 1, 1)
