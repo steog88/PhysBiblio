@@ -6505,6 +6505,7 @@ class TestSearchBibsWindow(GUITestCase):
                     "pubdate",
                     "comments",
                     "abstract",
+                    "inspire",
                     "old_keys",
                 ]
             },

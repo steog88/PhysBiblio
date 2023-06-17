@@ -1507,6 +1507,7 @@ class Entries(PhysBiblioDBSub):
             "pubdate",
             "comments",
             "abstract",
+            "inspire",
             "old_keys",
         ]
     }
