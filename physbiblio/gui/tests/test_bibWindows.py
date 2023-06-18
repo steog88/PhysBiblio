@@ -6483,6 +6483,7 @@ class TestSearchBibsWindow(GUITestCase):
                     "different from",
                     "does not contain",
                     "exact match",
+                    "is NULL",
                 ],
                 "catexp": [
                     "all the following",

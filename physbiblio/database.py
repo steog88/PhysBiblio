@@ -1517,6 +1517,7 @@ class Entries(PhysBiblioDBSub):
             dstr.Bibs.Search.opTExact: "=",
             dstr.Bibs.Search.opTNotCont: "not like",
             dstr.Bibs.Search.opTDifferent: "!=",
+            dstr.Bibs.Search.opTNull: "IS NULL",
         },
         "catexp": {
             dstr.Bibs.Search.opCEAll: "",
@@ -1914,6 +1915,8 @@ class Entries(PhysBiblioDBSub):
         """
         if di["logical"] is None or di["logical"].lower() not in ("and", "or"):
             di["logical"] = defaultConnection
+        if di["type"] == "Text" and di["operator"].lower() == "is null":
+            di["content"] = " "
         if (
             (di["type"] in ("Categories", "Experiments") and di["content"] == "")
             or (
@@ -1951,13 +1954,21 @@ class Entries(PhysBiblioDBSub):
                 pBLogger.warning(dstr.Bibs.Search.invalidOperator % di["operator"])
                 return first, query, whereQ, joinQ, vals
             if di["field"] in self.tableCols["entries"]:
-                whereQ += "%s %s%s %s ? " % (
-                    di["logical"],
-                    prependTab,
-                    di["field"],
-                    di["operator"],
-                )
-                vals += (self._getQueryStr(di["content"], di["operator"]),)
+                if di["operator"] == "IS NULL":
+                    whereQ += "%s %s%s %s " % (
+                        di["logical"],
+                        prependTab,
+                        di["field"],
+                        di["operator"],
+                    )
+                else:
+                    whereQ += "%s %s%s %s ? " % (
+                        di["logical"],
+                        prependTab,
+                        di["field"],
+                        di["operator"],
+                    )
+                    vals += (self._getQueryStr(di["content"], di["operator"]),)
             else:
                 pBLogger.warning(dstr.Bibs.Search.invalidField % di["field"])
                 return first, query, whereQ, joinQ, vals

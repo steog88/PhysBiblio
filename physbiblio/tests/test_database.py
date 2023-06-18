@@ -2993,6 +2993,42 @@ class TestDatabaseEntries(DBTestCase):
             self.pBDB.bibs._processQueryFields(
                 {
                     "logical": "abc",
+                    "type": "Text",
+                    "content": "abc",
+                    "operator": "IS NULL",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                (),
+                prependTab="entrie1s.",
+            ),
+            (False, "abc", "where and entrie1s.bibtex IS NULL ", "join ", ()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Text",
+                    "content": "",
+                    "operator": "IS NULL",
+                    "field": "bibtex",
+                },
+                False,
+                "abc",
+                "where ",
+                "join ",
+                (),
+                prependTab="entrie1s.",
+            ),
+            (False, "abc", "where and entrie1s.bibtex IS NULL ", "join ", ()),
+        )
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
                     "type": "Categories",
                     "content": "1",
                     "operator": "at least one among",

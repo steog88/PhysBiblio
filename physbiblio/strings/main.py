@@ -357,6 +357,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
             opTDifferent = "different from"
             opTExact = "exact match"
             opTNotCont = "does not contain"
+            opTNull = "is NULL"
 
     class BibsCats:
         """Strings for the physbiblio.database.CatsEntries class"""
