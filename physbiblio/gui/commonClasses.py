@@ -353,6 +353,11 @@ class EditObjectWindow(PBDialog):
         """
         if e.key() == Qt.Key_Escape:
             self.onCancel()
+        elif (
+            e.key() in (Qt.Key_Return, Qt.Key_Enter)
+            and e.modifiers() == Qt.ControlModifier
+        ):
+            self.onOk()
 
     def onCancel(self):
         """Set that the result should not be considered and exit"""

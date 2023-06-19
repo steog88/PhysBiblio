@@ -406,13 +406,20 @@ class TestEditObjectWindow(GUITestCase):
         eow.currGrid.addWidget(w, 0, 0)
         with patch(
             "physbiblio.gui.commonClasses.EditObjectWindow.onCancel", autospec=True
-        ) as _oc:
+        ) as _oc, patch(
+            "physbiblio.gui.commonClasses.EditObjectWindow.onOk", autospec=True
+        ) as _ok:
             QTest.keyPress(w, "a")
             _oc.assert_not_called()
             QTest.keyPress(w, Qt.Key_Enter)
             _oc.assert_not_called()
             QTest.keyPress(w, Qt.Key_Escape)
             self.assertEqual(_oc.call_count, 1)
+            _ok.assert_not_called()
+            QTest.keyPress(w, Qt.Key_Return, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 1)
+            QTest.keyPress(w, Qt.Key_Enter, Qt.ControlModifier)
+            self.assertEqual(_ok.call_count, 2)
 
     def test_onCancel(self):
         """test onCancel"""
