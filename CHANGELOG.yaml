@@ -4,6 +4,7 @@
         - search by inspire ID
         - search NULL fields
         - search noUpdate bibs
+        - toggle noUpdate from context menu
 -   version: 2.0.5
     date: 2023-06-07
     changes:

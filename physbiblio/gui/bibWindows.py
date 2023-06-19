@@ -83,6 +83,7 @@ convertType = {
     "phd_thesis": dstr.Bibs.phdth,
     "lecture": dstr.Bibs.lecture,
     "exp_paper": dstr.Bibs.experimental,
+    "noUpdate": dstr.Bibs.noUpdate,
 }
 
 

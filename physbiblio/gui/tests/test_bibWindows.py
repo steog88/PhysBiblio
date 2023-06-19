@@ -51,6 +51,7 @@ class TestFunctions(GUIwMainWTestCase):
             "phd_thesis": 0,
             "lecture": 0,
             "exp_paper": 0,
+            "noUpdate": 0,
             "bibtexDict": {
                 "author": "sg",
                 "title": "some title",
@@ -97,6 +98,7 @@ class TestFunctions(GUIwMainWTestCase):
             "phd_thesis": 0,
             "lecture": 0,
             "exp_paper": 0,
+            "noUpdate": 0,
             "bibtexDict": {
                 "author": "sg",
                 "title": "some title",
@@ -141,14 +143,14 @@ class TestFunctions(GUIwMainWTestCase):
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
                         + "'exp_paper', 'inspire', 'isbn', 'lecture', "
-                        + "'old_keys', "
+                        + "'noUpdate', 'old_keys', "
                         + "'phd_thesis', 'proceeding', 'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
                         + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
                         + "'doi', 'exp_paper', 'inspire',"
-                        + " 'isbn', 'lecture', 'old_keys', 'phd_thesis', 'proceeding', "
+                        + " 'isbn', 'lecture', 'noUpdate', 'old_keys', 'phd_thesis', 'proceeding', "
                         + "'review']"
                     ),
                 ]
@@ -161,6 +163,7 @@ class TestFunctions(GUIwMainWTestCase):
             "phd_thesis": 0,
             "lecture": 0,
             "exp_paper": 0,
+            "noUpdate": 0,
             "bibtexDict": {
                 "author": "sg",
                 "journal": "AB",
@@ -199,7 +202,7 @@ class TestFunctions(GUIwMainWTestCase):
                         "KeyError: 'proceeding' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'noUpdate', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
@@ -210,21 +213,21 @@ class TestFunctions(GUIwMainWTestCase):
                         "KeyError: 'isbn' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'noUpdate', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'ads' not in "
                         + "['arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'doi', "
-                        + "'exp_paper', 'inspire', 'lecture', 'old_keys', 'phd_thesis', "
+                        + "'exp_paper', 'inspire', 'lecture', 'noUpdate', 'old_keys', 'phd_thesis', "
                         + "'review']"
                     ),
                     call(
                         "KeyError: 'comments' not in ['arxiv', 'bibkey',"
                         + " 'bibtexDict', 'book', 'citations', 'citations_no_self', "
                         + "'doi', 'exp_paper', "
-                        + "'inspire', 'lecture', 'old_keys', 'phd_thesis', 'review']"
+                        + "'inspire', 'lecture', 'noUpdate', 'old_keys', 'phd_thesis', 'review']"
                     ),
                 ]
             )
@@ -236,6 +239,7 @@ class TestFunctions(GUIwMainWTestCase):
             "phd_thesis": 1,
             "lecture": 0,
             "exp_paper": 1,
+            "noUpdate": 1,
             "bibtexDict": {
                 "title": "some title",
                 "journal": "AB",
@@ -266,7 +270,7 @@ class TestFunctions(GUIwMainWTestCase):
         ) as _d:
             self.assertEqual(
                 writeBibtexInfo(entry),
-                "(Experimental paper) (PhD thesis) (Review) "
+                "(Experimental paper) (No update) (PhD thesis) (Review) "
                 + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
                 + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n"
                 + "Alternative bibtex keys: <u>old_bib_key</u><br/>\n<br/>\n"
@@ -280,7 +284,7 @@ class TestFunctions(GUIwMainWTestCase):
                         + "['ads', 'arxiv', 'bibkey', 'bibtexDict', 'book', "
                         + "'citations', 'citations_no_self', 'comments', "
                         + "'doi', 'exp_paper', 'inspire', 'isbn', "
-                        + "'lecture', 'old_keys', 'phd_thesis', 'review']"
+                        + "'lecture', 'noUpdate', 'old_keys', 'phd_thesis', 'review']"
                     ),
                     call(
                         "KeyError: 'author' not in "
@@ -297,6 +301,7 @@ class TestFunctions(GUIwMainWTestCase):
             "phd_thesis": 0,
             "lecture": 1,
             "exp_paper": 0,
+            "noUpdate": 0,
             "bibtexDict": {
                 "title": "some title",
                 "author": "sg",
@@ -1729,8 +1734,12 @@ class TestBibTableModel(GUITestCase):
         ]
         with patch("logging.Logger.debug") as _d:
             self.assertEqual(tm.addTypeCell(biblist[0]), "")
-            _d.assert_called_once_with(
+            _d.assert_any_call(
                 "Key not present: 'book'\nin ['bibkey', 'exp_paper', "
+                + "'lecture', 'phd_thesis', 'proceeding', 'review']"
+            )
+            _d.assert_any_call(
+                "Key not present: 'noUpdate'\nin ['bibkey', 'exp_paper', "
                 + "'lecture', 'phd_thesis', 'proceeding', 'review']"
             )
 
@@ -2439,6 +2448,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                     "phd_thesis": 1,
                     "lecture": 0,
                     "exp_paper": 0,
+                    "noUpdate": 0,
                 }
             ],
             p,
@@ -2482,9 +2492,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
             c.menu.possibleActions[1][1][1].text(), "Set 'Experimental paper'"
         )
         self.assertEqual(c.menu.possibleActions[1][1][2].text(), "Set 'Lecture'")
-        self.assertEqual(c.menu.possibleActions[1][1][3].text(), "Unset 'PhD thesis'")
-        self.assertEqual(c.menu.possibleActions[1][1][4].text(), "Set 'Proceeding'")
-        self.assertEqual(c.menu.possibleActions[1][1][5].text(), "Set 'Review'")
+        self.assertEqual(c.menu.possibleActions[1][1][3].text(), "Set 'No update'")
+        self.assertEqual(c.menu.possibleActions[1][1][4].text(), "Unset 'PhD thesis'")
+        self.assertEqual(c.menu.possibleActions[1][1][5].text(), "Set 'Proceeding'")
+        self.assertEqual(c.menu.possibleActions[1][1][6].text(), "Set 'Review'")
 
     def test_createMenuMarkTypeList(self):
         """test _createMenuMarkTypeList"""
