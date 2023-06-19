@@ -3,6 +3,7 @@
     changes:
         - search by inspire ID
         - search NULL fields
+        - search noUpdate bibs
 -   version: 2.0.5
     date: 2023-06-07
     changes:

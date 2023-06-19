@@ -6472,6 +6472,7 @@ class TestSearchBibsWindow(GUITestCase):
                 "review": {"desc": "Review"},
                 "proceeding": {"desc": "Proceeding"},
                 "book": {"desc": "Book"},
+                "noUpdate": {"desc": "No update"},
                 "none": {"desc": "No type"},
             },
         )

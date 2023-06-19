@@ -1533,6 +1533,7 @@ class Entries(PhysBiblioDBSub):
         "phd_thesis": {"desc": dstr.Bibs.phdth},
         "proceeding": {"desc": dstr.Bibs.proceeding},
         "review": {"desc": dstr.Bibs.review},
+        "noUpdate": {"desc": dstr.Bibs.noUpdate},
         "none": {"desc": dstr.Bibs.noneType},
     }
     validReplaceFields = {
