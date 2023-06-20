@@ -871,7 +871,7 @@ class MainWindow(QMainWindow):
             try:
                 del self.bibtexListWindows[index]
                 del self.bibtexListQueries[index]
-            except IndexError:
+            except (IndexError, KeyError):
                 pass
         try:
             pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[

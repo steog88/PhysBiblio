@@ -6,6 +6,8 @@
         - search noUpdate bibs
         - toggle noUpdate from context menu
         - shortcut Ctrl+Enter to quickly accept edit dialogs
+        - fixes with triggered signal
+        - store query for each tab separately
 -   version: 2.0.5
     date: 2023-06-07
     changes:
