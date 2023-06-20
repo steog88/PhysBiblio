@@ -1969,35 +1969,35 @@ class BibtexListWindow(ObjListWindow):
             bwstr.LW.selEnT,
             self,
             statusTip=bwstr.LW.selEnD,
-            triggered=self.enableSelection,
+            triggered=lambda x=False: self.enableSelection(),
         )
         self.okAct = QAction(
             QIcon(":/images/dialog-ok-apply.png"),
             bwstr.LW.selComT,
             self,
             statusTip=bwstr.LW.selComD,
-            triggered=self.onOk,
+            triggered=lambda x=False: self.onOk(),
         )
         self.clearAct = QAction(
             QIcon(":/images/edit-clear.png"),
             bwstr.LW.selCleT,
             self,
             statusTip=bwstr.LW.selCleD,
-            triggered=self.clearSelection,
+            triggered=lambda x=False: self.clearSelection(),
         )
         self.selAllAct = QAction(
             QIcon(":/images/edit-select-all.png"),
             bwstr.LW.selAllT,
             self,
             statusTip=bwstr.LW.selAllD,
-            triggered=self.selectAll,
+            triggered=lambda x=False: self.selectAll(),
         )
         self.unselAllAct = QAction(
             QIcon(":/images/edit-unselect-all.png"),
             bwstr.LW.selNonT,
             self,
             statusTip=bwstr.LW.selNonD,
-            triggered=self.unselectAll,
+            triggered=lambda x=False: self.unselectAll(),
         )
 
     def restoreSort(self):
@@ -2518,12 +2518,20 @@ class AskPDFAction(PBMenu):
         arxivFile = pBPDF.getFilePath(key, "arxiv")
         if doiFile != "" and doiFile in files:
             self.possibleActions.append(
-                QAction(bwstr.Acts.pdfO % "DOI", self, triggered=self.onOpenDoi)
+                QAction(
+                    bwstr.Acts.pdfO % "DOI",
+                    self,
+                    triggered=lambda x=False: self.onOpenDoi(),
+                )
             )
             files.remove(doiFile)
         if arxivFile != "" and arxivFile in files:
             self.possibleActions.append(
-                QAction(bwstr.Acts.pdfO % "arxiv", self, triggered=self.onOpenArxiv)
+                QAction(
+                    bwstr.Acts.pdfO % "arxiv",
+                    self,
+                    triggered=lambda x=False: self.onOpenArxiv(),
+                )
             )
             files.remove(arxivFile)
         for f in files:

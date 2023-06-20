@@ -138,6 +138,8 @@ class MainWindow(QMainWindow):
         self.helpMenu = None
         self.mainToolBar = None
         self.bibtexListWindows = []
+        self.bibtexListQueries = {}
+        self.currentTab = 0
         self.bottomLeft = None
         self.bottomCenter = None
         self.bottomRight = None
@@ -282,7 +284,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Q",
             statusTip=mwstr.Act.exitD,
-            triggered=self.close,
+            triggered=lambda x=False: self.close(),
         )
 
         self.profilesAct = QAction(
@@ -291,7 +293,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+P",
             statusTip=mwstr.Act.profD,
-            triggered=self.manageProfiles,
+            triggered=lambda x=False: self.manageProfiles(),
         )
 
         self.editProfileWindowsAct = QAction(
@@ -299,7 +301,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Alt+P",
             statusTip=mwstr.Act.editProfD,
-            triggered=self.editProfile,
+            triggered=lambda x=False: self.editProfile(),
         )
 
         self.undoAct = QAction(
@@ -308,7 +310,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Z",
             statusTip=mwstr.Act.undoD,
-            triggered=self.undoDB,
+            triggered=lambda x=False: self.undoDB(),
         )
 
         self.saveAct = QAction(
@@ -317,7 +319,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+S",
             statusTip=mwstr.Act.saveD,
-            triggered=self.save,
+            triggered=lambda x=False: self.save(),
         )
 
         self.importBibAct = QAction(
@@ -325,7 +327,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+B",
             statusTip=mwstr.Act.impD,
-            triggered=self.importFromBib,
+            triggered=lambda x=False: self.importFromBib(),
         )
 
         self.exportAct = QAction(
@@ -333,7 +335,7 @@ class MainWindow(QMainWindow):
             mwstr.Act.expLT,
             self,
             statusTip=mwstr.Act.expLD,
-            triggered=self.export,
+            triggered=lambda x=False: self.export(),
         )
 
         self.exportAllAct = QAction(
@@ -342,7 +344,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+A",
             statusTip=mwstr.Act.expAD,
-            triggered=self.exportAll,
+            triggered=lambda x=False: self.exportAll(),
         )
 
         self.exportFileAct = QAction(
@@ -350,7 +352,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+X",
             statusTip=mwstr.Act.expTD,
-            triggered=self.exportFile,
+            triggered=lambda x=False: self.exportFile(),
         )
 
         self.exportUpdateAct = QAction(
@@ -358,7 +360,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+X",
             statusTip=mwstr.Act.updD,
-            triggered=self.exportUpdate,
+            triggered=lambda x=False: self.exportUpdate(),
         )
 
         self.catAct = QAction(
@@ -366,7 +368,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+T",
             statusTip=mwstr.Act.catD,
-            triggered=self.categories,
+            triggered=lambda x=False: self.categories(),
         )
 
         self.newCatAct = QAction(
@@ -374,7 +376,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+T",
             statusTip=mwstr.Act.catND,
-            triggered=self.newCategory,
+            triggered=lambda x=False: self.newCategory(),
         )
 
         self.expAct = QAction(
@@ -382,7 +384,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+E",
             statusTip=mwstr.Act.expD,
-            triggered=self.experiments,
+            triggered=lambda x=False: self.experiments(),
         )
 
         self.newExpAct = QAction(
@@ -390,7 +392,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+E",
             statusTip=mwstr.Act.expND,
-            triggered=self.newExperiment,
+            triggered=lambda x=False: self.newExperiment(),
         )
 
         self.searchBibAct = QAction(
@@ -399,7 +401,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+F",
             statusTip=mwstr.Act.findD,
-            triggered=self.searchBiblio,
+            triggered=lambda x=False: self.searchBiblio(),
         )
 
         self.searchReplaceAct = QAction(
@@ -408,7 +410,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+H",
             statusTip=mwstr.Act.srD,
-            triggered=self.searchAndReplace,
+            triggered=lambda x=False: self.searchAndReplace(),
         )
 
         self.newBibAct = QAction(
@@ -417,7 +419,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+N",
             statusTip=mwstr.Act.bibND,
-            triggered=self.newBibtex,
+            triggered=lambda x=False: self.newBibtex(),
         )
 
         self.inspireLoadAndInsertAct = QAction(
@@ -425,7 +427,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+I",
             statusTip=mwstr.Act.loadInsD,
-            triggered=self.inspireLoadAndInsert,
+            triggered=lambda x=False: self.inspireLoadAndInsert(),
         )
 
         self.inspireLoadAndInsertWithCatsAct = QAction(
@@ -433,7 +435,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+I",
             statusTip=mwstr.Act.loadInsCatD,
-            triggered=self.inspireLoadAndInsertWithCats,
+            triggered=lambda x=False: self.inspireLoadAndInsertWithCats(),
         )
 
         self.advImportAct = QAction(
@@ -441,7 +443,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Alt+I",
             statusTip=mwstr.Act.advImpD,
-            triggered=self.advancedImport,
+            triggered=lambda x=False: self.advancedImport(),
         )
 
         self.updateAllBibtexsAct = QAction(
@@ -449,7 +451,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+U",
             statusTip=mwstr.Act.updBD,
-            triggered=self.updateAllBibtexs,
+            triggered=lambda x=False: self.updateAllBibtexs(),
         )
 
         self.updateAllBibtexsAskAct = QAction(
@@ -457,14 +459,14 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+U",
             statusTip=mwstr.Act.updPD,
-            triggered=self.updateAllBibtexsAsk,
+            triggered=lambda x=False: self.updateAllBibtexsAsk(),
         )
 
         self.updateCitationCountAct = QAction(
             mwstr.Act.ccT,
             self,
             statusTip=mwstr.Act.ccD,
-            triggered=self.getInspireCitationCount,
+            triggered=lambda x=False: self.getInspireCitationCount(),
         )
 
         self.cleanAllBibtexsAct = QAction(
@@ -472,7 +474,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+L",
             statusTip=mwstr.Act.cleBD,
-            triggered=self.cleanAllBibtexs,
+            triggered=lambda x=False: self.cleanAllBibtexs(),
         )
 
         self.findBadBibtexsAct = QAction(
@@ -480,7 +482,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+B",
             statusTip=mwstr.Act.corrD,
-            triggered=self.findBadBibtexs,
+            triggered=lambda x=False: self.findBadBibtexs(),
         )
 
         self.infoFromArxivAct = QAction(
@@ -488,7 +490,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+V",
             statusTip=mwstr.Act.arxID,
-            triggered=self.infoFromArxiv,
+            triggered=lambda x=False: self.infoFromArxiv(),
         )
 
         self.dailyArxivAct = QAction(
@@ -496,7 +498,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+D",
             statusTip=mwstr.Act.arxBD,
-            triggered=self.browseDailyArxiv,
+            triggered=lambda x=False: self.browseDailyArxiv(),
         )
 
         self.cleanAllBibtexsAskAct = QAction(
@@ -504,7 +506,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+L",
             statusTip=mwstr.Act.cleFD,
-            triggered=self.cleanAllBibtexsAsk,
+            triggered=lambda x=False: self.cleanAllBibtexsAsk(),
         )
 
         self.authorStatsAct = QAction(
@@ -512,7 +514,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+A",
             statusTip=mwstr.Act.autD,
-            triggered=self.authorStats,
+            triggered=lambda x=False: self.authorStats(),
         )
 
         self.configAct = QAction(
@@ -521,7 +523,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+Shift+S",
             statusTip=mwstr.Act.settD,
-            triggered=self.config,
+            triggered=lambda x=False: self.config(),
         )
 
         self.refreshAct = QAction(
@@ -530,7 +532,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="F5",
             statusTip=mwstr.Act.refD,
-            triggered=self.refreshMainContent,
+            triggered=lambda x=False: self.refreshMainContent(),
         )
 
         self.reloadAct = QAction(
@@ -539,14 +541,14 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Shift+F5",
             statusTip=mwstr.Act.resD,
-            triggered=self.reloadMainContent,
+            triggered=lambda x=False: self.reloadMainContent(),
         )
 
         self.changesAct = QAction(
             mwstr.Act.chaT,
             self,
             statusTip=mwstr.Act.chaD,
-            triggered=self.recentChanges,
+            triggered=lambda x=False: self.recentChanges(),
         )
 
         self.aboutAct = QAction(
@@ -554,7 +556,7 @@ class MainWindow(QMainWindow):
             mwstr.Act.abT,
             self,
             statusTip=mwstr.Act.abD,
-            triggered=self.showAbout,
+            triggered=lambda x=False: self.showAbout(),
         )
 
         self.logfileAct = QAction(
@@ -562,7 +564,7 @@ class MainWindow(QMainWindow):
             self,
             shortcut="Ctrl+G",
             statusTip=mwstr.Act.logD,
-            triggered=self.logfile,
+            triggered=lambda x=False: self.logfile(),
         )
 
         self.dbstatsAct = QAction(
@@ -570,21 +572,21 @@ class MainWindow(QMainWindow):
             mwstr.Act.dbT,
             self,
             statusTip=mwstr.Act.dbD,
-            triggered=self.showDBStats,
+            triggered=lambda x=False: self.showDBStats(),
         )
 
         self.cleanSpareAct = QAction(
             mwstr.Act.cleET,
             self,
             statusTip=mwstr.Act.cleED,
-            triggered=self.cleanSpare,
+            triggered=lambda x=False: self.cleanSpare(),
         )
 
         self.cleanSparePDFAct = QAction(
             mwstr.Act.clePT,
             self,
             statusTip=mwstr.Act.clePD,
-            triggered=self.cleanSparePDF,
+            triggered=lambda x=False: self.cleanSparePDF(),
         )
 
     def createMenusAndToolBar(self):
@@ -813,7 +815,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(splitter)
 
     def addBibtexListWindow(self, label, bibs=None, askBibs=False, previous=[]):
-        """Function that creates a new BibtexListWindow and add its
+        """Function that creates a new BibtexListWindow and add it
         (with a label) to the list bibtexListWindows.
 
         Parameters:
@@ -864,11 +866,23 @@ class MainWindow(QMainWindow):
         delete the corresponding BibtexListWindow item
         and recreate the tabs
         """
+        self.currentTab = 0
         for index in range(self.tabWidget.count() - 2, 0, -1):
             try:
                 del self.bibtexListWindows[index]
+                del self.bibtexListQueries[index]
             except IndexError:
                 pass
+        try:
+            pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[
+                self.currentTab
+            ]
+        except KeyError:
+            pBDB.bibs.getAll()
+            self.bibtexListQueries[self.currentTab] = (
+                pBDB.bibs.lastQuery,
+                pBDB.bibs.lastVals,
+            )
         self.fillTabs()
 
     def closeTab(self, index):
@@ -889,7 +903,18 @@ class MainWindow(QMainWindow):
                 closed = True
         self.fillTabs()
         if closed:
-            self.tabWidget.setCurrentIndex(index - 1)
+            self.bibtexListQueries[self.currentTab] = (
+                pBDB.bibs.lastQuery,
+                pBDB.bibs.lastVals,
+            )
+            for i in range(index, self.tabWidget.count() - 1):
+                self.bibtexListQueries[i] = self.bibtexListQueries[i + 1]
+            del self.bibtexListQueries[self.tabWidget.count() - 1]
+            pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[index - 1]
+            self.currentTab = index - 1
+            self.tabWidget.blockSignals(True)
+            self.tabWidget.setCurrentIndex(self.currentTab)
+            self.tabWidget.blockSignals(False)
 
     def newTabAtEnd(self, index, label=None, bibs=None, askBibs=False, previous=[]):
         """Function that checks if the "open new tab" tab is triggered.
@@ -900,6 +925,12 @@ class MainWindow(QMainWindow):
             label (default None): if not None, the label of the new tab
             bibs, askBibs, previous: directly passed to BibtexListWindow
         """
+        self.previousTab = self.currentTab
+        self.bibtexListQueries[self.previousTab] = (
+            pBDB.bibs.lastQuery,
+            pBDB.bibs.lastVals,
+        )
+        self.currentTab = index
         if self.tabWidget.count() > 1 and index == self.tabWidget.count() - 1:
             self.addBibtexListWindow(
                 mwstr.newTab if label is None else label,
@@ -908,7 +939,11 @@ class MainWindow(QMainWindow):
                 previous=previous,
             )
             self.fillTabs()
+            self.bibtexListQueries[index] = pBDB.bibs.lastQuery, pBDB.bibs.lastVals
+            self.tabWidget.blockSignals(True)
             self.tabWidget.setCurrentIndex(index)
+            self.tabWidget.blockSignals(False)
+        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[index]
 
     def renameTab(self, index):
         """Rename a tab, if it is not the main nor the "new tab" one

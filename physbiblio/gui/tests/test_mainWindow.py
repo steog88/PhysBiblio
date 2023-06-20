@@ -110,6 +110,8 @@ class TestMainWindow(GUITestCase):
         with patch(self.clsName + ".excepthook", autospec=True) as _eh:
             mw.errormessage.emit("a", "b", "c")
             _eh.assert_called_once_with(mw, "a", "b", "c")
+        self.assertEqual(mw.bibtexListQueries, {})
+        self.assertEqual(mw.currentTab, 0)
 
     def test_closeEvent(self):
         """test closeEvent"""
@@ -1049,10 +1051,17 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.mainW.closeAllTabs()
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()],
+            ["select * from entries  order by firstdate ASC"],
+        )
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
+        self.mainW.bibtexListQueries[0] = ["00", "000"]
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListQueries[1] = ["aa", "aaa"]
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.bibtexListQueries[2] = ["bb", "bbb"]
         self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         self.assertEqual(len(self.mainW.bibtexListWindows), 3)
@@ -1060,6 +1069,7 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
         self.assertEqual([a[1] for a in self.mainW.bibtexListWindows], [mwstr.mainTab])
+        self.assertEqual([a[0] for a in self.mainW.bibtexListQueries.values()], ["00"])
 
     def test_closeTab(self):
         """test closeTab"""
@@ -1077,8 +1087,11 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual(len(self.mainW.bibtexListWindows), 1)
 
+        self.mainW.bibtexListQueries[0] = ["00", "000"]
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListQueries[1] = ["aa", "aaa"]
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.bibtexListQueries[2] = ["bb", "bbb"]
         self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 4)
@@ -1097,26 +1110,74 @@ class TestMainWindow(GUITestCase):
         self.assertEqual(
             [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a", "b"]
         )
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()], ["00", "aa", "bb"]
+        )
+        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = "00", "000"
+        self.mainW.currentTab = 0
         self.mainW.closeTab(2)
         self.assertEqual(self.mainW.tabWidget.currentIndex(), 1)
         self.assertEqual(self.mainW.tabWidget.count(), 3)
         self.assertEqual(
             [a[1] for a in self.mainW.bibtexListWindows], ["Main tab", "a"]
         )
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()], ["00", "aa"]
+        )
         self.mainW.closeTab(1)
         self.assertEqual(self.mainW.tabWidget.currentIndex(), 0)
         self.assertEqual(self.mainW.tabWidget.count(), 2)
         self.assertEqual([a[1] for a in self.mainW.bibtexListWindows], ["Main tab"])
+        self.assertEqual([a[0] for a in self.mainW.bibtexListQueries.values()], ["00"])
+
+        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = "query", "vals"
+        self.mainW.bibtexListQueries[0] = ["00", "000"]
+        self.mainW.bibtexListWindows.append([QWidget(), "a"])
+        self.mainW.bibtexListQueries[1] = ["aa", "aaa"]
+        self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.bibtexListQueries[2] = ["bb", "bbb"]
+        self.mainW.bibtexListWindows.append([QWidget(), "c"])
+        self.mainW.bibtexListQueries[3] = ["cc", "ccc"]
+        self.mainW.bibtexListWindows.append([QWidget(), "d"])
+        self.mainW.bibtexListQueries[4] = ["dd", "ddd"]
+        self.mainW.fillTabs()
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()],
+            ["00", "aa", "bb", "cc", "dd"],
+        )
+        self.mainW.closeTab(2)
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()],
+            ["query", "aa", "cc", "dd"],
+        )
+        self.mainW.closeTab(1)
+        self.assertEqual(
+            [a[0] for a in self.mainW.bibtexListQueries.values()], ["query", "cc", "dd"]
+        )
+        self.assertEqual(self.mainW.currentTab, 0)
+        self.mainW.closeTab(2)
+        self.assertEqual(pBDB.bibs.lastQuery, "cc")
+        self.assertEqual(pBDB.bibs.lastVals, "ccc")
 
     def test_newTabAtEnd(self):
         """test newTabAtEnd"""
         self.mainW.bibtexListWindows = []
+        self.mainW.bibtexListQueries = {0: ["query", "vals"]}
+        self.mainW.currentTab = 1
         self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.count(), 2)
+        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = "11", "111"
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
             self.clsName + ".fillTabs", autospec=True
         ) as _ft, patch("PySide6.QtWidgets.QTabWidget.setCurrentIndex") as _ci:
             self.mainW.newTabAtEnd(0)
+            self.assertEqual(self.mainW.currentTab, 0)
+            self.assertEqual(self.mainW.previousTab, 1)
+            self.assertEqual(
+                [a[0] for a in self.mainW.bibtexListQueries.values()], ["query", "11"]
+            )
+            self.assertEqual(pBDB.bibs.lastQuery, "query")
+            self.assertEqual(pBDB.bibs.lastVals, "vals")
             _ab.assert_not_called()
             _ft.assert_not_called()
             _ci.assert_not_called()
@@ -1128,6 +1189,13 @@ class TestMainWindow(GUITestCase):
             _ci.assert_called_once_with(1)
         self.mainW.bibtexListWindows.append([QWidget(), "a"])
         self.mainW.bibtexListWindows.append([QWidget(), "b"])
+        self.mainW.bibtexListQueries = {
+            0: ["00", "000"],
+            1: ["11", "111"],
+            2: ["aa", "aaa"],
+            3: ["bb", "bbb"],
+        }
+        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = "query", "vals"
         self.mainW.fillTabs()
         self.assertEqual(self.mainW.tabWidget.count(), 4)
         with patch(self.clsName + ".addBibtexListWindow", autospec=True) as _ab, patch(
@@ -1138,17 +1206,42 @@ class TestMainWindow(GUITestCase):
                 _ab.assert_not_called()
                 _ft.assert_not_called()
                 _ci.assert_not_called()
+            self.assertEqual(
+                [a[0] for a in self.mainW.bibtexListQueries.values()],
+                ["00", "query", "aa", "bb"],
+            )
+            self.assertEqual(self.mainW.previousTab, 1)
+            self.assertEqual(self.mainW.currentTab, 2)
+            self.assertEqual(pBDB.bibs.lastQuery, "aa")
+            self.assertEqual(pBDB.bibs.lastVals, "aaa")
             self.mainW.newTabAtEnd(3, askBibs="a", bibs="b", previous="c")
             _ab.assert_called_once_with(
                 self.mainW, "New tab", askBibs="a", bibs="b", previous="c"
             )
+            self.assertEqual(
+                [a[0] for a in self.mainW.bibtexListQueries.values()],
+                ["00", "query", "aa", "aa"],
+            )
+            self.assertEqual(self.mainW.previousTab, 2)
+            self.assertEqual(self.mainW.currentTab, 3)
+            self.assertEqual(pBDB.bibs.lastQuery, "aa")
+            self.assertEqual(pBDB.bibs.lastVals, "aaa")
             _ft.assert_called_once_with(self.mainW)
             _ci.assert_called_once_with(3)
             _ab.reset_mock()
+            pBDB.bibs.lastQuery, pBDB.bibs.lastVals = "query1", "vals1"
             self.mainW.newTabAtEnd(3, label="lab", askBibs="a", bibs="b", previous="c")
             _ab.assert_called_once_with(
                 self.mainW, "lab", askBibs="a", bibs="b", previous="c"
             )
+            self.assertEqual(
+                [a[0] for a in self.mainW.bibtexListQueries.values()],
+                ["00", "query", "aa", "query1"],
+            )
+            self.assertEqual(self.mainW.previousTab, 3)
+            self.assertEqual(self.mainW.currentTab, 3)
+            self.assertEqual(pBDB.bibs.lastQuery, "query1")
+            self.assertEqual(pBDB.bibs.lastVals, "vals1")
 
     def test_renameTab(self):
         """test renameTab"""
