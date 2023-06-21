@@ -943,7 +943,10 @@ class MainWindow(QMainWindow):
             self.tabWidget.blockSignals(True)
             self.tabWidget.setCurrentIndex(index)
             self.tabWidget.blockSignals(False)
-        pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[index]
+        try:
+            pBDB.bibs.lastQuery, pBDB.bibs.lastVals = self.bibtexListQueries[index]
+        except KeyError:
+            pBLogger.warning(mwstr.missingIndexQueries % index)
 
     def renameTab(self, index):
         """Rename a tab, if it is not the main nor the "new tab" one

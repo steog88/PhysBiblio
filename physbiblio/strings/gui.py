@@ -21,6 +21,7 @@ class CommonGUIStrings:
     expsAssociated = "Associated experiments: {ex}"
     featureNYI = "This feature is not implemented"
     filterEntries = "Filter entries"
+    missingIndexQueries = "Missing index %s in bibtexListQueries!"
     nothingChanged = "Nothing changed"
     nothingToDo = "Nothing to do..."
     openEntryList = "Open list of corresponding entries"
