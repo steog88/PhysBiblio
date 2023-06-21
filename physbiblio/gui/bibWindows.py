@@ -1682,8 +1682,8 @@ class CommonBibActions:
                 data["old_keys"] = ", ".join(
                     [
                         data["old_keys"],
-                        self.entries[0]["bibkey"],
-                        self.entries[1]["bibkey"],
+                        self.bibs[0]["bibkey"],
+                        self.bibs[1]["bibkey"],
                     ]
                 )
             else:

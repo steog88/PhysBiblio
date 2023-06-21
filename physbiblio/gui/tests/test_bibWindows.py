@@ -4572,6 +4572,138 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _mpdf.assert_has_calls(
                 [call(pBPDF, "abc", "merged"), call(pBPDF, "def", "merged")]
             )
+        e = {
+            "bibkey": "new",
+            "bibtex": '@article{new, title="new"}',
+            "doi": "1/2/3",
+            "old_keys": "bla",
+            "book": 1,
+            "year": "2018",
+        }
+        with patch("logging.Logger.warning") as _w:
+            mb = MergeBibtexs(e, e, self.mainW)
+        mb.exec = MagicMock()
+        mb.result = True
+        with patch(
+            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+        ) as _m, patch(
+            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+        ) as _rl, patch(
+            "physbiblio.gui.bibWindows.MergeBibtexs",
+            return_value=mb,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _mbi, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+            return_value=[],
+            autospec=True,
+        ) as _c, patch(
+            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+            return_value=[],
+            autospec=True,
+        ) as _u, patch(
+            "physbiblio.database.Entries.prepareInsert",
+            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+            autospec=True,
+        ) as _pi, patch(
+            "physbiblio.database.Entries.delete", return_value=True, autospec=True
+        ) as _de, patch(
+            "physbiblio.database.Entries.insert", return_value=True, autospec=True
+        ) as _in, patch(
+            "physbiblio.database.Entries.fetchFromLast",
+            return_value=pBDB.bibs,
+            autospec=True,
+        ) as _fl, patch(
+            "physbiblio.database.Categories.getByEntry",
+            return_value=[{"idCat": 321}, {"idCat": 432}],
+            autospec=True,
+        ) as _cebk, patch(
+            "physbiblio.database.CatsEntries.delete", return_value=True, autospec=True
+        ) as _cede, patch(
+            "physbiblio.database.CatsEntries.insert", return_value=True, autospec=True
+        ) as _cein, patch(
+            "physbiblio.database.Experiments.getByEntry",
+            return_value=[{"idExp": 4321}, {"idExp": 5432}],
+            autospec=True,
+        ) as _eebk, patch(
+            "physbiblio.database.EntryExps.delete", return_value=True, autospec=True
+        ) as _eede, patch(
+            "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
+        ) as _eein, patch(
+            "physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True
+        ) as _mpdf, patch(
+            "logging.Logger.warning"
+        ) as _w, patch(
+            "logging.Logger.error"
+        ) as _er, patch(
+            "logging.Logger.exception"
+        ) as _ex:
+            c.onMerge()
+            _m.assert_not_called()
+            _rl.assert_called_once_with(self.mainW, ["last"])
+            _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
+            _c.assert_called_once_with(pBDB)
+            _u.assert_not_called()
+            _pi.assert_called_once_with(
+                pBDB.bibs,
+                bibkey="new",
+                bibtex='@article{new, title="new"}',
+                book=0,
+                doi="1/2/3",
+                exp_paper=0,
+                lecture=0,
+                marks="",
+                noUpdate=0,
+                old_keys="bla, abc, def",
+                phd_thesis=0,
+                proceeding=0,
+                review=0,
+                year="2018",
+            )
+            _de.assert_has_calls([call(pBDB.bibs, "abc"), call(pBDB.bibs, "def")])
+            _in.assert_called_once_with(
+                pBDB.bibs, {"bibkey": "merged", "bibtex": "new bibtex"}
+            )
+            _fl.assert_called_once_with(pBDB.bibs)
+            _w.assert_not_called()
+            _er.assert_not_called()
+            _ex.assert_not_called()
+            _cebk.assert_has_calls([call(pBDB.cats, "abc"), call(pBDB.cats, "def")])
+            _cede.assert_has_calls(
+                [
+                    call(pBDB.catBib, 321, "abc"),
+                    call(pBDB.catBib, 432, "abc"),
+                    call(pBDB.catBib, 321, "def"),
+                    call(pBDB.catBib, 432, "def"),
+                ]
+            )
+            _cein.assert_has_calls(
+                [
+                    call(pBDB.catBib, 321, "merged"),
+                    call(pBDB.catBib, 432, "merged"),
+                    call(pBDB.catBib, 321, "merged"),
+                    call(pBDB.catBib, 432, "merged"),
+                ]
+            )
+            _eebk.assert_has_calls([call(pBDB.exps, "abc"), call(pBDB.exps, "def")])
+            _eede.assert_has_calls(
+                [
+                    call(pBDB.bibExp, "abc", 4321),
+                    call(pBDB.bibExp, "abc", 5432),
+                    call(pBDB.bibExp, "def", 4321),
+                    call(pBDB.bibExp, "def", 5432),
+                ]
+            )
+            _eein.assert_has_calls(
+                [
+                    call(pBDB.bibExp, "merged", 4321),
+                    call(pBDB.bibExp, "merged", 5432),
+                    call(pBDB.bibExp, "merged", 4321),
+                    call(pBDB.bibExp, "merged", 5432),
+                ]
+            )
+            _mpdf.assert_has_calls(
+                [call(pBPDF, "abc", "merged"), call(pBPDF, "def", "merged")]
+            )
 
     def test_onModify(self):
         """test onModify"""

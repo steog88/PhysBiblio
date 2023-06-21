@@ -8,6 +8,7 @@
         - shortcut Ctrl+Enter to quickly accept edit dialogs
         - fixes with triggered signal
         - store query for each tab separately
+        - fix in merge function
 -   version: 2.0.5
     date: 2023-06-07
     changes:
