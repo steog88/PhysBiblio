@@ -2042,6 +2042,49 @@ class Entries(PhysBiblioDBSub):
             self.rmBibtexACapo(parse_accents_str(pbWriter.write(db).strip()))
         )
 
+    def checkDuplicates(self, entries=None):
+        """Check for duplicates in the list of bibtexs,
+        by using information from old_keys, arxiv and doi fields (if available)
+
+        """
+
+        def checkres(key, mat, match, matched):
+            if len([k for k in mat if k["bibkey"] != key]) > 0:
+                matched.update([m["bibkey"] for m in mat if m["bibkey"] != k])
+                match = True
+            return match, matched
+
+        if entries is None:
+            entries = self.getAll()
+        duplicates = {}
+        for e in entries:
+            match = False
+            matched = set([])
+            k = e["bibkey"]
+            match, matched = checkres(k, self.getByKey(k), match, matched)
+            if e["arxiv"] != "" and e["arxiv"] != None:
+                match, matched = checkres(
+                    k, self.getByBibtex(e["arxiv"]), match, matched
+                )
+                match, matched = checkres(
+                    k, self.getByField(e["arxiv"], "arxiv"), match, matched
+                )
+            if e["doi"] != "" and e["doi"] != None:
+                match, matched = checkres(k, self.getByBibtex(e["doi"]), match, matched)
+                match, matched = checkres(
+                    k, self.getByField(e["doi"], "doi"), match, matched
+                )
+            try:
+                for ok in e["old_keys"].split(","):
+                    match, matched = checkres(
+                        k, self.getByKey(ok.strip()), match, matched
+                    )
+            except Exception:
+                pBLogger.debug("", exc_info=True)
+            if match:
+                duplicates[e["bibkey"]] = matched
+        return duplicates
+
     def checkExistingEntry(self, entry, **kwargs):
         """Use the entry, arxiv or doi of the input entry
         to verify it is present in the local database
@@ -2554,6 +2597,32 @@ class Entries(PhysBiblioDBSub):
         )
         return self
 
+    def fetchByField(self, val, field, saveQuery=True):
+        """Use self.fetchAll with a match on the given field
+        and returns the dictionary of fetched entries
+
+        Parameters:
+            val: the string to match in the field (or a list)
+            field: the field to match
+            saveQuery (boolean, default True):
+                whether to save the query or not
+
+        Output:
+            self
+        """
+        if isinstance(val, list):
+            return self.fetchAll(
+                params={field: ["%%%s%%" % q for q in val]},
+                connection="or",
+                operator=" like ",
+                saveQuery=saveQuery,
+            )
+        return self.fetchAll(
+            params={field: "%%%s%%" % val},
+            operator=" like ",
+            saveQuery=saveQuery,
+        )
+
     def fetchByIdFromInspireRecord(self, e):
         """Use self.fetchByBibkey, self.fetchByInspireID
         or self.fetchByBibtex to obtain the information present
@@ -2577,7 +2646,7 @@ class Entries(PhysBiblioDBSub):
         except KeyError:
             pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("id", e))
         else:
-            return self.fetchByInspireID(iid, saveQuery=False)
+            return self.fetchByField(iid, "inspire", saveQuery=False)
         try:
             arxiv = e["eprint"]
         except KeyError:
@@ -2592,31 +2661,6 @@ class Entries(PhysBiblioDBSub):
             return self.fetchByBibtex(doi, saveQuery=False)
         self.lastFetched = []
         return self
-
-    def fetchByInspireID(self, iid, saveQuery=True):
-        """Use self.fetchAll with a match on the inspireID
-        and returns the dictionary of fetched entries
-
-        Parameters:
-            iid: the string to match in the inspireID (or a list)
-            saveQuery (boolean, default True):
-                whether to save the query or not
-
-        Output:
-            self
-        """
-        if isinstance(iid, list):
-            return self.fetchAll(
-                params={"inspire": ["%%%s%%" % q for q in iid]},
-                connection="or",
-                operator=" like ",
-                saveQuery=saveQuery,
-            )
-        return self.fetchAll(
-            params={"inspire": "%%%s%%" % iid},
-            operator=" like ",
-            saveQuery=saveQuery,
-        )
 
     def fetchByKey(self, key, saveQuery=True):
         """Use self.fetchAll with a match
@@ -2931,6 +2975,17 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
+    def getByField(self, string, field, saveQuery=True):
+        """Use self.fetchByField and return
+        the dictionary of fetched entries
+
+        Parameters: see self.fetchByField
+
+        Output:
+            a list of dictionaries
+        """
+        return self.fetchByField(string, field, saveQuery=saveQuery).lastFetched
+
     def getByIdFromInspireRecord(self, e):
         """Use self.fetchByIdFromInspireRecord and returns
         the dictionary of fetched entries
@@ -2951,7 +3006,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list of dictionaries
         """
-        return self.fetchByInspireID(string, saveQuery=saveQuery).lastFetched
+        return self.fetchByField(string, "inspire", saveQuery=saveQuery).lastFetched
 
     def getByKey(self, key, saveQuery=True):
         """Use self.fetchByKey and returns

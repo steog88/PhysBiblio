@@ -3209,6 +3209,34 @@ class TestDatabaseEntries(DBTestCase):
             ),
         )
 
+    def test_checkDuplicates(self, *args):
+        """test checkDuplicates"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "arxiv", "1234.5678")
+        self.pBDB.bibs.updateField("def", "arxiv", "1234.5678")
+        self.pBDB.bibs.updateField("ghi", "arxiv", "")
+        self.pBDB.bibs.updateField("abc", "doi", "1/2/3")
+        self.pBDB.bibs.updateField("def", "doi", "")
+        self.pBDB.bibs.updateField("ghi", "doi", "1/2/3")
+        self.assertEqual(
+            self.pBDB.bibs.checkDuplicates(),
+            {"abc": {"def", "ghi"}, "def": {"abc"}, "ghi": {"abc"}},
+        )
+        self.pBDB.bibs.updateField("ghi", "doi", "")
+        self.pBDB.bibs.updateField("ghi", "bibtex", "@article{1/2/3,}")
+        self.assertEqual(
+            self.pBDB.bibs.checkDuplicates(), {"abc": {"def", "ghi"}, "def": {"abc"}}
+        )
+        self.pBDB.bibs.updateField("def", "arxiv", "")
+        self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='1/2/3',}")
+        self.assertEqual(self.pBDB.bibs.checkDuplicates(), {"abc": {"def", "ghi"}})
+        self.pBDB.bibs.updateField("ghi", "old_keys", "def")
+        self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='123',}")
+        self.assertEqual(
+            self.pBDB.bibs.checkDuplicates(),
+            {"abc": {"ghi"}, "def": {"ghi"}, "ghi": {"def"}},
+        )
+
     def test_checkExistingEntry(self, *args):
         """test checkExistingEntry"""
         self.insert_three()
@@ -4062,13 +4090,95 @@ class TestDatabaseEntries(DBTestCase):
         entries = self.pBDB.bibs.getByExp(2)
         self.assertEqual([e["bibkey"] for e in entries], [])
 
+    def test_fetchByField(self, *args):
+        """Test the fetchByField functions"""
+        self.insert_three()
+        self.pBDB.bibs.updateField("abc", "inspire", "12345")
+        self.pBDB.bibs.updateField("def", "arxiv", "23456")
+        self.pBDB.bibs.updateField("ghi", "doi", "34567")
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField("123456", "inspire").lastFetched
+            ],
+            [],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByField("123456", "inspire")], []
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField("345", "arxiv").lastFetched
+            ],
+            ["def"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByField("345", "arxiv")],
+            ["def"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField("12345", "inspire").lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByField("12345", "inspire")],
+            ["abc"],
+        )
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where inspire  like   ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%12345%",))
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField(["123", "567"], "doi").lastFetched
+            ],
+            ["ghi"],
+        )
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByField(["123", "567"], "doi")],
+            ["ghi"],
+        )
+
+        self.assertEqual(
+            self.pBDB.bibs.lastQuery,
+            "select * from entries  where doi  like   ?  "
+            + "or doi  like   ?  order by firstdate ASC",
+        )
+        self.assertEqual(self.pBDB.bibs.lastVals, ("%123%", "%567%"))
+        self.pBDB.bibs.lastQuery = ""
+        self.pBDB.bibs.lastVals = ()
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField(
+                    "1234", "inspire", saveQuery=False
+                ).lastFetched
+            ],
+            ["abc"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getByField("1234", "inspire", saveQuery=False)
+            ],
+            ["abc"],
+        )
+        self.assertEqual(self.pBDB.bibs.lastQuery, "")
+        self.assertEqual(self.pBDB.bibs.lastVals, ())
+
     def test_fetchByIdFromInspireRecord(self, *args):
         """test fetchByIdFromInspireRecord"""
         self.pBDB.bibs.lastFetched = "a"
         with patch(
             "physbiblio.database.Entries.fetchByBibkey", return_value="bibk"
         ) as _fbb, patch(
-            "physbiblio.database.Entries.fetchByInspireID", return_value="iid"
+            "physbiblio.database.Entries.fetchByField", return_value="iid"
         ) as _fbi, patch(
             "physbiblio.database.Entries.fetchByBibtex", side_effect=["arxiv", "doi"]
         ) as _fbx:
@@ -4082,19 +4192,19 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"id": "123"}), "iid"
             )
             _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
             _fbx.assert_not_called()
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"eprint": "456"}), "arxiv"
             )
             _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
             _fbx.assert_called_once_with("456", saveQuery=False)
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"doi": "a/1/2/3"}), "doi"
             )
             _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
             self.assertEqual(_fbx.call_count, 2)
             _fbx.assert_any_call("a/1/2/3", saveQuery=False)
             self.assertEqual(
@@ -4102,7 +4212,7 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs,
             )
             _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", saveQuery=False)
+            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
             self.assertEqual(_fbx.call_count, 2)
             _fbx.assert_any_call("a/1/2/3", saveQuery=False)
             self.assertEqual(self.pBDB.bibs.lastFetched, [])
@@ -4125,7 +4235,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             [
                 e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID("123456").lastFetched
+                for e in self.pBDB.bibs.fetchByField("123456", "inspire").lastFetched
             ],
             [],
         )
@@ -4133,7 +4243,10 @@ class TestDatabaseEntries(DBTestCase):
             [e["bibkey"] for e in self.pBDB.bibs.getByInspireID("123456")], []
         )
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("345").lastFetched],
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField("345", "inspire").lastFetched
+            ],
             ["abc", "def", "ghi"],
         )
         self.assertEqual(
@@ -4141,7 +4254,10 @@ class TestDatabaseEntries(DBTestCase):
             ["abc", "def", "ghi"],
         )
         self.assertEqual(
-            [e["bibkey"] for e in self.pBDB.bibs.fetchByInspireID("12345").lastFetched],
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField("12345", "inspire").lastFetched
+            ],
             ["abc"],
         )
         self.assertEqual(
@@ -4156,7 +4272,9 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             [
                 e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID(["123", "567"]).lastFetched
+                for e in self.pBDB.bibs.fetchByField(
+                    ["123", "567"], "inspire"
+                ).lastFetched
             ],
             ["abc", "ghi"],
         )
@@ -4176,8 +4294,8 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             [
                 e["bibkey"]
-                for e in self.pBDB.bibs.fetchByInspireID(
-                    "1234", saveQuery=False
+                for e in self.pBDB.bibs.fetchByField(
+                    "1234", "inspire", saveQuery=False
                 ).lastFetched
             ],
             ["abc"],
