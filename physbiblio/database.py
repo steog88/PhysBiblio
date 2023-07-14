@@ -2074,25 +2074,19 @@ class Entries(PhysBiblioDBSub):
             match, matched = checkres(k, self.getByKey(k), match, matched, "key")
             if e["arxiv"] != "" and e["arxiv"] != None:
                 match, matched = checkres(
-                    k, self.getByBibtex(e["arxiv"]), match, matched, "arxtex"
-                )
-                match, matched = checkres(
                     k,
                     self.getByField(e["arxiv"], "arxiv", like=False),
                     match,
                     matched,
-                    "arxf",
+                    "arx",
                 )
             if e["doi"] != "" and e["doi"] != None:
-                match, matched = checkres(
-                    k, self.getByBibtex(e["doi"]), match, matched, "doitex"
-                )
                 match, matched = checkres(
                     k,
                     self.getByField(e["doi"], "doi", like=False),
                     match,
                     matched,
-                    "doif",
+                    "doi",
                 )
             try:
                 if e["old_keys"].strip() != "":

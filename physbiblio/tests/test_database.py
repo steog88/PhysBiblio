@@ -3224,28 +3224,25 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
             {
-                "abc": {"arxf": ["def"], "doif": ["ghi"]},
-                "def": {"arxf": ["abc"]},
-                "ghi": {"doif": ["abc"]},
+                "abc": {"arx": ["def"], "doi": ["ghi"]},
+                "def": {"arx": ["abc"]},
+                "ghi": {"doi": ["abc"]},
             },
         )
         self.pBDB.bibs.updateField("ghi", "doi", "")
         self.pBDB.bibs.updateField("ghi", "bibtex", "@article{1/2/3,}")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
-            {"abc": {"arxf": ["def"], "doitex": ["ghi"]}, "def": {"arxf": ["abc"]}},
+            {"abc": {"arx": ["def"]}, "def": {"arx": ["abc"]}},
         )
         self.pBDB.bibs.updateField("def", "arxiv", "")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='1/2/3',}")
-        self.assertEqual(
-            self.pBDB.bibs.checkDuplicates(), {"abc": {"doitex": ["def", "ghi"]}}
-        )
+        self.assertEqual(self.pBDB.bibs.checkDuplicates(), {})
         self.pBDB.bibs.updateField("ghi", "old_keys", "def,bla")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='123',}")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
             {
-                "abc": {"doitex": ["ghi"]},
                 "def": {"key": ["ghi"]},
                 "ghi": {"oldkey0": ["def"]},
             },
@@ -3254,7 +3251,7 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
             {
-                "abc": {"doitex": ["ghi"], "oldkey": ["ghi"]},
+                "abc": {"oldkey": ["ghi"]},
                 "def": {"key": ["ghi"]},
                 "ghi": {"oldkey0": ["def"], "oldkey1": ["abc"]},
             },
