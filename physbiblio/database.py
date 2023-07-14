@@ -2054,9 +2054,9 @@ class Entries(PhysBiblioDBSub):
             a dictionary (key is processed bibtex, value is a set of possible duplicates)
         """
 
-        def checkres(key, mat, match, matched):
+        def checkres(key, mat, match, matched, reason):
             if len([k for k in mat if k["bibkey"] != key]) > 0:
-                matched.update([m["bibkey"] for m in mat if m["bibkey"] != k])
+                matched[reason] = [m["bibkey"] for m in mat if m["bibkey"] != k]
                 match = True
             return match, matched
 
@@ -2069,31 +2069,45 @@ class Entries(PhysBiblioDBSub):
                 dstr.Bibs.cdProcess % (i + 1, tot, 100.0 * (i + 1) / tot, e["bibkey"])
             )
             match = False
-            matched = set([])
+            matched = {}
             k = e["bibkey"]
-            match, matched = checkres(k, self.getByKey(k), match, matched)
+            match, matched = checkres(k, self.getByKey(k), match, matched, "key")
             if e["arxiv"] != "" and e["arxiv"] != None:
                 match, matched = checkres(
-                    k, self.getByBibtex(e["arxiv"]), match, matched
+                    k, self.getByBibtex(e["arxiv"]), match, matched, "arxtex"
                 )
                 match, matched = checkres(
-                    k, self.getByField(e["arxiv"], "arxiv", like=False), match, matched
+                    k,
+                    self.getByField(e["arxiv"], "arxiv", like=False),
+                    match,
+                    matched,
+                    "arxf",
                 )
             if e["doi"] != "" and e["doi"] != None:
-                match, matched = checkres(k, self.getByBibtex(e["doi"]), match, matched)
                 match, matched = checkres(
-                    k, self.getByField(e["doi"], "doi", like=False), match, matched
+                    k, self.getByBibtex(e["doi"]), match, matched, "doitex"
+                )
+                match, matched = checkres(
+                    k,
+                    self.getByField(e["doi"], "doi", like=False),
+                    match,
+                    matched,
+                    "doif",
                 )
             try:
                 if e["old_keys"].strip() != "":
                     if "," in e["old_keys"]:
-                        for ok in e["old_keys"].split(","):
+                        for i, ok in enumerate(e["old_keys"].split(",")):
                             match, matched = checkres(
-                                k, self.getByKey(ok.strip()), match, matched
+                                k,
+                                self.getByKey(ok.strip()),
+                                match,
+                                matched,
+                                "oldkey%d" % i,
                             )
                     else:
                         match, matched = checkres(
-                            k, self.getByKey(e["old_keys"]), match, matched
+                            k, self.getByKey(e["old_keys"]), match, matched, "oldkey"
                         )
             except Exception:
                 pBLogger.debug("", exc_info=True)

@@ -3223,26 +3223,41 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("ghi", "doi", "1/2/3")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
-            {"abc": {"def", "ghi"}, "def": {"abc"}, "ghi": {"abc"}},
+            {
+                "abc": {"arxf": ["def"], "doif": ["ghi"]},
+                "def": {"arxf": ["abc"]},
+                "ghi": {"doif": ["abc"]},
+            },
         )
         self.pBDB.bibs.updateField("ghi", "doi", "")
         self.pBDB.bibs.updateField("ghi", "bibtex", "@article{1/2/3,}")
         self.assertEqual(
-            self.pBDB.bibs.checkDuplicates(), {"abc": {"def", "ghi"}, "def": {"abc"}}
+            self.pBDB.bibs.checkDuplicates(),
+            {"abc": {"arxf": ["def"], "doitex": ["ghi"]}, "def": {"arxf": ["abc"]}},
         )
         self.pBDB.bibs.updateField("def", "arxiv", "")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='1/2/3',}")
-        self.assertEqual(self.pBDB.bibs.checkDuplicates(), {"abc": {"def", "ghi"}})
+        self.assertEqual(
+            self.pBDB.bibs.checkDuplicates(), {"abc": {"doitex": ["def", "ghi"]}}
+        )
         self.pBDB.bibs.updateField("ghi", "old_keys", "def,bla")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='123',}")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
-            {"abc": {"ghi"}, "def": {"ghi"}, "ghi": {"def"}},
+            {
+                "abc": {"doitex": ["ghi"]},
+                "def": {"key": ["ghi"]},
+                "ghi": {"oldkey0": ["def"]},
+            },
         )
         self.pBDB.bibs.updateField("abc", "old_keys", "bla")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
-            {"abc": {"ghi"}, "def": {"ghi"}, "ghi": {"def", "abc"}},
+            {
+                "abc": {"doitex": ["ghi"], "oldkey": ["ghi"]},
+                "def": {"key": ["ghi"]},
+                "ghi": {"oldkey0": ["def"], "oldkey1": ["abc"]},
+            },
         )
 
     def test_checkExistingEntry(self, *args):
