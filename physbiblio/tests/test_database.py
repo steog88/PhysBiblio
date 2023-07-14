@@ -3214,7 +3214,10 @@ class TestDatabaseEntries(DBTestCase):
         self.insert_three()
         self.pBDB.bibs.updateField("abc", "arxiv", "1234.5678")
         self.pBDB.bibs.updateField("def", "arxiv", "1234.5678")
-        self.pBDB.bibs.updateField("ghi", "arxiv", "")
+        self.pBDB.bibs.updateField("ghi", "arxiv", "12345678")
+        self.pBDB.bibs.updateField("abc", "old_keys", "")
+        self.pBDB.bibs.updateField("def", "old_keys", "")
+        self.pBDB.bibs.updateField("ghi", "old_keys", "bla,com")
         self.pBDB.bibs.updateField("abc", "doi", "1/2/3")
         self.pBDB.bibs.updateField("def", "doi", "")
         self.pBDB.bibs.updateField("ghi", "doi", "1/2/3")
@@ -3230,11 +3233,16 @@ class TestDatabaseEntries(DBTestCase):
         self.pBDB.bibs.updateField("def", "arxiv", "")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='1/2/3',}")
         self.assertEqual(self.pBDB.bibs.checkDuplicates(), {"abc": {"def", "ghi"}})
-        self.pBDB.bibs.updateField("ghi", "old_keys", "def")
+        self.pBDB.bibs.updateField("ghi", "old_keys", "def,bla")
         self.pBDB.bibs.updateField("def", "bibtex", "@article{bla, doi='123',}")
         self.assertEqual(
             self.pBDB.bibs.checkDuplicates(),
             {"abc": {"ghi"}, "def": {"ghi"}, "ghi": {"def"}},
+        )
+        self.pBDB.bibs.updateField("abc", "old_keys", "bla")
+        self.assertEqual(
+            self.pBDB.bibs.checkDuplicates(),
+            {"abc": {"ghi"}, "def": {"ghi"}, "ghi": {"def", "abc"}},
         )
 
     def test_checkExistingEntry(self, *args):
@@ -4116,6 +4124,22 @@ class TestDatabaseEntries(DBTestCase):
         self.assertEqual(
             [e["bibkey"] for e in self.pBDB.bibs.getByField("345", "arxiv")],
             ["def"],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.fetchByField(
+                    "345", "arxiv", like=False
+                ).lastFetched
+            ],
+            [],
+        )
+        self.assertEqual(
+            [
+                e["bibkey"]
+                for e in self.pBDB.bibs.getByField("345", "arxiv", like=False)
+            ],
+            [],
         )
         self.assertEqual(
             [

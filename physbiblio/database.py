@@ -2046,6 +2046,12 @@ class Entries(PhysBiblioDBSub):
         """Check for duplicates in the list of bibtexs,
         by using information from old_keys, arxiv and doi fields (if available)
 
+        Parameters:
+            entries: the list of entries to process for duplicates
+            (duplicates are searched in the entire database!)
+
+        Output:
+            a dictionary (key is processed bibtex, value is a set of possible duplicates)
         """
 
         def checkres(key, mat, match, matched):
@@ -2057,7 +2063,11 @@ class Entries(PhysBiblioDBSub):
         if entries is None:
             entries = self.getAll()
         duplicates = {}
-        for e in entries:
+        tot = len(entries)
+        for i, e in enumerate(entries):
+            pBLogger.info(
+                dstr.Bibs.cdProcess % (i + 1, tot, 100.0 * (i + 1) / tot, e["bibkey"])
+            )
             match = False
             matched = set([])
             k = e["bibkey"]
@@ -2067,22 +2077,29 @@ class Entries(PhysBiblioDBSub):
                     k, self.getByBibtex(e["arxiv"]), match, matched
                 )
                 match, matched = checkres(
-                    k, self.getByField(e["arxiv"], "arxiv"), match, matched
+                    k, self.getByField(e["arxiv"], "arxiv", like=False), match, matched
                 )
             if e["doi"] != "" and e["doi"] != None:
                 match, matched = checkres(k, self.getByBibtex(e["doi"]), match, matched)
                 match, matched = checkres(
-                    k, self.getByField(e["doi"], "doi"), match, matched
+                    k, self.getByField(e["doi"], "doi", like=False), match, matched
                 )
             try:
-                for ok in e["old_keys"].split(","):
-                    match, matched = checkres(
-                        k, self.getByKey(ok.strip()), match, matched
-                    )
+                if e["old_keys"].strip() != "":
+                    if "," in e["old_keys"]:
+                        for ok in e["old_keys"].split(","):
+                            match, matched = checkres(
+                                k, self.getByKey(ok.strip()), match, matched
+                            )
+                    else:
+                        match, matched = checkres(
+                            k, self.getByKey(e["old_keys"]), match, matched
+                        )
             except Exception:
                 pBLogger.debug("", exc_info=True)
             if match:
                 duplicates[e["bibkey"]] = matched
+                pBLogger.info(dstr.Bibs.cdFound % (e["bibkey"], matched))
         return duplicates
 
     def checkExistingEntry(self, entry, **kwargs):
@@ -2597,13 +2614,15 @@ class Entries(PhysBiblioDBSub):
         )
         return self
 
-    def fetchByField(self, val, field, saveQuery=True):
+    def fetchByField(self, val, field, like=True, saveQuery=True):
         """Use self.fetchAll with a match on the given field
         and returns the dictionary of fetched entries
 
         Parameters:
             val: the string to match in the field (or a list)
             field: the field to match
+            like (boolean, default True): if False, perform an exact match
+                instead of matching substring
             saveQuery (boolean, default True):
                 whether to save the query or not
 
@@ -2612,14 +2631,14 @@ class Entries(PhysBiblioDBSub):
         """
         if isinstance(val, list):
             return self.fetchAll(
-                params={field: ["%%%s%%" % q for q in val]},
+                params={field: [("%%%s%%" if like else "%s") % q for q in val]},
                 connection="or",
-                operator=" like ",
+                operator=" like " if like else " = ",
                 saveQuery=saveQuery,
             )
         return self.fetchAll(
-            params={field: "%%%s%%" % val},
-            operator=" like ",
+            params={field: ("%%%s%%" if like else "%s") % val},
+            operator=" like " if like else " = ",
             saveQuery=saveQuery,
         )
 
@@ -2975,7 +2994,7 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
-    def getByField(self, string, field, saveQuery=True):
+    def getByField(self, string, field, like=True, saveQuery=True):
         """Use self.fetchByField and return
         the dictionary of fetched entries
 
@@ -2984,7 +3003,9 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list of dictionaries
         """
-        return self.fetchByField(string, field, saveQuery=saveQuery).lastFetched
+        return self.fetchByField(
+            string, field, like=like, saveQuery=saveQuery
+        ).lastFetched
 
     def getByIdFromInspireRecord(self, e):
         """Use self.fetchByIdFromInspireRecord and returns
