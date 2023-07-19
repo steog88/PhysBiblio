@@ -2329,9 +2329,26 @@ class Entries(PhysBiblioDBSub):
         for field in (
             "marks",
             "old_keys",
+            "comments",
+            "inspire",
+            "arxiv",
+            "ads",
+            "scholar",
+            "doi",
+            "isbn",
+            "year",
+            "link",
+            "crossref",
         ):  # convert None to "" for given fields
-            if e[field] is None:
+            if e[field] is None or e[field] == "None":
                 self.updateField(e["bibkey"], field, "")
+        old = e["old_keys"] if e["old_keys"] is not None else ""
+        if "None" in old:
+            self.updateField(
+                e["bibkey"],
+                "old_keys",
+                ", ".join([a.strip() for a in old.split(",") if "None" not in a]),
+            )
         if e["marks"] is not None and "'" in e["marks"]:
             marks = e["marks"].replace("'", "").split(",")
             newmarks = []

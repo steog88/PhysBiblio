@@ -3537,19 +3537,64 @@ class TestDatabaseEntries(DBTestCase):
         """test cleanFields"""
         with patch("physbiblio.database.Entries.updateField") as _u:
             self.pBDB.bibs.cleanFields(
-                {"bibkey": "abc", "marks": None, "old_keys": None, "bibtex": None}
+                {
+                    "bibkey": "abc",
+                    "marks": None,
+                    "old_keys": None,
+                    "bibtex": None,
+                    "comments": "a",
+                    "inspire": "a",
+                    "arxiv": "a",
+                    "ads": "a",
+                    "scholar": "a",
+                    "doi": "a",
+                    "isbn": "a",
+                    "year": "a",
+                    "link": "a",
+                    "crossref": "a",
+                }
             )
             self.assertEqual(_u.call_count, 2)
             _u.assert_any_call("abc", "marks", "")
             _u.assert_any_call("abc", "old_keys", "")
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
-                {"bibkey": "abc", "marks": "ab", "old_keys": "cd", "bibtex": None}
+                {
+                    "bibkey": "abc",
+                    "marks": "ab",
+                    "old_keys": "cd",
+                    "bibtex": None,
+                    "comments": "a",
+                    "inspire": "a",
+                    "arxiv": "a",
+                    "ads": "a",
+                    "scholar": "a",
+                    "doi": "a",
+                    "isbn": "a",
+                    "year": "a",
+                    "link": "a",
+                    "crossref": "a",
+                }
             )
             _u.assert_not_called()
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
-                {"bibkey": "abc", "marks": "a'b", "old_keys": "cd", "bibtex": None}
+                {
+                    "bibkey": "abc",
+                    "marks": "a'b",
+                    "old_keys": "cd",
+                    "bibtex": None,
+                    "comments": "a",
+                    "inspire": "a",
+                    "arxiv": "a",
+                    "ads": "a",
+                    "scholar": "a",
+                    "doi": "a",
+                    "isbn": "a",
+                    "year": "a",
+                    "link": "a",
+                    "crossref": "a",
+                }
             )
             _u.assert_called_once_with("abc", "marks", "ab")
             _u.reset_mock()
@@ -3557,11 +3602,24 @@ class TestDatabaseEntries(DBTestCase):
                 {
                     "bibkey": "abc",
                     "marks": "a'b,ab,cd,c'd",
-                    "old_keys": "cd",
+                    "old_keys": "None, cd",
                     "bibtex": None,
+                    "comments": "a",
+                    "inspire": "a",
+                    "arxiv": "a",
+                    "ads": "a",
+                    "scholar": None,
+                    "doi": "a",
+                    "isbn": None,
+                    "year": "a",
+                    "link": "a",
+                    "crossref": "a",
                 }
             )
-            _u.assert_called_once_with("abc", "marks", "ab,cd")
+            _u.assert_any_call("abc", "marks", "ab,cd")
+            _u.assert_any_call("abc", "old_keys", "cd")
+            _u.assert_any_call("abc", "scholar", "")
+            _u.assert_any_call("abc", "isbn", "")
 
     def test_completeFetched(self, *args):
         self.maxDiff = None

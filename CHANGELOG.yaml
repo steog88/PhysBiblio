@@ -1,4 +1,4 @@
--   version: 2.0.6
+-   version: 2.1.0
     date: 2023-07
     changes:
         - search by inspire ID
@@ -11,6 +11,7 @@
         - fix in merge function
         - fix when storing last query from tab
         - DB functions checkDuplicates (no quick access to it yet from command line nor GUI) and fetchByField in Entries
+        - fix None in various fields when running cleanFields
 -   version: 2.0.5
     date: 2023-06-07
     changes:
