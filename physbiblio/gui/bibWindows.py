@@ -2798,6 +2798,7 @@ class SearchBibsWindow(EditObjectWindow):
                 self.currentHistoric += 1
             elif e.key() == Qt.Key_Down and self.currentHistoric > 0:
                 self.currentHistoric -= 1
+            self.values = []
             self.cleanLayout()
             self.createForm(histIndex=self.currentHistoric)
 
@@ -3296,7 +3297,7 @@ class SearchBibsWindow(EditObjectWindow):
 
         try:
             self.textValues[-1]["content"].setFocus()
-        except (IndexError, AttributeError):
+        except (IndexError, AttributeError, RuntimeError):
             pass
 
         i = self.numberOfRows + 1
