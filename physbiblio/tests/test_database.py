@@ -3538,6 +3538,7 @@ class TestDatabaseEntries(DBTestCase):
         with patch("physbiblio.database.Entries.updateField") as _u:
             self.pBDB.bibs.cleanFields(
                 {
+                    "abstract": None,
                     "bibkey": "abc",
                     "marks": None,
                     "old_keys": None,
@@ -3554,12 +3555,14 @@ class TestDatabaseEntries(DBTestCase):
                     "crossref": "a",
                 }
             )
-            self.assertEqual(_u.call_count, 2)
+            self.assertEqual(_u.call_count, 3)
             _u.assert_any_call("abc", "marks", "")
             _u.assert_any_call("abc", "old_keys", "")
+            _u.assert_any_call("abc", "abstract", "")
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
                 {
+                    "abstract": "",
                     "bibkey": "abc",
                     "marks": "ab",
                     "old_keys": "cd",
@@ -3580,6 +3583,7 @@ class TestDatabaseEntries(DBTestCase):
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
                 {
+                    "abstract": "",
                     "bibkey": "abc",
                     "marks": "a'b",
                     "old_keys": "cd",
@@ -3600,6 +3604,7 @@ class TestDatabaseEntries(DBTestCase):
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
                 {
+                    "abstract": "",
                     "bibkey": "abc",
                     "marks": "a'b,ab,cd,c'd",
                     "old_keys": "None, cd",
@@ -3620,6 +3625,27 @@ class TestDatabaseEntries(DBTestCase):
             _u.assert_any_call("abc", "old_keys", "cd")
             _u.assert_any_call("abc", "scholar", "")
             _u.assert_any_call("abc", "isbn", "")
+            _u.reset_mock()
+            self.pBDB.bibs.cleanFields(
+                {
+                    "abstract": "",
+                    "bibkey": "abcd",
+                    "marks": "",
+                    "old_keys": "None, abcd, abcde, cd",
+                    "bibtex": None,
+                    "comments": "a",
+                    "inspire": "a",
+                    "arxiv": "a",
+                    "ads": "a",
+                    "scholar": "",
+                    "doi": "a",
+                    "isbn": "",
+                    "year": "a",
+                    "link": "a",
+                    "crossref": "a",
+                }
+            )
+            _u.assert_called_once_with("abcd", "old_keys", "abcde, cd")
 
     def test_completeFetched(self, *args):
         self.maxDiff = None

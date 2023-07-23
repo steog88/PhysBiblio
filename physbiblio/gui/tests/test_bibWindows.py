@@ -4708,6 +4708,168 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _cf.assert_called_once_with(pBDB.bibs, "myentry")
             _gbk.assert_called_once_with(pBDB.bibs, "merged", saveQuery=False)
 
+    def test_onMerge_real(self):
+        """test onMerge with real case"""
+        bibs = [
+            {
+                "bibkey": "Gariazzo2015lsn",
+                "inspire": "",
+                "arxiv": "",
+                "ads": "",
+                "scholar": "",
+                "doi": "10.1088/0954-3899/43/3/033001",
+                "isbn": "",
+                "year": "2016",
+                "link": "",
+                "comments": "",
+                "old_keys": "",
+                "crossref": "",
+                "bibtex": '@Article{Gariazzo2015lsn,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.G",\n        volume = "43",\n          year = "2016",\n         pages = "033001",\n           doi = "10.1088/0954-3899/43/3/033001",\n}',
+                "firstdate": "2023-07-23",
+                "pubdate": "",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 0,
+                "marks": "",
+                "abstract": "",
+                "bibdict": {
+                    "doi": "10.1088/0954-3899/43/3/033001",
+                    "pages": "033001",
+                    "year": "2016",
+                    "volume": "43",
+                    "journal": "J.Phys.G",
+                    "title": "{Light sterile neutrinos}",
+                    "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo2015lsn",
+                },
+                "citations": 0,
+                "citations_no_self": 0,
+                "bibtexDict": {
+                    "doi": "10.1088/0954-3899/43/3/033001",
+                    "pages": "033001",
+                    "year": "2016",
+                    "volume": "43",
+                    "journal": "J.Phys.G",
+                    "title": "{Light sterile neutrinos}",
+                    "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo2015lsn",
+                },
+                "title": "{Light sterile neutrinos}",
+                "journal": "J.Phys.G",
+                "volume": "43",
+                "number": "",
+                "pages": "033001",
+                "published": "J.Phys.G 43 (2016) 033001",
+                "author": "Gariazzo, S. et al.",
+            },
+            {
+                "bibkey": "Gariazzo:2015rra",
+                "inspire": "1385583",
+                "arxiv": "1507.08204",
+                "ads": "2015JPhG...43c3001G",
+                "scholar": None,
+                "doi": "10.1088/0954-3899/43/3/033001",
+                "isbn": None,
+                "year": "2016",
+                "link": "https://doi.org/10.1088/0954-3899/43/3/033001",
+                "comments": None,
+                "old_keys": "",
+                "crossref": None,
+                "bibtex": '@Article{Gariazzo:2015rra,\n        author = "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",\n         title = "{Light sterile neutrinos}",\n       journal = "J.Phys.G",\n        volume = "43",\n          year = "2016",\n         pages = "033001",\n archiveprefix = "arXiv",\n  primaryclass = "hep-ph",\n        eprint = "1507.08204",\n           doi = "10.1088/0954-3899/43/3/033001",\n}',
+                "firstdate": "2015-07-29",
+                "pubdate": "2016-01-13",
+                "exp_paper": 0,
+                "lecture": 0,
+                "phd_thesis": 0,
+                "review": 0,
+                "proceeding": 0,
+                "book": 0,
+                "noUpdate": 0,
+                "marks": "new",
+                "abstract": "",
+                "bibdict": {
+                    "doi": "10.1088/0954-3899/43/3/033001",
+                    "eprint": "1507.08204",
+                    "primaryclass": "hep-ph",
+                    "archiveprefix": "arXiv",
+                    "pages": "033001",
+                    "year": "2016",
+                    "volume": "43",
+                    "journal": "J.Phys.G",
+                    "title": "{Light sterile neutrinos}",
+                    "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
+                },
+                "citations": 245,
+                "citations_no_self": 195,
+                "bibtexDict": {
+                    "doi": "10.1088/0954-3899/43/3/033001",
+                    "eprint": "1507.08204",
+                    "primaryclass": "hep-ph",
+                    "archiveprefix": "arXiv",
+                    "pages": "033001",
+                    "year": "2016",
+                    "volume": "43",
+                    "journal": "J.Phys.G",
+                    "title": "{Light sterile neutrinos}",
+                    "author": "Gariazzo, S. and Giunti, C. and Laveder, M. and Li, Y.F. and Zavanin, E.M.",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
+                },
+                "title": "{Light sterile neutrinos}",
+                "journal": "J.Phys.G",
+                "volume": "43",
+                "number": "",
+                "pages": "033001",
+                "published": "J.Phys.G 43 (2016) 033001",
+                "author": "Gariazzo, S. et al.",
+            },
+        ]
+        c = CommonBibActions(
+            bibs,
+            self.mainW,
+        )
+        with patch("logging.Logger.warning") as _w:
+            mb = MergeBibtexs(bibs[0], bibs[1], self.mainW)
+        mb.exec = MagicMock()
+        mb.result = True
+        mb.checkValues["review"].setChecked(True)
+        mb.textValues["bibkey"].setText(bibs[1]["bibkey"])
+        mb.textValues["bibtex"].setPlainText(bibs[1]["bibtex"])
+        mb.textValues["firstdate"].setText(bibs[1]["firstdate"])
+        with patch(
+            "physbiblio.gui.bibWindows.MergeBibtexs",
+            return_value=mb,
+            autospec=USE_AUTOSPEC_CLASS,
+        ) as _mbi, patch("logging.Logger.warning") as _w, patch(
+            "logging.Logger.error"
+        ) as _er, patch(
+            "logging.Logger.exception"
+        ) as _ex:
+            c.onMerge()
+        r = pBDB.bibs.getByBibkey("Gariazzo:2015rra", saveQuery=False)[0]
+        b = bibs[1]
+        b["review"] = 1
+        b["abstract"] = ""
+        b["citations"] = 0
+        b["citations_no_self"] = 0
+        b["comments"] = ""
+        b["crossref"] = ""
+        b["isbn"] = ""
+        b["crossref"] = ""
+        b["marks"] = ""
+        b["scholar"] = ""
+        b["old_keys"] = "Gariazzo2015lsn"
+        self.maxDiff = None
+        self.assertEqual(r, b)
+
     def test_onModify(self):
         """test onModify"""
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)

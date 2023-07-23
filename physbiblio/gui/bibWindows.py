@@ -1661,11 +1661,11 @@ class CommonBibActions:
             data = {}
             for k, v in mergewin.textValues.items():
                 try:
-                    s = "%s" % v.text()
+                    s = "%s" % (v.text() if v is not None else "")
                     data[k] = s
                 except AttributeError:
                     try:
-                        s = "%s" % v.toPlainText()
+                        s = "%s" % (v.toPlainText() if v is not None else "")
                         data[k] = s
                     except AttributeError:
                         pass
