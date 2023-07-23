@@ -1678,7 +1678,7 @@ class CommonBibActions:
             for m, ckb in mergewin.markValues.items():
                 if ckb.isChecked():
                     data["marks"] += "%s," % m
-            if data["old_keys"].strip() != "":
+            if data["old_keys"].strip() != "" and data["old_keys"].strip() != "None":
                 data["old_keys"] = ", ".join(
                     [
                         data["old_keys"],
@@ -1714,6 +1714,12 @@ class CommonBibActions:
                         except:
                             pBLogger.warning(bwstr.Acts.reloadFail)
                 if correct:
+                    try:
+                        pBDB.bibs.cleanFields(
+                            pBDB.bibs.getByBibkey(data["bibkey"], saveQuery=False)[0]
+                        )
+                    except IndexError:
+                        pBLogger.debug("", exc_info=True)
                     for oldkey in (self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]):
                         for e in pBDB.cats.getByEntry(oldkey):
                             pBDB.catBib.insert(e["idCat"], data["bibkey"])

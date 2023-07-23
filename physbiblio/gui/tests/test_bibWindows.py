@@ -4384,6 +4384,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _er.assert_called_once_with("Cannot insert new item!")
             _ex.assert_not_called()
         # cannot reload
+        pBDB.bibs.lastFetched = ["last"]
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m, patch(
@@ -4452,6 +4453,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _er.assert_not_called()
             _ex.assert_not_called()
         # working
+        pBDB.bibs.lastFetched = ["last"]
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m, patch(
@@ -4584,6 +4586,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             mb = MergeBibtexs(e, e, self.mainW)
         mb.exec = MagicMock()
         mb.result = True
+        pBDB.bibs.lastFetched = ["last"]
         with patch(
             "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
         ) as _m, patch(
@@ -4609,10 +4612,17 @@ class TestCommonBibActions(GUIwMainWTestCase):
         ) as _de, patch(
             "physbiblio.database.Entries.insert", return_value=True, autospec=True
         ) as _in, patch(
+            "physbiblio.database.Entries.getByBibkey",
+            return_value=["myentry"],
+            autospec=True,
+        ) as _gbk, patch(
             "physbiblio.database.Entries.fetchFromLast",
             return_value=pBDB.bibs,
             autospec=True,
         ) as _fl, patch(
+            "physbiblio.database.Entries.cleanFields",
+            autospec=True,
+        ) as _cf, patch(
             "physbiblio.database.Categories.getByEntry",
             return_value=[{"idCat": 321}, {"idCat": 432}],
             autospec=True,
@@ -4630,13 +4640,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
         ) as _eein, patch(
             "physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True
-        ) as _mpdf, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        ) as _mpdf:
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
@@ -4664,9 +4668,6 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 pBDB.bibs, {"bibkey": "merged", "bibtex": "new bibtex"}
             )
             _fl.assert_called_once_with(pBDB.bibs)
-            _w.assert_not_called()
-            _er.assert_not_called()
-            _ex.assert_not_called()
             _cebk.assert_has_calls([call(pBDB.cats, "abc"), call(pBDB.cats, "def")])
             _cede.assert_has_calls(
                 [
@@ -4704,6 +4705,8 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _mpdf.assert_has_calls(
                 [call(pBPDF, "abc", "merged"), call(pBPDF, "def", "merged")]
             )
+            _cf.assert_called_once_with(pBDB.bibs, "myentry")
+            _gbk.assert_called_once_with(pBDB.bibs, "merged", saveQuery=False)
 
     def test_onModify(self):
         """test onModify"""
