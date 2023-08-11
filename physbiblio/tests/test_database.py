@@ -4455,13 +4455,29 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertRegex(self.pBDB.bibs.lastQuery, "select \* from entries  where .*")
         self.assertRegex(
-            self.pBDB.bibs.lastQuery, ".*bibkey  like   \?  or  bibkey  like   \?.*"
-        )
-        self.assertRegex(
-            self.pBDB.bibs.lastQuery, ".*old_keys  like   \?  or  old_keys  like   \?.*"
+            self.pBDB.bibs.lastQuery,
+            ".*bibkey = \? or old_keys = \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \?.*",
         )
         self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
-        self.assertEqual(self.pBDB.bibs.lastVals, ("%abc%", "%def%", "%abc%", "%def%"))
+        self.assertEqual(
+            self.pBDB.bibs.lastVals,
+            (
+                "abc",
+                "abc",
+                "abc,%",
+                "%, abc",
+                "%,abc",
+                "%, abc,%",
+                "%,abc,%",
+                "def",
+                "def",
+                "def,%",
+                "%, def",
+                "%,def",
+                "%, def,%",
+                "%,def,%",
+            ),
+        )
         self.pBDB.bibs.lastQuery = ""
         self.pBDB.bibs.lastVals = ()
         self.assertEqual(
@@ -4477,6 +4493,30 @@ class TestDatabaseEntries(DBTestCase):
         )
         self.assertEqual(self.pBDB.bibs.lastQuery, "")
         self.assertEqual(self.pBDB.bibs.lastVals, ())
+        self.pBDB.bibs.updateField("ghi", "old_keys", "abcde")
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByKey("abc", saveQuery=False)],
+            ["abc"],
+        )
+        self.pBDB.bibs.updateField("ghi", "old_keys", "bla,abcd,ab,c")
+        self.assertEqual(
+            [e["bibkey"] for e in self.pBDB.bibs.getByKey("abc", saveQuery=False)],
+            ["abc"],
+        )
+        for f in (
+            "bla",
+            "bla,abcd,ab,c",
+            "bla, abcd,ab,c",
+            "def, bla,abcd,ab,c",
+            "def,bla,abcd,ab,c",
+            "def, abcd,ab,c, bla",
+            "def, abcd,ab,c,bla",
+        ):
+            self.pBDB.bibs.updateField("ghi", "old_keys", f)
+            self.assertEqual(
+                [e["bibkey"] for e in self.pBDB.bibs.getByKey("bla", saveQuery=False)],
+                ["ghi"],
+            )
 
     def test_fetchFromDict(self, *args):
         """test the pretty complicated function fetchFromDict"""

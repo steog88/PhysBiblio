@@ -1949,9 +1949,9 @@ class Entries(PhysBiblioDBSub):
         if di["type"] == "Text":
             if di["operator"] in self.searchOperators["text"]:
                 di["operator"] = self.searchOperators["text"][di["operator"]]
-            elif di["operator"] not in [
-                v for v in self.searchOperators["text"].values()
-            ]:
+            elif di["operator"] not in (
+                [v for v in self.searchOperators["text"].values()] + ["containsraw"]
+            ):
                 pBLogger.warning(dstr.Bibs.Search.invalidOperator % di["operator"])
                 return first, query, whereQ, joinQ, vals
             if di["field"] in self.tableCols["entries"]:
@@ -1962,6 +1962,14 @@ class Entries(PhysBiblioDBSub):
                         di["field"],
                         di["operator"],
                     )
+                elif di["operator"] == "containsraw":
+                    whereQ += "%s %s%s %s ? " % (
+                        di["logical"],
+                        prependTab,
+                        di["field"],
+                        " like ",
+                    )
+                    vals += (self._getQueryStr(di["content"], "bla"),)
                 else:
                     whereQ += "%s %s%s %s ? " % (
                         di["logical"],
@@ -2730,18 +2738,49 @@ class Entries(PhysBiblioDBSub):
         Output:
             self
         """
+
+        def getSearchDict(key):
+            return [
+                {
+                    "type": "Text",
+                    "field": "bibkey",
+                    "content": key,
+                    "operator": "exact match",
+                    "logical": "",
+                },
+                {
+                    "type": "Text",
+                    "field": "old_keys",
+                    "content": key,
+                    "operator": "exact match",
+                    "logical": "or",
+                },
+            ] + [
+                {
+                    "type": "Text",
+                    "field": "old_keys",
+                    "content": k,
+                    "operator": "containsraw",
+                    "logical": "or",
+                }
+                for k in (
+                    "%s,%%" % key,
+                    "%%, %s" % key,
+                    "%%,%s" % key,
+                    "%%, %s,%%" % key,
+                    "%%,%s,%%" % key,
+                )
+            ]
+
         if isinstance(key, list):
-            strings = ["%%%s%%" % q for q in key]
-            return self.fetchAll(
-                params={"bibkey": strings, "old_keys": strings},
-                connection="or ",
-                operator=" like ",
+            dicts = [getSearchDict(k) for k in key]
+            return self.fetchFromDict(
+                sum(dicts, []),
+                defaultConnection="or",
                 saveQuery=saveQuery,
             )
-        return self.fetchAll(
-            params={"bibkey": "%%%s%%" % key, "old_keys": "%%%s%%" % key},
-            connection="or ",
-            operator=" like ",
+        return self.fetchFromDict(
+            getSearchDict(key),
             saveQuery=saveQuery,
         )
 

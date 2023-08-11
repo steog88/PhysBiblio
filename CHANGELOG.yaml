@@ -13,6 +13,7 @@
         - DB functions checkDuplicates (no quick access to it yet from command line nor GUI) and fetchByField in Entries
         - fix None in various fields when running cleanFields
         - fix messing up when one of the previous searches had more lines than the desider one
+        - improved search by key in database (exact match of bibkey or one of the old_keys is required to match)
 -   version: 2.0.5
     date: 2023-06-07
     changes:
