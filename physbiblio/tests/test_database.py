@@ -9041,8 +9041,8 @@ class TestDatabaseEntries(DBTestCase):
             del e2a["bibtexDict"]["journal"]
             _ur.assert_any_call(e1a, ["pr1"], True, True)
             _ur.assert_any_call(entry2a, ["pr2"], True, True)
-            _gi.assert_any_call("e")
-            _gi.assert_any_call("d")
+            _gi.assert_any_call("e", saveQuery=False)
+            _gi.assert_any_call("d", saveQuery=False)
             pbv.assert_any_call(1)
             pbv.assert_any_call(2)
             _ruf.reset_mock()

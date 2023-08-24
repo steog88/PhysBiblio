@@ -4390,7 +4390,7 @@ class Entries(PhysBiblioDBSub):
                     pbVal(i + ix + 1)
                 except TypeError:
                     pass
-                e = self.getByInspireID(r["id"])[0]
+                e = self.getByInspireID(r["id"], saveQuery=False)[0]
                 if reloadAll:
                     e["bibtex"] = physBiblioWeb.webSearch["inspire"].retrieveUrlFirst(
                         "recid:%s" % r["id"]

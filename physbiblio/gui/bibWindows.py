@@ -963,9 +963,9 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.insRel,
                         self.menu,
-                        triggered=lambda c=False, f=(
-                            not selection
-                        ), r=True: self.onUpdate(force=f, reloadAll=r),
+                        triggered=lambda c=False, f=True, r=True: self.onUpdate(
+                            force=f, reloadAll=r
+                        ),
                     ),
                     QAction(
                         bwstr.Acts.insCit,

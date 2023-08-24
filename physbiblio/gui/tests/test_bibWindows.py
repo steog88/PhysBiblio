@@ -2274,7 +2274,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _b.assert_called_once_with(c, force=True)
             _b.reset_mock()
             c.menu.possibleActions[0][1][2].trigger()
-            _b.assert_called_once_with(c, force=False, reloadAll=True)
+            _b.assert_called_once_with(c, force=True, reloadAll=True)
             _c.assert_not_called()
             c.menu.possibleActions[0][1][3].trigger()
             _c.assert_called_once_with(c)

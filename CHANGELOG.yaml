@@ -2,6 +2,7 @@
     date: 2023-08
     changes:
         - possibility to call "Type"/"none" search in dictionary to allow noUpdate
+        - fixes at "Update/Reload bibtex"
 -   version: 2.1.0
     date: 2023-08-11
     changes:
