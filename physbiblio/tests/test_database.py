@@ -3638,7 +3638,7 @@ class TestDatabaseEntries(DBTestCase):
                     "bibkey": "abc",
                     "marks": "a'b,ab,cd,c'd",
                     "old_keys": "None, cd",
-                    "bibtex": None,
+                    "bibtex": '@article{testkey,\narxiv="ccc",\n}',
                     "comments": "a",
                     "inspire": "a",
                     "arxiv": "a",
@@ -3655,6 +3655,7 @@ class TestDatabaseEntries(DBTestCase):
             _u.assert_any_call("abc", "old_keys", "cd")
             _u.assert_any_call("abc", "scholar", "")
             _u.assert_any_call("abc", "isbn", "")
+            _u.assert_any_call("abc", "arxiv", "ccc")
             _u.reset_mock()
             self.pBDB.bibs.cleanFields(
                 {
@@ -3662,7 +3663,7 @@ class TestDatabaseEntries(DBTestCase):
                     "bibkey": "abcd",
                     "marks": "",
                     "old_keys": "None, abcd, abcde, cd",
-                    "bibtex": None,
+                    "bibtex": '@article{testkey,\ndoi="ccc",\n}',
                     "comments": "a",
                     "inspire": "a",
                     "arxiv": "a",
@@ -3675,7 +3676,8 @@ class TestDatabaseEntries(DBTestCase):
                     "crossref": "a",
                 }
             )
-            _u.assert_called_once_with("abcd", "old_keys", "abcde, cd")
+            _u.assert_any_call("abcd", "old_keys", "abcde, cd")
+            _u.assert_any_call("abcd", "doi", "ccc")
 
     def test_completeFetched(self, *args):
         self.maxDiff = None

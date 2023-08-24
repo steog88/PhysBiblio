@@ -209,11 +209,10 @@ def editBibtex(parentObject, editKey=None):
         editKey: the key of the entry to be edited,
             or `None` to create a new one
     """
+    previous = pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
     newBibWin = EditBibtexDialog(
         parentObject,
-        bib=pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
-        if editKey is not None
-        else None,
+        bib=previous if editKey is not None else None,
     )
     newBibWin.exec()
     data = {}
@@ -253,6 +252,20 @@ def editBibtex(parentObject, editKey=None):
                 tmpBibDict = {}
             data["bibdict"] = "%s" % tmpBibDict
             # if some fields are empty, use bibtex info:
+            try:
+                if data["arxiv"] == previous["arxiv"]:
+                    if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
+                        data["arxiv"] = tmpBibDict["arxiv"]
+                    elif "eprint" in tmpBibDict.keys() and tmpBibDict["eprint"] != "":
+                        data["arxiv"] = tmpBibDict["eprint"]
+                if (
+                    data["doi"] == previous["doi"]
+                    and "doi" in tmpBibDict.keys()
+                    and tmpBibDict["doi"] != ""
+                ):
+                    data["doi"] = tmpBibDict["doi"]
+            except KeyError:
+                pass
             if data["arxiv"] == "":
                 if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
                     data["arxiv"] = tmpBibDict["arxiv"]

@@ -2388,6 +2388,16 @@ class Entries(PhysBiblioDBSub):
                 if m not in newmarks:
                     newmarks.append(m)
             self.updateField(e["bibkey"], "marks", ",".join(newmarks))
+        try:
+            prep = self.prepareInsert(e["bibtex"])
+            for k in ("doi", "arxiv"):
+                try:
+                    if e[k] != prep[k] and prep[k] != "":
+                        self.updateField(e["bibkey"], k, prep[k])
+                except KeyError:
+                    pass
+        except TypeError:
+            pass
 
     def completeFetched(self, fetched_in):
         """Use the database content to add additional fields

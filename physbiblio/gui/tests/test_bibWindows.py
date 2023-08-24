@@ -431,7 +431,6 @@ class TestFunctions(GUIwMainWTestCase):
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
             )
-            _gbk.assert_not_called()
         with patch("logging.Logger.debug") as _ld, patch(
             "physbiblio.database.Entries.getByBibkey", autospec=True
         ) as _gbk, patch(
@@ -444,7 +443,6 @@ class TestFunctions(GUIwMainWTestCase):
             editBibtex(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "No modifications to bibtex entry")
             _ld.assert_not_called()
-            _gbk.assert_not_called()
 
         ebd = EditBibtexDialog(self.mainW)
         ebd.exec = MagicMock()
@@ -528,7 +526,6 @@ class TestFunctions(GUIwMainWTestCase):
             _ld.assert_not_called()
             _lw.assert_not_called()
             _li.assert_not_called()
-            _gbk.assert_not_called()
             _pi.assert_not_called()
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -577,7 +574,6 @@ class TestFunctions(GUIwMainWTestCase):
             editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
-            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -645,7 +641,6 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _lw.assert_not_called()
             _li.assert_not_called()
-            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -694,7 +689,6 @@ class TestFunctions(GUIwMainWTestCase):
             editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
-            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -744,7 +738,6 @@ class TestFunctions(GUIwMainWTestCase):
             _lw.assert_not_called()
             _li.assert_not_called()
             _le.assert_called_once_with("Cannot insert/modify the entry!")
-            _gbk.assert_not_called()
             _pi.assert_called_once_with(pBDB.bibs, testentry["bibtex"])
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -803,7 +796,7 @@ class TestFunctions(GUIwMainWTestCase):
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
-            _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -887,7 +880,7 @@ class TestFunctions(GUIwMainWTestCase):
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _le.assert_called_once_with("Cannot insert/modify the entry!")
-            _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -976,7 +969,7 @@ class TestFunctions(GUIwMainWTestCase):
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_has_calls([call("Updating bibtex 'testkey'...")])
-            _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -1074,7 +1067,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'Gariazzo:2015rra'..."),
                 ]
             )
-            _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -1174,7 +1167,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'testkey'..."),
                 ]
             )
-            _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -1217,6 +1210,13 @@ class TestFunctions(GUIwMainWTestCase):
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
 
         # * with update bibkey, old_keys existing
+        testentry["arxiv"] = "1234"
+        testentry["doi"] = "4321"
+        testentry["bibtex"] = (
+            "@Article{testkey,\n         arxiv "
+            + '= "1507.08204",\n         doi '
+            + '= "123/456/789",\n}'
+        )
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
         ebd.exec = MagicMock()
         ebd.onOk()
@@ -1272,7 +1272,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'testkey'..."),
                 ]
             )
-            _gbk.assert_called_once_with(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -1297,10 +1297,12 @@ class TestFunctions(GUIwMainWTestCase):
                 "noUpdate": 0,
                 "link": "https://arxiv.org/abs/1507.08204",
                 "exp_paper": 0,
-                "doi": "",
+                "doi": "123/456/789",
                 "scholar": "",
                 "arxiv": "1507.08204",
-                "bibtex": "@Article{testkey,\n         arxiv " + '= "1507.08204",\n}',
+                "bibtex": "@Article{testkey,\n         arxiv "
+                + '= "1507.08204",\n         doi '
+                + '= "123/456/789",\n}',
                 "abstract": "",
                 "firstdate": "2018-09-01",
                 "old_keys": "testkey",
