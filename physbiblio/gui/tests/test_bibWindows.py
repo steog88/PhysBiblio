@@ -6782,6 +6782,7 @@ class TestSearchBibsWindow(GUITestCase):
                 "book": {"desc": "Book"},
                 "noUpdate": {"desc": "No update"},
                 "none": {"desc": "No type"},
+                "noneu": {"desc": "No type (allow noUpdate)"},
             },
         )
         self.assertEqual(

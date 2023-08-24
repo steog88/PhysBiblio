@@ -1535,6 +1535,7 @@ class Entries(PhysBiblioDBSub):
         "review": {"desc": dstr.Bibs.review},
         "noUpdate": {"desc": dstr.Bibs.noUpdate},
         "none": {"desc": dstr.Bibs.noneType},
+        "noneu": {"desc": dstr.Bibs.noneTypeUpd},
     }
     validReplaceFields = {
         "old": [
@@ -2013,10 +2014,22 @@ class Entries(PhysBiblioDBSub):
             vals += (self._getQueryStr(di["content"][0], di["operator"]),)
 
         elif di["type"] == "Type":
-            if "none" in di["content"]:
+            if "noneu" in di["content"]:
                 firstType = True
                 for f in self.searchPossibleTypes.keys():
-                    if f != "none":
+                    if f != "none" and f != "noneu" and f != "noUpdate":
+                        whereQ += "%s %s%s %s ? " % (
+                            di["logical"] if firstType else "and",
+                            prependTab,
+                            f,
+                            "=",
+                        )
+                        vals += ("0",)
+                        firstType = False
+            elif "none" in di["content"]:
+                firstType = True
+                for f in self.searchPossibleTypes.keys():
+                    if f != "none" and f != "noneu":
                         whereQ += "%s %s%s %s ? " % (
                             di["logical"] if firstType else "and",
                             prependTab,

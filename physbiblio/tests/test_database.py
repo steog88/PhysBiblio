@@ -3145,7 +3145,7 @@ class TestDatabaseEntries(DBTestCase):
         ew = ""
         ev = ()
         for f in self.pBDB.bibs.searchPossibleTypes.keys():
-            if f != "none":
+            if f != "none" and f != "noneu":
                 ew += "%s %s%s %s ? " % (
                     "" if firstType else "and",
                     "",
@@ -3187,6 +3187,36 @@ class TestDatabaseEntries(DBTestCase):
                 tuple("a"),
             ),
             (False, "abc", "where something = ? and" + ew, "join ", tuple("a") + ev),
+        )
+        firstType = True
+        ew = ""
+        ev = ()
+        for f in self.pBDB.bibs.searchPossibleTypes.keys():
+            if f != "none" and f != "noneu" and f != "noUpdate":
+                ew += "%s %s%s %s ? " % (
+                    "" if firstType else "and",
+                    "",
+                    f,
+                    "=",
+                )
+                ev += ("0",)
+                firstType = False
+        self.assertEqual(
+            self.pBDB.bibs._processQueryFields(
+                {
+                    "logical": "abc",
+                    "type": "Type",
+                    "content": ["noneu"],
+                    "operator": "=",
+                    "field": "bibtex",
+                },
+                True,
+                "abc",
+                "where",
+                "join ",
+                (),
+            ),
+            (False, "abc", "where" + ew, "join ", ev),
         )
 
     def test_bibtexFromDB(self, *args):

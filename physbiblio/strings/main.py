@@ -309,6 +309,7 @@ class DatabaseStrings(CommonStrings, DatabaseCoreStrings):
         laiReadError = "Error while reading the bibtex '%s'"
         lecture = "Lecture"
         noneType = "No type"
+        noneTypeUpd = "No type (allow noUpdate)"
         noUpdate = "No update"
         pabFound = "%d bibtex entries found."
         pabProgr = "%4d - %s\n"
