@@ -2092,11 +2092,13 @@ class Entries(PhysBiblioDBSub):
             match = False
             matched = {}
             k = e["bibkey"]
-            match, matched = checkres(k, self.getByKey(k), match, matched, "key")
+            match, matched = checkres(
+                k, self.getByKey(k, verbose=False), match, matched, "key"
+            )
             if e["arxiv"] != "" and e["arxiv"] != None:
                 match, matched = checkres(
                     k,
-                    self.getByField(e["arxiv"], "arxiv", like=False),
+                    self.getByField(e["arxiv"], "arxiv", like=False, verbose=False),
                     match,
                     matched,
                     "arx",
@@ -2104,7 +2106,7 @@ class Entries(PhysBiblioDBSub):
             if e["doi"] != "" and e["doi"] != None:
                 match, matched = checkres(
                     k,
-                    self.getByField(e["doi"], "doi", like=False),
+                    self.getByField(e["doi"], "doi", like=False, verbose=False),
                     match,
                     matched,
                     "doi",
@@ -2115,14 +2117,18 @@ class Entries(PhysBiblioDBSub):
                         for i, ok in enumerate(e["old_keys"].split(",")):
                             match, matched = checkres(
                                 k,
-                                self.getByKey(ok.strip()),
+                                self.getByKey(ok.strip(), verbose=False),
                                 match,
                                 matched,
                                 "oldkey%d" % i,
                             )
                     else:
                         match, matched = checkres(
-                            k, self.getByKey(e["old_keys"]), match, matched, "oldkey"
+                            k,
+                            self.getByKey(e["old_keys"], verbose=False),
+                            match,
+                            matched,
+                            "oldkey",
                         )
             except Exception:
                 pBLogger.debug("", exc_info=True)
@@ -2502,6 +2508,7 @@ class Entries(PhysBiblioDBSub):
         limitOffset=None,
         saveQuery=True,
         doFetch=True,
+        verbose=True,
     ):
         """Fetch entries using a number of criterions.
         Simpler than self.fetchFromDict.
@@ -2524,6 +2531,8 @@ class Entries(PhysBiblioDBSub):
             doFetch (boolean, default True):
                 use self.curs.fetchall and store all the rows in a list.
                 Set to False to directly use the iterator on self.curs.
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2566,6 +2575,8 @@ class Entries(PhysBiblioDBSub):
             cursor = self.curs
         else:
             cursor = self.fetchCurs
+        if verbose:
+            pBLogger.info(dstr.Bibs.useQueryVals % (query, vals))
         try:
             if len(vals) > 0:
                 cursor.execute(query, vals)
@@ -2627,7 +2638,7 @@ class Entries(PhysBiblioDBSub):
             saveQuery=saveQuery,
         )
 
-    def fetchByCat(self, idCat, orderBy="firstdate", orderType="ASC"):
+    def fetchByCat(self, idCat, orderBy="firstdate", orderType="ASC", verbose=True):
         """Fetch all the entries associated to a given category
 
         Parameters:
@@ -2635,6 +2646,8 @@ class Entries(PhysBiblioDBSub):
             orderBy (default "entries.firstdate"):
                 the "table.field" to use for ordering
             orderType: "ASC" (default) or "DESC"
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2651,10 +2664,11 @@ class Entries(PhysBiblioDBSub):
             ],
             orderBy=orderBy,
             orderType=orderType,
+            verbose=verbose,
         )
         return self
 
-    def fetchByExp(self, idExp, orderBy="firstdate", orderType="ASC"):
+    def fetchByExp(self, idExp, orderBy="firstdate", orderType="ASC", verbose=True):
         """Fetch all the entries associated to a given experiment
 
         Parameters:
@@ -2662,6 +2676,8 @@ class Entries(PhysBiblioDBSub):
             orderBy (default "entries.firstdate"):
                 the "table.field" to use for ordering
             orderType: "ASC" (default) or "DESC"
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2678,10 +2694,18 @@ class Entries(PhysBiblioDBSub):
             ],
             orderBy=orderBy,
             orderType=orderType,
+            verbose=verbose,
         )
         return self
 
-    def fetchByField(self, val, field, like=True, saveQuery=True):
+    def fetchByField(
+        self,
+        val,
+        field,
+        like=True,
+        saveQuery=True,
+        verbose=True,
+    ):
         """Use self.fetchAll with a match on the given field
         and returns the dictionary of fetched entries
 
@@ -2692,6 +2716,8 @@ class Entries(PhysBiblioDBSub):
                 instead of matching substring
             saveQuery (boolean, default True):
                 whether to save the query or not
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2702,11 +2728,13 @@ class Entries(PhysBiblioDBSub):
                 connection="or",
                 operator=" like " if like else " = ",
                 saveQuery=saveQuery,
+                verbose=verbose,
             )
         return self.fetchAll(
             params={field: ("%%%s%%" if like else "%s") % val},
             operator=" like " if like else " = ",
             saveQuery=saveQuery,
+            verbose=verbose,
         )
 
     def fetchByIdFromInspireRecord(self, e):
@@ -2748,7 +2776,7 @@ class Entries(PhysBiblioDBSub):
         self.lastFetched = []
         return self
 
-    def fetchByKey(self, key, saveQuery=True):
+    def fetchByKey(self, key, saveQuery=True, verbose=True):
         """Use self.fetchAll with a match
         on the bibtex key in the bibkey, bibtex or old_keys fields
         and returns the dictionary of fetched entries
@@ -2757,6 +2785,8 @@ class Entries(PhysBiblioDBSub):
             key: the bibtex key to match (or a list)
             saveQuery (boolean, default True):
                 whether to save the query or not
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2801,10 +2831,12 @@ class Entries(PhysBiblioDBSub):
                 sum(dicts, []),
                 defaultConnection="or",
                 saveQuery=saveQuery,
+                verbose=verbose,
             )
         return self.fetchFromDict(
             getSearchDict(key),
             saveQuery=saveQuery,
+            verbose=verbose,
         )
 
     def fetchCursor(self):
@@ -2821,6 +2853,7 @@ class Entries(PhysBiblioDBSub):
         limitOffset=None,
         saveQuery=True,
         doFetch=True,
+        verbose=True,
     ):
         """Fetch entries using a number of criterions
 
@@ -2854,6 +2887,8 @@ class Entries(PhysBiblioDBSub):
             doFetch (boolean, default True):
                 use self.curs.fetchall and store all the rows in a list.
                 Set to False to directly use the iterator on self.curs.
+            verbose (boolean, default True):
+                print the used query on screen
 
         Output:
             self
@@ -2898,7 +2933,8 @@ class Entries(PhysBiblioDBSub):
             cursor = self.curs
         else:
             cursor = self.fetchCurs
-        pBLogger.info(dstr.Bibs.useQueryVals % (query, vals))
+        if verbose:
+            pBLogger.info(dstr.Bibs.useQueryVals % (query, vals))
         try:
             if len(vals) > 0:
                 cursor.execute(query, vals)
@@ -3011,6 +3047,7 @@ class Entries(PhysBiblioDBSub):
         limitTo=None,
         limitOffset=None,
         saveQuery=True,
+        verbose=True,
     ):
         """Use self.fetchAll and returns the dictionary of fetched entries
 
@@ -3028,6 +3065,7 @@ class Entries(PhysBiblioDBSub):
             limitTo=limitTo,
             limitOffset=limitOffset,
             saveQuery=saveQuery,
+            verbose=verbose,
         ).lastFetched
 
     def getArxivUrl(self, key, urlType="abs"):
@@ -3092,7 +3130,14 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByExp(idExp, orderBy=orderBy, orderType=orderType).lastFetched
 
-    def getByField(self, string, field, like=True, saveQuery=True):
+    def getByField(
+        self,
+        string,
+        field,
+        like=True,
+        saveQuery=True,
+        verbose=True,
+    ):
         """Use self.fetchByField and return
         the dictionary of fetched entries
 
@@ -3102,7 +3147,7 @@ class Entries(PhysBiblioDBSub):
             a list of dictionaries
         """
         return self.fetchByField(
-            string, field, like=like, saveQuery=saveQuery
+            string, field, like=like, saveQuery=saveQuery, verbose=verbose
         ).lastFetched
 
     def getByIdFromInspireRecord(self, e):
@@ -3127,7 +3172,7 @@ class Entries(PhysBiblioDBSub):
         """
         return self.fetchByField(string, "inspire", saveQuery=saveQuery).lastFetched
 
-    def getByKey(self, key, saveQuery=True):
+    def getByKey(self, key, saveQuery=True, verbose=True):
         """Use self.fetchByKey and returns
         the dictionary of fetched entries
 
@@ -3136,7 +3181,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list of dictionaries
         """
-        return self.fetchByKey(key, saveQuery=saveQuery).lastFetched
+        return self.fetchByKey(key, saveQuery=saveQuery, verbose=verbose).lastFetched
 
     def getDailyInfoFromOAI(self, date1=None, date2=None):
         """Use inspire OAI webinterface to get updated information
