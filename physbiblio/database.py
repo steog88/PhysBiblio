@@ -4090,6 +4090,44 @@ class Entries(PhysBiblioDBSub):
                     pass
         pBLogger.info(dstr.Bibs.elementsFound % total)
 
+    def printDuplicates(self, entries=None):
+        """Print the output of checkDuplicates nicely on the screen
+
+        Parameters:
+            a dictionary (key is processed bibtex, value is a set of possible duplicates)
+        """
+        keys = sorted(entries.keys())
+        for k in keys:
+            e = entries[k]
+            txt = ""
+            r = self.getByKey(k, saveQuery=False, verbose=False)[0]
+            for m, ds in e.items():
+                if "arx" in m:
+                    for d in ds:
+                        txt += "%s and %s have a matching arxiv ID (%s)\n" % (
+                            k,
+                            d,
+                            r["arxiv"],
+                        )
+                if "doi" in m:
+                    for d in ds:
+                        txt += "%s and %s have a matching DOI (%s)\n" % (k, d, r["doi"])
+                if "key" in m or "oldkey" in m:
+                    for d in ds:
+                        n = self.getByKey(d, saveQuery=False, verbose=False)[0]
+                        txt += (
+                            "%s and %s have a matching key (%s - %s) or old key (%s - %s)\n"
+                            % (
+                                k,
+                                d,
+                                r["bibkey"],
+                                n["bibkey"],
+                                r["old_keys"],
+                                n["old_keys"],
+                            )
+                        )
+            print(txt)
+
     def readEntries(self, bibtex):
         """Build a BibTexParser and extract the parsed entries
         from the given bibtex string

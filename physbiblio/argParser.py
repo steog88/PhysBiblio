@@ -43,6 +43,13 @@ def call_cli(args):
     physBiblioCLI()
 
 
+def call_duplicates(args):
+    """Function used when the "duplicates" subcommand is called"""
+    from physbiblio.database import pBDB
+
+    pBDB.bibs.printDuplicates(pBDB.bibs.checkDuplicates())
+
+
 def call_export(args):
     """Function used when the "export" subcommand is called"""
     from physbiblio.export import pBExport
@@ -224,6 +231,9 @@ def setParser():
         default=dateLast,
     )
     parser_dates.set_defaults(func=call_dates)
+
+    parser_duplicates = subparsers.add_parser("duplicates", help=apstr.duplHelp)
+    parser_duplicates.set_defaults(func=call_duplicates)
 
     parser_export = subparsers.add_parser("export", help=apstr.exportHelp)
     parser_export.add_argument("filename", help=apstr.exportFilenameHelp)

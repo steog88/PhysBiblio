@@ -2809,6 +2809,48 @@ class TestDatabaseEntries(DBTestCase):
             {"arxiv": "1901.01234", "year": "2005"},
         )
 
+    def test_printDuplicates(self, *args):
+        """test printDuplicates"""
+        ret1 = {
+            "bibkey": "abc",
+            "arxiv": "2001.00001",
+            "doi": "123/456/789",
+            "old_keys": "o1,o2,o3",
+        }
+        ret2 = {
+            "bibkey": "def",
+            "arxiv": "2201.11111",
+            "doi": "456/789/123",
+            "old_keys": "n1,n2",
+        }
+        with patch("physbiblio.database.Entries.getByKey", return_value=[ret1]) as _f:
+            self.assert_in_stdout(
+                lambda: self.pBDB.bibs.printDuplicates({"abc": {"arx": ["def"]}}),
+                "abc and def have a matching arxiv ID (2001.00001)",
+            )
+        with patch("physbiblio.database.Entries.getByKey", return_value=[ret1]) as _f:
+            self.assert_in_stdout(
+                lambda: self.pBDB.bibs.printDuplicates(
+                    {"abc": {"doi": ["def", "ghi"]}}
+                ),
+                [
+                    "abc and def have a matching DOI (123/456/789)",
+                    "abc and ghi have a matching DOI (123/456/789)",
+                ],
+            )
+        with patch(
+            "physbiblio.database.Entries.getByKey", side_effect=[[ret1], [ret2]]
+        ) as _f:
+            self.assert_in_stdout(
+                lambda: self.pBDB.bibs.printDuplicates(
+                    {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
+                ),
+                [
+                    "abc and bla have a matching key (abc - def) or old key (o1,o2,o3 - n1,n2)",
+                    "abc and def have a matching arxiv ID (2001.00001)",
+                ],
+            )
+
     def test_processQueryFields(self, *args):
         """test _processQueryFields"""
         # failing

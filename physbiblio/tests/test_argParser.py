@@ -69,7 +69,7 @@ class TestParser(unittest.TestCase):
                 lambda: parser.parse_args([opt]),
                 [
                     "usage: PhysBiblio.exe [-h] [-p ",
-                    "{citations,clean,cli,daily,dates,export,test,tex,update,weekly,gui}",
+                    "{citations,clean,cli,daily,dates,duplicates,export,test,tex,update,weekly,gui}",
                 ],
             )
         for opt in ("-p", "--profile"):
@@ -136,6 +136,12 @@ class TestParser(unittest.TestCase):
                 "physbiblio.database.Entries.getDailyInfoFromOAI",
                 ["2018-04-01", "2018-05-01"],
                 ([pBDB.bibs, "2018-04-01", "2018-05-01"], {}),
+            ],
+            [
+                "duplicates",
+                "physbiblio.database.Entries.checkDuplicates",
+                [],
+                ([pBDB.bibs], {}),
             ],
             [
                 "export",
@@ -483,6 +489,15 @@ class TestParser(unittest.TestCase):
         with patch("physbiblio.cli.cli") as _f:
             call_cli(args)
             _f.assert_called_once_with()
+
+    def test_call_duplicates(self, *args):
+        """test call_duplicates"""
+        with patch(
+            "physbiblio.database.Entries.checkDuplicates", return_value="abcd"
+        ) as _f, patch("physbiblio.database.Entries.printDuplicates") as _p:
+            call_duplicates(args)
+            _f.assert_called_once_with()
+            _p.assert_called_once_with("abcd")
 
     def test_call_export(self, *args):
         """test call_export"""
