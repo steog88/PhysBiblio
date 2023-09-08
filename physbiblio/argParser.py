@@ -54,7 +54,7 @@ def call_export(args):
     """Function used when the "export" subcommand is called"""
     from physbiblio.export import pBExport
 
-    pBExport.exportAll(args.filename)
+    pBExport.exportAll(args.filename, citations=args.citations)
 
 
 def call_tests(args):
@@ -237,6 +237,13 @@ def setParser():
 
     parser_export = subparsers.add_parser("export", help=apstr.exportHelp)
     parser_export.add_argument("filename", help=apstr.exportFilenameHelp)
+    parser_export.add_argument(
+        "-c",
+        "--citations",
+        dest="citations",
+        action="store_true",
+        help=apstr.exportCitationsHelp,
+    )
     parser_export.set_defaults(func=call_export)
 
     parser_test = subparsers.add_parser("test", help=apstr.testHelp)

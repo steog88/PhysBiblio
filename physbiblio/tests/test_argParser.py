@@ -147,7 +147,13 @@ class TestParser(unittest.TestCase):
                 "export",
                 "physbiblio.export.PBExport.exportAll",
                 ["testname"],
-                ([pBExport, "testname"], {}),
+                ([pBExport, "testname"], {"citations": False}),
+            ],
+            [
+                "export",
+                "physbiblio.export.PBExport.exportAll",
+                ["testname", "-c"],
+                ([pBExport, "testname"], {"citations": True}),
             ],
             [
                 "tex",
@@ -503,9 +509,10 @@ class TestParser(unittest.TestCase):
         """test call_export"""
         args = NameSpace()
         args.filename = "abc"
+        args.citations = True
         with patch("physbiblio.export.PBExport.exportAll") as _f:
             call_export(args)
-            _f.assert_called_once_with("abc")
+            _f.assert_called_once_with("abc", citations=True)
 
     def test_call_tex(self, *args):
         """test call_tex"""

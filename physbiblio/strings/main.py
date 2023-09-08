@@ -17,6 +17,7 @@ class ArgParserStrings:
     datesStartHelp = "the starting date (format as yyyy-mm-dd)"
     duplHelp = "search for possible duplicates in the database and print the output"
     exportFilenameHelp = "the filename where to save the entries"
+    exportCitationsHelp = "if present, add the citations field to the output bibtex"
     exportHelp = "export all the entries in the database in a file"
     guiHelp = "open the gui"
     profileHelp = "define the profile that must be used"
