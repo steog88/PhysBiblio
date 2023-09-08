@@ -17,6 +17,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
+    from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.main import ExportStrings as exstr
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -86,44 +87,64 @@ class PBExport:
                 return True
         return True
 
-    def exportLast(self, fileName):
+    def exportLast(self, fileName, citations=False):
         """Export the last queried entries into a .bib file,
         if the list is not empty.
 
         Parameters:
             fileName: the name of the output bibtex file
+            citations (boolean, default False): if True,
+                add the "citations" field to the exported bibtexs
+                using info from the database
         """
         if pBDB.bibs.lastFetched:
-            self.exportRows(fileName, pBDB.bibs.lastFetched)
+            self.exportRows(fileName, pBDB.bibs.lastFetched, citations=citations)
         else:
             pBLogger.info(exstr.noLastSel)
 
-    def exportAll(self, fileName):
+    def exportAll(self, fileName, citations=False):
         """Export all the entries in the database into a .bib file.
 
         Parameters:
             fileName: the name of the output bibtex file
+            citations (boolean, default False): if True,
+                add the "citations" field to the exported bibtexs
+                using info from the database
         """
         pBDB.bibs.fetchAll(saveQuery=False, doFetch=False)
-        self.exportRows(fileName, pBDB.bibs.fetchCursor())
+        self.exportRows(fileName, pBDB.bibs.fetchCursor(), citations=citations)
 
-    def exportSelected(self, fileName, rows):
+    def exportSelected(self, fileName, rows, citations=False):
         """An alias for exportRows"""
-        self.exportRows(fileName, rows)
+        self.exportRows(fileName, rows, citations=citations)
 
-    def exportRows(self, fileName, rows):
+    def exportRows(self, fileName, rows, citations=False):
         """Export the given entries into a .bib file.
 
         Parameters:
             fileName: the name of the output bibtex file
             rows: the list of entries to be exported
+            citations (boolean, default False): if True,
+                add the "citations" field to the exported bibtexs
+                using info from the database
         """
         self.backupCopy(fileName)
         if rows != []:
+            db = bibtexparser.bibdatabase.BibDatabase()
             try:
                 with codecs.open(fileName, "w", "utf-8") as bibfile:
                     for q in rows:
-                        bibfile.write(q["bibtex"] + "\n")
+                        if citations:
+                            d = eval(q["bibdict"])
+                            d["citations"] = "%d" % q["citations"]
+                            db.entries = [d]
+                            t = pbWriter.write(db)
+                            t = pBDB.bibs.rmBibtexComments(t)
+                            t = parse_accents_str(t)
+                            t = pBDB.bibs.rmBibtexACapo(t)
+                            bibfile.write(t)
+                        else:
+                            bibfile.write(q["bibtex"] + "\n")
             except Exception:
                 pBLogger.exception(exstr.errorExport, traceback)
                 self.restoreBackupCopy(fileName)
