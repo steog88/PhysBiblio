@@ -2063,13 +2063,22 @@ class Entries(PhysBiblioDBSub):
             self.rmBibtexACapo(parse_accents_str(pbWriter.write(db).strip()))
         )
 
-    def checkDuplicates(self, entries=None):
+    def checkDuplicates(
+        self,
+        entries=None,
+        pbMax=None,
+        pbVal=None,
+    ):
         """Check for duplicates in the list of bibtexs,
         by using information from old_keys, arxiv and doi fields (if available)
 
         Parameters:
             entries: the list of entries to process for duplicates
-            (duplicates are searched in the entire database!)
+                (duplicates are searched in the entire database!)
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
 
         Output:
             a dictionary (key is processed bibtex, value is a set of possible duplicates)
@@ -2084,11 +2093,22 @@ class Entries(PhysBiblioDBSub):
         if entries is None:
             entries = self.getAll()
         duplicates = {}
+        self.runningCheckDuplicates = True
         tot = len(entries)
+        try:
+            pbMax(tot)
+        except TypeError:
+            pass
         for i, e in enumerate(entries):
+            if not self.runningCheckDuplicates:
+                continue
             pBLogger.info(
                 dstr.Bibs.cdProcess % (i + 1, tot, 100.0 * (i + 1) / tot, e["bibkey"])
             )
+            try:
+                pbVal(i + 1)
+            except TypeError:
+                pass
             match = False
             matched = {}
             k = e["bibkey"]
@@ -2135,6 +2155,7 @@ class Entries(PhysBiblioDBSub):
             if match:
                 duplicates[e["bibkey"]] = matched
                 pBLogger.info(dstr.Bibs.cdFound % (e["bibkey"], matched))
+        pBLogger.info(dstr.doneD)
         return duplicates
 
     def checkExistingEntry(self, entry, **kwargs):

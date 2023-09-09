@@ -217,6 +217,53 @@ class Thread_replace(PBThread):
         pBDB.bibs.runningReplace = False
 
 
+class Thread_duplicates(PBThread):
+    """Thread that uses `pBDB.bibs.checkDuplicates`"""
+
+    def __init__(
+        self,
+        receiver,
+        parent,
+        pbMax=None,
+        pbVal=None,
+    ):
+        """Initialize the thread and store the required settings
+
+        Parameters:
+            receiver: the receiver for the text output
+                (a `WriteStream` object)
+            fiOld: name of the field from where the content is taken
+            fiNew (list): names of new fields where
+                the replaced content must go
+            old: content to replace or match string
+            new (list): new content or regex instruction to extract it
+            parent: the parent widget
+            regex (default False): if True, use regular expressions.
+                if False, just do normal string replacement
+            pbMax (callable, optional): a function to set the maximum
+                of a progress bar in the GUI, if possible
+            pbVal (callable, optional): a function to set the value
+                of a progress bar in the GUI, if possible
+        """
+        super(Thread_duplicates, self).__init__(parent)
+        self.receiver = receiver
+        self.pbMax = pbMax
+        self.pbVal = pbVal
+
+    def run(self):
+        """Start the receiver,
+        run `pBDB.bibs.replace` and finish
+        """
+        self.receiver.start()
+        pBDB.bibs.checkDuplicates(pbMax=self.pbMax, pbVal=self.pbVal)
+        time.sleep(0.1)
+        self.receiver.running = False
+
+    def setStopFlag(self):
+        """Set the stop flag for the threaded process"""
+        pBDB.bibs.runningCheckDuplicates = False
+
+
 class Thread_updateInspireInfo(PBThread):
     """Thread that uses `physbiblio.database.Entries.updateInfoFromOAI`
     to update the entry record.

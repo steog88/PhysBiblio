@@ -5603,6 +5603,18 @@ class TestMainWindow(GUITestCase):
             self.assertTrue(self.mainW.checkAdsToken())
             _agt.assert_not_called()
 
+    def test_checkDuplicates(self):
+        """test checkDuplicates"""
+        with patch(self.clsName + "._runInThread", autospec=True) as _rit:
+            self.mainW.checkDuplicates()
+            _rit.assert_called_once_with(
+                self.mainW,
+                Thread_duplicates,
+                "Check duplicates in database",
+                minProgress=0.0,
+                stopFlag=True,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

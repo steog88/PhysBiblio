@@ -75,6 +75,7 @@ try:
         Thread_cleanAllBibtexs,
         Thread_cleanSpare,
         Thread_cleanSparePDF,
+        Thread_duplicates,
         Thread_exportTexBib,
         Thread_fieldsArxiv,
         Thread_findBadBibtexs,
@@ -483,6 +484,13 @@ class MainWindow(QMainWindow):
             shortcut="Ctrl+Shift+B",
             statusTip=mwstr.Act.corrD,
             triggered=lambda x=False: self.findBadBibtexs(),
+        )
+
+        self.checkDuplicatesAct = QAction(
+            mwstr.Act.duplT,
+            self,
+            statusTip=mwstr.Act.duplD,
+            triggered=lambda x=False: self.checkDuplicates(),
         )
 
         self.infoFromArxivAct = QAction(
@@ -2176,6 +2184,19 @@ class MainWindow(QMainWindow):
                 pbConfig.readConfig()
                 return True
         return True
+
+    def checkDuplicates(
+        self,
+    ):
+        """Use database.Entries.checkDuplicates in a separate thread"""
+        # self.statusBarMessage(mwstr.updateStartFrom % startFrom)
+        self._runInThread(
+            Thread_duplicates,
+            mwstr.duplT,
+            minProgress=0.0,
+            stopFlag=True,
+        )
+        # self.refreshMainContent()
 
 
 if __name__ == "__main__":

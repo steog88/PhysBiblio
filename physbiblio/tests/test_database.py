@@ -3328,6 +3328,13 @@ class TestDatabaseEntries(DBTestCase):
                 "ghi": {"oldkey0": ["def"], "oldkey1": ["abc"]},
             },
         )
+        pm = MagicMock()
+        pv = MagicMock()
+        self.pBDB.bibs.checkDuplicates(pbMax=pm, pbVal=pv)
+        pm.assert_called_once_with(3)
+        pv.assert_any_call(1)
+        pv.assert_any_call(2)
+        pv.assert_any_call(3)
 
     def test_checkExistingEntry(self, *args):
         """test checkExistingEntry"""

@@ -439,6 +439,10 @@ class MainWindowStrings(CommonStrings, ErrorsStrings, CommonGUIStrings):
         dbD = "Show some statistics about the current database"
         dbT = "&Database info"
         delete = "Delete '%s'"
+        duplD = (
+            "Run the function that checks for duplicate bibtex entries in the database"
+        )
+        duplT = "Check duplicates"
         edit = "Edit '%s'"
         editProfD = "Edit profiles"
         editProfT = "&Edit profiles"
@@ -593,6 +597,7 @@ class MainWindowStrings(CommonStrings, ErrorsStrings, CommonGUIStrings):
         + "The size of the PDF folder is {pdfs:}."
     )
     dbStatsTitle = "PhysBiblio database statistics"
+    duplT = "Check duplicates in database"
     emptyFN = "Empty filename given!"
     emptyInFNs = "Empty input filename(s)!"
     emptyOutFN = "Empty output filename!"
