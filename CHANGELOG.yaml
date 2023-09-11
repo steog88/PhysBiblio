@@ -1,5 +1,5 @@
 -   version: 2.1.2
-    date: 2023-09
+    date: 2023-09-11
     changes:
         - function printDuplicates to show the output nicely, command line option to check and print the duplicates
         - exportAll and similar can add citation counts (from the database) to the bibtex
