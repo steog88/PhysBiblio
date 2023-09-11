@@ -44,6 +44,7 @@ try:
         AbstractFormulas,
         BibtexInfo,
         BibtexListWindow,
+        DuplicatesListWindow,
         FieldsFromArxiv,
         SearchBibsWindow,
         editBibtex,
@@ -625,6 +626,7 @@ class MainWindow(QMainWindow):
         self.bibMenu.addAction(self.cleanAllBibtexsAct)
         self.bibMenu.addAction(self.cleanAllBibtexsAskAct)
         self.bibMenu.addAction(self.findBadBibtexsAct)
+        self.bibMenu.addAction(self.checkDuplicatesAct)
         self.bibMenu.addSeparator()
         self.bibMenu.addAction(self.infoFromArxivAct)
         self.bibMenu.addAction(self.updateAllBibtexsAct)
@@ -2188,15 +2190,17 @@ class MainWindow(QMainWindow):
     def checkDuplicates(
         self,
     ):
-        """Use database.Entries.checkDuplicates in a separate thread"""
-        # self.statusBarMessage(mwstr.updateStartFrom % startFrom)
+        """Use database.Entries.checkDuplicates in a separate thread
+        and show the results in a DuplicatesListWindow
+        """
         self._runInThread(
             Thread_duplicates,
             mwstr.duplT,
             minProgress=0.0,
             stopFlag=True,
         )
-        # self.refreshMainContent()
+        self.duplListWin = DuplicatesListWindow(self, self.duplicates)
+        self.duplListWin.show()
 
 
 if __name__ == "__main__":

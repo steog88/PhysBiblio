@@ -219,6 +219,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
     btmdInvalid = "BibTableModel.data(): invalid %s"
     deleteAsk = "Do you really want to delete this bibtex entry (bibkey = '%s')?"
     deleted = "Bibtex entry deleted"
+    duplTitle = "Duplicates"
     emptyKey = "ERROR: empty bibkey!"
     emptyBib = "ERROR: empty bibtex!"
     errorLatexImg = "Error when converting latex to image"

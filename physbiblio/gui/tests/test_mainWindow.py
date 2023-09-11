@@ -678,6 +678,7 @@ class TestMainWindow(GUITestCase):
                 self.mainW.cleanAllBibtexsAct,
                 self.mainW.cleanAllBibtexsAskAct,
                 self.mainW.findBadBibtexsAct,
+                self.mainW.checkDuplicatesAct,
                 None,
                 self.mainW.infoFromArxivAct,
                 self.mainW.updateAllBibtexsAct,
@@ -5605,7 +5606,16 @@ class TestMainWindow(GUITestCase):
 
     def test_checkDuplicates(self):
         """test checkDuplicates"""
-        with patch(self.clsName + "._runInThread", autospec=True) as _rit:
+        with patch(
+            "physbiblio.database.Entries.getByKey",
+            return_value=[{"bibkey": "abc", "arxiv": "123"}],
+        ) as _f:
+            dl = DuplicatesListWindow(self.mainW, {"abc": {"arx": "def"}})
+        dl.show = MagicMock()
+        self.mainW.duplicates = "abcd"
+        with patch(self.clsName + "._runInThread", autospec=True) as _rit, patch(
+            self.modName + ".DuplicatesListWindow", return_value=dl
+        ) as _dl:
             self.mainW.checkDuplicates()
             _rit.assert_called_once_with(
                 self.mainW,
@@ -5614,6 +5624,8 @@ class TestMainWindow(GUITestCase):
                 minProgress=0.0,
                 stopFlag=True,
             )
+            _dl.assert_called_once_with(self.mainW, "abcd")
+            dl.show.assert_called_once()
 
 
 if __name__ == "__main__":

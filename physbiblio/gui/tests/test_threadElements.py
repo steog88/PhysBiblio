@@ -168,7 +168,9 @@ class Test_Thread_duplicates(GUITestCase):
         thr = Thread_duplicates(ws, p, pbMax="m", pbVal="v")
         self.assertTrue(ws.running)
         with patch(
-            "physbiblio.database.Entries.checkDuplicates", autospec=True
+            "physbiblio.database.Entries.checkDuplicates",
+            return_value="dupl",
+            autospec=True,
         ) as _cd, patch("time.sleep") as _sl, patch(
             "physbiblio.gui.commonClasses.WriteStream.start", autospec=True
         ) as _st:
@@ -179,6 +181,7 @@ class Test_Thread_duplicates(GUITestCase):
                 pbVal="v",
             )
             self.assertFalse(ws.running)
+            self.assertEqual(p.duplicates, "dupl")
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
 

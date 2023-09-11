@@ -3706,3 +3706,192 @@ class FieldsFromArxiv(PBDialog):
         """Reject the dialog output"""
         self.result = False
         self.close()
+
+
+class DuplicatesTableModel(PBTableModel):
+    """Model for the duplicates list"""
+
+    typeClass = "dupls"
+
+    def __init__(self, parent, header, duplicates):
+        """Extension of `PBTableModel`
+        Initialize the model, save the data and the initial selection
+
+        Parameters:
+            parent: the parent widget
+            header: the header of the table
+            duplicates: the content of the table
+        """
+        self.dataList = duplicates
+        super(DuplicatesTableModel, self).__init__(parent, header)
+
+    def data(self, index, role):
+        """Return the cell data for the given index and role
+
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            role: the desired Qt role for the data
+
+        Output:
+            None if the index or the role are not valid,
+            the cell content or properties otherwise
+        """
+        if not index.isValid():
+            return None
+        row = index.row()
+        column = index.column()
+        try:
+            value = self.dataList[row][column]
+        except IndexError:
+            return None
+
+        if role == Qt.EditRole:
+            return value
+        if role == Qt.DisplayRole:
+            return value
+        return None
+
+    def setData(self, index, value, role):
+        """Set the cell data for the given index and role
+
+        Parameters:
+            index: the `QModelIndex` for which the data are required
+            value: the new data value
+            role: the desired Qt role for the data
+
+        Output:
+            True if correctly completed,
+            False if the `index` is not valid
+        """
+        if not index.isValid():
+            return False
+        return True
+
+
+class DuplicatesListWindow(ObjListWindow):
+    """create a window for printing the list of duplicates"""
+
+    colcnt = 5
+    colContents = [
+        "Bibtex key 1",
+        "Bibtex key 2",
+        "Reason",
+        "Value",
+        "Open (double click)",
+    ]
+
+    def __init__(self, parent=None, entries={}):
+        """Constructor, extends `ObjListWindow.__init__`
+        with more settings and parameters
+
+        Parameters:
+            parent: the parent widget
+            entries (dict): the output of checkDuplicates to use
+        """
+        self.mainW = parent
+        self.tablecontent = []
+        keys = sorted(entries.keys())
+        for k in keys:
+            e = entries[k]
+
+            r = pBDB.bibs.getByKey(k, saveQuery=False, verbose=False)[0]
+            for m, ds in e.items():
+                if "arx" in m:
+                    for d in ds:
+                        self.tablecontent.append(
+                            (k, d, "arxiv", r["arxiv"], "%s or %s" % (k, d))
+                        )
+                if "doi" in m:
+                    for d in ds:
+                        self.tablecontent.append(
+                            (k, d, "doi", r["doi"], "%s or %s" % (k, d))
+                        )
+                if "key" in m or "oldkey" in m:
+                    for d in ds:
+                        n = pBDB.bibs.getByKey(d, saveQuery=False, verbose=False)[0]
+                        self.tablecontent.append(
+                            (
+                                k,
+                                d,
+                                "key or oldkey",
+                                "(%s - %s) or (%s - %s)"
+                                % (
+                                    r["bibkey"],
+                                    n["bibkey"],
+                                    r["old_keys"],
+                                    n["old_keys"],
+                                ),
+                                "%s or %s" % (k, d),
+                            )
+                        )
+
+        ObjListWindow.__init__(self, parent)
+        self.setWindowTitle(bwstr.duplTitle)
+
+        self.createTable()
+
+    def cellClick(self, index):
+        """Process event when mouse clicks an item.
+        Currently not used
+
+        Parameter:
+            index: a `QModelIndex` instance
+        """
+        if index.isValid():
+            row = index.row()
+        return
+
+    def cellDoubleClick(self, index):
+        """Process event when mouse double clicks an item.
+        Opens a link if some columns
+
+        Parameter:
+            index: a `QModelIndex` instance
+        """
+        if index.isValid():
+            row = index.row()
+            col = index.column()
+        else:
+            return
+        k1 = str(self.proxyModel.sibling(row, 0, index).data())
+        k2 = str(self.proxyModel.sibling(row, 1, index).data())
+        lab = str(self.proxyModel.sibling(row, 4, index).data())
+        if self.colContents[col] in ("Open"):
+            self.mainW.newTabAtEnd(
+                self.mainW.tabWidget.count() - 1,
+                label=lab,
+                bibs=pBDB.bibs.getByBibkey([k1, k2], saveQuery=True),
+            )
+        return True
+
+    def createTable(self):
+        """Create the dialog content, connect the model to the view
+        and eventually add the buttons at the end
+        """
+
+        self.tableModel = DuplicatesTableModel(
+            self, self.colContents, self.tablecontent
+        )
+        self.setProxyStuff(0, Qt.AscendingOrder)
+
+        self.finalizeTable()
+
+    def handleItemEntered(self, index):
+        """Process event when mouse enters an item and
+        create a `QTooltip` which describes the category, with a timer
+        Currently not used
+
+        Parameter:
+            index: a `QModelIndex` instance
+        """
+        if index.isValid():
+            row = index.row()
+        return
+
+    def keyPressEvent(self, e):
+        """Manage the key press events.
+        Do nothing unless `Esc` is pressed:
+        in this case close the dialog
+        """
+        if e.key() == Qt.Key_Escape:
+            self.close()

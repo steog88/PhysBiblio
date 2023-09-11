@@ -246,6 +246,7 @@ class Thread_duplicates(PBThread):
                 of a progress bar in the GUI, if possible
         """
         super(Thread_duplicates, self).__init__(parent)
+        self.mainW = parent
         self.receiver = receiver
         self.pbMax = pbMax
         self.pbVal = pbVal
@@ -255,7 +256,9 @@ class Thread_duplicates(PBThread):
         run `pBDB.bibs.replace` and finish
         """
         self.receiver.start()
-        pBDB.bibs.checkDuplicates(pbMax=self.pbMax, pbVal=self.pbVal)
+        self.mainW.duplicates = pBDB.bibs.checkDuplicates(
+            pbMax=self.pbMax, pbVal=self.pbVal
+        )
         time.sleep(0.1)
         self.receiver.running = False
 

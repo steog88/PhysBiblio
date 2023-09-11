@@ -4,6 +4,7 @@
         - function printDuplicates to show the output nicely, command line option to check and print the duplicates
         - exportAll and similar can add citation counts (from the database) to the bibtex
         - citations option for export command line command
+        - thread and main window action for checkDuplicates, show duplicates in a table, double click cell to open the duplicates in a new tab
 -   version: 2.1.1
     date: 2023-08-24
     changes:

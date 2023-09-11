@@ -9065,5 +9065,167 @@ class TestFieldsFromArxiv(GUITestCase):
         self.assertEqual(ffa.output, [])
 
 
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestDuplicatesTableModel(GUITestCase):
+    """test the DuplicatesTableModel class"""
+
+    def test_init(self):
+        """test __init__"""
+        p = QWidget()
+        dtm = DuplicatesTableModel(p, ["1", "2"], [(1, 2, 3, 4, 5), (6, 7, 8, 9, 10)])
+        self.assertIsInstance(dtm, PBTableModel)
+        self.assertEqual(dtm.parentObj, p)
+        self.assertEqual(dtm.header, ["1", "2"])
+        self.assertEqual(dtm.dataList, [(1, 2, 3, 4, 5), (6, 7, 8, 9, 10)])
+
+    def test_data(self):
+        """test data"""
+        p = QWidget()
+        dtm = DuplicatesTableModel(
+            p,
+            ["A", "B", "C", "D", "E"],
+            [("1", "2", "3", "4", "5"), ("6", "7", "8", "9", "10")],
+        )
+        self.assertEqual(dtm.data(dtm.index(0, 2), Qt.DisplayRole), "3")
+        self.assertEqual(dtm.data(dtm.index(1, 0), Qt.EditRole), "6")
+        self.assertEqual(dtm.data(dtm.index(0, 2), Qt.DecorationRole), None)
+        self.assertEqual(dtm.data(dtm.index(1, 7), Qt.EditRole), None)
+        self.assertEqual(dtm.data(QModelIndex(), Qt.DisplayRole), None)
+
+    def test_setData(self):
+        """test setData"""
+        p = QWidget()
+        dtm = DuplicatesTableModel(p, ["1", "2"], [])
+        dtm.setData(QModelIndex(), "a", "b")
+
+
+@unittest.skipIf(skipTestsSettings.gui, "GUI tests")
+class TestDuplicatesListWindow(GUITestCase):
+    """test the DuplicatesTableModel class"""
+
+    def test_init(self):
+        """test __init__"""
+        p = QWidget()
+        with patch("physbiblio.gui.bibWindows.DuplicatesListWindow.createTable") as _f:
+            dtm = DuplicatesListWindow()
+            _f.assert_called_once_with()
+        self.assertIsInstance(dtm, ObjListWindow)
+        self.assertEqual(dtm.colcnt, 5)
+        self.assertEqual(
+            dtm.colContents,
+            ["Bibtex key 1", "Bibtex key 2", "Reason", "Value", "Open (double click)"],
+        )
+        self.assertEqual(dtm.tablecontent, [])
+        self.assertEqual(dtm.windowTitle(), "Duplicates")
+        with patch(
+            "physbiblio.database.Entries.getByKey",
+            return_value=[{"bibkey": "xyz", "arxiv": "123", "doi": "1/2/3"}],
+        ) as _gk:
+            dtm = DuplicatesListWindow(p, {"abc": {"arx": ["def"], "doi": ["ghi"]}})
+        self.assertEqual(dtm.mainW, p)
+        self.assertEqual(
+            dtm.tablecontent,
+            [
+                ("abc", "def", "arxiv", "123", "abc or def"),
+                ("abc", "ghi", "doi", "1/2/3", "abc or ghi"),
+            ],
+        )
+        with patch(
+            "physbiblio.database.Entries.getByKey",
+            side_effect=[
+                [{"bibkey": "xyz", "arxiv": "123", "doi": "1/2/3", "old_keys": "old1"}],
+                [{"bibkey": "www", "arxiv": "333", "doi": "1/3/2", "old_keys": "old2"}],
+                [{"bibkey": "xxx", "arxiv": "456", "doi": "5/2/7", "old_keys": "old3"}],
+                [{"bibkey": "ooo", "arxiv": "986", "doi": "1/8/3", "old_keys": "old4"}],
+            ],
+        ) as _gk:
+            dtm = DuplicatesListWindow(
+                p,
+                {
+                    "abc": {"arx": ["def"], "doi": ["ghi"]},
+                    "bla": {"key": ["test"], "oldkey1": ["test1"]},
+                },
+            )
+        self.assertEqual(
+            dtm.tablecontent,
+            [
+                ("abc", "def", "arxiv", "123", "abc or def"),
+                ("abc", "ghi", "doi", "1/2/3", "abc or ghi"),
+                (
+                    "bla",
+                    "test",
+                    "key or oldkey",
+                    "(www - xxx) or (old2 - old3)",
+                    "bla or test",
+                ),
+                (
+                    "bla",
+                    "test1",
+                    "key or oldkey",
+                    "(www - ooo) or (old2 - old4)",
+                    "bla or test1",
+                ),
+            ],
+        )
+
+    def test_cellClick(self):
+        """test cellClick"""
+        p = QWidget()
+        dtm = DuplicatesListWindow()
+        dtm.handleItemEntered(QModelIndex())
+
+    def test_cellDoubleClick(self):
+        """test cellDoubleClick"""
+        p = QWidget()
+        p.newTabAtEnd = MagicMock()
+        p.tabWidget = MagicMock(return_value=2)
+        p.tabWidget.count = MagicMock(return_value=3)
+        with patch(
+            "physbiblio.database.Entries.getByKey",
+            return_value=[{"bibkey": "xyz", "arxiv": "123", "doi": "1/2/3"}],
+        ) as _gk:
+            dtm = DuplicatesListWindow(p, {"abc": {"arx": ["def"], "doi": ["ghi"]}})
+        dtm.cellDoubleClick(dtm.proxyModel.index(0, 2))
+        p.newTabAtEnd.assert_not_called()
+        with patch("physbiblio.database.Entries.getByBibkey", return_value="abd") as _g:
+            dtm.cellDoubleClick(dtm.proxyModel.index(0, 4))
+            _g.assert_called_once_with(["abc", "def"], saveQuery=True)
+        p.newTabAtEnd.assert_called_once_with(2, label="abc or def", bibs="abd")
+
+    def test_createTable(self):
+        """test createTable"""
+        p = QWidget()
+        dtm = DuplicatesListWindow()
+        dtm.tablecontent = "abcd"
+        with patch(
+            "physbiblio.gui.bibWindows.DuplicatesTableModel", return_value="dtm"
+        ) as _dtm, patch(
+            "physbiblio.gui.bibWindows.DuplicatesListWindow.setProxyStuff"
+        ) as _spt, patch(
+            "physbiblio.gui.bibWindows.DuplicatesListWindow.finalizeTable"
+        ) as _ft:
+            dtm.createTable()
+            _dtm.assert_called_once_with(dtm, dtm.colContents, "abcd")
+            _spt.assert_called_once_with(0, Qt.AscendingOrder)
+            _ft.assert_called_once()
+
+    def test_handleItemEntered(self):
+        """test handleItemEntered"""
+        p = QWidget()
+        dtm = DuplicatesListWindow()
+        dtm.handleItemEntered(QModelIndex())
+
+    def test_keyPressEvent(self):
+        """test keyPressEvent"""
+        p = QWidget()
+        dtm = DuplicatesListWindow()
+        dtm.close = MagicMock()
+        QTest.keyPress(dtm, "C", Qt.ShiftModifier)
+        QTest.keyPress(dtm, "C", Qt.ControlModifier)
+        dtm.close.assert_not_called()
+        QTest.keyPress(dtm, Qt.Key_Escape)
+        dtm.close.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
