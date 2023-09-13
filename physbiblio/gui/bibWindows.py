@@ -3856,7 +3856,7 @@ class DuplicatesListWindow(ObjListWindow):
         k1 = str(self.proxyModel.sibling(row, 0, index).data())
         k2 = str(self.proxyModel.sibling(row, 1, index).data())
         lab = str(self.proxyModel.sibling(row, 4, index).data())
-        if self.colContents[col] in ("Open"):
+        if self.colContents[col] in (self.colContents[-1]):
             self.mainW.newTabAtEnd(
                 self.mainW.tabWidget.count() - 1,
                 label=lab,

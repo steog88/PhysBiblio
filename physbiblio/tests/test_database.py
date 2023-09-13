@@ -4386,36 +4386,44 @@ class TestDatabaseEntries(DBTestCase):
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"bibkey": "abc"}), "bibk"
             )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
+            _fbb.assert_called_once_with("abc", saveQuery=False, verbose=False)
             _fbi.assert_not_called()
             _fbx.assert_not_called()
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"id": "123"}), "iid"
             )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
+            _fbb.assert_called_once_with("abc", saveQuery=False, verbose=False)
+            _fbi.assert_called_once_with(
+                "123", "inspire", saveQuery=False, verbose=False
+            )
             _fbx.assert_not_called()
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"eprint": "456"}), "arxiv"
             )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
-            _fbx.assert_called_once_with("456", saveQuery=False)
+            _fbb.assert_called_once_with("abc", saveQuery=False, verbose=False)
+            _fbi.assert_called_once_with(
+                "123", "inspire", saveQuery=False, verbose=False
+            )
+            _fbx.assert_called_once_with("456", saveQuery=False, verbose=False)
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"doi": "a/1/2/3"}), "doi"
             )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
+            _fbb.assert_called_once_with("abc", saveQuery=False, verbose=False)
+            _fbi.assert_called_once_with(
+                "123", "inspire", saveQuery=False, verbose=False
+            )
             self.assertEqual(_fbx.call_count, 2)
-            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False, verbose=False)
             self.assertEqual(
                 self.pBDB.bibs.fetchByIdFromInspireRecord({"title": "mytitle"}),
                 self.pBDB.bibs,
             )
-            _fbb.assert_called_once_with("abc", saveQuery=False)
-            _fbi.assert_called_once_with("123", "inspire", saveQuery=False)
+            _fbb.assert_called_once_with("abc", saveQuery=False, verbose=False)
+            _fbi.assert_called_once_with(
+                "123", "inspire", saveQuery=False, verbose=False
+            )
             self.assertEqual(_fbx.call_count, 2)
-            _fbx.assert_any_call("a/1/2/3", saveQuery=False)
+            _fbx.assert_any_call("a/1/2/3", saveQuery=False, verbose=False)
             self.assertEqual(self.pBDB.bibs.lastFetched, [])
         res = NameSpace()
         res.lastFetched = "abc"
@@ -9842,7 +9850,7 @@ class TestDatabaseEntries(DBTestCase):
             )
             _gk.assert_not_called()
             self.assertFalse(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
-            _gk.assert_called_once_with("abc", saveQuery=False)
+            _gk.assert_called_once_with("abc", saveQuery=False, verbose=False)
             _gk.return_value = [n]
             _ui.reset_mock()
             self.assertTrue(
@@ -9888,14 +9896,14 @@ class TestDatabaseEntries(DBTestCase):
                 originalKey="abc",
                 useRecord={"b": "a"},
             )
-            _gk.assert_any_call("abc", saveQuery=False)
-            _gk.assert_any_call("def", saveQuery=False)
+            _gk.assert_any_call("abc", saveQuery=False, verbose=False)
+            _gk.assert_any_call("def", saveQuery=False, verbose=False)
             self.assertFalse(hasattr(self.pBDB.bibs, "newKey"))
             _gk.reset_mock()
             self.pBDB.bibs.newKey = "def"
             self.assertFalse(self.pBDB.bibs.updateRecord(e.copy(), {"b": "a"}))
-            _gk.assert_any_call("abc", saveQuery=False)
-            _gk.assert_any_call("def", saveQuery=False)
+            _gk.assert_any_call("abc", saveQuery=False, verbose=False)
+            _gk.assert_any_call("def", saveQuery=False, verbose=False)
 
     def test_updateRecordFromINSPIRE(self, *args):
         """test updateRecordFromINSPIRE"""

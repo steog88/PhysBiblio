@@ -35,7 +35,7 @@ class WebSearch(WebInterf, InspireStrings):
     correspondences = [
         ["id", "inspire"],
         ["year", "year"],
-        ["arxiv", "arxiv"],
+        # ["arxiv", "arxiv"],
         ["eprint", "arxiv"],
         # ["oldkeys", "old_keys"],
         ["firstdate", "firstdate"],

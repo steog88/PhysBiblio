@@ -2616,7 +2616,7 @@ class Entries(PhysBiblioDBSub):
             self.lastFetched = self.completeFetched(fetched_in)
         return self
 
-    def fetchByBibkey(self, bibkey, saveQuery=True):
+    def fetchByBibkey(self, bibkey, saveQuery=True, verbose=True):
         """Use self.fetchAll with a match on the bibtex key
         and returns the dictionary of fetched entries
 
@@ -2624,15 +2624,21 @@ class Entries(PhysBiblioDBSub):
             bibkey: the bibtex key to match (or a list)
             saveQuery (boolean, default True):
                 whether to save the query or not
+            verbose (boolean, default True): passed to fetchAll
 
         Output:
             self
         """
         if isinstance(bibkey, list):
             return self.fetchAll(
-                params={"bibkey": bibkey}, connection="or", saveQuery=saveQuery
+                params={"bibkey": bibkey},
+                connection="or",
+                saveQuery=saveQuery,
+                verbose=verbose,
             )
-        return self.fetchAll(params={"bibkey": bibkey}, saveQuery=saveQuery)
+        return self.fetchAll(
+            params={"bibkey": bibkey}, saveQuery=saveQuery, verbose=verbose
+        )
 
     def fetchByBibtex(self, string, saveQuery=True):
         """Use self.fetchAll with a match on the bibtex content
@@ -2775,25 +2781,25 @@ class Entries(PhysBiblioDBSub):
         except KeyError:
             pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("bibkey", e))
         else:
-            return self.fetchByBibkey(key, saveQuery=False)
+            return self.fetchByBibkey(key, saveQuery=False, verbose=False)
         try:
             iid = e["id"]
         except KeyError:
             pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("id", e))
         else:
-            return self.fetchByField(iid, "inspire", saveQuery=False)
+            return self.fetchByField(iid, "inspire", saveQuery=False, verbose=False)
         try:
             arxiv = e["eprint"]
         except KeyError:
             pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("eprint", e))
         else:
-            return self.fetchByBibtex(arxiv, saveQuery=False)
+            return self.fetchByBibtex(arxiv, saveQuery=False, verbose=False)
         try:
             doi = e["doi"]
         except KeyError:
             pBLogger.debug(dstr.Bibs.errorOAIEntryMisKey % ("doi", e))
         else:
-            return self.fetchByBibtex(doi, saveQuery=False)
+            return self.fetchByBibtex(doi, saveQuery=False, verbose=False)
         self.lastFetched = []
         return self
 
@@ -3107,7 +3113,7 @@ class Entries(PhysBiblioDBSub):
             else False
         )
 
-    def getByBibkey(self, bibkey, saveQuery=True):
+    def getByBibkey(self, bibkey, saveQuery=True, verbose=True):
         """Use self.fetchByBibkey and returns
         the dictionary of fetched entries
 
@@ -3116,7 +3122,9 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list of dictionaries
         """
-        return self.fetchByBibkey(bibkey, saveQuery=saveQuery).lastFetched
+        return self.fetchByBibkey(
+            bibkey, saveQuery=saveQuery, verbose=verbose
+        ).lastFetched
 
     def getByBibtex(self, string, saveQuery=True):
         """Use self.fetchByBibtex and returns
@@ -4666,7 +4674,7 @@ class Entries(PhysBiblioDBSub):
             pBLogger.warning(dstr.Bibs.errorUpdateBib)
             return False
         try:
-            entry = self.getByBibkey(newKey, saveQuery=False)[0]
+            entry = self.getByBibkey(newKey, saveQuery=False, verbose=False)[0]
         except (IndexError, TypeError):
             pBLogger.warning(dstr.Bibs.errorUpdateBib, exc_info=True)
             return False
@@ -4824,7 +4832,7 @@ class Entries(PhysBiblioDBSub):
             self.newKey = key  # saved for searchOAIUpdates
         self.updateRecordFromINSPIRE(
             result,
-            useOld=self.getByBibkey(key, saveQuery=False)
+            useOld=self.getByBibkey(key, saveQuery=False, verbose=False)
             if not reloadAll
             else [
                 {
@@ -4909,12 +4917,12 @@ class Entries(PhysBiblioDBSub):
             useRecord=r,
         ):
             try:
-                new = self.getByKey(e["bibkey"], saveQuery=False)[0]
+                new = self.getByKey(e["bibkey"], saveQuery=False, verbose=False)[0]
             except (IndexError, KeyError):
                 try:
                     e["bibkey"] = self.newKey
                     del self.newKey
-                    new = self.getByKey(e["bibkey"], saveQuery=False)[0]
+                    new = self.getByKey(e["bibkey"], saveQuery=False, verbose=False)[0]
                 except (AttributeError, IndexError, KeyError):
                     pBLogger.exception(dstr.Bibs.souError % e["bibkey"])
                     return False
