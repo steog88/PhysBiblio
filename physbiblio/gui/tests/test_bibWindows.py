@@ -9126,8 +9126,8 @@ class TestDuplicatesListWindow(GUITestCase):
         self.assertEqual(
             dtm.tablecontent,
             [
-                ("abc", "def", "arxiv", "123", "abc or def"),
-                ("abc", "ghi", "doi", "1/2/3", "abc or ghi"),
+                ("abc", "def", "arxiv ID", "123", "abc or def"),
+                ("abc", "ghi", "DOI", "1/2/3", "abc or ghi"),
             ],
         )
         with patch(
@@ -9149,8 +9149,8 @@ class TestDuplicatesListWindow(GUITestCase):
         self.assertEqual(
             dtm.tablecontent,
             [
-                ("abc", "def", "arxiv", "123", "abc or def"),
-                ("abc", "ghi", "doi", "1/2/3", "abc or ghi"),
+                ("abc", "def", "arxiv ID", "123", "abc or def"),
+                ("abc", "ghi", "DOI", "1/2/3", "abc or ghi"),
                 (
                     "bla",
                     "test",

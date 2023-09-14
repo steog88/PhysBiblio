@@ -4119,47 +4119,75 @@ class Entries(PhysBiblioDBSub):
                     pass
         pBLogger.info(dstr.Bibs.elementsFound % total)
 
+    def printDuplicatesTuples(self, entries=None):
+        """Prepare the output of checkDuplicates to be stored nicely
+
+        Parameters:
+            a dictionary (key is processed bibtex, value is a set of possible duplicates)
+        """
+        keys = sorted(entries.keys())
+        tpls = []
+        for k in keys:
+            e = entries[k]
+            r = self.getByKey(k, saveQuery=False, verbose=False)[0]
+            for m, ds in e.items():
+                if "arx" in m:
+                    for d in ds:
+                        tpls.append(
+                            (
+                                k,
+                                d,
+                                "arxiv ID",
+                                r["arxiv"],
+                                "%s or %s" % (k, d),
+                            )
+                        )
+                if "doi" in m:
+                    for d in ds:
+                        tpls.append(
+                            (
+                                k,
+                                d,
+                                "DOI",
+                                r["doi"],
+                                "%s or %s" % (k, d),
+                            )
+                        )
+                if "key" in m or "oldkey" in m:
+                    for d in ds:
+                        n = self.getByKey(d, saveQuery=False, verbose=False)[0]
+                        tpls.append(
+                            (
+                                k,
+                                d,
+                                "key or oldkey",
+                                "(%s - %s) or (%s - %s)"
+                                % (
+                                    r["bibkey"],
+                                    n["bibkey"],
+                                    r["old_keys"],
+                                    n["old_keys"],
+                                ),
+                                "%s or %s" % (k, d),
+                            )
+                        )
+        return tpls
+
     def printDuplicatesString(self, entries=None):
         """Prepare the output of checkDuplicates to be printed nicely
 
         Parameters:
             a dictionary (key is processed bibtex, value is a set of possible duplicates)
         """
-        keys = sorted(entries.keys())
-        tottxt = ""
-        for k in keys:
-            e = entries[k]
-            otxt = "-- %s\n" % k
-            txt = otxt
-            r = self.getByKey(k, saveQuery=False, verbose=False)[0]
-            for m, ds in e.items():
-                if "arx" in m:
-                    for d in ds:
-                        txt += "%s and %s have a matching arxiv ID (%s)\n" % (
-                            k,
-                            d,
-                            r["arxiv"],
-                        )
-                if "doi" in m:
-                    for d in ds:
-                        txt += "%s and %s have a matching DOI (%s)\n" % (k, d, r["doi"])
-                if "key" in m or "oldkey" in m:
-                    for d in ds:
-                        n = self.getByKey(d, saveQuery=False, verbose=False)[0]
-                        txt += (
-                            "%s and %s have a matching key (%s - %s) or old key (%s - %s)\n"
-                            % (
-                                k,
-                                d,
-                                r["bibkey"],
-                                n["bibkey"],
-                                r["old_keys"],
-                                n["old_keys"],
-                            )
-                        )
-            if txt.strip() != otxt:
-                tottxt += txt
-        return tottxt
+        tpls = self.printDuplicatesTuples(entries=entries)
+        txt = ""
+        prev = ""
+        for t in tpls:
+            if t[0] != prev:
+                prev = t[0]
+                txt += "-- %s\n" % prev
+            txt += "%s and %s have a matching %s [%s]\n" % t[:-1]
+        return txt
 
     def printDuplicates(self, entries=None):
         """Print the output of checkDuplicates nicely on the screen

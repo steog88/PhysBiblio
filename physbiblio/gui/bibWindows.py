@@ -3789,41 +3789,7 @@ class DuplicatesListWindow(ObjListWindow):
             entries (dict): the output of checkDuplicates to use
         """
         self.mainW = parent
-        self.tablecontent = []
-        keys = sorted(entries.keys())
-        for k in keys:
-            e = entries[k]
-
-            r = pBDB.bibs.getByKey(k, saveQuery=False, verbose=False)[0]
-            for m, ds in e.items():
-                if "arx" in m:
-                    for d in ds:
-                        self.tablecontent.append(
-                            (k, d, "arxiv", r["arxiv"], "%s or %s" % (k, d))
-                        )
-                if "doi" in m:
-                    for d in ds:
-                        self.tablecontent.append(
-                            (k, d, "doi", r["doi"], "%s or %s" % (k, d))
-                        )
-                if "key" in m or "oldkey" in m:
-                    for d in ds:
-                        n = pBDB.bibs.getByKey(d, saveQuery=False, verbose=False)[0]
-                        self.tablecontent.append(
-                            (
-                                k,
-                                d,
-                                "key or oldkey",
-                                "(%s - %s) or (%s - %s)"
-                                % (
-                                    r["bibkey"],
-                                    n["bibkey"],
-                                    r["old_keys"],
-                                    n["old_keys"],
-                                ),
-                                "%s or %s" % (k, d),
-                            )
-                        )
+        self.tablecontent = pBDB.bibs.printDuplicatesTuples(entries)
 
         ObjListWindow.__init__(self, parent)
         self.setWindowTitle(bwstr.duplTitle)

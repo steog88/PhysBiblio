@@ -2823,14 +2823,19 @@ class TestDatabaseEntries(DBTestCase):
             "doi": "456/789/123",
             "old_keys": "n1,n2",
         }
+        self.maxDiff = None
         with patch("physbiblio.database.Entries.getByKey", return_value=[ret1]) as _f:
             self.assert_in_stdout(
                 lambda: self.pBDB.bibs.printDuplicates({"abc": {"arx": ["def"]}}),
-                "abc and def have a matching arxiv ID (2001.00001)",
+                ["abc and def have a matching arxiv ID [2001.00001]"],
             )
             self.assertIn(
-                "abc and def have a matching arxiv ID (2001.00001)",
+                "abc and def have a matching arxiv ID [2001.00001]",
                 self.pBDB.bibs.printDuplicatesString({"abc": {"arx": ["def"]}}),
+            )
+            self.assertEqual(
+                self.pBDB.bibs.printDuplicatesTuples({"abc": {"arx": ["def"]}}),
+                [("abc", "def", "arxiv ID", "2001.00001", "abc or def")],
             )
         with patch("physbiblio.database.Entries.getByKey", return_value=[ret1]) as _f:
             self.assert_in_stdout(
@@ -2838,19 +2843,25 @@ class TestDatabaseEntries(DBTestCase):
                     {"abc": {"doi": ["def", "ghi"]}}
                 ),
                 [
-                    "abc and def have a matching DOI (123/456/789)",
-                    "abc and ghi have a matching DOI (123/456/789)",
+                    "abc and def have a matching DOI [123/456/789]",
+                    "abc and ghi have a matching DOI [123/456/789]",
                 ],
             )
+            self.assertEqual(
+                self.pBDB.bibs.printDuplicatesTuples({"abc": {"doi": ["def", "ghi"]}}),
+                [
+                    ("abc", "def", "DOI", "123/456/789", "abc or def"),
+                    ("abc", "ghi", "DOI", "123/456/789", "abc or ghi"),
+                ],
+            )
+            st = self.pBDB.bibs.printDuplicatesString({"abc": {"doi": ["def", "ghi"]}})
             for a in [
-                "abc and def have a matching DOI (123/456/789)",
-                "abc and ghi have a matching DOI (123/456/789)",
+                "abc and def have a matching DOI [123/456/789]",
+                "abc and ghi have a matching DOI [123/456/789]",
             ]:
                 self.assertIn(
                     a,
-                    self.pBDB.bibs.printDuplicatesString(
-                        {"abc": {"doi": ["def", "ghi"]}}
-                    ),
+                    st,
                 )
         with patch(
             "physbiblio.database.Entries.getByKey",
@@ -2861,19 +2872,35 @@ class TestDatabaseEntries(DBTestCase):
                     {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
                 ),
                 [
-                    "abc and bla have a matching key (abc - def) or old key (o1,o2,o3 - n1,n2)",
-                    "abc and def have a matching arxiv ID (2001.00001)",
+                    "abc and bla have a matching key or oldkey [(abc - def) or (o1,o2,o3 - n1,n2)]",
+                    "abc and def have a matching arxiv ID [2001.00001]",
                 ],
             )
+            self.assertEqual(
+                self.pBDB.bibs.printDuplicatesTuples(
+                    {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
+                ),
+                [
+                    ("abc", "def", "arxiv ID", "2001.00001", "abc or def"),
+                    (
+                        "abc",
+                        "bla",
+                        "key or oldkey",
+                        "(abc - def) or (o1,o2,o3 - n1,n2)",
+                        "abc or bla",
+                    ),
+                ],
+            )
+            st = self.pBDB.bibs.printDuplicatesString(
+                {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
+            )
             for a in [
-                "abc and bla have a matching key (abc - def) or old key (o1,o2,o3 - n1,n2)",
-                "abc and def have a matching arxiv ID (2001.00001)",
+                "abc and bla have a matching key or oldkey [(abc - def) or (o1,o2,o3 - n1,n2)]",
+                "abc and def have a matching arxiv ID [2001.00001]",
             ]:
                 self.assertIn(
                     a,
-                    self.pBDB.bibs.printDuplicatesString(
-                        {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
-                    ),
+                    st,
                 )
 
     def test_processQueryFields(self, *args):
