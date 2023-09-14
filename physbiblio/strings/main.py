@@ -434,6 +434,7 @@ class ExportStrings:
     cannotWrite = "Cannot write on file.\nCheck the file permissions."
     citeFound = r"%d \cite commands found in .tex file"
     doneAllTexs = "Done for all the texFiles.\n\n"
+    duplicates = "\nCheck for possible duplicates:\n"
     errorCitation = "Cannot recognize citation list in '%s'!"
     errorExport = "Problems in exporting .bib file!"
     errorLoading = "Problems in loading the .bib file!"

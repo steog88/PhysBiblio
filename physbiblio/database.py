@@ -4119,16 +4119,18 @@ class Entries(PhysBiblioDBSub):
                     pass
         pBLogger.info(dstr.Bibs.elementsFound % total)
 
-    def printDuplicates(self, entries=None):
-        """Print the output of checkDuplicates nicely on the screen
+    def printDuplicatesString(self, entries=None):
+        """Prepare the output of checkDuplicates to be printed nicely
 
         Parameters:
             a dictionary (key is processed bibtex, value is a set of possible duplicates)
         """
         keys = sorted(entries.keys())
+        tottxt = ""
         for k in keys:
             e = entries[k]
-            txt = ""
+            otxt = "-- %s\n" % k
+            txt = otxt
             r = self.getByKey(k, saveQuery=False, verbose=False)[0]
             for m, ds in e.items():
                 if "arx" in m:
@@ -4155,7 +4157,17 @@ class Entries(PhysBiblioDBSub):
                                 n["old_keys"],
                             )
                         )
-            print(txt)
+            if txt.strip() != otxt:
+                tottxt += txt
+        return tottxt
+
+    def printDuplicates(self, entries=None):
+        """Print the output of checkDuplicates nicely on the screen
+
+        Parameters:
+            a dictionary (key is processed bibtex, value is a set of possible duplicates)
+        """
+        print(self.printDuplicatesString(entries))
 
     def readEntries(self, bibtex):
         """Build a BibTexParser and extract the parsed entries

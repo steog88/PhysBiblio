@@ -111,7 +111,7 @@ class PBExport:
                 add the "citations" field to the exported bibtexs
                 using info from the database
         """
-        pBDB.bibs.fetchAll(saveQuery=False, doFetch=False)
+        pBDB.bibs.fetchAll(saveQuery=False, doFetch=False, verbose=False)
         self.exportRows(fileName, pBDB.bibs.fetchCursor(), citations=citations)
 
     def exportSelected(self, fileName, rows, citations=False):
@@ -485,7 +485,7 @@ class PBExport:
                 # if not present, try INSPIRE import
                 pBLogger.info(exstr.keyMissing % m)
                 newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex=True)
-                newCheck = pBDB.bibs.getByKey(m, saveQuery=False)
+                newCheck = pBDB.bibs.getByKey(m, saveQuery=False, verbose=False)
 
                 # if the import worked, insert the entry
                 if len(newCheck) > 0:
@@ -518,6 +518,17 @@ class PBExport:
 
         if autosave:
             pBDB.commit()
+
+        pBLogger.info("\n\n")
+        ds = pBDB.bibs.printDuplicatesString(
+            pBDB.bibs.checkDuplicates(
+                entries=pBDB.bibs.getByKey(
+                    sorted(list(self.allCitations)), verbose=False
+                )
+            )
+        )
+        pBLogger.info(exstr.duplicates + ds)
+
         printOutput(
             requiredBibkeys,
             missing,

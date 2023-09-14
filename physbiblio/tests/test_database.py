@@ -2828,6 +2828,10 @@ class TestDatabaseEntries(DBTestCase):
                 lambda: self.pBDB.bibs.printDuplicates({"abc": {"arx": ["def"]}}),
                 "abc and def have a matching arxiv ID (2001.00001)",
             )
+            self.assertIn(
+                "abc and def have a matching arxiv ID (2001.00001)",
+                self.pBDB.bibs.printDuplicatesString({"abc": {"arx": ["def"]}}),
+            )
         with patch("physbiblio.database.Entries.getByKey", return_value=[ret1]) as _f:
             self.assert_in_stdout(
                 lambda: self.pBDB.bibs.printDuplicates(
@@ -2838,8 +2842,19 @@ class TestDatabaseEntries(DBTestCase):
                     "abc and ghi have a matching DOI (123/456/789)",
                 ],
             )
+            for a in [
+                "abc and def have a matching DOI (123/456/789)",
+                "abc and ghi have a matching DOI (123/456/789)",
+            ]:
+                self.assertIn(
+                    a,
+                    self.pBDB.bibs.printDuplicatesString(
+                        {"abc": {"doi": ["def", "ghi"]}}
+                    ),
+                )
         with patch(
-            "physbiblio.database.Entries.getByKey", side_effect=[[ret1], [ret2]]
+            "physbiblio.database.Entries.getByKey",
+            side_effect=[[ret1], [ret2], [ret1], [ret2], [ret1], [ret2]],
         ) as _f:
             self.assert_in_stdout(
                 lambda: self.pBDB.bibs.printDuplicates(
@@ -2850,6 +2865,16 @@ class TestDatabaseEntries(DBTestCase):
                     "abc and def have a matching arxiv ID (2001.00001)",
                 ],
             )
+            for a in [
+                "abc and bla have a matching key (abc - def) or old key (o1,o2,o3 - n1,n2)",
+                "abc and def have a matching arxiv ID (2001.00001)",
+            ]:
+                self.assertIn(
+                    a,
+                    self.pBDB.bibs.printDuplicatesString(
+                        {"abc": {"arx": ["def"], "oldkey1": ["bla"]}}
+                    ),
+                )
 
     def test_processQueryFields(self, *args):
         """test _processQueryFields"""

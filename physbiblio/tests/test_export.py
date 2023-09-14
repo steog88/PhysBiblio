@@ -330,6 +330,7 @@ class TestExportMethods(unittest.TestCase):
                         + '"{some paper}",\n}',
                     }
                 ],
+                ["gkk"],
             ],
             autospec=True,
         ) as _getbbik, patch(
@@ -339,8 +340,28 @@ class TestExportMethods(unittest.TestCase):
                 '@article{newcite,\nauthor= "myself",\ntitle=' + '"{some paper}",\n}',
             ],
             autospec=True,
-        ) as _mock:
+        ) as _mock, patch(
+            "physbiblio.database.Entries.checkDuplicates",
+            return_value="cd",
+        ) as _cd, patch(
+            "physbiblio.database.Entries.printDuplicatesString",
+            return_value="pds",
+        ) as _pds:
             output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
+            _getbbik.assert_any_call(
+                pBDB.bibs,
+                [
+                    "Gariazzo:2015rra",
+                    "Gariazzo:2017rra",
+                    "empty",
+                    "empty2+",
+                    "newcite",
+                    "prova.",
+                ],
+                verbose=False,
+            )
+            _cd.assert_called_once_with(entries=["gkk"])
+            _pds.assert_called_once_with("cd")
         self.assertEqual(output[0], ["Gariazzo:2017rra", "newcite"])  # requiredBibkeys
         self.assertEqual(output[1], ["Gariazzo:2017rra", "newcite"])  # missing
         self.assertEqual(output[2], ["newcite"])  # retrieved
