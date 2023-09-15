@@ -827,7 +827,7 @@ class Thread_importDailyArxiv(PBThread):
             el = self.found[key]
             if pBDB.bibs.loadAndInsert(el["bibpars"]["eprint"]):
                 try:
-                    newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+                    newKey = pBDB.bibs.getByKey(key, verbose=False)[0]["bibkey"]
                 except IndexError:
                     newKey = pBDB.bibs.getByBibtex(key)[0]["bibkey"]
                 inserted.append(newKey)
@@ -856,11 +856,11 @@ class Thread_importDailyArxiv(PBThread):
                     eid = pBDB.bibs.updateInspireID(key)
                     pBDB.bibs.searchOAIUpdates(
                         0,
-                        entries=pBDB.bibs.getByBibkey(key),
+                        entries=pBDB.bibs.getByBibkey(key, verbose=False),
                         force=True,
                         reloadAll=True,
                     )
-                    newKey = pBDB.bibs.getByKey(key)[0]["bibkey"]
+                    newKey = pBDB.bibs.getByKey(key, verbose=False)[0]["bibkey"]
                     if key != newKey:
                         inserted[-1] = newKey
                 except:

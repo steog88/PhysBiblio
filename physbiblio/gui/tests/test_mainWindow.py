@@ -4141,16 +4141,22 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, "a", saveQuery=False),
-                    call(pBDB.bibs, "b", saveQuery=False),
-                    call(pBDB.bibs, "c", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "b", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "c", saveQuery=False, verbose=False),
                 ]
             )
             _ga.assert_has_calls(
                 [
-                    call(pBDB.bibs, params={"arxiv": "1"}, saveQuery=False),
-                    call(pBDB.bibs, params={"arxiv": "3"}, saveQuery=False),
-                    call(pBDB.bibs, params={"doi": "4"}, saveQuery=False),
+                    call(
+                        pBDB.bibs, params={"arxiv": "1"}, saveQuery=False, verbose=False
+                    ),
+                    call(
+                        pBDB.bibs, params={"arxiv": "3"}, saveQuery=False, verbose=False
+                    ),
+                    call(
+                        pBDB.bibs, params={"doi": "4"}, saveQuery=False, verbose=False
+                    ),
                 ]
             )
             _deb.assert_has_calls(
@@ -4227,16 +4233,22 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, "a", saveQuery=False),
-                    call(pBDB.bibs, "b", saveQuery=False),
-                    call(pBDB.bibs, "c", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "b", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "c", saveQuery=False, verbose=False),
                 ]
             )
             _ga.assert_has_calls(
                 [
-                    call(pBDB.bibs, params={"arxiv": "1"}, saveQuery=False),
-                    call(pBDB.bibs, params={"arxiv": "3"}, saveQuery=False),
-                    call(pBDB.bibs, params={"doi": "4"}, saveQuery=False),
+                    call(
+                        pBDB.bibs, params={"arxiv": "1"}, saveQuery=False, verbose=False
+                    ),
+                    call(
+                        pBDB.bibs, params={"arxiv": "3"}, saveQuery=False, verbose=False
+                    ),
+                    call(
+                        pBDB.bibs, params={"doi": "4"}, saveQuery=False, verbose=False
+                    ),
                 ]
             )
             _deb.assert_has_calls(
@@ -4374,8 +4386,8 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, "a", saveQuery=False),
-                    call(pBDB.bibs, "b", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "b", saveQuery=False, verbose=False),
                 ]
             )
             _ga.assert_not_called()
@@ -4481,8 +4493,8 @@ class TestMainWindow(GUITestCase):
             _rmc.assert_called_once_with(self.mainW)
             _gbb.assert_has_calls(
                 [
-                    call(pBDB.bibs, "a", saveQuery=False),
-                    call(pBDB.bibs, "b", saveQuery=False),
+                    call(pBDB.bibs, "a", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "b", saveQuery=False, verbose=False),
                 ]
             )
             _ga.assert_not_called()

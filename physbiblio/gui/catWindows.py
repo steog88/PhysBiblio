@@ -360,7 +360,9 @@ class CatsTreeWindow(PBDialog):
         if self.askCats:
             if self.askForBib is not None:
                 try:
-                    bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
+                    bibitem = pBDB.bibs.getByBibkey(
+                        self.askForBib, saveQuery=False, verbose=False
+                    )[0]
                 except IndexError:
                     pBGUILogger.warning(
                         cwstr.entryNotInDb % self.askForBib,

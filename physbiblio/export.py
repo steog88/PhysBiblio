@@ -580,7 +580,7 @@ class PBExport:
         db.entries = []
         for b in entries:
             key = b["ID"]
-            element = pBDB.bibs.getByBibkey(key, saveQuery=False)
+            element = pBDB.bibs.getByBibkey(key, saveQuery=False, verbose=False)
             if len(element) > 0:
                 db.entries.append(element[0]["bibtexDict"])
             else:

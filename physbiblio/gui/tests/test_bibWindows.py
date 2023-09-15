@@ -478,7 +478,9 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _lw.assert_not_called()
             _li.assert_not_called()
-            _gbk.assert_called_once_with(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
+            _gbk.assert_called_once_with(
+                pBDB.bibs, "Gariazzo:2015rra", saveQuery=False, verbose=False
+            )
             _pi.assert_not_called()
             _ub.assert_not_called()
             _u.assert_not_called()
@@ -796,7 +798,9 @@ class TestFunctions(GUIwMainWTestCase):
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
-            _gbk.assert_any_call(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
+            _gbk.assert_any_call(
+                pBDB.bibs, "Gariazzo:2015rra", saveQuery=False, verbose=False
+            )
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -880,7 +884,9 @@ class TestFunctions(GUIwMainWTestCase):
             _lw.assert_not_called()
             _li.assert_called_once_with("Updating bibtex 'Gariazzo:2015rra'...")
             _le.assert_called_once_with("Cannot insert/modify the entry!")
-            _gbk.assert_any_call(pBDB.bibs, "Gariazzo:2015rra", saveQuery=False)
+            _gbk.assert_any_call(
+                pBDB.bibs, "Gariazzo:2015rra", saveQuery=False, verbose=False
+            )
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -969,7 +975,7 @@ class TestFunctions(GUIwMainWTestCase):
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
             _li.assert_has_calls([call("Updating bibtex 'testkey'...")])
-            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False, verbose=False)
             _pi.assert_not_called()
             _ub.assert_not_called()
             self.assertEqual(_u.call_count, 1)
@@ -1067,7 +1073,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'Gariazzo:2015rra'..."),
                 ]
             )
-            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False, verbose=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -1167,7 +1173,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'testkey'..."),
                 ]
             )
-            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False, verbose=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -1272,7 +1278,7 @@ class TestFunctions(GUIwMainWTestCase):
                     call("Updating bibtex 'testkey'..."),
                 ]
             )
-            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False)
+            _gbk.assert_any_call(pBDB.bibs, "testkey", saveQuery=False, verbose=False)
             _pi.assert_not_called()
             _ub.assert_called_once_with(pBDB.bibs, "testkey", "Gariazzo:2015rra")
             self.assertEqual(_u.call_count, 1)
@@ -4708,7 +4714,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 [call(pBPDF, "abc", "merged"), call(pBPDF, "def", "merged")]
             )
             _cf.assert_called_once_with(pBDB.bibs, "myentry")
-            _gbk.assert_called_once_with(pBDB.bibs, "merged", saveQuery=False)
+            _gbk.assert_called_once_with(
+                pBDB.bibs, "merged", saveQuery=False, verbose=False
+            )
 
     def test_onMerge_real(self):
         """test onMerge with real case"""
@@ -5490,8 +5498,8 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _cl.assert_called_once_with(bw)
             _g.assert_has_calls(
                 [
-                    call(pBDB.bibs, "def", saveQuery=False),
-                    call(pBDB.bibs, "ghi", saveQuery=False),
+                    call(pBDB.bibs, "def", saveQuery=False, verbose=False),
+                    call(pBDB.bibs, "ghi", saveQuery=False, verbose=False),
                 ]
             )
             _ci.assert_called_once_with(

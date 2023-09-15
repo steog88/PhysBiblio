@@ -247,7 +247,9 @@ class ExpsListWindow(ObjListWindow):
         if self.askExps:
             if self.askForBib is not None:
                 try:
-                    bibitem = pBDB.bibs.getByBibkey(self.askForBib, saveQuery=False)[0]
+                    bibitem = pBDB.bibs.getByBibkey(
+                        self.askForBib, saveQuery=False, verbose=False
+                    )[0]
                 except IndexError:
                     pBGUILogger.warning(
                         ewstr.entryNotInDb % self.askForBib,

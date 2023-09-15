@@ -1937,13 +1937,24 @@ class MainWindow(QMainWindow):
                         el["arxiv"] = el["eprint"]
                     except KeyError:
                         pass
-                    exist = len(pBDB.bibs.getByBibkey(el["ID"], saveQuery=False)) > 0
+                    exist = (
+                        len(
+                            pBDB.bibs.getByBibkey(
+                                el["ID"], saveQuery=False, verbose=False
+                            )
+                        )
+                        > 0
+                    )
                     for f in ("arxiv", "doi"):
                         try:
                             exist = exist or (
                                 el[f].strip() != ""
                                 and len(
-                                    pBDB.bibs.getAll(params={f: el[f]}, saveQuery=False)
+                                    pBDB.bibs.getAll(
+                                        params={f: el[f]},
+                                        saveQuery=False,
+                                        verbose=False,
+                                    )
                                 )
                                 > 0
                             )
@@ -2125,7 +2136,11 @@ class MainWindow(QMainWindow):
                     el["type"] += "[cross-listed]"
                 found[el["eprint"]] = {
                     "bibpars": el,
-                    "exist": len(pBDB.bibs.getByBibkey(el["eprint"], saveQuery=False))
+                    "exist": len(
+                        pBDB.bibs.getByBibkey(
+                            el["eprint"], saveQuery=False, verbose=False
+                        )
+                    )
                     > 0,
                 }
             if len(found) == 0:

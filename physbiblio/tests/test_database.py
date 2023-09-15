@@ -7509,7 +7509,7 @@ class TestDatabaseEntries(DBTestCase):
                 ),
                 ([], ["abcd"]),
             )
-            _g.assert_called_once_with("abcd", saveQuery=False)
+            _g.assert_called_once_with("abcd", saveQuery=False, verbose=False)
             self.assertEqual(
                 self.pBDB.bibs.importOneFromBibtexDict(
                     1,
@@ -7542,7 +7542,7 @@ class TestDatabaseEntries(DBTestCase):
                 ),
                 (["aaa", ""], []),
             )
-            _g.assert_called_once_with("", saveQuery=False)
+            _g.assert_called_once_with("", saveQuery=False, verbose=False)
         with patch(
             "physbiblio.database.Entries.getByBibkey", return_value=[]
         ) as _g, patch(

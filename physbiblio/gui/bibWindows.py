@@ -209,7 +209,7 @@ def editBibtex(parentObject, editKey=None):
         editKey: the key of the entry to be edited,
             or `None` to create a new one
     """
-    previous = pBDB.bibs.getByBibkey(editKey, saveQuery=False)[0]
+    previous = pBDB.bibs.getByBibkey(editKey, saveQuery=False, verbose=False)[0]
     newBibWin = EditBibtexDialog(
         parentObject,
         bib=previous if editKey is not None else None,
@@ -1729,7 +1729,9 @@ class CommonBibActions:
                 if correct:
                     try:
                         pBDB.bibs.cleanFields(
-                            pBDB.bibs.getByBibkey(data["bibkey"], saveQuery=False)[0]
+                            pBDB.bibs.getByBibkey(
+                                data["bibkey"], saveQuery=False, verbose=False
+                            )[0]
                         )
                     except IndexError:
                         pBLogger.debug("", exc_info=True)
@@ -1891,7 +1893,7 @@ class BibtexListWindow(ObjListWindow):
         if bibkey is None or bibkey in ("", "None"):
             return
         try:
-            entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
+            entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False, verbose=False)[0]
         except IndexError:
             pBGUILogger.debug(bwstr.LW.errEntry)
             return
@@ -2060,7 +2062,7 @@ class BibtexListWindow(ObjListWindow):
         )
         commonActions = CommonBibActions(
             [
-                pBDB.bibs.getByBibkey(k, saveQuery=False)[0]
+                pBDB.bibs.getByBibkey(k, saveQuery=False, verbose=False)[0]
                 for k in self.mainWin.selectedBibs
             ],
             self.mainWin,
@@ -2164,7 +2166,7 @@ class BibtexListWindow(ObjListWindow):
         if bibkey is None or bibkey == "":
             return
         try:
-            entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False)[0]
+            entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False, verbose=False)[0]
         except IndexError:
             pBGUILogger.debug(bwstr.LW.errEntry)
             return
@@ -2188,7 +2190,12 @@ class BibtexListWindow(ObjListWindow):
             )
             if len(currentRows) > 0:
                 bibkeys = [ix.data() for ix in currentRows if ix.data() is not None]
-                ac = CommonBibActions([pBDB.bibs.getByBibkey(k)[0] for k in bibkeys])
+                ac = CommonBibActions(
+                    [
+                        pBDB.bibs.getByBibkey(k, saveQuery=False, verbose=False)[0]
+                        for k in bibkeys
+                    ]
+                )
                 ac.menu = PBMenu()
                 selection = len(bibkeys) > 1
                 ac._createMenuCopy(selection, ac.bibs[0] if not selection else None)

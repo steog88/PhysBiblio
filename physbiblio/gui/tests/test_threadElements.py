@@ -1065,7 +1065,7 @@ class Test_Thread_importDailyArxiv(GUITestCase):
         ) as _in:
             thr.run()
             _lai.assert_called_once_with(pBDB.bibs, "12.345")
-            _gbk.assert_called_once_with(pBDB.bibs, "12.345")
+            _gbk.assert_called_once_with(pBDB.bibs, "12.345", verbose=False)
             self.assertFalse(ws.running)
             _st.assert_called_once_with(ws)
             _sl.assert_called_once_with(0.1)
@@ -1186,9 +1186,9 @@ class Test_Thread_importDailyArxiv(GUITestCase):
             )
             _gbk.assert_has_calls(
                 [
-                    call(pBDB.bibs, "12.345"),
-                    call(pBDB.bibs, "12.348"),
-                    call(pBDB.bibs, "12.349"),
+                    call(pBDB.bibs, "12.345", verbose=False),
+                    call(pBDB.bibs, "12.348", verbose=False),
+                    call(pBDB.bibs, "12.349", verbose=False),
                 ]
             )
             _in.assert_has_calls(
@@ -1258,7 +1258,10 @@ class Test_Thread_importDailyArxiv(GUITestCase):
                 ]
             )
             _gbb.assert_has_calls(
-                [call(pBDB.bibs, "12.348"), call(pBDB.bibs, "12.349")]
+                [
+                    call(pBDB.bibs, "12.348", verbose=False),
+                    call(pBDB.bibs, "12.349", verbose=False),
+                ]
             )
 
     def test_setStopFlag(self):

@@ -2171,7 +2171,7 @@ class Entries(PhysBiblioDBSub):
             False if an error occurred,
             a (possibly empty) list of entries otherwise
         """
-        existing = self.getByBibkey(entry, saveQuery=False)
+        existing = self.getByBibkey(entry, saveQuery=False, verbose=False)
         for f in ("arxiv", "doi"):
             val = (
                 kwargs[f]
@@ -2179,7 +2179,9 @@ class Entries(PhysBiblioDBSub):
                 else entry
             )
             try:
-                existing += self.fetchAll(params={f: val}, saveQuery=False).lastFetched
+                existing += self.fetchAll(
+                    params={f: val}, saveQuery=False, verbose=False
+                ).lastFetched
             except Exception:
                 pBLogger.debug("Error", exc_info=True)
                 return False
@@ -3277,7 +3279,7 @@ class Entries(PhysBiblioDBSub):
             the output of self.getByBibkey otherwise
         """
         try:
-            value = self.getByBibkey(key, saveQuery=False)[0][field]
+            value = self.getByBibkey(key, saveQuery=False, verbose=False)[0][field]
         except IndexError:
             pBLogger.warning(dstr.Bibs.errorGFNoElement % (key, field))
             return False
@@ -3496,7 +3498,7 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info(
             dstr.Bibs.ifbProcessProgr % (ie + 1, tot, 100.0 * (ie + 1.0) / tot, key)
         )
-        exists = self.getByBibkey(key, saveQuery=False)
+        exists = self.getByBibkey(key, saveQuery=False, verbose=False)
         if exists:
             printExisting(key)
             existing.append(key)

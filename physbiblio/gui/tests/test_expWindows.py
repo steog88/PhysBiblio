@@ -505,7 +505,9 @@ class TestExpsListWindow(GUITestCase):
             "physbiblio.database.Entries.getByBibkey", return_value=[], autospec=True
         ) as _gbb, patch("logging.Logger.warning") as _w:
             self.assertEqual(elw.populateAskExp(), None)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _w.assert_called_once_with(
                 "The entry 'bib' is not in the database!", exc_info=True
             )
@@ -519,7 +521,9 @@ class TestExpsListWindow(GUITestCase):
             autospec=True,
         ) as _gbb:
             self.assertEqual(elw.populateAskExp(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             self.assertEqual(elw.currLayout.count(), 1)
             self.assertIsInstance(elw.layout().itemAt(0).widget(), PBLabel)
             self.assertEqual(
@@ -548,7 +552,9 @@ class TestExpsListWindow(GUITestCase):
             autospec=True,
         ) as _gbb:
             self.assertEqual(elw.populateAskExp(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             self.assertEqual(elw.currLayout.count(), 1)
             self.assertIsInstance(elw.layout().itemAt(0).widget(), PBLabel)
             self.assertEqual(
@@ -580,7 +586,9 @@ class TestExpsListWindow(GUITestCase):
             autospec=True,
         ) as _l:
             self.assertEqual(elw.populateAskExp(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "inspire")
             self.assertEqual(elw.currLayout.count(), 1)
             self.assertIsInstance(elw.layout().itemAt(0).widget(), PBLabel)
@@ -611,7 +619,9 @@ class TestExpsListWindow(GUITestCase):
             "physbiblio.view.ViewEntry.getLink", return_value="arxivlink", autospec=True
         ) as _l:
             self.assertEqual(elw.populateAskExp(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "arxiv")
             self.assertEqual(elw.currLayout.count(), 1)
             self.assertIsInstance(elw.layout().itemAt(0).widget(), PBLabel)
@@ -642,7 +652,9 @@ class TestExpsListWindow(GUITestCase):
             "physbiblio.view.ViewEntry.getLink", return_value="doilink", autospec=True
         ) as _l:
             self.assertEqual(elw.populateAskExp(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "doi")
             self.assertEqual(elw.currLayout.count(), 1)
             self.assertIsInstance(elw.layout().itemAt(0).widget(), PBLabel)

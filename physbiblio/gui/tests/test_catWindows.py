@@ -620,7 +620,9 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.database.Entries.getByBibkey", return_value=[], autospec=True
         ) as _gbb, patch("logging.Logger.warning") as _w:
             self.assertEqual(ctw.populateAskCat(), None)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _w.assert_called_once_with(
                 "The entry 'bib' is not in the database!", exc_info=True
             )
@@ -634,7 +636,9 @@ class TestCatsTreeWindow(GUITestCase):
             autospec=True,
         ) as _gbb:
             self.assertEqual(ctw.populateAskCat(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             self.assertEqual(ctw.currLayout.count(), 1)
             wid = ctw.layout().itemAt(0).widget()
             self.assertIsInstance(wid, PBLabel)
@@ -665,7 +669,9 @@ class TestCatsTreeWindow(GUITestCase):
             autospec=True,
         ) as _gbb:
             self.assertEqual(ctw.populateAskCat(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             self.assertEqual(ctw.currLayout.count(), 1)
             wid = ctw.layout().itemAt(0).widget()
             self.assertIsInstance(wid, PBLabel)
@@ -698,7 +704,9 @@ class TestCatsTreeWindow(GUITestCase):
             autospec=True,
         ) as _l:
             self.assertEqual(ctw.populateAskCat(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "inspire")
             self.assertEqual(ctw.currLayout.count(), 1)
             wid = ctw.layout().itemAt(0).widget()
@@ -730,7 +738,9 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.view.ViewEntry.getLink", return_value="arxivlink", autospec=True
         ) as _l:
             self.assertEqual(ctw.populateAskCat(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "arxiv")
             self.assertEqual(ctw.currLayout.count(), 1)
             wid = ctw.layout().itemAt(0).widget()
@@ -762,7 +772,9 @@ class TestCatsTreeWindow(GUITestCase):
             "physbiblio.view.ViewEntry.getLink", return_value="doilink", autospec=True
         ) as _l:
             self.assertEqual(ctw.populateAskCat(), True)
-            _gbb.assert_called_once_with(pBDB.bibs, "bib", saveQuery=False)
+            _gbb.assert_called_once_with(
+                pBDB.bibs, "bib", saveQuery=False, verbose=False
+            )
             _l.assert_called_once_with(pBView, "bib", "doi")
             self.assertEqual(ctw.currLayout.count(), 1)
             wid = ctw.layout().itemAt(0).widget()
