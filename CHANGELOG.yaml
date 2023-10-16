@@ -1,5 +1,5 @@
 -   version: 2.1.3
-    date: 2023-09
+    date: 2023-09-16
     changes:
         - exportForTexFile runs checkDuplicates
         - small internal improvements
