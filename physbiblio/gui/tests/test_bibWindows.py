@@ -7372,14 +7372,16 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertEqual(sbw.currentHistoric, 0)
         sbw.readForm()
         with patch.object(
-            SearchBibsWindow, "readForm", wraps=sbw.readForm, autospec=True
+            SearchBibsWindow,
+            "readForm",
+            wraps=sbw.readForm,
         ) as _rf, patch(
             "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
         ) as _cl, patch(
             "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
         ) as _cf:
             QTest.keyPress(sbw, Qt.Key_Down)
-            _rf.assert_called_once_with(sbw)
+            _rf.assert_called_once_with()
             _cl.assert_called_once_with(sbw)
             self.assertEqual(sbw.currentHistoric, 0)
             self.assertEqual(

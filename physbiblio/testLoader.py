@@ -3,6 +3,7 @@ which is not finding tests in python3.
 
 This file is part of the physbiblio package.
 """
+
 from unittest import TestLoader
 
 from pkg_resources import resource_exists, resource_listdir

@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+
 import json
 import re
 import time
@@ -653,11 +654,11 @@ class WebSearch(WebInterf, InspireStrings):
                 tmpDict["pages"] = (
                     pi["artid"]
                     if "artid" in pi.keys()
-                    else "%s-%s" % (pi["page_start"], pi["page_end"])
-                    if ("page_start" in pi.keys() and "page_end" in pi.keys())
-                    else pi["page_start"]
-                    if "page_start" in pi.keys()
-                    else None
+                    else (
+                        "%s-%s" % (pi["page_start"], pi["page_end"])
+                        if ("page_start" in pi.keys() and "page_end" in pi.keys())
+                        else pi["page_start"] if "page_start" in pi.keys() else None
+                    )
                 )
             except KeyError:
                 tmpDict["pages"] = None
@@ -670,9 +671,11 @@ class WebSearch(WebInterf, InspireStrings):
             tmpDict["firstdate"] = (
                 record["metadata"]["preprint_date"]
                 if "preprint_date" in record["metadata"].keys()
-                else record["metadata"]["legacy_creation_date"]
-                if "legacy_creation_date" in record["metadata"].keys()
-                else record["metadata"]["earliest_date"]
+                else (
+                    record["metadata"]["legacy_creation_date"]
+                    if "legacy_creation_date" in record["metadata"].keys()
+                    else record["metadata"]["earliest_date"]
+                )
             )
         except (KeyError, TypeError):
             tmpDict["firstdate"] = None

@@ -3,6 +3,7 @@ for the tables of the database.
 
 This file is part of the physbiblio package.
 """
+
 import traceback
 
 try:

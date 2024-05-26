@@ -3,6 +3,7 @@ the entries windows and panels.
 
 This file is part of the physbiblio package.
 """
+
 import ast
 import datetime
 import os
@@ -2673,9 +2674,11 @@ class SearchBibsWindow(EditObjectWindow):
                             "content": "",
                         }
                     ],
-                    "limit": "100000"
-                    if replace
-                    else "%s" % pbConfig.params["defaultLimitBibtexs"],
+                    "limit": (
+                        "100000"
+                        if replace
+                        else "%s" % pbConfig.params["defaultLimitBibtexs"]
+                    ),
                     "offset": "0",
                     "replaceFields": {
                         "regex": False,
@@ -3097,9 +3100,11 @@ class SearchBibsWindow(EditObjectWindow):
 
             self.textValues[ix]["operator"] = PBComboBox(
                 self,
-                self.operators["catexp"]
-                if previous["type"] == bwstr.SR.cats
-                else self.operators["catexp"][0:3],
+                (
+                    self.operators["catexp"]
+                    if previous["type"] == bwstr.SR.cats
+                    else self.operators["catexp"][0:3]
+                ),
                 current=previous["operator"],
             )
             self.currGrid.addWidget(self.textValues[ix]["operator"], ix, 2, 1, 2)

@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+
 import ast
 import logging
 import logging.handlers
@@ -1054,9 +1055,11 @@ class ConfigVars:
                 "n": e["name"],
                 "d": e["description"],
                 "f": e["oldCfg"],
-                "db": e["databasefile"]
-                if os.sep in e["databasefile"]
-                else os.path.join(self.dataPath, e["databasefile"]),
+                "db": (
+                    e["databasefile"]
+                    if os.sep in e["databasefile"]
+                    else os.path.join(self.dataPath, e["databasefile"])
+                ),
             }
         return (
             self.globalDb.getDefaultProfile(),

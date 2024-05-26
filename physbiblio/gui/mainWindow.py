@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+
 import ast
 import glob
 import os
@@ -1172,7 +1173,7 @@ class MainWindow(QMainWindow):
         ws.finished.connect(ws.deleteLater)
         thr.finished.connect(app.enableClose)
         thr.finished.connect(thr.deleteLater)
-        app.closeButton.clicked.connect(lambda a=app, t=thr: closePrintText(a, t))
+        app.closeButton.clicked.connect(lambda x, a=app, t=thr: closePrintText(a, t))
         if stopFlag:
             app.stopped.connect(thr.setStopFlag)
 
@@ -1561,9 +1562,9 @@ class MainWindow(QMainWindow):
                 pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs)
                 self.runReplace(
                     replaceFields,
-                    newTab=mwstr.newTab
-                    if newSearchWin.newTabCheck.isChecked()
-                    else None,
+                    newTab=(
+                        mwstr.newTab if newSearchWin.newTabCheck.isChecked() else None
+                    ),
                 )
             else:
                 if newSearchWin.save:
@@ -1575,9 +1576,9 @@ class MainWindow(QMainWindow):
                     searchFields,
                     lim,
                     offs,
-                    newTab=mwstr.newTab
-                    if newSearchWin.newTabCheck.isChecked()
-                    else None,
+                    newTab=(
+                        mwstr.newTab if newSearchWin.newTabCheck.isChecked() else None
+                    ),
                 )
 
     def delSearchBiblio(self, idS, name):

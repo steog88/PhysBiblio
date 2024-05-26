@@ -3,6 +3,7 @@ the experiments windows and panels.
 
 This file is part of the physbiblio package.
 """
+
 import traceback
 
 from PySide6.QtCore import Qt, QTimer

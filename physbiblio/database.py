@@ -2,6 +2,7 @@
 
 This file is part of the physbiblio package.
 """
+
 import ast
 import datetime
 import os
@@ -126,9 +127,11 @@ class PhysBiblioDB(PhysBiblioDBCore):
                             "type": "Categories",
                             "logical": None,
                             "field": "",
-                            "operator": "all the following"
-                            if searchFields["cats"]["operator"] == "and"
-                            else "at least one among",
+                            "operator": (
+                                "all the following"
+                                if searchFields["cats"]["operator"] == "and"
+                                else "at least one among"
+                            ),
                             "content": searchFields["cats"]["id"],
                         }
                     )
@@ -150,9 +153,11 @@ class PhysBiblioDB(PhysBiblioDBCore):
                             "type": "Experiments",
                             "logical": ceop,
                             "field": "",
-                            "operator": "all the following"
-                            if searchFields["exps"]["operator"] == "and"
-                            else "at least one among",
+                            "operator": (
+                                "all the following"
+                                if searchFields["exps"]["operator"] == "and"
+                                else "at least one among"
+                            ),
                             "content": searchFields["exps"]["id"],
                         }
                     )
@@ -164,9 +169,11 @@ class PhysBiblioDB(PhysBiblioDBCore):
                             "logical": searchFields["marks"]["connection"],
                             "field": None,
                             "operator": None,
-                            "content": ["any"]
-                            if searchFields["marks"]["operator"] == "!="
-                            else [searchFields["marks"]["str"]],
+                            "content": (
+                                ["any"]
+                                if searchFields["marks"]["operator"] == "!="
+                                else [searchFields["marks"]["str"]]
+                            ),
                         }
                     )
                     del searchFields["marks"]
@@ -1679,11 +1686,11 @@ class Entries(PhysBiblioDBSub):
         data["arxiv"] = (
             arxiv
             if arxiv
-            else element["arxiv"]
-            if "arxiv" in element
-            else element["eprint"]
-            if "eprint" in element
-            else ""
+            else (
+                element["arxiv"]
+                if "arxiv" in element
+                else element["eprint"] if "eprint" in element else ""
+            )
         )
         return data
 
@@ -1840,9 +1847,7 @@ class Entries(PhysBiblioDBSub):
             data[k] = (
                 kwargs[k]
                 if k in kwargs and kwargs[k]
-                else element[k]
-                if k in element
-                else None
+                else element[k] if k in element else None
             )
         for k in ("ads", "comments", "inspire", "old_keys", "scholar"):
             data[k] = kwargs[k] if k in kwargs and kwargs[k] else None
@@ -2086,7 +2091,7 @@ class Entries(PhysBiblioDBSub):
 
         def checkres(key, mat, match, matched, reason):
             if len([k for k in mat if k["bibkey"] != key]) > 0:
-                matched[reason] = [m["bibkey"] for m in mat if m["bibkey"] != k]
+                matched[reason] = [m["bibkey"] for m in mat if m["bibkey"] != key]
                 match = True
             return match, matched
 
@@ -4874,17 +4879,21 @@ class Entries(PhysBiblioDBSub):
             self.newKey = key  # saved for searchOAIUpdates
         self.updateRecordFromINSPIRE(
             result,
-            useOld=self.getByBibkey(key, saveQuery=False, verbose=False)
-            if not reloadAll
-            else [
-                {
-                    **{
-                        k: ""
-                        for x, k in physBiblioWeb.webSearch["inspire"].correspondences
-                    },
-                    **{"bibkey": key},
-                }
-            ],
+            useOld=(
+                self.getByBibkey(key, saveQuery=False, verbose=False)
+                if not reloadAll
+                else [
+                    {
+                        **{
+                            k: ""
+                            for x, k in physBiblioWeb.webSearch[
+                                "inspire"
+                            ].correspondences
+                        },
+                        **{"bibkey": key},
+                    }
+                ]
+            ),
             force=True,
         )
         if verbose > 0:

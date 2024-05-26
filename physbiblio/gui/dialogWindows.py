@@ -3,6 +3,7 @@ that manage the some dialog windows.
 
 This file is part of the physbiblio package.
 """
+
 import ast
 import traceback
 
@@ -271,9 +272,11 @@ class ConfigWindow(PBDialog):
                     % (
                         configuration_params[k].description,
                         k,
-                        (" - " + dwstr.globalSett)
-                        if configuration_params[k].isGlobal
-                        else "",
+                        (
+                            (" - " + dwstr.globalSett)
+                            if configuration_params[k].isGlobal
+                            else ""
+                        ),
                     )
                 ),
                 i - 1,
@@ -315,10 +318,10 @@ class ConfigWindow(PBDialog):
                     )
             elif k == "logFileName":
                 self.textValues.append([k, QPushButton(val)])
-                self.textValues[-1][1].clicked.connect(self.editFile)
+                self.textValues[-1][1].clicked.connect(lambda x: self.editFile())
             elif k == "defaultCategories":
                 self.textValues.append([k, QPushButton(val)])
-                self.textValues[-1][1].clicked.connect(self.editDefCats)
+                self.textValues[-1][1].clicked.connect(lambda x: self.editDefCats())
             elif configuration_params[k].special == "boolean":
                 self.textValues.append([k, PBTrueFalseCombo(self, val)])
             else:
@@ -994,9 +997,11 @@ class ExportForTexDialog(PBDialog):
             self.grid.addWidget(PBLabelRight(dwstr.texNames), ix + 1, 0, 1, 2)
             self.texButtons.append(
                 QPushButton(
-                    dwstr.selFile
-                    if self.texFileNames[ix] == ""
-                    else "%s" % self.texFileNames[ix],
+                    (
+                        dwstr.selFile
+                        if self.texFileNames[ix] == ""
+                        else "%s" % self.texFileNames[ix]
+                    ),
                     self,
                 )
             )

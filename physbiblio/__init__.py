@@ -3,6 +3,7 @@ including the `gui` subpackage.
 
 This file is part of the physbiblio package.
 """
+
 __author__ = "Stefano Gariazzo"
 __email__ = "stefano.gariazzo@gmail.com"
 

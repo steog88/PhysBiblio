@@ -17,19 +17,23 @@ lastchanges = changelog[0]["changes"]
 if isinstance(lastchanges, list):
     mdchanges = "<br>\n".join(
         [
-            "<br>%s:<br>* %s<br>"
-            % (list(l.keys())[0], "<br>\n* ".join(list(l.values())[0]))
-            if isinstance(l, dict)
-            else "* %s" % l
+            (
+                "<br>%s:<br>* %s<br>"
+                % (list(l.keys())[0], "<br>\n* ".join(list(l.values())[0]))
+                if isinstance(l, dict)
+                else "* %s" % l
+            )
             for l in lastchanges
         ]
     )
 elif isinstance(lastchanges, dict):
     mdchanges = "<br>\n".join(
         [
-            "<br><b>%s:</b><br>\n* %s" % (l, "<br>\n* ".join(list(v)))
-            if isinstance(v, list)
-            else "* %s" % l
+            (
+                "<br><b>%s:</b><br>\n* %s" % (l, "<br>\n* ".join(list(v)))
+                if isinstance(v, list)
+                else "* %s" % l
+            )
             for l, v in lastchanges.items()
         ]
     )
