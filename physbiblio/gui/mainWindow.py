@@ -1173,7 +1173,7 @@ class MainWindow(QMainWindow):
         ws.finished.connect(ws.deleteLater)
         thr.finished.connect(app.enableClose)
         thr.finished.connect(thr.deleteLater)
-        app.closeButton.clicked.connect(lambda x, a=app, t=thr: closePrintText(a, t))
+        app.closeButton.clicked.connect(lambda *x, a=app, t=thr: closePrintText(a, t))
         if stopFlag:
             app.stopped.connect(thr.setStopFlag)
 

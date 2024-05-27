@@ -1685,12 +1685,19 @@ class TestMainWindow(GUITestCase):
             _rth.assert_called_once_with(pBErrorManager)
             _sbm.assert_not_called()
             _done.assert_called_once_with(self.mainW)
-        app.reject = MagicMock()
-        thr.wait = MagicMock()
         app.enableClose()
-        QTest.mouseClick(app.closeButton, Qt.LeftButton, delay=10)
-        app.reject.assert_called_once()
-        thr.wait.assert_called_once()
+        with patch.object(
+            PrintText,
+            "reject",
+            wraps=app.reject,
+        ) as _r, patch.object(
+            Thread_cleanSpare,
+            "wait",
+            wraps=thr.wait,
+        ) as _w:
+            QTest.mouseClick(app.closeButton, Qt.LeftButton, delay=10)
+            _w.assert_called_once()
+            _r.assert_called_once()
 
         ws.newText.connect.reset_mock()
         func.reset_mock()

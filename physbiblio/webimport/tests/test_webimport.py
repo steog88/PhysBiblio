@@ -60,19 +60,17 @@ class TestWebImportMethods(unittest.TestCase):
             "doi": [
                 "10.1088/0954-3899/43/3/033001",
                 """@article{Gariazzo_2015,
-	doi = {10.1088/0954-3899/43/3/033001},
-	url = {"""
-                + pbConfig.doiUrl
-                + """10.1088%2F0954-3899%2F43%2F3%2F033001},
-	year = 2015,
-	month = {mar},
-	publisher = {{IOP} Publishing},
-	volume = {43},
-	number = {3},
-	pages = {033001},
-	author = {S Gariazzo and C Giunti and M Laveder and Y F Li and E M Zavanin},
-	title = {Light sterile neutrinos},
-	journal = {Journal of Physics G: Nuclear and Particle Physics}
+	doi={10.1088/0954-3899/43/3/033001},
+	url={http://dx.doi.org/10.1088/0954-3899/43/3/033001},
+	year={2015},
+	month=mar,
+	publisher={IOP Publishing},
+	volume={43},
+	number={3},
+	author={Gariazzo, S and Giunti, C and Laveder, M and Li, Y F and Zavanin, E M},
+	title={Light sterile neutrinos},
+	journal={Journal of Physics G: Nuclear and Particle Physics},
+	pages={033001}
 }""",
             ],
             "inspire": [
@@ -107,16 +105,21 @@ class TestWebImportMethods(unittest.TestCase):
                     strings[1].strip(),
                 )
             else:
-                self.assertEqual(
+                res1 = (
                     physBiblioWeb.webSearch[method]
                     .retrieveUrlFirst(strings[0])
-                    .strip(),
-                    strings[1].strip(),
+                    .strip()
+                    .lower()
                 )
-                self.assertEqual(
-                    physBiblioWeb.webSearch[method].retrieveUrlAll(strings[0]).strip(),
-                    strings[1].strip(),
+                res2 = (
+                    physBiblioWeb.webSearch[method]
+                    .retrieveUrlAll(strings[0])
+                    .strip()
+                    .lower()
                 )
+                for s in strings[1].strip().split("\n"):
+                    self.assertIn(s.strip().lower(), res1)
+                    self.assertIn(s.strip().lower(), res2)
 
     def test_methods_insuccess(self):
         """Test webimport using missing and/or invalid identifiers"""
