@@ -1,3 +1,7 @@
+-   version: 2.1.4
+    date: 2024-05-27
+    changes:
+        - bug fixing and updates with recent PySide6 and python versions
 -   version: 2.1.3
     date: 2023-09-16
     changes:

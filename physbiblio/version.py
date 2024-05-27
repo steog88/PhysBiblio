@@ -1,7 +1,5 @@
-__version__ = "2.1.3"
-__version_date__ = "16/09/2023"
+__version__ = "2.1.4"
+__version_date__ = "27/05/2024"
 
-__recent_changes__ = """<br>* exportForTexFile runs checkDuplicates<br>
-* small internal improvements<br>
-* bug fixing<br>
+__recent_changes__ = """<br>* bug fixing and updates with recent PySide6 and python versions<br>
 """
