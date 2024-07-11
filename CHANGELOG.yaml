@@ -1,3 +1,7 @@
+-   version: 2.1.5
+    date: 2024-07-11
+    changes:
+        - fix processing search form when a & is added as a shortcut for button selection
 -   version: 2.1.4
     date: 2024-05-27
     changes:
