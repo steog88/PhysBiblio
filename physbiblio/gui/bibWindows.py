@@ -2961,7 +2961,9 @@ class SearchBibsWindow(EditObjectWindow):
                 if previous["operator"] not in self.operators["catexp"]:
                     previous["operator"] = None
             try:
-                previous["content"] = ast.literal_eval(line["content"].text())
+                previous["content"] = ast.literal_eval(
+                    line["content"].text().replace("&", "")
+                )
             except (AttributeError, SyntaxError, ValueError):
                 previous["content"] = []
             else:
