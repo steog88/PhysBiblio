@@ -325,7 +325,7 @@ class WebSearch(WebInterf, InspireStrings):
         if isDoi:
             string = "doi+" + string
         elif isArxiv:
-            if re.match("[0-9]{4}\.[0-9]{4,5}", string) and "arxiv:" not in string:
+            if re.match(r"[0-9]{4}\.[0-9]{4,5}", string) and "arxiv:" not in string:
                 string = "arxiv:" + string
             string = "eprint " + string
         args = self.urlArgs.copy()

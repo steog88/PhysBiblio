@@ -210,7 +210,10 @@ def editBibtex(parentObject, editKey=None):
         editKey: the key of the entry to be edited,
             or `None` to create a new one
     """
-    previous = pBDB.bibs.getByBibkey(editKey, saveQuery=False, verbose=False)[0]
+    try:
+        previous = pBDB.bibs.getByBibkey(editKey, saveQuery=False, verbose=False)[0]
+    except IndexError:
+        previous = None
     newBibWin = EditBibtexDialog(
         parentObject,
         bib=previous if editKey is not None else None,
@@ -265,7 +268,7 @@ def editBibtex(parentObject, editKey=None):
                     and tmpBibDict["doi"] != ""
                 ):
                     data["doi"] = tmpBibDict["doi"]
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
             if data["arxiv"] == "":
                 if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
@@ -475,7 +478,7 @@ class AbstractFormulas:
         and prepare the the images which will be inserted
         in the `QTextEdit` instead of the formulas
         """
-        matchFormula = re.compile("\$.*?\$", re.MULTILINE)
+        matchFormula = re.compile(r"\$.*?\$", re.MULTILINE)
         mathTexts = [q.group() for q in matchFormula.finditer(self.text)]
 
         images = []
@@ -1536,8 +1539,8 @@ class CommonBibActions:
         copyToClipboard("\n\n".join([e["bibtex"] for e in self.bibs]))
 
     def onCopyCites(self):
-        """Copy '\cite{all the keys}' to the keyboard"""
-        copyToClipboard("\cite{%s}" % ",".join([e["bibkey"] for e in self.bibs]))
+        r"""Copy '\cite{all the keys}' to the keyboard"""
+        copyToClipboard(r"\cite{%s}" % ",".join([e["bibkey"] for e in self.bibs]))
 
     def onCopyDir(self):
         """Copy the name of the directory

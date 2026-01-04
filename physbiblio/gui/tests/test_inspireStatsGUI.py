@@ -1593,7 +1593,10 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
             _t.assert_any_call(evt.artist.get_xdata(), 0)
             _t.assert_any_call(evt.artist.get_ydata(), 0)
         self.assertEqual(asp.textBox.text(), "Total citations in date 27/09/2016 is 75")
+        evt.artist = Line2D((0, 1), (1, 1))
         evt.artist.figure = testData["figs"][4]
+        evt.artist.get_xdata = MagicMock()
+        evt.artist.get_ydata = MagicMock()
         with patch(
             "numpy.take", side_effect=[[datetime.datetime(2016, 9, 8)], [10.0]]
         ) as _t:

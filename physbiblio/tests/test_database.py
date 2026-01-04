@@ -10141,7 +10141,7 @@ class TestDatabaseUtilities(DBTestCase):
         """Create and clean a bibtex entry"""
         data = self.pBDB.bibs.prepareInsert(
             '\n\n%comment\n@article{abc,\nauthor = "me",\n'
-            + 'title = "\u00E8\n\u00F1",}',
+            + 'title = "\u00e8\n\u00f1",}',
             bibkey="abc",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))

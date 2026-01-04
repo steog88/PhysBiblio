@@ -6,7 +6,11 @@ This file is part of the physbiblio package.
 
 from unittest import TestLoader
 
-from pkg_resources import resource_exists, resource_listdir
+try:
+    from importlib.resources import contents as resource_listdir
+    from importlib.resources import is_resource as resource_exists
+except ImportError:
+    from pkg_resources import resource_exists, resource_listdir
 
 
 class PBScanningLoader(TestLoader):

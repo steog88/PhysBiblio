@@ -163,8 +163,9 @@ class PBExport:
         removeUnused=False,
         reorder=False,
         newOperation=True,
+        checkDuplicates=True,
     ):
-        """Reads a .tex file looking for the \cite{} commands,
+        r"""Reads a .tex file looking for the \cite{} commands,
         collects the bibtex entries cited in the text and
         stores them in a bibtex file.
         The entries are taken from the database first,
@@ -194,6 +195,8 @@ class PBExport:
                 reset the self.existingBibsList and read file .bib content.
                 Time consuming! better to just keep it updated
                 when using multiple texs...
+            checkDuplicates (boolean, default True):
+                run a check for duplicates in the bib file
 
         Output:
             True if successful, False if errors occurred
@@ -261,7 +264,7 @@ class PBExport:
                 return False
 
         def removeUnusedBibtexs(existingBibsDict):
-            """Functions that reads the list of bibtex entries
+            r"""Functions that reads the list of bibtex entries
             in the existing .bib file and removes
             the ones that are not inside \cite commands
             """
@@ -429,9 +432,9 @@ class PBExport:
             return False
 
         # extract \cite* commands
-        matchKeys = "([0-9A-Za-z_\-':\+\.\&]+)"
+        matchKeys = r"([0-9A-Za-z_\-':\+\.\&]+)"
         cite = re.compile(
-            "\\\\(cite|citep|citet)\{([\n ]*" + matchKeys + "[,]?[\n ]*)*\}",
+            "\\\\(cite|citep|citet)\\{([\n ]*" + matchKeys + "[,]?[\n ]*)*\\}",
             re.MULTILINE,
         )  # find \cite{...}
         citeKeys = re.compile(
@@ -521,14 +524,15 @@ class PBExport:
             pBDB.commit()
 
         pBLogger.info("\n\n")
-        ds = pBDB.bibs.printDuplicatesString(
-            pBDB.bibs.checkDuplicates(
-                entries=pBDB.bibs.getByKey(
-                    sorted(list(self.allCitations)), verbose=False
+        if checkDuplicates:
+            ds = pBDB.bibs.printDuplicatesString(
+                pBDB.bibs.checkDuplicates(
+                    entries=pBDB.bibs.getByKey(
+                        sorted(list(self.allCitations)), verbose=False
+                    )
                 )
             )
-        )
-        pBLogger.info(exstr.duplicates + ds)
+            pBLogger.info(exstr.duplicates + ds)
 
         printOutput(
             requiredBibkeys,

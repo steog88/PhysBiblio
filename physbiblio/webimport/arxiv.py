@@ -169,17 +169,17 @@ def isValidArxiv(string):
     if "arxiv:" in string:
         string = string.replace("arxiv:", "")
     if re.match(
-        "^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$",
+        r"^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$",
         string,
     ):
         return True
     elif re.match(
-        "^[a-zA-Z]+(\-[a-zA-Z]+)?(\.[a-zA-Z]+(\-[a-zA-Z]+)?)?/[0-9]{7}(v[0-9]+)?$",
+        r"^[a-zA-Z]+(\-[a-zA-Z]+)?(\.[a-zA-Z]+(\-[a-zA-Z]+)?)?/[0-9]{7}(v[0-9]+)?$",
         string,
     ):
         if "." in string:
             matchcat = re.compile(
-                "([a-zA-Z]+(\-[a-zA-Z]+)?)\.([a-zA-Z]+(\-[a-zA-Z]+)?)/"
+                r"([a-zA-Z]+(\-[a-zA-Z]+)?)\.([a-zA-Z]+(\-[a-zA-Z]+)?)/"
             )
             for t in matchcat.finditer(string):
                 cat = t.group(1)
@@ -187,7 +187,7 @@ def isValidArxiv(string):
             if cat in arxivCategories and sub in arxivCategories[cat]:
                 return True
         else:
-            matchcat = re.compile("([a-zA-Z]+(\-[a-zA-Z]+)?)/")
+            matchcat = re.compile(r"([a-zA-Z]+(\-[a-zA-Z]+)?)/")
             for t in matchcat.finditer(string):
                 cat = t.group(1)
             if cat in arxivCategories:
@@ -205,7 +205,7 @@ def getYear(string):
     Output:
         a string containing the year of the submission to arXiv
     """
-    identif = re.compile("(([a-zA-Z\-]+/)([0-9]{7}))|([0-9]{4}\.[0-9]{4,5})")
+    identif = re.compile(r"(([a-zA-Z\-]+/)([0-9]{7}))|([0-9]{4}\.[0-9]{4,5})")
     try:
         for t in identif.finditer(string):
             if len(t.group()) > 0:
@@ -429,7 +429,7 @@ class WebSearch(WebInterf, ArxivStrings):
             return False
         author = re.compile("(>|&gt;)([^/]*)(</a>|&lt;/a&gt;)")
         additionalInfo = re.compile(
-            " \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)"
+            r" \(arXiv:([0-9\.v]*) \[([\-\.a-zA-Z]*)\]([ A-Z]*)\)"
         )
         text = parse_accents_str(text)
         try:

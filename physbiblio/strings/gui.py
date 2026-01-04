@@ -63,7 +63,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         countSel = "Selected elements: %d"
         cpAllPdf = "Copy all the corresponding PDF"
         cpBib = "bibtex(s)"
-        cpCite = "\cite{key(s)}"
+        cpCite = r"\cite{key(s)}"
         cpDir = "Name of the directory for associated files"
         cpKey = "key(s)"
         cpTit = "Copy to clipboard"
@@ -152,7 +152,7 @@ class BibWindowsStrings(CommonStrings, CommonGUIStrings):
         exps = "Experiments: <i>%s</i>"
         keyErr = "KeyError: '%s' not in %s"
         pubErr = "KeyError: 'journal', 'volume', 'year' or 'pages' not in %s"
-        useWith = "(use with '<u>\cite{%s}</u>')"
+        useWith = r"(use with '<u>\cite{%s}</u>')"
 
     class LW:
         """Strings used in the BibtexListWindow class"""

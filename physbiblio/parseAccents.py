@@ -57,7 +57,7 @@ def parse_accents_record(record):
 
 
 latex2Html_commands = [["textit", "i"], ["textbf", "b"]]
-latex2Html_strings = [["\%", "%"], ["~", " "], ["\ ", " "]]
+latex2Html_strings = [[r"\%", "%"], ["~", " "], [r"\ ", " "]]
 latex_replace = [["text", "rm"]]
 
 
@@ -71,7 +71,7 @@ def texToHtml(text):
         the processed string
     """
     for tex, html in latex2Html_commands:
-        match = re.compile("\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
+        match = re.compile(r"\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
         for t in match.finditer(text):
             text = text.replace(
                 t.group(), "<{html}>{cont}</{html}>".format(html=html, cont=t.group(1))
@@ -79,7 +79,7 @@ def texToHtml(text):
     for tex, html in latex2Html_strings:
         text = text.replace(tex, html)
     for tex, new in latex_replace:
-        match = re.compile("\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
+        match = re.compile(r"\\\\%s\{(.*| |\n)?\}" % tex, re.MULTILINE)
         for t in match.finditer(text):
             text = text.replace(t.group(), "\\%s{%s}" % (new, t.group(1)))
     return text

@@ -2489,7 +2489,7 @@ class Entries(PhysBiblioDBSub):
                 tmp["published"] = " ".join(
                     [tmp["journal"], tmp["volume"], "(%s)" % tmp["year"], tmp["pages"]]
                 )
-                if re.match("  \([\d]*\) ", tmp["published"]):
+                if re.match(r"  \([\d]*\) ", tmp["published"]):
                     tmp["published"] = ""
             except KeyError:
                 tmp["published"] = ""

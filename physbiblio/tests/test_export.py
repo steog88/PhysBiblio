@@ -185,8 +185,8 @@ class TestExportMethods(unittest.TestCase):
         testBibName = self.testBibName
         testTexName = self.testTexName
         texString = (
-            "\cite{empty,prova., empty2+}\citep{empty2+}"
-            + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+            r"\cite{empty,prova., empty2+}\citep{empty2+}"
+            + r"\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
         )
         with open(testTexName, "w") as f:
             f.write(texString)
@@ -267,7 +267,11 @@ class TestExportMethods(unittest.TestCase):
             autospec=True,
         ) as _mock:
             output = pBExport.exportForTexFile(
-                testTexName, testBibName, overwrite=True, autosave=False
+                testTexName,
+                testBibName,
+                overwrite=True,
+                autosave=False,
+                checkDuplicates=False,
             )
         self.assertEqual(
             output[0],
@@ -299,7 +303,7 @@ class TestExportMethods(unittest.TestCase):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "a") as f:
-            f.write("\cite{newcite}")
+            f.write(r"\cite{newcite}")
         with patch(
             "physbiblio.database.CatsEntries.insert", return_value=True, autospec=True
         ) as _ceins, patch(
@@ -390,7 +394,7 @@ class TestExportMethods(unittest.TestCase):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
-            f.write("\cite{newcite:NOW18}")
+            f.write(r"\cite{newcite:NOW18}")
         with patch(
             "physbiblio.database.Entries.getByBibtex",
             side_effect=[
@@ -429,7 +433,7 @@ class TestExportMethods(unittest.TestCase):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
-            f.write("\cite{newcite:NOW18}\cite{bib1}\cite{bib2}")
+            f.write(r"\cite{newcite:NOW18}\cite{bib1}\cite{bib2}")
         bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",\ntitle=' + '"{newtitle}"\n}'
         bibtex2 = (
             '@article{bib1,\nauthor="SG",\ntitle=' + '"{Light sterile neutrinos}",\n}'
@@ -491,7 +495,7 @@ class TestExportMethods(unittest.TestCase):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
-            f.write("\cite{newcite:NOW18}\cite{bib1}")
+            f.write(r"\cite{newcite:NOW18}\cite{bib1}")
         bibtex1 = (
             '@Article{newcite:now18,\nauthor="S. Gariazzo",\ntitle=' + '"{newtitle}"\n}'
         )
@@ -545,7 +549,7 @@ class TestExportMethods(unittest.TestCase):
             self.assertIn(t, newTextBib)
 
         with open(testTexName, "w") as f:
-            f.write("\cite{newcite}")
+            f.write(r"\cite{newcite}")
         bibtex1 = '@Article{newcite,\nauthor="S. Gariazzo",' + '\ntitle="{title}"\n}'
         with patch(
             "physbiblio.database.Entries.getByBibtex",
@@ -642,8 +646,8 @@ class TestExportMethods(unittest.TestCase):
             _ex.assert_any_call("Cannot create file /surely/not/existing/path.bib!")
 
         texString = (
-            "\cite{someA&A...123,prova., empty2+}\citep{empty2+}"
-            + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+            r"\cite{someA&A...123,prova., empty2+}\citep{empty2+}"
+            + r"\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
         )
         with open(testTexName, "w") as f:
             f.write(texString)
@@ -695,8 +699,8 @@ class TestExportMethods(unittest.TestCase):
             )
         with open(testTexName, "w") as f:
             f.write(
-                "\cite{prova,empty2}\citep{empty}"
-                + "\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
+                r"\cite{prova,empty2}\citep{empty}"
+                + r"\citet{Gariazzo:2015rra}, \citet{Gariazzo:2017rra}\n"
             )
         with patch(
             "physbiblio.database.Entries.getByBibtex", return_value=[], autospec=True
