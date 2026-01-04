@@ -1,5 +1,5 @@
-__version__ = "2.1.5"
-__version_date__ = "11/07/2024"
+__version__ = "2.1.6"
+__version_date__ = "04/01/2026"
 
-__recent_changes__ = """<br>* fix processing search form when a & is added as a shortcut for button selection<br>
+__recent_changes__ = """<br>* bug fixing (indexerror when creating a new bibtex, deprecation warnings)<br>
 """

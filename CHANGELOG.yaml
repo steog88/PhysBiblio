@@ -1,3 +1,7 @@
+-   version: 2.1.6
+    date: 2026-01-04
+    changes:
+        - bug fixing (indexerror when creating a new bibtex, deprecation warnings)
 -   version: 2.1.5
     date: 2024-07-11
     changes:
