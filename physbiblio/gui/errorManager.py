@@ -10,7 +10,7 @@ from io import StringIO
 from PySide6.QtWidgets import QMessageBox
 
 try:
-    from physbiblio.errors import PBErrorManagerClass, pBLogger
+    from physbiblio.errors import PBErrorManagerClass
     from physbiblio.strings.common import CommonStrings as cstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

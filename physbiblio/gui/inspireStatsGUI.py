@@ -7,21 +7,17 @@ This file is part of the physbiblio package.
 import datetime
 import traceback
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QDialog, QGridLayout, QLineEdit, QPushButton
 
 plt.switch_backend("QtAgg")
 
 try:
-    from physbiblio.config import pbConfig
-    from physbiblio.database import pBDB
     from physbiblio.gui.basicDialogs import askDirName, infoMessage
     from physbiblio.gui.commonClasses import PBDialog, PBLabel
     from physbiblio.gui.errorManager import pBGUILogger
@@ -278,7 +274,6 @@ class PaperStatsPlots(PBDialog):
             a `matplotlib.backend_bases.Event`
         """
         ob = event.artist
-        ix = -1
         if isinstance(ob, Line2D):
             xdata = ob.get_xdata()
             ydata = ob.get_ydata()

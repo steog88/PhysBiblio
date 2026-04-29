@@ -3,21 +3,18 @@
 
 This file is part of the physbiblio package.
 """
+
 import logging
-import os
 import traceback
 import unittest
+from io import StringIO
 from unittest.mock import MagicMock, patch
-
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QMessageBox
 
 try:
     from physbiblio.errors import PBErrorManagerClass
-    from physbiblio.gui.errorManager import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.gui.errorManager import ErrorStream, PBErrorManagerClassGui
+    from physbiblio.gui.setuptests import GUITestCase
+    from physbiblio.setuptests import skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -72,9 +69,9 @@ class TestGUIErrorManager(GUITestCase):
         el = PBErrorManagerClassGui()
         self.assertIsInstance(el, PBErrorManagerClass)
         self.assertIsInstance(el.guiStream, ErrorStream)
-        l = el.loggerPriority(25)
+        lo = el.loggerPriority(25)
         self.assertEqual(el.guiStream.priority, 25)
-        self.assertIsInstance(l, logging.Logger)
+        self.assertIsInstance(lo, logging.Logger)
 
     def test_objects(self):
         """test that the module contains the appropriate objects"""

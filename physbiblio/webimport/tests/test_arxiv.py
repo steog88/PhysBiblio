@@ -3,17 +3,14 @@
 
 This file is part of the physbiblio package.
 """
-import datetime
+
 import traceback
 import unittest
-from unittest.mock import MagicMock, patch
-
-import bibtexparser
+from unittest.mock import patch
 
 try:
-    from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
-    from physbiblio.setuptests import *
+    from physbiblio.setuptests import patch, skipTestsSettings
     from physbiblio.strings.webimport import ArxivStrings
     from physbiblio.webimport.arxiv import WebSearch, isValidArxiv
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
@@ -383,13 +380,17 @@ class TestArxivMethods(unittest.TestCase):
         """test arxivRetriever"""
         self.maxDiff = None
         aws = physBiblioWeb.webSearch["arxiv"]
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.exception"
-        ) as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl", return_value="myurl"
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="myurl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+            ) as _tu,
+        ):
             self.assertEqual(aws.arxivRetriever("abc"), "")
             _cu.assert_called_once_with({"start": "0", "search_query": "all:abc"})
             self.assertEqual(aws.arxivRetriever("abc", fullDict=True), ("", {}))
@@ -414,14 +415,19 @@ class TestArxivMethods(unittest.TestCase):
             _tu.assert_called_with("myurl")
             _tu.return_value = None
             self.assertEqual(aws.arxivRetriever("abc"), "")
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.debug"
-        ) as _d, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl", return_value="myurl"
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value=sampleFeed1,
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.debug") as _d,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="myurl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value=sampleFeed1,
+            ) as _tu,
+        ):
             self.assertEqual(aws.arxivRetriever("abc"), "")
             _tu.return_value = sampleFeed2
             self.assertEqual(
@@ -529,11 +535,14 @@ class TestArxivMethods(unittest.TestCase):
         """test arxivDaily"""
         self.maxDiff = None
         aws = physBiblioWeb.webSearch["arxiv"]
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.exception"
-        ) as _e, patch("logging.Logger.warning") as _w, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+            patch("logging.Logger.warning") as _w,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+            ) as _tu,
+        ):
             self.assertEqual(aws.arxivDaily("abc"), False)
             _tu.assert_not_called()
             self.assertEqual(aws.arxivDaily("abc"), False)
@@ -546,12 +555,15 @@ class TestArxivMethods(unittest.TestCase):
             _tu.return_value = sampleFeed1
             self.assertEqual(aws.arxivDaily("astro-ph.CO"), [])
             _tu.assert_called_with("https://export.arxiv.org/rss/astro-ph.CO")
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.exception"
-        ) as _e, patch("logging.Logger.warning") as _w, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value=sampleDailyFeed1,
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+            patch("logging.Logger.warning") as _w,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value=sampleDailyFeed1,
+            ) as _tu,
+        ):
             self.assertEqual(
                 aws.arxivDaily("hep-ex"),
                 [

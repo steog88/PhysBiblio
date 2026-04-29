@@ -1202,8 +1202,8 @@ class ConfigVars:
         try:
             with open(self.configMainFile) as r:
                 txt = r.readlines()
-            for l in txt:
-                k, v = l.replace("\n", "").split(" = ")
+            for x in txt:
+                k, v = x.replace("\n", "").split(" = ")
                 try:
                     if configuration_params[k].special == "float":
                         self.params[k] = float(v)

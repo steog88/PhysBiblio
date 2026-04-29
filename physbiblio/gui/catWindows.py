@@ -11,8 +11,7 @@ from PySide6.QtGui import QAction, QCursor
 from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip, QTreeView, QVBoxLayout
 
 try:
-    import physbiblio.gui.resourcesPyside6
-    from physbiblio.config import pbConfig
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.database import cats_alphabetical, pBDB
     from physbiblio.errors import pBLogger
     from physbiblio.gui.basicDialogs import askYesNo
@@ -189,7 +188,6 @@ class CatsModel(TreeModel):
         """
         if not index.isValid():
             return None
-        row = index.row()
         column = index.column()
         item = TreeNode.cast(index)
         if item is None:
@@ -202,9 +200,9 @@ class CatsModel(TreeModel):
             and hasattr(self.parentObj, "askCats")
             and self.parentObj.askCats
         ):
-            if self.previousSaved[idCat] == True and self.selectedCats[idCat] == "p":
+            if self.previousSaved[idCat] and self.selectedCats[idCat] == "p":
                 return Qt.PartiallyChecked
-            elif self.selectedCats[idCat] == False:
+            elif not self.selectedCats[idCat]:
                 return Qt.Unchecked
             else:
                 return Qt.Checked
@@ -441,12 +439,12 @@ class CatsTreeWindow(PBDialog):
         self.parent().selectedCats = [
             idC
             for idC in self.root_model.selectedCats.keys()
-            if self.root_model.selectedCats[idC] == True
+            if self.root_model.selectedCats[idC]
         ]
         self.parent().previousUnchanged = [
             idC
             for idC in self.root_model.previousSaved.keys()
-            if self.root_model.previousSaved[idC] == True
+            if self.root_model.previousSaved[idC]
         ]
 
         if (
@@ -695,7 +693,6 @@ class CatsTreeWindow(PBDialog):
         """
         if index.isValid():
             row = index.row()
-            col = index.column()
         else:
             return
         try:

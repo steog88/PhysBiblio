@@ -4,6 +4,7 @@ Will be probably rewritten to use pylatexenc.
 
 This file is part of the physbiblio package.
 """
+
 import re
 import traceback
 

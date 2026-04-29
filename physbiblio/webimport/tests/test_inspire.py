@@ -3,17 +3,17 @@
 
 This file is part of the physbiblio package.
 """
+
 import datetime
 import traceback
 import unittest
-from unittest.mock import MagicMock, patch
 
 import bibtexparser
 
 try:
     from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
-    from physbiblio.setuptests import *
+    from physbiblio.setuptests import patch, skipTestsSettings
     from physbiblio.strings.webimport import InspireStrings
     from physbiblio.webimport.inspire import WebSearch
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
@@ -62,20 +62,22 @@ class TestInspireMethods(unittest.TestCase):
         args["q"] = "abc"
         args["size"] = "250"
         args["format"] = "bibtex"
-        with patch(
-            "physbiblio.webimport.inspire.parse_accents_str",
-            side_effect=KeyError("exc"),
-        ) as _pa, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl",
-            return_value="mycurrenturl",
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value="some output text",
-        ) as _tu, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.parse_accents_str",
+                side_effect=KeyError("exc"),
+            ) as _pa,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="mycurrenturl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value="some output text",
+            ) as _tu,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveBibtex("abc"), "")
             _cu.assert_called_once_with(args)
             _i.assert_called_once_with(iws.searchInfo % ("abc", "mycurrenturl"))
@@ -84,38 +86,42 @@ class TestInspireMethods(unittest.TestCase):
             _e.assert_called_once_with(iws.genericError)
         args["q"] = "ab%20c"
         args["size"] = "12"
-        with patch(
-            "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
-        ) as _pa, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl",
-            return_value="mycurrenturl",
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value="some output text",
-        ) as _tu, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
+            ) as _pa,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="mycurrenturl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value="some output text",
+            ) as _tu,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveBibtex("ab c", size=12), "1234")
             _cu.assert_called_once_with(args)
             _i.assert_called_once_with(iws.searchInfo % ("ab c", "mycurrenturl"))
             _tu.assert_called_once_with("mycurrenturl")
             _pa.assert_called_once_with("some output text")
             self.assertEqual(_e.call_count, 0)
-        with patch(
-            "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
-        ) as _pa, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl",
-            return_value="mycurrenturl",
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value=r"some o\"utput text",
-        ) as _tu, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
+            ) as _pa,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="mycurrenturl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value=r"some o\"utput text",
+            ) as _tu,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveBibtex("ab c", size=12), "1234")
             _cu.assert_called_once_with(args)
             _i.assert_called_once_with(iws.searchInfo % ("ab c", "mycurrenturl"))
@@ -152,48 +158,60 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(iws.retrieveAPIResults(""), ([], 0))
             self.assertEqual(iws.retrieveAPIResults(None), ([], 0))
             self.assertEqual(_i.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value="",
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value="",
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), ([], 0))
             _tu.assert_called_once_with("abcd")
             _i.assert_any_call(iws.searchResultsFrom % "abcd")
             _w.assert_called_once_with(iws.errorEmptyText)
             self.assertEqual(_e.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value=None,
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value=None,
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), ([], 0))
             _i.assert_any_call(iws.searchResultsFrom % "abcd")
             _tu.assert_called_once_with("abcd")
             _w.assert_called_once_with(iws.errorEmptyText)
             self.assertEqual(_e.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value="['abcd'",
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value="['abcd'",
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), ([], 0))
             _i.assert_called_once_with(iws.searchResultsFrom % "abcd")
             _tu.assert_called_once_with("abcd")
             _e.assert_called_once_with(iws.jsonError)
             self.assertEqual(_w.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            side_effect=[
-                '{"hits":{"hits":["abc"], "total":1}, "links":{"next":"efgh"}}',
-                None,
-            ],
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                side_effect=[
+                    '{"hits":{"hits":["abc"], "total":1}, "links":{"next":"efgh"}}',
+                    None,
+                ],
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), (["abc"], 1))
             _i.assert_any_call(iws.searchResultsFrom % "abcd")
             _i.assert_any_call(iws.searchResultsFrom % "efgh")
@@ -201,15 +219,18 @@ class TestInspireMethods(unittest.TestCase):
             _tu.assert_any_call("efgh")
             _w.assert_called_once_with(iws.errorEmptyText)
             self.assertEqual(_e.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            side_effect=[
-                '{"hits":{"hits":["abc"], "total":4}, "links":{"next":"efgh"}}',
-                '{"hits":{"hits":["def", "ghi"], "total":2}}',
-            ],
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                side_effect=[
+                    '{"hits":{"hits":["abc"], "total":4}, "links":{"next":"efgh"}}',
+                    '{"hits":{"hits":["def", "ghi"], "total":2}}',
+                ],
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), (["abc", "def", "ghi"], 4))
             _i.assert_any_call(iws.searchResultsFrom % "abcd")
             _i.assert_any_call(iws.searchResultsFrom % "efgh")
@@ -217,12 +238,15 @@ class TestInspireMethods(unittest.TestCase):
             _tu.assert_any_call("efgh")
             self.assertEqual(_e.call_count, 0)
             self.assertEqual(_w.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"id":"aA","hits":4}',
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value='{"id":"aA","hits":4}',
+            ) as _tu,
+        ):
             self.assertEqual(
                 iws.retrieveAPIResults("abcd"),
                 (
@@ -234,25 +258,31 @@ class TestInspireMethods(unittest.TestCase):
             _tu.assert_called_once_with("abcd")
             self.assertEqual(_e.call_count, 0)
             self.assertEqual(_w.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"message":"bla","status":"404", "id": "aA",'
-            + '"hits":{"hits":["abc"], "total":4},'
-            + ' "links":{"next":"efgh"}}',
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value='{"message":"bla","status":"404", "id": "aA",'
+                + '"hits":{"hits":["abc"], "total":4},'
+                + ' "links":{"next":"efgh"}}',
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), ([], 0))
             _i.assert_called_once_with(iws.searchResultsFrom % "abcd")
             _tu.assert_called_once_with("abcd")
             _e.assert_called_once_with(iws.apiResponseError % ("404", "bla"))
             self.assertEqual(_w.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveAPIResults("abcd"), (["abc"] * 20, 4))
             _i.assert_any_call(iws.searchResultsFrom % "abcd")
             _tu.assert_any_call("abcd")
@@ -260,12 +290,15 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(_tu.call_count, 20)
             self.assertEqual(_e.call_count, 0)
             self.assertEqual(_w.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
+            ) as _tu,
+        ):
             self.assertEqual(
                 iws.retrieveAPIResults("abcd", max_iterations=10), (["abc"] * 10, 4)
             )
@@ -285,13 +318,16 @@ class TestInspireMethods(unittest.TestCase):
         args["q"] = "ab%20c"
         args["size"] = "500"
         args["fields"] = ",".join(iws.metadataLiteratureFields)
-        with patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl",
-            return_value="mycurrenturl",
-        ) as _cu, patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value="output",
-        ) as _rar:
+        with (
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="mycurrenturl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value="output",
+            ) as _rar,
+        ):
             self.assertEqual(iws.retrieveSearchResults("ab c"), "output")
             _cu.assert_called_once_with(args)
             _rar.assert_called_once_with("mycurrenturl", max_iterations=20)
@@ -373,20 +409,24 @@ class TestInspireMethods(unittest.TestCase):
         args = iws.urlArgs.copy()
         args["size"] = "1"
         args["fields"] = "control_number"
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.createUrl",
-            return_value="mycurrenturl",
-        ) as _cu, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            side_effect=[
-                "",
-                '["abc"',
-                '{"hits":{"hits":[{"metadata":{"abc":1}}], "total":4}}',
-                '{"hits":{"hits":[{"metadata":{"control_number":123}}], "total":4}}',
-            ],
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                return_value="mycurrenturl",
+            ) as _cu,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                side_effect=[
+                    "",
+                    '["abc"',
+                    '{"hits":{"hits":[{"metadata":{"abc":1}}], "total":4}}',
+                    '{"hits":{"hits":[{"metadata":{"control_number":123}}], "total":4}}',
+                ],
+            ) as _tu,
+        ):
             self.assertEqual(iws.retrieveInspireID("ab c"), "")
             args["q"] = "ab%20c"
             _cu.assert_called_once_with(args)
@@ -426,18 +466,19 @@ class TestInspireMethods(unittest.TestCase):
         iws = physBiblioWeb.webSearch["inspire"]
         d1 = (datetime.date.today() - datetime.timedelta(1)).strftime("%Y-%m-%d")
         d2 = (datetime.date.today()).strftime("%Y-%m-%d")
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
-            return_value=([], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
+                return_value=([], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             res = iws.retrieveCumulativeUpdates(
                 d1,
                 d2,
@@ -453,19 +494,19 @@ class TestInspireMethods(unittest.TestCase):
             {"metadata": {"control_number": 456}},
             {"metadata": {"control_number": 789}},
         ]
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
-            return_value=(hits, 2),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord",
-            side_effect=[{"k": "a"}, {"k": "b"}, {"k": "c"}],
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveSearchResults",
+                return_value=(hits, 2),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                side_effect=[{"k": "a"}, {"k": "b"}, {"k": "c"}],
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             res = iws.retrieveCumulativeUpdates(
                 d1,
                 d2,
@@ -497,53 +538,54 @@ class TestInspireMethods(unittest.TestCase):
     def test_processRecord(self):
         """test processRecord"""
         iws = physBiblioWeb.webSearch["inspire"]
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord",
-            side_effect=Exception("abc"),
-        ) as _r, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(True, "mybibtex"),
-        ) as _u, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                side_effect=Exception("abc"),
+            ) as _r,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+                return_value=(True, "mybibtex"),
+            ) as _u,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertFalse(iws.processRecord("abc"))
             _r.assert_called_once_with("abc", readConferenceTitle=False)
             _e.assert_called_once_with(iws.errorReadRecord)
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord",
-            return_value={"k": "a"},
-        ) as _r, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            side_effect=Exception("def"),
-        ) as _u, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+                side_effect=Exception("def"),
+            ) as _u,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.processRecord("abc"), {"k": "a"})
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with("abc", readConferenceTitle=False)
             self.assertEqual(iws.processRecord("abc", bibtex="bibtex"), False)
             _e.assert_called_once_with(iws.errorUpdateBibtex)
             _u.assert_called_once_with({"k": "a"}, "bibtex")
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
-        ) as _r, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(True, "mybibtex"),
-        ) as _u, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+                return_value=(True, "mybibtex"),
+            ) as _u,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.processRecord("abc"), {"k": "a"})
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with("abc", readConferenceTitle=False)
@@ -552,18 +594,19 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(res, {"k": "a", "bibtex": "mybibtex"})
             self.assertEqual(_e.call_count, 0)
             _u.assert_called_once_with(res, "bibtex")
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.readRecord", return_value={"k": "a"}
-        ) as _r, patch(
-            "physbiblio.webimport.inspire.WebSearch.updateBibtex",
-            return_value=(False, "mybibtex"),
-        ) as _u, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.readRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.updateBibtex",
+                return_value=(False, "mybibtex"),
+            ) as _u,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.processRecord("abc"), {"k": "a"})
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with("abc", readConferenceTitle=False)
@@ -577,55 +620,55 @@ class TestInspireMethods(unittest.TestCase):
         """Test retrieveOAIData"""
         iws = physBiblioWeb.webSearch["inspire"]
         iws = physBiblioWeb.webSearch["inspire"]
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value=([], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.processRecord",
-            return_value={"k": "a"},
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value=([], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.processRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertFalse(iws.retrieveOAIData("abc"))
             _s.assert_called_once_with("%sabc" % iws.url)
             _e.assert_called_once_with(iws.errorEmptySearch)
             self.assertEqual(_r.call_count, 0)
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value=([{"ABC": "abc"}], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.processRecord",
-            side_effect=Exception("abc"),
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value=([{"ABC": "abc"}], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.processRecord",
+                side_effect=Exception("abc"),
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertFalse(iws.retrieveOAIData("abc"))
             _s.assert_called_once_with("%sabc" % iws.url)
             _r.assert_called_once_with(
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
             )
             _e.assert_called_once_with(iws.errorReadRecord)
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value=([{"ABC": "abc"}], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.processRecord",
-            return_value={"k": "a"},
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value=([{"ABC": "abc"}], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.processRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
             _s.assert_called_once_with("%sabc" % iws.url)
             self.assertEqual(_e.call_count, 0)
@@ -633,19 +676,19 @@ class TestInspireMethods(unittest.TestCase):
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
             )
             self.assertEqual(iws.retrieveOAIData("abc", bibtex="bibtex"), {"k": "a"})
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value=([{"ABC": "abc"}], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.processRecord",
-            return_value={"k": "a"},
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value=([{"ABC": "abc"}], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.processRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
             _s.assert_called_once_with("%sabc" % iws.url)
             self.assertEqual(_e.call_count, 0)
@@ -658,19 +701,19 @@ class TestInspireMethods(unittest.TestCase):
             )
             self.assertEqual(res, {"k": "a"})
             self.assertEqual(_e.call_count, 0)
-        with patch(
-            "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
-            return_value=([{"ABC": "abc"}], 0),
-        ) as _s, patch(
-            "physbiblio.webimport.inspire.WebSearch.processRecord",
-            return_value={"k": "a"},
-        ) as _r, patch(
-            "logging.Logger.info"
-        ) as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.exception"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.retrieveAPIResults",
+                return_value=([{"ABC": "abc"}], 0),
+            ) as _s,
+            patch(
+                "physbiblio.webimport.inspire.WebSearch.processRecord",
+                return_value={"k": "a"},
+            ) as _r,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
             _s.assert_called_once_with("%sabc" % iws.url)
             self.assertEqual(_e.call_count, 0)
@@ -699,32 +742,35 @@ class TestInspireMethods(unittest.TestCase):
     def test_getProceedingsTitle(self):
         """Test getProceedingsTitle"""
         iws = physBiblioWeb.webSearch["inspire"]
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            side_effect=[
-                None,
-                "",
-                '{"hits":{"hits":["abc"], "total":1}',
-                '{"hits":{"hits":["abc"], "total":1}}',
-                '{"hits":{"hits":[{"metadata": {"cnum":"abc"}}], "total":1}}',
-                (
-                    '{"hits":{"hits":['
-                    + '{"metadata": {"cnum":"abc"}},'
-                    + '{"metadata": {"cnum":"C21-01-00", "proceedings":[]}},'
-                    + ' {"metadata": {"cnum":"abc"}}'
-                    + '], "total":1}}'
-                ),
-                (
-                    '{"hits":{"hits":['
-                    + '{"metadata": {"cnum":"abc"}},'
-                    + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"abc":"abc"}]}},'
-                    + '{"metadata": {"cnum":"abc"}}'
-                    + '], "total":1}}'
-                ),
-            ],
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                side_effect=[
+                    None,
+                    "",
+                    '{"hits":{"hits":["abc"], "total":1}',
+                    '{"hits":{"hits":["abc"], "total":1}}',
+                    '{"hits":{"hits":[{"metadata": {"cnum":"abc"}}], "total":1}}',
+                    (
+                        '{"hits":{"hits":['
+                        + '{"metadata": {"cnum":"abc"}},'
+                        + '{"metadata": {"cnum":"C21-01-00", "proceedings":[]}},'
+                        + ' {"metadata": {"cnum":"abc"}}'
+                        + '], "total":1}}'
+                    ),
+                    (
+                        '{"hits":{"hits":['
+                        + '{"metadata": {"cnum":"abc"}},'
+                        + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"abc":"abc"}]}},'
+                        + '{"metadata": {"cnum":"abc"}}'
+                        + '], "total":1}}'
+                    ),
+                ],
+            ) as _tu,
+        ):
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             _tu.assert_called_once_with(
                 pbConfig.inspireConferencesAPI
@@ -759,27 +805,30 @@ class TestInspireMethods(unittest.TestCase):
             + '{"metadata": {"cnum":"C21-01-00", "proceedings":[{"control_number":"1234"}]}}'
             + '], "total":1}}'
         )
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            side_effect=[
-                res1,
-                "a",  # literature
-                res2,
-                ('{"metadata": {"titles": "abc"}}'),  # literature
-                res2,
-                ('{"metadata": {"titles": [{"abc":"abc"}]}}'),  # literature
-                res2,
-                ('{"metadata": {"titles": []}}'),  # literature
-                res2,
-                ('{"metadata": {"titles": [{"title":"abc"}]}}'),  # literature
-                res2,
-                (  # literature
-                    '{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}'
-                ),
-            ],
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                side_effect=[
+                    res1,
+                    "a",  # literature
+                    res2,
+                    ('{"metadata": {"titles": "abc"}}'),  # literature
+                    res2,
+                    ('{"metadata": {"titles": [{"abc":"abc"}]}}'),  # literature
+                    res2,
+                    ('{"metadata": {"titles": []}}'),  # literature
+                    res2,
+                    ('{"metadata": {"titles": [{"title":"abc"}]}}'),  # literature
+                    res2,
+                    (  # literature
+                        '{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}'
+                    ),
+                ],
+            ) as _tu,
+        ):
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             _tu.assert_any_call(
                 pbConfig.inspireConferencesAPI
@@ -800,12 +849,15 @@ class TestInspireMethods(unittest.TestCase):
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), "abc: def")
             self.assertEqual(_e.call_count, 0)
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e, patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value='{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}',
-        ) as _tu:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value='{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}',
+            ) as _tu,
+        ):
             self.assertEqual(
                 iws.getProceedingsTitle("C21-01-00", useUrl="abcd"), "abc: def"
             )
@@ -1188,9 +1240,11 @@ class TestInspireMethods(unittest.TestCase):
     def test_updateBibtex(self):
         """Test updateBibtex"""
         iws = physBiblioWeb.webSearch["inspire"]
-        with patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch("logging.Logger.exception") as _e:
+        with (
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.exception") as _e,
+        ):
             self.assertEqual(iws.updateBibtex({}, ""), (False, ""))
             _w.assert_called_once_with(iws.errorInvalidBibtex % "")
             self.assertEqual(

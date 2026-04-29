@@ -55,14 +55,14 @@ class WebSearch(WebInterf, ADSNasaStrings):
         ads.config.token = pbConfig.params["ADSToken"]
         try:
             self.q = ads.SearchQuery(q=string, fl=fields, rows=rows)
-            l = list(self.q)
+            li = list(self.q)
         except ads.exceptions.APIResponseError:
             pBLogger.exception(self.unauthorized)
         except Exception:
             pBLogger.exception(self.genericFetchError, exc_info=True)
         else:
             pBLogger.info(self.getLimitInfo())
-            return l
+            return li
         return []
 
     def getBibtexs(self, bibcodes):
@@ -127,7 +127,7 @@ class WebSearch(WebInterf, ADSNasaStrings):
         Output:
             a list with the field values for all the obtained entries
         """
-        if not field in self.loadFields:
+        if field not in self.loadFields:
             pBLogger.warning(self.invalidField % field)
             return []
         a = self.getGenericInfo(string, self.loadFields)

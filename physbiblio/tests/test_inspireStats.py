@@ -3,20 +3,18 @@
 
 This file is part of the physbiblio package.
 """
+
 import datetime
-import os
 import traceback
 import unittest
-from io import StringIO
 from unittest.mock import MagicMock, call, patch
 
 import matplotlib
 import pytz
 
 try:
-    from physbiblio.errors import pBErrorManager
-    from physbiblio.inspireStats import *
-    from physbiblio.setuptests import *
+    from physbiblio.inspireStats import InspireStatsLoader, pBStats
+    from physbiblio.setuptests import skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

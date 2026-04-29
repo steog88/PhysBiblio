@@ -4,7 +4,7 @@ simple dialog windows of the PhysBiblio application.
 This file is part of the physbiblio package.
 """
 
-from io import StringIO
+import traceback
 
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (

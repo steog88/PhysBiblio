@@ -9,7 +9,6 @@ import traceback
 from queue import Empty
 from weakref import WeakValueDictionary
 
-import PySide6
 from PySide6.QtCore import (
     QAbstractItemModel,
     QAbstractTableModel,
@@ -36,13 +35,11 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
-from shiboken6 import VoidPtr
 
 try:
-    import physbiblio.gui.resourcesPyside6
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.database import catString, pBDB
-    from physbiblio.errors import PBErrorManagerClass, pBLogger
-    from physbiblio.pdf import pBPDF
+    from physbiblio.errors import pBLogger
     from physbiblio.strings.gui import CommonClassesStrings as ccstr
     from physbiblio.view import ViewEntry
 except ImportError:
@@ -522,7 +519,7 @@ class PBTableModel(QAbstractTableModel):
             pBLogger.exception(ccstr.dataListNotDef)
         for prevK in self.previous:
             try:
-                if self.selectedElements[prevK] == False:
+                if not self.selectedElements[prevK]:
                     self.selectedElements[prevK] = True
             except (KeyError, IndexError):
                 pBLogger.exception(ccstr.invalidIdentif % (prevK))
@@ -1122,7 +1119,7 @@ class PBImportedTableModel(PBTableModel):
             return None
 
         if role == Qt.CheckStateRole and column == 0 and not self.existList[row]:
-            if self.selectedElements[self.dataList[row][self.idName]] == False:
+            if not self.selectedElements[self.dataList[row][self.idName]]:
                 return Qt.Unchecked
             else:
                 return Qt.Checked

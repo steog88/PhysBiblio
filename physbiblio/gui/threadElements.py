@@ -18,7 +18,7 @@ try:
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
     from physbiblio.export import pBExport
-    from physbiblio.gui.commonClasses import PBThread, WriteStream
+    from physbiblio.gui.commonClasses import PBThread
     from physbiblio.inspireStats import pBStats
     from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import ThreadElementsStrings as thestr
@@ -854,7 +854,7 @@ class Thread_importDailyArxiv(PBThread):
                     failed.append(key)
                     continue
                 try:
-                    eid = pBDB.bibs.updateInspireID(key)
+                    pBDB.bibs.updateInspireID(key)
                     pBDB.bibs.searchOAIUpdates(
                         0,
                         entries=pBDB.bibs.getByBibkey(key, verbose=False),
@@ -864,7 +864,7 @@ class Thread_importDailyArxiv(PBThread):
                     newKey = pBDB.bibs.getByKey(key, verbose=False)[0]["bibkey"]
                     if key != newKey:
                         inserted[-1] = newKey
-                except:
+                except Exception:
                     pBLogger.warning(thestr.failedComplete % (key), exc_info=True)
                     failed.append(key)
         pBLogger.info(thestr.elementImported % (inserted))

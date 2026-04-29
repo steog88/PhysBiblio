@@ -3,23 +3,38 @@
 
 This file is part of the physbiblio package.
 """
+
+import datetime
 import sys
 import traceback
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-from PySide6.QtWidgets import QApplication
-
 try:
     from physbiblio import __version__, __version_date__
-    from physbiblio.argParser import *
+    from physbiblio.argParser import (
+        call_citationCount,
+        call_clean,
+        call_cli,
+        call_daily,
+        call_dates,
+        call_duplicates,
+        call_export,
+        call_gui,
+        call_tests,
+        call_tex,
+        call_update,
+        call_weekly,
+        cumulativeInspireDates,
+        setParser,
+    )
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.export import pBExport
     from physbiblio.gui.mainWindow import MainWindow
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.gui.setuptests import globalQApp
+    from physbiblio.setuptests import NameSpace
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -74,9 +89,10 @@ class TestParser(unittest.TestCase):
             )
         for opt in ("-p", "--profile"):
             profile = list(pbConfig.profiles.keys())[0]
-            with patch("physbiblio.cli.cli", autospec=True) as mock, patch(
-                "logging.Logger.info"
-            ) as _i:
+            with (
+                patch("physbiblio.cli.cli", autospec=True) as mock,
+                patch("logging.Logger.info") as _i,
+            ):
                 parser.parse_args([opt, "%s" % profile, "cli"])
                 self.assertIn(
                     "Starting with profile '%s', database" % profile, _i.call_args[0][0]
@@ -432,7 +448,7 @@ class TestParser(unittest.TestCase):
         ) as _comm_mock:
             for sub, options in tests:
                 with self.assertRaises(SystemExit):
-                    args = parser.parse_args([sub] + options)
+                    parser.parse_args([sub] + options)
 
     def test_subcommand_tests(self, *args):
         """Test that the options are recognised correctly"""
@@ -468,12 +484,14 @@ class TestParser(unittest.TestCase):
 
     def test_call_citationCount(self, *args):
         """test call_citationCount"""
-        with patch(
-            "physbiblio.database.Entries.getAll",
-            return_value=[{"inspire": "a"}, {"inspire": "b"}],
-        ) as _ga, patch("physbiblio.database.Entries.citationCount") as _cc, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
-        ) as _c:
+        with (
+            patch(
+                "physbiblio.database.Entries.getAll",
+                return_value=[{"inspire": "a"}, {"inspire": "b"}],
+            ) as _ga,
+            patch("physbiblio.database.Entries.citationCount") as _cc,
+            patch("physbiblio.databaseCore.PhysBiblioDBCore.commit") as _c,
+        ):
             call_citationCount("args")
             _ga.assert_called_once_with()
             _cc.assert_called_once_with(["a", "b"])
@@ -483,9 +501,10 @@ class TestParser(unittest.TestCase):
         """test call_clean"""
         args = NameSpace()
         args.startFrom = 12
-        with patch("physbiblio.database.Entries.cleanBibtexs") as _f, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
-        ) as _c:
+        with (
+            patch("physbiblio.database.Entries.cleanBibtexs") as _f,
+            patch("physbiblio.databaseCore.PhysBiblioDBCore.commit") as _c,
+        ):
             call_clean(args)
             _f.assert_called_once_with(startFrom=12)
             _c.assert_called_once_with()
@@ -498,9 +517,12 @@ class TestParser(unittest.TestCase):
 
     def test_call_duplicates(self, *args):
         """test call_duplicates"""
-        with patch(
-            "physbiblio.database.Entries.checkDuplicates", return_value="abcd"
-        ) as _f, patch("physbiblio.database.Entries.printDuplicates") as _p:
+        with (
+            patch(
+                "physbiblio.database.Entries.checkDuplicates", return_value="abcd"
+            ) as _f,
+            patch("physbiblio.database.Entries.printDuplicates") as _p,
+        ):
             call_duplicates(args)
             _f.assert_called_once_with()
             _p.assert_called_once_with("abcd")
@@ -541,18 +563,20 @@ class TestParser(unittest.TestCase):
         args = NameSpace()
         args.startFrom = 12
         args.force = "f"
-        with patch("physbiblio.database.Entries.searchOAIUpdates") as _f, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
-        ) as _c:
+        with (
+            patch("physbiblio.database.Entries.searchOAIUpdates") as _f,
+            patch("physbiblio.databaseCore.PhysBiblioDBCore.commit") as _c,
+        ):
             call_update(args)
             _f.assert_called_once_with(startFrom=12, force="f")
             _c.assert_called_once_with()
 
     def test_cumulativeInspireDates(self, *args):
         """test cumulativeInspireDates"""
-        with patch("physbiblio.database.Entries.getDailyInfoFromOAI") as _f, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit"
-        ) as _c:
+        with (
+            patch("physbiblio.database.Entries.getDailyInfoFromOAI") as _f,
+            patch("physbiblio.databaseCore.PhysBiblioDBCore.commit") as _c,
+        ):
             cumulativeInspireDates("a", "b")
             _f.assert_called_once_with("a", "b")
             _c.assert_called_once_with()
@@ -591,17 +615,13 @@ class TestParser(unittest.TestCase):
         mw.raise_ = MagicMock()
         mw.recentChanges = MagicMock()
         mw.errormessage = MagicMock()
-        with patch(
-            "physbiblio.argParser.QApplication", return_value=globalQApp
-        ) as _qa, patch(
-            "physbiblio.gui.mainWindow.MainWindow", return_value=mw
-        ) as _mw, patch(
-            "physbiblio.config.ConfigurationDB.update"
-        ) as _u, patch(
-            "physbiblio.config.GlobalDB.commit"
-        ) as _c, patch(
-            "sys.exit"
-        ) as _e:
+        with (
+            patch("physbiblio.argParser.QApplication", return_value=globalQApp) as _qa,
+            patch("physbiblio.gui.mainWindow.MainWindow", return_value=mw) as _mw,
+            patch("physbiblio.config.ConfigurationDB.update") as _u,
+            patch("physbiblio.config.GlobalDB.commit") as _c,
+            patch("sys.exit") as _e,
+        ):
             with patch.dict(
                 pbConfig.params, {"openSinceLastUpdate": __version__}, clear=False
             ):

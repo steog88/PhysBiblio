@@ -3,19 +3,14 @@
 
 This file is part of the physbiblio package.
 """
-import datetime
-import json
-import os
+
 import traceback
 import unittest
 from unittest.mock import MagicMock, patch
 
-from ads.tests.stubdata.export import example_export_response
-from ads.tests.stubdata.solr import example_solr_response
-
 try:
     from physbiblio.config import pbConfig
-    from physbiblio.setuptests import *
+    from physbiblio.setuptests import skipTestsSettings
     from physbiblio.webimport.adsnasa import WebSearch
     from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
 except ImportError:
@@ -43,13 +38,16 @@ class TestADSOnlineMethods(unittest.TestCase):
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_getGenericInfo(self):
         """Test getGenericInfo"""
-        with patch("ads.SearchQuery", return_value=("abc", "def")) as _sq, patch(
-            "logging.Logger.info"
-        ) as _in, patch("logging.Logger.exception") as _ex, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
-            autospec=True,
-            return_value="nolimit",
-        ) as _gl:
+        with (
+            patch("ads.SearchQuery", return_value=("abc", "def")) as _sq,
+            patch("logging.Logger.info") as _in,
+            patch("logging.Logger.exception") as _ex,
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
+                autospec=True,
+                return_value="nolimit",
+            ) as _gl,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].getGenericInfo("star", ["bibcode"])
             self.assertEqual(a, ["abc", "def"])
             _sq.assert_called_once_with(
@@ -58,9 +56,10 @@ class TestADSOnlineMethods(unittest.TestCase):
             self.assertEqual(_in.call_count, 1)
             self.assertEqual(_gl.call_count, 1)
             self.assertEqual(_ex.call_count, 0)
-        with patch.dict(pbConfig.params, {"ADSToken": [""]}, clear=False), patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch.dict(pbConfig.params, {"ADSToken": [""]}, clear=False),
+            patch("logging.Logger.exception") as _ex,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].getGenericInfo("star", ["bibcode"])
             self.assertEqual(a, [])
             _ex.assert_called_once_with(
@@ -72,13 +71,16 @@ class TestADSOnlineMethods(unittest.TestCase):
         """Test getBibtexs"""
         fr = MagicMock()
         fr.execute = MagicMock(return_value="exported")
-        with patch("ads.ExportQuery", return_value=fr) as _eq, patch(
-            "logging.Logger.info"
-        ) as _in, patch("logging.Logger.exception") as _ex, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
-            autospec=True,
-            return_value="nolimit",
-        ) as _gl:
+        with (
+            patch("ads.ExportQuery", return_value=fr) as _eq,
+            patch("logging.Logger.info") as _in,
+            patch("logging.Logger.exception") as _ex,
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getLimitInfo",
+                autospec=True,
+                return_value="nolimit",
+            ) as _gl,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].getBibtexs(["bibcode"])
             _eq.assert_called_once_with(bibcodes=["bibcode"], format="bibtex")
             _in.assert_called_once_with("nolimit")
@@ -86,9 +88,10 @@ class TestADSOnlineMethods(unittest.TestCase):
             self.assertEqual(_ex.call_count, 0)
             fr.execute.assert_called_once_with()
             self.assertEqual(a, "exported")
-        with patch.dict(pbConfig.params, {"ADSToken": [""]}, clear=False), patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch.dict(pbConfig.params, {"ADSToken": [""]}, clear=False),
+            patch("logging.Logger.exception") as _ex,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].getBibtexs(["bibcode"])
             self.assertEqual(a, "")
             _ex.assert_called_once_with(
@@ -101,15 +104,18 @@ class TestADSOnlineMethods(unittest.TestCase):
         a1.bibcode = "a1"
         a2 = MagicMock()
         a2.bibcode = "a2"
-        with patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
-            autospec=True,
-            return_value=[a1, a2],
-        ) as _ggi, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getBibtexs",
-            autospec=True,
-            return_value="bibtex",
-        ) as _gb:
+        with (
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
+                autospec=True,
+                return_value=[a1, a2],
+            ) as _ggi,
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getBibtexs",
+                autospec=True,
+                return_value="bibtex",
+            ) as _gb,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].retrieveUrlFirst("star")
             _ggi.assert_called_once_with(
                 physBiblioWeb.webSearch["adsnasa"],
@@ -130,15 +136,18 @@ class TestADSOnlineMethods(unittest.TestCase):
                 physBiblioWeb.webSearch["adsnasa"], ["a1", "a2"]
             )
             self.assertEqual(a, "bibtex")
-        with patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
-            autospec=True,
-            return_value=[],
-        ) as _ggi, patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getBibtexs",
-            autospec=True,
-            return_value="abc",
-        ) as _gb:
+        with (
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
+                autospec=True,
+                return_value=[],
+            ) as _ggi,
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getBibtexs",
+                autospec=True,
+                return_value="abc",
+            ) as _gb,
+        ):
             a = physBiblioWeb.webSearch["adsnasa"].retrieveUrlFirst("star")
             self.assertEqual(a, "")
             a = physBiblioWeb.webSearch["adsnasa"].retrieveUrlAll("star")
@@ -151,11 +160,14 @@ class TestADSOnlineMethods(unittest.TestCase):
         a1.bibcode = "a1"
         a2 = MagicMock()
         a2.bibcode = "a2"
-        with patch(
-            "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
-            autospec=True,
-            return_value=[a1, a2],
-        ) as _ggi, patch("logging.Logger.warning") as _w:
+        with (
+            patch(
+                "physbiblio.webimport.adsnasa.WebSearch.getGenericInfo",
+                autospec=True,
+                return_value=[a1, a2],
+            ) as _ggi,
+            patch("logging.Logger.warning") as _w,
+        ):
             a = pa.getField("star", "bibcode")
             _ggi.assert_called_once_with(pa, "star", pa.loadFields)
             self.assertEqual(a, ["a1", "a2"])

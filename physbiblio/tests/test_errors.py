@@ -3,6 +3,8 @@
 
 This file is part of the physbiblio package.
 """
+
+import datetime
 import logging
 import sys
 import traceback
@@ -13,7 +15,7 @@ from unittest.mock import patch
 try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import PBErrorManagerClass
-    from physbiblio.setuptests import *
+    from physbiblio.setuptests import logFileName
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -53,9 +55,10 @@ class TestErrors(unittest.TestCase):
         """test PBErrorManagerClass.__init__"""
         owf = pbConfig.overWritelogFileName
         del pbConfig.overWritelogFileName
-        with patch("physbiblio.errors.getLogLevel", return_value=88) as _gll, patch(
-            "physbiblio.errors.addFileHandler"
-        ) as _afh:
+        with (
+            patch("physbiblio.errors.getLogLevel", return_value=88) as _gll,
+            patch("physbiblio.errors.addFileHandler") as _afh,
+        ):
             a = PBErrorManagerClass("test")
             self.assertEqual(a.loggerString, "test")
             self.assertIsInstance(a.logger, logging.Logger)
@@ -64,9 +67,10 @@ class TestErrors(unittest.TestCase):
             _gll.assert_called_once_with(pbConfig.params["loggingLevel"])
             _afh.assert_called_once_with(a.logger, pbConfig.params["logFileName"])
         pbConfig.overWritelogFileName = owf
-        with patch("physbiblio.errors.getLogLevel", return_value=88) as _gll, patch(
-            "physbiblio.errors.addFileHandler"
-        ) as _afh:
+        with (
+            patch("physbiblio.errors.getLogLevel", return_value=88) as _gll,
+            patch("physbiblio.errors.addFileHandler") as _afh,
+        ):
             a = PBErrorManagerClass("test")
             self.assertEqual(a.loggerString, "test")
             self.assertIsInstance(a.logger, logging.Logger)

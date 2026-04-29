@@ -8,6 +8,10 @@ This module is part of the physbiblio package.
 from physbiblio import __author__, __email__, __version__, __version_date__
 
 __all__ = [
+    __author__,
+    __email__,
+    __version__,
+    __version_date__,
     "adsnasa",
     "arxiv",
     "doi",

@@ -325,7 +325,7 @@ class PhysBiblioDBCore:
         to previous versions of the software
         Check if bibdict column is present in entries table
         """
-        entryFields = self.cursExec("PRAGMA table_info(entries);")
+        self.cursExec("PRAGMA table_info(entries);")
         entriesCols = [name[1] for name in self.curs]
         if "bibdict" not in entriesCols:
             if self.connExec("ALTER TABLE entries ADD COLUMN bibdict text;"):

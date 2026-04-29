@@ -3,6 +3,7 @@
 
 This file is part of the physbiblio package.
 """
+
 import os
 import traceback
 import unittest
@@ -11,13 +12,35 @@ from unittest.mock import MagicMock, call, patch
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QDialog, QWidget
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QGridLayout,
+    QLineEdit,
+    QPushButton,
+    QRadioButton,
+    QWidget,
+)
 
 try:
-    from physbiblio.gui.mainWindow import MainWindow
-    from physbiblio.gui.profilesManager import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.config import pbConfig
+    from physbiblio.database import pBDB
+    from physbiblio.gui.commonClasses import (
+        EditObjectWindow,
+        PBComboBox,
+        PBDialog,
+        PBLabel,
+        PBOrderPushButton,
+    )
+    from physbiblio.gui.profilesManager import (
+        EditProfileWindow,
+        SelectProfiles,
+        editProfile,
+    )
+    from physbiblio.gui.setuptests import GUITestCase, GUIwMainWTestCase
+    from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -63,22 +86,28 @@ class TestEditProf(GUIwMainWTestCase):
         ep = EditProfileWindow()
         ep.exec = MagicMock()
         ep.onCancel()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             editProfile(mw)
             _m.assert_called_once_with(mw, "No modifications")
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             editProfile(p)
             _m.assert_not_called()
 
@@ -88,27 +117,27 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[2]["d"].setText("descrip")
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -129,27 +158,27 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[1]["r"].setChecked(True)
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_called_once_with(pbConfig.globalDb, "test2")
@@ -170,29 +199,32 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[1]["x"].setChecked(True)
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.profilesManager.askYesNo", return_value=True, autospec=True
-        ) as _ayn, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.profilesManager.askYesNo",
+                return_value=True,
+                autospec=True,
+            ) as _ayn,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -219,27 +251,27 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[1]["n"].setText("testA")
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -268,29 +300,32 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[1]["x"].setChecked(True)
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.profilesManager.askYesNo", return_value=True, autospec=True
-        ) as _ayn, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.profilesManager.askYesNo",
+                return_value=True,
+                autospec=True,
+            ) as _ayn,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -325,29 +360,32 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[1]["x"].setChecked(True)
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "physbiblio.gui.profilesManager.askYesNo", return_value=False, autospec=True
-        ) as _ayn, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch(
+                "physbiblio.gui.profilesManager.askYesNo",
+                return_value=False,
+                autospec=True,
+            ) as _ayn,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -382,29 +420,28 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[-1]["f"].setCurrentText("testNew.db")
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "logging.Logger.info"
-        ) as _w, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch("logging.Logger.info") as _w,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -435,29 +472,28 @@ class TestEditProf(GUIwMainWTestCase):
         ep.elements[-1]["c"].setCurrentText("test1.db")
         ep.exec = MagicMock()
         ep.onOk()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow",
-            return_value=ep,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _epw, patch(
-            "physbiblio.config.ConfigVars.loadProfiles", autospec=True
-        ) as _lp, patch(
-            "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
-        ) as _sdp, patch(
-            "physbiblio.config.GlobalDB.updateProfileField", autospec=True
-        ) as _upf, patch(
-            "physbiblio.config.GlobalDB.deleteProfile", autospec=True
-        ) as _dp, patch(
-            "physbiblio.config.GlobalDB.createProfile", autospec=True
-        ) as _cp, patch(
-            "physbiblio.config.GlobalDB.setProfileOrder", autospec=True
-        ) as _spo, patch(
-            "logging.Logger.info"
-        ) as _w, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "shutil.copy2"
-        ) as _copy:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow",
+                return_value=ep,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _epw,
+            patch("physbiblio.config.ConfigVars.loadProfiles", autospec=True) as _lp,
+            patch(
+                "physbiblio.config.GlobalDB.setDefaultProfile", autospec=True
+            ) as _sdp,
+            patch(
+                "physbiblio.config.GlobalDB.updateProfileField", autospec=True
+            ) as _upf,
+            patch("physbiblio.config.GlobalDB.deleteProfile", autospec=True) as _dp,
+            patch("physbiblio.config.GlobalDB.createProfile", autospec=True) as _cp,
+            patch("physbiblio.config.GlobalDB.setProfileOrder", autospec=True) as _spo,
+            patch("logging.Logger.info") as _w,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("shutil.copy2") as _copy,
+        ):
             editProfile(mw)
             _lp.assert_called_once_with(pbConfig)
             _sdp.assert_not_called()
@@ -531,11 +567,12 @@ class TestSelectProfiles(GUIwMainWTestCase):
 
     def test_onCancel(self):
         """test onCancel"""
-        with patch(
-            "physbiblio.gui.profilesManager.SelectProfiles.initUI", autospec=True
-        ) as _iu, patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.SelectProfiles.initUI", autospec=True
+            ) as _iu,
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+        ):
             sp = SelectProfiles(self.mainW)
             sp.onCancel()
             _c.assert_called_once_with()
@@ -545,19 +582,20 @@ class TestSelectProfiles(GUIwMainWTestCase):
         """test onLoad"""
         p = self.mainW
         sp = SelectProfiles(p)
-        with patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
-        ) as _rc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
-        ) as _cat, patch(
-            "physbiblio.config.ConfigVars.reInit", autospec=True
-        ) as _ri, patch(
-            "physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True
-        ) as _ro:
+        with (
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
+            ) as _rc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
+            ) as _cat,
+            patch("physbiblio.config.ConfigVars.reInit", autospec=True) as _ri,
+            patch("physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True) as _ro,
+        ):
             sp.onLoad()
             _ri.assert_not_called()
             _ro.assert_not_called()
@@ -572,19 +610,20 @@ class TestSelectProfiles(GUIwMainWTestCase):
         p.expListWin.close = MagicMock()
         sp.combo.setCurrentIndex(1)
         pbConfig.currentDatabase = "test2.db"
-        with patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
-        ) as _rc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
-        ) as _cat, patch(
-            "physbiblio.config.ConfigVars.reInit", autospec=True
-        ) as _ri, patch(
-            "physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True
-        ) as _ro:
+        with (
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadConfig", autospec=True
+            ) as _rc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.closeAllTabs", autospec=True
+            ) as _cat,
+            patch("physbiblio.config.ConfigVars.reInit", autospec=True) as _ri,
+            patch("physbiblio.database.PhysBiblioDB.reOpenDB", autospec=True) as _ro,
+        ):
             sp.onLoad()
             _ri.assert_called_once_with(
                 pbConfig, "test2", {"db": "test2.db", "d": "test2", "n": "test2"}
@@ -722,9 +761,10 @@ class TestEditProfile(GUITestCase):
         """test onOk"""
         p = QWidget()
         ep = EditProfileWindow(p)
-        with patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c, patch("logging.Logger.info") as _i:
+        with (
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+            patch("logging.Logger.info") as _i,
+        ):
             ep.onOk()
             _c.assert_called_once_with()
             _i.assert_not_called()
@@ -732,9 +772,12 @@ class TestEditProfile(GUITestCase):
         for n, f in (("", "testA.db"), ("testA", "")):
             ep.elements[-1]["n"].setText(n)
             ep.elements[-1]["f"].setCurrentText(f)
-            with patch(
-                "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-            ) as _c, patch("logging.Logger.info") as _i:
+            with (
+                patch(
+                    "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
+                ) as _c,
+                patch("logging.Logger.info") as _i,
+            ):
                 ep.onOk()
                 _c.assert_not_called()
                 _i.assert_called_once_with(
@@ -742,9 +785,10 @@ class TestEditProfile(GUITestCase):
                 )
         ep.elements[-1]["n"].setText("test1")
         ep.elements[-1]["f"].setCurrentText("testA.db")
-        with patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c, patch("logging.Logger.info") as _i:
+        with (
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+            patch("logging.Logger.info") as _i,
+        ):
             ep.onOk()
             _c.assert_not_called()
             _i.assert_called_once_with(
@@ -752,9 +796,10 @@ class TestEditProfile(GUITestCase):
             )
         ep.elements[-1]["n"].setText("testA")
         ep.elements[-1]["f"].setCurrentText("test1.db")
-        with patch(
-            "physbiblio.gui.profilesManager.PBDialog.close", autospec=True
-        ) as _c, patch("logging.Logger.info") as _i:
+        with (
+            patch("physbiblio.gui.profilesManager.PBDialog.close", autospec=True) as _c,
+            patch("logging.Logger.info") as _i,
+        ):
             ep.onOk()
             _c.assert_not_called()
             _i.assert_called_once_with(
@@ -948,9 +993,13 @@ class TestEditProfile(GUITestCase):
         ) as _c:
             ep = EditProfileWindow(p)
         ep.addButtons()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.addButtons", autospec=True
-        ) as _a, patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.addButtons",
+                autospec=True,
+            ) as _a,
+            patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g,
+        ):
             ep.createForm()
             _a.assert_called_once_with(ep, pbConfig.profiles, pbConfig.profileOrder)
             _g.assert_called_once_with(os.path.join(pbConfig.dataPath, "*.db"))
@@ -965,9 +1014,9 @@ class TestEditProfile(GUITestCase):
             [4, "Order"],
             [6, "Delete?"],
         ]
-        for i, l in labels:
+        for i, x in labels:
             self.assertIsInstance(ep.layout().itemAtPosition(0, i).widget(), PBLabel)
-            self.assertEqual(ep.layout().itemAtPosition(0, i).widget().text(), l)
+            self.assertEqual(ep.layout().itemAtPosition(0, i).widget().text(), x)
         i = len(pbConfig.profiles) + 3
         self.assertIsInstance(ep.layout().itemAtPosition(i - 2, 0).widget(), PBLabel)
         self.assertEqual(ep.layout().itemAtPosition(i - 2, 0).widget().text(), "")
@@ -1037,11 +1086,14 @@ class TestEditProfile(GUITestCase):
         pdefault = "test3A"
         pnew = {"db": "new.db", "n": "testNew", "r": True, "c": "test1.db"}
         ep.cleanLayout()
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.addButtons", autospec=True
-        ) as _a, patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.addButtons",
+                autospec=True,
+            ) as _a,
+            patch("glob.iglob", return_value=["old1.db", "test1.db"]) as _g,
+            patch("logging.Logger.warning") as _w,
+        ):
             ep.createForm(pdata, porder, pdefault, pnew)
             _a.assert_called_once_with(ep, pdata, porder)
             _w.assert_called_with(
@@ -1086,12 +1138,16 @@ class TestEditProfile(GUITestCase):
         """Test switchLines"""
         p = QWidget()
         ep = EditProfileWindow(p)
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
-            autospec=True,
-        ) as _cl:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.createForm",
+                autospec=True,
+            ) as _cf,
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
+                autospec=True,
+            ) as _cl,
+        ):
             self.assertTrue(ep.switchLines(0))
             _cl.assert_called_once_with(ep)
             _cf.assert_called_once_with(
@@ -1116,12 +1172,16 @@ class TestEditProfile(GUITestCase):
             )
         ep.elements[-1]["n"].setText("testA")
         ep.elements[-1]["f"].setCurrentText("testA.db")
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
-            autospec=True,
-        ) as _cl:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.createForm",
+                autospec=True,
+            ) as _cf,
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
+                autospec=True,
+            ) as _cl,
+        ):
             self.assertTrue(ep.switchLines(1))
             _cl.assert_called_once_with(ep)
             _cf.assert_called_once_with(
@@ -1144,14 +1204,17 @@ class TestEditProfile(GUITestCase):
                 ["test1", "test3", "test2"],
                 {"r": False, "db": "testA.db", "d": "", "n": "testA"},
             )
-        with patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
-            autospec=True,
-        ) as _cl, patch(
-            "logging.Logger.warning"
-        ) as _i:
+        with (
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.createForm",
+                autospec=True,
+            ) as _cf,
+            patch(
+                "physbiblio.gui.profilesManager.EditProfileWindow.cleanLayout",
+                autospec=True,
+            ) as _cl,
+            patch("logging.Logger.warning") as _i,
+        ):
             self.assertFalse(ep.switchLines(2))
             _i.assert_called_once_with("Impossible to switch lines: index out of range")
             _cl.assert_not_called()

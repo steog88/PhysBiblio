@@ -3,15 +3,15 @@
 
 This file is part of the physbiblio package.
 """
+
 import traceback
 import unittest
 
 import bibtexparser
 
 try:
-    from physbiblio.bibtexWriter import *
-    from physbiblio.config import pbConfig
-    from physbiblio.setuptests import *
+    from physbiblio.bibtexWriter import BibTexWriter, PBBibTexWriter, pbWriter
+    from physbiblio.setuptests import patch, skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

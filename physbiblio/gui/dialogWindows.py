@@ -11,7 +11,6 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
     QCheckBox,
-    QComboBox,
     QGridLayout,
     QLineEdit,
     QPlainTextEdit,
@@ -23,7 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 try:
-    import physbiblio.gui.resourcesPyside6
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -43,7 +42,6 @@ try:
         PBImportedTableModel,
         PBLabel,
         PBLabelRight,
-        PBTableView,
         PBTrueFalseCombo,
     )
     from physbiblio.gui.errorManager import pBGUILogger
@@ -927,7 +925,7 @@ class ExportForTexDialog(PBDialog):
                 try:
                     txt = ast.literal_eval(txt)
                 except ValueError:
-                    pBLogger.warning(dwstr.invalidText % s)
+                    pBLogger.warning(dwstr.invalidText % txt)
             self.texFileNames.append(txt)
         tmp = []
         for fn in self.texFileNames:
@@ -943,7 +941,7 @@ class ExportForTexDialog(PBDialog):
         self.readForm()
         for ix in range(self.numTexFields):
             try:
-                a = self.texFileNames[ix]
+                self.texFileNames[ix]
             except IndexError:
                 self.texFileNames.append("")
         self.cleanLayout()

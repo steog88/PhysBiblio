@@ -13,7 +13,6 @@ try:
     from physbiblio import __version__, __version_date__
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
-    from physbiblio.gui.errorManager import pBGUIErrorManager
     from physbiblio.strings.main import ArgParserStrings as apstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

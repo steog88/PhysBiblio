@@ -303,7 +303,6 @@ class PBExport:
         retrieved = []
         unexpected = []
         warnings = 0
-        totalCites = 0
 
         # if overwrite, reset the output file
         if overwrite:
@@ -446,7 +445,7 @@ class PBExport:
         # extract required keys from \cite* commands
         for c in citaz:
             try:
-                for e in [l.group(1) for l in citeKeys.finditer(c.group())]:
+                for e in [x.group(1) for x in citeKeys.finditer(c.group())]:
                     e = e.strip()
                     if e in ("", "cite", "citep", "citet"):
                         continue
@@ -454,12 +453,11 @@ class PBExport:
                     if e not in requiredBibkeys:
                         try:
                             # this it's just to check if already present
-                            tmp = existingBibsDict[e]
+                            existingBibsDict[e]
                         except KeyError:
                             requiredBibkeys.append(e)
             except (IndexError, AttributeError, TypeError):
                 pBLogger.warning(exstr.errorCitation % c.group())
-                a = []
         pBLogger.info(
             exstr.newKeysTotal % (len(requiredBibkeys), len(self.allCitations))
         )
@@ -488,7 +486,7 @@ class PBExport:
                 missing.append(m)
                 # if not present, try INSPIRE import
                 pBLogger.info(exstr.keyMissing % m)
-                newWeb = pBDB.bibs.loadAndInsert(m, returnBibtex=True)
+                pBDB.bibs.loadAndInsert(m, returnBibtex=True)
                 newCheck = pBDB.bibs.getByKey(m, saveQuery=False, verbose=False)
 
                 # if the import worked, insert the entry
@@ -516,7 +514,7 @@ class PBExport:
                 bibtexDict["ID"] = m
                 self.existingBibsList.append(bibtexDict)
                 saveEntryOutBib(bibtex, m)
-            except:
+            except (IOError, KeyError, TypeError):
                 unexpected.append(m)
                 pBLogger.exception(exstr.unexpectedEntry % m)
 

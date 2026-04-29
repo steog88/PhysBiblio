@@ -24,7 +24,6 @@ from PySide6.QtGui import QAction, QCursor, QFont, QIcon, QImage, QTextDocument
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
-    QComboBox,
     QFrame,
     QGroupBox,
     QHBoxLayout,
@@ -40,7 +39,7 @@ from PySide6.QtWidgets import (
 )
 
 try:
-    import physbiblio.gui.resourcesPyside6
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -541,7 +540,7 @@ class BibTableModel(PBTableModel):
         askBibs=False,
         previous=[],
         mainWin=None,
-        *args
+        *args,
     ):
         """Constructor of the model, defines some properties
         and uses `PBTableModel.__init__`
@@ -709,7 +708,7 @@ class BibTableModel(PBTableModel):
                 value = ""
 
         if role == Qt.CheckStateRole and self.ask and column == 0:
-            if self.selectedElements[rowData["bibkey"]] == True:
+            if self.selectedElements[rowData["bibkey"]]:
                 return Qt.Checked
             else:
                 return Qt.Unchecked
@@ -1019,8 +1018,8 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnArx,
                     self.menu,
-                    triggered=lambda c=False, l=bibkey, t="arxiv": pBGuiView.openLink(
-                        l, t
+                    triggered=lambda c=False, x=bibkey, t="arxiv": pBGuiView.openLink(
+                        x, t
                     ),
                 )
             )
@@ -1029,8 +1028,8 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnDoi,
                     self.menu,
-                    triggered=lambda c=False, l=bibkey, t="doi": pBGuiView.openLink(
-                        l, t
+                    triggered=lambda c=False, x=bibkey, t="doi": pBGuiView.openLink(
+                        x, t
                     ),
                 )
             )
@@ -1039,8 +1038,8 @@ class CommonBibActions:
                 QAction(
                     bwstr.Acts.lnIns,
                     self.menu,
-                    triggered=lambda c=False, l=bibkey, t="inspire": pBGuiView.openLink(
-                        l, t
+                    triggered=lambda c=False, x=bibkey, t="inspire": pBGuiView.openLink(
+                        x, t
                     ),
                 )
             )
@@ -1145,8 +1144,8 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.pdfO % "arXiv",
                         self.menu,
-                        triggered=lambda c=False, k=bibkey, t="file", f=arxivFile: pBGuiView.openLink(
-                            k, t, fileArg=f
+                        triggered=lambda c=False, k=bibkey, t="file", f=arxivFile: (
+                            pBGuiView.openLink(k, t, fileArg=f)
                         ),
                     )
                 )
@@ -1155,8 +1154,8 @@ class CommonBibActions:
                     QAction(
                         bwstr.Acts.pdfO % "DOI",
                         self.menu,
-                        triggered=lambda c=False, k=bibkey, t="file", f=doiFile: pBGuiView.openLink(
-                            k, t, fileArg=f
+                        triggered=lambda c=False, k=bibkey, t="file", f=doiFile: (
+                            pBGuiView.openLink(k, t, fileArg=f)
                         ),
                     )
                 )
@@ -1167,8 +1166,8 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfOpen % fn,
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, t="file", f=f: pBGuiView.openLink(
-                                k, t, fileArg=f
+                            triggered=lambda c=False, k=bibkey, t="file", f=f: (
+                                pBGuiView.openLink(k, t, fileArg=f)
                             ),
                         )
                     )
@@ -1191,15 +1190,15 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfD % "arXiv",
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a="arxiv", t="arxiv PDF": self.onDeletePDFFile(
-                                k, a, t
+                            triggered=lambda c=False, k=bibkey, a="arxiv", t="arxiv PDF": (
+                                self.onDeletePDFFile(k, a, t)
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfC % "arXiv",
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a="arxiv": self.onCopyPDFFile(
-                                k, a
+                            triggered=lambda c=False, k=bibkey, a="arxiv": (
+                                self.onCopyPDFFile(k, a)
                             ),
                         ),
                     )
@@ -1221,15 +1220,15 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfD % "DOI",
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a="doi", t="DOI PDF": self.onDeletePDFFile(
-                                k, a, t
+                            triggered=lambda c=False, k=bibkey, a="doi", t="DOI PDF": (
+                                self.onDeletePDFFile(k, a, t)
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfC % "DOI",
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a="doi": self.onCopyPDFFile(
-                                k, a
+                            triggered=lambda c=False, k=bibkey, a="doi": (
+                                self.onCopyPDFFile(k, a)
                             ),
                         ),
                     )
@@ -1252,15 +1251,15 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfDel % fn,
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a=fn, t=f: self.onDeletePDFFile(
-                                k, a, a, t
+                            triggered=lambda c=False, k=bibkey, a=fn, t=f: (
+                                self.onDeletePDFFile(k, a, a, t)
                             ),
                         ),
                         QAction(
                             bwstr.Acts.pdfCp % fn,
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, a=fn, t=f: self.onCopyPDFFile(
-                                k, a, t
+                            triggered=lambda c=False, k=bibkey, a=fn, t=f: (
+                                self.onCopyPDFFile(k, a, t)
                             ),
                         ),
                     )
@@ -1273,8 +1272,8 @@ class CommonBibActions:
                         QAction(
                             bwstr.Acts.pdfOpenDir,
                             self.menu,
-                            triggered=lambda c=False, k=bibkey, t="file", f=pdfDir: pBGuiView.openLink(
-                                k, t, fileArg=f
+                            triggered=lambda c=False, k=bibkey, t="file", f=pdfDir: (
+                                pBGuiView.openLink(k, t, fileArg=f)
                             ),
                         ),
                     )
@@ -1316,7 +1315,6 @@ class CommonBibActions:
                 initialRecord["marks"] = ""
                 pBDB.bibs.updateField(bibkey, "marks", "")
             arxiv = initialRecord["arxiv"]
-            bibtex = initialRecord["bibtex"]
             doi = initialRecord["doi"]
             inspireID = initialRecord["inspire"]
 
@@ -1372,7 +1370,7 @@ class CommonBibActions:
         else:
             self._createMenuMarkTypeList()
 
-        menuC = self._createMenuCopy(selection, initialRecord)
+        self._createMenuCopy(selection, initialRecord)
 
         self._createMenuPDF(selection, initialRecord)
         if not selection:
@@ -1714,7 +1712,7 @@ class CommonBibActions:
                 try:
                     for key in (self.bibs[0]["bibkey"], self.bibs[1]["bibkey"]):
                         pBDB.bibs.delete(key)
-                except:
+                except Exception:
                     pBGUILogger.exception(bwstr.Acts.cantDelOld)
                     pBDB.undo()
                 else:
@@ -1728,7 +1726,7 @@ class CommonBibActions:
                             self.parent().reloadMainContent(
                                 pBDB.bibs.fetchFromLast().lastFetched
                             )
-                        except:
+                        except Exception:
                             pBLogger.warning(bwstr.Acts.reloadFail)
                 if correct:
                     try:
@@ -1881,7 +1879,6 @@ class BibtexListWindow(ObjListWindow):
         if not index.isValid():
             return
         row = index.row()
-        col = index.column()
         try:
             newidx = model.sibling(row, self.columns.index("bibkey"), index)
         except AttributeError:
@@ -1897,7 +1894,7 @@ class BibtexListWindow(ObjListWindow):
         if bibkey is None or bibkey in ("", "None"):
             return
         try:
-            entry = pBDB.bibs.getByBibkey(bibkey, saveQuery=False, verbose=False)[0]
+            pBDB.bibs.getByBibkey(bibkey, saveQuery=False, verbose=False)[0]
         except IndexError:
             pBGUILogger.debug(bwstr.LW.errEntry)
             return
@@ -2061,7 +2058,7 @@ class BibtexListWindow(ObjListWindow):
             [
                 key
                 for key in self.tableModel.selectedElements.keys()
-                if self.tableModel.selectedElements[key] == True
+                if self.tableModel.selectedElements[key]
             ]
         )
         commonActions = CommonBibActions(
@@ -2085,7 +2082,6 @@ class BibtexListWindow(ObjListWindow):
             self.bibs = pBDB.bibs.getAll(
                 orderType="DESC", limitTo=pbConfig.params["defaultLimitBibtexs"]
             )
-        rowcnt = len(self.bibs)
 
         commentStr = bwstr.LW.lastQuery % (pBDB.bibs.lastQuery)
         if len(pBDB.bibs.lastVals) > 0:
@@ -3122,11 +3118,11 @@ class SearchBibsWindow(EditObjectWindow):
             self.currGrid.addWidget(self.textValues[ix]["content"], ix, 4, 1, 4)
             if previous["type"] == bwstr.SR.cats:
                 self.textValues[ix]["content"].clicked.connect(
-                    lambda s=False, l=ix: self.onAskCats(l)
+                    lambda s=False, x=ix: self.onAskCats(x)
                 )
             elif previous["type"] == bwstr.SR.exps:
                 self.textValues[ix]["content"].clicked.connect(
-                    lambda s=False, l=ix: self.onAskExps(l)
+                    lambda s=False, x=ix: self.onAskExps(x)
                 )
 
         elif previous["type"] == bwstr.SR.marks:
@@ -3821,7 +3817,7 @@ class DuplicatesListWindow(ObjListWindow):
             index: a `QModelIndex` instance
         """
         if index.isValid():
-            row = index.row()
+            index.row()
         return
 
     def cellDoubleClick(self, index):
@@ -3868,7 +3864,7 @@ class DuplicatesListWindow(ObjListWindow):
             index: a `QModelIndex` instance
         """
         if index.isValid():
-            row = index.row()
+            index.row()
         return
 
     def keyPressEvent(self, e):

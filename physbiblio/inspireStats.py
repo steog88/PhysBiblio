@@ -7,14 +7,12 @@ This file is part of the physbiblio package.
 """
 
 import datetime
-import json
 import os
 import os.path as osp
 import traceback
 
 import dateutil
 import matplotlib
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pytz
 from matplotlib.backends.backend_pdf import PdfPages
@@ -63,7 +61,6 @@ class InspireStatsLoader:
         """
         if wantBackend != matplotlib.get_backend():
             matplotlib.use(wantBackend, warn=False, force=True)
-            from matplotlib import pyplot as plt
 
             pBLogger.info(isstr.changeBackend % matplotlib.get_backend())
 
@@ -366,11 +363,11 @@ class InspireStatsLoader:
                     int(self.authorPlotInfo["allLi"][0][-1].strftime("%Y")) + 2,
                     int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y")) + 2,
                 )
-            except:
+            except (ValueError, KeyError, IndexError, TypeError):
                 try:
                     ymin = int(self.authorPlotInfo["paLi"][0][0].strftime("%Y")) - 2
                     ymax = int(self.authorPlotInfo["paLi"][0][-1].strftime("%Y")) + 2
-                except:
+                except (ValueError, KeyError, IndexError, TypeError):
                     pBLogger.warning(isstr.noPublications)
                     return False
             figs = []
@@ -505,7 +502,7 @@ class InspireStatsLoader:
                             self.authorPlotInfo["aI"][p]["citingPapersList"][0],
                             self.authorPlotInfo["aI"][p]["citingPapersList"][1],
                         )
-                    except:
+                    except (IndexError, KeyError, TypeError, ValueError):
                         pBLogger.exception(isstr.errorPlotting)
                 fig.autofmt_xdate()
                 if save:

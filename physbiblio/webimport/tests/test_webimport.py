@@ -3,8 +3,7 @@
 
 This file is part of the physbiblio package.
 """
-import datetime
-import os
+
 import traceback
 import unittest
 
@@ -14,8 +13,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 try:
     from physbiblio.config import pbConfig
-    from physbiblio.parseAccents import parse_accents_str
-    from physbiblio.setuptests import *
+    from physbiblio.setuptests import patch, skipTestsSettings
     from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
@@ -151,13 +149,11 @@ class TestWebImportOffline(unittest.TestCase):
         self.assertIsInstance(pbs, requests.Session)
         fr = Retry()
         ha = HTTPAdapter(max_retries=fr)
-        with patch(
-            "physbiblio.webimport.webInterf.Retry", return_value=fr
-        ) as _r, patch(
-            "physbiblio.webimport.webInterf.HTTPAdapter", return_value=ha
-        ) as _ha, patch(
-            "requests.Session.mount"
-        ) as _m:
+        with (
+            patch("physbiblio.webimport.webInterf.Retry", return_value=fr) as _r,
+            patch("physbiblio.webimport.webInterf.HTTPAdapter", return_value=ha) as _ha,
+            patch("requests.Session.mount") as _m,
+        ):
             pbs = PBSession()
             _r.assert_called_once_with(
                 total=5,
@@ -339,11 +335,14 @@ as force and matter fields.
 </item>
 </rdf:RDF>"""
         )
-        with patch(
-            "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
-            return_value=content_example,
-            autospec=True,
-        ) as _fromUrl, patch.dict(pbConfig.params, {"maxAuthorNames": 3}, clear=False):
+        with (
+            patch(
+                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                return_value=content_example,
+                autospec=True,
+            ) as _fromUrl,
+            patch.dict(pbConfig.params, {"maxAuthorNames": 3}, clear=False),
+        ):
             result = physBiblioWeb.webSearch["arxiv"].arxivDaily("hep-ex")
             _fromUrl.assert_called_once_with(
                 physBiblioWeb.webSearch["arxiv"], "https://export.arxiv.org/rss/hep-ex"

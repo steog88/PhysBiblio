@@ -8,7 +8,7 @@ import os.path as osp
 import shutil
 import subprocess
 import traceback
-from urllib.request import HTTPError, URLError, urlopen
+from urllib.request import URLError, urlopen
 
 try:
     from physbiblio.config import pbConfig
@@ -159,7 +159,7 @@ class LocalPDF:
             shutil.copy2(origFileName, newFileName)
             pBLogger.info(pstr.copied % (origFileName, newFileName))
             return True
-        except:
+        except IOError:
             pBLogger.exception(pstr.errorCopy % (origFileName, newFileName))
             return False
 
@@ -189,7 +189,7 @@ class LocalPDF:
             shutil.copy2(origFile, outFolder)
             pBLogger.info(pstr.copied % (origFile, outFolder))
             return True
-        except:
+        except IOError:
             pBLogger.exception(pstr.errorCopy % (origFile, outFolder))
             return False
 
@@ -251,7 +251,7 @@ class LocalPDF:
                 fileType = arg
             elif float(arg).is_integer():
                 fileNum = int(arg)
-        except:
+        except (TypeError, ValueError):
             if arg is not None:
                 fileName = arg
         try:
@@ -271,7 +271,7 @@ class LocalPDF:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                 )
-        except:
+        except IOError:
             pBLogger.exception(pstr.openingFailed % ("PDF", key))
 
     def checkFile(self, key, fileType):
@@ -407,7 +407,7 @@ class LocalPDF:
             try:
                 shutil.copy2(o, outFolder)
                 pBLogger.info(pstr.copied % (o, outFolder))
-            except:
+            except IOError:
                 pBLogger.exception(pstr.errorCopy % (o, outFolder))
 
     def numberOfFiles(self, folder):

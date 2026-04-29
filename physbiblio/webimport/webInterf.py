@@ -11,7 +11,7 @@ import pkgutil
 import socket
 import ssl
 import traceback
-from urllib.request import HTTPError, Request, URLError, urlopen
+from urllib.request import HTTPError, URLError
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -41,7 +41,7 @@ class PBSession(requests.Session):
         backoff=1.0,
         status_forcelist=[429, 500, 502, 503, 504],
         method_whitelist=["HEAD", "GET", "OPTIONS"],
-        **kwargs
+        **kwargs,
     ):
         """Extend the Session class.
         Input parameters are as from
@@ -195,7 +195,7 @@ class WebInterf(WebInterfStrings):
             None in the default implementation (must be subclassed)
         """
         try:
-            return getattr(self.webSearch[method], retrieveUrlFirst)(search)
+            return getattr(self.webSearch[method], "retrieveUrlFirst")(search)
         except KeyError:
             pBLogger.warning(self.methodNotAvailable % method)
             return ""
@@ -211,7 +211,7 @@ class WebInterf(WebInterfStrings):
             None in the default implementation (must be subclassed)
         """
         try:
-            return getattr(self.webSearch[method], retrieveUrlAll)(search)
+            return getattr(self.webSearch[method], "retrieveUrlAll")(search)
         except KeyError:
             pBLogger.warning(self.methodNotAvailable % method)
             return ""

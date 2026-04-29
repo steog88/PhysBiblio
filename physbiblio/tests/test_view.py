@@ -3,15 +3,16 @@
 
 This file is part of the physbiblio package.
 """
+
+import subprocess
 import traceback
 import unittest
 from unittest.mock import call, patch
 
 try:
     from physbiblio.config import pbConfig
-    from physbiblio.database import pBDB
-    from physbiblio.setuptests import *
-    from physbiblio.view import *
+    from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
+    from physbiblio.view import ViewEntry, pBView
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -128,13 +129,16 @@ class TestViewMethods(unittest.TestCase):
     def test_openLink(self, *args):
         """Test openLink"""
         origwebapp = pBView.webApp
-        with patch(
-            "physbiblio.view.ViewEntry.getLink", autospec=True, return_value="test_link"
-        ) as _gl, patch("logging.Logger.info") as _i, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "subprocess.Popen", autospec=USE_AUTOSPEC_CLASS
-        ) as _po:
+        with (
+            patch(
+                "physbiblio.view.ViewEntry.getLink",
+                autospec=True,
+                return_value="test_link",
+            ) as _gl,
+            patch("logging.Logger.info") as _i,
+            patch("logging.Logger.warning") as _w,
+            patch("subprocess.Popen", autospec=USE_AUTOSPEC_CLASS) as _po,
+        ):
             pBView.openLink(["a", "b"], arg="file")
             _gl.assert_has_calls(
                 [

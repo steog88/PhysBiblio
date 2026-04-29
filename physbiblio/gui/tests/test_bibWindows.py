@@ -3,22 +3,80 @@
 
 This file is part of the physbiblio package.
 """
-import os
+
 import traceback
 import unittest
 from unittest.mock import MagicMock, call, patch
 
-from PySide6.QtCore import QItemSelectionModel, QModelIndex, Qt
-from PySide6.QtGui import QMouseEvent, QPixmap
+import matplotlib
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from PySide6.QtCore import QAction, QEvent, QItemSelectionModel, QModelIndex, Qt, QUrl
+from PySide6.QtGui import QCursor, QFont, QImage, QMouseEvent, QPixmap
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QMenu, QToolButton, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLineEdit,
+    QPlainTextEdit,
+    QPushButton,
+    QRadioButton,
+    QTextDocument,
+    QTextEdit,
+    QToolBar,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 try:
-    from physbiblio.gui.bibWindows import *
-    from physbiblio.gui.mainWindow import MainWindow
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.config import pbConfig
+    from physbiblio.database import pBDB
+    from physbiblio.gui.bibWindows import (
+        AbstractFormulas,
+        AskPDFAction,
+        BibTableModel,
+        BibtexInfo,
+        BibtexListWindow,
+        CommonBibActions,
+        DuplicatesListWindow,
+        DuplicatesTableModel,
+        EditBibtexDialog,
+        FieldsFromArxiv,
+        LatexNodes2Text,
+        MergeBibtexs,
+        SearchBibsWindow,
+        convertType,
+        copyToClipboard,
+        deleteBibtex,
+        editBibtex,
+        writeAbstract,
+        writeBibtexInfo,
+    )
+    from physbiblio.gui.catWindows import CatsTreeWindow
+    from physbiblio.gui.commonClasses import (
+        EditObjectWindow,
+        ObjListWindow,
+        PBAndOrCombo,
+        PBComboBox,
+        PBDialog,
+        PBLabel,
+        PBLabelCenter,
+        PBLabelRight,
+        PBMenu,
+        PBTableModel,
+        pBGuiView,
+    )
+    from physbiblio.gui.expWindows import ExpsListWindow
+    from physbiblio.gui.marks import pBMarks
+    from physbiblio.gui.setuptests import GUITestCase, GUIwMainWTestCase
+    from physbiblio.gui.threadElements import Thread_downloadArxiv, Thread_processLatex
+    from physbiblio.pdf import pBPDF
+    from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
     from physbiblio.strings.gui import BibWindowsStrings as bwstr
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -70,13 +128,19 @@ class TestFunctions(GUIwMainWTestCase):
             "citations_no_self": 0,
             "old_keys": "",
         }
-        with patch(
-            "physbiblio.database.Categories.getByEntry", return_value=[], autospec=True
-        ) as _gc, patch(
-            "physbiblio.database.Experiments.getByEntry", return_value=[], autospec=True
-        ) as _ge, patch(
-            "logging.Logger.debug"
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[],
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
@@ -114,15 +178,19 @@ class TestFunctions(GUIwMainWTestCase):
             "citations_no_self": 12,
             "old_keys": None,
         }
-        with patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"name": "Main"}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.database.Experiments.getByEntry", return_value=[], autospec=True
-        ) as _ge, patch(
-            "logging.Logger.debug"
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"name": "Main"}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[],
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Book) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
@@ -178,15 +246,19 @@ class TestFunctions(GUIwMainWTestCase):
             "citations_no_self": 10,
             "old_keys": "None",
         }
-        with patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"name": "Main"}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.database.Experiments.getByEntry", return_value=[], autospec=True
-        ) as _ge, patch(
-            "logging.Logger.debug"
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"name": "Main"}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[],
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Review) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
@@ -257,17 +329,19 @@ class TestFunctions(GUIwMainWTestCase):
             "citations_no_self": 0,
             "old_keys": "old_bib_key",
         }
-        with patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"name": "Main"}, {"name": "second"}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.database.Experiments.getByEntry",
-            return_value=[{"name": "myexp"}],
-            autospec=True,
-        ) as _ge, patch(
-            "logging.Logger.debug"
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"name": "Main"}, {"name": "second"}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[{"name": "myexp"}],
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Experimental paper) (No update) (PhD thesis) (Review) "
@@ -321,25 +395,29 @@ class TestFunctions(GUIwMainWTestCase):
             "old_keys": "",
         }
         ltt = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
-        with patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"name": "Main"}, {"name": "second"}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.database.Experiments.getByEntry",
-            return_value=[{"name": "exp1"}, {"name": "exp2"}],
-            autospec=True,
-        ) as _ge, patch(
-            "logging.Logger.debug"
-        ) as _d, patch(
-            "physbiblio.gui.bibWindows.LatexNodes2Text",
-            return_value=ltt,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i, patch(
-            "pylatexenc.latex2text.LatexNodes2Text.latex_to_text",
-            return_value="parsed",
-            autospec=True,
-        ) as _ltt:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"name": "Main"}, {"name": "second"}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[{"name": "exp1"}, {"name": "exp2"}],
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.debug") as _d,
+            patch(
+                "physbiblio.gui.bibWindows.LatexNodes2Text",
+                return_value=ltt,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+            patch(
+                "pylatexenc.latex2text.LatexNodes2Text.latex_to_text",
+                return_value="parsed",
+                autospec=True,
+            ) as _ltt,
+        ):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Lecture) (Proceeding) "
@@ -418,28 +496,33 @@ class TestFunctions(GUIwMainWTestCase):
         ebd = EditBibtexDialog(self.mainW)
         ebd.exec = MagicMock()
         ebd.onCancel()
-        with patch("logging.Logger.debug") as _ld, patch(
-            "physbiblio.database.Entries.getByBibkey", autospec=True
-        ) as _gbk, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.debug") as _ld,
+            patch("physbiblio.database.Entries.getByBibkey", autospec=True) as _gbk,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(p)
             ebd.exec.assert_called_once_with()
             _i.assert_called_once_with(p, bib=None)
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
             )
-        with patch("logging.Logger.debug") as _ld, patch(
-            "physbiblio.database.Entries.getByBibkey", autospec=True
-        ) as _gbk, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.debug") as _ld,
+            patch("physbiblio.database.Entries.getByBibkey", autospec=True) as _gbk,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW)
             _sbm.assert_called_once_with(self.mainW, "No modifications to bibtex entry")
             _ld.assert_not_called()
@@ -447,31 +530,38 @@ class TestFunctions(GUIwMainWTestCase):
         ebd = EditBibtexDialog(self.mainW)
         ebd.exec = MagicMock()
         ebd.onCancel()
-        with patch("logging.Logger.debug") as _ld, patch(
-            "logging.Logger.warning"
-        ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "", "bibtex": ""},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.debug") as _ld,
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "", "bibtex": ""},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(p, editKey="Gariazzo:2015rra")
             _ld.assert_called_once_with(
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
@@ -493,37 +583,43 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibtex"].setPlainText("")
-        with patch("logging.Logger.debug") as _ld, patch(
-            "logging.Logger.warning"
-        ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "", "bibtex": "test"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.debug") as _ld,
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "", "bibtex": "test"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW)
             _ld.assert_not_called()
             _lw.assert_not_called()
@@ -542,37 +638,42 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "", "bibtex": "test"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "", "bibtex": "test"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
@@ -590,41 +691,49 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("")
-        with patch("logging.Logger.debug") as _ld, patch(
-            "logging.Logger.warning"
-        ) as _lw, patch("logging.Logger.info") as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.debug") as _ld,
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(p)
             _ld.assert_has_calls(
                 [
@@ -653,41 +762,48 @@ class TestFunctions(GUIwMainWTestCase):
             _sbm.assert_not_called()
             _rmc.assert_not_called()
             _swt.assert_not_called()
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
@@ -701,41 +817,51 @@ class TestFunctions(GUIwMainWTestCase):
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch("logging.Logger.error") as _le, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", return_value=False, autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch("logging.Logger.error") as _le,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=False, autospec=True
+            ) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW)
             _lw.assert_not_called()
             _li.assert_not_called()
@@ -759,41 +885,48 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.citations_no_self = 111
         ebd.onOk()
         ebd.textValues["comments"].setPlainText("some text")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
@@ -844,41 +977,51 @@ class TestFunctions(GUIwMainWTestCase):
             _sbm.assert_called_once_with(self.mainW, "Bibtex entry saved")
             _rmc.assert_called_once_with(self.mainW, ["fake"])
             _swt.assert_called_once_with(self.mainW, "PhysBiblio*")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch("logging.Logger.error") as _le, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", return_value=False, autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch("logging.Logger.error") as _le,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch(
+                "physbiblio.database.Entries.update", return_value=False, autospec=True
+            ) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="Gariazzo:2015rra")
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
@@ -936,41 +1079,48 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["bibkey"].setText("not valid bibtex!")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="testkey")
             _i.assert_called_once_with(self.mainW, bib=testentry)
             _lw.assert_not_called()
@@ -1027,41 +1177,48 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["old_keys"].setText("old")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey", return_value=True, autospec=True
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=True,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="testkey")
             _lw.assert_not_called()
             _li.assert_has_calls(
@@ -1122,43 +1279,48 @@ class TestFunctions(GUIwMainWTestCase):
         ebd = EditBibtexDialog(self.mainW, bib=testentry)
         ebd.exec = MagicMock()
         ebd.onOk()
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey",
-            return_value=False,
-            autospec=True,
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=False,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="testkey")
             _lw.assert_called_once_with(
                 "Cannot update bibtex key: "
@@ -1227,43 +1389,48 @@ class TestFunctions(GUIwMainWTestCase):
         ebd.exec = MagicMock()
         ebd.onOk()
         ebd.textValues["old_keys"].setText("testkey")
-        with patch("logging.Logger.warning") as _lw, patch(
-            "logging.Logger.info"
-        ) as _li, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=[testentry],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value=testentry,
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.updateBibkey",
-            return_value=False,
-            autospec=True,
-        ) as _ub, patch(
-            "physbiblio.database.Entries.update", autospec=True
-        ) as _u, patch(
-            "physbiblio.database.Entries.insert", autospec=True
-        ) as _ins, patch(
-            "physbiblio.pdf.LocalPDF.renameFolder", autospec=True
-        ) as _rf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _ffl, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rmc, patch(
-            "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
-        ) as _swt, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog",
-            return_value=ebd,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch("logging.Logger.warning") as _lw,
+            patch("logging.Logger.info") as _li,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=[testentry],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value=testentry,
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.updateBibkey",
+                return_value=False,
+                autospec=True,
+            ) as _ub,
+            patch("physbiblio.database.Entries.update", autospec=True) as _u,
+            patch("physbiblio.database.Entries.insert", autospec=True) as _ins,
+            patch("physbiblio.pdf.LocalPDF.renameFolder", autospec=True) as _rf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _ffl,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rmc,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.mainWindowTitle", autospec=True
+            ) as _swt,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog",
+                return_value=ebd,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             editBibtex(self.mainW, editKey="testkey")
             _lw.assert_called_once_with(
                 "Cannot update bibtex key: "
@@ -1327,11 +1494,14 @@ class TestFunctions(GUIwMainWTestCase):
         p = QWidget()
         m = self.mainW
         m.bibtexListWindows.append([BibtexListWindow(self.mainW, bibs=[]), "Main Tab"])
-        with patch(
-            "physbiblio.gui.bibWindows.askYesNo", return_value=False, autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askYesNo", return_value=False, autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+        ):
             deleteBibtex(self.mainW, "mykey")
             _a.assert_called_once_with(
                 "Do you really want to delete this bibtex entry "
@@ -1339,9 +1509,12 @@ class TestFunctions(GUIwMainWTestCase):
             )
             _s.assert_called_once_with(self.mainW, "Nothing changed")
 
-        with patch(
-            "physbiblio.gui.bibWindows.askYesNo", return_value=False, autospec=True
-        ) as _a, patch("logging.Logger.debug") as _d:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askYesNo", return_value=False, autospec=True
+            ) as _a,
+            patch("logging.Logger.debug") as _d,
+        ):
             deleteBibtex(p, "mykey")
             _a.assert_called_once_with(
                 "Do you really want to delete this bibtex entry "
@@ -1351,17 +1524,17 @@ class TestFunctions(GUIwMainWTestCase):
                 "parentObject has no attribute 'statusBarMessage'", exc_info=True
             )
 
-        with patch(
-            "physbiblio.gui.bibWindows.askYesNo", return_value=True, autospec=True
-        ) as _a, patch(
-            "physbiblio.database.Entries.delete", autospec=True
-        ) as _c, patch(
-            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
-        ) as _t, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s, patch(
-            "logging.Logger.debug"
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askYesNo", return_value=True, autospec=True
+            ) as _a,
+            patch("physbiblio.database.Entries.delete", autospec=True) as _c,
+            patch("PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True) as _t,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+            patch("logging.Logger.debug") as _d,
+        ):
             deleteBibtex(p, "mykey")
             _a.assert_called_once_with(
                 "Do you really want to delete this bibtex entry "
@@ -1383,17 +1556,20 @@ class TestFunctions(GUIwMainWTestCase):
             )
 
         self.mainW.tabWidget.setCurrentIndex(0)
-        with patch(
-            "physbiblio.gui.bibWindows.askYesNo", return_value=True, autospec=True
-        ) as _a, patch(
-            "physbiblio.database.Entries.delete", autospec=True
-        ) as _c, patch(
-            "PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True
-        ) as _t, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.recreateTable", autospec=True
-        ) as _r:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askYesNo", return_value=True, autospec=True
+            ) as _a,
+            patch("physbiblio.database.Entries.delete", autospec=True) as _c,
+            patch("PySide6.QtWidgets.QMainWindow.setWindowTitle", autospec=True) as _t,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.recreateTable",
+                autospec=True,
+            ) as _r,
+        ):
             deleteBibtex(self.mainW, "mykey")
             _a.assert_called_once_with(
                 "Do you really want to delete this bibtex entry "
@@ -1452,9 +1628,12 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         """test doText"""
         bi = BibtexInfo(self.mainW)
         af = AbstractFormulas(self.mainW, "test text", customEditor=bi.text)
-        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm:
+        with (
+            patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+        ):
             af.doText()
             _ih.assert_called_once_with(af.text)
             _sbm.assert_not_called()
@@ -1465,13 +1644,17 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         tpl = Thread_processLatex(af.prepareText, self.mainW)
         tpl.passData = 1
         tpl.start = MagicMock()
-        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.bibWindows.Thread_processLatex",
-            return_value=tpl,
-            autospec=True,
-        ) as _pl:
+        with (
+            patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.Thread_processLatex",
+                return_value=tpl,
+                autospec=True,
+            ) as _pl,
+        ):
             with self.assertRaises(AttributeError):
                 af.doText()
             _sbm.assert_called_once_with(self.mainW, "Parsing LaTeX...")
@@ -1480,13 +1663,16 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             )
             _pl.assert_called_once_with(af.prepareText, self.mainW)
         tpl = Thread_processLatex(af.prepareText, self.mainW)
-        with patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm, patch(
-            "physbiblio.gui.commonClasses.PBThread.start", autospec=True
-        ) as _s, patch(
-            "physbiblio.gui.bibWindows.AbstractFormulas.submitText", autospec=True
-        ) as _st:
+        with (
+            patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+            patch("physbiblio.gui.commonClasses.PBThread.start", autospec=True) as _s,
+            patch(
+                "physbiblio.gui.bibWindows.AbstractFormulas.submitText", autospec=True
+            ) as _st,
+        ):
             af.doText()
             _sbm.assert_called_once_with(self.mainW, "Parsing LaTeX...")
             _ih.assert_called_once_with(
@@ -1507,14 +1693,16 @@ class TestAbstractFormulas(GUIwMainWTestCase):
         )
         qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
         self.assertIsInstance(qi, QImage)
-        with patch(
-            "matplotlib.figure.Figure", return_value=None, autospec=True
-        ) as _fi, self.assertRaises(AttributeError):
+        with (
+            patch("matplotlib.figure.Figure", return_value=None, autospec=True) as _fi,
+            self.assertRaises(AttributeError),
+        ):
             qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
             _fi.assert_called_once_with()
-        with patch(
-            "matplotlib.axes.Axes.text", return_value=None, autospec=True
-        ) as _t, self.assertRaises(AttributeError):
+        with (
+            patch("matplotlib.axes.Axes.text", return_value=None, autospec=True) as _t,
+            self.assertRaises(AttributeError),
+        ):
             qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
             _t.assert_called_once_with(
                 0,
@@ -1526,18 +1714,19 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             )
         fc = FigureCanvasAgg(matplotlib.figure.Figure())
         qii = QImage()
-        with patch(
-            "matplotlib.backends.backend_agg.FigureCanvasAgg.print_to_buffer",
-            return_value=("buf", ["size0", "size1"]),
-            autospec=True,
-        ) as _ptb, patch(
-            "physbiblio.gui.bibWindows.FigureCanvasAgg",
-            return_value=fc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ), patch(
-            "PySide6.QtGui.QImage", return_value=qii
-        ) as _qii, self.assertRaises(
-            AttributeError
+        with (
+            patch(
+                "matplotlib.backends.backend_agg.FigureCanvasAgg.print_to_buffer",
+                return_value=("buf", ["size0", "size1"]),
+                autospec=True,
+            ) as _ptb,
+            patch(
+                "physbiblio.gui.bibWindows.FigureCanvasAgg",
+                return_value=fc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ),
+            patch("PySide6.QtGui.QImage", return_value=qii) as _qii,
+            self.assertRaises(AttributeError),
         ):
             qi = af.mathTex_to_QPixmap(r"$\nu_\mu$")
             _ptb.assert_called_once_with(fc)
@@ -1571,13 +1760,13 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             self.mainW, r"test $\nu_\mu$ with $f_e$ equation", customEditor=bi.text
         )
         images, text = af.prepareText()
-        with patch(
-            "PySide6.QtGui.QTextDocument.addResource", autospec=True
-        ) as _ar, patch(
-            "PySide6.QtWidgets.QTextEdit.setHtml", autospec=True
-        ) as _ih, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _sbm:
+        with (
+            patch("PySide6.QtGui.QTextDocument.addResource", autospec=True) as _ar,
+            patch("PySide6.QtWidgets.QTextEdit.setHtml", autospec=True) as _ih,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _sbm,
+        ):
             af.submitText(images, text)
             _ar.assert_has_calls(
                 [
@@ -1642,13 +1831,16 @@ class TestBibTableModel(GUITestCase):
         self.assertEqual(tm.ask, False)
 
         ltt = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
-        with patch(
-            "physbiblio.gui.bibWindows.BibTableModel.prepareSelected", autospec=True
-        ) as _ps, patch(
-            "physbiblio.gui.bibWindows.LatexNodes2Text",
-            return_value=ltt,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _il:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibTableModel.prepareSelected", autospec=True
+            ) as _ps,
+            patch(
+                "physbiblio.gui.bibWindows.LatexNodes2Text",
+                return_value=ltt,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _il,
+        ):
             tm = BibTableModel(
                 p,
                 biblist,
@@ -1762,13 +1954,16 @@ class TestBibTableModel(GUITestCase):
         ) as _ge:
             self.assertEqual(tm.addPDFCell("a"), (False, "no PDF"))
             _ge.assert_called_once_with(pBPDF, "a")
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting", return_value=["a"], autospec=True
-        ) as _ge, patch(
-            "physbiblio.gui.commonClasses.PBTableModel.addImage",
-            return_value="image",
-            autospec=True,
-        ) as _ai:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting", return_value=["a"], autospec=True
+            ) as _ge,
+            patch(
+                "physbiblio.gui.commonClasses.PBTableModel.addImage",
+                return_value="image",
+                autospec=True,
+            ) as _ai,
+        ):
             self.assertEqual(tm.addPDFCell("a"), (True, "image"))
             _ge.assert_called_once_with(pBPDF, "a")
             _ai.assert_called_once_with(
@@ -2018,11 +2213,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
         c._createMenuArxiv(False, None)
         self.assertEqual(c.menu.possibleActions, [])
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
-        ) as _b:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
+            ) as _b,
+        ):
             c._createMenuArxiv(False, "1809.00000")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "arXiv")
@@ -2037,11 +2235,14 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _b.assert_called_once()
 
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
-        ) as _b:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onAbs", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onArx", autospec=True
+            ) as _b,
+        ):
             c._createMenuArxiv(True, "")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "arXiv")
@@ -2093,17 +2294,22 @@ class TestCommonBibActions(GUIwMainWTestCase):
 
         c = CommonBibActions([{"bibkey": "abc", "abstract": "abc", "link": "def"}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyKeys", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyCites", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
-        ) as _d, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyKeys", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyCites", autospec=True
+            ) as _b,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs",
+                autospec=True,
+            ) as _c,
+            patch("physbiblio.gui.bibWindows.copyToClipboard", autospec=True) as _d,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
+            ) as _e,
+        ):
             c._createMenuCopy(False, c.bibs[0])
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
@@ -2165,17 +2371,22 @@ class TestCommonBibActions(GUIwMainWTestCase):
             p,
         )
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyKeys", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyCites", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
-        ) as _d, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyKeys", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyCites", autospec=True
+            ) as _b,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyBibtexs",
+                autospec=True,
+            ) as _c,
+            patch("physbiblio.gui.bibWindows.copyToClipboard", autospec=True) as _d,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyDir", autospec=True
+            ) as _e,
+        ):
             c._createMenuCopy(False, c.bibs[0])
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "Copy to clipboard")
@@ -2246,15 +2457,21 @@ class TestCommonBibActions(GUIwMainWTestCase):
         p = QWidget()
         c = CommonBibActions([{"bibkey": "abc"}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onComplete", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount", autospec=True
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onComplete", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
+            ) as _b,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
+            ) as _c,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount",
+                autospec=True,
+            ) as _d,
+        ):
             c._createMenuInspire(True, "")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
@@ -2319,15 +2536,21 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.assertEqual(c.menu.possibleActions[0]["toolTipsVisible"], True)
 
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onComplete", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
-        ) as _c, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount", autospec=True
-        ) as _d:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onComplete", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onUpdate", autospec=True
+            ) as _b,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCitations", autospec=True
+            ) as _c,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCitationCount",
+                autospec=True,
+            ) as _d,
+        ):
             c._createMenuInspire(False, "123")
             self.assertIsInstance(c.menu.possibleActions[0], list)
             self.assertEqual(c.menu.possibleActions[0][0], "INSPIRE-HEP")
@@ -2599,15 +2822,20 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # no arxiv, no doi
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAddPDF", autospec=True
-        ) as _a:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onAddPDF", autospec=True
+            ) as _a,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2627,15 +2855,20 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # only arxiv, w/o file
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "1809.00000", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDown", autospec=True
-        ) as _b:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDown", autospec=True
+            ) as _b,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2658,23 +2891,32 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # only arxiv, w file
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["arxiv.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            side_effect=["arxiv.pdf", ""],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _l:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["arxiv.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["arxiv.pdf", ""],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile",
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile",
+                autospec=True,
+            ) as _b,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _l,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2713,17 +2955,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # only doi, w/o file
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": "1/2/3"}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onAddPDF", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDown", autospec=True
-        ) as _b:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath", return_value="", autospec=True
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onAddPDF", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDown", autospec=True
+            ) as _b,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2744,23 +2992,32 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # only doi, w file
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["doi.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            side_effect=["", "doi.pdf"],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _l:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["doi.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["", "doi.pdf"],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile",
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile",
+                autospec=True,
+            ) as _b,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _l,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2799,23 +3056,32 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # both, w files, no extra
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["arxiv.pdf", "doi.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            side_effect=["arxiv.pdf", "doi.pdf"],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _l:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["arxiv.pdf", "doi.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["arxiv.pdf", "doi.pdf"],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile",
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile",
+                autospec=True,
+            ) as _b,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _l,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2856,21 +3122,32 @@ class TestCommonBibActions(GUIwMainWTestCase):
         # no arxiv, no doi, some extra
         c = CommonBibActions([{"bibkey": "abc", "arxiv": "", "doi": ""}], p)
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["a.pdf", "/fd/b.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", side_effect=["", ""], autospec=True
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _l:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["a.pdf", "/fd/b.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["", ""],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile",
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile",
+                autospec=True,
+            ) as _b,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _l,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -2927,25 +3204,39 @@ class TestCommonBibActions(GUIwMainWTestCase):
             [{"bibkey": "abc", "arxiv": "1809.00000", "doi": "1/2/3"}], p
         )
         c.menu = PBMenu(self.mainW)
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["arxiv.pdf", "doi.pdf", "a.pdf", "/fd/b.pdf", "/fd/c.txt"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            side_effect=["arxiv.pdf", "doi.pdf"],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
-        ) as _gd, patch(
-            "os.path.exists", return_value=True
-        ) as _ope, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile", autospec=True
-        ) as _b, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _l:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=[
+                    "arxiv.pdf",
+                    "doi.pdf",
+                    "a.pdf",
+                    "/fd/b.pdf",
+                    "/fd/c.txt",
+                ],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["arxiv.pdf", "doi.pdf"],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/fd", autospec=True
+            ) as _gd,
+            patch("os.path.exists", return_value=True) as _ope,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDeletePDFFile",
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyPDFFile",
+                autospec=True,
+            ) as _b,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _l,
+        ):
             c._createMenuPDF(False, c.bibs[0])
             _ge.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _gf.assert_has_calls(
@@ -3055,37 +3346,54 @@ class TestCommonBibActions(GUIwMainWTestCase):
             ],
             p,
         )
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuArxiv", autospec=True
-        ) as _c1, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy", autospec=True
-        ) as _c2, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuInspire",
-            autospec=True,
-        ) as _c3, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuLinks", autospec=True
-        ) as _c4, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkType",
-            autospec=True,
-        ) as _c5, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuPDF", autospec=True
-        ) as _c6, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onModify", autospec=True
-        ) as _mod, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onClean", autospec=True
-        ) as _cle, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDelete", autospec=True
-        ) as _del, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCat", autospec=True
-        ) as _cat, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onExp", autospec=True
-        ) as _exp, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onExport", autospec=True
-        ) as _ext, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyAllPDF", autospec=True
-        ) as _cap, patch(
-            "physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True
-        ) as _f:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuArxiv",
+                autospec=True,
+            ) as _c1,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy",
+                autospec=True,
+            ) as _c2,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuInspire",
+                autospec=True,
+            ) as _c3,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuLinks",
+                autospec=True,
+            ) as _c4,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkType",
+                autospec=True,
+            ) as _c5,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuPDF",
+                autospec=True,
+            ) as _c6,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onModify", autospec=True
+            ) as _mod,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onClean", autospec=True
+            ) as _cle,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDelete", autospec=True
+            ) as _del,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCat", autospec=True
+            ) as _cat,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onExp", autospec=True
+            ) as _exp,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onExport", autospec=True
+            ) as _ext,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyAllPDF", autospec=True
+            ) as _cap,
+            patch("physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True) as _f,
+        ):
             m = c.createContextMenu()
             self.assertIsInstance(m, PBMenu)
             self.assertEqual(m.parent(), p)
@@ -3183,37 +3491,54 @@ class TestCommonBibActions(GUIwMainWTestCase):
             ],
             p,
         )
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuArxiv", autospec=True
-        ) as _c1, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy", autospec=True
-        ) as _c2, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuInspire",
-            autospec=True,
-        ) as _c3, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuLinks", autospec=True
-        ) as _c4, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkTypeList",
-            autospec=True,
-        ) as _c5, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuPDF", autospec=True
-        ) as _c6, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onMerge", autospec=True
-        ) as _mer, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onClean", autospec=True
-        ) as _cle, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onDelete", autospec=True
-        ) as _del, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCat", autospec=True
-        ) as _cat, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onExp", autospec=True
-        ) as _exp, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onExport", autospec=True
-        ) as _ext, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.onCopyAllPDF", autospec=True
-        ) as _cap, patch(
-            "physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True
-        ) as _f:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuArxiv",
+                autospec=True,
+            ) as _c1,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy",
+                autospec=True,
+            ) as _c2,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuInspire",
+                autospec=True,
+            ) as _c3,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuLinks",
+                autospec=True,
+            ) as _c4,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuMarkTypeList",
+                autospec=True,
+            ) as _c5,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuPDF",
+                autospec=True,
+            ) as _c6,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onMerge", autospec=True
+            ) as _mer,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onClean", autospec=True
+            ) as _cle,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onDelete", autospec=True
+            ) as _del,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCat", autospec=True
+            ) as _cat,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onExp", autospec=True
+            ) as _exp,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onExport", autospec=True
+            ) as _ext,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.onCopyAllPDF", autospec=True
+            ) as _cap,
+            patch("physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True) as _f,
+        ):
             m = c.createContextMenu(selection=True)
             self.assertIsInstance(m, PBMenu)
             self.assertEqual(m.parent(), p)
@@ -3339,17 +3664,18 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onAddPDF"""
         p = QWidget()
         c = CommonBibActions([{"bibkey": "abc"}], p)
-        with patch(
-            "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
-        ) as _cp, patch(
-            "physbiblio.gui.bibWindows.askFileName",
-            return_value="/h/c/file.pdf",
-            autospec=True,
-        ) as _afn, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "os.path.isfile", return_value=True
-        ) as _if:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
+            ) as _cp,
+            patch(
+                "physbiblio.gui.bibWindows.askFileName",
+                return_value="/h/c/file.pdf",
+                autospec=True,
+            ) as _afn,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch("os.path.isfile", return_value=True) as _if,
+        ):
             c.onAddPDF()
             _cp.assert_called_once_with(
                 pBPDF, "abc", "/h/c/file.pdf", customName="file.pdf"
@@ -3360,17 +3686,18 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _im.assert_called_once_with("PDF successfully copied!")
             _if.assert_called_once_with("/h/c/file.pdf")
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
-        ) as _cp, patch(
-            "physbiblio.gui.bibWindows.askFileName",
-            return_value="/h/c/file.pdf",
-            autospec=True,
-        ) as _afn, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "os.path.isfile", return_value=True
-        ) as _if:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
+            ) as _cp,
+            patch(
+                "physbiblio.gui.bibWindows.askFileName",
+                return_value="/h/c/file.pdf",
+                autospec=True,
+            ) as _afn,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch("os.path.isfile", return_value=True) as _if,
+        ):
             c.onAddPDF(ftype="doi")
             _cp.assert_called_once_with(pBPDF, "abc", "/h/c/file.pdf", "doi")
             _afn.assert_called_once_with(
@@ -3379,17 +3706,18 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _im.assert_called_once_with("PDF successfully copied!")
             _if.assert_called_once_with("/h/c/file.pdf")
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.copyNewFile", return_value=False, autospec=True
-        ) as _cp, patch(
-            "physbiblio.gui.bibWindows.askFileName",
-            return_value="/h/c/file.pdf",
-            autospec=True,
-        ) as _afn, patch(
-            "logging.Logger.error"
-        ) as _e, patch(
-            "os.path.isfile", return_value=True
-        ) as _if:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.copyNewFile", return_value=False, autospec=True
+            ) as _cp,
+            patch(
+                "physbiblio.gui.bibWindows.askFileName",
+                return_value="/h/c/file.pdf",
+                autospec=True,
+            ) as _afn,
+            patch("logging.Logger.error") as _e,
+            patch("os.path.isfile", return_value=True) as _if,
+        ):
             c.onAddPDF("doi")
             _cp.assert_called_once_with(pBPDF, "abc", "/h/c/file.pdf", "doi")
             _afn.assert_called_once_with(
@@ -3398,24 +3726,28 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _e.assert_called_once_with("Could not copy the new file!")
             _if.assert_called_once_with("/h/c/file.pdf")
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
-        ) as _cp, patch(
-            "physbiblio.gui.bibWindows.askFileName", return_value="", autospec=True
-        ) as _afn, patch(
-            "os.path.isfile", return_value=True
-        ) as _if:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
+            ) as _cp,
+            patch(
+                "physbiblio.gui.bibWindows.askFileName", return_value="", autospec=True
+            ) as _afn,
+            patch("os.path.isfile", return_value=True) as _if,
+        ):
             c.onAddPDF()
             _cp.assert_not_called()
             _if.assert_not_called()
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
-        ) as _cp, patch(
-            "physbiblio.gui.bibWindows.askFileName", return_value="s", autospec=True
-        ) as _afn, patch(
-            "os.path.isfile", return_value=False
-        ) as _if:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.copyNewFile", return_value=True, autospec=True
+            ) as _cp,
+            patch(
+                "physbiblio.gui.bibWindows.askFileName", return_value="s", autospec=True
+            ) as _afn,
+            patch("os.path.isfile", return_value=False) as _if,
+        ):
             c.onAddPDF()
             _cp.assert_not_called()
             _if.assert_called_once_with("s")
@@ -3426,19 +3758,19 @@ class TestCommonBibActions(GUIwMainWTestCase):
             [{"bibkey": "abc", "arxiv": "1234.85583"}, {"bibkey": "def", "arxiv": ""}],
             self.mainW,
         )
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s, patch(
-            "physbiblio.gui.mainWindow.MainWindow.done", autospec=True
-        ) as _d, patch(
-            "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
-            return_value=("text", {"abstract": "some text"}),
-            autospec=True,
-        ) as _a, patch(
-            "physbiblio.database.Entries.updateField", autospec=True
-        ) as _u, patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _i:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+            patch("physbiblio.gui.mainWindow.MainWindow.done", autospec=True) as _d,
+            patch(
+                "physbiblio.webimport.arxiv.WebSearch.retrieveUrlAll",
+                return_value=("text", {"abstract": "some text"}),
+                autospec=True,
+            ) as _a,
+            patch("physbiblio.database.Entries.updateField", autospec=True) as _u,
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _i,
+        ):
             c.onAbs()
             _i.assert_has_calls(
                 [
@@ -3501,21 +3833,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         )
         sc.exec = MagicMock()
         self.assertEqual(self.mainW.selectedCats, [])
-        with patch(
-            "physbiblio.database.Categories.getByEntries",
-            return_value=[],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cwi, patch(
-            "physbiblio.database.CatsEntries.insert", autospec=True
-        ) as _cei, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _ced, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntries",
+                return_value=[],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cwi,
+            patch("physbiblio.database.CatsEntries.insert", autospec=True) as _cei,
+            patch("physbiblio.database.CatsEntries.delete", autospec=True) as _ced,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onCat()
             _cwi.assert_called_once_with(
                 parent=self.mainW,
@@ -3539,21 +3873,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         sc.exec = MagicMock()
         self.mainW.selectedCats = [999, 1000]
         sc.result = "Ok"
-        with patch(
-            "physbiblio.database.Categories.getByEntries",
-            return_value=[],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cwi, patch(
-            "physbiblio.database.CatsEntries.insert", autospec=True
-        ) as _cei, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _ced, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntries",
+                return_value=[],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cwi,
+            patch("physbiblio.database.CatsEntries.insert", autospec=True) as _cei,
+            patch("physbiblio.database.CatsEntries.delete", autospec=True) as _ced,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onCat()
             _cwi.assert_called_once_with(
                 parent=self.mainW,
@@ -3578,21 +3914,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.mainW.selectedCats = [999, 1000]
         self.mainW.previousUnchanged = [1002]
         sc.result = "Ok"
-        with patch(
-            "physbiblio.database.Categories.getByEntries",
-            return_value=[{"idCat": 1000}, {"idCat": 1001}, {"idCat": 1002}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cwi, patch(
-            "physbiblio.database.CatsEntries.insert", autospec=True
-        ) as _cei, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _ced, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntries",
+                return_value=[{"idCat": 1000}, {"idCat": 1001}, {"idCat": 1002}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cwi,
+            patch("physbiblio.database.CatsEntries.insert", autospec=True) as _cei,
+            patch("physbiblio.database.CatsEntries.delete", autospec=True) as _ced,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onCat()
             _cwi.assert_called_once_with(
                 parent=self.mainW,
@@ -3614,21 +3952,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         )
         sc.exec = MagicMock()
         self.assertEqual(self.mainW.selectedCats, [])
-        with patch(
-            "physbiblio.database.Categories.getByEntries",
-            return_value=[],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cwi, patch(
-            "physbiblio.database.CatsEntries.insert", autospec=True
-        ) as _cei, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _ced, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntries",
+                return_value=[],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cwi,
+            patch("physbiblio.database.CatsEntries.insert", autospec=True) as _cei,
+            patch("physbiblio.database.CatsEntries.delete", autospec=True) as _ced,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onCat()
             _cwi.assert_called_once_with(
                 parent=self.mainW,
@@ -3649,21 +3989,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         self.mainW.selectedCats = [999, 1000]
         self.mainW.previousUnchanged = [1002]
         sc.result = "Ok"
-        with patch(
-            "physbiblio.database.Categories.getByEntries",
-            return_value=[{"idCat": 1000}, {"idCat": 1001}, {"idCat": 1002}],
-            autospec=True,
-        ) as _gc, patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cwi, patch(
-            "physbiblio.database.CatsEntries.insert", autospec=True
-        ) as _cei, patch(
-            "physbiblio.database.CatsEntries.delete", autospec=True
-        ) as _ced, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Categories.getByEntries",
+                return_value=[{"idCat": 1000}, {"idCat": 1001}, {"idCat": 1002}],
+                autospec=True,
+            ) as _gc,
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cwi,
+            patch("physbiblio.database.CatsEntries.insert", autospec=True) as _cei,
+            patch("physbiblio.database.CatsEntries.delete", autospec=True) as _ced,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onCat()
             _cwi.assert_called_once_with(
                 parent=self.mainW,
@@ -3777,11 +4119,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
             ],
             self.mainW,
         )
-        with patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", side_effect=["dir1", "dir2"]
-        ) as _f, patch(
-            "physbiblio.gui.bibWindows.copyToClipboard", autospec=True
-        ) as _cp:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", side_effect=["dir1", "dir2"]
+            ) as _f,
+            patch("physbiblio.gui.bibWindows.copyToClipboard", autospec=True) as _cp,
+        ):
             c.onCopyDir()
             _f.assert_has_calls([call("abc"), call("def")])
             _cp.assert_called_once_with("dir1 dir2")
@@ -3803,17 +4146,19 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onCopyPDFFile"""
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.gui.bibWindows.askDirName",
-            side_effect=["", "/non/exist", "/non/exist"],
-            autospec=True,
-        ) as _a, patch(
-            "physbiblio.pdf.LocalPDF.copyToDir", autospec=True
-        ) as _cp, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            return_value="/h/e/f.pdf",
-            autospec=True,
-        ) as _fp:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askDirName",
+                side_effect=["", "/non/exist", "/non/exist"],
+                autospec=True,
+            ) as _a,
+            patch("physbiblio.pdf.LocalPDF.copyToDir", autospec=True) as _cp,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                return_value="/h/e/f.pdf",
+                autospec=True,
+            ) as _fp,
+        ):
             c.onCopyPDFFile("abc", "arxiv")
             _a.assert_called_once_with(
                 self.mainW, title="Where do you want to save the PDF /h/e/f.pdf?"
@@ -3850,29 +4195,35 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onCopyAllPDF"""
         c = CommonBibActions([{"bibkey": "abc"}], self.mainW)
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.gui.bibWindows.askDirName", return_value="", autospec=True
-        ) as _a, patch("physbiblio.pdf.LocalPDF.checkFile", autospec=True) as _ch:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askDirName", return_value="", autospec=True
+            ) as _a,
+            patch("physbiblio.pdf.LocalPDF.checkFile", autospec=True) as _ch,
+        ):
             c.onCopyAllPDF()
             _a.assert_called_once_with(
                 self.mainW, title="Where do you want to save the PDF files?"
             )
             _ch.assert_not_called()
-        with patch(
-            "physbiblio.gui.bibWindows.askDirName",
-            return_value="/non/exist",
-            autospec=True,
-        ) as _a, patch(
-            "physbiblio.pdf.LocalPDF.copyToDir", autospec=True
-        ) as _cp, patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["a.pdf", "b.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.checkFile",
-            side_effect=[True, False, True, False, False],
-            autospec=True,
-        ) as _ch:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askDirName",
+                return_value="/non/exist",
+                autospec=True,
+            ) as _a,
+            patch("physbiblio.pdf.LocalPDF.copyToDir", autospec=True) as _cp,
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["a.pdf", "b.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.checkFile",
+                side_effect=[True, False, True, False, False],
+                autospec=True,
+            ) as _ch,
+        ):
             c.onCopyAllPDF()
             _ch.assert_called_once_with(pBPDF, "abc", "doi")
             _cp.assert_called_once_with(pBPDF, "/non/exist", "abc", fileType="doi")
@@ -3900,15 +4251,17 @@ class TestCommonBibActions(GUIwMainWTestCase):
             )
 
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.askDirName",
-            return_value="/non/exist",
-            autospec=True,
-        ) as _a, patch(
-            "physbiblio.pdf.LocalPDF.copyToDir", autospec=True
-        ) as _cp, patch(
-            "physbiblio.pdf.LocalPDF.checkFile", return_value=True, autospec=True
-        ) as _ch:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askDirName",
+                return_value="/non/exist",
+                autospec=True,
+            ) as _a,
+            patch("physbiblio.pdf.LocalPDF.copyToDir", autospec=True) as _cp,
+            patch(
+                "physbiblio.pdf.LocalPDF.checkFile", return_value=True, autospec=True
+            ) as _ch,
+        ):
             c.onCopyAllPDF()
             _ch.assert_has_calls([call(pBPDF, "abc", "doi"), call(pBPDF, "def", "doi")])
             _cp.assert_has_calls(
@@ -3929,21 +4282,25 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onDeletePDFFile"""
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.gui.bibWindows.askYesNo",
-            side_effect=[False, True, True],
-            autospec=True,
-        ) as _a, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s, patch(
-            "physbiblio.pdf.LocalPDF.removeFile", autospec=True
-        ) as _rm, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _l, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _r:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.askYesNo",
+                side_effect=[False, True, True],
+                autospec=True,
+            ) as _a,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+            patch("physbiblio.pdf.LocalPDF.removeFile", autospec=True) as _rm,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _l,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _r,
+        ):
             c.onDeletePDFFile("abc", "arxiv", "arxiv PDF")
             _a.assert_called_once_with(
                 "Do you really want to delete the %s file for entry %s?"
@@ -3971,13 +4328,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
         thr = Thread_downloadArxiv("bibkey", self.mainW)
         thr.finished = 1
         thr.start = MagicMock()
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _s, patch(
-            "physbiblio.gui.bibWindows.Thread_downloadArxiv",
-            return_value=thr,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _i:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _s,
+            patch(
+                "physbiblio.gui.bibWindows.Thread_downloadArxiv",
+                return_value=thr,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _i,
+        ):
             with self.assertRaises(AttributeError):
                 c.onDown()
             _s.assert_called_once_with(self.mainW, "downloading PDF for arxiv:1...")
@@ -3988,9 +4348,12 @@ class TestCommonBibActions(GUIwMainWTestCase):
             [{"bibkey": "abc", "arxiv": "1"}, {"bibkey": "def", "arxiv": "2"}],
             self.mainW,
         )
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch("PySide6.QtCore.QThread.start", autospec=True) as _s:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("PySide6.QtCore.QThread.start", autospec=True) as _s,
+        ):
             c.onDown()
             self.assertEqual(_s.call_count, 2)
         self.assertIsInstance(c.downArxiv_thr[0], Thread_downloadArxiv)
@@ -4008,17 +4371,20 @@ class TestCommonBibActions(GUIwMainWTestCase):
         """test onDownloadArxivDone"""
         c = CommonBibActions([{"bibkey": "abc"}, {"bibkey": "def"}], self.mainW)
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.done", autospec=True
-        ) as _d, patch(
-            "physbiblio.gui.mainWindow.MainWindow.sendMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _l, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _r:
+        with (
+            patch("physbiblio.gui.mainWindow.MainWindow.done", autospec=True) as _d,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.sendMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _l,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _r,
+        ):
             c.onDownloadArxivDone("1809.00000")
             _m.assert_called_once_with(
                 self.mainW,
@@ -4035,17 +4401,18 @@ class TestCommonBibActions(GUIwMainWTestCase):
         se = ExpsListWindow(parent=self.mainW, askExps=True, previous=[])
         se.exec = MagicMock()
         self.mainW.selectedExps = [999, 1000]
-        with patch(
-            "physbiblio.gui.bibWindows.infoMessage", autospec=True
-        ) as _im, patch(
-            "physbiblio.gui.bibWindows.ExpsListWindow",
-            return_value=se,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _ewi, patch(
-            "physbiblio.database.EntryExps.insert", autospec=True
-        ) as _eei, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch("physbiblio.gui.bibWindows.infoMessage", autospec=True) as _im,
+            patch(
+                "physbiblio.gui.bibWindows.ExpsListWindow",
+                return_value=se,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _ewi,
+            patch("physbiblio.database.EntryExps.insert", autospec=True) as _eei,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onExp()
             _im.assert_called_once_with(
                 "Warning: you can just add experiments "
@@ -4063,19 +4430,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
         se = ExpsListWindow(parent=self.mainW, askExps=True, previous=[])
         se.exec = MagicMock()
         self.mainW.selectedExps = [999, 1000]
-        with patch(
-            "physbiblio.database.Experiments.getByEntry", return_value=[], autospec=True
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.ExpsListWindow",
-            return_value=se,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _ewi, patch(
-            "physbiblio.database.EntryExps.insert", autospec=True
-        ) as _eei, patch(
-            "physbiblio.database.EntryExps.delete", autospec=True
-        ) as _eed, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.ExpsListWindow",
+                return_value=se,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _ewi,
+            patch("physbiblio.database.EntryExps.insert", autospec=True) as _eei,
+            patch("physbiblio.database.EntryExps.delete", autospec=True) as _eed,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onExp()
             _ge.assert_called_once_with(pBDB.exps, "abc")
             _ewi.assert_called_once_with(
@@ -4094,21 +4465,23 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 self.mainW, "Experiments for 'abc' successfully inserted"
             )
 
-        with patch(
-            "physbiblio.database.Experiments.getByEntry",
-            return_value=[{"idExp": 1000}, {"idExp": 1001}],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.ExpsListWindow",
-            return_value=se,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _ewi, patch(
-            "physbiblio.database.EntryExps.insert", autospec=True
-        ) as _eei, patch(
-            "physbiblio.database.EntryExps.delete", autospec=True
-        ) as _eed, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[{"idExp": 1000}, {"idExp": 1001}],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.ExpsListWindow",
+                return_value=se,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _ewi,
+            patch("physbiblio.database.EntryExps.insert", autospec=True) as _eei,
+            patch("physbiblio.database.EntryExps.delete", autospec=True) as _eed,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             c.onExp()
             _ge.assert_called_once_with(pBDB.exps, "abc")
             _ewi.assert_called_once_with(
@@ -4164,57 +4537,67 @@ class TestCommonBibActions(GUIwMainWTestCase):
         mb.exec = MagicMock()
         mb.onCancel()
         # non accepted MergeBibtex form
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch("logging.Logger.warning") as _w,
+        ):
             c.onMerge()
             _mbi.assert_called_once_with(c.bibs[0], c.bibs[1], self.mainW)
             _m.assert_called_once_with(self.mainW, "Nothing to do...")
         mb.result = True
         pBDB.bibs.lastFetched = ["last"]
         # empty bibtex or bibkey
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            side_effect=[
-                {"bibkey": "merged", "bibtex": ""},
-                {"bibkey": "", "bibtex": "new bibtex"},
-            ],
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete", return_value=[], autospec=True
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=[], autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _e:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                side_effect=[
+                    {"bibkey": "merged", "bibtex": ""},
+                    {"bibkey": "", "bibtex": "new bibtex"},
+                ],
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete", return_value=[], autospec=True
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=[], autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _e,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_not_called()
@@ -4260,43 +4643,50 @@ class TestCommonBibActions(GUIwMainWTestCase):
         mb.exec = MagicMock()
         mb.result = True
         # cannot delete
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete",
-            side_effect=Exception("error"),
-            autospec=True,
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=False, autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete",
+                side_effect=Exception("error"),
+                autospec=True,
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=False, autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _er,
+            patch("logging.Logger.exception") as _ex,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_not_called()
@@ -4326,41 +4716,48 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _er.assert_not_called()
             _ex.assert_called_once_with("Cannot delete old items!")
         # cannot insert
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete", return_value=True, autospec=True
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=False, autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete", return_value=True, autospec=True
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=False, autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _er,
+            patch("logging.Logger.exception") as _ex,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_not_called()
@@ -4393,43 +4790,50 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _ex.assert_not_called()
         # cannot reload
         pBDB.bibs.lastFetched = ["last"]
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent",
-            side_effect=Exception("error"),
-            autospec=True,
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete", return_value=True, autospec=True
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=True, autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent",
+                side_effect=Exception("error"),
+                autospec=True,
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete", return_value=True, autospec=True
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=True, autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _er,
+            patch("logging.Logger.exception") as _ex,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
@@ -4462,59 +4866,75 @@ class TestCommonBibActions(GUIwMainWTestCase):
             _ex.assert_not_called()
         # working
         pBDB.bibs.lastFetched = ["last"]
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete", return_value=True, autospec=True
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=True, autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"idCat": 321}, {"idCat": 432}],
-            autospec=True,
-        ) as _cebk, patch(
-            "physbiblio.database.CatsEntries.delete", return_value=True, autospec=True
-        ) as _cede, patch(
-            "physbiblio.database.CatsEntries.insert", return_value=True, autospec=True
-        ) as _cein, patch(
-            "physbiblio.database.Experiments.getByEntry",
-            return_value=[{"idExp": 4321}, {"idExp": 5432}],
-            autospec=True,
-        ) as _eebk, patch(
-            "physbiblio.database.EntryExps.delete", return_value=True, autospec=True
-        ) as _eede, patch(
-            "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
-        ) as _eein, patch(
-            "physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True
-        ) as _mpdf, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete", return_value=True, autospec=True
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=True, autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"idCat": 321}, {"idCat": 432}],
+                autospec=True,
+            ) as _cebk,
+            patch(
+                "physbiblio.database.CatsEntries.delete",
+                return_value=True,
+                autospec=True,
+            ) as _cede,
+            patch(
+                "physbiblio.database.CatsEntries.insert",
+                return_value=True,
+                autospec=True,
+            ) as _cein,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[{"idExp": 4321}, {"idExp": 5432}],
+                autospec=True,
+            ) as _eebk,
+            patch(
+                "physbiblio.database.EntryExps.delete", return_value=True, autospec=True
+            ) as _eede,
+            patch(
+                "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
+            ) as _eein,
+            patch("physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True) as _mpdf,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _er,
+            patch("logging.Logger.exception") as _ex,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
@@ -4595,60 +5015,81 @@ class TestCommonBibActions(GUIwMainWTestCase):
         mb.exec = MagicMock()
         mb.result = True
         pBDB.bibs.lastFetched = ["last"]
-        with patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _rl, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.commit",
-            return_value=[],
-            autospec=True,
-        ) as _c, patch(
-            "physbiblio.databaseCore.PhysBiblioDBCore.undo",
-            return_value=[],
-            autospec=True,
-        ) as _u, patch(
-            "physbiblio.database.Entries.prepareInsert",
-            return_value={"bibkey": "merged", "bibtex": "new bibtex"},
-            autospec=True,
-        ) as _pi, patch(
-            "physbiblio.database.Entries.delete", return_value=True, autospec=True
-        ) as _de, patch(
-            "physbiblio.database.Entries.insert", return_value=True, autospec=True
-        ) as _in, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            return_value=["myentry"],
-            autospec=True,
-        ) as _gbk, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _fl, patch(
-            "physbiblio.database.Entries.cleanFields",
-            autospec=True,
-        ) as _cf, patch(
-            "physbiblio.database.Categories.getByEntry",
-            return_value=[{"idCat": 321}, {"idCat": 432}],
-            autospec=True,
-        ) as _cebk, patch(
-            "physbiblio.database.CatsEntries.delete", return_value=True, autospec=True
-        ) as _cede, patch(
-            "physbiblio.database.CatsEntries.insert", return_value=True, autospec=True
-        ) as _cein, patch(
-            "physbiblio.database.Experiments.getByEntry",
-            return_value=[{"idExp": 4321}, {"idExp": 5432}],
-            autospec=True,
-        ) as _eebk, patch(
-            "physbiblio.database.EntryExps.delete", return_value=True, autospec=True
-        ) as _eede, patch(
-            "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
-        ) as _eein, patch(
-            "physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True
-        ) as _mpdf:
+        with (
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _rl,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.commit",
+                return_value=[],
+                autospec=True,
+            ) as _c,
+            patch(
+                "physbiblio.databaseCore.PhysBiblioDBCore.undo",
+                return_value=[],
+                autospec=True,
+            ) as _u,
+            patch(
+                "physbiblio.database.Entries.prepareInsert",
+                return_value={"bibkey": "merged", "bibtex": "new bibtex"},
+                autospec=True,
+            ) as _pi,
+            patch(
+                "physbiblio.database.Entries.delete", return_value=True, autospec=True
+            ) as _de,
+            patch(
+                "physbiblio.database.Entries.insert", return_value=True, autospec=True
+            ) as _in,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                return_value=["myentry"],
+                autospec=True,
+            ) as _gbk,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _fl,
+            patch(
+                "physbiblio.database.Entries.cleanFields",
+                autospec=True,
+            ) as _cf,
+            patch(
+                "physbiblio.database.Categories.getByEntry",
+                return_value=[{"idCat": 321}, {"idCat": 432}],
+                autospec=True,
+            ) as _cebk,
+            patch(
+                "physbiblio.database.CatsEntries.delete",
+                return_value=True,
+                autospec=True,
+            ) as _cede,
+            patch(
+                "physbiblio.database.CatsEntries.insert",
+                return_value=True,
+                autospec=True,
+            ) as _cein,
+            patch(
+                "physbiblio.database.Experiments.getByEntry",
+                return_value=[{"idExp": 4321}, {"idExp": 5432}],
+                autospec=True,
+            ) as _eebk,
+            patch(
+                "physbiblio.database.EntryExps.delete", return_value=True, autospec=True
+            ) as _eede,
+            patch(
+                "physbiblio.database.EntryExps.insert", return_value=True, autospec=True
+            ) as _eein,
+            patch("physbiblio.pdf.LocalPDF.mergePDFFolders", autospec=True) as _mpdf,
+        ):
             c.onMerge()
             _m.assert_not_called()
             _rl.assert_called_once_with(self.mainW, ["last"])
@@ -4854,15 +5295,16 @@ class TestCommonBibActions(GUIwMainWTestCase):
         mb.textValues["bibkey"].setText(bibs[1]["bibkey"])
         mb.textValues["bibtex"].setPlainText(bibs[1]["bibtex"])
         mb.textValues["firstdate"].setText(bibs[1]["firstdate"])
-        with patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs",
-            return_value=mb,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _mbi, patch("logging.Logger.warning") as _w, patch(
-            "logging.Logger.error"
-        ) as _er, patch(
-            "logging.Logger.exception"
-        ) as _ex:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs",
+                return_value=mb,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _mbi,
+            patch("logging.Logger.warning") as _w,
+            patch("logging.Logger.error") as _er,
+            patch("logging.Logger.exception") as _ex,
+        ):
             c.onMerge()
         r = pBDB.bibs.getByBibkey("Gariazzo:2015rra", saveQuery=False)[0]
         b = bibs[1]
@@ -4927,15 +5369,17 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.mainW,
         )
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.database.Entries.updateField", autospec=True
-        ) as _uf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _l, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _r:
+        with (
+            patch("physbiblio.database.Entries.updateField", autospec=True) as _uf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _l,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _r,
+        ):
             c.onUpdateMark("new")
             _uf.assert_has_calls(
                 [
@@ -5036,15 +5480,17 @@ class TestCommonBibActions(GUIwMainWTestCase):
             self.mainW,
         )
         pBDB.bibs.lastFetched = ["abc", "def"]
-        with patch(
-            "physbiblio.database.Entries.updateField", autospec=True
-        ) as _uf, patch(
-            "physbiblio.database.Entries.fetchFromLast",
-            return_value=pBDB.bibs,
-            autospec=True,
-        ) as _l, patch(
-            "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
-        ) as _r:
+        with (
+            patch("physbiblio.database.Entries.updateField", autospec=True) as _uf,
+            patch(
+                "physbiblio.database.Entries.fetchFromLast",
+                return_value=pBDB.bibs,
+                autospec=True,
+            ) as _l,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.reloadMainContent", autospec=True
+            ) as _r,
+        ):
             c.onUpdateType("book")
             _uf.assert_has_calls(
                 [
@@ -5121,26 +5567,36 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
     def test_init(self):
         """test __init__"""
-        with patch(
-            "PySide6.QtWidgets.QFrame.__init__", return_value=None, autospec=True
-        ) as _fi, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.__init__",
-            return_value=None,
-            autospec=True,
-        ) as _oi, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createActions", autospec=True
-        ) as _ca, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
-        ) as _ct:
+        with (
+            patch(
+                "PySide6.QtWidgets.QFrame.__init__", return_value=None, autospec=True
+            ) as _fi,
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.__init__",
+                return_value=None,
+                autospec=True,
+            ) as _oi,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createActions",
+                autospec=True,
+            ) as _ca,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
+            ) as _ct,
+        ):
             bw = BibtexListWindow(parent=self.mainW, bibs=[])
             _ca.assert_called_once_with(bw)
             _ct.assert_called_once_with(bw)
 
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createActions", autospec=True
-        ) as _ca, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
-        ) as _ct:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createActions",
+                autospec=True,
+            ) as _ca,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
+            ) as _ct,
+        ):
             bw = BibtexListWindow(bibs=[])
             self.assertIsInstance(bw, ObjListWindow)
             self.assertEqual(bw.parent(), None)
@@ -5179,11 +5635,14 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw = BibtexListWindow(
             bibs=[{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}]
         )
-        with patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []],
-            autospec=True,
-        ) as _gbb, patch("logging.Logger.debug") as _d:
+        with (
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []],
+                autospec=True,
+            ) as _gbb,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 bw.getRowBibkey(bw.proxyModel, bw.proxyModel.index(1, 0)), "abc"
             )
@@ -5226,7 +5685,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         self.assertFalse(bw.unselAllAct.isEnabled())
         self.assertFalse(bw.okAct.isEnabled())
         self.assertFalse(bw.tableModel.ask)
-        itemSelection = bw.tableview.selectionModel().selectedRows()
+        bw.tableview.selectionModel().selectedRows()
         selectedItems = bw.tableview.selectionModel().selection()
         bw.tableview.selectionModel().clearSelection()
         bw.tableview.selectRow(2)
@@ -5255,13 +5714,16 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(
                 bw.tableModel.selectedElements, {"abc": True, "def": False, "ghi": True}
             )
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getRowBibkey",
-            autospec=True,
-            side_effect=["abc", "ghi", "def"],
-        ) as _gb, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
-        ) as _r:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getRowBibkey",
+                autospec=True,
+                side_effect=["abc", "ghi", "def"],
+            ) as _gb,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
+            ) as _r,
+        ):
             bw.tableview.selectionModel().clearSelection()
             _r.reset_mock()
             bw.tableview.selectRow(1)
@@ -5320,15 +5782,19 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_changeFilterSort(self):
         """test changeFilterSort"""
         bw = BibtexListWindow(bibs=[])
-        with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.changeFilter", autospec=True
-        ) as _f, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
-        ) as _r, patch(
-            "PySide6.QtCore.QSortFilterProxyModel.rowCount",
-            autospec=True,
-            side_effect=[3, 2],
-        ) as _c:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.changeFilter", autospec=True
+            ) as _f,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
+            ) as _r,
+            patch(
+                "PySide6.QtCore.QSortFilterProxyModel.rowCount",
+                autospec=True,
+                side_effect=[3, 2],
+            ) as _c,
+        ):
             self.assertEqual(bw.currCountLabel.text(), "Currently shown: 0")
             bw.changeFilterSort("abc")
             _f.assert_called_once_with(bw, "abc")
@@ -5342,18 +5808,22 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         """test clearSelection"""
         bw = BibtexListWindow(bibs=[])
         bw.tableModel.previous = ["abc"]
-        with patch(
-            "physbiblio.gui.bibWindows.BibTableModel.prepareSelected", autospec=True
-        ) as _ps, patch(
-            "physbiblio.gui.bibWindows.BibTableModel.changeAsk", autospec=True
-        ) as _ca, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
-            autospec=True,
-        ) as _ea, patch(
-            "PySide6.QtWidgets.QTableView.clearSelection", autospec=True
-        ) as _cs, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
-        ) as _r:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibTableModel.prepareSelected", autospec=True
+            ) as _ps,
+            patch(
+                "physbiblio.gui.bibWindows.BibTableModel.changeAsk", autospec=True
+            ) as _ca,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
+                autospec=True,
+            ) as _ea,
+            patch("PySide6.QtWidgets.QTableView.clearSelection", autospec=True) as _cs,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
+            ) as _r,
+        ):
             bw.clearSelection()
             self.assertEqual(bw.tableModel.previous, [])
             _ps.assert_called_once_with(bw.tableModel)
@@ -5435,11 +5905,10 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         cb = bw.columns.index("bibkey")
         cc = bw.proxyModel.sortColumn()
         co = bw.proxyModel.sortOrder()
-        with patch(
-            "PySide6.QtWidgets.QTableView.sortByColumn", autospec=True
-        ) as _st, patch(
-            "PySide6.QtCore.QSortFilterProxyModel.sort", autospec=True
-        ) as _sf:
+        with (
+            patch("PySide6.QtWidgets.QTableView.sortByColumn", autospec=True) as _st,
+            patch("PySide6.QtCore.QSortFilterProxyModel.sort", autospec=True) as _sf,
+        ):
             bw.restoreSort()
             _sf.assert_has_calls([call(cb, Qt.AscendingOrder), call(cc, co)])
             _st.assert_has_calls([call(cb, Qt.AscendingOrder), call(cc, co)])
@@ -5447,14 +5916,18 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_enableSelection(self):
         """test enableSelection"""
         bw = BibtexListWindow(bibs=[])
-        with patch(
-            "physbiblio.gui.bibWindows.BibTableModel.changeAsk", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
-            autospec=True,
-        ) as _e, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
-        ) as _r:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibTableModel.changeAsk", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
+                autospec=True,
+            ) as _e,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.restoreSort", autospec=True
+            ) as _r,
+        ):
             bw.enableSelection()
             _a.assert_called_once_with(bw.tableModel)
             _e.assert_called_once_with(bw)
@@ -5485,15 +5958,21 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw.tableModel.selectedElements = {"abc": False, "def": True, "ghi": True}
         tmp = MagicMock()
         tmp.exec = MagicMock()
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions", autospec=USE_AUTOSPEC_CLASS
-        ) as _ci, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[[{"bibkey": "def"}], [{"bibkey": "ghi"}]],
-            autospec=True,
-        ) as _g:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection",
+                autospec=True,
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions",
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _ci,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                side_effect=[[{"bibkey": "def"}], [{"bibkey": "ghi"}]],
+                autospec=True,
+            ) as _g,
+        ):
             bw.onOk()
             _cl.assert_called_once_with(bw)
             _g.assert_has_calls(
@@ -5508,19 +5987,25 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(self.mainW.selectedBibs, ["def", "ghi"])
         bw.tableModel.selectedElements = {"abc": False, "def": False, "ghi": False}
         cba = CommonBibActions([{"bibkey": "def"}], self.mainW)
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
-            return_value=tmp,
-            autospec=True,
-        ) as _cm, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions",
-            return_value=cba,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _ci, patch(
-            "physbiblio.database.Entries.getByBibkey", side_effect=[], autospec=True
-        ) as _g:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection",
+                autospec=True,
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
+                return_value=tmp,
+                autospec=True,
+            ) as _cm,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions",
+                return_value=cba,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _ci,
+            patch(
+                "physbiblio.database.Entries.getByBibkey", side_effect=[], autospec=True
+            ) as _g,
+        ):
             position = QCursor.pos()
             bw.onOk()
             _cl.assert_called_once_with(bw)
@@ -5553,18 +6038,24 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw.cleanLayout()
         pBDB.bibs.lastQuery = "myquery"
         pBDB.bibs.lastVals = (1, 2, 3)
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
-            autospec=True,
-        ) as _cea, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff", autospec=True
-        ) as _sps, patch(
-            "PySide6.QtWidgets.QTableView.hideColumn", autospec=True
-        ) as _hc, patch(
-            "physbiblio.gui.bibWindows.BibTableModel", autospec=USE_AUTOSPEC_CLASS
-        ) as _tm, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.finalizeTable", autospec=True
-        ) as _ft:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
+                autospec=True,
+            ) as _cea,
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff",
+                autospec=True,
+            ) as _sps,
+            patch("PySide6.QtWidgets.QTableView.hideColumn", autospec=True) as _hc,
+            patch(
+                "physbiblio.gui.bibWindows.BibTableModel", autospec=USE_AUTOSPEC_CLASS
+            ) as _tm,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.finalizeTable",
+                autospec=True,
+            ) as _ft,
+        ):
             bw.createTable()
             _tm.assert_called_once_with(
                 bw,
@@ -5650,20 +6141,25 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             clear=False,
         ):
             bw = BibtexListWindow(parent=self.mainW, bibs=[{"bibkey": "abc"}])
-            with patch(
-                "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
-                autospec=True,
-            ) as _cea, patch(
-                "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff",
-                autospec=True,
-            ) as _sps, patch(
-                "PySide6.QtWidgets.QTableView.hideColumn", autospec=True
-            ) as _hc, patch(
-                "physbiblio.gui.bibWindows.BibTableModel", autospec=USE_AUTOSPEC_CLASS
-            ) as _tm, patch(
-                "physbiblio.gui.bibWindows.BibtexListWindow.finalizeTable",
-                autospec=True,
-            ) as _ft:
+            with (
+                patch(
+                    "physbiblio.gui.bibWindows.BibtexListWindow.changeEnableActions",
+                    autospec=True,
+                ) as _cea,
+                patch(
+                    "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff",
+                    autospec=True,
+                ) as _sps,
+                patch("PySide6.QtWidgets.QTableView.hideColumn", autospec=True) as _hc,
+                patch(
+                    "physbiblio.gui.bibWindows.BibTableModel",
+                    autospec=USE_AUTOSPEC_CLASS,
+                ) as _tm,
+                patch(
+                    "physbiblio.gui.bibWindows.BibtexListWindow.finalizeTable",
+                    autospec=True,
+                ) as _ft,
+            ):
                 bw.createTable()
                 _sps.assert_called_once_with(
                     bw, bw.columns.index("bibkey"), Qt.AscendingOrder
@@ -5681,25 +6177,29 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         """test updateInfo"""
         bw = BibtexListWindow(parent=self.mainW, bibs=[])
         self.assertEqual(bw.currentAbstractKey, None)
-        with patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
-            "physbiblio.gui.bibWindows.writeAbstract", autospec=True
-        ) as _wa, patch(
-            "physbiblio.gui.bibWindows.writeBibtexInfo",
-            return_value="info",
-            autospec=True,
-        ) as _wb:
+        with (
+            patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st,
+            patch("physbiblio.gui.bibWindows.writeAbstract", autospec=True) as _wa,
+            patch(
+                "physbiblio.gui.bibWindows.writeBibtexInfo",
+                return_value="info",
+                autospec=True,
+            ) as _wb,
+        ):
             bw.updateInfo({"bibkey": "abc", "bibtex": "text"})
             _wb.assert_called_once_with({"bibkey": "abc", "bibtex": "text"})
             _st.assert_has_calls([call("text"), call("info")])
             _wa.assert_called_once_with(self.mainW, {"bibkey": "abc", "bibtex": "text"})
             self.assertEqual(bw.currentAbstractKey, "abc")
-        with patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st, patch(
-            "physbiblio.gui.bibWindows.writeAbstract", autospec=True
-        ) as _wa, patch(
-            "physbiblio.gui.bibWindows.writeBibtexInfo",
-            return_value="info",
-            autospec=True,
-        ) as _wb:
+        with (
+            patch("PySide6.QtWidgets.QTextEdit.setText", autospec=True) as _st,
+            patch("physbiblio.gui.bibWindows.writeAbstract", autospec=True) as _wa,
+            patch(
+                "physbiblio.gui.bibWindows.writeBibtexInfo",
+                return_value="info",
+                autospec=True,
+            ) as _wb,
+        ):
             bw.updateInfo({"bibkey": "abc", "bibtex": "text"})
             _wb.assert_called_once_with({"bibkey": "abc", "bibtex": "text"})
             _st.assert_has_calls([call("text"), call("info")])
@@ -5715,11 +6215,14 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         bw = BibtexListWindow(
             bibs=[{"bibkey": "abc"}, {"bibkey": "def"}, {"bibkey": ""}]
         )
-        with patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []],
-            autospec=True,
-        ) as _gbb, patch("logging.Logger.debug") as _d:
+        with (
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                side_effect=[["Rabc"], ["Rabc"], ["Rdef"], []],
+                autospec=True,
+            ) as _gbb,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(
                 bw.getEventEntry(bw.proxyModel.index(1, 0)), (1, 0, "abc", "Rabc")
             )
@@ -5749,23 +6252,31 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         m.exec = MagicMock()
         cba = CommonBibActions([{"bibkey": "ghi"}])
         m.possibleActions = [["copy", ["a", "b"]]]
-        with patch(
-            "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy", autospec=True
-        ) as _cmc, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions",
-            return_value=cba,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cba, patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[[{"bibkey": "ghi"}], [{"bibkey": "ghi"}]],
-            autospec=True,
-        ) as _gbb, patch(
-            "physbiblio.gui.bibWindows.PBMenu",
-            return_value=m,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _pbm, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _cs:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions._createMenuCopy",
+                autospec=True,
+            ) as _cmc,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions",
+                return_value=cba,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cba,
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                side_effect=[[{"bibkey": "ghi"}], [{"bibkey": "ghi"}]],
+                autospec=True,
+            ) as _gbb,
+            patch(
+                "physbiblio.gui.bibWindows.PBMenu",
+                return_value=m,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _pbm,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection",
+                autospec=True,
+            ) as _cs,
+        ):
             QTest.keyPress(bw, "C", Qt.ShiftModifier)
             _cmc.assert_not_called()
             QTest.keyPress(bw, "C", Qt.ControlModifier)
@@ -5786,24 +6297,30 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         m = PBMenu()
         m.exec = MagicMock()
         cba = CommonBibActions([{"bibkey": "ghi", "bibtex": "@a{ghi}"}])
-        with patch(
-            "physbiblio.database.Entries.getByBibkey",
-            side_effect=[
-                [{"bibkey": "ghi", "bibtex": "@a{ghi}"}],
-                [{"bibkey": "ghi", "bibtex": "@a{ghi}"}],
-            ],
-            autospec=True,
-        ) as _gbb, patch(
-            "physbiblio.gui.bibWindows.CommonBibActions",
-            return_value=cba,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _cba, patch(
-            "physbiblio.gui.bibWindows.PBMenu",
-            return_value=m,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _pbm, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection", autospec=True
-        ) as _cs:
+        with (
+            patch(
+                "physbiblio.database.Entries.getByBibkey",
+                side_effect=[
+                    [{"bibkey": "ghi", "bibtex": "@a{ghi}"}],
+                    [{"bibkey": "ghi", "bibtex": "@a{ghi}"}],
+                ],
+                autospec=True,
+            ) as _gbb,
+            patch(
+                "physbiblio.gui.bibWindows.CommonBibActions",
+                return_value=cba,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _cba,
+            patch(
+                "physbiblio.gui.bibWindows.PBMenu",
+                return_value=m,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _pbm,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.clearSelection",
+                autospec=True,
+            ) as _cs,
+        ):
             QTest.keyPress(bw, "C", Qt.ControlModifier)
             _pbm.assert_called_once_with()
             cba.menu.exec.assert_called_once_with(QCursor.pos())
@@ -5839,32 +6356,36 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             Qt.NoButton,
             Qt.NoModifier,
         )
-        with patch(
-            "PySide6.QtCore.QSortFilterProxyModel.index",
-            return_value="index",
-            autospec=True,
-        ) as _ix, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=None,
-            autospec=True,
-        ) as _ge, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch(
+                "PySide6.QtCore.QSortFilterProxyModel.index",
+                return_value="index",
+                autospec=True,
+            ) as _ix,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=None,
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.warning") as _w,
+        ):
             self.assertEqual(bw.triggeredContextMenuEvent(9999, 101, ev), None)
             _w.assert_called_once_with("The index is not valid!")
             _ix.assert_called_once_with(9999, 101)
             _ge.assert_called_once_with(bw, "index")
-        with patch(
-            "PySide6.QtCore.QSortFilterProxyModel.index",
-            return_value="index",
-            autospec=True,
-        ) as _ix, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, 0, "abc", {"bibkey": "abc"}),
-            autospec=True,
-        ) as _ge, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch(
+                "PySide6.QtCore.QSortFilterProxyModel.index",
+                return_value="index",
+                autospec=True,
+            ) as _ix,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, 0, "abc", {"bibkey": "abc"}),
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.warning") as _w,
+        ):
             with patch(
                 "physbiblio.gui.bibWindows.CommonBibActions",
                 autospec=USE_AUTOSPEC_CLASS,
@@ -5875,27 +6396,33 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _ix.assert_called_once_with(9999, 101)
             _ge.assert_called_once_with(bw, "index")
             cba = CommonBibActions([{"bibkey": "abc"}], self.mainW)
-            with patch(
-                "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
-                autospec=True,
-            ) as _cm, patch(
-                "physbiblio.gui.bibWindows.CommonBibActions",
-                return_value=cba,
-                autospec=USE_AUTOSPEC_CLASS,
-            ) as _cba:
+            with (
+                patch(
+                    "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
+                    autospec=True,
+                ) as _cm,
+                patch(
+                    "physbiblio.gui.bibWindows.CommonBibActions",
+                    return_value=cba,
+                    autospec=USE_AUTOSPEC_CLASS,
+                ) as _cba,
+            ):
                 self.assertEqual(bw.triggeredContextMenuEvent(9999, 101, ev), None)
                 _cm.assert_called_once_with(cba)
             tmp = MagicMock()
             tmp.exec = MagicMock()
-            with patch(
-                "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
-                return_value=tmp,
-                autospec=True,
-            ) as _cm, patch(
-                "physbiblio.gui.bibWindows.CommonBibActions",
-                return_value=cba,
-                autospec=USE_AUTOSPEC_CLASS,
-            ) as _cba:
+            with (
+                patch(
+                    "physbiblio.gui.bibWindows.CommonBibActions.createContextMenu",
+                    return_value=tmp,
+                    autospec=True,
+                ) as _cm,
+                patch(
+                    "physbiblio.gui.bibWindows.CommonBibActions",
+                    return_value=cba,
+                    autospec=USE_AUTOSPEC_CLASS,
+                ) as _cba,
+            ):
                 bw.triggeredContextMenuEvent(9999, 101, ev)
                 tmp.exec.assert_called_once_with(ev.globalPosition())
                 _cm.assert_called_once_with(cba)
@@ -5909,21 +6436,28 @@ class TestBibtexListWindow(GUIwMainWTestCase):
         """test cellClick"""
         bw = BibtexListWindow(parent=self.mainW, bibs=[])
         ix = QModelIndex()
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=None,
-            autospec=True,
-        ) as _ge, patch("logging.Logger.warning") as _w:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=None,
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.warning") as _w,
+        ):
             self.assertEqual(bw.cellClick(ix), None)
             _w.assert_called_once_with("The index is not valid!")
             _ge.assert_called_once_with(bw, ix)
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, 0, "abc", {"bibkey": "abc"}),
-            autospec=True,
-        ) as _ge, patch("logging.Logger.warning") as _w, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, 0, "abc", {"bibkey": "abc"}),
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.warning") as _w,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             self.assertEqual(bw.cellClick(ix), None)
             _ui.assert_called_once_with(bw, {"bibkey": "abc"})
             _ge.assert_called_once_with(bw, ix)
@@ -5937,11 +6471,14 @@ class TestBibtexListWindow(GUIwMainWTestCase):
                 parent=self.mainW, bibs=[{"bibtex": "text", "bibkey": "abc"}]
             )
         ix = QModelIndex()
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=None,
-            autospec=True,
-        ) as _ge, patch("logging.Logger.warning") as _w:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=None,
+                autospec=True,
+            ) as _ge,
+            patch("logging.Logger.warning") as _w,
+        ):
             self.assertEqual(bw.cellDoubleClick(ix), None)
             _w.assert_called_once_with("The index is not valid!")
 
@@ -5952,148 +6489,194 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             "arxiv": "1234.56789",
             "inspire": "9876543",
         }
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("doi"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("doi"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ge.assert_called_once_with(bw, ix)
             _ui.assert_called_once_with(bw, currentry)
             _ol.assert_called_once_with(pBGuiView, "abc", "doi")
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("ads"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("ads"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ge.assert_called_once_with(bw, ix)
             _ui.assert_called_once_with(bw, currentry)
             _ol.assert_called_once_with(pBGuiView, "abc", "ads")
         currentry["doi"] = ""
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("doi"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("doi"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
         currentry["doi"] = None
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("doi"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("doi"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
 
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ge.assert_called_once_with(bw, ix)
             _ui.assert_called_once_with(bw, currentry)
             _ol.assert_called_once_with(pBGuiView, "abc", "arxiv")
         currentry["arxiv"] = ""
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
         currentry["arxiv"] = None
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("arxiv"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
 
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ge.assert_called_once_with(bw, ix)
             _ui.assert_called_once_with(bw, currentry)
             _ol.assert_called_once_with(pBGuiView, "abc", "inspire")
         currentry["inspire"] = ""
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
         currentry["inspire"] = None
-        with patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("inspire"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+        ):
             bw.cellDoubleClick(ix)
             _ol.assert_not_called()
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["/tmp/file.pdf"],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("pdf"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["/tmp/file.pdf"],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("pdf"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+        ):
             bw.cellDoubleClick(ix)
             _gf.assert_called_once_with(pBPDF, "abc", fullPath=True)
             _ol.assert_called_once_with(
@@ -6103,25 +6686,32 @@ class TestBibtexListWindow(GUIwMainWTestCase):
 
         tmp = MagicMock()
         tmp.exec = MagicMock()
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"],
-            autospec=True,
-        ) as _gf, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
-            return_value=(0, bw.colContents.index("pdf"), "abc", currentry),
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
-        ) as _ui, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.bibWindows.AskPDFAction",
-            return_value=tmp,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _apa:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["/tmp/file1.pdf", "/tmp/file2.pdf"],
+                autospec=True,
+            ) as _gf,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.getEventEntry",
+                return_value=(0, bw.colContents.index("pdf"), "abc", currentry),
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.updateInfo", autospec=True
+            ) as _ui,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.bibWindows.AskPDFAction",
+                return_value=tmp,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _apa,
+        ):
             position = QCursor.pos()
             bw.cellDoubleClick(ix)
             _gf.assert_called_once_with(pBPDF, "abc", fullPath=True)
@@ -6145,12 +6735,15 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             self.assertEqual(_f.call_count, 1)
         bw.cleanLayout()
 
-        with patch("PySide6.QtGui.QFont.setPointSize", autospec=True) as _sps, patch(
-            "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
-        ) as _rc, patch(
-            "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
-        ) as _rr, patch.dict(
-            pbConfig.params, {"resizeTable": True}, clear=False
+        with (
+            patch("PySide6.QtGui.QFont.setPointSize", autospec=True) as _sps,
+            patch(
+                "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
+            ) as _rc,
+            patch(
+                "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
+            ) as _rr,
+            patch.dict(pbConfig.params, {"resizeTable": True}, clear=False),
         ):
             bw.finalizeTable()
             _rc.assert_called_once_with()
@@ -6158,14 +6751,17 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _sps.assert_called_once_with(pbConfig.params["bibListFontSize"])
             self.assertEqual(bw.currLayout.itemAt(0).widget(), bw.tableview)
         bw.cleanLayout()
-        with patch(
-            "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
-        ) as _rc, patch(
-            "PySide6.QtWidgets.QTableView.resizeColumnToContents", autospec=True
-        ) as _rsc, patch(
-            "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
-        ) as _rr, patch.dict(
-            pbConfig.params, {"resizeTable": False}, clear=False
+        with (
+            patch(
+                "PySide6.QtWidgets.QTableView.resizeColumnsToContents", autospec=True
+            ) as _rc,
+            patch(
+                "PySide6.QtWidgets.QTableView.resizeColumnToContents", autospec=True
+            ) as _rsc,
+            patch(
+                "PySide6.QtWidgets.QTableView.resizeRowsToContents", autospec=True
+            ) as _rr,
+            patch.dict(pbConfig.params, {"resizeTable": False}, clear=False),
         ):
             bw.finalizeTable()
             _rc.assert_not_called()
@@ -6177,17 +6773,21 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     def test_recreateTable(self):
         """test recreateTable"""
         bw = BibtexListWindow(bibs=[])
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
-        ) as _ct, patch(
-            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
-        ) as _sc, patch(
-            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
-        ) as _rc, patch(
-            "physbiblio.database.Entries.getAll", autospec=True
-        ) as _ga:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
+            ) as _ct,
+            patch(
+                "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            ) as _sc,
+            patch(
+                "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            ) as _rc,
+            patch("physbiblio.database.Entries.getAll", autospec=True) as _ga,
+        ):
             bw.recreateTable(bibs="bibs")
             _ga.assert_not_called()
             _cl.assert_called_once_with(bw)
@@ -6195,17 +6795,25 @@ class TestBibtexListWindow(GUIwMainWTestCase):
             _rc.assert_called_once_with()
             _sc.assert_called_once_with(Qt.WaitCursor)
             self.assertEqual(bw.bibs, "bibs")
-        with patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
-        ) as _ct, patch(
-            "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
-        ) as _sc, patch(
-            "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
-        ) as _rc, patch(
-            "physbiblio.database.Entries.getAll", return_value="getall", autospec=True
-        ) as _ga:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.createTable", autospec=True
+            ) as _ct,
+            patch(
+                "PySide6.QtWidgets.QApplication.setOverrideCursor", autospec=True
+            ) as _sc,
+            patch(
+                "PySide6.QtWidgets.QApplication.restoreOverrideCursor", autospec=True
+            ) as _rc,
+            patch(
+                "physbiblio.database.Entries.getAll",
+                return_value="getall",
+                autospec=True,
+            ) as _ga,
+        ):
             bw.recreateTable()
             _ga.assert_called_once_with(
                 pBDB.bibs,
@@ -6268,27 +6876,29 @@ class TestEditBibtexDialog(GUITestCase):
 
     def test_onOk(self):
         """test onOk"""
-        p = QWidget()
         eb = EditBibtexDialog()
-        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "logging.Logger.error"
-        ) as _e:
+        with (
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+            patch("logging.Logger.error") as _e,
+        ):
             self.assertEqual(eb.onOk(), False)
             _c.assert_not_called()
             _e.assert_called_once_with("Invalid form contents: empty bibtex!")
         eb.textValues["bibtex"].setPlainText('@article{abc, title="}')
-        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "logging.Logger.error"
-        ) as _e:
+        with (
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+            patch("logging.Logger.error") as _e,
+        ):
             self.assertEqual(eb.onOk(), False)
             _c.assert_not_called()
             _e.assert_called_once_with(
                 "Invalid form contents: cannot read bibtex properly!"
             )
         eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
-        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "logging.Logger.error"
-        ) as _e:
+        with (
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+            patch("logging.Logger.error") as _e,
+        ):
             eb.onOk()
             _c.assert_called_once_with()
             _e.assert_not_called()
@@ -6298,9 +6908,10 @@ class TestEditBibtexDialog(GUITestCase):
         eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
         eb.textValues["bibkey"].setReadOnly(False)
         eb.textValues["bibkey"].setText("abc")
-        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "logging.Logger.error"
-        ) as _e:
+        with (
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+            patch("logging.Logger.error") as _e,
+        ):
             self.assertEqual(eb.onOk(), False)
             _c.assert_not_called()
             _e.assert_called_once_with(
@@ -6309,7 +6920,6 @@ class TestEditBibtexDialog(GUITestCase):
 
     def test_updateBibkey(self):
         """test updateBibkey"""
-        p = QWidget()
         eb = EditBibtexDialog()
         eb.textValues["bibtex"].setPlainText('@article{abc, title="ABC"}')
         eb.textValues["bibkey"].setText("")
@@ -6441,17 +7051,22 @@ class TestEditBibtexDialog(GUITestCase):
 
     def test_createForm(self):
         """test createForm"""
-        with patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog.createField",
-            side_effect=[i for i in range(1, 28)],
-            autospec=True,
-        ) as _cf, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog.createCheckbox",
-            side_effect=[i for i in range(1, 28)],
-            autospec=True,
-        ) as _cc, patch(
-            "physbiblio.gui.commonClasses.EditObjectWindow.centerWindow", autospec=True
-        ) as _cw:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog.createField",
+                side_effect=[i for i in range(1, 28)],
+                autospec=True,
+            ) as _cf,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog.createCheckbox",
+                side_effect=[i for i in range(1, 28)],
+                autospec=True,
+            ) as _cc,
+            patch(
+                "physbiblio.gui.commonClasses.EditObjectWindow.centerWindow",
+                autospec=True,
+            ) as _cw,
+        ):
             eb = EditBibtexDialog(bib={"bibtex": "@article", "comments": "sometext"})
             _cw.assert_called_once_with(eb)
             _cf.assert_has_calls(
@@ -6573,13 +7188,17 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_init(self):
         """test __init__"""
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", side_effect=["", ""], autospec=True
-        ) as _gp, patch(
-            "physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True
-        ) as _fm:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting", return_value=[], autospec=True
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["", ""],
+                autospec=True,
+            ) as _gp,
+            patch("physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True) as _fm,
+        ):
             apa = AskPDFAction("improbablekey", self.mainW)
             _ge.assert_called_once_with(pBPDF, "improbablekey", fullPath=True)
             _gp.assert_has_calls(
@@ -6594,15 +7213,19 @@ class TestAskPDFAction(GUIwMainWTestCase):
         )
         self.assertEqual(apa.possibleActions, [])
 
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["a", "b", "d", "e"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", side_effect=["d", "a"], autospec=True
-        ) as _gp, patch(
-            "physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True
-        ) as _fm:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["a", "b", "d", "e"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["d", "a"],
+                autospec=True,
+            ) as _gp,
+            patch("physbiblio.gui.commonClasses.PBMenu.fillMenu", autospec=True) as _fm,
+        ):
             apa = AskPDFAction("improbablekey", self.mainW)
             _ge.assert_called_once_with(pBPDF, "improbablekey", fullPath=True)
             _gp.assert_has_calls(
@@ -6638,17 +7261,21 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_onOpenArxiv(self):
         """test onOpenArxiv"""
-        with patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            return_value="/tmp/file.pdf",
-            autospec=True,
-        ) as _gp, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                return_value="/tmp/file.pdf",
+                autospec=True,
+            ) as _gp,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("logging.Logger.warning") as _w,
+        ):
             apa = AskPDFAction("improbablekey", self.mainW)
             apa.onOpenArxiv()
             _ol.assert_called_once_with(
@@ -6666,17 +7293,21 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_onOpenDoi(self):
         """test onOpenDoi"""
-        with patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath",
-            return_value="/tmp/file.pdf",
-            autospec=True,
-        ) as _gp, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                return_value="/tmp/file.pdf",
+                autospec=True,
+            ) as _gp,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("logging.Logger.warning") as _w,
+        ):
             apa = AskPDFAction("improbablekey", self.mainW)
             apa.onOpenDoi()
             _ol.assert_called_once_with(
@@ -6694,23 +7325,29 @@ class TestAskPDFAction(GUIwMainWTestCase):
 
     def test_onOpenOther(self):
         """test onOpenOther"""
-        with patch(
-            "physbiblio.pdf.LocalPDF.getExisting",
-            return_value=["a.pdf", "b.pdf"],
-            autospec=True,
-        ) as _ge, patch(
-            "physbiblio.pdf.LocalPDF.getFilePath", side_effect=["c", "d"], autospec=True
-        ) as _gp, patch(
-            "physbiblio.pdf.LocalPDF.getFileDir", return_value="/tmp", autospec=True
-        ) as _gd, patch(
-            "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
-        ) as _ol, patch(
-            "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
-        ) as _m, patch(
-            "PySide6.QtWidgets.QMenu.close", autospec=True
-        ) as _c, patch(
-            "logging.Logger.warning"
-        ) as _w:
+        with (
+            patch(
+                "physbiblio.pdf.LocalPDF.getExisting",
+                return_value=["a.pdf", "b.pdf"],
+                autospec=True,
+            ) as _ge,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFilePath",
+                side_effect=["c", "d"],
+                autospec=True,
+            ) as _gp,
+            patch(
+                "physbiblio.pdf.LocalPDF.getFileDir", return_value="/tmp", autospec=True
+            ) as _gd,
+            patch(
+                "physbiblio.gui.commonClasses.GUIViewEntry.openLink", autospec=True
+            ) as _ol,
+            patch(
+                "physbiblio.gui.mainWindow.MainWindow.statusBarMessage", autospec=True
+            ) as _m,
+            patch("PySide6.QtWidgets.QMenu.close", autospec=True) as _c,
+            patch("logging.Logger.warning") as _w,
+        ):
             apa = AskPDFAction("improbablekey", self.mainW)
             apa.possibleActions[0].trigger()
             _ol.assert_called_once_with(
@@ -6727,17 +7364,21 @@ class TestSearchBibsWindow(GUITestCase):
 
     def test_init(self):
         """test __init__"""
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.processHistoric",
-            side_effect=["a", "b"],
-            autospec=True,
-        ) as _ph, patch(
-            "physbiblio.config.GlobalDB.getSearchList",
-            return_value=["abc", "def"],
-            autospec=True,
-        ) as _sl:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.processHistoric",
+                side_effect=["a", "b"],
+                autospec=True,
+            ) as _ph,
+            patch(
+                "physbiblio.config.GlobalDB.getSearchList",
+                return_value=["abc", "def"],
+                autospec=True,
+            ) as _sl,
+        ):
             sbw = SearchBibsWindow()
             _cf.assert_called_once_with(sbw)
             _ph.assert_has_calls([call(sbw, "abc"), call(sbw, "def")])
@@ -6867,17 +7508,21 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertEqual(sbw.limitOffs, None)
 
         p = QWidget()
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.processHistoric",
-            side_effect=["a", "b"],
-            autospec=True,
-        ) as _ph, patch(
-            "physbiblio.config.GlobalDB.getSearchList",
-            return_value=["abc", "def"],
-            autospec=True,
-        ) as _sl:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.processHistoric",
+                side_effect=["a", "b"],
+                autospec=True,
+            ) as _ph,
+            patch(
+                "physbiblio.config.GlobalDB.getSearchList",
+                return_value=["abc", "def"],
+                autospec=True,
+            ) as _sl,
+        ):
             sbw = SearchBibsWindow(parent=p, replace=True)
             _sl.assert_called_once_with(
                 pbConfig.globalDb, manual=False, replacement=True
@@ -6885,25 +7530,28 @@ class TestSearchBibsWindow(GUITestCase):
         self.assertTrue(sbw.replace)
         self.assertEqual(sbw.parent(), p)
 
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf, patch(
-            "physbiblio.config.GlobalDB.getSearchByID",
-            return_value=[
-                {
-                    "idS": 0,
-                    "name": "test1",
-                    "count": 0,
-                    "searchDict": '[{"a": "abc"}, {"b": "def"}]',
-                    "limitNum": 1111,
-                    "offsetNum": 12,
-                    "replaceFields": '["e1"]',
-                    "manual": 0,
-                    "isReplace": 0,
-                }
-            ],
-            autospec=True,
-        ) as _gsbi:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+            patch(
+                "physbiblio.config.GlobalDB.getSearchByID",
+                return_value=[
+                    {
+                        "idS": 0,
+                        "name": "test1",
+                        "count": 0,
+                        "searchDict": '[{"a": "abc"}, {"b": "def"}]',
+                        "limitNum": 1111,
+                        "offsetNum": 12,
+                        "replaceFields": '["e1"]',
+                        "manual": 0,
+                        "isReplace": 0,
+                    }
+                ],
+                autospec=True,
+            ) as _gsbi,
+        ):
             sbw = SearchBibsWindow(edit="123")
             _cf.assert_called_once_with(sbw, histIndex=0)
             _gsbi.assert_called_once_with(pbConfig.globalDb, "123")
@@ -7090,11 +7738,14 @@ class TestSearchBibsWindow(GUITestCase):
         ) as _cf:
             sbw = SearchBibsWindow()
         self.assertFalse(sbw.save)
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+        ):
             sbw.changeCurrentContent(2)
             _cl.assert_called_once_with(sbw)
             _cf.assert_called_once_with(sbw, 2)
@@ -7150,15 +7801,18 @@ class TestSearchBibsWindow(GUITestCase):
         sc = CatsTreeWindow(parent=sbw, askCats=True, expButton=False, previous=[])
         sc.exec = MagicMock()
         sc.result = False
-        with patch(
-            "physbiblio.gui.bibWindows.CatsTreeWindow",
-            return_value=sc,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _sc, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
-            return_value={"content": ""},
-            autospec=True,
-        ) as _cf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.CatsTreeWindow",
+                return_value=sc,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _sc,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+                return_value={"content": ""},
+                autospec=True,
+            ) as _cf,
+        ):
             sbw.onAskCats(0)
             _sc.assert_called_once_with(
                 parent=sbw, askCats=True, expButton=False, previous=[]
@@ -7204,15 +7858,18 @@ class TestSearchBibsWindow(GUITestCase):
         se = ExpsListWindow(parent=sbw, askExps=True, previous=[])
         se.exec = MagicMock()
         se.result = False
-        with patch(
-            "physbiblio.gui.bibWindows.ExpsListWindow",
-            return_value=se,
-            autospec=USE_AUTOSPEC_CLASS,
-        ) as _se, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
-            return_value={"content": ""},
-            autospec=True,
-        ) as _cf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.ExpsListWindow",
+                return_value=se,
+                autospec=USE_AUTOSPEC_CLASS,
+            ) as _se,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readLine",
+                return_value={"content": ""},
+                autospec=True,
+            ) as _cf,
+        ):
             sbw.onAskExps(0)
             _se.assert_called_once_with(parent=sbw, askExps=True, previous=[])
             se.exec.assert_called_once_with()
@@ -7276,13 +7933,17 @@ class TestSearchBibsWindow(GUITestCase):
         sbw.historic = ["a", "b", "c", "d"]
         sbw.currentHistoric = 0
         sbw.readForm()
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
-        ) as _rf, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
+            ) as _rf,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+        ):
             QTest.keyPress(sbw, Qt.Key_Down)
             _rf.assert_called_once_with(sbw)
             _cl.assert_called_once_with(sbw)
@@ -7371,15 +8032,19 @@ class TestSearchBibsWindow(GUITestCase):
         sbw.historic = ["a", "b", "c"]
         self.assertEqual(sbw.currentHistoric, 0)
         sbw.readForm()
-        with patch.object(
-            SearchBibsWindow,
-            "readForm",
-            wraps=sbw.readForm,
-        ) as _rf, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf:
+        with (
+            patch.object(
+                SearchBibsWindow,
+                "readForm",
+                wraps=sbw.readForm,
+            ) as _rf,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+        ):
             QTest.keyPress(sbw, Qt.Key_Down)
             _rf.assert_called_once_with()
             _cl.assert_called_once_with(sbw)
@@ -7512,11 +8177,14 @@ class TestSearchBibsWindow(GUITestCase):
             "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
         ) as _cf:
             sbw = SearchBibsWindow()
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
-        ) as _cf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.cleanLayout", autospec=True
+            ) as _cl,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.createForm", autospec=True
+            ) as _cf,
+        ):
             sbw.resetForm()
             _cl.assert_called_once_with(sbw)
             _cf.assert_called_once_with(sbw)
@@ -7529,11 +8197,14 @@ class TestSearchBibsWindow(GUITestCase):
             sbw = SearchBibsWindow()
             sbw.numberOfRows = 1
             sbw.textValues = [{"a": "A"}]
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
-        ) as _f, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
-        ) as _rf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
+            ) as _f,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
+            ) as _rf,
+        ):
             sbw.addRow()
             _f.assert_called_once_with(sbw)
             _rf.assert_called_once_with(sbw)
@@ -7548,11 +8219,14 @@ class TestSearchBibsWindow(GUITestCase):
             sbw = SearchBibsWindow()
             sbw.numberOfRows = 4
             sbw.textValues = [{"a": "A"}, {"b": "B"}, {"c": "C"}, {"d": "D"}]
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
-        ) as _f, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
-        ) as _rf:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
+            ) as _f,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
+            ) as _rf,
+        ):
             sbw.deleteRow(11)
             _f.assert_not_called()
             _rf.assert_not_called()
@@ -7578,11 +8252,14 @@ class TestSearchBibsWindow(GUITestCase):
         sbw.textValues[0]["type"] = PBComboBox(
             sbw, ["Text", "Categories", "Experiments", "Marks", "Type"], current="Text"
         )
-        with patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
-        ) as _a, patch(
-            "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
-        ) as _s:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.readForm", autospec=True
+            ) as _a,
+            patch(
+                "physbiblio.gui.bibWindows.SearchBibsWindow.resetForm", autospec=True
+            ) as _s,
+        ):
             sbw.saveTypeRow(0, "Marks")
             self.assertEqual(sbw.textValues[0]["type"].currentText(), "Marks")
             _a.assert_called_once_with(sbw)
@@ -8338,9 +9015,11 @@ class TestSearchBibsWindow(GUITestCase):
             },
         ]
         sbw.numberOfRows = 2
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm()
             _crlin.assert_has_calls(
                 [
@@ -8444,9 +9123,11 @@ class TestSearchBibsWindow(GUITestCase):
             )
 
         sbw.replace = True
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm()
             _crlin.assert_has_calls(
                 [
@@ -8476,17 +9157,21 @@ class TestSearchBibsWindow(GUITestCase):
             )
             _crre.assert_called_once_with(sbw, 5)
             _crlim.assert_not_called()
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm(histIndex=1)
             self.assertEqual(sbw.numberOfRows, 1)
             _crlin.assert_has_calls([call(sbw, 0, "sw")])
             _crre.assert_called_once_with(sbw, 4, previous="av")
             _crlim.assert_not_called()
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm(histIndex=2)
             self.assertEqual(sbw.numberOfRows, 2)
             _crlin.assert_has_calls([call(sbw, 0, "lor"), call(sbw, 1, "th")])
@@ -8494,9 +9179,11 @@ class TestSearchBibsWindow(GUITestCase):
             _crlim.assert_not_called()
 
         sbw.replace = False
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm(histIndex=1)
             self.assertEqual(sbw.numberOfRows, 1)
             _crlin.assert_has_calls([call(sbw, 0, "sw")])
@@ -8504,9 +9191,11 @@ class TestSearchBibsWindow(GUITestCase):
                 sbw, 4, defLim=321, defOffs=22, override=True
             )
             _crre.assert_not_called()
-        with patch(clsName + "createLine", autospec=True) as _crlin, patch(
-            clsName + "createLimits", autospec=True
-        ) as _crlim, patch(clsName + "createReplace", autospec=True) as _crre:
+        with (
+            patch(clsName + "createLine", autospec=True) as _crlin,
+            patch(clsName + "createLimits", autospec=True) as _crlim,
+            patch(clsName + "createReplace", autospec=True) as _crre,
+        ):
             sbw.createForm(histIndex=2)
             self.assertEqual(sbw.numberOfRows, 2)
             _crlin.assert_has_calls([call(sbw, 0, "lor"), call(sbw, 1, "th")])
@@ -8791,13 +9480,17 @@ class TestMergeBibtexs(GUITestCase):
                 {"bibtex": "@article0", "year": "2017"},
                 {"bibtex": "@article1", "year": "2018"},
             )
-        with patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addFieldOld", autospec=True
-        ) as _afo, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addFieldNew", autospec=True
-        ) as _afn, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addRadio", autospec=True
-        ) as _ar:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addFieldOld", autospec=True
+            ) as _afo,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addFieldNew", autospec=True
+            ) as _afn,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addRadio", autospec=True
+            ) as _ar,
+        ):
             self.assertEqual(mb.addGenericField("year", 123), 125)
             _afo.assert_has_calls(
                 [call(mb, "0", "year", 124, 0), call(mb, "1", "year", 124, 4)]
@@ -8877,13 +9570,17 @@ class TestMergeBibtexs(GUITestCase):
                 {"bibtex": '@article{1, title="e1"}', "bibkey": "1"},
             )
 
-        with patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addFieldOld", autospec=True
-        ) as _afo, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addBibtexOld", autospec=True
-        ) as _abo, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addRadio", autospec=True
-        ) as _ar:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addFieldOld", autospec=True
+            ) as _afo,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addBibtexOld", autospec=True
+            ) as _abo,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addRadio", autospec=True
+            ) as _ar,
+        ):
             self.assertEqual(mb.addBibtexFields(123), 135)
             _afo.assert_has_calls(
                 [call(mb, "0", "bibkey", 125, 0), call(mb, "1", "bibkey", 125, 4)]
@@ -8923,11 +9620,14 @@ class TestMergeBibtexs(GUITestCase):
         )
         self.assertEqual(mb.textValues["bibtex"].toPlainText(), "")
         self.assertEqual(mb.textValues["bibtex"].minimumWidth(), mb.bibtexWidth)
-        with patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.textModified", autospec=True
-        ) as _tm, patch(
-            "physbiblio.gui.bibWindows.EditBibtexDialog.updateBibkey", autospec=True
-        ) as _ub:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.textModified", autospec=True
+            ) as _tm,
+            patch(
+                "physbiblio.gui.bibWindows.EditBibtexDialog.updateBibkey", autospec=True
+            ) as _ub,
+        ):
             mb.textValues["bibtex"].textChanged.emit()
             _tm.assert_called_once_with(mb, "bibtex")
             _ub.assert_called_once_with(mb)
@@ -8947,21 +9647,27 @@ class TestMergeBibtexs(GUITestCase):
 
     def test_createForm(self):
         """test createForm"""
-        with patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addGenericField",
-            side_effect=[i for i in range(1, 28)],
-            autospec=True,
-        ) as _agf, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addMarkTypeFields",
-            return_value=29,
-            autospec=True,
-        ) as _mtf, patch(
-            "physbiblio.gui.bibWindows.MergeBibtexs.addBibtexFields",
-            return_value=30,
-            autospec=True,
-        ) as _bf, patch(
-            "physbiblio.gui.commonClasses.EditObjectWindow.centerWindow", autospec=True
-        ) as _cw:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addGenericField",
+                side_effect=[i for i in range(1, 28)],
+                autospec=True,
+            ) as _agf,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addMarkTypeFields",
+                return_value=29,
+                autospec=True,
+            ) as _mtf,
+            patch(
+                "physbiblio.gui.bibWindows.MergeBibtexs.addBibtexFields",
+                return_value=30,
+                autospec=True,
+            ) as _bf,
+            patch(
+                "physbiblio.gui.commonClasses.EditObjectWindow.centerWindow",
+                autospec=True,
+            ) as _cw,
+        ):
             mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
             _cw.assert_called_once_with(mb)
             _agf.assert_has_calls(
@@ -9180,7 +9886,6 @@ class TestDuplicatesListWindow(GUITestCase):
 
     def test_cellClick(self):
         """test cellClick"""
-        p = QWidget()
         dtm = DuplicatesListWindow()
         dtm.handleItemEntered(QModelIndex())
 
@@ -9204,16 +9909,19 @@ class TestDuplicatesListWindow(GUITestCase):
 
     def test_createTable(self):
         """test createTable"""
-        p = QWidget()
         dtm = DuplicatesListWindow()
         dtm.tablecontent = "abcd"
-        with patch(
-            "physbiblio.gui.bibWindows.DuplicatesTableModel", return_value="dtm"
-        ) as _dtm, patch(
-            "physbiblio.gui.bibWindows.DuplicatesListWindow.setProxyStuff"
-        ) as _spt, patch(
-            "physbiblio.gui.bibWindows.DuplicatesListWindow.finalizeTable"
-        ) as _ft:
+        with (
+            patch(
+                "physbiblio.gui.bibWindows.DuplicatesTableModel", return_value="dtm"
+            ) as _dtm,
+            patch(
+                "physbiblio.gui.bibWindows.DuplicatesListWindow.setProxyStuff"
+            ) as _spt,
+            patch(
+                "physbiblio.gui.bibWindows.DuplicatesListWindow.finalizeTable"
+            ) as _ft,
+        ):
             dtm.createTable()
             _dtm.assert_called_once_with(dtm, dtm.colContents, "abcd")
             _spt.assert_called_once_with(0, Qt.AscendingOrder)
@@ -9221,13 +9929,11 @@ class TestDuplicatesListWindow(GUITestCase):
 
     def test_handleItemEntered(self):
         """test handleItemEntered"""
-        p = QWidget()
         dtm = DuplicatesListWindow()
         dtm.handleItemEntered(QModelIndex())
 
     def test_keyPressEvent(self):
         """test keyPressEvent"""
-        p = QWidget()
         dtm = DuplicatesListWindow()
         dtm.close = MagicMock()
         QTest.keyPress(dtm, "C", Qt.ShiftModifier)

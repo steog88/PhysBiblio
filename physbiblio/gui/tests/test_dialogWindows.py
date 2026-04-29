@@ -3,23 +3,59 @@
 
 This file is part of the physbiblio package.
 """
+
+import ast
 import os
 import traceback
 import unittest
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
-from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt, Signal
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QGridLayout,
+    QLineEdit,
+    QPlainTextEdit,
+    QProgressBar,
+    QPushButton,
+    QTableWidgetItem,
+    QTextCursor,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 try:
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import pBDB
     from physbiblio.gui.bibWindows import AbstractFormulas
     from physbiblio.gui.catWindows import CatsTreeWindow
-    from physbiblio.gui.dialogWindows import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.gui.commonClasses import (
+        ObjListWindow,
+        PBComboBox,
+        PBDDTableWidget,
+        PBDialog,
+        PBImportedTableModel,
+        PBLabel,
+        PBLabelRight,
+        PBTableView,
+        PBTrueFalseCombo,
+    )
+    from physbiblio.gui.dialogWindows import (
+        AdvancedImportDialog,
+        AdvancedImportSelect,
+        ConfigEditColumns,
+        ConfigWindow,
+        DailyArxivDialog,
+        DailyArxivSelect,
+        ExportForTexDialog,
+        LogFileContentDialog,
+        PrintText,
+    )
+    from physbiblio.gui.setuptests import GUITestCase
+    from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
+    from physbiblio.webimport.webInterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -461,7 +497,7 @@ class TestConfigWindow(GUITestCase):
                     pbConfig.loggingLevels[int(pbConfig.params[k])],
                 )
                 self.assertEqual(currWidget.count(), len(pbConfig.loggingLevels))
-                for j, l in enumerate(pbConfig.loggingLevels):
+                for j, x in enumerate(pbConfig.loggingLevels):
                     self.assertEqual(currWidget.itemText(j), pbConfig.loggingLevels[j])
             elif k == "logFileName":
                 currClass = QPushButton
@@ -517,15 +553,17 @@ class TestConfigWindow(GUITestCase):
             _f.assert_called_once_with(cw)
 
         # test non valid value for loggingLevel
-        with patch("logging.Logger.warning") as _w, patch.dict(
-            pbConfig.params, {"loggingLevel": "10"}, clear=False
+        with (
+            patch("logging.Logger.warning") as _w,
+            patch.dict(pbConfig.params, {"loggingLevel": "10"}, clear=False),
         ):
             cw = ConfigWindow()
             _w.assert_called_once_with(
                 "Invalid string for 'loggingLevel' param. Reset to default"
             )
-        with patch("logging.Logger.warning") as _w, patch.dict(
-            pbConfig.params, {"loggingLevel": "abc"}, clear=False
+        with (
+            patch("logging.Logger.warning") as _w,
+            patch.dict(pbConfig.params, {"loggingLevel": "abc"}, clear=False),
         ):
             cw = ConfigWindow()
             _w.assert_called_once_with(
@@ -543,7 +581,7 @@ class TestConfigWindow(GUITestCase):
                     ],
                 )
                 self.assertEqual(currWidget.count(), len(pbConfig.loggingLevels))
-                for j, l in enumerate(pbConfig.loggingLevels):
+                for j, x in enumerate(pbConfig.loggingLevels):
                     self.assertEqual(currWidget.itemText(j), pbConfig.loggingLevels[j])
 
 
@@ -577,9 +615,11 @@ class TestLogFileContentDialog(GUITestCase):
             with open(pbConfig.params["logFileName"]) as _f:
                 text = _f.read()
             self.assertEqual(text, "test content")
-        with patch(ayn_str, return_value=True, autospec=True) as _ayn, patch(
-            "physbiblio.gui.dialogWindows.infoMessage", autospec=True
-        ) as _in, patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c:
+        with (
+            patch(ayn_str, return_value=True, autospec=True) as _ayn,
+            patch("physbiblio.gui.dialogWindows.infoMessage", autospec=True) as _in,
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+        ):
             lf.clearLog()
             with open(pbConfig.params["logFileName"]) as _f:
                 text = _f.read()
@@ -588,11 +628,12 @@ class TestLogFileContentDialog(GUITestCase):
             _c.assert_called_once_with()
         if os.path.exists(pbConfig.params["logFileName"]):
             os.remove(pbConfig.params["logFileName"])
-        with patch(ayn_str, return_value=True, autospec=True) as _ayn, patch(
-            "builtins.open", side_effect=IOError("fake"), autospec=True
-        ) as _op, patch("logging.Logger.exception") as _ex, patch(
-            "PySide6.QtWidgets.QDialog.close", autospec=True
-        ) as _c:
+        with (
+            patch(ayn_str, return_value=True, autospec=True) as _ayn,
+            patch("builtins.open", side_effect=IOError("fake"), autospec=True) as _op,
+            patch("logging.Logger.exception") as _ex,
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+        ):
             lf.clearLog()
             _ex.assert_called_once_with("Impossible to clear log file!")
             _c.assert_not_called()
@@ -657,13 +698,15 @@ class TestPrintText(GUITestCase):
         self.assertEqual(pt.setProgressBar, True)
         self.assertEqual(pt.noStopButton, False)
         self.assertEqual(pt.message, None)
-        with patch(
-            "physbiblio.gui.dialogWindows.PrintText.progressBarMax", autospec=True
-        ) as _m, patch(
-            "physbiblio.gui.dialogWindows.PrintText.progressBarValue", autospec=True
-        ) as _v, patch(
-            "physbiblio.gui.dialogWindows.PrintText.initUI", autospec=True
-        ) as _u:
+        with (
+            patch(
+                "physbiblio.gui.dialogWindows.PrintText.progressBarMax", autospec=True
+            ) as _m,
+            patch(
+                "physbiblio.gui.dialogWindows.PrintText.progressBarValue", autospec=True
+            ) as _v,
+            patch("physbiblio.gui.dialogWindows.PrintText.initUI", autospec=True) as _u,
+        ):
             pt = PrintText()
             _u.assert_called_once_with(pt)
             pt.pbMax.emit(1)
@@ -1049,13 +1092,20 @@ class TestAdvImportSelect(GUITestCase):
             QTest.mouseClick(ais.cancelButton, Qt.LeftButton)
             _o.assert_called_once_with(ais)
 
-        with patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.addFilterInput", autospec=True
-        ) as _afi, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff", autospec=True
-        ) as _sps, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
-        ) as _ft:
+        with (
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.addFilterInput",
+                autospec=True,
+            ) as _afi,
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.setProxyStuff",
+                autospec=True,
+            ) as _sps,
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable",
+                autospec=True,
+            ) as _ft,
+        ):
             ais.initUI()
             _afi.assert_called_once_with(ais, "Filter entries", gridPos=(1, 0))
             _sps.assert_called_once_with(ais, 0, Qt.AscendingOrder)
@@ -1172,19 +1222,21 @@ class TestDailyArxivDialog(GUITestCase):
             QTest.mouseClick(dad.cancelButton, Qt.LeftButton)
             _c.assert_called_once_with()
 
-        with patch(
-            "PySide6.QtWidgets.QDialog.frameGeometry",
-            autospec=True,
-            return_value=QRect(),
-        ) as _fg, patch(
-            "PySide6.QtCore.QRect.center", autospec=True, return_value=QPoint()
-        ) as _ce, patch(
-            "PySide6.QtCore.QRect.moveCenter", autospec=True
-        ) as _mc, patch(
-            "PySide6.QtCore.QRect.topLeft", autospec=True, return_value=QPoint()
-        ) as _tl, patch(
-            "PySide6.QtWidgets.QDialog.move", autospec=True
-        ) as _mo:
+        with (
+            patch(
+                "PySide6.QtWidgets.QDialog.frameGeometry",
+                autospec=True,
+                return_value=QRect(),
+            ) as _fg,
+            patch(
+                "PySide6.QtCore.QRect.center", autospec=True, return_value=QPoint()
+            ) as _ce,
+            patch("PySide6.QtCore.QRect.moveCenter", autospec=True) as _mc,
+            patch(
+                "PySide6.QtCore.QRect.topLeft", autospec=True, return_value=QPoint()
+            ) as _tl,
+            patch("PySide6.QtWidgets.QDialog.move", autospec=True) as _mo,
+        ):
             dad.initUI()
             self.assertEqual(_fg.call_count, 1)
             self.assertEqual(_ce.call_count, 1)
@@ -1206,11 +1258,13 @@ class TestDailyArxivSelect(GUITestCase):
     def test_initUI(self):
         """test initUI"""
         p = QWidget()
-        with patch(
-            "PySide6.QtWidgets.QTableView.sortByColumn", autospec=True
-        ) as _s, patch(
-            "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable", autospec=True
-        ) as _f:
+        with (
+            patch("PySide6.QtWidgets.QTableView.sortByColumn", autospec=True) as _s,
+            patch(
+                "physbiblio.gui.commonClasses.ObjListWindow.finalizeTable",
+                autospec=True,
+            ) as _f,
+        ):
             das = DailyArxivSelect({}, p)
             _s.assert_called_once_with(0, Qt.AscendingOrder)
             _f.assert_called_once_with(das, gridPos=(2, 0, 1, 2))
@@ -1300,11 +1354,14 @@ class TestDailyArxivSelect(GUITestCase):
                 "self.abstractFormulas not present "
                 + "in DailyArxivSelect. Eprint: 1808.00000"
             )
-        with patch(
-            "PySide6.QtCore.QSortFilterProxyModel.sibling",
-            return_value=None,
-            autospec=True,
-        ) as _s, patch("logging.Logger.debug") as _d:
+        with (
+            patch(
+                "PySide6.QtCore.QSortFilterProxyModel.sibling",
+                return_value=None,
+                autospec=True,
+            ) as _s,
+            patch("logging.Logger.debug") as _d,
+        ):
             self.assertEqual(das.cellClick(ix), None)
             _d.assert_called_once_with("Data not valid", exc_info=True)
             _s.assert_called_once_with(1, 0, ix)
@@ -1373,13 +1430,19 @@ class TestExportForTexDialog(GUITestCase):
         """test onAddTex"""
         eft = ExportForTexDialog()
         eft.numTexFields = 3
-        with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.cleanLayout", autospec=True
-        ) as _cl, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.initUI", autospec=True
-        ) as _iu, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm", autospec=True
-        ) as _rf:
+        with (
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.cleanLayout",
+                autospec=True,
+            ) as _cl,
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.initUI", autospec=True
+            ) as _iu,
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm",
+                autospec=True,
+            ) as _rf,
+        ):
             eft.onAddTex()
             self.assertEqual(eft.numTexFields, 4)
             self.assertEqual(eft.texFileNames, ["", "", "", ""])
@@ -1398,9 +1461,13 @@ class TestExportForTexDialog(GUITestCase):
     def test_onOk(self):
         """test onOk"""
         eow = ExportForTexDialog()
-        with patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm", autospec=True
-        ) as _rf:
+        with (
+            patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.readForm",
+                autospec=True,
+            ) as _rf,
+        ):
             eow.onOk()
             self.assertTrue(eow.result)
             _rf.assert_called_once_with(eow)
@@ -1541,12 +1608,16 @@ class TestExportForTexDialog(GUITestCase):
         eft.update = True
         eft.remove = True
         eft.reorder = True
-        with patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.centerWindow",
-            autospec=True,
-        ) as _cw, patch(
-            "physbiblio.gui.dialogWindows.ExportForTexDialog.setGeometry", autospec=True
-        ) as _sg:
+        with (
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.centerWindow",
+                autospec=True,
+            ) as _cw,
+            patch(
+                "physbiblio.gui.dialogWindows.ExportForTexDialog.setGeometry",
+                autospec=True,
+            ) as _sg,
+        ):
             eft.initUI()
             _cw.assert_called_once_with(eft)
             _sg.assert_called_once_with(100, 100, 400, 25 * (5 + 2))

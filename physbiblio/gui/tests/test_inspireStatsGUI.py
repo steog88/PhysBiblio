@@ -3,28 +3,31 @@
 
 This file is part of the physbiblio package.
 """
+
 import datetime
-import logging
-import os
-import time
 import traceback
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QLineEdit, QMessageBox, QWidget
+from PySide6.QtWidgets import QGridLayout, QLineEdit, QPushButton
 
 try:
-    from physbiblio.gui.basicDialogs import askDirName
     from physbiblio.gui.commonClasses import PBLabel
-    from physbiblio.gui.inspireStatsGUI import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.gui.inspireStatsGUI import (
+        AuthorStatsPlots,
+        PaperStatsPlots,
+        figTitles,
+    )
+    from physbiblio.gui.setuptests import GUIwMainWTestCase
+    from physbiblio.inspireStats import pBStats
+    from physbiblio.setuptests import skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -1543,13 +1546,16 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
                 self.assertTrue(asp.saveButton.isEnabled())
                 self.assertNotIn("figs", self.mainW.lastAuthorStats.keys())
                 _ps.assert_not_called()
-            with patch(
-                "physbiblio.gui.inspireStatsGUI.askDirName",
-                return_value="/tmp",
-                autospec=True,
-            ), patch(
-                "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
-            ) as _im:
+            with (
+                patch(
+                    "physbiblio.gui.inspireStatsGUI.askDirName",
+                    return_value="/tmp",
+                    autospec=True,
+                ),
+                patch(
+                    "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
+                ) as _im,
+            ):
                 asp.saveAction()
                 _im.assert_called_once_with("Plots saved.")
                 self.assertFalse(asp.saveButton.isEnabled())
@@ -1558,19 +1564,20 @@ class TestAuthorStatsPlots(GUIwMainWTestCase):
                 )
                 self.assertEqual(self.mainW.lastAuthorStats["figs"], "fakeval")
         asp.saveButton.setEnabled(True)
-        with patch(
-            "physbiblio.inspireStats.InspireStatsLoader.plotStats",
-            side_effect=AttributeError,
-            autospec=True,
-        ) as _ps, patch(
-            "physbiblio.gui.inspireStatsGUI.askDirName",
-            return_value="tmp",
-            autospec=True,
-        ) as _adn, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
-        ) as _im:
+        with (
+            patch(
+                "physbiblio.inspireStats.InspireStatsLoader.plotStats",
+                side_effect=AttributeError,
+                autospec=True,
+            ) as _ps,
+            patch(
+                "physbiblio.gui.inspireStatsGUI.askDirName",
+                return_value="tmp",
+                autospec=True,
+            ) as _adn,
+            patch("logging.Logger.warning") as _w,
+            patch("physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True) as _im,
+        ):
             asp.saveAction()
             _w.assert_called_once_with("", exc_info=True)
             _im.assert_not_called()
@@ -1711,32 +1718,36 @@ class TestPaperStatsPlots(GUIwMainWTestCase):
                 self.assertTrue(asp.saveButton.isEnabled())
                 self.assertNotIn("fig", self.mainW.lastPaperStats.keys())
                 _ps.assert_not_called()
-            with patch(
-                "physbiblio.gui.inspireStatsGUI.askDirName",
-                return_value="/tmp",
-                autospec=True,
-            ), patch(
-                "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
-            ) as _im:
+            with (
+                patch(
+                    "physbiblio.gui.inspireStatsGUI.askDirName",
+                    return_value="/tmp",
+                    autospec=True,
+                ),
+                patch(
+                    "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
+                ) as _im,
+            ):
                 asp.saveAction()
                 _im.assert_called_once_with("Plot saved.")
                 self.assertFalse(asp.saveButton.isEnabled())
                 _ps.assert_called_once_with(pBStats, paper=True, path="/tmp", save=True)
                 self.assertEqual(self.mainW.lastPaperStats["fig"], "fakeval")
         asp.saveButton.setEnabled(True)
-        with patch(
-            "physbiblio.inspireStats.InspireStatsLoader.plotStats",
-            side_effect=AttributeError,
-            autospec=True,
-        ) as _ps, patch(
-            "physbiblio.gui.inspireStatsGUI.askDirName",
-            return_value="tmp",
-            autospec=True,
-        ) as _adn, patch(
-            "logging.Logger.warning"
-        ) as _w, patch(
-            "physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True
-        ) as _im:
+        with (
+            patch(
+                "physbiblio.inspireStats.InspireStatsLoader.plotStats",
+                side_effect=AttributeError,
+                autospec=True,
+            ) as _ps,
+            patch(
+                "physbiblio.gui.inspireStatsGUI.askDirName",
+                return_value="tmp",
+                autospec=True,
+            ) as _adn,
+            patch("logging.Logger.warning") as _w,
+            patch("physbiblio.gui.inspireStatsGUI.infoMessage", autospec=True) as _im,
+        ):
             asp.saveAction()
             _w.assert_called_once_with("", exc_info=True)
             _im.assert_not_called()

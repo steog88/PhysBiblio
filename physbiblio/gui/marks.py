@@ -8,7 +8,7 @@ import traceback
 from PySide6.QtWidgets import QCheckBox, QGroupBox, QHBoxLayout, QRadioButton
 
 try:
-    import physbiblio.gui.resourcesPyside6
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.strings.gui import MarksStrings as mstr
 except ImportError:
     print("Could not find physbiblio and its modules!")

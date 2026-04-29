@@ -11,7 +11,7 @@ from PySide6.QtGui import QAction, QCursor
 from PySide6.QtWidgets import QLineEdit, QPushButton, QToolTip
 
 try:
-    import physbiblio.gui.resourcesPyside6
+    import physbiblio.gui.resourcesPyside6  # noqa: F401
     from physbiblio.config import pbConfig
     from physbiblio.database import pBDB
     from physbiblio.errors import pBLogger
@@ -302,7 +302,7 @@ class ExpsListWindow(ObjListWindow):
         self.parent().selectedExps = [
             idE
             for idE in self.tableModel.selectedElements.keys()
-            if self.tableModel.selectedElements[idE] == True
+            if self.tableModel.selectedElements[idE]
         ]
         self.result = "Ok"
         self.close()
@@ -484,7 +484,7 @@ class ExpsListWindow(ObjListWindow):
         else:
             return
         idExp = str(self.proxyModel.sibling(row, 0, index).data())
-        return True
+        return idExp
 
     def cellDoubleClick(self, index):
         """Process event when mouse double clicks an item.

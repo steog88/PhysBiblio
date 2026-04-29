@@ -17,7 +17,7 @@ try:
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import InspireStrings
     from physbiblio.webimport.arxiv import getYear
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webInterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -321,7 +321,6 @@ class WebSearch(WebInterf, InspireStrings):
             isArxiv (default False): if the search string is an arxiv id,
                 add the "eprint" (and "arxiv:" if needed) prefix in the url
         """
-        i = 0
         if isDoi:
             string = "doi+" + string
         elif isArxiv:
@@ -657,7 +656,9 @@ class WebSearch(WebInterf, InspireStrings):
                     else (
                         "%s-%s" % (pi["page_start"], pi["page_end"])
                         if ("page_start" in pi.keys() and "page_end" in pi.keys())
-                        else pi["page_start"] if "page_start" in pi.keys() else None
+                        else pi["page_start"]
+                        if "page_start" in pi.keys()
+                        else None
                     )
                 )
             except KeyError:

@@ -4,7 +4,6 @@ This file is part of the physbiblio package.
 """
 
 import ast
-import glob
 import os
 import signal
 import sys
@@ -35,7 +34,6 @@ try:
     from physbiblio.gui.basicDialogs import (
         LongInfoMessage,
         askFileName,
-        askFileNames,
         askGenericText,
         askSaveFileName,
         askYesNo,
@@ -64,7 +62,6 @@ try:
     )
     from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.gui.expWindows import (
-        EditExperimentDialog,
         ExpsListWindow,
         editExperiment,
     )
@@ -665,12 +662,8 @@ class MainWindow(QMainWindow):
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda c=False, sD=ast.literal_eval(
-                            fs["searchDict"]
-                        ), l=fs["limitNum"], o=fs["offsetNum"], n=fs[
-                            "name"
-                        ]: self.runSearchBiblio(
-                            sD, l, o, newTab=n
+                        triggered=lambda c=False, sD=ast.literal_eval(fs["searchDict"]), lim=fs["limitNum"], o=fs["offsetNum"], n=fs["name"]: (
+                            self.runSearchBiblio(sD, lim, o, newTab=n)
                         ),
                     )
                 )
@@ -681,27 +674,27 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.edit % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.editSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.editSearchBiblio(idS, n)
+                        ),
                     )
                 )
                 tmp.addAction(
                     QAction(
                         mwstr.Act.rename % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.renameSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.renameSearchBiblio(idS, n)
+                        ),
                     )
                 )
                 tmp.addAction(
                     QAction(
                         mwstr.Act.delete % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.delSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.delSearchBiblio(idS, n)
+                        ),
                     )
                 )
         else:
@@ -715,14 +708,8 @@ class MainWindow(QMainWindow):
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda c=False, sD=ast.literal_eval(
-                            fs["searchDict"]
-                        ), r=ast.literal_eval(fs["replaceFields"]), o=fs[
-                            "offsetNum"
-                        ], n=fs[
-                            "name"
-                        ]: self.runSearchReplaceBiblio(
-                            sD, r, o, newTab=n
+                        triggered=lambda c=False, sD=ast.literal_eval(fs["searchDict"]), r=ast.literal_eval(fs["replaceFields"]), o=fs["offsetNum"], n=fs["name"]: (
+                            self.runSearchReplaceBiblio(sD, r, o, newTab=n)
                         ),
                     )
                 )
@@ -733,27 +720,27 @@ class MainWindow(QMainWindow):
                     QAction(
                         mwstr.Act.edit % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.editSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.editSearchBiblio(idS, n)
+                        ),
                     )
                 )
                 tmp.addAction(
                     QAction(
                         mwstr.Act.rename % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.renameSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.renameSearchBiblio(idS, n)
+                        ),
                     )
                 )
                 tmp.addAction(
                     QAction(
                         mwstr.Act.delete % fs["name"],
                         self,
-                        triggered=lambda c=False, idS=fs["idS"], n=fs[
-                            "name"
-                        ]: self.delSearchBiblio(idS, n),
+                        triggered=lambda c=False, idS=fs["idS"], n=fs["name"]: (
+                            self.delSearchBiblio(idS, n)
+                        ),
                     )
                 )
         else:
@@ -1157,7 +1144,7 @@ class MainWindow(QMainWindow):
 
         addMessage = getDelKwargs("addMessage")
         stopFlag = getDelKwargs("stopFlag")
-        app = PrintText(title=title, noStopButton=stopFlag == False)
+        app = PrintText(title=title, noStopButton=not stopFlag)
 
         outMessage = getDelKwargs("outMessage")
         minProgress = getDelKwargs("minProgress")
@@ -1422,9 +1409,7 @@ class MainWindow(QMainWindow):
                     )
                 if newSearchWin.newTabCheck.isChecked():
                     self.newTabAtEnd(self.tabWidget.count() - 1, label=mwstr.newTab)
-                noLim = pBDB.bibs.fetchFromDict(
-                    searchFields, limitOffset=offs, doFetch=False
-                )
+                pBDB.bibs.fetchFromDict(searchFields, limitOffset=offs, doFetch=False)
                 return replaceFields
             if newSearchWin.save:
                 name = ""
@@ -1920,7 +1905,7 @@ class MainWindow(QMainWindow):
                 return False
         string = adIm.searchStr.text().strip()
         db = bibtexparser.bibdatabase.BibDatabase()
-        if adIm.result == True and string != "":
+        if adIm.result and string != "":
             QApplication.setOverrideCursor(Qt.WaitCursor)
             cont = physBiblioWeb.webSearch[method].retrieveUrlAll(string)
             if cont.strip() != "":
@@ -1971,7 +1956,7 @@ class MainWindow(QMainWindow):
 
             selImpo = AdvancedImportSelect(found, self)
             selImpo.exec()
-            if selImpo.result == True:
+            if selImpo.result:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
                     if selImpo.selected[ch]:
@@ -2152,7 +2137,7 @@ class MainWindow(QMainWindow):
             selImpo = DailyArxivSelect(found, self)
             selImpo.abstractFormulas = AbstractFormulas
             selImpo.exec()
-            if selImpo.result == True:
+            if selImpo.result:
                 newFound = {}
                 for ch in sorted(selImpo.selected):
                     if selImpo.selected[ch]:

@@ -9,7 +9,6 @@ import os
 import shutil
 import traceback
 
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -51,9 +50,7 @@ def editProfile(parentObject):
     oldOrder = pbConfig.profileOrder
     newProfWin = EditProfileWindow(parentObject)
     newProfWin.exec()
-    data = {}
     if newProfWin.result:
-        newProfiles = {}
         deleted = []
         for currEl in newProfWin.elements:
             name = currEl["n"].text()

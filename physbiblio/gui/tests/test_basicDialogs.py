@@ -3,19 +3,28 @@
 
 This file is part of the physbiblio package.
 """
-import os
+
 import traceback
 import unittest
 from unittest.mock import MagicMock, call, patch
 
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QInputDialog, QWidget
+from PySide6.QtWidgets import QDialog, QGridLayout, QPushButton, QTextEdit, QWidget
 
 try:
-    from physbiblio.gui.basicDialogs import *
-    from physbiblio.gui.setuptests import *
-    from physbiblio.setuptests import *
+    from physbiblio.gui.basicDialogs import (
+        LongInfoMessage,
+        askDirName,
+        askFileName,
+        askFileNames,
+        askGenericText,
+        askSaveFileName,
+        askYesNo,
+        infoMessage,
+    )
+    from physbiblio.gui.setuptests import GUITestCase
+    from physbiblio.setuptests import skipTestsSettings
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -75,7 +84,6 @@ class TestDialogWindows(GUITestCase):
         with patch("PySide6.QtWidgets.QDialog.close") as _c:
             QTest.mouseClick(win.okbutton, Qt.LeftButton)
             _c.assert_called_once_with(win)
-        mb = MagicMock()
         with patch(
             "physbiblio.gui.basicDialogs.LongInfoMessage.exec", autospec=True
         ) as _e:

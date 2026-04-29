@@ -19,22 +19,20 @@ if isinstance(lastchanges, list):
         [
             (
                 "<br>%s:<br>* %s<br>"
-                % (list(l.keys())[0], "<br>\n* ".join(list(l.values())[0]))
-                if isinstance(l, dict)
-                else "* %s" % l
+                % (list(li.keys())[0], "<br>\n* ".join(list(li.values())[0]))
+                if isinstance(li, dict)
+                else "* %s" % li
             )
-            for l in lastchanges
+            for li in lastchanges
         ]
     )
 elif isinstance(lastchanges, dict):
     mdchanges = "<br>\n".join(
         [
-            (
-                "<br><b>%s:</b><br>\n* %s" % (l, "<br>\n* ".join(list(v)))
-                if isinstance(v, list)
-                else "* %s" % l
-            )
-            for l, v in lastchanges.items()
+            "<br><b>%s:</b><br>\n* %s" % (li, "<br>\n* ".join(list(v)))
+            if isinstance(v, list)
+            else "* %s" % li
+            for li, v in lastchanges.items()
         ]
     )
 try:
@@ -58,23 +56,23 @@ with open("physbiblio/version.py", "w") as _f:
 
 # prepare CHANGELOG
 text = ""
-for l in changelog:
+for li in changelog:
     try:
-        d = l["date"].strftime("%Y-%m-%d")
+        d = li["date"].strftime("%Y-%m-%d")
     except AttributeError:
-        d = l["date"]
+        d = li["date"]
     text += "{version:} ({datef:}):\n".format(
-        version=l["version"],
+        version=li["version"],
         datef=d,
     )
-    if isinstance(l["changes"], dict):
-        for k, v in l["changes"].items():
+    if isinstance(li["changes"], dict):
+        for k, v in li["changes"].items():
             text += "    %s:\n" % k
             for b in v:
                 text += "    * %s\n" % b
             text += "\n"
     else:
-        for a in l["changes"]:
+        for a in li["changes"]:
             text += "    * %s\n" % a
         text += "\n"
 

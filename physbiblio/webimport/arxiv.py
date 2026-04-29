@@ -18,7 +18,7 @@ try:
     from physbiblio.errors import pBLogger
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import ArxivStrings
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webInterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -280,7 +280,7 @@ class WebSearch(WebInterf, ArxivStrings):
             string,
             searchType,
             additionalArgs={"max_results": pbConfig.params["maxExternalAPIResults"]},
-            **kwargs
+            **kwargs,
         )
 
     def arxivRetriever(

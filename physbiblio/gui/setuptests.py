@@ -5,8 +5,7 @@ This file is part of the physbiblio package.
 
 import traceback
 import unittest
-from io import StringIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from PySide6.QtWidgets import QApplication, QFileDialog
 
