@@ -17,13 +17,12 @@ import bibtexparser
 try:
     from physbiblio.bibtexWriter import pbWriter
     from physbiblio.config import pbConfig
-    from physbiblio.database import cats_alphabetical, catString, dbStats
+    from physbiblio.database import PhysBiblioDB, cats_alphabetical, catString, dbStats
     from physbiblio.databaseCore import (
         DatabaseError,
         IntegrityError,
         InterfaceError,
         OperationalError,
-        PhysBiblioDB,
         PhysBiblioDBCore,
         PhysBiblioDBSub,
         ProgrammingError,

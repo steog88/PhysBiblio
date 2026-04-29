@@ -11,36 +11,42 @@ from queue import Queue
 from unittest.mock import call, patch
 
 from PySide6.QtCore import (
+    QAbstractItemModel,
+    QAbstractTableModel,
     QByteArray,
     QItemSelectionModel,
     QMimeData,
     QModelIndex,
+    QObject,
     QPoint,
     QRect,
+    QSortFilterProxyModel,
     Qt,
     QThread,
+    QUrl,
     Signal,
 )
-from PySide6.QtGui import QAction, QContextMenuEvent, QDropEvent, QPainter, QPixmap
+from PySide6.QtGui import (
+    QAction,
+    QContextMenuEvent,
+    QDropEvent,
+    QGuiApplication,
+    QPainter,
+    QPixmap,
+)
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
-    QAbstractItemModel,
     QAbstractItemView,
-    QAbstractTableModel,
     QComboBox,
     QDialog,
     QGridLayout,
-    QGuiApplication,
     QLabel,
     QLineEdit,
     QMenu,
-    QObject,
-    QSortFilterProxyModel,
     QStyle,
     QTableView,
     QTableWidget,
     QTableWidgetItem,
-    QUrl,
     QVBoxLayout,
     QWidget,
 )

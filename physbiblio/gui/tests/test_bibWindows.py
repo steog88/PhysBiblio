@@ -10,8 +10,16 @@ from unittest.mock import MagicMock, call, patch
 
 import matplotlib
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from PySide6.QtCore import QAction, QEvent, QItemSelectionModel, QModelIndex, Qt, QUrl
-from PySide6.QtGui import QCursor, QFont, QImage, QMouseEvent, QPixmap
+from PySide6.QtCore import QEvent, QItemSelectionModel, QModelIndex, Qt, QUrl
+from PySide6.QtGui import (
+    QAction,
+    QCursor,
+    QFont,
+    QImage,
+    QMouseEvent,
+    QPixmap,
+    QTextDocument,
+)
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
     QApplication,
@@ -23,7 +31,6 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QRadioButton,
-    QTextDocument,
     QTextEdit,
     QToolBar,
     QToolButton,

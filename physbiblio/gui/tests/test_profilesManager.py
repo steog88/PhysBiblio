@@ -32,10 +32,10 @@ try:
         PBComboBox,
         PBDialog,
         PBLabel,
-        PBOrderPushButton,
     )
     from physbiblio.gui.profilesManager import (
         EditProfileWindow,
+        PBOrderPushButton,
         SelectProfiles,
         editProfile,
     )

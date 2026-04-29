@@ -8,14 +8,12 @@ import traceback
 import unittest
 from unittest.mock import MagicMock, patch
 
-from PySide6.QtCore import QAction, QEvent, QModelIndex, QPoint, Qt
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, Qt, QTimer
+from PySide6.QtGui import QAction, QCursor, QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
-    QCursor,
     QLineEdit,
     QPushButton,
-    QTimer,
     QTreeView,
     QVBoxLayout,
     QWidget,

@@ -74,7 +74,7 @@ class Test_Thread_checkUpdated(GUITestCase):
         thr = Thread_checkUpdated(p)
         thr.result.connect(h1)
         with patch(
-            "physbiblio.gui.threadElements.check_outdated",
+            "outdated.check_outdated",
             return_value=(False, __version__),
             autospec=True,
         ) as _cho:
@@ -84,7 +84,7 @@ class Test_Thread_checkUpdated(GUITestCase):
         h1.reset_mock()
         with (
             patch(
-                "physbiblio.gui.threadElements.check_outdated",
+                "outdated.check_outdated",
                 return_value=(),
                 autospec=True,
             ) as _cho,
@@ -99,9 +99,7 @@ class Test_Thread_checkUpdated(GUITestCase):
             )
         h1.assert_not_called()
         with (
-            patch(
-                "physbiblio.gui.threadElements.check_outdated", new=fake_urlerror
-            ) as _cho,
+            patch("outdated.check_outdated", new=fake_urlerror) as _cho,
             patch("logging.Logger.warning") as _w,
         ):
             thr.run()
@@ -111,7 +109,7 @@ class Test_Thread_checkUpdated(GUITestCase):
             )
         with (
             patch(
-                "physbiblio.gui.threadElements.check_outdated",
+                "outdated.check_outdated",
                 side_effect=ConnectionError,
                 autospec=True,
             ) as _cho,

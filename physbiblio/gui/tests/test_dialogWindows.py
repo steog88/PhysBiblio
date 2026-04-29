@@ -11,6 +11,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt, Signal
+from PySide6.QtGui import QTextCursor
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -20,7 +21,6 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QTableWidgetItem,
-    QTextCursor,
     QTextEdit,
     QVBoxLayout,
     QWidget,

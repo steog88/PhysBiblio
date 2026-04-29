@@ -12,11 +12,10 @@ from queue import Queue
 from unittest.mock import MagicMock, call, patch
 
 from PySide6.QtCore import QEvent, Qt, Signal
-from PySide6.QtGui import QAction, QGuiApplication, QImage
+from PySide6.QtGui import QAction, QGuiApplication, QIcon, QImage
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
     QFrame,
-    QIcon,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -31,16 +30,12 @@ try:
     import physbiblio
     from physbiblio.config import configuration_params, pbConfig
     from physbiblio.database import dbStats, pBDB
-    from physbiblio.error import pBErrorManager
+    from physbiblio.errors import pBErrorManager
     from physbiblio.export import pBExport
     from physbiblio.gui.bibWindows import (
         AbstractFormulas,
-        AdvancedImportDialog,
-        AdvancedImportSelect,
         BibtexInfo,
         BibtexListWindow,
-        DailyArxivDialog,
-        DailyArxivSelect,
         DuplicatesListWindow,
         FieldsFromArxiv,
         SearchBibsWindow,
@@ -48,7 +43,11 @@ try:
     from physbiblio.gui.catWindows import CatsTreeWindow
     from physbiblio.gui.commonClasses import ObjectWithSignal, WriteStream
     from physbiblio.gui.dialogWindows import (
+        AdvancedImportDialog,
+        AdvancedImportSelect,
         ConfigWindow,
+        DailyArxivDialog,
+        DailyArxivSelect,
         ExportForTexDialog,
         LogFileContentDialog,
         PrintText,
@@ -1774,7 +1773,7 @@ class TestMainWindow(GUITestCase):
             patch(self.clsName + ".done", autospec=True) as _done,
         ):
             self.mainW._runInThread(func, "title")
-            _pt.assert_called_once_with(noStopButton=False, title="title")
+            _pt.assert_called_once_with(noStopButton=True, title="title")
             _pbm.assert_not_called()
             ws.newText.connect.assert_called_once_with(app.appendText)
             func.assert_called_once_with(

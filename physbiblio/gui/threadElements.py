@@ -8,9 +8,8 @@ import traceback
 from urllib.request import URLError
 
 import bibtexparser
-from outdated import check_outdated
+import outdated
 from PySide6.QtCore import Signal
-from requests.exceptions import ConnectionError
 
 try:
     from physbiblio import __version__
@@ -39,8 +38,8 @@ class Thread_checkUpdated(PBThread):
         and checking for errors
         """
         try:
-            outdated, newVersion = check_outdated("physbiblio", __version__)
-            self.result.emit(outdated, newVersion)
+            outd, newVersion = outdated.check_outdated("physbiblio", __version__)
+            self.result.emit(outd, newVersion)
         except ValueError:
             pBLogger.warning(
                 thestr.outdatedError,

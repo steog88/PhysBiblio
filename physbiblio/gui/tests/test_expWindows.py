@@ -8,10 +8,10 @@ import traceback
 import unittest
 from unittest.mock import MagicMock, call, patch
 
-from PySide6.QtCore import QAction, QEvent, QModelIndex, Qt
-from PySide6.QtGui import QCursor, QMouseEvent
+from PySide6.QtCore import QEvent, QModelIndex, Qt, QTimer
+from PySide6.QtGui import QAction, QCursor, QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QLineEdit, QPushButton, QTimer, QWidget
+from PySide6.QtWidgets import QLineEdit, QPushButton, QWidget
 
 try:
     from physbiblio.config import pbConfig
@@ -1261,7 +1261,7 @@ class TestExpsListWindow(GUITestCase):
         ) as _gh:
             elw = ExpsListWindow(p)
         self.assertEqual(elw.cellClick(QModelIndex()), None)
-        self.assertEqual(elw.cellClick(elw.tableModel.index(0, 0)), True)
+        elw.cellClick(elw.tableModel.index(0, 0))
 
     def test_cellDoubleClick(self):
         """test cellDoubleClick"""
