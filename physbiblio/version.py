@@ -1,5 +1,6 @@
-__version__ = "2.1.6"
-__version_date__ = "04/01/2026"
+__version__ = "2.1.7"
+__version_date__ = "08/10/2026"
 
-__recent_changes__ = """<br>* bug fixing (indexerror when creating a new bibtex, deprecation warnings)<br>
+__recent_changes__ = """<br>* switched to ruff<br>
+* bibtexparser >=2.0 does not work<br>
 """
