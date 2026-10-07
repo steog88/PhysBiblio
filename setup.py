@@ -40,7 +40,7 @@ setup(
         "ads",
         "appdirs",
         "argparse",
-        "bibtexparser(>=1.1.0)",
+        "bibtexparser(>=1.1.0,<2.0.0)",
         "dictdiffer",
         "feedparser",
         "matplotlib(>=3.6.2)",
