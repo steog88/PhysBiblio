@@ -102,8 +102,8 @@ class TestErrors(unittest.TestCase):
         self.resetLogFile()
         try:
             raise Exception("Fake error")
-        except Exception as e:
-            self.pBErrorManager.logger.exception(str(e))
+        except Exception:
+            self.pBErrorManager.logger.exception()
         try:
             raise Exception("New fake error")
         except Exception as e:

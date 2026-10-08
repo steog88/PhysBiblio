@@ -180,7 +180,7 @@ sampleDailyFeed1 = """<?xml version="1.0" encoding="UTF-8"?>
 <link>http://arxiv.org/</link>
 </image>
 <item rdf:about="http://arxiv.org/abs/2107.03419">
-<title>Observation of excited $\Omega_c^0$ baryons in $\Omega_b^- \to \Xi_c^+ K^-\pi^-$ decays. (arXiv:2107.03419v1 [hep-ex])</title>
+<title>Observation of excited $\\Omega_c^0$ baryons in $\\Omega_b^- \to \\Xi_c^+ K^-\\pi^-$ decays. (arXiv:2107.03419v1 [hep-ex])</title>
 <link>http://arxiv.org/abs/2107.03419</link>
 <description rdf:parseType="Literal">desc1
 </description>
@@ -311,7 +311,7 @@ class TestArxivMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "urlRss"))
         self.assertTrue(hasattr(ws, "categories"))
         self.assertIsInstance(ws.categories, dict)
-        for k, v in ws.categories.items():
+        for v in ws.categories.values():
             self.assertIsInstance(v, tuple)
         self.assertTrue(hasattr(ws, "urlArgs"))
         self.assertIsInstance(physBiblioWeb.webSearch["arxiv"], WebSearch)

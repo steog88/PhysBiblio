@@ -94,21 +94,21 @@ class TestConfigEditColumns(GUITestCase):
     @classmethod
     def setUpClass(self):
         """set temporary settings"""
-        super(TestConfigEditColumns, self).setUpClass()
-        self.defCols = [
+        super().setUpClass()
+        self.defCols = next(
             a["default"]
             for a in configuration_params.values()
             if a["name"] == "bibtexListColumns"
-        ][0]
+        )
 
     @patch.dict(
         pbConfig.params,
         {
-            "bibtexListColumns": [
+            "bibtexListColumns": next(
                 a["default"]
                 for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
-            ][0]
+            )
         },
         clear=False,
     )
@@ -162,11 +162,11 @@ class TestConfigEditColumns(GUITestCase):
     @patch.dict(
         pbConfig.params,
         {
-            "bibtexListColumns": [
+            "bibtexListColumns": next(
                 a["default"]
                 for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
-            ][0]
+            )
         },
         clear=False,
     )
@@ -181,11 +181,11 @@ class TestConfigEditColumns(GUITestCase):
     @patch.dict(
         pbConfig.params,
         {
-            "bibtexListColumns": [
+            "bibtexListColumns": next(
                 a["default"]
                 for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
-            ][0]
+            )
         },
         clear=False,
     )
@@ -208,11 +208,11 @@ class TestConfigEditColumns(GUITestCase):
     @patch.dict(
         pbConfig.params,
         {
-            "bibtexListColumns": [
+            "bibtexListColumns": next(
                 a["default"]
                 for a in configuration_params.values()
                 if a["name"] == "bibtexListColumns"
-            ][0]
+            )
         },
         clear=False,
     )
@@ -459,8 +459,7 @@ class TestConfigWindow(GUITestCase):
             self.assertIsInstance(cw.layout().itemAtPosition(ix, 0).widget(), PBLabel)
             self.assertEqual(
                 cw.layout().itemAtPosition(ix, 0).widget().text(),
-                "%s (<i>%s</i>%s)"
-                % (
+                "{} (<i>{}</i>{})".format(
                     configuration_params[k].description,
                     k,
                     " - global setting" if configuration_params[k].isGlobal else "",
@@ -470,7 +469,7 @@ class TestConfigWindow(GUITestCase):
                 currClass = QPushButton
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.text(), f"{pbConfig.params[k]}")
                 with patch(
                     "physbiblio.gui.dialogWindows.ConfigWindow.editColumns",
                     autospec=True,
@@ -481,7 +480,7 @@ class TestConfigWindow(GUITestCase):
                 currClass = QPushButton
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.text(), f"{pbConfig.params[k]}")
                 with patch(
                     "physbiblio.gui.dialogWindows.ConfigWindow.editPDFFolder",
                     autospec=True,
@@ -503,7 +502,7 @@ class TestConfigWindow(GUITestCase):
                 currClass = QPushButton
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.text(), f"{pbConfig.params[k]}")
                 with patch(
                     "physbiblio.gui.dialogWindows.ConfigWindow.editFile", autospec=True
                 ) as _f:
@@ -513,7 +512,7 @@ class TestConfigWindow(GUITestCase):
                 currClass = QPushButton
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.text(), f"{pbConfig.params[k]}")
                 with patch(
                     "physbiblio.gui.dialogWindows.ConfigWindow.editDefCats",
                     autospec=True,
@@ -524,12 +523,12 @@ class TestConfigWindow(GUITestCase):
                 currClass = PBTrueFalseCombo
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.currentText(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.currentText(), f"{pbConfig.params[k]}")
             else:
                 currClass = QLineEdit
                 currWidget = cw.textValues[ix][1]
                 self.assertIsInstance(currWidget, currClass)
-                self.assertEqual(currWidget.text(), "%s" % pbConfig.params[k])
+                self.assertEqual(currWidget.text(), f"{pbConfig.params[k]}")
             self.assertIsInstance(cw.layout().itemAtPosition(ix, 2).widget(), currClass)
             self.assertEqual(cw.layout().itemAtPosition(ix, 2).widget(), currWidget)
 
@@ -630,7 +629,7 @@ class TestLogFileContentDialog(GUITestCase):
             os.remove(pbConfig.params["logFileName"])
         with (
             patch(ayn_str, return_value=True, autospec=True) as _ayn,
-            patch("builtins.open", side_effect=IOError("fake"), autospec=True) as _op,
+            patch("builtins.open", side_effect=OSError("fake"), autospec=True) as _op,
             patch("logging.Logger.exception") as _ex,
             patch("PySide6.QtWidgets.QDialog.close", autospec=True) as _c,
         ):
@@ -659,7 +658,7 @@ class TestLogFileContentDialog(GUITestCase):
         self.assertIsInstance(lf.layout().itemAt(0).widget(), PBLabel)
         self.assertEqual(
             lf.layout().itemAt(0).widget().text(),
-            "Reading %s" % pbConfig.params["logFileName"],
+            "Reading {}".format(pbConfig.params["logFileName"]),
         )
         self.assertIsInstance(lf.textEdit, QPlainTextEdit)
         self.assertTrue(lf.textEdit.isReadOnly())
@@ -1158,7 +1157,7 @@ class TestDailyArxivDialog(GUITestCase):
         dad = DailyArxivDialog()
         self.assertEqual(dad.comboSub.count(), 1)
         self.assertEqual(dad.comboSub.itemText(0), "")
-        for c in physBiblioWeb.webSearch["arxiv"].categories.keys():
+        for c in physBiblioWeb.webSearch["arxiv"].categories:
             dad.updateCat(c)
             self.assertEqual(
                 dad.comboSub.count(),

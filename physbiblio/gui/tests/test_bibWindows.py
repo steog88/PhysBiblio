@@ -150,7 +150,7 @@ class TestFunctions(GUIwMainWTestCase):
         ):
             self.assertEqual(
                 writeBibtexInfo(entry),
-                "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
+                "<u>mykey</u> (use with '<u>\\cite{mykey}</u>')<br/>\n"
                 + "<b>sg</b><br/>\nsome title<br/>\n<i>AB 12 (2018) 1</i>"
                 + "<br/>\n<br/>\nDOI of the record: <u>a/b/12</u><br/>"
                 + "\narXiv ID of the record: <u>1234.5678</u><br/>"
@@ -200,7 +200,7 @@ class TestFunctions(GUIwMainWTestCase):
         ):
             self.assertEqual(
                 writeBibtexInfo(entry),
-                "(Book) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
+                "(Book) <u>mykey</u> (use with '<u>\\cite{mykey}</u>')<br/>\n"
                 + "<b>sg</b><br/>\nsome title<br/>\n"
                 + "<br/>\nISBN code of the record: <u>123456789</u><br/>\n"
                 + "DOI of the record: <u>a/b/12</u><br/>\n"
@@ -268,7 +268,7 @@ class TestFunctions(GUIwMainWTestCase):
         ):
             self.assertEqual(
                 writeBibtexInfo(entry),
-                "(Review) <u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
+                "(Review) <u>mykey</u> (use with '<u>\\cite{mykey}</u>')<br/>\n"
                 + "<b>sg</b><br/>\n<i>AB 12 (2018) 1</i><br/>\n<br/>\n"
                 + "DOI of the record: <u>a/b/12</u><br/>\n"
                 + "INSPIRE-HEP ID of the record: <u>1234</u><br/>\n<br/>\n"
@@ -352,7 +352,7 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Experimental paper) (No update) (PhD thesis) (Review) "
-                + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
+                + "<u>mykey</u> (use with '<u>\\cite{mykey}</u>')<br/>\n"
                 + "some title<br/>\n<i>AB 12 (2018) 1</i><br/>\n"
                 + "Alternative bibtex keys: <u>old_bib_key</u><br/>\n<br/>\n"
                 + "<br/>\nCategories: <i>Main, second</i>"
@@ -428,7 +428,7 @@ class TestFunctions(GUIwMainWTestCase):
             self.assertEqual(
                 writeBibtexInfo(entry),
                 "(Lecture) (Proceeding) "
-                + "<u>mykey</u> (use with '<u>\cite{mykey}</u>')<br/>\n"
+                + "<u>mykey</u> (use with '<u>\\cite{mykey}</u>')<br/>\n"
                 + "<b>parsed</b><br/>\nparsed<br/>\n"
                 + "<i>AB 12 (2018) 1</i><br/>\n<br/>\n<br/>\n"
                 + "Categories: <i>Main, second</i>"
@@ -465,7 +465,7 @@ class TestFunctions(GUIwMainWTestCase):
             "doi": None,
             "isbn": None,
             "year": 2015,
-            "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+            "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
             "comments": None,
             "old_keys": None,
             "crossref": None,
@@ -496,8 +496,13 @@ class TestFunctions(GUIwMainWTestCase):
             "pages": "",
             "published": "  (2015) ",
             "author": "",
-            "bibdict": "%s"
-            % {"arxiv": "1507.08204", "ENTRYTYPE": "article", "ID": "Gariazzo:2015rra"},
+            "bibdict": "{}".format(
+                {
+                    "arxiv": "1507.08204",
+                    "ENTRYTYPE": "article",
+                    "ID": "Gariazzo:2015rra",
+                }
+            ),
         }
         p = PBDialog()
         ebd = EditBibtexDialog(self.mainW)
@@ -1666,7 +1671,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
                 af.doText()
             _sbm.assert_called_once_with(self.mainW, "Parsing LaTeX...")
             _ih.assert_called_once_with(
-                "%sProcessing LaTeX formulas..." % af.abstractTitle
+                f"{af.abstractTitle}Processing LaTeX formulas..."
             )
             _pl.assert_called_once_with(af.prepareText, self.mainW)
         tpl = Thread_processLatex(af.prepareText, self.mainW)
@@ -1683,7 +1688,7 @@ class TestAbstractFormulas(GUIwMainWTestCase):
             af.doText()
             _sbm.assert_called_once_with(self.mainW, "Parsing LaTeX...")
             _ih.assert_called_once_with(
-                "%sProcessing LaTeX formulas..." % af.abstractTitle
+                f"{af.abstractTitle}Processing LaTeX formulas..."
             )
             _s.assert_called_once_with(af.thr)
             self.assertIsInstance(af.thr, Thread_processLatex)
@@ -2044,7 +2049,7 @@ class TestBibTableModel(GUITestCase):
             },
             {
                 "bibkey": "b",
-                "title": "my title {\mu}",
+                "title": r"my title {\mu}",
                 "author": "Gar",
                 "bibtex": "@article{B}",
                 "book": 1,
@@ -2276,7 +2281,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         for a in c.menu.possibleActions[0][1][:3]:
             self.assertIsInstance(a, QAction)
         self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
-        self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
+        self.assertEqual(c.menu.possibleActions[0][1][1].text(), r"\cite{key(s)}")
         self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
         self.assertEqual(c.menu.possibleActions[0][1][3], None)
         self.assertEqual(c.menu.possibleActions[0][1][4].text(), bwstr.Acts.cpDir)
@@ -2294,7 +2299,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
             else:
                 self.assertIsInstance(a, QAction)
         self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
-        self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
+        self.assertEqual(c.menu.possibleActions[0][1][1].text(), r"\cite{key(s)}")
         self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
         self.assertEqual(c.menu.possibleActions[0][1][4].text(), "bibitem")
         self.assertEqual(c.menu.possibleActions[0][1][6].text(), bwstr.Acts.cpDir)
@@ -2328,7 +2333,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 else:
                     self.assertIsInstance(a, QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
-            self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
+            self.assertEqual(c.menu.possibleActions[0][1][1].text(), r"\cite{key(s)}")
             self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
             self.assertEqual(c.menu.possibleActions[0][1][4].text(), "abstract")
             self.assertEqual(c.menu.possibleActions[0][1][5].text(), "link")
@@ -2405,7 +2410,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 else:
                     self.assertIsInstance(a, QAction)
             self.assertEqual(c.menu.possibleActions[0][1][0].text(), "key(s)")
-            self.assertEqual(c.menu.possibleActions[0][1][1].text(), "\cite{key(s)}")
+            self.assertEqual(c.menu.possibleActions[0][1][1].text(), r"\cite{key(s)}")
             self.assertEqual(c.menu.possibleActions[0][1][2].text(), "bibtex(s)")
             self.assertEqual(c.menu.possibleActions[0][1][4].text(), "abstract")
             self.assertEqual(c.menu.possibleActions[0][1][5].text(), "arXiv")
@@ -2787,11 +2792,11 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 _a.assert_called_once_with(c, m, force=0)
             self.assertEqual(
                 c.menu.possibleActions[0][1][i * 2].text(),
-                "Mark all as '%s'" % pBMarks.marks[m]["desc"],
+                "Mark all as '{}'".format(pBMarks.marks[m]["desc"]),
             )
             self.assertEqual(
                 c.menu.possibleActions[0][1][i * 2 + 1].text(),
-                "Unmark all as '%s'" % pBMarks.marks[m]["desc"],
+                "Unmark all as '{}'".format(pBMarks.marks[m]["desc"]),
             )
         for i, (k, v) in enumerate(sorted(convertType.items())):
             with patch(
@@ -2803,10 +2808,10 @@ class TestCommonBibActions(GUIwMainWTestCase):
                 c.menu.possibleActions[1][1][i * 2 + 1].trigger()
                 _a.assert_called_once_with(c, k, force=0)
             self.assertEqual(
-                c.menu.possibleActions[1][1][i * 2 + 0].text(), "Set '%s' for all" % v
+                c.menu.possibleActions[1][1][i * 2 + 0].text(), f"Set '{v}' for all"
             )
             self.assertEqual(
-                c.menu.possibleActions[1][1][i * 2 + 1].text(), "Unset '%s' for all" % v
+                c.menu.possibleActions[1][1][i * 2 + 1].text(), f"Unset '{v}' for all"
             )
 
     def test_createMenuPDF(self):
@@ -4115,7 +4120,7 @@ class TestCommonBibActions(GUIwMainWTestCase):
         )
         with patch("physbiblio.gui.bibWindows.copyToClipboard", autospec=True) as _cp:
             c.onCopyCites()
-            _cp.assert_called_once_with("\cite{abc,def}")
+            _cp.assert_called_once_with(r"\cite{abc,def}")
 
     def test_onCopyDir(self):
         """test onCopyBibtexs"""
@@ -4310,8 +4315,9 @@ class TestCommonBibActions(GUIwMainWTestCase):
         ):
             c.onDeletePDFFile("abc", "arxiv", "arxiv PDF")
             _a.assert_called_once_with(
-                "Do you really want to delete the %s file for entry %s?"
-                % ("arxiv PDF", "abc")
+                "Do you really want to delete the {} file for entry {}?".format(
+                    "arxiv PDF", "abc"
+                )
             )
             _s.assert_not_called()
             _rm.assert_not_called()
@@ -5567,7 +5573,7 @@ class TestBibtexListWindow(GUIwMainWTestCase):
     @classmethod
     def setUpClass(self):
         """Define useful things"""
-        super(TestBibtexListWindow, self).setUpClass()
+        super().setUpClass()
         self.mainW.bottomLeft = BibtexInfo(self.mainW)
         self.mainW.bottomCenter = BibtexInfo(self.mainW)
         self.mainW.bottomRight = BibtexInfo(self.mainW)
@@ -6969,7 +6975,7 @@ class TestEditBibtexDialog(GUITestCase):
         self.assertIsInstance(eb.currGrid.itemAtPosition(1, 1).widget(), PBLabel)
         self.assertEqual(
             eb.currGrid.itemAtPosition(1, 1).widget().text(),
-            "(%s)" % pBDB.descriptions["entries"]["bibkey"],
+            "({})".format(pBDB.descriptions["entries"]["bibkey"]),
         )
 
         self.assertIsInstance(eb.currGrid.itemAtPosition(6, 2).widget(), QLineEdit)
@@ -6983,13 +6989,13 @@ class TestEditBibtexDialog(GUITestCase):
         self.assertIsInstance(eb.currGrid.itemAtPosition(5, 3).widget(), PBLabel)
         self.assertEqual(
             eb.currGrid.itemAtPosition(5, 3).widget().text(),
-            "(%s)" % pBDB.descriptions["entries"]["inspire"],
+            "({})".format(pBDB.descriptions["entries"]["inspire"]),
         )
 
         self.assertIsInstance(eb.currGrid.itemAtPosition(14, 0).widget(), QGroupBox)
         self.assertIsInstance(eb.markValues, dict)
         self.assertEqual(sorted(eb.markValues.keys()), sorted(pBMarks.marks.keys()))
-        for m in pBMarks.marks.keys():
+        for m in pBMarks.marks:
             self.assertIsInstance(eb.markValues[m], QCheckBox)
             self.assertEqual(eb.markValues[m].isChecked(), False)
 
@@ -7411,7 +7417,7 @@ class TestSearchBibsWindow(GUITestCase):
                             "content": "",
                         }
                     ],
-                    "limit": "%s" % pbConfig.params["defaultLimitBibtexs"],
+                    "limit": "{}".format(pbConfig.params["defaultLimitBibtexs"]),
                     "offset": "0",
                     "replaceFields": {
                         "regex": False,
@@ -8993,7 +8999,7 @@ class TestSearchBibsWindow(GUITestCase):
                         "content": "",
                     }
                 ],
-                "limit": "%s" % pbConfig.params["defaultLimitBibtexs"],
+                "limit": "{}".format(pbConfig.params["defaultLimitBibtexs"]),
                 "offset": "0",
                 "replaceFields": {
                     "regex": False,
@@ -9511,7 +9517,7 @@ class TestMergeBibtexs(GUITestCase):
         )
         self.assertEqual(
             mb.layout().itemAtPosition(123, 0).widget().text(),
-            "%s (%s)" % ("year", pBDB.descriptions["entries"]["year"]),
+            "{} ({})".format("year", pBDB.descriptions["entries"]["year"]),
         )
 
         with patch(
@@ -9552,7 +9558,7 @@ class TestMergeBibtexs(GUITestCase):
             mb = MergeBibtexs({"bibtex": "@article0"}, {"bibtex": "@article1"})
         self.assertEqual(mb.addMarkTypeFields(123), 125)
         self.assertIsInstance(mb.markValues, dict)
-        for m in pBMarks.marks.keys():
+        for m in pBMarks.marks:
             self.assertIsInstance(mb.markValues[m], QCheckBox)
         self.assertIsInstance(mb.currGrid.itemAtPosition(124, 0).widget(), QGroupBox)
         self.assertIsInstance(mb.currGrid.itemAtPosition(125, 0).widget(), QGroupBox)
@@ -9602,7 +9608,7 @@ class TestMergeBibtexs(GUITestCase):
         )
         self.assertEqual(
             mb.currGrid.itemAtPosition(124, 0).widget().text(),
-            "%s (%s)" % ("bibkey", pBDB.descriptions["entries"]["bibkey"]),
+            "{} ({})".format("bibkey", pBDB.descriptions["entries"]["bibkey"]),
         )
         self.assertIsInstance(mb.currGrid.itemAtPosition(125, 2).widget(), QLineEdit)
         self.assertEqual(
@@ -9617,7 +9623,7 @@ class TestMergeBibtexs(GUITestCase):
         )
         self.assertEqual(
             mb.currGrid.itemAtPosition(126, 0).widget().text(),
-            "%s (%s)" % ("bibtex", pBDB.descriptions["entries"]["bibtex"]),
+            "{} ({})".format("bibtex", pBDB.descriptions["entries"]["bibtex"]),
         )
         self.assertIsInstance(
             mb.currGrid.itemAtPosition(127, 2).widget(), QPlainTextEdit

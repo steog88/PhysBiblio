@@ -65,7 +65,7 @@ class AuthorStatsPlots(PBDialog):
         self.layout().addWidget(PBLabel(igstr.linesMoreInfo), nlines + 1, 0)
 
         try:
-            hIndex = "%d" % self.parent().lastAuthorStats["h"]
+            hIndex = f"{self.parent().lastAuthorStats['h']:d}"
         except (TypeError, AttributeError):
             hIndex = igstr.hIndexE
         self.hIndex = PBLabel(igstr.hIndexV % hIndex)

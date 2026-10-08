@@ -114,11 +114,11 @@ def writeBibtexInfo(entry):
     for t in sorted(convertType.keys()):
         try:
             if entry[t] == 1:
-                infoText += "(%s) " % convertType[t]
+                infoText += f"({convertType[t]}) "
         except KeyError:
-            pBLogger.debug("KeyError: '%s' not in %s" % (t, sorted(entry.keys())))
+            pBLogger.debug(f"KeyError: '{t}' not in {sorted(entry.keys())}")
     infoText += (
-        "<u>%s</u> " % entry["bibkey"] + bwstr.Info.useWith % entry["bibkey"] + nl
+        "<u>{}</u> ".format(entry["bibkey"]) + bwstr.Info.useWith % entry["bibkey"] + nl
     )
     latexToText = LatexNodes2Text(math_mode="verbatim", keep_comments=False)
     try:
@@ -133,7 +133,7 @@ def writeBibtexInfo(entry):
         )
     try:
         infoText += (
-            "%s" % (latexToText.latex_to_text(entry["bibtexDict"]["title"])) + nl
+            "{}".format(latexToText.latex_to_text(entry["bibtexDict"]["title"])) + nl
         )
     except KeyError:
         pBLogger.debug(
@@ -141,8 +141,7 @@ def writeBibtexInfo(entry):
         )
     try:
         infoText += (
-            "<i>%s %s (%s) %s</i>"
-            % (
+            "<i>{} {} ({}) {}</i>".format(
                 entry["bibtexDict"]["journal"],
                 entry["bibtexDict"]["volume"],
                 entry["bibtexDict"]["year"],
@@ -153,12 +152,12 @@ def writeBibtexInfo(entry):
     except KeyError:
         pBLogger.debug(bwstr.Info.pubErr % (sorted(entry["bibtexDict"].keys())))
     if entry["old_keys"] not in ("", None, "None"):
-        infoText += "Alternative bibtex keys: <u>%s</u>" % entry["old_keys"] + nl
+        infoText += "Alternative bibtex keys: <u>{}</u>".format(entry["old_keys"]) + nl
     infoText += nl
     for k in ("isbn", "doi", "arxiv", "ads", "inspire"):
         try:
             infoText += (
-                ("%s: <u>%s</u>" % (pBDB.descriptions["entries"][k], entry[k]) + nl)
+                ("{}: <u>{}</u>".format(pBDB.descriptions["entries"][k], entry[k]) + nl)
                 if (entry[k] is not None and entry[k] != "")
                 else ""
             )
@@ -227,9 +226,9 @@ def editBibtex(parentObject, editKey=None):
                 data[k] = 0
         for k, v in newBibWin.textValues.items():
             try:
-                s = "%s" % v.text()
+                s = f"{v.text()}"
             except AttributeError:
-                s = "%s" % v.toPlainText()
+                s = f"{v.toPlainText()}"
             data[k] = s
         for k, v in newBibWin.checkValues.items():
             if v.isChecked():
@@ -239,7 +238,7 @@ def editBibtex(parentObject, editKey=None):
         data["marks"] = ""
         for m, ckb in newBibWin.markValues.items():
             if ckb.isChecked():
-                data["marks"] += "%s," % m
+                data["marks"] += f"{m},"
         failed = False
         data["abstract"] = ""
         if data["bibtex"].strip() != "":
@@ -253,29 +252,29 @@ def editBibtex(parentObject, editKey=None):
                     exc_info=True,
                 )
                 tmpBibDict = {}
-            data["bibdict"] = "%s" % tmpBibDict
+            data["bibdict"] = f"{tmpBibDict}"
             # if some fields are empty, use bibtex info:
             try:
                 if data["arxiv"] == previous["arxiv"]:
-                    if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
+                    if "arxiv" in tmpBibDict and tmpBibDict["arxiv"] != "":
                         data["arxiv"] = tmpBibDict["arxiv"]
-                    elif "eprint" in tmpBibDict.keys() and tmpBibDict["eprint"] != "":
+                    elif "eprint" in tmpBibDict and tmpBibDict["eprint"] != "":
                         data["arxiv"] = tmpBibDict["eprint"]
                 if (
                     data["doi"] == previous["doi"]
-                    and "doi" in tmpBibDict.keys()
+                    and "doi" in tmpBibDict
                     and tmpBibDict["doi"] != ""
                 ):
                     data["doi"] = tmpBibDict["doi"]
             except (KeyError, TypeError):
                 pass
             if data["arxiv"] == "":
-                if "arxiv" in tmpBibDict.keys() and tmpBibDict["arxiv"] != "":
+                if "arxiv" in tmpBibDict and tmpBibDict["arxiv"] != "":
                     data["arxiv"] = tmpBibDict["arxiv"]
-                elif "eprint" in tmpBibDict.keys() and tmpBibDict["eprint"] != "":
+                elif "eprint" in tmpBibDict and tmpBibDict["eprint"] != "":
                     data["arxiv"] = tmpBibDict["eprint"]
             for f in ("year", "doi", "isbn"):
-                if f in tmpBibDict.keys() and tmpBibDict[f] != "":
+                if f in tmpBibDict and tmpBibDict[f] != "":
                     data[f] = tmpBibDict[f]
             if data["firstdate"] == "":
                 data["firstdate"] = datetime.date.today().strftime("%Y-%m-%d")
@@ -484,7 +483,7 @@ class AbstractFormulas:
         text = self.text
         for i, t in enumerate(mathTexts):
             images.append(self.mathTex_to_QPixmap(t))
-            text = text.replace(t, '<img src="mydata://image%d.png" />' % i)
+            text = text.replace(t, f'<img src="mydata://image{i}.png" />')
         return images, text
 
     def submitText(self, imgs, text):
@@ -493,7 +492,7 @@ class AbstractFormulas:
         """
         for i, image in enumerate(imgs):
             self.document.addResource(
-                QTextDocument.ImageResource, QUrl("mydata://image%d.png" % i), image
+                QTextDocument.ImageResource, QUrl(f"mydata://image{i}.png"), image
             )
         self.editor.setHtml(text)
         if self.statusMessages:
@@ -535,10 +534,10 @@ class BibTableModel(PBTableModel):
         parent,
         bib_list,
         header,
-        stdCols=[],
-        addCols=[],
+        stdCols=None,
+        addCols=None,
         askBibs=False,
-        previous=[],
+        previous=None,
         mainWin=None,
         *args,
     ):
@@ -559,6 +558,12 @@ class BibTableModel(PBTableModel):
             previous (default []): the list of initially selected items
             mainWin: None (default) or a MainWindow instance
         """
+        if previous is None:
+            previous = []
+        if addCols is None:
+            addCols = []
+        if stdCols is None:
+            stdCols = []
         self.mainWin = mainWin
         self.latexToText = LatexNodes2Text(math_mode="text", keep_comments=False)
         self.typeClass = "Bibs"
@@ -601,9 +606,7 @@ class BibTableModel(PBTableModel):
                     string += convertType[t]
                     someType = True
             except KeyError:
-                pBLogger.debug(
-                    "Key not present: '%s'\nin %s" % (t, sorted(data.keys()))
-                )
+                pBLogger.debug(f"Key not present: '{t}'\nin {sorted(data.keys())}")
         return string
 
     def addPDFCell(self, key):
@@ -837,7 +840,7 @@ class CommonBibActions:
                 convert_to_latex = True
                 if field == "published":
                     try:
-                        content = "%s %s (%s) %s" % (
+                        content = "{} {} ({}) {}".format(
                             initialRecord["bibtexDict"]["journal"],
                             initialRecord["bibtexDict"]["volume"],
                             initialRecord["bibtexDict"]["year"],
@@ -854,7 +857,9 @@ class CommonBibActions:
                         content = ""
                 elif field == "bibitem":
                     convert_to_latex = False
-                    content = r"\bibitem{" + "%s" % initialRecord["bibkey"] + "}\n"
+                    content = (
+                        r"\bibitem{" + "{}".format(initialRecord["bibkey"]) + "}\n"
+                    )
                     try:
                         content += initialRecord["bibtexDict"]["authors"] + "\n"
                     except KeyError:
@@ -871,14 +876,16 @@ class CommonBibActions:
                             )
                     try:
                         content += (
-                            "% " + "%s" % initialRecord["bibtexDict"]["title"] + "\n"
+                            "% "
+                            + "{}".format(initialRecord["bibtexDict"]["title"])
+                            + "\n"
                         )
                     except KeyError:
                         pBLogger.debug(
                             bwstr.Acts.notFoundFor % ("title", initialRecord["bibkey"])
                         )
                     try:
-                        content += "%s %s (%s) %s\n" % (
+                        content += "{} {} ({}) {}\n".format(
                             initialRecord["bibtexDict"]["journal"],
                             initialRecord["bibtexDict"]["volume"],
                             initialRecord["bibtexDict"]["year"],
@@ -897,7 +904,7 @@ class CommonBibActions:
                             initialRecord["doi"] is not None
                             and initialRecord["doi"] != ""
                         ):
-                            content += "doi: %s\n" % initialRecord["doi"]
+                            content += "doi: {}\n".format(initialRecord["doi"])
                     except KeyError:
                         pBLogger.debug(
                             bwstr.Acts.notFoundFor % ("doi", initialRecord["bibkey"])
@@ -907,7 +914,7 @@ class CommonBibActions:
                             initialRecord["arxiv"] is not None
                             and initialRecord["arxiv"] != ""
                         ):
-                            content += "[arxiv:%s]\n" % initialRecord["arxiv"]
+                            content += "[arxiv:{}]\n".format(initialRecord["arxiv"])
                     except KeyError:
                         pBLogger.debug(
                             bwstr.Acts.notFoundFor % ("arxiv", initialRecord["bibkey"])
@@ -1437,7 +1444,7 @@ class CommonBibActions:
             arxiv = e["arxiv"]
             bibkey = e["bibkey"]
             if arxiv:
-                bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+                _bibtex, full = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
                     arxiv, searchType="id", fullDict=True
                 )
                 abstract = full["abstract"]
@@ -1540,7 +1547,9 @@ class CommonBibActions:
 
     def onCopyCites(self):
         r"""Copy '\cite{all the keys}' to the keyboard"""
-        copyToClipboard(r"\cite{%s}" % ",".join([e["bibkey"] for e in self.bibs]))
+        copyToClipboard(
+            r"\cite{{{}}}".format(",".join([e["bibkey"] for e in self.bibs]))
+        )
 
     def onCopyDir(self):
         """Copy the name of the directory
@@ -1694,7 +1703,7 @@ class CommonBibActions:
             data["marks"] = ""
             for m, ckb in mergewin.markValues.items():
                 if ckb.isChecked():
-                    data["marks"] += "%s," % m
+                    data["marks"] += f"{m},"
             if data["old_keys"].strip() != "" and data["old_keys"].strip() != "None":
                 data["old_keys"] = ", ".join(
                     [
@@ -1782,7 +1791,7 @@ class CommonBibActions:
             force (default None): if 0 (remove) or 1 (add), update
                 the field by using this value instead of toggling it
         """
-        if mark not in pBMarks.marks.keys():
+        if mark not in pBMarks.marks:
             pBLogger.warning(bwstr.Acts.maInv % mark)
             return
         pBLogger.debug(bwstr.Acts.maUpd % (mark, [e["bibkey"] for e in self.bibs]))
@@ -1825,7 +1834,7 @@ class CommonBibActions:
 class BibtexListWindow(ObjListWindow):
     """Class that constructs the main bibtex table"""
 
-    def __init__(self, parent=None, bibs=None, askBibs=False, previous=[]):
+    def __init__(self, parent=None, bibs=None, askBibs=False, previous=None):
         """Define some properties and create the table
 
         Parameters:
@@ -1837,6 +1846,8 @@ class BibtexListWindow(ObjListWindow):
             previous (default []): list with the initial selection
                 of entries (used if askBibs is True)
         """
+        if previous is None:
+            previous = []
         self.mainWin = parent
         self.bibs = bibs
         self.askBibs = askBibs
@@ -2059,7 +2070,7 @@ class BibtexListWindow(ObjListWindow):
         self.mainWin.selectedBibs = sorted(
             [
                 key
-                for key in self.tableModel.selectedElements.keys()
+                for key in self.tableModel.selectedElements
                 if self.tableModel.selectedElements[key]
             ]
         )
@@ -2225,7 +2236,7 @@ class BibtexListWindow(ObjListWindow):
         """
         index = self.tableview.model().index(row, col)
         try:
-            row, col, bibkey, entry = self.getEventEntry(index)
+            row, col, _bibkey, entry = self.getEventEntry(index)
         except TypeError:
             pBLogger.warning(bwstr.LW.errIdx)
             return
@@ -2249,7 +2260,7 @@ class BibtexListWindow(ObjListWindow):
             index: a `QModelIndex` instance
         """
         try:
-            row, col, bibkey, entry = self.getEventEntry(index)
+            _row, _col, _bibkey, entry = self.getEventEntry(index)
         except TypeError:
             pBLogger.warning(bwstr.LW.errIdx)
             return
@@ -2263,7 +2274,7 @@ class BibtexListWindow(ObjListWindow):
             index: a `QModelIndex` instance
         """
         try:
-            row, col, bibkey, entry = self.getEventEntry(index)
+            _row, col, bibkey, entry = self.getEventEntry(index)
         except TypeError:
             pBLogger.warning(bwstr.LW.errIdx)
             return
@@ -2328,7 +2339,7 @@ class BibtexListWindow(ObjListWindow):
 class EditBibtexDialog(EditObjectWindow):
     """Create a window for editing or creating a new bibtex entry"""
 
-    checkboxes = [
+    checkboxes = (
         "exp_paper",
         "lecture",
         "phd_thesis",
@@ -2336,7 +2347,7 @@ class EditBibtexDialog(EditObjectWindow):
         "proceeding",
         "book",
         "noUpdate",
-    ]
+    )
 
     def __init__(self, parent=None, bib=None):
         """Set some basic properties.
@@ -2431,7 +2442,7 @@ class EditBibtexDialog(EditObjectWindow):
         if k != "marks":
             self.currGrid.addWidget(PBLabel(k), i + i % 2 - 1, ((i + 1) % 2) * 2)
             self.currGrid.addWidget(
-                PBLabel("(%s)" % pBDB.descriptions["entries"][k]),
+                PBLabel("({})".format(pBDB.descriptions["entries"][k])),
                 i + i % 2 - 1,
                 ((i + 1) % 2) * 2 + 1,
             )
@@ -2624,8 +2635,7 @@ class SearchBibsWindow(EditObjectWindow):
         self.edit = edit
         self.possibleTypes = pBDB.bibs.searchPossibleTypes
         self.operators = {
-            k: sorted([e for e in v.keys()])
-            for k, v in pBDB.bibs.searchOperators.items()
+            k: sorted([e for e in v]) for k, v in pBDB.bibs.searchOperators.items()
         }
         self.fields = pBDB.bibs.searchFields
         self.replaceComboFields = pBDB.bibs.validReplaceFields
@@ -2678,7 +2688,7 @@ class SearchBibsWindow(EditObjectWindow):
                     "limit": (
                         "100000"
                         if replace
-                        else "%s" % pbConfig.params["defaultLimitBibtexs"]
+                        else "{}".format(pbConfig.params["defaultLimitBibtexs"])
                     ),
                     "offset": "0",
                     "replaceFields": {
@@ -2727,8 +2737,8 @@ class SearchBibsWindow(EditObjectWindow):
         return {
             "nrows": len(searchValues),
             "searchValues": searchValues,
-            "limit": "%s" % record["limitNum"],
-            "offset": "%s" % record["offsetNum"],
+            "limit": "{}".format(record["limitNum"]),
+            "offset": "{}".format(record["offsetNum"]),
             "replaceFields": replaceFields,
         }
 
@@ -2768,7 +2778,7 @@ class SearchBibsWindow(EditObjectWindow):
         )
         selectCats.exec()
         if selectCats.result == "Ok":
-            self.textValues[ix]["content"].setText("%s" % self.selectedCats)
+            self.textValues[ix]["content"].setText(f"{self.selectedCats}")
 
     def onAskExps(self, ix):
         """When clicking on an Experiments button, open a dialog
@@ -2786,7 +2796,7 @@ class SearchBibsWindow(EditObjectWindow):
         )
         selectExps.exec()
         if selectExps.result == "Ok":
-            self.textValues[ix]["content"].setText("%s" % self.selectedExps)
+            self.textValues[ix]["content"].setText(f"{self.selectedExps}")
 
     def keyPressEvent(self, e):
         """Intercept press keys and exit if escape is pressed
@@ -2814,8 +2824,8 @@ class SearchBibsWindow(EditObjectWindow):
             self.historic[self.currentHistoric] = {
                 "nrows": len(self.values),
                 "searchValues": [v.copy() for v in self.values],
-                "limit": "%s" % self.limit,
-                "offset": "%s" % self.offset,
+                "limit": f"{self.limit}",
+                "offset": f"{self.offset}",
                 "replaceFields": replace,
             }
             if e.key() == Qt.Key_Up and self.currentHistoric < len(self.historic) - 1:
@@ -2918,14 +2928,14 @@ class SearchBibsWindow(EditObjectWindow):
             return default
 
         try:
-            previous = {"type": "%s" % line["type"].currentText()}
+            previous = {"type": "{}".format(line["type"].currentText())}
         except (KeyError, AttributeError):
             pBLogger.debug(bwstr.SR.missingType % ix)
             return default
 
         if ix > 0:
             try:
-                previous["logical"] = "%s" % (line["logical"].currentText())
+                previous["logical"] = "{}".format(line["logical"].currentText())
             except (KeyError, AttributeError):
                 pBLogger.debug(bwstr.SR.missingLog % ix)
                 previous["logical"] = None
@@ -2934,28 +2944,28 @@ class SearchBibsWindow(EditObjectWindow):
 
         if previous["type"] == bwstr.SR.text:
             try:
-                previous["field"] = "%s" % line["field"].currentText()
+                previous["field"] = "{}".format(line["field"].currentText())
             except AttributeError:
                 previous["field"] = None
             else:
                 if previous["field"] not in self.fields["text"]:
                     previous["field"] = None
             try:
-                previous["operator"] = "%s" % (line["operator"].currentText())
+                previous["operator"] = "{}".format(line["operator"].currentText())
             except AttributeError:
                 previous["operator"] = None
             else:
                 if previous["operator"] not in self.operators["text"]:
                     previous["operator"] = None
             try:
-                previous["content"] = "%s" % line["content"].text()
+                previous["content"] = "{}".format(line["content"].text())
             except AttributeError:
                 previous["content"] = ""
 
         elif previous["type"] in (bwstr.SR.cats, bwstr.SR.exps):
             previous["field"] = ""
             try:
-                previous["operator"] = "%s" % line["operator"].currentText()
+                previous["operator"] = "{}".format(line["operator"].currentText())
             except AttributeError:
                 previous["operator"] = None
             else:
@@ -2976,7 +2986,7 @@ class SearchBibsWindow(EditObjectWindow):
             previous["operator"] = None
             previous["content"] = []
             try:
-                for m in line["content"].keys():
+                for m in line["content"]:
                     if line["content"][m].isChecked():
                         previous["content"].append(m)
             except AttributeError:
@@ -3104,7 +3114,7 @@ class SearchBibsWindow(EditObjectWindow):
             if previous["content"] == "":
                 previous["content"] = []
             self.textValues[ix]["content"] = QPushButton(
-                "%s" % previous["content"], self
+                "{}".format(previous["content"]), self
             )
             self.currGrid.addWidget(self.textValues[ix]["content"], ix, 4, 1, 4)
             if previous["type"] == bwstr.SR.cats:
@@ -3376,7 +3386,7 @@ class SearchBibsWindow(EditObjectWindow):
 class MergeBibtexs(EditBibtexDialog):
     """Dialog used to merge two bibtex entries"""
 
-    checkboxes = [
+    checkboxes = (
         "exp_paper",
         "lecture",
         "phd_thesis",
@@ -3384,8 +3394,8 @@ class MergeBibtexs(EditBibtexDialog):
         "proceeding",
         "book",
         "noUpdate",
-    ]
-    generic = [
+    )
+    generic = (
         "year",
         "doi",
         "arxiv",
@@ -3399,7 +3409,7 @@ class MergeBibtexs(EditBibtexDialog):
         "comments",
         "old_keys",
         "crossref",
-    ]
+    )
     bibtexEditLines = 8
     bibtexWidth = 330
 
@@ -3542,7 +3552,7 @@ class MergeBibtexs(EditBibtexDialog):
             self.textValues[k].hide()
         else:
             self.currGrid.addWidget(
-                PBLabelCenter("%s (%s)" % (k, pBDB.descriptions["entries"][k])),
+                PBLabelCenter("{} ({})".format(k, pBDB.descriptions["entries"][k])),
                 r,
                 0,
                 1,
@@ -3601,7 +3611,11 @@ class MergeBibtexs(EditBibtexDialog):
         r += 1
         k = "bibkey"
         self.currGrid.addWidget(
-            PBLabelCenter("%s (%s)" % (k, pBDB.descriptions["entries"][k])), r, 0, 1, 5
+            PBLabelCenter("{} ({})".format(k, pBDB.descriptions["entries"][k])),
+            r,
+            0,
+            1,
+            5,
         )
         r += 1
         self.addFieldOld("0", k, r, 0)
@@ -3616,7 +3630,11 @@ class MergeBibtexs(EditBibtexDialog):
         r += 1
         k = "bibtex"
         self.currGrid.addWidget(
-            PBLabelCenter("%s (%s)" % (k, pBDB.descriptions["entries"][k])), r, 0, 1, 5
+            PBLabelCenter("{} ({})".format(k, pBDB.descriptions["entries"][k])),
+            r,
+            0,
+            1,
+            5,
         )
         r += 1
         self.addBibtexOld("0", r, 0)
@@ -3767,24 +3785,22 @@ class DuplicatesTableModel(PBTableModel):
             True if correctly completed,
             False if the `index` is not valid
         """
-        if not index.isValid():
-            return False
-        return True
+        return index.isValid()
 
 
 class DuplicatesListWindow(ObjListWindow):
     """create a window for printing the list of duplicates"""
 
     colcnt = 5
-    colContents = [
+    colContents = (
         "Bibtex key 1",
         "Bibtex key 2",
         "Reason",
         "Value",
         "Open (double click)",
-    ]
+    )
 
-    def __init__(self, parent=None, entries={}):
+    def __init__(self, parent=None, entries=None):
         """Constructor, extends `ObjListWindow.__init__`
         with more settings and parameters
 
@@ -3792,6 +3808,8 @@ class DuplicatesListWindow(ObjListWindow):
             parent: the parent widget
             entries (dict): the output of checkDuplicates to use
         """
+        if entries is None:
+            entries = {}
         self.mainW = parent
         self.tablecontent = pBDB.bibs.printDuplicatesTuples(entries)
 

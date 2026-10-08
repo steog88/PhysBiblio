@@ -275,7 +275,7 @@ class TestWebImportOffline(unittest.TestCase):
             + """(arXiv:1805.08875v1 [hep-ex])</title>
 <link>http://arxiv.org/abs/1805.08875</link>
 <description rdf:parseType="Literal">&lt;p&gt;In 2015 the first """
-            + """collisions between polarized protons and nuclei occurred at
+            + r"""collisions between polarized protons and nuclei occurred at
 the Relativistic Heavy Ion Collider (RHIC), at a center-of-mass energy of
 $\sqrt{s_{NN}}=200$ GeV. Comparisons between spin asymmetries and
 cross-sections in $p+p$ production to those in $p+A$ production provide insight
@@ -284,7 +284,7 @@ of spin asymmetries, and comparison to models with saturation effects. The
 transverse single-spin asymmetry, $A_{N}$, has been measured in $\pi^{0}$
 production in the STAR Forward Meson Spectrometer (FMS), an electromagnetic
 calorimeter covering a forward psuedorapidity range """
-            + """of $2.6&amp;lt;\eta&amp;lt;4$. Within
+            + r"""of $2.6&amp;lt;\eta&amp;lt;4$. Within
 this kinematic range, STAR has previously reported the persistence of large
 $\pi^0$ asymmetries with unexpected dependences on $p_T$ and event topology in
 $p+p$ collisions. This talk will compare these dependences to those in $p+A$

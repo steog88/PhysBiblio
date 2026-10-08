@@ -693,6 +693,8 @@ class TreeNode(QObject):
 class TreeModel(QAbstractItemModel):
     """Model for a tree structure."""
 
+    defaultParent = QModelIndex()
+
     def __init__(self):
         """Class constructor. Calls `_getRootNodes`
         to build the tree structure
@@ -704,7 +706,7 @@ class TreeModel(QAbstractItemModel):
         """Not implemented: requires a subclass"""
         raise NotImplementedError()
 
-    def index(self, row, column, parent=QModelIndex()):
+    def index(self, row, column, parent=None):
         """Retrieve the `QModelIndex` of the requested object
 
         Parameters:
@@ -715,6 +717,8 @@ class TreeModel(QAbstractItemModel):
         Output:
             A `QModelIndex` instance
         """
+        if parent is None:
+            parent = self.defaultParent
         if not isinstance(parent, QModelIndex):
             pBLogger.debug(ccstr.invalidParentTM % (parent, "index"), exc_info=True)
             return QModelIndex()
@@ -755,7 +759,7 @@ class TreeModel(QAbstractItemModel):
             return QModelIndex()
         return self.createIndex(nodeParent.row, 0, nodeParent)
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=None):
         """Count the rows in a given tree branch
 
         Parameter:
@@ -764,6 +768,8 @@ class TreeModel(QAbstractItemModel):
         Output:
             the line number
         """
+        if parent is None:
+            parent = self.defaultParent
         if not isinstance(parent, QModelIndex):
             pBLogger.debug(ccstr.invalidParentTM % (parent, "rowCount"), exc_info=True)
             return len(self.rootNodes)

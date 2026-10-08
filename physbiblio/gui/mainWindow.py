@@ -184,7 +184,7 @@ class MainWindow(QMainWindow):
             event: a QEvent
         """
         if pBDB.checkUncommitted():
-            if not askYesNo("%s\n%s" % (mwstr.unsavedChanges, mwstr.wantToExit)):
+            if not askYesNo(f"{mwstr.unsavedChanges}\n{mwstr.wantToExit}"):
                 event.ignore()
             else:
                 event.accept()
@@ -658,11 +658,12 @@ class MainWindow(QMainWindow):
         if len(freqSearches) > 0:
             self.searchMenu = self.menuBar().addMenu(mwstr.Act.freqSM)
             for fs in freqSearches:
+                freqsear = ast.literal_eval(fs["searchDict"])
                 self.searchMenu.addAction(
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda c=False, sD=ast.literal_eval(fs["searchDict"]), lim=fs["limitNum"], o=fs["offsetNum"], n=fs["name"]: (
+                        triggered=lambda c=False, sD=freqsear, lim=fs["limitNum"], o=fs["offsetNum"], n=fs["name"]: (
                             self.runSearchBiblio(sD, lim, o, newTab=n)
                         ),
                     )
@@ -704,11 +705,13 @@ class MainWindow(QMainWindow):
         if len(freqReplaces) > 0:
             self.replaceMenu = self.menuBar().addMenu(mwstr.Act.freqRM)
             for fs in freqReplaces:
+                freqsear = ast.literal_eval(fs["searchDict"])
+                freqrepl = ast.literal_eval(fs["replaceFields"])
                 self.replaceMenu.addAction(
                     QAction(
                         fs["name"],
                         self,
-                        triggered=lambda c=False, sD=ast.literal_eval(fs["searchDict"]), r=ast.literal_eval(fs["replaceFields"]), o=fs["offsetNum"], n=fs["name"]: (
+                        triggered=lambda c=False, sD=freqsear, r=freqrepl, o=fs["offsetNum"], n=fs["name"]: (
                             self.runSearchReplaceBiblio(sD, r, o, newTab=n)
                         ),
                     )
@@ -812,7 +815,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(splitter)
 
-    def addBibtexListWindow(self, label, bibs=None, askBibs=False, previous=[]):
+    def addBibtexListWindow(self, label, bibs=None, askBibs=False, previous=None):
         """Function that creates a new BibtexListWindow and add it
         (with a label) to the list bibtexListWindows.
 
@@ -820,6 +823,8 @@ class MainWindow(QMainWindow):
             label: a string that identifies the tab
             bibs, askBibs, previous: directly passed to BibtexListWindow
         """
+        if previous is None:
+            previous = []
         self.bibtexListWindows.append(
             [
                 BibtexListWindow(
@@ -914,7 +919,7 @@ class MainWindow(QMainWindow):
             self.tabWidget.setCurrentIndex(self.currentTab)
             self.tabWidget.blockSignals(False)
 
-    def newTabAtEnd(self, index, label=None, bibs=None, askBibs=False, previous=[]):
+    def newTabAtEnd(self, index, label=None, bibs=None, askBibs=False, previous=None):
         """Function that checks if the "open new tab" tab is triggered.
         If yes, create a new bibtexListWindow and recreate the tabWidget
 
@@ -923,6 +928,8 @@ class MainWindow(QMainWindow):
             label (default None): if not None, the label of the new tab
             bibs, askBibs, previous: directly passed to BibtexListWindow
         """
+        if previous is None:
+            previous = []
         self.previousTab = self.currentTab
         self.bibtexListQueries[self.previousTab] = (
             pBDB.bibs.lastQuery,
@@ -1011,9 +1018,9 @@ class MainWindow(QMainWindow):
             changed = False
             for q in cfgWin.textValues:
                 if isinstance(q[1], PBComboBox):
-                    s = "%s" % q[1].currentText()
+                    s = f"{q[1].currentText()}"
                 else:
-                    s = "%s" % q[1].text()
+                    s = f"{q[1].text()}"
                 if q[0] == "loggingLevel":
                     s = s.split(" - ")[0]
                 if str(pbConfig.params[q[0]]) != s:
@@ -1065,7 +1072,7 @@ class MainWindow(QMainWindow):
             QMessageBox.Information,
             mwstr.recentCh,
             mwstr.recentNew % (physbiblio.__version__, physbiblio.__version_date__)
-            + "%s<br>" % physbiblio.__recent_changes__,
+            + f"{physbiblio.__recent_changes__}<br>",
             parent=self,
         )
         mbox.setTextFormat(Qt.RichText)
@@ -1607,9 +1614,8 @@ class MainWindow(QMainWindow):
         if old == "":
             infoMessage(mwstr.replaceEmptyStr)
             return
-        if any(n == "" for n in new):
-            if not askYesNo(mwstr.replaceEmptyStrAsk):
-                return
+        if any(n == "" for n in new) and not askYesNo(mwstr.replaceEmptyStrAsk):
+            return
         self._runInThread(
             Thread_replace,
             mwstr.replace,
@@ -1761,13 +1767,15 @@ class MainWindow(QMainWindow):
         self.done()
         return True
 
-    def getInspireCitationCount(self, inspireID=[]):
+    def getInspireCitationCount(self, inspireID=None):
         """Use a thread to obtain the citation statistics
         of a paper using the INSPIRE-HEP database
 
         Parameter:
             inspireID: the ID of the paper in the INSPIRE database
         """
+        if inspireID is None:
+            inspireID = []
         if not isinstance(inspireID, list):
             inspireID = [inspireID]
         if inspireID == []:
@@ -1900,9 +1908,8 @@ class MainWindow(QMainWindow):
         method = adIm.comboMethod.currentText().lower().replace("-", "")
         if method == "inspirehep":
             method = "inspire"
-        if method == "adsnasa":
-            if not self.checkAdsToken():
-                return False
+        if method == "adsnasa" and not self.checkAdsToken():
+            return False
         string = adIm.searchStr.text().strip()
         db = bibtexparser.bibdatabase.BibDatabase()
         if adIm.result and string != "":
@@ -1945,7 +1952,9 @@ class MainWindow(QMainWindow):
                                 > 0
                             )
                         except KeyError:
-                            pBLogger.debug("KeyError '%s', entry: %s" % (f, el["ID"]))
+                            pBLogger.debug(
+                                "KeyError '{}', entry: {}".format(f, el["ID"])
+                            )
                     found[el["ID"]] = {"bibpars": el, "exist": exist}
             QApplication.restoreOverrideCursor()
             if len(found) == 0:
@@ -2111,7 +2120,7 @@ class MainWindow(QMainWindow):
                 return False
             QApplication.setOverrideCursor(Qt.WaitCursor)
             content = physBiblioWeb.webSearch["arxiv"].arxivDaily(
-                cat if sub == "--" else "%s.%s" % (cat, sub)
+                cat if sub == "--" else f"{cat}.{sub}"
             )
             found = {}
             for el in content:
@@ -2146,7 +2155,7 @@ class MainWindow(QMainWindow):
                 self._runInThread(
                     Thread_importDailyArxiv, mwstr.arxIm, found, stopFlag=True
                 )
-                inserted, failed = self.importArXivResults
+                inserted, _failed = self.importArXivResults
                 self.statusBarMessage(
                     mwstr.elementImported.replace("\n", " ") % (inserted)
                 )

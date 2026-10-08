@@ -25,7 +25,7 @@ class WebSearch(WebInterf, DOIStrings):
     name = "doi"
     description = "DOI fetcher"
     url = pbConfig.doiUrl
-    headers = {"accept": "application/x-bibtex"}
+    headers = {"accept": "application/x-bibtex"}  # noqa: RUF012
 
     def createUrl(self, doi):
         """Joins the base url and the search string to get the full url.

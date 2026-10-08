@@ -57,7 +57,7 @@ class ConfigEditColumns(PBDialog):
     that must appear in the main table
     """
 
-    excludeCols = [
+    excludeCols = (
         "crossref",
         "bibtex",
         "exp_paper",
@@ -69,8 +69,8 @@ class ConfigEditColumns(PBDialog):
         "noUpdate",
         "bibdict",
         "abstract",
-    ]
-    moreCols = [
+    )
+    moreCols = (
         "title",
         "author",
         "journal",
@@ -79,7 +79,7 @@ class ConfigEditColumns(PBDialog):
         "primaryclass",
         "booktitle",
         "reportnumber",
-    ]
+    )
 
     def __init__(self, parent=None, previous=None):
         """Extend `PBDialog.__init__` and create the form structure
@@ -89,7 +89,7 @@ class ConfigEditColumns(PBDialog):
             previous: list of columns which must appear
                 as selected at the beginning
         """
-        super(ConfigEditColumns, self).__init__(parent)
+        super().__init__(parent)
         self.gridlayout = None
         self.items = []
         self.listAll = None
@@ -165,7 +165,7 @@ class ConfigWindow(PBDialog):
 
     def __init__(self, parent=None):
         """Simple extension of `PBDialog.__init__`"""
-        super(ConfigWindow, self).__init__(parent)
+        super().__init__(parent)
         self.textValues = []
         self.result = False
         self.selectedCats = None
@@ -266,8 +266,7 @@ class ConfigWindow(PBDialog):
             )
             grid.addWidget(
                 PBLabel(
-                    "%s (<i>%s</i>%s)"
-                    % (
+                    "{} (<i>{}</i>{})".format(
                         configuration_params[k].description,
                         k,
                         (
@@ -369,7 +368,7 @@ class LogFileContentDialog(PBDialog):
         if askYesNo(dwstr.clearLogAsk):
             try:
                 open(pbConfig.params["logFileName"], "w").close()
-            except IOError:
+            except OSError:
                 pBGUILogger.exception(dwstr.clearLogFailClear)
             else:
                 infoMessage(dwstr.clearLogDone)
@@ -388,7 +387,7 @@ class LogFileContentDialog(PBDialog):
         try:
             with open(pbConfig.params["logFileName"]) as r:
                 text = r.read()
-        except IOError:
+        except OSError:
             text = dwstr.clearLogFailRead
             pBLogger.exception(text)
         self.textEdit = QPlainTextEdit(text)
@@ -430,7 +429,7 @@ class PrintText(PBDialog):
                 a "stop" button to stop the iterations
             message: a text to be inserted as a `PBLabel` in the dialog
         """
-        super(PrintText, self).__init__(parent)
+        super().__init__(parent)
         self._wantToClose = False
         self.grid = None
         self.progressBar = None
@@ -466,7 +465,7 @@ class PrintText(PBDialog):
             event: a `QEvent`
         """
         if self._wantToClose:
-            super(PrintText, self).closeEvent(event)
+            super().closeEvent(event)
         else:
             event.ignore()
 
@@ -479,7 +478,7 @@ class PrintText(PBDialog):
         grid.setSpacing(1)
 
         if self.message is not None and self.message.strip() != "":
-            grid.addWidget(PBLabel("%s" % self.message))
+            grid.addWidget(PBLabel(f"{self.message}"))
 
         self.textEdit = QTextEdit()
         grid.addWidget(self.textEdit)
@@ -551,8 +550,8 @@ class PrintText(PBDialog):
         self.closeButton.setEnabled(True)
         try:
             self.cancelButton.setEnabled(False)
-        except Exception:
-            pass
+        except Exception as e:
+            pBLogger.debug(e)
 
 
 class AdvancedImportDialog(PBDialog):
@@ -560,7 +559,7 @@ class AdvancedImportDialog(PBDialog):
 
     def __init__(self, parent=None):
         """Simple extension of `PBDialog.__init__`"""
-        super(AdvancedImportDialog, self).__init__(parent)
+        super().__init__(parent)
         self.result = False
         self.grid = None
         self.searchStr = None
@@ -620,7 +619,7 @@ class AdvancedImportDialog(PBDialog):
 class AdvancedImportSelect(ObjListWindow):
     """create a window for the advanced import"""
 
-    def __init__(self, bibs={}, parent=None):
+    def __init__(self, bibs=None, parent=None):
         """Set some properties and call `initUI`
 
         Parameters:
@@ -631,8 +630,10 @@ class AdvancedImportSelect(ObjListWindow):
                 and a boolean "exist" item.
             parent: the parent widget
         """
+        if bibs is None:
+            bibs = {}
         self.bibs = bibs
-        super(AdvancedImportSelect, self).__init__(parent, gridLayout=True)
+        super().__init__(parent, gridLayout=True)
         self.checkBoxes = []
         self.result = False
         self.askCats = None
@@ -672,7 +673,7 @@ class AdvancedImportSelect(ObjListWindow):
         self.currLayout.addWidget(PBLabel(dwstr.importSelRes))
 
         headers = ["ID", "title", "author", "eprint", "doi"]
-        for k in self.bibs.keys():
+        for k in self.bibs:
             try:
                 self.bibs[k]["bibpars"]["eprint"] = self.bibs[k]["bibpars"]["arxiv"]
             except KeyError:
@@ -711,19 +712,15 @@ class AdvancedImportSelect(ObjListWindow):
 
     def triggeredContextMenuEvent(self, row, col, event):
         """Does nothing"""
-        pass
 
     def handleItemEntered(self, index):
         """Does nothing"""
-        pass
 
     def cellClick(self, index):
         """Does nothing"""
-        pass
 
     def cellDoubleClick(self, index):
         """Does nothing"""
-        pass
 
 
 class DailyArxivDialog(PBDialog):
@@ -731,7 +728,7 @@ class DailyArxivDialog(PBDialog):
 
     def __init__(self, parent=None):
         """Simple extension of `PBDialog.__init__`"""
-        super(DailyArxivDialog, self).__init__(parent)
+        super().__init__(parent)
         self.result = False
         self.grid = None
         self.comboSub = None
@@ -802,7 +799,7 @@ class DailyArxivDialog(PBDialog):
 class DailyArxivSelect(AdvancedImportSelect):
     """create a window for the advanced import"""
 
-    def __init__(self, bibs={}, parent=None):
+    def __init__(self, bibs=None, parent=None):
         """Set some properties and call `initUI`
 
         Parameters:
@@ -813,12 +810,14 @@ class DailyArxivSelect(AdvancedImportSelect):
                 and a boolean "exist" item.
             parent: the parent widget
         """
+        if bibs is None:
+            bibs = {}
         self.tableModel = None
         self.askCats = None
         self.acceptButton = None
         self.cancelButton = None
         self.abstractArea = None
-        super(DailyArxivSelect, self).__init__(bibs, parent)
+        super().__init__(bibs, parent)
 
     def initUI(self):
         """Initialize the widget content, with the buttons and labels"""
@@ -889,7 +888,7 @@ class ExportForTexDialog(PBDialog):
 
     def __init__(self, parent=None):
         """Simple extension of `PBDialog.__init__`"""
-        super(ExportForTexDialog, self).__init__(parent)
+        super().__init__(parent)
         self.numTexFields = 1
         self.bibName = ""
         self.texFileNames = [""]
@@ -976,7 +975,7 @@ class ExportForTexDialog(PBDialog):
             filter="Latex (*.tex)",
         )
         if texFile != "" and texFile != []:
-            self.texButtons[ix].setText("%s" % texFile)
+            self.texButtons[ix].setText(f"{texFile}")
 
     def initUI(self):
         """Create and fill the `QGridLayout`"""
@@ -998,7 +997,7 @@ class ExportForTexDialog(PBDialog):
                     (
                         dwstr.selFile
                         if self.texFileNames[ix] == ""
-                        else "%s" % self.texFileNames[ix]
+                        else f"{self.texFileNames[ix]}"
                     ),
                     self,
                 )

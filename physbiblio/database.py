@@ -1356,12 +1356,8 @@ class Experiments(PhysBiblioDBSub):
             """
             exp = next(e for e in exps if e["idExp"] == idExp)
             if withDesc:
-                return sp + "-> %s (%d) - %s" % (
-                    exp["name"],
-                    exp["idExp"],
-                    exp["comments"],
-                )
-            return sp + "-> %s (%d)" % (exp["name"], exp["idExp"])
+                return sp + f"-> {exp['name']} ({exp['idExp']}) - {exp['comments']}"
+            return sp + f"-> {exp['name']} ({exp['idExp']})"
 
         def alphabetExp(listId):
             """Order experiments within a list in alphabetical order
@@ -1450,11 +1446,8 @@ class Experiments(PhysBiblioDBSub):
         Parameters:
             q: the experiment record (sqlite3.Row or dict)
         """
-        return "%3d: %-20s [%-40s] [%s]" % (
-            q["idExp"],
-            q["name"],
-            q["homepage"],
-            q["inspire"],
+        return (
+            f"{q['idExp']:3d}: {q['name']:-20s} [{q['homepage']:-40s}] [{q['inspire']}]"
         )
 
     def update(self, data, idExp):
@@ -1504,7 +1497,7 @@ class Experiments(PhysBiblioDBSub):
 class Entries(PhysBiblioDBSub):
     """Functions to manage the bibtex entries"""
 
-    searchFields = {
+    searchFields = {  # noqa: RUF012
         "text": [
             "bibtex",
             "bibkey",
@@ -1519,7 +1512,7 @@ class Entries(PhysBiblioDBSub):
             "old_keys",
         ]
     }
-    searchOperators = {
+    searchOperators = {  # noqa: RUF012
         "text": {
             dstr.Bibs.Search.opTContains: "like",
             dstr.Bibs.Search.opTExact: "=",
@@ -1534,7 +1527,7 @@ class Entries(PhysBiblioDBSub):
             dstr.Bibs.Search.opCENone: "",
         },
     }
-    searchPossibleTypes = {
+    searchPossibleTypes = {  # noqa: RUF012
         "book": {"desc": dstr.Bibs.book},
         "exp_paper": {"desc": dstr.Bibs.experimental},
         "lecture": {"desc": dstr.Bibs.lecture},
@@ -1545,7 +1538,7 @@ class Entries(PhysBiblioDBSub):
         "none": {"desc": dstr.Bibs.noneType},
         "noneu": {"desc": dstr.Bibs.noneTypeUpd},
     }
-    validReplaceFields = {
+    validReplaceFields = {  # noqa: RUF012
         "old": [
             "arxiv",
             "doi",
@@ -1626,8 +1619,7 @@ class Entries(PhysBiblioDBSub):
             elif operator == dstr.Bibs.Search.opCEAll:
                 joinStr += " ".join(
                     [
-                        " left join %s %s%d on entries.bibkey=%s%d.bibkey"
-                        % (tabName, tabName, iC, tabName, iC)
+                        f" left join {tabName} {tabName}{iC} on entries.bibkey={tabName}{iC}.bibkey"
                         for iC, q in enumerate(idxs)
                     ]
                 )
@@ -1635,7 +1627,7 @@ class Entries(PhysBiblioDBSub):
                     "("
                     + " and ".join(
                         [
-                            "%s%d.%s = ?" % (tabName, iC, fieldName)
+                            f"{tabName}{iC:d}.{fieldName} = ?"
                             for iC, q in enumerate(idxs)
                         ]
                     )
@@ -2136,7 +2128,7 @@ class Entries(PhysBiblioDBSub):
                                 self.getByKey(ok.strip(), verbose=False),
                                 match,
                                 matched,
-                                "oldkey%d" % i,
+                                f"oldkey{i}",
                             )
                     else:
                         match, matched = checkres(
@@ -3461,7 +3453,7 @@ class Entries(PhysBiblioDBSub):
         )
 
     def importOneFromBibtexDict(
-        self, ie, e, db, completeInfo=True, tot=1, errors=[], existing=[]
+        self, ie, e, db, completeInfo=True, tot=1, errors=None, existing=None
     ):
         """Read one bibtex entry and process it: import data into
         the database, read information from INSPIRE/arXiv,
@@ -3483,6 +3475,10 @@ class Entries(PhysBiblioDBSub):
             the updated (errors, existing)
         """
 
+        if existing is None:
+            existing = []
+        if errors is None:
+            errors = []
         if existing is None:
             existing = []
         if errors is None:
@@ -4094,26 +4090,28 @@ class Entries(PhysBiblioDBSub):
         total = 0
         for i, e in enumerate(iterator):
             total += 1
-            orderDate = "[%4d - %-11s]" % (i, e["firstdate"])
-            bibKeyStr = "%-30s " % e["bibkey"]
+            orderDate = f"[{i:4d} - {e['firstdate']:-11s}]"
+            bibKeyStr = f"{e['bibkey']:-30s} "
             typeStr = ""
-            moreStr = "%-20s %-20s" % (
+            moreStr = "{:-20s} {:-20s}".format(
                 e["arxiv"] if e["arxiv"] is not None else "-",
                 e["doi"] if e["doi"] is not None else "-",
             )
             if e["book"] == 1:
                 typeStr = "(book)"
-                moreStr = "%-20s" % e["isbn"]
+                moreStr = f"{e['isbn']:-20s}"
             elif e["review"] == 1:
                 typeStr = "(rev)"
             elif e["lecture"] == 1:
                 typeStr = "(lect)"
             elif e["phd_thesis"] == 1:
                 typeStr = "(PhDTh)"
-                moreStr = "%-20s" % (e["arxiv"] if e["arxiv"] is not None else "-")
+                moreStr = "{:-20s}".format(
+                    e["arxiv"] if e["arxiv"] is not None else "-"
+                )
             elif e["proceeding"] == 1:
                 typeStr = "(proc)"
-            print(orderDate + "%7s " % typeStr + bibKeyStr + moreStr)
+            print(orderDate + f"{typeStr:7s} " + bibKeyStr + moreStr)
             if addFields is not None:
                 try:
                     if isinstance(addFields, list):
@@ -4131,8 +4129,8 @@ class Entries(PhysBiblioDBSub):
                                     addFields, e["bibtexDict"][addFields]
                                 )
                             )
-                except Exception:
-                    pass
+                except Exception as e:
+                    pBLogger.debug(e)
         pBLogger.info(dstr.Bibs.elementsFound % total)
 
     def printDuplicatesTuples(self, entries=None):
@@ -5041,7 +5039,8 @@ class Entries(PhysBiblioDBSub):
             db = bibtexparser.bibdatabase.BibDatabase()
             db.entries = [
                 {
-                    **{"ENTRYTYPE": "article", "ID": key},
+                    "ENTRYTYPE": "article",
+                    "ID": key,
                     **{
                         k: v
                         for k, v in e.items()
@@ -5176,8 +5175,8 @@ def catString(idCat, db, withDesc=False):
         pBLogger.warning(dstr.catNotInDb % idCat)
         return ""
     if withDesc:
-        return "%4d: %s - <i>%s</i>" % (cat["idCat"], cat["name"], cat["description"])
-    return "%4d: %s" % (cat["idCat"], cat["name"])
+        return f"{cat['idCat']:4d}: {cat['name']} - <i>{cat['description']}</i>"
+    return f"{cat['idCat']:4d}: {cat['name']}"
 
 
 def cats_alphabetical(listId, db):

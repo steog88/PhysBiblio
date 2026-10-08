@@ -74,14 +74,14 @@ class TestParser(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
             self.assert_in_stdout_sysexit(
-                lambda: parser.parse_args([opt]),
+                lambda o=opt: parser.parse_args([o]),
                 [f"PhysBiblio {__version__} ({__version_date__})"],
             )
         for opt in ("-h", "--help"):
             with self.assertRaises(SystemExit):
                 parser.parse_args([opt])
             self.assert_in_stdout_sysexit(
-                lambda: parser.parse_args([opt]),
+                lambda o=opt: parser.parse_args([o]),
                 [
                     "usage: PhysBiblio.exe [-h] [-p ",
                     "{citations,clean,cli,daily,dates,duplicates,export,test,tex,update,weekly,gui}",

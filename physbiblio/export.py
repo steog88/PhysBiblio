@@ -31,7 +31,7 @@ class PBExport:
 
     exportForTexFlag = True
     backupExtension = ".bck"
-    unwantedFields = ["owner", "timestamp", "__markedentry", "abstract"]
+    unwantedFields = ("owner", "timestamp", "__markedentry", "abstract")
 
     def __init__(self):
         """Initialize the class instance and set some default variables."""
@@ -137,7 +137,7 @@ class PBExport:
                     for q in rows:
                         if citations:
                             d = eval(q["bibdict"])
-                            d["citations"] = "%d" % q["citations"]
+                            d["citations"] = f"{q['citations']}"
                             db.entries = [d]
                             t = pbWriter.write(db)
                             t = pBDB.bibs.rmBibtexComments(t)

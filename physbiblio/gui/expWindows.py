@@ -203,10 +203,10 @@ class ExpsListWindow(ObjListWindow):
     """create a window for printing the list of experiments"""
 
     colcnt = len(pBDB.tableCols["experiments"])
-    colContents = [
+    colContents = (
         pBDB.tableCols["experiments"][j]
         for j in range(len(pBDB.tableCols["experiments"]))
-    ]
+    )
 
     def __init__(
         self, parent=None, askExps=False, askForBib=None, askForCat=None, previous=None

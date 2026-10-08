@@ -36,8 +36,8 @@ class InspireStatsLoader:
     to collect information from INSPIRE-HEP
     """
 
-    authorPlotInfo = {}
-    paperPlotInfo = {}
+    authorPlotInfo = {}  # noqa: RUF012
+    paperPlotInfo = {}  # noqa: RUF012
 
     def __init__(self):
         """The class constructor,
@@ -121,9 +121,9 @@ class InspireStatsLoader:
             return self.authorPlotInfo
         pBLogger.info(isstr.authorStats % authorName)
         data, tot = physBiblioWeb.webSearch["inspire"].retrieveSearchResults(
-            "author:%s" % authorName, fields=["control_number"]
+            f"author:{authorName}", fields=["control_number"]
         )
-        recid_authorPapers = sorted(["%s" % a["id"] for a in data])
+        recid_authorPapers = sorted(["{}".format(a["id"]) for a in data])
         tot = len(recid_authorPapers)
         pBLogger.info(isstr.authorStatsProcess % tot)
         self.runningAuthorStats = True
@@ -133,12 +133,12 @@ class InspireStatsLoader:
             pass
         batchSize = pbConfig.params["batchSizeInspire"]
         for i in range(0, tot, batchSize):
-            entries, nume = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            entries, _nume = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 recid_authorPapers[i : i + batchSize],
                 searchFormat="recid:%s",
                 fields=["control_number", "references.record"],
             )
-            references, numr = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            references, _numr = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 recid_authorPapers[i : i + batchSize],
                 searchFormat="refersto:recid:%s",
                 fields=["control_number", "references.record"],
@@ -167,7 +167,7 @@ class InspireStatsLoader:
                     pBLogger.info(isstr.stopReceived)
                     break
                 p = e["id"]
-                if p in self.allInfoA.keys():
+                if p in self.allInfoA:
                     continue
                 self.allInfoA[p] = {}
                 self.allInfoA[p]["date"] = dateutil.parser.parse(e["created"])
@@ -181,7 +181,7 @@ class InspireStatsLoader:
                 )
                 self.allInfoA[p]["infoDict"] = paperInfo["aI"]
                 self.allInfoA[p]["citingPapersList"] = paperInfo["citList"]
-                for c, v in self.allInfoA[p]["infoDict"].items():
+                for v in self.allInfoA[p]["infoDict"].values():
                     self.allCitations.append(v["date"])
                 pBLogger.info("")
 
@@ -205,8 +205,7 @@ class InspireStatsLoader:
             meanCitList[1].append((i + 1.0) / self.authorPapersList[1][currPaper])
         hind = 0
         citations = [
-            len(self.allInfoA[k]["citingPapersList"][0]) - 2
-            for k in self.allInfoA.keys()
+            len(self.allInfoA[k]["citingPapersList"][0]) - 2 for k in self.allInfoA
         ]
         for h in range(len(citations)):
             if len([a for a in citations if a >= h]) >= h:
@@ -290,8 +289,8 @@ class InspireStatsLoader:
         if useData is not None:
             data = useData
         else:
-            data, tot = physBiblioWeb.webSearch["inspire"].retrieveSearchResults(
-                "refersto:recid:%s" % paperID, fields=["control_number"]
+            data, _tot = physBiblioWeb.webSearch["inspire"].retrieveSearchResults(
+                f"refersto:recid:{paperID}", fields=["control_number"]
             )
         self.readPaperStats(paperID, data, paperDate=paperDate)
         if plot:

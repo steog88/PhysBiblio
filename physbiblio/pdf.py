@@ -350,7 +350,7 @@ class LocalPDF:
         """
         pBLogger.info(pstr.listing % (key, self.getFileDir(key)))
         for i, e in enumerate(self.getExisting(key, fullPath=fullPath)):
-            pBLogger.info("%2d: %s" % (i, e))
+            pBLogger.info(f"{i:2d}: {e}")
 
     def printAllExisting(self, entries=None, fullPath=False):
         """Print the complete list of all the existing PDF files
@@ -370,7 +370,7 @@ class LocalPDF:
         for e in iterator:
             exist = self.getExisting(e["bibkey"], fullPath=fullPath)
             if len(exist) > 0:
-                pBLogger.info("%30s: [%s]" % (e["bibkey"], "] [".join(exist)))
+                pBLogger.info(f"{e['bibkey']:30s}: [{'] ['.join(exist)}]")
 
     def removeSparePDFFolders(self):
         """Scans the PDF folder in order to find single unassociated

@@ -95,7 +95,7 @@ class TestMainWindow(GUITestCase):
     @classmethod
     def setUpClass(self):
         """define common parameters for test use"""
-        super(TestMainWindow, self).setUpClass()
+        super().setUpClass()
         self.qmwName = "PySide6.QtWidgets.QMainWindow"
         self.modName = "physbiblio.gui.mainWindow"
         self.clsName = self.modName + ".MainWindow"
@@ -159,8 +159,8 @@ class TestMainWindow(GUITestCase):
             mw,
             0,
             0,
-            cmww if cmww > 600 else 600,
-            cmwh if cmwh > 400 else 400,
+            max(600, cmww),
+            max(400, cmwh),
         )
         self.assertTrue(hasattr(mw, "onIsLockedClass"))
         self.assertIsInstance(mw.onIsLockedClass, ObjectWithSignal)
@@ -379,7 +379,7 @@ class TestMainWindow(GUITestCase):
                 self.assertEqual(img, act.icon().pixmap(img.size()).toImage())
             self.assertEqual(act.statusTip(), tip)
             if p is None:
-                with patch("%s.%s" % (self.clsName, trig), autospec=True) as _f:
+                with patch(f"{self.clsName}.{trig}", autospec=True) as _f:
                     act.trigger()
                     _f.assert_called_once()
             else:
@@ -1523,14 +1523,9 @@ class TestMainWindow(GUITestCase):
             self.mainW.config()
             _sbm.assert_called_once_with(self.mainW, "Configuration saved")
             self.assertEqual(_de.call_count + 2, len(configuration_params.keys()))
-            for k in old.keys():
+            for k, v in old.items():
                 _in.assert_has_calls(
-                    [
-                        call(
-                            "New value for param "
-                            "%s = %s (old: '%s')" % (k, new[k], old[k])
-                        )
-                    ]
+                    [call(f"New value for param {k} = {new[k]} (old: '{v}')")]
                 )
                 if k == "notifyUpdate":
                     _cup.assert_has_calls([call(pbConfig.globalDb.config, k, new[k])])
@@ -1558,63 +1553,59 @@ class TestMainWindow(GUITestCase):
     def test_reloadConfig(self):
         """test reloadConfig"""
         oldPdfD = pBPDF.pdfDir
-        with patch.dict(
-            pbConfig.params,
-            {
-                "webApplication": "webApp",
-                "pdfApplication": "pdfApp",
-                "pdfFolder": "pdf/folder",
-            },
-            clear=False,
+        with (
+            patch.dict(
+                pbConfig.params,
+                {
+                    "webApplication": "webApp",
+                    "pdfApplication": "pdfApp",
+                    "pdfFolder": "pdf/folder",
+                },
+                clear=False,
+            ),
+            patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
+                autospec=True,
+            ) as _rcc,
+            patch("physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True) as _cfe,
         ):
-            with (
-                patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,
-                patch(
-                    "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
-                    autospec=True,
-                ) as _rcc,
-                patch(
-                    "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
-                ) as _cfe,
-            ):
-                self.mainW.reloadConfig()
-                _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
-                _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
-                self.assertEqual(pBView.webApp, "webApp")
-                self.assertEqual(pBPDF.pdfApp, "pdfApp")
-                self.assertEqual(
-                    pBPDF.pdfDir,
-                    os.path.join(
-                        os.path.split(os.path.abspath(sys.argv[0]))[0], "pdf/folder"
-                    ),
-                )
-                _cfe.assert_called_once_with(pBPDF)
-        with patch.dict(
-            pbConfig.params,
-            {
-                "webApplication": "webApp",
-                "pdfApplication": "pdfApp",
-                "pdfFolder": "/pdf/folder",
-            },
-            clear=False,
+            self.mainW.reloadConfig()
+            _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
+            _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
+            self.assertEqual(pBView.webApp, "webApp")
+            self.assertEqual(pBPDF.pdfApp, "pdfApp")
+            self.assertEqual(
+                pBPDF.pdfDir,
+                os.path.join(
+                    os.path.split(os.path.abspath(sys.argv[0]))[0], "pdf/folder"
+                ),
+            )
+            _cfe.assert_called_once_with(pBPDF)
+        with (
+            patch.dict(
+                pbConfig.params,
+                {
+                    "webApplication": "webApp",
+                    "pdfApplication": "pdfApp",
+                    "pdfFolder": "/pdf/folder",
+                },
+                clear=False,
+            ),
+            patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,
+            patch(
+                "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
+                autospec=True,
+            ) as _rcc,
+            patch("physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True) as _cfe,
         ):
-            with (
-                patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,
-                patch(
-                    "physbiblio.gui.bibWindows.BibtexListWindow.reloadColumnContents",
-                    autospec=True,
-                ) as _rcc,
-                patch(
-                    "physbiblio.pdf.LocalPDF.checkFolderExists", autospec=True
-                ) as _cfe,
-            ):
-                self.mainW.reloadConfig()
-                _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
-                _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
-                self.assertEqual(pBView.webApp, "webApp")
-                self.assertEqual(pBPDF.pdfApp, "pdfApp")
-                self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
-                _cfe.assert_called_once_with(pBPDF)
+            self.mainW.reloadConfig()
+            _sbm.assert_called_once_with(self.mainW, "Reloading configuration...")
+            _rcc.assert_called_once_with(self.mainW.bibtexListWindows[0][0])
+            self.assertEqual(pBView.webApp, "webApp")
+            self.assertEqual(pBPDF.pdfApp, "pdfApp")
+            self.assertEqual(pBPDF.pdfDir, "/pdf/folder")
+            _cfe.assert_called_once_with(pBPDF)
         with (
             patch(self.clsName + ".statusBarMessage", autospec=True) as _sbm,
             patch(
@@ -1638,9 +1629,8 @@ class TestMainWindow(GUITestCase):
             _mb.assert_called_once_with(
                 _mb.Information,
                 "Recent changes",
-                "New in this <b>version %s</b> (%s):<br>"
-                % (physbiblio.__version__, physbiblio.__version_date__)
-                + "%s<br>" % physbiblio.__recent_changes__,
+                f"New in this <b>version {physbiblio.__version__}</b> ({physbiblio.__version_date__}):<br>"
+                + f"{physbiblio.__recent_changes__}<br>",
                 parent=self.mainW,
             )
             _qpm.assert_called_once_with(":/images/icon.png")
@@ -1670,14 +1660,13 @@ class TestMainWindow(GUITestCase):
                 + "automatic update and various different other functions."
                 + "<br><br>"
                 + "<b>Paths:</b><br>"
-                + "<i>Configuration:</i> %s<br>" % pbConfig.configPath
-                + "<i>Data:</i> %s<br>" % pbConfig.dataPath
+                + f"<i>Configuration:</i> {pbConfig.configPath}<br>"
+                + f"<i>Data:</i> {pbConfig.dataPath}<br>"
                 + "<br>"
                 + "<b>Author:</b> Stefano Gariazzo "
                 + "<i>&lt;stefano.gariazzo@gmail.com&gt;</i><br>"
-                + "<b>Version:</b> %s (%s)<br>"
-                % (physbiblio.__version__, physbiblio.__version_date__)
-                + "<b>Python version</b>: %s" % sys.version,
+                + f"<b>Version:</b> {physbiblio.__version__} ({physbiblio.__version_date__})<br>"
+                + f"<b>Python version</b>: {sys.version}",
                 parent=self.mainW,
             )
             _qpm.assert_called_once_with(":/images/icon.png")
@@ -1709,14 +1698,12 @@ class TestMainWindow(GUITestCase):
                 "PhysBiblio database statistics",
                 "The PhysBiblio database currently contains "
                 + "the following number of records:\n"
-                + "- %d bibtex entries\n" % (pBDB.stats["bibs"])
-                + "- %d categories\n" % (pBDB.stats["cats"])
-                + "- %d experiments,\n" % (pBDB.stats["exps"])
-                + "- %d bibtex entries to categories connections\n"
-                % (pBDB.stats["catBib"])
-                + "- %d experiment to categories connections\n" % (pBDB.stats["catExp"])
-                + "- %d bibtex entries to experiment connections.\n\n"
-                % (pBDB.stats["bibExp"])
+                + f"- {pBDB.stats['bibs']} bibtex entries\n"
+                + f"- {pBDB.stats['cats']} categories\n"
+                + f"- {pBDB.stats['exps']} experiments,\n"
+                + f"- {pBDB.stats['catBib']} bibtex entries to categories connections\n"
+                + f"- {pBDB.stats['catExp']} experiment to categories connections\n"
+                + f"- {pBDB.stats['bibExp']} bibtex entries to experiment connections.\n\n"
                 + "The number of currently stored PDF files is 2.\n"
                 + "The size of the PDF folder is 16.00MB.",
                 parent=self.mainW,
@@ -3451,8 +3438,9 @@ class TestMainWindow(GUITestCase):
             self.mainW.updateAllBibtexs()
             _sbm.assert_called_once_with(
                 self.mainW,
-                "Starting update of bibtexs from %s..."
-                % (pbConfig.params["defaultUpdateFrom"]),
+                "Starting update of bibtexs from {}...".format(
+                    pbConfig.params["defaultUpdateFrom"]
+                ),
             )
             _rit.assert_called_once_with(
                 self.mainW,

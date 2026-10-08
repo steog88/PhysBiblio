@@ -536,7 +536,7 @@ class PDFStrings(CommonStrings):
 class TablesDefStrings:
     """Strings for the physbiblio.tablesDef module"""
 
-    catsDescs = {
+    catsDescs = {  # noqa: RUF012
         "idCat": "Unique ID that identifies the category",
         "name": "Name of the category",
         "description": "Description of the category",
@@ -544,12 +544,12 @@ class TablesDefStrings:
         "comments": "Comments",
         "ord": "Ordering when plotting (not yet implemented)",
     }
-    entriesCatsDescs = {
+    entriesCatsDescs = {  # noqa: RUF012
         "idEnC": "Unique identifier",
         "bibkey": "Corresponding bibtex key",
         "idCat": "Corresponding category ID",
     }
-    entriesDescs = {
+    entriesDescs = {  # noqa: RUF012
         "bibkey": "Unique bibtex key that identifies the bibliographic element",
         "inspire": "INSPIRE-HEP ID of the record",
         "arxiv": "arXiv ID of the record",
@@ -579,24 +579,24 @@ class TablesDefStrings:
         "citations": "Most recent number of citations from INSPIRE",
         "citations_no_self": "Most recent number of citations from INSPIRE, excluding self cites",
     }
-    entriesExpsDescs = {
+    entriesExpsDescs = {  # noqa: RUF012
         "idEnEx": "Unique identifier",
         "bibkey": "Corresponding bibtex key",
         "idExp": "Corresponding experiment ID",
     }
-    expsCatsDescs = {
+    expsCatsDescs = {  # noqa: RUF012
         "idExC": "Unique identifier",
         "idExp": "Corresponding experiment ID",
         "idCat": "Corresponding category ID",
     }
-    expsDescs = {
+    expsDescs = {  # noqa: RUF012
         "idExp": "Unique ID that identifies the experiment",
         "name": "Name of the experiment",
         "comments": "Description or comments",
         "homepage": "Web link to the experiment homepage",
         "inspire": "INSPIRE-HEP ID of the experiment record",
     }
-    searchesDescs = {
+    searchesDescs = {  # noqa: RUF012
         "idS": "Unique identifier",
         "name": "Custom name of the search/replace",
         "count": "Order of the entry in the cronology",
@@ -607,7 +607,7 @@ class TablesDefStrings:
         "manual": "Manually saved",
         "isReplace": "(T/F) A replacement or a simple search",
     }
-    settingsDescs = {
+    settingsDescs = {  # noqa: RUF012
         "id": "Unique identifier",
         "name": "name of the setting",
         "value": "value of the setting",

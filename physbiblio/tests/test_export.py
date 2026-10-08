@@ -141,24 +141,26 @@ class TestExportMethods(unittest.TestCase):
         sampleList = [
             {
                 "bibtex": '@Article{empty,\nauthor="me",\ntitle="no"\n}',
-                "bibdict": "%s"
-                % {
-                    "ID": "empty",
-                    "ENTRYTYPE": "article",
-                    "author": "me",
-                    "title": "no",
-                },
+                "bibdict": "{}".format(
+                    {
+                        "ID": "empty",
+                        "ENTRYTYPE": "article",
+                        "author": "me",
+                        "title": "no",
+                    }
+                ),
                 "citations": 12,
             },
             {
                 "bibtex": '@Article{empty2,\nauthor="me2",\ntitle="yes"\n}',
-                "bibdict": "%s"
-                % {
-                    "ID": "empty2",
-                    "ENTRYTYPE": "article",
-                    "author": "me2",
-                    "title": "yes",
-                },
+                "bibdict": "{}".format(
+                    {
+                        "ID": "empty2",
+                        "ENTRYTYPE": "article",
+                        "author": "me2",
+                        "title": "yes",
+                    }
+                ),
                 "citations": 32,
             },
         ]
