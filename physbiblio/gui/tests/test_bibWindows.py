@@ -83,7 +83,7 @@ try:
     from physbiblio.pdf import pBPDF
     from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
     from physbiblio.strings.gui import BibWindowsStrings as bwstr
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

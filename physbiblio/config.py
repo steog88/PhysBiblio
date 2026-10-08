@@ -294,7 +294,7 @@ class GlobalDB(PhysBiblioDBCore):
 
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [name[0] for name in self.curs]
-        if not all([a in tables for a in ("profiles", "searches", "settings")]):
+        if not all(a in tables for a in ("profiles", "searches", "settings")):
             self.createTables(tables)
 
         if self.countProfiles() == 0:
@@ -358,7 +358,7 @@ class GlobalDB(PhysBiblioDBCore):
             "isDefault": 1 if self.countProfiles() == 0 else 0,
             "ord": 100,
         }
-        self.logger.info("%s\n%s" % (command, data))
+        self.logger.info(f"{command}\n{data}")
         if not self.connExec(command, data):
             self.logger.exception(cstr.errorInsertProfile)
             sys.exit(1)
@@ -394,11 +394,11 @@ class GlobalDB(PhysBiblioDBCore):
             self.logger.error(cstr.errorInvalidFieldI % (field, identifierField))
             return False
         command = (
-            "update profiles set %s = :val " % field
-            + " where %s = :iden\n" % identifierField
+            f"update profiles set {field} = :val "
+            + f" where {identifierField} = :iden\n"
         )
         data = {"val": value, "iden": identifier}
-        self.logger.debug("%s\n%s" % (command, data))
+        self.logger.debug(f"{command}\n{data}")
         if not self.connExec(command, data):
             self.logger.error(cstr.errorUpdateProfile)
             return False
@@ -419,7 +419,7 @@ class GlobalDB(PhysBiblioDBCore):
             return False
         isDefault = name == self.getDefaultProfile()
         command = "delete from profiles where name = :name\n"
-        self.logger.debug("%s\n%s" % (command, {"name": name}))
+        self.logger.debug("{}\n{}".format(command, {"name": name}))
         if not self.connExec(command, {"name": name}):
             self.logger.error(cstr.errorDeleteProfile)
             return False
@@ -472,7 +472,7 @@ class GlobalDB(PhysBiblioDBCore):
         self.cursExec("SELECT * FROM profiles order by ord ASC, name ASC\n")
         return [e["name"] for e in self.curs.fetchall()]
 
-    def setProfileOrder(self, order=[]):
+    def setProfileOrder(self, order=None):
         """Set the new order of profiles
 
         Parameters:
@@ -481,6 +481,8 @@ class GlobalDB(PhysBiblioDBCore):
         Output:
             True if successful, False otherwise
         """
+        if order is None:
+            order = []
         if order == []:
             self.logger.warning(cstr.errorOrder)
             return False
@@ -514,10 +516,10 @@ class GlobalDB(PhysBiblioDBCore):
             self.setDefaultProfile("default")
         self.cursExec("SELECT * FROM profiles WHERE isDefault = 1\n")
         try:
-            defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
+            defaultProfileName = next(e["name"] for e in self.curs.fetchall())
         except IndexError:
             self.cursExec("SELECT * FROM profiles\n")
-            defaultProfileName = [e["name"] for e in self.curs.fetchall()][0]
+            defaultProfileName = next(e["name"] for e in self.curs.fetchall())
             if self.setDefaultProfile(defaultProfileName):
                 self.logger.info(cstr.defaultProfileChanged % defaultProfileName)
         return defaultProfileName
@@ -574,8 +576,8 @@ class GlobalDB(PhysBiblioDBCore):
         self,
         name="",
         count=0,
-        searchFields=[],
-        replaceFields=[],
+        searchFields=None,
+        replaceFields=None,
         manual=False,
         replacement=False,
         limit=0,
@@ -597,6 +599,10 @@ class GlobalDB(PhysBiblioDBCore):
         Output:
             the output of self.connExec
         """
+        if replaceFields is None:
+            replaceFields = []
+        if searchFields is None:
+            searchFields = []
         if limit == 0:
             limit = pbConfig.params["defaultLimitBibtexs"]
         output = self.connExec(
@@ -607,10 +613,10 @@ class GlobalDB(PhysBiblioDBCore):
             {
                 "name": name,
                 "count": count,
-                "searchFields": "%s" % searchFields,
+                "searchFields": f"{searchFields}",
                 "limit": limit,
                 "offset": offset,
-                "replaceFields": "%s" % replaceFields,
+                "replaceFields": f"{replaceFields}",
                 "manual": 1 if manual else 0,
                 "isReplace": 1 if replacement else 0,
             },
@@ -724,10 +730,10 @@ class GlobalDB(PhysBiblioDBCore):
         if (field == "replaceFields" and not isReplace) or (
             field in ("searchDict", "replaceFields", "name", "limitNum", "offsetNum")
             and value is not None
-            and ("%s" % value).strip() not in ("", "[]", "{}")
+            and (f"{value}").strip() not in ("", "[]", "{}")
         ):
             query = "update searches set " + field + "=:field where idS=:idS\n"
-            return self.connExec(query, {"field": "%s" % value, "idS": idS})
+            return self.connExec(query, {"field": f"{value}", "idS": idS})
         else:
             self.logger.warning(cstr.errorSearchField % (field, value))
             return False
@@ -963,7 +969,7 @@ class ConfigVars:
                 self.profiles,
                 self.profileOrder,
             ) = self.readProfiles()
-        except (IOError, ValueError, SyntaxError) as e:
+        except (OSError, ValueError, SyntaxError) as e:
             self.logger.warning(e)
             self.globalDb.createProfile()
 
@@ -985,7 +991,7 @@ class ConfigVars:
         tempDb = PhysBiblioDBCore(self.currentDatabase, self.logger, info=False)
         configDb = ConfigurationDB(tempDb)
         try:
-            for k in configuration_params.keys():
+            for k in configuration_params:
                 self.readParam(k, configDb)
         except Exception:
             self.logger.exception(cstr.errorReadConf % (self.currentDatabase))
@@ -1159,7 +1165,7 @@ class ConfigVars:
             for k in self.globalDb.getProfileOrder():
                 self.globalDb.deleteProfile(k)
             defProf, profiles, profileOrder = self.oldReadProfiles()
-            for k in profiles.keys():
+            for k in profiles:
                 self.oldReInit(k, profiles[k])
                 tempDb = PhysBiblioDBCore(self.params["mainDatabaseName"], self.logger)
                 configDb = ConfigurationDB(tempDb)
@@ -1180,14 +1186,15 @@ class ConfigVars:
                 oldfile = os.path.join(self.configPath, profiles[k]["f"])
                 os.rename(oldfile, oldfile + "_bck")
                 self.logger.info(
-                    "Old '%s' renamed to '%s'." % (oldfile, oldfile + "_bck")
+                    "Old '{}' renamed to '{}'.".format(oldfile, oldfile + "_bck")
                 )
             self.globalDb.setProfileOrder(profileOrder)
             self.logger.info([dict(e) for e in self.globalDb.getProfiles()])
             os.rename(self.oldConfigProfilesFile, self.oldConfigProfilesFile + "_bck")
             self.logger.info(
-                "Old '%s' renamed to '%s'."
-                % (self.oldConfigProfilesFile, self.configProfilesFile + "_bck")
+                "Old '{}' renamed to '{}'.".format(
+                    self.oldConfigProfilesFile, self.configProfilesFile + "_bck"
+                )
             )
 
     def oldReadConfigFile(self):
@@ -1225,12 +1232,12 @@ class ConfigVars:
                 except Exception:
                     self.logger.warning("Failed in reading parameter", exc_info=True)
                     self.params[k] = v
-        except IOError:
+        except OSError:
             self.logger.warning(
-                "ERROR: config file %s do not exist." % self.configMainFile
+                f"ERROR: config file {self.configMainFile} do not exist."
             )
         except Exception:
-            self.logger.error("ERROR: reading %s file failed." % self.configMainFile)
+            self.logger.error(f"ERROR: reading {self.configMainFile} file failed.")
 
     def oldReadProfiles(self):
         """Reads the list of profiles and the related parameters
@@ -1258,7 +1265,7 @@ class ConfigVars:
             self.params[k] = p.default
         self.currentProfile = newProfile
         self.logger.info(
-            "Starting with configuration in '%s'" % self.currentProfile["f"]
+            "Starting with configuration in '{}'".format(self.currentProfile["f"])
         )
         self.configMainFile = os.path.join(self.configPath, self.currentProfile["f"])
         self.params = {}

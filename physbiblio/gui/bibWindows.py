@@ -71,7 +71,7 @@ try:
     from physbiblio.pdf import pBPDF
     from physbiblio.strings.gui import BibWindowsStrings as bwstr
     from physbiblio.strings.main import DatabaseStrings as dstr
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -280,7 +280,7 @@ def editBibtex(parentObject, editKey=None):
             if data["firstdate"] == "":
                 data["firstdate"] = datetime.date.today().strftime("%Y-%m-%d")
             # if bibkey is empty, compute it from bibtex
-            if "bibkey" not in data.keys() or data["bibkey"].strip() == "":
+            if "bibkey" not in data or data["bibkey"].strip() == "":
                 data = pBDB.bibs.prepareInsert(data["bibtex"].strip())
             if data["bibkey"].strip() != "":
                 if editKey is not None:
@@ -511,7 +511,7 @@ class BibtexInfo(QFrame):
         Parameter:
             parent: the parent widget
         """
-        super(BibtexInfo, self).__init__(parent)
+        super().__init__(parent)
 
         self.currLayout = QHBoxLayout()
         self.setLayout(self.currLayout)
@@ -712,11 +712,13 @@ class BibTableModel(PBTableModel):
                 return Qt.Checked
             else:
                 return Qt.Unchecked
-        elif role == Qt.EditRole:
-            return value
-        elif role == Qt.DecorationRole and hasImg:
-            return value
-        elif role == Qt.DisplayRole and not hasImg:
+        elif (
+            role == Qt.EditRole
+            or role == Qt.DecorationRole
+            and hasImg
+            or role == Qt.DisplayRole
+            and not hasImg
+        ):
             return value
         return None
 
@@ -1859,7 +1861,7 @@ class BibtexListWindow(ObjListWindow):
         self.filterInput = None
         self.tableModel = None
 
-        super(BibtexListWindow, self).__init__(parent)
+        super().__init__(parent)
 
         self.createActions()
         self.createTable()
@@ -2351,7 +2353,7 @@ class EditBibtexDialog(EditObjectWindow):
         self.typeBox = None
         self.currGrid = None
         self.result = False
-        super(EditBibtexDialog, self).__init__(parent)
+        super().__init__(parent)
         if bib is None:
             self.data = {}
         else:
@@ -2534,7 +2536,7 @@ class AskPDFAction(PBMenu):
             key: the bibtex key of the item to consider
             parent (default None): the parent widget
         """
-        super(AskPDFAction, self).__init__(parent)
+        super().__init__(parent)
         self.key = key
         self.mainWin = parent
         self.message = bwstr.whatPDF % (key)
@@ -2614,7 +2616,7 @@ class SearchBibsWindow(EditObjectWindow):
         self.addFieldButton = None
         self.selectedCats = []
         self.selectedExps = []
-        super(SearchBibsWindow, self).__init__(parent)
+        super().__init__(parent)
         self.textValues = []
         self.result = False
         self.save = False
@@ -2969,18 +2971,7 @@ class SearchBibsWindow(EditObjectWindow):
                 if not isinstance(previous["content"], list):
                     previous["content"] = []
 
-        elif previous["type"] == bwstr.SR.marks:
-            previous["field"] = None
-            previous["operator"] = None
-            previous["content"] = []
-            try:
-                for m in line["content"].keys():
-                    if line["content"][m].isChecked():
-                        previous["content"].append(m)
-            except AttributeError:
-                pass
-
-        elif previous["type"] == bwstr.SR.type_:
+        elif previous["type"] == bwstr.SR.marks or previous["type"] == bwstr.SR.type_:
             previous["field"] = None
             previous["operator"] = None
             previous["content"] = []
@@ -3686,7 +3677,7 @@ class FieldsFromArxiv(PBDialog):
         Parameter:
             parent: the parent widget
         """
-        super(FieldsFromArxiv, self).__init__(parent)
+        super().__init__(parent)
         self.result = False
         self.output = []
         self.setWindowTitle(bwstr.fieldsFromArx)
@@ -3736,7 +3727,7 @@ class DuplicatesTableModel(PBTableModel):
             duplicates: the content of the table
         """
         self.dataList = duplicates
-        super(DuplicatesTableModel, self).__init__(parent, header)
+        super().__init__(parent, header)
 
     def data(self, index, role):
         """Return the cell data for the given index and role
@@ -3818,7 +3809,6 @@ class DuplicatesListWindow(ObjListWindow):
         """
         if index.isValid():
             index.row()
-        return
 
     def cellDoubleClick(self, index):
         """Process event when mouse double clicks an item.
@@ -3865,7 +3855,6 @@ class DuplicatesListWindow(ObjListWindow):
         """
         if index.isValid():
             index.row()
-        return
 
     def keyPressEvent(self, e):
         """Manage the key press events.

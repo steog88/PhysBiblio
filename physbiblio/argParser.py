@@ -170,11 +170,11 @@ class NewProfileAction(argparse.Action):
     """
 
     def __init__(self, option_strings, dest, **kwargs):
-        super(NewProfileAction, self).__init__(option_strings, dest, **kwargs)
+        super().__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         prof = values[0]
-        if prof in pbConfig.profiles.keys():
+        if prof in pbConfig.profiles:
             pbConfig.reloadProfiles(prof)
         setattr(namespace, self.dest, values)
 
@@ -194,7 +194,7 @@ def setParser():
         "-v",
         "--version",
         action="version",
-        version="PhysBiblio %s (%s)" % (__version__, __version_date__),
+        version=f"PhysBiblio {__version__} ({__version_date__})",
     )
     subparsers = parser.add_subparsers(help=apstr.subHelp, dest="cmd")
 

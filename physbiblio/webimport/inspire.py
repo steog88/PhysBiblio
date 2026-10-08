@@ -17,7 +17,7 @@ try:
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import InspireStrings
     from physbiblio.webimport.arxiv import getYear
-    from physbiblio.webimport.webInterf import WebInterf
+    from physbiblio.webimport.webinterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -33,7 +33,7 @@ class WebSearch(WebInterf, InspireStrings):
     description = "INSPIRE fetcher"
     url = pbConfig.inspireLiteratureAPI
     urlRecord = pbConfig.inspireLiteratureLink
-    correspondences = [
+    correspondences = (
         ["id", "inspire"],
         ["year", "year"],
         # ["arxiv", "arxiv"],
@@ -48,8 +48,8 @@ class WebSearch(WebInterf, InspireStrings):
         ["link", "link"],
         ["cit", "citations"],
         ["cit_no_self", "citations_no_self"],
-    ]
-    bibtexFields = [
+    )
+    bibtexFields = (
         "author",
         "title",
         "journal",
@@ -66,8 +66,8 @@ class WebSearch(WebInterf, InspireStrings):
         "reportnumber",
         "booktitle",
         "collaboration",
-    ]
-    updateBibtexFields = [
+    )
+    updateBibtexFields = (
         "author",
         "title",
         "doi",
@@ -83,8 +83,8 @@ class WebSearch(WebInterf, InspireStrings):
         "booktitle",
         "publisher",
         "arxiv",
-    ]
-    metadataLiteratureFields = [
+    )
+    metadataLiteratureFields = (
         "arxiv_eprints",
         "author_count",
         "authors.full_name",
@@ -107,17 +107,17 @@ class WebSearch(WebInterf, InspireStrings):
         "texkeys",
         "thesis_info",
         "titles",
-    ]
-    metadataCitationFields = [
+    )
+    metadataCitationFields = (
         "citation_count",
         "citation_count_without_self_citations",
         "control_number",
-    ]
-    metadataConferenceFields = [
+    )
+    metadataConferenceFields = (
         "cnum",
         "proceedings",
         "titles",
-    ]
+    )
     defaultSize = 250
 
     def __init__(self):
@@ -129,7 +129,7 @@ class WebSearch(WebInterf, InspireStrings):
         WebInterf.__init__(self)
         self.urlArgs = {
             "sort": "mostrecent",
-            "size": "%s" % self.defaultSize,
+            "size": f"{self.defaultSize}",
             "page": "1",
         }
 
@@ -145,7 +145,7 @@ class WebSearch(WebInterf, InspireStrings):
         """
         match = re.compile('((\\\\")[a-zA-Z]{1})', re.MULTILINE)
         for t in match.finditer(text):
-            text = text.replace(t.group(), "{%s}" % t.group())
+            text = text.replace(t.group(), f"{{{t.group()}}}")
         return text
 
     def retrieveBibtex(self, string, size=250):
@@ -223,14 +223,14 @@ class WebSearch(WebInterf, InspireStrings):
             except json.decoder.JSONDecodeError:
                 pBLogger.exception(self.jsonError)
                 return hits, tot
-            if "message" in results.keys():
+            if "message" in results:
                 pBLogger.exception(
                     self.apiResponseError % (results["status"], results["message"])
                 )
                 return hits, tot
-            elif "id" in results.keys():
+            elif "id" in results:
                 return [results], 1
-            elif "hits" in results.keys():
+            elif "hits" in results:
                 try:
                     hits += results["hits"]["hits"]
                     if tot == 0:
@@ -246,7 +246,7 @@ class WebSearch(WebInterf, InspireStrings):
         return hits, tot
 
     def retrieveSearchResults(
-        self, searchstring, size=500, fields=None, addfields=[], max_iterations=20
+        self, searchstring, size=500, fields=None, addfields=None, max_iterations=20
     ):
         """Extract a list of hits from an Inspire search
         (through the q parameter)
@@ -265,13 +265,15 @@ class WebSearch(WebInterf, InspireStrings):
         Output:
             from self.retrieveAPIResults
         """
+        if addfields is None:
+            addfields = []
         if fields is None:
             fields = self.metadataLiteratureFields
         if len(addfields) > 0:
             fields += addfields
         args = self.urlArgs.copy()
         args["q"] = searchstring.replace(" ", "%20")
-        args["size"] = "%d" % (size if size <= 1000 else 1000)
+        args["size"] = f"{min(size, 1000):d}"
         args["fields"] = ",".join(fields)
         try:
             del args["page"]
@@ -299,7 +301,7 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             if searchFormat == "%s":
                 entries = [
-                    "texkeys:%s" % e if e.lower().startswith("de:") else e
+                    f"texkeys:{e}" if e.lower().startswith("de:") else e
                     for e in entries
                 ]
         except (AttributeError, TypeError):
@@ -349,7 +351,9 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.exception(self.jsonError)
             return ""
         try:
-            inspireID = "%s" % results["hits"]["hits"][0]["metadata"]["control_number"]
+            inspireID = "{}".format(
+                results["hits"]["hits"][0]["metadata"]["control_number"]
+            )
         except (IndexError, KeyError):
             pBLogger.exception(self.genericError)
             return ""
@@ -384,7 +388,7 @@ class WebSearch(WebInterf, InspireStrings):
                 continue
             try:
                 tmpDict = self.readRecord(rec)
-                tmpDict["id"] = "%s" % id
+                tmpDict["id"] = f"{id}"
                 foundObjects.append(tmpDict)
             except Exception as e:
                 pBLogger.exception(self.exceptionFormat % (count, id, e))
@@ -439,7 +443,7 @@ class WebSearch(WebInterf, InspireStrings):
         Output:
             the dictionary containing the bibtex information
         """
-        hits, tot = self.retrieveAPIResults("%s%s" % (self.url, inspireID))
+        hits, _tot = self.retrieveAPIResults(f"{self.url}{inspireID}")
         if verbose > 0:
             pBLogger.info(self.readData + time.strftime("%c"))
         try:
@@ -475,7 +479,7 @@ class WebSearch(WebInterf, InspireStrings):
         if useUrl is None:
             url = (
                 pbConfig.inspireConferencesAPI
-                + "?q=%s" % conferenceCode
+                + f"?q={conferenceCode}"
                 + "&fields="
                 + (",".join(self.metadataConferenceFields))
             )
@@ -497,7 +501,7 @@ class WebSearch(WebInterf, InspireStrings):
                 procid = confs[0]["metadata"]["proceedings"][0]["control_number"]
             except (IndexError, KeyError, TypeError):
                 return None
-            url = "%s%s" % (pbConfig.inspireLiteratureAPI, procid)
+            url = f"{pbConfig.inspireLiteratureAPI}{procid}"
         else:
             url = useUrl
         text = self.textFromUrl(url)
@@ -507,7 +511,7 @@ class WebSearch(WebInterf, InspireStrings):
             pBLogger.exception(self.jsonError)
             return None
         try:
-            title = "%s: %s" % (
+            title = "{}: {}".format(
                 info["metadata"]["titles"][0]["title"],
                 info["metadata"]["titles"][0]["subtitle"],
             )
@@ -577,11 +581,11 @@ class WebSearch(WebInterf, InspireStrings):
         # ads
         tmpDict["ads"] = None
         try:
-            tmpDict["ads"] = [
+            tmpDict["ads"] = next(
                 a["value"]
                 for a in record["metadata"]["external_system_identifiers"]
                 if a["schema"] == "ADS"
-            ][0]
+            )
         except (IndexError, KeyError, TypeError):
             pass
         # authors
@@ -595,13 +599,13 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             if (
                 record["metadata"]["author_count"]
-                if "author_count" in record["metadata"].keys()
+                if "author_count" in record["metadata"]
                 else len(record["metadata"]["authors"])
             ) > pbConfig.params["maxAuthorSave"] - 1:
                 tmpDict["author"] += " and others"
             else:
                 for r in record["metadata"]["authors"][1:]:
-                    tmpDict["author"] += " and %s" % r["full_name"]
+                    tmpDict["author"] += " and {}".format(r["full_name"])
         except (IndexError, KeyError, TypeError):
             pass
         # collaboration
@@ -619,7 +623,7 @@ class WebSearch(WebInterf, InspireStrings):
         # conference title
         try:
             pi = record["metadata"]["publication_info"][0]
-            conferenceCode = pi["cnum"] if "cnum" in pi.keys() else None
+            conferenceCode = pi.get("cnum", None)
         except (IndexError, KeyError, TypeError):
             conferenceCode = None
         try:
@@ -652,13 +656,11 @@ class WebSearch(WebInterf, InspireStrings):
             try:
                 tmpDict["pages"] = (
                     pi["artid"]
-                    if "artid" in pi.keys()
+                    if "artid" in pi
                     else (
-                        "%s-%s" % (pi["page_start"], pi["page_end"])
-                        if ("page_start" in pi.keys() and "page_end" in pi.keys())
-                        else pi["page_start"]
-                        if "page_start" in pi.keys()
-                        else None
+                        "{}-{}".format(pi["page_start"], pi["page_end"])
+                        if ("page_start" in pi and "page_end" in pi)
+                        else pi.get("page_start", None)
                     )
                 )
             except KeyError:
@@ -671,10 +673,10 @@ class WebSearch(WebInterf, InspireStrings):
         try:
             tmpDict["firstdate"] = (
                 record["metadata"]["preprint_date"]
-                if "preprint_date" in record["metadata"].keys()
+                if "preprint_date" in record["metadata"]
                 else (
                     record["metadata"]["legacy_creation_date"]
-                    if "legacy_creation_date" in record["metadata"].keys()
+                    if "legacy_creation_date" in record["metadata"]
                     else record["metadata"]["earliest_date"]
                 )
             )
@@ -719,10 +721,10 @@ class WebSearch(WebInterf, InspireStrings):
             else:
                 tmpDict["ENTRYTYPE"] = "article"
         # clean accents
-        for k in tmpDict.keys():
+        for k, v in tmpDict.items():
             try:
-                tmpDict[k] = parse_accents_str(tmpDict[k])
-            except Exception:
+                tmpDict[k] = parse_accents_str(v)
+            except (KeyError, TypeError):
                 pass
         # citations
         try:
@@ -750,7 +752,7 @@ class WebSearch(WebInterf, InspireStrings):
         # build bibtex
         bibtexDict = {"ENTRYTYPE": tmpDict["ENTRYTYPE"], "ID": tmpDict["bibkey"]}
         for k in self.bibtexFields:
-            if k in tmpDict.keys() and tmpDict[k] is not None and tmpDict[k] != "":
+            if k in tmpDict and tmpDict[k] is not None and tmpDict[k] != "":
                 bibtexDict[k] = tmpDict[k]
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [bibtexDict]
@@ -776,8 +778,8 @@ class WebSearch(WebInterf, InspireStrings):
             if the latter is present, delete it,
             eventually copying its content into the former
             """
-            if "arxiv" in element.keys():
-                if "eprint" not in element.keys():
+            if "arxiv" in element:
+                if "eprint" not in element:
                     element["eprint"] = element["arxiv"]
                 del element["arxiv"]
             return element
@@ -802,11 +804,11 @@ class WebSearch(WebInterf, InspireStrings):
             newelement = {}
         element = {**element, **newelement}
         element = arxivEprint(element)
-        if not all([k in res for k in self.updateBibtexFields]):
+        if not all(k in res for k in self.updateBibtexFields):
             pBLogger.warning(
                 self.warningMissingField
                 % (
-                    [k for k in self.updateBibtexFields if k not in res.keys()],
+                    [k for k in self.updateBibtexFields if k not in res],
                     res["id"],
                 )
             )

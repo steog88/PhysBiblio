@@ -41,9 +41,7 @@ def askYesNo(message, title=bdstr.question):
     noButton = mbox.addButton(QMessageBox.No)
     mbox.setDefaultButton(noButton)
     mbox.exec()
-    if mbox.clickedButton() == yesButton:
-        return True
-    return False
+    return mbox.clickedButton() == yesButton
 
 
 def infoMessage(message, title=bdstr.information):

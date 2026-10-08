@@ -62,7 +62,7 @@ class TestInspireStatsMethods(unittest.TestCase):
         self.assertTrue(len(testGood["aI"]) > 950)
         self.assertEqual(len(testGood["aI"]) + 1, len(testGood["citList"][1]))
         self.assertEqual(len(testGood["citList"][0]), len(testGood["citList"][1]))
-        self.assertFalse("fig" in testGood.keys())
+        self.assertFalse("fig" in testGood)
 
         testGood = pBStats.paperStats("1385583", plot=True)
         self.assertTrue(testGood["id"], "1385583")

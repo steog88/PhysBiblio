@@ -14,7 +14,7 @@ from requests.packages.urllib3.util.retry import Retry
 try:
     from physbiblio.config import pbConfig
     from physbiblio.setuptests import patch, skipTestsSettings
-    from physbiblio.webimport.webInterf import PBSession, WebInterf, physBiblioWeb
+    from physbiblio.webimport.webinterf import PBSession, WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -150,8 +150,8 @@ class TestWebImportOffline(unittest.TestCase):
         fr = Retry()
         ha = HTTPAdapter(max_retries=fr)
         with (
-            patch("physbiblio.webimport.webInterf.Retry", return_value=fr) as _r,
-            patch("physbiblio.webimport.webInterf.HTTPAdapter", return_value=ha) as _ha,
+            patch("physbiblio.webimport.webinterf.Retry", return_value=fr) as _r,
+            patch("physbiblio.webimport.webinterf.HTTPAdapter", return_value=ha) as _ha,
             patch("requests.Session.mount") as _m,
         ):
             pbs = PBSession()
@@ -337,7 +337,7 @@ as force and matter fields.
         )
         with (
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value=content_example,
                 autospec=True,
             ) as _fromUrl,

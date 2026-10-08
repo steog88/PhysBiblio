@@ -49,17 +49,13 @@ class TestViewMethods(unittest.TestCase):
             autospec=True,
             side_effect=["abc...123", "1507.08204", "", "", "abc...123"],
         ) as _mock:
-            self.assertEqual(
-                pBView.getLink("a", "ads"), "%sabc...123" % pbConfig.adsUrl
-            )
+            self.assertEqual(pBView.getLink("a", "ads"), f"{pbConfig.adsUrl}abc...123")
         with patch(
             "physbiblio.database.Entries.getField",
             autospec=True,
             side_effect=["", "1507.08204", "", "", "1507.08204"],
         ) as _mock:
-            self.assertEqual(
-                pBView.getLink("a"), "%s/abs/1507.08204" % pbConfig.arxivUrl
-            )
+            self.assertEqual(pBView.getLink("a"), f"{pbConfig.arxivUrl}/abs/1507.08204")
         with patch(
             "physbiblio.database.Entries.getField",
             autospec=True,
@@ -73,7 +69,7 @@ class TestViewMethods(unittest.TestCase):
         ) as _mock:
             self.assertEqual(
                 pBView.getLink("a", "doi"),
-                "%s10.1088/0954-3899/43/3/033001" % pbConfig.doiUrl,
+                f"{pbConfig.doiUrl}10.1088/0954-3899/43/3/033001",
             )
         with patch(
             "physbiblio.database.Entries.getField",

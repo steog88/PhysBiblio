@@ -18,7 +18,7 @@ try:
     from physbiblio.errors import pBLogger
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.webimport import ArxivStrings
-    from physbiblio.webimport.webInterf import WebInterf
+    from physbiblio.webimport.webinterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -26,8 +26,8 @@ except ImportError:
 
 
 arxivCategories = {
-    "astro-ph": ["CO", "EP", "GA", "HE", "IM", "SR"],
-    "cond-mat": [
+    "astro-ph": ("CO", "EP", "GA", "HE", "IM", "SR"),
+    "cond-mat": (
         "dis-nn",
         "mes-hall",
         "mtrl-sci",
@@ -37,8 +37,8 @@ arxivCategories = {
         "stat-mech",
         "str-el",
         "supr-con",
-    ],
-    "cs": [
+    ),
+    "cs": (
         "AI",
         "AR",
         "CC",
@@ -79,15 +79,15 @@ arxivCategories = {
         "SE",
         "SI",
         "SY",
-    ],
-    "econ": ["EM", "GN", "TH"],
-    "eess": ["AS", "IV", "SP"],
-    "gr-qc": [],
-    "hep-ex": [],
-    "hep-lat": [],
-    "hep-ph": [],
-    "hep-th": [],
-    "math": [
+    ),
+    "econ": ("EM", "GN", "TH"),
+    "eess": ("AS", "IV", "SP"),
+    "gr-qc": (),
+    "hep-ex": (),
+    "hep-lat": (),
+    "hep-ph": (),
+    "hep-th": (),
+    "math": (
         "AC",
         "AG",
         "AP",
@@ -120,12 +120,12 @@ arxivCategories = {
         "SG",
         "SP",
         "ST",
-    ],
-    "math-ph": [],
-    "nlin": ["AO", "CD", "CG", "PS", "SI"],
-    "nucl-ex": [],
-    "nucl-th": [],
-    "physics": [
+    ),
+    "math-ph": (),
+    "nlin": ("AO", "CD", "CG", "PS", "SI"),
+    "nucl-ex": (),
+    "nucl-th": (),
+    "physics": (
         "acc-ph",
         "ao-ph",
         "app-ph",
@@ -148,11 +148,11 @@ arxivCategories = {
         "pop-ph",
         "soc-ph",
         "space-ph",
-    ],
-    "q-bio": ["BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"],
-    "q-fin": ["CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"],
-    "quant-ph": [],
-    "stat": ["AP", "CO", "ME", "ML", "OT", "TH"],
+    ),
+    "q-bio": ("BM", "CB", "GN", "MN", "NC", "OT", "PE", "QM", "SC", "TO"),
+    "q-fin": ("CP", "EC", "GN", "MF", "PM", "PR", "RM", "ST", "TR"),
+    "quant-ph": (),
+    "stat": ("AP", "CO", "ME", "ML", "OT", "TH"),
 }
 
 
@@ -334,7 +334,7 @@ class WebSearch(WebInterf, ArxivStrings):
         except Exception:  # intercept all possible errors
             pBLogger.exception(self.cannotParseRSS % text, exc_info=True)
             return returnFailed()
-        if "entries" not in data.keys():
+        if "entries" not in data:
             pBLogger.exception(self.cannotFindEntriesInFeed % data)
             return returnFailed()
         db = BibDatabase()
@@ -361,25 +361,25 @@ class WebSearch(WebInterf, ArxivStrings):
                 try:
                     dictionary[m] = entry[k]
                 except KeyError as e:
-                    pBLogger.debug("KeyError: %s" % e)
+                    pBLogger.debug(f"KeyError: {e}")
             try:
                 dictionary["abstract"] = entry["summary"].replace("\n", " ")
             except KeyError as e:
-                pBLogger.debug("KeyError: %s" % e)
+                pBLogger.debug(f"KeyError: {e}")
             try:
                 dictionary["authors"] = " and ".join(
                     [au["name"] for au in entry["authors"]]
                 )
             except KeyError as e:
-                pBLogger.debug("KeyError: %s" % e)
+                pBLogger.debug(f"KeyError: {e}")
             try:
                 dictionary["primaryclass"] = entry["arxiv_primary_category"]["term"]
             except KeyError as e:
-                pBLogger.debug("KeyError: %s" % e)
+                pBLogger.debug(f"KeyError: {e}")
             try:
                 year = self.getYear(dictionary["arxiv"])
             except KeyError as e:
-                pBLogger.debug("KeyError: %s" % e)
+                pBLogger.debug(f"KeyError: {e}")
             else:
                 if year is not None:
                     dictionary["year"] = year
@@ -412,7 +412,7 @@ class WebSearch(WebInterf, ArxivStrings):
             main = category
             sub = ""
         url = self.urlRss
-        if main not in self.categories.keys():
+        if main not in self.categories:
             pBLogger.warning(self.mainCatNotFound % main)
             return False
         else:
@@ -462,25 +462,25 @@ class WebSearch(WebInterf, ArxivStrings):
                     )
                 )
                 tmp["replacement"] = "UPDATED" in element["title"]
-                tmp["primaryclass"] = [
+                tmp["primaryclass"] = next(
                     m.group(2)
                     for m in additionalInfo.finditer(element["title"])
                     if m != ""
-                ][0]
+                )
                 tmp["cross"] = (
                     "CROSS LISTED" in element["title"]
                     or category.lower() not in tmp["primaryclass"].lower()
                 )
-                tmp["version"] = [
+                tmp["version"] = next(
                     m.group(1)
                     for m in additionalInfo.finditer(element["title"])
                     if m != ""
-                ][0]
-                parenthesis = [
+                )
+                parenthesis = next(
                     m.group()
                     for m in additionalInfo.finditer(element["title"])
                     if m != ""
-                ][0]
+                )
                 tmp["title"] = element["title"].replace(parenthesis, "")
             except (IndexError, KeyError, TypeError):
                 pBLogger.warning(self.cannotReadItem)

@@ -91,7 +91,7 @@ try:
     from physbiblio.strings.gui import MainWindowStrings as mwstr
     from physbiblio.strings.main import DatabaseStrings as dbstr
     from physbiblio.view import pBView
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError as e:
     print("Could not find physbiblio and its modules!", e)
     print(traceback.format_exc())

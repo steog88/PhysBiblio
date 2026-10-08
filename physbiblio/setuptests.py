@@ -14,7 +14,7 @@ from unittest.mock import patch
 USE_AUTOSPEC_CLASS = True
 
 today_ymd = datetime.datetime.today().strftime("%y%m%d_%H%M%S")
-tempLogFileName = "tests_%s.log" % today_ymd
+tempLogFileName = f"tests_{today_ymd}.log"
 
 try:
     from physbiblio.config import pbConfig
@@ -55,11 +55,8 @@ class SkipTestsSettingsClass:
 
     def __str__(self):
         """print current settings"""
-        return "DB: %s\nGUI: %s\nlong: %s\nOnline: %s" % (
-            self.db,
-            self.gui,
-            self.long,
-            self.online,
+        return (
+            f"DB: {self.db}\nGUI: {self.gui}\nlong: {self.long}\nOnline: {self.online}"
         )
 
 
@@ -68,10 +65,10 @@ skipTestsSettings = SkipTestsSettingsClass()
 pbConfig.params["logFileName"] = tempLogFileName
 logFileName = os.path.join(pbConfig.dataPath, pbConfig.params["logFileName"])
 
-tempDBName = os.path.join(pbConfig.dataPath, "tests_%s.db" % today_ymd)
+tempDBName = os.path.join(pbConfig.dataPath, f"tests_{today_ymd}.db")
 if os.path.exists(tempDBName):
     os.remove(tempDBName)
-tempFDBName = os.path.join(pbConfig.dataPath, "tests_first_%s.db" % today_ymd)
+tempFDBName = os.path.join(pbConfig.dataPath, f"tests_first_{today_ymd}.db")
 if os.path.exists(tempFDBName):
     os.remove(tempFDBName)
 

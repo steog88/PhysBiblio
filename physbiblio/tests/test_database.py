@@ -40,7 +40,7 @@ try:
         today_ymd,
     )
     from physbiblio.tablesDef import fieldsDescriptions, tableFields
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -57,7 +57,7 @@ fullRecordAde = {
     "doi": "10.1051/0004-6361/201321591",
     "isbn": None,
     "year": "2014",
-    "link": "%s10.1051/0004-6361/201321591" % pbConfig.doiUrl,
+    "link": f"{pbConfig.doiUrl}10.1051/0004-6361/201321591",
     "comments": None,
     "old_keys": None,
     "crossref": None,
@@ -131,7 +131,7 @@ fullRecordGariazzo = {
     "doi": "10.1088/0954-3899/43/3/033001",
     "isbn": None,
     "year": "2016",
-    "link": "%s10.1088/0954-3899/43/3/033001" % pbConfig.doiUrl,
+    "link": f"{pbConfig.doiUrl}10.1088/0954-3899/43/3/033001",
     "comments": None,
     "old_keys": None,
     "crossref": None,
@@ -777,7 +777,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         self.assertIsInstance(dbc.tableCols, dict)
         self.assertEqual(
             dbc.tableCols,
-            {q: [a[0] for a in dbc.tableFields[q]] for q in dbc.tableFields.keys()},
+            {q: [a[0] for a in dbc.tableFields[q]] for q in dbc.tableFields},
         )
         self.assertEqual(dbc.dbChanged, False)
         self.assertEqual(dbc.conn, None)
@@ -875,7 +875,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             ) as _lsc,
         ):
             dbc.openDB()
-            _i.assert_called_once_with("Opening database: %s" % tempDBName)
+            _i.assert_called_once_with(f"Opening database: {tempDBName}")
             _c.assert_called_once_with(tempDBName, check_same_thread=False)
             _c().cursor.assert_called_once_with()
             _lsc.assert_called_once_with(dbc)
@@ -890,7 +890,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
             ) as _lsc,
         ):
             dbc.openDB(info=False)
-            _d.assert_called_once_with("Opening database: %s" % tempDBName)
+            _d.assert_called_once_with(f"Opening database: {tempDBName}")
             _c.assert_called_once_with(tempDBName, check_same_thread=False)
             _c().cursor.assert_called_once_with()
             _lsc.assert_called_once_with(dbc)
@@ -1258,9 +1258,7 @@ class TestDatabaseMain(DBTestCase):  # using cats just for simplicity
         ):
             with self.assertRaises(AttributeError):
                 dbc.createTables()
-            _ct.assert_has_calls(
-                [call(dbc, q, tableFields[q]) for q in tableFields.keys()]
-            )
+            _ct.assert_has_calls([call(dbc, q, tableFields[q]) for q in tableFields])
             _cur.assert_any_call(
                 dbc, "SELECT name FROM sqlite_master WHERE type='table';"
             )
@@ -3356,9 +3354,9 @@ class TestDatabaseEntries(DBTestCase):
         firstType = True
         ew = ""
         ev = ()
-        for f in self.pBDB.bibs.searchPossibleTypes.keys():
+        for f in self.pBDB.bibs.searchPossibleTypes:
             if f != "none" and f != "noneu":
-                ew += "%s %s%s %s ? " % (
+                ew += "{} {}{} {} ? ".format(
                     "" if firstType else "and",
                     "",
                     f,
@@ -3403,9 +3401,9 @@ class TestDatabaseEntries(DBTestCase):
         firstType = True
         ew = ""
         ev = ()
-        for f in self.pBDB.bibs.searchPossibleTypes.keys():
+        for f in self.pBDB.bibs.searchPossibleTypes:
             if f != "none" and f != "noneu" and f != "noUpdate":
-                ew += "%s %s%s %s ? " % (
+                ew += "{} {}{} {} ? ".format(
                     "" if firstType else "and",
                     "",
                     f,
@@ -4276,7 +4274,7 @@ class TestDatabaseEntries(DBTestCase):
             "select * from entries  order by firstdate ASC",
         )
 
-        testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
+        testBibName = os.path.join(pbConfig.dataPath, f"tests_{today_ymd}.bib")
         sampleTxt = (
             '@Article{abc,\n        author = "me",\n         '
             + 'title = "{abc}",\n}\n@Article{def,\n        '
@@ -4726,10 +4724,10 @@ class TestDatabaseEntries(DBTestCase):
             [e["bibkey"] for e in self.pBDB.bibs.getByKey(["abc", "def"])],
             ["abc", "def", "ghi"],
         )
-        self.assertRegex(self.pBDB.bibs.lastQuery, "select \* from entries  where .*")
+        self.assertRegex(self.pBDB.bibs.lastQuery, r"select \* from entries  where .*")
         self.assertRegex(
             self.pBDB.bibs.lastQuery,
-            ".*bibkey = \? or old_keys = \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \?.*",
+            r".*bibkey = \? or old_keys = \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \? or old_keys  like  \?.*",
         )
         self.assertRegex(self.pBDB.bibs.lastQuery, ".* order by firstdate ASC")
         self.assertEqual(
@@ -6813,7 +6811,7 @@ class TestDatabaseEntries(DBTestCase):
                 "doi": None,
                 "isbn": None,
                 "year": 2013,
-                "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                "link": f"{pbConfig.arxivUrl}/abs/1303.5076",
                 "comments": None,
                 "old_keys": None,
                 "crossref": None,
@@ -6863,7 +6861,7 @@ class TestDatabaseEntries(DBTestCase):
                 "doi": None,
                 "isbn": None,
                 "year": 2015,
-                "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                 "comments": None,
                 "old_keys": None,
                 "crossref": None,
@@ -6936,19 +6934,19 @@ class TestDatabaseEntries(DBTestCase):
         ):
             self.pBDB.bibs.getDailyInfoFromOAI()
             _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1t, d2t)
+                f"Calling INSPIRE-HEP OAI harvester between dates {d1t} and {d2t}"
             )
             self.pBDB.bibs.getDailyInfoFromOAI(d1, d2)
             _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2)
+                f"Calling INSPIRE-HEP OAI harvester between dates {d1} and {d2}"
             )
             self.pBDB.bibs.getDailyInfoFromOAI(date2=d2)
             _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1t, d2)
+                f"Calling INSPIRE-HEP OAI harvester between dates {d1t} and {d2}"
             )
             self.pBDB.bibs.getDailyInfoFromOAI(date1=d1)
             _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2t)
+                f"Calling INSPIRE-HEP OAI harvester between dates {d1} and {d2t}"
             )
             self.pBDB.bibs.getDailyInfoFromOAI(date1=d1)
             res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
@@ -6965,7 +6963,7 @@ class TestDatabaseEntries(DBTestCase):
                     "doi": None,
                     "isbn": None,
                     "year": 2013,
-                    "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                    "link": f"{pbConfig.arxivUrl}/abs/1303.5076",
                     "comments": None,
                     "old_keys": None,
                     "crossref": None,
@@ -7017,7 +7015,7 @@ class TestDatabaseEntries(DBTestCase):
                     "doi": "10.1088/0954-3899/43/3/033001",
                     "isbn": None,
                     "year": "2016",
-                    "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                    "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                     "comments": None,
                     "old_keys": None,
                     "crossref": None,
@@ -7095,7 +7093,7 @@ class TestDatabaseEntries(DBTestCase):
                 "doi": None,
                 "isbn": None,
                 "year": 2013,
-                "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                "link": f"{pbConfig.arxivUrl}/abs/1303.5076",
                 "comments": None,
                 "old_keys": None,
                 "crossref": None,
@@ -7145,7 +7143,7 @@ class TestDatabaseEntries(DBTestCase):
                 "doi": None,
                 "isbn": None,
                 "year": 2015,
-                "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                 "comments": None,
                 "old_keys": None,
                 "crossref": None,
@@ -7212,7 +7210,7 @@ class TestDatabaseEntries(DBTestCase):
         ):
             self.pBDB.bibs.getDailyInfoFromOAI(d1, d2)
             _i.assert_any_call(
-                "Calling INSPIRE-HEP OAI harvester between dates %s and %s" % (d1, d2)
+                f"Calling INSPIRE-HEP OAI harvester between dates {d1} and {d2}"
             )
             res = self.pBDB.bibs.getByBibkey("Ade:2013zuv")[0]
             del res["citations"]
@@ -7228,7 +7226,7 @@ class TestDatabaseEntries(DBTestCase):
                     "doi": None,
                     "isbn": None,
                     "year": 2013,
-                    "link": "%s/abs/1303.5076" % pbConfig.arxivUrl,
+                    "link": f"{pbConfig.arxivUrl}/abs/1303.5076",
                     "comments": None,
                     "old_keys": None,
                     "crossref": None,
@@ -7278,7 +7276,7 @@ class TestDatabaseEntries(DBTestCase):
                     "doi": "10.1088/0954-3899/43/3/033001",
                     "isbn": None,
                     "year": "2016",
-                    "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                    "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                     "comments": None,
                     "old_keys": None,
                     "crossref": None,
@@ -7466,15 +7464,13 @@ class TestDatabaseEntries(DBTestCase):
             doi="1/2/3",
         )
         self.assertTrue(self.pBDB.bibs.insert(data))
-        self.assertEqual(
-            self.pBDB.bibs.getAdsUrl("abc"), "%sabc...123" % pbConfig.adsUrl
-        )
+        self.assertEqual(self.pBDB.bibs.getAdsUrl("abc"), f"{pbConfig.adsUrl}abc...123")
         self.assertFalse(self.pBDB.bibs.getAdsUrl("def"))
         self.assertEqual(
-            self.pBDB.bibs.getArxivUrl("abc"), "%s/abs/1234.5678" % pbConfig.arxivUrl
+            self.pBDB.bibs.getArxivUrl("abc"), f"{pbConfig.arxivUrl}/abs/1234.5678"
         )
         self.assertFalse(self.pBDB.bibs.getArxivUrl("def"))
-        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), "%s1/2/3" % pbConfig.doiUrl)
+        self.assertEqual(self.pBDB.bibs.getDoiUrl("abc"), f"{pbConfig.doiUrl}1/2/3")
         self.assertFalse(self.pBDB.bibs.getDoiUrl("def"))
         self.assertTrue(
             self.pBDB.bibs.insertFromBibtex(
@@ -7609,10 +7605,8 @@ class TestDatabaseEntries(DBTestCase):
                 self.pBDB.bibs.importFromBib("tmpbib.bib", completeInfo=False)
                 self.assertTrue(
                     any(
-                        [
-                            "2 entries processed, of which 2 existing" in c
-                            for c in _i.call_args[0]
-                        ]
+                        "2 entries processed, of which 2 existing" in c
+                        for c in _i.call_args[0]
                     )
                 )
 
@@ -7898,7 +7892,7 @@ class TestDatabaseEntries(DBTestCase):
         # methods
         for method in ("inspire", "doi", "arxiv"):
             with patch(
-                "physbiblio.webimport.%s.WebSearch.retrieveUrlAll" % method,
+                f"physbiblio.webimport.{method}.WebSearch.retrieveUrlAll",
                 return_value="",
                 autospec=True,
             ) as _mock:
@@ -8355,7 +8349,7 @@ class TestDatabaseEntries(DBTestCase):
         for k in ("doi", "isbn", "crossref", "abstract"):
             bibtexA = (
                 '@article{abc,\nauthor = "me",\n'
-                + 'title = "mytit",\n%s="something",\n}' % k
+                + f'title = "mytit",\n{k}="something",\n}}'
             )
             self.assertEqual(self.pBDB.bibs.prepareInsert(bibtexA)[k], "something")
             tmp = {}
@@ -8590,11 +8584,13 @@ class TestDatabaseEntries(DBTestCase):
             _f.assert_called_once_with("abc")
             res.entries = [{"a": "b"}]
             self.assertEqual(self.pBDB.bibs.readEntries("abc"), [{"a": "b"}])
-        with patch(
-            "bibtexparser.bparser.BibTexParser.parse", side_effect=ValueError
-        ) as _f:
-            with self.assertRaises(ValueError):
-                self.pBDB.bibs.readEntries("abc")
+        with (
+            patch(
+                "bibtexparser.bparser.BibTexParser.parse", side_effect=ValueError
+            ) as _f,
+            self.assertRaises(ValueError),
+        ):
+            self.pBDB.bibs.readEntries("abc")
 
     def test_readEntry(self, *args):
         """test readEntry"""
@@ -9528,38 +9524,34 @@ class TestDatabaseEntries(DBTestCase):
                 '@article{abc,\narxiv="1234.56789"\n}', inspire="12345"
             )
         )
-        with patch(
-            "physbiblio.database.Entries.updateInfoFromOAI",
-            autospec=True,
-            side_effect=["a", "b", "c", "d", "e", "f"],
-        ) as mock_function:
-            with patch(
+        with (
+            patch(
+                "physbiblio.database.Entries.updateInfoFromOAI",
+                autospec=True,
+                side_effect=["a", "b", "c", "d", "e", "f"],
+            ) as mock_function,
+            patch(
                 "physbiblio.database.Entries.updateInspireID",
                 side_effect=["54321", False],
                 autospec=True,
-            ) as _updateid:
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
-                mock_function.assert_called_once_with(
-                    self.pBDB.bibs, "12345", verbose=0
-                )
-                mock_function.reset_mock()
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("1234"), "b")
-                mock_function.assert_called_once_with(self.pBDB.bibs, "1234", verbose=0)
-                mock_function.reset_mock()
-                self.assertEqual(
-                    self.pBDB.bibs.updateFromOAI(["abc", "1234"]), ["c", "d"]
-                )
-                self.assertEqual(mock_function.call_count, 2)
-                mock_function.assert_called_with(self.pBDB.bibs, "1234", verbose=0)
-                mock_function.reset_mock()
-                self.pBDB.bibs.insertFromBibtex('@article{def,\narxiv="1234.56789"\n}')
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("def", verbose=1), "e")
-                mock_function.assert_called_once_with(
-                    self.pBDB.bibs, "54321", verbose=1
-                )
-                mock_function.reset_mock()
-                self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
-                mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
+            ) as _updateid,
+        ):
+            self.assertEqual(self.pBDB.bibs.updateFromOAI("abc"), "a")
+            mock_function.assert_called_once_with(self.pBDB.bibs, "12345", verbose=0)
+            mock_function.reset_mock()
+            self.assertEqual(self.pBDB.bibs.updateFromOAI("1234"), "b")
+            mock_function.assert_called_once_with(self.pBDB.bibs, "1234", verbose=0)
+            mock_function.reset_mock()
+            self.assertEqual(self.pBDB.bibs.updateFromOAI(["abc", "1234"]), ["c", "d"])
+            self.assertEqual(mock_function.call_count, 2)
+            mock_function.assert_called_with(self.pBDB.bibs, "1234", verbose=0)
+            mock_function.reset_mock()
+            self.pBDB.bibs.insertFromBibtex('@article{def,\narxiv="1234.56789"\n}')
+            self.assertEqual(self.pBDB.bibs.updateFromOAI("def", verbose=1), "e")
+            mock_function.assert_called_once_with(self.pBDB.bibs, "54321", verbose=1)
+            mock_function.reset_mock()
+            self.assertEqual(self.pBDB.bibs.updateFromOAI("abcdef"), "f")
+            mock_function.assert_called_once_with(self.pBDB.bibs, False, verbose=0)
 
     @unittest.skipIf(skipTestsSettings.online, "Online tests")
     def test_updateInfoFromOAI_online(self, *args):
@@ -9733,7 +9725,7 @@ class TestDatabaseEntries(DBTestCase):
                         "doi": None,
                         "isbn": None,
                         "year": 2015,
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
@@ -9796,7 +9788,7 @@ class TestDatabaseEntries(DBTestCase):
                         "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
                         "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
@@ -9853,7 +9845,7 @@ class TestDatabaseEntries(DBTestCase):
                         "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
                         "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
@@ -9922,7 +9914,7 @@ class TestDatabaseEntries(DBTestCase):
                         "doi": "10.1088/0954-3899/43/3/033001",
                         "isbn": None,
                         "year": "2016",
-                        "link": "%s/abs/1507.08204" % pbConfig.arxivUrl,
+                        "link": f"{pbConfig.arxivUrl}/abs/1507.08204",
                         "comments": None,
                         "old_keys": None,
                         "crossref": None,
@@ -10348,7 +10340,7 @@ class TestDatabaseUtilities(DBTestCase):
         self.assertEqual(
             self.pBDB.bibs.getField("abc", "bibtex"),
             '@Article{abc,\n        author = "me",\n         '
-            + 'title = "{{\`e} {\~n}}",\n}\n\n',
+            + 'title = "{{\\`e} {\\~n}}",\n}\n\n',
         )
         self.pBDB.bibs.delete("abc")
 

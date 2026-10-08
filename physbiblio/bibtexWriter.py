@@ -6,7 +6,7 @@ This file is part of the physbiblio package.
 
 import traceback
 
-from bibtexparser.bwriter import BibTexWriter
+import bibtexparser
 
 try:
     from physbiblio.strings.main import BibtexWriterStrings as bwstr
@@ -15,17 +15,15 @@ except ImportError:
     print(traceback.format_exc())
 
 
-class PBBibTexWriter(BibTexWriter):
-    """This class is used to override _entry_to_bibtex"""
+class PBBibTexWriter:
+    """This class is used to store the configuration for bibtexparser.write"""
 
     def __init__(self):
         """Constructor for the PBBibTexWriter class.
         Uses parent class constructor
         and adds some additional properties.
         """
-        super(PBBibTexWriter, self).__init__()
-        # use 13 characters for the field name:
-        self._max_field_width = 13
+        self.bwriterconfig = bibtexparser.BibtexFormat()
         # order of fields in output
         self.display_order = [
             "author",
@@ -54,10 +52,65 @@ class PBBibTexWriter(BibTexWriter):
             "article",
             "url",
         ]
-        self.excluded_fields = ["adsnote", "adsurl", "slaccitation"]
-        # Necessary to avoid a change of the ordering of the bibtex entries:
-        self.order_entries_by = None
-        self.comma_first = False
+        self.excluded_fields = ["adsnote", "adsurl", "slaccitation", "ENTRYTYPE", "ID"]
+
+    def getNewLibrary(self, string=""):
+        """Create a new bibtexparser.Library"""
+        if isinstance(string, str) and string:
+            return bibtexparser.parse_string(string)
+        return bibtexparser.Library()
+
+    def reorderEntry(self, entry):
+        """Reorder Fields from an existing Entry"""
+        keys = [f.key for f in entry.fields]
+        fields = [i for i in self.display_order if i in keys]
+        # then all the other fields sorted alphabetically
+        fields += [
+            i
+            for i in sorted(keys)
+            if i not in self.display_order and i not in self.excluded_fields
+        ]
+        fields = [entry.fields_dict[k] for k in fields]
+        return bibtexparser.model.Entry(entry.entry_type, entry.key, fields)
+
+    def olddict2Entry(self, dic):
+        """Convert an old dict to a new Entry"""
+        fields = [i for i in self.display_order if i in dic]
+        # then all the other fields sorted alphabetically
+        fields += [
+            i
+            for i in sorted(dic)
+            if i not in self.display_order and i not in self.excluded_fields
+        ]
+        fields = [bibtexparser.model.Field(k, dic[k]) for k in fields]
+        return bibtexparser.model.Entry(dic["ENTRYTYPE"], dic["ID"], fields)
+
+    def olddict2Library(self, dic):
+        """Convert an old dict to a new Entry and add it to a new Library"""
+        lib = self.getNewLibrary()
+        if isinstance(dic, dict):
+            lib.add(self.olddict2Entry(dic))
+        elif isinstance(dic, list):
+            for d in dic:
+                lib.add(self.olddict2Entry(d))
+        return lib
+
+    def entry2Olddict(self, entry):
+        """Convert a new Entry to an old dict"""
+        dic = {i.key: i.value for i in entry.fields}
+        dic["ENTRYTYPE"] = entry.entry_type
+        dic["ID"] = entry.key
+        return dic
+
+    def library2Olddict(self, lib):
+        """Convert a new Library to an old dict"""
+        dictlist = []
+        for entry in lib.entries:
+            dic = {i.key: i.value for i in entry.fields}
+            dic["ENTRYTYPE"] = entry.entry_type
+            dic["ID"] = entry.key
+            dictlist.append(dic)
+        return dictlist
 
     def _entry_to_bibtex(self, entry):
         """Redefine the function that writes
@@ -112,6 +165,26 @@ class PBBibTexWriter(BibTexWriter):
                 raise TypeError(bwstr.errorNotString % (field, entry["ID"]))
         bibtex += ",\n}\n" + self.entry_separator
         return bibtex
+
+    def _reorder_entry_fields(self, lib):
+        """NYI"""
+        return lib
+        olib = self.getNewLibrary()
+        for e in lib.entries:
+            olib.add(self.reorderEntry(e))
+        print(olib.entries)
+        return olib
+
+    def write(self, lib):
+        """simple function wrapper"""
+        olib = self._reorder_entry_fields(lib)
+        return bibtexparser.write_string(olib)
+
+    def writeOld(self, db):
+        return self.write(self.olddict2Library(db))
+
+    def rewrite(self, bibtex):
+        return self.write(self.getNewLibrary(bibtex))
 
 
 pbWriter = PBBibTexWriter()

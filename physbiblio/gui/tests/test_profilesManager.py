@@ -55,7 +55,7 @@ class TestEditProf(GUIwMainWTestCase):
     @classmethod
     def setUpClass(self):
         """set temporary pbConfig settings"""
-        super(TestEditProf, self).setUpClass()
+        super().setUpClass()
         self.oldProfileOrder = pbConfig.profileOrder
         self.oldProfiles = pbConfig.profiles
         self.oldCurrentProfileName = pbConfig.currentProfileName
@@ -72,7 +72,7 @@ class TestEditProf(GUIwMainWTestCase):
     @classmethod
     def tearDownClass(self):
         """restore previous pbConfig settings"""
-        super(TestEditProf, self).tearDownClass()
+        super().tearDownClass()
         pbConfig.profileOrder = self.oldProfileOrder
         pbConfig.profiles = self.oldProfiles
         pbConfig.currentProfileName = self.oldCurrentProfileName
@@ -528,7 +528,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
     @classmethod
     def setUpClass(self):
         """set temporary pbConfig settings"""
-        super(TestSelectProfiles, self).setUpClass()
+        super().setUpClass()
         self.oldProfileOrder = pbConfig.profileOrder
         self.oldProfiles = pbConfig.profiles
         self.oldCurrentProfileName = pbConfig.currentProfileName
@@ -544,7 +544,7 @@ class TestSelectProfiles(GUIwMainWTestCase):
     @classmethod
     def tearDownClass(self):
         """restore previous pbConfig settings"""
-        super(TestSelectProfiles, self).tearDownClass()
+        super().tearDownClass()
         pbConfig.profileOrder = self.oldProfileOrder
         pbConfig.profiles = self.oldProfiles
         pbConfig.currentProfileName = self.oldCurrentProfileName

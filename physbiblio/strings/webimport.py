@@ -63,7 +63,7 @@ class InspireStrings(GenericStrings):
 
 
 class WebInterfStrings:
-    """Strings for the webInterf module"""
+    """Strings for the webinterf module"""
 
     errorBadCodification = "[%s] -> Bad codification, utf-8 decode failed"
     errorImportMethod = "Error importing physbiblio.webimport.%s"

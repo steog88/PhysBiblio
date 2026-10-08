@@ -53,10 +53,10 @@ def editExperiment(parentObject, mainWinObject, editIdExp=None):
     if newExpWin.result:
         data = {}
         for k, v in newExpWin.textValues.items():
-            s = "%s" % v.text()
+            s = f"{v.text()}"
             data[k] = s
         if data["name"].strip() != "":
-            if "idExp" in data.keys():
+            if "idExp" in data:
                 pBLogger.info(ewstr.updateExp % data["idExp"])
                 pBDB.exps.update(data, data["idExp"])
             else:
@@ -116,7 +116,7 @@ class ExpTableModel(PBTableModel):
 
     typeClass = "Exps"
 
-    def __init__(self, parent, exp_list, header, askExps=False, previous=[], *args):
+    def __init__(self, parent, exp_list, header, askExps=False, previous=None, *args):
         """Extension of `PBTableModel`
         Initialize the model, save the data and the initial selection
 
@@ -129,8 +129,10 @@ class ExpTableModel(PBTableModel):
             previous: the list of previously selected experiments
                 (default: an empty list)
         """
+        if previous is None:
+            previous = []
         self.dataList = exp_list
-        super(ExpTableModel, self).__init__(parent, header, askExps, previous, *args)
+        super().__init__(parent, header, askExps, previous, *args)
         self.prepareSelected()
 
     def getIdentifier(self, element):
@@ -207,7 +209,7 @@ class ExpsListWindow(ObjListWindow):
     ]
 
     def __init__(
-        self, parent=None, askExps=False, askForBib=None, askForCat=None, previous=[]
+        self, parent=None, askExps=False, askForBib=None, askForCat=None, previous=None
     ):
         """Constructor, extends `ObjListWindow.__init__`
         with more settings and parameters
@@ -222,6 +224,8 @@ class ExpsListWindow(ObjListWindow):
             previous: the list (default empty) of initially selected
                 experiments
         """
+        if previous is None:
+            previous = []
         self.askExps = askExps
         self.askForBib = askForBib
         self.askForCat = askForCat
@@ -259,17 +263,17 @@ class ExpsListWindow(ObjListWindow):
                     return
                 try:
                     if bibitem["inspire"] != "" and bibitem["inspire"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "inspire"),
                             self.askForBib,
                         )
                     elif bibitem["arxiv"] != "" and bibitem["arxiv"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "arxiv"),
                             self.askForBib,
                         )
                     elif bibitem["doi"] != "" and bibitem["doi"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "doi"),
                             self.askForBib,
                         )
@@ -301,7 +305,7 @@ class ExpsListWindow(ObjListWindow):
         """
         self.parent().selectedExps = [
             idE
-            for idE in self.tableModel.selectedElements.keys()
+            for idE in self.tableModel.selectedElements
             if self.tableModel.selectedElements[idE]
         ]
         self.result = "Ok"
@@ -528,7 +532,7 @@ class EditExperimentDialog(EditObjectWindow):
             experiment: the database record or dictionary which
                 contains the experiment information
         """
-        super(EditExperimentDialog, self).__init__(parent)
+        super().__init__(parent)
         if experiment is None:
             self.data = {}
             for k in pBDB.tableCols["experiments"]:
@@ -550,7 +554,9 @@ class EditExperimentDialog(EditObjectWindow):
                 i += 1
                 self.currGrid.addWidget(PBLabel(k), i * 2 - 1, 0)
                 self.currGrid.addWidget(
-                    PBLabel("(%s)" % pBDB.descriptions["experiments"][k]), i * 2 - 1, 1
+                    PBLabel("({})".format(pBDB.descriptions["experiments"][k])),
+                    i * 2 - 1,
+                    1,
                 )
                 self.textValues[k] = QLineEdit(str(val))
                 if k == "idExp":

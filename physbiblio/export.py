@@ -37,7 +37,7 @@ class PBExport:
         """Initialize the class instance and set some default variables."""
         self.exportForTexFlag = True
         self.existingBibsList = None
-        self.allCitations = set([])
+        self.allCitations = set()
 
     def backupCopy(self, fileName):
         """Creates a backup copy of the given file.
@@ -48,7 +48,7 @@ class PBExport:
         if os.path.isfile(fileName):
             try:
                 shutil.copy2(fileName, fileName + self.backupExtension)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.cannotWriteBackup)
                 return False
             else:
@@ -64,7 +64,7 @@ class PBExport:
         if os.path.isfile(fileName + self.backupExtension):
             try:
                 shutil.copy2(fileName + self.backupExtension, fileName)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.cannotRestoreBackup)
                 return False
             else:
@@ -81,7 +81,7 @@ class PBExport:
         if os.path.isfile(fileName + self.backupExtension):
             try:
                 os.remove(fileName + self.backupExtension)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.cannotRemoveBackup)
                 return False
             else:
@@ -230,7 +230,7 @@ class PBExport:
             if len(nKeys.keys()) > 0:
                 pBLogger.info(
                     exstr.nonMatchingEntries % len(nKeys.keys())
-                    + "\n".join(["'%s' => '%s'" % (k, n) for k, n in nKeys.items()])
+                    + "\n".join([f"'{k}' => '{n}'" for k, n in nKeys.items()])
                 )
             pBLogger.info(exstr.totalWarnings % warn)
 
@@ -259,7 +259,7 @@ class PBExport:
                 with open(outFileName, "a") as o:
                     o.write(bibf)
                     pBLogger.info(exstr.entryInserted % m)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.errorWrite % outFileName)
                 return False
 
@@ -272,7 +272,7 @@ class PBExport:
             notFound = []
             for k, v in existingBibsDict.items():
                 if k in self.allCitations:
-                    newDict[k] = existingBibsDict[k]
+                    newDict[k] = v
                 else:
                     notFound.append(k)
             db.entries = [
@@ -286,7 +286,7 @@ class PBExport:
                 with open(outFileName, "w") as o:
                     o.write(exstr.byPhysbiblio + bibf)
                     pBLogger.info(exstr.entriesRemoved % notFound)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.errorWrite % outFileName)
 
         self.exportForTexFlag = True
@@ -312,7 +312,7 @@ class PBExport:
             try:
                 with open(outFileName, "w") as o:
                     o.write(exstr.byPhysbiblio)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.cannotWrite)
                 return False
 
@@ -320,11 +320,11 @@ class PBExport:
         try:
             with open(outFileName, "r") as f:
                 existingBibText = f.readlines()
-        except IOError:
+        except OSError:
             pBLogger.exception(exstr.cannotRead % outFileName)
             try:
                 open(outFileName, "w").close()
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.cannotCreate % outFileName)
                 return False
             existingBibText = ""
@@ -332,7 +332,7 @@ class PBExport:
         # this is time consuming if there are many entries.
         # Do not load it every time for multiple texs!
         if newOperation:
-            self.allCitations = set([])
+            self.allCitations = set()
             if existingBibText != "":
                 self.existingBibsList = pBDB.bibs.parseAllBibtexs(
                     existingBibText, verbose=False
@@ -370,7 +370,7 @@ class PBExport:
                 with open(outFileName, "w") as o:
                     o.write(exstr.byPhysbiblio + bibf)
                     pBLogger.info(exstr.outputUpdated)
-            except IOError:
+            except OSError:
                 pBLogger.exception(exstr.errorWrite % outFileName)
 
         # if there is a list of tex files, run this function
@@ -382,7 +382,7 @@ class PBExport:
                 texFileName = texFileName[0]
             else:
                 for t in texFileName:
-                    req, m, ret, nF, un, nK, w, cits = self.exportForTexFile(
+                    req, m, ret, nF, un, nK, w, _cits = self.exportForTexFile(
                         t,
                         outFileName,
                         autosave=autosave,
@@ -426,7 +426,7 @@ class PBExport:
         try:
             with open(texFileName) as r:
                 keyscont += r.read()
-        except IOError:
+        except OSError:
             pBLogger.exception(exstr.errorNoFile % texFileName)
             return False
 
@@ -514,7 +514,7 @@ class PBExport:
                 bibtexDict["ID"] = m
                 self.existingBibsList.append(bibtexDict)
                 saveEntryOutBib(bibtex, m)
-            except (IOError, KeyError, TypeError):
+            except (OSError, KeyError, TypeError):
                 unexpected.append(m)
                 pBLogger.exception(exstr.unexpectedEntry % m)
 
@@ -525,9 +525,7 @@ class PBExport:
         if checkDuplicates:
             ds = pBDB.bibs.printDuplicatesString(
                 pBDB.bibs.checkDuplicates(
-                    entries=pBDB.bibs.getByKey(
-                        sorted(list(self.allCitations)), verbose=False
-                    )
+                    entries=pBDB.bibs.getByKey(sorted(self.allCitations), verbose=False)
                 )
             )
             pBLogger.info(exstr.duplicates + ds)
@@ -571,7 +569,7 @@ class PBExport:
         try:
             with open(fileName) as r:
                 bibfile += r.read()
-        except IOError:
+        except OSError:
             pBLogger.exception(exstr.cannotWrite)
             return False
         try:

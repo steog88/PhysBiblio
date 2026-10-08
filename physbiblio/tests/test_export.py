@@ -33,8 +33,8 @@ class TestExportMethods(unittest.TestCase):
 
     def setUp(self):
         """Generate filenames"""
-        self.testBibName = os.path.join(pbConfig.dataPath, "tests_%s.bib" % today_ymd)
-        self.testTexName = os.path.join(pbConfig.dataPath, "tests_%s.tex" % today_ymd)
+        self.testBibName = os.path.join(pbConfig.dataPath, f"tests_{today_ymd}.bib")
+        self.testTexName = os.path.join(pbConfig.dataPath, f"tests_{today_ymd}.tex")
 
     def tearDown(self):
         """remove files"""
@@ -671,7 +671,7 @@ class TestExportMethods(unittest.TestCase):
             ) as _lai,
         ):
             output = pBExport.exportForTexFile(testTexName, testBibName, autosave=False)
-            _er.assert_any_call("Cannot read file %s.\nCreating one." % testBibName)
+            _er.assert_any_call(f"Cannot read file {testBibName}.\nCreating one.")
         self.assertEqual(len(output), 8)
         self.assertTrue(os.path.exists(testBibName))
         with (

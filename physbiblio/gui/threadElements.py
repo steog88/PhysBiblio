@@ -67,7 +67,7 @@ class Thread_citationCount(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_citationCount, self).__init__(parent)
+        super().__init__(parent)
         self.receiver = receiver
         self.inspireID = inspireID
         self.pbMax = pbMax
@@ -118,7 +118,7 @@ class Thread_updateAllBibtexs(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_updateAllBibtexs, self).__init__(parent)
+        super().__init__(parent)
         self.startFrom = startFrom
         self.receiver = receiver
         self.useEntries = useEntries
@@ -181,7 +181,7 @@ class Thread_replace(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_replace, self).__init__(parent)
+        super().__init__(parent)
         self.fiOld = fiOld
         self.fiNew = fiNew
         self.old = old
@@ -245,7 +245,7 @@ class Thread_duplicates(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_duplicates, self).__init__(parent)
+        super().__init__(parent)
         self.mainW = parent
         self.receiver = receiver
         self.pbMax = pbMax
@@ -289,7 +289,7 @@ class Thread_updateInspireInfo(PBThread):
             pbMax: ignored
             pbVal: ignored
         """
-        super(Thread_updateInspireInfo, self).__init__(parent)
+        super().__init__(parent)
         self.bibkey = bibkey
         self.inspireID = inspireID
         self.receiver = receiver
@@ -334,7 +334,7 @@ class Thread_downloadArxiv(PBThread):
         Parameter:
             bibkey: the identifier of the entry in the database
         """
-        super(Thread_downloadArxiv, self).__init__(parent)
+        super().__init__(parent)
         self.bibkey = bibkey
 
     def run(self):
@@ -358,7 +358,7 @@ class Thread_processLatex(PBThread):
                 Must be passed as an argument due to the dependencies.
             parent: the parent widget
         """
-        super(Thread_processLatex, self).__init__(parent)
+        super().__init__(parent)
         self.func = func
 
     def run(self):
@@ -388,7 +388,7 @@ class Thread_authorStats(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_authorStats, self).__init__(parent)
+        super().__init__(parent)
         try:
             self.parent().lastAuthorStats = False
         except AttributeError:
@@ -429,7 +429,7 @@ class Thread_paperStats(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_paperStats, self).__init__(parent)
+        super().__init__(parent)
         try:
             self.parent().lastPaperStats = False
         except AttributeError:
@@ -468,7 +468,7 @@ class Thread_loadAndInsert(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_loadAndInsert, self).__init__(parent)
+        super().__init__(parent)
         try:
             self.parent().lastAuthorStats = False
         except AttributeError:
@@ -519,7 +519,7 @@ class Thread_cleanAllBibtexs(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_cleanAllBibtexs, self).__init__(parent)
+        super().__init__(parent)
         self.startFrom = startFrom
         self.receiver = receiver
         self.useEntries = useEntries
@@ -563,7 +563,7 @@ class Thread_findBadBibtexs(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_findBadBibtexs, self).__init__(parent)
+        super().__init__(parent)
         try:
             self.parent().badBibtexs = False
         except AttributeError:
@@ -612,7 +612,7 @@ class Thread_importFromBib(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_importFromBib, self).__init__(parent)
+        super().__init__(parent)
         self.bibFile = bibFile
         self.complete = complete
         self.receiver = receiver
@@ -669,7 +669,7 @@ class Thread_exportTexBib(PBThread):
             pbMax: ignored
             pbVal: ignored
         """
-        super(Thread_exportTexBib, self).__init__(parent)
+        super().__init__(parent)
         self.texFiles = texFiles
         self.outFName = outFName
         self.receiver = receiver
@@ -739,7 +739,7 @@ class Thread_cleanSparePDF(PBThread):
             pbMax: ignored
             pbVal: ignored
         """
-        super(Thread_cleanSparePDF, self).__init__(parent)
+        super().__init__(parent)
         self.receiver = receiver
 
     def run(self):
@@ -771,7 +771,7 @@ class Thread_fieldsArxiv(PBThread):
             pbVal (callable, optional): a function to set the value
                 of a progress bar in the GUI, if possible
         """
-        super(Thread_fieldsArxiv, self).__init__(parent)
+        super().__init__(parent)
         self.entries = entries
         self.fields = fields
         self.receiver = receiver
@@ -808,7 +808,7 @@ class Thread_importDailyArxiv(PBThread):
             pbMax: ignored
             pbVal: ignored
         """
-        super(Thread_importDailyArxiv, self).__init__(parent)
+        super().__init__(parent)
         self.found = found
         self.receiver = receiver
         self.runningImport = True

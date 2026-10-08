@@ -64,10 +64,10 @@ def editCategory(parentObject, mainWinObject, editIdCat=None, useParentCat=None)
                 except IndexError:
                     s = "0"
             else:
-                s = "%s" % v.text()
+                s = f"{v.text()}"
             data[k] = s
         if data["name"].strip() != "":
-            if "idCat" in data.keys():
+            if "idCat" in data:
                 pBLogger.info(cwstr.updateCat % data["idCat"])
                 pBDB.cats.update(data, data["idCat"])
             else:
@@ -126,7 +126,7 @@ class CatsModel(TreeModel):
     """Model for the categories tree"""
 
     def __init__(
-        self, cats, rootElements, parent=None, previous=[], multipleRecords=False
+        self, cats, rootElements, parent=None, previous=None, multipleRecords=False
     ):
         """Initialize the model, save the data and the initial selection
 
@@ -141,6 +141,8 @@ class CatsModel(TreeModel):
                 for multiple records
                 (default False)
         """
+        if previous is None:
+            previous = []
         self.cats = cats
         self.rootElements = rootElements
         TreeModel.__init__(self)
@@ -292,7 +294,7 @@ class CatsTreeWindow(PBDialog):
         askForBib=None,
         askForExp=None,
         expButton=True,
-        previous=[],
+        previous=None,
         single=False,
         multipleRecords=False,
     ):
@@ -322,6 +324,8 @@ class CatsTreeWindow(PBDialog):
                 checkbox for the initial list of categories, which are
                 typically not the same for all the elements in the list
         """
+        if previous is None:
+            previous = []
         PBDialog.__init__(self, parent)
         self.setWindowTitle(cwstr.cats)
         self.currLayout = QVBoxLayout(self)
@@ -370,17 +374,17 @@ class CatsTreeWindow(PBDialog):
                     return
                 try:
                     if bibitem["inspire"] != "" and bibitem["inspire"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "inspire"),
                             self.askForBib,
                         )
                     elif bibitem["arxiv"] != "" and bibitem["arxiv"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "arxiv"),
                             self.askForBib,
                         )
                     elif bibitem["doi"] != "" and bibitem["doi"] is not None:
-                        link = "<a href='%s'>%s</a>" % (
+                        link = "<a href='{}'>{}</a>".format(
                             pBView.getLink(self.askForBib, "doi"),
                             self.askForBib,
                         )
@@ -438,12 +442,12 @@ class CatsTreeWindow(PBDialog):
         """
         self.parent().selectedCats = [
             idC
-            for idC in self.root_model.selectedCats.keys()
+            for idC in self.root_model.selectedCats
             if self.root_model.selectedCats[idC]
         ]
         self.parent().previousUnchanged = [
             idC
-            for idC in self.root_model.previousSaved.keys()
+            for idC in self.root_model.previousSaved
             if self.root_model.previousSaved[idC]
         ]
 
@@ -590,7 +594,7 @@ class CatsTreeWindow(PBDialog):
             pBLogger.debug("", exc_info=True)
             return
         try:
-            idCat, catName = idString.split(": ")
+            idCat, _catName = idString.split(": ")
         except AttributeError:
             pBLogger.debug("", exc_info=True)
             return
@@ -701,7 +705,7 @@ class CatsTreeWindow(PBDialog):
             pBLogger.debug("", exc_info=True)
             return
         try:
-            idCat, catName = idString.split(": ")
+            idCat, _catName = idString.split(": ")
         except AttributeError:
             pBLogger.debug("", exc_info=True)
             return
@@ -729,7 +733,7 @@ class EditCategoryDialog(EditObjectWindow):
         self.acceptButton = None
         self.cancelButton = None
         self.textValues = None
-        super(EditCategoryDialog, self).__init__(parent)
+        super().__init__(parent)
         if category is None:
             self.data = {}
             for k in pBDB.tableCols["categories"]:
@@ -762,7 +766,7 @@ class EditCategoryDialog(EditObjectWindow):
             try:
                 val = self.selectedCats[0]
                 self.textValues["parentCat"].setText(
-                    "%s - %s" % (str(val), pBDB.cats.getByID(val)[0]["name"])
+                    "{} - {}".format(str(val), pBDB.cats.getByID(val)[0]["name"])
                 )
             except IndexError:
                 self.textValues["parentCat"].setText(cwstr.selectParent)
@@ -779,12 +783,14 @@ class EditCategoryDialog(EditObjectWindow):
                 self.currGrid.addWidget(
                     PBLabel(pBDB.descriptions["categories"][k]), i * 2 - 1, 0
                 )
-                self.currGrid.addWidget(PBLabel("(%s)" % k), i * 2 - 1, 1)
+                self.currGrid.addWidget(PBLabel(f"({k})"), i * 2 - 1, 1)
                 if k == "parentCat":
                     try:
                         val = self.selectedCats[0]
                         self.textValues[k] = QPushButton(
-                            "%s - %s" % (str(val), pBDB.cats.getByID(val)[0]["name"]),
+                            "{} - {}".format(
+                                str(val), pBDB.cats.getByID(val)[0]["name"]
+                            ),
                             self,
                         )
                     except IndexError:

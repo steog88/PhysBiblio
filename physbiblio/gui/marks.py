@@ -36,7 +36,7 @@ class Marks:
             icon: the name of the icon file (omitting the .png extension),
                 which must be present in ":/images/"
         """
-        self.marks[key] = {"desc": desc, "icon": ":/images/%s.png" % icon}
+        self.marks[key] = {"desc": desc, "icon": f":/images/{icon}.png"}
 
     def getGroupbox(self, marksData, description=mstr.marks, radio=False, addAny=False):
         """Create a `QGroupBox` containing `QCheckBox`s or `QRadioButton`s

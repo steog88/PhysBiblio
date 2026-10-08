@@ -44,10 +44,10 @@ except ImportError:
 except Exception:
     print(traceback.format_exc())
 
-tempOldCfgName = os.path.join(pbConfig.dataPath, "tests_%s.cfg" % today_ymd)
-tempCfgName = os.path.join(pbConfig.dataPath, "tests_cfg_%s.db" % today_ymd)
-tempCfgName1 = os.path.join(pbConfig.dataPath, "tests_cfg1_%s.db" % today_ymd)
-tempProfName = os.path.join(pbConfig.dataPath, "tests_prof_%s.db" % today_ymd)
+tempOldCfgName = os.path.join(pbConfig.dataPath, f"tests_{today_ymd}.cfg")
+tempCfgName = os.path.join(pbConfig.dataPath, f"tests_cfg_{today_ymd}.db")
+tempCfgName1 = os.path.join(pbConfig.dataPath, f"tests_cfg1_{today_ymd}.db")
+tempProfName = os.path.join(pbConfig.dataPath, f"tests_prof_{today_ymd}.db")
 
 
 @patch("logging.Logger.debug")
@@ -254,7 +254,7 @@ class TestConfigMethods(unittest.TestCase):
         )
         self.assertEqual(tempPbConfig.profileOrder, ["default"])
 
-        tempProfName1 = os.path.join(pbConfig.dataPath, "tests_prof1_%s.db" % today_ymd)
+        tempProfName1 = os.path.join(pbConfig.dataPath, f"tests_prof1_{today_ymd}.db")
         self.assertTrue(
             tempPbConfig.globalDb.createProfile("temp", "none", tempProfName1)
         )
@@ -868,17 +868,17 @@ class TestGlobalDB(unittest.TestCase):
                 self.globalDb.updateProfileField(1, "databasefile", "new", "a")
             )
             _e.assert_called_once_with(
-                "Invalid field or identifierField: %s, %s" % ("databasefile", "a")
+                "Invalid field or identifierField: {}, {}".format("databasefile", "a")
             )
             self.assertFalse(self.globalDb.updateProfileField(1, "name", "new"))
             _e.assert_any_call(
-                "Invalid field or identifierField: %s, %s" % ("name", "name")
+                "Invalid field or identifierField: {}, {}".format("name", "name")
             )
             self.assertFalse(
                 self.globalDb.updateProfileField(0, "name", "new", "isDefault")
             )
             _e.assert_any_call(
-                "Invalid field or identifierField: %s, %s" % ("name", "isDefault")
+                "Invalid field or identifierField: {}, {}".format("name", "isDefault")
             )
             self.assertFalse(
                 self.globalDb.updateProfileField(
@@ -886,11 +886,11 @@ class TestGlobalDB(unittest.TestCase):
                 )
             )
             _e.assert_any_call(
-                "Invalid field or identifierField: %s, %s" % ("name", "abc")
+                "Invalid field or identifierField: {}, {}".format("name", "abc")
             )
             self.assertFalse(self.globalDb.updateProfileField(1, "abc", "new"))
             _e.assert_any_call(
-                "Invalid field or identifierField: %s, %s" % ("abc", "name")
+                "Invalid field or identifierField: {}, {}".format("abc", "name")
             )
         with (
             patch("logging.Logger.debug") as _d,
@@ -907,8 +907,8 @@ class TestGlobalDB(unittest.TestCase):
             _e.assert_called_once_with("Cannot update profile")
             _ce.assert_called_once_with(
                 self.globalDb,
-                "update profiles set %s = :val " % "databasefile"
-                + " where %s = :iden\n" % "name",
+                "update profiles set {} = :val ".format("databasefile")
+                + " where {} = :iden\n".format("name"),
                 data={"val": "new", "iden": 1},
             )
             self.assertEqual(_co.call_count, 0)
@@ -1155,7 +1155,7 @@ class TestGlobalDB(unittest.TestCase):
             _cp.assert_called_once_with(self.globalDb)
             _se.assert_any_call(self.globalDb, "default")
             _se.assert_any_call(self.globalDb, "c")
-            _i.assert_called_once_with("Default profile changed to %s" % "c")
+            _i.assert_called_once_with("Default profile changed to {}".format("c"))
 
     def test_setDefaultProfile(self, *args):
         """test setDefaultProfile"""
@@ -1843,14 +1843,14 @@ class TestConfigVars(unittest.TestCase):
                 [call("Reading configuration.\n"), call("Configuration loaded.\n")]
             )
             _e.assert_called_once_with(
-                "ERROR: reading config from '%s' failed." % (cv.currentDatabase)
+                f"ERROR: reading config from '{cv.currentDatabase}' failed."
             )
             _sdp.assert_called_once_with(cv)
             _dbc.assert_called_once_with(cv.currentDatabase, cv.logger, info=False)
             _cdb.assert_called_once_with(tempDb)
             tempDb.closeDB.assert_called_once_with(info=False)
             _rp.assert_called_once_with(
-                cv, list(configuration_params.keys())[0], configDb
+                cv, next(iter(configuration_params.keys())), configDb
             )
 
     def test_readParam(self, *args):
@@ -1902,7 +1902,7 @@ class TestConfigVars(unittest.TestCase):
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         configDb.getByName = MagicMock(return_value=[{"value": "123.123"}])
@@ -1917,14 +1917,14 @@ class TestConfigVars(unittest.TestCase):
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         configDb.getByName = MagicMock(return_value=[{"value": "123.13"}])
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         configDb.getByName = MagicMock(return_value=[{"value": "123"}])
@@ -1939,7 +1939,7 @@ class TestConfigVars(unittest.TestCase):
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         for v in ("True", "1", "yes", "On"):
@@ -1961,14 +1961,14 @@ class TestConfigVars(unittest.TestCase):
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         configDb.getByName = MagicMock(return_value=[{"value": "['a'"}])
         with patch("logging.Logger.warning") as _w:
             cv.readParam(key, configDb)
             _w.assert_called_once_with(
-                "Failed in reading parameter '%s'." % key, exc_info=True
+                f"Failed in reading parameter '{key}'.", exc_info=True
             )
         self.assertEqual(cv.params[key], configuration_params[key].default)
         configDb.getByName = MagicMock(return_value=[{"value": "['a', 'b']"}])
@@ -2111,8 +2111,8 @@ class TestConfigVars(unittest.TestCase):
             cv.reloadProfiles("no")
             _lp.assert_called_once_with(cv)
             _c.assert_called_once_with(
-                "The profile '%s' does not exist!" % "no"
-                + " Back to the default one ('%s')" % cv.defaultProfileName
+                "The profile '{}' does not exist!".format("no")
+                + f" Back to the default one ('{cv.defaultProfileName}')"
             )
             _i.assert_called_once()
             _rc.assert_called_once_with(cv)
@@ -2215,7 +2215,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_addFileHandler(self, *args):
         """test addFileHandler"""
-        log = logging.Logger("testAFH")
+        log = logging.getLogger("testAFH")
         h = logging.handlers.RotatingFileHandler(pbConfig.overWritelogFileName)
         with patch("logging.handlers.RotatingFileHandler", return_value=h) as _rfh:
             addFileHandler(log, "myfn.log")
@@ -2224,7 +2224,7 @@ class TestFunctions(unittest.TestCase):
             )
         self.assertEqual(h.level, getLogLevel(pbConfig.params["loggingLevel"]))
         self.assertIn(h, log.handlers)
-        log = logging.Logger("testAFH1")
+        log = logging.getLogger("testAFH1")
         with patch(
             "physbiblio.config.replacePBDATA",
             return_value=pbConfig.overWritelogFileName,

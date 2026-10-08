@@ -18,10 +18,11 @@ if isinstance(lastchanges, list):
     mdchanges = "<br>\n".join(
         [
             (
-                "<br>%s:<br>* %s<br>"
-                % (list(li.keys())[0], "<br>\n* ".join(list(li.values())[0]))
+                "<br>{}:<br>* {}<br>".format(
+                    next(iter(li.keys())), "<br>\n* ".join(next(iter(li.values())))
+                )
                 if isinstance(li, dict)
-                else "* %s" % li
+                else f"* {li}"
             )
             for li in lastchanges
         ]
@@ -29,9 +30,9 @@ if isinstance(lastchanges, list):
 elif isinstance(lastchanges, dict):
     mdchanges = "<br>\n".join(
         [
-            "<br><b>%s:</b><br>\n* %s" % (li, "<br>\n* ".join(list(v)))
+            "<br><b>{}:</b><br>\n* {}".format(li, "<br>\n* ".join(list(v)))
             if isinstance(v, list)
-            else "* %s" % li
+            else f"* {li}"
             for li, v in lastchanges.items()
         ]
     )
@@ -67,13 +68,13 @@ for li in changelog:
     )
     if isinstance(li["changes"], dict):
         for k, v in li["changes"].items():
-            text += "    %s:\n" % k
+            text += f"    {k}:\n"
             for b in v:
-                text += "    * %s\n" % b
+                text += f"    * {b}\n"
             text += "\n"
     else:
         for a in li["changes"]:
-            text += "    * %s\n" % a
+            text += f"    * {a}\n"
         text += "\n"
 
 with open("CHANGELOG", "w") as _f:

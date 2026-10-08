@@ -8,7 +8,6 @@ This file is part of the physbiblio package.
 
 import os
 import pkgutil
-import socket
 import ssl
 import traceback
 from urllib.request import HTTPError, URLError
@@ -39,14 +38,18 @@ class PBSession(requests.Session):
         self,
         total_retries=5,
         backoff=1.0,
-        status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET", "OPTIONS"],
+        status_forcelist=None,
+        method_whitelist=None,
         **kwargs,
     ):
         """Extend the Session class.
         Input parameters are as from
         requests.packages.urllib3.util.retry.Retry or requests.Session.
         """
+        if method_whitelist is None:
+            method_whitelist = ["HEAD", "GET", "OPTIONS"]
+        if status_forcelist is None:
+            status_forcelist = [429, 500, 502, 503, 504]
         retry_strategy = Retry(
             total=total_retries,
             backoff_factor=backoff,
@@ -70,14 +73,14 @@ class WebInterf(WebInterfStrings):
     url = None
     urlArgs = None
     urlTimeout = 1000.0
-    interfaces = []
 
     def __init__(self):
         """Initializes the class variables."""
+        self.interfaces = []
         self.urlTimeout = float(pbConfig.params["timeoutWebSearch"])
         # save the names of the available web search interfaces
         self.interfaces = [
-            a for a in webInterfaces if a not in ("strings", "tests", "webInterf")
+            a for a in webInterfaces if a not in ("strings", "tests", "webinterf")
         ]
         self.webSearch = {}
         self.loaded = False
@@ -100,7 +103,7 @@ class WebInterf(WebInterfStrings):
         if not isinstance(url, str) or url == "":
             url = self.url
         return (
-            url + "?" + "&".join(["%s=%s" % (a, b) for a, b in args.items()])
+            url + "?" + "&".join([f"{a}={b}" for a, b in args.items()])
             if len(args) > 0
             else url
         )
@@ -127,7 +130,7 @@ class WebInterf(WebInterfStrings):
         except HTTPError:
             pBLogger.warning(self.errorNotFound % url)
             return ""
-        except (ssl.SSLError, socket.timeout):
+        except (TimeoutError, ssl.SSLError):
             pBLogger.warning(self.errorTimedOut % self.name)
             return ""
         try:
@@ -149,7 +152,7 @@ class WebInterf(WebInterfStrings):
             returns None in the default implementation
                 (must be subclassed)
         """
-        return None
+        return
 
     def retrieveUrlAll(self, search):
         """Retrieves all the bibtexs that the search gives,
@@ -162,7 +165,7 @@ class WebInterf(WebInterfStrings):
             returns None in the default implementation
                 (must be subclassed)
         """
-        return None
+        return
 
     def loadInterfaces(self):
         """Load the subclasses that will interface
@@ -178,7 +181,7 @@ class WebInterf(WebInterfStrings):
                 _temp = __import__(
                     "physbiblio.webimport." + method, globals(), locals(), ["WebSearch"]
                 )
-                self.webSearch[method] = getattr(_temp, "WebSearch")()
+                self.webSearch[method] = _temp.WebSearch()
             except Exception:
                 pBLogger.exception(self.errorImportMethod % method)
         self.loaded = True
@@ -195,7 +198,7 @@ class WebInterf(WebInterfStrings):
             None in the default implementation (must be subclassed)
         """
         try:
-            return getattr(self.webSearch[method], "retrieveUrlFirst")(search)
+            return self.webSearch[method].retrieveUrlFirst(search)
         except KeyError:
             pBLogger.warning(self.methodNotAvailable % method)
             return ""
@@ -211,7 +214,7 @@ class WebInterf(WebInterfStrings):
             None in the default implementation (must be subclassed)
         """
         try:
-            return getattr(self.webSearch[method], "retrieveUrlAll")(search)
+            return self.webSearch[method].retrieveUrlAll(search)
         except KeyError:
             pBLogger.warning(self.methodNotAvailable % method)
             return ""

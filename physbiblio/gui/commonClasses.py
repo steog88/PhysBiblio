@@ -103,7 +103,7 @@ class PBLabelRight(PBLabel):
         Parameter:
             label: the text label to be passed to QLabel
         """
-        super(PBLabelRight, self).__init__(label)
+        super().__init__(label)
         self.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
 
@@ -116,7 +116,7 @@ class PBLabelCenter(PBLabel):
         Parameter:
             label: the text label to be passed to QLabel
         """
-        super(PBLabelCenter, self).__init__(label)
+        super().__init__(label)
         self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
 
@@ -132,9 +132,9 @@ class PBComboBox(QComboBox):
                 to be added to the QComboBox
             current (default None): the value to be set as the initial value
         """
-        super(PBComboBox, self).__init__(parent)
+        super().__init__(parent)
         for f in fields:
-            self.addItem("%s" % f)
+            self.addItem(f"{f}")
         if current is not None:
             try:
                 self.setCurrentIndex(fields.index(current))
@@ -153,9 +153,7 @@ class PBAndOrCombo(PBComboBox):
             current (default None): the value to be set
                 as selected at the beginning
         """
-        super(PBAndOrCombo, self).__init__(
-            parent, [ccstr.andC, ccstr.orC], current=current
-        )
+        super().__init__(parent, [ccstr.andC, ccstr.orC], current=current)
 
 
 class PBTrueFalseCombo(PBComboBox):
@@ -169,9 +167,7 @@ class PBTrueFalseCombo(PBComboBox):
             current (default None): the value to be set as selected
                 at the beginning
         """
-        super(PBTrueFalseCombo, self).__init__(
-            parent, [ccstr.true, ccstr.false], current=current
-        )
+        super().__init__(parent, [ccstr.true, ccstr.false], current=current)
 
 
 class ObjListWindow(PBDialog):
@@ -185,7 +181,7 @@ class ObjListWindow(PBDialog):
             gridLayout (boolean, default False):
                 if True, use a QGridLayout, otherwise a QVBoxLayout
         """
-        super(ObjListWindow, self).__init__(parent)
+        super().__init__(parent)
         self.tableWidth = None
         self.proxyModel = None
         self.gridLayout = gridLayout
@@ -337,7 +333,7 @@ class EditObjectWindow(PBDialog):
         Parameter:
             parent: the parent object
         """
-        super(EditObjectWindow, self).__init__(parent)
+        super().__init__(parent)
         self.textValues = {}
         self.result = False
         self.currGrid = None
@@ -417,7 +413,7 @@ class WriteStream(PBThread):
             queue: a Queue instance
             parent (optional): the parent widget
         """
-        super(WriteStream, self).__init__(parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         self.queue = queue
         self.running = True
 
@@ -466,7 +462,7 @@ class PBTableModel(QAbstractTableModel):
     used for experiments and bibtex entries
     """
 
-    def __init__(self, parent, header, ask=False, previous=[], *args):
+    def __init__(self, parent, header, ask=False, previous=None, *args):
         """Constructor, based on `QAbstractTableModel.__init__`
 
         Parameters:
@@ -476,6 +472,8 @@ class PBTableModel(QAbstractTableModel):
                 when True, allow to select the lines with a checkbox
             previous: the list of lines which must be selected at the beginning
         """
+        if previous is None:
+            previous = []
         QAbstractTableModel.__init__(self, parent, *args)
         self.header = header
         self.parentObj = parent
@@ -528,14 +526,14 @@ class PBTableModel(QAbstractTableModel):
     def selectAll(self):
         """Select all the available rows"""
         self.layoutAboutToBeChanged.emit()
-        for key in self.selectedElements.keys():
+        for key in self.selectedElements:
             self.selectedElements[key] = True
         self.layoutChanged.emit()
 
     def unselectAll(self):
         """Unselect all the available rows"""
         self.layoutAboutToBeChanged.emit()
-        for key in self.selectedElements.keys():
+        for key in self.selectedElements:
             self.selectedElements[key] = False
         self.layoutChanged.emit()
 
@@ -678,7 +676,7 @@ class TreeNode(QObject):
             parent: the parent node
             row: the content of the data row
         """
-        super(TreeNode, self).__init__()
+        super().__init__()
         self.parentObj = parent
         self.row = row
         self.subnodes = self._getChildren()
@@ -777,7 +775,7 @@ class TreeModel(QAbstractItemModel):
         return len(node.subnodes)
 
 
-class NamedElement(object):
+class NamedElement:
     """Basic object for the tree structure of categories"""
 
     def __init__(self, idCat, name, subelements):
@@ -854,7 +852,7 @@ class LeafFilterProxyModel(QSortFilterProxyModel):
             row_num: the row number
             parent: the parent node in the tree
         """
-        return super(LeafFilterProxyModel, self).filterAcceptsRow(row_num, parent)
+        return super().filterAcceptsRow(row_num, parent)
 
     def filterAcceptsAnyParent(self, parent):
         """Traverse to the root node and check if any of the
@@ -896,7 +894,7 @@ class PBDDTableWidget(QTableWidget):
         Parameters:
             header: the title of the column
         """
-        super(PBDDTableWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setColumnCount(1)
         self.setHorizontalHeaderLabels([header])
         self.setDragEnabled(True)
@@ -929,7 +927,7 @@ class PBDDTableWidget(QTableWidget):
 
         # Default dropEvent method fires dropMimeData
         # with appropriate parameters (we're interested in the row index).
-        super(PBDDTableWidget, self).dropEvent(event)
+        super().dropEvent(event)
         # Now we know where to insert selected row(s)
         dropRow = self.lastDropRow
 
@@ -988,7 +986,7 @@ class PBMenu(QMenu):
         Parameter:
             parent: the parent widget
         """
-        super(PBMenu, self).__init__(parent)
+        super().__init__(parent)
         self.possibleActions = []
         self.result = False
 

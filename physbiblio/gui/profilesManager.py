@@ -60,7 +60,7 @@ def editProfile(parentObject):
                 fileName = currEl["f"].currentText()
             if currEl["r"].isChecked() and name != "":
                 pbConfig.globalDb.setDefaultProfile(name)
-            if name in pbConfig.profiles.keys():
+            if name in pbConfig.profiles:
                 pbConfig.globalDb.updateProfileField(
                     name, "description", currEl["d"].text()
                 )
@@ -68,8 +68,7 @@ def editProfile(parentObject):
                     pbConfig.globalDb.deleteProfile(name)
                     deleted.append(name)
             elif fileName in [
-                pbConfig.profiles[k]["db"].split(os.sep)[-1]
-                for k in pbConfig.profiles.keys()
+                pbConfig.profiles[k]["db"].split(os.sep)[-1] for k in pbConfig.profiles
             ]:
                 pbConfig.globalDb.updateProfileField(
                     fileName,
@@ -147,7 +146,7 @@ class SelectProfiles(PBDialog):
 
     def onLoad(self):
         """Get current selection and (eventually) load new profile"""
-        prof, desc = self.combo.currentText().split(pmstr.splitter)
+        prof, _desc = self.combo.currentText().split(pmstr.splitter)
         newProfile = pbConfig.profiles[prof]
         if prof != pbConfig.currentProfileName:
             pBLogger.info(pmstr.changingProfile)
@@ -177,18 +176,17 @@ class SelectProfiles(PBDialog):
 
         i = 0
         if self.message is not None:
-            grid.addWidget(PBLabel("%s" % self.message), 0, 0)
+            grid.addWidget(PBLabel(f"{self.message}"), 0, 0)
             i += 1
 
         grid.addWidget(PBLabel(pmstr.availableProfiles), i, 0)
         self.combo = PBComboBox(
             self,
             [
-                "%s%s%s" % (p, pmstr.splitter, pbConfig.profiles[p]["d"])
+                "{}{}{}".format(p, pmstr.splitter, pbConfig.profiles[p]["d"])
                 for p in pbConfig.profileOrder
             ],
-            current="%s%s%s"
-            % (
+            current="{}{}{}".format(
                 pbConfig.currentProfileName,
                 pmstr.splitter,
                 pbConfig.profiles[pbConfig.currentProfileName]["d"],
@@ -319,12 +317,12 @@ class EditProfileWindow(EditObjectWindow):
             try:
                 prof = profilesData[k]
             except KeyError:
-                pBLogger.warning(pmstr.missingProfile % (k, sorted(list(profilesData))))
+                pBLogger.warning(pmstr.missingProfile % (k, sorted(profilesData)))
                 missing.append(k)
                 continue
             for f in ("db", "d"):
                 if f not in list(prof):
-                    pBLogger.warning(pmstr.missingInfo % (f, sorted(list(prof))))
+                    pBLogger.warning(pmstr.missingInfo % (f, sorted(prof)))
                     prof[f] = ""
             i += 1
             tempEl = {}
@@ -353,7 +351,7 @@ class EditProfileWindow(EditObjectWindow):
                 self.currGrid.addWidget(self.arrows[j][1], i, 4)
                 j += 1
             tempEl["x"] = QCheckBox("", self)
-            if "x" in prof.keys() and prof["x"]:
+            if prof.get("x"):
                 tempEl["x"].setChecked(True)
             self.currGrid.addWidget(tempEl["x"], i, 6)
             self.elements.append(tempEl)
@@ -365,7 +363,7 @@ class EditProfileWindow(EditObjectWindow):
             if defaultProfile == k:
                 self.elements[i]["r"].setChecked(True)
         for i, k in enumerate(profileOrder):
-            if "r" in profilesData[k].keys() and profilesData[k]["r"]:
+            if "r" in profilesData[k] and profilesData[k]["r"]:
                 self.elements[i]["r"].setChecked(True)
 
     def createForm(
@@ -373,7 +371,7 @@ class EditProfileWindow(EditObjectWindow):
         profilesData=None,
         profileOrder=None,
         defaultProfile=None,
-        newLine={"r": False, "n": "", "db": "", "d": "", "c": "None"},
+        newLine=None,
     ):
         """Create the form for managing profiles,
         using previous form content if requested.
@@ -402,6 +400,8 @@ class EditProfileWindow(EditObjectWindow):
                     "r": True if the profile was marked as default in the form
                     "c": previous content of "Copy from:"
         """
+        if newLine is None:
+            newLine = {"r": False, "n": "", "db": "", "d": "", "c": "None"}
         if profilesData is None:
             profilesData = pbConfig.profiles
         if profileOrder is None:
@@ -425,8 +425,8 @@ class EditProfileWindow(EditObjectWindow):
         self.addButtons(profilesData, profileOrder)
 
         for f in ("c", "db", "d", "n", "r"):
-            if f not in newLine.keys():
-                pBLogger.warning(pmstr.missingField % (f, sorted(list(newLine))))
+            if f not in newLine:
+                pBLogger.warning(pmstr.missingField % (f, sorted(newLine)))
                 newLine[f] = ""
         i = len(profilesData) + 3
         self.currGrid.addWidget(PBLabel(""), i - 2, 0)

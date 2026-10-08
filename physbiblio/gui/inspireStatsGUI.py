@@ -51,7 +51,7 @@ class AuthorStatsPlots(PBDialog):
             parent (default None): the parent object,
                 which should have a property `lastAuthorStats`
         """
-        super(AuthorStatsPlots, self).__init__(parent)
+        super().__init__(parent)
         self.figs = figs
         self.canvas = None
         if title is not None:
@@ -221,7 +221,7 @@ class PaperStatsPlots(PBDialog):
             parent (default None): the parent object,
                 which should have a property lastPaperStats
         """
-        super(PaperStatsPlots, self).__init__(parent)
+        super().__init__(parent)
         self.fig = fig
         self.canvas = None
         if title is not None:

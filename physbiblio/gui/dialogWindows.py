@@ -46,7 +46,7 @@ try:
     )
     from physbiblio.gui.errorManager import pBGUILogger
     from physbiblio.strings.gui import DialogWindowsStrings as dwstr
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())

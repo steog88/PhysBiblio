@@ -16,7 +16,7 @@ try:
     from physbiblio.setuptests import patch, skipTestsSettings
     from physbiblio.strings.webimport import InspireStrings
     from physbiblio.webimport.inspire import WebSearch
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webinterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -68,11 +68,11 @@ class TestInspireMethods(unittest.TestCase):
                 side_effect=KeyError("exc"),
             ) as _pa,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="mycurrenturl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value="some output text",
             ) as _tu,
             patch("logging.Logger.info") as _i,
@@ -91,11 +91,11 @@ class TestInspireMethods(unittest.TestCase):
                 "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
             ) as _pa,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="mycurrenturl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value="some output text",
             ) as _tu,
             patch("logging.Logger.info") as _i,
@@ -112,11 +112,11 @@ class TestInspireMethods(unittest.TestCase):
                 "physbiblio.webimport.inspire.parse_accents_str", return_value="1234"
             ) as _pa,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="mycurrenturl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value=r"some o\"utput text",
             ) as _tu,
             patch("logging.Logger.info") as _i,
@@ -163,7 +163,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value="",
             ) as _tu,
         ):
@@ -177,7 +177,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value=None,
             ) as _tu,
         ):
@@ -191,7 +191,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value="['abcd'",
             ) as _tu,
         ):
@@ -205,7 +205,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 side_effect=[
                     '{"hits":{"hits":["abc"], "total":1}, "links":{"next":"efgh"}}',
                     None,
@@ -224,7 +224,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 side_effect=[
                     '{"hits":{"hits":["abc"], "total":4}, "links":{"next":"efgh"}}',
                     '{"hits":{"hits":["def", "ghi"], "total":2}}',
@@ -243,7 +243,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value='{"id":"aA","hits":4}',
             ) as _tu,
         ):
@@ -263,7 +263,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value='{"message":"bla","status":"404", "id": "aA",'
                 + '"hits":{"hits":["abc"], "total":4},'
                 + ' "links":{"next":"efgh"}}',
@@ -279,7 +279,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
             ) as _tu,
         ):
@@ -295,7 +295,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value='{"hits":{"hits":["abc"], "total":4}, "links":{"next":"abcd"}}',
             ) as _tu,
         ):
@@ -320,7 +320,7 @@ class TestInspireMethods(unittest.TestCase):
         args["fields"] = ",".join(iws.metadataLiteratureFields)
         with (
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="mycurrenturl",
             ) as _cu,
             patch(
@@ -333,7 +333,7 @@ class TestInspireMethods(unittest.TestCase):
             _rar.assert_called_once_with("mycurrenturl", max_iterations=20)
             args["q"] = "abc"
             args["size"] = "1000"
-            args["fields"] = ",".join(["a", "b"])
+            args["fields"] = "a,b"
             self.assertEqual(
                 iws.retrieveSearchResults("abc", size=1111, fields=["a", "b"]), "output"
             )
@@ -414,11 +414,11 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="mycurrenturl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 side_effect=[
                     "",
                     '["abc"',
@@ -634,7 +634,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
         ):
             self.assertFalse(iws.retrieveOAIData("abc"))
-            _s.assert_called_once_with("%sabc" % iws.url)
+            _s.assert_called_once_with(f"{iws.url}abc")
             _e.assert_called_once_with(iws.errorEmptySearch)
             self.assertEqual(_r.call_count, 0)
         with (
@@ -651,7 +651,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
         ):
             self.assertFalse(iws.retrieveOAIData("abc"))
-            _s.assert_called_once_with("%sabc" % iws.url)
+            _s.assert_called_once_with(f"{iws.url}abc")
             _r.assert_called_once_with(
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
             )
@@ -670,7 +670,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
         ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
-            _s.assert_called_once_with("%sabc" % iws.url)
+            _s.assert_called_once_with(f"{iws.url}abc")
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with(
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
@@ -690,7 +690,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
         ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
-            _s.assert_called_once_with("%sabc" % iws.url)
+            _s.assert_called_once_with(f"{iws.url}abc")
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with(
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
@@ -715,7 +715,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
         ):
             self.assertEqual(iws.retrieveOAIData("abc"), {"k": "a"})
-            _s.assert_called_once_with("%sabc" % iws.url)
+            _s.assert_called_once_with(f"{iws.url}abc")
             self.assertEqual(_e.call_count, 0)
             _r.assert_called_once_with(
                 {"ABC": "abc"}, bibtex=None, readConferenceTitle=False
@@ -747,7 +747,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 side_effect=[
                     None,
                     "",
@@ -810,7 +810,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 side_effect=[
                     res1,
                     "a",  # literature
@@ -836,14 +836,16 @@ class TestInspireMethods(unittest.TestCase):
                 + "&fields="
                 + (",".join(iws.metadataConferenceFields))
             )
-            _tu.assert_any_call("%s%s" % (pbConfig.inspireLiteratureAPI, "1234"))
+            _tu.assert_any_call("{}{}".format(pbConfig.inspireLiteratureAPI, "1234"))
             _e.assert_called_once_with(iws.jsonError)
             _tu.reset_mock()
             _e.reset_mock()
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
-            _tu.assert_any_call("%s%s" % (pbConfig.inspireLiteratureAPI, "2345"))
+            _tu.assert_any_call("{}{}".format(pbConfig.inspireLiteratureAPI, "2345"))
             with self.assertRaises(AssertionError):
-                _tu.assert_called_with("%s%s" % (pbConfig.inspireLiteratureAPI, "1234"))
+                _tu.assert_called_with(
+                    "{}{}".format(pbConfig.inspireLiteratureAPI, "1234")
+                )
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
             self.assertEqual(iws.getProceedingsTitle("C21-01-00"), None)
@@ -854,7 +856,7 @@ class TestInspireMethods(unittest.TestCase):
             patch("logging.Logger.warning") as _w,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value='{"metadata": {"titles": [{"title":"abc", "subtitle": "def"}]}}',
             ) as _tu,
         ):
@@ -871,7 +873,7 @@ class TestInspireMethods(unittest.TestCase):
         def getBibtex(res):
             bibtexDict = {"ENTRYTYPE": res["ENTRYTYPE"], "ID": res["bibkey"]}
             for k in iws.bibtexFields:
-                if k in res.keys() and res[k] is not None and res[k] != "":
+                if k in res and res[k] is not None and res[k] != "":
                     bibtexDict[k] = res[k]
             db = bibtexparser.bibdatabase.BibDatabase()
             db.entries = [bibtexDict]
@@ -967,7 +969,7 @@ class TestInspireMethods(unittest.TestCase):
             "archiveprefix": "arXiv",
             "primaryclass": "hep-ph",
             "ads": "ads2",
-            "author": "author1{\`a}",
+            "author": r"author1{\`a}",
             "collaboration": "coll1, coll2, coll3",
             "title": "title1",
             "journal": "jt1",
@@ -1035,15 +1037,13 @@ class TestInspireMethods(unittest.TestCase):
         }
         res4 = {
             **res1,
-            **{
-                "ENTRYTYPE": "inproceedings",
-                "eprint": "arxiv1",
-                "archiveprefix": "arXiv",
-                "author": "author1 and author2",
-                "collaboration": "coll1",
-                "firstdate": "2021-07-02",
-                "link": "https://arxiv.org/abs/arxiv1",
-            },
+            "ENTRYTYPE": "inproceedings",
+            "eprint": "arxiv1",
+            "archiveprefix": "arXiv",
+            "author": "author1 and author2",
+            "collaboration": "coll1",
+            "firstdate": "2021-07-02",
+            "link": "https://arxiv.org/abs/arxiv1",
         }
         res4["bibtex"] = getBibtex(res4)
         record5 = {
@@ -1055,22 +1055,20 @@ class TestInspireMethods(unittest.TestCase):
                 "publication_info": [{"cnum": "123", "parent_record": {"$ref": "abc"}}],
                 "earliest_date": "2021-06-30",
                 "authors": [
-                    {"full_name": "author%d" % (i + 1)}
+                    {"full_name": f"author{i + 1}"}
                     for i in range(pbConfig.params["maxAuthorSave"])
                 ],
             }
         }
         res5 = {
             **res1,
-            **{
-                "ENTRYTYPE": "inproceedings",
-                "eprint": "arxiv1",
-                "archiveprefix": "arXiv",
-                "primaryclass": "hep-ex",
-                "author": "author1 and others",
-                "firstdate": "2021-06-30",
-                "link": "https://arxiv.org/abs/arxiv1",
-            },
+            "ENTRYTYPE": "inproceedings",
+            "eprint": "arxiv1",
+            "archiveprefix": "arXiv",
+            "primaryclass": "hep-ex",
+            "author": "author1 and others",
+            "firstdate": "2021-06-30",
+            "link": "https://arxiv.org/abs/arxiv1",
         }
         res5["bibtex"] = getBibtex(res5)
         record6 = {
@@ -1078,41 +1076,34 @@ class TestInspireMethods(unittest.TestCase):
                 "thesis_info": {"institutions": ["A", "B"], "date": "2013"},
                 "document_type": ["thesis"],
                 "authors": [
-                    {"full_name": "author%d" % (i + 1)}
+                    {"full_name": f"author{i + 1}"}
                     for i in range(pbConfig.params["maxAuthorSave"] - 1)
                 ],
             }
         }
         res6 = {
             **res3,
-            **{
-                "ENTRYTYPE": "phdthesis",
-                "year": "2013",
-                "school": "A, B",
-                "author": " and ".join(
-                    [
-                        "author%d" % (i + 1)
-                        for i in range(pbConfig.params["maxAuthorSave"] - 1)
-                    ]
-                ),
-            },
+            "ENTRYTYPE": "phdthesis",
+            "year": "2013",
+            "school": "A, B",
+            "author": " and ".join(
+                [f"author{i + 1}" for i in range(pbConfig.params["maxAuthorSave"] - 1)]
+            ),
         }
         res6["bibtex"] = getBibtex(res6)
         record7 = {
             "metadata": {
                 "author_count": pbConfig.params["maxAuthorSave"] + 1,
                 "authors": [
-                    {"full_name": "author%d" % (i + 1)}
+                    {"full_name": f"author{i + 1}"}
                     for i in range(pbConfig.params["maxAuthorSave"] - 1)
                 ],
             }
         }
         res7 = {
             **res3,
-            **{
-                "ENTRYTYPE": "article",
-                "author": "author1 and others",
-            },
+            "ENTRYTYPE": "article",
+            "author": "author1 and others",
         }
         res7["bibtex"] = getBibtex(res7)
         with patch("logging.Logger.warning") as _w:
@@ -1151,8 +1142,8 @@ class TestInspireMethods(unittest.TestCase):
         """Online test readRecord"""
         self.maxDiff = None
         iws = physBiblioWeb.webSearch["inspire"]
-        record1 = iws.retrieveAPIResults("%s%s" % (iws.url, "1385583"))[0][0]
-        record2 = iws.retrieveAPIResults("%s%s" % (iws.url, "1414175"))[0][0]
+        record1 = iws.retrieveAPIResults("{}{}".format(iws.url, "1385583"))[0][0]
+        record2 = iws.retrieveAPIResults("{}{}".format(iws.url, "1414175"))[0][0]
         dict1a = iws.readRecord(record1)
         dict1b = iws.readRecord(record1, readConferenceTitle=True)
         self.assertEqual(dict1a, dict1b)
@@ -1182,7 +1173,7 @@ class TestInspireMethods(unittest.TestCase):
                 "isbn": None,
                 "ENTRYTYPE": "article",
                 "oldkeys": "",
-                "link": "%s10.1088/0954-3899/43/3/033001" % pbConfig.doiUrl,
+                "link": f"{pbConfig.doiUrl}10.1088/0954-3899/43/3/033001",
                 "bibtex": "@Article{Gariazzo:2015rra,\n        "
                 + 'author = "Gariazzo, S. and Giunti, C. and Laveder, M. '
                 + 'and Li, Y.F. and Zavanin, E.M.",\n         title = "'
@@ -1223,7 +1214,7 @@ class TestInspireMethods(unittest.TestCase):
                 + "Russia, August 20-26, 2015",
                 "ENTRYTYPE": "inproceedings",
                 "oldkeys": "",
-                "link": "%s10.1142/9789813224568_0076" % pbConfig.doiUrl,
+                "link": f"{pbConfig.doiUrl}10.1142/9789813224568_0076",
                 "bibtex": "@Inproceedings{Gariazzo:2016ehl,\n        "
                 + 'author = "Gariazzo, Stefano",\n         '
                 + 'title = "{Light Sterile Neutrinos In Cosmology}",'
@@ -1282,7 +1273,7 @@ class TestInspireMethods(unittest.TestCase):
             _w.assert_any_call(
                 iws.warningMissingField
                 % (
-                    [k for k in iws.updateBibtexFields if k not in res.keys()],
+                    [k for k in iws.updateBibtexFields if k not in res],
                     res["id"],
                 )
             )

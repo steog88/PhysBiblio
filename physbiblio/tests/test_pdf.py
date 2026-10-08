@@ -21,7 +21,7 @@ except Exception:
     print(traceback.format_exc())
 
 
-pBPDF.pdfDir = os.path.join(pbConfig.dataPath, "testpdf_%s" % today_ymd)
+pBPDF.pdfDir = os.path.join(pbConfig.dataPath, f"testpdf_{today_ymd}")
 
 
 @unittest.skipIf(skipTestsSettings.long, "Long tests")
@@ -95,7 +95,7 @@ class TestPdfMethods(unittest.TestCase):
 
     def test_manageFiles(self, *args):
         """Test creation, copy and deletion of files and folders"""
-        emptyPdfName = os.path.join(pBPDF.pdfDir, "tests_%s.pdf" % today_ymd)
+        emptyPdfName = os.path.join(pBPDF.pdfDir, f"tests_{today_ymd}.pdf")
         pBPDF.createFolder("abc.def")
         self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.def")))
         pBPDF.renameFolder("abc.def", "abc.fed")
@@ -103,7 +103,7 @@ class TestPdfMethods(unittest.TestCase):
         self.assertTrue(os.path.exists(pBPDF.getFileDir("abc.fed")))
         pBPDF.createFolder("abc.def")
         open(
-            os.path.join(pBPDF.pdfDir, "abc.def", "tests_%s.pdf" % today_ymd), "a"
+            os.path.join(pBPDF.pdfDir, "abc.def", f"tests_{today_ymd}.pdf"), "a"
         ).close()
         pBPDF.renameFolder("abc.def", "abc.fed")
         self.assertFalse(os.path.exists(pBPDF.getFileDir("abc.def")))
@@ -113,7 +113,7 @@ class TestPdfMethods(unittest.TestCase):
         )
         self.assertTrue(
             os.path.exists(
-                os.path.join(pBPDF.pdfDir, "abc.fed", "tests_%s.pdf" % today_ymd)
+                os.path.join(pBPDF.pdfDir, "abc.fed", f"tests_{today_ymd}.pdf")
             )
         )
         open(emptyPdfName, "a").close()

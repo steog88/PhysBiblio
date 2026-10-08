@@ -5,6 +5,8 @@ This file is part of the physbiblio package.
 
 import ast
 import datetime
+import functools
+import operator
 import os
 import re
 import traceback
@@ -21,7 +23,7 @@ try:
     from physbiblio.errors import pBLogger
     from physbiblio.parseAccents import parse_accents_str
     from physbiblio.strings.main import DatabaseStrings as dstr
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -113,14 +115,14 @@ class PhysBiblioDB(PhysBiblioDBCore):
             except (ValueError, SyntaxError):
                 pBLogger.exception(
                     "Something went wrong when processing "
-                    + "the search fields: '%s'" % sr["searchDict"]
+                    + "the search fields: '{}'".format(sr["searchDict"])
                 )
                 pbConfig.globalDb.updateSearchField(sr["idS"], "searchDict", defSeF)
                 searchFields = defSeF
             if not isinstance(searchFields, list) and isinstance(searchFields, dict):
                 newContent = []
                 first = True
-                if "cats" in searchFields.keys():
+                if "cats" in searchFields:
                     first = False
                     newContent.append(
                         {
@@ -147,7 +149,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                     del searchFields["catExpOperator"]
                 except KeyError:
                     pass
-                if "exps" in searchFields.keys():
+                if "exps" in searchFields:
                     newContent.append(
                         {
                             "type": "Experiments",
@@ -162,7 +164,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                         }
                     )
                     del searchFields["exps"]
-                if "marks" in searchFields.keys():
+                if "marks" in searchFields:
                     newContent.append(
                         {
                             "type": "Marks",
@@ -178,7 +180,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                     )
                     del searchFields["marks"]
                 for t in self.bibs.searchPossibleTypes:
-                    if t in searchFields.keys():
+                    if t in searchFields:
                         newContent.append(
                             {
                                 "type": "Type",
@@ -190,7 +192,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                         )
                         del searchFields[t]
                 for fi in sorted(searchFields.keys()):
-                    f, i = fi.split("#")
+                    f, _i = fi.split("#")
                     newContent.append(
                         {
                             "type": "Text",
@@ -213,7 +215,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                 except (ValueError, SyntaxError):
                     pBLogger.exception(
                         "Something went wrong when processing "
-                        + "the saved replace: '%s'" % sr["replaceFields"]
+                        + "the saved replace: '{}'".format(sr["replaceFields"])
                     )
                     replaceFields = {}
                     newContent = defReF
@@ -240,7 +242,7 @@ class PhysBiblioDB(PhysBiblioDBCore):
                             newContent["fieNew1"] = defReF["fieNew1"]
                             newContent["new1"] = defReF["new1"]
                             newContent["double"] = defReF["double"]
-                if "%s" % newContent != sr["replaceFields"]:
+                if f"{newContent}" != sr["replaceFields"]:
                     pbConfig.globalDb.updateSearchField(
                         sr["idS"], "replaceFields", newContent
                     )
@@ -350,8 +352,7 @@ class Categories(PhysBiblioDBSub):
                 idCat = result[0]["idCat"]
             if idCat < 2:
                 pBLogger.info(
-                    dstr.Cats.cannotDelete
-                    % (idCat, " (name: %s)" % name if name else "")
+                    dstr.Cats.cannotDelete % (idCat, f" (name: {name})" if name else "")
                 )
                 return False
             pBLogger.info(dstr.Cats.useCat % idCat)
@@ -1191,7 +1192,7 @@ class Experiments(PhysBiblioDBSub):
             the list of `sqlite3.Row` objects
                 with all the experiments in the database
         """
-        self.cursExec("select * from experiments order by %s %s" % (orderBy, order))
+        self.cursExec(f"select * from experiments order by {orderBy} {order}")
         return self.curs.fetchall()
 
     def getByCat(self, idCat):
@@ -1353,7 +1354,7 @@ class Experiments(PhysBiblioDBSub):
             Output:
                 the string
             """
-            exp = [e for e in exps if e["idExp"] == idExp][0]
+            exp = next(e for e in exps if e["idExp"] == idExp)
             if withDesc:
                 return sp + "-> %s (%d) - %s" % (
                     exp["name"],
@@ -1377,7 +1378,7 @@ class Experiments(PhysBiblioDBSub):
 
         expCats = {}
         for a, idE, idC in self.mainDB.catExp.getAll():
-            if idC not in expCats.keys():
+            if idC not in expCats:
                 expCats[idC] = []
                 showCat[idC] = True
             expCats[idC].append(idE)
@@ -1609,19 +1610,17 @@ class Entries(PhysBiblioDBSub):
         if operator == dstr.Bibs.Search.opCSub and fieldName == "idCat":
             idxs = self.mainDB.cats.getAllCatsInTree(idxs)
             operator = dstr.Bibs.Search.opCEOne
-        if len(idxs) == 1 and operator not in self.searchOperators["catexp"].keys():
+        if len(idxs) == 1 and operator not in self.searchOperators["catexp"]:
             operator = dstr.Bibs.Search.opCEOne
         if len(idxs) > 0:
             if operator == dstr.Bibs.Search.opCEOne:
-                joinStr += " left join %s on entries.bibkey=%s.bibkey" % (
-                    tabName,
-                    tabName,
-                )
+                joinStr += f" left join {tabName} on entries.bibkey={tabName}.bibkey"
                 whereStr += (
-                    "%s.%s = ? " % (tabName, fieldName)
+                    f"{tabName}.{fieldName} = ? "
                     if len(idxs) == 1
-                    else "(%s)"
-                    % "or".join([" %s.%s = ? " % (tabName, fieldName) for q in idxs])
+                    else "({})".format(
+                        "or".join([f" {tabName}.{fieldName} = ? " for q in idxs])
+                    )
                 )
                 valsTmp = tuple(idxs)
             elif operator == dstr.Bibs.Search.opCEAll:
@@ -1645,12 +1644,12 @@ class Entries(PhysBiblioDBSub):
                 valsTmp = tuple(idxs)
             elif operator == dstr.Bibs.Search.opCENone:
                 joinStr += " "
-                innerwhere = "(%s)" % "or".join(
-                    [" Cet.%s = ? " % fieldName for q in idxs]
+                innerwhere = "({})".format(
+                    "or".join([f" Cet.{fieldName} = ? " for q in idxs])
                 )
                 whereStr += (
-                    " not exists (select 1 from %s Cet" % tabName
-                    + " where %s and entries.bibkey=Cet.bibkey )" % innerwhere
+                    f" not exists (select 1 from {tabName} Cet"
+                    + f" where {innerwhere} and entries.bibkey=Cet.bibkey )"
                 )
                 valsTmp = tuple(idxs)
             else:
@@ -1669,7 +1668,7 @@ class Entries(PhysBiblioDBSub):
         Output:
             a string
         """
-        return "%%%s%%" % txt if "like" in operator else txt
+        return f"%{txt}%" if "like" in operator else txt
 
     def _prepareInsertArxiv(self, data, element, arxiv=None):
         """Read the arxiv field when preparing
@@ -1686,13 +1685,7 @@ class Entries(PhysBiblioDBSub):
         data["arxiv"] = (
             arxiv
             if arxiv
-            else (
-                element["arxiv"]
-                if "arxiv" in element
-                else element["eprint"]
-                if "eprint" in element
-                else ""
-            )
+            else (element["arxiv"] if "arxiv" in element else element.get("eprint", ""))
         )
         return data
 
@@ -1846,15 +1839,9 @@ class Entries(PhysBiblioDBSub):
             the modified 'data' dict
         """
         for k in ("abstract", "crossref", "doi", "isbn"):
-            data[k] = (
-                kwargs[k]
-                if k in kwargs and kwargs[k]
-                else element[k]
-                if k in element
-                else None
-            )
+            data[k] = kwargs[k] if kwargs.get(k) else element.get(k, None)
         for k in ("ads", "comments", "inspire", "old_keys", "scholar"):
-            data[k] = kwargs[k] if k in kwargs and kwargs[k] else None
+            data[k] = kwargs[k] if kwargs.get(k) else None
         for k in (
             "book",
             "exp_paper",
@@ -1864,9 +1851,9 @@ class Entries(PhysBiblioDBSub):
             "proceeding",
             "review",
         ):
-            data[k] = 1 if k in kwargs and kwargs[k] else 0
+            data[k] = 1 if kwargs.get(k) else 0
         for k in ("marks", "pubdate"):
-            data[k] = kwargs[k] if k in kwargs and kwargs[k] else ""
+            data[k] = kwargs[k] if kwargs.get(k) else ""
         return data
 
     def _prepareInsertYear(self, data, element, year=None):
@@ -1966,14 +1953,14 @@ class Entries(PhysBiblioDBSub):
                 return first, query, whereQ, joinQ, vals
             if di["field"] in self.tableCols["entries"]:
                 if di["operator"] == "IS NULL":
-                    whereQ += "%s %s%s %s " % (
+                    whereQ += "{} {}{} {} ".format(
                         di["logical"],
                         prependTab,
                         di["field"],
                         di["operator"],
                     )
                 elif di["operator"] == "containsraw":
-                    whereQ += "%s %s%s %s ? " % (
+                    whereQ += "{} {}{} {} ? ".format(
                         di["logical"],
                         prependTab,
                         di["field"],
@@ -1981,7 +1968,7 @@ class Entries(PhysBiblioDBSub):
                     )
                     vals += (self._getQueryStr(di["content"], "bla"),)
                 else:
-                    whereQ += "%s %s%s %s ? " % (
+                    whereQ += "{} {}{} {} ? ".format(
                         di["logical"],
                         prependTab,
                         di["field"],
@@ -1997,7 +1984,7 @@ class Entries(PhysBiblioDBSub):
                 di["content"], di["operator"], "entryCats", "idCat"
             )
             joinQ += jC if "join entryCats" not in joinQ else ""
-            whereQ += "%s %s " % (di["logical"], wC)
+            whereQ += "{} {} ".format(di["logical"], wC)
             vals += vC
 
         elif di["type"] == "Experiments":
@@ -2005,7 +1992,7 @@ class Entries(PhysBiblioDBSub):
                 di["content"], di["operator"], "entryExps", "idExp"
             )
             joinQ += jE if "join entryExps" not in joinQ else ""
-            whereQ += "%s %s " % (di["logical"], wE)
+            whereQ += "{} {} ".format(di["logical"], wE)
             vals += vE
 
         elif di["type"] == "Marks":
@@ -2014,7 +2001,7 @@ class Entries(PhysBiblioDBSub):
                 di["content"] = [""]
             if di["operator"] is None or di["operator"] not in ("=", "!=", "like"):
                 di["operator"] = "like"
-            whereQ += "%s %s%s %s ? " % (
+            whereQ += "{} {}{} {} ? ".format(
                 di["logical"],
                 prependTab,
                 "marks",
@@ -2025,9 +2012,9 @@ class Entries(PhysBiblioDBSub):
         elif di["type"] == "Type":
             if "noneu" in di["content"]:
                 firstType = True
-                for f in self.searchPossibleTypes.keys():
+                for f in self.searchPossibleTypes:
                     if f != "none" and f != "noneu" and f != "noUpdate":
-                        whereQ += "%s %s%s %s ? " % (
+                        whereQ += "{} {}{} {} ? ".format(
                             di["logical"] if firstType else "and",
                             prependTab,
                             f,
@@ -2037,9 +2024,9 @@ class Entries(PhysBiblioDBSub):
                         firstType = False
             elif "none" in di["content"]:
                 firstType = True
-                for f in self.searchPossibleTypes.keys():
+                for f in self.searchPossibleTypes:
                     if f != "none" and f != "noneu":
-                        whereQ += "%s %s%s %s ? " % (
+                        whereQ += "{} {}{} {} ? ".format(
                             di["logical"] if firstType else "and",
                             prependTab,
                             f,
@@ -2048,7 +2035,7 @@ class Entries(PhysBiblioDBSub):
                         vals += ("0",)
                         firstType = False
             else:
-                whereQ += "%s %s%s %s ? " % (
+                whereQ += "{} {}{} {} ? ".format(
                     di["logical"],
                     prependTab,
                     di["content"][0],
@@ -2207,18 +2194,16 @@ class Entries(PhysBiblioDBSub):
         Output:
             Boolean (the record needs updates or not)
         """
-        if "bibtexDict" not in e.keys():
+        if "bibtexDict" not in e:
             e = self.completeFetched([e])[0]
-        if (
+        return bool(
             self.runningOAIUpdates
             and (e["proceeding"] == 0 or force)
             and e["book"] == e["lecture"] == e["phd_thesis"] == e["noUpdate"] == 0
             and e["inspire"] is not None
             and e["inspire"] != ""
-            and (force or (e["doi"] is None or "journal" not in e["bibtexDict"].keys()))
-        ):
-            return True
-        return False
+            and (force or (e["doi"] is None or "journal" not in e["bibtexDict"]))
+        )
 
     def citationCount(self, inspireID, pbMax=None, pbVal=None):
         """Update the citation counts using information from INSPIRE
@@ -2252,7 +2237,7 @@ class Entries(PhysBiblioDBSub):
             pass
         batchSize = pbConfig.params["batchSizeInspire"]
         for i in range(0, tot, batchSize):
-            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            entries, _numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 inspireID[i : i + batchSize],
                 searchFormat="recid:%s",
                 fields=physBiblioWeb.webSearch["inspire"].metadataCitationFields,
@@ -2409,13 +2394,11 @@ class Entries(PhysBiblioDBSub):
                 "old_keys",
                 ", ".join(
                     sorted(
-                        set(
-                            [
-                                a.strip()
-                                for a in old.split(",")
-                                if "None" not in a and a.strip() != e["bibkey"]
-                            ]
-                        )
+                        {
+                            a.strip()
+                            for a in old.split(",")
+                            if "None" not in a and a.strip() != e["bibkey"]
+                        }
                     )
                 ),
             )
@@ -2450,10 +2433,10 @@ class Entries(PhysBiblioDBSub):
             a dictionary with the original and the new fields
         """
         fetched_out = []
-        fetched_keys = set([])
+        fetched_keys = set()
         for el in fetched_in:
             tmp = {}
-            for k in el.keys():
+            for k in el:
                 tmp[k] = el[k]
             if el["bibdict"] is not None:
                 if (
@@ -2478,7 +2461,9 @@ class Entries(PhysBiblioDBSub):
                     )
                     tmp["bibtexDict"] = {}
                     tmp["bibdict"] = {}
-                self.updateField(el["bibkey"], "bibdict", "%s" % tmp["bibtexDict"])
+                self.updateField(
+                    el["bibkey"], "bibdict", "{}".format(tmp["bibtexDict"])
+                )
             try:
                 tmp["year"] = tmp["bibtexDict"]["year"]
             except KeyError:
@@ -2491,7 +2476,12 @@ class Entries(PhysBiblioDBSub):
                     tmp[fi] = ""
             try:
                 tmp["published"] = " ".join(
-                    [tmp["journal"], tmp["volume"], "(%s)" % tmp["year"], tmp["pages"]]
+                    [
+                        tmp["journal"],
+                        tmp["volume"],
+                        "({})".format(tmp["year"]),
+                        tmp["pages"],
+                    ]
                 )
                 if re.match(r"  \([\d]*\) ", tmp["published"]):
                     tmp["published"] = ""
@@ -2590,16 +2580,16 @@ class Entries(PhysBiblioDBSub):
                     if first:
                         first = False
                     else:
-                        query += " %s " % connection
-                    query += k + " %s  ? " % operator
+                        query += f" {connection} "
+                    query += k + f" {operator}  ? "
                     if operator.strip() == "like" and "%" not in v:
-                        v = "%%%s%%" % v
+                        v = f"%{v}%"
                     vals += (v,)
-        query += " order by %s %s" % (orderBy, orderType if orderBy else "")
+        query += " order by {} {}".format(orderBy, orderType if orderBy else "")
         if limitTo is not None:
-            query += " LIMIT %s" % (str(limitTo))
+            query += f" LIMIT {limitTo!s}"
             if limitOffset is not None:
-                query += " OFFSET %s" % (str(limitOffset))
+                query += f" OFFSET {limitOffset!s}"
         if saveQuery:
             self.lastQuery = query
             self.lastVals = vals
@@ -2665,13 +2655,13 @@ class Entries(PhysBiblioDBSub):
         """
         if isinstance(string, list):
             return self.fetchAll(
-                params={"bibtex": ["%%%s%%" % q for q in string]},
+                params={"bibtex": [f"%{q}%" for q in string]},
                 connection="or",
                 operator=" like ",
                 saveQuery=saveQuery,
             )
         return self.fetchAll(
-            params={"bibtex": "%%%s%%" % string},
+            params={"bibtex": f"%{string}%"},
             operator=" like ",
             saveQuery=saveQuery,
         )
@@ -2855,18 +2845,18 @@ class Entries(PhysBiblioDBSub):
                     "logical": "or",
                 }
                 for k in (
-                    "%s,%%" % key,
-                    "%%, %s" % key,
-                    "%%,%s" % key,
-                    "%%, %s,%%" % key,
-                    "%%,%s,%%" % key,
+                    f"{key},%",
+                    f"%, {key}",
+                    f"%,{key}",
+                    f"%, {key},%",
+                    f"%,{key},%",
                 )
             ]
 
         if isinstance(key, list):
             dicts = [getSearchDict(k) for k in key]
             return self.fetchFromDict(
-                sum(dicts, []),
+                functools.reduce(operator.iadd, dicts, []),
                 defaultConnection="or",
                 saveQuery=saveQuery,
                 verbose=verbose,
@@ -2883,7 +2873,7 @@ class Entries(PhysBiblioDBSub):
 
     def fetchFromDict(
         self,
-        queryFields=[],
+        queryFields=None,
         defaultConnection="and",
         orderBy="firstdate",
         orderType="ASC",
@@ -2931,6 +2921,8 @@ class Entries(PhysBiblioDBSub):
         Output:
             self
         """
+        if queryFields is None:
+            queryFields = []
         first = True
         vals = ()
         query = "select * from entries "
@@ -2938,7 +2930,7 @@ class Entries(PhysBiblioDBSub):
         whereQ = ""
         prependTab = (
             "entries."
-            if any([e["type"] in ("Categories", "Experiments") for e in queryFields])
+            if any(e["type"] in ("Categories", "Experiments") for e in queryFields)
             else ""
         )
 
@@ -2955,15 +2947,15 @@ class Entries(PhysBiblioDBSub):
             )
 
         query += joinQ if joinQ != "" else ""
-        query += (" where %s" % whereQ) if whereQ != "" else ""
-        query += " order by %s%s" % (prependTab, orderBy)
-        query += (" %s" % orderType) if orderBy else ""
+        query += (f" where {whereQ}") if whereQ != "" else ""
+        query += f" order by {prependTab}{orderBy}"
+        query += (f" {orderType}") if orderBy else ""
         if limitTo is not None:
-            query += " LIMIT %s" % (str(limitTo))
+            query += f" LIMIT {limitTo!s}"
         if limitOffset is not None:
             if limitTo is None:
                 query += " LIMIT 100000"
-            query += " OFFSET %s" % (str(limitOffset))
+            query += f" OFFSET {limitOffset!s}"
         if saveQuery:
             self.lastQuery = query
             self.lastVals = vals
@@ -3359,7 +3351,7 @@ class Entries(PhysBiblioDBSub):
         arxiv = str(self.getField(bibkey, "arxiv"))
         if arxiv.strip() in ("False", "None", ""):
             return False
-        arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+        _arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
             arxiv, searchType="id", fullDict=True
         )
         try:
@@ -3491,6 +3483,11 @@ class Entries(PhysBiblioDBSub):
             the updated (errors, existing)
         """
 
+        if existing is None:
+            existing = []
+        if errors is None:
+            errors = []
+
         def printExisting(entry):
             """Print a message when the entry is
             already present in the database
@@ -3517,7 +3514,7 @@ class Entries(PhysBiblioDBSub):
             errors.append(key)
             return errors, existing
         if completeInfo and pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
-            arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+            _arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
                 data["arxiv"], searchType="id", fullDict=True
             )
             data["abstract"] = arxivDict["abstract"]
@@ -3774,7 +3771,7 @@ class Entries(PhysBiblioDBSub):
             return printExisting(key, existing)
         pBLogger.info(dstr.Bibs.laiNewKey % key)
         if pbConfig.params["fetchAbstract"] and data["arxiv"] != "":
-            arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
+            _arxivBibtex, arxivDict = physBiblioWeb.webSearch["arxiv"].retrieveUrlAll(
                 data["arxiv"], searchType="id", fullDict=True
             )
             data["abstract"] = arxivDict["abstract"]
@@ -3827,7 +3824,9 @@ class Entries(PhysBiblioDBSub):
             self.mainDB.catBib.delete(pbConfig.params["defaultCategories"], key)
         self.mainDB.catBib.askCats(self.lastInserted)
 
-    def parseAllBibtexs(self, fullBibText, errors=[], verbose=False, messageEvery=100):
+    def parseAllBibtexs(
+        self, fullBibText, errors=None, verbose=False, messageEvery=100
+    ):
         """Parse the text containing several bibtex entries and return
         the list of parsed entries from `bibtexparser`.
         It should deal well with a number of errors
@@ -3843,6 +3842,8 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list of parsed entries
         """
+        if errors is None:
+            errors = []
         bibText = ""
         elements = []
         found = 0
@@ -3862,7 +3863,7 @@ class Entries(PhysBiblioDBSub):
         pBLogger.info(dstr.Bibs.pabFound % len(elements))
         return elements
 
-    def parseSingleBibtex(self, text, errors=[], verbose=False):
+    def parseSingleBibtex(self, text, errors=None, verbose=False):
         """Parse the text corresponding to an entry and returns
         the list of parsed entries from `bibtexparser`.
         If an exception occurs, return an empty list
@@ -3876,6 +3877,8 @@ class Entries(PhysBiblioDBSub):
         Output:
             a list with the parsed entries
         """
+        if errors is None:
+            errors = []
         if verbose:
             pBLogger.debug(dstr.Bibs.psbProcess % text)
         if text.strip() == "":
@@ -3955,7 +3958,7 @@ class Entries(PhysBiblioDBSub):
         )
         # if some fields are empty, use bibtex info
         data = self._prepareInsertFill(data)
-        data["bibdict"] = "%s" % data["bibdict"]
+        data["bibdict"] = "{}".format(data["bibdict"])
         return data
 
     def prepareUpdate(self, bibtexOld, bibtexNew):
@@ -3982,10 +3985,8 @@ class Entries(PhysBiblioDBSub):
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = []
         keep = elementOld
-        for k in elementNew.keys():
-            if k not in elementOld.keys():
-                keep[k] = elementNew[k]
-            elif (
+        for k in elementNew:
+            if k not in elementOld or (
                 elementNew[k]
                 and elementNew[k] != elementOld[k]
                 and k != "bibtex"
@@ -4118,14 +4119,18 @@ class Entries(PhysBiblioDBSub):
                     if isinstance(addFields, list):
                         for f in addFields:
                             try:
-                                print("   %s: %s" % (f, e[f]))
+                                print(f"   {f}: {e[f]}")
                             except (IndexError, KeyError, TypeError, ValueError):
-                                print("   %s: %s" % (f, e["bibtexDict"][f]))
+                                print("   {}: {}".format(f, e["bibtexDict"][f]))
                     else:
                         try:
-                            print("   %s: %s" % (addFields, e[addFields]))
+                            print(f"   {addFields}: {e[addFields]}")
                         except (IndexError, KeyError, TypeError, ValueError):
-                            print("   %s: %s" % (addFields, e["bibtexDict"][addFields]))
+                            print(
+                                "   {}: {}".format(
+                                    addFields, e["bibtexDict"][addFields]
+                                )
+                            )
                 except Exception:
                     pass
         pBLogger.info(dstr.Bibs.elementsFound % total)
@@ -4150,7 +4155,7 @@ class Entries(PhysBiblioDBSub):
                                 d,
                                 "arxiv ID",
                                 r["arxiv"],
-                                "%s or %s" % (k, d),
+                                f"{k} or {d}",
                             )
                         )
                 if "doi" in m:
@@ -4161,7 +4166,7 @@ class Entries(PhysBiblioDBSub):
                                 d,
                                 "DOI",
                                 r["doi"],
-                                "%s or %s" % (k, d),
+                                f"{k} or {d}",
                             )
                         )
                 if "key" in m or "oldkey" in m:
@@ -4172,14 +4177,13 @@ class Entries(PhysBiblioDBSub):
                                 k,
                                 d,
                                 "key or oldkey",
-                                "(%s - %s) or (%s - %s)"
-                                % (
+                                "({} - {}) or ({} - {})".format(
                                     r["bibkey"],
                                     n["bibkey"],
                                     r["old_keys"],
                                     n["old_keys"],
                                 ),
-                                "%s or %s" % (k, d),
+                                f"{k} or {d}",
                             )
                         )
         return tpls
@@ -4196,8 +4200,8 @@ class Entries(PhysBiblioDBSub):
         for t in tpls:
             if t[0] != prev:
                 prev = t[0]
-                txt += "-- %s\n" % prev
-            txt += "%s and %s have a matching %s [%s]\n" % t[:-1]
+                txt += f"-- {prev}\n"
+            txt += "{} and {} have a matching {} [{}]\n".format(*t[:-1])
         return txt
 
     def printDuplicates(self, entries=None):
@@ -4288,8 +4292,7 @@ class Entries(PhysBiblioDBSub):
         failed = []
         self.runningReplace = True
         pBLogger.info(dstr.Bibs.replaceProcessTot % tot)
-        if tot < 1:
-            tot = 1
+        tot = max(tot, 1)
         try:
             pbMax(tot)
         except TypeError:
@@ -4330,7 +4333,7 @@ class Entries(PhysBiblioDBSub):
             or False if self.connExec failed
         """
         self.lastQuery = "SELECT * FROM entries WHERE bibtex LIKE :match"
-        match = "%" + "%s" % old + "%"
+        match = "%" + f"{old}" + "%"
         self.lastVals = {"match": match}
         self.cursExec(self.lastQuery, self.lastVals)
         self.lastFetched = self.completeFetched(self.curs.fetchall())
@@ -4354,9 +4357,9 @@ class Entries(PhysBiblioDBSub):
         news,
         tot=1,
         regex=False,
-        changed=[],
-        failed=[],
-        success=[],
+        changed=None,
+        failed=None,
+        success=None,
     ):
         """Replace a string with a new one, in the given field
         of the given bibtex entry (one at each time)
@@ -4385,6 +4388,13 @@ class Entries(PhysBiblioDBSub):
                 the updated lists of entries that were
                 successfully processed, changed or produced errors
         """
+
+        if success is None:
+            success = []
+        if failed is None:
+            failed = []
+        if changed is None:
+            changed = []
 
         def singleReplace(line, new, previous=None):
             """Replace the old with the new string in the given line
@@ -4553,7 +4563,7 @@ class Entries(PhysBiblioDBSub):
         changed = []
         pBLogger.info(dstr.Bibs.souSecond)
         for i in range(0, tot, batchSize):
-            entries, numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
+            entries, _numi = physBiblioWeb.webSearch["inspire"].retrieveBatchQuery(
                 inspireID[i : i + batchSize],
                 searchFormat="recid:%s",
             )
@@ -4565,7 +4575,7 @@ class Entries(PhysBiblioDBSub):
                 e = self.getByInspireID(r["id"], saveQuery=False)[0]
                 if reloadAll:
                     e["bibtex"] = physBiblioWeb.webSearch["inspire"].retrieveUrlFirst(
-                        "recid:%s" % r["id"]
+                        "recid:{}".format(r["id"])
                     )
                     e = self.completeFetched([e])[0]
                 r = physBiblioWeb.webSearch["inspire"].processRecord(
@@ -4772,7 +4782,7 @@ class Entries(PhysBiblioDBSub):
                     exc_info=True,
                 )
                 tmpBibDict = {}
-            self.updateField(key, "bibdict", "%s" % tmpBibDict, verbose=verbose)
+            self.updateField(key, "bibdict", f"{tmpBibDict}", verbose=verbose)
         if (
             field in self.tableCols["entries"]
             and field != "bibkey"
@@ -4780,7 +4790,7 @@ class Entries(PhysBiblioDBSub):
         ):
             query = "update entries set " + field + "=:field where bibkey=:bibkey\n"
             if verbose > 1:
-                pBLogger.info("%s" % tuple(query, field, value))
+                pBLogger.info(f"{tuple(query, field, value)}")
             return self.connExec(query, {"field": value, "bibkey": key})
         else:
             if verbose > 1:
@@ -4893,7 +4903,7 @@ class Entries(PhysBiblioDBSub):
                                 "inspire"
                             ].correspondences
                         },
-                        **{"bibkey": key},
+                        "bibkey": key,
                     }
                 ]
             ),
@@ -5005,11 +5015,11 @@ class Entries(PhysBiblioDBSub):
         """
         old = self.getByIdFromInspireRecord(e) if useOld is None else useOld
         if len(old) == 0:
-            pBLogger.debug("no match found for record %s" % e)
+            pBLogger.debug(f"no match found for record {e}")
             return False
         old = old[0]
         if verbose > 1:
-            pBLogger.info("%s, %s" % (e, old))
+            pBLogger.info(f"{e}, {old}")
         if not force and old["noUpdate"] != 0:
             return False
         hasChanged = False

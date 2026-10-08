@@ -12,7 +12,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.setuptests import skipTestsSettings
     from physbiblio.webimport.adsnasa import WebSearch
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webinterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise

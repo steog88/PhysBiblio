@@ -75,7 +75,7 @@ class TestParser(unittest.TestCase):
                 parser.parse_args([opt])
             self.assert_in_stdout_sysexit(
                 lambda: parser.parse_args([opt]),
-                ["PhysBiblio %s (%s)" % (__version__, __version_date__)],
+                [f"PhysBiblio {__version__} ({__version_date__})"],
             )
         for opt in ("-h", "--help"):
             with self.assertRaises(SystemExit):
@@ -88,16 +88,16 @@ class TestParser(unittest.TestCase):
                 ],
             )
         for opt in ("-p", "--profile"):
-            profile = list(pbConfig.profiles.keys())[0]
+            profile = next(iter(pbConfig.profiles.keys()))
             with (
                 patch("physbiblio.cli.cli", autospec=True) as mock,
                 patch("logging.Logger.info") as _i,
             ):
-                parser.parse_args([opt, "%s" % profile, "cli"])
+                parser.parse_args([opt, f"{profile}", "cli"])
                 self.assertIn(
-                    "Starting with profile '%s', database" % profile, _i.call_args[0][0]
+                    f"Starting with profile '{profile}', database", _i.call_args[0][0]
                 )
-                args = parser.parse_args([opt, "%s" % profile, "cli"])
+                args = parser.parse_args([opt, f"{profile}", "cli"])
                 args.func(args)
                 mock.assert_called_once_with()
 

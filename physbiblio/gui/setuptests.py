@@ -68,5 +68,5 @@ class GUIwMainWTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Call the parent method and instantiate a testing MainWindow"""
-        super(GUIwMainWTestCase, self).setUpClass()
+        super().setUpClass()
         self.mainW = MainWindow(testing=True)

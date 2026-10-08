@@ -75,7 +75,7 @@ class TestMarks(GUITestCase):
 
         gb, mv = m.getGroupbox(["new", "imp"])
         for q, qcb in mv.items():
-            self.assertIsInstance(mv[q], QCheckBox)
+            self.assertIsInstance(qcb, QCheckBox)
             if q in ("new", "imp"):
                 self.assertTrue(qcb.isChecked())
             else:
@@ -84,7 +84,7 @@ class TestMarks(GUITestCase):
         gb, mv = m.getGroupbox(["imp"], "try", radio=True)
         self.assertEqual(gb.title(), "try")
         for q, qcb in mv.items():
-            self.assertIsInstance(mv[q], QRadioButton)
+            self.assertIsInstance(qcb, QRadioButton)
             if q in ("imp"):
                 self.assertTrue(qcb.isChecked())
             else:
@@ -93,7 +93,7 @@ class TestMarks(GUITestCase):
         gb, mv = m.getGroupbox([], radio=True, addAny=True)
         self.assertIn("any", mv.keys())
         for q, qcb in mv.items():
-            self.assertIsInstance(mv[q], QRadioButton)
+            self.assertIsInstance(qcb, QRadioButton)
             self.assertFalse(qcb.isChecked())
 
 

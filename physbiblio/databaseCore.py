@@ -47,7 +47,7 @@ class PhysBiblioDBCore:
         self.descriptions = physbiblio.tablesDef.fieldsDescriptions
         # names of the columns
         self.tableCols = {}
-        for q in self.tableFields.keys():
+        for q in self.tableFields:
             self.tableCols[q] = [a[0] for a in self.tableFields[q]]
 
         self.dbChanged = False
@@ -92,7 +92,6 @@ class PhysBiblioDBCore:
 
     def reOpenDB(self):
         """Not defined at this stage. Present in subclass PhysBiblioDB"""
-        pass
 
     def closeDB(self, info=True):
         """Close the database.
@@ -241,23 +240,24 @@ class PhysBiblioDBCore:
 
     def loadSubClasses(self):
         """Not defined at this stage. Present in subclass PhysBiblioDB"""
-        pass
 
     def checkExistingTables(
         self,
-        wantedTables=[
-            "categories",
-            "entries",
-            "entryCats",
-            "entryExps",
-            "expCats",
-            "experiments",
-            "settings",
-        ],
+        wantedTables=None,
     ):
         """Check that all the required tables
         are present in the database
         """
+        if wantedTables is None:
+            wantedTables = [
+                "categories",
+                "entries",
+                "entryCats",
+                "entryExps",
+                "expCats",
+                "experiments",
+                "settings",
+            ]
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [name[0] for name in self.curs]
         return not all(t in tables for t in wantedTables)
@@ -270,7 +270,7 @@ class PhysBiblioDBCore:
             fieldsDict: the list containing the column information
                 for the table
         """
-        command = "CREATE TABLE %s (\n" % q
+        command = f"CREATE TABLE {q} (\n"
         first = True
         for el in fields:
             if first:
@@ -300,7 +300,7 @@ class PhysBiblioDBCore:
             fieldsDict = self.tableFields
         self.cursExec("SELECT name FROM sqlite_master WHERE type='table';")
         existingTables = [name[0] for name in self.curs]
-        for q in fieldsDict.keys():
+        for q in fieldsDict:
             if q in existingTables:
                 continue
             self.createTable(q, fieldsDict[q])
@@ -395,7 +395,7 @@ class PhysBiblioDBSub:
             if "[" in string and "]" in string:
                 return ast.literal_eval(string.strip())
             elif "," in string:
-                return ast.literal_eval("[%s]" % string.strip())
+                return ast.literal_eval(f"[{string.strip()}]")
             else:
                 return string.strip()
         except SyntaxError:

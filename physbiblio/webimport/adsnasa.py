@@ -11,7 +11,7 @@ try:
     from physbiblio.config import pbConfig
     from physbiblio.errors import pBLogger
     from physbiblio.strings.webimport import ADSNasaStrings
-    from physbiblio.webimport.webInterf import WebInterf
+    from physbiblio.webimport.webinterf import WebInterf
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
@@ -24,7 +24,7 @@ class WebSearch(WebInterf, ADSNasaStrings):
     name = "ADS-NASA fetcher"
     description = "fetcher for ADS from NASA"
     url = "https://ui.adsabs.harvard.edu/"
-    loadFields = [
+    loadFields = (
         "abstract",
         "arxiv_class",
         "author",
@@ -35,8 +35,8 @@ class WebSearch(WebInterf, ADSNasaStrings):
         "pubdate",
         "title",
         "year",
-    ]
-    fewFields = ["author", "first_author", "bibcode", "id", "year", "title"]
+    )
+    fewFields = ("author", "first_author", "bibcode", "id", "year", "title")
 
     def getGenericInfo(
         self, string, fields, rows=pbConfig.params["maxExternalAPIResults"]

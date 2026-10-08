@@ -13,7 +13,7 @@ try:
     from physbiblio.setuptests import patch, skipTestsSettings
     from physbiblio.strings.webimport import ArxivStrings
     from physbiblio.webimport.arxiv import WebSearch, isValidArxiv
-    from physbiblio.webimport.webInterf import WebInterf, physBiblioWeb
+    from physbiblio.webimport.webinterf import WebInterf, physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     raise
@@ -312,7 +312,7 @@ class TestArxivMethods(unittest.TestCase):
         self.assertTrue(hasattr(ws, "categories"))
         self.assertIsInstance(ws.categories, dict)
         for k, v in ws.categories.items():
-            self.assertIsInstance(v, list)
+            self.assertIsInstance(v, tuple)
         self.assertTrue(hasattr(ws, "urlArgs"))
         self.assertIsInstance(physBiblioWeb.webSearch["arxiv"], WebSearch)
 
@@ -384,11 +384,11 @@ class TestArxivMethods(unittest.TestCase):
             patch("logging.Logger.info") as _i,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="myurl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl", return_value=""
             ) as _tu,
         ):
             self.assertEqual(aws.arxivRetriever("abc"), "")
@@ -420,11 +420,11 @@ class TestArxivMethods(unittest.TestCase):
             patch("logging.Logger.debug") as _d,
             patch("logging.Logger.exception") as _e,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.createUrl",
+                "physbiblio.webimport.webinterf.WebInterf.createUrl",
                 return_value="myurl",
             ) as _cu,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value=sampleFeed1,
             ) as _tu,
         ):
@@ -540,7 +540,7 @@ class TestArxivMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
             patch("logging.Logger.warning") as _w,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl", return_value=""
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl", return_value=""
             ) as _tu,
         ):
             self.assertEqual(aws.arxivDaily("abc"), False)
@@ -560,7 +560,7 @@ class TestArxivMethods(unittest.TestCase):
             patch("logging.Logger.exception") as _e,
             patch("logging.Logger.warning") as _w,
             patch(
-                "physbiblio.webimport.webInterf.WebInterf.textFromUrl",
+                "physbiblio.webimport.webinterf.WebInterf.textFromUrl",
                 return_value=sampleDailyFeed1,
             ) as _tu,
         ):

@@ -55,7 +55,7 @@ try:
     )
     from physbiblio.gui.setuptests import GUITestCase
     from physbiblio.setuptests import USE_AUTOSPEC_CLASS, skipTestsSettings
-    from physbiblio.webimport.webInterf import physBiblioWeb
+    from physbiblio.webimport.webinterf import physBiblioWeb
 except ImportError:
     print("Could not find physbiblio and its modules!")
     print(traceback.format_exc())
